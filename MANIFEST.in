@@ -1,0 +1,7 @@
+include LICENSE
+include README.md
+include README.en.md
+include AGENTS.md
+recursive-include mindie_profiler *.py *.json
+recursive-include benchmarks *.py
+recursive-include tests *.py *.json *.csv *.txt
