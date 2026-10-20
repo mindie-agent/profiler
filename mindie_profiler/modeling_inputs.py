@@ -4,8 +4,8 @@
   Own the explicit Shape/dtype/layout/hardware/workload records consumed by
   ``theoretical_model``, classify observed Ascend operators into deterministic
   modeling families, project/extract a portable ``ModelingInputsBundle``, and
-  compute the local single-kernel roofline lower bound.  It carries a fully
-  self-contained fallback and imports ``mindie_sim`` only when already installed.
+  compute the local single-kernel roofline lower bound without importing
+  ``mindie_sim``.
 
 [Invariants]
   * Missing Shape/dtype/layout/hardware/workload inputs return
@@ -39,11 +39,6 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Mapping
-
-try:  # Prefer the shared implementation when mindie-sim is installed.
-    from mindie_sim import modeling_inputs as _sim_modeling_inputs
-except (ImportError, ModuleNotFoundError):  # Isolated mindie-profiler install.
-    _sim_modeling_inputs = None
 
 IDEAL_BOUND_FORMULA_VERSION = "roofline-max-v1"
 SCHEMA_VERSION = "mindie-modeling-inputs/1"
@@ -772,13 +767,6 @@ def estimate_ideal_hardware_lower_bound(
         unmodeled_reason=None,
     )
 
-if _sim_modeling_inputs is not None:
-    # Share the installed mindie-sim roofline types/formula when available.
-    IDEAL_BOUND_FORMULA_VERSION = getattr(_sim_modeling_inputs, "IDEAL_BOUND_FORMULA_VERSION", IDEAL_BOUND_FORMULA_VERSION)
-    HardwareSpec = getattr(_sim_modeling_inputs, "HardwareSpec", HardwareSpec)
-    KernelInputs = getattr(_sim_modeling_inputs, "KernelInputs", KernelInputs)
-    IdealLowerBound = getattr(_sim_modeling_inputs, "IdealLowerBound", IdealLowerBound)
-    estimate_ideal_hardware_lower_bound = getattr(_sim_modeling_inputs, "estimate_ideal_hardware_lower_bound", estimate_ideal_hardware_lower_bound)
 
 ideal_hardware_lower_bound = estimate_ideal_hardware_lower_bound
 
