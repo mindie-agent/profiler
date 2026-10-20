@@ -1,8 +1,19 @@
 """Tier-0 contract tests for the P0 metric/identity corrections.
 
-All cases are pure in-memory or tiny SQLite fixtures and run in well under 5s:
-metric naming, engine/bottleneck separation, variant grouping, clipped-event
-distribution hygiene, default identity, multi-DB refusal, and request wall time.
+[Role]
+  Pin metric naming, engine/bottleneck separation, variant grouping, clipped
+  event hygiene, default identity, multi-DB refusal, request wall time, and the
+  standalone isolated-import/packaging boundary.
+
+[Invariants]
+  * All cases use pure in-memory or tiny SQLite fixtures and run in under 5s.
+  * The isolated subprocess may import only this repository's package.
+
+[Timeouts & Locks]
+  Subprocess import uses a 5s timeout; no locks or sleeps.
+
+[Side-Effect Policy]
+  Writes only pytest ``tmp_path`` fixtures.
 """
 
 from __future__ import annotations
@@ -162,17 +173,18 @@ def test_request_wall_is_measured_not_derived(tmp_path):
     assert row["host_dispatch_gap_ms"] is None
 
 
-def test_pyproject_declares_mindie_sim_and_isolated_core_import_succeeds(tmp_path):
+def test_pyproject_is_standalone_and_isolated_core_import_succeeds(tmp_path):
     repo_root = Path(__file__).resolve().parents[1]
     pyproject = tomllib.loads((repo_root / "pyproject.toml").read_text(encoding="utf-8"))
-    deps = pyproject["project"]["dependencies"]
-    assert any(dep.startswith("mindie-sim") for dep in deps)
+    assert pyproject["project"]["dependencies"] == []
 
     root = build_run(tmp_path)
     code = (
         "import sys; "
         f"sys.path.insert(0, {str(repo_root)!r}); "
         "import mindie_profiler; "
+        "import mindie_profiler.modeling_inputs; "
+        "from mindie_profiler.cli import main; "
         "assert 'mindie_sim' not in sys.modules; "
         f"inv = mindie_profiler.inventory_profile({str(root)!r}); "
         "assert inv['ranks']; "

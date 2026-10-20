@@ -8,9 +8,7 @@ version = "0.5.0"
 description = "Ascend NPU profiling collection, in-place inventory/analyze/correlate/compare/sql analysis, and memory/online evidence"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = [
-    "mindie-sim>=0.1.0",
-]
+dependencies = []
 
 [project.optional-dependencies]
 test = ["pytest>=8,<10"]
