@@ -126,7 +126,12 @@ def write_tiny_llama_model(model_dir: str | Path, **overrides: Any) -> dict[str,
 
 
 def _installed_wrapper_export_expectation() -> dict[str, Any]:
-    path = Path("/vllm-workspace/vllm-ascend/vllm_ascend/profiler/torch_npu_profiler.py")
+    path = Path(
+        os.environ.get(
+            "MINDIE_PROFILER_VLLM_ASCEND_WRAPPER",
+            "/vllm-workspace/vllm-ascend/vllm_ascend/profiler/torch_npu_profiler.py",
+        )
+    )
     if not path.is_file():
         return {"path": str(path), "exists": False, "export_type": "unknown"}
     try:
@@ -329,8 +334,10 @@ def load_source_pair(
             "vllm": str(Path(vllm["path"]) / "vllm" / "__init__.py"),
             "vllm_ascend": str(Path(ascend["path"]) / "vllm_ascend" / "__init__.py"),
         },
-        "env": {"PYTHONPATH": os.pathsep.join([vllm["pythonpath"], ascend["path"]]),
-                "VLLM_VERSION": vllm.get("vllm_version") or "0.29.0"},
+        "env": {
+            "PYTHONPATH": os.pathsep.join([vllm["pythonpath"], ascend["path"]]),
+            **({"VLLM_VERSION": str(vllm["vllm_version"])} if vllm.get("vllm_version") else {}),
+        },
         "source_commits_equal_verified_pin": (
             vllm["source_commit"] == (ascend.get("compat_vllm_commit") or vllm["source_commit"])
         ),
