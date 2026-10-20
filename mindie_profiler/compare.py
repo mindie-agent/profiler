@@ -388,9 +388,10 @@ def _hierarchy(baseline: Mapping[str, Any], candidate: Mapping[str, Any],
 
 
 def compare_profiles(
-    baseline: Any, candidate: Any, *, require_binding: bool = False
+    baseline: Any, candidate: Any, *, require_binding: bool = False,
+    require_input_identity: bool = False,
 ) -> dict[str, Any]:
-    """Compare two real C7 reports; incompatibility is returned, never raised."""
+    """Compare C7 reports; CLI callers require identity, legacy API callers may inspect partial evidence."""
     hard: list[dict[str, Any]] = []
     limits: list[dict[str, Any]] = []
     matching: dict[str, Any] = {}
@@ -476,14 +477,17 @@ def compare_profiles(
         "candidate_sha256": _hash(c_input) if c_input is not None else None,
         "status": "unavailable",
     }
+    # Strict callers need proof of workload equality; the default API keeps
+    # partial-evidence comparisons available with explicit limitations.
+    input_issues = hard if require_input_identity else limits
     if b_input is None and c_input is None:
-        limits.append(_lim("input_identity_unavailable",
+        input_issues.append(_lim("input_identity_unavailable",
                            "C7 reports do not carry an input signature; workload equality is unverified"))
     elif b_input is None or c_input is None:
-        limits.append(_lim("input_identity_incomplete",
+        input_issues.append(_lim("input_identity_incomplete",
                            "only one report declares scene.input_signature"))
     elif input_entry["baseline_sha256"] is None or input_entry["candidate_sha256"] is None:
-        limits.append(_lim("input_identity_unhashable",
+        input_issues.append(_lim("input_identity_unhashable",
                            "scene.input_signature cannot be canonicalized for exact comparison"))
     elif input_entry["baseline_sha256"] != input_entry["candidate_sha256"]:
         input_entry["status"] = "mismatch"
@@ -520,8 +524,11 @@ def compare_profiles(
                                "rank scopes differ; only the common rank_id set is compared",
                                details={"baseline": b_ranks, "candidate": c_ranks}))
 
-    b_slow = baseline.get("step_accounting", {}).get("slowest_rank")
-    c_slow = candidate.get("step_accounting", {}).get("slowest_rank")
+    # Invalid external containers are already reported by rank/step checks;
+    # still preserve the remaining comparison receipt instead of dereferencing them.
+    b_accounting, c_accounting = baseline.get("step_accounting"), candidate.get("step_accounting")
+    b_slow = b_accounting.get("slowest_rank") if isinstance(b_accounting, Mapping) else None
+    c_slow = c_accounting.get("slowest_rank") if isinstance(c_accounting, Mapping) else None
     slowest = {
         "baseline": b_slow.get("rank_id") if isinstance(b_slow, Mapping) else None,
         "candidate": c_slow.get("rank_id") if isinstance(c_slow, Mapping) else None,

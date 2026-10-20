@@ -98,7 +98,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         baseline = _read_side(args, "baseline")
         candidate = _read_side(args, "candidate")
-        result = compare_profiles(baseline, candidate, require_binding=True)
+        result = compare_profiles(
+            baseline, candidate, require_binding=True, require_input_identity=True,
+        )
         baseline_structure = baseline.get("structure")
         candidate_structure = candidate.get("structure")
         if isinstance(baseline_structure, dict) and isinstance(candidate_structure, dict):

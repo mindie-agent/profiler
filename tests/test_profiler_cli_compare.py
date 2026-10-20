@@ -3,9 +3,12 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from mindie_profiler.__main__ import main
 from mindie_profiler.analyze import analyze_profile
 from mindie_profiler.events import Window
+from mindie_profiler.compare import compare_profiles
 
 
 SOURCE = Path(__file__).parent / "fixtures" / "profiler_core" / "rank_0"
@@ -33,6 +36,67 @@ def _structure():
         ],
         "layers": [],
     }
+
+
+@pytest.mark.parametrize("missing_sides, reason", [
+    (("baseline", "candidate"), "input_identity_unavailable"),
+    (("candidate",), "input_identity_incomplete"),
+])
+def test_compare_cli_requires_workload_identity_but_api_remains_permissive(
+    tmp_path, capsys, missing_sides, reason,
+):
+    reports = {
+        side: analyze_profile(
+            SOURCE, ranks=["rank_0"], windows=[Window(0, 60_000, step=4)], scene=dict(SCENE),
+        )
+        for side in ("baseline", "candidate")
+    }
+    for side in missing_sides:
+        reports[side]["scene"].pop("input_signature")
+    # Existing API consumers can still inspect partial evidence.
+    assert compare_profiles(reports["baseline"], reports["candidate"])["comparable"]
+    for side, report in reports.items():
+        (tmp_path / f"{side}.json").write_text(json.dumps(report))
+    output = tmp_path / "comparison.json"
+    code = main([
+        "compare", "--baseline-summary", str(tmp_path / "baseline.json"),
+        "--candidate-summary", str(tmp_path / "candidate.json"), "--output", str(output),
+    ])
+    capsys.readouterr()
+    assert code == 3
+    receipt = json.loads(output.read_text())
+    assert receipt["status"] == "not_comparable"
+    assert receipt["comparable"] is False
+    assert reason in {item["code"] for item in receipt["reasons"]}
+
+
+@pytest.mark.parametrize("side", ["baseline", "candidate"])
+@pytest.mark.parametrize("accounting", [None, []])
+def test_invalid_accounting_container_returns_noncomparable_receipt(
+    tmp_path, capsys, side, accounting,
+):
+    reports = {
+        name: analyze_profile(
+            SOURCE, ranks=["rank_0"], windows=[Window(0, 60_000, step=4)], scene=dict(SCENE),
+        )
+        for name in ("baseline", "candidate")
+    }
+    reports[side]["step_accounting"] = accounting
+    receipt = compare_profiles(reports["baseline"], reports["candidate"])
+    assert receipt["comparable"] is False
+    assert "rank_scope_unavailable" in {item["code"] for item in receipt["reasons"]}
+    for name, report in reports.items():
+        (tmp_path / f"{name}.json").write_text(json.dumps(report))
+    output = tmp_path / "comparison.json"
+    code = main([
+        "compare", "--baseline-summary", str(tmp_path / "baseline.json"),
+        "--candidate-summary", str(tmp_path / "candidate.json"), "--output", str(output),
+    ])
+    capsys.readouterr()
+    assert code == 3
+    result = json.loads(output.read_text())
+    assert result["status"] == "not_comparable"
+    assert result["step_accounting"] is None
 
 
 def test_compare_roots_uses_each_runs_explicit_steps(tmp_path, capsys):
