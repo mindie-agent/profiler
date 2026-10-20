@@ -8,6 +8,10 @@ distribution hygiene, default identity, multi-DB refusal, and request wall time.
 from __future__ import annotations
 
 import hashlib
+from pathlib import Path
+import subprocess
+import sys
+import tomllib
 
 import pytest
 
@@ -156,3 +160,29 @@ def test_request_wall_is_measured_not_derived(tmp_path):
     assert row["observed_event_span_ms"] == 0.045
     assert row["device_uncovered_ms"] == 0.005
     assert row["host_dispatch_gap_ms"] is None
+
+
+def test_pyproject_declares_mindie_sim_and_isolated_core_import_succeeds(tmp_path):
+    repo_root = Path(__file__).resolve().parents[1]
+    pyproject = tomllib.loads((repo_root / "pyproject.toml").read_text(encoding="utf-8"))
+    deps = pyproject["project"]["dependencies"]
+    assert any(dep.startswith("mindie-sim") for dep in deps)
+
+    root = build_run(tmp_path)
+    code = (
+        "import sys; "
+        f"sys.path.insert(0, {str(repo_root)!r}); "
+        "import mindie_profiler; "
+        "assert 'mindie_sim' not in sys.modules; "
+        f"inv = mindie_profiler.inventory_profile({str(root)!r}); "
+        "assert inv['ranks']; "
+        "assert 'mindie_sim' not in sys.modules"
+    )
+    proc = subprocess.run(
+        [sys.executable, "-I", "-S", "-c", code],
+        capture_output=True,
+        text=True,
+        timeout=5,
+        check=False,
+    )
+    assert proc.returncode == 0, proc.stderr

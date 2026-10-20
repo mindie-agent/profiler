@@ -43,31 +43,31 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-from .modeling_inputs import HardwareSpec, KernelInputs, estimate_ideal_hardware_lower_bound
-from .tensor_cast_provider import TensorCastAnalyticProvider
-from .theoretical_model import ModelingRequest, align_modeling
+
+def _load_modeling_inputs():
+    from . import modeling_inputs
+    return modeling_inputs
+
+
+def _load_theoretical_model():
+    from . import theoretical_model
+    return theoretical_model
+
+
+def _load_tensor_cast_provider():
+    from .tensor_cast_provider import TensorCastAnalyticProvider
+    return TensorCastAnalyticProvider
 
 SCHEMA_VERSION = "mindie-profiler-provider-c7-three-time/1"
 _KERNEL_TABLES = "TASK t JOIN COMPUTE_TASK_INFO c ON c.globalTaskId = t.globalTaskId"
 _PMU_COUNTERS = (
-    "aic_total_time",
-    "aic_mac_ratio",
-    "aic_mte1_ratio",
-    "aic_mte2_ratio",
-    "aic_scalar_ratio",
-    "aiv_total_time",
-    "aiv_vec_ratio",
-    "aiv_mte2_ratio",
-    "aiv_mte3_ratio",
+    "aic_total_time", "aic_mac_ratio", "aic_mte1_ratio", "aic_mte2_ratio", "aic_scalar_ratio",
+    "aiv_total_time", "aiv_vec_ratio", "aiv_mte2_ratio", "aiv_mte3_ratio",
 )
 
 
 def _add_limitation(
-    limitations: list[dict[str, Any]],
-    code: str,
-    scope: str,
-    detail: str,
-    severity: str = "medium",
+    limitations: list[dict[str, Any]], code: str, scope: str, detail: str, severity: str = "medium"
 ) -> None:
     for item in limitations:
         if item.get("code") == code and item.get("scope") == scope:
@@ -78,25 +78,29 @@ def _add_limitation(
 def _coerce_hardware(value: Any) -> tuple[HardwareSpec | None, str | None]:
     if value is None:
         return None, None
-    if isinstance(value, HardwareSpec):
+    modeling_inputs = _load_modeling_inputs()
+    if isinstance(value, modeling_inputs.HardwareSpec):
         return value, None
     if isinstance(value, Mapping):
         try:
-            return HardwareSpec(**dict(value)), None
+            return modeling_inputs.HardwareSpec(**dict(value)), None
         except (TypeError, ValueError) as exc:
             return None, f"model_hardware_invalid:{type(exc).__name__}"
     return None, f"model_hardware_invalid:{type(value).__name__}"
 
 
 def _coerce_inputs(value: Any, hardware: HardwareSpec | None) -> KernelInputs | None:
+    if value is None:
+        return None
+    modeling_inputs = _load_modeling_inputs()
     candidate: KernelInputs | None = None
-    if isinstance(value, KernelInputs):
+    if isinstance(value, modeling_inputs.KernelInputs):
         candidate = value
     elif isinstance(value, Mapping):
         if "inputs" in value:
             return _coerce_inputs(value.get("inputs"), hardware)
         try:
-            candidate = KernelInputs.from_mapping(value)
+            candidate = modeling_inputs.KernelInputs.from_mapping(value)
         except (TypeError, ValueError):
             return None
     if candidate is not None and hardware is not None and candidate.hardware is None:
@@ -105,11 +109,9 @@ def _coerce_inputs(value: Any, hardware: HardwareSpec | None) -> KernelInputs | 
 
 
 def _looks_like_inputs(value: Any) -> bool:
-    if isinstance(value, KernelInputs):
-        return True
-    return isinstance(value, Mapping) and any(
-        key in value for key in ("shape", "dtype", "layout", "hardware", "op_kind", "flops", "memory_bytes")
-    )
+    if isinstance(value, Mapping):
+        return any(key in value for key in ("shape", "dtype", "layout", "hardware", "op_kind", "flops", "memory_bytes"))
+    return value is not None and isinstance(value, _load_modeling_inputs().KernelInputs)
 
 
 def _normalize_registry(
@@ -165,21 +167,13 @@ def _normalize_registry(
 
 
 def _lookup_inputs(
-    registry: Mapping[Any, Any] | None,
-    rank_id: str,
-    block: str,
-    kernel_name: str,
-    hardware: HardwareSpec | None,
+    registry: Mapping[Any, Any] | None, rank_id: str, block: str, kernel_name: str, hardware: HardwareSpec | None
 ) -> KernelInputs | None:
     if registry is None:
         return None
     keys = (
-        (rank_id, block, kernel_name),
-        (rank_id, kernel_name),
-        (block, kernel_name),
-        kernel_name,
-        f"{rank_id}:{kernel_name}",
-        f"{rank_id}:{block}:{kernel_name}",
+        (rank_id, block, kernel_name), (rank_id, kernel_name), (block, kernel_name),
+        kernel_name, f"{rank_id}:{kernel_name}", f"{rank_id}:{block}:{kernel_name}",
     )
     for key in keys:
         if key in registry:
@@ -284,14 +278,16 @@ def apply_modeling(
             payload = _unmodeled_alignment(row, reason)
             reasons.add(reason)
         else:
-            request = ModelingRequest(
+            modeling_inputs = _load_modeling_inputs()
+            theoretical_model = _load_theoretical_model()
+            request = theoretical_model.ModelingRequest(
                 inputs=inputs,
                 measured_device_ms=row.get("measured_device_ms_p50"),
                 measured_source="core hotspot measured_device_ms_p50",
             )
-            alignment = align_modeling(request, provider)
+            alignment = theoretical_model.align_modeling(request, provider)
             payload = alignment.to_c7_alignment()
-            lower = estimate_ideal_hardware_lower_bound(inputs)
+            lower = modeling_inputs.estimate_ideal_hardware_lower_bound(inputs)
             payload["ideal_assumptions"] = list(lower.assumptions) if lower.status == "modeled" else None
             payload["ideal_bottleneck"] = lower.bottleneck if lower.status == "modeled" else None
             payload["ideal_formula_version"] = lower.formula_version
@@ -580,6 +576,7 @@ def _kernel_inputs(
     provider: TensorCastAnalyticProvider,
     weight_tensors: Sequence[Mapping[str, Any]],
 ) -> tuple[KernelInputs | None, dict[str, Any] | None, str | None]:
+    modeling_inputs = _load_modeling_inputs()
     key = entry["kernel_key"]
     name, op_type, task_type = key["name"], key["op_type"], key["task_type"]
     try:
@@ -601,7 +598,7 @@ def _kernel_inputs(
         ("profile_input_formats", key["input_formats"]),
     )
     if op_type == "Relu" and len(shapes) == 1:
-        inputs = KernelInputs(
+        inputs = modeling_inputs.KernelInputs(
             shape=tuple(shapes[0]),
             dtype=dtype,
             layout="ND",
@@ -627,7 +624,7 @@ def _kernel_inputs(
         if match is None:
             return None, None, "weight_manifest_shape_unverified"
         weight, bias = match
-        inputs = KernelInputs(
+        inputs = modeling_inputs.KernelInputs(
             shape=(m, k, n),
             dtype=dtype,
             layout="ND",
@@ -656,10 +653,13 @@ def build_c7_three_time_artifact(
     output_path: str | Path | None = None,
 ) -> dict[str, Any]:
     """Build the actual measured/ideal/predicted artifact for observed kernels."""
+    modeling_inputs = _load_modeling_inputs()
+    theoretical_model = _load_theoretical_model()
+    provider_cls = _load_tensor_cast_provider()
     result_file = Path(result_path).expanduser().resolve()
     result = _load_json(result_file)
     actual = read_actual_kernels(result_file)
-    provider = TensorCastAnalyticProvider(source_path, device_name=device_name)
+    provider = provider_cls(source_path, device_name=device_name)
     weight_tensors = result.get("manifest", {}).get("weight_manifest", {}).get("tensors", [])
     entries: list[dict[str, Any]] = []
     for detected in actual["kernels"]:
@@ -682,8 +682,8 @@ def build_c7_three_time_artifact(
             }
             entry["alignment"] = None
         else:
-            alignment = align_modeling(
-                ModelingRequest(
+            alignment = theoretical_model.align_modeling(
+                theoretical_model.ModelingRequest(
                     inputs=inputs,
                     measured_device_ms=detected["measured"]["value"],
                     measured_source="TASK/COMPUTE_TASK_INFO p50 clipped duration",
@@ -691,7 +691,7 @@ def build_c7_three_time_artifact(
                 provider,
             )
             payload = alignment.to_c7_alignment()
-            lower = estimate_ideal_hardware_lower_bound(inputs)
+            lower = modeling_inputs.estimate_ideal_hardware_lower_bound(inputs)
             payload["ideal_assumptions"] = list(lower.assumptions) if lower.status == "modeled" else None
             payload["ideal_bottleneck"] = lower.bottleneck if lower.status == "modeled" else None
             payload["ideal_formula_version"] = lower.formula_version
