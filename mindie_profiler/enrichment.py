@@ -25,6 +25,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Sequence
 
+from .advisor_rules import ADVISOR_SCHEMA, evaluate_advisor_rules
 from .enrichment_anomaly import (
     PMU_REASON,
     PMU_SCHEMA,
@@ -221,8 +222,9 @@ def enrich_report(
     model_inputs: Any = None,
     model_hardware: Any = None,
     steady_config: Any = None,
+    host_events: Sequence[Mapping[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Attach scene, steady, measured anomaly/PMU and optional modeling fragments."""
+    """Attach scene, steady, measured anomaly/PMU, advisor rules, and optional modeling fragments."""
 
     hardware, hardware_error = _coerce_hardware(model_hardware)
     registry, registry_limitations = _normalize_registry(model_inputs, hardware)
@@ -232,6 +234,7 @@ def enrich_report(
     aicpu = aicpu_summary(observations)
     underfeed = underfeed_summary(observations)
     pmu = pmu_summary(observations)
+    advisor = evaluate_advisor_rules(observations, host_events=host_events)
     modeling = apply_modeling(
         report.get("top_hotspot_kernels", []),
         provider=model_provider,
@@ -255,10 +258,16 @@ def enrich_report(
     _merge_limitations_and_findings(report, anomaly_limitations)
     _merge_findings(
         report,
-        [*wait_anchor.get("findings", []), *aicpu.get("findings", []), *underfeed.get("findings", [])],
+        [
+            *wait_anchor.get("findings", []),
+            *aicpu.get("findings", []),
+            *underfeed.get("findings", []),
+            *advisor.get("findings", []),
+        ],
     )
     report["scene_detection"] = scene_detection
     report["steady_window_suggestion"] = steady
+    report["advisor_rules"] = advisor
     report["enrichment"] = {
         "schema_version": ENRICHMENT_SCHEMA,
         "time_precision": {
@@ -276,8 +285,10 @@ def enrich_report(
             "wait_anchor": wait_anchor,
             "aicpu_exposure": aicpu,
             "underfeed": underfeed,
+            "advisor_rules": advisor,
             "limitations": anomaly_limitations,
         },
+        "advisor_rules": advisor,
         "pmu_observations": pmu,
         "modeling": modeling,
     }
@@ -285,6 +296,7 @@ def enrich_report(
 
 
 __all__ = [
+    "ADVISOR_SCHEMA",
     "ENRICHMENT_SCHEMA",
     "PMU_REASON",
     "PMU_SCHEMA",

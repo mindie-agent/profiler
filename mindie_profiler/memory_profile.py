@@ -763,18 +763,29 @@ def attribute_memory(manifest: Mapping[str, Any], *, residual_target_bytes: floa
             "devices": per_device,
             "priority_label": PRIORITY_LABELS[priority],
         }
+    forensics = run_memory_forensics(manifest)
     return {
         "schema_version": SCHEMA_VERSION, "status": status, "unit": "byte",
         "target_residual_bytes": residual_target_bytes, "source_priorities": dict(PRIORITY_LABELS),
-        "source_applicability": applicability,
-        "p2_facts": dict(vllm) if vllm else {},
+        "source_applicability": applicability, "p2_facts": dict(vllm) if vllm else {},
         "tp": actual_tp, "dp": actual_dp, "enable_expert_parallel": actual_ep,
         "kv_cache_applicable": kv_cache_applicable, "devices": devices,
         "target_met": bool(devices) and all(item["residual"]["target_met"] for item in devices),
         "negative_residual_devices": [item["device_id"] for item in devices if item["residual"]["status"] == "negative"],
         "above_target_devices": [item["device_id"] for item in devices if item["residual"]["status"] == "above_target"],
         "missing_source_devices": [item["device_id"] for item in devices if item["missing_sources"]],
+        "memory_forensics": forensics,
     }
 
-__all__ = ["DEFAULT_RESIDUAL_TARGET_BYTES", "PRIORITIES", "SCHEMA_VERSION", "attribute_device",
-           "attribute_memory", "compare_peaks", "estimate_weights_from_config", "parse_vllm_logs", "to_bytes"]
+
+from .memory_forensics import (  # noqa: E402
+    MEMORY_FORENSICS_SCHEMA, analyze_memory_inefficiencies,
+    detect_step_monotonic_leaks, run_memory_forensics,
+)
+
+__all__ = [
+    "DEFAULT_RESIDUAL_TARGET_BYTES", "MEMORY_FORENSICS_SCHEMA", "PRIORITIES", "SCHEMA_VERSION",
+    "analyze_memory_inefficiencies", "attribute_device", "attribute_memory", "compare_peaks",
+    "detect_step_monotonic_leaks", "estimate_weights_from_config", "parse_vllm_logs",
+    "run_memory_forensics", "to_bytes",
+]
