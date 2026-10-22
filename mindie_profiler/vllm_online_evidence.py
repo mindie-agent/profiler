@@ -202,7 +202,8 @@ def load_source_bundle(
         path = root / entry["path"]
         if not path.is_file():
             raise OnlineEvidenceError("native_library_missing", f"missing native library: {path}")
-        actual = hashlib.sha256(path.read_bytes()).hexdigest()
+        with path.open("rb") as handle:
+            actual = hashlib.file_digest(handle, "sha256").hexdigest()
         if actual != entry["sha256"]:
             raise OnlineEvidenceError("native_library_hash_mismatch",
                                       f"{path}: {actual} != {entry['sha256']}")
@@ -273,7 +274,8 @@ def _load_ascend_bundle(
         path = root / entry["path"]
         if not path.is_file():
             raise OnlineEvidenceError("native_library_missing", f"missing native library: {path}")
-        actual = hashlib.sha256(path.read_bytes()).hexdigest()
+        with path.open("rb") as handle:
+            actual = hashlib.file_digest(handle, "sha256").hexdigest()
         if actual != entry["sha256"]:
             raise OnlineEvidenceError("native_library_hash_mismatch",
                                       f"{path}: {actual} != {entry['sha256']}")
