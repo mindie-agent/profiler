@@ -283,7 +283,9 @@ def index_is_valid(index_path: str | Path, trace_path: str | Path) -> bool:
     if not index.is_file() or not trace.is_file():
         return False
     try:
-        con = sqlite3.connect(_readonly_uri(index), uri=True, timeout=1.0)
+        con = sqlite3.connect(_readonly_uri(index), uri=True, timeout=3.0)
+        con.execute("PRAGMA busy_timeout = 3000")
+        con.execute("PRAGMA query_only = ON")
     except sqlite3.Error:
         return False
     try:
@@ -399,7 +401,9 @@ def build_trace_index(
 
 def _index_event_count(index: Path) -> int | None:
     try:
-        con = sqlite3.connect(_readonly_uri(index), uri=True, timeout=1.0)
+        con = sqlite3.connect(_readonly_uri(index), uri=True, timeout=3.0)
+        con.execute("PRAGMA busy_timeout = 3000")
+        con.execute("PRAGMA query_only = ON")
     except sqlite3.Error:
         return None
     try:

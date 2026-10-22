@@ -71,6 +71,8 @@ def _normalize_windows(windows: Iterable[Window] | None) -> list[Window]:
 def _mtime_ns(path: str) -> int | None:
     try:
         return int(Path(path).stat().st_mtime_ns)
+    except TimeoutError:
+        raise
     except OSError:
         return None
 

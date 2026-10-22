@@ -268,6 +268,8 @@ def _run_sql(argv: Sequence[str]) -> int:
     if args.query_file:
         try:
             query = Path(args.query_file).read_text(encoding="utf-8")
+        except TimeoutError:
+            raise
         except OSError as exc:
             raise ProfilerUsageError(f"cannot read query file: {exc}") from exc
     result = run_sql(
@@ -310,6 +312,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     except ProfilerError as exc:
         print(f"mindie_profiler: {exc}", file=sys.stderr)
         return 2
+    except TimeoutError:
+        raise
     except OSError as exc:
         print(f"mindie_profiler: filesystem error: {exc}", file=sys.stderr)
         return 2

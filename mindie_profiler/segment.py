@@ -233,6 +233,8 @@ def discover_rank_sources(
             output_names = set()
             try:
                 output_names = {entry.name for entry in output_path.iterdir()}
+            except TimeoutError:
+                raise
             except OSError:
                 pass
             if (

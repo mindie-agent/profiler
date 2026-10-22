@@ -445,6 +445,8 @@ def write_modeling_inputs_bundle(
     except BaseException:
         try:
             os.unlink(temporary)
+        except TimeoutError:
+            raise
         except OSError:
             pass
         raise

@@ -108,13 +108,13 @@ def test_probe_and_provider_reject_dirty_tracked_source(tmp_path):
     (source / "pyproject.toml").write_text(
         '[project]\nname = "msmodeling"\nversion = "0.2.0"\n', encoding="utf-8"
     )
-    subprocess.run(["git", "init", "-q"], cwd=source, check=True)
-    subprocess.run(["git", "config", "user.email", "test@example.invalid"], cwd=source, check=True)
-    subprocess.run(["git", "config", "user.name", "test"], cwd=source, check=True)
-    subprocess.run(["git", "add", "."], cwd=source, check=True)
-    subprocess.run(["git", "commit", "-qm", "initial"], cwd=source, check=True)
+    subprocess.run(["git", "init", "-q"], cwd=source, check=True, timeout=5)
+    subprocess.run(["git", "config", "user.email", "test@example.invalid"], cwd=source, check=True, timeout=5)
+    subprocess.run(["git", "config", "user.name", "test"], cwd=source, check=True, timeout=5)
+    subprocess.run(["git", "add", "."], cwd=source, check=True, timeout=5)
+    subprocess.run(["git", "commit", "-qm", "initial"], cwd=source, check=True, timeout=5)
     commit = subprocess.run(
-        ["git", "rev-parse", "HEAD"], cwd=source, check=True, capture_output=True, text=True
+        ["git", "rev-parse", "HEAD"], cwd=source, check=True, capture_output=True, text=True, timeout=5
     ).stdout.strip()
 
     analytic.write_text("# modified after pin\n", encoding="utf-8")

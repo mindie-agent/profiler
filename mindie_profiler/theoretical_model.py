@@ -213,6 +213,8 @@ def _provider_available(provider: Any) -> tuple[bool | None, str | None]:
         return None, "provider_availability_unknown"
     try:
         result = available() if callable(available) else available
+    except TimeoutError:
+        raise
     except Exception as exc:  # noqa: BLE001 - provider boundary is untrusted
         return None, f"provider_availability_error:{type(exc).__name__}"
     if not isinstance(result, bool):
@@ -263,6 +265,8 @@ def predict_with_provider(
         raw = provider.predict(req)
     except ProviderUnmodeledError as exc:
         return _unmodeled_prediction(exc.reason, signature=signature)
+    except TimeoutError:
+        raise
     except Exception as exc:  # noqa: BLE001 - provider boundary is untrusted
         return _unmodeled_prediction(f"provider_error:{type(exc).__name__}", signature=signature)
     predicted = _prediction_field(raw, "predicted_ms")
@@ -443,6 +447,8 @@ def probe_msmodeling_adapter() -> MsmodelingAdapterStatus:
     """Report install state only; no source-verified adapter is bundled here."""
     try:
         spec = importlib.util.find_spec(MSMODELING_MODULE)
+    except TimeoutError:
+        raise
     except Exception as exc:  # noqa: BLE001 - probe must not raise into callers
         return MsmodelingAdapterStatus(
             adapter_protocol_version=ADAPTER_PROTOCOL_VERSION,

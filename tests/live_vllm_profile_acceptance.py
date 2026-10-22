@@ -97,6 +97,8 @@ def _read_tail(path: Path, limit: int = 8000) -> str:
             if size > limit:
                 handle.seek(size - limit)
             return handle.read().decode("utf-8", errors="replace")
+    except TimeoutError:
+        raise
     except OSError:
         return ""
 
@@ -538,6 +540,8 @@ def run(args: argparse.Namespace) -> dict:
             receipt["control"]["stop_attempted"] = True
             try:
                 receipt["control"]["stop"] = controller.stop()
+            except TimeoutError:
+                raise
             except Exception as exc:  # noqa: BLE001 - no replay after an attempted stop
                 receipt["control"]["stop_error"] = f"{type(exc).__name__}: {exc}"
         stop_result = receipt["control"].get("stop") or {}
@@ -552,6 +556,8 @@ def run(args: argparse.Namespace) -> dict:
             raise HarnessFailure("post_request_failed", f"post-profile completion failed: {post.get('error')}")
     except HarnessFailure as exc:
         receipt["error"] = {"code": exc.code, "message": str(exc)}
+    except TimeoutError:
+        raise
     except Exception as exc:  # noqa: BLE001 - preserve unexpected harness failures in the receipt
         receipt["error"] = {"code": "harness_failed", "message": f"{type(exc).__name__}: {exc}"}
     finally:
@@ -560,6 +566,8 @@ def run(args: argparse.Namespace) -> dict:
             receipt["control"]["stop_attempted"] = True
             try:
                 receipt["control"]["stop"] = controller.stop()
+            except TimeoutError:
+                raise
             except Exception as exc:  # noqa: BLE001 - no replay after an attempted stop
                 receipt["control"]["stop_error"] = f"{type(exc).__name__}: {exc}"
         if process is not None:
@@ -617,6 +625,8 @@ def run(args: argparse.Namespace) -> dict:
                 receipt["memory_observation"]["status"] = memory_scan["status"]
                 if args.export_state_dict and memory_scan.get("model_state") is None:
                     receipt["memory_observation"]["status"] = "partial"
+            except TimeoutError:
+                raise
             except Exception as exc:  # noqa: BLE001 - keep observation failure separate
                 receipt["memory_observation"]["status"] = "failed"
                 receipt["memory_observation"]["scan_error"] = f"{type(exc).__name__}: {exc}"
@@ -678,6 +688,8 @@ def main(argv: list[str] | None = None) -> int:
     except OnlineEvidenceError as exc:
         print(json.dumps({"status": "failed", "error": {"code": exc.code, "message": str(exc)}}, ensure_ascii=False))
         return 1
+    except TimeoutError:
+        raise
     except Exception as exc:  # noqa: BLE001 - keep an executable failure receipt
         print(json.dumps({"status": "failed", "error": {"code": "harness_failed",
                                                         "message": f"{type(exc).__name__}: {exc}"}},

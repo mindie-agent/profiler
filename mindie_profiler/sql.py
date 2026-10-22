@@ -123,10 +123,10 @@ def open_readonly(
     path = Path(db_path).expanduser()
     if not path.is_file():
         raise ProfilerSchemaError(f"profiler db not found: {path}")
-    timeout = max(0.1, float(timeout_s))
+    busy_timeout_s = max(3.0, float(timeout_s))
     uri = "file:" + quote(str(path.resolve()), safe="/") + "?mode=ro"
     try:
-        con = sqlite3.connect(uri, uri=True, timeout=timeout)
+        con = sqlite3.connect(uri, uri=True, timeout=busy_timeout_s)
     except sqlite3.Error as exc:
         raise ProfilerQueryError(f"cannot open profiler db read-only: {path}: {exc}") from exc
 
@@ -135,7 +135,7 @@ def open_readonly(
 
     try:
         con.execute("PRAGMA query_only = ON")
-        con.execute(f"PRAGMA busy_timeout = {int(timeout * 1000)}")
+        con.execute(f"PRAGMA busy_timeout = {int(busy_timeout_s * 1000)}")
         try:
             con.enable_load_extension(False)
         except (AttributeError, sqlite3.Error):

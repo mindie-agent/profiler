@@ -86,6 +86,8 @@ def _write_json(path: Path, value: dict) -> None:
 def _snapshot(torch_npu, phase: str, device: int, errors: list[dict]) -> dict:
     try:
         return collect_runtime_memory_snapshot(torch_npu, device=device, phase=phase)
+    except TimeoutError:
+        raise
     except Exception as exc:
         errors.append({"phase": phase, "code": getattr(exc, "code", "snapshot_failed"),
                        "message": f"{type(exc).__name__}: {exc}"})
@@ -136,6 +138,8 @@ def _run_memory_peak_sampling(
             "source_note": "background sampler reads mem_get_info/memory_*; reset_peak_memory_stats is allocator-only",
         }
         return summary
+    except TimeoutError:
+        raise
     except Exception as exc:
         errors.append({
             "code": getattr(exc, "code", "memory_peak_sampling_failed"),
@@ -173,6 +177,8 @@ def _module_mem_evidence(capture, csv_path: str | None, errors: list[dict]) -> t
                 },
             }
             return msprof_components_to_manifest(parsed), source
+        except TimeoutError:
+            raise
         except Exception as exc:
             errors.append({"code": getattr(exc, "code", "module_mem_db_failed"),
                            "message": f"{type(exc).__name__}: {exc}"})
@@ -188,6 +194,8 @@ def _module_mem_evidence(capture, csv_path: str | None, errors: list[dict]) -> t
                 "invalid_rows": parsed["invalid_rows"],
             }
             return msprof_components_to_manifest(parsed), source
+        except TimeoutError:
+            raise
         except Exception as exc:
             errors.append({"code": "module_mem_parse_failed", "message": f"{type(exc).__name__}: {exc}"})
     return None, None
@@ -250,6 +258,8 @@ def _save_safetensors(model, output_dir: Path, errors: list[dict]) -> dict | Non
     state = {name: tensor.detach().cpu() for name, tensor in model.state_dict().items()}
     try:
         save_file(state, str(target))
+    except TimeoutError:
+        raise
     except Exception as exc:
         errors.append({"code": "safetensors_save_failed",
                        "message": f"{type(exc).__name__}: {exc}"})
@@ -463,6 +473,8 @@ def main(argv: list[str] | None = None) -> int:
                 "complete": parsed_msmemscope["complete"],
                 "invalid_rows": parsed_msmemscope["invalid_rows"],
             }
+        except TimeoutError:
+            raise
         except Exception as exc:
             errors.append({"code": "msmemscope_parse_failed", "message": f"{type(exc).__name__}: {exc}"})
     module_manifest, module_source = _module_mem_evidence(capture, args.module_mem_csv, errors)

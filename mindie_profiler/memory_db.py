@@ -72,9 +72,10 @@ def load_npu_mem_sqlite(
     if not isinstance(max_rows, int) or max_rows <= 0:
         raise MemoryEvidenceError("invalid_max_rows", "max_rows must be a positive integer")
     uri = f"file:{db_path.resolve()}?mode=ro"
-    connection = sqlite3.connect(uri, uri=True, timeout=max(0.1, float(timeout_s)))
+    busy_timeout_s = max(3.0, float(timeout_s))
+    connection = sqlite3.connect(uri, uri=True, timeout=busy_timeout_s)
     try:
-        connection.execute(f"PRAGMA busy_timeout={int(max(0.1, float(timeout_s)) * 1000)}")
+        connection.execute(f"PRAGMA busy_timeout={int(busy_timeout_s * 1000)}")
         connection.execute("PRAGMA query_only=ON")
         tables = {str(row[0]) for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         if "NPU_MEM" not in tables or "STRING_IDS" not in tables:
@@ -202,9 +203,10 @@ def load_memory_record_sqlite(path: str | Path, *, max_rows: int = 1_000_000, ti
         raise MemoryEvidenceError("db_missing", f"MEMORY_RECORD DB not found: {db_path}")
     if not isinstance(max_rows, int) or max_rows <= 0:
         raise MemoryEvidenceError("invalid_max_rows", "max_rows must be a positive integer")
-    connection = sqlite3.connect(f"file:{db_path.resolve()}?mode=ro", uri=True, timeout=max(0.1, float(timeout_s)))
+    busy_timeout_s = max(3.0, float(timeout_s))
+    connection = sqlite3.connect(f"file:{db_path.resolve()}?mode=ro", uri=True, timeout=busy_timeout_s)
     try:
-        connection.execute(f"PRAGMA busy_timeout={int(max(0.1, float(timeout_s)) * 1000)}")
+        connection.execute(f"PRAGMA busy_timeout={int(busy_timeout_s * 1000)}")
         connection.execute("PRAGMA query_only=ON")
         tables = {str(row[0]) for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         if "MEMORY_RECORD" not in tables or "STRING_IDS" not in tables:
@@ -291,9 +293,10 @@ def load_op_memory_sqlite(path: str | Path, *, max_rows: int = 1_000_000, timeou
         raise MemoryEvidenceError("db_missing", f"OP_MEMORY DB not found: {db_path}")
     if not isinstance(max_rows, int) or max_rows <= 0:
         raise MemoryEvidenceError("invalid_max_rows", "max_rows must be a positive integer")
-    connection = sqlite3.connect(f"file:{db_path.resolve()}?mode=ro", uri=True, timeout=max(0.1, float(timeout_s)))
+    busy_timeout_s = max(3.0, float(timeout_s))
+    connection = sqlite3.connect(f"file:{db_path.resolve()}?mode=ro", uri=True, timeout=busy_timeout_s)
     try:
-        connection.execute(f"PRAGMA busy_timeout={int(max(0.1, float(timeout_s)) * 1000)}")
+        connection.execute(f"PRAGMA busy_timeout={int(busy_timeout_s * 1000)}")
         connection.execute("PRAGMA query_only=ON")
         tables = {str(row[0]) for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         if "OP_MEMORY" not in tables or "STRING_IDS" not in tables:

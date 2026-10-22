@@ -113,6 +113,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(json.dumps({"output": args.output, "status": result["status"]}))
         else:
             print(json.dumps(result, ensure_ascii=False, indent=2))
+    except TimeoutError:
+        raise
     except (ProfilerError, OSError, ValueError) as exc:
         print(f"mindie-profiler compare: {exc}", file=sys.stderr)
         return 2

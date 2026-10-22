@@ -341,12 +341,13 @@ def _read_only_connection(path: Path, timeout_s: float) -> sqlite3.Connection:
     if not path.is_file():
         raise MemoryEvidenceError("sqlite_file_missing", f"DB not found: {path}")
     uri = "file:" + quote(str(path.resolve()), safe="/") + "?mode=ro"
+    busy_timeout_s = max(3.0, float(timeout_s))
     try:
-        con = sqlite3.connect(uri, uri=True, timeout=max(0.1, timeout_s))
+        con = sqlite3.connect(uri, uri=True, timeout=busy_timeout_s)
     except sqlite3.Error as exc:
         raise MemoryEvidenceError("sqlite_open_failed", f"cannot open DB read-only: {exc}") from exc
     con.execute("PRAGMA query_only = ON")
-    con.execute(f"PRAGMA busy_timeout = {int(max(1, timeout_s) * 1000)}")
+    con.execute(f"PRAGMA busy_timeout = {int(busy_timeout_s * 1000)}")
     return con
 
 

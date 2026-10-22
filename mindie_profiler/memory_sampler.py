@@ -428,6 +428,8 @@ class BoundedMemorySampler:
         try:
             value = fn(self.device)
             return int(value), True, True
+        except TimeoutError:
+            raise
         except Exception as exc:
             self._record_error("allocator_api_failed", f"{name}: {type(exc).__name__}: {exc}")
             return None, True, False
@@ -448,6 +450,8 @@ class BoundedMemorySampler:
             free_bytes, total_bytes = npu.mem_get_info(self.device)
             free_bytes, total_bytes = int(free_bytes), int(total_bytes)
             used_bytes = total_bytes - free_bytes
+        except TimeoutError:
+            raise
         except Exception as exc:
             error = {"code": "mem_get_info_failed", "message": f"{type(exc).__name__}: {exc}"}
             self._record_error(error["code"], error["message"])
@@ -503,6 +507,8 @@ class BoundedMemorySampler:
             try:
                 reset(self.device)
                 self._reset["ok"] = True
+            except TimeoutError:
+                raise
             except Exception as exc:
                 self._reset["error"] = f"{type(exc).__name__}: {exc}"
                 self._record_error("allocator_peak_reset_failed", self._reset["error"])

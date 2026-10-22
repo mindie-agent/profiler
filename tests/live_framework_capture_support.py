@@ -129,6 +129,8 @@ def write_module_trace_evidence(
             },
             "error": None,
         }
+    except TimeoutError:
+        raise
     except Exception as exc:
         return {
             "status": "error",

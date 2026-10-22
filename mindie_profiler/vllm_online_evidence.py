@@ -136,6 +136,8 @@ def _installed_wrapper_export_expectation() -> dict[str, Any]:
         return {"path": str(path), "exists": False, "export_type": "unknown"}
     try:
         text = path.read_text(encoding="utf-8", errors="replace")
+    except TimeoutError:
+        raise
     except OSError as exc:
         return {"path": str(path), "exists": True, "export_type": "unreadable", "error": str(exc)}
     if "ExportType.Db" in text:
@@ -166,6 +168,8 @@ def load_source_bundle(
                                   f"missing source bundle metadata: {metadata_path}")
     try:
         metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    except TimeoutError:
+        raise
     except (OSError, json.JSONDecodeError) as exc:
         raise OnlineEvidenceError("source_bundle_metadata_invalid", str(exc)) from exc
     if not isinstance(metadata, dict):
@@ -243,6 +247,8 @@ def _load_ascend_bundle(
                                   f"missing vllm-ascend bundle metadata: {metadata_path}")
     try:
         metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    except TimeoutError:
+        raise
     except (OSError, json.JSONDecodeError) as exc:
         raise OnlineEvidenceError("source_bundle_metadata_invalid", str(exc)) from exc
     if not isinstance(metadata, dict):
@@ -366,6 +372,8 @@ def runtime_identity() -> dict[str, Any]:
                 continue
             try:
                 direct = json.loads(distribution.read_text("direct_url.json") or "{}")
+            except TimeoutError:
+                raise
             except (OSError, json.JSONDecodeError):
                 direct = {}
             url = direct.get("url")
@@ -565,6 +573,8 @@ def scan_profile_artifacts(root: str | Path, *, max_files: int = MAX_ARTIFACT_FI
             path = Path(directory) / name
             try:
                 size = path.stat().st_size
+            except TimeoutError:
+                raise
             except OSError as exc:
                 size = None
                 entry_error = str(exc)
@@ -663,6 +673,8 @@ def export_db_for_roots(
                 "stdout_tail": (exc.stdout or "")[-max_output_chars:] if isinstance(exc.stdout, str) else "",
                 "stderr_tail": (exc.stderr or "")[-max_output_chars:] if isinstance(exc.stderr, str) else "",
             })
+        except TimeoutError:
+            raise
         except OSError as exc:
             receipt.update({"status": "spawn_failed", "stderr_tail": str(exc)})
         receipt["elapsed_s"] = time.monotonic() - started
@@ -696,6 +708,8 @@ def terminate_process_group(
         receipt["term_sent"] = True
     except ProcessLookupError:
         pass
+    except TimeoutError:
+        raise
     except OSError as exc:
         receipt["cleanup_error"] = f"TERM failed: {exc}"
     try:
@@ -708,6 +722,8 @@ def terminate_process_group(
         receipt["kill_sent"] = True
     except ProcessLookupError:
         pass
+    except TimeoutError:
+        raise
     except OSError as exc:
         receipt["cleanup_error"] = (receipt["cleanup_error"] + "; " if receipt["cleanup_error"] else "") + f"KILL failed: {exc}"
     try:

@@ -777,12 +777,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
         result = run_acceptance(
-            _load_manifest(args.baseline_run),
-            _load_manifest(args.candidate_run),
-            rank=args.rank,
-            unit=args.unit,
-            top_n=args.top,
+            _load_manifest(args.baseline_run), _load_manifest(args.candidate_run),
+            rank=args.rank, unit=args.unit, top_n=args.top,
         )
+    except TimeoutError:
+        raise
     except (OSError, ValueError, KeyError, ProfilerError) as exc:
         print(f"mindie-profiler acceptance: {exc}", file=sys.stderr)
         return 2

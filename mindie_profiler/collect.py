@@ -411,9 +411,7 @@ def post_profile_action(
         raw = response.read(max_response_bytes + 1)
         body, truncated = _body_excerpt(raw, max_response_bytes)
         result.update({
-            "http_status": response.status,
-            "body": body,
-            "body_truncated": truncated,
+            "http_status": response.status, "body": body, "body_truncated": truncated,
         })
         if 200 <= response.status < 300:
             result["status"] = "ok"
@@ -523,6 +521,8 @@ def _write_json_atomic(path: Path, payload: Mapping[str, Any]) -> None:
     except BaseException:
         try:
             os.unlink(temporary)
+        except TimeoutError:
+            raise
         except OSError:
             pass
         raise

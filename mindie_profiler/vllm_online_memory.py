@@ -112,6 +112,8 @@ def scan_memory_phase_probes(
             continue
         try:
             payload = json.loads(path.read_text(encoding="utf-8"))
+        except TimeoutError:
+            raise
         except (OSError, json.JSONDecodeError) as exc:
             parse_errors.append({"path": str(path), "code": "probe_json_invalid",
                                  "message": f"{type(exc).__name__}: {exc}"})

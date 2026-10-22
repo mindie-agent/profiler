@@ -159,6 +159,8 @@ def read_safetensors_header(
                     f"header length {header_len} exceeds file payload size {size - 8}: {file_path}"
                 )
             raw = handle.read(header_len)
+    except TimeoutError:
+        raise
     except OSError as exc:
         raise SafetensorsError(f"cannot read {file_path}: {exc}") from exc
     if len(raw) != header_len:
@@ -517,6 +519,8 @@ def inspect_weights(
             })
             total_header_bytes += header_bytes
             total_payload_bytes += payload_bytes
+        except TimeoutError:
+            raise
         except (OSError, SafetensorsError) as exc:
             entry.update({"status": "error", "error": str(exc)})
             result["errors"].append({"file": file_path.name, "message": str(exc)})

@@ -85,6 +85,8 @@ def verify_db_export(root: str | Path, *, expected_ranks: int = 1, max_files: in
             continue
         try:
             size = path.stat().st_size
+        except TimeoutError:
+            raise
         except OSError as exc:
             result["error"] = f"{path}: {exc}"
             continue

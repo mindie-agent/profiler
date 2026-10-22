@@ -51,6 +51,8 @@ REQUIRED_PHASES = (
 def _sha256_file(path: str | Path) -> str | None:
     try:
         return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    except TimeoutError:
+        raise
     except OSError:
         return None
 
@@ -68,6 +70,8 @@ def _safe_write(path: Path, value: Any) -> None:
     """Best-effort probe write; instrumentation must not abort serving."""
     try:
         _atomic_json(path, value)
+    except TimeoutError:
+        raise
     except Exception as exc:  # noqa: BLE001 - report to worker stderr, do not break vLLM
         print(f"mindie memory probe write failed: {path}: {type(exc).__name__}: {exc}",
               file=sys.stderr, flush=True)
@@ -125,6 +129,8 @@ class MemoryObservingNPUWorker(NPUWorker):
         try:
             self._mindie_phase_dir = Path(raw).resolve()
             self._mindie_phase_dir.mkdir(parents=True, exist_ok=True)
+        except TimeoutError:
+            raise
         except OSError as exc:
             print(f"mindie memory probe directory unavailable: {raw}: {type(exc).__name__}: {exc}",
                   file=sys.stderr, flush=True)
@@ -194,6 +200,8 @@ class MemoryObservingNPUWorker(NPUWorker):
                 "job_marker_present": marker is not None,
                 "job_marker_sha256": hashlib.sha256(marker.encode()).hexdigest() if marker else None,
             }
+        except TimeoutError:
+            raise
         except (OSError, ValueError, IndexError) as exc:
             payload["process_identity_error"] = f"{type(exc).__name__}: {exc}"
         _safe_write(directory / "worker.json", payload)
@@ -219,6 +227,8 @@ class MemoryObservingNPUWorker(NPUWorker):
                 phase=phase,
                 synchronize=True,
             )
+        except TimeoutError:
+            raise
         except Exception as exc:  # noqa: BLE001 - preserve every observation failure
             status = "error"
             error = {"code": "phase_snapshot_failed", "message": f"{type(exc).__name__}: {exc}"}
@@ -276,6 +286,8 @@ class MemoryObservingNPUWorker(NPUWorker):
             self._mindie_sampler = sampler
             self._mindie_sampler_started_at = (time.monotonic_ns(), time.time_ns())
             atexit.register(self._stop_sampler_at_exit)
+        except TimeoutError:
+            raise
         except Exception as exc:  # noqa: BLE001 - instrumentation failure must remain visible
             self._record_error("profile_start", "sampler_start_failed",
                                f"{type(exc).__name__}: {exc}")
@@ -283,6 +295,8 @@ class MemoryObservingNPUWorker(NPUWorker):
     def _stop_sampler_safely(self, reason: str) -> None:
         try:
             self._stop_sampler(reason)
+        except TimeoutError:
+            raise
         except Exception as exc:  # noqa: BLE001 - never skip native profile stop
             self._record_error("profile_stop", "sampler_stop_wrapper_failed",
                                f"{type(exc).__name__}: {exc}")
@@ -301,6 +315,8 @@ class MemoryObservingNPUWorker(NPUWorker):
             reset = ((summary or {}).get("allocator_peak") or {}).get("allocator_peak_reset") or {}
             self._mindie_sampler_reset_attempted = bool(reset.get("attempted"))
             self._mindie_sampler_reset_ok = bool(reset.get("ok"))
+        except TimeoutError:
+            raise
         except Exception as exc:  # noqa: BLE001 - preserve sampler stop failure
             error = {"code": "sampler_stop_failed", "message": f"{type(exc).__name__}: {exc}"}
             self._record_error("profile_stop", error["code"], error["message"])
@@ -339,6 +355,8 @@ class MemoryObservingNPUWorker(NPUWorker):
         path = directory / "sampler.json"
         try:
             payload = json.loads(path.read_text(encoding="utf-8"))
+        except TimeoutError:
+            raise
         except (OSError, json.JSONDecodeError) as exc:
             self._record_error("profile_stop", "sampler_scope_read_failed",
                                f"{type(exc).__name__}: {exc}")
@@ -406,6 +424,8 @@ class MemoryObservingNPUWorker(NPUWorker):
                 "note": "device-to-CPU copy performed after the after_model_load snapshot, outside the timed request window",
             }
             _safe_write(directory / "model-state.json", metadata)
+        except TimeoutError:
+            raise
         except Exception as exc:  # noqa: BLE001 - report unsupported export, never invent a file
             self._record_error("after_model_load", "state_dict_export_failed",
                                f"{type(exc).__name__}: {exc}")
@@ -454,6 +474,8 @@ class MemoryObservingNPUWorker(NPUWorker):
             native_started = time.monotonic_ns()
             try:
                 return super().profile(is_start=is_start, profile_prefix=profile_prefix)
+            except TimeoutError:
+                raise
             except Exception as exc:
                 self._record_error("profile_start", "profile_start_failed",
                                    f"{type(exc).__name__}: {exc}")
@@ -468,6 +490,8 @@ class MemoryObservingNPUWorker(NPUWorker):
         error: dict[str, Any] | None = None
         try:
             return super().profile(is_start=is_start, profile_prefix=profile_prefix)
+        except TimeoutError:
+            raise
         except Exception as exc:
             error = {"code": "profile_stop_failed", "message": f"{type(exc).__name__}: {exc}"}
             self._record_error("profile_stop", error["code"], error["message"])

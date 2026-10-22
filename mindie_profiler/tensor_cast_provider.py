@@ -106,6 +106,8 @@ def _run_git(source_path: Path, *arguments: str) -> str:
             timeout=GIT_TIMEOUT_S,
             check=False,
         )
+    except TimeoutError:
+        raise
     except (OSError, subprocess.TimeoutExpired) as exc:
         raise ProviderUnmodeledError(f"source_git_{arguments[0]}_failed") from exc
     if completed.returncode != 0:
@@ -139,6 +141,8 @@ def read_source_version(source_path: str | Path) -> str:
     try:
         data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
         version = str(data["project"]["version"]).strip()
+    except TimeoutError:
+        raise
     except (OSError, KeyError, TypeError, tomllib.TOMLDecodeError) as exc:
         raise ProviderUnmodeledError(f"source_version_unreadable:{type(exc).__name__}") from exc
     if not re.fullmatch(r"\d+\.\d+\.\d+(?:[.+-][0-9A-Za-z.-]+)*", version):
@@ -392,6 +396,8 @@ class TensorCastAnalyticProvider:
                 from tensor_cast.device import DeviceProfile  # noqa: PLC0415
                 from tensor_cast.performance_model.analytic import AnalyticPerformanceModel  # noqa: PLC0415
                 from tensor_cast.performance_model.op_invoke_info import OpInvokeInfo  # noqa: PLC0415
+            except TimeoutError:
+                raise
             except Exception as exc:  # noqa: BLE001 - import boundary is untrusted
                 raise ProviderUnmodeledError(f"provider_import_failed:{type(exc).__name__}") from exc
             finally:

@@ -400,7 +400,9 @@ def read_actual_kernels(result_path: str | Path) -> dict[str, Any]:
     result_file = Path(result_path).expanduser().resolve()
     db_path = _db_path(result_file)
     steps = _steps(result_file)
-    con = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    con = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True, timeout=5.0)
+    con.execute("PRAGMA busy_timeout = 5000")
+    con.execute("PRAGMA query_only = ON")
     con.row_factory = sqlite3.Row
     try:
         strings = _strings(con)

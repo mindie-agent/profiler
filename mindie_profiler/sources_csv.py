@@ -96,6 +96,8 @@ def probe_csv(path: str | Path, *, mapping: Mapping[str, Any] | None = None) -> 
         with csv_path.open("r", encoding="utf-8-sig", newline="") as handle:
             reader = csv.reader(handle)
             header = next(reader, None)
+    except TimeoutError:
+        raise
     except OSError as exc:
         raise ProfilerSchemaError(f"cannot read {csv_path.name}: {exc}") from exc
     if not header:

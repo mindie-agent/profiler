@@ -258,6 +258,8 @@ def _build_profiler(torch_npu: Any, plan: Mapping[str, Any], output_dir: Path,
             result = export_trace(profile)
             event["status"] = "completed"
             return result
+        except TimeoutError:
+            raise
         except Exception as exc:
             event.update(status="failed", error=f"{type(exc).__name__}: {exc}")
             raise
@@ -304,6 +306,8 @@ def scan_capture_artifacts(root: str | Path, *, max_files: int = MAX_SCAN_FILES)
                 continue
             try:
                 size = path.stat().st_size
+            except TimeoutError:
+                raise
             except OSError as exc:
                 artifacts.append({"kind": kind, "path": str(path), "size_bytes": None,
                                   "error": str(exc), "relative_path": str(path.relative_to(base))})
@@ -586,6 +590,8 @@ def run_framework_capture(
     except FrameworkCaptureUnavailable as exc:
         result["error"] = {"code": exc.code, "message": str(exc)}
         result["status"] = "failed"
+    except TimeoutError:
+        raise
     except Exception as exc:
         result["error"] = {"code": getattr(exc, "code", "capture_failed"),
                            "message": f"{type(exc).__name__}: {exc}"}
@@ -596,6 +602,8 @@ def run_framework_capture(
             try:
                 with _redirect(writer):
                     profiler.stop()
+            except TimeoutError:
+                raise
             except Exception as exc:
                 result["cleanup_error"] = {"code": "cleanup_stop_failed", "message": str(exc)}
             result["phases"]["cleanup_stop"] = _ms(cleanup_start, time.perf_counter_ns())

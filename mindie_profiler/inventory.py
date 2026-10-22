@@ -79,6 +79,8 @@ def _pick(columns: Iterable[str], aliases: Iterable[str]) -> str | None:
 def _file_row(path: Path) -> dict[str, Any]:
     try:
         stat = path.stat()
+    except TimeoutError:
+        raise
     except OSError:
         return {"path": str(path), "basename": path.name, "size_bytes": None, "mtime_ns": None}
     return {
@@ -112,6 +114,8 @@ def _discover_rank_dirs(root: Path, *, max_dirs: int) -> list[Path]:
             output = current_path / _OUTPUT_DIR
             try:
                 names = {entry.name for entry in output.iterdir()}
+            except TimeoutError:
+                raise
             except OSError:
                 names = set()
             if (

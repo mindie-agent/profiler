@@ -705,6 +705,8 @@ class TelemetryClient:
                 body = response.read(self.max_response_bytes + 1)
         except TelemetryFetchError:
             raise
+        except TimeoutError:
+            raise
         except Exception as exc:  # one attempt only; surface the concrete failure
             raise TelemetryFetchError(f"telemetry request failed: {exc}") from exc
         if not isinstance(body, (bytes, bytearray)):
