@@ -290,11 +290,32 @@ def _run_sql(argv: Sequence[str]) -> int:
     return _emit(result, None)
 
 
+def _root_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="mindie-profiler",
+        description="Ascend profiler accounting. Option-first invocation runs analyze.",
+        allow_abbrev=False,
+    )
+    parser.add_argument("-V", "--version", action="store_true", help="print version and exit")
+    parser.add_argument("command", choices=SUBCOMMANDS, help="subcommand; use '<command> -h' for its options")
+    return parser
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     raw = list(sys.argv[1:] if argv is None else argv)
     if raw and raw[0] in {"--version", "-V"}:
         print(f"mindie_profiler/{__version__}")
         return 0
+    if raw and raw[0] in {"-h", "--help"}:
+        _root_parser().print_help()
+        return 0
+    if raw and not raw[0].startswith("-") and raw[0] not in SUBCOMMANDS:
+        print(
+            f"mindie_profiler: unknown command {raw[0]!r} "
+            f"(choose from {', '.join(SUBCOMMANDS)})",
+            file=sys.stderr,
+        )
+        return 2
     command = raw[0] if raw and raw[0] in SUBCOMMANDS else "analyze"
     rest = raw[1:] if raw and raw[0] in SUBCOMMANDS else raw
     try:
