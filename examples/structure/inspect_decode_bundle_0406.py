@@ -54,6 +54,14 @@ def benchmark(path):
                 "metric_delta": raw["delta"], "client_concurrency": summary["concurrency"],
                 "profiled_token_tpot_p50_ms": summary.get("tpot_true_p50_ms"),
                 "request_count": len(requests)}
+    if "tpot_tok_ms" in raw:
+        requests = raw["per_request"]
+        return {"source": identity(path), "schema": "token_tpot_profile_window",
+                "summary": {key: value for key, value in raw.items() if key != "per_request"},
+                "observed_prompt_tokens": sorted({row["prompt_tokens"] for row in requests}),
+                "observed_completion_tokens": sorted({row["completion_tokens"] for row in requests}),
+                "client_concurrency": raw["concurrency"],
+                "profiled_token_tpot_p50_ms": raw["tpot_tok_ms"]["p50"], "request_count": len(requests)}
     return {"source": identity(path), "schema": "flat_per_request", "summary": {
         key: value for key, value in raw.items() if key not in ("per_request", "itl_ms_all_tokens")},
             "observed_prompt_tokens": raw["observed_prompt_tokens"],
@@ -62,23 +70,24 @@ def benchmark(path):
             "request_count": len(raw["per_request"])}
 
 
-def capture(directory, group, deployment, template, parent_config_scope):
+def capture(directory, group, deployment, template, parent_config_scope, *, metadata_directory=None):
+    metadata_directory = metadata_directory or directory
     source = directory / "kernel_details.csv"
     if not source.exists():
         source = directory / "ranks/tp0/kernel_details.csv.gz"
     if not source.exists():
         raise FileNotFoundError(source)
-    raw_manifest = directory / "manifest.json"
+    raw_manifest = metadata_directory / "manifest.json"
     ranks = []
     if raw_manifest.exists():
         manifest = read(raw_manifest)
         for row in manifest["ranks"]:
-            p = directory / "ranks" / row["rank"] / "kernel_details.csv.gz"
+            p = metadata_directory / "ranks" / row["rank"] / "kernel_details.csv.gz"
             ranks.append({"rank": row["rank"], "raw_origin": row["src"], "status": row["status"],
                           "path": str(p), "size_bytes": p.stat().st_size})
     result = {"case_id": directory.name.removesuffix("_20261030"), "group": group,
               "source": identity(source), "capture_directory": str(directory),
-              "benchmark": benchmark(directory / "benchmark_summary.json"),
+              "benchmark": benchmark(metadata_directory / "benchmark_summary.json"),
               "deployment_evidence": deployment, "declared_template_candidate": str(template) if template else None,
               "required_model_input_scope": parent_config_scope,
               "source_bound_sim_case": None, "geometry": None,

@@ -63,7 +63,21 @@ def review(receipt_path, output):
         for row in rows:
             check(row["confidence"]["matched_layers"] == row["confidence"]["declared_layers"], label+":full_topology")
             check((row["end_ns"]-row["start_ns"])/1e6 == row["body_forward_span_ms"], label+":integer_span")
-            check(row["end_ns"] <= row["head_start_ns"], label+":head_excluded")
+            if row["confidence"].get("closure_basis") == "mhc_final_norm":
+                check(data["segmentation_options"].get("forward_closure") == "mhc_final_norm",
+                      label+":source_declared_terminal_norm_closure")
+                check(row["head_start_ns"] is None and row["head_end_ns"] is None,
+                      label+":no_fabricated_head_boundary")
+                if row["stages"]:
+                    final_norm = [stage for stage in row["stages"] if stage["kind"] == "final_norm"]
+                    check(len(final_norm) == 1 and row["end_ns"] <= final_norm[0]["start_ns"],
+                          label+":terminal_norm_outside_body")
+                    check(all(row["end_ns"] <= stage["start_ns"] for stage in row["stages"]
+                              if stage["kind"] == "output_head_preparation"),
+                          label+":head_preparation_outside_body")
+            else:
+                check(row["head_start_ns"] is not None and row["end_ns"] <= row["head_start_ns"],
+                      label+":head_excluded")
             check(math.isclose(row["body_activity_ms"]+row["body_internal_gap_ms"], row["body_forward_span_ms"], abs_tol=1e-12), label+":activity_gap_partition")
             check(0 <= row["body_activity_ms"] <= row["body_forward_span_ms"] and row["body_internal_gap_ms"] >= 0, label+":nonnegative")
             key = row["rank_id"], row["device_id"]
