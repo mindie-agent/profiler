@@ -147,6 +147,8 @@ def _parameter_only(row, hidden):
 
 
 def _activation(row):
+    if _fused_ffn(row):
+        return True
     if row.kind == "DequantSituQuant":
         # Captured W4A8 fused dequant/SwiGLU/quant returns half the gate-up
         # width. The exported buffer extent may include expert padding.
@@ -154,6 +156,18 @@ def _activation(row):
                 and row.outputs[0] == (row.inputs[0][0], row.inputs[0][1] // 2)
                 and row.inputs[0][1] % 2 == 0)
     return row.kind in _ACTIVATIONS or "Swiglu" in row.kind or "SwiGlu" in row.kind
+
+
+def _fused_ffn(row):
+    if row.kind != "DispatchFFNCombine" or not row.inputs or not row.outputs:
+        return False
+    if len(row.inputs) != 8 or len(row.outputs) != 2:
+        return False
+    x, up, down, routes = row.inputs[:4]
+    return (len(x) == 2 and len(up) == len(down) == 3 and len(routes) == 2
+            and up[0] == down[0] and up[1] == down[2] == x[1]
+            and up[2] == 2 * down[1] and routes[0] == x[0]
+            and row.outputs == (x, (up[0],)))
 
 
 def _scheduler(row):
@@ -188,18 +202,27 @@ def _terminal_norm(rows, config):
     """A source-declared hidden-output forward can end before compute_logits."""
     if config.get("forward_closure") != "mhc_final_norm" or len(rows) < 6:
         return False
-    tail = rows[-6:]
-    if [row.kind for row in tail] != ["HcPost", "Cast", "Mul", "ReduceSum", "Cast", "RmsNorm"]:
+    norm = rows[-1]
+    if norm.kind != "RmsNorm" or not _norm(norm, config["hidden_size"]):
         return False
-    residual, _, _, reduced, copied, norm = tail
     plan = config["layer_plans"][-1]
-    if not plan.get("hyper_connections") or not _norm(norm, config["hidden_size"]):
+    if not plan.get("hyper_connections"):
         return False
+    boundary = next((i for i in range(len(rows) - 2, -1, -1)
+                     if rows[i].kind in {"HcPre", "HcPost"} or _norm(rows[i], config["hidden_size"])), None)
+    if boundary is None or rows[boundary].kind != "HcPost":
+        return False
+    residual, tail = rows[boundary], rows[boundary + 1:-1]
+    reduced = next((row for row in reversed(tail) if row.kind == "ReduceSum"), None)
+    multiplied = next((row for row in tail if row.kind == "Mul" and row.outputs
+                       and row.outputs[0][-2:] == (plan["hc_mult"], config["hidden_size"])), None)
     hidden, mult = config["hidden_size"], plan["hc_mult"]
+    factor = config.get("sequence_parallel", {}).get("factor", 1)
     return (residual.outputs and residual.outputs[0][-2:] == (mult, hidden)
-            and reduced.outputs and copied.outputs and norm.inputs and norm.outputs
-            and reduced.outputs[0] == copied.outputs[0] == norm.inputs[0] == norm.outputs[0]
-            and prod(residual.outputs[0][:-2]) == prod(norm.inputs[0][:-1]))
+            and reduced and reduced.outputs and multiplied and norm.inputs and norm.outputs
+            and reduced.outputs[0] == norm.inputs[0] == norm.outputs[0]
+            and prod(multiplied.outputs[0][:-2]) == prod(norm.inputs[0][:-1])
+            and prod(residual.outputs[0][:-2]) * factor == prod(norm.inputs[0][:-1]))
 
 
 def _body_end(rows, final_norm, last_anchor, plan, query_rows, hidden):
@@ -314,8 +337,22 @@ def _align(rows, config, ordinal, *, terminal_norm=False):
                            and len(rows[index].inputs) > 3 and len(rows[index].inputs[3]) == 4)
     if len(query_sizes) != 1:
         return None, {"reason": "layer_query_geometry_changes", "query_rows": sorted(query_sizes)}
-    query_rows = next(iter(query_sizes))
+    hidden_rows = query_rows = next(iter(query_sizes))
+    if config.get("sequence_parallel"):
+        factor = config["sequence_parallel"]["factor"]
+        attention_rows = {rows[index].inputs[0][0] for index, _ in anchors
+                          if rows[index].kind == "SparseFlashMla" and rows[index].inputs
+                          and len(rows[index].inputs[0]) == 3}
+        if attention_rows != {hidden_rows * factor}:
+            return None, {"reason": "sequence_parallel_query_geometry_mismatch",
+                          "hidden_rows": hidden_rows, "attention_query_rows": sorted(attention_rows),
+                          "declared_factor": factor}
+        query_rows = next(iter(attention_rows))
     geometry = _query_geometry([rows[index] for index, _ in anchors], query_rows, config)
+    if config.get("sequence_parallel"):
+        geometry.update(hidden_rows_per_shard=hidden_rows,
+                        query_rows_basis="captured_attention_query_with_source_declared_sequence_parallel",
+                        sequence_parallel_factor=config["sequence_parallel"]["factor"])
     # Recurrent GDN/KDA anchors distinguish this path from chunk prefill; short
     # paged attention requires the declared decode query bound as another check.
     recurrent = any(kind in {"gdn", "kda"} for _, kind in anchors)
@@ -323,7 +360,7 @@ def _align(rows, config, ordinal, *, terminal_norm=False):
     if ((observed_query is not None and observed_query > config.get("max_decode_query", 16))
             or (not recurrent and observed_query is None)):
         return None, {"reason": "decode_query_geometry_unresolved", "geometry": geometry}
-    body_end = _body_end(rows, final_norm, anchors[-1][0], plans[-1], query_rows, hidden)
+    body_end = _body_end(rows, final_norm, anchors[-1][0], plans[-1], hidden_rows, hidden)
     if body_end is None:
         return None, {"reason": "final_mhc_residual_output_unresolved"}
     final_successor = body_end if body_end < final_norm else final_norms[-1]
@@ -341,7 +378,8 @@ def _align(rows, config, ordinal, *, terminal_norm=False):
         if not activation_indices:
             return None, {"reason": "ffn_completion_unverified", "layer": layer}
         following = after_attention[activation_indices[0] + 1:]
-        returned_hidden = any(row.outputs and row.outputs[0] and row.outputs[0][-1] == hidden
+        fused = after_attention[activation_indices[0]]
+        returned_hidden = (_fused_ffn(fused) and fused.outputs[0][-1] == hidden) or any(row.outputs and row.outputs[0] and row.outputs[0][-1] == hidden
                               and (row.kind in _MATRICES or row.kind.startswith("GroupedMatmul")
                                    or any(token in row.kind for token in ("Unpermute", "FinalizeRouting", "DistributeCombine")))
                               for row in following)
@@ -549,7 +587,7 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
         "geometry": geometry, "query_rows": geometry["query_rows"] if geometry else None,
         "model_declaration": {key: config.get(key) for key in ("name", "layers", "hidden_size", "vocab_size", "tp")},
         "segmentation_options": {key: config[key] for key in (
-            "source_attention_anchors", "source_decode_query", "forward_closure") if key in config},
+            "source_attention_anchors", "source_decode_query", "forward_closure", "sequence_parallel") if key in config},
         "body_forward_span_ms": _statistics([row["body_forward_span_ms"] for row in forwards]),
         "body_activity_ms": _statistics([row["body_activity_ms"] for row in forwards]),
         "body_internal_gap_ms": _statistics([row["body_internal_gap_ms"] for row in forwards]),

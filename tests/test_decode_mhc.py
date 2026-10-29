@@ -11,6 +11,32 @@ from mindie_profiler.tensor_contracts import observed_contract, observed_contrac
 FIXTURE = Path(__file__).parent / "fixtures/decode_forward"
 
 
+def test_a3_v41_sp_target_closes_before_dspark_draft_and_selected_logits():
+    rows = list(kernel_rows(FIXTURE / "a3_v41_dspark7_two_forwards.csv"))
+    config = json.loads((FIXTURE / "a3_v41_dspark7_model_config.json").read_text())
+    report = auto_segment_decode_forwards(rows, config)
+    assert report["body_forward_span_ms"]["count"] == 2
+    assert [row["body_forward_span_ms"] for row in report["forwards"]] == pytest.approx(
+        [194.077022, 208.357817])
+    assert report["geometry"]["hidden_rows_per_shard"] == 2
+    assert report["geometry"]["query_rows"] == 8
+    assert report["geometry"]["tokens_per_sequence"] == 8
+    assert report["geometry"]["sequences_per_replica"] == 1
+    for forward, last_line in zip(report["forwards"], (2335, 4910)):
+        layers = [row for row in forward["stages"] if row["layer_id"] is not None]
+        assert len(layers) == 40
+        assert layers[-1]["evidence"]["last_locator"]["csv_line"] == last_line
+        assert forward["head_start_ns"] is None
+    # The subsequent three draft layers and q=7 selected logits are real but
+    # cannot change the target's q=8 geometry or add layers to its scope.
+    assert report["anomaly_counts"]["auxiliary_or_partial_layer_sequence"] == 2
+    fused = [row for row in rows if row.kind == "DispatchFFNCombine"]
+    assert {row.input_shapes[0][0] for row in fused} >= {64, 128}
+    assert report["geometry"]["query_rows"] not in {64, 128}
+    no_sp = {key: value for key, value in config.items() if key != "sequence_parallel"}
+    assert auto_segment_decode_forwards(rows, no_sp)["body_forward_span_ms"]["count"] == 0
+
+
 def test_v41_hidden_output_forward_closes_at_real_final_norm_without_a_head():
     rows = list(kernel_rows(FIXTURE / "v41_dp8_first_body.csv"))
     config = json.loads((FIXTURE / "v41_dp8_model_config.json").read_text())
