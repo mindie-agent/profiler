@@ -146,6 +146,16 @@ def _parameter_only(row, hidden):
     return row.kind == "Add" and row.inputs and row.inputs[0] == (hidden,)
 
 
+def _activation(row):
+    if row.kind == "DequantSituQuant":
+        # Captured W4A8 fused dequant/SwiGLU/quant returns half the gate-up
+        # width. The exported buffer extent may include expert padding.
+        return (row.inputs and row.outputs and len(row.inputs[0]) == 2
+                and row.outputs[0] == (row.inputs[0][0], row.inputs[0][1] // 2)
+                and row.inputs[0][1] % 2 == 0)
+    return row.kind in _ACTIVATIONS or "Swiglu" in row.kind or "SwiGlu" in row.kind
+
+
 def _scheduler(row):
     typed = any("aicpu" in value.lower().replace("_", "")
                 for value in (row.event.core, row.event.task_type))
@@ -327,8 +337,7 @@ def _align(rows, config, ordinal, *, terminal_norm=False):
         # qualifies. Attention output gates must not masquerade as an MLP.
         after_attention = rows[ffn_norms[0] + 1:end]
         activation_indices = [index for index, row in enumerate(after_attention)
-                              if row.kind in _ACTIVATIONS or "Swiglu" in row.kind
-                              or "SwiGlu" in row.kind]
+                              if _activation(row)]
         if not activation_indices:
             return None, {"reason": "ffn_completion_unverified", "layer": layer}
         following = after_attention[activation_indices[0] + 1:]

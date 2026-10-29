@@ -1,0 +1,10 @@
+{
+  "source_path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c1_20261030/ranks/tp0/kernel_details.csv.gz",
+  "compressed_source_sha256": "1b0e4fcb7c3d80fefa5a1484937508502b0da346ea5657ed48e6bc0b893587c3",
+  "source_lines": [
+    465,
+    728
+  ],
+  "source_case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c1.json",
+  "basis": "unaltered actual CSV cells; first complete recurrent 4-layer decode candidate, not a synthesized workload"
+}

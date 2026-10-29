@@ -43,6 +43,25 @@ def test_v41_hidden_output_forward_closes_at_real_final_norm_without_a_head():
     assert auto_segment_decode_forwards(rows, no_source)["body_forward_span_ms"]["count"] == 0
 
 
+def test_a3_kimi_four_layer_dequant_situ_activation_closes_real_ffn():
+    rows = list(kernel_rows(FIXTURE / "a3_kimi4_first_decode.csv"))
+    config = json.loads((FIXTURE / "a3_kimi4_model_config.json").read_text())
+    report = auto_segment_decode_forwards(rows, config)
+    assert report["body_forward_span_ms"]["count"] == 1
+    forward = report["forwards"][0]
+    assert forward["body_forward_span_ms"] == pytest.approx(3.155437)
+    assert forward["geometry"]["tokens_per_sequence"] == 1
+    assert forward["geometry"]["sequences_per_replica"] == 1
+    layers = [stage for stage in forward["stages"] if stage["layer_id"] is not None]
+    assert [layer["attention"] for layer in layers] == ["kda", "kda", "kda", "mla"]
+    assert [layer["kind"] for layer in layers] == ["dense_layer", "moe_layer", "moe_layer", "moe_layer"]
+    # Removing all genuine activation kernels leaves matrix chains alone; the
+    # complete FFN boundary must no longer pass.
+    broken = auto_segment_decode_forwards([row for row in rows if row.kind != "DequantSituQuant"], config)
+    assert broken["body_forward_span_ms"]["count"] == 0
+    assert broken["anomaly_counts"]["ffn_completion_unverified"] == 1
+
+
 def test_complete_v4_mhc_body_excludes_output_head_collapse():
     rows = list(kernel_rows(FIXTURE / "v4f_a3_mhc_verify.csv"))
     config = json.loads((FIXTURE / "v4f_model_config.json").read_text())
