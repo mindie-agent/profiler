@@ -1,4 +1,5 @@
 """Historical reporting math plus invariance when refreshing current artifacts."""
+from collections import Counter
 import importlib
 import json
 from hashlib import sha256
@@ -179,6 +180,87 @@ def test_same_real_family_tier_renders_disjoint_pass_and_fail_statistics(reporti
         assert float(row["Per-call diff us"]) == pytest.approx(predicted - observed, abs=0.00051)
         assert float(row["Relative error"].removesuffix("%")) / 100 == pytest.approx(
             relative, abs=0.00051)
+
+
+def test_fixed_replay_totals_exclude_references_and_reject_mixed_summary_generation(
+    reporting, tmp_path,
+):
+    large = importlib.import_module("report_large_cohort_errors")
+    fixture = json.loads(HISTORICAL.read_text())
+    captures, all_rows = [], []
+    events_by_source = {}
+
+    def write(name, value):
+        path = tmp_path / name
+        path.write_text(json.dumps(value, separators=(",", ":"), allow_nan=False) + "\n")
+        return {"file": path.name, "sha256": sha256(path.read_bytes()).hexdigest(),
+                "size_bytes": path.stat().st_size}
+
+    for name, original in fixture["declarations"].items():
+        mapping, comparison = original["mapping"], original["comparison"]
+        table = reporting.family_table(mapping, comparison)
+        prefix = "fusion-cohort-" + name
+        summary = original["summary"]
+        summary["artifacts"] = {
+            key: write(prefix + "." + key + ".json", value)
+            for key, value in (
+                ("case", original["case"]), ("mapping", mapping),
+                ("comparison", comparison), ("families", table))
+        }
+        identity = write(prefix + ".json", summary)
+        captures.append({
+            "capture_key": summary["capture_key"],
+            "source_identity": summary["source_identity"],
+            "reports": [{"report": identity["file"], "summary_identity": identity}],
+        })
+        events_by_source[summary["source_identity"]["sha256"]] = summary["positive_event_count"]
+        all_rows.extend(row for window in comparison["windows"] for row in window["cohorts"])
+
+    # The population is a projection of fixed real replay artifacts. Its
+    # measured/predicted values stay unchanged; only counts and file receipts
+    # are recomputed for the selected declarations and native families.
+    receipt = {
+        **fixture["report_receipt"], "captures": captures,
+        "declaration_variant_count": len(captures),
+        "distinct_captured_sources": len(events_by_source),
+        "unique_capture_event_count": sum(events_by_source.values()),
+        "comparison_cohort_status_counts": dict(Counter(row["status"] for row in all_rows)),
+    }
+    write("fusion-cohort-validation.json", receipt)
+    reporting.write_family_overview(
+        SimpleNamespace(output_dir=tmp_path, compare_existing=False), captures)
+    reporting.write_full_replay_summary(tmp_path, receipt)
+    report = large.build_report(tmp_path, "observed_activity")
+    top_text = (tmp_path / "fusion-cohort-replay-top-errors.md").read_text()
+    full_text = (tmp_path / "cohort-full-family-replay.md").read_text()
+    large_text = large._markdown(report)
+
+    assert "| All scored | 12 | 9 | 3 |" in top_text
+    assert "| All scored | Each cohort's own tier | 9 / 12 | 3 |" in full_text
+    assert "| All scored | 9 / 12 | 3 |" in large_text
+    assert report["accuracy_summary_across_variants"] == {
+        "relative_15pct": {"cohort_count": 7, "passed_cohort_count": 4, "failed_cohort_count": 3},
+        "absolute_15us": {"cohort_count": 5, "passed_cohort_count": 5, "failed_cohort_count": 0},
+    }
+    assert report["totals_across_variants"]["reference_cohort_count"] == 1
+    assert report["totals_across_variants"]["reference_event_count"] == 5550
+    assert report["reference_by_reason"]["quantized_epilogue_unmodeled"]["event_count"] == 5550
+    expected = {row["cohort_id"] for row in all_rows
+                if row["status"] == "compared" and row["accuracy_pass"] is False
+                and row["accuracy_tier"] == "relative_15pct"}
+    assert {row["cohort_id"] for row in report["cohorts"]} == expected
+    assert all(row["observed_per_call_us"] > 50 for row in report["cohorts"])
+
+    # A newer summary can have valid artifact hashes yet belong to a different
+    # generation. Both consumers must reject it before trusting its contents.
+    changed = fixture["declarations"]["a3_glm53_decode-reference"]["summary"]
+    changed["graph_id"] = fixture["declarations"]["a3_glm53_prefill-reference"]["summary"]["graph_id"]
+    write("fusion-cohort-a3_glm53_decode-reference.json", changed)
+    with pytest.raises(ValueError, match="summary_generation_mismatch"):
+        large.build_report(tmp_path, "observed_activity")
+    with pytest.raises(ValueError, match="summary_generation_mismatch"):
+        reporting.write_full_replay_summary(tmp_path, receipt)
+    assert (tmp_path / "cohort-full-family-replay.md").read_text() == full_text
 
 
 def test_accuracy_refresh_preserves_real_metrics_and_updates_verified_artifact_hashes(
