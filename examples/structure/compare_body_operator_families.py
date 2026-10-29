@@ -25,6 +25,7 @@ from mindie_sim.prediction.operator_analysis import target_graphs
 from mindie_sim.prediction.program import RecipeBook
 from mindie_sim.prediction.structure import parse_case
 from mindie_sim.structure import export_structure
+from mindie_sim.prediction.body_defaults import effective_body_declaration
 from body_source_role_references import predict_source_role_references
 
 
@@ -41,6 +42,7 @@ def program_references(case_path, mapping, actual=None):
     manifest=export_structure(case,**geometry)
     if manifest['graph_id']!=mapping['graph_id']:
         raise ValueError('communication_reference_structure_changed')
+    case,_=effective_body_declaration(case,geometry['phase'],tokens=geometry['tokens'],scope=geometry['scope'])
     book=RecipeBook.from_mapping(case.runtime.kernels)
     graphs=target_graphs(case,**geometry)
     by_id={f'rank:{replica}/{op.op_id}':op for replica,ops in graphs.items() for op in book.expand(ops)}

@@ -1,4 +1,4 @@
-"""Conditional source-role references for descriptor-free native attention.
+"""Conditional source-role references for incomplete native body contracts.
 
 [Role] Retain whole-body-aligned native calls by declared physical program group.
 [Invariants] A source anchor is not a tensor contract or Host binding. Different
@@ -8,12 +8,31 @@
 [Side-Effect Policy] Pure local metadata/costing; no capture reads or devices.
 """
 from collections import Counter, defaultdict
+from copy import deepcopy
+from dataclasses import replace
 from hashlib import sha256
 import json
+import math
+
+from mindie_profiler.native_tensor_abi import native_tensor_contract
+from mindie_profiler.normalized import row_from_event
+from mindie_profiler.tensor_contracts import observed_contract
 
 
 def canonical(value):
     return json.dumps(value, sort_keys=True, separators=(',', ':'), allow_nan=False)
+
+
+def reference_signature(target):
+    """Collective occurrence labels do not change an already bound traffic ledger."""
+    if target['family'] not in {'alltoall', 'alltoallv'}:
+        return target['physical_signature']
+    operator = deepcopy(target['operator'])
+    for key in ('op_id', 'deps', 'layer', 'stage', 'requests', 'notes'):
+        operator.pop(key, None)
+    for key in ('collective_id', 'reverse_of_collective', 'graph_segment'):
+        operator['metadata'].pop(key, None)
+    return {'collective_program': operator, 'physical_work': target['physical_work']}
 
 
 class SourceRoleReferences:
@@ -21,26 +40,153 @@ class SourceRoleReferences:
         self.anchors = {(item['op_type'], item['name']): item
                         for item in config.get('source_attention_anchors', ())}
         self.by_layer = defaultdict(list)
+        self.subgraphs = defaultdict(list)
         replicas = manifest['execution'].get('replicas', [0])
         self.replica = min(replicas)
         for target in manifest['nodes']:
-            if (target['replica'] == self.replica and target['family'] == 'attention'
-                    and target.get('event_matchable') is not False):
+            if target['replica'] == self.replica and target.get('event_matchable') is not False:
                 self.by_layer[target.get('layer')].append(target)
+        for target in manifest.get('subgraphs', ()):
+            if target['replica'] == self.replica:
+                self.subgraphs[target.get('layer')].append(target)
         self.groups = {}
 
-    def add(self, event, layer, block):
+    def _select(self, event, layer, block):
+        local = self.by_layer.get(layer['layer_id'], ())
         declaration = self.anchors.get((event.op_type, event.name))
-        if not declaration or block != 'attention' or declaration['attention'] != layer['attention']:
+        if declaration and block == 'attention' and declaration['attention'] == layer['attention']:
+            return ('attention_core', [target for target in local if target['family'] == 'attention'],
+                    declaration, {'boundary_relation': 'source_symbol_to_declared_attention_program'})
+        row = row_from_event(event)
+        native = native_tensor_contract(row)
+        if native is None:
             return None
-        targets = sorted(self.by_layer.get(layer['layer_id'], ()), key=lambda item: item['node_id'])
-        signature = [(target['physical_signature'], target['physical_work']) for target in targets]
-        key = canonical((event.op_type, event.name, declaration, signature))
+        inputs, outputs = native[2:]
+        if event.op_type == 'GroupedMatmul' and block == 'ffn':
+            contract = observed_contract(row)
+            if not contract or contract[0] != 'grouped_matrix':
+                return None
+            e, capacity, n, k = contract[1]
+            candidates = []
+            for target in local:
+                expected = target.get('contract')
+                if (target.get('block') == 'ffn' and expected and expected[0] == 'grouped_matrix'
+                        and tuple(expected[1][::2]) == (e, n)
+                        and expected[1][3] == k and tuple(expected[2:5]) == contract[2:5]
+                        and tuple(expected[5][1:]) == contract[5][1:] and expected[6] == contract[6]):
+                    candidates.append(target)
+            if len(candidates) != 1:
+                return None
+            target = candidates[0]
+            role = target['op_id'].rsplit('.', 1)[-1]
+            if role not in {'expert_up', 'expert_down'}:
+                return None
+            source = next((group.get('source') for group in self.subgraphs[layer['layer_id']]
+                           if target['node_id'] in group['node_ids'] and group.get('source')), None)
+            return (role, candidates, {'kind': 'validated_native_expert_weight_axes', 'source': source}, {
+                'boundary_relation': 'capacity_vs_valid_rows_conditional',
+                'observed_buffer_row_capacity': capacity,
+                'declared_valid_routed_rows': target['contract'][1][1],
+                'observed_valid_routed_rows': None, 'observed_group_list_values': None,
+                'validated_geometry': {'expert_banks': e, 'output_width': n, 'input_width': k,
+                                       'operand_output_dtypes': contract[2:5]},
+                'observed_native_tensor_contract': native,
+                'prediction_coverage': target.get('contract_scope'),
+                'limitations': ['Buffer capacity does not prove valid routed FLOPs or active expert counts.',
+                                'Native MXFP4 service/conversion coverage follows the declared program.']})
+        if event.op_type in {'HcPre', 'HcPost'}:
+            role = 'hc_pre' if event.op_type == 'HcPre' else 'hc_post'
+            groups = [group for group in self.subgraphs[layer['layer_id']]
+                      if group.get('role') == role and group.get('block') == block]
+            if len(groups) != 1:
+                return None
+            group = groups[0]
+            expected = group.get('contract')
+            if not expected or expected[0] != 'hyper_connection_active':
+                return None
+            if role == 'hc_pre':
+                if len(inputs) != 5 or len(outputs) != 4 or len(inputs[0][0]) not in {3, 4}:
+                    return None
+                leading, (hc, width) = inputs[0][0][:-2], inputs[0][0][-2:]
+                tokens = math.prod(leading)
+                active_inputs = (((tokens, hc, width), *inputs[0][1:]), *inputs[1:4])
+                active_outputs = (((tokens, width), *outputs[0][1:]),
+                                  ((tokens, hc), *outputs[1][1:]),
+                                  ((tokens, hc, hc), *outputs[2][1:]))
+                if (canonical(active_inputs) != canonical(expected[2])
+                        or canonical(active_outputs) != canonical(expected[3])
+                        or inputs[4] != ((*leading, hc), 'fp32', 'ND')
+                        or outputs[3] != inputs[4]):
+                    return None
+                relation = 'partial_base_program_reference_premix_branch_unresolved'
+            else:
+                if canonical(observed_contract(row)) != canonical(expected):
+                    return None
+                relation = 'source_role_hyper_connection_post'
+            targets = [target for target in local if target['node_id'] in group['node_ids']]
+            if len(targets) != len(group['node_ids']):
+                return None
+            return (f'{block}.{role}', targets, group.get('source'), {
+                'boundary_relation': relation, 'observed_native_tensor_contract': native,
+                'limitations': ['The supplied pre-mix branch is not proven equivalent to the full declared base subgraph.']
+                              if role == 'hc_pre' else []})
+        if event.op_type in {'MoeDistributeDispatchV3', 'MoeDistributeCombineV3'} and block == 'ffn':
+            dispatch = event.op_type == 'MoeDistributeDispatchV3'
+            if (len(inputs), len(outputs)) != ((8, 7) if dispatch else (19, 1)):
+                return None
+            x, ids = inputs[1:3]
+            y = outputs[0]
+            if (len(x[0]) != 2 or len(ids[0]) != 2 or len(y[0]) != 2
+                    or ids[1:] != ('int32', 'ND') or x[2] != 'ND' or y[2] != 'ND'
+                    or x[0][1] != y[0][1] or (x if dispatch else y)[0][0] != ids[0][0]):
+                return None
+            recipes = {'route_pack', 'expert_dispatch'} if dispatch else {'expert_combine', 'route_unpack'}
+            targets = [target for target in local if target.get('block') == 'ffn'
+                       and target['operator']['recipe'] in recipes]
+            if {target['operator']['recipe'] for target in targets} != recipes:
+                return None
+            pack = next((target for target in local if target['operator']['recipe'] == 'route_pack'), None)
+            metadata = pack['operator']['metadata'] if pack else {}
+            if metadata.get('top_k') != ids[0][1]:
+                return None
+            if dispatch and x[1] != y[1]:
+                quant = [target for target in local if target['op_id'].endswith('.expert_up.quantize')]
+                if len(quant) != 1:
+                    return None
+                qcontract = quant[0].get('contract')
+                if not qcontract or qcontract[0] != 'DynamicMxQuant' or (qcontract[2], qcontract[3]) != (x[1], y[1]):
+                    return None
+                targets += quant
+            elif not dispatch and x[1] != y[1]:
+                return None
+            return ('expert_dispatch_native' if dispatch else 'expert_combine_native', targets,
+                {'kind': 'native_mc2_v3_tensor_roles',
+                 'protocol_evidence': 'examples/structure/acceptance-20261030-priority-operators/kimi-native-expert-protocol-evidence.json',
+                 'protocol_evidence_sha256': '4c9a86879343cecfc589eb1f1523a02a2c0a94f757545b7a056c45a4864d8582'}, {
+                    'boundary_relation': 'pack_transport_output_quant_reference' if dispatch else 'transport_unpack_weighted_combine_reference',
+                    'observed_native_tensor_contract': native,
+                    'observed_buffer_row_capacity': y[0][0] if dispatch else x[0][0],
+                    'observed_valid_routed_rows': None,
+                    'limitations': ['Native atomic implementation and active peer/routing counts remain unproven.',
+                                    'Declared generic transport may differ from native destination-window protocol.',
+                                    'Elapsed native communication includes peer wait; bandwidth fitting is forbidden.'],
+                    'communication_bandwidth_calibration_allowed': False})
+        return None
+
+    def add(self, event, layer, block):
+        selected = self._select(event, layer, block)
+        if selected is None:
+            return None
+        role, targets, declaration, relation = selected
+        targets = sorted(targets, key=lambda item: item['node_id'])
+        signature = [(reference_signature(target), target['physical_work']) for target in targets]
+        key = canonical((event.op_type, event.name, role, declaration, relation, signature))
         group = self.groups.setdefault(key, {
             'group_id': 'sha256:' + sha256(key.encode()).hexdigest(),
             'native_operator_type': event.op_type, 'native_name': event.name,
-            'declared_role': 'attention_core', 'attention_kind': layer['attention'],
+            'declared_role': role, 'attention_kind': layer['attention'], 'block': block,
             'source_anchor_declaration': declaration, 'representative_replica': self.replica,
+            'source_correspondence': relation,
             'representative_target_ids': [target['node_id'] for target in targets],
             'physical_program_signatures': [target['physical_signature'] for target in targets],
             'physical_work_per_program': [target['physical_work'] for target in targets],
@@ -51,7 +197,7 @@ class SourceRoleReferences:
         if len(group['examples']) < 2:
             group['examples'].append({'event_id': event.event_id, 'locator': event.locator,
                 'layer_id': layer['layer_id'], 'start_ns': event.start_ns, 'end_ns': event.end_ns})
-        return 'attention_core'
+        return role
 
     def finish(self, duration_stats):
         result = []
@@ -62,7 +208,7 @@ class SourceRoleReferences:
                 'observed_us': duration_stats(histogram, 1000),
                 'observed_activity_sum_ns': sum(value * count for value, count in histogram.items()),
                 'status': 'source_reference', 'evidence_strength': 'source_reference',
-                'basis': 'explicit_source_anchor_and_complete_whole_body_layer_topology',
+                'basis': 'source_semantics_and_complete_whole_body_layer_topology',
                 'tensor_contract': None, 'occurrence_binding_implied': False,
                 'additional_budget_allowed': False,
             })
@@ -74,12 +220,14 @@ def predict_source_role_references(case, manifest, actual):
     from mindie_sim.prediction.graph_analysis import graph_costs
     from mindie_sim.prediction.operator_analysis import target_graphs, operator_costs
     from mindie_sim.prediction.program import RecipeBook
+    from mindie_sim.prediction.body_defaults import effective_body_declaration
 
     groups = actual.get('source_role_references', ())
     if not groups:
         return []
     execution = manifest['execution']
     geometry = {key: execution[key] for key in ('phase', 'tokens', 'context', 'sequences', 'scope')}
+    case, _ = effective_body_declaration(case, geometry['phase'], tokens=geometry['tokens'], scope=geometry['scope'])
     book = RecipeBook.from_mapping(case.runtime.kernels)
     graphs = target_graphs(case, **geometry)
     by_id = {f'rank:{replica}/{op.op_id}': op
@@ -90,30 +238,45 @@ def predict_source_role_references(case, manifest, actual):
         identifiers = group['representative_target_ids']
         row = dict(group)
         if not identifiers:
-            row.update(prediction_status='unresolved', reason='declared_attention_program_set_unavailable')
+            row.update(prediction_status='unresolved', reason='declared_source_program_set_unavailable')
             result.append(row)
             continue
         selected = [targets[key] for key in identifiers]
         if ([target['physical_signature'] for target in selected] != group['physical_program_signatures']
                 or [target['physical_work'] for target in selected] != group['physical_work_per_program']):
             raise ValueError('source_role_reference_physical_declaration_changed')
-        ops = tuple(by_id[key] for key in identifiers)
+        identifier_set = set(identifiers)
+        ops = tuple(op for key, op in by_id.items() if key in identifier_set)
         replica = group['representative_replica']
         if len(ops) == 1 and ops[0].source_boundary != 'call':
             cost = operator_costs(case, ops, recipes=book, replica=replica)
             if cost['operator_occurrences'] != 1:
                 raise ValueError('source_role_reference_expands_to_multiple_programs')
             duration = cost['operators'][0]['duration_ms']
-            boundary = 'single_declared_attention_program_reference'
+            boundary = 'single_declared_program_reference'
             programs = [{'op_id': cost['operators'][0]['operator']['op_id'],
                          'program': cost['operators'][0]['program']}]
         else:
             local = {op.op_id for op in ops}
-            external = {dep: 0 for op in ops for dep in op.deps if dep not in local}
-            cost = graph_costs(case, {replica: ops}, recipes=book, external_inputs=external,
+            joint = case.runtime.parallel.ep_spans_dp and any(
+                dict(op.metadata).get('group_axis') == 'ep' for op in ops)
+            selected_graphs = ({rank: tuple(op for op in book.expand(values) if op.op_id in local)
+                                for rank, values in graphs.items()} if joint else {replica: ops})
+            # target_graphs has already validated/transposed the full dispatch
+            # ledger. Keep that concrete traffic while cutting the predecessor
+            # out of a combine-only cost boundary; do not execute dispatch twice.
+            selected_graphs = {rank: tuple(replace(op, metadata=tuple(
+                (key, value) for key, value in op.metadata if key != 'reverse_of_collective'))
+                if 'reverse_of_collective' in dict(op.metadata)
+                and 'peer_traffic' in dict(op.metadata) else op for op in values)
+                for rank, values in selected_graphs.items()}
+            external = {dep: 0 for values in selected_graphs.values() for op in values
+                        for dep in op.deps if dep not in local}
+            cost = graph_costs(case, selected_graphs, recipes=book, external_inputs=external,
                                include_submission=False, isolated=False, trace_limit=0)
             duration = cost['duration_ms']
-            boundary = 'unfused_declared_attention_program_set_reference'
+            boundary = ('complete_collective_cohort_program_set_reference' if joint
+                        else 'unfused_declared_program_set_reference')
             programs = [{'op_id': op.op_id, 'family': op.family, 'recipe': op.recipe} for op in ops]
         measured = group['observed_us']['mean']
         difference = duration * 1000 - measured

@@ -78,3 +78,70 @@ def test_reference_cost_is_per_physical_group_and_does_not_use_measured_duration
     assert all(row['prediction_status'] == 'reference_only' and 'accuracy_pass' not in row for row in references)
     assert len({row['physical_program_signatures'][0] for row in references}) == 3
     assert all(row['predicted_reference_us'] > 0 for row in references)
+
+
+@pytest.fixture(scope='module')
+def captured_native_component_groups(captured_reference_groups):
+    helper, replay, case, manifest, config, _, _ = captured_reference_groups
+    from mindie_profiler.decode_segmentation import auto_segment_decode_forwards
+    from mindie_profiler.normalized import kernel_rows
+    from mindie_profiler.events import SourceRef, Observation, QueryStats, Window
+    rows = list(kernel_rows(FIXTURE / 'v41_dp8_first_body.csv'))
+    forwards = []
+    auto_segment_decode_forwards(rows, config, on_forward=lambda forward, events: forwards.append((forward, events)))
+    assert len(forwards) == 1
+    forward, events = forwards[0]
+    source = SourceRef('rank_0', 0, 'csv', str(FIXTURE / 'v41_dp8_first_body.csv'),
+                       'retained_fixture', None, 0, 'fixture', 'fixture')
+    observation = Observation('rank_0', 0, Window(forward['start_ns'], forward['end_ns']),
+                              None, [], source, QueryStats('rank_0', 'fixture'))
+    consumer = replay.BodyConsumer(manifest, observation, {forward['forward_id']: forward}, config)
+    consumer(forward, events)
+    mapping, families, _ = consumer.finish(manifest)
+    groups = consumer.source_roles.finish(replay.duration_stats)
+    return helper, case, manifest, mapping, families, groups
+
+
+def test_real_native_component_references_keep_capacity_and_program_boundaries(captured_native_component_groups):
+    helper, case, manifest, mapping, families, groups = captured_native_component_groups
+    by_role = {}
+    for group in groups:
+        by_role.setdefault(group['declared_role'], []).append(group)
+    for role, calls in [('expert_up', 40), ('expert_down', 40), ('attention.hc_pre', 40),
+                        ('ffn.hc_pre', 40), ('expert_dispatch_native', 40), ('expert_combine_native', 40)]:
+        assert sum(group['observed_us']['count'] for group in by_role[role]) == calls
+    up, down = by_role['expert_up'][0], by_role['expert_down'][0]
+    for group in (up, down):
+        relation = group['source_correspondence']
+        assert relation['observed_buffer_row_capacity'] == 48
+        assert relation['declared_valid_routed_rows'] == 6
+        assert relation['observed_valid_routed_rows'] is None
+        assert relation['boundary_relation'] == 'capacity_vs_valid_rows_conditional'
+    assert up['representative_target_ids'] != down['representative_target_ids']
+    dispatch = by_role['expert_dispatch_native'][0]['representative_target_ids']
+    combine = by_role['expert_combine_native'][0]['representative_target_ids']
+    assert {name.rsplit('/', 1)[-1].split('.', 2)[-1] for name in dispatch} == {
+        'pack', 'dispatch', 'expert_up.quantize'}
+    assert {name.rsplit('/', 1)[-1].split('.', 2)[-1] for name in combine} == {'combine', 'unpack'}
+    assert not set(dispatch) & set(combine)
+    assert all(group['source_correspondence']['boundary_relation'].startswith('partial_base_program_')
+               for role in ('attention.hc_pre', 'ffn.hc_pre') for group in by_role[role])
+    # HcPost already has a full tensor cohort; references must not double count it.
+    assert not any(group['native_operator_type'] == 'HcPost' for group in groups)
+    assert sum(row['observed_us']['count'] for row in families if row['native_operator_type'] == 'HcPost') == 80
+
+
+def test_native_multi_program_cost_uses_complete_dp_collective(captured_native_component_groups):
+    helper, case, manifest, mapping, families, groups = captured_native_component_groups
+    roles = {'expert_dispatch_native', 'expert_combine_native', 'attention.hc_pre', 'expert_up'}
+    selected = []
+    for group in groups:
+        if group['declared_role'] in roles:
+            selected.append(group)
+            roles.remove(group['declared_role'])
+    references = helper.predict_source_role_references(case, manifest,
+        {'forward_count': 1, 'source_role_references': selected})
+    assert len(references) == 4 and all(row['predicted_reference_us'] > 0 for row in references)
+    assert all('accuracy_pass' not in row and not row['additional_budget_allowed'] for row in references)
+    assert all(row['boundary'] == 'complete_collective_cohort_program_set_reference'
+               for row in references if row['declared_role'].startswith('expert_') and 'native' in row['declared_role'])
