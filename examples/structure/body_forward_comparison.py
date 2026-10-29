@@ -37,6 +37,13 @@ def _stats(values):
     }
 
 
+def _layer_activity_distribution(rows, field):
+    """Aggregate available layer means without treating absent activity as zero."""
+    values = [row[field]["mean"] for row in rows
+              if row.get(field) and row[field].get("count") and row[field].get("mean") is not None]
+    return _stats(values) if values else None
+
+
 def summarize_prediction(case, result):
     """Preserve the graph completion span; project complete semantic timelines."""
     from mindie_sim.prediction.structure import parse_case
@@ -190,6 +197,8 @@ def compare_layers(predicted, observed):
         result = {"layer_id": row["layer_id"], "kind": row["kind"], "rank_id": row.get("rank_id"),
                   "attention_kind": layer["attention_kind"] if layer else None,
                   "representative_replica": replica, "observed_ms": stats,
+                  "observed_activity_ms": row.get("activity_ms_stats"),
+                  "observed_internal_gap_ms": row.get("internal_gap_ms_stats"),
                   "predicted_ms": layer["span_ms"] if layer else None,
                   "relative_error": None, "passed": None, "status": "unresolved", "reasons": []}
         if layer is None:
@@ -216,12 +225,16 @@ def compare_layers(predicted, observed):
         "ffn_kind_distributions": [
             {"kind": kind, "statistic_scope": "across_layer_means_in_this_geometry",
              "observed_ms": _stats([row["observed_ms"]["mean"] for row in rows]),
-             "predicted_ms": _stats([row["predicted_ms"] for row in rows])}
+             "predicted_ms": _stats([row["predicted_ms"] for row in rows]),
+             "observed_activity_ms": _layer_activity_distribution(rows, "observed_activity_ms"),
+             "observed_internal_gap_ms": _layer_activity_distribution(rows, "observed_internal_gap_ms")}
             for kind, rows in sorted(grouped.items())],
         "attention_kind_distributions": [
             {"attention_kind": kind, "statistic_scope": "across_complete_layer_means_in_this_geometry",
              "observed_ms": _stats([row["observed_ms"]["mean"] for row in rows]),
              "predicted_ms": _stats([row["predicted_ms"] for row in rows]),
+             "observed_activity_ms": _layer_activity_distribution(rows, "observed_activity_ms"),
+             "observed_internal_gap_ms": _layer_activity_distribution(rows, "observed_internal_gap_ms"),
              "compared_layers": len(rows),
              "passed_layers": sum(row["passed"] is True for row in rows)}
             for kind, rows in sorted(attention.items())],

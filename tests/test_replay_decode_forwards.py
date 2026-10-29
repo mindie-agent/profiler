@@ -103,3 +103,30 @@ def test_prediction_worker_has_bounded_receipt_and_reuses_completed_geometry(rep
                                      replay.PredictionCache(tmp_path / "predictions"), timeout_s=10)
     assert second["reused_prediction"]
     assert second["prediction"] == first["prediction"]
+
+
+def test_real_high_concurrency_activity_preserves_union_and_layer_populations(replay):
+    directory = ROOT / "examples/structure/acceptance-20261030-high-concurrency"
+    observed = json.loads((directory / "auto-forward-a5_qwen36_highconc_c40.json").read_text())
+    manifest = json.loads((directory / "decode-forward-auto-cases.json").read_text())
+    declaration = next(row for row in manifest["cases"] if row["case_id"] == "a5_qwen36_highconc_c40")
+    scenario, = replay._automatic_scenarios(declaration, observed)
+    projected = scenario["observed"]
+    assert projected["body_activity_ms"] == observed["body_activity_ms"]
+    assert projected["body_internal_gap_ms"] == observed["body_internal_gap_ms"]
+    assert projected["body_activity_ms"]["mean"] + projected["body_internal_gap_ms"]["mean"] == pytest.approx(
+        projected["body_forward_span_ms"]["mean"])
+    # This retained capture has overlapping HCOM/compute stream intervals.
+    forward = observed["forwards"][0]
+    assert sum(row["activity_union_ms"] for row in forward["per_stream_activity_ms"]) > forward["body_activity_ms"]
+    assert forward["body_activity_ms"] + forward["body_internal_gap_ms"] == pytest.approx(
+        (forward["end_ns"] - forward["start_ns"]) / 1e6)
+    report = json.loads((directory / "decode-forward-replay.json").read_text())
+    predicted = next(row["prediction"] for row in report["cases"]
+                     if row["source_case_id"] == declaration["case_id"])
+    layers = replay.compare_layers(predicted, projected)
+    assert layers["summary"]["compared_layers"] == 64
+    for group in layers["attention_kind_distributions"]:
+        assert group["observed_ms"]["count"] == {"gdn": 48, "gqa": 16}[group["attention_kind"]]
+        assert group["observed_activity_ms"]["mean"] + group["observed_internal_gap_ms"]["mean"] == pytest.approx(
+            group["observed_ms"]["mean"])

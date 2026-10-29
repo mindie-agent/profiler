@@ -236,6 +236,9 @@ def _automatic_scenarios(row, observed):
             "span_start_basis", "span_end_basis", "source_identity", "model_declaration")},
         **{key: group.get(key, []) for key in (
             "body_forward_span_ms", "per_layer_ms", "stage_span_ms", "representative_forwards")},
+        **{key: group.get(key) for key in (
+            "body_activity_ms", "body_internal_gap_ms", "per_stream_activity_ms")},
+        "activity_interpretation": "Union of non-scheduler event intervals, including real HCOM protocol wait; this is not PMU-confirmed useful hardware busy time.",
         "geometry": geometry,
         "batch_evidence": {
             "execution_sequences_per_replica": geometry.get("sequences_per_replica"),
@@ -422,7 +425,8 @@ def replay_manifest(manifest, *, base, max_events=5_000_000, timeout_s=30,
                     "unresolved_cases": counts["unresolved"], "failed_cases": counts["failed"]},
         "limitations": ["Graph execution envelopes and TPOT are not target-body spans.",
                         "Automatic topology alignment is not exact Host/module occurrence binding.",
-                        "Scenario targets do not establish capture conditions."],
+                        "Scenario targets do not establish capture conditions.",
+                        "Sim TP peers are symmetric and initially ready at zero; measured collective elapsed can include peer wait. Single-rank intervals cannot separate payload transport from peer wait and must not be used to fit link bandwidth."],
     }
 
 
@@ -449,6 +453,21 @@ def render(report):
             number(stats["p90"]), number(compare["predicted_ms"]),
             "—" if error is None else f"{error:+.2%}",
             row["status"] + (": " + "; ".join(compare["reasons"]) if compare["reasons"] else ""),
+        ]) + " |")
+    lines.extend(["", "## Device activity and internal uncovered intervals", "",
+                  "Device activity is the interval union of retained non-scheduler device events. Real HCOM intervals include protocol wait, so this coverage is not PMU-confirmed useful hardware busy time. Internal uncovered time is body span minus this union. It remains inside body latency and does not by itself identify Host scheduling. Concurrent stream activity is not additive.", "",
+                  "Sim assumes symmetric TP peers initially ready at zero. A measured collective interval may include peer wait; single-rank profiling cannot separate payload transport from that wait, so this elapsed time is not a link-bandwidth calibration.", "",
+                  "| Case | Real body mean ms | Device activity mean ms | Internal uncovered mean ms | Uncovered fraction | Captured graph mode |",
+                  "|---|---:|---:|---:|---:|---|"])
+    for row in report["cases"]:
+        observed = row.get("observed") or {}
+        activity = (observed.get("body_activity_ms") or {}).get("mean")
+        gap = (observed.get("body_internal_gap_ms") or {}).get("mean")
+        body = row["comparison"]["observed_ms"].get("mean")
+        mode = (row.get("scenario_evidence") or {}).get("runtime", {}).get("graph_mode", "—")
+        lines.append("| " + " | ".join([
+            row["case_id"], number(body), number(activity), number(gap),
+            f"{gap / body:.2%}" if gap is not None and body else "—", mode,
         ]) + " |")
     lines.extend(["", "## Per-layer comparison", "",
                   "Dense/MoE labels identify the FFN inside each transformer layer. Statistics below are across measured layer means within the same q/batch group; attention remains part of its declared layer. DP replicas are not summed.", "",
@@ -479,6 +498,15 @@ def render(report):
                 f"{group['passed_layers']} / {group['compared_layers']}",
                 number(observed["mean"]), number(observed["p50"]), number(observed["p90"]),
                 number(predicted["mean"]), f"{error:+.2%}",
+            ]) + " |")
+    lines.extend(["", "| Case | Attention structure | Complete layer mean ms | Layer device activity mean ms | Layer internal uncovered mean ms |",
+                  "|---|---|---:|---:|---:|"])
+    for row in report["cases"]:
+        for group in (row.get("per_layer_comparison") or {}).get("attention_kind_distributions", []):
+            lines.append("| " + " | ".join([
+                row["case_id"], group["attention_kind"], number(group["observed_ms"]["mean"]),
+                number((group.get("observed_activity_ms") or {}).get("mean")),
+                number((group.get("observed_internal_gap_ms") or {}).get("mean")),
             ]) + " |")
     lines.extend(["", "## Execution batch and client TPOT", "",
                   "Execution batch comes from captured tensor geometry and may include graph padding. Client concurrency describes requests. Representative K is the explicitly declared context or client prompt length; generated-token growth during the window is not observed. These single-rank comparisons assume symmetric rank completion. TPOT includes serving work beyond the body; profiled and unprofiled measurements remain separate.", "",

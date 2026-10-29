@@ -15,6 +15,21 @@ Sim 0.8.0; 217 package files; SHA256 `83fab0bfbd15620172a7f323e83c93c661af9aadd9
 | a5_qwen38_highconc_c128:q4_b128_m512 | 29 | 45.689314 | 45.690342 | 45.735162 | 28.248389 | -38.17% | compared |
 | a5_qwen38_highconc_c4:q4_b4_m16 | 45 | 13.026721 | 13.005325 | 13.166872 | 4.385865 | -66.33% | compared |
 
+## Device activity and internal uncovered intervals
+
+Device activity is the interval union of retained non-scheduler device events. Real HCOM intervals include protocol wait, so this coverage is not PMU-confirmed useful hardware busy time. Internal uncovered time is body span minus this union. It remains inside body latency and does not by itself identify Host scheduling. Concurrent stream activity is not additive.
+
+Sim assumes symmetric TP peers initially ready at zero. A measured collective interval may include peer wait; single-rank profiling cannot separate payload transport from that wait, so this elapsed time is not a link-bandwidth calibration.
+
+| Case | Real body mean ms | Device activity mean ms | Internal uncovered mean ms | Uncovered fraction | Captured graph mode |
+|---|---:|---:|---:|---:|---|
+| a5_qwen36_highconc_c40:q4_b40_m160 | 20.683911 | 20.302463 | 0.381448 | 1.84% | FULL_AND_PIECEWISE |
+| a5_qwen36_highconc_c128:q4_b128_m512 | 32.608990 | 32.315990 | 0.293001 | 0.90% | FULL_AND_PIECEWISE |
+| a5_qwen36_highconc_c4:q4_b4_m16 | 13.342454 | 12.987191 | 0.355263 | 2.66% | FULL_AND_PIECEWISE |
+| a5_qwen38_highconc_c32:q4_b32_m128 | 22.791335 | 22.352767 | 0.438568 | 1.92% | FULL_AND_PIECEWISE |
+| a5_qwen38_highconc_c128:q4_b128_m512 | 45.689314 | 45.385279 | 0.304035 | 0.67% | FULL_AND_PIECEWISE |
+| a5_qwen38_highconc_c4:q4_b4_m16 | 13.026721 | 12.555020 | 0.471701 | 3.62% | FULL_AND_PIECEWISE |
+
 ## Per-layer comparison
 
 Dense/MoE labels identify the FFN inside each transformer layer. Statistics below are across measured layer means within the same q/batch group; attention remains part of its declared layer. DP replicas are not summed.
@@ -46,6 +61,21 @@ Each value is a complete transformer-layer span, grouped by its declared attenti
 | a5_qwen38_highconc_c128:q4_b128_m512 | gqa | 0 / 16 | 0.566802 | 0.566580 | 0.568505 | 0.344371 | -39.24% |
 | a5_qwen38_highconc_c4:q4_b4_m16 | gdn | 0 / 48 | 0.207698 | 0.207635 | 0.209199 | 0.064610 | -68.89% |
 | a5_qwen38_highconc_c4:q4_b4_m16 | gqa | 0 / 16 | 0.187527 | 0.181657 | 0.181965 | 0.080287 | -57.19% |
+
+| Case | Attention structure | Complete layer mean ms | Layer device activity mean ms | Layer internal uncovered mean ms |
+|---|---|---:|---:|---:|
+| a5_qwen36_highconc_c40:q4_b40_m160 | gdn | 0.333238 | 0.328009 | 0.005229 |
+| a5_qwen36_highconc_c40:q4_b40_m160 | gqa | 0.289689 | 0.284876 | 0.004813 |
+| a5_qwen36_highconc_c128:q4_b128_m512 | gdn | 0.515500 | 0.511996 | 0.003504 |
+| a5_qwen36_highconc_c128:q4_b128_m512 | gqa | 0.488422 | 0.483761 | 0.004662 |
+| a5_qwen36_highconc_c4:q4_b4_m16 | gdn | 0.215818 | 0.211014 | 0.004804 |
+| a5_qwen36_highconc_c4:q4_b4_m16 | gqa | 0.183285 | 0.178658 | 0.004627 |
+| a5_qwen38_highconc_c32:q4_b32_m128 | gdn | 0.381152 | 0.375943 | 0.005209 |
+| a5_qwen38_highconc_c32:q4_b32_m128 | gqa | 0.277580 | 0.269220 | 0.008360 |
+| a5_qwen38_highconc_c128:q4_b128_m512 | gdn | 0.761777 | 0.758204 | 0.003573 |
+| a5_qwen38_highconc_c128:q4_b128_m512 | gqa | 0.566802 | 0.561968 | 0.004834 |
+| a5_qwen38_highconc_c4:q4_b4_m16 | gdn | 0.207698 | 0.202701 | 0.004997 |
+| a5_qwen38_highconc_c4:q4_b4_m16 | gqa | 0.187527 | 0.176586 | 0.010941 |
 
 ## Execution batch and client TPOT
 
