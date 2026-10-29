@@ -167,6 +167,14 @@ python examples/structure/replay_decode_forwards.py \
   --output examples/structure/acceptance-20261029/decode-forward-replay.json
 ```
 
+新 A5 高并发 Qwen3.6 TP8、Qwen3.8 TP4 的六组采集使用
+[`acceptance-20261030-high-concurrency/decode-forward-auto-cases.json`](examples/structure/acceptance-20261030-high-concurrency/decode-forward-auto-cases.json)。
+该目录的 [主体与分层对账](examples/structure/acceptance-20261030-high-concurrency/decode-forward-replay.md)
+按 48 GDN / 16 GQA 完整层分组，分别保留实际执行 query/batch、客户端并发、
+Prefix Cache 命中率、MTP 接收率、TPOT 与运行时包身份。
+[`0061` 历史基线](examples/structure/acceptance-20261029/decode-forward-baseline-0061.md)
+保留旧运行时的 30 源、37 种执行几何，不与新版预测混算通过率。
+
 开发期也可用 `mindie-profiler camodel --trace ... --plan ... --output ...`
 把 CAModel Chrome trace 导出为旧版 `mindie-sim pipeline --durations` 的阶段成本。
 该入口离线运行，保留仿真来源，不写入真机校准库；窗口、时钟单位和阶段选择

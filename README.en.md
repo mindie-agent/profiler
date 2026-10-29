@@ -150,6 +150,21 @@ remain conditional; selected fusion programs and unfused references are
 distinct, and internal HBM traffic is removed only under an explicit source
 profile.
 
+Decode timing also accepts normalized CSV events directly through
+`auto_segment_decode_forwards(events, model_config)`. It aligns complete Sim layer
+plans, tensor geometry and vocabulary-head closure, then reports body and layer
+Mean/P50/P90 with source locators. Automatic topology inference remains separate
+from Host/module occurrence binding. Internal communication and gaps remain in
+the span; scheduler tails crossing the next dependency boundary are recorded
+separately.
+
+The [six high-concurrency A5 replays](examples/structure/acceptance-20261030-high-concurrency/decode-forward-replay.md)
+use Qwen3.6 TP8 and Qwen3.8 TP4, with 48 GDN and 16 GQA full-layer groups.
+Execution query/batch, client concurrency, cache hits, speculative acceptance,
+TPOT and runtime identity have separate fields. The
+[earlier 30-source baseline](examples/structure/acceptance-20261029/decode-forward-baseline-0061.md)
+retains its own runtime and comparison denominator.
+
 ### Key Accounting & Classification Guarantees
 
 - **Single Authoritative Source (`DB > CSV > JSON Trace`)**: When a directory contains both `.db` and CSV/JSON exports from the same capture, `mindie-profiler` selects one authoritative source per metric and never double-counts events across formats.
