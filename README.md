@@ -163,7 +163,7 @@ Decode 主体计时可以直接读取 CSV，不需要手写同步边界 JSON：
 
 ```bash
 python examples/structure/replay_decode_forwards.py \
-  --manifest examples/structure/acceptance-20261029/decode-forward-cases.json \
+  --manifest examples/structure/acceptance-20261029/decode-forward-auto-cases.json \
   --output examples/structure/acceptance-20261029/decode-forward-replay.json
 ```
 
