@@ -59,10 +59,22 @@ CAPABILITIES = {
         "catalog/attention_common.py",
         "Context-parallel partial merge requires corresponding runtime selection."),
     "DequantSwigluQuant": (
-        "prediction/feedforward.py",
-        "Activation/quantization work exists; a matching native dequantization boundary is not established."),
+        "prediction/family_shared_quant.py",
+        "Explicit shared_expert=ascend_shared_gate_up_int32 selects the W8A8 INT32 "
+        "producer and separate dequant/SwiGLU/dynamic-INT8 consumer with FP32 row scales. "
+        "The source program is conditional; W4A8/SiTU and captured dispatch are not implied."),
 }
-NATIVE_BOUNDARY_GAPS = {"DequantSwigluQuant"}
+FIXTURE_REGISTRIES = (
+    ("fusion_contracts/provenance.json", None),
+    ("mixed_step_body/provenance.json", None),
+    ("kimi_grouped_attnres/provenance.json", None),
+    ("attention_cache_contracts/provenance.json", None),
+    ("body_fused/provenance.json", None),
+    ("body_fused/kimi_a5_norm_gate.provenance.json", "kimi_a5_norm_gate.csv"),
+    ("body_attention/kimi_a5_full_model.provenance.json", "kimi_a5_full_model.csv"),
+    ("structure_contracts/provenance.json", "a5_tensor_contracts.csv"),
+)
+CONTRACT_NATIVE_KINDS = {"dequant_swiglu_quant_active": "DequantSwigluQuant"}
 
 
 def read(path):
@@ -102,8 +114,13 @@ def replay_inputs(directory):
             if path.name in seen:
                 raise ValueError(f"duplicate_replay_report:{path.name}")
             seen.add(path.name)
+            identity = {"file": path.name, "sha256": digest(path),
+                        "size_bytes": path.stat().st_size}
+            if reference.get("summary_identity") != identity:
+                raise ValueError(f"summary_generation_mismatch:{path.name}")
             summary = read(path)
-            if summary["capture_key"] != capture["capture_key"]:
+            if (summary["capture_key"] != capture["capture_key"]
+                    or summary["source_identity"] != capture["source_identity"]):
                 raise ValueError(f"replay_capture_identity_mismatch:{path.name}")
             case_path, case = artifact(directory, summary, "case")
             mapping_path, mapping = artifact(directory, summary, "mapping")
@@ -119,8 +136,17 @@ def targets(manifest):
         kinds = set(implementation.get("native_kinds", ()))
         if implementation.get("native_kind"):
             kinds.add(implementation["native_kind"])
-        for kind in kinds:
-            by_kind[kind].append(target)
+        contract = target.get("contract")
+        contract_kind = CONTRACT_NATIVE_KINDS.get(contract[0]) if contract else None
+        # This typed contract names its native operator explicitly. Some saved
+        # exporters omit only the redundant implementation projection.
+        contract_kinds = ({contract_kind} if contract_kind and contract[1] == contract_kind else set())
+        for kind in kinds | contract_kinds:
+            by_kind[kind].append({
+                **target, "inventory_native_identity_basis": (
+                    "declared_native_implementation" if kind in kinds
+                    else "explicit_typed_contract_native_kind"),
+            })
     return by_kind
 
 
@@ -138,6 +164,8 @@ def summarize_targets(values):
         "incomplete_boundary_target_count": len(values) - len(complete),
         "comparable_target_count": len(comparable),
         "coverage_kind_counts": dict(Counter(coverage(target) for target in values)),
+        "native_identity_basis_counts": dict(Counter(
+            target["inventory_native_identity_basis"] for target in values)),
         "coverage_limitations": sorted({
             item for target in values for item in target.get("coverage", {}).get("limitations", ())}),
         "contract_scopes": sorted({str(target.get("contract_scope")) for target in comparable}),
@@ -192,31 +220,86 @@ def fresh_graph(case_path, geometry, timeout):
     return result
 
 
-def fixture_rows():
+def fixture_rows(sources, *, fixture_root=None, registries=FIXTURE_REGISTRIES):
+    """Join explicit original locators; filenames never establish capture identity."""
     from mindie_profiler.normalized import kernel_rows
     from mindie_profiler.tensor_contracts import observed_contract, observed_contract_diagnostic
 
-    root = ROOT / "tests/fixtures/fusion_contracts"
+    root = fixture_root or ROOT / "tests/fixtures"
+    captures_by_hash = {
+        source["source_identity"]["sha256"]: capture_id for capture_id, source in sources.items()
+    }
     result = defaultdict(list)
-    seen = {}
-    for source in read(root / "provenance.json")["sources"]:
-        locators = {row["fixture_csv_line"]: row["source_csv_line"] for row in source["rows"]}
-        for row in kernel_rows(root / source["fixture"]):
-            contract = observed_contract(row)
-            record = {
-                "source_csv_line": locators[row.line],
-                "contract": canonical(contract) if contract is not None else None,
-                "diagnostic": observed_contract_diagnostic(row)["reason"],
-            }
-            identity = (source["capture_id"], source["source_sha256"],
-                        record["source_csv_line"], row.kind)
-            if identity in seen:
-                if seen[identity] != record:
-                    raise ValueError(f"conflicting_retained_fixture_row:{identity}")
+    seen, evidence = {}, []
+    for registry_name, explicit_fixture in registries:
+        registry_path = root / registry_name
+        document = read(registry_path)
+        registry = {"path": str(registry_path), "sha256": digest(registry_path), "sources": []}
+        evidence.append(registry)
+        for source in document.get("sources", (document,)):
+            source_hash = (source.get("source_identity", {}).get("sha256")
+                           or source.get("source_sha256") or source.get("source_member_sha256")
+                           or source.get("sha256"))
+            capture_id = captures_by_hash.get(source_hash)
+            fixture = registry_path.parent / (source.get("fixture") or explicit_fixture)
+            item = {"fixture": str(fixture), "source_sha256": source_hash,
+                    "capture_id": capture_id}
+            registry["sources"].append(item)
+            if capture_id is None:
+                item["status"] = "outside_inventory_capture_population"
                 continue
-            seen[identity] = record
-            result[source["capture_id"], row.kind].append(record)
-    return result
+            if source.get("capture_id", capture_id) != capture_id:
+                raise ValueError(f"fixture_capture_identity_mismatch:{fixture}")
+            fixture_hash = digest(fixture)
+            if source.get("fixture_sha256", fixture_hash) != fixture_hash:
+                raise ValueError(f"fixture_artifact_identity_mismatch:{fixture}")
+            locators = {}
+            for locator in source["rows"]:
+                fixture_line = locator.get("fixture_csv_line", locator.get("fixture_row"))
+                source_line = locator.get("source_csv_line", locator.get("source_line"))
+                if not fixture_line or not source_line:
+                    raise ValueError(f"fixture_original_line_missing:{fixture}")
+                locators[fixture_line] = (source_line, locator.get("operator_type", locator.get("kind")))
+            parsed_lines, added = set(), 0
+            for row in kernel_rows(fixture):
+                source_line, native_kind = locators[row.line]
+                if native_kind is not None and native_kind != row.kind:
+                    raise ValueError(f"fixture_native_kind_mismatch:{fixture}:{row.line}")
+                parsed_lines.add(row.line)
+                contract = observed_contract(row)
+                record = {
+                    "source_csv_line": source_line,
+                    "contract": canonical(contract) if contract is not None else None,
+                    "diagnostic": observed_contract_diagnostic(row)["reason"],
+                }
+                identity = (capture_id, source_hash, source_line)
+                fields = (row.kind, row.signature, row.stream, row.start_ns, row.duration_ns, record)
+                if identity in seen:
+                    if seen[identity] != fields:
+                        raise ValueError(f"conflicting_retained_fixture_row:{identity}")
+                    continue
+                seen[identity] = fields
+                result[capture_id, row.kind].append(record)
+                added += 1
+            if parsed_lines != locators.keys():
+                raise ValueError(f"fixture_original_rows_not_parsed:{fixture}")
+            item.update(status="verified_original_rows", fixture_sha256=fixture_hash,
+                        retained_rows=len(parsed_lines), added_unique_rows=added)
+    return result, {
+        "registries": evidence, "unique_original_record_count": len(seen),
+        "identity": "capture_source_sha256_and_original_csv_line; duplicate_fields_must_agree",
+        "contracts": "recomputed_with_current_observed_contract; stored_contracts_are_not_reused",
+        "raw_capture_reads": 0,
+    }
+
+
+def base_declaration_basis(source, case):
+    """A saved conditional source case is not the unselected catalog baseline."""
+    if (source.get("source_evidence") or {}).get("current_checkpoint"):
+        return "checkpoint_conditional_case_base"
+    if case.get("runtime", {}).get("kernels"):
+        return "source_selected_case_base"
+    return "case_default"
 
 
 def refresh(directory, *, graph_timeout=60):
@@ -225,7 +308,7 @@ def refresh(directory, *, graph_timeout=60):
     template = read(directory / "fusion-coverage-inventory.json")
     audit = read(directory / "fusion-capture-field-coverage.json")
     sources = {row["capture_id"]: row for row in audit["sources"]}
-    fixtures = fixture_rows()
+    fixtures, fixture_evidence = fixture_rows(sources)
     availability, contracts, replays = defaultdict(list), {}, defaultdict(list)
     declarations, default_keys, graph_receipts = [], set(), []
 
@@ -289,20 +372,23 @@ def refresh(directory, *, graph_timeout=60):
                             "implementation_correspondence") if key in row},
                 })
         del graph, mapping
-        default_key = (capture_id, canonical(geometry))
+        base_path = Path(summary["declaration_source"]["case_path"])
+        base_hash = summary["declaration_source"]["case_sha256"]
+        default_key = (capture_id, base_hash, canonical(geometry))
         if default_key not in default_keys:
             default_keys.add(default_key)
-            base_path = Path(summary["declaration_source"]["case_path"])
-            if digest(base_path) != summary["declaration_source"]["case_sha256"]:
+            if digest(base_path) != base_hash:
                 raise ValueError(f"replay_base_case_changed:{base_path}")
             default = fresh_graph(base_path, geometry, graph_timeout)
+            base_basis = base_declaration_basis(summary["declaration_source"], read(base_path))
             register(default, {
-                "declaration": summary["declaration_key"] + ":case_default",
-                "capture_id": capture_id, "basis": "case_default",
+                "declaration": summary["declaration_key"] + ":" + base_basis,
+                "capture_id": capture_id, "basis": base_basis,
                 "graph_id": default["graph_id"], "execution": geometry,
                 "case_path": str(base_path), "case_sha256": digest(base_path),
+                "base_source_override_basis": summary["declaration_source"].get("override_basis"),
                 "full_capture_replay": {
-                    "status": "default_declaration_only_not_replayed",
+                    "status": "base_declaration_only_not_replayed",
                     "no_raw_rescan_by_inventory": True,
                 },
             })
@@ -349,11 +435,11 @@ def refresh(directory, *, graph_timeout=60):
                 "source": str(sim / module), "sha256": digest(sim / module),
                 "detail": detail, "does_not_imply_case_selection": True,
             }
+        if kind == "DequantSwigluQuant":
+            entry["sim_target_families"] = ["dequant_swiglu_quant"]
         entry["declaration_gaps"] = [{
             "capture_id": capture_id,
-            "category": ("semantic_work_available_native_boundary_not_established"
-                         if kind in NATIVE_BOUNDARY_GAPS else
-                         "capability_available_current_declaration_not_selected"
+            "category": ("capability_available_current_declaration_not_selected"
                          if kind in CAPABILITIES or current else "native_boundary_not_declared"),
             "detail": (CAPABILITIES[kind][1] if kind in CAPABILITIES else
                        "No native target is declared for this capture case/phase."),
@@ -416,7 +502,9 @@ def refresh(directory, *, graph_timeout=60):
         "No native target in saved replay declarations; not a count of unimplemented runtime mechanisms.")
     template.update(schema_version="mindie-native-fusion-coverage-inventory/3",
                     declarations=declarations,
-                    refresh_basis="final_replay_saved_cases; verified_artifact_hashes_and_fresh_graphs",
+                    refresh_basis="receipt_bound_summaries; final_replay_saved_cases; "
+                                  "verified_artifact_hashes_and_fresh_graphs",
+                    retained_fixture_evidence=fixture_evidence,
                     refresh_script_sha256=digest(__file__),
                     refresh_execution={
                         "python_executable": sys.executable,
@@ -447,8 +535,8 @@ def markdown(result):
     execution = result["refresh_execution"]
     lines = [
         "# Native Fusion Coverage From Final Saved Cases", "",
-        "Historical retained captures; no new live collection. Final `.case.json` artifacts, "
-        "artifact hashes and freshly exported graph IDs determine replay evidence.", "",
+        "Historical retained captures; no new live collection. Receipt-bound summary hashes, "
+        "final `.case.json` artifacts and freshly exported graph IDs determine replay evidence.", "",
         f"{counts['unique_capture_count']} unique captures contain {counts['event_count']:,} events "
         f"and {counts['native_type_count']} native types. Declaration variants do not enlarge that denominator.",
         "", f"Fresh graph verification: {counts['current_graph_full_replay_declaration_count']} saved replay "
@@ -494,9 +582,20 @@ def markdown(result):
         "the corresponding phase or parallelism. GroupedMatmulSituQuant uses its verified source "
         "overlay ABI without inferring routed group values. Per-capture reasons and capability "
         "sources remain in the JSON.", "",
+        "DequantSwigluQuant now has a source-selected W8A8 shared-expert INT32-to-INT8 "
+        "boundary with FP32 row scales. Its explicit selected declarations remain separate "
+        "from catalog defaults; this capability does not extend to W4A8 or SiTU.", "",
         "ChunkKdaFwd and ChunkGatedDeltaRuleFwd incomplete native boundaries remain outside complete "
         "contract/resource coverage. Full JSON preserves all 148 types, raw missingness, source branches, "
         "per-declaration fixture matches and full-capture status/reason counts.", "",
+        "Fusion, mixed-step, Kimi, attention/cache and normalization fixture registries are joined "
+        "by original source SHA256 and explicit source-line provenance. Repeated retained rows "
+        "must agree and count once; unrelated capture fixtures are excluded explicitly. "
+        "Current observed contracts are recomputed from the original CSV fields.", "",
+        "Base cases that already contain kernel selectors or current-checkpoint provenance remain "
+        "`source_selected_case_base` or `checkpoint_conditional_case_base`; they do not contribute "
+        "to the unselected `case_default` column. The JSON preserves typed-contract native identity "
+        "separately when the historical exporter omits the redundant implementation projection.", "",
         "Fixture examples are deduplicated by original capture and source line. Full-replay counts "
         "stay per declaration and must not be summed as additional hardware evidence. No inclusive "
         "fused duration is divided among member nodes.",
