@@ -37,6 +37,15 @@ def test_body_uses_complete_semantic_timeline_with_zero_engine_trace(adapter, ca
     assert projected["first_kernel_ready_ms"] == 0
     assert projected["first_kernel_to_body_complete_ms"] == result["duration_ms"]
     assert len(projected["per_layer_ms"]) == case["model"]["layers"]
+    diagnostic = projected["scheduled_operator_summary"]
+    assert not diagnostic["additive_to_body"]
+    assert sum(group["scheduled_elapsed_ms"]["count"] for group in diagnostic["groups"]) == result["operator_occurrences"]
+    for group in diagnostic["groups"]:
+        rows = [row for row in result["timeline"] if all(row[key] == group[key]
+                for key in ("replica", "stage", "family", "recipe", "program"))]
+        assert group["sum_elapsed_ms"] == pytest.approx(sum(row["elapsed_ms"] for row in rows))
+        assert group["scheduled_interval_union_ms"] <= group["sum_elapsed_ms"] + 1e-12
+    assert len(diagnostic["largest_operator_intervals"]) <= 10
     for layer in projected["per_layer_ms"]:
         rows = [r for r in result["timeline"] if r["layer"] == layer["layer_id"]]
         assert layer["span_ms"] == pytest.approx(
@@ -60,6 +69,9 @@ def test_ep_replicas_keep_envelopes_without_adding_parallel_layer_spans(adapter,
     assert {r["kind"] for r in result["per_layer_ms"]} == {"moe_layer"}
     assert {r["attention_kind"] for r in result["per_layer_ms"]} == {"gqa"}
     assert sum(r["span_ms"] for r in result["replica_envelopes_ms"]) > result["body_forward_span_ms"]
+    groups = result["scheduled_operator_summary"]["groups"]
+    assert {group["replica"] for group in groups} == {0, 1}
+    assert not result["scheduled_operator_summary"]["additive_across_replicas"]
     assert result["body_forward_span_ms"] == pytest.approx(
         max(r["span_ms"] for r in result["replica_envelopes_ms"]))
 

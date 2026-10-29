@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 from collections import defaultdict
+from hashlib import sha256
 import json
 import math
 from pathlib import Path
@@ -115,6 +116,43 @@ def compare_pooled_layers(steady, pooled):
             "body_span_modified": False, "groups": compared}
 
 
+def _scheduled_operators(timeline):
+    """Keep compact scheduler diagnostics without retaining full node history."""
+    grouped, replicas = defaultdict(list), defaultdict(list)
+    for row in timeline:
+        if row["family"] == "barrier":
+            continue
+        grouped[row["replica"], row["stage"], row["family"], row["recipe"], row["program"]].append(row)
+        replicas[row["replica"]].append(row)
+    groups = []
+    for (replica, stage, family, recipe, program), rows in sorted(grouped.items()):
+        intervals = sorted((row["ready_ms"], row["complete_ms"]) for row in rows)
+        union, start, end = 0.0, *intervals[0]
+        for left, right in intervals[1:]:
+            if left > end:
+                union += end - start
+                start, end = left, right
+            else:
+                end = max(end, right)
+        durations = [row["complete_ms"] - row["ready_ms"] for row in rows]
+        groups.append({"replica": replica, "stage": stage, "family": family, "recipe": recipe, "program": program,
+                       "scheduled_elapsed_ms": _stats(durations), "sum_elapsed_ms": sum(durations),
+                       "scheduled_interval_union_ms": union + end - start})
+    keys = ("id", "op_id", "replica", "family", "recipe", "program", "stage", "layer",
+            "ready_ms", "complete_ms", "elapsed_ms", "source_boundary")
+    return {
+        "metric_boundary": "scheduled_operator_ready_to_completion_including_resource_wait",
+        "additive_to_body": False, "additive_across_replicas": False,
+        "interpretation": "These scheduled intervals can overlap and include contention or peer waits. They diagnose modeled latency; their sum is neither device service time nor a decomposition of body wall span.",
+        "groups": groups,
+        "largest_operator_intervals": [
+            {key: row[key] for key in keys if key in row}
+            for replica in sorted(replicas)
+            for row in sorted(replicas[replica], key=lambda value: value["complete_ms"] - value["ready_ms"],
+                              reverse=True)[:10]],
+    }
+
+
 def summarize_prediction(case, result):
     """Preserve the graph completion span; project complete semantic timelines."""
     from mindie_sim.prediction.structure import parse_case
@@ -180,6 +218,7 @@ def summarize_prediction(case, result):
         "body_unassigned_operator_count": sum(
             row["layer"] < 0 and row["family"] != "barrier" for row in timeline),
         "boundary_details": result["boundary_details"],
+        "scheduled_operator_summary": _scheduled_operators(timeline),
         "interpretation": (
             "Body span is scheduler completion, not a sum of layer envelopes. "
             "Dense/MoE identifies the layer FFN; its attention remains attention. "
@@ -330,6 +369,7 @@ def main():
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
     started = time.perf_counter()
+    adapter_sha = sha256(Path(__file__).read_bytes()).hexdigest()
     result = {"prediction": predict_body(
         _load(args.case), tokens=args.tokens, context=args.context,
         sequences=args.sequences, phase=args.phase)}
@@ -339,6 +379,9 @@ def main():
     rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     result["execution"] = {"elapsed_seconds": time.perf_counter() - started,
                            "peak_rss_bytes": int(rss if sys.platform == "darwin" else rss * 1024)}
+    result["adapter_identity"] = {"path": str(Path(__file__).resolve()),
+                                  "sha256": adapter_sha,
+                                  "sources_unchanged": adapter_sha == sha256(Path(__file__).read_bytes()).hexdigest()}
     args.output.write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps({"status": result["prediction"]["status"],
                       "body_forward_span_ms": result["prediction"]["body_forward_span_ms"],

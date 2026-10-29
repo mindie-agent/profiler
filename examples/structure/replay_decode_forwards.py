@@ -176,6 +176,8 @@ def _predict_bounded(case_path, geometry, cache, *, timeout_s):
     value["status"] = "completed"
     if before != after:
         value.update(status="failed", reason="sim_runtime_changed_during_prediction")
+    elif value.get("adapter_identity", {}).get("sources_unchanged") is False:
+        value.update(status="failed", reason="body_adapter_changed_during_prediction")
     elif not value["case_identity"]["source_unchanged"]:
         value.update(status="failed", reason="sim_case_changed_during_prediction")
     elif value["execution"]["peak_rss_bytes"] > 512 * 1024 ** 2:
