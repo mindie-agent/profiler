@@ -22,7 +22,7 @@ import subprocess
 import sys
 import time
 
-from mindie_profiler.decode_segmentation import auto_segment_decode_forwards, _norm, _anchor, _Row, _TAIL_NAMES
+from mindie_profiler.decode_segmentation import auto_segment_decode_forwards, _norm, _norm_start, _anchor, _Row, _TAIL_NAMES
 from mindie_profiler.events import Observation, QueryStats, SourceRef, Window
 from mindie_profiler.normalized import kernel_rows, shapes, row_from_event
 from mindie_profiler.native_tensor_abi import native_tensor_contract
@@ -91,7 +91,7 @@ def duration_stats(histogram, scale=1e6):
 
 def declared_role(target):
     name = target.get('op_id') or target.get('subgraph_id', '').split('/', 1)[-1]
-    return re.sub(r'^s\d+\.l\d+\.', '', name)
+    return re.sub(r'^s\d+\.l\d+\.', '', name.removeprefix('subgraph:'))
 
 
 def role_block(target):
@@ -193,8 +193,9 @@ class BodyConsumer:
             candidates = [_Row(event, shapes(event.input_shapes), shapes(event.output_shapes))
                           for event in segment if layer['start_ns'] <= event.start_ns < boundary]
             anchor = next(row.event.start_ns for row in candidates if _anchor(row, self.config))
-            ffns[layer['layer_id']] = next(row.event.start_ns for row in candidates
-                                          if row.event.start_ns > anchor and _norm(row, self.config['hidden_size']))
+            norm_index=next(index for index,row in enumerate(candidates)
+                            if row.event.start_ns>anchor and _norm(row,self.config['hidden_size']))
+            ffns[layer['layer_id']]=candidates[_norm_start(candidates,norm_index,self.config['hidden_size'])].event.start_ns
         selected = []
         for event in segment:
             if not result['start_ns'] <= event.start_ns < result['end_ns']:
@@ -225,11 +226,12 @@ class BodyConsumer:
             self.reasons[reason or 'cohort_eligible'] += 1
             key = event.op_type, role
             family = self.families.setdefault(key, {'durations': Counter(), 'cohort_reasons': Counter(),
-                'layer_groups': defaultdict(Counter),
+                'layer_groups': defaultdict(Counter), 'structure_groups':defaultdict(Counter),
                 'target_ids': set(), 'role_basis': 'whole_body_topology_and_tensor_contract' if roles else
                 'topology_region_only; tensor_contract_unresolved', 'examples': []})
             family['durations'][event.duration_ns] += 1
             family['layer_groups']['layer0' if layer['layer_id']==0 else 'steady_layers'][event.duration_ns] += 1
+            family['structure_groups'][(layer['attention'],self.mapper.block)][event.duration_ns]+=1
             family['cohort_reasons'][reason or 'cohort_eligible'] += 1
             family['target_ids'].update(candidates)
             if len(family['examples']) < 2:
@@ -262,6 +264,9 @@ class BodyConsumer:
                     for (kind, role), value in sorted(self.families.items())]
         for family in families:
             groups=self.families[family['native_operator_type'],family['declared_role']]['layer_groups']
+            family['structure_groups']=[{'attention_kind':key[0],'block':key[1],
+                'observed_us':duration_stats(histogram,1000),'duration_ns_counter':sorted(histogram.items())}
+                for key,histogram in self.families[family['native_operator_type'],family['declared_role']]['structure_groups'].items()]
             family['layer_groups']={key:{'observed_us':duration_stats(histogram,1000),
                                         'duration_ns_counter':sorted(histogram.items())}
                                     for key,histogram in groups.items()}
@@ -273,45 +278,60 @@ class BodyConsumer:
         return mapping, families, pooled
 
 
+def geometry_key(geometry):
+    return tuple(geometry.get(key) for key in ('tokens_per_sequence','sequences_per_replica','query_rows'))
+
+
 def extract_case(entry, case_paths, output):
     started=time.perf_counter(); runtime_before=runtime_identity()
     prior=read(entry['report_path'])
     if digest(entry['report_path'])!=entry['report_sha256']:raise ValueError('body_acceptance_identity_changed')
-    geometry=prior['geometry']; source_identity=entry['source_identity']; path=Path(source_identity['path'])
+    source_identity=entry['source_identity']; path=Path(source_identity['path'])
     before=(path.stat().st_size,path.stat().st_mtime_ns)
     if digest(path)!=source_identity['sha256']:raise ValueError('capture_sha256_changed')
     source=SourceRef('rank_0',0,'csv',str(path),path.name,source_identity['sha256'],before[0],
                     source_identity['schema_version'],'retained_full_capture',mtime_ns=before[1])
-    observation=Observation('rank_0',0,Window(prior['forwards'][0]['start_ns'],prior['forwards'][-1]['end_ns']),
-                            None,[],source,QueryStats('rank_0','complete_decode_bodies'))
+    geometries={};expected_by_geometry=defaultdict(dict)
+    for forward in prior['forwards']:
+        key=geometry_key(forward['geometry'])
+        if any(value is None for value in key):raise ValueError('complete_forward_execution_geometry_unresolved')
+        geometries[key]=forward['geometry'];expected_by_geometry[key][forward['forward_id']]=forward
     variants=[]
     for case_path in case_paths:
-        case_json=read(case_path); case=parse_case(case_json)
+        case_json=read(case_path);case=parse_case(case_json)
         context=case_json['workload']['requests'][0]['prompt_tokens']
-        manifest=export_structure(case,phase='decode',tokens=geometry['tokens_per_sequence'],
-                                  sequences=geometry['sequences_per_replica'],context=context,scope='body')
         config=case.model.to_dict();config.update(tp=case.runtime.parallel.tp)
-        consumer=BodyConsumer(manifest,observation,{row['forward_id']:row for row in prior['forwards']},config)
-        variants.append((case_path,case_json,identity(case_path),manifest,consumer,context,config))
-    config=variants[0][-1]
-    if any(item[-1]!=config for item in variants):raise ValueError('variant_model_topology_differs')
+        for key,geometry in geometries.items():
+            manifest=export_structure(case,phase='decode',tokens=geometry['tokens_per_sequence'],
+                                  sequences=geometry['sequences_per_replica'],context=context,scope='body')
+            expected=expected_by_geometry[key];forwards=list(expected.values())
+            observation=Observation('rank_0',0,Window(forwards[0]['start_ns'],forwards[-1]['end_ns']),
+                            None,[],source,QueryStats('rank_0','complete_decode_bodies'))
+            consumer=BodyConsumer(manifest,observation,expected,config)
+            variants.append((case_path,case_json,identity(case_path),manifest,consumer,context,config,key,geometry))
+    config=variants[0][6]
+    if any(item[6]!=config for item in variants):raise ValueError('variant_model_topology_differs')
     def consume(result,events):
-        for item in variants:item[4](result,events)
-    actual=auto_segment_decode_forwards(kernel_rows(path,rank_id='rank_0',rank_index=0,max_rows=1_000_000,timeout_s=180),
+        key=geometry_key(result['geometry'])
+        for item in variants:
+            if item[7]==key:item[4](result,events)
+    actual=auto_segment_decode_forwards(kernel_rows(path,rank_id='rank_0',rank_index=0,max_rows=5_000_000,timeout_s=180),
               config,source=source,on_forward=consume,max_detailed_forwards=0,max_samples_per_layer=0)
     if before!=(path.stat().st_size,path.stat().st_mtime_ns):raise ValueError('capture_changed_during_scan')
     if runtime_identity()!=runtime_before or any(identity(item[0])!=item[2] for item in variants):
         raise ValueError('runtime_or_declaration_changed_during_scan')
-    pooled_record=None
-    for index,(case_path,case_json,declaration_identity,manifest,consumer,context,config) in enumerate(variants):
+    pooled_records={}
+    for index,(case_path,case_json,declaration_identity,manifest,consumer,context,config,key,geometry) in enumerate(variants):
         variant=case_path.parent.name
+        case_id=entry['case_id']+(f'-q{key[0]}-b{key[1]}' if len(geometries)>1 else '')
         mapping,families,pooled=consumer.finish(manifest)
-        prefix=output/('body-operator-'+entry['case_id']+'-'+variant)
+        prefix=output/('body-operator-'+case_id+'-'+variant)
         write(prefix.with_suffix('.case.json'),case_json);write(prefix.with_suffix('.mapping.json'),mapping)
-        result={'schema_version':'mindie-body-operator-actual/1','case_id':entry['case_id'],'variant':variant,
+        result={'schema_version':'mindie-body-operator-actual/1','case_id':case_id,'source_case_id':entry['case_id'],'variant':variant,
                 'source_identity':source_identity,'body_acceptance_identity':identity(entry['report_path']),
                 'case_identity':declaration_identity,'geometry':geometry,'conditional_context_tokens':context,
-                'forward_count':len(consumer.forward_ids),'counts':dict(consumer.counts),
+                'forward_count':len(consumer.forward_ids),'source_forward_count':len(prior['forwards']),
+                'geometry_group_count':len(geometries),'counts':dict(consumer.counts),
                 'scan_counts':actual['scan_counts'],'families':families,'steady_layer_groups':pooled,
                 'population_basis':'complete_verified_body_windows; no_heads_or_auxiliary_forwards',
                 'steady_population_basis':'pooled_layer_calls_excluding_layer0',
@@ -320,31 +340,34 @@ def extract_case(entry, case_paths, output):
                 'runtime_source_identity':runtime_before,'runtime_sources_unchanged':True,
                 'maximum_resident_set_size_bytes':int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*(1 if sys.platform=='darwin' else 1024))}
         write(prefix.with_suffix('.actual.json'),result)
-        if pooled_record is None:
-            pooled_record={'case_id':entry['case_id'],'source_identity':source_identity,
+        if key not in pooled_records:
+            pooled_records[key]={'case_id':case_id,'source_case_id':entry['case_id'],'source_identity':source_identity,
                 'extraction_identity':identity(prefix.with_suffix('.actual.json')),'geometry':geometry,
                 'forward_count':result['forward_count'],'groups':pooled}
-    return pooled_record
+    return list(pooled_records.values())
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument('--case-id',action='append')
-    parser.add_argument('--case-dir',type=Path,action='append',required=True)
+    parser.add_argument('--case-dir',type=Path,action='append')
+    parser.add_argument('--receipt',type=Path,default=BASE/'decode-forward-auto-acceptance.json')
     parser.add_argument('--output-dir',type=Path,default=BASE)
     args = parser.parse_args()
-    receipt = read(BASE/'decode-forward-auto-acceptance.json')
+    receipt = read(args.receipt)
+    args.output_dir.mkdir(parents=True,exist_ok=True)
     records=[]
     for entry in receipt['cases']:
         if args.case_id and entry['case_id'] not in args.case_id:
             continue
         name=Path(entry['model_structure_identity']['path']).name
-        records.append(extract_case(entry,[directory/name for directory in args.case_dir],args.output_dir))
-        print(json.dumps({'case_id':entry['case_id'],'status':'extracted','forward_count':records[-1]['forward_count']}),flush=True)
+        case_paths=[directory/name for directory in args.case_dir] if args.case_dir else [Path(entry['model_structure_identity']['path'])]
+        extracted=extract_case(entry,case_paths,args.output_dir);records.extend(extracted)
+        print(json.dumps({'case_id':entry['case_id'],'status':'extracted','forward_count':sum(record['forward_count'] for record in extracted),'geometry_groups':len(extracted)}),flush=True)
     write(args.output_dir/'steady-layer-pooled.json',{'schema_version':'mindie-steady-layer-pooled/1',
           'cases':records,'population_basis':'pooled_layer_calls_excluding_layer0',
           'interpretation':'Complete Transformer layer device spans include FFN and real communication; not isolated attention kernels.',
-          'source_receipt_identity':identity(BASE/'decode-forward-auto-acceptance.json')})
+          'source_receipt_identity':identity(args.receipt)})
 
 
 if __name__ == '__main__':

@@ -1,0 +1,40 @@
+{
+  "schema_version": "mindie-body-operator-independent-review/1",
+  "status": "passed",
+  "checks": 819,
+  "failures": [],
+  "scoreboard_sha256": "7126d4a275a5f005537517386747e366322a7bed7365763e21cb3a66319b13fc",
+  "steady_layer_pooled_sha256": null,
+  "source_count": 1,
+  "forward_count": 63,
+  "comparison_status_counts": {
+    "compared": 12,
+    "reference_only": 4
+  },
+  "accuracy_by_tier": {
+    "absolute_15us": {
+      "compared": 11,
+      "passed": 11
+    },
+    "relative_15pct": {
+      "compared": 1,
+      "passed": 0
+    }
+  },
+  "cases": [
+    {
+      "case_id": "a5_kimi_k3_p32768_c1 / cases",
+      "passed": 4,
+      "compared": 4
+    },
+    {
+      "case_id": "a5_kimi_k3_p32768_c1 / kimi-checkpoint-conditional-canonical",
+      "passed": 7,
+      "compared": 8
+    }
+  ],
+  "method": "independent stdlib histogram/count/identity arithmetic; no profiler or Sim import",
+  "raw_capture_reads": 0,
+  "prediction_executions": 0,
+  "script_sha256": "43b232539c3315e89541e017a8bdd8306e1514f8e3f00efd4b9e817869b936a4"
+}

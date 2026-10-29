@@ -78,3 +78,13 @@ def test_qwen_repeated_qkv_tensor_contract_is_refined_by_whole_layer_topology(re
     assert {replay.declared_role(mapper.targets[key]) for key in result[2]}=={'linear_qkvz'}
     assert result[0] in {'candidate','ambiguous'}
     assert result[-1]['occurrence_binding_implied'] is False
+
+
+def test_real_fusion_cohort_roles_do_not_encode_the_layer_occurrence(replay):
+    path=ROOT/'examples/structure/acceptance-20261030-priority-operators/body-operator-a5_kimi_k3_p32768_c1-kimi-checkpoint-conditional.mapping.json'
+    mapping=replay.read(path)
+    rows=[row for row in mapping['windows'][0]['cohorts'] if row['native_operator_type']=='SituMxQuant']
+    identifiers=[row['target_ids'][0] for row in rows[:2]]
+    assert len(set(identifiers))==2
+    roles={replay.declared_role({'subgraph_id':identifier}) for identifier in identifiers}
+    assert roles=={'shared.situ_quant'}

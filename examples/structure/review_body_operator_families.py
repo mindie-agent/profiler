@@ -9,7 +9,8 @@ from collections import Counter,defaultdict
 import argparse,json,math
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--directory',type=Path,default=Path(__file__).parent/'acceptance-20261030-high-concurrency')
-BASE=parser.parse_args().directory
+parser.add_argument('--skip-pooled',action='store_true',help='Audit operator families only; omit the separately versioned pooled-layer sidecar')
+args=parser.parse_args();BASE=args.directory
 def read(p):
  p=Path(p);assert p.stat().st_size<32*1024**2;return json.loads(p.read_text())
 def digest(p):return sha256(Path(p).read_bytes()).hexdigest()
@@ -39,6 +40,7 @@ for case in report['cases']:
  actual=read(case['actual_identity']['path']);mapping=read(case['mapping_identity']['path']);comp=read(case['comparison_identity']['path'])
  verify_identity(actual['body_acceptance_identity'],label+':body_acceptance')
  retained=read(actual['body_acceptance_identity']['path'])
+ attention_layers=Counter(row['samples'][0]['attention'] for row in retained['per_layer_ms'] if row.get('samples'))
  eq(case['forward_count'],retained['body_forward_span_ms']['count'],label+':retained_complete_bodies')
  source_cases.setdefault(actual['case_id'],actual)
  other=source_cases[actual['case_id']]
@@ -77,17 +79,19 @@ for case in report['cases']:
    reference=family['conditional_program_reference']
    if reference['status']=='reference_only':eq(reference['communication_bandwidth_calibration_allowed'],False,familylabel+':no_peer_wait_bandwidth_fit')
    else:
-    eq(reference['reason'],'communication_program_not_homogeneous',familylabel+':heterogeneous_communication_not_averaged')
+    check(reference['reason'] in {'communication_program_not_homogeneous','native_collective_algorithm_not_declared'},familylabel+':heterogeneous_communication_not_averaged')
     eq(family.get('predicted_reference_us'),None,familylabel+':missing_uniform_reference_not_zero')
-   eq(family['observed_us']['count'],64*case['forward_count'],familylabel+':once_per_layer_physical_communication')
+   if family['native_operator_type'].startswith('hcom_allReduce') and len(retained['per_layer_ms'])==64:
+    eq(family['observed_us']['count'],64*case['forward_count'],familylabel+':once_per_layer_physical_communication')
   if family['native_operator_type'] in {'RecurrentGatedDeltaRule','CausalConv1d','fused_gdn_gating_kernel'}:
-   eq(family['observed_us']['count'],48*case['forward_count'],familylabel+':48_gdn_layers')
-  if family['native_operator_type']=='FusedInferAttentionScore':eq(family['observed_us']['count'],16*case['forward_count'],familylabel+':16_gqa_layers')
+   expected_layers=attention_layers['gdn']+(attention_layers['kda'] if family['native_operator_type']=='CausalConv1d' else 0)
+   eq(family['observed_us']['count'],expected_layers*case['forward_count'],familylabel+':declared_recurrent_layers')
+  if family['native_operator_type']=='FusedInferAttentionScore':eq(family['observed_us']['count'],(attention_layers['gqa']+attention_layers['mla'])*case['forward_count'],familylabel+':declared_attention_layers')
  eq(sum(actual['counts'].values()),actual['scan_counts']['complete_body_segment_events'],label+':complete_segment_selection_partition')
  check(0<=actual['counts']['duplicate_communication_summary_events']<=128*case['forward_count'],label+':duplicate_summaries_bounded_by_retained_real_hcom_calls')
  eq(total_pass,case['passed_cohorts'],label+':case_pass_count')
  counts.update(case['comparison_status_counts']);case_results.append({'case_id':label,'passed':total_pass,'compared':scored})
-pooled=read(BASE/'steady-layer-pooled.json')
+pooled={'cases':[]} if args.skip_pooled else read(BASE/'steady-layer-pooled.json')
 for case in pooled['cases']:
  verify_identity(case['extraction_identity'],case['case_id']+':pooled_source')
  actual=read(case['extraction_identity']['path']);prior=read(actual['body_acceptance_identity']['path'])
@@ -105,7 +109,7 @@ for case in pooled['cases']:
   near(group['stats']['min'],min(layer['min'] for layer in layers),label+':prior_extraction_min')
   near(group['stats']['max'],max(layer['max'] for layer in layers),label+':prior_extraction_max')
 result={'schema_version':'mindie-body-operator-independent-review/1','status':'passed' if not failures else 'failed',
- 'checks':checks,'failures':failures,'scoreboard_sha256':digest(report_path),'steady_layer_pooled_sha256':digest(BASE/'steady-layer-pooled.json'),
+ 'checks':checks,'failures':failures,'scoreboard_sha256':digest(report_path),'steady_layer_pooled_sha256':None if args.skip_pooled else digest(BASE/'steady-layer-pooled.json'),
  'source_count':len(source_cases),'forward_count':sum(a['forward_count'] for a in source_cases.values()),
  'comparison_status_counts':dict(counts),'accuracy_by_tier':dict(accuracy),'cases':case_results,
  'method':'independent stdlib histogram/count/identity arithmetic; no profiler or Sim import',

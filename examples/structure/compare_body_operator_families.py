@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from collections import Counter
 from pathlib import Path
 from types import SimpleNamespace
@@ -88,6 +89,8 @@ def family_rows(actual,mapping,comparison,references):
         compared=[row for row in selected if row['status']=='compared']
         reference=(references.get(family['declared_role']) if family['native_operator_type'].startswith('hcom_')
                    else references.get(family['native_operator_type']) if not compared else None)
+        if family['native_operator_type'].startswith('hcom_') and not family['native_operator_type'].startswith('hcom_allReduce'):
+            reference={'status':'unresolved','reason':'native_collective_algorithm_not_declared'}
         n=sum(row['observed']['event_count'] for row in compared)
         predicted=sum(row['prediction']['per_call_ms']*1000*row['observed']['event_count'] for row in compared)/n if n else None
         observed=sum(row['observed']['complete_activity_sum_ns'] for row in compared)/n/1000 if n else None
@@ -117,11 +120,16 @@ def family_rows(actual,mapping,comparison,references):
 
 
 def render(report):
+    populations={}
+    for case in report['cases']:
+        key=(case['source_identity']['sha256'],json.dumps(case['geometry'],sort_keys=True))
+        populations[key]=case['forward_count']
+    forwards=sum(populations.values());sources=len({key[0] for key in populations})
     lines=['# Complete Decode Body Operator Families','',
-           'Only complete events inside the 287 accepted target-body windows enter this report. '
+           f'Only complete events inside the {forwards} accepted target-body windows from {sources} sources enter this report. '
            'Heads, auxiliary forwards and typed scheduler wrappers are excluded. Exact HCOM summary duplicates are removed.',
            'Mean/P50 are pooled native-call statistics. Sim roles are conditioned on the complete declared topology; no Host layer binding is asserted.',
-           'Two declaration arms reuse the same six captures. Calls summed across arms are not independent observations.',
+           'Declaration arms may reuse captures. Calls summed across arms are not independent observations.',
            'Accuracy is decided per tensor/physical-work cohort: >50 us uses 15% relative error; <=50 us uses 15 us absolute error. '
            'Communication elapsed retains peer wait and is shown only as a declared-program reference, never used to recalibrate bandwidth.','',
            '| Case | <=50 us passed / compared | >50 us passed / compared | All passed / compared | Scored / body calls | Prediction failed |',
@@ -157,6 +165,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument('--output-dir',type=Path,default=BASE)
     parser.add_argument('--case-id',action='append')
+    parser.add_argument('--variant',action='append')
     parser.add_argument('--compare-timeout',type=float,default=120)
     args=parser.parse_args();before=prediction_runtime_identity();started=time.perf_counter();cases=[]
     prior_path=args.output_dir/'body-operator-family-scoreboard.json'
@@ -166,6 +175,7 @@ def main():
     for actual_path in sorted(args.output_dir.glob('body-operator-*.actual.json')):
         actual=read(actual_path)
         if args.case_id and actual['case_id'] not in args.case_id:continue
+        if args.variant and actual['variant'] not in args.variant:continue
         prefix=actual_path.with_name(actual_path.name.removesuffix('.actual.json'))
         mapping=read(prefix.with_suffix('.mapping.json'))
         comparison_path=prefix.with_suffix('.comparison.json')
@@ -179,7 +189,8 @@ def main():
             comparison=_compare_programs(args,prefix,mapping)
         references=program_references(prefix.with_suffix('.case.json'),mapping)
         families=family_rows(actual,mapping,comparison,references)
-        cases.append({'case_id':actual['case_id']+' / '+actual['variant'],'actual_identity':identity(actual_path),
+        cases.append({'case_id':actual['case_id']+' / '+actual['variant'],'source_case_id':actual.get('source_case_id',actual['case_id']),
+                      'variant':actual['variant'],'actual_identity':identity(actual_path),
                       'mapping_identity':identity(prefix.with_suffix('.mapping.json')),
                       'case_identity':identity(prefix.with_suffix('.case.json')),
                       'comparison_identity':identity(prefix.with_suffix('.comparison.json')),
@@ -192,6 +203,7 @@ def main():
     result={'schema_version':'mindie-body-operator-comparison/1',
             'status':'partial' if any(c['comparison_status_counts'].get('prediction_failed') for c in cases) else 'completed',
             'cases':cases,'accuracy_policy':accuracy_policy(),'runtime_source_identity':before,
+            'coverage_status':'partial' if any(row['unscored_event_count'] for case in cases for row in case['families']) else 'complete',
             'runtime_sources_unchanged':True,'raw_capture_reads':0,'elapsed_seconds':round(time.perf_counter()-started,3)}
     write(args.output_dir/'body-operator-family-scoreboard.json',result)
     (args.output_dir/'body-operator-family-scoreboard.md').write_text(render(result))
