@@ -130,3 +130,24 @@ def test_real_high_concurrency_activity_preserves_union_and_layer_populations(re
         assert group["observed_ms"]["count"] == {"gdn": 48, "gqa": 16}[group["attention_kind"]]
         assert group["observed_activity_ms"]["mean"] + group["observed_internal_gap_ms"]["mean"] == pytest.approx(
             group["observed_ms"]["mean"])
+    steady = layers["steady_layer_comparison"]
+    assert not steady["body_span_modified"]
+    assert steady["population"]["layer_count"] == 63
+    assert steady["population"]["observed_call_count"] == 63 * projected["body_forward_span_ms"]["count"]
+    assert steady["excluded_layers"][0]["observed_ms"] == projected["per_layer_ms"][0]["stats"]
+    from statistics import median
+    for group in steady["attention_groups"]:
+        assert group["layer_count"] == {"gdn": 47, "gqa": 16}[group["attention_kind"]]
+        values = [layer["observed_ms"]["p50"] for layer in layers["layers"]
+                  if layer["layer_id"] != 0 and layer["attention_kind"] == group["attention_kind"]]
+        assert group["comparison"]["observed_ms"] == median(values)
+    sidecar = json.loads((directory / "steady-layer-pooled.json").read_text())
+    actual = next(row for row in sidecar["cases"] if row["case_id"] == declaration["case_id"])
+    pooled = replay.compare_pooled_layers(steady, actual)
+    for group, measured in zip(pooled["groups"], actual["groups"]):
+        durations = [duration for duration, count in measured["duration_ns_counter"] for _ in range(count)]
+        assert group["observed_ms"]["p50"] == median(durations) / 1e6
+        assert group["observed_call_count"] == len(durations)
+        assert group["relative_error_vs_p50"] == pytest.approx(
+            group["predicted_ms"]["p50"] / (median(durations) / 1e6) - 1)
+    assert pooled["groups"][0]["observed_ms"]["p50"] != steady["population"]["comparison"]["observed_ms"]

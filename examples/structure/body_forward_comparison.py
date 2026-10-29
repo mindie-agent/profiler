@@ -44,6 +44,77 @@ def _layer_activity_distribution(rows, field):
     return _stats(values) if values else None
 
 
+def _steady_layer_group(rows, *, attention_kind=None):
+    """Summarize retained layer statistics without inventing pooled call quantiles."""
+    means = _stats([row["observed_ms"]["mean"] for row in rows])
+    call_medians = _stats([row["observed_ms"]["p50"] for row in rows
+                          if row["observed_ms"].get("p50") is not None])
+    predicted = _stats([row["predicted_ms"] for row in rows])
+    observed_p50 = call_medians["p50"]
+    error = ((predicted["p50"] - observed_p50) / observed_p50
+             if observed_p50 and call_medians["count"] == len(rows) else None)
+    return {
+        "attention_kind": attention_kind, "layer_ids": [row["layer_id"] for row in rows],
+        "layer_count": len(rows),
+        "observed_call_count": sum(row["observed_ms"]["count"] for row in rows),
+        "calls_per_layer_range": [min((row["observed_ms"]["count"] for row in rows), default=0),
+                                  max((row["observed_ms"]["count"] for row in rows), default=0)],
+        "observed_layer_mean_ms": means,
+        "observed_layer_call_p50_ms": call_medians,
+        "predicted_layer_ms": predicted,
+        "comparison": {
+            "observed_basis": "median_of_layer_call_p50",
+            "predicted_basis": "median_of_declared_layer_predictions",
+            "observed_ms": observed_p50, "predicted_ms": predicted["p50"],
+            "relative_error": error, "passed": abs(error) <= .15 if error is not None else None,
+        },
+    }
+
+
+def _steady_layers(comparisons):
+    rows = [row for row in comparisons if row["layer_id"] != 0 and row["status"] == "compared"]
+    kinds = defaultdict(list)
+    for row in rows:
+        kinds[row["attention_kind"]].append(row)
+    return {
+        "excluded_layer_ids": [0], "body_span_modified": False,
+        "quantile_scope": "Each observed layer P50 uses all its Forward calls; the steady P50 is the median of those layer P50s, not a pooled quantile over all calls.",
+        "population": _steady_layer_group(rows),
+        "attention_groups": [_steady_layer_group(group, attention_kind=kind)
+                             for kind, group in sorted(kinds.items())],
+        "excluded_layers": [row for row in comparisons if row["layer_id"] == 0],
+    }
+
+
+def compare_pooled_layers(steady, pooled):
+    """Compare exact observed invocation quantiles with repeated model layer spans."""
+    compared = []
+    expected = {group["attention_kind"]: group
+                for group in [steady["population"], *steady["attention_groups"]]}
+    for group in pooled["groups"]:
+        predicted = expected[group["attention_kind"]]
+        if group["layer_ids"] != predicted["layer_ids"]:
+            raise ValueError("pooled_steady_layer_population_differs")
+        count = pooled["forward_count"] * predicted["layer_count"]
+        if (count != group["stats"]["count"] or count != predicted["observed_call_count"]
+                or predicted["calls_per_layer_range"] != [pooled["forward_count"]] * 2):
+            raise ValueError("pooled_steady_layer_multiplicity_differs")
+        real = group["stats"]["p50"]
+        modeled = predicted["predicted_layer_ms"]["p50"]
+        error = (modeled - real) / real if real else None
+        compared.append({
+            "attention_kind": group["attention_kind"], "layer_ids": group["layer_ids"],
+            "layer_count": predicted["layer_count"], "forward_count": pooled["forward_count"],
+            "observed_call_count": count, "observed_ms": group["stats"],
+            "predicted_ms": {**predicted["predicted_layer_ms"], "count": count},
+            "predicted_population_basis": "Each declared layer prediction repeats once per matched Forward; equal multiplicity preserves its median.",
+            "relative_error_vs_p50": error,
+            "passed_vs_p50": abs(error) <= .15 if error is not None else None,
+        })
+    return {"observed_basis": "exact_pooled_layer_invocation_spans_excluding_layer_0",
+            "body_span_modified": False, "groups": compared}
+
+
 def summarize_prediction(case, result):
     """Preserve the graph completion span; project complete semantic timelines."""
     from mindie_sim.prediction.structure import parse_case
@@ -118,7 +189,7 @@ def summarize_prediction(case, result):
 
 
 def predict_body(case, *, tokens, context, sequences=1, phase="decode"):
-    """Use the installed Sim API; its semantic timeline is independent of trace caps."""
+    """Use the selected Sim API; its semantic timeline is independent of trace caps."""
     from mindie_sim import predict
 
     result = predict(case, scope="body", phase=phase, tokens=tokens,
@@ -222,6 +293,7 @@ def compare_layers(predicted, observed):
         "summary": {"observed_layers": len(comparisons), "declared_layers": len(indexed),
                     "compared_layers": sum(row["status"] == "compared" for row in comparisons),
                     "passed_layers": sum(row["passed"] is True for row in comparisons)},
+        "steady_layer_comparison": _steady_layers(comparisons),
         "ffn_kind_distributions": [
             {"kind": kind, "statistic_scope": "across_layer_means_in_this_geometry",
              "observed_ms": _stats([row["observed_ms"]["mean"] for row in rows]),

@@ -1,0 +1,1297 @@
+{
+  "schema_version": "mindie-decode-forward-replay/1",
+  "cases": [
+    {
+      "case_id": "a5_qwen36_highconc_c40",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot10ms_c40_20261030/kernel_details.csv",
+        "size_bytes": 42891903,
+        "sha256": "5e83432a7c2f3b3804c7f12d489f0c203bf8665a36857d12dad4770d5efc73e3"
+      },
+      "sim_case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/source-gdn-native/qwen36-a5-tp8-c40.json",
+      "boundaries_path": null,
+      "segmentation": "auto_structure_guided",
+      "model_declaration": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/source-gdn-native/qwen36-a5-tp8-c40.json",
+        "sha256": "366f3f848db1b9a01f1974d05144c3ee58e93d6a017d4fa301d65d100cd41eaa",
+        "basis": "Sim source-derived native GDN case with explicit arch35 FP32 state and stride 4; independent of analytic control"
+      },
+      "geometry": {
+        "phase": "decode",
+        "tokens_per_sequence": null,
+        "context_tokens": null,
+        "sequences_per_replica": null,
+        "participating_replicas": null
+      },
+      "scenario_evidence": {
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot10ms_c40_20261030/benchmark_summary.json",
+          "sha256": "85efbbede9ad609e8139b1fe537186e9406ee96c76c56ee9d2e94898da9e655e",
+          "size_bytes": 24996
+        },
+        "capture_tier_label": "tpot10ms_c40",
+        "requested_tpot_target_ms": 10,
+        "client": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot10ms_c40_20261030/client_cell.json",
+          "sha256": "8f757e9b11c92b0b3d3503a1a1f4ae4c5ae0ce0eef0d560713ad3256cec3a54e",
+          "size_bytes": 187188,
+          "input_len": 4104,
+          "prefix_len": 4096,
+          "suffix_len": 8,
+          "decode_len": 512,
+          "concurrency": 40,
+          "token_exact": true
+        },
+        "runtime": {
+          "launch_source": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a5-20261030/cfg/serve_t1c_qwen36.sh",
+            "sha256": "e55f42f95f54f91f3ef43f1d814688819ac8c9a00bf7e9c180ea4186de24fadf",
+            "size_bytes": 1674
+          },
+          "engine_log": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a5-20261030/pulls/logs/t1c_qwen36_server.log",
+            "sha256": "e2dd2a14794defa21e49e170c97e90395a5e31736b6854c044ac75886818a275",
+            "size_bytes": 225621
+          },
+          "engine_log_line": 64,
+          "startup_arguments_line": 23,
+          "image": "quay.io/ascend/vllm-ascend:v0.30.0rc2-a5 (c3d00a196905)",
+          "image_basis": "external_capture_summary",
+          "model_path": "/mnt/weight/Qwen3.6-27B-W8A8",
+          "tensor_parallel_size": 8,
+          "data_parallel_size": 1,
+          "quantization": "w8a8_dynamic",
+          "quantization_basis": "checkpoint_identity_and_existing_sim_catalog",
+          "loader_quantization": "ascend",
+          "activation_dtype": "bfloat16",
+          "prefix_caching_enabled": true,
+          "graph_mode": "FULL_AND_PIECEWISE",
+          "max_num_seqs": 160,
+          "max_num_batched_tokens": 16384,
+          "speculative_method": "mtp",
+          "speculative_tokens": 3,
+          "synthetic_acceptance_rates_configured": [
+            0.8,
+            0.64,
+            0.512
+          ]
+        },
+        "hardware": {
+          "expected_key": "Ascend950DT_9582",
+          "capture_host": "rack06os2 (177.25.22.1)",
+          "floor_measurement": {
+            "path": "/Volumes/data/mindie-sim-data/a5/a5_kernel_floor_1tok_high_conc_decode_20261030/benchmark_summary.json",
+            "sha256": "9055ae42d38e3f5e85c31d4286a489df3b6f1c0aab1db7d536ff540ede95a305",
+            "size_bytes": 62789
+          },
+          "floor_measurement_host": "rack06os1",
+          "floor_measurement_device": {
+            "device_name": "Ascend950DT_9582",
+            "name": "Ascend950DT_9582",
+            "total_memory": 98515812352,
+            "cube_core_num": 32,
+            "vector_core_num": 64
+          },
+          "direct_device_identity_in_serving_csv": "not_exported",
+          "basis": "declared_A5_campaign; exact SKU directly recorded by its independent floor capture"
+        },
+        "profile_window": {
+          "requested": true,
+          "t_start_profile_req": 2.5086,
+          "start_status": 200,
+          "start_body": "",
+          "stop_status": 200,
+          "stop_body": "",
+          "t_stop_profile_done": 5.6899,
+          "engine_window_s": 1.8083,
+          "metrics_interval_s": 2.2602,
+          "inflight_at_start": 40,
+          "inflight_at_stop": 40,
+          "window_valid": true,
+          "max_ttft_ms": 656.2196900000572,
+          "min_e2e_ms": 6738.407970000026
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "n": 40,
+            "mean": 12.839582069960851,
+            "median": 12.87061668297454,
+            "std": 0.3395651550469374,
+            "min": 11.975790919765254,
+            "max": 14.191399647749611,
+            "p10": 12.470829563600779,
+            "p90": 13.08267764383558
+          },
+          "profiled_engine_window_estimate_ms": 13.698160727272864,
+          "unprofiled_sweep_ms": 10.137586039215474,
+          "profiling_overhead_client_median_pct": 26.96,
+          "body_forward_is_separate_metric": true
+        },
+        "scheduler_step": {
+          "profiled_run_client_ms": {
+            "n": 40,
+            "mean": 38.48850612125943,
+            "median": 38.463862235293874,
+            "std": 0.5597747750141779,
+            "min": 37.42131591160205,
+            "max": 40.51287832402263,
+            "p10": 38.13863375999235,
+            "p90": 38.772631999718385
+          },
+          "profiled_engine_window_estimate_ms": 41.09448218181859,
+          "unprofiled_sweep_ms": 30.13291077381011
+        },
+        "mtp": {
+          "engine_window_acceptance_rate": 0.6666666666666666,
+          "whole_run_acceptance_rate": 0.6599786759716972,
+          "engine_window_tokens_per_step": 3.0,
+          "whole_run_tokens_per_step": 2.9776097702820588,
+          "engine_window": {
+            "profiler_window_s": 1.8083,
+            "metrics_interval_s": 2.2602,
+            "steps_in_window": 55.0,
+            "d_drafts": 2200.0,
+            "d_draft_tokens": 6600.0,
+            "d_accepted_tokens": 4400.0,
+            "d_generation_tokens": 6600.0,
+            "note": "vllm:spec_decode_num_drafts_total is per-request; engine steps = d_drafts / concurrency, and the interval is the timestamped /metrics fetch span (metrics_interval_s), not the sleep window."
+          }
+        },
+        "prefix_cache": {
+          "queries": 164160.0,
+          "hits": 163840.0,
+          "hit_rate_including_unique_suffix": 0.9980506822612085,
+          "cached_tokens_per_request": 4096.0,
+          "shared_prefix_reuse_fraction": 1.0
+        },
+        "prefix_hit_100_percent": false,
+        "shared_prefix_fully_reused": true,
+        "acceptance_0_8": "configured_first_draft_probability_not_measured_aggregate_rate",
+        "forced_load_balancing": "not_applicable_dense_model_DP1",
+        "dspark": "not_verified",
+        "step_trace": {
+          "source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot10ms_c40_20261030/step_trace_time.csv",
+            "sha256": "587cb5c734428698c6768fc1ea3da54ee9c664f31bdb66a8483e413aae0de91d",
+            "size_bytes": 277
+          },
+          "rows": [
+            {
+              "Device_id": "0",
+              "Step": "",
+              "Computing": "946139.392000009",
+              "Communication(Not Overlapped)": "406013.0209999989",
+              "Overlapped": "0.0",
+              "Communication": "406013.0209999989",
+              "Free": "590446.5409996513",
+              "Stage": "1942598.75",
+              "Bubble": "0",
+              "Communication(Not Overlapped and Exclude Receive)": "406013.0209999989",
+              "Preparing": "1160.75"
+            }
+          ],
+          "per_step_boundaries_available": false,
+          "scope": "entire_capture; blank Step field is not a per-forward marker"
+        },
+        "source_population": {
+          "selected_rank": 0,
+          "selected_device_id": "0",
+          "top_level_is_rank0_duplicate": true,
+          "duplicate_source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot10ms_c40_20261030/prof/rank0/kernel_details.csv",
+            "sha256": "5e83432a7c2f3b3804c7f12d489f0c203bf8665a36857d12dad4770d5efc73e3",
+            "size_bytes": 42891903
+          },
+          "available_exported_ranks": [
+            "rank0"
+          ],
+          "declared_kernel_rows": 124200
+        },
+        "request_geometry_is_not_per_forward_geometry": true
+      },
+      "unresolved_reasons": [],
+      "variant_id": "source_gdn_native_arch35_fp32_stride4"
+    },
+    {
+      "case_id": "a5_qwen36_highconc_c128",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot30ms_near_c128_20261030/kernel_details.csv",
+        "size_bytes": 31449458,
+        "sha256": "65211276673c3f9e9ad9cbc8b2b618dede1c4724d1e343bfadb0c1f6cc3d9bba"
+      },
+      "sim_case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/source-gdn-native/qwen36-a5-tp8-c128.json",
+      "boundaries_path": null,
+      "segmentation": "auto_structure_guided",
+      "model_declaration": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/source-gdn-native/qwen36-a5-tp8-c128.json",
+        "sha256": "c3838d484bf89f0565074feb7308959de045bfcf4738f2099799cc4499a7624d",
+        "basis": "Sim source-derived native GDN case with explicit arch35 FP32 state and stride 4; independent of analytic control"
+      },
+      "geometry": {
+        "phase": "decode",
+        "tokens_per_sequence": null,
+        "context_tokens": null,
+        "sequences_per_replica": null,
+        "participating_replicas": null
+      },
+      "scenario_evidence": {
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot30ms_near_c128_20261030/benchmark_summary.json",
+          "sha256": "cf79ebf7808237e0551e6c547b73bbb73a71dccf1391a3d2c966bf62c2d55b7e",
+          "size_bytes": 25137
+        },
+        "capture_tier_label": "tpot30ms_near_c128",
+        "requested_tpot_target_ms": 30,
+        "client": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot30ms_near_c128_20261030/client_cell.json",
+          "sha256": "a96332ec89b0ab8e52c9d3bf4ed98466aff450c44aa790ca8af4f397cce612dd",
+          "size_bytes": 575029,
+          "input_len": 4104,
+          "prefix_len": 4096,
+          "suffix_len": 8,
+          "decode_len": 512,
+          "concurrency": 128,
+          "token_exact": true
+        },
+        "runtime": {
+          "launch_source": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a5-20261030/cfg/serve_t1c_qwen36.sh",
+            "sha256": "e55f42f95f54f91f3ef43f1d814688819ac8c9a00bf7e9c180ea4186de24fadf",
+            "size_bytes": 1674
+          },
+          "engine_log": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a5-20261030/pulls/logs/t1c_qwen36_server.log",
+            "sha256": "e2dd2a14794defa21e49e170c97e90395a5e31736b6854c044ac75886818a275",
+            "size_bytes": 225621
+          },
+          "engine_log_line": 64,
+          "startup_arguments_line": 23,
+          "image": "quay.io/ascend/vllm-ascend:v0.30.0rc2-a5 (c3d00a196905)",
+          "image_basis": "external_capture_summary",
+          "model_path": "/mnt/weight/Qwen3.6-27B-W8A8",
+          "tensor_parallel_size": 8,
+          "data_parallel_size": 1,
+          "quantization": "w8a8_dynamic",
+          "quantization_basis": "checkpoint_identity_and_existing_sim_catalog",
+          "loader_quantization": "ascend",
+          "activation_dtype": "bfloat16",
+          "prefix_caching_enabled": true,
+          "graph_mode": "FULL_AND_PIECEWISE",
+          "max_num_seqs": 160,
+          "max_num_batched_tokens": 16384,
+          "speculative_method": "mtp",
+          "speculative_tokens": 3,
+          "synthetic_acceptance_rates_configured": [
+            0.8,
+            0.64,
+            0.512
+          ]
+        },
+        "hardware": {
+          "expected_key": "Ascend950DT_9582",
+          "capture_host": "rack06os2 (177.25.22.1)",
+          "floor_measurement": {
+            "path": "/Volumes/data/mindie-sim-data/a5/a5_kernel_floor_1tok_high_conc_decode_20261030/benchmark_summary.json",
+            "sha256": "9055ae42d38e3f5e85c31d4286a489df3b6f1c0aab1db7d536ff540ede95a305",
+            "size_bytes": 62789
+          },
+          "floor_measurement_host": "rack06os1",
+          "floor_measurement_device": {
+            "device_name": "Ascend950DT_9582",
+            "name": "Ascend950DT_9582",
+            "total_memory": 98515812352,
+            "cube_core_num": 32,
+            "vector_core_num": 64
+          },
+          "direct_device_identity_in_serving_csv": "not_exported",
+          "basis": "declared_A5_campaign; exact SKU directly recorded by its independent floor capture"
+        },
+        "profile_window": {
+          "requested": true,
+          "t_start_profile_req": 3.5122,
+          "start_status": 200,
+          "start_body": "",
+          "stop_status": 200,
+          "stop_body": "",
+          "t_stop_profile_done": 6.7406,
+          "engine_window_s": 1.8098,
+          "metrics_interval_s": 2.3069,
+          "inflight_at_start": 128,
+          "inflight_at_stop": 128,
+          "window_valid": true,
+          "max_ttft_ms": 1621.5049800000543,
+          "min_e2e_ms": 9922.177329999955
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "n": 128,
+            "mean": 17.645612320205473,
+            "median": 17.50085949119365,
+            "std": 0.7105076419136609,
+            "min": 16.34793726027386,
+            "max": 20.230092583170087,
+            "p10": 16.925970886497147,
+            "p90": 18.67640441095894
+          },
+          "profiled_engine_window_estimate_ms": 20.464878807955856,
+          "unprofiled_sweep_ms": 14.023292392156844,
+          "profiling_overhead_client_median_pct": 24.8,
+          "body_forward_is_separate_metric": true
+        },
+        "scheduler_step": {
+          "profiled_run_client_ms": {
+            "n": 128,
+            "mean": 53.540829922995584,
+            "median": 53.00322735119033,
+            "std": 1.8816080994982762,
+            "min": 50.34704405405419,
+            "max": 60.453668479531665,
+            "p10": 52.24344915398977,
+            "p90": 56.77565195560032
+          },
+          "profiled_engine_window_estimate_ms": 60.70882736842003,
+          "unprofiled_sweep_ms": 42.75303873417667
+        },
+        "mtp": {
+          "engine_window_acceptance_rate": 0.6554961622807017,
+          "whole_run_acceptance_rate": 0.6552394735651937,
+          "engine_window_tokens_per_step": 2.9664884868421053,
+          "whole_run_tokens_per_step": 2.963954592736647,
+          "engine_window": {
+            "profiler_window_s": 1.8098,
+            "metrics_interval_s": 2.3069,
+            "steps_in_window": 38.0,
+            "d_drafts": 4864.0,
+            "d_draft_tokens": 14592.0,
+            "d_accepted_tokens": 9565.0,
+            "d_generation_tokens": 14429.0,
+            "note": "vllm:spec_decode_num_drafts_total is per-request; engine steps = d_drafts / concurrency, and the interval is the timestamped /metrics fetch span (metrics_interval_s), not the sleep window."
+          }
+        },
+        "prefix_cache": {
+          "queries": 525312.0,
+          "hits": 524288.0,
+          "hit_rate_including_unique_suffix": 0.9980506822612085,
+          "cached_tokens_per_request": 4096.0,
+          "shared_prefix_reuse_fraction": 1.0
+        },
+        "prefix_hit_100_percent": false,
+        "shared_prefix_fully_reused": true,
+        "acceptance_0_8": "configured_first_draft_probability_not_measured_aggregate_rate",
+        "forced_load_balancing": "not_applicable_dense_model_DP1",
+        "dspark": "not_verified",
+        "step_trace": {
+          "source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot30ms_near_c128_20261030/step_trace_time.csv",
+            "sha256": "36caab741d186a7767ba59afdd2768b76550258721f4bebe9082049d82ba7c7e",
+            "size_bytes": 277
+          },
+          "rows": [
+            {
+              "Device_id": "0",
+              "Step": "",
+              "Computing": "1044086.124999996",
+              "Communication(Not Overlapped)": "436972.5560000006",
+              "Overlapped": "0.0",
+              "Communication": "436972.5560000006",
+              "Free": "506469.947999085",
+              "Stage": "1987528.75",
+              "Bubble": "0",
+              "Communication(Not Overlapped and Exclude Receive)": "436972.5560000006",
+              "Preparing": "1805.75"
+            }
+          ],
+          "per_step_boundaries_available": false,
+          "scope": "entire_capture; blank Step field is not a per-forward marker"
+        },
+        "source_population": {
+          "selected_rank": 0,
+          "selected_device_id": "0",
+          "top_level_is_rank0_duplicate": true,
+          "duplicate_source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot30ms_near_c128_20261030/prof/rank0/kernel_details.csv",
+            "sha256": "65211276673c3f9e9ad9cbc8b2b618dede1c4724d1e343bfadb0c1f6cc3d9bba",
+            "size_bytes": 31449458
+          },
+          "available_exported_ranks": [
+            "rank0"
+          ],
+          "declared_kernel_rows": 91086
+        },
+        "request_geometry_is_not_per_forward_geometry": true
+      },
+      "unresolved_reasons": [],
+      "variant_id": "source_gdn_native_arch35_fp32_stride4"
+    },
+    {
+      "case_id": "a5_qwen36_highconc_c4",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot5ms_near_c4_20261030/kernel_details.csv",
+        "size_bytes": 57259297,
+        "sha256": "28644d6d5713e35de51f16b1a20dacd7574ea342c399d8afe049c487d0c8c880"
+      },
+      "sim_case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/source-gdn-native/qwen36-a5-tp8-c4.json",
+      "boundaries_path": null,
+      "segmentation": "auto_structure_guided",
+      "model_declaration": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/source-gdn-native/qwen36-a5-tp8-c4.json",
+        "sha256": "f6bf90351b1258bd0bd92e5fcac49feeb6f254908a914222362c42ab82db7a15",
+        "basis": "Sim source-derived native GDN case with explicit arch35 FP32 state and stride 4; independent of analytic control"
+      },
+      "geometry": {
+        "phase": "decode",
+        "tokens_per_sequence": null,
+        "context_tokens": null,
+        "sequences_per_replica": null,
+        "participating_replicas": null
+      },
+      "scenario_evidence": {
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot5ms_near_c4_20261030/benchmark_summary.json",
+          "sha256": "4e66d81281514346fb5dbb8150519d106158b9c349c9b0349ff9c05bd1c67e90",
+          "size_bytes": 25108
+        },
+        "capture_tier_label": "tpot5ms_near_c4",
+        "requested_tpot_target_ms": 5,
+        "client": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot5ms_near_c4_20261030/client_cell.json",
+          "sha256": "a3cbdf4c4529496f56a38b169ca2e4e00a5111cb019fcf831b089b1528a521a3",
+          "size_bytes": 48675,
+          "input_len": 4104,
+          "prefix_len": 4096,
+          "suffix_len": 8,
+          "decode_len": 1280,
+          "concurrency": 4,
+          "token_exact": true
+        },
+        "runtime": {
+          "launch_source": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a5-20261030/cfg/serve_t1c_qwen36.sh",
+            "sha256": "e55f42f95f54f91f3ef43f1d814688819ac8c9a00bf7e9c180ea4186de24fadf",
+            "size_bytes": 1674
+          },
+          "engine_log": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a5-20261030/pulls/logs/t1c_qwen36_server.log",
+            "sha256": "e2dd2a14794defa21e49e170c97e90395a5e31736b6854c044ac75886818a275",
+            "size_bytes": 225621
+          },
+          "engine_log_line": 64,
+          "startup_arguments_line": 23,
+          "image": "quay.io/ascend/vllm-ascend:v0.30.0rc2-a5 (c3d00a196905)",
+          "image_basis": "external_capture_summary",
+          "model_path": "/mnt/weight/Qwen3.6-27B-W8A8",
+          "tensor_parallel_size": 8,
+          "data_parallel_size": 1,
+          "quantization": "w8a8_dynamic",
+          "quantization_basis": "checkpoint_identity_and_existing_sim_catalog",
+          "loader_quantization": "ascend",
+          "activation_dtype": "bfloat16",
+          "prefix_caching_enabled": true,
+          "graph_mode": "FULL_AND_PIECEWISE",
+          "max_num_seqs": 160,
+          "max_num_batched_tokens": 16384,
+          "speculative_method": "mtp",
+          "speculative_tokens": 3,
+          "synthetic_acceptance_rates_configured": [
+            0.8,
+            0.64,
+            0.512
+          ]
+        },
+        "hardware": {
+          "expected_key": "Ascend950DT_9582",
+          "capture_host": "rack06os2 (177.25.22.1)",
+          "floor_measurement": {
+            "path": "/Volumes/data/mindie-sim-data/a5/a5_kernel_floor_1tok_high_conc_decode_20261030/benchmark_summary.json",
+            "sha256": "9055ae42d38e3f5e85c31d4286a489df3b6f1c0aab1db7d536ff540ede95a305",
+            "size_bytes": 62789
+          },
+          "floor_measurement_host": "rack06os1",
+          "floor_measurement_device": {
+            "device_name": "Ascend950DT_9582",
+            "name": "Ascend950DT_9582",
+            "total_memory": 98515812352,
+            "cube_core_num": 32,
+            "vector_core_num": 64
+          },
+          "direct_device_identity_in_serving_csv": "not_exported",
+          "basis": "declared_A5_campaign; exact SKU directly recorded by its independent floor capture"
+        },
+        "profile_window": {
+          "requested": true,
+          "t_start_profile_req": 5.0075,
+          "start_status": 200,
+          "start_body": "",
+          "stop_status": 200,
+          "stop_body": "",
+          "t_stop_profile_done": 8.1537,
+          "engine_window_s": 1.8076,
+          "metrics_interval_s": 2.2459,
+          "inflight_at_start": 4,
+          "inflight_at_stop": 4,
+          "window_valid": true,
+          "max_ttft_ms": 309.84669999998005,
+          "min_e2e_ms": 10442.631819999973
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "n": 4,
+            "mean": 8.059150095777948,
+            "median": 8.041686993745142,
+            "std": 0.08732876825321309,
+            "min": 7.965909163408895,
+            "max": 8.18731723221261,
+            "p10": 7.973984436278338,
+            "p90": 8.158286236903802
+          },
+          "profiled_engine_window_estimate_ms": 10.003893496659373,
+          "unprofiled_sweep_ms": 6.38128954901954,
+          "profiling_overhead_client_median_pct": 26.02,
+          "body_forward_is_separate_metric": true
+        },
+        "scheduler_step": {
+          "profiled_run_client_ms": {
+            "n": 4,
+            "mean": 23.944496453023845,
+            "median": 23.841342184929683,
+            "std": 0.20057942096299916,
+            "min": 23.804667803738262,
+            "max": 24.290633638497745,
+            "p10": 23.81209641366576,
+            "p90": 24.159419906857256
+          },
+          "profiled_engine_window_estimate_ms": 30.349649864865263,
+          "unprofiled_sweep_ms": 18.345012137685867
+        },
+        "mtp": {
+          "engine_window_acceptance_rate": 0.6779279279279279,
+          "whole_run_acceptance_rate": 0.6596899224806202,
+          "engine_window_tokens_per_step": 3.0337837837837838,
+          "whole_run_tokens_per_step": 2.9767441860465116,
+          "engine_window": {
+            "profiler_window_s": 1.8076,
+            "metrics_interval_s": 2.2459,
+            "steps_in_window": 74.0,
+            "d_drafts": 296.0,
+            "d_draft_tokens": 888.0,
+            "d_accepted_tokens": 602.0,
+            "d_generation_tokens": 898.0,
+            "note": "vllm:spec_decode_num_drafts_total is per-request; engine steps = d_drafts / concurrency, and the interval is the timestamped /metrics fetch span (metrics_interval_s), not the sleep window."
+          }
+        },
+        "prefix_cache": {
+          "queries": 16416.0,
+          "hits": 16384.0,
+          "hit_rate_including_unique_suffix": 0.9980506822612085,
+          "cached_tokens_per_request": 4096.0,
+          "shared_prefix_reuse_fraction": 1.0
+        },
+        "prefix_hit_100_percent": false,
+        "shared_prefix_fully_reused": true,
+        "acceptance_0_8": "configured_first_draft_probability_not_measured_aggregate_rate",
+        "forced_load_balancing": "not_applicable_dense_model_DP1",
+        "dspark": "not_verified",
+        "step_trace": {
+          "source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot5ms_near_c4_20261030/step_trace_time.csv",
+            "sha256": "fbd0129f7d078497664c60f59a37cb468be362b8493c1714f884ea8b06c04188",
+            "size_bytes": 277
+          },
+          "rows": [
+            {
+              "Device_id": "0",
+              "Step": "",
+              "Computing": "716425.7299999896",
+              "Communication(Not Overlapped)": "683020.1249999979",
+              "Overlapped": "0.0",
+              "Communication": "683020.1249999979",
+              "Free": "555557.9969989735",
+              "Stage": "1955003.75",
+              "Bubble": "0",
+              "Communication(Not Overlapped and Exclude Receive)": "683020.1249999979",
+              "Preparing": "863.25"
+            }
+          ],
+          "per_step_boundaries_available": false,
+          "scope": "entire_capture; blank Step field is not a per-forward marker"
+        },
+        "source_population": {
+          "selected_rank": 0,
+          "selected_device_id": "0",
+          "top_level_is_rank0_duplicate": true,
+          "duplicate_source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot5ms_near_c4_20261030/prof/rank0/kernel_details.csv",
+            "sha256": "28644d6d5713e35de51f16b1a20dacd7574ea342c399d8afe049c487d0c8c880",
+            "size_bytes": 57259297
+          },
+          "available_exported_ranks": [
+            "rank0"
+          ],
+          "declared_kernel_rows": 167389
+        },
+        "request_geometry_is_not_per_forward_geometry": true
+      },
+      "unresolved_reasons": [],
+      "variant_id": "source_gdn_native_arch35_fp32_stride4"
+    },
+    {
+      "case_id": "a5_qwen38_highconc_c32",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_8_27b_w8a8_mxfp8_mtp_high_conc_decode_tpot10ms_near_c32_20261030/kernel_details.csv",
+        "size_bytes": 37515638,
+        "sha256": "53a8f0e6b5603dd248d42278d7cbb32243eed2b729f22a6224f2041b9790349f"
+      },
+      "sim_case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/source-gdn-native/qwen38-a5-tp4-c32.json",
+      "boundaries_path": null,
+      "segmentation": "auto_structure_guided",
+      "model_declaration": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/source-gdn-native/qwen38-a5-tp4-c32.json",
+        "sha256": "98f270e49a34dddb98dd1eb1351b7859d97bcadf05914ee4167945c32292ef5e",
+        "basis": "Sim source-derived native GDN case with explicit arch35 FP32 state and stride 4; independent of analytic control"
+      },
+      "geometry": {
+        "phase": "decode",
+        "tokens_per_sequence": null,
+        "context_tokens": null,
+        "sequences_per_replica": null,
+        "participating_replicas": null
+      },
+      "scenario_evidence": {
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_8_27b_w8a8_mxfp8_mtp_high_conc_decode_tpot10ms_near_c32_20261030/benchmark_summary.json",
+          "sha256": "578f16c31e03d0dfa3055ca5096bb08e3c21d1b481abd48a8e5e3d7d45efd6dc",
+          "size_bytes": 25228
+        },
+        "capture_tier_label": "tpot10ms_near_c32",
+        "requested_tpot_target_ms": 10,
+        "client": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_8_27b_w8a8_mxfp8_mtp_high_conc_decode_tpot10ms_near_c32_20261030/client_cell.json",
+          "sha256": "983df85e0e8bc4431c5d9b075be98c3e4fe6f525e73ed264ba8a6e1d0d5c7054",
+          "size_bytes": 152289,
+          "input_len": 4104,
+          "prefix_len": 4096,
+          "suffix_len": 8,
+          "decode_len": 512,
+          "concurrency": 32,
+          "token_exact": true
+        },
+        "runtime": {
+          "launch_source": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a5-20261030/cfg/serve_t1b_qwen38.sh",
+            "sha256": "fce4c3182deb7568ebfad3de134cce6d6900e1df32444b39e93d21a47baaa142",
+            "size_bytes": 1475
+          },
+          "engine_log": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a5-20261030/pulls/logs/t1b_qwen38_server.log",
+            "sha256": "2e5aa5f71c5830ac95cecc8bd5e6248b833feb336748d1515d2bea0eb4772ef0",
+            "size_bytes": 181787
+          },
+          "engine_log_line": 63,
+          "startup_arguments_line": 23,
+          "image": "quay.io/ascend/vllm-ascend:v0.30.0rc2-a5 (c3d00a196905)",
+          "image_basis": "external_capture_summary",
+          "model_path": "/mnt/weight/Qwen3.8-27B-w8a8-mxfp8-mtp",
+          "tensor_parallel_size": 4,
+          "data_parallel_size": 1,
+          "quantization": "W8A8_MXFP8",
+          "quantization_basis": "checkpoint_identity_and_existing_sim_catalog",
+          "loader_quantization": "ascend",
+          "activation_dtype": "bfloat16",
+          "prefix_caching_enabled": true,
+          "graph_mode": "FULL_AND_PIECEWISE",
+          "max_num_seqs": 160,
+          "max_num_batched_tokens": 16384,
+          "speculative_method": "mtp",
+          "speculative_tokens": 3,
+          "synthetic_acceptance_rates_configured": [
+            0.8,
+            0.64,
+            0.512
+          ]
+        },
+        "hardware": {
+          "expected_key": "Ascend950DT_9582",
+          "capture_host": "rack06os1 (177.25.21.1)",
+          "floor_measurement": {
+            "path": "/Volumes/data/mindie-sim-data/a5/a5_kernel_floor_1tok_high_conc_decode_20261030/benchmark_summary.json",
+            "sha256": "9055ae42d38e3f5e85c31d4286a489df3b6f1c0aab1db7d536ff540ede95a305",
+            "size_bytes": 62789
+          },
+          "floor_measurement_host": "rack06os1",
+          "floor_measurement_device": {
+            "device_name": "Ascend950DT_9582",
+            "name": "Ascend950DT_9582",
+            "total_memory": 98515812352,
+            "cube_core_num": 32,
+            "vector_core_num": 64
+          },
+          "direct_device_identity_in_serving_csv": "not_exported",
+          "basis": "declared_A5_campaign; exact SKU directly recorded by its independent floor capture"
+        },
+        "profile_window": {
+          "requested": true,
+          "t_start_profile_req": 2.5087,
+          "start_status": 200,
+          "start_body": "",
+          "stop_status": 200,
+          "stop_body": "",
+          "t_stop_profile_done": 5.5272,
+          "engine_window_s": 1.8084,
+          "metrics_interval_s": 2.2812,
+          "inflight_at_start": 32,
+          "inflight_at_stop": 32,
+          "window_valid": true,
+          "max_ttft_ms": 1360.671980000916,
+          "min_e2e_ms": 8224.178339998616
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "n": 32,
+            "mean": 14.10178035775557,
+            "median": 14.10641278864824,
+            "std": 0.31684254999305067,
+            "min": 13.572869569468647,
+            "max": 15.113206360080309,
+            "p10": 13.719739510767942,
+            "p90": 14.419040101766107
+          },
+          "profiled_engine_window_estimate_ms": 15.903895912836012,
+          "unprofiled_sweep_ms": 10.367067764708931,
+          "profiling_overhead_client_median_pct": 36.07,
+          "body_forward_is_separate_metric": true
+        },
+        "scheduler_step": {
+          "profiled_run_client_ms": {
+            "n": 32,
+            "mean": 41.50815908769998,
+            "median": 41.338279817126775,
+            "std": 0.9142078032779363,
+            "min": 40.59211657609605,
+            "max": 46.244601497012205,
+            "p10": 40.951158461245406,
+            "p90": 41.826911385347096
+          },
+          "profiled_engine_window_estimate_ms": 46.555409591783985,
+          "unprofiled_sweep_ms": 30.7406559302255
+        },
+        "mtp": {
+          "engine_window_acceptance_rate": 0.6424319727891157,
+          "whole_run_acceptance_rate": 0.6485272988505747,
+          "engine_window_tokens_per_step": 2.927295918367347,
+          "whole_run_tokens_per_step": 2.942528735632184,
+          "engine_window": {
+            "profiler_window_s": 1.8084,
+            "metrics_interval_s": 2.2812,
+            "steps_in_window": 49.0,
+            "d_drafts": 1568.0,
+            "d_draft_tokens": 4704.0,
+            "d_accepted_tokens": 3022.0,
+            "d_generation_tokens": 4590.0,
+            "note": "vllm:spec_decode_num_drafts_total is per-request; engine steps = d_drafts / concurrency, and the interval is the timestamped /metrics fetch span (metrics_interval_s), not the sleep window."
+          }
+        },
+        "prefix_cache": {
+          "queries": 131328.0,
+          "hits": 114688.0,
+          "hit_rate_including_unique_suffix": 0.8732943469785575,
+          "cached_tokens_per_request": 3584.0,
+          "shared_prefix_reuse_fraction": 0.875
+        },
+        "prefix_hit_100_percent": false,
+        "shared_prefix_fully_reused": false,
+        "acceptance_0_8": "configured_first_draft_probability_not_measured_aggregate_rate",
+        "forced_load_balancing": "not_applicable_dense_model_DP1",
+        "dspark": "not_verified",
+        "step_trace": {
+          "source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/qwen3_8_27b_w8a8_mxfp8_mtp_high_conc_decode_tpot10ms_near_c32_20261030/step_trace_time.csv",
+            "sha256": "f6e82f65cc536ed05542eab74ebfc00be5f45a1d8d2aeb87b5fd792fe67266b4",
+            "size_bytes": 292
+          },
+          "rows": [
+            {
+              "Device_id": "0",
+              "Step": "",
+              "Computing": "984322.734999986",
+              "Communication(Not Overlapped)": "273390.6510000019",
+              "Overlapped": "1.8179999999701977",
+              "Communication": "273392.46900000185",
+              "Free": "609825.1979997967",
+              "Stage": "1867538.5",
+              "Bubble": "0",
+              "Communication(Not Overlapped and Exclude Receive)": "273390.6510000019",
+              "Preparing": "1469.25"
+            }
+          ],
+          "per_step_boundaries_available": false,
+          "scope": "entire_capture; blank Step field is not a per-forward marker"
+        },
+        "source_population": {
+          "selected_rank": 0,
+          "selected_device_id": "0",
+          "top_level_is_rank0_duplicate": true,
+          "duplicate_source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/qwen3_8_27b_w8a8_mxfp8_mtp_high_conc_decode_tpot10ms_near_c32_20261030/prof/rank0/kernel_details.csv",
+            "sha256": "53a8f0e6b5603dd248d42278d7cbb32243eed2b729f22a6224f2041b9790349f",
+            "size_bytes": 37515638
+          },
+          "available_exported_ranks": [
+            "rank0",
+            "rank1",
+            "rank2",
+            "rank3"
+          ],
+          "declared_kernel_rows": 107904
+        },
+        "request_geometry_is_not_per_forward_geometry": true
+      },
+      "unresolved_reasons": [],
+      "variant_id": "source_gdn_native_arch35_fp32_stride4"
+    },
+    {
+      "case_id": "a5_qwen38_highconc_c128",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_8_27b_w8a8_mxfp8_mtp_high_conc_decode_tpot30ms_near_c128_20261030/kernel_details.csv",
+        "size_bytes": 23586546,
+        "sha256": "8f99679e518ef3022c20b12ca17edbb080395a367cd10686f61f5ddf34b8f6f3"
+      },
+      "sim_case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/source-gdn-native/qwen38-a5-tp4-c128.json",
+      "boundaries_path": null,
+      "segmentation": "auto_structure_guided",
+      "model_declaration": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/source-gdn-native/qwen38-a5-tp4-c128.json",
+        "sha256": "0afc1dea643697fb8cdb84f453ced45644fbd3148d9a6557b72ac37aa3fefe86",
+        "basis": "Sim source-derived native GDN case with explicit arch35 FP32 state and stride 4; independent of analytic control"
+      },
+      "geometry": {
+        "phase": "decode",
+        "tokens_per_sequence": null,
+        "context_tokens": null,
+        "sequences_per_replica": null,
+        "participating_replicas": null
+      },
+      "scenario_evidence": {
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_8_27b_w8a8_mxfp8_mtp_high_conc_decode_tpot30ms_near_c128_20261030/benchmark_summary.json",
+          "sha256": "1276adf4539448a96a1ad09d407449de7169d9d1dccdfe42f3656657aff3e8fa",
+          "size_bytes": 25105
+        },
+        "capture_tier_label": "tpot30ms_near_c128",
+        "requested_tpot_target_ms": 30,
+        "client": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_8_27b_w8a8_mxfp8_mtp_high_conc_decode_tpot30ms_near_c128_20261030/client_cell.json",
+          "sha256": "b825ca3131b2f4959421b01f1e7c36804ef3463be96a115f4f5a824823ad52fd",
+          "size_bytes": 463076,
+          "input_len": 4104,
+          "prefix_len": 4096,
+          "suffix_len": 8,
+          "decode_len": 384,
+          "concurrency": 128,
+          "token_exact": true
+        },
+        "runtime": {
+          "launch_source": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a5-20261030/cfg/serve_t1b_qwen38.sh",
+            "sha256": "fce4c3182deb7568ebfad3de134cce6d6900e1df32444b39e93d21a47baaa142",
+            "size_bytes": 1475
+          },
+          "engine_log": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a5-20261030/pulls/logs/t1b_qwen38_server.log",
+            "sha256": "2e5aa5f71c5830ac95cecc8bd5e6248b833feb336748d1515d2bea0eb4772ef0",
+            "size_bytes": 181787
+          },
+          "engine_log_line": 63,
+          "startup_arguments_line": 23,
+          "image": "quay.io/ascend/vllm-ascend:v0.30.0rc2-a5 (c3d00a196905)",
+          "image_basis": "external_capture_summary",
+          "model_path": "/mnt/weight/Qwen3.8-27B-w8a8-mxfp8-mtp",
+          "tensor_parallel_size": 4,
+          "data_parallel_size": 1,
+          "quantization": "W8A8_MXFP8",
+          "quantization_basis": "checkpoint_identity_and_existing_sim_catalog",
+          "loader_quantization": "ascend",
+          "activation_dtype": "bfloat16",
+          "prefix_caching_enabled": true,
+          "graph_mode": "FULL_AND_PIECEWISE",
+          "max_num_seqs": 160,
+          "max_num_batched_tokens": 16384,
+          "speculative_method": "mtp",
+          "speculative_tokens": 3,
+          "synthetic_acceptance_rates_configured": [
+            0.8,
+            0.64,
+            0.512
+          ]
+        },
+        "hardware": {
+          "expected_key": "Ascend950DT_9582",
+          "capture_host": "rack06os1 (177.25.21.1)",
+          "floor_measurement": {
+            "path": "/Volumes/data/mindie-sim-data/a5/a5_kernel_floor_1tok_high_conc_decode_20261030/benchmark_summary.json",
+            "sha256": "9055ae42d38e3f5e85c31d4286a489df3b6f1c0aab1db7d536ff540ede95a305",
+            "size_bytes": 62789
+          },
+          "floor_measurement_host": "rack06os1",
+          "floor_measurement_device": {
+            "device_name": "Ascend950DT_9582",
+            "name": "Ascend950DT_9582",
+            "total_memory": 98515812352,
+            "cube_core_num": 32,
+            "vector_core_num": 64
+          },
+          "direct_device_identity_in_serving_csv": "not_exported",
+          "basis": "declared_A5_campaign; exact SKU directly recorded by its independent floor capture"
+        },
+        "profile_window": {
+          "requested": true,
+          "t_start_profile_req": 5.5116,
+          "start_status": 200,
+          "start_body": "",
+          "stop_status": 200,
+          "stop_body": "",
+          "t_stop_profile_done": 8.5918,
+          "engine_window_s": 1.8097,
+          "metrics_interval_s": 2.2942,
+          "inflight_at_start": 128,
+          "inflight_at_stop": 128,
+          "window_valid": true,
+          "max_ttft_ms": 4011.725929998647,
+          "min_e2e_ms": 12554.751130002842
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "n": 128,
+            "mean": 27.946484978581793,
+            "median": 27.887854856398395,
+            "std": 2.1839904769906084,
+            "min": 23.88522812010796,
+            "max": 32.6146820104391,
+            "p10": 25.092505305478607,
+            "p90": 31.051137156653414
+          },
+          "profiled_engine_window_estimate_ms": 28.32050414892284,
+          "unprofiled_sweep_ms": 24.99523707843122,
+          "profiling_overhead_client_median_pct": 11.57,
+          "body_forward_is_separate_metric": true
+        },
+        "scheduler_step": {
+          "profiled_run_client_ms": {
+            "n": 128,
+            "mean": 81.31517232323442,
+            "median": 81.39504044363244,
+            "std": 6.001992103770149,
+            "min": 69.8477287681179,
+            "max": 94.63199401513769,
+            "p10": 73.84903006806437,
+            "p90": 89.24894353435879
+          },
+          "profiled_engine_window_estimate_ms": 81.93507464290762,
+          "unprofiled_sweep_ms": 71.27021207976412
+        },
+        "mtp": {
+          "engine_window_acceptance_rate": 0.6310453869047619,
+          "whole_run_acceptance_rate": 0.6436021216997437,
+          "engine_window_tokens_per_step": 2.8931361607142856,
+          "whole_run_tokens_per_step": 2.9293760057214375,
+          "engine_window": {
+            "profiler_window_s": 1.8097,
+            "metrics_interval_s": 2.2942,
+            "steps_in_window": 28.0,
+            "d_drafts": 3584.0,
+            "d_draft_tokens": 10752.0,
+            "d_accepted_tokens": 6785.0,
+            "d_generation_tokens": 10369.0,
+            "note": "vllm:spec_decode_num_drafts_total is per-request; engine steps = d_drafts / concurrency, and the interval is the timestamped /metrics fetch span (metrics_interval_s), not the sleep window."
+          }
+        },
+        "prefix_cache": {
+          "queries": 525312.0,
+          "hits": 458752.0,
+          "hit_rate_including_unique_suffix": 0.8732943469785575,
+          "cached_tokens_per_request": 3584.0,
+          "shared_prefix_reuse_fraction": 0.875
+        },
+        "prefix_hit_100_percent": false,
+        "shared_prefix_fully_reused": false,
+        "acceptance_0_8": "configured_first_draft_probability_not_measured_aggregate_rate",
+        "forced_load_balancing": "not_applicable_dense_model_DP1",
+        "dspark": "not_verified",
+        "step_trace": {
+          "source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/qwen3_8_27b_w8a8_mxfp8_mtp_high_conc_decode_tpot30ms_near_c128_20261030/step_trace_time.csv",
+            "sha256": "61342776a1d2f2a58f1f860135e2270afbe3af29f634acdb28a460129e629c57",
+            "size_bytes": 278
+          },
+          "rows": [
+            {
+              "Device_id": "0",
+              "Step": "",
+              "Computing": "1188330.2629999984",
+              "Communication(Not Overlapped)": "347845.6029999995",
+              "Overlapped": "0.0",
+              "Communication": "347845.6029999995",
+              "Free": "399132.83499982976",
+              "Stage": "1935309.0",
+              "Bubble": "0",
+              "Communication(Not Overlapped and Exclude Receive)": "347845.6029999995",
+              "Preparing": "2376.5"
+            }
+          ],
+          "per_step_boundaries_available": false,
+          "scope": "entire_capture; blank Step field is not a per-forward marker"
+        },
+        "source_population": {
+          "selected_rank": 0,
+          "selected_device_id": "0",
+          "top_level_is_rank0_duplicate": true,
+          "duplicate_source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/qwen3_8_27b_w8a8_mxfp8_mtp_high_conc_decode_tpot30ms_near_c128_20261030/prof/rank0/kernel_details.csv",
+            "sha256": "8f99679e518ef3022c20b12ca17edbb080395a367cd10686f61f5ddf34b8f6f3",
+            "size_bytes": 23586546
+          },
+          "available_exported_ranks": [
+            "rank0",
+            "rank1",
+            "rank2",
+            "rank3"
+          ],
+          "declared_kernel_rows": 68121
+        },
+        "request_geometry_is_not_per_forward_geometry": true
+      },
+      "unresolved_reasons": [],
+      "variant_id": "source_gdn_native_arch35_fp32_stride4"
+    },
+    {
+      "case_id": "a5_qwen38_highconc_c4",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_8_27b_w8a8_mxfp8_mtp_high_conc_decode_tpot5ms_near_c4_20261030/kernel_details.csv",
+        "size_bytes": 34821728,
+        "sha256": "8da79c3777fd59a5cd4dc210169e069862688f0855b8f590732b1c96b2431840"
+      },
+      "sim_case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/source-gdn-native/qwen38-a5-tp4-c4.json",
+      "boundaries_path": null,
+      "segmentation": "auto_structure_guided",
+      "model_declaration": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/source-gdn-native/qwen38-a5-tp4-c4.json",
+        "sha256": "71a8100040476c808c0ee628513254aabaa9415aefd81fa61a57f3d7e393a1c9",
+        "basis": "Sim source-derived native GDN case with explicit arch35 FP32 state and stride 4; independent of analytic control"
+      },
+      "geometry": {
+        "phase": "decode",
+        "tokens_per_sequence": null,
+        "context_tokens": null,
+        "sequences_per_replica": null,
+        "participating_replicas": null
+      },
+      "scenario_evidence": {
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_8_27b_w8a8_mxfp8_mtp_high_conc_decode_tpot5ms_near_c4_20261030/benchmark_summary.json",
+          "sha256": "4e5328c05880eb392bff234f965ce94acf7ec376a4d9662b27cac5936ad1d5df",
+          "size_bytes": 25167
+        },
+        "capture_tier_label": "tpot5ms_near_c4",
+        "requested_tpot_target_ms": 5,
+        "client": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_8_27b_w8a8_mxfp8_mtp_high_conc_decode_tpot5ms_near_c4_20261030/client_cell.json",
+          "sha256": "c10907dc52bb4ab411ab9685625d4905322cd672ebd8a1e4c33e72785f465fc4",
+          "size_bytes": 40358,
+          "input_len": 4104,
+          "prefix_len": 4096,
+          "suffix_len": 8,
+          "decode_len": 1024,
+          "concurrency": 4,
+          "token_exact": true
+        },
+        "runtime": {
+          "launch_source": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a5-20261030/cfg/serve_t1b_qwen38.sh",
+            "sha256": "fce4c3182deb7568ebfad3de134cce6d6900e1df32444b39e93d21a47baaa142",
+            "size_bytes": 1475
+          },
+          "engine_log": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a5-20261030/pulls/logs/t1b_qwen38_server.log",
+            "sha256": "2e5aa5f71c5830ac95cecc8bd5e6248b833feb336748d1515d2bea0eb4772ef0",
+            "size_bytes": 181787
+          },
+          "engine_log_line": 63,
+          "startup_arguments_line": 23,
+          "image": "quay.io/ascend/vllm-ascend:v0.30.0rc2-a5 (c3d00a196905)",
+          "image_basis": "external_capture_summary",
+          "model_path": "/mnt/weight/Qwen3.8-27B-w8a8-mxfp8-mtp",
+          "tensor_parallel_size": 4,
+          "data_parallel_size": 1,
+          "quantization": "W8A8_MXFP8",
+          "quantization_basis": "checkpoint_identity_and_existing_sim_catalog",
+          "loader_quantization": "ascend",
+          "activation_dtype": "bfloat16",
+          "prefix_caching_enabled": true,
+          "graph_mode": "FULL_AND_PIECEWISE",
+          "max_num_seqs": 160,
+          "max_num_batched_tokens": 16384,
+          "speculative_method": "mtp",
+          "speculative_tokens": 3,
+          "synthetic_acceptance_rates_configured": [
+            0.8,
+            0.64,
+            0.512
+          ]
+        },
+        "hardware": {
+          "expected_key": "Ascend950DT_9582",
+          "capture_host": "rack06os1 (177.25.21.1)",
+          "floor_measurement": {
+            "path": "/Volumes/data/mindie-sim-data/a5/a5_kernel_floor_1tok_high_conc_decode_20261030/benchmark_summary.json",
+            "sha256": "9055ae42d38e3f5e85c31d4286a489df3b6f1c0aab1db7d536ff540ede95a305",
+            "size_bytes": 62789
+          },
+          "floor_measurement_host": "rack06os1",
+          "floor_measurement_device": {
+            "device_name": "Ascend950DT_9582",
+            "name": "Ascend950DT_9582",
+            "total_memory": 98515812352,
+            "cube_core_num": 32,
+            "vector_core_num": 64
+          },
+          "direct_device_identity_in_serving_csv": "not_exported",
+          "basis": "declared_A5_campaign; exact SKU directly recorded by its independent floor capture"
+        },
+        "profile_window": {
+          "requested": true,
+          "t_start_profile_req": 5.0086,
+          "start_status": 200,
+          "start_body": "",
+          "stop_status": 200,
+          "stop_body": "",
+          "t_stop_profile_done": 7.994,
+          "engine_window_s": 1.8079,
+          "metrics_interval_s": 2.2919,
+          "inflight_at_start": 4,
+          "inflight_at_stop": 4,
+          "window_valid": true,
+          "max_ttft_ms": 1289.4126700011839,
+          "min_e2e_ms": 12009.209300002112
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "n": 4,
+            "mean": 11.137499108015632,
+            "median": 11.04872979472078,
+            "std": 0.31718185174709773,
+            "min": 10.823603577712621,
+            "max": 11.628933264908346,
+            "p10": 10.845338903226025,
+            "p90": 11.50067476344112
+          },
+          "profiled_engine_window_estimate_ms": 16.45869694792714,
+          "unprofiled_sweep_ms": 8.196429431379382,
+          "profiling_overhead_client_median_pct": 34.8,
+          "body_forward_is_separate_metric": true
+        },
+        "scheduler_step": {
+          "profiled_run_client_ms": {
+            "n": 4,
+            "mean": 33.22480299162718,
+            "median": 32.936053509882534,
+            "std": 1.3615007713283342,
+            "min": 31.830658999994437,
+            "max": 35.19644594674922,
+            "p10": 31.909762569561334,
+            "p90": 34.77084299908875
+          },
+          "profiled_engine_window_estimate_ms": 49.823338043453354,
+          "unprofiled_sweep_ms": 23.58460782354839
+        },
+        "mtp": {
+          "engine_window_acceptance_rate": 0.6757246376811594,
+          "whole_run_acceptance_rate": 0.6565217391304348,
+          "engine_window_tokens_per_step": 3.027173913043478,
+          "whole_run_tokens_per_step": 2.9681159420289855,
+          "engine_window": {
+            "profiler_window_s": 1.8079,
+            "metrics_interval_s": 2.2919,
+            "steps_in_window": 46.0,
+            "d_drafts": 184.0,
+            "d_draft_tokens": 552.0,
+            "d_accepted_tokens": 373.0,
+            "d_generation_tokens": 557.0,
+            "note": "vllm:spec_decode_num_drafts_total is per-request; engine steps = d_drafts / concurrency, and the interval is the timestamped /metrics fetch span (metrics_interval_s), not the sleep window."
+          }
+        },
+        "prefix_cache": {
+          "queries": 16416.0,
+          "hits": 14336.0,
+          "hit_rate_including_unique_suffix": 0.8732943469785575,
+          "cached_tokens_per_request": 3584.0,
+          "shared_prefix_reuse_fraction": 0.875
+        },
+        "prefix_hit_100_percent": false,
+        "shared_prefix_fully_reused": false,
+        "acceptance_0_8": "configured_first_draft_probability_not_measured_aggregate_rate",
+        "forced_load_balancing": "not_applicable_dense_model_DP1",
+        "dspark": "not_verified",
+        "step_trace": {
+          "source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/qwen3_8_27b_w8a8_mxfp8_mtp_high_conc_decode_tpot5ms_near_c4_20261030/step_trace_time.csv",
+            "sha256": "a5deec596c5f3ba88250f4265c0d1365cd2d3c9413956501c414bc8c237ce840",
+            "size_bytes": 295
+          },
+          "rows": [
+            {
+              "Device_id": "0",
+              "Step": "",
+              "Computing": "559132.0550000082",
+              "Communication(Not Overlapped)": "128772.46299999983",
+              "Overlapped": "84.14100000000326",
+              "Communication": "128856.60399999983",
+              "Free": "1164371.0750007385",
+              "Stage": "1852275.5",
+              "Bubble": "0",
+              "Communication(Not Overlapped and Exclude Receive)": "128772.46299999983",
+              "Preparing": "1272.25"
+            }
+          ],
+          "per_step_boundaries_available": false,
+          "scope": "entire_capture; blank Step field is not a per-forward marker"
+        },
+        "source_population": {
+          "selected_rank": 0,
+          "selected_device_id": "0",
+          "top_level_is_rank0_duplicate": true,
+          "duplicate_source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/qwen3_8_27b_w8a8_mxfp8_mtp_high_conc_decode_tpot5ms_near_c4_20261030/prof/rank0/kernel_details.csv",
+            "sha256": "8da79c3777fd59a5cd4dc210169e069862688f0855b8f590732b1c96b2431840",
+            "size_bytes": 34821728
+          },
+          "available_exported_ranks": [
+            "rank0",
+            "rank1",
+            "rank2",
+            "rank3"
+          ],
+          "declared_kernel_rows": 101025
+        },
+        "request_geometry_is_not_per_forward_geometry": true
+      },
+      "unresolved_reasons": [],
+      "variant_id": "source_gdn_native_arch35_fp32_stride4"
+    }
+  ],
+  "segmentation": "auto_structure_guided",
+  "not_new_live_collection": true,
+  "notes": [
+    "Six existing external-session captures; only one retained rank-zero export per capture is selected.",
+    "Prefix cache and aggregate MTP acceptance are measured, not equated to configured targets.",
+    "Client TPOT includes a profiled run; engine-window estimates, unprofiled sweep TPOT, and body spans remain distinct.",
+    "Step trace contains whole-capture totals; automatic layer/Forward extraction supplies local boundaries.",
+    "Observed M/B/q are tensor execution geometry and can contain padding; client concurrency remains an independent fact."
+  ],
+  "variant_id": "source_gdn_native_arch35_fp32_stride4",
+  "baseline_reference": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency/decode-forward-replay.json",
+    "sha256": "9b85505a1253d0ffb65eb3115f3dfc5a8c2bd5c85785420f7fbf6ba6820d6941",
+    "runtime_source_commit": "bc375e61",
+    "interpretation": "Prior completed run retained unchanged; this control arm executes new source costs."
+  },
+  "variant_description": "Independent native GDN arm; analytic source-gdn control remains a separate report."
+}

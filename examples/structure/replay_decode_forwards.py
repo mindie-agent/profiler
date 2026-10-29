@@ -27,7 +27,7 @@ from mindie_profiler.normalized import kernel_rows
 from mindie_profiler.sources_csv import probe_csv
 from mindie_profiler.sources_db import DbSource, probe_db, sha256_file
 
-from body_forward_comparison import GEOMETRY_FIELDS, _stats, compare_body_forward, compare_layers
+from body_forward_comparison import GEOMETRY_FIELDS, _stats, compare_body_forward, compare_layers, compare_pooled_layers
 
 
 class PredictionCache(dict):
@@ -125,6 +125,15 @@ def _model_config(case):
     config["layer_signatures"] = topology
     config["layer_signature_geometry"] = {"tokens": 1, "context": 0, "basis": "declared_topology_only"}
     return config
+
+
+def _declared_runtime(case):
+    from mindie_sim.prediction.structure import parse_case
+
+    runtime = parse_case(case).runtime
+    placement = runtime.parallel
+    return {"tp": placement.tp, "dp": placement.dp, "ep": placement.ep, "pp": placement.pp,
+            "graph_mode": runtime.graph_mode, "graph_capture_mode": runtime.graph_capture_mode}
 
 
 def _predict_bounded(case_path, geometry, cache, *, timeout_s):
@@ -291,6 +300,7 @@ def replay_case(row, base, *, max_events=5_000_000, timeout_s=30,
     prediction_cache = prediction_cache if prediction_cache is not None else {}
     result = {
         "case_id": row["case_id"], "status": "unresolved",
+        "variant_id": row.get("variant_id"),
         "source_identity": dict(row["source"]), "geometry": row.get("geometry"),
         "scenario_evidence": row.get("scenario_evidence", {}),
         "observed": None, "prediction": None, "runtime_identity": None,
@@ -308,7 +318,9 @@ def replay_case(row, base, *, max_events=5_000_000, timeout_s=30,
         from mindie_profiler.decode_segmentation import auto_segment_decode_forwards
 
         case_path = _path(base, row["sim_case_path"])
-        config = _model_config(_read(case_path))
+        case = _read(case_path)
+        config = _model_config(case)
+        result["declared_runtime"] = _declared_runtime(case)
         reused = (Path(reuse_extractions) / f"auto-forward-{row['case_id']}.json"
                   if reuse_extractions else None)
         if reused and reused.is_file():
@@ -416,6 +428,8 @@ def replay_manifest(manifest, *, base, max_events=5_000_000, timeout_s=30,
     counts = Counter(row["status"] for row in rows)
     return {
         "schema_version": "mindie-decode-forward-replay-report/1",
+        "variant_id": manifest.get("variant_id"),
+        "baseline_reference": manifest.get("baseline_reference"),
         "not_new_live_collection": True, "cases": rows,
         "summary": {"case_count": len(rows), "source_case_count": len(seen),
                     "measured_cases": sum(bool(row.get("observed", {}).get("body_forward_span_ms", {}).get("count"))
@@ -430,11 +444,42 @@ def replay_manifest(manifest, *, base, max_events=5_000_000, timeout_s=30,
     }
 
 
+def attach_pooled_steady_layers(report, path):
+    """Join source-pinned exact call populations without opening the source CSV."""
+    sidecar = _read(path)
+    if sidecar.get("schema_version", sidecar.get("schema")) != "mindie-steady-layer-pooled/1":
+        raise ValueError("unknown_steady_layer_population_schema")
+    cases = {row["case_id"]: row for row in sidecar["cases"]}
+    for row in report["cases"]:
+        if not row.get("per_layer_comparison"):
+            continue
+        pooled = cases[row.get("source_case_id", row["case_id"])]
+        if pooled["source_identity"]["sha256"] != row["source_identity"]["sha256"]:
+            raise ValueError("pooled_layer_source_identity_differs")
+        extraction_path = _path(path.parent, pooled["extraction_identity"]["path"])
+        if sha256_file(extraction_path) != pooled["extraction_identity"]["sha256"]:
+            raise ValueError("pooled_layer_extraction_file_changed")
+        extraction = _read(extraction_path)
+        if (extraction["body_acceptance_identity"]["sha256"] != row["extraction_identity"]["sha256"]
+                or extraction["source_identity"]["sha256"] != row["source_identity"]["sha256"]
+                or extraction["forward_count"] != pooled["forward_count"]):
+            raise ValueError("pooled_layer_body_population_differs")
+        for field in ("query_rows", "tokens_per_sequence", "sequences_per_replica"):
+            if pooled["geometry"].get(field) != row["geometry"].get(field):
+                raise ValueError(f"pooled_layer_geometry_differs:{field}")
+        row["per_layer_comparison"]["pooled_steady_layer_comparison"] = compare_pooled_layers(
+            row["per_layer_comparison"]["steady_layer_comparison"], pooled)
+    report["steady_layer_population_identity"] = {"path": str(path.resolve()), "sha256": sha256_file(path)}
+
+
 def render(report):
     lines = ["# Decode body-forward replay", "",
              "Existing local captures only. Automatic topology alignment is labelled separately from explicit Host/module boundaries; graph envelopes are separate diagnostics.", ""]
     if report.get("runtime_provenance"):
         lines.extend(["Runtime source declaration: " + json.dumps(report["runtime_provenance"], sort_keys=True) + ".", ""])
+    if report.get("variant_id"):
+        lines.extend(["Variant: `" + report["variant_id"] + "`. Baseline: "
+                      + json.dumps(report.get("baseline_reference"), sort_keys=True) + ".", ""])
     runtimes = {json.dumps(row["runtime_identity"], sort_keys=True)
                 for row in report["cases"] if row.get("runtime_identity")}
     for runtime in sorted(runtimes):
@@ -457,17 +502,20 @@ def render(report):
     lines.extend(["", "## Device activity and internal uncovered intervals", "",
                   "Device activity is the interval union of retained non-scheduler device events. Real HCOM intervals include protocol wait, so this coverage is not PMU-confirmed useful hardware busy time. Internal uncovered time is body span minus this union. It remains inside body latency and does not by itself identify Host scheduling. Concurrent stream activity is not additive.", "",
                   "Sim assumes symmetric TP peers initially ready at zero. A measured collective interval may include peer wait; single-rank profiling cannot separate payload transport from that wait, so this elapsed time is not a link-bandwidth calibration.", "",
-                  "| Case | Real body mean ms | Device activity mean ms | Internal uncovered mean ms | Uncovered fraction | Captured graph mode |",
-                  "|---|---:|---:|---:|---:|---|"])
+                  "| Case | Real body mean ms | Device activity mean ms | Internal uncovered mean ms | Uncovered fraction | Captured graph mode | Sim TP / DP / EP | Sim graph mode / capture |",
+                  "|---|---:|---:|---:|---:|---|---|---|"])
     for row in report["cases"]:
         observed = row.get("observed") or {}
         activity = (observed.get("body_activity_ms") or {}).get("mean")
         gap = (observed.get("body_internal_gap_ms") or {}).get("mean")
         body = row["comparison"]["observed_ms"].get("mean")
         mode = (row.get("scenario_evidence") or {}).get("runtime", {}).get("graph_mode", "—")
+        declared = row.get("declared_runtime") or {}
         lines.append("| " + " | ".join([
             row["case_id"], number(body), number(activity), number(gap),
             f"{gap / body:.2%}" if gap is not None and body else "—", mode,
+            " / ".join(str(declared.get(field, "—")) for field in ("tp", "dp", "ep")),
+            " / ".join(str(declared.get(field, "—")) for field in ("graph_mode", "graph_capture_mode")),
         ]) + " |")
     lines.extend(["", "## Per-layer comparison", "",
                   "Dense/MoE labels identify the FFN inside each transformer layer. Statistics below are across measured layer means within the same q/batch group; attention remains part of its declared layer. DP replicas are not summed.", "",
@@ -507,6 +555,51 @@ def render(report):
                 row["case_id"], group["attention_kind"], number(group["observed_ms"]["mean"]),
                 number((group.get("observed_activity_ms") or {}).get("mean")),
                 number((group.get("observed_internal_gap_ms") or {}).get("mean")),
+            ]) + " |")
+    lines.extend(["", "## Steady layer statistics excluding Layer 0", "",
+                  "The body and complete-layer Mean errors above retain Layer 0. Here each layer's P50 uses all its Forward calls, then the table takes the median across those layer P50s. This is not a pooled P50 over all layer invocations. Sim uses the median of the same declared layer predictions. The call count describes the retained population, not a claim that its pooled quantile was computed.", "",
+                  "| Case | Attention group | Layers | Layer calls | Real layer mean ms | Median of layer-call P50 ms | Sim layer median ms | P50 comparison error |",
+                  "|---|---|---:|---:|---:|---:|---:|---:|"])
+    for row in report["cases"]:
+        steady = (row.get("per_layer_comparison") or {}).get("steady_layer_comparison")
+        if not steady:
+            continue
+        for group in [steady["population"], *steady["attention_groups"]]:
+            compare = group["comparison"]
+            error = compare["relative_error"]
+            lines.append("| " + " | ".join([
+                row["case_id"], group["attention_kind"] or "all", str(group["layer_count"]),
+                str(group["observed_call_count"]), number(group["observed_layer_mean_ms"]["mean"]),
+                number(compare["observed_ms"]), number(compare["predicted_ms"]),
+                "—" if error is None else f"{error:+.2%}",
+            ]) + " |")
+    if report.get("steady_layer_population_identity"):
+        lines.extend(["", "### Exact pooled steady layer calls", "",
+                      "This separate population uses the integer span of every aligned layer invocation except Layer 0. It provides an actual pooled P50; Sim repeats each matching layer prediction once per Forward. Full body timing above is unchanged.", "",
+                      "| Case | Attention group | Layers | Layer calls | Real pooled mean ms | Real pooled P50 ms | Real pooled P90 ms | Sim pooled P50 ms | P50 error |",
+                      "|---|---|---:|---:|---:|---:|---:|---:|---:|"])
+        for row in report["cases"]:
+            pooled = (row.get("per_layer_comparison") or {}).get("pooled_steady_layer_comparison") or {}
+            for group in pooled.get("groups", []):
+                observed, predicted = group["observed_ms"], group["predicted_ms"]
+                error = group["relative_error_vs_p50"]
+                lines.append("| " + " | ".join([
+                    row["case_id"], group["attention_kind"] or "all", str(group["layer_count"]),
+                    str(group["observed_call_count"]), number(observed["mean"]), number(observed["p50"]),
+                    number(observed["p90"]), number(predicted["p50"]),
+                    "—" if error is None else f"{error:+.2%}",
+                ]) + " |")
+    lines.extend(["", "Layer 0 remains in body latency and the complete-layer comparison:", "",
+                  "| Case | Layer 0 calls | Real mean ms | P50 ms | P90 ms | Sim ms | Mean error |",
+                  "|---|---:|---:|---:|---:|---:|---:|"])
+    for row in report["cases"]:
+        for layer in ((row.get("per_layer_comparison") or {}).get("steady_layer_comparison") or {}).get("excluded_layers", []):
+            observed = layer["observed_ms"]
+            error = layer["relative_error"]
+            lines.append("| " + " | ".join([
+                row["case_id"], str(observed["count"]), number(observed["mean"]),
+                number(observed["p50"]), number(observed["p90"]), number(layer["predicted_ms"]),
+                "—" if error is None else f"{error:+.2%}",
             ]) + " |")
     lines.extend(["", "## Execution batch and client TPOT", "",
                   "Execution batch comes from captured tensor geometry and may include graph padding. Client concurrency describes requests. Representative K is the explicitly declared context or client prompt length; generated-token growth during the window is not observed. These single-rank comparisons assume symmetric rank completion. TPOT includes serving work beyond the body; profiled and unprofiled measurements remain separate.", "",
@@ -553,7 +646,8 @@ def main():
     parser.add_argument("--extract-only", action="store_true")
     parser.add_argument("--reuse-extractions", type=Path)
     parser.add_argument("--prediction-cache-dir", type=Path)
-    parser.add_argument("--runtime-source-commit", help="Caller-declared source commit; installed package hash is independently recorded")
+    parser.add_argument("--runtime-source-commit", help="Caller-declared source commit; selected package hash is independently recorded")
+    parser.add_argument("--steady-pooled", type=Path, help="Source-pinned exact layer-call quantiles from a prior capture scan")
     parser.add_argument("--case-id", action="append")
     args = parser.parse_args()
     manifest = _read(args.manifest)
@@ -562,17 +656,25 @@ def main():
         if set(args.case_id) - available:
             parser.error("requested case ID is absent from manifest")
         manifest["cases"] = [row for row in manifest["cases"] if row["case_id"] in args.case_id]
+    runtime_start = (_sim_identity() if not args.extract_only
+                     and any(row.get("sim_case_path") for row in manifest["cases"]) else None)
     report = replay_manifest(manifest, base=args.manifest.resolve().parent,
                              max_events=args.max_events, timeout_s=args.timeout,
                              prediction_timeout_s=args.prediction_timeout,
                              run_predictions=not args.extract_only, reuse_extractions=args.reuse_extractions,
                              prediction_cache_dir=args.prediction_cache_dir,
                              on_case=lambda row: print(json.dumps(row), flush=True))
+    if args.steady_pooled:
+        attach_pooled_steady_layers(report, args.steady_pooled)
+    if runtime_start:
+        runtime_end = _sim_identity()
+        report["runtime_generation"] = {"start": runtime_start, "end": runtime_end,
+                                        "unchanged": runtime_start == runtime_end}
     report["manifest_identity"] = {"path": str(args.manifest.resolve()),
                                    "sha256": sha256_file(args.manifest)}
     if args.runtime_source_commit:
         report["runtime_provenance"] = {"source_commit": args.runtime_source_commit,
-                                        "basis": "caller_identified_installed_package"}
+                                        "basis": "caller_identified_selected_package"}
     # getrusage has platform-specific units; placement is unchanged.
     peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     peak = int(peak if sys.platform == "darwin" else peak * 1024)
@@ -581,7 +683,9 @@ def main():
                            "memory_budget_passed": peak <= 512 * 1024 ** 2,
                            "prediction_timeout_seconds": args.prediction_timeout,
                            "source_scan_timeout_seconds": args.timeout}
-    report["status"] = "failed" if report["summary"]["failed_cases"] or not report["execution"]["memory_budget_passed"] else "completed"
+    report["status"] = "failed" if (report["summary"]["failed_cases"]
+        or not report["execution"]["memory_budget_passed"]
+        or not report.get("runtime_generation", {"unchanged": True})["unchanged"]) else "completed"
     args.output.write_text(json.dumps(report, indent=2) + "\n")
     args.output.with_suffix(".md").write_text(render(report))
     print(json.dumps(report["summary"]))
