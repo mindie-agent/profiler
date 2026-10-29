@@ -1,0 +1,70 @@
+{
+  "schema_version": "mindie-kimi-budget-diagnostic/1",
+  "status": "diagnostic",
+  "sim_git_commit": "d9118c6e71ed9c75362c06fc7063be4ab97317ec",
+  "diagnostic_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators/kimi-d911-isolated-program-diagnostic.json",
+    "sha256": "02654a14f5e3559c426bb0553cb9dba100c52b123041d0d3d34531398f578e60",
+    "size_bytes": 1886399
+  },
+  "operator_actual_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators/body-operator-a5_kimi_k3_p32768_c1-kimi-checkpoint-conditional.actual.json",
+    "sha256": "70385c6343a4fe060de3e7d4995f3d56fd44673fa93c2db7b6a7670603726791",
+    "size_bytes": 2082321
+  },
+  "body_replay_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority/decode-forward-kimi-checkpoint-replay.json",
+    "sha256": "f6e82a724d94250f1db854587fcfaf9ca0296c2596c0bcb00cc0525331f42429",
+    "size_bytes": 317930
+  },
+  "program_references": [
+    {
+      "native_operator_type": "MoeDistributeDispatchV3",
+      "declared_role": "dispatch",
+      "calls_per_forward": 92.0,
+      "observed_mean_us": 24.529588681849553,
+      "observed_activity_ms_per_forward": 2.2567221587301587,
+      "declared_isolated_service_ms_per_forward": 14.26494592,
+      "declared_setup_ms_per_forward": 14.26,
+      "declared_payload_service_ms_per_forward": 0.004945920000000825,
+      "signed_activity_residual_ms_per_forward": 12.008223761269843,
+      "physical_ids": [
+        "1b9b40921d49fd3db493cd2283f6969c555e4533014503029988814b32699bd9"
+      ],
+      "boundary": "conditional_native_dispatch_or_combine_vs_declared_expert_collective; source_algorithm_and_peer_activity_not_verified",
+      "additional_budget_allowed": false,
+      "bandwidth_calibration_allowed": false
+    },
+    {
+      "native_operator_type": "MoeDistributeCombineV3",
+      "declared_role": "combine",
+      "calls_per_forward": 92.0,
+      "observed_mean_us": 14.645003450655624,
+      "observed_activity_ms_per_forward": 1.3473403174603173,
+      "declared_isolated_service_ms_per_forward": 14.26494592,
+      "declared_setup_ms_per_forward": 14.26,
+      "declared_payload_service_ms_per_forward": 0.004945920000000825,
+      "signed_activity_residual_ms_per_forward": 12.917605602539684,
+      "physical_ids": [
+        "439dbc49605e99d9f72d1e80a79d222379ec37ef69e7df7fbb39f5fac0644643"
+      ],
+      "boundary": "conditional_native_dispatch_or_combine_vs_declared_expert_collective; source_algorithm_and_peer_activity_not_verified",
+      "additional_budget_allowed": false,
+      "bandwidth_calibration_allowed": false
+    }
+  ],
+  "combined_signed_activity_residual_ms_per_forward": 24.925829363809527,
+  "body_reference": {
+    "observed_mean_ms": 32.55549347619048,
+    "predicted_ms": 46.90245158811513,
+    "signed_diff_ms": 14.34695811192465,
+    "comparison_scope": "DP4 symmetric B1; measured client concurrency one does not establish other replica loads"
+  },
+  "interpretation": "The default EP32 model charges 31 serial 5us setup steps per expert collective. This is an identified model assumption, not evidence that capture bandwidth is wrong. Program activity residuals are not additive causal contributions to the body wall-clock difference.",
+  "diagnostic_coverage": {
+    "priced_declared_occurrences": 2483,
+    "total_declared_occurrences": 4636
+  },
+  "raw_capture_reads": 0,
+  "additional_budget_allowed": false
+}

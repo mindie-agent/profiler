@@ -41,7 +41,8 @@ for case in report['cases']:
  verify_identity(actual['body_acceptance_identity'],label+':body_acceptance')
  retained=read(actual['body_acceptance_identity']['path'])
  attention_layers=Counter(row['samples'][0]['attention'] for row in retained['per_layer_ms'] if row.get('samples'))
- eq(case['forward_count'],retained['body_forward_span_ms']['count'],label+':retained_complete_bodies')
+ matching_forwards=[forward for forward in retained['forwards'] if all(forward['geometry'].get(key)==actual['geometry'].get(key) for key in ('query_rows','tokens_per_sequence','sequences_per_replica'))]
+ eq(case['forward_count'],len(matching_forwards),label+':retained_complete_bodies_in_geometry')
  source_cases.setdefault(actual['case_id'],actual)
  other=source_cases[actual['case_id']]
  eq(actual['source_identity'],other['source_identity'],label+':same_source_two_arms')
@@ -87,8 +88,8 @@ for case in report['cases']:
    expected_layers=attention_layers['gdn']+(attention_layers['kda'] if family['native_operator_type']=='CausalConv1d' else 0)
    eq(family['observed_us']['count'],expected_layers*case['forward_count'],familylabel+':declared_recurrent_layers')
   if family['native_operator_type']=='FusedInferAttentionScore':eq(family['observed_us']['count'],(attention_layers['gqa']+attention_layers['mla'])*case['forward_count'],familylabel+':declared_attention_layers')
- eq(sum(actual['counts'].values()),actual['scan_counts']['complete_body_segment_events'],label+':complete_segment_selection_partition')
- check(0<=actual['counts']['duplicate_communication_summary_events']<=128*case['forward_count'],label+':duplicate_summaries_bounded_by_retained_real_hcom_calls')
+ eq(sum(actual['counts'].values()),sum(row['closed_segment_event_count'] for row in matching_forwards),label+':complete_segment_selection_partition')
+ check(0<=actual['counts']['duplicate_communication_summary_events']<=sum(row['observed_us']['count'] for row in families if row['native_operator_type'].startswith('hcom_')),label+':duplicate_summaries_bounded_by_retained_real_hcom_calls')
  eq(total_pass,case['passed_cohorts'],label+':case_pass_count')
  counts.update(case['comparison_status_counts']);case_results.append({'case_id':label,'passed':total_pass,'compared':scored})
 pooled={'cases':[]} if args.skip_pooled else read(BASE/'steady-layer-pooled.json')
