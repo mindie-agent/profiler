@@ -44,7 +44,8 @@
     "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-p32k-operators-86c1ee8f/body-operator-family-scoreboard.json"
   ],
   "references": [
-    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency/body-communication-references.json"
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency/body-communication-references.json",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-native-references-c2261d63/glm-native-reference-scoreboard.json"
   ],
   "evidence": [
     "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/v41-existing-assets-20261030.json",

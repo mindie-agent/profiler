@@ -114,3 +114,61 @@ def test_runtime_controls_replace_current_prediction_without_duplicating_real_fo
     assert after["summary"]["unique_observed_forward_count"] == (
         before["summary"]["unique_observed_forward_count"]
         + sum(row["comparison"]["observed_ms"]["count"] for row in new_populations))
+
+
+def test_full_native_reference_groups_survive_operator_selection_without_scoring(monkeypatch, tmp_path):
+    root = Path(__file__).resolve().parents[1]
+    monkeypatch.syspath_prepend(str(root / "examples/structure"))
+    module = importlib.import_module("priority_decode_scoreboard")
+    reviewer = importlib.import_module("review_priority_decode_scoreboard")
+    base = root / "examples/structure"
+    operators = [base / "acceptance-20261030-matrix-fix" / name / "body-operator-family-scoreboard.json"
+                 for name in ("glm-operators-86c1ee8f", "glm-low-concurrency-86c1ee8f")]
+    refs = base / "acceptance-20261030-glm-native-references-c2261d63/glm-native-reference-scoreboard.json"
+    before = module.build([], operators)
+    after = module.build([], operators, [refs])
+    assert after["current_operator_cohorts"] == before["current_operator_cohorts"]
+    assert after["summary"]["operator_accuracy_by_tier"] == before["summary"]["operator_accuracy_by_tier"]
+    assert after["summary"]["current_operator_scored_events"] == before["summary"]["current_operator_scored_events"]
+    native = [row for row in after["current_source_role_references"]
+              if row.get("reference_origin") == "external_native_partition"]
+    assert len(native) == 36
+    assert after["summary"]["current_external_native_reference_calls"] == 27666
+    assert after["summary"]["current_external_native_reference_forwards"] == 318
+    originals = {(case["case_id"], group["group_id"]): group
+                 for case in json.loads(refs.read_text())["cases"] for group in case["groups"]}
+    populations = {module._population(row) for row in after["current_operator_families"]}
+    for row in native:
+        assert module._population(row) in populations
+        original = originals[row["case_id"], row["group_id"]]
+        assert row["observed_us"] == original["observed_us"]
+        assert row["layer_ids"] == original["layer_ids"]
+        assert not row["scored"] and not row["additional_budget_allowed"]
+        assert row["status"] == "reference_only"
+    output = tmp_path / "native-reference-scoreboard.json"
+    output.write_text(json.dumps(after))
+    review = reviewer.review(output)
+    assert review["status"] == "passed", review["failures"]
+
+
+def test_native_selection_retains_distinct_observed_abis_and_latest_program(monkeypatch):
+    root = Path(__file__).resolve().parents[1]
+    monkeypatch.syspath_prepend(str(root / "examples/structure"))
+    module = importlib.import_module("priority_decode_scoreboard")
+    source = root / "examples/structure/acceptance-20261030-glm-native-references-c2261d63/glm-native-reference-scoreboard.json"
+    cases = json.loads(source.read_text())["cases"]
+    c1 = next(case for case in cases if case["case_id"] == "glm53flash-a5-tp8-c1")
+    c64 = next(case for case in cases if case["case_id"] == "a5_glm53flash_tp8_c64_p4k")
+    one = module.native_reference_rows(c1, {"path": "first", "sha256": "first"})[0]
+    larger = module.native_reference_rows(c64, {"path": "second", "sha256": "second"})[0]
+    assert one["native_operator_type"] == larger["native_operator_type"]
+    assert one["layer_ids"] == larger["layer_ids"]
+    assert one["native_abi_sha256"] != larger["native_abi_sha256"]
+    # Exercise the selection transition using two real retained ABIs under a
+    # shared population key. ABI identity must survive even when every other
+    # selector dimension agrees; this is not a new capture acceptance claim.
+    larger = {**larger, "source_identity": one["source_identity"], "geometry": one["geometry"]}
+    newer = {**one, "receipt": {"path": "newer", "sha256": "newer"},
+             "group_id": "fresh-program-group"}
+    selected = module.select_references([one, larger, newer], {})
+    assert selected == [newer, larger]

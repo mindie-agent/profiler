@@ -82,6 +82,61 @@ def _population(row):
             geometry.get("tokens_per_sequence"), geometry.get("sequences_per_replica"))
 
 
+def native_reference_rows(case, identity):
+    """Keep each retained full-ABI histogram separate from strict cohorts."""
+    rows = []
+    for group in case["groups"]:
+        if (group["prediction_status"] != "reference_only"
+                or group["strict_accuracy_implied"]
+                or group["additional_budget_allowed"]):
+            raise ValueError("native source references cannot imply strict accuracy or extra work")
+        observed = group["observed_activity_ms_per_forward"]
+        predicted = group["predicted_service_ms_per_forward"]
+        rows.append({
+            "case_id": case["case_id"], "receipt": identity,
+            "reference_origin": "external_native_partition",
+            "runtime_identity": _runtime_identity(case),
+            "source_identity": case["source_identity"], "geometry": case["geometry"],
+            "case_identity": case["case_identity"], "partition_identity": case["partition_identity"],
+            "group_id": group["group_id"], "partition_index": group["partition_index"],
+            "native_abi_sha256": hashlib.sha256(json.dumps(
+                group["native_abi"], sort_keys=True, separators=(",", ":")).encode()).hexdigest(),
+            "forward_count": case["forward_count"], "calls_per_forward": group["calls_per_forward"],
+            "native_operator_type": group["native_operator_type"],
+            "attention_kind": group.get("attention_kind"), "block": group.get("block"),
+            "declared_roles": [group["declared_role"]], "layer_ids": group["layer_ids"],
+            "status": "reference_only", "evidence_strength": "complete_native_abi_conditional_program_reference",
+            "observed_us": group["observed_us"], "predicted_us": None,
+            "predicted_reference_us": group["predicted_reference_us"],
+            "observed_activity_ms_per_forward": observed,
+            "predicted_service_ms_per_forward": predicted,
+            "reference_residual_ms_per_forward": predicted - observed,
+            "model_program_already_costed": True, "additional_budget_allowed": False,
+            "boundary": group["reference_boundary"], "conditions": group["conditions"],
+            "source_correspondence": group["source_correspondence"],
+            "physical_program_signatures": group["physical_program_signatures"],
+            "scored": False})
+    return rows
+
+
+def select_references(references, operator_selection):
+    """Reference generations are selected independently, never by residual."""
+    other, current = [], {}
+    for row in references:
+        population = _population(row)
+        if row.get("reference_origin") != "external_native_partition":
+            selected = operator_selection.get(population)
+            if selected and (row["receipt"]["sha256"], row["case_id"]) != selected[1:]:
+                continue
+            other.append(row)
+        else:
+            key = (population, row["native_operator_type"],
+                   tuple(sorted(row["declared_roles"])), tuple(sorted(row["layer_ids"])),
+                   row["native_abi_sha256"])
+            current[key] = row
+    return other + list(current.values())
+
+
 def body_rows(receipt, identity):
     result = []
     for case in receipt["cases"]:
@@ -220,6 +275,9 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
         receipt, identity = _read(path)
         inputs.append(identity)
         for case in receipt["cases"]:
+            if receipt.get("schema_version") == "mindie-glm-native-reference-batch/1":
+                references.extend(native_reference_rows(case, identity))
+                continue
             for item in [*case["groups"], *case["source_role_gap_references"]]:
                 observed = item.get("observed_activity_ms_per_forward")
                 predicted = item.get("predicted_service_ms_per_forward")
@@ -265,8 +323,10 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
         _population(row): row["runtime_identity"]["recorded_sim_file_map_sha256"] or "unknown"
         for row in current_families
     }
-    current_references = [row for row in references if _population(row) not in operator_selection
-                          or selected_operator(row)]
+    current_references = select_references(references, operator_selection)
+    native_references = [row for row in current_references
+                         if row.get("reference_origin") == "external_native_partition"]
+    native_populations = {_population(row): row["forward_count"] for row in native_references}
     families.sort(key=lambda row: row["measured_activity_ms_per_forward"], reverse=True)
     current_families.sort(key=lambda row: row["measured_activity_ms_per_forward"], reverse=True)
     evidence = []
@@ -302,6 +362,7 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
             "current_selection_policy": "last compared input receipt per source and measured geometry; prior arms retained",
             "source_role_references": references,
             "current_source_role_references": current_references,
+            "reference_selection_policy": "last external native input per source/geometry/native operator/role/layer set/observed ABI; embedded references retain operator receipt selection",
             "summary": {"body_compared": sum(row["comparison"]["status"] == "compared" for row in bodies),
                         "body_passed": sum(row["comparison"].get("passed") is True for row in bodies),
                         "current_body_compared": sum(row["comparison"]["status"] == "compared" for row in current_rows),
@@ -322,6 +383,10 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
                         "current_operator_runtime_populations": dict(Counter(operator_runtimes.values())),
                         "current_operator_scored_events": sum(row.get("scored_event_count") or 0 for row in current_families),
                         "current_operator_body_events": sum(row["observed_us"]["count"] for row in current_families),
+                        "current_external_native_reference_groups": len(native_references),
+                        "current_external_native_reference_calls": sum(row["observed_us"]["count"] for row in native_references),
+                        "current_external_native_reference_populations": len(native_populations),
+                        "current_external_native_reference_forwards": sum(native_populations.values()),
                         "heavy_cohorts": sum(row["heavy_call"] for row in cohorts)},
             "limitations": [
                 "Rows retain their own source/runtime/geometry; independently produced receipts are not merged into a synthetic run.",
@@ -424,8 +489,9 @@ def render(report):
                      f"{row['unscored_event_count']} | {row['unscored_activity_ms_per_forward']:.3f} | {row['status']} |")
     lines += ["", "## Source-role references — already costed work is not an extra budget", "",
               "Reference differences have distinct evidence and are excluded from strict cohort accuracy counts.", "",
-              "| Case | Operator / region | Real / reference us | Real / Sim service ms per Forward | Residual ms | Boundary |",
-              "|---|---|---:|---:|---:|---|"]
+              "External native references are selected independently by measured source/geometry, native operator, role, layer set and observed ABI. Each row retains its own histogram P50; rows are not averaged.", "",
+              "| Case | Operator / region | Calls | Real Mean / P50 / reference us | Real / Sim service ms per Forward | Residual ms | Boundary |",
+              "|---|---|---:|---:|---:|---:|---|"]
     references = sorted(report["current_source_role_references"],
                         key=lambda row: abs(row["reference_residual_ms_per_forward"] or 0), reverse=True)
     for row in references:
@@ -433,8 +499,10 @@ def render(report):
         correspondence = row.get("source_correspondence") or {}
         boundary = correspondence.get("boundary_relation") or row["status"]
         roles = ' + '.join(row.get('declared_roles') or [])
-        lines.append(f"| {row['case_id']} / `{_runtime_tag(row)}` | {row['native_operator_type']} / {roles} / {row['attention_kind']} / {row['block']} | "
-                     f"{_num(row['observed_us']['mean'])} / {_num(prediction)} | "
+        region = (f"layers {','.join(map(str, row['layer_ids']))}" if row.get("reference_origin") == "external_native_partition"
+                  else f"{row['attention_kind']} / {row['block']}")
+        lines.append(f"| {row['case_id']} / `{_runtime_tag(row)}` | {row['native_operator_type']} / {roles} / {region} | "
+                     f"{row['observed_us']['count']} | {_num(row['observed_us']['mean'])} / {_num(row['observed_us'].get('p50'))} / {_num(prediction)} | "
                      f"{_num(row['observed_activity_ms_per_forward'])} / {_num(row['predicted_service_ms_per_forward'])} | "
                      f"{_num(row['reference_residual_ms_per_forward'])} | {boundary} |")
     lines += ["", "## Receipt identities", ""]

@@ -43,7 +43,7 @@ def read(path):
 
 def receipt_metadata(path):
     """Read only needed top-level fields; never materialize the cases array."""
-    wanted = {"runtime_source_identity", "runtime_sources_unchanged",
+    wanted = {"schema_version", "runtime_source_identity", "runtime_sources_unchanged",
               "invalidated_body_receipts", "reason", "status", "runtime_provenance"}
     result, active, builder = {}, None, None
     with Path(path).open("rb") as stream:
@@ -126,8 +126,42 @@ def review(path):
     historical_case_resolutions = []
     expected_references = Counter()
 
-    def check_reference(receipt_path, case, group, expected_runtime, embedded):
-        if embedded:
+    def check_reference(receipt_path, case, group, expected_runtime, embedded, native=False):
+        if native:
+            expected_runtime = runtime(case)
+            expected = {
+                "reference_origin": "external_native_partition",
+                "geometry": case["geometry"], "case_identity": case["case_identity"],
+                "partition_identity": case["partition_identity"],
+                "group_id": group["group_id"], "partition_index": group["partition_index"],
+                "native_abi_sha256": hashlib.sha256(canonical(group["native_abi"]).encode()).hexdigest(),
+                "forward_count": case["forward_count"], "calls_per_forward": group["calls_per_forward"],
+                "native_operator_type": group["native_operator_type"],
+                "attention_kind": group.get("attention_kind"), "block": group.get("block"),
+                "declared_roles": [group["declared_role"]], "layer_ids": group["layer_ids"],
+                "status": "reference_only", "evidence_strength": "complete_native_abi_conditional_program_reference",
+                "observed_us": group["observed_us"], "predicted_us": None,
+                "predicted_reference_us": group["predicted_reference_us"],
+                "model_program_already_costed": True, "additional_budget_allowed": False,
+                "boundary": group["reference_boundary"], "conditions": group["conditions"],
+                "source_correspondence": group["source_correspondence"],
+                "physical_program_signatures": group["physical_program_signatures"]}
+            label = (case["case_id"], group["group_id"])
+            calls = group["observed_us"]["count"]
+            forwards = case["forward_count"]
+            histogram = group["duration_ns_counter"]
+            count = sum(n for _, n in histogram)
+            activity = sum(ns * n for ns, n in histogram)
+            check(count == calls, f"Native full histogram count: {label}")
+            check(activity == group["observed_activity_sum_ns"], f"Native full histogram activity: {label}")
+            check(near(group["calls_per_forward"], calls / forwards), f"Native calls per Forward: {label}")
+            check(near(group["observed_us"]["mean"], activity / calls / 1000), f"Native full histogram mean: {label}")
+            check(near(group["observed_activity_ms_per_forward"], activity / forwards / 1e6), f"Native activity per Forward: {label}")
+            check(near(group["predicted_service_ms_per_forward"],
+                       group["predicted_reference_us"] * calls / forwards / 1000), f"Native conditional service: {label}")
+            check(group["prediction_status"] == "reference_only" and not group["strict_accuracy_implied"]
+                  and not group["additional_budget_allowed"], f"Native reference is not strict or extra work: {label}")
+        elif embedded:
             expected = {"native_operator_type": group["native_operator_type"],
                 "attention_kind": group["attention_kind"], "block": group.get("block"),
                 "declared_roles": [group["declared_role"]], "layer_ids": group["layer_ids"],
@@ -304,8 +338,9 @@ def review(path):
                     for group in original.get("conditional_source_role_references", []):
                         check_reference(item, case, group, expected_runtime, True)
             elif "groups" in case:
-                for group in [*case["groups"], *case["source_role_gap_references"]]:
-                    check_reference(item, case, group, expected_runtime, False)
+                native = source.get("schema_version") == "mindie-glm-native-reference-batch/1"
+                for group in [*case["groups"], *case.get("source_role_gap_references", [])]:
+                    check_reference(item, case, group, expected_runtime, False, native=native)
         del source
         gc.collect()
 
@@ -328,12 +363,23 @@ def review(path):
     check(Counter(canonical(row) for row in report["current_operator_cohorts"]) ==
           Counter(canonical(row) for row in expected_current_cohorts), "Current operator cohorts use latest receipt")
     if "current_source_role_references" in report:
-        expected_current_references = [row for row in report["source_role_references"]
-            if population(row) not in current_operator or current_operator[population(row)] ==
-            (row["receipt"]["path"], row["case_id"])]
+        other_references, selected_references = [], {}
+        for row in report["source_role_references"]:
+            pk = population(row)
+            if (row.get("reference_origin") != "external_native_partition"
+                    and pk in current_operator and current_operator[pk] !=
+                    (row["receipt"]["path"], row["case_id"])):
+                continue
+            if row.get("reference_origin") == "external_native_partition":
+                key = (pk, row["native_operator_type"], tuple(sorted(row["declared_roles"])),
+                       tuple(sorted(row["layer_ids"])), row["native_abi_sha256"])
+                selected_references[key] = row
+            else:
+                other_references.append(row)
+        expected_current_references = other_references + list(selected_references.values())
         check(Counter(canonical(row) for row in report["current_source_role_references"]) ==
               Counter(canonical(row) for row in expected_current_references),
-              "Current source references exclude older overwritten program generations")
+              "Current native references use their own population/role/layer/ABI generation; embedded references follow operator generation")
     current_runtime_populations = {}
     for row in expected_current_families:
         key, value = population(row), row["runtime_identity"]["recorded_sim_file_map_sha256"]
@@ -369,6 +415,16 @@ def review(path):
         expected_summary["body_failed_attempts"] = len(failed_rows)
     for key, value in expected_summary.items():
         check(summary[key] == value, f"Summary {key}")
+    if "current_external_native_reference_groups" in summary:
+        native_rows = [row for row in expected_current_references
+                       if row.get("reference_origin") == "external_native_partition"]
+        native_populations = {population(row): row["forward_count"] for row in native_rows}
+        for key, value in {
+            "groups": len(native_rows), "calls": sum(row["observed_us"]["count"] for row in native_rows),
+            "populations": len(native_populations), "forwards": sum(native_populations.values())
+        }.items():
+            check(summary[f"current_external_native_reference_{key}"] == value,
+                  f"Native reference independent denominator: {key}")
     tiers = {}
     for heavy, label in [(True, "heavy_relative_15pct"), (False, "micro_absolute_15us")]:
         values = [row for row in expected_current_cohorts if row["status"] == "compared" and row["heavy_call"] == heavy]
