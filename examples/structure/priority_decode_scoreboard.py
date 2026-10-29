@@ -94,6 +94,8 @@ def body_rows(receipt, identity):
                "runtime_identity": case.get("runtime_identity"), "geometry": case.get("geometry"),
                "declared_runtime": case.get("declared_runtime"), "comparison": comparison,
                "error": case.get("error"),
+               "prediction_failure": (case.get("prediction_execution")
+                                      if comparison["status"] == "failed" else None),
                "display_status": ("prediction_deferred" if "prediction_deferred_by_population_priority"
                                   in comparison.get("reasons", []) else comparison["status"]),
                "body_activity_ms": observed.get("body_activity_ms"),
@@ -149,6 +151,16 @@ def operator_rows(receipt, identity):
                     "accuracy_tier": cohort.get("accuracy_tier"),
                     "interpretation": "nonadditive_activity_priority_not_causal_body_error_contribution"})
     return families, cohorts
+
+
+def body_history_row(row):
+    """Keep every historical arm without copying its full layer table again."""
+    layers = row["per_layer"]
+    return {**{key: value for key, value in row.items() if key != "per_layer"},
+            "per_layer_reference": {
+                "receipt_sha256": row["receipt"]["sha256"], "case_id": row["case_id"],
+                "field": "per_layer_comparison",
+                "sha256": hashlib.sha256(json.dumps(layers, sort_keys=True).encode()).hexdigest()}}
 
 
 def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), invalidation_paths=()):
@@ -221,8 +233,11 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
                     "predicted_service_ms_per_forward": predicted,
                     "reference_residual_ms_per_forward": predicted - observed if predicted is not None else None,
                     "scored": False})
-    current = {}
+    current, latest_attempts = {}, {}
     for row in bodies:
+        if (row["comparison"]["status"] in {"compared", "failed"}
+                and row["comparison"]["observed_ms"]["count"]):
+            latest_attempts[_population(row)] = row
         if row["comparison"]["status"] == "failed":
             continue
         key = _population(row)
@@ -273,13 +288,16 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
     for heavy, label in ((True, "heavy_relative_15pct"), (False, "micro_absolute_15us")):
         selected = [row for row in current_cohorts if row["status"] == "compared" and row["heavy_call"] == heavy]
         tiers[label] = {"compared": len(selected), "passed": sum(row["accuracy_pass"] is True for row in selected)}
+    history = [body_history_row(row) for row in bodies]
     return {"schema_version": "mindie-priority-decode-scoreboard/1",
             "coverage_status": "partial" if (not cohorts or any(row["comparison"]["status"] != "compared" for row in bodies)
                                                 or any(row.get("unscored_event_count") for row in families)) else "compared",
             "inputs": inputs, "additional_evidence": evidence,
-            "body_comparisons": bodies, "operator_families": families, "operator_cohorts": cohorts,
+            "body_comparisons": history, "operator_families": families, "operator_cohorts": cohorts,
+            "body_history_layer_storage": "source receipt field and content hash; current layer tables are expanded below",
             "current_body_comparisons": current_rows,
-            "body_failed_attempts": [row for row in bodies if row["comparison"]["status"] == "failed"],
+            "latest_body_attempts": [body_history_row(row) for row in latest_attempts.values()],
+            "body_failed_attempts": [row for row in history if row["comparison"]["status"] == "failed"],
             "current_operator_families": current_families, "current_operator_cohorts": current_cohorts,
             "current_selection_policy": "last compared input receipt per source and measured geometry; prior arms retained",
             "source_role_references": references,
@@ -290,6 +308,10 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
                         "current_body_passed": sum(row["comparison"].get("passed") is True for row in current_rows),
                         "invalidated_body_prediction_arms": sum("prediction_invalidation" in row for row in bodies),
                         "body_failed_attempts": sum(row["comparison"]["status"] == "failed" for row in bodies),
+                        "latest_body_attempt_count": len(latest_attempts),
+                        "latest_body_attempt_completed": sum(row["comparison"]["status"] == "compared" for row in latest_attempts.values()),
+                        "latest_body_attempt_failed": sum(row["comparison"]["status"] == "failed" for row in latest_attempts.values()),
+                        "latest_body_attempt_passed": sum(row["comparison"].get("passed") is True for row in latest_attempts.values()),
                         "body_denominator": "prediction_variants; identical observed populations are not additional captures",
                         "unique_source_count": len({key[0] for key in populations}),
                         "unique_source_geometry_populations": len(populations),
@@ -323,6 +345,9 @@ def render(report):
              f"Coverage status: **{report['coverage_status']}**. Missing predictions and unmatched roles stay visible.", "",
              f"Current selected Body arms: **{summary['current_body_passed']}/{summary['current_body_compared']} passed**. "
              "One latest completed receipt per measured source/geometry, selected in input order; each row retains its own runtime and case.", "",
+             f"Latest attempted Body arms: **{summary['latest_body_attempt_completed']}/{summary['latest_body_attempt_count']} completed**, "
+             f"**{summary['latest_body_attempt_failed']} failed**, **{summary['latest_body_attempt_passed']} passed**. "
+             "An earlier completed prediction remains available above when the newest attempt fails; it is not a successful new replay.", "",
              f"Body: **{summary['body_passed']}/{summary['body_compared']} prediction arms passed**; "
              f"{summary['unique_source_count']} unique sources, {summary['unique_source_geometry_populations']} measured geometry populations, "
              f"{summary['unique_observed_forward_count']} unique complete Forwards (includes deferred populations).", "",
@@ -353,7 +378,7 @@ def render(report):
                      f"{_num(comp.get('per_forward_diff_ms'))} | {_num(error * 100 if error is not None else None)}% / {_num(p50_error)}% |")
     if report["body_failed_attempts"]:
         lines += ["", "### Failed local replay attempts", "",
-                  "Failed reads remain visible and do not become zero-duration measured populations.", "",
+                  "Failed attempts remain visible. Input failures do not create measured populations; prediction failures retain completed observations.", "",
                   "| Case | Failure | Later source comparison present |", "|---|---|---|"]
         completed_sources = {row["source_identity"]["sha256"] for row in report["current_body_comparisons"]
                              if row["comparison"]["status"] == "compared"}

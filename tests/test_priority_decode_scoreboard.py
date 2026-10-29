@@ -1,5 +1,6 @@
 """Cross-check prioritization against recorded cohort activity arithmetic."""
 import importlib
+import hashlib
 import json
 from pathlib import Path
 
@@ -39,6 +40,31 @@ def test_invalid_quantization_receipt_retains_real_population_but_loses_accuracy
     assert after["summary"]["unique_observed_forward_count"] == 1799
     assert after["summary"]["current_body_compared"] == 17
     assert after["summary"]["current_body_passed"] == 1
+    # History references preserve all original layer detail while the selected
+    # current arm retains an expanded table for the report's layer comparison.
+    sources = {str(item.resolve()): json.loads(item.read_text()) for item in (path, corrected)}
+    for row in after["body_comparisons"]:
+        case = next(item for item in sources[row["receipt"]["path"]]["cases"]
+                    if item["case_id"] == row["case_id"])
+        layers = case.get("per_layer_comparison") or {}
+        assert row["per_layer_reference"]["sha256"] == hashlib.sha256(
+            json.dumps(layers, sort_keys=True).encode()).hexdigest()
+    assert all("per_layer" in row for row in after["current_body_comparisons"])
+
+
+def test_prediction_timeout_keeps_completed_capture_population(monkeypatch):
+    root = Path(__file__).resolve().parents[1]
+    monkeypatch.syspath_prepend(str(root / "examples/structure"))
+    module = importlib.import_module("priority_decode_scoreboard")
+    source = root / "examples/structure/acceptance-20261030-matrix-fix/decode-forward-glm-replay.json"
+    report = module.build([source], [])
+    failure, = report["body_failed_attempts"]
+    assert failure["comparison"]["observed_ms"]["count"] == 27
+    assert failure["prediction_failure"]["reason"] == "body_prediction_timeout"
+    assert report["summary"]["unique_source_count"] == 26
+    assert report["summary"]["current_body_compared"] == 25
+    assert report["summary"]["latest_body_attempt_count"] == 26
+    assert report["summary"]["latest_body_attempt_failed"] == 1
 
 
 def test_real_cohort_priority_uses_complete_forward_and_per_call_tier(monkeypatch):

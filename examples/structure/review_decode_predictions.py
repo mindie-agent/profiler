@@ -44,12 +44,16 @@ def review(path, output):
     for case in report["cases"]:
         label = case["case_id"]
         if case["comparison"]["status"] == "failed":
-            check(case.get("observed") is None and case.get("prediction") is None,
-                  label + ":failed_read_not_measured_or_predicted")
-            check(case["comparison"]["observed_ms"]["count"] == 0, label + ":failed_read_no_calls")
-            check(bool(case.get("error")) and bool(case["comparison"]["reasons"]), label + ":failure_visible")
-            failed_attempts.append({"case_id": label, "error": case["error"]})
-            continue
+            check(case.get("prediction") is None, label + ":failed_attempt_has_no_prediction")
+            failure = case.get("error") or case.get("prediction_execution")
+            check(bool(failure) and bool(case["comparison"]["reasons"]), label + ":failure_visible")
+            failed_attempts.append({"case_id": label, "failure": failure,
+                                    "observed_calls_retained": case["comparison"]["observed_ms"]["count"]})
+            if case.get("observed") is None:
+                check(case["comparison"]["observed_ms"]["count"] == 0, label + ":failed_read_no_calls")
+                continue
+            check(case["prediction_execution"]["status"] == "failed",
+                  label + ":failed_prediction_retains_measurement")
         identity = case["extraction_identity"]
         if extraction_path != identity["path"]:
             extraction, digest = read(identity["path"])

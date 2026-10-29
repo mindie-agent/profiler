@@ -1,48 +1,51 @@
 {
   "schema_version": "mindie-priority-scoreboard-independent-review/2",
   "status": "passed",
-  "checks": 75325,
+  "checks": 109678,
   "failures": [],
-  "report_sha256": "f94917fc4d028eaf712327edd405eb3f8ef9939ecfcff20e0efdb4da9ac042a9",
+  "report_sha256": "975bf0de0ee63d57009ad59bf61cee28b5fd1d1fd5c29390eeb01d7a0b9dcd6e",
   "summary": {
-    "body_compared": 147,
-    "body_passed": 36,
+    "body_compared": 211,
+    "body_passed": 53,
     "current_body_compared": 66,
-    "current_body_passed": 16,
+    "current_body_passed": 18,
     "invalidated_body_prediction_arms": 31,
-    "body_failed_attempts": 3,
+    "body_failed_attempts": 7,
+    "latest_body_attempt_count": 66,
+    "latest_body_attempt_completed": 64,
+    "latest_body_attempt_failed": 2,
+    "latest_body_attempt_passed": 17,
     "body_denominator": "prediction_variants; identical observed populations are not additional captures",
     "unique_source_count": 66,
     "unique_source_geometry_populations": 222,
     "unique_observed_forward_count": 5250,
     "operator_status_counts": {
-      "reference_only": 79,
-      "compared": 1165
+      "reference_only": 121,
+      "compared": 1726
     },
     "operator_accuracy_by_tier": {
       "heavy_relative_15pct": {
-        "compared": 23,
+        "compared": 22,
         "passed": 5
       },
       "micro_absolute_15us": {
-        "compared": 591,
-        "passed": 581
+        "compared": 584,
+        "passed": 570
       }
     },
     "current_operator_source_populations": 44,
     "current_operator_runtime_populations": {
-      "886c1fa5bd454f2209aae1cfac5188e378fa3fbb128fbbce7774d01556e236d9": 1,
-      "df7c8117e01b47901f4b3c626a88be091b80d8d2941e15ab93f3dc3134ed034f": 3,
-      "c27d72c215c2c98f804908823d9c4172ab85399134814ec639fbb2f059cbbe05": 40
+      "c27d72c215c2c98f804908823d9c4172ab85399134814ec639fbb2f059cbbe05": 5,
+      "20dbf57be438004348b0efba951450222dd5bf9d64537b4fd2b9e2cd5433e438": 39
     },
-    "current_operator_scored_events": 1134343,
+    "current_operator_scored_events": 1097929,
     "current_operator_body_events": 6729791,
-    "heavy_cohorts": 62
+    "heavy_cohorts": 93
   },
-  "body_rows": 505,
-  "family_rows": 4375,
-  "cohort_rows": 1244,
-  "reference_rows": 248,
+  "body_rows": 729,
+  "family_rows": 6452,
+  "cohort_rows": 1847,
+  "reference_rows": 335,
   "corrected_kimi_quant_cases_checked": 36,
   "historical_case_resolutions": [
     {
@@ -131,8 +134,8 @@
     }
   ],
   "execution": {
-    "elapsed_seconds": 5.545825292007066,
-    "peak_rss_bytes": 221904896,
+    "elapsed_seconds": 6.233565333066508,
+    "peak_rss_bytes": 288931840,
     "receipt_read_engine": "ijson top-level metadata and sequential cases; scoreboard bounded JSON"
   },
   "scope": "Independent sequential receipt reconciliation; no raw capture parsing or prediction. Invalidation, effective current Kimi precision, source/geometry deduplication, explicit input order, strict tier arithmetic and unscored source references are checked separately."

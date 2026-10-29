@@ -1,0 +1,4379 @@
+{
+  "schema_version": "mindie-v41-body-source-condition-comparison/1",
+  "status": "completed",
+  "original_prediction_ledger": {
+    "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/v41-cached-panels-20261030.json",
+    "sha256": "b612bcdb4709b09eeead96f61f62e50d89b3bf4836241b7107610c9becb7d131",
+    "size_bytes": 219308
+  },
+  "retry_prediction_ledger": {
+    "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/v41-coupled-retries-20261030.json",
+    "sha256": "1216e819ad0ebfc0e428c89f1f9b61c1745956ced4b995057996e01a8d38ecff",
+    "size_bytes": 51571
+  },
+  "operator_arm_index": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/v41-seven-arm-comparison.json",
+    "sha256": "de3d370fc4102007dd2a03fa421099699731dfd3c0d2bfb1961992cf7702d316",
+    "size_bytes": 106737
+  },
+  "producer_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/join_v41_source_body_conditions.py",
+    "sha256": "e16c5f6ebf163723c14aea1fd078322dd96e6fa73ceee5777005a008addc36c2",
+    "size_bytes": 13740
+  },
+  "runtime_change_for_retries": "c2261d63: saturated-consumer set indexing; same resource allocation",
+  "checks": 544,
+  "source_count": 7,
+  "condition_count": 14,
+  "unique_observed_forward_count": 830,
+  "original_attempt_outcomes": {
+    "completed": 11,
+    "timeout": 3
+  },
+  "retry_attempt_outcomes": {
+    "completed": 3
+  },
+  "final_condition_outcomes": {
+    "completed": 14
+  },
+  "raw_capture_reads": 0,
+  "new_predictions": 0,
+  "baseline_66_case_selection_changed": false,
+  "cross_condition_accuracy_denominator": false,
+  "maximum_worker_rss_bytes": 391069696,
+  "rows": [
+    {
+      "source_case_id": "a5_v41_fp8_tp1_dp8_ep8_c16_p2k",
+      "condition": "single_active_rank0",
+      "observation": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_c16_p2k-matrix-extension.actual.json",
+          "sha256": "26fb9664ec7aabcb0261d5375dc9d5974b4109b83c501173587e39087f02bb13",
+          "size_bytes": 2392744
+        },
+        "body_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-extension/auto-forward-a5_v41_fp8_tp1_dp8_ep8_c16_p2k.json",
+          "sha256": "1a1426b1ee3e0ac01fcd8b340effade571eca5937d1284ee92283b5e791c2434",
+          "size_bytes": 1408527
+        },
+        "capture_manifest_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-extension/decode-forward-auto-cases.json",
+          "sha256": "65f3f15f5b3ea56a5e67b823a7ae440940e8a4be022d8a31c52a508ecf5dc15f",
+          "size_bytes": 52707
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c16_p2k_20261030/kernel_details.csv",
+          "size_bytes": 86067988,
+          "mtime_ns": 1793305018000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "8294b03bbf47e43f172941354c4517fea55a7b57656ea209938f688f518f8832"
+        },
+        "selected_rank": "dp0_pp0_tp0_dcp0_ep0_rank0",
+        "rank_id_in_csv": "",
+        "device_id": "0",
+        "geometry": {
+          "query_rows": 2,
+          "sequences_per_replica": 2,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "full_model_layers": 40,
+        "body_forward_span_ms": {
+          "count": 129,
+          "mean": 14.929338178294573,
+          "p50": 14.914454,
+          "p90": 14.928722,
+          "min": 14.882047,
+          "max": 16.839107
+        },
+        "metric_boundary": "target_body_device_graph",
+        "span_start_basis": "first_retained_device_event_start",
+        "span_end_basis": "last_retained_device_event_end",
+        "geometry_basis": "shape-derived execution geometry; not active-valid-token or peer-load proof"
+      },
+      "prediction": {
+        "duration_ms": 7.553434102274091,
+        "executed_layers": 40,
+        "result_geometry": {
+          "phase": "decode",
+          "tokens_per_sequence": 1,
+          "context_tokens": 2048,
+          "sequences_per_replica": [
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "participating_replicas": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "sequences_by_replica": {
+            "0": 2,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0
+          },
+          "valid_query_tokens_by_replica": {
+            "0": 2,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0
+          },
+          "padded_query_tokens_by_replica": {
+            "0": 2,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0
+          },
+          "valid_query_tokens": 2,
+          "padded_query_tokens": 2
+        },
+        "modeling_status": "modeled",
+        "model_coverage": "partial",
+        "unmodeled_features": [
+          "native mixed FP8/FP4 KV attention cache and compute path",
+          "Engram gate quantized projection representation",
+          "mqsmla_aicpu_metadata_and_original_sparse_index_producer",
+          "capture_mqsmla_and_grouped_binary_tensor_ABI_unverified"
+        ],
+        "runtime_revision": "42ac991d590fe4c47a1b71c921b77f1a22a1664c",
+        "package": {
+          "sha256": "1c11a530e9451bc4b797144cbec02b348e6bbafc3b3e7cc6a414225e6722f6f0",
+          "files": 243
+        },
+        "family_activity": {
+          "native_fusion": {
+            "calls": 160,
+            "elapsed_sum_ms": 0.366046060606036
+          },
+          "rmsnorm": {
+            "calls": 164,
+            "elapsed_sum_ms": 0.2112327680000306
+          },
+          "quantize": {
+            "calls": 893,
+            "elapsed_sum_ms": 1.167680000000178
+          },
+          "gemm": {
+            "calls": 240,
+            "elapsed_sum_ms": 2.113582236821167
+          },
+          "elementwise": {
+            "calls": 133,
+            "elapsed_sum_ms": 0.17056000000002366
+          },
+          "cache_store": {
+            "calls": 48,
+            "elapsed_sum_ms": 0.05510400000000764
+          },
+          "attention": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.7736569696969782
+          },
+          "router": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.40678787878787837
+          },
+          "topk": {
+            "calls": 48,
+            "elapsed_sum_ms": 0.0629760000000097
+          },
+          "routing": {
+            "calls": 640,
+            "elapsed_sum_ms": 0.1049600000000162
+          },
+          "alltoall": {
+            "calls": 640,
+            "elapsed_sum_ms": 8.164310204081708
+          },
+          "grouped_gemm": {
+            "calls": 640,
+            "elapsed_sum_ms": 6.562912814565621
+          },
+          "swiglu": {
+            "calls": 360,
+            "elapsed_sum_ms": 0.47232000000007274
+          },
+          "gate_up_projection": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.40421310787879894
+          },
+          "down_projection": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.18380692121213585
+          },
+          "engram_query": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0026239999999999875
+          },
+          "engram_ids": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_rh2d": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0029150400000002297
+          },
+          "engram_gather": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_broadcast": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "barrier": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_apply": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0026239999999999597
+          },
+          "rotary": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.013120000000001575
+          },
+          "cast": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.013120000000001575
+          },
+          "layernorm": {
+            "calls": 4,
+            "elapsed_sum_ms": 0.0013127679999999087
+          },
+          "indexer": {
+            "calls": 8,
+            "elapsed_sum_ms": 0.012624000000001023
+          }
+        },
+        "family_activity_boundary": "all declared cohort participants; contention-inclusive elapsed sums may overlap",
+        "family_activity_additive_body_budget": false
+      },
+      "input_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_c16_p2k-source.json",
+        "sha256": "facd0000ecf285f0eea38ffb1e2df774c8ab8716dd55bf799d3798c14f265aca",
+        "size_bytes": 18364
+      },
+      "attempt_history": [
+        {
+          "status": "timeout",
+          "error": {
+            "type": "TimeoutError",
+            "message": "bounded_local_simulation"
+          },
+          "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+          "runtime_root": "/Users/maoxx241/code/sim-mxfp4-panel-ir-cache-20261030",
+          "package_start": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "package_end": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "input": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_c16_p2k-source.json",
+            "sha256": "facd0000ecf285f0eea38ffb1e2df774c8ab8716dd55bf799d3798c14f265aca"
+          },
+          "condition": "single_active_rank0",
+          "geometry": {
+            "phase": "decode",
+            "tokens": 1,
+            "sequences": [
+              2,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "context": 2048,
+            "scope": "body"
+          },
+          "budget_seconds": 60.0,
+          "wall_seconds": 60.00696820800658,
+          "cpu_seconds": 57.858878000000004,
+          "memory": {
+            "status": "measured",
+            "method": "getrusage(RUSAGE_SELF).ru_maxrss",
+            "raw_peak_rss": 172474368,
+            "raw_unit_bytes": 1,
+            "peak_rss_bytes": 172474368,
+            "peak_rss_mib": 164.484375
+          },
+          "duration_ms": null,
+          "worker_exit_code": 2
+        },
+        {
+          "status": "completed",
+          "error": null,
+          "runtime_revision": "42ac991d590fe4c47a1b71c921b77f1a22a1664c",
+          "runtime_root": "/Users/maoxx241/code/sim-mxfp4-panel-ir-cache-20261030",
+          "package_start": {
+            "sha256": "1c11a530e9451bc4b797144cbec02b348e6bbafc3b3e7cc6a414225e6722f6f0",
+            "files": 243
+          },
+          "package_end": {
+            "sha256": "1c11a530e9451bc4b797144cbec02b348e6bbafc3b3e7cc6a414225e6722f6f0",
+            "files": 243
+          },
+          "input": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_c16_p2k-source.json",
+            "sha256": "facd0000ecf285f0eea38ffb1e2df774c8ab8716dd55bf799d3798c14f265aca"
+          },
+          "condition": "single_active_rank0",
+          "geometry": {
+            "phase": "decode",
+            "tokens": 1,
+            "sequences": [
+              2,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "context": 2048,
+            "scope": "body"
+          },
+          "budget_seconds": 60.0,
+          "wall_seconds": 43.29049783293158,
+          "cpu_seconds": 42.368776,
+          "memory": {
+            "status": "measured",
+            "method": "getrusage(RUSAGE_SELF).ru_maxrss",
+            "raw_peak_rss": 172916736,
+            "raw_unit_bytes": 1,
+            "peak_rss_bytes": 172916736,
+            "peak_rss_mib": 164.90625
+          },
+          "duration_ms": 7.553434102274091,
+          "worker_exit_code": 0
+        }
+      ],
+      "comparison": {
+        "status": "conditional_reference",
+        "predicted_minus_observed_mean_ms": -7.375904076020483,
+        "relative_difference_vs_mean": -0.4940543236366728,
+        "relative_difference_vs_p50": -0.4935494050084508,
+        "strict_accuracy_eligible": false,
+        "selected_by_error": false,
+        "boundary_relation": "Sim complete declared EP/DP-cohort readiness vs retained rank0 first/last-device envelope",
+        "context_relation": "2048 source scenario; active KV length not observed per forward"
+      }
+    },
+    {
+      "source_case_id": "a5_v41_fp8_tp1_dp8_ep8_c16_p2k",
+      "condition": "symmetric_declared",
+      "observation": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_c16_p2k-matrix-extension.actual.json",
+          "sha256": "26fb9664ec7aabcb0261d5375dc9d5974b4109b83c501173587e39087f02bb13",
+          "size_bytes": 2392744
+        },
+        "body_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-extension/auto-forward-a5_v41_fp8_tp1_dp8_ep8_c16_p2k.json",
+          "sha256": "1a1426b1ee3e0ac01fcd8b340effade571eca5937d1284ee92283b5e791c2434",
+          "size_bytes": 1408527
+        },
+        "capture_manifest_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-extension/decode-forward-auto-cases.json",
+          "sha256": "65f3f15f5b3ea56a5e67b823a7ae440940e8a4be022d8a31c52a508ecf5dc15f",
+          "size_bytes": 52707
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c16_p2k_20261030/kernel_details.csv",
+          "size_bytes": 86067988,
+          "mtime_ns": 1793305018000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "8294b03bbf47e43f172941354c4517fea55a7b57656ea209938f688f518f8832"
+        },
+        "selected_rank": "dp0_pp0_tp0_dcp0_ep0_rank0",
+        "rank_id_in_csv": "",
+        "device_id": "0",
+        "geometry": {
+          "query_rows": 2,
+          "sequences_per_replica": 2,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "full_model_layers": 40,
+        "body_forward_span_ms": {
+          "count": 129,
+          "mean": 14.929338178294573,
+          "p50": 14.914454,
+          "p90": 14.928722,
+          "min": 14.882047,
+          "max": 16.839107
+        },
+        "metric_boundary": "target_body_device_graph",
+        "span_start_basis": "first_retained_device_event_start",
+        "span_end_basis": "last_retained_device_event_end",
+        "geometry_basis": "shape-derived execution geometry; not active-valid-token or peer-load proof"
+      },
+      "prediction": {
+        "duration_ms": 13.029747662694174,
+        "executed_layers": 40,
+        "result_geometry": {
+          "phase": "decode",
+          "tokens_per_sequence": 1,
+          "context_tokens": 2048,
+          "sequences_per_replica": [
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "participating_replicas": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "sequences_by_replica": {
+            "0": 2,
+            "1": 2,
+            "2": 2,
+            "3": 2,
+            "4": 2,
+            "5": 2,
+            "6": 2,
+            "7": 2
+          },
+          "valid_query_tokens_by_replica": {
+            "0": 2,
+            "1": 2,
+            "2": 2,
+            "3": 2,
+            "4": 2,
+            "5": 2,
+            "6": 2,
+            "7": 2
+          },
+          "padded_query_tokens_by_replica": {
+            "0": 2,
+            "1": 2,
+            "2": 2,
+            "3": 2,
+            "4": 2,
+            "5": 2,
+            "6": 2,
+            "7": 2
+          },
+          "valid_query_tokens": 16,
+          "padded_query_tokens": 16
+        },
+        "modeling_status": "modeled",
+        "model_coverage": "partial",
+        "unmodeled_features": [
+          "native mixed FP8/FP4 KV attention cache and compute path",
+          "Engram gate quantized projection representation",
+          "mqsmla_aicpu_metadata_and_original_sparse_index_producer",
+          "capture_mqsmla_and_grouped_binary_tensor_ABI_unverified"
+        ],
+        "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+        "package": {
+          "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+          "files": 243
+        },
+        "family_activity": {
+          "native_fusion": {
+            "calls": 1280,
+            "elapsed_sum_ms": 2.9283684848488396
+          },
+          "rmsnorm": {
+            "calls": 1312,
+            "elapsed_sum_ms": 1.6898621440003625
+          },
+          "quantize": {
+            "calls": 2664,
+            "elapsed_sum_ms": 3.4636800000007604
+          },
+          "gemm": {
+            "calls": 1920,
+            "elapsed_sum_ms": 16.90865789456968
+          },
+          "elementwise": {
+            "calls": 1064,
+            "elapsed_sum_ms": 1.3644800000002917
+          },
+          "cache_store": {
+            "calls": 384,
+            "elapsed_sum_ms": 0.44083200000009637
+          },
+          "attention": {
+            "calls": 320,
+            "elapsed_sum_ms": 6.189255757576227
+          },
+          "router": {
+            "calls": 320,
+            "elapsed_sum_ms": 3.2543030303030838
+          },
+          "topk": {
+            "calls": 384,
+            "elapsed_sum_ms": 0.503808000000113
+          },
+          "routing": {
+            "calls": 640,
+            "elapsed_sum_ms": 0.839680000000186
+          },
+          "alltoall": {
+            "calls": 640,
+            "elapsed_sum_ms": 8.239542857143036
+          },
+          "grouped_gemm": {
+            "calls": 640,
+            "elapsed_sum_ms": 52.48495243638305
+          },
+          "swiglu": {
+            "calls": 640,
+            "elapsed_sum_ms": 0.8396800000001862
+          },
+          "gate_up_projection": {
+            "calls": 320,
+            "elapsed_sum_ms": 3.2337048630305385
+          },
+          "down_projection": {
+            "calls": 320,
+            "elapsed_sum_ms": 1.4704553696970484
+          },
+          "engram_query": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.02099200000000323
+          },
+          "engram_ids": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_rh2d": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.023320319999998063
+          },
+          "engram_gather": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_broadcast": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "barrier": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_apply": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.02099200000000323
+          },
+          "rotary": {
+            "calls": 128,
+            "elapsed_sum_ms": 0.10496000000002681
+          },
+          "cast": {
+            "calls": 128,
+            "elapsed_sum_ms": 0.10496000000002681
+          },
+          "layernorm": {
+            "calls": 32,
+            "elapsed_sum_ms": 0.010502144000001046
+          },
+          "indexer": {
+            "calls": 64,
+            "elapsed_sum_ms": 0.10099200000001307
+          }
+        },
+        "family_activity_boundary": "all declared cohort participants; contention-inclusive elapsed sums may overlap",
+        "family_activity_additive_body_budget": false
+      },
+      "input_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_c16_p2k-source.json",
+        "sha256": "facd0000ecf285f0eea38ffb1e2df774c8ab8716dd55bf799d3798c14f265aca",
+        "size_bytes": 18364
+      },
+      "attempt_history": [
+        {
+          "status": "completed",
+          "error": null,
+          "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+          "runtime_root": "/Users/maoxx241/code/sim-mxfp4-panel-ir-cache-20261030",
+          "package_start": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "package_end": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "input": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_c16_p2k-source.json",
+            "sha256": "facd0000ecf285f0eea38ffb1e2df774c8ab8716dd55bf799d3798c14f265aca"
+          },
+          "condition": "symmetric_declared",
+          "geometry": {
+            "phase": "decode",
+            "tokens": 1,
+            "sequences": [
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2
+            ],
+            "context": 2048,
+            "scope": "body"
+          },
+          "budget_seconds": 60.0,
+          "wall_seconds": 49.70999866700731,
+          "cpu_seconds": 47.830053,
+          "memory": {
+            "status": "measured",
+            "method": "getrusage(RUSAGE_SELF).ru_maxrss",
+            "raw_peak_rss": 365297664,
+            "raw_unit_bytes": 1,
+            "peak_rss_bytes": 365297664,
+            "peak_rss_mib": 348.375
+          },
+          "duration_ms": 13.029747662694174,
+          "worker_exit_code": 0
+        }
+      ],
+      "comparison": {
+        "status": "conditional_reference",
+        "predicted_minus_observed_mean_ms": -1.8995905156003996,
+        "relative_difference_vs_mean": -0.12723876255694788,
+        "relative_difference_vs_p50": -0.12636777298758817,
+        "strict_accuracy_eligible": false,
+        "selected_by_error": false,
+        "boundary_relation": "Sim complete declared EP/DP-cohort readiness vs retained rank0 first/last-device envelope",
+        "context_relation": "2048 source scenario; active KV length not observed per forward"
+      }
+    },
+    {
+      "source_case_id": "a5_v41_fp8_tp1_dp8_ep8_c32_p2k",
+      "condition": "single_active_rank0",
+      "observation": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_c32_p2k-matrix-extension.actual.json",
+          "sha256": "2473a4fd93f8d0aaee75a473f99b603eaa987dd1b780eac4673b4cfad18cc0fd",
+          "size_bytes": 2350913
+        },
+        "body_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-extension/auto-forward-a5_v41_fp8_tp1_dp8_ep8_c32_p2k.json",
+          "sha256": "11dd84e65a877ae90b435ddefd643fb337d95edf03f19a097420c794e66bfccb",
+          "size_bytes": 1317298
+        },
+        "capture_manifest_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-extension/decode-forward-auto-cases.json",
+          "sha256": "65f3f15f5b3ea56a5e67b823a7ae440940e8a4be022d8a31c52a508ecf5dc15f",
+          "size_bytes": 52707
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c32_p2k_20261030/kernel_details.csv",
+          "size_bytes": 70173237,
+          "mtime_ns": 1793305117000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "e20b27b78f65b08fac9e034b6c5a31b550f4795a1dd5dbcf514172031640d94e"
+        },
+        "selected_rank": "dp0_pp0_tp0_dcp0_ep0_rank0",
+        "rank_id_in_csv": "",
+        "device_id": "0",
+        "geometry": {
+          "query_rows": 4,
+          "sequences_per_replica": 4,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "full_model_layers": 40,
+        "body_forward_span_ms": {
+          "count": 105,
+          "mean": 18.62455658095238,
+          "p50": 18.615864,
+          "p90": 18.640311,
+          "min": 18.588418,
+          "max": 19.334582
+        },
+        "metric_boundary": "target_body_device_graph",
+        "span_start_basis": "first_retained_device_event_start",
+        "span_end_basis": "last_retained_device_event_end",
+        "geometry_basis": "shape-derived execution geometry; not active-valid-token or peer-load proof"
+      },
+      "prediction": {
+        "duration_ms": 8.145057270659755,
+        "executed_layers": 40,
+        "result_geometry": {
+          "phase": "decode",
+          "tokens_per_sequence": 1,
+          "context_tokens": 2048,
+          "sequences_per_replica": [
+            4,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "participating_replicas": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "sequences_by_replica": {
+            "0": 4,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0
+          },
+          "valid_query_tokens_by_replica": {
+            "0": 4,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0
+          },
+          "padded_query_tokens_by_replica": {
+            "0": 4,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0
+          },
+          "valid_query_tokens": 4,
+          "padded_query_tokens": 4
+        },
+        "modeling_status": "modeled",
+        "model_coverage": "partial",
+        "unmodeled_features": [
+          "native mixed FP8/FP4 KV attention cache and compute path",
+          "Engram gate quantized projection representation",
+          "mqsmla_aicpu_metadata_and_original_sparse_index_producer",
+          "capture_mqsmla_and_grouped_binary_tensor_ABI_unverified"
+        ],
+        "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+        "package": {
+          "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+          "files": 243
+        },
+        "family_activity": {
+          "native_fusion": {
+            "calls": 160,
+            "elapsed_sum_ms": 0.36604606060608247
+          },
+          "rmsnorm": {
+            "calls": 164,
+            "elapsed_sum_ms": 0.21123276800003327
+          },
+          "quantize": {
+            "calls": 893,
+            "elapsed_sum_ms": 1.16768000000019
+          },
+          "gemm": {
+            "calls": 240,
+            "elapsed_sum_ms": 2.1312406127286625
+          },
+          "elementwise": {
+            "calls": 133,
+            "elapsed_sum_ms": 0.17056000000002633
+          },
+          "cache_store": {
+            "calls": 48,
+            "elapsed_sum_ms": 0.055104000000009416
+          },
+          "attention": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.7736569696969977
+          },
+          "router": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.41328484848482705
+          },
+          "topk": {
+            "calls": 48,
+            "elapsed_sum_ms": 0.06297600000001059
+          },
+          "routing": {
+            "calls": 640,
+            "elapsed_sum_ms": 0.10496000000001708
+          },
+          "alltoall": {
+            "calls": 640,
+            "elapsed_sum_ms": 8.264620408163253
+          },
+          "grouped_gemm": {
+            "calls": 640,
+            "elapsed_sum_ms": 13.123204189102085
+          },
+          "swiglu": {
+            "calls": 360,
+            "elapsed_sum_ms": 0.4723200000000768
+          },
+          "gate_up_projection": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.4077443975757534
+          },
+          "down_projection": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.18559869090908296
+          },
+          "engram_query": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0026239999999999875
+          },
+          "engram_ids": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_rh2d": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.005830080000000015
+          },
+          "engram_gather": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_broadcast": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "barrier": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_apply": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0026239999999999597
+          },
+          "rotary": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.013120000000002907
+          },
+          "cast": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.013120000000002907
+          },
+          "layernorm": {
+            "calls": 4,
+            "elapsed_sum_ms": 0.0013127680000003528
+          },
+          "indexer": {
+            "calls": 8,
+            "elapsed_sum_ms": 0.012624000000001412
+          }
+        },
+        "family_activity_boundary": "all declared cohort participants; contention-inclusive elapsed sums may overlap",
+        "family_activity_additive_body_budget": false
+      },
+      "input_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_c32_p2k-source.json",
+        "sha256": "e4eb73effbf019f5661059ccc3b0435a8a58a0d191fe96e21555a731e094b976",
+        "size_bytes": 18363
+      },
+      "attempt_history": [
+        {
+          "status": "completed",
+          "error": null,
+          "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+          "runtime_root": "/Users/maoxx241/code/sim-mxfp4-panel-ir-cache-20261030",
+          "package_start": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "package_end": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "input": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_c32_p2k-source.json",
+            "sha256": "e4eb73effbf019f5661059ccc3b0435a8a58a0d191fe96e21555a731e094b976"
+          },
+          "condition": "single_active_rank0",
+          "geometry": {
+            "phase": "decode",
+            "tokens": 1,
+            "sequences": [
+              4,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "context": 2048,
+            "scope": "body"
+          },
+          "budget_seconds": 60.0,
+          "wall_seconds": 27.075071124942042,
+          "cpu_seconds": 25.972377,
+          "memory": {
+            "status": "measured",
+            "method": "getrusage(RUSAGE_SELF).ru_maxrss",
+            "raw_peak_rss": 174194688,
+            "raw_unit_bytes": 1,
+            "peak_rss_bytes": 174194688,
+            "peak_rss_mib": 166.125
+          },
+          "duration_ms": 8.145057270659755,
+          "worker_exit_code": 0
+        }
+      ],
+      "comparison": {
+        "status": "conditional_reference",
+        "predicted_minus_observed_mean_ms": -10.479499310292624,
+        "relative_difference_vs_mean": -0.5626710770129244,
+        "relative_difference_vs_p50": -0.5624668685450347,
+        "strict_accuracy_eligible": false,
+        "selected_by_error": false,
+        "boundary_relation": "Sim complete declared EP/DP-cohort readiness vs retained rank0 first/last-device envelope",
+        "context_relation": "2048 source scenario; active KV length not observed per forward"
+      }
+    },
+    {
+      "source_case_id": "a5_v41_fp8_tp1_dp8_ep8_c32_p2k",
+      "condition": "symmetric_declared",
+      "observation": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_c32_p2k-matrix-extension.actual.json",
+          "sha256": "2473a4fd93f8d0aaee75a473f99b603eaa987dd1b780eac4673b4cfad18cc0fd",
+          "size_bytes": 2350913
+        },
+        "body_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-extension/auto-forward-a5_v41_fp8_tp1_dp8_ep8_c32_p2k.json",
+          "sha256": "11dd84e65a877ae90b435ddefd643fb337d95edf03f19a097420c794e66bfccb",
+          "size_bytes": 1317298
+        },
+        "capture_manifest_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-extension/decode-forward-auto-cases.json",
+          "sha256": "65f3f15f5b3ea56a5e67b823a7ae440940e8a4be022d8a31c52a508ecf5dc15f",
+          "size_bytes": 52707
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c32_p2k_20261030/kernel_details.csv",
+          "size_bytes": 70173237,
+          "mtime_ns": 1793305117000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "e20b27b78f65b08fac9e034b6c5a31b550f4795a1dd5dbcf514172031640d94e"
+        },
+        "selected_rank": "dp0_pp0_tp0_dcp0_ep0_rank0",
+        "rank_id_in_csv": "",
+        "device_id": "0",
+        "geometry": {
+          "query_rows": 4,
+          "sequences_per_replica": 4,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "full_model_layers": 40,
+        "body_forward_span_ms": {
+          "count": 105,
+          "mean": 18.62455658095238,
+          "p50": 18.615864,
+          "p90": 18.640311,
+          "min": 18.588418,
+          "max": 19.334582
+        },
+        "metric_boundary": "target_body_device_graph",
+        "span_start_basis": "first_retained_device_event_start",
+        "span_end_basis": "last_retained_device_event_end",
+        "geometry_basis": "shape-derived execution geometry; not active-valid-token or peer-load proof"
+      },
+      "prediction": {
+        "duration_ms": 19.64437533938174,
+        "executed_layers": 40,
+        "result_geometry": {
+          "phase": "decode",
+          "tokens_per_sequence": 1,
+          "context_tokens": 2048,
+          "sequences_per_replica": [
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4
+          ],
+          "participating_replicas": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "sequences_by_replica": {
+            "0": 4,
+            "1": 4,
+            "2": 4,
+            "3": 4,
+            "4": 4,
+            "5": 4,
+            "6": 4,
+            "7": 4
+          },
+          "valid_query_tokens_by_replica": {
+            "0": 4,
+            "1": 4,
+            "2": 4,
+            "3": 4,
+            "4": 4,
+            "5": 4,
+            "6": 4,
+            "7": 4
+          },
+          "padded_query_tokens_by_replica": {
+            "0": 4,
+            "1": 4,
+            "2": 4,
+            "3": 4,
+            "4": 4,
+            "5": 4,
+            "6": 4,
+            "7": 4
+          },
+          "valid_query_tokens": 32,
+          "padded_query_tokens": 32
+        },
+        "modeling_status": "modeled",
+        "model_coverage": "partial",
+        "unmodeled_features": [
+          "native mixed FP8/FP4 KV attention cache and compute path",
+          "Engram gate quantized projection representation",
+          "mqsmla_aicpu_metadata_and_original_sparse_index_producer",
+          "capture_mqsmla_and_grouped_binary_tensor_ABI_unverified"
+        ],
+        "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+        "package": {
+          "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+          "files": 243
+        },
+        "family_activity": {
+          "native_fusion": {
+            "calls": 1280,
+            "elapsed_sum_ms": 2.9283684848488374
+          },
+          "rmsnorm": {
+            "calls": 1312,
+            "elapsed_sum_ms": 1.6898621440000225
+          },
+          "quantize": {
+            "calls": 2664,
+            "elapsed_sum_ms": 3.4636800000000285
+          },
+          "gemm": {
+            "calls": 1920,
+            "elapsed_sum_ms": 17.0499249018307
+          },
+          "elementwise": {
+            "calls": 1064,
+            "elapsed_sum_ms": 1.3644800000000288
+          },
+          "cache_store": {
+            "calls": 384,
+            "elapsed_sum_ms": 0.4408320000000111
+          },
+          "attention": {
+            "calls": 320,
+            "elapsed_sum_ms": 6.189255757576379
+          },
+          "router": {
+            "calls": 320,
+            "elapsed_sum_ms": 3.3062787878785853
+          },
+          "topk": {
+            "calls": 384,
+            "elapsed_sum_ms": 0.5038080000000171
+          },
+          "routing": {
+            "calls": 640,
+            "elapsed_sum_ms": 0.8396800000000013
+          },
+          "alltoall": {
+            "calls": 640,
+            "elapsed_sum_ms": 8.41508571428588
+          },
+          "grouped_gemm": {
+            "calls": 640,
+            "elapsed_sum_ms": 104.96728343275447
+          },
+          "swiglu": {
+            "calls": 640,
+            "elapsed_sum_ms": 0.8396799999999871
+          },
+          "gate_up_projection": {
+            "calls": 320,
+            "elapsed_sum_ms": 3.2619551806062073
+          },
+          "down_projection": {
+            "calls": 320,
+            "elapsed_sum_ms": 1.484789527272852
+          },
+          "engram_query": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.02099200000000323
+          },
+          "engram_ids": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_rh2d": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.04664064000000323
+          },
+          "engram_gather": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_broadcast": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "barrier": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_apply": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.02099200000000323
+          },
+          "rotary": {
+            "calls": 128,
+            "elapsed_sum_ms": 0.10496000000001615
+          },
+          "cast": {
+            "calls": 128,
+            "elapsed_sum_ms": 0.10496000000001615
+          },
+          "layernorm": {
+            "calls": 32,
+            "elapsed_sum_ms": 0.010502144000001934
+          },
+          "indexer": {
+            "calls": 64,
+            "elapsed_sum_ms": 0.1009920000000033
+          }
+        },
+        "family_activity_boundary": "all declared cohort participants; contention-inclusive elapsed sums may overlap",
+        "family_activity_additive_body_budget": false
+      },
+      "input_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_c32_p2k-source.json",
+        "sha256": "e4eb73effbf019f5661059ccc3b0435a8a58a0d191fe96e21555a731e094b976",
+        "size_bytes": 18363
+      },
+      "attempt_history": [
+        {
+          "status": "completed",
+          "error": null,
+          "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+          "runtime_root": "/Users/maoxx241/code/sim-mxfp4-panel-ir-cache-20261030",
+          "package_start": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "package_end": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "input": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_c32_p2k-source.json",
+            "sha256": "e4eb73effbf019f5661059ccc3b0435a8a58a0d191fe96e21555a731e094b976"
+          },
+          "condition": "symmetric_declared",
+          "geometry": {
+            "phase": "decode",
+            "tokens": 1,
+            "sequences": [
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4
+            ],
+            "context": 2048,
+            "scope": "body"
+          },
+          "budget_seconds": 60.0,
+          "wall_seconds": 52.44355679198634,
+          "cpu_seconds": 49.810524,
+          "memory": {
+            "status": "measured",
+            "method": "getrusage(RUSAGE_SELF).ru_maxrss",
+            "raw_peak_rss": 343179264,
+            "raw_unit_bytes": 1,
+            "peak_rss_bytes": 343179264,
+            "peak_rss_mib": 327.28125
+          },
+          "duration_ms": 19.64437533938174,
+          "worker_exit_code": 0
+        }
+      ],
+      "comparison": {
+        "status": "conditional_reference",
+        "predicted_minus_observed_mean_ms": 1.0198187584293592,
+        "relative_difference_vs_mean": 0.05475667321241584,
+        "relative_difference_vs_p50": 0.05524918635964138,
+        "strict_accuracy_eligible": false,
+        "selected_by_error": false,
+        "boundary_relation": "Sim complete declared EP/DP-cohort readiness vs retained rank0 first/last-device envelope",
+        "context_relation": "2048 source scenario; active KV length not observed per forward"
+      }
+    },
+    {
+      "source_case_id": "a5_v41_fp8_tp1_dp8_ep8_c4_p2k",
+      "condition": "single_active_rank0",
+      "observation": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_c4_p2k-matrix-extension.actual.json",
+          "sha256": "6466b706d43be8a00df89a4502f3dacdd46f2650b6ced697b743dc97ef6d82f4",
+          "size_bytes": 2435472
+        },
+        "body_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-extension/auto-forward-a5_v41_fp8_tp1_dp8_ep8_c4_p2k.json",
+          "sha256": "14179180e90a8e125b011b9d83bd6d2753cc96fdfe8abc1962ecba5fa5169dc7",
+          "size_bytes": 1392554
+        },
+        "capture_manifest_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-extension/decode-forward-auto-cases.json",
+          "sha256": "65f3f15f5b3ea56a5e67b823a7ae440940e8a4be022d8a31c52a508ecf5dc15f",
+          "size_bytes": 52707
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c4_p2k_20261030/kernel_details.csv",
+          "size_bytes": 100369788,
+          "mtime_ns": 1793304900000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "cf36aecc0160029872eeaf55cf397261d121cf7d7e591d6043751488a367b964"
+        },
+        "selected_rank": "dp0_pp0_tp0_dcp0_ep0_rank0",
+        "rank_id_in_csv": "",
+        "device_id": "0",
+        "geometry": {
+          "query_rows": 1,
+          "sequences_per_replica": 1,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "full_model_layers": 40,
+        "body_forward_span_ms": {
+          "count": 151,
+          "mean": 13.23880344370861,
+          "p50": 13.208635,
+          "p90": 13.227353,
+          "min": 13.187765,
+          "max": 16.036565
+        },
+        "metric_boundary": "target_body_device_graph",
+        "span_start_basis": "first_retained_device_event_start",
+        "span_end_basis": "last_retained_device_event_end",
+        "geometry_basis": "shape-derived execution geometry; not active-valid-token or peer-load proof"
+      },
+      "prediction": {
+        "duration_ms": 6.984276964897588,
+        "executed_layers": 40,
+        "result_geometry": {
+          "phase": "decode",
+          "tokens_per_sequence": 1,
+          "context_tokens": 2048,
+          "sequences_per_replica": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "participating_replicas": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "sequences_by_replica": {
+            "0": 1,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0
+          },
+          "valid_query_tokens_by_replica": {
+            "0": 1,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0
+          },
+          "padded_query_tokens_by_replica": {
+            "0": 1,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0
+          },
+          "valid_query_tokens": 1,
+          "padded_query_tokens": 1
+        },
+        "modeling_status": "modeled",
+        "model_coverage": "partial",
+        "unmodeled_features": [
+          "native mixed FP8/FP4 KV attention cache and compute path",
+          "Engram gate quantized projection representation",
+          "mqsmla_aicpu_metadata_and_original_sparse_index_producer",
+          "capture_mqsmla_and_grouped_binary_tensor_ABI_unverified"
+        ],
+        "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+        "package": {
+          "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+          "files": 243
+        },
+        "family_activity": {
+          "native_fusion": {
+            "calls": 160,
+            "elapsed_sum_ms": 0.3660460606060917
+          },
+          "rmsnorm": {
+            "calls": 164,
+            "elapsed_sum_ms": 0.2112327680000275
+          },
+          "quantize": {
+            "calls": 733,
+            "elapsed_sum_ms": 0.9577600000001303
+          },
+          "gemm": {
+            "calls": 240,
+            "elapsed_sum_ms": 2.1047529696251277
+          },
+          "elementwise": {
+            "calls": 133,
+            "elapsed_sum_ms": 0.170560000000021
+          },
+          "cache_store": {
+            "calls": 48,
+            "elapsed_sum_ms": 0.055104000000006745
+          },
+          "attention": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.7736569696969925
+          },
+          "router": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.4035393939394001
+          },
+          "topk": {
+            "calls": 48,
+            "elapsed_sum_ms": 0.06297600000000882
+          },
+          "routing": {
+            "calls": 640,
+            "elapsed_sum_ms": 0.10496000000001442
+          },
+          "alltoall": {
+            "calls": 640,
+            "elapsed_sum_ms": 8.11415510204072
+          },
+          "grouped_gemm": {
+            "calls": 480,
+            "elapsed_sum_ms": 3.2821117672844857
+          },
+          "swiglu": {
+            "calls": 280,
+            "elapsed_sum_ms": 0.36736000000005037
+          },
+          "gate_up_projection": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.4024474630303296
+          },
+          "down_projection": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.1829110363636543
+          },
+          "engram_query": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0026239999999999875
+          },
+          "engram_ids": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_rh2d": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.001457519999999879
+          },
+          "engram_gather": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_broadcast": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "barrier": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_apply": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0026239999999999597
+          },
+          "rotary": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.013120000000001575
+          },
+          "cast": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.013120000000001575
+          },
+          "layernorm": {
+            "calls": 4,
+            "elapsed_sum_ms": 0.0013127679999999087
+          },
+          "indexer": {
+            "calls": 8,
+            "elapsed_sum_ms": 0.012624000000001023
+          }
+        },
+        "family_activity_boundary": "all declared cohort participants; contention-inclusive elapsed sums may overlap",
+        "family_activity_additive_body_budget": false
+      },
+      "input_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_c4_p2k-source.json",
+        "sha256": "d1bade67440c3e98c6061eb9167cb364352961b031cdc77b7f1d56df10510cc9",
+        "size_bytes": 18358
+      },
+      "attempt_history": [
+        {
+          "status": "completed",
+          "error": null,
+          "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+          "runtime_root": "/Users/maoxx241/code/sim-mxfp4-panel-ir-cache-20261030",
+          "package_start": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "package_end": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "input": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_c4_p2k-source.json",
+            "sha256": "d1bade67440c3e98c6061eb9167cb364352961b031cdc77b7f1d56df10510cc9"
+          },
+          "condition": "single_active_rank0",
+          "geometry": {
+            "phase": "decode",
+            "tokens": 1,
+            "sequences": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "context": 2048,
+            "scope": "body"
+          },
+          "budget_seconds": 60.0,
+          "wall_seconds": 29.434351209085435,
+          "cpu_seconds": 26.070081000000002,
+          "memory": {
+            "status": "measured",
+            "method": "getrusage(RUSAGE_SELF).ru_maxrss",
+            "raw_peak_rss": 151748608,
+            "raw_unit_bytes": 1,
+            "peak_rss_bytes": 151748608,
+            "peak_rss_mib": 144.71875
+          },
+          "duration_ms": 6.984276964897588,
+          "worker_exit_code": 0
+        }
+      ],
+      "comparison": {
+        "status": "conditional_reference",
+        "predicted_minus_observed_mean_ms": -6.254526478811022,
+        "relative_difference_vs_mean": -0.472438956088839,
+        "relative_difference_vs_p50": -0.4712340098051322,
+        "strict_accuracy_eligible": false,
+        "selected_by_error": false,
+        "boundary_relation": "Sim complete declared EP/DP-cohort readiness vs retained rank0 first/last-device envelope",
+        "context_relation": "2048 source scenario; active KV length not observed per forward"
+      }
+    },
+    {
+      "source_case_id": "a5_v41_fp8_tp1_dp8_ep8_c4_p2k",
+      "condition": "symmetric_declared",
+      "observation": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_c4_p2k-matrix-extension.actual.json",
+          "sha256": "6466b706d43be8a00df89a4502f3dacdd46f2650b6ced697b743dc97ef6d82f4",
+          "size_bytes": 2435472
+        },
+        "body_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-extension/auto-forward-a5_v41_fp8_tp1_dp8_ep8_c4_p2k.json",
+          "sha256": "14179180e90a8e125b011b9d83bd6d2753cc96fdfe8abc1962ecba5fa5169dc7",
+          "size_bytes": 1392554
+        },
+        "capture_manifest_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-extension/decode-forward-auto-cases.json",
+          "sha256": "65f3f15f5b3ea56a5e67b823a7ae440940e8a4be022d8a31c52a508ecf5dc15f",
+          "size_bytes": 52707
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c4_p2k_20261030/kernel_details.csv",
+          "size_bytes": 100369788,
+          "mtime_ns": 1793304900000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "cf36aecc0160029872eeaf55cf397261d121cf7d7e591d6043751488a367b964"
+        },
+        "selected_rank": "dp0_pp0_tp0_dcp0_ep0_rank0",
+        "rank_id_in_csv": "",
+        "device_id": "0",
+        "geometry": {
+          "query_rows": 1,
+          "sequences_per_replica": 1,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "full_model_layers": 40,
+        "body_forward_span_ms": {
+          "count": 151,
+          "mean": 13.23880344370861,
+          "p50": 13.208635,
+          "p90": 13.227353,
+          "min": 13.187765,
+          "max": 16.036565
+        },
+        "metric_boundary": "target_body_device_graph",
+        "span_start_basis": "first_retained_device_event_start",
+        "span_end_basis": "last_retained_device_event_end",
+        "geometry_basis": "shape-derived execution geometry; not active-valid-token or peer-load proof"
+      },
+      "prediction": {
+        "duration_ms": 9.722433745107853,
+        "executed_layers": 40,
+        "result_geometry": {
+          "phase": "decode",
+          "tokens_per_sequence": 1,
+          "context_tokens": 2048,
+          "sequences_per_replica": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "participating_replicas": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "sequences_by_replica": {
+            "0": 1,
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1
+          },
+          "valid_query_tokens_by_replica": {
+            "0": 1,
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1
+          },
+          "padded_query_tokens_by_replica": {
+            "0": 1,
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1
+          },
+          "valid_query_tokens": 8,
+          "padded_query_tokens": 8
+        },
+        "modeling_status": "modeled",
+        "model_coverage": "partial",
+        "unmodeled_features": [
+          "native mixed FP8/FP4 KV attention cache and compute path",
+          "Engram gate quantized projection representation",
+          "mqsmla_aicpu_metadata_and_original_sparse_index_producer",
+          "capture_mqsmla_and_grouped_binary_tensor_ABI_unverified"
+        ],
+        "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+        "package": {
+          "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+          "files": 243
+        },
+        "family_activity": {
+          "native_fusion": {
+            "calls": 1280,
+            "elapsed_sum_ms": 2.9283684848490132
+          },
+          "rmsnorm": {
+            "calls": 1312,
+            "elapsed_sum_ms": 1.6898621440003163
+          },
+          "quantize": {
+            "calls": 2664,
+            "elapsed_sum_ms": 3.4636800000006573
+          },
+          "gemm": {
+            "calls": 1920,
+            "elapsed_sum_ms": 16.83802375700113
+          },
+          "elementwise": {
+            "calls": 1064,
+            "elapsed_sum_ms": 1.3644800000002457
+          },
+          "cache_store": {
+            "calls": 384,
+            "elapsed_sum_ms": 0.4408320000000857
+          },
+          "attention": {
+            "calls": 320,
+            "elapsed_sum_ms": 6.1892557575760705
+          },
+          "router": {
+            "calls": 320,
+            "elapsed_sum_ms": 3.228315151515191
+          },
+          "topk": {
+            "calls": 384,
+            "elapsed_sum_ms": 0.5038080000000953
+          },
+          "routing": {
+            "calls": 640,
+            "elapsed_sum_ms": 0.8396800000001577
+          },
+          "alltoall": {
+            "calls": 640,
+            "elapsed_sum_ms": 8.151771428571493
+          },
+          "grouped_gemm": {
+            "calls": 640,
+            "elapsed_sum_ms": 26.243786938196628
+          },
+          "swiglu": {
+            "calls": 640,
+            "elapsed_sum_ms": 0.8396800000001614
+          },
+          "gate_up_projection": {
+            "calls": 320,
+            "elapsed_sum_ms": 3.219579704242512
+          },
+          "down_projection": {
+            "calls": 320,
+            "elapsed_sum_ms": 1.463288290909252
+          },
+          "engram_query": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.020991999999999678
+          },
+          "engram_ids": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_rh2d": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.011660159999999031
+          },
+          "engram_gather": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_broadcast": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "barrier": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_apply": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.020991999999999678
+          },
+          "rotary": {
+            "calls": 128,
+            "elapsed_sum_ms": 0.10496000000002326
+          },
+          "cast": {
+            "calls": 128,
+            "elapsed_sum_ms": 0.10496000000002326
+          },
+          "layernorm": {
+            "calls": 32,
+            "elapsed_sum_ms": 0.010502144000001046
+          },
+          "indexer": {
+            "calls": 64,
+            "elapsed_sum_ms": 0.10099200000000952
+          }
+        },
+        "family_activity_boundary": "all declared cohort participants; contention-inclusive elapsed sums may overlap",
+        "family_activity_additive_body_budget": false
+      },
+      "input_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_c4_p2k-source.json",
+        "sha256": "d1bade67440c3e98c6061eb9167cb364352961b031cdc77b7f1d56df10510cc9",
+        "size_bytes": 18358
+      },
+      "attempt_history": [
+        {
+          "status": "completed",
+          "error": null,
+          "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+          "runtime_root": "/Users/maoxx241/code/sim-mxfp4-panel-ir-cache-20261030",
+          "package_start": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "package_end": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "input": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_c4_p2k-source.json",
+            "sha256": "d1bade67440c3e98c6061eb9167cb364352961b031cdc77b7f1d56df10510cc9"
+          },
+          "condition": "symmetric_declared",
+          "geometry": {
+            "phase": "decode",
+            "tokens": 1,
+            "sequences": [
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "context": 2048,
+            "scope": "body"
+          },
+          "budget_seconds": 60.0,
+          "wall_seconds": 53.22887233295478,
+          "cpu_seconds": 50.183220000000006,
+          "memory": {
+            "status": "measured",
+            "method": "getrusage(RUSAGE_SELF).ru_maxrss",
+            "raw_peak_rss": 350830592,
+            "raw_unit_bytes": 1,
+            "peak_rss_bytes": 350830592,
+            "peak_rss_mib": 334.578125
+          },
+          "duration_ms": 9.722433745107853,
+          "worker_exit_code": 0
+        }
+      ],
+      "comparison": {
+        "status": "conditional_reference",
+        "predicted_minus_observed_mean_ms": -3.516369698600757,
+        "relative_difference_vs_mean": -0.26561083964667653,
+        "relative_difference_vs_p50": -0.2639334991762696,
+        "strict_accuracy_eligible": false,
+        "selected_by_error": false,
+        "boundary_relation": "Sim complete declared EP/DP-cohort readiness vs retained rank0 first/last-device envelope",
+        "context_relation": "2048 source scenario; active KV length not observed per forward"
+      }
+    },
+    {
+      "source_case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8",
+      "condition": "single_active_rank0",
+      "observation": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8-v41-dp8.actual.json",
+          "sha256": "0150875fae46728125a70bf80220635f792b5669fea7926c003ef68bfa1aac69",
+          "size_bytes": 2444252
+        },
+        "body_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-dp8/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8.json",
+          "sha256": "c566c6a2b364f24047e8cee0f29b837cc927b6d31a160915e7c7e72bf828a2b8",
+          "size_bytes": 1472919
+        },
+        "capture_manifest_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-dp8/decode-forward-auto-cases.json",
+          "sha256": "66526d5b538847b51d64b629c1b30fbed456fd9130b76126282f6fef6d5ced2d",
+          "size_bytes": 26325
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot10ms_c8_20261030/kernel_details.csv",
+          "size_bytes": 96044757,
+          "mtime_ns": 1793303576000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "17b7ed9ee87a8449f1c92d04a0e0f2eebd5aecd6edd39e4073d8787976974866"
+        },
+        "selected_rank": "dp0_pp0_tp0_dcp0_ep0_rank0",
+        "rank_id_in_csv": "",
+        "device_id": "0",
+        "geometry": {
+          "query_rows": 1,
+          "sequences_per_replica": 1,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "full_model_layers": 40,
+        "body_forward_span_ms": {
+          "count": 145,
+          "mean": 13.291562179310345,
+          "p50": 12.802981,
+          "p90": 12.816588,
+          "min": 12.776996,
+          "max": 82.348968
+        },
+        "metric_boundary": "target_body_device_graph",
+        "span_start_basis": "first_retained_device_event_start",
+        "span_end_basis": "last_retained_device_event_end",
+        "geometry_basis": "shape-derived execution geometry; not active-valid-token or peer-load proof"
+      },
+      "prediction": {
+        "duration_ms": 6.984276964897588,
+        "executed_layers": 40,
+        "result_geometry": {
+          "phase": "decode",
+          "tokens_per_sequence": 1,
+          "context_tokens": 2048,
+          "sequences_per_replica": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "participating_replicas": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "sequences_by_replica": {
+            "0": 1,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0
+          },
+          "valid_query_tokens_by_replica": {
+            "0": 1,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0
+          },
+          "padded_query_tokens_by_replica": {
+            "0": 1,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0
+          },
+          "valid_query_tokens": 1,
+          "padded_query_tokens": 1
+        },
+        "modeling_status": "modeled",
+        "model_coverage": "partial",
+        "unmodeled_features": [
+          "mqsmla_aicpu_metadata_and_original_sparse_index_producer",
+          "capture_mqsmla_and_grouped_binary_tensor_ABI_unverified"
+        ],
+        "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+        "package": {
+          "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+          "files": 243
+        },
+        "family_activity": {
+          "native_fusion": {
+            "calls": 160,
+            "elapsed_sum_ms": 0.3660460606060917
+          },
+          "rmsnorm": {
+            "calls": 164,
+            "elapsed_sum_ms": 0.2112327680000275
+          },
+          "quantize": {
+            "calls": 733,
+            "elapsed_sum_ms": 0.9577600000001303
+          },
+          "gemm": {
+            "calls": 240,
+            "elapsed_sum_ms": 2.1047529696251277
+          },
+          "elementwise": {
+            "calls": 133,
+            "elapsed_sum_ms": 0.170560000000021
+          },
+          "cache_store": {
+            "calls": 48,
+            "elapsed_sum_ms": 0.055104000000006745
+          },
+          "attention": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.7736569696969925
+          },
+          "router": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.4035393939394001
+          },
+          "topk": {
+            "calls": 48,
+            "elapsed_sum_ms": 0.06297600000000882
+          },
+          "routing": {
+            "calls": 640,
+            "elapsed_sum_ms": 0.10496000000001442
+          },
+          "alltoall": {
+            "calls": 640,
+            "elapsed_sum_ms": 8.11415510204072
+          },
+          "grouped_gemm": {
+            "calls": 480,
+            "elapsed_sum_ms": 3.2821117672844857
+          },
+          "swiglu": {
+            "calls": 280,
+            "elapsed_sum_ms": 0.36736000000005037
+          },
+          "gate_up_projection": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.4024474630303296
+          },
+          "down_projection": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.1829110363636543
+          },
+          "engram_query": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0026239999999999875
+          },
+          "engram_ids": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_rh2d": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.001457519999999879
+          },
+          "engram_gather": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_broadcast": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "barrier": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_apply": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0026239999999999597
+          },
+          "rotary": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.013120000000001575
+          },
+          "cast": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.013120000000001575
+          },
+          "layernorm": {
+            "calls": 4,
+            "elapsed_sum_ms": 0.0013127679999999087
+          },
+          "indexer": {
+            "calls": 8,
+            "elapsed_sum_ms": 0.012624000000001023
+          }
+        },
+        "family_activity_boundary": "all declared cohort participants; contention-inclusive elapsed sums may overlap",
+        "family_activity_additive_body_budget": false
+      },
+      "input_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8-source.json",
+        "sha256": "3ef3966875471c63eadfba7aa57f648abadb4024a20020c171685c15dfdd28b8",
+        "size_bytes": 18174
+      },
+      "attempt_history": [
+        {
+          "status": "completed",
+          "error": null,
+          "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+          "runtime_root": "/Users/maoxx241/code/sim-mxfp4-panel-ir-cache-20261030",
+          "package_start": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "package_end": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "input": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8-source.json",
+            "sha256": "3ef3966875471c63eadfba7aa57f648abadb4024a20020c171685c15dfdd28b8"
+          },
+          "condition": "single_active_rank0",
+          "geometry": {
+            "phase": "decode",
+            "tokens": 1,
+            "sequences": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "context": 2048,
+            "scope": "body"
+          },
+          "budget_seconds": 60.0,
+          "wall_seconds": 25.484969125012867,
+          "cpu_seconds": 24.090862,
+          "memory": {
+            "status": "measured",
+            "method": "getrusage(RUSAGE_SELF).ru_maxrss",
+            "raw_peak_rss": 152043520,
+            "raw_unit_bytes": 1,
+            "peak_rss_bytes": 152043520,
+            "peak_rss_mib": 145.0
+          },
+          "duration_ms": 6.984276964897588,
+          "worker_exit_code": 0
+        }
+      ],
+      "comparison": {
+        "status": "conditional_reference",
+        "predicted_minus_observed_mean_ms": -6.307285214412757,
+        "relative_difference_vs_mean": -0.4745330254882064,
+        "relative_difference_vs_p50": -0.4544804085159865,
+        "strict_accuracy_eligible": false,
+        "selected_by_error": false,
+        "boundary_relation": "Sim complete declared EP/DP-cohort readiness vs retained rank0 first/last-device envelope",
+        "context_relation": "2048 source scenario; active KV length not observed per forward"
+      }
+    },
+    {
+      "source_case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8",
+      "condition": "symmetric_declared",
+      "observation": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8-v41-dp8.actual.json",
+          "sha256": "0150875fae46728125a70bf80220635f792b5669fea7926c003ef68bfa1aac69",
+          "size_bytes": 2444252
+        },
+        "body_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-dp8/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8.json",
+          "sha256": "c566c6a2b364f24047e8cee0f29b837cc927b6d31a160915e7c7e72bf828a2b8",
+          "size_bytes": 1472919
+        },
+        "capture_manifest_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-dp8/decode-forward-auto-cases.json",
+          "sha256": "66526d5b538847b51d64b629c1b30fbed456fd9130b76126282f6fef6d5ced2d",
+          "size_bytes": 26325
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot10ms_c8_20261030/kernel_details.csv",
+          "size_bytes": 96044757,
+          "mtime_ns": 1793303576000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "17b7ed9ee87a8449f1c92d04a0e0f2eebd5aecd6edd39e4073d8787976974866"
+        },
+        "selected_rank": "dp0_pp0_tp0_dcp0_ep0_rank0",
+        "rank_id_in_csv": "",
+        "device_id": "0",
+        "geometry": {
+          "query_rows": 1,
+          "sequences_per_replica": 1,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "full_model_layers": 40,
+        "body_forward_span_ms": {
+          "count": 145,
+          "mean": 13.291562179310345,
+          "p50": 12.802981,
+          "p90": 12.816588,
+          "min": 12.776996,
+          "max": 82.348968
+        },
+        "metric_boundary": "target_body_device_graph",
+        "span_start_basis": "first_retained_device_event_start",
+        "span_end_basis": "last_retained_device_event_end",
+        "geometry_basis": "shape-derived execution geometry; not active-valid-token or peer-load proof"
+      },
+      "prediction": {
+        "duration_ms": 9.722433745107853,
+        "executed_layers": 40,
+        "result_geometry": {
+          "phase": "decode",
+          "tokens_per_sequence": 1,
+          "context_tokens": 2048,
+          "sequences_per_replica": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "participating_replicas": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "sequences_by_replica": {
+            "0": 1,
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1
+          },
+          "valid_query_tokens_by_replica": {
+            "0": 1,
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1
+          },
+          "padded_query_tokens_by_replica": {
+            "0": 1,
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1
+          },
+          "valid_query_tokens": 8,
+          "padded_query_tokens": 8
+        },
+        "modeling_status": "modeled",
+        "model_coverage": "partial",
+        "unmodeled_features": [
+          "mqsmla_aicpu_metadata_and_original_sparse_index_producer",
+          "capture_mqsmla_and_grouped_binary_tensor_ABI_unverified"
+        ],
+        "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+        "package": {
+          "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+          "files": 243
+        },
+        "family_activity": {
+          "native_fusion": {
+            "calls": 1280,
+            "elapsed_sum_ms": 2.9283684848490132
+          },
+          "rmsnorm": {
+            "calls": 1312,
+            "elapsed_sum_ms": 1.6898621440003163
+          },
+          "quantize": {
+            "calls": 2664,
+            "elapsed_sum_ms": 3.4636800000006573
+          },
+          "gemm": {
+            "calls": 1920,
+            "elapsed_sum_ms": 16.83802375700113
+          },
+          "elementwise": {
+            "calls": 1064,
+            "elapsed_sum_ms": 1.3644800000002457
+          },
+          "cache_store": {
+            "calls": 384,
+            "elapsed_sum_ms": 0.4408320000000857
+          },
+          "attention": {
+            "calls": 320,
+            "elapsed_sum_ms": 6.1892557575760705
+          },
+          "router": {
+            "calls": 320,
+            "elapsed_sum_ms": 3.228315151515191
+          },
+          "topk": {
+            "calls": 384,
+            "elapsed_sum_ms": 0.5038080000000953
+          },
+          "routing": {
+            "calls": 640,
+            "elapsed_sum_ms": 0.8396800000001577
+          },
+          "alltoall": {
+            "calls": 640,
+            "elapsed_sum_ms": 8.151771428571493
+          },
+          "grouped_gemm": {
+            "calls": 640,
+            "elapsed_sum_ms": 26.243786938196628
+          },
+          "swiglu": {
+            "calls": 640,
+            "elapsed_sum_ms": 0.8396800000001614
+          },
+          "gate_up_projection": {
+            "calls": 320,
+            "elapsed_sum_ms": 3.219579704242512
+          },
+          "down_projection": {
+            "calls": 320,
+            "elapsed_sum_ms": 1.463288290909252
+          },
+          "engram_query": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.020991999999999678
+          },
+          "engram_ids": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_rh2d": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.011660159999999031
+          },
+          "engram_gather": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_broadcast": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "barrier": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_apply": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.020991999999999678
+          },
+          "rotary": {
+            "calls": 128,
+            "elapsed_sum_ms": 0.10496000000002326
+          },
+          "cast": {
+            "calls": 128,
+            "elapsed_sum_ms": 0.10496000000002326
+          },
+          "layernorm": {
+            "calls": 32,
+            "elapsed_sum_ms": 0.010502144000001046
+          },
+          "indexer": {
+            "calls": 64,
+            "elapsed_sum_ms": 0.10099200000000952
+          }
+        },
+        "family_activity_boundary": "all declared cohort participants; contention-inclusive elapsed sums may overlap",
+        "family_activity_additive_body_budget": false
+      },
+      "input_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8-source.json",
+        "sha256": "3ef3966875471c63eadfba7aa57f648abadb4024a20020c171685c15dfdd28b8",
+        "size_bytes": 18174
+      },
+      "attempt_history": [
+        {
+          "status": "completed",
+          "error": null,
+          "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+          "runtime_root": "/Users/maoxx241/code/sim-mxfp4-panel-ir-cache-20261030",
+          "package_start": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "package_end": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "input": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8-source.json",
+            "sha256": "3ef3966875471c63eadfba7aa57f648abadb4024a20020c171685c15dfdd28b8"
+          },
+          "condition": "symmetric_declared",
+          "geometry": {
+            "phase": "decode",
+            "tokens": 1,
+            "sequences": [
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "context": 2048,
+            "scope": "body"
+          },
+          "budget_seconds": 60.0,
+          "wall_seconds": 50.929559875046834,
+          "cpu_seconds": 48.044650000000004,
+          "memory": {
+            "status": "measured",
+            "method": "getrusage(RUSAGE_SELF).ru_maxrss",
+            "raw_peak_rss": 330530816,
+            "raw_unit_bytes": 1,
+            "peak_rss_bytes": 330530816,
+            "peak_rss_mib": 315.21875
+          },
+          "duration_ms": 9.722433745107853,
+          "worker_exit_code": 0
+        }
+      ],
+      "comparison": {
+        "status": "conditional_reference",
+        "predicted_minus_observed_mean_ms": -3.569128434202492,
+        "relative_difference_vs_mean": -0.2685258802579429,
+        "relative_difference_vs_p50": -0.24061171807504422,
+        "strict_accuracy_eligible": false,
+        "selected_by_error": false,
+        "boundary_relation": "Sim complete declared EP/DP-cohort readiness vs retained rank0 first/last-device envelope",
+        "context_relation": "2048 source scenario; active KV length not observed per forward"
+      }
+    },
+    {
+      "source_case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64",
+      "condition": "single_active_rank0",
+      "observation": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-v41-dp8.actual.json",
+          "sha256": "40aa392d165e490ee550607e157af8fd07d8c5f5317d21a3ce82caaf8822b5b5",
+          "size_bytes": 2146216
+        },
+        "body_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-dp8/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64.json",
+          "sha256": "d383aeb291e2ca50cef4a3c79f3084ff0fb6ad16958d18052a8fb40b2e8eb99c",
+          "size_bytes": 1207065
+        },
+        "capture_manifest_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-dp8/decode-forward-auto-cases.json",
+          "sha256": "66526d5b538847b51d64b629c1b30fbed456fd9130b76126282f6fef6d5ced2d",
+          "size_bytes": 26325
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
+          "size_bytes": 50179338,
+          "mtime_ns": 1793303665000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "085c8c00a0560d14a3ca4beb9b965efc04b6be1f40b47734cd47102af4363282"
+        },
+        "selected_rank": "dp0_pp0_tp0_dcp0_ep0_rank0",
+        "rank_id_in_csv": "",
+        "device_id": "0",
+        "geometry": {
+          "query_rows": 8,
+          "sequences_per_replica": 8,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "full_model_layers": 40,
+        "body_forward_span_ms": {
+          "count": 75,
+          "mean": 26.328226106666666,
+          "p50": 26.305803,
+          "p90": 26.335546,
+          "min": 26.264927,
+          "max": 27.876925
+        },
+        "metric_boundary": "target_body_device_graph",
+        "span_start_basis": "first_retained_device_event_start",
+        "span_end_basis": "last_retained_device_event_end",
+        "geometry_basis": "shape-derived execution geometry; not active-valid-token or peer-load proof"
+      },
+      "prediction": {
+        "duration_ms": 9.887670521681176,
+        "executed_layers": 40,
+        "result_geometry": {
+          "phase": "decode",
+          "tokens_per_sequence": 1,
+          "context_tokens": 2048,
+          "sequences_per_replica": [
+            8,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "participating_replicas": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "sequences_by_replica": {
+            "0": 8,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0
+          },
+          "valid_query_tokens_by_replica": {
+            "0": 8,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0
+          },
+          "padded_query_tokens_by_replica": {
+            "0": 8,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0
+          },
+          "valid_query_tokens": 8,
+          "padded_query_tokens": 8
+        },
+        "modeling_status": "modeled",
+        "model_coverage": "partial",
+        "unmodeled_features": [
+          "mqsmla_aicpu_metadata_and_original_sparse_index_producer",
+          "capture_mqsmla_and_grouped_binary_tensor_ABI_unverified"
+        ],
+        "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+        "package": {
+          "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+          "files": 243
+        },
+        "family_activity": {
+          "native_fusion": {
+            "calls": 160,
+            "elapsed_sum_ms": 0.37406080000187325
+          },
+          "rmsnorm": {
+            "calls": 164,
+            "elapsed_sum_ms": 0.21123276800003968
+          },
+          "quantize": {
+            "calls": 893,
+            "elapsed_sum_ms": 1.1676800000002243
+          },
+          "gemm": {
+            "calls": 240,
+            "elapsed_sum_ms": 2.1712185915151445
+          },
+          "elementwise": {
+            "calls": 133,
+            "elapsed_sum_ms": 0.17056000000003074
+          },
+          "cache_store": {
+            "calls": 48,
+            "elapsed_sum_ms": 0.05510400000001072
+          },
+          "attention": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.7736569696970521
+          },
+          "router": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.4262787878787706
+          },
+          "topk": {
+            "calls": 48,
+            "elapsed_sum_ms": 0.06297600000001193
+          },
+          "routing": {
+            "calls": 640,
+            "elapsed_sum_ms": 0.10496000000002019
+          },
+          "alltoall": {
+            "calls": 640,
+            "elapsed_sum_ms": 8.465240816326613
+          },
+          "grouped_gemm": {
+            "calls": 640,
+            "elapsed_sum_ms": 26.24378693819692
+          },
+          "swiglu": {
+            "calls": 360,
+            "elapsed_sum_ms": 0.4723200000000928
+          },
+          "gate_up_projection": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.4148069769696652
+          },
+          "down_projection": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.18918223030302483
+          },
+          "engram_query": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0026239999999999597
+          },
+          "engram_ids": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_rh2d": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.011660159999999975
+          },
+          "engram_gather": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_broadcast": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "barrier": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_apply": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0026239999999999597
+          },
+          "rotary": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.013120000000002907
+          },
+          "cast": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.013120000000002907
+          },
+          "layernorm": {
+            "calls": 4,
+            "elapsed_sum_ms": 0.0013127680000001307
+          },
+          "indexer": {
+            "calls": 8,
+            "elapsed_sum_ms": 0.01262400000000119
+          }
+        },
+        "family_activity_boundary": "all declared cohort participants; contention-inclusive elapsed sums may overlap",
+        "family_activity_additive_body_budget": false
+      },
+      "input_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-source.json",
+        "sha256": "e973339edabbed29a63a2a31da765aa312a7e870e70f3cce0809234ca9fb02bd",
+        "size_bytes": 18178
+      },
+      "attempt_history": [
+        {
+          "status": "completed",
+          "error": null,
+          "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+          "runtime_root": "/Users/maoxx241/code/sim-mxfp4-panel-ir-cache-20261030",
+          "package_start": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "package_end": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "input": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-source.json",
+            "sha256": "e973339edabbed29a63a2a31da765aa312a7e870e70f3cce0809234ca9fb02bd"
+          },
+          "condition": "single_active_rank0",
+          "geometry": {
+            "phase": "decode",
+            "tokens": 1,
+            "sequences": [
+              8,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "context": 2048,
+            "scope": "body"
+          },
+          "budget_seconds": 60.0,
+          "wall_seconds": 44.368163457955234,
+          "cpu_seconds": 32.841252,
+          "memory": {
+            "status": "measured",
+            "method": "getrusage(RUSAGE_SELF).ru_maxrss",
+            "raw_peak_rss": 151715840,
+            "raw_unit_bytes": 1,
+            "peak_rss_bytes": 151715840,
+            "peak_rss_mib": 144.6875
+          },
+          "duration_ms": 9.887670521681176,
+          "worker_exit_code": 0
+        }
+      ],
+      "comparison": {
+        "status": "conditional_reference",
+        "predicted_minus_observed_mean_ms": -16.44055558498549,
+        "relative_difference_vs_mean": -0.6244460040102175,
+        "relative_difference_vs_p50": -0.6241258812102723,
+        "strict_accuracy_eligible": false,
+        "selected_by_error": false,
+        "boundary_relation": "Sim complete declared EP/DP-cohort readiness vs retained rank0 first/last-device envelope",
+        "context_relation": "2048 source scenario; active KV length not observed per forward"
+      }
+    },
+    {
+      "source_case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64",
+      "condition": "symmetric_declared",
+      "observation": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-v41-dp8.actual.json",
+          "sha256": "40aa392d165e490ee550607e157af8fd07d8c5f5317d21a3ce82caaf8822b5b5",
+          "size_bytes": 2146216
+        },
+        "body_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-dp8/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64.json",
+          "sha256": "d383aeb291e2ca50cef4a3c79f3084ff0fb6ad16958d18052a8fb40b2e8eb99c",
+          "size_bytes": 1207065
+        },
+        "capture_manifest_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-dp8/decode-forward-auto-cases.json",
+          "sha256": "66526d5b538847b51d64b629c1b30fbed456fd9130b76126282f6fef6d5ced2d",
+          "size_bytes": 26325
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
+          "size_bytes": 50179338,
+          "mtime_ns": 1793303665000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "085c8c00a0560d14a3ca4beb9b965efc04b6be1f40b47734cd47102af4363282"
+        },
+        "selected_rank": "dp0_pp0_tp0_dcp0_ep0_rank0",
+        "rank_id_in_csv": "",
+        "device_id": "0",
+        "geometry": {
+          "query_rows": 8,
+          "sequences_per_replica": 8,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "full_model_layers": 40,
+        "body_forward_span_ms": {
+          "count": 75,
+          "mean": 26.328226106666666,
+          "p50": 26.305803,
+          "p90": 26.335546,
+          "min": 26.264927,
+          "max": 27.876925
+        },
+        "metric_boundary": "target_body_device_graph",
+        "span_start_basis": "first_retained_device_event_start",
+        "span_end_basis": "last_retained_device_event_end",
+        "geometry_basis": "shape-derived execution geometry; not active-valid-token or peer-load proof"
+      },
+      "prediction": {
+        "duration_ms": 32.88630665912811,
+        "executed_layers": 40,
+        "result_geometry": {
+          "phase": "decode",
+          "tokens_per_sequence": 1,
+          "context_tokens": 2048,
+          "sequences_per_replica": [
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8
+          ],
+          "participating_replicas": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "sequences_by_replica": {
+            "0": 8,
+            "1": 8,
+            "2": 8,
+            "3": 8,
+            "4": 8,
+            "5": 8,
+            "6": 8,
+            "7": 8
+          },
+          "valid_query_tokens_by_replica": {
+            "0": 8,
+            "1": 8,
+            "2": 8,
+            "3": 8,
+            "4": 8,
+            "5": 8,
+            "6": 8,
+            "7": 8
+          },
+          "padded_query_tokens_by_replica": {
+            "0": 8,
+            "1": 8,
+            "2": 8,
+            "3": 8,
+            "4": 8,
+            "5": 8,
+            "6": 8,
+            "7": 8
+          },
+          "valid_query_tokens": 64,
+          "padded_query_tokens": 64
+        },
+        "modeling_status": "modeled",
+        "model_coverage": "partial",
+        "unmodeled_features": [
+          "mqsmla_aicpu_metadata_and_original_sparse_index_producer",
+          "capture_mqsmla_and_grouped_binary_tensor_ABI_unverified"
+        ],
+        "runtime_revision": "42ac991d590fe4c47a1b71c921b77f1a22a1664c",
+        "package": {
+          "sha256": "1c11a530e9451bc4b797144cbec02b348e6bbafc3b3e7cc6a414225e6722f6f0",
+          "files": 243
+        },
+        "family_activity": {
+          "native_fusion": {
+            "calls": 1280,
+            "elapsed_sum_ms": 2.9924864000430396
+          },
+          "rmsnorm": {
+            "calls": 1312,
+            "elapsed_sum_ms": 1.6898621439993227
+          },
+          "quantize": {
+            "calls": 2664,
+            "elapsed_sum_ms": 3.463679999998565
+          },
+          "gemm": {
+            "calls": 1920,
+            "elapsed_sum_ms": 17.369748732122513
+          },
+          "elementwise": {
+            "calls": 1064,
+            "elapsed_sum_ms": 1.3644799999994852
+          },
+          "cache_store": {
+            "calls": 384,
+            "elapsed_sum_ms": 0.44083199999981215
+          },
+          "attention": {
+            "calls": 320,
+            "elapsed_sum_ms": 6.189255757575109
+          },
+          "router": {
+            "calls": 320,
+            "elapsed_sum_ms": 3.4102303030303007
+          },
+          "topk": {
+            "calls": 384,
+            "elapsed_sum_ms": 0.5038079999997862
+          },
+          "routing": {
+            "calls": 640,
+            "elapsed_sum_ms": 0.8396799999996567
+          },
+          "alltoall": {
+            "calls": 640,
+            "elapsed_sum_ms": 8.766171428571635
+          },
+          "grouped_gemm": {
+            "calls": 640,
+            "elapsed_sum_ms": 209.93194542550293
+          },
+          "swiglu": {
+            "calls": 640,
+            "elapsed_sum_ms": 0.8396799999996425
+          },
+          "gate_up_projection": {
+            "calls": 320,
+            "elapsed_sum_ms": 3.318455815758035
+          },
+          "down_projection": {
+            "calls": 320,
+            "elapsed_sum_ms": 1.5134578424246214
+          },
+          "engram_query": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.02099200000000323
+          },
+          "engram_ids": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_rh2d": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.09328128000000735
+          },
+          "engram_gather": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_broadcast": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "barrier": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_apply": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.02099200000000323
+          },
+          "rotary": {
+            "calls": 128,
+            "elapsed_sum_ms": 0.10495999999993089
+          },
+          "cast": {
+            "calls": 128,
+            "elapsed_sum_ms": 0.10495999999993089
+          },
+          "layernorm": {
+            "calls": 32,
+            "elapsed_sum_ms": 0.010502143999987723
+          },
+          "indexer": {
+            "calls": 64,
+            "elapsed_sum_ms": 0.10099199999994646
+          }
+        },
+        "family_activity_boundary": "all declared cohort participants; contention-inclusive elapsed sums may overlap",
+        "family_activity_additive_body_budget": false
+      },
+      "input_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-source.json",
+        "sha256": "e973339edabbed29a63a2a31da765aa312a7e870e70f3cce0809234ca9fb02bd",
+        "size_bytes": 18178
+      },
+      "attempt_history": [
+        {
+          "status": "timeout",
+          "error": {
+            "type": "TimeoutError",
+            "message": "bounded_local_simulation"
+          },
+          "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+          "runtime_root": "/Users/maoxx241/code/sim-mxfp4-panel-ir-cache-20261030",
+          "package_start": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "package_end": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "input": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-source.json",
+            "sha256": "e973339edabbed29a63a2a31da765aa312a7e870e70f3cce0809234ca9fb02bd"
+          },
+          "condition": "symmetric_declared",
+          "geometry": {
+            "phase": "decode",
+            "tokens": 1,
+            "sequences": [
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8
+            ],
+            "context": 2048,
+            "scope": "body"
+          },
+          "budget_seconds": 60.0,
+          "wall_seconds": 60.01131637499202,
+          "cpu_seconds": 49.625465000000005,
+          "memory": {
+            "status": "measured",
+            "method": "getrusage(RUSAGE_SELF).ru_maxrss",
+            "raw_peak_rss": 327827456,
+            "raw_unit_bytes": 1,
+            "peak_rss_bytes": 327827456,
+            "peak_rss_mib": 312.640625
+          },
+          "duration_ms": null,
+          "worker_exit_code": 2
+        },
+        {
+          "status": "completed",
+          "error": null,
+          "runtime_revision": "42ac991d590fe4c47a1b71c921b77f1a22a1664c",
+          "runtime_root": "/Users/maoxx241/code/sim-mxfp4-panel-ir-cache-20261030",
+          "package_start": {
+            "sha256": "1c11a530e9451bc4b797144cbec02b348e6bbafc3b3e7cc6a414225e6722f6f0",
+            "files": 243
+          },
+          "package_end": {
+            "sha256": "1c11a530e9451bc4b797144cbec02b348e6bbafc3b3e7cc6a414225e6722f6f0",
+            "files": 243
+          },
+          "input": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-source.json",
+            "sha256": "e973339edabbed29a63a2a31da765aa312a7e870e70f3cce0809234ca9fb02bd"
+          },
+          "condition": "symmetric_declared",
+          "geometry": {
+            "phase": "decode",
+            "tokens": 1,
+            "sequences": [
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8
+            ],
+            "context": 2048,
+            "scope": "body"
+          },
+          "budget_seconds": 60.0,
+          "wall_seconds": 39.743750749970786,
+          "cpu_seconds": 38.875212999999995,
+          "memory": {
+            "status": "measured",
+            "method": "getrusage(RUSAGE_SELF).ru_maxrss",
+            "raw_peak_rss": 356139008,
+            "raw_unit_bytes": 1,
+            "peak_rss_bytes": 356139008,
+            "peak_rss_mib": 339.640625
+          },
+          "duration_ms": 32.88630665912811,
+          "worker_exit_code": 0
+        }
+      ],
+      "comparison": {
+        "status": "conditional_reference",
+        "predicted_minus_observed_mean_ms": 6.558080552461444,
+        "relative_difference_vs_mean": 0.249089343349298,
+        "relative_difference_vs_p50": 0.2501540690139019,
+        "strict_accuracy_eligible": false,
+        "selected_by_error": false,
+        "boundary_relation": "Sim complete declared EP/DP-cohort readiness vs retained rank0 first/last-device envelope",
+        "context_relation": "2048 source scenario; active KV length not observed per forward"
+      }
+    },
+    {
+      "source_case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1",
+      "condition": "single_active_rank0",
+      "observation": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1-v41-dp8.actual.json",
+          "sha256": "7216605d23da66e6b91e752ea3bf8415d262551d5c638c5c7bc1d875f4d9e20b",
+          "size_bytes": 2454386
+        },
+        "body_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-dp8/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1.json",
+          "sha256": "6d4f627d8215097b185d8e8194ec3f333342ac67d957045ecfcb0c98e29f143c",
+          "size_bytes": 1400642
+        },
+        "capture_manifest_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-dp8/decode-forward-auto-cases.json",
+          "sha256": "66526d5b538847b51d64b629c1b30fbed456fd9130b76126282f6fef6d5ced2d",
+          "size_bytes": 26325
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+          "size_bytes": 101041319,
+          "mtime_ns": 1793303454000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "323f2e48f662c7b255b6d2ae69d3ba1ea3045578d375be54c503876ff3f45861"
+        },
+        "selected_rank": "dp0_pp0_tp0_dcp0_ep0_rank0",
+        "rank_id_in_csv": "",
+        "device_id": "0",
+        "geometry": {
+          "query_rows": 1,
+          "sequences_per_replica": 1,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "full_model_layers": 40,
+        "body_forward_span_ms": {
+          "count": 152,
+          "mean": 13.134611046052632,
+          "p50": 13.129264500000001,
+          "p90": 13.145059,
+          "min": 13.098679,
+          "max": 13.848067
+        },
+        "metric_boundary": "target_body_device_graph",
+        "span_start_basis": "first_retained_device_event_start",
+        "span_end_basis": "last_retained_device_event_end",
+        "geometry_basis": "shape-derived execution geometry; not active-valid-token or peer-load proof"
+      },
+      "prediction": {
+        "duration_ms": 6.984276964897588,
+        "executed_layers": 40,
+        "result_geometry": {
+          "phase": "decode",
+          "tokens_per_sequence": 1,
+          "context_tokens": 2048,
+          "sequences_per_replica": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "participating_replicas": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "sequences_by_replica": {
+            "0": 1,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0
+          },
+          "valid_query_tokens_by_replica": {
+            "0": 1,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0
+          },
+          "padded_query_tokens_by_replica": {
+            "0": 1,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0
+          },
+          "valid_query_tokens": 1,
+          "padded_query_tokens": 1
+        },
+        "modeling_status": "modeled",
+        "model_coverage": "partial",
+        "unmodeled_features": [
+          "mqsmla_aicpu_metadata_and_original_sparse_index_producer",
+          "capture_mqsmla_and_grouped_binary_tensor_ABI_unverified"
+        ],
+        "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+        "package": {
+          "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+          "files": 243
+        },
+        "family_activity": {
+          "native_fusion": {
+            "calls": 160,
+            "elapsed_sum_ms": 0.3660460606060917
+          },
+          "rmsnorm": {
+            "calls": 164,
+            "elapsed_sum_ms": 0.2112327680000275
+          },
+          "quantize": {
+            "calls": 733,
+            "elapsed_sum_ms": 0.9577600000001303
+          },
+          "gemm": {
+            "calls": 240,
+            "elapsed_sum_ms": 2.1047529696251277
+          },
+          "elementwise": {
+            "calls": 133,
+            "elapsed_sum_ms": 0.170560000000021
+          },
+          "cache_store": {
+            "calls": 48,
+            "elapsed_sum_ms": 0.055104000000006745
+          },
+          "attention": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.7736569696969925
+          },
+          "router": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.4035393939394001
+          },
+          "topk": {
+            "calls": 48,
+            "elapsed_sum_ms": 0.06297600000000882
+          },
+          "routing": {
+            "calls": 640,
+            "elapsed_sum_ms": 0.10496000000001442
+          },
+          "alltoall": {
+            "calls": 640,
+            "elapsed_sum_ms": 8.11415510204072
+          },
+          "grouped_gemm": {
+            "calls": 480,
+            "elapsed_sum_ms": 3.2821117672844857
+          },
+          "swiglu": {
+            "calls": 280,
+            "elapsed_sum_ms": 0.36736000000005037
+          },
+          "gate_up_projection": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.4024474630303296
+          },
+          "down_projection": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.1829110363636543
+          },
+          "engram_query": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0026239999999999875
+          },
+          "engram_ids": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_rh2d": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.001457519999999879
+          },
+          "engram_gather": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_broadcast": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "barrier": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_apply": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0026239999999999597
+          },
+          "rotary": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.013120000000001575
+          },
+          "cast": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.013120000000001575
+          },
+          "layernorm": {
+            "calls": 4,
+            "elapsed_sum_ms": 0.0013127679999999087
+          },
+          "indexer": {
+            "calls": 8,
+            "elapsed_sum_ms": 0.012624000000001023
+          }
+        },
+        "family_activity_boundary": "all declared cohort participants; contention-inclusive elapsed sums may overlap",
+        "family_activity_additive_body_budget": false
+      },
+      "input_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1-source.json",
+        "sha256": "859a5d614caba8eb208d37e2516f2cb45a69c20eaa38590bf34fd9df6a4e2a95",
+        "size_bytes": 18148
+      },
+      "attempt_history": [
+        {
+          "status": "completed",
+          "error": null,
+          "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+          "runtime_root": "/Users/maoxx241/code/sim-mxfp4-panel-ir-cache-20261030",
+          "package_start": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "package_end": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "input": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1-source.json",
+            "sha256": "859a5d614caba8eb208d37e2516f2cb45a69c20eaa38590bf34fd9df6a4e2a95"
+          },
+          "condition": "single_active_rank0",
+          "geometry": {
+            "phase": "decode",
+            "tokens": 1,
+            "sequences": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "context": 2048,
+            "scope": "body"
+          },
+          "budget_seconds": 60.0,
+          "wall_seconds": 18.5510799579788,
+          "cpu_seconds": 17.814163,
+          "memory": {
+            "status": "measured",
+            "method": "getrusage(RUSAGE_SELF).ru_maxrss",
+            "raw_peak_rss": 152797184,
+            "raw_unit_bytes": 1,
+            "peak_rss_bytes": 152797184,
+            "peak_rss_mib": 145.71875
+          },
+          "duration_ms": 6.984276964897588,
+          "worker_exit_code": 0
+        }
+      ],
+      "comparison": {
+        "status": "conditional_reference",
+        "predicted_minus_observed_mean_ms": -6.1503340811550435,
+        "relative_difference_vs_mean": -0.4682539939394258,
+        "relative_difference_vs_p50": -0.46803745442880007,
+        "strict_accuracy_eligible": false,
+        "selected_by_error": false,
+        "boundary_relation": "Sim complete declared EP/DP-cohort readiness vs retained rank0 first/last-device envelope",
+        "context_relation": "2048 source scenario; active KV length not observed per forward"
+      }
+    },
+    {
+      "source_case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1",
+      "condition": "symmetric_declared",
+      "observation": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1-v41-dp8.actual.json",
+          "sha256": "7216605d23da66e6b91e752ea3bf8415d262551d5c638c5c7bc1d875f4d9e20b",
+          "size_bytes": 2454386
+        },
+        "body_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-dp8/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1.json",
+          "sha256": "6d4f627d8215097b185d8e8194ec3f333342ac67d957045ecfcb0c98e29f143c",
+          "size_bytes": 1400642
+        },
+        "capture_manifest_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-dp8/decode-forward-auto-cases.json",
+          "sha256": "66526d5b538847b51d64b629c1b30fbed456fd9130b76126282f6fef6d5ced2d",
+          "size_bytes": 26325
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+          "size_bytes": 101041319,
+          "mtime_ns": 1793303454000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "323f2e48f662c7b255b6d2ae69d3ba1ea3045578d375be54c503876ff3f45861"
+        },
+        "selected_rank": "dp0_pp0_tp0_dcp0_ep0_rank0",
+        "rank_id_in_csv": "",
+        "device_id": "0",
+        "geometry": {
+          "query_rows": 1,
+          "sequences_per_replica": 1,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "full_model_layers": 40,
+        "body_forward_span_ms": {
+          "count": 152,
+          "mean": 13.134611046052632,
+          "p50": 13.129264500000001,
+          "p90": 13.145059,
+          "min": 13.098679,
+          "max": 13.848067
+        },
+        "metric_boundary": "target_body_device_graph",
+        "span_start_basis": "first_retained_device_event_start",
+        "span_end_basis": "last_retained_device_event_end",
+        "geometry_basis": "shape-derived execution geometry; not active-valid-token or peer-load proof"
+      },
+      "prediction": {
+        "duration_ms": 9.722433745107853,
+        "executed_layers": 40,
+        "result_geometry": {
+          "phase": "decode",
+          "tokens_per_sequence": 1,
+          "context_tokens": 2048,
+          "sequences_per_replica": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "participating_replicas": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "sequences_by_replica": {
+            "0": 1,
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1
+          },
+          "valid_query_tokens_by_replica": {
+            "0": 1,
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1
+          },
+          "padded_query_tokens_by_replica": {
+            "0": 1,
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 1,
+            "5": 1,
+            "6": 1,
+            "7": 1
+          },
+          "valid_query_tokens": 8,
+          "padded_query_tokens": 8
+        },
+        "modeling_status": "modeled",
+        "model_coverage": "partial",
+        "unmodeled_features": [
+          "mqsmla_aicpu_metadata_and_original_sparse_index_producer",
+          "capture_mqsmla_and_grouped_binary_tensor_ABI_unverified"
+        ],
+        "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+        "package": {
+          "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+          "files": 243
+        },
+        "family_activity": {
+          "native_fusion": {
+            "calls": 1280,
+            "elapsed_sum_ms": 2.9283684848490132
+          },
+          "rmsnorm": {
+            "calls": 1312,
+            "elapsed_sum_ms": 1.6898621440003163
+          },
+          "quantize": {
+            "calls": 2664,
+            "elapsed_sum_ms": 3.4636800000006573
+          },
+          "gemm": {
+            "calls": 1920,
+            "elapsed_sum_ms": 16.83802375700113
+          },
+          "elementwise": {
+            "calls": 1064,
+            "elapsed_sum_ms": 1.3644800000002457
+          },
+          "cache_store": {
+            "calls": 384,
+            "elapsed_sum_ms": 0.4408320000000857
+          },
+          "attention": {
+            "calls": 320,
+            "elapsed_sum_ms": 6.1892557575760705
+          },
+          "router": {
+            "calls": 320,
+            "elapsed_sum_ms": 3.228315151515191
+          },
+          "topk": {
+            "calls": 384,
+            "elapsed_sum_ms": 0.5038080000000953
+          },
+          "routing": {
+            "calls": 640,
+            "elapsed_sum_ms": 0.8396800000001577
+          },
+          "alltoall": {
+            "calls": 640,
+            "elapsed_sum_ms": 8.151771428571493
+          },
+          "grouped_gemm": {
+            "calls": 640,
+            "elapsed_sum_ms": 26.243786938196628
+          },
+          "swiglu": {
+            "calls": 640,
+            "elapsed_sum_ms": 0.8396800000001614
+          },
+          "gate_up_projection": {
+            "calls": 320,
+            "elapsed_sum_ms": 3.219579704242512
+          },
+          "down_projection": {
+            "calls": 320,
+            "elapsed_sum_ms": 1.463288290909252
+          },
+          "engram_query": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.020991999999999678
+          },
+          "engram_ids": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_rh2d": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.011660159999999031
+          },
+          "engram_gather": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_broadcast": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "barrier": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_apply": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.020991999999999678
+          },
+          "rotary": {
+            "calls": 128,
+            "elapsed_sum_ms": 0.10496000000002326
+          },
+          "cast": {
+            "calls": 128,
+            "elapsed_sum_ms": 0.10496000000002326
+          },
+          "layernorm": {
+            "calls": 32,
+            "elapsed_sum_ms": 0.010502144000001046
+          },
+          "indexer": {
+            "calls": 64,
+            "elapsed_sum_ms": 0.10099200000000952
+          }
+        },
+        "family_activity_boundary": "all declared cohort participants; contention-inclusive elapsed sums may overlap",
+        "family_activity_additive_body_budget": false
+      },
+      "input_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1-source.json",
+        "sha256": "859a5d614caba8eb208d37e2516f2cb45a69c20eaa38590bf34fd9df6a4e2a95",
+        "size_bytes": 18148
+      },
+      "attempt_history": [
+        {
+          "status": "completed",
+          "error": null,
+          "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+          "runtime_root": "/Users/maoxx241/code/sim-mxfp4-panel-ir-cache-20261030",
+          "package_start": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "package_end": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "input": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1-source.json",
+            "sha256": "859a5d614caba8eb208d37e2516f2cb45a69c20eaa38590bf34fd9df6a4e2a95"
+          },
+          "condition": "symmetric_declared",
+          "geometry": {
+            "phase": "decode",
+            "tokens": 1,
+            "sequences": [
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "context": 2048,
+            "scope": "body"
+          },
+          "budget_seconds": 60.0,
+          "wall_seconds": 58.84969333407935,
+          "cpu_seconds": 52.590331,
+          "memory": {
+            "status": "measured",
+            "method": "getrusage(RUSAGE_SELF).ru_maxrss",
+            "raw_peak_rss": 323616768,
+            "raw_unit_bytes": 1,
+            "peak_rss_bytes": 323616768,
+            "peak_rss_mib": 308.625
+          },
+          "duration_ms": 9.722433745107853,
+          "worker_exit_code": 0
+        }
+      ],
+      "comparison": {
+        "status": "conditional_reference",
+        "predicted_minus_observed_mean_ms": -3.4121773009447782,
+        "relative_difference_vs_mean": -0.2597851804656405,
+        "relative_difference_vs_p50": -0.2594837475391061,
+        "strict_accuracy_eligible": false,
+        "selected_by_error": false,
+        "boundary_relation": "Sim complete declared EP/DP-cohort readiness vs retained rank0 first/last-device envelope",
+        "context_relation": "2048 source scenario; active KV length not observed per forward"
+      }
+    },
+    {
+      "source_case_id": "a5_v41_fp8_tp1_dp8_ep8_c128_p2k",
+      "condition": "single_active_rank0",
+      "observation": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-final6-operators-e8/body-operator-a5_v41_fp8_tp1_dp8_ep8_c128_p2k-v41-new6.actual.json",
+          "sha256": "61478be4a4902a9a541fa5c31ce8b100c2c58f52b82411a25bfc4d30959fcbd3",
+          "size_bytes": 2160689
+        },
+        "body_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-final6/auto-forward-a5_v41_fp8_tp1_dp8_ep8_c128_p2k.json",
+          "sha256": "b708bd10f7b07a057fecdbad3d407c24d8b489275894c95d0ed458b540c16e18",
+          "size_bytes": 1196543
+        },
+        "capture_manifest_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-final6/decode-forward-auto-cases.json",
+          "sha256": "400c228eb4a75135a5f2da8ab0961f5424051da370509350b0c7ec3026bf732e",
+          "size_bytes": 46855
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c128_p2k_20261030/kernel_details.csv",
+          "size_bytes": 49316349,
+          "mtime_ns": 1793305202000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "9f4378314a899c8389ba107c89a43dd5fa90c329553bd204ae546ffad39a2f41"
+        },
+        "selected_rank": "dp0_pp0_tp0_dcp0_ep0_rank0",
+        "rank_id_in_csv": "",
+        "device_id": "0",
+        "geometry": {
+          "query_rows": 16,
+          "sequences_per_replica": 16,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "full_model_layers": 40,
+        "body_forward_span_ms": {
+          "count": 73,
+          "mean": 27.28597294520548,
+          "p50": 27.26582,
+          "p90": 27.29026,
+          "min": 27.228026,
+          "max": 28.648204
+        },
+        "metric_boundary": "target_body_device_graph",
+        "span_start_basis": "first_retained_device_event_start",
+        "span_end_basis": "last_retained_device_event_end",
+        "geometry_basis": "shape-derived execution geometry; not active-valid-token or peer-load proof"
+      },
+      "prediction": {
+        "duration_ms": 13.408986954632365,
+        "executed_layers": 40,
+        "result_geometry": {
+          "phase": "decode",
+          "tokens_per_sequence": 1,
+          "context_tokens": 2048,
+          "sequences_per_replica": [
+            16,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "participating_replicas": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "sequences_by_replica": {
+            "0": 16,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0
+          },
+          "valid_query_tokens_by_replica": {
+            "0": 16,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0
+          },
+          "padded_query_tokens_by_replica": {
+            "0": 16,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0
+          },
+          "valid_query_tokens": 16,
+          "padded_query_tokens": 16
+        },
+        "modeling_status": "modeled",
+        "model_coverage": "partial",
+        "unmodeled_features": [
+          "exact active rows and context on every DP peer",
+          "r31 packaged MQSMLA source/binary identity and tensor ABI",
+          "mixed FP8/FP4 KV resident/traffic ABI is not the current analytic BF16-cache envelope",
+          "Engram gate wkv quantized checkpoint representation is not yet a separate execution role",
+          "host lookup/UVA path and shared host owner supply across replicas",
+          "mqsmla_aicpu_metadata_and_original_sparse_index_producer",
+          "capture_mqsmla_and_grouped_binary_tensor_ABI_unverified"
+        ],
+        "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+        "package": {
+          "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+          "files": 243
+        },
+        "family_activity": {
+          "native_fusion": {
+            "calls": 160,
+            "elapsed_sum_ms": 0.4086161454568491
+          },
+          "rmsnorm": {
+            "calls": 164,
+            "elapsed_sum_ms": 0.21123276800004673
+          },
+          "quantize": {
+            "calls": 893,
+            "elapsed_sum_ms": 1.16768000000026
+          },
+          "gemm": {
+            "calls": 240,
+            "elapsed_sum_ms": 2.2638054157575587
+          },
+          "elementwise": {
+            "calls": 133,
+            "elapsed_sum_ms": 0.17056000000003738
+          },
+          "cache_store": {
+            "calls": 48,
+            "elapsed_sum_ms": 0.0551040000000125
+          },
+          "attention": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.778590167273034
+          },
+          "router": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.45226666666666276
+          },
+          "topk": {
+            "calls": 48,
+            "elapsed_sum_ms": 0.06297600000001415
+          },
+          "routing": {
+            "calls": 640,
+            "elapsed_sum_ms": 0.10496000000002371
+          },
+          "alltoall": {
+            "calls": 640,
+            "elapsed_sum_ms": 8.866481632653207
+          },
+          "grouped_gemm": {
+            "calls": 640,
+            "elapsed_sum_ms": 52.484952436383324
+          },
+          "swiglu": {
+            "calls": 360,
+            "elapsed_sum_ms": 0.4723200000001052
+          },
+          "gate_up_projection": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.42893213575752964
+          },
+          "down_projection": {
+            "calls": 40,
+            "elapsed_sum_ms": 0.19634930909090725
+          },
+          "engram_query": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.002624000000000404
+          },
+          "engram_ids": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_rh2d": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.023320319999999894
+          },
+          "engram_gather": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_broadcast": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "barrier": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_apply": {
+            "calls": 2,
+            "elapsed_sum_ms": 0.002624000000000404
+          },
+          "rotary": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.013120000000003351
+          },
+          "cast": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.013120000000003351
+          },
+          "layernorm": {
+            "calls": 4,
+            "elapsed_sum_ms": 0.0013127680000001307
+          },
+          "indexer": {
+            "calls": 8,
+            "elapsed_sum_ms": 0.012624000000001634
+          }
+        },
+        "family_activity_boundary": "all declared cohort participants; contention-inclusive elapsed sums may overlap",
+        "family_activity_additive_body_budget": false
+      },
+      "input_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_c128_p2k-source.json",
+        "sha256": "a170a2f47e5fc9b7099505ef13a3da59ac3f9ca1d7aff9fbb6c97a9e4458d566",
+        "size_bytes": 151628
+      },
+      "attempt_history": [
+        {
+          "status": "completed",
+          "error": null,
+          "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+          "runtime_root": "/Users/maoxx241/code/sim-mxfp4-panel-ir-cache-20261030",
+          "package_start": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "package_end": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "input": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_c128_p2k-source.json",
+            "sha256": "a170a2f47e5fc9b7099505ef13a3da59ac3f9ca1d7aff9fbb6c97a9e4458d566"
+          },
+          "condition": "single_active_rank0",
+          "geometry": {
+            "phase": "decode",
+            "tokens": 1,
+            "sequences": [
+              16,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "context": 2048,
+            "scope": "body"
+          },
+          "budget_seconds": 60.0,
+          "wall_seconds": 25.686252083978616,
+          "cpu_seconds": 24.581907,
+          "memory": {
+            "status": "measured",
+            "method": "getrusage(RUSAGE_SELF).ru_maxrss",
+            "raw_peak_rss": 171704320,
+            "raw_unit_bytes": 1,
+            "peak_rss_bytes": 171704320,
+            "peak_rss_mib": 163.75
+          },
+          "duration_ms": 13.408986954632365,
+          "worker_exit_code": 0
+        }
+      ],
+      "comparison": {
+        "status": "conditional_reference",
+        "predicted_minus_observed_mean_ms": -13.876985990573115,
+        "relative_difference_vs_mean": -0.5085758172684655,
+        "relative_difference_vs_p50": -0.5082125916391891,
+        "strict_accuracy_eligible": false,
+        "selected_by_error": false,
+        "boundary_relation": "Sim complete declared EP/DP-cohort readiness vs retained rank0 first/last-device envelope",
+        "context_relation": "2048 source scenario; active KV length not observed per forward"
+      }
+    },
+    {
+      "source_case_id": "a5_v41_fp8_tp1_dp8_ep8_c128_p2k",
+      "condition": "symmetric_declared",
+      "observation": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-final6-operators-e8/body-operator-a5_v41_fp8_tp1_dp8_ep8_c128_p2k-v41-new6.actual.json",
+          "sha256": "61478be4a4902a9a541fa5c31ce8b100c2c58f52b82411a25bfc4d30959fcbd3",
+          "size_bytes": 2160689
+        },
+        "body_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-final6/auto-forward-a5_v41_fp8_tp1_dp8_ep8_c128_p2k.json",
+          "sha256": "b708bd10f7b07a057fecdbad3d407c24d8b489275894c95d0ed458b540c16e18",
+          "size_bytes": 1196543
+        },
+        "capture_manifest_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-final6/decode-forward-auto-cases.json",
+          "sha256": "400c228eb4a75135a5f2da8ab0961f5424051da370509350b0c7ec3026bf732e",
+          "size_bytes": 46855
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c128_p2k_20261030/kernel_details.csv",
+          "size_bytes": 49316349,
+          "mtime_ns": 1793305202000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "9f4378314a899c8389ba107c89a43dd5fa90c329553bd204ae546ffad39a2f41"
+        },
+        "selected_rank": "dp0_pp0_tp0_dcp0_ep0_rank0",
+        "rank_id_in_csv": "",
+        "device_id": "0",
+        "geometry": {
+          "query_rows": 16,
+          "sequences_per_replica": 16,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "full_model_layers": 40,
+        "body_forward_span_ms": {
+          "count": 73,
+          "mean": 27.28597294520548,
+          "p50": 27.26582,
+          "p90": 27.29026,
+          "min": 27.228026,
+          "max": 28.648204
+        },
+        "metric_boundary": "target_body_device_graph",
+        "span_start_basis": "first_retained_device_event_start",
+        "span_end_basis": "last_retained_device_event_end",
+        "geometry_basis": "shape-derived execution geometry; not active-valid-token or peer-load proof"
+      },
+      "prediction": {
+        "duration_ms": 33.23693850225061,
+        "executed_layers": 40,
+        "result_geometry": {
+          "phase": "decode",
+          "tokens_per_sequence": 1,
+          "context_tokens": 2048,
+          "sequences_per_replica": [
+            16,
+            16,
+            16,
+            16,
+            16,
+            16,
+            16,
+            16
+          ],
+          "participating_replicas": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "sequences_by_replica": {
+            "0": 16,
+            "1": 16,
+            "2": 16,
+            "3": 16,
+            "4": 16,
+            "5": 16,
+            "6": 16,
+            "7": 16
+          },
+          "valid_query_tokens_by_replica": {
+            "0": 16,
+            "1": 16,
+            "2": 16,
+            "3": 16,
+            "4": 16,
+            "5": 16,
+            "6": 16,
+            "7": 16
+          },
+          "padded_query_tokens_by_replica": {
+            "0": 16,
+            "1": 16,
+            "2": 16,
+            "3": 16,
+            "4": 16,
+            "5": 16,
+            "6": 16,
+            "7": 16
+          },
+          "valid_query_tokens": 128,
+          "padded_query_tokens": 128
+        },
+        "modeling_status": "modeled",
+        "model_coverage": "partial",
+        "unmodeled_features": [
+          "exact active rows and context on every DP peer",
+          "r31 packaged MQSMLA source/binary identity and tensor ABI",
+          "mixed FP8/FP4 KV resident/traffic ABI is not the current analytic BF16-cache envelope",
+          "Engram gate wkv quantized checkpoint representation is not yet a separate execution role",
+          "host lookup/UVA path and shared host owner supply across replicas",
+          "mqsmla_aicpu_metadata_and_original_sparse_index_producer",
+          "capture_mqsmla_and_grouped_binary_tensor_ABI_unverified"
+        ],
+        "runtime_revision": "42ac991d590fe4c47a1b71c921b77f1a22a1664c",
+        "package": {
+          "sha256": "1c11a530e9451bc4b797144cbec02b348e6bbafc3b3e7cc6a414225e6722f6f0",
+          "files": 243
+        },
+        "family_activity": {
+          "native_fusion": {
+            "calls": 1280,
+            "elapsed_sum_ms": 3.268929163677559
+          },
+          "rmsnorm": {
+            "calls": 1312,
+            "elapsed_sum_ms": 1.6898621439993227
+          },
+          "quantize": {
+            "calls": 2664,
+            "elapsed_sum_ms": 3.4636799999985506
+          },
+          "gemm": {
+            "calls": 1920,
+            "elapsed_sum_ms": 18.110443326060583
+          },
+          "elementwise": {
+            "calls": 1064,
+            "elapsed_sum_ms": 1.364479999999471
+          },
+          "cache_store": {
+            "calls": 384,
+            "elapsed_sum_ms": 0.44083199999981215
+          },
+          "attention": {
+            "calls": 320,
+            "elapsed_sum_ms": 6.228721338184689
+          },
+          "router": {
+            "calls": 320,
+            "elapsed_sum_ms": 3.618133333332694
+          },
+          "topk": {
+            "calls": 384,
+            "elapsed_sum_ms": 0.503807999999772
+          },
+          "routing": {
+            "calls": 640,
+            "elapsed_sum_ms": 0.8396799999996425
+          },
+          "alltoall": {
+            "calls": 640,
+            "elapsed_sum_ms": 9.468342857142558
+          },
+          "grouped_gemm": {
+            "calls": 640,
+            "elapsed_sum_ms": 210.5067035928245
+          },
+          "swiglu": {
+            "calls": 640,
+            "elapsed_sum_ms": 0.8396799999996425
+          },
+          "gate_up_projection": {
+            "calls": 320,
+            "elapsed_sum_ms": 3.4314570860597176
+          },
+          "down_projection": {
+            "calls": 320,
+            "elapsed_sum_ms": 1.5707944727268908
+          },
+          "engram_query": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.02099200000000323
+          },
+          "engram_ids": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_rh2d": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.1865625599999996
+          },
+          "engram_gather": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_broadcast": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "barrier": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.0
+          },
+          "engram_apply": {
+            "calls": 16,
+            "elapsed_sum_ms": 0.02099200000000323
+          },
+          "rotary": {
+            "calls": 128,
+            "elapsed_sum_ms": 0.10495999999993089
+          },
+          "cast": {
+            "calls": 128,
+            "elapsed_sum_ms": 0.10495999999993089
+          },
+          "layernorm": {
+            "calls": 32,
+            "elapsed_sum_ms": 0.010502143999987723
+          },
+          "indexer": {
+            "calls": 64,
+            "elapsed_sum_ms": 0.10099199999994646
+          }
+        },
+        "family_activity_boundary": "all declared cohort participants; contention-inclusive elapsed sums may overlap",
+        "family_activity_additive_body_budget": false
+      },
+      "input_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_c128_p2k-source.json",
+        "sha256": "a170a2f47e5fc9b7099505ef13a3da59ac3f9ca1d7aff9fbb6c97a9e4458d566",
+        "size_bytes": 151628
+      },
+      "attempt_history": [
+        {
+          "status": "timeout",
+          "error": {
+            "type": "TimeoutError",
+            "message": "bounded_local_simulation"
+          },
+          "runtime_revision": "2ccedd6dba1e38d7064e6cd5ffefd8dd4fb87ea6",
+          "runtime_root": "/Users/maoxx241/code/sim-mxfp4-panel-ir-cache-20261030",
+          "package_start": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "package_end": {
+            "sha256": "add6c1bfd38098ada25e579fb4598cd071082a0b9a36ded14aa6b294f309ad52",
+            "files": 243
+          },
+          "input": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_c128_p2k-source.json",
+            "sha256": "a170a2f47e5fc9b7099505ef13a3da59ac3f9ca1d7aff9fbb6c97a9e4458d566"
+          },
+          "condition": "symmetric_declared",
+          "geometry": {
+            "phase": "decode",
+            "tokens": 1,
+            "sequences": [
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16
+            ],
+            "context": 2048,
+            "scope": "body"
+          },
+          "budget_seconds": 60.0,
+          "wall_seconds": 60.0089492079569,
+          "cpu_seconds": 56.660623,
+          "memory": {
+            "status": "measured",
+            "method": "getrusage(RUSAGE_SELF).ru_maxrss",
+            "raw_peak_rss": 391069696,
+            "raw_unit_bytes": 1,
+            "peak_rss_bytes": 391069696,
+            "peak_rss_mib": 372.953125
+          },
+          "duration_ms": null,
+          "worker_exit_code": 2
+        },
+        {
+          "status": "completed",
+          "error": null,
+          "runtime_revision": "42ac991d590fe4c47a1b71c921b77f1a22a1664c",
+          "runtime_root": "/Users/maoxx241/code/sim-mxfp4-panel-ir-cache-20261030",
+          "package_start": {
+            "sha256": "1c11a530e9451bc4b797144cbec02b348e6bbafc3b3e7cc6a414225e6722f6f0",
+            "files": 243
+          },
+          "package_end": {
+            "sha256": "1c11a530e9451bc4b797144cbec02b348e6bbafc3b3e7cc6a414225e6722f6f0",
+            "files": 243
+          },
+          "input": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_c128_p2k-source.json",
+            "sha256": "a170a2f47e5fc9b7099505ef13a3da59ac3f9ca1d7aff9fbb6c97a9e4458d566"
+          },
+          "condition": "symmetric_declared",
+          "geometry": {
+            "phase": "decode",
+            "tokens": 1,
+            "sequences": [
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16,
+              16
+            ],
+            "context": 2048,
+            "scope": "body"
+          },
+          "budget_seconds": 60.0,
+          "wall_seconds": 45.41402849997394,
+          "cpu_seconds": 44.884079,
+          "memory": {
+            "status": "measured",
+            "method": "getrusage(RUSAGE_SELF).ru_maxrss",
+            "raw_peak_rss": 356777984,
+            "raw_unit_bytes": 1,
+            "peak_rss_bytes": 356777984,
+            "peak_rss_mib": 340.25
+          },
+          "duration_ms": 33.23693850225061,
+          "worker_exit_code": 0
+        }
+      ],
+      "comparison": {
+        "status": "conditional_reference",
+        "predicted_minus_observed_mean_ms": 5.95096555704513,
+        "relative_difference_vs_mean": 0.21809614665365262,
+        "relative_difference_vs_p50": 0.21899647625674223,
+        "strict_accuracy_eligible": false,
+        "selected_by_error": false,
+        "boundary_relation": "Sim complete declared EP/DP-cohort readiness vs retained rank0 first/last-device envelope",
+        "context_relation": "2048 source scenario; active KV length not observed per forward"
+      }
+    }
+  ]
+}

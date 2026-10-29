@@ -119,7 +119,7 @@ def review(path):
                    ["case_id", "native_operator_type", "declared_role", "cohort_id"])
     reference = Counter(canonical(row) for row in report["source_role_references"])
     seen_body, seen_family, seen_cohort = set(), set(), set()
-    current_body, current_operator, populations = {}, {}, {}
+    current_body, current_operator, populations, latest_attempts = {}, {}, {}, {}
     invalidations = {}
     body_order, operator_order = [], []
     corrected_quant_cases = 0
@@ -182,22 +182,42 @@ def review(path):
                     check("prediction_invalidation" not in row, f"Only declared receipts invalidated: {key}")
                 for field in ["runtime_identity", "source_identity", "geometry", "declared_runtime"]:
                     check(row[field] == case.get(field), f"Body {field}: {key}")
-                check(row["per_layer"] == (case.get("per_layer_comparison") or {}), f"Layer comparison: {key}")
+                layers = case.get("per_layer_comparison") or {}
+                expanded_row = row
+                if "per_layer_reference" in row:
+                    expected_layer_reference = {
+                        "receipt_sha256": item["sha256"], "case_id": case["case_id"],
+                        "field": "per_layer_comparison",
+                        "sha256": hashlib.sha256(json.dumps(layers, sort_keys=True).encode()).hexdigest()}
+                    check(row["per_layer_reference"] == expected_layer_reference,
+                          f"Historical layer detail reference: {key}")
+                    expanded_row = {name: value for name, value in row.items()
+                                    if name != "per_layer_reference"}
+                    expanded_row["per_layer"] = layers
+                else:
+                    check(row["per_layer"] == layers, f"Layer comparison: {key}")
                 for field in ["body_activity_ms", "body_internal_gap_ms"]:
                     check(row[field] == (case.get("observed") or {}).get(field), f"Body {field}: {key}")
                 if shown["status"] == "failed":
                     check(row.get("error") == case.get("error"), f"Failed input error retained: {key}")
-                    check(shown["observed_ms"]["count"] == 0, f"Failed read has no measured population: {key}")
                     check(all(shown.get(field) is None for field in ("predicted_ms", "relative_error", "passed")),
                           f"Failed prediction is not zero: {key}")
-                    continue
+                    if case.get("observed") is None:
+                        check(shown["observed_ms"]["count"] == 0, f"Failed read has no measured population: {key}")
+                        continue
+                    check(row["prediction_failure"] == case["prediction_execution"],
+                          f"Failed cost worker is preserved: {key}")
                 pk = population(row)
                 check(all(value is not None for value in pk), f"Complete population identity: {key}")
                 if pk in populations:
                     check(populations[pk] == shown["observed_ms"], f"Shared population unchanged: {key}")
                 populations[pk] = shown["observed_ms"]
+                if shown["status"] in {"compared", "failed"}:
+                    latest_attempts[pk] = row
+                if shown["status"] == "failed":
+                    continue
                 if pk not in current_body or shown["status"] == "compared":
-                    current_body[pk] = row
+                    current_body[pk] = expanded_row
                 if shown["status"] == "compared":
                     error = shown["predicted_ms"] / shown["observed_ms"]["mean"] - 1
                     check(near(shown["relative_error"], error), f"Body error: {key}")
@@ -321,6 +341,16 @@ def review(path):
             check(current_runtime_populations[key] == value, "Every current population has one recorded runtime")
         current_runtime_populations[key] = value
     summary = report["summary"]
+    if "latest_body_attempts" in report:
+        check(Counter(canonical(row) for row in report["latest_body_attempts"]) ==
+              Counter(canonical(row) for row in latest_attempts.values()), "Latest attempts retain failed cost workers")
+        check(summary["latest_body_attempt_count"] == len(latest_attempts), "Latest attempt denominator")
+        check(summary["latest_body_attempt_completed"] == sum(row["comparison"]["status"] == "compared"
+              for row in latest_attempts.values()), "Latest completed attempts")
+        check(summary["latest_body_attempt_failed"] == sum(row["comparison"]["status"] == "failed"
+              for row in latest_attempts.values()), "Latest failed attempts")
+        check(summary["latest_body_attempt_passed"] == sum(row["comparison"].get("passed") is True
+              for row in latest_attempts.values()), "Latest passed attempts")
     expected_summary = {"body_compared": sum(row["comparison"]["status"] == "compared" for row in body.values()),
         "body_passed": sum(row["comparison"].get("passed") is True for row in body.values()),
         "current_body_compared": sum(row["comparison"]["status"] == "compared" for row in current_body.values()),

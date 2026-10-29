@@ -1,0 +1,47 @@
+{
+  "schema_version": "mindie-decode-prediction-review/1",
+  "status": "passed",
+  "report_sha256": "e2ec07749a9689ffd210f71fff75d1414c1a28e9790373ef468c58aab468f8c1",
+  "checks": 20,
+  "failures": [],
+  "compared": 0,
+  "passed": 0,
+  "unique_source_geometry_populations": 2,
+  "input_execution_status": "failed",
+  "failed_attempts": [
+    {
+      "case_id": "glm53flash-a5-tp8-c96:q4_b96_m384",
+      "failure": {
+        "status": "failed",
+        "reason": "body_prediction_timeout",
+        "timeout_s": 90.0,
+        "runtime_identity": {
+          "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+          "version": "0.8.0",
+          "package_sha256": "80be1bb5d6e2bfe5f69fd6b1ac1119a335799550d114a90f4d4237ecb4983844",
+          "file_count": 243,
+          "algorithm": "sha256(sorted relative-path to file-sha256 JSON)"
+        }
+      },
+      "observed_calls_retained": 27
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c96:q4_b96_m384",
+      "failure": {
+        "status": "failed",
+        "reason": "body_prediction_timeout",
+        "timeout_s": 90.0,
+        "runtime_identity": {
+          "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+          "version": "0.8.0",
+          "package_sha256": "80be1bb5d6e2bfe5f69fd6b1ac1119a335799550d114a90f4d4237ecb4983844",
+          "file_count": 243,
+          "algorithm": "sha256(sorted relative-path to file-sha256 JSON)"
+        }
+      },
+      "observed_calls_retained": 24
+    }
+  ],
+  "unique_forwards": 51,
+  "scope": "Independent saved-source population, endpoint, error and unrounded 15% arithmetic; no raw scan or prediction."
+}
