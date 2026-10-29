@@ -15,6 +15,7 @@ import json
 from mindie_sim.cohort_accuracy import accuracy_fields, accuracy_policy
 
 from fusion_replay_cases import _hash, _read
+from forward_scoreboard import body_scoreboard
 
 
 TIERS = ("relative_15pct", "absolute_15us")
@@ -295,7 +296,8 @@ def write_family_overview(args, captures):
         total.update(counts)
     lines.append(f"| All scored | {total['cohort_count']} | "
                  f"{total['passed_cohort_count']} | {total['failed_cohort_count']} |")
-    lines.extend(["", *sections])
+    body_lines, body_identity = body_scoreboard(args.output_dir)
+    lines.extend([*body_lines, "", *sections])
     suffix = "comparison" if args.compare_existing else "replay"
     unique_events = {row["source_identity"]["sha256"]: row["event_count"] for row in variants}
     overview = {
@@ -305,6 +307,7 @@ def write_family_overview(args, captures):
         "unique_capture_event_count": sum(unique_events.values()),
         "variant_totals_are_not_independent_captures": True,
         "not_new_live_collection": True, "occurrence_binding_implied": False,
+        "body_forward_scoreboard": body_identity,
     }
     (args.output_dir / f"fusion-cohort-{suffix}-families.json").write_text(
         json.dumps(overview, separators=(",", ":"), allow_nan=False) + "\n")
@@ -427,6 +430,8 @@ def write_full_replay_summary(output_dir, receipt):
                     f"{_value(family['observed_per_call_us'])} | "
                     f"{_value(family['predicted_per_call_us'])} | "
                     f"{_value(family['per_call_diff_us'])} |")
+    body_lines, _ = body_scoreboard(output_dir)
+    lines.extend(body_lines)
     lines.extend([
         "", "## Coverage And Interpretation", "",
         "Paged attention uses independently declared query and cache-block geometry. "

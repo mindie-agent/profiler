@@ -438,4 +438,8 @@ def variants(key, old, base):
     scfa = scfa_variant(key, values[0])
     if scfa is not None:
         values.append(scfa)
+    from fusion_replay_source_cases import source_program_variants
+
+    for original in tuple(values):
+        values.extend(source_program_variants(key, original))
     return values

@@ -76,6 +76,16 @@ def test_extension_rejects_rewriting_a_reused_real_case(completed_replay):
         module.prepare_extension(directory, identity, declarations, sources)
 
 
+def test_extension_never_reuses_a_report_with_unstable_execution_sources(completed_replay):
+    module, directory, identity, declarations, sources = completed_replay
+    path = directory / "fusion-cohort-validation.json"
+    receipt = json.loads(path.read_text())
+    receipt["runtime_sources_unchanged"] = False
+    path.write_text(json.dumps(receipt))
+    with pytest.raises(ValueError, match="requires_completed_raw_capture_replay"):
+        module.prepare_extension(directory, identity, declarations, sources)
+
+
 def test_extension_records_new_program_evidence_without_changing_old_execution(completed_replay):
     module, directory, identity, declarations, sources = completed_replay
     new = next(iter(declarations.values()))[1]

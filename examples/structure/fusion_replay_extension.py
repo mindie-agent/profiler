@@ -47,7 +47,8 @@ def prepare_extension(directory, identity, declarations, capture_sources):
     directory = Path(directory)
     receipt_path = directory / "fusion-cohort-validation.json"
     original = _read(receipt_path)
-    if original["status"] != "completed" or original.get("comparison_only"):
+    if (original["status"] != "completed" or original.get("comparison_only")
+            or original["runtime_sources_unchanged"] is not True):
         raise ValueError("extension_requires_completed_raw_capture_replay")
     old_sources = original["runtime_source_identity"]
     changed = {

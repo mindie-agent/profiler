@@ -37,8 +37,8 @@ ROOT = Path(__file__).resolve().parents[2]
 BASE = ROOT / "examples/structure/acceptance-20261029"
 MAX_JSON_BYTES = 32 * 1024 * 1024
 CAPTURE_KEYS = (
-    "a3_glm53_prefill", "a3_glm53_decode", "a3_qwen35", "a3_qwen36",
-    "a3_v4f", "a3_v4pro", "a5_kimi_k3", "a5_qwen38",
+    "a3_glm53_decode", "a5_kimi_k3", "a5_qwen38", "a3_qwen35", "a3_qwen36",
+    "a3_v4f", "a3_v4pro", "a3_glm53_prefill",
 )
 
 
@@ -59,8 +59,13 @@ def _runtime_identity():
     import mindie_sim
 
     sim = Path(mindie_sim.__file__).resolve().parents[1]
+    # These independent body/graph entry points are not imported by cohort
+    # mapping or pricing. Their own replay records their execution identity;
+    # developing them does not invalidate unrelated operator predictions.
+    body_entrypoints = {"forward_spans.py", "graph_execution.py", "decode_segmentation.py"}
     files = [
-        *sorted((ROOT / "mindie_profiler").rglob("*.py")),
+        *sorted(path for path in (ROOT / "mindie_profiler").rglob("*.py")
+                if path.name not in body_entrypoints),
         *sorted((sim / "mindie_sim").rglob("*.py")),
         *sorted((sim / "mindie_sim/backends/profiles").glob("*.json")),
         *sorted((sim / "mindie_sim/model_configs").glob("*.json")),
@@ -74,10 +79,14 @@ def _runtime_identity():
         sim / "examples/source-families/paged-fia-a3-prefill-qwen36.json",
         sim / "data/verification/paged-fia-selection-20261029.json",
         sim / "data/verification/paged-fia-prefill-20261029.json",
+        sim / "data/verification/sparse-attention-mechanism-20261029.json",
+        sim / "docs/operators/situ-mx-quant.md",
         Path(__file__).resolve(), Path(__file__).with_name("fusion_replay_cases.py"),
         Path(__file__).with_name("fusion_replay_paged_cases.py"),
+        Path(__file__).with_name("fusion_replay_source_cases.py"),
         Path(__file__).with_name("replay_scfa_readiness.py"),
         Path(__file__).with_name("fusion_cohort_reporting.py"),
+        Path(__file__).with_name("forward_scoreboard.py"),
         Path(__file__).with_name("fusion_cohort_refresh.py"),
         BASE / "head-normalization-evidence.json",
         BASE / "compressor-normalization-evidence.json",
@@ -537,8 +546,9 @@ def main():
         else:
             # Separate workload/precision declarations must not accumulate
             # multiple complete graphs in a single worker's working set.
-            jobs = list(dict.fromkeys(row["declaration_key"] for row in case_variants(
-                key, _read(BASE / f"body-{key}.json"), BASE)))
+            declarations = case_variants(key, _read(BASE / f"body-{key}.json"), BASE)
+            declarations.sort(key=lambda row: row["geometry"]["phase"] != "decode")
+            jobs = list(dict.fromkeys(row["declaration_key"] for row in declarations))
             for declaration_key in jobs:
                 command = [sys.executable, str(Path(__file__).resolve()), "--capture-key", key,
                            "--output-dir", str(args.output_dir), "--max-rows", str(args.max_rows),
