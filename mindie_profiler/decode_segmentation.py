@@ -34,6 +34,7 @@ _ACTIVATIONS = {"SwiGlu", "SwiGLU", "DequantSwigluQuant", "SwigluQuant",
 _ANCHORS = {"RecurrentGatedDeltaRule": "gdn", "FusedInferAttentionScore": "gqa",
             "SparseFlashAttention": "mla", "SparseAttnSharedkv": "mla",
             "SparseFlashMla": "mla", "KvQuantSparseFlashAttentionVllm": "mla",
+            "KvQuantSparseFlashAttention": "mla",
             "RecurrentKda": "kda", "RecurrentKdaFwd": "kda",
             "FusedRecurrentKda": "kda", "RecurrentGatedDeltaRuleV2": "gdn"}
 _PREFILL_ANCHORS = {"ChunkGatedDeltaRuleFwd", "ChunkKdaFwd", "ChunkFwdH"}
@@ -114,7 +115,7 @@ def _query_geometry(anchors, query_rows):
             slot = inputs[5]
         elif row.kind == "SparseFlashMla" and len(inputs) == 18:
             slot = inputs[5]
-        elif row.kind == "KvQuantSparseFlashAttentionVllm" and len(inputs) == 9:
+        elif row.kind in {"KvQuantSparseFlashAttentionVllm", "KvQuantSparseFlashAttention"} and len(inputs) == 9:
             slot = inputs[6]
         if slot and len(slot) == 2 and slot[0] > 0:
             batches.add(slot[0])

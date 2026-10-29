@@ -30,6 +30,7 @@ _ARITIES = {
     "SparseFlashAttention": ({9}, {3}),
     "SparseFlashMla": ({18}, {2}),
     "KvQuantSparseFlashAttentionVllm": ({9}, {3}),
+    "KvQuantSparseFlashAttention": ({9}, {1}),
     "MlaPrologV3": ({21}, {7}),
     "ChunkGatedDeltaRuleFwd": ({9, 10}, {4}),
     "RecurrentGatedDeltaRule": ({9, 10}, {2}),

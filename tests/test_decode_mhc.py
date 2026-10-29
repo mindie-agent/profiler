@@ -55,3 +55,18 @@ def test_actual_glm_flash_mla_abis_supply_active_query_not_cache_capacity():
     assert [item["sequences_per_replica"] for item in geometry] == [1, 1]
     assert [item["tokens_per_sequence"] for item in geometry] == [4, 256]
     assert all(item["context_tokens"] is None for item in geometry)
+
+
+def test_glm78_quantized_kv_keeps_packed_cache_and_separates_long_and_short_query():
+    rows = list(kernel_rows(FIXTURE / "glm78_kvquant_sparse_abi.csv"))
+    geometry = []
+    for item in rows:
+        row = _Row(item.event, item.input_shapes, item.output_shapes)
+        assert _anchor(row, {"layer_plans": [{"attention": "mla"}]}) == "mla"
+        geometry.append(_query_geometry([row], item.input_shapes[0][0]))
+        native = observed_contract(item)
+        assert native[2][0][0][-1] == 576
+        assert native[2][1][0][-1] == 656
+        assert native[2][1][1] == "int8"
+    assert [item["tokens_per_sequence"] for item in geometry] == [256, 6]
+    assert all(item["sequences_per_replica"] == 1 for item in geometry)
