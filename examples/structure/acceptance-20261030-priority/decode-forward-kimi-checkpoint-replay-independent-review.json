@@ -1,0 +1,29 @@
+{
+  "schema_version": "mindie-priority-body-independent-review/1",
+  "status": "passed",
+  "checks": 499,
+  "failures": [],
+  "report_sha256": "f6e82a724d94250f1db854587fcfaf9ca0296c2596c0bcb00cc0525331f42429",
+  "manifest_sha256": "4983f62209fa1d8251b021181c5a626e42c810860f9b70a69ef9d56563eaa659",
+  "source_cases": 1,
+  "geometry_groups": 1,
+  "all_forward_count": 63,
+  "compared_forward_count": 63,
+  "compared_cases": 1,
+  "passed_cases": 0,
+  "deferred_geometry_groups": 0,
+  "compared_layers": 93,
+  "passed_layers": 1,
+  "new_workers": 1,
+  "rows": [
+    {
+      "case": "a5_kimi_k3_p32768_c1:q1_b1_m1",
+      "forwards": 63,
+      "mean_ms": 32.55549347619048,
+      "predicted_ms": 46.90245158811513,
+      "error": 0.4406923864452347,
+      "passed": false
+    }
+  ],
+  "scope": "Independent receipt/extraction/case/runtime identities, per-geometry model/layer arithmetic, representative replica, and retained deferred denominators. No raw profile scan or prediction."
+}
