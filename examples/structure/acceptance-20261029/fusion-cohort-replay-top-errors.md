@@ -6,19 +6,19 @@ Policy: observed complete-event mean > 50 us uses absolute relative error <= 15%
 
 Acceptance is decided per cohort before aggregation. Family/tier means are call-count weighted; pass/fail counts preserve failed cohorts even if signed averages cancel. The scored columns cover the indicated tier and pass/fail subset only: failed cohorts appear in error tables and passed cohorts appear within tolerance, including when a family has both. All/reference event counts describe the whole native family and repeat across these subsets. Every native type and full-family aggregate remains in JSON.
 
-Large failed cohorts lead Top Errors, sorted by their observed activity; small failures are separate and sorted by absolute per-call difference. Within-tolerance groups and unscored coverage have separate tables. Reference, clipped, failed and unmatched events are not scored.
+Large failed cohorts lead Top Errors, sorted by their observed activity; small failures are separate and sorted by absolute per-call difference. Within-tolerance groups and unscored coverage have separate tables. Reference, clipped, prediction-failed and unmatched events are not scored; accuracy-failed cohorts remain in the scored denominator.
 
 Activity sums count overlapping events separately and are not wall-clock latency. Variant totals reuse captures and must not be counted as independent evidence.
 
 | Tier | Compared cohorts across variants | Passed | Failed |
 | --- | ---: | ---: | ---: |
-| relative_15pct | 295 | 73 | 222 |
-| absolute_15us | 147 | 122 | 25 |
-| All scored | 442 | 195 | 247 |
+| relative_15pct | 314 | 81 | 233 |
+| absolute_15us | 163 | 138 | 25 |
+| All scored | 477 | 219 | 258 |
 
 ## a3_glm53_prefill / source_declared_unfused_reference
 
-Graph: `sha256:8e4d8b685df1dbaa3d6ff0bdd56a661daa811fe60fc7ec76ee68d93d8561346b`.
+Graph: `sha256:dca3ce6257f5d92fe83252b270bf7344f825ec8ac0615d8800c5390e7b3803b7`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -72,15 +72,15 @@ Graph: `sha256:8e4d8b685df1dbaa3d6ff0bdd56a661daa811fe60fc7ec76ee68d93d8561346b`
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| MlaPrologV3 | 30a81e6afd86 | 21 | reference_only | 1342.506 | 491.634 | -850.872 | - | reference_only | - |
-| MlaPrologV3 | 9c64cc88b208 | 57 | reference_only | 1248.166 | 491.634 | -756.532 | - | reference_only | - |
-| GroupedMatmulSwigluQuantV2 | 9d2e3cf2fc3b | 75 | reference_only | 1323.133 | 600.368 | -722.765 | - | reference_only | - |
-| LightningIndexer | b78e3b676bc6 | 21 | reference_only | 1492.464 | 1873.906 | 381.442 | - | reference_only | - |
-| MoeGatingTopK | 36fbad1fcfaf | 75 | reference_only | 101.699 | 13.462 | -88.237 | - | reference_only | - |
+| MlaPrologV3 | a103b447213c | 21 | reference_only | 1342.506 | 491.634 | -850.872 | - | reference_only | - |
+| MlaPrologV3 | 4bf3f27e3281 | 57 | reference_only | 1248.166 | 491.634 | -756.532 | - | reference_only | - |
+| GroupedMatmulSwigluQuantV2 | 13d1cf21893f | 75 | reference_only | 1323.133 | 600.368 | -722.765 | - | reference_only | - |
+| LightningIndexer | f5331a816b3a | 21 | reference_only | 1492.464 | 1873.906 | 381.442 | - | reference_only | - |
+| MoeGatingTopK | 7bda24616d91 | 75 | reference_only | 101.699 | 13.462 | -88.237 | - | reference_only | - |
 
 ## a3_glm53_prefill / selected_native_fusion
 
-Graph: `sha256:0eb86c0a13a556ba3d7515e1a82d8026bd9155fbf6e736ac2d8a2c545f1f44e4`.
+Graph: `sha256:2b8c67d2e879d5486d899abc9ffa0115bc32ffc2bc6db2c734d69542f2346dbc`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -138,15 +138,15 @@ Graph: `sha256:0eb86c0a13a556ba3d7515e1a82d8026bd9155fbf6e736ac2d8a2c545f1f44e4`
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| MlaPrologV3 | e6d1c339b747 | 21 | compared | 1342.506 | 451.382 | -891.124 | -66.4% | relative_15pct | false |
-| MlaPrologV3 | 915206591845 | 57 | compared | 1248.166 | 451.382 | -796.784 | -63.8% | relative_15pct | false |
-| LightningIndexer | eb8f815075ae | 21 | compared | 1492.464 | 1873.906 | 381.442 | +25.6% | relative_15pct | false |
-| GroupedMatmulSwigluQuantV2 | f0b38b6472c2 | 75 | compared | 1323.133 | 1275.932 | -47.201 | -3.6% | relative_15pct | true |
-| MoeGatingTopK | 6b7561b11714 | 75 | reference_only | 101.699 | 11.181 | -90.518 | - | reference_only | - |
+| MlaPrologV3 | a1966a9c7e44 | 21 | compared | 1342.506 | 451.382 | -891.124 | -66.4% | relative_15pct | false |
+| MlaPrologV3 | 866a02e6fa01 | 57 | compared | 1248.166 | 451.382 | -796.784 | -63.8% | relative_15pct | false |
+| LightningIndexer | 5b7395d0ae98 | 21 | compared | 1492.464 | 1873.906 | 381.442 | +25.6% | relative_15pct | false |
+| GroupedMatmulSwigluQuantV2 | 12e608683d8c | 75 | compared | 1323.133 | 1275.932 | -47.201 | -3.6% | relative_15pct | true |
+| MoeGatingTopK | 9f68326c7680 | 75 | reference_only | 101.699 | 11.181 | -90.518 | - | reference_only | - |
 
 ## a3_glm53_prefill_shared_quant / source_shared_int32_conditional
 
-Graph: `sha256:0e558bd4b1af23576c8204e3238e5acd3de53779b178d0966fb07daaf9ba0521`.
+Graph: `sha256:cf74400ad99eb9177a9d35651f98f6b3ca9e7629abd5588d64b165a779b6894e`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -201,15 +201,15 @@ Graph: `sha256:0e558bd4b1af23576c8204e3238e5acd3de53779b178d0966fb07daaf9ba0521`
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| MlaPrologV3 | fdaa682a6927 | 21 | reference_only | 1342.506 | 491.634 | -850.872 | - | reference_only | - |
-| MlaPrologV3 | 76e795f16eb7 | 57 | reference_only | 1248.166 | 491.634 | -756.532 | - | reference_only | - |
-| GroupedMatmulSwigluQuantV2 | 4a1fc50a5427 | 75 | reference_only | 1323.133 | 600.368 | -722.765 | - | reference_only | - |
-| LightningIndexer | 8cb1a5387f35 | 21 | reference_only | 1492.464 | 1873.906 | 381.442 | - | reference_only | - |
-| MoeGatingTopK | 068ff48c2bab | 75 | reference_only | 101.699 | 13.462 | -88.237 | - | reference_only | - |
+| MlaPrologV3 | 90fdb9a1f668 | 21 | reference_only | 1342.506 | 491.634 | -850.872 | - | reference_only | - |
+| MlaPrologV3 | 72a02376f67d | 57 | reference_only | 1248.166 | 491.634 | -756.532 | - | reference_only | - |
+| GroupedMatmulSwigluQuantV2 | 696b2089b11f | 75 | reference_only | 1323.133 | 600.368 | -722.765 | - | reference_only | - |
+| LightningIndexer | 4a736fdbea06 | 21 | reference_only | 1492.464 | 1873.906 | 381.442 | - | reference_only | - |
+| MoeGatingTopK | 529a9c65364b | 75 | reference_only | 101.699 | 13.462 | -88.237 | - | reference_only | - |
 
 ## a3_glm53_decode / source_declared_unfused_reference
 
-Graph: `sha256:fb2fc64d62f7425b5fa76cf930db54897975c1efb96877142a4ebf8e6f46314e`.
+Graph: `sha256:1172f58016806920eb73d5c105cdeb2344dd3648413a930de99b8e9a387a00b3`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -259,15 +259,15 @@ None.
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| GroupedMatmulSwigluQuantV2 | 273c3ed9b9e2 | 5550 | reference_only | 88.039 | 15.557 | -72.482 | - | reference_only | - |
-| MlaPrologV3 | 3b92648d8108 | 1554 | reference_only | 41.291 | 38.014 | -3.277 | - | reference_only | - |
-| MlaPrologV3 | 0dcd3acad83a | 4218 | reference_only | 40.913 | 38.014 | -2.899 | - | reference_only | - |
-| LightningIndexer | de166070c677 | 1554 | reference_only | 24.905 | 7.500 | -17.405 | - | reference_only | - |
-| MoeGatingTopK | c7c0cbddfc8a | 5550 | reference_only | 4.013 | 7.500 | 3.487 | - | reference_only | - |
+| GroupedMatmulSwigluQuantV2 | 7427232611f7 | 5550 | reference_only | 88.039 | 15.557 | -72.482 | - | reference_only | - |
+| MlaPrologV3 | 84447ed1168a | 1554 | reference_only | 41.291 | 38.014 | -3.277 | - | reference_only | - |
+| MlaPrologV3 | 6da0e3029321 | 4218 | reference_only | 40.913 | 38.014 | -2.899 | - | reference_only | - |
+| LightningIndexer | 72e3619a6000 | 1554 | reference_only | 24.905 | 7.500 | -17.405 | - | reference_only | - |
+| MoeGatingTopK | 8e49a558ca6d | 5550 | reference_only | 4.013 | 7.500 | 3.487 | - | reference_only | - |
 
 ## a3_glm53_decode / selected_native_fusion
 
-Graph: `sha256:de5b454843d69005fa85ba5aae3a636a14d60a447fd77eacde015a23d125314f`.
+Graph: `sha256:e7eeaf62f053d4f47a3249913d4f9ca8217424d8985a4895b157a6d34e3b2dd4`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -322,15 +322,15 @@ Graph: `sha256:de5b454843d69005fa85ba5aae3a636a14d60a447fd77eacde015a23d125314f`
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| GroupedMatmulSwigluQuantV2 | aa32ef207ffd | 5550 | compared | 88.039 | 10.756 | -77.283 | -87.8% | relative_15pct | false |
-| LightningIndexer | b27417f69183 | 1554 | compared | 24.905 | 0.909 | -23.996 | -96.4% | absolute_15us | false |
-| MlaPrologV3 | 3a1c59cb2c4e | 1554 | compared | 41.291 | 18.327 | -22.963 | -55.6% | absolute_15us | false |
-| MlaPrologV3 | 195c50492b57 | 4218 | compared | 40.913 | 18.327 | -22.585 | -55.2% | absolute_15us | false |
-| MoeGatingTopK | 6deac7758ba0 | 5550 | reference_only | 4.013 | 0.003 | -4.010 | - | reference_only | - |
+| GroupedMatmulSwigluQuantV2 | 3a074dca1390 | 5550 | compared | 88.039 | 10.756 | -77.283 | -87.8% | relative_15pct | false |
+| LightningIndexer | 199f254172ad | 1554 | compared | 24.905 | 0.909 | -23.996 | -96.4% | absolute_15us | false |
+| MlaPrologV3 | 1d69c573e125 | 1554 | compared | 41.291 | 18.327 | -22.963 | -55.6% | absolute_15us | false |
+| MlaPrologV3 | 49db5f95419b | 4218 | compared | 40.913 | 18.327 | -22.585 | -55.2% | absolute_15us | false |
+| MoeGatingTopK | 5c0a0d62c5f0 | 5550 | reference_only | 4.013 | 0.003 | -4.010 | - | reference_only | - |
 
 ## a3_glm53_decode_shared_quant / source_shared_int32_conditional
 
-Graph: `sha256:eac22972be740053a58ad158ed09fa22849587298933008a4497677208ee69fb`.
+Graph: `sha256:079c8f939e5030ef1a06a950858e2a97787e46c0398197b273468032a7af658a`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -381,15 +381,15 @@ None.
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| GroupedMatmulSwigluQuantV2 | b5b0f8e42de3 | 5550 | reference_only | 88.039 | 15.557 | -72.482 | - | reference_only | - |
-| MlaPrologV3 | 1e962f1d73b0 | 1554 | reference_only | 41.291 | 38.014 | -3.277 | - | reference_only | - |
-| MlaPrologV3 | 1cac1b59e630 | 4218 | reference_only | 40.913 | 38.014 | -2.899 | - | reference_only | - |
-| LightningIndexer | 2938776a0164 | 1554 | reference_only | 24.905 | 7.500 | -17.405 | - | reference_only | - |
-| MoeGatingTopK | cc72ca720e14 | 5550 | reference_only | 4.013 | 7.500 | 3.487 | - | reference_only | - |
+| GroupedMatmulSwigluQuantV2 | 21f68b4bd356 | 5550 | reference_only | 88.039 | 15.557 | -72.482 | - | reference_only | - |
+| MlaPrologV3 | 6e2868d26d0a | 1554 | reference_only | 41.291 | 38.014 | -3.277 | - | reference_only | - |
+| MlaPrologV3 | c5f7ff218e66 | 4218 | reference_only | 40.913 | 38.014 | -2.899 | - | reference_only | - |
+| LightningIndexer | 0021d7c40165 | 1554 | reference_only | 24.905 | 7.500 | -17.405 | - | reference_only | - |
+| MoeGatingTopK | 2cbee4cfaa7c | 5550 | reference_only | 4.013 | 7.500 | 3.487 | - | reference_only | - |
 
 ## a3_qwen35 / case_default
 
-Graph: `sha256:612a05fe0104c8ff6909f7a01782329a924623b0161aa052db4c444b20178f99`.
+Graph: `sha256:eb1b3bf219e4d3b8e1de4fa3482e4e1b9c776596167c7f5fcaf3b4f0ea2ff53f`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -443,12 +443,12 @@ Graph: `sha256:612a05fe0104c8ff6909f7a01782329a924623b0161aa052db4c444b20178f99`
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| MoeGatingTopK | 83ddb50a5241 | 82 | compared | 243.864 | 7.944 | -235.920 | -96.7% | relative_15pct | false |
-| GroupedMatmulSwigluQuant | fe0f00cfb280 | 2680 | reference_only | 81.007 | 344.126 | 263.118 | - | reference_only | - |
+| MoeGatingTopK | f8495a5abc28 | 82 | compared | 243.864 | 7.944 | -235.920 | -96.7% | relative_15pct | false |
+| GroupedMatmulSwigluQuant | 5a83a825fdcf | 2680 | reference_only | 81.007 | 344.126 | 263.118 | - | reference_only | - |
 
 ## a3_qwen35_paged_prefill_q8192 / paged_body_geometry_conditional
 
-Graph: `sha256:13f8556ff1eb3178e0c716611c54197a4e6924e78eb0b08317dea71b487c56e9`.
+Graph: `sha256:86dbb1cafa63f0deeab2c4bfd9ec046f66cd42868973b14ce0ccf8de2a921ffb`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -502,12 +502,12 @@ Graph: `sha256:13f8556ff1eb3178e0c716611c54197a4e6924e78eb0b08317dea71b487c56e9`
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| MoeGatingTopK | 02f530feac8b | 82 | compared | 243.864 | 7.944 | -235.920 | -96.7% | relative_15pct | false |
-| GroupedMatmulSwigluQuant | 1893e381e021 | 2680 | reference_only | 81.007 | 344.126 | 263.118 | - | reference_only | - |
+| MoeGatingTopK | 6f093b3ff837 | 82 | compared | 243.864 | 7.944 | -235.920 | -96.7% | relative_15pct | false |
+| GroupedMatmulSwigluQuant | e948c644eb0b | 2680 | reference_only | 81.007 | 344.126 | 263.118 | - | reference_only | - |
 
 ## a3_qwen35_paged_decode_q1 / paged_body_geometry_conditional
 
-Graph: `sha256:41bd390fb7cf9cbd684879a1b93fdbdd8858be3ba9a0511e40077828e9935640`.
+Graph: `sha256:73a14541946bbec1df06c71a42affa9b9a5c4afed3d92f1d1d6bcaeb8e4b2daf`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -547,11 +547,11 @@ None.
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| GroupedMatmulSwigluQuant | 6c7676bc05f1 | 2680 | reference_only | 81.007 | 10.000 | -71.007 | - | reference_only | - |
+| GroupedMatmulSwigluQuant | d1eb68adca54 | 2680 | reference_only | 81.007 | 10.000 | -71.007 | - | reference_only | - |
 
 ## a3_qwen35_paged_decode_q2 / paged_body_geometry_conditional
 
-Graph: `sha256:a2f0e933fd841be9b01eabd9a022ddf788706d6ad6d2b7bed7e83efa759f02e4`.
+Graph: `sha256:1832150af6f41946284146e063dc0677ea9419497e343ed642d476c1bc1b553f`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -603,12 +603,12 @@ Graph: `sha256:a2f0e933fd841be9b01eabd9a022ddf788706d6ad6d2b7bed7e83efa759f02e4`
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| MoeGatingTopK | 9cb50b5571e8 | 2665 | compared | 4.565 | 2.500 | -2.065 | -45.2% | absolute_15us | true |
-| GroupedMatmulSwigluQuant | d67e0cba7033 | 2680 | reference_only | 81.007 | 12.039 | -68.968 | - | reference_only | - |
+| MoeGatingTopK | aa1dfc7f9acf | 2665 | compared | 4.565 | 2.500 | -2.065 | -45.2% | absolute_15us | true |
+| GroupedMatmulSwigluQuant | bcf87984aac1 | 2680 | reference_only | 81.007 | 12.039 | -68.968 | - | reference_only | - |
 
 ## a3_qwen36 / case_default
 
-Graph: `sha256:c94cfa15d4a83655ad4db4bbbae68e29181a6c7d1d8797ccd1a84e300f92467e`.
+Graph: `sha256:ad503a8a46e605995c869b6d51ad0c5c47c33e41c87616c638133d1ea4612608`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -662,7 +662,7 @@ Graph: `sha256:c94cfa15d4a83655ad4db4bbbae68e29181a6c7d1d8797ccd1a84e300f92467e`
 
 ## a3_qwen36_paged_prefill_q8192 / paged_body_geometry_conditional
 
-Graph: `sha256:08bcfa4dc8c036ddf56e5705dbca9822f7b363b39b73073435fa6aa9d12ecb79`.
+Graph: `sha256:6b055a57e6bde19bd49e60855358b6fc3d38ef5770234f14857742a745525ec6`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -716,7 +716,7 @@ Graph: `sha256:08bcfa4dc8c036ddf56e5705dbca9822f7b363b39b73073435fa6aa9d12ecb79`
 
 ## a3_qwen36_paged_decode_q1 / paged_body_geometry_conditional
 
-Graph: `sha256:df571a257a44db62337b9b98bc338bf164d70430c9899bf8f96e6dcee9a326c1`.
+Graph: `sha256:8838546391f32bb525afe558649ca23b99ea703181b78b8e587a79cf3be30449`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -762,7 +762,7 @@ None.
 
 ## a3_qwen36_paged_decode_q4 / paged_body_geometry_conditional
 
-Graph: `sha256:b70ac3aa1db108c1d9d486840f8ef8521cafd11fa6483d6c7dcffa3769814409`.
+Graph: `sha256:7f9001d99bfc4fca4892759a9e30b80eb7d34a9d4d26c882c82b8ac8df8abe13`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -814,11 +814,11 @@ None.
 
 ## a3_v4f / case_default
 
-Graph: `sha256:167eeb53f3ff5135c399d1d1b49eb0b21587ab0c85ab7a366f3fe2b19b47d8b6`.
+Graph: `sha256:3ce7f00a1d9aa57b78e83ee6518b4d8f00731b2d471a8215aabdd1065cf60817`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| relative_15pct | 15 | 1 | 14 | 44 | 507 |
+| relative_15pct | 16 | 2 | 14 | 88 | 507 |
 | absolute_15us | 1 | 0 | 1 | 0 | 65 |
 
 ### Large-call errors: observed mean > 50 us
@@ -842,7 +842,7 @@ Graph: `sha256:167eeb53f3ff5135c399d1d1b49eb0b21587ab0c85ab7a366f3fe2b19b47d8b6`
 
 | Native family | Tier | All events | Scored events | Reference events | Scored observed ms | Predicted ms | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Pass / fail cohorts |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| QuantBatchMatmulV3 | relative_15pct | 241 | 44 | 0 | 6.876 | 6.390 | 156.268 | 145.237 | -11.031 | -7.1% | 1 / 0 |
+| QuantBatchMatmulV3 | relative_15pct | 241 | 88 | 0 | 9.791 | 9.268 | 111.257 | 105.320 | -5.937 | -5.3% | 2 / 0 |
 
 ### Unscored coverage: highest activity families
 
@@ -852,7 +852,7 @@ Graph: `sha256:167eeb53f3ff5135c399d1d1b49eb0b21587ab0c85ab7a366f3fe2b19b47d8b6`
 | hcom_allReduce_ | 90 | 57.196 | 0 | no_tensor_candidates (90) |
 | allreduceAicpuKernel | 90 | 38.762 | 0 | no_tensor_candidates (90) |
 | HcPre | 88 | 37.975 | 88 | unfused_subgraph_is_not_the_observed_native_kernel (88) |
-| QuantBatchMatmulV3 | 241 | 28.176 | 0 | candidate_physical_work_differs (44), no_tensor_candidates (44) |
+| QuantBatchMatmulV3 | 241 | 28.176 | 0 | no_tensor_candidates (44) |
 | Compressor | 62 | 27.361 | 0 | no_tensor_candidates (62) |
 | hcom_allGather_ | 136 | 27.292 | 0 | no_tensor_candidates (136) |
 | RmsNorm | 182 | 26.287 | 0 | no_tensor_candidates (136) |
@@ -863,18 +863,18 @@ Graph: `sha256:167eeb53f3ff5135c399d1d1b49eb0b21587ab0c85ab7a366f3fe2b19b47d8b6`
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| HcPost | 7fd5b2872c5c | 88 | compared | 418.375 | 251.931 | -166.444 | -39.8% | relative_15pct | false |
-| HcPre | 1d5888fcba73 | 88 | reference_only | 431.534 | 929.570 | 498.036 | - | reference_only | - |
-| GroupedMatmulSwigluQuant | c053836b873b | 44 | reference_only | 588.788 | 5681.584 | 5092.796 | - | reference_only | - |
-| VllmAscendQuantLightningIndexerV2 | 15ae241c83ef | 21 | reference_only | 399.030 | 248.045 | -150.985 | - | reference_only | - |
+| HcPost | 1403c7ac8af2 | 88 | compared | 418.375 | 251.931 | -166.444 | -39.8% | relative_15pct | false |
+| HcPre | 4c5be142ab45 | 88 | reference_only | 431.534 | 929.570 | 498.036 | - | reference_only | - |
+| GroupedMatmulSwigluQuant | 18295db0d7a2 | 44 | reference_only | 588.788 | 5681.584 | 5092.796 | - | reference_only | - |
+| VllmAscendQuantLightningIndexerV2 | b48a80592a38 | 21 | reference_only | 399.030 | 248.045 | -150.985 | - | reference_only | - |
 
 ## a3_v4f / selected_native_fusion
 
-Graph: `sha256:07f8d631b3a4854810e4e16f39160016df67d63e84bff8118c6681bc3f359881`.
+Graph: `sha256:d1a3679aabec051344c7ad1e24083b5643ef6ae01e6f4383f997add12d85580f`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| relative_15pct | 16 | 1 | 15 | 44 | 595 |
+| relative_15pct | 17 | 2 | 15 | 88 | 595 |
 | absolute_15us | 1 | 0 | 1 | 0 | 65 |
 
 ### Large-call errors: observed mean > 50 us
@@ -899,7 +899,7 @@ Graph: `sha256:07f8d631b3a4854810e4e16f39160016df67d63e84bff8118c6681bc3f359881`
 
 | Native family | Tier | All events | Scored events | Reference events | Scored observed ms | Predicted ms | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Pass / fail cohorts |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| QuantBatchMatmulV3 | relative_15pct | 241 | 44 | 0 | 6.876 | 6.390 | 156.268 | 145.237 | -11.031 | -7.1% | 1 / 0 |
+| QuantBatchMatmulV3 | relative_15pct | 241 | 88 | 0 | 9.791 | 9.268 | 111.257 | 105.320 | -5.937 | -5.3% | 2 / 0 |
 
 ### Unscored coverage: highest activity families
 
@@ -908,7 +908,7 @@ Graph: `sha256:07f8d631b3a4854810e4e16f39160016df67d63e84bff8118c6681bc3f359881`
 | hcom_alltoallv_ | 264 | 64.783 | 0 | no_tensor_candidates (264) |
 | hcom_allReduce_ | 90 | 57.196 | 0 | no_tensor_candidates (90) |
 | allreduceAicpuKernel | 90 | 38.762 | 0 | no_tensor_candidates (90) |
-| QuantBatchMatmulV3 | 241 | 28.176 | 0 | candidate_physical_work_differs (44), no_tensor_candidates (44) |
+| QuantBatchMatmulV3 | 241 | 28.176 | 0 | no_tensor_candidates (44) |
 | Compressor | 62 | 27.361 | 0 | no_tensor_candidates (62) |
 | hcom_allGather_ | 136 | 27.292 | 0 | no_tensor_candidates (136) |
 | RmsNorm | 182 | 26.287 | 0 | no_tensor_candidates (136) |
@@ -920,18 +920,18 @@ Graph: `sha256:07f8d631b3a4854810e4e16f39160016df67d63e84bff8118c6681bc3f359881`
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| HcPre | a497063ee99f | 88 | compared | 431.534 | 721.545 | 290.011 | +67.2% | relative_15pct | false |
-| HcPost | b340de554166 | 88 | compared | 418.375 | 297.336 | -121.038 | -28.9% | relative_15pct | false |
-| GroupedMatmulSwigluQuant | 2dd11eb37d7e | 44 | reference_only | 588.788 | 5681.584 | 5092.796 | - | reference_only | - |
-| VllmAscendQuantLightningIndexerV2 | ef6242cb228d | 21 | reference_only | 399.030 | 248.045 | -150.985 | - | reference_only | - |
+| HcPre | e3c487ac3c2c | 88 | compared | 431.534 | 721.545 | 290.011 | +67.2% | relative_15pct | false |
+| HcPost | b1bfd7891cf4 | 88 | compared | 418.375 | 297.336 | -121.038 | -28.9% | relative_15pct | false |
+| GroupedMatmulSwigluQuant | 2ae9f9789a26 | 44 | reference_only | 588.788 | 5681.584 | 5092.796 | - | reference_only | - |
+| VllmAscendQuantLightningIndexerV2 | 25a5374ac55a | 21 | reference_only | 399.030 | 248.045 | -150.985 | - | reference_only | - |
 
 ## a3_v4f_compressor_fp32 / source_compressor_fp32_conditional_reference
 
-Graph: `sha256:9b0a09f327e42013d931d2e516160b92ac313f58a895091e15a521caf320fa09`.
+Graph: `sha256:706c8dc7b7049afd0245200c8d752e308609df7f3503320346679f59af59c816`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| relative_15pct | 16 | 1 | 15 | 44 | 595 |
+| relative_15pct | 17 | 2 | 15 | 88 | 595 |
 | absolute_15us | 1 | 0 | 1 | 0 | 65 |
 
 ### Large-call errors: observed mean > 50 us
@@ -956,7 +956,7 @@ Graph: `sha256:9b0a09f327e42013d931d2e516160b92ac313f58a895091e15a521caf320fa09`
 
 | Native family | Tier | All events | Scored events | Reference events | Scored observed ms | Predicted ms | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Pass / fail cohorts |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| QuantBatchMatmulV3 | relative_15pct | 241 | 44 | 0 | 6.876 | 6.390 | 156.268 | 145.237 | -11.031 | -7.1% | 1 / 0 |
+| QuantBatchMatmulV3 | relative_15pct | 241 | 88 | 0 | 9.791 | 9.268 | 111.257 | 105.320 | -5.937 | -5.3% | 2 / 0 |
 
 ### Unscored coverage: highest activity families
 
@@ -965,7 +965,7 @@ Graph: `sha256:9b0a09f327e42013d931d2e516160b92ac313f58a895091e15a521caf320fa09`
 | hcom_alltoallv_ | 264 | 64.783 | 0 | no_tensor_candidates (264) |
 | hcom_allReduce_ | 90 | 57.196 | 0 | no_tensor_candidates (90) |
 | allreduceAicpuKernel | 90 | 38.762 | 0 | no_tensor_candidates (90) |
-| QuantBatchMatmulV3 | 241 | 28.176 | 0 | candidate_physical_work_differs (44), no_tensor_candidates (44) |
+| QuantBatchMatmulV3 | 241 | 28.176 | 0 | no_tensor_candidates (44) |
 | Compressor | 62 | 27.361 | 62 | unfused_subgraph_is_not_the_observed_native_kernel (62) |
 | hcom_allGather_ | 136 | 27.292 | 0 | no_tensor_candidates (136) |
 | RmsNorm | 182 | 26.287 | 0 | no_tensor_candidates (136) |
@@ -977,17 +977,17 @@ Graph: `sha256:9b0a09f327e42013d931d2e516160b92ac313f58a895091e15a521caf320fa09`
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| HcPre | ca7251d5b671 | 88 | compared | 431.534 | 721.545 | 290.011 | +67.2% | relative_15pct | false |
-| HcPost | 71115b8e2df4 | 88 | compared | 418.375 | 297.336 | -121.038 | -28.9% | relative_15pct | false |
-| Compressor | cd5607523164 | 21 | reference_only | 758.193 | 497.229 | -260.965 | - | reference_only | - |
-| Compressor | 1eae9c56b650 | 21 | reference_only | 239.132 | 155.065 | -84.068 | - | reference_only | - |
-| Compressor | ae5cf546211c | 20 | reference_only | 320.864 | 269.222 | -51.642 | - | reference_only | - |
-| GroupedMatmulSwigluQuant | e56632764c36 | 44 | reference_only | 588.788 | 5681.584 | 5092.796 | - | reference_only | - |
-| VllmAscendQuantLightningIndexerV2 | adfc89af6880 | 21 | reference_only | 399.030 | 248.045 | -150.985 | - | reference_only | - |
+| HcPre | 390cd3728e11 | 88 | compared | 431.534 | 721.545 | 290.011 | +67.2% | relative_15pct | false |
+| HcPost | dcea8f30376c | 88 | compared | 418.375 | 297.336 | -121.038 | -28.9% | relative_15pct | false |
+| Compressor | ef9f926a5541 | 21 | reference_only | 758.193 | 497.229 | -260.965 | - | reference_only | - |
+| Compressor | a181718e2a0c | 21 | reference_only | 239.132 | 155.065 | -84.068 | - | reference_only | - |
+| Compressor | 1a44535f8add | 20 | reference_only | 320.864 | 269.222 | -51.642 | - | reference_only | - |
+| GroupedMatmulSwigluQuant | 663dec09b188 | 44 | reference_only | 588.788 | 5681.584 | 5092.796 | - | reference_only | - |
+| VllmAscendQuantLightningIndexerV2 | 9e7a994df639 | 21 | reference_only | 399.030 | 248.045 | -150.985 | - | reference_only | - |
 
 ## a3_v4f_shared_quant / source_shared_int32_conditional
 
-Graph: `sha256:9220bc7ec22b162a3d1a9d1776c3d939b9566f46f2347796ea1686a25eb4cfa4`.
+Graph: `sha256:0d6efa768fda03e835adb312f6af9d0641a505847ace86a1270025913e1e671b`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -1037,14 +1037,14 @@ Graph: `sha256:9220bc7ec22b162a3d1a9d1776c3d939b9566f46f2347796ea1686a25eb4cfa4`
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| HcPost | c26c46432f80 | 88 | compared | 418.375 | 251.931 | -166.444 | -39.8% | relative_15pct | false |
-| HcPre | a73a0001c639 | 88 | reference_only | 431.534 | 929.570 | 498.036 | - | reference_only | - |
-| GroupedMatmulSwigluQuant | e0b68d8ba92c | 44 | reference_only | 588.788 | 5681.584 | 5092.796 | - | reference_only | - |
-| VllmAscendQuantLightningIndexerV2 | 44448c57c65d | 21 | reference_only | 399.030 | 248.045 | -150.985 | - | reference_only | - |
+| HcPost | f55fd00b7f26 | 88 | compared | 418.375 | 251.931 | -166.444 | -39.8% | relative_15pct | false |
+| HcPre | 454345ef63d5 | 88 | reference_only | 431.534 | 929.570 | 498.036 | - | reference_only | - |
+| GroupedMatmulSwigluQuant | 0a33af156d31 | 44 | reference_only | 588.788 | 5681.584 | 5092.796 | - | reference_only | - |
+| VllmAscendQuantLightningIndexerV2 | a59eb135c49a | 21 | reference_only | 399.030 | 248.045 | -150.985 | - | reference_only | - |
 
 ## a3_v4pro / case_default
 
-Graph: `sha256:cc0d61b9b2126c6983f3f06f729ff858ad35310e4bdd40cabf4e77d54b9d2c9c`.
+Graph: `sha256:1b899932306810944d119c8e0ebe37617c3f33a23d95607ce39b2db0303432df`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -1095,14 +1095,14 @@ Graph: `sha256:cc0d61b9b2126c6983f3f06f729ff858ad35310e4bdd40cabf4e77d54b9d2c9c`
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| HcPost | 3a6127304c54 | 496 | compared | 202.098 | 110.169 | -91.930 | -45.5% | relative_15pct | false |
-| GroupedMatmulSwigluQuantV2 | 2ce51e2fc1b2 | 248 | reference_only | 395.623 | 805.300 | 409.678 | - | reference_only | - |
-| HcPre | b3e79bd75156 | 496 | reference_only | 191.803 | 456.342 | 264.539 | - | reference_only | - |
-| VllmAscendQuantLightningIndexerV2 | 81ba47198748 | 120 | reference_only | 113.425 | 18.539 | -94.886 | - | reference_only | - |
+| HcPost | ea18a55f6ba0 | 496 | compared | 202.098 | 110.169 | -91.930 | -45.5% | relative_15pct | false |
+| GroupedMatmulSwigluQuantV2 | 5e7ed6d0a068 | 248 | reference_only | 395.623 | 805.300 | 409.678 | - | reference_only | - |
+| HcPre | 9dc2d3a0ada2 | 496 | reference_only | 191.803 | 456.342 | 264.539 | - | reference_only | - |
+| VllmAscendQuantLightningIndexerV2 | 5169b0c06dfc | 120 | reference_only | 113.425 | 18.539 | -94.886 | - | reference_only | - |
 
 ## a3_v4pro / selected_native_fusion
 
-Graph: `sha256:7a639007bccd5b9fcea4954af3d589c4dc4843f76c2faddd7883945bbbb949f5`.
+Graph: `sha256:69ee3b2cfdad232005411f6b62d831d7db29e9b03fd7dc49f94dd9295eb1c195`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -1154,14 +1154,14 @@ Graph: `sha256:7a639007bccd5b9fcea4954af3d589c4dc4843f76c2faddd7883945bbbb949f5`
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| HcPost | c5c9f99bc0a9 | 496 | compared | 202.098 | 129.751 | -72.348 | -35.8% | relative_15pct | false |
-| HcPre | 91a77df2c043 | 496 | compared | 191.803 | 316.457 | 124.653 | +65.0% | relative_15pct | false |
-| GroupedMatmulSwigluQuantV2 | 792afb84e19d | 248 | reference_only | 395.623 | 805.300 | 409.678 | - | reference_only | - |
-| VllmAscendQuantLightningIndexerV2 | c66c89287651 | 120 | reference_only | 113.425 | 18.539 | -94.886 | - | reference_only | - |
+| HcPost | 092ed31d70ce | 496 | compared | 202.098 | 129.751 | -72.348 | -35.8% | relative_15pct | false |
+| HcPre | 04d26de41982 | 496 | compared | 191.803 | 316.457 | 124.653 | +65.0% | relative_15pct | false |
+| GroupedMatmulSwigluQuantV2 | 02709b4b2927 | 248 | reference_only | 395.623 | 805.300 | 409.678 | - | reference_only | - |
+| VllmAscendQuantLightningIndexerV2 | 01971353a6f4 | 120 | reference_only | 113.425 | 18.539 | -94.886 | - | reference_only | - |
 
 ## a3_v4pro_compressor_fp32 / source_compressor_fp32_conditional_reference
 
-Graph: `sha256:311fcead3ad15366ff2114dae253e696e05535629767c5320a5b9107a9ca1d2d`.
+Graph: `sha256:71752ab365ae6406036a4f28e9f8a777d2da11342ffb9ab1571f154f17fa5632`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -1213,29 +1213,29 @@ Graph: `sha256:311fcead3ad15366ff2114dae253e696e05535629767c5320a5b9107a9ca1d2d`
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| HcPost | 76a3d7df96f3 | 496 | compared | 202.098 | 129.751 | -72.348 | -35.8% | relative_15pct | false |
-| HcPre | c45d0c017108 | 496 | compared | 191.803 | 316.457 | 124.653 | +65.0% | relative_15pct | false |
-| GroupedMatmulSwigluQuantV2 | b630cbe6bda3 | 248 | reference_only | 395.623 | 805.300 | 409.678 | - | reference_only | - |
-| Compressor | 776bfc94db4f | 124 | reference_only | 148.297 | 133.388 | -14.909 | - | reference_only | - |
-| Compressor | 32afa02671c1 | 120 | reference_only | 300.533 | 259.974 | -40.559 | - | reference_only | - |
-| Compressor | c1cde179774f | 120 | reference_only | 192.197 | 70.161 | -122.036 | - | reference_only | - |
-| VllmAscendQuantLightningIndexerV2 | e91be672d424 | 120 | reference_only | 113.425 | 18.539 | -94.886 | - | reference_only | - |
+| HcPost | b25f17118a6e | 496 | compared | 202.098 | 129.751 | -72.348 | -35.8% | relative_15pct | false |
+| HcPre | 556710268857 | 496 | compared | 191.803 | 316.457 | 124.653 | +65.0% | relative_15pct | false |
+| GroupedMatmulSwigluQuantV2 | 11f1854626bc | 248 | reference_only | 395.623 | 805.300 | 409.678 | - | reference_only | - |
+| Compressor | c223e9a956ab | 124 | reference_only | 148.297 | 133.388 | -14.909 | - | reference_only | - |
+| Compressor | 13fe9ff846f1 | 120 | reference_only | 300.533 | 259.974 | -40.559 | - | reference_only | - |
+| Compressor | 9f1fcd6744ca | 120 | reference_only | 192.197 | 70.161 | -122.036 | - | reference_only | - |
+| VllmAscendQuantLightningIndexerV2 | f56c3b310f2f | 120 | reference_only | 113.425 | 18.539 | -94.886 | - | reference_only | - |
 
 ## a5_kimi_k3 / case_default
 
-Graph: `sha256:b3c2f8fd8e41d24fc1a8cd7e6733654b2697416069104c5a66698d0cea701b51`.
+Graph: `sha256:c90b4894bc025bfd8bdef8d7a1fb18cd6f700f4f72b6171ff0c6bf39bd3a76e2`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| relative_15pct | 2 | 0 | 2 | 0 | 343 |
+| relative_15pct | 3 | 0 | 3 | 0 | 439 |
 | absolute_15us | 0 | 0 | 0 | 0 | 0 |
 
 ### Large-call errors: observed mean > 50 us
 
 | Native family | Tier | All events | Scored events | Reference events | Scored observed ms | Predicted ms | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Pass / fail cohorts |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| MatMulV3 | relative_15pct | 21819 | 163 | 0 | 46.985 | 72.764 | 288.250 | 446.402 | 158.153 | +54.9% | 0 / 2 |
 | layer_norm_gated_fwd_kernel | relative_15pct | 5451 | 276 | 0 | 37.608 | 5.209 | 136.262 | 18.874 | -117.388 | -86.1% | 0 / 1 |
-| MatMulV3 | relative_15pct | 21819 | 67 | 0 | 6.178 | 4.957 | 92.208 | 73.978 | -18.230 | -19.8% | 0 / 1 |
 
 ### Small-call errors: absolute per-call difference > 15 us
 
@@ -1254,7 +1254,7 @@ None.
 | GroupedMatmul | 27248 | 813.481 | 0 | no_tensor_candidates (27248) |
 | HcclLaunchAicpuKernel | 1543 | 683.214 | 0 | no_tensor_candidates (1543) |
 | GroupedMatmulSituQuant | 7266 | 666.877 | 0 | no_tensor_candidates (7266) |
-| MatMulV3 | 21819 | 656.394 | 0 | no_tensor_candidates (21656), candidate_physical_work_differs (96) |
+| MatMulV3 | 21819 | 656.394 | 0 | no_tensor_candidates (21656) |
 | MatmulReduceScatterV2Mc2AicpuKernel | 744 | 638.124 | 0 | no_tensor_candidates (744) |
 | SituMxQuant | 7266 | 503.437 | 0 | no_tensor_candidates (7266) |
 | QuantBatchMatmulV4 | 14531 | 431.003 | 0 | no_tensor_candidates (14531) |
@@ -1268,12 +1268,12 @@ None.
 
 ## a5_kimi_k3_decode / source_declared_unfused_reference
 
-Graph: `sha256:8dcaa2c8e82317c962376b4b53f25a6e52bb286f94d5f78271dbd9b9ef1269f0`.
+Graph: `sha256:a84d6cb3f6ecbb19a911cf03ffcc8f0041c1ccb59bb400377afa605aeb8c6d19`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | relative_15pct | 1 | 0 | 1 | 0 | 67 |
-| absolute_15us | 3 | 3 | 0 | 8838 | 0 |
+| absolute_15us | 4 | 4 | 0 | 10636 | 0 |
 
 ### Large-call errors: observed mean > 50 us
 
@@ -1289,7 +1289,7 @@ None.
 
 | Native family | Tier | All events | Scored events | Reference events | Scored observed ms | Predicted ms | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Pass / fail cohorts |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| MatMulV3 | absolute_15us | 21819 | 6973 | 0 | 87.407 | 44.244 | 12.535 | 6.345 | -6.190 | -49.4% | 1 / 0 |
+| MatMulV3 | absolute_15us | 21819 | 8771 | 0 | 117.848 | 70.853 | 13.436 | 8.078 | -5.358 | -39.9% | 2 / 0 |
 | TransposeBatchMatMul | absolute_15us | 1798 | 1798 | 0 | 10.496 | 1.908 | 5.838 | 1.061 | -4.776 | -81.8% | 1 / 0 |
 | RmsNorm | absolute_15us | 259 | 67 | 0 | 0.292 | 0.001 | 4.358 | 0.011 | -4.347 | -99.8% | 1 / 0 |
 
@@ -1302,7 +1302,7 @@ None.
 | GroupedMatmul | 27248 | 813.481 | 0 | no_tensor_candidates (27248) |
 | HcclLaunchAicpuKernel | 1543 | 683.214 | 0 | no_tensor_candidates (1543) |
 | GroupedMatmulSituQuant | 7266 | 666.877 | 0 | no_tensor_candidates (7266) |
-| MatMulV3 | 21819 | 656.394 | 0 | no_tensor_candidates (12981), candidate_physical_work_differs (1798) |
+| MatMulV3 | 21819 | 656.394 | 0 | no_tensor_candidates (12981) |
 | MatmulReduceScatterV2Mc2AicpuKernel | 744 | 638.124 | 0 | no_tensor_candidates (744) |
 | SituMxQuant | 7266 | 503.437 | 0 | no_tensor_candidates (7266) |
 | QuantBatchMatmulV4 | 14531 | 431.003 | 0 | no_tensor_candidates (14531) |
@@ -1316,7 +1316,7 @@ None.
 
 ## a5_kimi_k3_checkpoint / current_checkpoint_conditional
 
-Graph: `sha256:586aa1126db6aadda8dc709fbe59de4324287b912fb84e481a8bf5749b7016c2`.
+Graph: `sha256:e4f468f6fd1726549f7701745aad8c356c444bba7455938ef5f669a0a816c2a8`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -1362,12 +1362,12 @@ None.
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| SituMxQuant | e28ac1a25b26 | 368 | compared | 147.124 | 14.953 | -132.172 | -89.8% | relative_15pct | false |
-| GroupedMatmulSituQuant | 1bb2bab42f39 | 7266 | reference_only | 91.780 | 11336.311 | 11244.530 | - | reference_only | - |
+| SituMxQuant | 2b531219918e | 368 | compared | 147.124 | 14.953 | -132.172 | -89.8% | relative_15pct | false |
+| GroupedMatmulSituQuant | 05cac90eb1ed | 7266 | reference_only | 91.780 | 11336.311 | 11244.530 | - | reference_only | - |
 
 ## a5_kimi_k3_decode_checkpoint / current_checkpoint_conditional
 
-Graph: `sha256:cdb020e16572c812a73329db7ab53cb7cac36953146500b9caa5b4aa0456fa1c`.
+Graph: `sha256:5762f6d1c43f3ab585ffe750a5b8bea7168ef3729a15e7dfab3f1ae5995a4ab6`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -1414,13 +1414,13 @@ None.
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| SituMxQuant | 500c945e14d4 | 6898 | compared | 65.134 | 0.002 | -65.132 | -100.0% | relative_15pct | false |
-| GroupedMatmulSituQuant | df42e867aca7 | 7266 | reference_only | 91.780 | 7.735 | -84.045 | - | reference_only | - |
-| MlaPrologV3 | 04e553830c14 | 1798 | reference_only | 22.248 | 17.439 | -4.809 | - | reference_only | - |
+| SituMxQuant | cd38938eb970 | 6898 | compared | 65.134 | 0.002 | -65.132 | -100.0% | relative_15pct | false |
+| GroupedMatmulSituQuant | 3f44ae69bcef | 7266 | reference_only | 91.780 | 7.735 | -84.045 | - | reference_only | - |
+| MlaPrologV3 | 67264fdbcce3 | 1798 | reference_only | 22.248 | 17.439 | -4.809 | - | reference_only | - |
 
 ## a5_kimi_k3_checkpoint_eager_single_group / source_single_group_mxfp8_conditional
 
-Graph: `sha256:00a5891938fc06d5e95ee78ba7c02ccdf6019334a12fdef1663710770ed2d5ce`.
+Graph: `sha256:2862a4dfb103945fd1123442efd028a2af518d4fdbffa36b831be7ffe87e2136`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -1466,12 +1466,12 @@ None.
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| SituMxQuant | c76aae3cb95b | 368 | compared | 147.124 | 14.953 | -132.172 | -89.8% | relative_15pct | false |
-| GroupedMatmulSituQuant | a047a342334c | 7266 | reference_only | 91.780 | 11336.311 | 11244.530 | - | reference_only | - |
+| SituMxQuant | 84a08df292e2 | 368 | compared | 147.124 | 14.953 | -132.172 | -89.8% | relative_15pct | false |
+| GroupedMatmulSituQuant | 8d827c43a802 | 7266 | reference_only | 91.780 | 11336.311 | 11244.530 | - | reference_only | - |
 
 ## a5_kimi_k3_decode_checkpoint_eager_single_group / source_single_group_mxfp8_conditional
 
-Graph: `sha256:df4c839f68bc310ab89a8b43582e166badd2412162ce41938dd563bde4827acd`.
+Graph: `sha256:6f8029d1a8c41e022f593ad3cfb4e144aabf6cc893810380a7094ea14c26bc1a`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -1519,13 +1519,64 @@ None.
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| SituMxQuant | 510aa9df8084 | 6898 | compared | 65.134 | 0.002 | -65.132 | -100.0% | relative_15pct | false |
-| GroupedMatmulSituQuant | 3788bb1d3d1e | 7266 | reference_only | 91.780 | 7.735 | -84.045 | - | reference_only | - |
-| MlaPrologV3 | bf69d508dfbf | 1798 | reference_only | 22.248 | 17.439 | -4.809 | - | reference_only | - |
+| SituMxQuant | 5ebf5baf27a2 | 6898 | compared | 65.134 | 0.002 | -65.132 | -100.0% | relative_15pct | false |
+| GroupedMatmulSituQuant | 1abe8b0ec7a7 | 7266 | reference_only | 91.780 | 7.735 | -84.045 | - | reference_only | - |
+| MlaPrologV3 | 4e0c0c7643a2 | 1798 | reference_only | 22.248 | 17.439 | -4.809 | - | reference_only | - |
+
+## a5_kimi_k3_checkpoint_eager_single_group_sp / source_sp_single_group_mxfp8_conditional
+
+Graph: `sha256:2396d2f42e764add9d4b407fe5a4890ddae427df0ed02ee0479e9a8e596b132e`.
+
+| Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| relative_15pct | 9 | 0 | 9 | 0 | 2295 |
+| absolute_15us | 3 | 3 | 0 | 468 | 0 |
+
+### Large-call errors: observed mean > 50 us
+
+| Native family | Tier | All events | Scored events | Reference events | Scored observed ms | Predicted ms | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Pass / fail cohorts |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| DynamicMxQuant | relative_15pct | 22499 | 1112 | 0 | 76.142 | 49.483 | 68.473 | 44.499 | -23.975 | -35.0% | 0 / 2 |
+| GroupedMatmul | relative_15pct | 27248 | 736 | 0 | 54.112 | 79.330 | 73.522 | 107.785 | 34.263 | +46.6% | 0 / 2 |
+| MatMulV3 | relative_15pct | 21819 | 163 | 0 | 46.985 | 72.764 | 288.250 | 446.402 | 158.153 | +54.9% | 0 / 2 |
+| layer_norm_gated_fwd_kernel | relative_15pct | 5451 | 276 | 0 | 37.608 | 5.209 | 136.262 | 18.874 | -117.388 | -86.1% | 0 / 1 |
+| QuantBatchMatmulV3 | relative_15pct | 350 | 8 | 0 | 6.967 | 12.136 | 870.894 | 1516.942 | 646.048 | +74.2% | 0 / 2 |
+
+### Small-call errors: absolute per-call difference > 15 us
+
+None.
+
+### Within tolerance: separate from Top Errors
+
+| Native family | Tier | All events | Scored events | Reference events | Scored observed ms | Predicted ms | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Pass / fail cohorts |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| DynamicMxQuant | absolute_15us | 22499 | 468 | 0 | 4.411 | 3.067 | 9.425 | 6.554 | -2.871 | -30.5% | 3 / 0 |
+
+### Unscored coverage: highest activity families
+
+| Native family | All events | All activity ms | Reference events | Unscored reasons |
+| --- | ---: | ---: | ---: | --- |
+| hcom_alltoallv_AicpuKernel | 1104 | 919.190 | 0 | no_tensor_candidates (1104) |
+| ChunkKdaFwd | 1104 | 881.998 | 0 | no_tensor_candidates (1104) |
+| GroupedMatmul | 27248 | 813.481 | 0 | no_tensor_candidates (26512) |
+| HcclLaunchAicpuKernel | 1543 | 683.214 | 0 | no_tensor_candidates (1543) |
+| GroupedMatmulSituQuant | 7266 | 666.877 | 7266 | mxfp4_native_execution_unmodeled (7266) |
+| MatMulV3 | 21819 | 656.394 | 0 | no_tensor_candidates (21656) |
+| MatmulReduceScatterV2Mc2AicpuKernel | 744 | 638.124 | 0 | no_tensor_candidates (744) |
+| SituMxQuant | 7266 | 503.437 | 368 | no_tensor_candidates (6898), unfused_subgraph_is_not_the_observed_native_kernel (368) |
+| QuantBatchMatmulV4 | 14531 | 431.003 | 736 | no_tensor_candidates (13795), mxfp4_native_execution_unmodeled (736) |
+| hcom_allGather_ | 15203 | 409.082 | 0 | no_tensor_candidates (15203) |
+
+### Subgraph cohorts
+
+| Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
+| --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
+| GroupedMatmulSituQuant | e61c23cbbc20 | 7266 | reference_only | 91.780 | 11336.311 | 11244.530 | - | reference_only | - |
+| SituMxQuant | d9aeb5a37d2d | 368 | reference_only | 147.124 | 15.939 | -131.186 | - | reference_only | - |
 
 ## a5_qwen38 / case_default
 
-Graph: `sha256:12b62da5b83c5c8de72b0ca887692c3ca5c741c7c566b7753637dc42a141f663`.
+Graph: `sha256:998bf325fd495c64f675a7f2a1501095a6d66328ec8cb87dc9e6c98f999303be`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -1584,7 +1635,7 @@ None.
 
 ## a5_qwen38_steady / selected_steady_matrix_conditional
 
-Graph: `sha256:5d350819b7df59cc9ccd03eaf2cefbf0aaec2bde03b7453143c3438b61f8b057`.
+Graph: `sha256:0cae669dccd4ab2d8a66d9e760a2ba58158b564b7dbcd7eb21213f9ad481d12c`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -1642,7 +1693,7 @@ None.
 
 ## a5_qwen38_paged_prefill_q16384 / paged_body_geometry_conditional
 
-Graph: `sha256:8a23588c5063b383a1a8a96473fbebe6cde9726de788478d97168c4a0df336eb`.
+Graph: `sha256:dd8f8319b45e08f6925d4f27c90081bd973db0ae76456c7773b5a1ef1c57efae`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -1700,7 +1751,7 @@ None.
 
 ## a5_qwen38_paged_decode_q1 / paged_body_geometry_conditional
 
-Graph: `sha256:eff424b7e1ccaeb4424a6d19120120d12cccd8a65eab4429278b47bcc4b90e69`.
+Graph: `sha256:38a7563493708572538d35bb238fdac737c25c009998ad23a971ebb0b0767916`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -1746,7 +1797,7 @@ None.
 
 ## a5_qwen38_paged_decode_q4 / paged_body_geometry_conditional
 
-Graph: `sha256:8e04acd4a156cbdad65759f2a066acb5ae7a495c0edad2bdb5a47a6b1ca04dff`.
+Graph: `sha256:219a0dd593f3cdd9b0c02fd3ea9f40d62e9c537a2aa8975075681dff807982e2`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -1778,6 +1829,107 @@ None.
 | ScatterPaKvCache | absolute_15us | 228 | 187 | 0 | 0.659 | 0.002 | 3.525 | 0.008 | -3.517 | -99.8% | 1 / 0 |
 | QuantBatchMatmulV3 | relative_15pct | 1920 | 704 | 0 | 37.559 | 35.356 | 53.350 | 50.222 | -3.128 | -5.9% | 1 / 0 |
 | MatMulV3 | relative_15pct | 1956 | 11 | 0 | 8.125 | 7.256 | 738.650 | 659.638 | -79.012 | -10.7% | 1 / 0 |
+
+### Unscored coverage: highest activity families
+
+| Native family | All events | All activity ms | Reference events | Unscored reasons |
+| --- | ---: | ---: | ---: | --- |
+| QuantBatchMatmulV3 | 1920 | 781.406 | 0 | no_tensor_candidates (160) |
+| MatMulV3 | 1956 | 611.956 | 0 | no_tensor_candidates (328) |
+| FusedInferAttentionScore | 228 | 243.894 | 0 | no_tensor_candidates (41) |
+| ChunkGatedDeltaRuleFwdPrepare | 48 | 73.924 | 0 | no_tensor_candidates (48) |
+| fused_gdn_gating_kernel | 576 | 44.045 | 0 | no_tensor_candidates (576) |
+| Slice | 4273 | 39.010 | 0 | no_tensor_candidates (2689), candidate_physical_work_differs (1056) |
+| ChunkFwdH | 48 | 38.757 | 0 | no_tensor_candidates (48) |
+| SwiGlu | 804 | 37.136 | 0 | no_tensor_candidates (67) |
+| ChunkFwdO | 48 | 24.817 | 0 | no_tensor_candidates (48) |
+| DynamicMxQuant | 960 | 21.934 | 0 | no_tensor_candidates (80) |
+
+### Subgraph cohorts
+
+| Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
+| --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
+| - | - | 0 | No valid subgraph cohort | - | - | - | - | - | - |
+
+## a5_qwen38_paged_decode_q1_staged / source_paged_decode_program_conditional
+
+Graph: `sha256:ff03cbc0567f4edd3cce572169c83f4784094b838eee8bd0301b0907b973ff5a`.
+
+| Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| relative_15pct | 2 | 2 | 0 | 61 | 0 |
+| absolute_15us | 0 | 0 | 0 | 0 | 0 |
+
+### Large-call errors: observed mean > 50 us
+
+None.
+
+### Small-call errors: absolute per-call difference > 15 us
+
+None.
+
+### Within tolerance: separate from Top Errors
+
+| Native family | Tier | All events | Scored events | Reference events | Scored observed ms | Predicted ms | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Pass / fail cohorts |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| MatMulV3 | relative_15pct | 1956 | 37 | 0 | 27.188 | 23.851 | 734.804 | 644.633 | -90.171 | -12.3% | 1 / 0 |
+| FusedInferAttentionScore | relative_15pct | 228 | 24 | 0 | 3.240 | 3.231 | 135.013 | 134.640 | -0.374 | -0.3% | 1 / 0 |
+
+### Unscored coverage: highest activity families
+
+| Native family | All events | All activity ms | Reference events | Unscored reasons |
+| --- | ---: | ---: | ---: | --- |
+| QuantBatchMatmulV3 | 1920 | 781.406 | 0 | no_tensor_candidates (1920) |
+| MatMulV3 | 1956 | 611.956 | 0 | no_tensor_candidates (1919) |
+| FusedInferAttentionScore | 228 | 243.894 | 0 | no_tensor_candidates (204) |
+| ChunkGatedDeltaRuleFwdPrepare | 48 | 73.924 | 0 | no_tensor_candidates (48) |
+| fused_gdn_gating_kernel | 576 | 44.045 | 0 | no_tensor_candidates (576) |
+| Slice | 4273 | 39.010 | 0 | no_tensor_candidates (4273) |
+| ChunkFwdH | 48 | 38.757 | 0 | no_tensor_candidates (48) |
+| SwiGlu | 804 | 37.136 | 0 | no_tensor_candidates (804) |
+| ChunkFwdO | 48 | 24.817 | 0 | no_tensor_candidates (48) |
+| DynamicMxQuant | 960 | 21.934 | 0 | no_tensor_candidates (960) |
+
+### Subgraph cohorts
+
+| Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
+| --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
+| - | - | 0 | No valid subgraph cohort | - | - | - | - | - | - |
+
+## a5_qwen38_paged_decode_q4_staged / source_paged_decode_program_conditional
+
+Graph: `sha256:37e2d02964a543e9d29c962c902f589a7b0e9404fb709ac11d8b5a7721c9681a`.
+
+| Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| relative_15pct | 4 | 3 | 1 | 902 | 528 |
+| absolute_15us | 12 | 12 | 0 | 5885 | 0 |
+
+### Large-call errors: observed mean > 50 us
+
+| Native family | Tier | All events | Scored events | Reference events | Scored observed ms | Predicted ms | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Pass / fail cohorts |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| MatMulV3 | relative_15pct | 1956 | 528 | 0 | 27.073 | 22.848 | 51.276 | 43.272 | -8.004 | -15.6% | 0 / 1 |
+
+### Small-call errors: absolute per-call difference > 15 us
+
+None.
+
+### Within tolerance: separate from Top Errors
+
+| Native family | Tier | All events | Scored events | Reference events | Scored observed ms | Predicted ms | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Pass / fail cohorts |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| QuantBatchMatmulV3 | absolute_15us | 1920 | 1056 | 0 | 29.541 | 32.988 | 27.974 | 31.238 | 3.264 | +11.7% | 3 / 0 |
+| MatMulV3 | absolute_15us | 1956 | 1089 | 0 | 20.480 | 18.902 | 18.806 | 17.357 | -1.449 | -7.7% | 2 / 0 |
+| RecurrentGatedDeltaRule | absolute_15us | 528 | 528 | 0 | 5.628 | 5.097 | 10.658 | 9.653 | -1.005 | -9.4% | 1 / 0 |
+| DynamicMxQuant | absolute_15us | 960 | 880 | 0 | 3.678 | 0.040 | 4.180 | 0.046 | -4.134 | -98.9% | 2 / 0 |
+| AddRmsNormDynamicMxQuant | absolute_15us | 960 | 880 | 0 | 3.508 | 0.034 | 3.986 | 0.039 | -3.948 | -99.0% | 1 / 0 |
+| SwiGlu | absolute_15us | 804 | 737 | 0 | 2.768 | 0.077 | 3.755 | 0.104 | -3.651 | -97.2% | 1 / 0 |
+| Slice | absolute_15us | 4273 | 528 | 0 | 2.240 | 0.022 | 4.243 | 0.041 | -4.202 | -99.0% | 1 / 0 |
+| ScatterPaKvCache | absolute_15us | 228 | 187 | 0 | 0.659 | 0.002 | 3.525 | 0.008 | -3.517 | -99.8% | 1 / 0 |
+| QuantBatchMatmulV3 | relative_15pct | 1920 | 704 | 0 | 37.559 | 35.356 | 53.350 | 50.222 | -3.128 | -5.9% | 1 / 0 |
+| MatMulV3 | relative_15pct | 1956 | 11 | 0 | 8.125 | 7.256 | 738.650 | 659.638 | -79.012 | -10.7% | 1 / 0 |
+| FusedInferAttentionScore | relative_15pct | 228 | 187 | 0 | 26.912 | 29.407 | 143.916 | 157.259 | 13.344 | +9.3% | 1 / 0 |
 
 ### Unscored coverage: highest activity families
 

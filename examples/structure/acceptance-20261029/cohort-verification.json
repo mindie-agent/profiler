@@ -1,67 +1,97 @@
 {
   "kind": "shared_structure_cohort_maintained_suite_verification",
-  "date": "2026-10-29",
-  "status": "provisional_runtime_regression",
+  "date": "2026-10-30",
+  "status": "completed",
   "not_new_live_npu_acceptance": true,
-  "sim_runtime_commit": "2cdffcecdc4954313836143e7a167dbf8fbef97e",
+  "sim_runtime_commit": "6018eaa1c3ac3ef867cc1b7d696fc1642f2c2cf7",
   "runtime_checkout": "/tmp/mindie-sim-cohort-wave6-20261029",
-  "runtime_source_identity_sha256": "1db5973237dff6d13dc5c19d563acb0e9f666f81e7bd6cd44bce2f474b805244",
+  "replay_controls_commit": "9c89e3c",
+  "post_replay_reporting_commit": "e48fb72",
+  "runtime_source_identity_sha256": "993f8b211c703c4086706f5919c634e7b3816ff14cc7759d3bcd9998af12c161",
   "runtime_source_identity_file": "fusion-cohort-validation.json#runtime_source_identity",
   "suites": {
     "profiler": {
-      "passed": 572,
+      "passed": 580,
       "skipped": 26,
       "failed": 0,
-      "seconds": 36.43,
-      "log_path": "/tmp/profiler-wave6-2cdffcec-tests.log",
-      "log_sha256": "008fb1c9dde1a5ca063f69d145f655ca835fcc7ef6cba674fc4ec266e8168daa",
-      "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/tmp/mindie-sim-cohort-wave6-20261029 /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python -m pytest -q",
-      "cwd": "/Users/maoxx241/code/profiler"
+      "seconds": 34.56,
+      "log_path": "/tmp/profiler-wave6-6018eaa1-final-tests.log",
+      "log_sha256": "05de5878ba063886cc2a0cf3e199a0428430a04d0022083ec9a0e3a2eae424ae",
+      "cwd": "/Users/maoxx241/code/profiler",
+      "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/tmp/mindie-sim-cohort-wave6-20261029 /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python -m pytest -q"
     },
     "sim": {
-      "passed": 1786,
+      "passed": 1830,
       "skipped": 0,
-      "failed": 1,
-      "seconds": 234.16,
-      "log_path": "/tmp/sim-wave6-2cdffcec-tests.log",
-      "log_sha256": "726edcd160c652ae7a0349f47dbcc057a8f4bbee440d2832b507b32d1e9ba303",
-      "excluded_marker": "live_npu",
-      "failure": "test_real_kimi_decode_matrix_crosses_semantic_recipes_without_choosing_a_replica",
+      "failed": 0,
+      "seconds": 255.91,
+      "log_path": "/tmp/sim-wave6-6018eaa1-tests.log",
+      "log_sha256": "5d6f1ab6e7049536c494aced7c1641def9fee347f097d0be5e36428103eb347a",
+      "cwd": "/tmp/mindie-sim-cohort-wave6-20261029",
       "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/tmp/mindie-sim-cohort-wave6-20261029 /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python -m pytest -q -m 'not live_npu'",
-      "cwd": "/tmp/mindie-sim-cohort-wave6-20261029"
-    },
-    "new_reporting_regression": {
-      "passed": 7,
-      "seconds": 0.26,
-      "commit": "92d136c",
-      "included_in_profiler_suite_above": false
+      "excluded_marker": "live_npu"
     }
   },
   "full_capture_replay": {
     "status": "completed",
-    "elapsed_seconds": 1294.532,
+    "elapsed_seconds": 1414.439,
     "memory_budget_passed": true,
-    "peak_worker_rss_bytes": 474710016,
-    "peak_comparison_rss_bytes": 476758016,
+    "peak_worker_rss_bytes": 474726400,
+    "peak_comparison_rss_bytes": 477052928,
     "runtime_sources_unchanged": true,
-    "declaration_variant_count": 32,
-    "raw_parsed_capture_scans": 28,
+    "declaration_variant_count": 35,
+    "raw_parsed_capture_scans": 31,
     "unique_capture_event_count": 668835,
     "comparison_cohort_status_counts": {
-      "compared": 442,
-      "reference_only": 67
+      "compared": 477,
+      "reference_only": 71
     },
-    "receipt_sha256": "00ea12406cfcd09eaa9890b9a96250e88f66bab3ca7655e0f7f7017350c767ec",
-    "log_path": "/tmp/profiler-wave6-2cdffcec-full-replay.log",
-    "log_sha256": "1a8502a1618ebc65948dfa833a78f6afc5a9af33d820256624862ddf014de718"
+    "receipt_sha256": "adf90344f80c7b075a9ac9751d8073185aa776473a385641ca89f77bfd94ac7f",
+    "log_path": "/tmp/profiler-wave6-6018eaa1-full-replay.log",
+    "log_sha256": "02ab42dc3d90c8e4299eda3aa9fdc131f414d0e29a74a8662e5ffce938074ebd"
   },
-  "known_runtime_regressions": [
+  "known_runtime_regressions": [],
+  "resolved_regressions": [
     {
       "reason": "semantic_ffn_role_metadata_entered_generic_matrix_physical_signature",
-      "effect": "Kimi baseline identical-work candidates were split; decode excludes 1798 matching events.",
+      "historical_provisional_commit": "4cb6dc0",
       "correction_commit": "6437916f",
-      "correction_in_this_replay": false,
-      "policy": "Retain this checkpoint honestly; rerun after the separately committed correction."
+      "correction_in_this_replay": true,
+      "regression_test_passed": true
     }
-  ]
+  ],
+  "post_replay_renderer": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/fusion_cohort_reporting.py",
+    "original_sha256": "9ef5c3617fda9c7e93a19983115fc76ca1a02d1b188f77ca38cdf74892320f84",
+    "sha256": "cb58250e43543c74278111846352225764039d78896564c321849b1838e6b1e8",
+    "raw_capture_reads": 0,
+    "prediction_executions": 0,
+    "replay_receipt_and_all_summary_artifacts_unchanged": true,
+    "allowed_post_replay_source_changes": [
+      "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/fusion_cohort_reporting.py"
+    ],
+    "outputs": {
+      "cohort-full-family-replay.md": {
+        "sha256": "55cff618752835c9acd05cea235f5ea45e5923fe41531199129beedb8395daf2",
+        "size_bytes": 6338
+      },
+      "fusion-cohort-replay-top-errors.md": {
+        "sha256": "baac55438eb03d9ae015f6dea6503b707d3007433df16984a7f97cb0e693ebf7",
+        "size_bytes": 130767
+      },
+      "fusion-cohort-large-call-errors.md": {
+        "sha256": "f2a2f02d19585b1623807b0908442dbbcbe87a2540362f29c0d65f5d24018e5a",
+        "size_bytes": 18122
+      },
+      "fusion-cohort-large-call-errors.json": {
+        "sha256": "9b5fda0e04459289bf2a4579a6b59de516fa010fd95a2068a11a1a2e03ebadd0",
+        "size_bytes": 2220266
+      },
+      "fusion-cohort-replay-families.json": {
+        "sha256": "f91a9e6723a030f6b6823d53c0a6ed5d468c5b778def15e26afa7d5b887110a5",
+        "size_bytes": 83751
+      }
+    },
+    "reason": "Verify receipt-bound family and overview generations before rendering; clarify scored denominators."
+  }
 }
