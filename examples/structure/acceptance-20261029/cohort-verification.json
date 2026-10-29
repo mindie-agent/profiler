@@ -1,97 +1,249 @@
 {
-  "kind": "shared_structure_cohort_maintained_suite_verification",
+  "kind": "shared_structure_cohort_and_decode_verification",
   "date": "2026-10-30",
-  "status": "completed",
+  "status": "partial",
   "not_new_live_npu_acceptance": true,
-  "sim_runtime_commit": "6018eaa1c3ac3ef867cc1b7d696fc1642f2c2cf7",
-  "runtime_checkout": "/tmp/mindie-sim-cohort-wave6-20261029",
-  "replay_controls_commit": "9c89e3c",
-  "post_replay_reporting_commit": "e48fb72",
-  "runtime_source_identity_sha256": "993f8b211c703c4086706f5919c634e7b3816ff14cc7759d3bcd9998af12c161",
-  "runtime_source_identity_file": "fusion-cohort-validation.json#runtime_source_identity",
+  "interpretation": "Decode replay and verification completed. The historical operator replay retains one Prefill prediction timeout; accuracy passes are separate from execution success.",
+  "runtimes": {
+    "operator_cohorts": {
+      "sim_commit": "0061a39f059f231ca687679eef2f1d7f92d0a87e",
+      "source_identity_file": "fusion-cohort-validation.json#runtime_source_identity",
+      "post_replay_rendering": {
+        "basis": "render_saved_comparisons_with_explicit_partial_prediction_coverage",
+        "prior_retry_receipt_sha256": "644d3dc519f1cf6e7f3b1768cbd6c1703f202438545c05b90de5da0afe051ed1",
+        "source_identity": {
+          "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/fusion_cohort_reporting.py": "47e7a0a87e619754363b353b867b67edaef1a060e25cf021072432b3017e1962",
+          "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/report_large_cohort_errors.py": "984ac091034ee3a04399c634d0ae67dd02bdf4a1436fdb2c5db81ea8101d7de1"
+        },
+        "prediction_runtime_sim_commit": "0061a39f059f231ca687679eef2f1d7f92d0a87e",
+        "raw_capture_reads": 0,
+        "prediction_executions": 0,
+        "runtime_prediction_sources_unchanged": true
+      }
+    },
+    "new_decode_bodies": {
+      "source_commit": "bc375e61",
+      "case_source_commit": "d31d6b09",
+      "package_files": 217,
+      "package_sha256": "83fab0bfbd15620172a7f323e83c93c661af9aadd9fe7a61fa8a7ebe4e0f9148",
+      "wheel": {
+        "path": "/Volumes/data-tmp/tmp/sim-balanced-body-final-wheel-20261030/mindie_sim-0.8.0-py3-none-any.whl",
+        "sha256": "58eca0b4864307aa9f4e597123b20d0c950ee6a3d3b3513dcbf7c4d8fab65915",
+        "size_bytes": 734424
+      },
+      "installed_package_and_exact_commit_source_byte_identical": true
+    },
+    "checkout_lifecycle": {
+      "path": "/tmp/mindie-sim-cohort-wave6-20261029",
+      "policy": "Reused existing temporary checkout after the 0061 prediction and independent review completed. It now contains bc375e61 for paired source tests; replay identities remain pinned to their recorded commit, not the mutable path."
+    }
+  },
   "suites": {
     "profiler": {
-      "passed": 580,
+      "passed": 649,
       "skipped": 26,
       "failed": 0,
-      "seconds": 34.56,
-      "log_path": "/tmp/profiler-wave6-6018eaa1-final-tests.log",
-      "log_sha256": "05de5878ba063886cc2a0cf3e199a0428430a04d0022083ec9a0e3a2eae424ae",
-      "cwd": "/Users/maoxx241/code/profiler",
-      "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/tmp/mindie-sim-cohort-wave6-20261029 /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python -m pytest -q"
+      "seconds": 42.56,
+      "log": {
+        "path": "/Volumes/data-tmp/tmp/profiler-bc375e61-source-final-suite-20261030.log",
+        "sha256": "281798365c68933d818784699a2bba32991134fa23bee8d2e59db20ff5d19324",
+        "size_bytes": 833
+      },
+      "sim_source_commit": "bc375e61",
+      "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/tmp/mindie-sim-cohort-wave6-20261029 /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python -m pytest -q -m 'not live_npu'"
     },
     "sim": {
-      "passed": 1830,
+      "passed": 2144,
       "skipped": 0,
       "failed": 0,
-      "seconds": 255.91,
-      "log_path": "/tmp/sim-wave6-6018eaa1-tests.log",
-      "log_sha256": "5d6f1ab6e7049536c494aced7c1641def9fee347f097d0be5e36428103eb347a",
-      "cwd": "/tmp/mindie-sim-cohort-wave6-20261029",
-      "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/tmp/mindie-sim-cohort-wave6-20261029 /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python -m pytest -q -m 'not live_npu'",
-      "excluded_marker": "live_npu"
+      "seconds": 280.28,
+      "execution_owner": "sim session; retained log verified here",
+      "source_commit": "bc375e61",
+      "log": {
+        "path": "/Volumes/data-tmp/tmp/sim-balanced-body-final-suite-20261030.log",
+        "sha256": "47fbffebcbc45ea405c14ff9c6adadfb79a775a71a8f6b1b6dc3f50846367519",
+        "size_bytes": 2433
+      }
+    },
+    "installed_wheel": {
+      "status": "passed",
+      "checks": 89,
+      "log": {
+        "path": "/Volumes/data-tmp/tmp/sim-balanced-body-final-wheel-verify-20261030.log",
+        "sha256": "9ab7e797854792e226c227768dcdb7018b792bcb17e8ca793abc1952d732dbf0",
+        "size_bytes": 9218
+      },
+      "source_commit": "bc375e61"
+    },
+    "prior_profiler_wheel_test_attempt": {
+      "status": "failed",
+      "log": {
+        "path": "/Volumes/data-tmp/tmp/profiler-bc375e61-final-suite-20261030.log",
+        "sha256": "323c5f714e787a0261b50d7f5026a01611c2813e3659e68ce4c35642c2189f5f",
+        "size_bytes": 131494
+      },
+      "reason": "Repository tests require Sim examples and source evidence absent from the installed wheel; the refresh test also read the unfinished failed global receipt. Final source-paired suite uses byte-identical bc375 package code plus real repository fixtures; partial receipt reporting has a dedicated regression."
     }
   },
   "full_capture_replay": {
-    "status": "completed",
-    "elapsed_seconds": 1414.439,
+    "status": "failed",
+    "elapsed_seconds": 3265.525,
     "memory_budget_passed": true,
-    "peak_worker_rss_bytes": 474726400,
-    "peak_comparison_rss_bytes": 477052928,
+    "peak_worker_rss_bytes": 475021312,
+    "peak_comparison_rss_bytes": 479494144,
     "runtime_sources_unchanged": true,
-    "declaration_variant_count": 35,
-    "raw_parsed_capture_scans": 31,
+    "declaration_variant_count": 44,
+    "raw_parsed_capture_scans": 40,
     "unique_capture_event_count": 668835,
     "comparison_cohort_status_counts": {
-      "compared": 477,
-      "reference_only": 71
+      "compared": 616,
+      "reference_only": 91,
+      "prediction_failed": 1
     },
-    "receipt_sha256": "adf90344f80c7b075a9ac9751d8073185aa776473a385641ca89f77bfd94ac7f",
-    "log_path": "/tmp/profiler-wave6-6018eaa1-full-replay.log",
-    "log_sha256": "02ab42dc3d90c8e4299eda3aa9fdc131f414d0e29a74a8662e5ffce938074ebd"
-  },
-  "known_runtime_regressions": [],
-  "resolved_regressions": [
-    {
-      "reason": "semantic_ffn_role_metadata_entered_generic_matrix_physical_signature",
-      "historical_provisional_commit": "4cb6dc0",
-      "correction_commit": "6437916f",
-      "correction_in_this_replay": true,
-      "regression_test_passed": true
-    }
-  ],
-  "post_replay_renderer": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/fusion_cohort_reporting.py",
-    "original_sha256": "9ef5c3617fda9c7e93a19983115fc76ca1a02d1b188f77ca38cdf74892320f84",
-    "sha256": "cb58250e43543c74278111846352225764039d78896564c321849b1838e6b1e8",
-    "raw_capture_reads": 0,
-    "prediction_executions": 0,
-    "replay_receipt_and_all_summary_artifacts_unchanged": true,
-    "allowed_post_replay_source_changes": [
-      "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/fusion_cohort_reporting.py"
-    ],
-    "outputs": {
-      "cohort-full-family-replay.md": {
-        "sha256": "55cff618752835c9acd05cea235f5ea45e5923fe41531199129beedb8395daf2",
-        "size_bytes": 6338
+    "receipt": {
+      "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261029/fusion-cohort-validation.json",
+      "sha256": "bd9c1d8bece967f2c7046aa5d7043ab5df83522f9c0c30238736b0b2c19d98bf",
+      "size_bytes": 222585
+    },
+    "execution_retry": {
+      "schema_version": "mindie-targeted-cohort-retry/1",
+      "prior_validation_sha256": "8836b2fa66f4ba9692e2fafb5d8c8ca3f8db8ea961dd1ca40dc28bc7182d615b",
+      "prior_validation_status": "failed",
+      "prior_validation_elapsed_seconds": 2965.518,
+      "prior_comparison_failures": [
+        {
+          "capture_key": "a5_qwen38",
+          "report": "fusion-cohort-a5_qwen38_contiguous_prefill_combined-selected.json",
+          "comparison": {
+            "status": "failed",
+            "status_counts": {
+              "compared": 21,
+              "prediction_failed": 1
+            },
+            "distinct_priced_programs": 21,
+            "attempted_physical_programs": 22,
+            "elapsed_seconds": 179.656,
+            "maximum_resident_set_size_bytes": 112476160,
+            "failed_physical_programs": 1
+          }
+        }
+      ],
+      "prior_comparison_cohort_status_counts": {
+        "compared": 616,
+        "reference_only": 91,
+        "prediction_failed": 1
       },
-      "fusion-cohort-replay-top-errors.md": {
-        "sha256": "baac55438eb03d9ae015f6dea6503b707d3007433df16984a7f97cb0e693ebf7",
-        "size_bytes": 130767
+      "raw_capture_reads": 0,
+      "prediction_programs_requested": 1,
+      "physical_program_key": [
+        "sha256:2f358c5015aa4d9b8415afdaa65db93aa4223802e13d9def8236e42eda8aebde",
+        0,
+        0,
+        "node"
+      ],
+      "timeout_seconds": 300,
+      "status": "failed",
+      "reason": "physical_program_timeout",
+      "elapsed_seconds_including_startup": 300.007,
+      "runtime_sources_unchanged": true,
+      "prior_failed_comparison_identity": {
+        "file": "fusion-cohort-a5_qwen38_contiguous_prefill_combined-selected.comparison.json",
+        "sha256": "271ca3372e4d4d91d9b8180f1316ad6b631a109630c1f70d407e6916f953ce1a",
+        "size_bytes": 103690
       },
-      "fusion-cohort-large-call-errors.md": {
-        "sha256": "f2a2f02d19585b1623807b0908442dbbcbe87a2540362f29c0d65f5d24018e5a",
-        "size_bytes": 18122
+      "prior_program_attempt": {
+        "physical_program_key": [
+          "sha256:2f358c5015aa4d9b8415afdaa65db93aa4223802e13d9def8236e42eda8aebde",
+          0,
+          0,
+          "node"
+        ],
+        "elapsed_seconds_including_startup": 120.006,
+        "status": "failed",
+        "reason": "physical_program_timeout",
+        "timeout_seconds": 120
       },
-      "fusion-cohort-large-call-errors.json": {
-        "sha256": "f9d0b3a08b0fe61549483ef3ca8b4c90f11c327b05138d0b3de7bf76aed7c612",
-        "size_bytes": 1586022
-      },
-      "fusion-cohort-replay-families.json": {
-        "sha256": "f91a9e6723a030f6b6823d53c0a6ed5d468c5b778def15e26afa7d5b887110a5",
-        "size_bytes": 83751
+      "elapsed_accounting": "initial_run_plus_targeted_retry_including_startup; time_between_runs_excluded",
+      "affected_worker_identity": {
+        "file": "fusion-cohort-a5_qwen38_contiguous_prefill_combined.worker.json",
+        "sha256": "182c97a18ed33df38b45f9ecd41094b436aa3ff73cc5053c14b331ea114619f6",
+        "size_bytes": 1905
       }
     },
-    "reason": "Verify receipt-bound family and overview generations before rendering; clarify scored denominators."
+    "log": {
+      "path": "/Volumes/data-tmp/tmp/profiler-0061-full-replay.log",
+      "sha256": "935652305768083a5ad881e7003a012da1fc2e2515a1e1e36b537c059f2cc4ae",
+      "size_bytes": 220866
+    },
+    "accuracy": {
+      "relative_15pct": {
+        "cohort_count": 418,
+        "passed_cohort_count": 121,
+        "failed_cohort_count": 297,
+        "scored_event_count": 93237,
+        "passed_event_count": 14454,
+        "failed_event_count": 78783
+      },
+      "absolute_15us": {
+        "cohort_count": 198,
+        "passed_cohort_count": 168,
+        "failed_cohort_count": 30,
+        "scored_event_count": 412305,
+        "passed_event_count": 398237,
+        "failed_event_count": 14068
+      }
+    }
+  },
+  "decode_replay": {
+    "status": "completed",
+    "summary": {
+      "case_count": 6,
+      "source_case_count": 6,
+      "measured_cases": 6,
+      "compared_cases": 6,
+      "passed_cases": 0,
+      "unresolved_cases": 0,
+      "failed_cases": 0
+    },
+    "report": {
+      "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency/decode-forward-replay.json",
+      "sha256": "9b85505a1253d0ffb65eb3115f3dfc5a8c2bd5c85785420f7fbf6ba6820d6941",
+      "size_bytes": 1552393
+    },
+    "extraction": {
+      "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency/decode-forward-auto-acceptance.json",
+      "sha256": "b19af6001b727da21f4871ee759e943a4ee7ede6f363310f516b2401930dad78",
+      "size_bytes": 29145
+    },
+    "execution": {
+      "elapsed_seconds": 0.4648642910178751,
+      "peak_rss_bytes": 64471040,
+      "memory_limit_bytes": 536870912,
+      "memory_budget_passed": true,
+      "prediction_timeout_seconds": 240.0,
+      "source_scan_timeout_seconds": 30
+    },
+    "body_accuracy_not_passed": true,
+    "comparison_context": "q=4, observed batch, representative initial context=4104; rank-symmetric conditional comparison",
+    "execution_note": "Final activity/gap projection reused all six existing prediction-cache entries; no additional Sim prediction. Original six predictions completed in 146.34454149997327 seconds under the same bc375 package, retained in commit ed2574e."
+  },
+  "independent_review": {
+    "operator_reports": {
+      "artifact": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261029/fusion-cohort-independent-review.json",
+        "sha256": "7a242bbd0d905bd7e2bc94e9867e33963c8ea2118c4d0355c5310453570e3452",
+        "size_bytes": 203817
+      },
+      "status": "passed",
+      "checks": 303806,
+      "prediction_failures_explicitly_allowed_and_excluded_from_accuracy": true
+    },
+    "new_decode_extraction_checks": 8082,
+    "new_decode_comparison_checks": 4968
+  },
+  "file_hygiene": {
+    "git_diff_check": "passed",
+    "repository_lf_gate": "passed",
+    "generated_build_directory_ignored": true
   }
 }
