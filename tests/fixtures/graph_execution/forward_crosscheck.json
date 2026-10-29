@@ -3,11 +3,11 @@
   "source_artifacts": [
     {
       "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261029/auto-forward-a5_qwen36_p4096_c1_hold.json",
-      "sha256": "f1af07187ed36ca690c6830af7b67f8b15ab7144de1fc9c4d2f7d8a0a9daa3df"
+      "sha256": "984515ba74db23cd243c913da2c6d2f7ec55bf263e112a3656f5e20c4c34b1f3"
     },
     {
       "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261029/decode-graph-a5_qwen36-p4096_c1_hold.json",
-      "sha256": "23a11778254051881218e5cfeea110b254d583fcb776479b74eacc3033f67666"
+      "sha256": "479e85b1e5ccbf857585720564ab24e9a6b7d9e166f6d28bd1f7bf62904e7751"
     }
   ],
   "observed": {
@@ -274,5 +274,6 @@
         "dynamic_operator_count": 8
       }
     ]
-  }
+  },
+  "extraction_core_sha256": "ccfbafc9bb5b56b692c045e008ddfc48a4e88d0feaaa23e8fce3b0a4b62c2fc7"
 }
