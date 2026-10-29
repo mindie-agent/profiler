@@ -120,3 +120,20 @@ def test_only_scheduler_tail_crossing_successor_boundary_is_shortened(capture):
                       "dense_layer", "controlled", successor=successor)
     assert retained["end_ns"] == successor_ns - 1
     assert retained["excluded_tail_wait_activity_ms"] == 0
+
+
+def test_endpoint_locator_tracks_completion_not_last_started_operator(capture):
+    events, _ = capture
+    communication = next(event for event in events if event.op_type == "hcom_allReduce_")
+    following = next(event for event in events if event.start_ns > communication.start_ns)
+    # Controlled overlap perturbation of actual exported events: an earlier
+    # communication can complete after the following device operator starts.
+    communication = replace(communication, end_ns=following.end_ns + 5_000)
+    rows = [_Row(event, shapes(event.input_shapes), shapes(event.output_shapes))
+            for event in (communication, following)]
+    scope = _scope(rows, "dense_layer", "overlap")
+    assert scope["start_ns"] == communication.start_ns
+    assert scope["end_ns"] == communication.end_ns
+    assert scope["evidence"]["first_locator"] == communication.locator
+    assert scope["evidence"]["last_locator"] == communication.locator
+    assert scope["evidence"]["last_started_locator"] == following.locator

@@ -145,6 +145,10 @@ def _scope(rows, kind, identity, *, layer=None, plan=None, successor=None):
     if retained_scheduler:
         first = min(first, min(row.event.start_ns for row in retained_scheduler))
         last = max(last, max(row.event.end_ns for row in retained_scheduler))
+    retained = ordinary + retained_scheduler
+    first_endpoint = min(retained, key=lambda row: row.event.start_ns)
+    last_endpoint = max(retained, key=lambda row: row.event.end_ns)
+    last_started = max(retained, key=lambda row: row.event.start_ns)
     # A scheduler task must actually cross the successor's input boundary before
     # its suffix can be removed. AICPU completions inside the layer remain real
     # measured work; HCCL device task completions are never shortened.
@@ -160,8 +164,9 @@ def _scope(rows, kind, identity, *, layer=None, plan=None, successor=None):
             "excluded_tail_wait_events": len(tails),
             "aicpu_tail_policy": "clip_scheduler_tail_at_same_scope_real_device_completion",
             "evidence": {"basis": "structure_guided_topology_alignment",
-                         "first_locator": ordinary[0].event.locator,
-                         "last_locator": ordinary[-1].event.locator,
+                         "first_locator": first_endpoint.event.locator,
+                         "last_locator": last_endpoint.event.locator,
+                         "last_started_locator": last_started.event.locator,
                          "successor_boundary_start_ns": successor.event.start_ns if successor else None,
                          "successor_locator": successor.event.locator if successor else None}}
 
