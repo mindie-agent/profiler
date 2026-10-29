@@ -1,0 +1,13 @@
+{
+  "displayTimeUnit": "ns",
+  "profilingType": "op",
+  "traceEvents": [
+    {"name": "LOAD_A", "ph": "X", "pid": "group0.cubecore0", "tid": "MTE2", "ts": 0, "dur": 1},
+    {"name": "LOAD_A", "ph": "X", "pid": "group0.cubecore0", "tid": "MTE2", "ts": 0.5, "dur": 1},
+    {"name": "WAIT_FLAG", "ph": "X", "pid": "group0.cubecore0", "tid": "MTE2", "ts": 1.5, "dur": 5},
+    {"name": "MMAD", "ph": "X", "pid": "group0.cubecore0", "tid": "CUBE", "ts": 2, "dur": 4},
+    {"name": "LOAD_A", "ph": "X", "pid": "group0.cubecore0", "tid": "MTE2", "ts": 10, "dur": 2},
+    {"name": "MMAD", "ph": "X", "pid": "group0.cubecore0", "tid": "CUBE", "ts": 12, "dur": 6},
+    {"name": "LOAD_A", "ph": "X", "pid": "group0.cubecore1", "tid": "MTE2", "ts": 0, "dur": 50}
+  ]
+}

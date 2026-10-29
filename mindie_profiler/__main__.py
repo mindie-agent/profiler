@@ -1,8 +1,8 @@
 """Progressive CLI for the compact MindIE profiler core.
 
 [Role]
-  Expose five explicit subcommands — ``inventory``, ``analyze``,
-  ``correlate``, ``compare``, and ``sql`` — plus a legacy no-subcommand
+  Expose explicit subcommands — ``inventory``, ``analyze``, ``correlate``,
+  ``compare``, ``sql`` and offline ``camodel`` — plus a legacy no-subcommand
   ``analyze`` form.  Parse explicit windows, ranks, source preferences, and
   bounded query limits, then print or atomically write JSON.
 
@@ -36,7 +36,7 @@ from .analyze import analyze_profile
 from .events import ProfilerError, ProfilerUsageError
 from .segment import load_steps_file, parse_step_windows, parse_windows
 
-SUBCOMMANDS = ("inventory", "analyze", "correlate", "compare", "sql")
+SUBCOMMANDS = ("inventory", "analyze", "correlate", "compare", "sql", "camodel", "kernels")
 
 
 def _add_analyze_arguments(parser: argparse.ArgumentParser) -> None:
@@ -318,6 +318,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     command = raw[0] if raw and raw[0] in SUBCOMMANDS else "analyze"
     rest = raw[1:] if raw and raw[0] in SUBCOMMANDS else raw
     try:
+        if command == "kernels":
+            from .cli_kernels import main as kernels_main
+
+            return kernels_main(rest)
+        if command == "camodel":
+            from .camodel import main as camodel_main
+
+            return camodel_main(rest)
         if command == "compare":
             from .cli_compare import main as compare_main
 

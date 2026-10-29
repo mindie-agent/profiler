@@ -1,0 +1,21 @@
+{
+  "timestamp_unit": "us",
+  "context": {
+    "soc_version": "Ascend910_9362",
+    "simulator_version": "illustrative-example-only",
+    "kernel": "illustrative_load_matmul",
+    "shape": {"m": 128, "n": 128, "k": 128},
+    "dtype": "bf16",
+    "input_source": "declared_algorithm_example_not_a_capture"
+  },
+  "stages": {
+    "load": {
+      "pid": "group0.cubecore0", "tids": ["MTE2"],
+      "windows": [[0, 8], [10, 20]]
+    },
+    "compute": {
+      "pid": "group0.cubecore0", "tids": ["CUBE"],
+      "names": ["MMAD"], "windows": [[0, 8], [10, 20]]
+    }
+  }
+}

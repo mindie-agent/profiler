@@ -147,6 +147,17 @@ Attention、cache、fused 契约复用 sim 现有 GQA/MLA/DSA/GDN/KDA 前端，
 普通 CSV、原生 `op_summary` 与 `.csv.gz` 共用解析器。八组完整 A3/A5
 采集的结果及未完成边界见[body 契约验收](examples/structure/acceptance-20261029/body-contract-replay.md)。
 
+已有 profiling 可用 `mindie-profiler kernels --manifest ... --output-dir ...`
+流式整理完整 kernel/shape 变体、去重并导出观测成本；不重复采集、不启动 NPU。
+新版 sim 可只读查询该清单，自动替换预测成本尚未接通。参见
+[profiling 复用与观测查询](examples/kernel-inventory/README.md)。
+
+开发期也可用 `mindie-profiler camodel --trace ... --plan ... --output ...`
+把 CAModel Chrome trace 导出为旧版 `mindie-sim pipeline --durations` 的阶段成本。
+该入口离线运行，保留仿真来源，不写入真机校准库；窗口、时钟单位和阶段选择
+见 [CAModel 离线导出示例](examples/camodel/README.md)。这是保留的旧 pipeline 接口，
+不表示新版 sim 可直接导入；新版结构与实测关系使用前述显式关联路径。
+
 ### 为什么 `mindie-profiler` 的数据不会骗人？
 
 - **严格按权威源去重（`DB > CSV > JSON Trace`）**：同一个目录下既有 `.db` 又有 `kernel_details.csv` 时，按单一权威源计算，绝不把同一次采集重复累加两遍。
