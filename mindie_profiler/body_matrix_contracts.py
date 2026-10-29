@@ -33,6 +33,24 @@ def _issue(row, reason, detail):
             "reason": reason, "detail": detail}
 
 
+def _nd_mx_v3(row, inputs, outputs, m, n, k):
+    """Retained ND MX weights have matching N-major or K-major scale axes."""
+    x, weight, ws, xs = inputs
+    y = outputs[0]
+    groups = (k + 63) // 64
+    axes_match = ((weight[0] == (n, k) and ws[0] == (n, groups, 2))
+                  or (weight[0] == (k, n) and ws[0] == (groups, n, 2)))
+    if (not axes_match or x[1] != "fp8_e4m3" or weight[1] != "fp8_e4m3"
+            or y[1] not in {"bf16", "fp16", "fp32"}
+            or ws[1:] != ("fp8_e8m0", "ND")
+            or xs != ((m, groups, 2), "fp8_e8m0", "ND")):
+        return None, _issue(row, "unsupported_nd_mx_matrix_axes_or_scales",
+                            "ND FP8 V3 requires matching weight/weight-scale axes "
+                            "[N,K]/[N,ceil(K/64),2] or [K,N]/[ceil(K/64),N,2], "
+                            "paired E8M0 token scales and a floating output.")
+    return ("matrix", (m, n, k), x[1], weight[1], y[1], xs[0], xs[1]), None
+
+
 def _dense(row, inputs, outputs):
     expected = 4 if row.kind == "QuantBatchMatmulV3" else 5
     accumulator = row.kind == "QuantBatchMatmulV3" and len(inputs) == 3
@@ -48,9 +66,13 @@ def _dense(row, inputs, outputs):
                             "This projection requires positive 2-D input and output with equal rows.")
     m, k = x[0]
     _, n = y[0]
+    if (row.kind == "QuantBatchMatmulV3" and not accumulator
+            and x[2] == weight[2] == y[2] == "ND"):
+        return _nd_mx_v3(row, inputs, outputs, m, n, k)
     if x[2] != "ND" or y[2] != "ND" or weight[2] != "FRACTAL_NZ":
         return None, _issue(row, "unsupported_quant_matrix_layout",
-                            "Only retained ND activation/output and source-defined NZ weight layouts pass.")
+                            "Only retained ND activations/output with source-defined "
+                            "NZ weights or the separate ND FP8 paired-scale branch pass.")
     groups = (k + 63) // 64
     if row.kind == "QuantBatchMatmulV3":
         if k % 16 or n % 32 or weight[0] != (n // 32, k // 16, 16, 32):
@@ -220,6 +242,13 @@ def matrix_contract_scope(row):
             "The source shared-expert path requests INT32 with pertoken_scale=None. "
             "Its separate dequantization/activation kernel is outside this boundary; "
             "the weight-scale descriptor does not establish floating-point output.")
+    if (row.kind == "QuantBatchMatmulV3" and slots is not None
+            and len(slots[0]) == 4 and slots[0][1][2] == "ND"):
+        scope["validated_observed"].append("matching_N_major_or_K_major_weight_and_scale_axes")
+        scope["conditions"] = (
+            "ND FP8 V3 is projected only when weight axes and both E8M0 scale "
+            "descriptors agree with the measured input/output geometry. Native "
+            "transpose flags, binary identity and tiling remain unobserved.")
     if grouped:
         scope["row_count_basis"] = "recorded_tensor_extent"
         scope["required_runtime_evidence"] = [
