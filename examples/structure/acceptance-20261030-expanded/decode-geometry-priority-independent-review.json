@@ -1,0 +1,7 @@
+{
+  "status": "passed",
+  "checks": 1665,
+  "failures": [],
+  "source_sha256": "90a29ae3929280d8bfb3cb413089f08557ea10065acda24e0bcc778cd091a980",
+  "scope": "Independent source-geometry population and steady-layer arithmetic; no raw source scan or prediction"
+}
