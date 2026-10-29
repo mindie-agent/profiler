@@ -145,8 +145,8 @@ def render_evidence(manifest_path, receipt_path, output):
              "复用外部采集任务已经落盘的六组数据，仅读取每组 rank 0；顶层 CSV 与 prof/rank0 副本 SHA 完全一致，未把两个副本重复统计。",
              "模型结构来自现有 Sim，运行 TP、MTP、图模式与 APC 配置来自保留的 server log。",
              "层边界是结构引导推断；M/B/q 表示张量执行几何，可能含 padding，客户端并发另列。", "",
-             "| 模型 / TP | 客户端 c | 执行 M/B/q | 完整主体 | Body Mean ms | P50 ms | P90 ms |",
-             "|---|---:|---|---:|---:|---:|---:|"]
+             "| 模型 / TP | 客户端 c | 执行 M/B/q | 完整主体 | Body Mean ms | P50 ms | P90 ms | Activity Mean ms | Gap Mean ms |",
+             "|---|---:|---|---:|---:|---:|---:|---:|---:|"]
     for row in manifest["cases"]:
         scenario = row["scenario_evidence"]
         for group in observed[row["case_id"]]["geometry_groups"]:
@@ -155,8 +155,10 @@ def render_evidence(manifest_path, receipt_path, output):
             label = f"{name} / TP{scenario['runtime']['tensor_parallel_size']}"
             dimensions = "/".join(str(geometry[k]) for k in ("query_rows", "sequences_per_replica", "tokens_per_sequence"))
             lines.append(f"| {label} | {scenario['client']['concurrency']} | {dimensions} | {stats['count']} | "
-                         f"{stats['mean']:.6f} | {stats['p50']:.6f} | {stats['p90']:.6f} |")
-    lines += ["", "下面的 TPOT 与上表 Body 使用不同边界。Profiled client 是带采集运行的客户端统计，engine window 是 /metrics 窗口估计；二者均不冒充纯模型主体。", "",
+                         f"{stats['mean']:.6f} | {stats['p50']:.6f} | {stats['p90']:.6f} | "
+                         f"{group['body_activity_ms']['mean']:.6f} | {group['body_internal_gap_ms']['mean']:.6f} |")
+    lines += ["", "Activity 是同设备、去 scheduling wrapper 的事件区间并集，包含真实 HCOM 协议内等待，不等于 PMU 计算忙时；Gap 是 Body 内未被这些区间覆盖的时间，没有全部归因为 Host，也没有从 Body span 扣除。各 stream 的活动不可直接相加。", "",
+              "下面的 TPOT 与上表 Body 使用不同边界。Profiled client 是带采集运行的客户端统计，engine window 是 /metrics 窗口估计；二者均不冒充纯模型主体。", "",
               "| Case | 未采集 sweep TPOT ms | 带采集 client P50 ms | Engine window TPOT ms | 整体 prefix 命中 | 共享前缀复用 | 窗口 MTP 接收率 |",
               "|---|---:|---:|---:|---:|---:|---:|"]
     for row in manifest["cases"]:
@@ -175,7 +177,7 @@ def render_evidence(manifest_path, receipt_path, output):
     if receipt.get("validation_rerun"):
         rerun = receipt["validation_rerun"]
         lines += ["新采集包含 HcclLaunchAicpuKernel controller 跨后继层 norm 的尾部。补齐这个真实 ABI 后，六份采集统一再次提取；只在真实跨层时裁 controller 尾，正常 hcom 与层内 controller 仍保留。",
-                  f"两代提取总耗时 {rerun['total_elapsed_seconds_across_generations']:.3f}s；完整主体统计与事件分母保持一致，层边界统计按新规则更新。原 30 源历史 generation 未重写。", ""]
+                  f"共 {rerun['validation_passes']} 代提取，总耗时 {rerun['total_elapsed_seconds_across_generations']:.3f}s。Controller 尾规则更新层边界统计；后续 activity 扩展保持全部 span、端点和事件分母不变。原 30 源历史 generation 未重写。", ""]
     output.write_text("\n".join(lines))
 
 

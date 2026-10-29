@@ -1,46 +1,46 @@
 {
   "status": "passed",
-  "checks": 3659,
+  "checks": 8082,
   "failures": [],
   "cases": 6,
   "forwards": 287,
   "positive_events": 659725,
-  "receipt_sha256": "984fbd70ed17cc556577468d3a58e7773200c68b8e48e5470418288db3abddcd",
+  "receipt_sha256": "b19af6001b727da21f4871ee759e943a4ee7ede6f363310f516b2401930dad78",
   "scope": "independent arithmetic, population, nonoverlap and per-geometry statistics; no new source inference or prediction",
   "reports": [
     {
       "case_id": "a5_qwen36_highconc_c40",
-      "sha256": "e59167772401ee3322db5424e09eeee793443781b360c179cf397261e4c5b4db",
+      "sha256": "fe023ddf44d1e6f39989abf9d9372e84dc7e3083a51c39349776aea981d393e1",
       "forwards": 54,
       "positive_events": 124200
     },
     {
       "case_id": "a5_qwen36_highconc_c128",
-      "sha256": "bdfd64f8f9e7122684a008306b55156a9866274d56361aae8df262212fefb20a",
+      "sha256": "919b397d1152741c4928c8e0cc7bc108ab31065483040118e0504766fa382694",
       "forwards": 38,
       "positive_events": 91086
     },
     {
       "case_id": "a5_qwen36_highconc_c4",
-      "sha256": "703e163ab9645b8616aa4df5f6f46aaa4b4e0d035830dd5382646c7892ead97e",
+      "sha256": "7120c594834f9fc677b92bf8a83e9ca1ba37e2de22c21ebcf8f026ec524d937b",
       "forwards": 73,
       "positive_events": 167389
     },
     {
       "case_id": "a5_qwen38_highconc_c32",
-      "sha256": "ba601973135b96e43990b38ae99b6da23147147b986b5021f5d46f21c7359c40",
+      "sha256": "61116108ca502baad5df937fd4ce69b034f548ad7c80ce47ecd1cfdcac92eaff",
       "forwards": 48,
       "positive_events": 107904
     },
     {
       "case_id": "a5_qwen38_highconc_c128",
-      "sha256": "4329a3bfb2662f9b3981524118b00f2dad34e6d1e89ca1b89af531f91ee337ab",
+      "sha256": "661a997c04d90a362c368b7124755cc2db549b2a0317b3e4e286b32f4aca033c",
       "forwards": 29,
       "positive_events": 68121
     },
     {
       "case_id": "a5_qwen38_highconc_c4",
-      "sha256": "b415311f5a5738aa0856b324013e49325f8ac3d1043c81a76c51c6d18ec2abbd",
+      "sha256": "3f2f2a3da2b9cfdddf5863643d07e05ee2f34428982a387e8185e88ca50602d6",
       "forwards": 45,
       "positive_events": 101025
     }

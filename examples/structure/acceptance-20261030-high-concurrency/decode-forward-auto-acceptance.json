@@ -9,7 +9,7 @@
   },
   "segmentation_runtime": {
     "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
-    "sha256": "67327179db996df5ed8ce5d1c8c25cf5101d6aa935590229118272fce8326a67"
+    "sha256": "4ca667b649f452ffe0c6f9d107ec9eff2aeadd755633812028614ff9b0bb2497"
   },
   "cases": [
     {
@@ -22,7 +22,7 @@
         "sha256": "5e83432a7c2f3b3804c7f12d489f0c203bf8665a36857d12dad4770d5efc73e3"
       },
       "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency/auto-forward-a5_qwen36_highconc_c40.json",
-      "report_sha256": "e59167772401ee3322db5424e09eeee793443781b360c179cf397261e4c5b4db",
+      "report_sha256": "fe023ddf44d1e6f39989abf9d9372e84dc7e3083a51c39349776aea981d393e1",
       "model_declaration": {
         "name": "qwen3.6-27b",
         "layers": 64,
@@ -41,6 +41,22 @@
         "p90": 21.333773,
         "min": 19.418858,
         "max": 28.384353
+      },
+      "body_activity_ms": {
+        "count": 54,
+        "mean": 20.302462907407406,
+        "p50": 20.2315915,
+        "p90": 20.950844,
+        "min": 19.037483,
+        "max": 28.003133
+      },
+      "body_internal_gap_ms": {
+        "count": 54,
+        "mean": 0.38144762962962964,
+        "p50": 0.381339,
+        "p90": 0.38302,
+        "min": 0.378862,
+        "max": 0.385246
       },
       "geometry": {
         "query_rows": 160,
@@ -67,6 +83,22 @@
             "p90": 21.333773,
             "min": 19.418858,
             "max": 28.384353
+          },
+          "body_activity_ms": {
+            "count": 54,
+            "mean": 20.302462907407406,
+            "p50": 20.2315915,
+            "p90": 20.950844,
+            "min": 19.037483,
+            "max": 28.003133
+          },
+          "body_internal_gap_ms": {
+            "count": 54,
+            "mean": 0.38144762962962964,
+            "p50": 0.381339,
+            "p90": 0.38302,
+            "min": 0.378862,
+            "max": 0.385246
           }
         }
       ],
@@ -92,7 +124,7 @@
       },
       "positive_event_partition_verified": true,
       "graph_crosscheck": null,
-      "elapsed_seconds": 4.107,
+      "elapsed_seconds": 4.644,
       "reused_extraction": null
     },
     {
@@ -105,7 +137,7 @@
         "sha256": "65211276673c3f9e9ad9cbc8b2b618dede1c4724d1e343bfadb0c1f6cc3d9bba"
       },
       "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency/auto-forward-a5_qwen36_highconc_c128.json",
-      "report_sha256": "bdfd64f8f9e7122684a008306b55156a9866274d56361aae8df262212fefb20a",
+      "report_sha256": "919b397d1152741c4928c8e0cc7bc108ab31065483040118e0504766fa382694",
       "model_declaration": {
         "name": "qwen3.6-27b",
         "layers": 64,
@@ -124,6 +156,22 @@
         "p90": 33.851394,
         "min": 31.679256,
         "max": 37.205106
+      },
+      "body_activity_ms": {
+        "count": 38,
+        "mean": 32.315989736842106,
+        "p50": 31.9355745,
+        "p90": 33.561595,
+        "min": 31.385976,
+        "max": 36.911204
+      },
+      "body_internal_gap_ms": {
+        "count": 38,
+        "mean": 0.2930006052631579,
+        "p50": 0.29279449999999996,
+        "p90": 0.294782,
+        "min": 0.289799,
+        "max": 0.295333
       },
       "geometry": {
         "query_rows": 512,
@@ -150,6 +198,22 @@
             "p90": 33.851394,
             "min": 31.679256,
             "max": 37.205106
+          },
+          "body_activity_ms": {
+            "count": 38,
+            "mean": 32.315989736842106,
+            "p50": 31.9355745,
+            "p90": 33.561595,
+            "min": 31.385976,
+            "max": 36.911204
+          },
+          "body_internal_gap_ms": {
+            "count": 38,
+            "mean": 0.2930006052631579,
+            "p50": 0.29279449999999996,
+            "p90": 0.294782,
+            "min": 0.289799,
+            "max": 0.295333
           }
         }
       ],
@@ -175,7 +239,7 @@
       },
       "positive_event_partition_verified": true,
       "graph_crosscheck": null,
-      "elapsed_seconds": 3.398,
+      "elapsed_seconds": 3.23,
       "reused_extraction": null
     },
     {
@@ -188,7 +252,7 @@
         "sha256": "28644d6d5713e35de51f16b1a20dacd7574ea342c399d8afe049c487d0c8c880"
       },
       "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency/auto-forward-a5_qwen36_highconc_c4.json",
-      "report_sha256": "703e163ab9645b8616aa4df5f6f46aaa4b4e0d035830dd5382646c7892ead97e",
+      "report_sha256": "7120c594834f9fc677b92bf8a83e9ca1ba37e2de22c21ebcf8f026ec524d937b",
       "model_declaration": {
         "name": "qwen3.6-27b",
         "layers": 64,
@@ -207,6 +271,22 @@
         "p90": 13.484726,
         "min": 13.132256,
         "max": 17.924451
+      },
+      "body_activity_ms": {
+        "count": 73,
+        "mean": 12.987191315068493,
+        "p50": 12.891623,
+        "p90": 13.129289,
+        "min": 12.777856,
+        "max": 17.568517
+      },
+      "body_internal_gap_ms": {
+        "count": 73,
+        "mean": 0.35526316438356165,
+        "p50": 0.355349,
+        "p90": 0.356602,
+        "min": 0.352928,
+        "max": 0.359058
       },
       "geometry": {
         "query_rows": 16,
@@ -233,6 +313,22 @@
             "p90": 13.484726,
             "min": 13.132256,
             "max": 17.924451
+          },
+          "body_activity_ms": {
+            "count": 73,
+            "mean": 12.987191315068493,
+            "p50": 12.891623,
+            "p90": 13.129289,
+            "min": 12.777856,
+            "max": 17.568517
+          },
+          "body_internal_gap_ms": {
+            "count": 73,
+            "mean": 0.35526316438356165,
+            "p50": 0.355349,
+            "p90": 0.356602,
+            "min": 0.352928,
+            "max": 0.359058
           }
         }
       ],
@@ -258,7 +354,7 @@
       },
       "positive_event_partition_verified": true,
       "graph_crosscheck": null,
-      "elapsed_seconds": 5.647,
+      "elapsed_seconds": 5.923,
       "reused_extraction": null
     },
     {
@@ -271,7 +367,7 @@
         "sha256": "53a8f0e6b5603dd248d42278d7cbb32243eed2b729f22a6224f2041b9790349f"
       },
       "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency/auto-forward-a5_qwen38_highconc_c32.json",
-      "report_sha256": "ba601973135b96e43990b38ae99b6da23147147b986b5021f5d46f21c7359c40",
+      "report_sha256": "61116108ca502baad5df937fd4ce69b034f548ad7c80ce47ecd1cfdcac92eaff",
       "model_declaration": {
         "name": "qwen3.8-27b",
         "layers": 64,
@@ -290,6 +386,22 @@
         "p90": 22.894013,
         "min": 22.66106,
         "max": 24.545633
+      },
+      "body_activity_ms": {
+        "count": 48,
+        "mean": 22.352767125,
+        "p50": 22.3286225,
+        "p90": 22.365103,
+        "min": 22.284488,
+        "max": 23.235057
+      },
+      "body_internal_gap_ms": {
+        "count": 48,
+        "mean": 0.43856768749999997,
+        "p50": 0.3776195,
+        "p90": 0.408992,
+        "min": 0.374464,
+        "max": 2.209068
       },
       "geometry": {
         "query_rows": 128,
@@ -316,6 +428,22 @@
             "p90": 22.894013,
             "min": 22.66106,
             "max": 24.545633
+          },
+          "body_activity_ms": {
+            "count": 48,
+            "mean": 22.352767125,
+            "p50": 22.3286225,
+            "p90": 22.365103,
+            "min": 22.284488,
+            "max": 23.235057
+          },
+          "body_internal_gap_ms": {
+            "count": 48,
+            "mean": 0.43856768749999997,
+            "p50": 0.3776195,
+            "p90": 0.408992,
+            "min": 0.374464,
+            "max": 2.209068
           }
         }
       ],
@@ -341,7 +469,7 @@
       },
       "positive_event_partition_verified": true,
       "graph_crosscheck": null,
-      "elapsed_seconds": 3.627,
+      "elapsed_seconds": 3.829,
       "reused_extraction": null
     },
     {
@@ -354,7 +482,7 @@
         "sha256": "8f99679e518ef3022c20b12ca17edbb080395a367cd10686f61f5ddf34b8f6f3"
       },
       "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency/auto-forward-a5_qwen38_highconc_c128.json",
-      "report_sha256": "4329a3bfb2662f9b3981524118b00f2dad34e6d1e89ca1b89af531f91ee337ab",
+      "report_sha256": "661a997c04d90a362c368b7124755cc2db549b2a0317b3e4e286b32f4aca033c",
       "model_declaration": {
         "name": "qwen3.8-27b",
         "layers": 64,
@@ -373,6 +501,22 @@
         "p90": 45.735162,
         "min": 45.609628,
         "max": 45.75225
+      },
+      "body_activity_ms": {
+        "count": 29,
+        "mean": 45.38527927586207,
+        "p50": 45.387834,
+        "p90": 45.429613,
+        "min": 45.304395,
+        "max": 45.44904
+      },
+      "body_internal_gap_ms": {
+        "count": 29,
+        "mean": 0.304035,
+        "p50": 0.304054,
+        "p90": 0.305301,
+        "min": 0.302487,
+        "max": 0.305549
       },
       "geometry": {
         "query_rows": 512,
@@ -399,6 +543,22 @@
             "p90": 45.735162,
             "min": 45.609628,
             "max": 45.75225
+          },
+          "body_activity_ms": {
+            "count": 29,
+            "mean": 45.38527927586207,
+            "p50": 45.387834,
+            "p90": 45.429613,
+            "min": 45.304395,
+            "max": 45.44904
+          },
+          "body_internal_gap_ms": {
+            "count": 29,
+            "mean": 0.304035,
+            "p50": 0.304054,
+            "p90": 0.305301,
+            "min": 0.302487,
+            "max": 0.305549
           }
         }
       ],
@@ -424,7 +584,7 @@
       },
       "positive_event_partition_verified": true,
       "graph_crosscheck": null,
-      "elapsed_seconds": 2.296,
+      "elapsed_seconds": 2.508,
       "reused_extraction": null
     },
     {
@@ -437,7 +597,7 @@
         "sha256": "8da79c3777fd59a5cd4dc210169e069862688f0855b8f590732b1c96b2431840"
       },
       "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency/auto-forward-a5_qwen38_highconc_c4.json",
-      "report_sha256": "b415311f5a5738aa0856b324013e49325f8ac3d1043c81a76c51c6d18ec2abbd",
+      "report_sha256": "3f2f2a3da2b9cfdddf5863643d07e05ee2f34428982a387e8185e88ca50602d6",
       "model_declaration": {
         "name": "qwen3.8-27b",
         "layers": 64,
@@ -456,6 +616,22 @@
         "p90": 13.166872,
         "min": 12.914152,
         "max": 13.401375
+      },
+      "body_activity_ms": {
+        "count": 45,
+        "mean": 12.555019666666666,
+        "p50": 12.554895,
+        "p90": 12.576345,
+        "min": 12.526314,
+        "max": 12.586072
+      },
+      "body_internal_gap_ms": {
+        "count": 45,
+        "mean": 0.4717008888888889,
+        "p50": 0.467504,
+        "p90": 0.604383,
+        "min": 0.372545,
+        "max": 0.82503
       },
       "geometry": {
         "query_rows": 16,
@@ -482,6 +658,22 @@
             "p90": 13.166872,
             "min": 12.914152,
             "max": 13.401375
+          },
+          "body_activity_ms": {
+            "count": 45,
+            "mean": 12.555019666666666,
+            "p50": 12.554895,
+            "p90": 12.576345,
+            "min": 12.526314,
+            "max": 12.586072
+          },
+          "body_internal_gap_ms": {
+            "count": 45,
+            "mean": 0.4717008888888889,
+            "p50": 0.467504,
+            "p90": 0.604383,
+            "min": 0.372545,
+            "max": 0.82503
           }
         }
       ],
@@ -507,22 +699,22 @@
       },
       "positive_event_partition_verified": true,
       "graph_crosscheck": null,
-      "elapsed_seconds": 3.456,
+      "elapsed_seconds": 3.646,
       "reused_extraction": null
     }
   ],
   "case_count": 6,
   "total_complete_forwards": 287,
   "source_positive_events": 659725,
-  "elapsed_seconds": 22.565,
-  "maximum_resident_set_size_raw": 58736640,
+  "elapsed_seconds": 23.836,
+  "maximum_resident_set_size_raw": 67452928,
   "runtime_sources_unchanged": true,
   "source_scans_in_this_execution": 6,
   "reused_source_extractions": 0,
   "reused_extraction_elapsed_seconds": 0,
   "validation_rerun": {
-    "reason": "New A5 TP4 HcclLaunchAicpuKernel controller tails can cross the next layer norm; add this actual typed ABI to the existing cross-boundary rule and rerun every new capture. Source-derived Sim cases were also replaced by parent-reviewed d31d6b09 cases; model topology declaration is unchanged.",
-    "validation_passes": 2,
+    "reason": "Add body/layer same-device non-scheduler interval unions and internal uncovered gaps, preserving every existing span, endpoint, population and layer-duration statistic. Previous validation added real HcclLaunchAicpuKernel cross-layer tail ABI.",
+    "validation_passes": 3,
     "source_scans_per_pass": 6,
     "initial_generation": {
       "receipt_sha256": "cb174a074c06adc2714666452a8765b45452de7ee00de98ca94b5c703f348e0f",
@@ -598,8 +790,32 @@
         "event_partition_counts_unchanged": true
       }
     ],
-    "source_positive_events_read_across_generations": 1319450,
-    "total_elapsed_seconds_across_generations": 46.642,
-    "old_30_source_generation_unchanged": true
+    "source_positive_events_read_across_generations": 1979175,
+    "total_elapsed_seconds_across_generations": 70.478,
+    "old_30_source_generation_unchanged": true,
+    "previous_generation": {
+      "receipt_sha256": "984fbd70ed17cc556577468d3a58e7773200c68b8e48e5470418288db3abddcd",
+      "segmentation_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "67327179db996df5ed8ce5d1c8c25cf5101d6aa935590229118272fce8326a67"
+      },
+      "elapsed_seconds": 22.565,
+      "case_report_sha256": {
+        "a5_qwen36_highconc_c40": "e59167772401ee3322db5424e09eeee793443781b360c179cf397261e4c5b4db",
+        "a5_qwen36_highconc_c128": "bdfd64f8f9e7122684a008306b55156a9866274d56361aae8df262212fefb20a",
+        "a5_qwen36_highconc_c4": "703e163ab9645b8616aa4df5f6f46aaa4b4e0d035830dd5382646c7892ead97e",
+        "a5_qwen38_highconc_c32": "ba601973135b96e43990b38ae99b6da23147147b986b5021f5d46f21c7359c40",
+        "a5_qwen38_highconc_c128": "4329a3bfb2662f9b3981524118b00f2dad34e6d1e89ca1b89af531f91ee337ab",
+        "a5_qwen38_highconc_c4": "b415311f5a5738aa0856b324013e49325f8ac3d1043c81a76c51c6d18ec2abbd"
+      }
+    },
+    "activity_extension_preserved_all_span_statistics": true,
+    "activity_gap_arithmetic_checks": 574,
+    "qwen36_layer0_three_independent_raw_event_unions_match": true,
+    "additional_bounded_read": {
+      "case_id": "a5_qwen36_highconc_c4",
+      "rows_examined_through_index": 4717,
+      "purpose": "independent first-three-layer0 physical AivKernel boundary check; not a full capture rescan"
+    }
   }
 }

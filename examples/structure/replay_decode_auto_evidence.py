@@ -135,9 +135,13 @@ def replay(manifest_path, output, *, validation_baseline=None, reuse_extractions
                    "model_declaration": observed["model_declaration"],
                    "model_structure_identity": observed["model_structure_identity"],
                    "body_forward_span_ms": observed["body_forward_span_ms"],
+                   "body_activity_ms": observed.get("body_activity_ms"),
+                   "body_internal_gap_ms": observed.get("body_internal_gap_ms"),
                    "geometry": observed["geometry"],
                    "geometry_groups": [{"geometry": group["geometry"],
-                                        "body_forward_span_ms": group["body_forward_span_ms"]}
+                                        "body_forward_span_ms": group["body_forward_span_ms"],
+                                        "body_activity_ms": group.get("body_activity_ms"),
+                                        "body_internal_gap_ms": group.get("body_internal_gap_ms")}
                                        for group in observed["geometry_groups"]],
                    "scan_counts": counts, "anomaly_counts": observed["anomaly_counts"],
                    "auxiliary_forward_span_ms": observed["auxiliary_forward_span_ms"],

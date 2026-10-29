@@ -1,0 +1,28 @@
+{
+  "schema_version": "mindie-body-comparison-independent-review/1",
+  "status": "passed",
+  "checks": 4968,
+  "failures": [],
+  "comparison_sha256": "9b85505a1253d0ffb65eb3115f3dfc5a8c2bd5c85785420f7fbf6ba6820d6941",
+  "source_manifest_sha256": "1b141d4d2164a322fbbfa2efe1645c51741d93d934ac29f5ff48111034e8133f",
+  "auto_acceptance_sha256": "b19af6001b727da21f4871ee759e943a4ee7ede6f363310f516b2401930dad78",
+  "source_cases": 6,
+  "geometry_rows": 6,
+  "forward_denominator": 287,
+  "compared": 6,
+  "passed": 0,
+  "compared_layers": 384,
+  "passed_layers": 0,
+  "replica_sets": [
+    [
+      0
+    ]
+  ],
+  "runtime_package_sha256": [
+    "83fab0bfbd15620172a7f323e83c93c661af9aadd9fe7a61fa8a7ebe4e0f9148"
+  ],
+  "sim_revision": "bc375e61",
+  "uncompared": [],
+  "engine_window_rounding": "Producer rounds metrics_interval_s to 4 decimal places but computes tpot_engine_ms before rounding; audit permits only the derived half-unit interval rounding bound.",
+  "scope": "Independent JSON arithmetic, source/runtime/geometry identity and non-additive representative-replica checks; no Sim rerun or source profile scan."
+}
