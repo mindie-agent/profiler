@@ -1,0 +1,22 @@
+{
+  "source_identity": {
+    "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c4_20261030/kernel_details.csv",
+    "sha256": "d8ae782b7726c4681cac0149a0b11ffb8d1c4ad5832c8fac92b5172d80d036b4",
+    "size_bytes": 61131358
+  },
+  "original_csv_line": 375,
+  "fixture_sha256": "abc0283dce0af7648b16a19b17150e51eae94b49967974c17ae14e661ce5314e",
+  "source_semantics": {
+    "path": "/Users/maoxx241/code/vllm-ascend-v41-private/vllm_ascend/ops/fused_moe/moe_comm_method.py",
+    "sha256": "eaa3086308b2dc1b47046a51d6586a5e1769ba097f7070b0b234b21cf303b667",
+    "revision": "ae923905948f360f4b7ab06df52d0789a0c9316e",
+    "line_ranges": [
+      [
+        458,
+        510
+      ]
+    ],
+    "meaning": "FusedExpertsResult.routed_out; shared experts are external. Weights/topk ids/topk weights are supplied; the native call owns routed matrix/activation/transport."
+  },
+  "exact_capture_binary_verified": false
+}

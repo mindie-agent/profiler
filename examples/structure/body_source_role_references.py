@@ -35,6 +35,58 @@ def reference_signature(target):
     return {'collective_program': operator, 'physical_work': target['physical_work']}
 
 
+def routed_ffn_reference(native, local):
+    """The retained MC2 call owns routed experts; shared/router/residual stay external."""
+    if (len(native[2]), len(native[3])) != (8, 2):
+        return None
+    x, up, down, ids, scale1, scale2, weights, mask = native[2]
+    y, counts = native[3]
+    if len(x[0]) != 2 or len(up[0]) != 3 or len(down[0]) != 3 or len(ids[0]) != 2:
+        return None
+    capacity, hidden = x[0]
+    experts, weight_hidden, gate_width = up[0]
+    topk = ids[0][1]
+    if (min(capacity, hidden, experts, gate_width, topk) <= 0 or gate_width % 2
+            or x[1:] != ('bf16', 'ND') or y != x
+            or weight_hidden != hidden or up[1:] != ('int8', 'FRACTAL_NZ')
+            or down != ((experts, gate_width // 2, hidden), 'int8', 'FRACTAL_NZ')
+            or ids != ((capacity, topk), 'int32', 'ND')
+            or scale1 != ((experts * gate_width,), 'int64', 'ND')
+            or scale2 != ((experts * hidden,), 'int64', 'ND')
+            or weights != ((capacity, topk), 'fp32', 'ND')
+            or mask != ((capacity,), 'bool', 'ND') or counts != ((experts,), 'int32', 'ND')):
+        return None
+    names = {'pack', 'dispatch', 'expert_up.quantize', 'expert_up', 'expert_act',
+             'expert_down.quantize', 'expert_down', 'combine', 'unpack'}
+    targets = {target['op_id'].split('.', 2)[-1]: target for target in local
+               if target.get('block') == 'ffn' and target['op_id'].split('.', 2)[-1] in names}
+    if set(targets) != names:
+        return None
+    upper, lower = targets['expert_up'].get('contract'), targets['expert_down'].get('contract')
+    if (not upper or not lower or upper[0] != 'grouped_matrix' or lower[0] != 'grouped_matrix'
+            or (upper[1][0], upper[1][2], upper[1][3]) != (experts, gate_width, hidden)
+            or (lower[1][0], lower[1][2], lower[1][3]) != (experts, hidden, gate_width // 2)
+            or tuple(upper[2:5]) != ('int8', 'int8', 'bf16')
+            or tuple(lower[2:5]) != ('int8', 'int8', 'bf16')
+            or targets['pack']['operator']['metadata'].get('top_k') != topk):
+        return None
+    return ('routed_ffn_native', list(targets.values()), {
+        'kind': 'validated_dispatch_ffn_combine_tensor_roles',
+        'source_evidence': 'tests/fixtures/native_body_contracts/v41_a3_dispatch_ffn_combine.provenance.json'}, {
+        'boundary_relation': 'whole_routed_ffn_decomposed_program_reference',
+        'observed_native_tensor_contract': native,
+        'observed_buffer_row_capacity': capacity, 'observed_active_token_rows': None,
+        'observed_valid_routed_rows': None, 'observed_active_mask_values': None,
+        'declared_pack_input_rows': targets['pack']['operator']['semantic_shape'][0],
+        'declared_valid_routed_rows': upper[1][1],
+        'native_fusion_cost_established': False,
+        'excluded_semantic_roles': ['router', 'topk', 'route_normalize', 'shared.*', 'join', 'hc_*', 'norm*'],
+        'communication_bandwidth_calibration_allowed': False,
+        'limitations': ['Native fused MC2 routing, quantization, matrix scheduling and launch elimination are not modeled by this decomposed reference.',
+                       'Storage capacity and active-mask/group-count values do not establish active or routed rows.',
+                       'The complete declared DP cohort supplies peer context; its rank costs are not added into a single-card elapsed time.']})
+
+
 class SourceRoleReferences:
     def __init__(self, manifest, config):
         self.anchors = {(item['op_type'], item['name']): item
@@ -62,6 +114,8 @@ class SourceRoleReferences:
         if native is None:
             return None
         inputs, outputs = native[2:]
+        if event.op_type == 'DispatchFFNCombine' and block == 'ffn':
+            return routed_ffn_reference(native, local)
         if event.op_type == 'GroupedMatmul' and block == 'ffn':
             contract = observed_contract(row)
             if not contract or contract[0] != 'grouped_matrix':
@@ -270,6 +324,7 @@ def predict_source_role_references(case, manifest, actual):
             selected_graphs = {rank: tuple(replace(op, metadata=tuple(
                 (key, value) for key, value in op.metadata if key != 'reverse_of_collective'))
                 if 'reverse_of_collective' in dict(op.metadata)
+                and dict(op.metadata)['reverse_of_collective'] not in local
                 and 'peer_traffic' in dict(op.metadata) else op for op in values)
                 for rank, values in selected_graphs.items()}
             external = {dep: 0 for values in selected_graphs.values() for op in values
