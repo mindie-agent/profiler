@@ -187,9 +187,6 @@ def test_dequant_swiglu_and_norm_mx_keep_auxiliary_precision_and_optional_branch
     )
     changed_scale = replace(norm, output_formats=("ND", "ND", norm.output_formats[2]))
     assert observed_fusion_contract(changed_scale) is None
-    situ = rows("a5_kimi_k3", "GroupedMatmulSituQuant")[0]
-    assert observed_fusion_contract(situ) is None
-    assert fusion_contract_diagnostic(situ)["reason"] == "native_implementation_abi_unverified"
 
 
 @pytest.mark.parametrize("capture,tokens", [("a3_glm53_prefill", 4096), ("a3_glm53_decode", 1)])

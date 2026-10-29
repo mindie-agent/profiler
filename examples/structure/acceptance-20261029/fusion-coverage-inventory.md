@@ -4,30 +4,31 @@ Historical retained captures; no new live collection. Final `.case.json` artifac
 
 8 unique captures contain 668,835 events and 148 native types. Declaration variants do not enlarge that denominator.
 
-Fresh graph verification: 13 saved replay declarations, CPython 3.13.12, `/Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python`.
+Fresh graph verification: 15 saved replay declarations, CPython 3.13.12, `/Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python`.
+24 serial fresh graph workers; maximum worker RSS 441.44 MiB, parent RSS 57.70 MiB under the 512 MiB process budget.
 
-The 59 required model-body types contain 328,927 events: 47 types have declared boundaries, 45 have complete boundaries, 33 have comparable contracts, and 31 match at least one retained original fixture row. These are distinct evidence levels, not a count of bound layer occurrences.
+The 59 required model-body types contain 328,927 events: 51 types have declared boundaries, 49 have complete boundaries, 37 have comparable contracts, and 35 match at least one retained original fixture row. These are distinct evidence levels, not a count of bound layer occurrences.
 
 Default declarations and source-selected variants remain separate. A Transformer block contains Attention and FFN; FFN may be MoE. Candidate geometry does not bind a layer occurrence.
 
 | Native type | Events | Default boundary | Replay boundary | Replay contract | Fixture matches |
 | --- | ---: | --- | --- | --- | ---: |
-| `GroupedMatmul` | 35,979 | complete | complete_boundary_declared | comparable_declared_contract | 3/10 |
-| `QuantBatchMatmulV3` | 27,406 | complete | complete_boundary_declared | comparable_declared_contract | 13/16 |
+| `GroupedMatmul` | 35,979 | complete | complete_boundary_declared | comparable_declared_contract | 3/13 |
+| `QuantBatchMatmulV3` | 27,406 | complete | complete_boundary_declared | comparable_declared_contract | 15/16 |
 | `DynamicQuant` | 23,551 | complete | complete_boundary_declared | comparable_declared_contract | 11/12 |
-| `DynamicMxQuant` | 23,459 | complete | complete_boundary_declared | comparable_declared_contract | 2/4 |
+| `DynamicMxQuant` | 23,459 | complete | complete_boundary_declared | comparable_declared_contract | 3/4 |
 | `AddRmsNormBias` | 19,247 | not selected | complete_boundary_declared | comparable_declared_contract | 2/6 |
 | `MoeGatingTopK` | 15,638 | complete | complete_boundary_declared | comparable_declared_contract | 3/6 |
 | `AttnResFwd` | 14,768 | complete | complete_boundary_declared | declared_boundary_without_comparable_contract | 0/2 |
-| `QuantBatchMatmulV4` | 14,531 | not selected | not_declared_in_replay_cases | no_native_declaration_in_replay_cases | 0/2 |
+| `QuantBatchMatmulV4` | 14,531 | not selected | complete_boundary_declared | comparable_declared_contract | 2/2 |
 | `MoeInitRoutingV3` | 9,032 | complete | complete_boundary_declared | declared_boundary_without_comparable_contract | 0/10 |
 | `MoeTokenUnpermute` | 8,956 | complete | complete_boundary_declared | declared_boundary_without_comparable_contract | 0/8 |
 | `CausalConv1d` | 8,853 | complete | complete_boundary_declared | comparable_declared_contract | 1/8 |
 | `TransposeBatchMatMul` | 7,940 | complete | complete_boundary_declared | comparable_declared_contract | 3/5 |
-| `MlaPrologV3` | 7,648 | not selected | complete_boundary_declared | comparable_declared_contract | 4/5 |
-| `GroupedMatmulSituQuant` | 7,266 | not selected | not_declared_in_replay_cases | no_native_declaration_in_replay_cases | 0/2 |
-| `SituMxQuant` | 7,266 | not selected | not_declared_in_replay_cases | no_native_declaration_in_replay_cases | 0/2 |
-| `RmsNormDynamicMxQuant` | 7,265 | not selected | not_declared_in_replay_cases | no_native_declaration_in_replay_cases | 0/2 |
+| `MlaPrologV3` | 7,648 | not selected | complete_boundary_declared | comparable_declared_contract | 5/5 |
+| `GroupedMatmulSituQuant` | 7,266 | not selected | complete_boundary_declared | comparable_declared_contract | 2/2 |
+| `SituMxQuant` | 7,266 | not selected | complete_boundary_declared | comparable_declared_contract | 2/2 |
+| `RmsNormDynamicMxQuant` | 7,265 | not selected | complete_boundary_declared | comparable_declared_contract | 1/2 |
 | `l2norm_fwd_kernel2` | 7,260 | complete | complete_boundary_declared | declared_boundary_without_comparable_contract | 0/6 |
 | `MoeDistributeDispatchV3` | 6,898 | not selected | not_declared_in_replay_cases | no_native_declaration_in_replay_cases | 0/1 |
 | `MoeDistributeCombineV3` | 6,897 | not selected | not_declared_in_replay_cases | no_native_declaration_in_replay_cases | 0/1 |
@@ -74,7 +75,7 @@ Default declarations and source-selected variants remain separate. A Transformer
 
 GLM native normalization uses the separately saved source/checkpoint-conditional choices; the catalog default is not retroactively changed. Kimi SiTU and RMS MX mechanisms can exist while the retained BF16 activation declaration does not select them. See `head-normalization-evidence.json` for the global bias predicate and precision limits.
 
-12 required types have no native target in the saved replay declarations (27 capture/type pairs). This is not an unimplemented-mechanism count. QuantBatchMatmulV4, RMS MX and SiTU MX need the appropriate precision/activation declaration; recurrent GDN and AttentionUpdate require the corresponding phase or parallelism. GroupedMatmulSituQuant retains an exact-native-boundary source gap. Per-capture reasons and capability sources remain in the JSON.
+8 required types have no native target in the saved replay declarations (21 capture/type pairs). This is not an unimplemented-mechanism count. QuantBatchMatmulV4, RMS MX and SiTU MX need the appropriate precision/activation declaration; recurrent GDN and AttentionUpdate require the corresponding phase or parallelism. GroupedMatmulSituQuant uses its verified source overlay ABI without inferring routed group values. Per-capture reasons and capability sources remain in the JSON.
 
 ChunkKdaFwd and ChunkGatedDeltaRuleFwd incomplete native boundaries remain outside complete contract/resource coverage. Full JSON preserves all 148 types, raw missingness, source branches, per-declaration fixture matches and full-capture status/reason counts.
 

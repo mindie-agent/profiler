@@ -102,10 +102,21 @@ def _grouped(row, inputs, outputs):
     m, k = x[0]
     n, experts = y[0][1], group_list[0][0]
     xs = inputs[8] if len(inputs) == 9 else ((), None, None)
-    if any(slot[0] for slot in (offset, anti_scale, anti_offset)):
+    mxfp4 = x[1] == "fp8_e4m3" and weight[1] == "mxfp4"
+    if offset[0] or anti_offset[0] or anti_scale[0] and not mxfp4:
         return None, _issue(row, "grouped_matrix_antiquant_boundary_not_declared",
                             "Materialized offset/antiquant interfaces are separate semantic branches.")
-    if weight[0] == (experts, k, n) and weight[2] == "FRACTAL_NZ":
+    if mxfp4:
+        # The A5 W4A8 MX wrapper routes E8M0 weight microscales through the
+        # antiquant_scale input; it is not an affine offset/correction branch.
+        groups = (k + 63) // 64
+        valid = (
+            k % 64 == n % 16 == 0
+            and weight[0] == (experts, k // 32, n // 16, 16, 32)
+            and weight[2] == "FRACTAL_NZ" and not bias[0] and not scale[0]
+            and anti_scale == ((experts, n, groups, 2), "fp8_e8m0", "NCHW")
+            and xs == ((m, groups, 2), "fp8_e8m0", "NCL") and y[1] == "bf16")
+    elif weight[0] == (experts, k, n) and weight[2] == "FRACTAL_NZ":
         if x[1] == weight[1] == "int8":
             valid = (not bias[0] and scale == ((experts, n), "bf16", "ND")
                      and xs == ((m,), "fp32", "ND") and y[1] == "bf16")
@@ -129,7 +140,7 @@ def _grouped(row, inputs, outputs):
     if not valid:
         return None, _issue(row, "unsupported_grouped_matrix_precision_or_axes",
                             "The expert bank, grouped scale and per-token scale must match "
-                            "a retained BF16, INT8, INT4 or MXFP8 interface.")
+                            "a retained BF16, INT8, INT4, MXFP8 or MXFP8/MXFP4 interface.")
     return ("grouped_matrix", (experts, m, n, k), x[1], weight[1], y[1],
             xs[0], xs[1] if xs[0] else ""), None
 
@@ -173,7 +184,9 @@ def matrix_contract_scope(row):
                             "quant_correction_bias_values"] if grouped else [])],
         "conditions": (
             "Declared routed work may use probability moments; equal total rows do not prove "
-            "the captured expert histogram or active weight reads." if grouped else
+            "the captured expert histogram or active weight reads. The retained A5 MXFP4 "
+            "branch uses N-major E8M0 microscales in the antiquant_scale slot, with no "
+            "materialized offset or bias." if grouped else
             "The retained V4 five-slot capture orders scales before optional bias; "
             "the public ten-slot graph definition and ND-only MX documentation are not "
             "claimed as the captured NZ custom-dtype implementation identity."

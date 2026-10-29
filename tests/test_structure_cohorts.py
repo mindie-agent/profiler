@@ -95,3 +95,76 @@ def test_conflicting_host_evidence_cannot_be_hidden_in_a_cohort(declared, prolog
     assert report["windows"][0]["cohorts"] == []
     assert report["windows"][0]["cohort_excluded_event_counts"] == {
         "conflicting_or_incomplete_occurrence_evidence": 1}
+
+
+def _dp_structure(declared):
+    """Retain two complete real-source subgraphs on four declared DP replicas."""
+    value = deepcopy(declared)
+    groups = [row for row in value["subgraphs"]
+              if row["role"] == "mla_prolog" and row["contract"] is not None][:2]
+    members = {key for group in groups for key in group["node_ids"]}
+    nodes = [row for row in value["nodes"] if row["node_id"] in members]
+
+    def clone(row, replica):
+        item = json.loads(json.dumps(row).replace("rank:0/", f"rank:{replica}/"))
+        item["replica"] = replica
+        return item
+
+    value["nodes"] = [clone(row, replica) for replica in range(4) for row in nodes]
+    value["subgraphs"] = [clone(row, replica) for replica in range(4) for row in groups]
+    value["execution"].update(replicas=[0, 1, 2, 3], replica_axis="data_parallel")
+    return seal(value)
+
+
+def test_dp_alternatives_preserve_single_device_counts_and_explicit_rank_binding(declared, prolog):
+    value = _dp_structure(declared)
+    result = map_structure([observation([prolog])], value)
+    group = result["windows"][0]["cohorts"][0]
+    assert result["status_counts"] == {"ambiguous": 1}
+    assert group["declared_instance_count"] == group["declared_layer_count"] == 2
+    assert group["declared_candidate_instance_count"] == len(group["target_ids"]) == 8
+    assert group["replica"] is None
+    assert group["multiplicity"]["calls_per_declared_instance"] == .5
+    assert not group["placement"]["replica_binding_implied"]
+    assert result["windows"][0]["subgraphs"] == result["windows"][0]["layers"] == []
+    explicit = map_structure(
+        [observation([prolog])], value,
+        bindings=bindings(value, rank_replicas={"rank_0": 2}))
+    chosen = explicit["windows"][0]["cohorts"][0]
+    assert chosen["replica"] == 2
+    assert chosen["declared_candidate_instance_count"] == chosen["declared_instance_count"] == 2
+    assert explicit["status_counts"] == {"ambiguous": 1}
+    target = next(row["subgraph_id"] for row in value["subgraphs"] if row["replica"] == 2)
+    bound = map_structure(
+        [observation([prolog])], value,
+        bindings=bindings(value, events=[{
+            "event_id": prolog.event_id, "subgraph_ids": [target],
+            "evidence": {"source": "controlled independent occurrence annotation"},
+        }]))
+    known = bound["windows"][0]["cohorts"][0]
+    assert bound["status_counts"] == {"bound": 1}
+    assert known["replica"] == 2 and known["target_ids"] == [target]
+    assert known["declared_instance_count"] == 1
+
+
+def test_dp_cohort_requires_complete_symmetry_and_one_known_capture_device(declared, prolog):
+    value = _dp_structure(declared)
+    for change in ("missing_instance", "unknown_axis", "pipeline_stage"):
+        changed = deepcopy(value)
+        if change == "missing_instance":
+            changed["subgraphs"].pop()
+        elif change == "unknown_axis":
+            changed["execution"].pop("replica_axis")
+        else:
+            for row in changed["nodes"] + changed["subgraphs"]:
+                if row["replica"] == 3:
+                    row["stage"] = 1
+        result = map_structure([observation([prolog])], seal(changed))
+        assert result["windows"][0]["cohorts"] == []
+        assert result["windows"][0]["cohort_excluded_event_counts"] == {
+            "candidate_placement_differs": 1}
+    unknown_device = replace(prolog, device_id="")
+    result = map_structure([observation([unknown_device])], value)
+    assert result["windows"][0]["cohorts"] == []
+    assert result["windows"][0]["cohort_excluded_event_counts"] == {
+        "capture_device_scope_not_single": 1}

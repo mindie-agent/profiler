@@ -188,6 +188,12 @@ count versus declared instances and Transformer blocks, complete-event Mean/P50,
 activity sum and interval union. Host/module conflicts, overlapping boundaries
 and different physical work remain explicitly excluded. No counts are converted
 to layer identities or inferred step counts.
+For a single captured device, complete symmetric DP alternatives can form one
+cohort while `replica` stays unknown. All candidate IDs remain available;
+`declared_candidate_instance_count` records their total and
+`declared_instance_count` records the count per device. The sim consumer verifies
+identical physical hardware before pricing a representative. A trusted specific
+occurrence binding retains its known replica.
 
 The sim consumer accepts either the `analyze` C7 report or its
 `mindie-profile-structure-mapping/1` object:
@@ -211,12 +217,24 @@ The complete-capture runner has no native-type allowlist: every cohort with a
 valid contract and physical work enters `compare_cohorts`. Each distinct
 physical program has its own process budget; a failure keeps the measured
 statistics and a visible failure reason. The family tables include all observed
-native types, with full event/activity denominators, scored counts and excluded
+native types, with full event/activity denominators, scored/reference counts and excluded
 reasons. Residuals describe only the scored subset. A declared W4A8 matrix
 without its correction/rescale epilogue remains `reference_only`, even though
-its matrix geometry forms a valid cohort. The replay entry point is
+its matrix geometry forms a valid cohort. MXFP4 programs with an unmodeled
+native unpack/scale/matrix path also remain references. The replay entry point is
 `replay_fusion_cohorts.py --run`; `--compare-existing --run` reuses saved mappings
 and still verifies their graph identity.
+Kimi's current-checkpoint variants retain independently collected per-module
+quantization metadata. Their config hash matches the historical campaign, but
+the historical quantization-file hash was not retained. They are conditional
+declarations, separate from the original catalog case and from captured-dispatch
+proof. Kimi phase/configuration variants are scanned serially to bound memory.
+The selected GLM variants reuse the independently declared MSD source case,
+including integer balanced routing, nominal INT4 supply and the chosen matrix
+program. Norm-bias and MLA/indexer declarations remain explicit. These cases
+do not establish the capture's expert histogram, kernel dispatch or cache
+residency. Generic single-launch fusion inherits incomplete member costs;
+only a source program that implements the missing work removes that restriction.
 
 The retained `mindie-modeling-inputs/1` and legacy `pipeline --durations` exports
 are separate interfaces, not native inputs of rewritten sim.

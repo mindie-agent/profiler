@@ -73,6 +73,41 @@ def _grouped(kind, inputs, outputs):
             (x[1], weight_dtype, result[1])), None
 
 
+def _grouped_situ(kind, inputs, outputs):
+    """Single stacked MX A8W4 ABI from the retained native source delivery."""
+    if len(inputs) != 5 or len(outputs) != 2:
+        return None, _issue(
+            kind, "unsupported_native_tensor_slots",
+            "The verified stacked GroupedMatmulSituQuant ABI has five inputs and "
+            "two outputs; dynamic per-expert tensor lists are not flattened.")
+    missing = _missing(kind, inputs, outputs, range(5), range(2))
+    if missing:
+        return None, missing
+    x, x_scale, weight, weight_scale, groups = inputs
+    result, out_scale = outputs
+    if (not _tensor(x, 2, {"fp8_e4m3"})
+            or not _tensor(result, 2, {"fp8_e4m3"})
+            or not _tensor(groups, 1, {"int64"})):
+        return None, _issue(
+            kind, "unsupported_grouped_situ_geometry",
+            "The retained MX A8W4 interface requires ND FP8 input/output and "
+            "an INT64 expert-group vector.")
+    rows, width = result[0]
+    experts, k = groups[0][0], x[0][1]
+    if (x[0][0] != rows or k % 64 or width % 64
+            or x_scale != ((rows, k // 64, 2), "fp8_e8m0", "ND")
+            or weight != ((experts, 2 * width, k // 2),
+                          "DT_FLOAT4_E2M1", "FRACTAL_NZ_C0_16")
+            or weight_scale != ((experts, 2 * width, k // 64, 2), "fp8_e8m0", "ND")
+            or out_scale != ((rows, width // 64, 2), "fp8_e8m0", "ND")):
+        return None, _issue(
+            kind, "unsupported_grouped_situ_parameter_geometry",
+            "Stacked FP4 packed weight axes, paired E8M0 scales, routed row axes "
+            "and the channel-halving SiTU output must agree.")
+    return ("grouped_mlp_parameters_active", kind,
+            (experts, k, width), ("fp8_e4m3", "mxfp4", "fp8_e4m3")), None
+
+
 def _dequant_swiglu(kind, inputs, outputs):
     if len(inputs) != 7 or len(outputs) != 2:
         return None, _issue(kind, "unsupported_native_tensor_slots",
@@ -121,14 +156,14 @@ def moe_fusion_contract(native):
     _, kind, inputs, outputs = native
     if kind in {"GroupedMatmulSwigluQuant", "GroupedMatmulSwigluQuantV2"}:
         return _grouped(kind, inputs, outputs)
+    if kind == "GroupedMatmulSituQuant":
+        return _grouped_situ(kind, inputs, outputs)
     if kind == "DequantSwigluQuant":
         return _dequant_swiglu(kind, inputs, outputs)
     if kind == "RmsNormDynamicMxQuant":
         return _rmsnorm_mxquant(kind, inputs, outputs)
     return None, _issue(
-        kind, "native_implementation_abi_unverified",
-        "The retained native GroupedMatmulSituQuant name has no verified local "
-        "implementation schema. It is not aliased to grouped SwiGLU quantization.")
+        kind, "unsupported_moe_native_type", "No grouped FFN projection is declared.")
 
 
 def moe_fusion_scope(kind):
@@ -147,6 +182,23 @@ def moe_fusion_scope(kind):
                              "quantization_scale_values", "activation_variant_and_limit",
                              "transpose_and_dequantization_flags"],
             "excluded_semantic_work": ["routing", "expert_down_projection", "combine"],
+        }
+    if kind == "GroupedMatmulSituQuant":
+        return {
+            **common, "kind": "grouped_situ_channel_and_precision_descriptors",
+            "compared": ["native_operator_type", "expert_bank_size", "input_output_channels",
+                         "input_weight_output_dtypes"],
+            "validated_observed": ["stacked_FP4_NZ_C0_16_packed_axes",
+                                   "input_weight_output_paired_E8M0_scales",
+                                   "equal_input_output_row_axes"],
+            "not_compared": ["routed_token_count", "expert_group_sizes_and_indices",
+                             "group_list_type", "beta", "linear_beta", "scale_values",
+                             "native_binary_or_tiling"],
+            "work_assumption": (
+                "A channel-domain match is conditional on the independently declared "
+                "routing workload; it does not establish observed expert rows or weight reads."),
+            "excluded_semantic_work": ["input_quantization", "routing",
+                                       "expert_down_projection", "combine"],
         }
     if kind == "DequantSwigluQuant":
         return {

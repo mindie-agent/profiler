@@ -1,0 +1,28 @@
+{
+  "capture_id": "a5_kimi_k3",
+  "source": "/Volumes/data-tmp/tmp/mindie-body-profiling-kimi-op-summary.csv",
+  "source_sha256": "ab1d44d3613ecb92d71af6d790ab9dfc72be5aabfe92bf4f99d584fbd0f9e648",
+  "source_size_bytes": 110031770,
+  "original_archive": {
+    "path": "/Volumes/data/mindie-sim-data/a5/2026-10-23/kimi-k3-longctx/k3lc-os1.tgz",
+    "sha256": "8b74c09cfdbdb14d010f7c941b4911abc88e865a9d625e88813f4096ed91a00d",
+    "member": "raw/prof-export/op_summary_20261023053244.csv"
+  },
+  "schema_version": "mindie-derived-capture-fixture/1",
+  "fixture": "kimi_matmul_decode.csv",
+  "source_identity_basis": "Prior complete capture provenance; this extraction streams only through source line 30616.",
+  "derivation": "Original field values including durations and native descriptors retained; CSV serialized with LF.",
+  "fixture_sha256": "f1d29ba0e8625cdb859cf1a37116bdae9b216c7e31fd2e074b7ba9e0932de908",
+  "rows": [
+    {
+      "source_csv_line": 30517,
+      "fixture_csv_line": 2,
+      "operator_type": "MatMulV3"
+    },
+    {
+      "source_csv_line": 30616,
+      "fixture_csv_line": 3,
+      "operator_type": "MatMulV3"
+    }
+  ]
+}

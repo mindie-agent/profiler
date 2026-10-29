@@ -4,7 +4,8 @@
 [Invariants] Source-selected cases do not become default-case capability. A fresh
   graph and verified artifact are required for full-replay evidence. Repeated
   declarations never increase the unique capture/event denominator.
-[Timeouts & Locks] Serial finite graph exports; metadata files limited to 32 MiB.
+[Timeouts & Locks] Serial fresh-process graph exports, 60s and 512 MiB per worker;
+  metadata files and compact worker output limited to 32 MiB. No locks.
 [Side-Effect Policy] Reads local evidence and writes inventory JSON/Markdown only.
 """
 from __future__ import annotations
@@ -15,12 +16,15 @@ from hashlib import sha256
 import json
 from pathlib import Path
 import platform
+import resource
+import subprocess
 import sys
 
 
 ROOT = Path(__file__).resolve().parents[2]
 BASE = ROOT / "examples/structure/acceptance-20261029"
 LIMIT = 32 * 1024 * 1024
+MEMORY_LIMIT = 512 * 1024 * 1024
 COMPLETE = {"complete_subgraph", "complete_semantic_subgraph", "declared_node_boundary"}
 CAPABILITIES = {
     "AddRmsNormBias": (
@@ -37,7 +41,8 @@ CAPABILITIES = {
         "SiTU/MX group, active contract and local-reuse profile exist; Kimi base has no MX activation."),
     "GroupedMatmulSituQuant": (
         "prediction/gated_activation.py",
-        "SiTU semantic work exists; exact grouped native ABI remains unverified."),
+        "The retained source overlay verifies the grouped FP8/FP4 SiTU ABI; "
+        "selection still requires the independently declared MX precision and expert bank."),
     "QuantBatchMatmulV4": (
         "structure_matrix_contracts.py",
         "Strict quantized matrix contracts preserve operand/scale domains; the case must declare them."),
@@ -57,7 +62,7 @@ CAPABILITIES = {
         "prediction/feedforward.py",
         "Activation/quantization work exists; a matching native dequantization boundary is not established."),
 }
-NATIVE_BOUNDARY_GAPS = {"GroupedMatmulSituQuant", "DequantSwigluQuant"}
+NATIVE_BOUNDARY_GAPS = {"DequantSwigluQuant"}
 
 
 def read(path):
@@ -142,45 +147,102 @@ def summarize_targets(values):
     }, {canonical(target["contract"]) for target in comparable}
 
 
+def rss():
+    value = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    # Decode resource API units only; this does not select workload placement.
+    return int(value if sys.platform == "darwin" else value * 1024)
+
+
+def graph_worker(case_path, geometry):
+    from mindie_sim.structure import export_structure
+
+    # Source provenance is excluded from graph identity; the saved case and
+    # execution geometry independently regenerate every required target.
+    manifest = export_structure(read(case_path), **geometry)
+    compact = {}
+    for kind, values in targets(manifest).items():
+        counts, contracts = summarize_targets(values)
+        compact[kind] = {"counts": counts, "contracts": sorted(contracts)}
+    peak = rss()
+    return {
+        "graph_id": manifest["graph_id"], "targets": compact,
+        "maximum_resident_set_size_bytes": peak,
+        "memory_budget_passed": peak <= MEMORY_LIMIT,
+        "status": "completed" if peak <= MEMORY_LIMIT else "failed",
+    }
+
+
+def fresh_graph(case_path, geometry, timeout):
+    command = [
+        sys.executable, str(Path(__file__).resolve()),
+        "--graph-case", str(case_path), "--graph-geometry", canonical(geometry),
+    ]
+    process = subprocess.run(command, capture_output=True, text=True, timeout=timeout, check=False)
+    if len(process.stdout.encode("utf-8")) > LIMIT:
+        raise ValueError(f"graph_worker_output_exceeds_32_mib:{case_path}")
+    if process.returncode:
+        raise RuntimeError(
+            f"graph_worker_failed:{case_path}:returncode={process.returncode}:"
+            f"{process.stderr[-4000:]}:{process.stdout[-1000:]}")
+    result = json.loads(process.stdout)
+    if (result["status"] != "completed" or not result["memory_budget_passed"]
+            or result["maximum_resident_set_size_bytes"] > MEMORY_LIMIT):
+        raise RuntimeError(f"graph_worker_memory_budget_exceeded:{case_path}:"
+                           f"{result['maximum_resident_set_size_bytes']}")
+    return result
+
+
 def fixture_rows():
     from mindie_profiler.normalized import kernel_rows
     from mindie_profiler.tensor_contracts import observed_contract, observed_contract_diagnostic
 
     root = ROOT / "tests/fixtures/fusion_contracts"
     result = defaultdict(list)
+    seen = {}
     for source in read(root / "provenance.json")["sources"]:
         locators = {row["fixture_csv_line"]: row["source_csv_line"] for row in source["rows"]}
         for row in kernel_rows(root / source["fixture"]):
             contract = observed_contract(row)
-            result[source["capture_id"], row.kind].append({
+            record = {
                 "source_csv_line": locators[row.line],
                 "contract": canonical(contract) if contract is not None else None,
                 "diagnostic": observed_contract_diagnostic(row)["reason"],
-            })
+            }
+            identity = (source["capture_id"], source["source_sha256"],
+                        record["source_csv_line"], row.kind)
+            if identity in seen:
+                if seen[identity] != record:
+                    raise ValueError(f"conflicting_retained_fixture_row:{identity}")
+                continue
+            seen[identity] = record
+            result[source["capture_id"], row.kind].append(record)
     return result
 
 
-def refresh(directory):
+def refresh(directory, *, graph_timeout=60):
     import mindie_sim
-    from mindie_sim.structure import export_structure
 
     template = read(directory / "fusion-coverage-inventory.json")
     audit = read(directory / "fusion-capture-field-coverage.json")
     sources = {row["capture_id"]: row for row in audit["sources"]}
     fixtures = fixture_rows()
     availability, contracts, replays = defaultdict(list), {}, defaultdict(list)
-    declarations, default_keys = [], set()
+    declarations, default_keys, graph_receipts = [], set(), []
 
-    def register(manifest, declaration):
+    def register(graph, declaration):
         declarations.append(declaration)
-        for kind, values in targets(manifest).items():
-            counts, supported = summarize_targets(values)
+        graph_receipts.append({
+            "declaration": declaration["declaration"], "graph_id": graph["graph_id"],
+            "maximum_resident_set_size_bytes": graph["maximum_resident_set_size_bytes"],
+            "memory_budget_passed": graph["memory_budget_passed"], "status": graph["status"],
+        })
+        for kind, summary in graph["targets"].items():
             availability[kind].append({
                 "declaration": declaration["declaration"],
                 "capture_id": declaration["capture_id"], "basis": declaration["basis"],
-                "graph_id": manifest["graph_id"], **counts,
+                "graph_id": graph["graph_id"], **summary["counts"],
             })
-            contracts[declaration["declaration"], kind] = supported
+            contracts[declaration["declaration"], kind] = set(summary["contracts"])
 
     for path, summary, case_path, case, mapping_path, mapping in replay_inputs(directory):
         capture_id = summary["capture_key"]
@@ -199,13 +261,13 @@ def refresh(directory):
         ex = summary["declared_execution"]
         geometry = {key: ex[key] for key in (
             "phase", "tokens", "context", "sequences", "scope", "expand_calls")}
-        manifest = export_structure(case, **geometry, source=summary["declaration_source"])
-        if manifest["graph_id"] != summary["graph_id"]:
+        graph = fresh_graph(case_path, geometry, graph_timeout)
+        if graph["graph_id"] != summary["graph_id"]:
             raise ValueError(f"replay_graph_is_stale:{path.name}")
         basis = summary["variant"]
         declaration = {
             "declaration": path.name, "capture_id": capture_id, "basis": basis,
-            "graph_id": manifest["graph_id"], "execution": geometry,
+            "graph_id": graph["graph_id"], "execution": geometry,
             "case_path": str(case_path), "case_sha256": digest(case_path),
             "declaration_source": summary["declaration_source"],
             "full_capture_replay": {
@@ -216,24 +278,24 @@ def refresh(directory):
                 "no_raw_rescan_by_inventory": True,
             },
         }
-        register(manifest, declaration)
+        register(graph, declaration)
         for window in mapping["windows"]:
             for row in window["operators"]:
                 replays[row["operator_type"]].append({
                     "capture_id": capture_id, "declaration": path.name, "basis": basis,
-                    "graph_id": manifest["graph_id"], **{
+                    "graph_id": graph["graph_id"], **{
                         key: row[key] for key in (
                             "event_count", "status_counts", "reason_counts", "contract_available_events",
                             "implementation_correspondence") if key in row},
                 })
+        del graph, mapping
         default_key = (capture_id, canonical(geometry))
         if default_key not in default_keys:
             default_keys.add(default_key)
             base_path = Path(summary["declaration_source"]["case_path"])
             if digest(base_path) != summary["declaration_source"]["case_sha256"]:
                 raise ValueError(f"replay_base_case_changed:{base_path}")
-            base_case = read(base_path)
-            default = export_structure(base_case, **geometry)
+            default = fresh_graph(base_path, geometry, graph_timeout)
             register(default, {
                 "declaration": summary["declaration_key"] + ":case_default",
                 "capture_id": capture_id, "basis": "case_default",
@@ -244,7 +306,7 @@ def refresh(directory):
                     "no_raw_rescan_by_inventory": True,
                 },
             })
-        del manifest, mapping
+            del default
 
     sim = Path(mindie_sim.__file__).resolve().parent
     for entry in template["operators"]:
@@ -360,7 +422,16 @@ def refresh(directory):
                         "python_executable": sys.executable,
                         "python_version": platform.python_version(),
                         "python_implementation": platform.python_implementation(),
-                        "scope": "Interpreter used for all fresh graph identity checks in this inventory.",
+                        "scope": "Same interpreter, one independent fresh graph worker per declaration.",
+                        "graph_worker_count": len(graph_receipts),
+                        "graph_worker_timeout_seconds": graph_timeout,
+                        "memory_limit_bytes": MEMORY_LIMIT,
+                        "maximum_graph_worker_rss_bytes": max(
+                            row["maximum_resident_set_size_bytes"] for row in graph_receipts),
+                        "parent_peak_rss_bytes": rss(),
+                        "memory_budget_passed": rss() <= MEMORY_LIMIT and all(
+                            row["memory_budget_passed"] for row in graph_receipts),
+                        "graph_workers": graph_receipts,
                     },
                     replay_validation_receipt_sha256=digest(directory / "fusion-cohort-validation.json"))
     explanation = (
@@ -383,6 +454,10 @@ def markdown(result):
         "", f"Fresh graph verification: {counts['current_graph_full_replay_declaration_count']} saved replay "
         f"declarations, {execution['python_implementation']} {execution['python_version']}, "
         f"`{execution['python_executable']}`.",
+        f"{execution['graph_worker_count']} serial fresh graph workers; "
+        f"maximum worker RSS {execution['maximum_graph_worker_rss_bytes'] / 1024**2:.2f} MiB, "
+        f"parent RSS {execution['parent_peak_rss_bytes'] / 1024**2:.2f} MiB "
+        f"under the {execution['memory_limit_bytes'] / 1024**2:.0f} MiB process budget.",
         "", f"The {counts['required_body_correspondence_type_count']} required model-body types contain "
         f"{counts['required_body_correspondence_event_count']:,} events: "
         f"{counts['declared_boundary_type_count']} types have declared boundaries, "
@@ -416,8 +491,9 @@ def markdown(result):
         f"in the saved replay declarations ({counts['missing_required_capture_kind_pairs']} capture/type pairs). "
         "This is not an unimplemented-mechanism count. QuantBatchMatmulV4, RMS MX and SiTU MX need "
         "the appropriate precision/activation declaration; recurrent GDN and AttentionUpdate require "
-        "the corresponding phase or parallelism. GroupedMatmulSituQuant retains an exact-native-boundary "
-        "source gap. Per-capture reasons and capability sources remain in the JSON.", "",
+        "the corresponding phase or parallelism. GroupedMatmulSituQuant uses its verified source "
+        "overlay ABI without inferring routed group values. Per-capture reasons and capability "
+        "sources remain in the JSON.", "",
         "ChunkKdaFwd and ChunkGatedDeltaRuleFwd incomplete native boundaries remain outside complete "
         "contract/resource coverage. Full JSON preserves all 148 types, raw missingness, source branches, "
         "per-declaration fixture matches and full-capture status/reason counts.", "",
@@ -433,12 +509,26 @@ def main():
     parser.add_argument("--directory", type=Path, default=BASE)
     parser.add_argument("--check-artifacts", action="store_true",
                         help="Verify saved case/mapping identities without graph export or output writes.")
+    parser.add_argument("--graph-timeout", type=float, default=60)
+    parser.add_argument("--graph-case", type=Path, help=argparse.SUPPRESS)
+    parser.add_argument("--graph-geometry", help=argparse.SUPPRESS)
     args = parser.parse_args()
+    if args.graph_case:
+        result = graph_worker(args.graph_case, json.loads(args.graph_geometry))
+        text = json.dumps(result, separators=(",", ":"), allow_nan=False)
+        if len(text.encode("utf-8")) > LIMIT:
+            raise ValueError("graph_worker_output_exceeds_32_mib")
+        print(text)
+        if not result["memory_budget_passed"]:
+            raise SystemExit(1)
+        return
     if args.check_artifacts:
         names = [path.name for path, *_ in replay_inputs(args.directory)]
         print(json.dumps({"saved_artifacts_verified": names, "graph_freshness_checked": False}))
         return
-    result = refresh(args.directory)
+    result = refresh(args.directory, graph_timeout=args.graph_timeout)
+    if not result["refresh_execution"]["memory_budget_passed"]:
+        raise RuntimeError("inventory_refresh_memory_budget_exceeded")
     (args.directory / "fusion-coverage-inventory.json").write_text(json.dumps(result, indent=2) + "\n")
     (args.directory / "fusion-coverage-inventory.md").write_text(markdown(result))
     print(json.dumps(result["denominator"], indent=2))

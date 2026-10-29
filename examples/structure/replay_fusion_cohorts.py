@@ -13,7 +13,6 @@ import argparse
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict
-from hashlib import sha256
 import json
 from pathlib import Path
 from queue import Empty, Full, Queue
@@ -26,6 +25,7 @@ import time
 from mindie_profiler.events import Observation, QueryStats, SourceRef, Window
 from mindie_profiler.sources_csv import CsvSource, probe_csv
 from mindie_profiler.structure_mapping import StructureMapper
+from fusion_replay_cases import _hash, _read, variants as case_variants
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -37,26 +37,11 @@ CAPTURE_KEYS = (
 )
 
 
-def _read(path):
-    path = Path(path)
-    if path.stat().st_size > MAX_JSON_BYTES:
-        raise ValueError(f"metadata_exceeds_32_mib:{path}")
-    return json.loads(path.read_text())
-
-
 def _write(path, value):
     data = json.dumps(value, separators=(",", ":"), allow_nan=False) + "\n"
     if len(data.encode()) > MAX_JSON_BYTES:
         raise ValueError(f"report_exceeds_32_mib:{path}")
     Path(path).write_text(data)
-
-
-def _hash(path):
-    digest = sha256()
-    with Path(path).open("rb") as stream:
-        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def _rss():
@@ -75,76 +60,12 @@ def _runtime_identity():
         *sorted((sim / "mindie_sim/backends/profiles").glob("*.json")),
         *sorted((sim / "mindie_sim/model_configs").glob("*.json")),
         *sorted((sim / "examples/cases").glob("*.json")),
-        Path(__file__).resolve(), BASE / "head-normalization-evidence.json",
+        *sorted((sim / "data/observations/sources/kimi-checkpoint-20261029").glob("*.json")),
+        sim / "data/verification/model-scoreboard-20261029-glm53-w4a8-msd-case.json",
+        Path(__file__).resolve(), Path(__file__).with_name("fusion_replay_cases.py"),
+        BASE / "head-normalization-evidence.json",
     ]
     return {str(path): _hash(path) for path in files}
-
-
-def _variant(key, old, *, decode=False, fused=False):
-    execution = {name: old["declared_execution"][name]
-                 for name in ("phase", "tokens", "context", "sequences")}
-    if decode:
-        execution.update(phase="decode", tokens=1, context=32768)
-    case_path = Path(old["declaration_source"]["case_path"])
-    case = _read(case_path)
-    lowerings = {}
-    passes = None
-    norm_evidence = None
-    if "glm53" in key or decode:
-        lowerings["mla_prolog"] = "vllm_ascend_mla_prolog_v3"
-    if "glm53" in key:
-        evidence_path = BASE / "head-normalization-evidence.json"
-        evidence = _read(evidence_path)
-        selection = evidence["selected_glm_scenario"]
-        lowerings.update(selection["kernels"]["lowerings"])
-        passes = selection["lowering_passes"]
-        case.setdefault("runtime", {})["lowering_passes"] = passes
-        norm_evidence = {
-            "file": str(evidence_path), "sha256": _hash(evidence_path),
-            "basis": "independent_checkpoint_global_norm_bias_predicate_and_source",
-            "checkpoint_metadata_sha256": evidence["glm_checkpoint"]["sha256"],
-            "source_sha256": evidence["glm_runtime_source"]["sha256"],
-            "capture_dispatch_identity_verified": False,
-        }
-    if fused:
-        if "glm53" in key:
-            options = {"roles": ["mla_prolog", "lightning_indexer"],
-                       "traffic_profile": "preserve_workspaces"}
-        else:
-            options = {"roles": ["hc_pre", "hc_post"], "traffic_profile": {
-                "hc_pre": "hc_pre_m_k_split_175ef4d4"}}
-        lowerings["native_fusion"] = {
-            "implementation": "declared_native_fusion", "options": options}
-    case.setdefault("runtime", {}).setdefault("kernels", {}).setdefault("lowerings", {}).update(
-        lowerings)
-    base_key = key + ("_decode" if decode else "")
-    name = base_key + ("-selected" if fused else "-reference")
-    return {
-        "name": name, "declaration_key": base_key, "case": case, "geometry": execution,
-        "variant": "selected_native_fusion" if fused else (
-            "source_declared_unfused_reference" if lowerings else "case_default"),
-        "declaration_source": {
-            "case_path": str(case_path), "case_sha256": _hash(case_path),
-            "implementation_overrides": lowerings,
-            "lowering_passes_override": passes,
-            "override_basis": "caller_declared_source_selection",
-            "capture_dispatch_identity_verified": False,
-            "source_evidence": {
-                "mla_prolog": "prediction/family_mla_prolog.py selected source declaration",
-                "resource_reuse": "fusion_boundary.evidence in exported structure",
-                "native_norm": norm_evidence,
-            } if lowerings else None,
-        },
-    }
-
-
-def _variants(key, old):
-    values = [_variant(key, old)]
-    if "glm53" in key or key in {"a3_v4f", "a3_v4pro"}:
-        values.append(_variant(key, old, fused=True))
-    elif key == "a5_kimi_k3":
-        values.append(_variant(key, old, decode=True))
-    return values
 
 
 def _queue_events(queue, cancelled):
@@ -312,8 +233,10 @@ def _failed_cohort(row, failure):
     return {
         **{key: row.get(key) for key in (
             "cohort_id", "native_operator_type", "physical_signature", "target_kind",
-            "replica", "stage", "phase", "contract_scope", "structural_classification",
-            "declared_instance_count", "declared_layer_count", "multiplicity")},
+            "replica", "stage", "phase", "placement", "device_id",
+            "contract_scope", "structural_classification",
+            "declared_candidate_instance_count", "declared_instance_count",
+            "declared_layer_count", "multiplicity")},
         "observed": {key: row.get(key) for key in (
             "event_count", "complete_event_count", "clipped_event_count", "duration_ns",
             "activity_sum_ns", "complete_activity_sum_ns", "busy_union_ns", "status_counts")},
@@ -415,6 +338,7 @@ def _family_table(mapping, comparison):
             kind = operator["operator_type"]
             cohorts = grouped.get((window_index, kind), [])
             scored = [row for row in cohorts if row["status"] == "compared"]
+            references = [row for row in cohorts if row["status"] == "reference_only"]
             actual = sum(row["observed"]["activity_sum_ns"] / 1e6 for row in scored)
             predicted = sum(row["prediction"]["observed_call_count_total_ms"] for row in scored)
             unscored = Counter(operator.get("cohort_excluded_event_counts", {}))
@@ -432,6 +356,11 @@ def _family_table(mapping, comparison):
                 "cohort_status_counts": dict(Counter(row["status"] for row in cohorts)),
                 "cohort_event_count": sum(row["observed"]["event_count"] for row in cohorts),
                 "scored_event_count": sum(row["observed"]["event_count"] for row in scored),
+                "reference_event_count": sum(row["observed"]["event_count"] for row in references),
+                "reference_activity_sum_ms": sum(
+                    row["observed"]["activity_sum_ns"] / 1e6 for row in references),
+                "predicted_reference_activity_sum_ms": sum(
+                    row["prediction"]["observed_call_count_total_ms"] for row in references),
                 "scored_activity_sum_ms": actual,
                 "predicted_scored_activity_sum_ms": predicted,
                 "signed_activity_residual_ms": predicted - actual if scored else None,
@@ -466,7 +395,7 @@ def _family_table(mapping, comparison):
 def _capture_worker(args):
     started = time.perf_counter()
     old = _read(BASE / f"body-{args.capture_key}.json")
-    variants = _variants(args.capture_key, old)
+    variants = case_variants(args.capture_key, old, BASE)
     if args.declaration_key:
         variants = [row for row in variants if row["declaration_key"] == args.declaration_key]
     results, scan = _scan(
@@ -556,6 +485,7 @@ def _write_family_overview(args, captures):
         "Every native type remains in the JSON tables, including types with no valid cohort. "
         "This readable view shows the 20 highest measured-activity families per declaration "
         "(event count when old mapping metadata has no activity total), plus all subgraph cohorts. "
+        "Reference events have a cohort and conditional cost but do not enter error scoring. "
         "Errors cover only scored events; activity sums are not wall-clock latency or throughput.", "",
         "Several declarations may reuse one capture. Their event totals are not independent "
         "and must not be added as additional captures.", "",
@@ -577,8 +507,8 @@ def _write_family_overview(args, captures):
             lines.extend([
                 f"## {summary['declaration_key']} / {summary['variant']}", "",
                 f"Sort: `{table['sort_basis']}`. Graph: `{summary['graph_id']}`.", "",
-                "| Native family | All events | All activity ms | Scored events | Scored observed ms | Predicted ms | Relative error | Mapping / comparison reason |",
-                "| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |",
+                "| Native family | All events | All activity ms | Scored events | Reference events | Scored observed ms | Predicted ms | Relative error | Mapping / comparison reason |",
+                "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |",
             ])
             for row in table["families"][:20]:
                 actual_all = row["activity_sum_ns"]
@@ -593,7 +523,8 @@ def _write_family_overview(args, captures):
                                    sorted(reasons.items(), key=lambda item: -item[1])[:2])
                 lines.append(
                     f"| {row['operator_type']} | {row['event_count']} | {activity} | {scored} | "
-                    f"{actual} | {predicted} | {error_text} | {reason.replace('|', '/')} |")
+                    f"{row['reference_event_count']} | {actual} | {predicted} | {error_text} | "
+                    f"{reason.replace('|', '/')} |")
             subgraphs = [(family["operator_type"], row)
                          for family in table["families"] for row in family["cohorts"]
                          if row["target_kind"] == "subgraph"]
@@ -653,10 +584,10 @@ def main():
     for key in keys:
         old = _read(BASE / f"body-{key}.json")
         variants = [{k: v[k] for k in ("name", "variant", "geometry", "declaration_source")}
-                    for v in _variants(key, old)]
+                    for v in case_variants(key, old, BASE)]
         if args.compare_existing:
             variants = []
-            for variant in _variants(key, old):
+            for variant in case_variants(key, old, BASE):
                 saved = _read(args.output_dir / f"fusion-cohort-{variant['name']}.json")
                 variants.append({
                     "name": variant["name"], "variant": saved["variant"],
@@ -669,8 +600,10 @@ def main():
     if not args.run:
         print(json.dumps({"capture_jobs": plan,
                           "raw_parsed_scans_per_capture": {
-                              key: 0 if args.compare_existing else 2 if key == "a5_kimi_k3" else 1
-                              for key in keys},
+                              capture["capture_key"]: (
+                                  0 if args.compare_existing else len(capture["variants"])
+                                  if capture["capture_key"] == "a5_kimi_k3" else 1)
+                              for capture in plan},
                           "max_bounded_consumers": 2,
                           "kimi_phase_policy": "separate_serial_workers_to_stay_below_512_mib",
                           "comparison_scope": "all_valid_physical_work_cohorts",
@@ -686,7 +619,7 @@ def main():
         if args.compare_existing:
             old = _read(BASE / f"body-{key}.json")
             reports = []
-            for variant in _variants(key, old):
+            for variant in case_variants(key, old, BASE):
                 name = f"fusion-cohort-{variant['name']}.json"
                 summary = _read(args.output_dir / name)
                 reports.append({"report": name, "variant": summary["variant"],
@@ -702,9 +635,11 @@ def main():
             }
             completed.append(capture)
         else:
-            # The two Kimi declarations exceeded the memory target together.
-            # One extra streamed read is cheaper than retaining two model graphs.
-            jobs = [key, key + "_decode"] if key == "a5_kimi_k3" else [None]
+            # Kimi declarations exceed the memory target when retained together.
+            # Serial reads keep phase and checkpoint variants within the budget.
+            jobs = ([row["declaration_key"] for row in case_variants(
+                key, _read(BASE / f"body-{key}.json"), BASE)]
+                    if key == "a5_kimi_k3" else [None])
             for declaration_key in jobs:
                 command = [sys.executable, str(Path(__file__).resolve()), "--capture-key", key,
                            "--output-dir", str(args.output_dir), "--max-rows", str(args.max_rows),
@@ -770,13 +705,18 @@ def main():
         "complete_capture_event_count_by_source_sha256": events_by_source,
         "unique_capture_event_count": sum(events_by_source.values()),
     }
+    result["memory_budget_passed"] = (
+        max(result["peak_worker_rss_bytes"], peak_compare) <= result["memory_limit_bytes"])
+    result["status"] = (
+        "completed" if not failures and not comparison_failures and identity == after
+        and result["memory_budget_passed"] else "failed")
     validation_name = "fusion-cohort-comparison-validation.json" if args.compare_existing else "fusion-cohort-validation.json"
     _write(args.output_dir / validation_name, result)
     print(json.dumps({key: result[key] for key in (
-        "failures", "runtime_sources_unchanged", "elapsed_seconds",
-        "peak_worker_rss_bytes", "distinct_captured_sources")}), flush=True)
-    if (failures or comparison_failures or identity != after
-            or max(result["peak_worker_rss_bytes"], peak_compare) > result["memory_limit_bytes"]):
+        "status", "failures", "runtime_sources_unchanged", "elapsed_seconds",
+        "memory_budget_passed", "peak_worker_rss_bytes", "peak_comparison_rss_bytes",
+        "distinct_captured_sources")}), flush=True)
+    if result["status"] != "completed":
         raise SystemExit(1)
 
 

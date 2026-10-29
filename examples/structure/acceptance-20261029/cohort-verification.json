@@ -1,28 +1,62 @@
 {
   "kind": "shared_structure_cohort_maintained_suite_verification",
   "date": "2026-10-29",
-  "runtime_source_identity_sha256": "bb45b39f606a6793c6630216d76cfe2fdbaaea50804e045539df7f95b67eded7",
+  "runtime_source_identity_sha256": "c4109afb7e1389c296fe3d628cc1290b76c8086548fa15098157fce7b54d2436",
   "runtime_source_identity_file": "fusion-cohort-validation.json#runtime_source_identity",
-  "runtime_git_base": "c23683728f8237ad00659208ff35eeab8c2fdd48",
+  "runtime_git_base": "d965c8608f2586c461e8a41283a33946580a7acc",
   "not_new_live_npu_acceptance": true,
   "suites": {
     "profiler": {
       "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/Users/maoxx241/code/sim-rewrite-20261027 /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python -m pytest -q",
       "cwd": "/Users/maoxx241/code/profiler",
-      "passed": 517,
+      "passed": 527,
       "skipped": 26,
-      "seconds": 16.66,
-      "log_path": "/tmp/profiler-cohort-full-final-20261029.log",
-      "log_sha256": "ce196a9424fae34b395d3dc9d9d459d41a2930dc7398c4f5b63449552a033dc9"
+      "seconds": 24.83,
+      "log_path": "/tmp/profiler-cohort-round2-accepted-tests-20261029.log",
+      "log_sha256": "4bea14682f272e198d2614446b8f7424b0862c059ac46992f6ced4c668abcab4"
     },
     "sim": {
       "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/Users/maoxx241/code/sim-rewrite-20261027 .venv/bin/python -m pytest -q -m 'not live_npu'",
       "cwd": "/Users/maoxx241/code/sim-rewrite-20261027",
-      "passed": 1351,
+      "passed": 1444,
       "skipped": 0,
-      "seconds": 214.1,
-      "log_path": "/tmp/sim-cohort-full-final-20261029.log",
-      "log_sha256": "208226845eb4f23a2317e26d1380aecc3dc69163c4d8d636f47c4f44b3f62d24"
+      "seconds": 224.8,
+      "log_path": "/tmp/sim-cohort-round2-accepted-tests-20261029.log",
+      "log_sha256": "3438315bd04f3e009fa90c087a4e08a456105361fe39777898269781d415f9ef"
     }
-  }
+  },
+  "full_capture_replay": {
+    "status": "completed",
+    "elapsed_seconds": 626.158,
+    "memory_budget_passed": true,
+    "mapping_peak_rss_bytes": 467206144,
+    "comparison_peak_rss_bytes": 469614592,
+    "log_path": "/tmp/profiler-cohort-round2-accepted-replay-20261029.log"
+  },
+  "memory_regression": {
+    "initial_checkpoint_mapping_peak_rss_bytes": 575717376,
+    "corrective_change": "Stream canonical graph hashing without retaining whole JSON and UTF8 copies. Graph IDs and complete mapping content remain identical.",
+    "isolated_fixed_checkpoint_mapping_peak_rss_bytes": 463208448,
+    "isolated_complete_capture_event_count": 286988,
+    "final_all_capture_validation": "fusion-cohort-validation.json"
+  },
+  "inventory_refresh": {
+    "status": "completed",
+    "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/Users/maoxx241/code/sim-rewrite-20261027 /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python examples/structure/refresh_fusion_inventory.py",
+    "cwd": "/Users/maoxx241/code/profiler",
+    "elapsed_seconds": null,
+    "elapsed_status": "not_measured",
+    "graph_worker_count": 24,
+    "maximum_graph_worker_rss_bytes": 462880768,
+    "parent_peak_rss_bytes": 60506112,
+    "memory_budget_passed": true,
+    "execution_details": "fusion-coverage-inventory.json#refresh_execution",
+    "coverage_and_graph_ids_unchanged": true,
+    "prior_single_process_peak_rss_bytes": 659636224,
+    "corrective_change": "Export each declaration in a fresh subprocess; retain only compact contract and coverage summaries in the parent.",
+    "validation_record_path": "/tmp/fusion-inventory-worker-verification-20261029.json",
+    "validation_record_scope": "Post-run validation record, not the original stdout transcript.",
+    "validation_record_sha256": "634129f699a57fdbad0d74ca266e9296352754c2925f518c4200205bab1519ee"
+  },
+  "sim_runtime_commit": "414f520ea8baac5b4179302b26db933fd57a67d4"
 }

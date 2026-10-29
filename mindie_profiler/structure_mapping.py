@@ -55,8 +55,11 @@ def _union_ns(intervals):
 
 def _verify_graph_id(structure):
     payload = {key: value for key, value in structure.items() if key not in {"graph_id", "source"}}
-    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False)
-    expected = "sha256:" + sha256(canonical.encode("utf-8")).hexdigest()
+    digest = sha256()
+    encoder = json.JSONEncoder(sort_keys=True, separators=(",", ":"), allow_nan=False)
+    for chunk in encoder.iterencode(payload):
+        digest.update(chunk.encode("utf-8"))
+    expected = "sha256:" + digest.hexdigest()
     if structure.get("graph_id") != expected:
         raise ProfilerUsageError("structure graph_id does not match its contents; re-export the structure")
     return expected
@@ -361,7 +364,9 @@ class StructureMapper:
         layers = {}
         blocks = {}
         structural_groups = {}
-        cohorts = CohortAccumulator(self.graph_id, self.target_index, observation)
+        cohorts = CohortAccumulator(
+            self.graph_id, self.target_index, observation,
+            execution=self.structure.get("execution"))
         for event in observation.events if events is None else events:
             interval = event.clipped(observation.window.start_ns, observation.window.end_ns)
             if interval is None:

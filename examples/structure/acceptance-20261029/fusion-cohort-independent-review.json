@@ -1,502 +1,1961 @@
 {
-  "method": "one direct csv.Decimal timing scan per capture; exact duration Counters/interval unions; captured descriptors grouped by shared contract API; all report/family arithmetic independently recomputed",
-  "results": [
+  "schema_version": "mindie-fusion-cohort-independent-review/2",
+  "reviewed_at_utc": "2026-10-29T12:09:34.681636+00:00",
+  "status": "passed",
+  "scope": {
+    "method": "pure_stdlib_independent_artifact_hash_and_arithmetic_reconciliation",
+    "runtime_imports": false,
+    "direct_raw_sources": 0,
+    "direct_raw_positive_events": 0,
+    "report_arithmetic_variants": 15,
+    "raw_evidence_basis": "separate_final_replay_receipts; no_original_capture_rescan_or_rehash_in_this_review",
+    "median_check": "copied_values_and_range_consistency_only; not_recomputed_from_raw_events",
+    "union_check": "copied_values_and_bounds_only; not_recomputed_from_raw_intervals",
+    "runtime_identity_check": "current_recorded_runtime_files_stream_hashed_against_final_receipt",
+    "accuracy_claim": "none; arithmetic_consistency_does_not_certify_prediction_accuracy_or_dispatch"
+  },
+  "validation": {
+    "file": "fusion-cohort-validation.json",
+    "sha256": "31c8609ea0860814f1fbbaf88c4c023f6b0c0c3d80847fea97460732b3b8be17",
+    "size_bytes": 86016
+  },
+  "family_overview": {
+    "file": "fusion-cohort-replay-families.json",
+    "sha256": "7e4a9dc6a9dc4c5d8cffbac7390c1029b4a78ee12740821292ba77d6f02d63e9",
+    "size_bytes": 10009
+  },
+  "review_script": {
+    "file": "review-round2-cohorts.py",
+    "sha256": "9ce3487777f61c9aa9275c5cce8012aa76d923c322711df71ccde74e73c38daf",
+    "size_bytes": 28562
+  },
+  "checks": 33245,
+  "failures": [],
+  "distinct_capture_count": 8,
+  "unique_capture_positive_events": 668835,
+  "runtime_files_checked": 309,
+  "raw_capture_receipts": [
     {
-      "capture": "a3_glm53_prefill",
-      "variant": "reference",
-      "positive_events": 2392,
-      "zero_duration_rows": 0,
-      "native_families": 47,
-      "cohorts_checked": 22,
-      "cohort_events": 1076,
-      "scored_events": 752,
-      "statuses": {
-        "compared": 16,
-        "reference_only": 6
+      "capture_key": "a3_glm53_prefill",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/pf4k_b1.csv.gz",
+        "size_bytes": 154828,
+        "mtime_ns": 1792775839480614000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "ded3a03adc7a82b0801acc6a88bb85589b8f3a3f3a4a416a1322ebfb514c614f"
       },
-      "top_absolute_activity_residuals": [
-        {
-          "operator": "SparseFlashAttention",
-          "count": 78,
-          "actual_ms": 1029.573832,
-          "predicted_ms": 477.45165312000006,
-          "residual_ms": -552.12217888,
-          "relative_error": -0.5362628319792028
-        },
-        {
-          "operator": "AddRmsNormBias",
-          "count": 153,
-          "actual_ms": 37.924261,
-          "predicted_ms": 25.674362880000004,
-          "residual_ms": -12.249898119999997,
-          "relative_error": -0.3230095405155027
-        },
-        {
-          "operator": "QuantBatchMatmulV3",
-          "count": 180,
-          "actual_ms": 46.253634,
-          "predicted_ms": 34.289111040000314,
-          "residual_ms": -11.964522959999684,
-          "relative_error": -0.2586720636912482
-        },
-        {
-          "operator": "DynamicQuant",
-          "count": 234,
-          "actual_ms": 16.527492000000002,
-          "predicted_ms": 11.31208704,
-          "residual_ms": -5.2154049600000025,
-          "relative_error": -0.3155593698063809
-        }
-      ]
+      "positive_events": 2392
     },
     {
-      "capture": "a3_glm53_prefill",
-      "variant": "selected",
-      "positive_events": 2392,
-      "zero_duration_rows": 0,
-      "native_families": 47,
-      "cohorts_checked": 22,
-      "cohort_events": 1076,
-      "scored_events": 851,
-      "statuses": {
-        "compared": 19,
-        "reference_only": 3
+      "capture_key": "a3_glm53_decode",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/dc4k_b1.csv.gz",
+        "size_bytes": 9236949,
+        "mtime_ns": 1792775834549057000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "ed5e9696949d51c2d1d31ab099a71a2c98722d5719f004fcf90c9ceff036f60c"
       },
-      "top_absolute_activity_residuals": [
-        {
-          "operator": "SparseFlashAttention",
-          "count": 78,
-          "actual_ms": 1029.573832,
-          "predicted_ms": 477.45165312000006,
-          "residual_ms": -552.12217888,
-          "relative_error": -0.5362628319792028
-        },
-        {
-          "operator": "MlaPrologV3",
-          "count": 78,
-          "actual_ms": 99.33811299999999,
-          "predicted_ms": 37.28675660679727,
-          "residual_ms": -62.051356393202724,
-          "relative_error": -0.624648028025283
-        },
-        {
-          "operator": "AddRmsNormBias",
-          "count": 153,
-          "actual_ms": 37.924261,
-          "predicted_ms": 25.674362880000004,
-          "residual_ms": -12.249898119999997,
-          "relative_error": -0.3230095405155027
-        },
-        {
-          "operator": "QuantBatchMatmulV3",
-          "count": 180,
-          "actual_ms": 46.253634,
-          "predicted_ms": 34.289111040000314,
-          "residual_ms": -11.964522959999684,
-          "relative_error": -0.2586720636912482
-        }
-      ]
+      "positive_events": 166204
     },
     {
-      "capture": "a3_glm53_decode",
-      "variant": "reference",
-      "positive_events": 166204,
-      "zero_duration_rows": 0,
-      "native_families": 46,
-      "cohorts_checked": 22,
-      "cohort_events": 79624,
-      "scored_events": 55648,
-      "statuses": {
-        "compared": 16,
-        "reference_only": 6
+      "capture_key": "a3_qwen35",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen35-gdn/prof/p_16384_c1/dp0_pp0_tp0_dcp0_ep0_rank0_351_20261023191719697_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+        "size_bytes": 38931005,
+        "mtime_ns": 1792783499000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "2c2fb28ab36674f8eaef52042e1350a949a972225b4d4c5f52da1fe27fa58b53"
       },
-      "top_absolute_activity_residuals": [
-        {
-          "operator": "SparseFlashAttention",
-          "count": 5772,
-          "actual_ms": 523.697702,
-          "predicted_ms": 11.47134976,
-          "residual_ms": -512.2263522400001,
-          "relative_error": -0.9780954743238496
-        },
-        {
-          "operator": "QuantBatchMatmulV3",
-          "count": 13320,
-          "actual_ms": 237.110986,
-          "predicted_ms": 84.64484591272726,
-          "residual_ms": -152.46614008727272,
-          "relative_error": -0.6430159254083349
-        },
-        {
-          "operator": "TransposeBatchMatMul",
-          "count": 5772,
-          "actual_ms": 81.807902,
-          "predicted_ms": 10.160399127272726,
-          "residual_ms": -71.64750287272727,
-          "relative_error": -0.875801739454549
-        },
-        {
-          "operator": "DynamicQuant",
-          "count": 17316,
-          "actual_ms": 50.443836000000005,
-          "predicted_ms": 0.20436876,
-          "residual_ms": -50.23946724,
-          "relative_error": -0.9959485880494894
-        }
-      ]
+      "positive_events": 121802
     },
     {
-      "capture": "a3_glm53_decode",
-      "variant": "selected",
-      "positive_events": 166204,
-      "zero_duration_rows": 0,
-      "native_families": 46,
-      "cohorts_checked": 22,
-      "cohort_events": 79624,
-      "scored_events": 62974,
-      "statuses": {
-        "compared": 19,
-        "reference_only": 3
+      "capture_key": "a3_qwen36",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+        "size_bytes": 13245065,
+        "mtime_ns": 1792795904000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "797260bd9ea48a7fb75831c397a6c0716be11233f4df953d299e5bdf99084d7f"
       },
-      "top_absolute_activity_residuals": [
-        {
-          "operator": "SparseFlashAttention",
-          "count": 5772,
-          "actual_ms": 523.697702,
-          "predicted_ms": 11.47134976,
-          "residual_ms": -512.2263522400001,
-          "relative_error": -0.9780954743238496
-        },
-        {
-          "operator": "QuantBatchMatmulV3",
-          "count": 13320,
-          "actual_ms": 237.110986,
-          "predicted_ms": 84.64484591272726,
-          "residual_ms": -152.46614008727272,
-          "relative_error": -0.6430159254083349
-        },
-        {
-          "operator": "MlaPrologV3",
-          "count": 5772,
-          "actual_ms": 236.734905,
-          "predicted_ms": 105.79143088353797,
-          "residual_ms": -130.94347411646203,
-          "relative_error": -0.553122802556142
-        },
-        {
-          "operator": "TransposeBatchMatMul",
-          "count": 5772,
-          "actual_ms": 81.807902,
-          "predicted_ms": 10.160399127272726,
-          "residual_ms": -71.64750287272727,
-          "relative_error": -0.875801739454549
-        }
-      ]
+      "positive_events": 40628
     },
     {
-      "capture": "a3_qwen35",
-      "variant": "reference",
-      "positive_events": 121802,
-      "zero_duration_rows": 0,
-      "native_families": 68,
-      "cohorts_checked": 15,
-      "cohort_events": 3442,
-      "scored_events": 762,
-      "statuses": {
-        "compared": 14,
-        "reference_only": 1
+      "capture_key": "a3_v4f",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4f-prefill/raw/pre4096.kernel_details.csv",
+        "size_bytes": 1391917,
+        "mtime_ns": 1792795906356307712,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "b56b7439213cc9f76eaae63347393d4add6ae5c985bf28a6a7737f5783c81788"
       },
-      "top_absolute_activity_residuals": [
-        {
-          "operator": "GroupedMatmul",
-          "count": 80,
-          "actual_ms": 55.146201,
-          "predicted_ms": 25.818241551515584,
-          "residual_ms": -29.327959448484414,
-          "relative_error": -0.5318219372624493
-        },
-        {
-          "operator": "MoeGatingTopK",
-          "count": 82,
-          "actual_ms": 19.99684,
-          "predicted_ms": 0.6513881212121213,
-          "residual_ms": -19.345451878787877,
-          "relative_error": -0.9674254471600452
-        },
-        {
-          "operator": "MatMulV2",
-          "count": 315,
-          "actual_ms": 28.121405,
-          "predicted_ms": 23.186204819394135,
-          "residual_ms": -4.9352001806058645,
-          "relative_error": -0.17549621651570624
-        },
-        {
-          "operator": "FusedInferAttentionScore",
-          "count": 11,
-          "actual_ms": 9.698794,
-          "predicted_ms": 5.593088000000001,
-          "residual_ms": -4.105705999999999,
-          "relative_error": -0.42332129128631857
-        }
-      ]
+      "positive_events": 4064
     },
     {
-      "capture": "a3_qwen36",
-      "variant": "reference",
-      "positive_events": 40628,
-      "zero_duration_rows": 0,
-      "native_families": 62,
-      "cohorts_checked": 14,
-      "cohort_events": 1292,
-      "scored_events": 1292,
-      "statuses": {
-        "compared": 14
+      "capture_key": "a3_v4pro",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4pro-prefill/raw/pre4096.kernel_details.csv",
+        "size_bytes": 8274767,
+        "mtime_ns": 1792801452077404970,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "5ffe5625942e4caf787ce047438576527b8513452d6dd6871b24682a19968abd"
       },
-      "top_absolute_activity_residuals": [
-        {
-          "operator": "DynamicQuant",
-          "count": 440,
-          "actual_ms": 53.447497,
-          "predicted_ms": 41.25250901333333,
-          "residual_ms": -12.194987986666668,
-          "relative_error": -0.22816761628082727
-        },
-        {
-          "operator": "FusedInferAttentionScore",
-          "count": 17,
-          "actual_ms": 21.613626,
-          "predicted_ms": 12.965794909090908,
-          "residual_ms": -8.647831090909092,
-          "relative_error": -0.4001101476868847
-        },
-        {
-          "operator": "QuantBatchMatmulV3",
-          "count": 402,
-          "actual_ms": 422.311375,
-          "predicted_ms": 415.35009760974395,
-          "residual_ms": -6.961277390256043,
-          "relative_error": -0.01648375535765767
-        },
-        {
-          "operator": "_layer_norm_fwd_1pass_kernel_npu",
-          "count": 96,
-          "actual_ms": 10.35177,
-          "predicted_ms": 6.039818240000001,
-          "residual_ms": -4.3119517599999995,
-          "relative_error": -0.4165424618205389
-        }
-      ]
+      "positive_events": 24271
+    },
+    {
+      "capture_key": "a5_kimi_k3",
+      "source_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-body-profiling-kimi-op-summary.csv",
+        "size_bytes": 110031770,
+        "mtime_ns": 1793244535675263741,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "ab1d44d3613ecb92d71af6d790ab9dfc72be5aabfe92bf4f99d584fbd0f9e648"
+      },
+      "positive_events": 286988
+    },
+    {
+      "capture_key": "a5_qwen38",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/2026-10-22/qwen38-c4-16k/raw/prof/p16384_c1_o32/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+        "size_bytes": 7978835,
+        "mtime_ns": 1792684761000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "ec7fbcff6138d06fd7d0ed20497d8d4af2f78a179372db976090d4206a3d17ca"
+      },
+      "positive_events": 22486
     }
   ],
-  "schema_version": "mindie-profiler-independent-cohort-review/1",
-  "status": "passed",
-  "review_scope": {
-    "direct_raw_sources": 4,
-    "direct_raw_positive_events": 331026,
-    "raw_verified_variants": 6,
-    "raw_verified_cohorts": 117,
-    "report_arithmetic_variants": 13,
-    "independent_raw_method": "csv.DictReader and Decimal nanosecond conversion, exact duration counters and sorted interval unions; only descriptor contracts reuse the profiler API",
-    "other_four_sources": "report arithmetic checked; source scans and hashes rely on separate replay receipts"
+  "comparison_cohort_status_counts": {
+    "compared": 210,
+    "reference_only": 32
   },
-  "report_arithmetic": [
+  "variants": [
     {
-      "variant": "a3_glm53_prefill-reference",
-      "graph_id": "sha256:b791771d7482c37285717afaa86d276b457748a9faa4ce52351deddb6957b46d",
+      "summary": {
+        "file": "fusion-cohort-a3_glm53_prefill-reference.json",
+        "sha256": "1e11363b6f8f9a55f7c3faf7199a2853fe1e1a052cbc115fe5252ab3536e8bf6",
+        "size_bytes": 7317
+      },
+      "capture_key": "a3_glm53_prefill",
+      "declaration_key": "a3_glm53_prefill",
+      "variant": "source_declared_unfused_reference",
+      "graph_id": "sha256:efab891b052788506e4786bf36254bd71464fd53ba74decdac5bff57be6bdbf8",
+      "source_sha256": "ded3a03adc7a82b0801acc6a88bb85589b8f3a3f3a4a416a1322ebfb514c614f",
+      "artifacts": {
+        "mapping": {
+          "file": "fusion-cohort-a3_glm53_prefill-reference.mapping.json",
+          "sha256": "db45390647b45f81a6a823bf7bde8db4cb82de9bb415557be8a9801f950d6831",
+          "size_bytes": 249560
+        },
+        "case": {
+          "file": "fusion-cohort-a3_glm53_prefill-reference.case.json",
+          "sha256": "b3f5c9ce603aa00397cfcfe8ad8b2fc86b360975bb512d8a122756dddca6fbaf",
+          "size_bytes": 5334
+        },
+        "comparison_input": {
+          "file": "fusion-cohort-a3_glm53_prefill-reference.comparison-input.json",
+          "sha256": "23ffc948215903b0e2946e8f8b7e85da718cdcb3062c291932a9a816c603e31a",
+          "size_bytes": 249779
+        },
+        "comparison": {
+          "file": "fusion-cohort-a3_glm53_prefill-reference.comparison.json",
+          "sha256": "3a011bf07a66cd4f245dc632e162a6fc45e27fc642d266f54f93f58192f25d94",
+          "size_bytes": 92012
+        },
+        "families": {
+          "file": "fusion-cohort-a3_glm53_prefill-reference.families.json",
+          "sha256": "9e689d86519fe02d3b6584537de487cac2551a7241e011e793a002dc2fc0cd47",
+          "size_bytes": 143660
+        }
+      },
       "positive_events": 2392,
       "native_families": 47,
       "cohorts": 22,
       "cohort_events": 1076,
-      "status_counts": {
+      "comparison_status_counts": {
         "compared": 16,
         "reference_only": 6
       },
-      "family_json_sha256": "5c360c3e6492e074e359b20219a54503258b1f55d818816fcd4dc18f0d8276ec",
-      "comparison_json_sha256": "3f0bbb1f3e4832d4195b2d714bafdd78aca5762d011219649456da52f6edc088"
+      "scored_events": 752,
+      "reference_events": 324,
+      "symmetric_dp_cohorts": 0,
+      "symmetric_dp_events": 0,
+      "top_absolute_scored_activity_residuals": [
+        {
+          "operator_type": "SparseFlashAttention",
+          "scored_event_count": 78,
+          "scored_activity_sum_ms": 1029.573832,
+          "predicted_scored_activity_sum_ms": 477.45165312000006,
+          "signed_activity_residual_ms": -552.12217888,
+          "relative_activity_error": -0.5362628319792028
+        },
+        {
+          "operator_type": "AddRmsNormBias",
+          "scored_event_count": 153,
+          "scored_activity_sum_ms": 37.924261,
+          "predicted_scored_activity_sum_ms": 25.674362880000004,
+          "signed_activity_residual_ms": -12.249898119999997,
+          "relative_activity_error": -0.3230095405155027
+        },
+        {
+          "operator_type": "QuantBatchMatmulV3",
+          "scored_event_count": 180,
+          "scored_activity_sum_ms": 46.253634,
+          "predicted_scored_activity_sum_ms": 34.289111040000314,
+          "signed_activity_residual_ms": -11.964522959999684,
+          "relative_activity_error": -0.2586720636912482
+        },
+        {
+          "operator_type": "DynamicQuant",
+          "scored_event_count": 234,
+          "scored_activity_sum_ms": 16.527492000000002,
+          "predicted_scored_activity_sum_ms": 11.31208704,
+          "signed_activity_residual_ms": -5.2154049600000025,
+          "relative_activity_error": -0.3155593698063809
+        },
+        {
+          "operator_type": "TransposeBatchMatMul",
+          "scored_event_count": 78,
+          "scored_activity_sum_ms": 5.43245,
+          "predicted_scored_activity_sum_ms": 3.58194455272727,
+          "signed_activity_residual_ms": -1.85050544727273,
+          "relative_activity_error": -0.3406392046448159
+        }
+      ],
+      "kimi_matmul_cohorts": [],
+      "cohort_excluded_event_counts": {
+        "no_tensor_candidates": 1316
+      }
     },
     {
-      "variant": "a3_glm53_prefill-selected",
-      "graph_id": "sha256:c59d4cdf682919a09521ff275beb2e233e1b0dbdbfe6016d212cbc4c6d56ab88",
+      "summary": {
+        "file": "fusion-cohort-a3_glm53_prefill-selected.json",
+        "sha256": "53c2354d63f87dde5ba69c97e72d7c3edc9272829d4e7c4eda91e8af53946677",
+        "size_bytes": 9300
+      },
+      "capture_key": "a3_glm53_prefill",
+      "declaration_key": "a3_glm53_prefill",
+      "variant": "selected_native_fusion",
+      "graph_id": "sha256:7ab3dfe60b5643d82417a46de8b2a548940d11b3f765eada2960b3abbd68f043",
+      "source_sha256": "ded3a03adc7a82b0801acc6a88bb85589b8f3a3f3a4a416a1322ebfb514c614f",
+      "artifacts": {
+        "mapping": {
+          "file": "fusion-cohort-a3_glm53_prefill-selected.mapping.json",
+          "sha256": "bb4b34ffe493e8d6915f81181b99e69d6d26bce2b46f4a788ab4c877aa9f0c01",
+          "size_bytes": 255690
+        },
+        "case": {
+          "file": "fusion-cohort-a3_glm53_prefill-selected.case.json",
+          "sha256": "0a8cca2a06fae435f4e2a261244a15b0cb290e6238cb087bb1843ef065d7986e",
+          "size_bytes": 11704
+        },
+        "comparison_input": {
+          "file": "fusion-cohort-a3_glm53_prefill-selected.comparison-input.json",
+          "sha256": "1ddc7788ee8be4f02d3b9b8e82aaa00c2a91159f4a213bbfccbdbf52f9c35cf3",
+          "size_bytes": 255909
+        },
+        "comparison": {
+          "file": "fusion-cohort-a3_glm53_prefill-selected.comparison.json",
+          "sha256": "8e1c289dcd03f2b7f508dbcb85731e5e8a8b56349f551703a4b09708347c712f",
+          "size_bytes": 96755
+        },
+        "families": {
+          "file": "fusion-cohort-a3_glm53_prefill-selected.families.json",
+          "sha256": "0feacbf22d4554b62caccd296209fc71a29e9896dbe56b35ec8080730d819322",
+          "size_bytes": 145307
+        }
+      },
       "positive_events": 2392,
       "native_families": 47,
       "cohorts": 22,
       "cohort_events": 1076,
-      "status_counts": {
-        "compared": 19,
-        "reference_only": 3
+      "comparison_status_counts": {
+        "compared": 21,
+        "reference_only": 1
       },
-      "family_json_sha256": "4fb4701fe6c8687b529d11dff84d1c741f99fac4cff7609a3378a8d30b53bcc1",
-      "comparison_json_sha256": "ec6d1395462ec403390080e42b8e75d0d79202d09f3be3db14ad4a0e08b9e7e3"
+      "scored_events": 1001,
+      "reference_events": 75,
+      "symmetric_dp_cohorts": 0,
+      "symmetric_dp_events": 0,
+      "top_absolute_scored_activity_residuals": [
+        {
+          "operator_type": "SparseFlashAttention",
+          "scored_event_count": 78,
+          "scored_activity_sum_ms": 1029.573832,
+          "predicted_scored_activity_sum_ms": 477.45165312000006,
+          "signed_activity_residual_ms": -552.12217888,
+          "relative_activity_error": -0.5362628319792028
+        },
+        {
+          "operator_type": "MlaPrologV3",
+          "scored_event_count": 78,
+          "scored_activity_sum_ms": 99.33811299999999,
+          "predicted_scored_activity_sum_ms": 35.20779465065837,
+          "signed_activity_residual_ms": -64.13031834934162,
+          "relative_activity_error": -0.6455761682260023
+        },
+        {
+          "operator_type": "GroupedMatmul",
+          "scored_event_count": 75,
+          "scored_activity_sum_ms": 91.894121,
+          "predicted_scored_activity_sum_ms": 142.06045090909092,
+          "signed_activity_residual_ms": 50.16632990909092,
+          "relative_activity_error": 0.5459144650732435
+        },
+        {
+          "operator_type": "QuantBatchMatmulV3",
+          "scored_event_count": 180,
+          "scored_activity_sum_ms": 46.253634,
+          "predicted_scored_activity_sum_ms": 29.358474829090916,
+          "signed_activity_residual_ms": -16.895159170909082,
+          "relative_activity_error": -0.36527203832047195
+        },
+        {
+          "operator_type": "AddRmsNormBias",
+          "scored_event_count": 153,
+          "scored_activity_sum_ms": 37.924261,
+          "predicted_scored_activity_sum_ms": 25.674362880000004,
+          "signed_activity_residual_ms": -12.249898119999997,
+          "relative_activity_error": -0.3230095405155027
+        }
+      ],
+      "kimi_matmul_cohorts": [],
+      "cohort_excluded_event_counts": {
+        "no_tensor_candidates": 1316
+      }
     },
     {
-      "variant": "a3_glm53_decode-reference",
-      "graph_id": "sha256:5511e36128cfcd1456dae497732a2e2fcf72de5b73293c4cbb5ed077ff44a2dd",
+      "summary": {
+        "file": "fusion-cohort-a3_glm53_decode-reference.json",
+        "sha256": "38ab3d9ef1a4b8fd369a2c39d49072718fc0c52a24ac01f0c39935f5f0dfb555",
+        "size_bytes": 7404
+      },
+      "capture_key": "a3_glm53_decode",
+      "declaration_key": "a3_glm53_decode",
+      "variant": "source_declared_unfused_reference",
+      "graph_id": "sha256:8bd7c0be412291cf2bb53d03506eed1e83b823996b0fd90fd704d69ed66b1126",
+      "source_sha256": "ed5e9696949d51c2d1d31ab099a71a2c98722d5719f004fcf90c9ceff036f60c",
+      "artifacts": {
+        "mapping": {
+          "file": "fusion-cohort-a3_glm53_decode-reference.mapping.json",
+          "sha256": "27a83407b606f768cb482f22a572b1aba3c90422c1e28cbdbb9d5d49c81e8a30",
+          "size_bytes": 249535
+        },
+        "case": {
+          "file": "fusion-cohort-a3_glm53_decode-reference.case.json",
+          "sha256": "b3f5c9ce603aa00397cfcfe8ad8b2fc86b360975bb512d8a122756dddca6fbaf",
+          "size_bytes": 5334
+        },
+        "comparison_input": {
+          "file": "fusion-cohort-a3_glm53_decode-reference.comparison-input.json",
+          "sha256": "c61a6650c8619b3e755206e69d564abb2e5f6da33f50079c2fc3af010dff46c2",
+          "size_bytes": 249754
+        },
+        "comparison": {
+          "file": "fusion-cohort-a3_glm53_decode-reference.comparison.json",
+          "sha256": "60fd573b9d66d19ba3aea499eed395508be784641c0edd20fec36592f6aca9af",
+          "size_bytes": 91611
+        },
+        "families": {
+          "file": "fusion-cohort-a3_glm53_decode-reference.families.json",
+          "sha256": "496d15b05828ca76564aff50a9448efbeb62233d3109fe5e53527dc8ae5b8de5",
+          "size_bytes": 143266
+        }
+      },
       "positive_events": 166204,
       "native_families": 46,
       "cohorts": 22,
       "cohort_events": 79624,
-      "status_counts": {
+      "comparison_status_counts": {
         "compared": 16,
         "reference_only": 6
       },
-      "family_json_sha256": "e4fd41233f8d01f8ad2c30ecc6ffc739be3c4388aed333a83243086561bd210b",
-      "comparison_json_sha256": "6e94740762bb5019e0b5a589084d21adc86886d36c05d34d6e868c23c6a9e760"
+      "scored_events": 55648,
+      "reference_events": 23976,
+      "symmetric_dp_cohorts": 0,
+      "symmetric_dp_events": 0,
+      "top_absolute_scored_activity_residuals": [
+        {
+          "operator_type": "SparseFlashAttention",
+          "scored_event_count": 5772,
+          "scored_activity_sum_ms": 523.697702,
+          "predicted_scored_activity_sum_ms": 11.47134976,
+          "signed_activity_residual_ms": -512.2263522400001,
+          "relative_activity_error": -0.9780954743238496
+        },
+        {
+          "operator_type": "QuantBatchMatmulV3",
+          "scored_event_count": 13320,
+          "scored_activity_sum_ms": 237.110986,
+          "predicted_scored_activity_sum_ms": 84.64484591272726,
+          "signed_activity_residual_ms": -152.46614008727272,
+          "relative_activity_error": -0.6430159254083349
+        },
+        {
+          "operator_type": "TransposeBatchMatMul",
+          "scored_event_count": 5772,
+          "scored_activity_sum_ms": 81.807902,
+          "predicted_scored_activity_sum_ms": 10.160399127272726,
+          "signed_activity_residual_ms": -71.64750287272727,
+          "relative_activity_error": -0.875801739454549
+        },
+        {
+          "operator_type": "DynamicQuant",
+          "scored_event_count": 17316,
+          "scored_activity_sum_ms": 50.443836000000005,
+          "predicted_scored_activity_sum_ms": 0.20436876,
+          "signed_activity_residual_ms": -50.23946724,
+          "relative_activity_error": -0.9959485880494894
+        },
+        {
+          "operator_type": "AddRmsNormBias",
+          "scored_event_count": 11322,
+          "scored_activity_sum_ms": 44.741897,
+          "predicted_scored_activity_sum_ms": 0.69566142,
+          "signed_activity_residual_ms": -44.04623558,
+          "relative_activity_error": -0.9844516780323374
+        }
+      ],
+      "kimi_matmul_cohorts": [],
+      "cohort_excluded_event_counts": {
+        "no_tensor_candidates": 86580
+      }
     },
     {
-      "variant": "a3_glm53_decode-selected",
-      "graph_id": "sha256:45a83f71659e42cd95c3b37d9a2bcf243f6f484461ef6c1edee9b64298f34a92",
+      "summary": {
+        "file": "fusion-cohort-a3_glm53_decode-selected.json",
+        "sha256": "bbf89064b8fb9d389dc8d9fe4a6095d769fefc317aecbdecad107e0a78c7ffbc",
+        "size_bytes": 9386
+      },
+      "capture_key": "a3_glm53_decode",
+      "declaration_key": "a3_glm53_decode",
+      "variant": "selected_native_fusion",
+      "graph_id": "sha256:3bb549c0ce97e1973bfa0d228eb5c79519aa0587c9465530b2b9ab8da2d9f209",
+      "source_sha256": "ed5e9696949d51c2d1d31ab099a71a2c98722d5719f004fcf90c9ceff036f60c",
+      "artifacts": {
+        "mapping": {
+          "file": "fusion-cohort-a3_glm53_decode-selected.mapping.json",
+          "sha256": "4da155a95f17a67a6390b04bc205107f6dc0bd759de4892a1eeebae8e1a92406",
+          "size_bytes": 255602
+        },
+        "case": {
+          "file": "fusion-cohort-a3_glm53_decode-selected.case.json",
+          "sha256": "0a8cca2a06fae435f4e2a261244a15b0cb290e6238cb087bb1843ef065d7986e",
+          "size_bytes": 11704
+        },
+        "comparison_input": {
+          "file": "fusion-cohort-a3_glm53_decode-selected.comparison-input.json",
+          "sha256": "5043a100394c659c4874a8e017884520c6a4ae56edb33160f34ce89c3326cd02",
+          "size_bytes": 255821
+        },
+        "comparison": {
+          "file": "fusion-cohort-a3_glm53_decode-selected.comparison.json",
+          "sha256": "f46d230a94892dd5f43997ba3bddbf442e5a23f1dbac825a4de995af6e96e692",
+          "size_bytes": 96333
+        },
+        "families": {
+          "file": "fusion-cohort-a3_glm53_decode-selected.families.json",
+          "sha256": "8f7b56db1a9d253c492d87dd34f9da5cb1a5cfc7f0de5b3181475c7d8610df91",
+          "size_bytes": 144880
+        }
+      },
       "positive_events": 166204,
       "native_families": 46,
       "cohorts": 22,
       "cohort_events": 79624,
-      "status_counts": {
-        "compared": 19,
-        "reference_only": 3
+      "comparison_status_counts": {
+        "compared": 21,
+        "reference_only": 1
       },
-      "family_json_sha256": "295394380138b66044430c3ce998ba17b1e0807c6a60e7e525f9fa2d2b20da7e",
-      "comparison_json_sha256": "1a65329a1fd73570046c80d31d65135be75b76437d36f7d6c48bb90e7b9d13d4"
+      "scored_events": 74074,
+      "reference_events": 5550,
+      "symmetric_dp_cohorts": 0,
+      "symmetric_dp_events": 0,
+      "top_absolute_scored_activity_residuals": [
+        {
+          "operator_type": "SparseFlashAttention",
+          "scored_event_count": 5772,
+          "scored_activity_sum_ms": 523.697702,
+          "predicted_scored_activity_sum_ms": 11.47134976,
+          "signed_activity_residual_ms": -512.2263522400001,
+          "relative_activity_error": -0.9780954743238496
+        },
+        {
+          "operator_type": "GroupedMatmulSwigluQuantV2",
+          "scored_event_count": 5550,
+          "scored_activity_sum_ms": 488.614928,
+          "predicted_scored_activity_sum_ms": 59.69572684090909,
+          "signed_activity_residual_ms": -428.9192011590909,
+          "relative_activity_error": -0.8778266413487288
+        },
+        {
+          "operator_type": "GroupedMatmul",
+          "scored_event_count": 5550,
+          "scored_activity_sum_ms": 293.636529,
+          "predicted_scored_activity_sum_ms": 34.14380181818182,
+          "signed_activity_residual_ms": -259.49272718181817,
+          "relative_activity_error": -0.8837208642451232
+        },
+        {
+          "operator_type": "QuantBatchMatmulV3",
+          "scored_event_count": 13320,
+          "scored_activity_sum_ms": 237.110986,
+          "predicted_scored_activity_sum_ms": 84.56411864000002,
+          "signed_activity_residual_ms": -152.54686735999996,
+          "relative_activity_error": -0.6433563873754883
+        },
+        {
+          "operator_type": "MlaPrologV3",
+          "scored_event_count": 5772,
+          "scored_activity_sum_ms": 236.734905,
+          "predicted_scored_activity_sum_ms": 105.7844231995079,
+          "signed_activity_residual_ms": -130.9504818004921,
+          "relative_activity_error": -0.5531524039536633
+        }
+      ],
+      "kimi_matmul_cohorts": [],
+      "cohort_excluded_event_counts": {
+        "no_tensor_candidates": 86580
+      }
     },
     {
-      "variant": "a3_qwen35-reference",
-      "graph_id": "sha256:c8d0db9443f604bc6678e6bbd4d473f47fd1a793545f4cc6e62829302b89bfea",
+      "summary": {
+        "file": "fusion-cohort-a3_qwen35-reference.json",
+        "sha256": "6948859959c55e012ab66abc4cb3c9b027576bf21620cf857f4d2ff408a29eef",
+        "size_bytes": 6439
+      },
+      "capture_key": "a3_qwen35",
+      "declaration_key": "a3_qwen35",
+      "variant": "case_default",
+      "graph_id": "sha256:e31eb9f5f499d122b1f5f1b8e2d5a81213359afc2331d8a3ed4d00a492c2dd51",
+      "source_sha256": "2c2fb28ab36674f8eaef52042e1350a949a972225b4d4c5f52da1fe27fa58b53",
+      "artifacts": {
+        "mapping": {
+          "file": "fusion-cohort-a3_qwen35-reference.mapping.json",
+          "sha256": "17b0f564d69d12a9a1725c678b6a9506f650e1e7e78f61944d2f91ff7209f401",
+          "size_bytes": 169107
+        },
+        "case": {
+          "file": "fusion-cohort-a3_qwen35-reference.case.json",
+          "sha256": "0bdb67b705d348d5a0ada2733d9c45d6411d2a96d2f8f59bc9fb1f3b4b062058",
+          "size_bytes": 4251
+        },
+        "comparison_input": {
+          "file": "fusion-cohort-a3_qwen35-reference.comparison-input.json",
+          "sha256": "84a56370628c37f35f29d2b0233523d76892ac80213a465c1761c758d17551f0",
+          "size_bytes": 169326
+        },
+        "comparison": {
+          "file": "fusion-cohort-a3_qwen35-reference.comparison.json",
+          "sha256": "723c02c1578239bd27bfb8e36ce5dfdeff6f0f134728c067fb7d6bcd3e9e87df",
+          "size_bytes": 62117
+        },
+        "families": {
+          "file": "fusion-cohort-a3_qwen35-reference.families.json",
+          "sha256": "64b43ec4e421c9d2bb443b83f34c8fdc503858bd85e18145cdd3e8cb0d14c1a9",
+          "size_bytes": 134034
+        }
+      },
       "positive_events": 121802,
       "native_families": 68,
       "cohorts": 15,
       "cohort_events": 3442,
-      "status_counts": {
+      "comparison_status_counts": {
         "compared": 14,
         "reference_only": 1
       },
-      "family_json_sha256": "992fefc2d512dec12438233fd4f412a1e3bf33d65de273834d25cf59cded0c00",
-      "comparison_json_sha256": "808c22cead8a103e53393a2b4c04b17f30d3027451bf17f739d38697e40c82d0"
+      "scored_events": 762,
+      "reference_events": 2680,
+      "symmetric_dp_cohorts": 0,
+      "symmetric_dp_events": 0,
+      "top_absolute_scored_activity_residuals": [
+        {
+          "operator_type": "GroupedMatmul",
+          "scored_event_count": 80,
+          "scored_activity_sum_ms": 55.146201,
+          "predicted_scored_activity_sum_ms": 25.818241551515584,
+          "signed_activity_residual_ms": -29.327959448484414,
+          "relative_activity_error": -0.5318219372624493
+        },
+        {
+          "operator_type": "MoeGatingTopK",
+          "scored_event_count": 82,
+          "scored_activity_sum_ms": 19.99684,
+          "predicted_scored_activity_sum_ms": 0.6513881212121213,
+          "signed_activity_residual_ms": -19.345451878787877,
+          "relative_activity_error": -0.9674254471600452
+        },
+        {
+          "operator_type": "MatMulV2",
+          "scored_event_count": 315,
+          "scored_activity_sum_ms": 28.121405,
+          "predicted_scored_activity_sum_ms": 23.186204819394135,
+          "signed_activity_residual_ms": -4.9352001806058645,
+          "relative_activity_error": -0.17549621651570624
+        },
+        {
+          "operator_type": "FusedInferAttentionScore",
+          "scored_event_count": 11,
+          "scored_activity_sum_ms": 9.698794,
+          "predicted_scored_activity_sum_ms": 5.593088000000001,
+          "signed_activity_residual_ms": -4.105705999999999,
+          "relative_activity_error": -0.42332129128631857
+        },
+        {
+          "operator_type": "_layer_norm_fwd_1pass_kernel_npu",
+          "scored_event_count": 60,
+          "scored_activity_sum_ms": 4.494556,
+          "predicted_scored_activity_sum_ms": 2.5165952,
+          "signed_activity_residual_ms": -1.9779608000000004,
+          "relative_activity_error": -0.4400792425325216
+        }
+      ],
+      "kimi_matmul_cohorts": [],
+      "cohort_excluded_event_counts": {
+        "no_tensor_candidates": 118360
+      }
     },
     {
-      "variant": "a3_qwen36-reference",
-      "graph_id": "sha256:7527b4310d3beb047e6a1d95e083df0fbaf6d77ebbe85aa09d65dbf4049e118d",
+      "summary": {
+        "file": "fusion-cohort-a3_qwen36-reference.json",
+        "sha256": "5ef0c868f018caa6d1acd86380ccb44e9d514d98a12164faf771e50531999098",
+        "size_bytes": 6163
+      },
+      "capture_key": "a3_qwen36",
+      "declaration_key": "a3_qwen36",
+      "variant": "case_default",
+      "graph_id": "sha256:242186ecdc7c3050fee97a32062f0a85612aca7d2c6718d947f72e049dfebad4",
+      "source_sha256": "797260bd9ea48a7fb75831c397a6c0716be11233f4df953d299e5bdf99084d7f",
+      "artifacts": {
+        "mapping": {
+          "file": "fusion-cohort-a3_qwen36-reference.mapping.json",
+          "sha256": "649e98a83c6960055a894198c7b4e9c75985de2233659f2f2fad9813d2691614",
+          "size_bytes": 162230
+        },
+        "case": {
+          "file": "fusion-cohort-a3_qwen36-reference.case.json",
+          "sha256": "655560b3a8dec22bdb7588451e3179679ca501b64c1c109a2f278a6666b6bccf",
+          "size_bytes": 4106
+        },
+        "comparison_input": {
+          "file": "fusion-cohort-a3_qwen36-reference.comparison-input.json",
+          "sha256": "69819359cfeb4e5f5dfdec9ffb22e35c5476f6ced66aa30a3391e1b79031ca36",
+          "size_bytes": 162449
+        },
+        "comparison": {
+          "file": "fusion-cohort-a3_qwen36-reference.comparison.json",
+          "sha256": "153bfc9ad652d7e49e9281006764a1fc2ef83e73fe85aa0935f2e86b3206a445",
+          "size_bytes": 62330
+        },
+        "families": {
+          "file": "fusion-cohort-a3_qwen36-reference.families.json",
+          "sha256": "fa2ee35aaa0ebe340541769a87ff938f1f4a25afc7e6a73fe1baab4953aac5c0",
+          "size_bytes": 120445
+        }
+      },
       "positive_events": 40628,
       "native_families": 62,
-      "cohorts": 14,
-      "cohort_events": 1292,
-      "status_counts": {
-        "compared": 14
+      "cohorts": 15,
+      "cohort_events": 1330,
+      "comparison_status_counts": {
+        "compared": 15
       },
-      "family_json_sha256": "121bece207c82e915e5546b92f7be63ae28dbe20c2a1aefc879204cd93222c02",
-      "comparison_json_sha256": "d6147d17745fcbc5ecf718b0136968fe57f1a2df58be186f2e5f330e11e9ce91"
+      "scored_events": 1330,
+      "reference_events": 0,
+      "symmetric_dp_cohorts": 0,
+      "symmetric_dp_events": 0,
+      "top_absolute_scored_activity_residuals": [
+        {
+          "operator_type": "DynamicQuant",
+          "scored_event_count": 440,
+          "scored_activity_sum_ms": 53.447497,
+          "predicted_scored_activity_sum_ms": 41.25250901333333,
+          "signed_activity_residual_ms": -12.194987986666668,
+          "relative_activity_error": -0.22816761628082727
+        },
+        {
+          "operator_type": "FusedInferAttentionScore",
+          "scored_event_count": 17,
+          "scored_activity_sum_ms": 21.613626,
+          "predicted_scored_activity_sum_ms": 12.965794909090908,
+          "signed_activity_residual_ms": -8.647831090909092,
+          "relative_activity_error": -0.4001101476868847
+        },
+        {
+          "operator_type": "QuantBatchMatmulV3",
+          "scored_event_count": 440,
+          "scored_activity_sum_ms": 437.374193,
+          "predicted_scored_activity_sum_ms": 429.38853313944037,
+          "signed_activity_residual_ms": -7.985659860559622,
+          "relative_activity_error": -0.01825818712756022
+        },
+        {
+          "operator_type": "_layer_norm_fwd_1pass_kernel_npu",
+          "scored_event_count": 96,
+          "scored_activity_sum_ms": 10.35177,
+          "predicted_scored_activity_sum_ms": 6.039818240000001,
+          "signed_activity_residual_ms": -4.3119517599999995,
+          "relative_activity_error": -0.4165424618205389
+        },
+        {
+          "operator_type": "fused_gdn_gating_kernel",
+          "scored_event_count": 96,
+          "scored_activity_sum_ms": 4.216434,
+          "predicted_scored_activity_sum_ms": 0.07865087999999999,
+          "signed_activity_residual_ms": -4.13778312,
+          "relative_activity_error": -0.9813465881358513
+        }
+      ],
+      "kimi_matmul_cohorts": [],
+      "cohort_excluded_event_counts": {
+        "no_tensor_candidates": 39298
+      }
     },
     {
-      "variant": "a3_v4f-reference",
-      "graph_id": "sha256:ccdf3b27ef091aef68ebbe9a296126ba56835705763d21530fa9686ea03677d7",
+      "summary": {
+        "file": "fusion-cohort-a3_v4f-reference.json",
+        "sha256": "a527f794368a2d220bc2490b0a82eb3bdaa1ce98befb8409eef492bcd69429fd",
+        "size_bytes": 6365
+      },
+      "capture_key": "a3_v4f",
+      "declaration_key": "a3_v4f",
+      "variant": "case_default",
+      "graph_id": "sha256:889a2079ea7768a1599aabf21de97eaad21818a6ad862ebe67b6ed8e9a8691da",
+      "source_sha256": "b56b7439213cc9f76eaae63347393d4add6ae5c985bf28a6a7737f5783c81788",
+      "artifacts": {
+        "mapping": {
+          "file": "fusion-cohort-a3_v4f-reference.mapping.json",
+          "sha256": "fbca619e3377a03404de2b00ec79215c3c5e744742ad6da88ae1501743427d30",
+          "size_bytes": 246500
+        },
+        "case": {
+          "file": "fusion-cohort-a3_v4f-reference.case.json",
+          "sha256": "04149496c95b1d8527624a6eb5cade169807607cb7969eac2d66cada4012367d",
+          "size_bytes": 5882
+        },
+        "comparison_input": {
+          "file": "fusion-cohort-a3_v4f-reference.comparison-input.json",
+          "sha256": "d44a7e29a9410b5b445befb2d90522410064866f67e7be14659ab1e3d93ffac9",
+          "size_bytes": 246719
+        },
+        "comparison": {
+          "file": "fusion-cohort-a3_v4f-reference.comparison.json",
+          "sha256": "ddf832e95927cbaf884bccd703b34de9a9a26f0f744a7f29142552817271bbb8",
+          "size_bytes": 76733
+        },
+        "families": {
+          "file": "fusion-cohort-a3_v4f-reference.families.json",
+          "sha256": "6402827db8c70e54b227350b41b6119153993c78328907f61910e6d263e1408e",
+          "size_bytes": 147366
+        }
+      },
       "positive_events": 4064,
       "native_families": 66,
-      "cohorts": 16,
-      "cohort_events": 684,
-      "status_counts": {
+      "cohorts": 18,
+      "cohort_events": 772,
+      "comparison_status_counts": {
         "reference_only": 3,
-        "compared": 13
+        "compared": 15
       },
-      "family_json_sha256": "ba2e96a315afeb94f2381a1061a9f5f51cfe56cf8cf74c3883a9269b8559f8fb",
-      "comparison_json_sha256": "30b4ffe6d870e656b6cc6cc73f771576832d6dbcb10a9a396b05a925247f1a2c"
+      "scored_events": 619,
+      "reference_events": 153,
+      "symmetric_dp_cohorts": 0,
+      "symmetric_dp_events": 0,
+      "top_absolute_scored_activity_residuals": [
+        {
+          "operator_type": "HcPost",
+          "scored_event_count": 88,
+          "scored_activity_sum_ms": 36.816986,
+          "predicted_scored_activity_sum_ms": 22.169954986666667,
+          "signed_activity_residual_ms": -14.647031013333333,
+          "relative_activity_error": -0.3978335166635676
+        },
+        {
+          "operator_type": "DynamicQuant",
+          "scored_event_count": 197,
+          "scored_activity_sum_ms": 10.220399,
+          "predicted_scored_activity_sum_ms": 5.75922176,
+          "signed_activity_residual_ms": -4.4611772400000005,
+          "relative_activity_error": -0.43649736570949926
+        },
+        {
+          "operator_type": "MatMulV2",
+          "scored_event_count": 88,
+          "scored_activity_sum_ms": 11.809468,
+          "predicted_scored_activity_sum_ms": 9.52814130469848,
+          "signed_activity_residual_ms": -2.281326695301521,
+          "relative_activity_error": -0.1931777701841879
+        },
+        {
+          "operator_type": "QuantBatchMatmulV3",
+          "scored_event_count": 197,
+          "scored_activity_sum_ms": 25.121542,
+          "predicted_scored_activity_sum_ms": 23.304374147878974,
+          "signed_activity_residual_ms": -1.8171678521210275,
+          "relative_activity_error": -0.07233504424692672
+        },
+        {
+          "operator_type": "RmsNorm",
+          "scored_event_count": 46,
+          "scored_activity_sum_ms": 4.10484,
+          "predicted_scored_activity_sum_ms": 2.5728204800000003,
+          "signed_activity_residual_ms": -1.53201952,
+          "relative_activity_error": -0.3732227127001295
+        }
+      ],
+      "kimi_matmul_cohorts": [],
+      "cohort_excluded_event_counts": {
+        "no_tensor_candidates": 3251,
+        "candidate_physical_work_differs": 41
+      }
     },
     {
-      "variant": "a3_v4f-selected",
-      "graph_id": "sha256:e3c6926ee6f4db6d2b708bab1e3d82b51f14d46e7520bcbc63eb7fdd12cc8813",
+      "summary": {
+        "file": "fusion-cohort-a3_v4f-selected.json",
+        "sha256": "ec65b44820942d1bdda59475d2939fbc38be776c954abc77f1040be0cb21cff4",
+        "size_bytes": 7435
+      },
+      "capture_key": "a3_v4f",
+      "declaration_key": "a3_v4f",
+      "variant": "selected_native_fusion",
+      "graph_id": "sha256:6ed31ea0ee0f31aaf0da3b8375c67ae06f78f9cec3fc19f365a3246fb346a70f",
+      "source_sha256": "b56b7439213cc9f76eaae63347393d4add6ae5c985bf28a6a7737f5783c81788",
+      "artifacts": {
+        "mapping": {
+          "file": "fusion-cohort-a3_v4f-selected.mapping.json",
+          "sha256": "91e30e4778fe810334c5a14954bb03c5f8acd07c4cdc59a33ee6f9a81c676faf",
+          "size_bytes": 252325
+        },
+        "case": {
+          "file": "fusion-cohort-a3_v4f-selected.case.json",
+          "sha256": "8aaa69e645e2527e681c28d23cce51a841cd88b451e3a36f3633dfd4c1417618",
+          "size_bytes": 6076
+        },
+        "comparison_input": {
+          "file": "fusion-cohort-a3_v4f-selected.comparison-input.json",
+          "sha256": "f1dff963fb909f2a5e08a17a5e24efbb36dd9c03429a85e358cb7b5e177d3196",
+          "size_bytes": 252544
+        },
+        "comparison": {
+          "file": "fusion-cohort-a3_v4f-selected.comparison.json",
+          "sha256": "f30635b2f9173c07471631999eb9f9221031e39aa4686fa8f2f8e83b431d72a6",
+          "size_bytes": 78356
+        },
+        "families": {
+          "file": "fusion-cohort-a3_v4f-selected.families.json",
+          "sha256": "c52537babcaeb9cc186ab9a2bdfcf2b39bad35473d2ea906a183cb2dc5426ef7",
+          "size_bytes": 147681
+        }
+      },
       "positive_events": 4064,
       "native_families": 66,
-      "cohorts": 16,
-      "cohort_events": 684,
-      "status_counts": {
-        "compared": 14,
+      "cohorts": 18,
+      "cohort_events": 772,
+      "comparison_status_counts": {
+        "compared": 16,
         "reference_only": 2
       },
-      "family_json_sha256": "9f990d2f26802885a4f531c4170a23216d74891ad344437314343bddebef411a",
-      "comparison_json_sha256": "201c5b4ff8a94b96316fa408e277f4f42c90e28a36196eabedd7d7f6b2f8edd3"
+      "scored_events": 707,
+      "reference_events": 65,
+      "symmetric_dp_cohorts": 0,
+      "symmetric_dp_events": 0,
+      "top_absolute_scored_activity_residuals": [
+        {
+          "operator_type": "HcPre",
+          "scored_event_count": 88,
+          "scored_activity_sum_ms": 37.974984,
+          "predicted_scored_activity_sum_ms": 63.49599402666666,
+          "signed_activity_residual_ms": 25.52101002666666,
+          "relative_activity_error": 0.6720479467922003
+        },
+        {
+          "operator_type": "HcPost",
+          "scored_event_count": 88,
+          "scored_activity_sum_ms": 36.816986,
+          "predicted_scored_activity_sum_ms": 26.165611579883215,
+          "signed_activity_residual_ms": -10.651374420116785,
+          "relative_activity_error": -0.2893059855610338
+        },
+        {
+          "operator_type": "DynamicQuant",
+          "scored_event_count": 197,
+          "scored_activity_sum_ms": 10.220399,
+          "predicted_scored_activity_sum_ms": 5.75922176,
+          "signed_activity_residual_ms": -4.4611772400000005,
+          "relative_activity_error": -0.43649736570949926
+        },
+        {
+          "operator_type": "MatMulV2",
+          "scored_event_count": 88,
+          "scored_activity_sum_ms": 11.809468,
+          "predicted_scored_activity_sum_ms": 9.52814130469848,
+          "signed_activity_residual_ms": -2.281326695301521,
+          "relative_activity_error": -0.1931777701841879
+        },
+        {
+          "operator_type": "QuantBatchMatmulV3",
+          "scored_event_count": 197,
+          "scored_activity_sum_ms": 25.121542,
+          "predicted_scored_activity_sum_ms": 23.304374147878974,
+          "signed_activity_residual_ms": -1.8171678521210275,
+          "relative_activity_error": -0.07233504424692672
+        }
+      ],
+      "kimi_matmul_cohorts": [],
+      "cohort_excluded_event_counts": {
+        "no_tensor_candidates": 3251,
+        "candidate_physical_work_differs": 41
+      }
     },
     {
-      "variant": "a3_v4pro-reference",
-      "graph_id": "sha256:2d5c508b966fd7cf5926c01c57736bfe5e093da8ea755c718f8c500d0adbce23",
+      "summary": {
+        "file": "fusion-cohort-a3_v4pro-reference.json",
+        "sha256": "c93db41acfacbe79b5615236cdd46c07325cb9ad83f90953911588c819a09b93",
+        "size_bytes": 6304
+      },
+      "capture_key": "a3_v4pro",
+      "declaration_key": "a3_v4pro",
+      "variant": "case_default",
+      "graph_id": "sha256:8ce87fb19c206cb57a836717055db8e36e11370f5ee7e37ce6ed9b588ce61dc8",
+      "source_sha256": "5ffe5625942e4caf787ce047438576527b8513452d6dd6871b24682a19968abd",
+      "artifacts": {
+        "mapping": {
+          "file": "fusion-cohort-a3_v4pro-reference.mapping.json",
+          "sha256": "c37257cdb5c99395b4921691cadfcd3992bb034870cc90d9d967024fe8cd95f0",
+          "size_bytes": 295636
+        },
+        "case": {
+          "file": "fusion-cohort-a3_v4pro-reference.case.json",
+          "sha256": "5cb74969f21bda855dfe47396f905df94fa3871d36b4bdd00b982d5fd5fd231c",
+          "size_bytes": 9228
+        },
+        "comparison_input": {
+          "file": "fusion-cohort-a3_v4pro-reference.comparison-input.json",
+          "sha256": "09786cf3416d5528c79f34043fd241efc3f605f39ddfa3f99c8b0a6009f08006",
+          "size_bytes": 295855
+        },
+        "comparison": {
+          "file": "fusion-cohort-a3_v4pro-reference.comparison.json",
+          "sha256": "631be02b2db93ee9c07eaec7c1da597714e3be62959e50b379539e6d851188c4",
+          "size_bytes": 77895
+        },
+        "families": {
+          "file": "fusion-cohort-a3_v4pro-reference.families.json",
+          "sha256": "41bd9cc513b8d8bdd058452af2cc0132434d304065a132e24d9dfd6f38ac6b18",
+          "size_bytes": 149164
+        }
+      },
       "positive_events": 24271,
       "native_families": 65,
       "cohorts": 17,
       "cohort_events": 4336,
-      "status_counts": {
+      "comparison_status_counts": {
         "reference_only": 3,
         "compared": 14
       },
-      "family_json_sha256": "373eedcbf7d10950921bd07432ae273b30fa4fef22db7e03be2a199359c18e73",
-      "comparison_json_sha256": "3187f6aa57ddc3080a8088fa408b39f375aca5fc62f8fcad6d8a2499df05e71b"
+      "scored_events": 3472,
+      "reference_events": 864,
+      "symmetric_dp_cohorts": 0,
+      "symmetric_dp_events": 0,
+      "top_absolute_scored_activity_residuals": [
+        {
+          "operator_type": "HcPost",
+          "scored_event_count": 496,
+          "scored_activity_sum_ms": 100.240837,
+          "predicted_scored_activity_sum_ms": 54.643698346666675,
+          "signed_activity_residual_ms": -45.597138653333324,
+          "relative_activity_error": -0.4548758771171606
+        },
+        {
+          "operator_type": "QuantBatchMatmulV3",
+          "scored_event_count": 1112,
+          "scored_activity_sum_ms": 80.101532,
+          "predicted_scored_activity_sum_ms": 57.699885304242464,
+          "signed_activity_residual_ms": -22.40164669575754,
+          "relative_activity_error": -0.2796656460422947
+        },
+        {
+          "operator_type": "DynamicQuant",
+          "scored_event_count": 1112,
+          "scored_activity_sum_ms": 28.95493,
+          "predicted_scored_activity_sum_ms": 12.258498559999985,
+          "signed_activity_residual_ms": -16.696431440000016,
+          "relative_activity_error": -0.576635185787015
+        },
+        {
+          "operator_type": "RmsNorm",
+          "scored_event_count": 256,
+          "scored_activity_sum_ms": 10.399028,
+          "predicted_scored_activity_sum_ms": 6.26655232,
+          "signed_activity_residual_ms": -4.13247568,
+          "relative_activity_error": -0.3973905715034136
+        },
+        {
+          "operator_type": "MatMulV2",
+          "scored_event_count": 496,
+          "scored_activity_sum_ms": 34.798634,
+          "predicted_scored_activity_sum_ms": 37.7857831571316,
+          "signed_activity_residual_ms": 2.987149157131597,
+          "relative_activity_error": 0.08584098896329073
+        }
+      ],
+      "kimi_matmul_cohorts": [],
+      "cohort_excluded_event_counts": {
+        "no_tensor_candidates": 19691,
+        "candidate_physical_work_differs": 244
+      }
     },
     {
-      "variant": "a3_v4pro-selected",
-      "graph_id": "sha256:b923c8c76e939da2bc0cf16de60c422006eb80196b321a21516e8bf1b71655fa",
+      "summary": {
+        "file": "fusion-cohort-a3_v4pro-selected.json",
+        "sha256": "c482d8593724c7b4f18ea46ba11fe55240d425190c2a4d5f823474f065ebba85",
+        "size_bytes": 7374
+      },
+      "capture_key": "a3_v4pro",
+      "declaration_key": "a3_v4pro",
+      "variant": "selected_native_fusion",
+      "graph_id": "sha256:a58a6da73dd7540a4766c5f7b921649af3b565c218a8fb86812238ace3a5f8b8",
+      "source_sha256": "5ffe5625942e4caf787ce047438576527b8513452d6dd6871b24682a19968abd",
+      "artifacts": {
+        "mapping": {
+          "file": "fusion-cohort-a3_v4pro-selected.mapping.json",
+          "sha256": "fbc55b8feaef851fb31132ff1d2d53865ad00d708eaed5172372d73cbd099e57",
+          "size_bytes": 301459
+        },
+        "case": {
+          "file": "fusion-cohort-a3_v4pro-selected.case.json",
+          "sha256": "5f40f01545661a8978c7132acf424a32b67b282fd553b2fb3e301da94b712056",
+          "size_bytes": 9422
+        },
+        "comparison_input": {
+          "file": "fusion-cohort-a3_v4pro-selected.comparison-input.json",
+          "sha256": "0a9b7e3b5cf4aed3b31bfc2e1dcd3fff86adf8edaafba291dcf816ce97462a2a",
+          "size_bytes": 301678
+        },
+        "comparison": {
+          "file": "fusion-cohort-a3_v4pro-selected.comparison.json",
+          "sha256": "78c2a2945d3b8ccb94d17298042e1ced051ce5f837db5f146c0f4609d3a6b145",
+          "size_bytes": 79478
+        },
+        "families": {
+          "file": "fusion-cohort-a3_v4pro-selected.families.json",
+          "sha256": "8832e87bd22dba3f88ba2155cd5880e30fb3f5eb3ac997fce5a5687a882579f1",
+          "size_bytes": 149452
+        }
+      },
       "positive_events": 24271,
       "native_families": 65,
       "cohorts": 17,
       "cohort_events": 4336,
-      "status_counts": {
+      "comparison_status_counts": {
         "compared": 15,
         "reference_only": 2
       },
-      "family_json_sha256": "bcdfebbdfd346b8b8d2573316d94ffce3532839cb7877a42ae62ec483a36d07b",
-      "comparison_json_sha256": "2047b9eb9c875da4ab9db5cb31371443ae0f16246e90bc5e330315890cf0d43a"
+      "scored_events": 3968,
+      "reference_events": 368,
+      "symmetric_dp_cohorts": 0,
+      "symmetric_dp_events": 0,
+      "top_absolute_scored_activity_residuals": [
+        {
+          "operator_type": "HcPre",
+          "scored_event_count": 496,
+          "scored_activity_sum_ms": 95.13442,
+          "predicted_scored_activity_sum_ms": 156.96254634666667,
+          "signed_activity_residual_ms": 61.828126346666664,
+          "relative_activity_error": 0.6499028043337696
+        },
+        {
+          "operator_type": "HcPost",
+          "scored_event_count": 496,
+          "scored_activity_sum_ms": 100.240837,
+          "predicted_scored_activity_sum_ms": 64.356285341953,
+          "signed_activity_residual_ms": -35.884551658047,
+          "relative_activity_error": -0.35798336019527655
+        },
+        {
+          "operator_type": "QuantBatchMatmulV3",
+          "scored_event_count": 1112,
+          "scored_activity_sum_ms": 80.101532,
+          "predicted_scored_activity_sum_ms": 57.699885304242464,
+          "signed_activity_residual_ms": -22.40164669575754,
+          "relative_activity_error": -0.2796656460422947
+        },
+        {
+          "operator_type": "DynamicQuant",
+          "scored_event_count": 1112,
+          "scored_activity_sum_ms": 28.95493,
+          "predicted_scored_activity_sum_ms": 12.258498559999985,
+          "signed_activity_residual_ms": -16.696431440000016,
+          "relative_activity_error": -0.576635185787015
+        },
+        {
+          "operator_type": "RmsNorm",
+          "scored_event_count": 256,
+          "scored_activity_sum_ms": 10.399028,
+          "predicted_scored_activity_sum_ms": 6.26655232,
+          "signed_activity_residual_ms": -4.13247568,
+          "relative_activity_error": -0.3973905715034136
+        }
+      ],
+      "kimi_matmul_cohorts": [],
+      "cohort_excluded_event_counts": {
+        "no_tensor_candidates": 19691,
+        "candidate_physical_work_differs": 244
+      }
     },
     {
-      "variant": "a5_kimi_k3-reference",
-      "graph_id": "sha256:b67b7d3c3422c9db6f6854198367166850d897db40b59a2744ab9904dd363dc7",
+      "summary": {
+        "file": "fusion-cohort-a5_kimi_k3-reference.json",
+        "sha256": "99de59a7dc47c4a65a481c6d1743c8f79f77d043496e72c1a161cb39111131c7",
+        "size_bytes": 6824
+      },
+      "capture_key": "a5_kimi_k3",
+      "declaration_key": "a5_kimi_k3",
+      "variant": "case_default",
+      "graph_id": "sha256:4e276b5d271500709658fc62e7aa983fe585376a443511ed22a31db9839faed8",
+      "source_sha256": "ab1d44d3613ecb92d71af6d790ab9dfc72be5aabfe92bf4f99d584fbd0f9e648",
+      "artifacts": {
+        "mapping": {
+          "file": "fusion-cohort-a5_kimi_k3-reference.mapping.json",
+          "sha256": "ca9864b8480b537533830721bdcc8a6f4125be883f407d2e2c2392230b39f48c",
+          "size_bytes": 779464
+        },
+        "case": {
+          "file": "fusion-cohort-a5_kimi_k3-reference.case.json",
+          "sha256": "0277ba72ca8a12f96c1183f5a6e8820f16b6398c6c6eb5af569370944eb8a153",
+          "size_bytes": 3627
+        },
+        "comparison_input": {
+          "file": "fusion-cohort-a5_kimi_k3-reference.comparison-input.json",
+          "sha256": "87f3046f685da59f9298e038554ff4a4d4109208d637cbf8a16f21c9bc4fd427",
+          "size_bytes": 779683
+        },
+        "comparison": {
+          "file": "fusion-cohort-a5_kimi_k3-reference.comparison.json",
+          "sha256": "14b25e515bec4d265de71475a44e8e99cf25555b359f14287bb38bc52709ec13",
+          "size_bytes": 57233
+        },
+        "families": {
+          "file": "fusion-cohort-a5_kimi_k3-reference.families.json",
+          "sha256": "16d27c76f1df52fb5d97d23d8b9b32026171e37121527f4520b5979301634336",
+          "size_bytes": 112253
+        }
+      },
       "positive_events": 286988,
       "native_families": 82,
-      "cohorts": 0,
-      "cohort_events": 0,
-      "status_counts": {},
-      "family_json_sha256": "908067d2fdbb92fbc2f10ea7349bbd4da6493e2acafe898fb7043342dee6de60",
-      "comparison_json_sha256": "32f5475bec9838039c4f4ee886cecba22cded2e965bc3587284c0df1bea5044f"
+      "cohorts": 3,
+      "cohort_events": 439,
+      "comparison_status_counts": {
+        "compared": 3
+      },
+      "scored_events": 439,
+      "reference_events": 0,
+      "symmetric_dp_cohorts": 3,
+      "symmetric_dp_events": 439,
+      "top_absolute_scored_activity_residuals": [
+        {
+          "operator_type": "layer_norm_gated_fwd_kernel",
+          "scored_event_count": 276,
+          "scored_activity_sum_ms": 37.608294,
+          "predicted_scored_activity_sum_ms": 5.209343232,
+          "signed_activity_residual_ms": -32.398950768,
+          "relative_activity_error": -0.8614841919710583
+        },
+        {
+          "operator_type": "MatMulV3",
+          "scored_event_count": 163,
+          "scored_activity_sum_ms": 46.984711000000004,
+          "predicted_scored_activity_sum_ms": 72.76356995645958,
+          "signed_activity_residual_ms": 25.778858956459572,
+          "relative_activity_error": 0.5486648402809069
+        }
+      ],
+      "kimi_matmul_cohorts": [
+        {
+          "cohort_id": "sha256:2cb9487c3cb98bbde1812465baefb55a7e15ff9d05bd4541e8fa434d47636807",
+          "contract": [
+            "matrix",
+            [
+              8192,
+              1536,
+              7168
+            ],
+            "bf16",
+            "bf16",
+            "bf16",
+            [],
+            ""
+          ],
+          "declared_candidate_instance_count": 1664,
+          "declared_instance_count": 416,
+          "declared_layer_count": 93,
+          "event_count": 96,
+          "placement": {
+            "basis": "single_rank_symmetric_dp",
+            "replica_candidates": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "replica_binding_implied": false
+          },
+          "replica": null,
+          "multiplicity": {
+            "observed_calls": 96,
+            "declared_instances": 416,
+            "declared_candidate_instances": 1664,
+            "calls_per_declared_instance": 0.23076923076923078,
+            "steps_in_window": null,
+            "basis": "window_counts_not_layer_binding; step_label_is_not_completeness_evidence",
+            "instance_scope": "per_capture_device_symmetric_dp"
+          }
+        },
+        {
+          "cohort_id": "sha256:25708e055b1b2f7b9282811a855845df94eecac42ed3941337b34158fe242aa6",
+          "contract": [
+            "matrix",
+            [
+              1,
+              20480,
+              7168
+            ],
+            "bf16",
+            "bf16",
+            "bf16",
+            [],
+            ""
+          ],
+          "declared_candidate_instance_count": 4,
+          "declared_instance_count": 1,
+          "declared_layer_count": 0,
+          "event_count": 67,
+          "placement": {
+            "basis": "single_rank_symmetric_dp",
+            "replica_candidates": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "replica_binding_implied": false
+          },
+          "replica": null,
+          "multiplicity": {
+            "observed_calls": 67,
+            "declared_instances": 1,
+            "declared_candidate_instances": 4,
+            "calls_per_declared_instance": 67.0,
+            "steps_in_window": null,
+            "basis": "window_counts_not_layer_binding; step_label_is_not_completeness_evidence",
+            "instance_scope": "per_capture_device_symmetric_dp"
+          }
+        }
+      ],
+      "cohort_excluded_event_counts": {
+        "no_tensor_candidates": 286549
+      }
     },
     {
-      "variant": "a5_kimi_k3_decode-reference",
-      "graph_id": "sha256:c1b63a290d169ad9e6ae0c7a6423667c04853ec1a2a205a3c6a48ceb7efb5f88",
+      "summary": {
+        "file": "fusion-cohort-a5_kimi_k3_decode-reference.json",
+        "sha256": "8430d38f6cd09ab165198a77d8253a0115585db697d2fefd068894ec817229c8",
+        "size_bytes": 7242
+      },
+      "capture_key": "a5_kimi_k3",
+      "declaration_key": "a5_kimi_k3_decode",
+      "variant": "source_declared_unfused_reference",
+      "graph_id": "sha256:32ef79bccf2ae9eff3ec6cabfc362542996d9a9635f14dc3b9284398ca8ab9ec",
+      "source_sha256": "ab1d44d3613ecb92d71af6d790ab9dfc72be5aabfe92bf4f99d584fbd0f9e648",
+      "artifacts": {
+        "mapping": {
+          "file": "fusion-cohort-a5_kimi_k3_decode-reference.mapping.json",
+          "sha256": "f195e999cd1f9a88b4bdc007cbd7a721a82f5e9775d9c9974938384d7ddaf020",
+          "size_bytes": 773100
+        },
+        "case": {
+          "file": "fusion-cohort-a5_kimi_k3_decode-reference.case.json",
+          "sha256": "852e22f7d538269d4b2cda7f81f50b4a150a860ad3334f8615b6c5b4f17491a8",
+          "size_bytes": 3667
+        },
+        "comparison_input": {
+          "file": "fusion-cohort-a5_kimi_k3_decode-reference.comparison-input.json",
+          "sha256": "cb0d8b83288295a666c56cac0974d3155e56e19adc271b78148c95273293995d",
+          "size_bytes": 773319
+        },
+        "comparison": {
+          "file": "fusion-cohort-a5_kimi_k3_decode-reference.comparison.json",
+          "sha256": "52afc470d8b1a4cab6ef4a5aa99901a019a2e80fc44f645a0b20f10a1bb649b0",
+          "size_bytes": 64725
+        },
+        "families": {
+          "file": "fusion-cohort-a5_kimi_k3_decode-reference.families.json",
+          "sha256": "4fbc7640b52d9fee24cbdc5f22313d13737a8d0927644ed09457306f33111d8f",
+          "size_bytes": 120984
+        }
+      },
       "positive_events": 286988,
       "native_families": 82,
-      "cohorts": 0,
-      "cohort_events": 0,
-      "status_counts": {},
-      "family_json_sha256": "65cab1364d3bde21df81e604a858d8f7f31c20e5b62f57257ba84a0567237320",
-      "comparison_json_sha256": "172263703b3b22c1d264f6400a1299c7e1624118e98684eb04cf5579e0e3aa4d"
+      "cohorts": 5,
+      "cohort_events": 10703,
+      "comparison_status_counts": {
+        "compared": 5
+      },
+      "scored_events": 10703,
+      "reference_events": 0,
+      "symmetric_dp_cohorts": 5,
+      "symmetric_dp_events": 10703,
+      "top_absolute_scored_activity_residuals": [
+        {
+          "operator_type": "MatMulV3",
+          "scored_event_count": 8838,
+          "scored_activity_sum_ms": 124.025739,
+          "predicted_scored_activity_sum_ms": 75.80979470894563,
+          "signed_activity_residual_ms": -48.21594429105437,
+          "relative_activity_error": -0.38875756500071623
+        },
+        {
+          "operator_type": "TransposeBatchMatMul",
+          "scored_event_count": 1798,
+          "scored_activity_sum_ms": 10.495825,
+          "predicted_scored_activity_sum_ms": 1.9081099558787882,
+          "signed_activity_residual_ms": -8.587715044121211,
+          "relative_activity_error": -0.8182029563298943
+        },
+        {
+          "operator_type": "RmsNorm",
+          "scored_event_count": 67,
+          "scored_activity_sum_ms": 0.291995,
+          "predicted_scored_activity_sum_ms": 0.000720384,
+          "signed_activity_residual_ms": -0.291274616,
+          "relative_activity_error": -0.9975328892618024
+        }
+      ],
+      "kimi_matmul_cohorts": [
+        {
+          "cohort_id": "sha256:a9aec4589667f9be8a9dd887bde38f7dedc9f0ee081b327d9313e10470b240cc",
+          "contract": [
+            "matrix",
+            [
+              1,
+              20480,
+              7168
+            ],
+            "bf16",
+            "bf16",
+            "bf16",
+            [],
+            ""
+          ],
+          "declared_candidate_instance_count": 4,
+          "declared_instance_count": 1,
+          "declared_layer_count": 0,
+          "event_count": 67,
+          "placement": {
+            "basis": "single_rank_symmetric_dp",
+            "replica_candidates": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "replica_binding_implied": false
+          },
+          "replica": null,
+          "multiplicity": {
+            "observed_calls": 67,
+            "declared_instances": 1,
+            "declared_candidate_instances": 4,
+            "calls_per_declared_instance": 67.0,
+            "steps_in_window": null,
+            "basis": "window_counts_not_layer_binding; step_label_is_not_completeness_evidence",
+            "instance_scope": "per_capture_device_symmetric_dp"
+          }
+        },
+        {
+          "cohort_id": "sha256:3a539c7002ee37a3520ce518e934dea2e6de5dbabf4cbf7225e80bc70b57c8da",
+          "contract": [
+            "matrix",
+            [
+              1,
+              7168,
+              1536
+            ],
+            "bf16",
+            "bf16",
+            "bf16",
+            [],
+            ""
+          ],
+          "declared_candidate_instance_count": 372,
+          "declared_instance_count": 93,
+          "declared_layer_count": 93,
+          "event_count": 6973,
+          "placement": {
+            "basis": "single_rank_symmetric_dp",
+            "replica_candidates": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "replica_binding_implied": false
+          },
+          "replica": null,
+          "multiplicity": {
+            "observed_calls": 6973,
+            "declared_instances": 93,
+            "declared_candidate_instances": 372,
+            "calls_per_declared_instance": 74.97849462365592,
+            "steps_in_window": null,
+            "basis": "window_counts_not_layer_binding; step_label_is_not_completeness_evidence",
+            "instance_scope": "per_capture_device_symmetric_dp"
+          }
+        },
+        {
+          "cohort_id": "sha256:ce9571e8f305b388d735b656190dcff9fd7151880b924543a90bb1480c90799d",
+          "contract": [
+            "matrix",
+            [
+              1,
+              1536,
+              7168
+            ],
+            "bf16",
+            "bf16",
+            "bf16",
+            [],
+            ""
+          ],
+          "declared_candidate_instance_count": 1664,
+          "declared_instance_count": 416,
+          "declared_layer_count": 93,
+          "event_count": 1798,
+          "placement": {
+            "basis": "single_rank_symmetric_dp",
+            "replica_candidates": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "replica_binding_implied": false
+          },
+          "replica": null,
+          "multiplicity": {
+            "observed_calls": 1798,
+            "declared_instances": 416,
+            "declared_candidate_instances": 1664,
+            "calls_per_declared_instance": 4.322115384615385,
+            "steps_in_window": null,
+            "basis": "window_counts_not_layer_binding; step_label_is_not_completeness_evidence",
+            "instance_scope": "per_capture_device_symmetric_dp"
+          }
+        }
+      ],
+      "cohort_excluded_event_counts": {
+        "no_tensor_candidates": 276285
+      }
     },
     {
-      "variant": "a5_qwen38-reference",
-      "graph_id": "sha256:adf2d50a3280ffcd34219075c500fa232f93247c25e0ef0d4979a4ed6e99cf96",
+      "summary": {
+        "file": "fusion-cohort-a5_kimi_k3_checkpoint-reference.json",
+        "sha256": "e31f74c2d0b4f603ae2331fd0981bedad7f9ee3fe8cf5c1a972f6bf183581562",
+        "size_bytes": 11026
+      },
+      "capture_key": "a5_kimi_k3",
+      "declaration_key": "a5_kimi_k3_checkpoint",
+      "variant": "current_checkpoint_conditional",
+      "graph_id": "sha256:598acc0a45fb0d2cc2c1577c3fb16f31fb07ba8d093e46fb514c0dfc81a05501",
+      "source_sha256": "ab1d44d3613ecb92d71af6d790ab9dfc72be5aabfe92bf4f99d584fbd0f9e648",
+      "artifacts": {
+        "mapping": {
+          "file": "fusion-cohort-a5_kimi_k3_checkpoint-reference.mapping.json",
+          "sha256": "0328a0c2289251514446083d7fb4e03f7cdd07e49284ac9ff5cdcbaa2018ca56",
+          "size_bytes": 1007943
+        },
+        "case": {
+          "file": "fusion-cohort-a5_kimi_k3_checkpoint-reference.case.json",
+          "sha256": "2c51fb1e78b8e7999b3f5567e638428ab14778bfeac8292cd67032194436e631",
+          "size_bytes": 6443
+        },
+        "comparison_input": {
+          "file": "fusion-cohort-a5_kimi_k3_checkpoint-reference.comparison-input.json",
+          "sha256": "477eea7946e68ce4e53117b93090873acaca4f677c61cb22a52a4a214317d1ca",
+          "size_bytes": 1008162
+        },
+        "comparison": {
+          "file": "fusion-cohort-a5_kimi_k3_checkpoint-reference.comparison.json",
+          "sha256": "c89e3a6dd2e02b5c1108f33e373f37c925ff3609d2aadd95778421cc54623885",
+          "size_bytes": 98766
+        },
+        "families": {
+          "file": "fusion-cohort-a5_kimi_k3_checkpoint-reference.families.json",
+          "sha256": "84fdf0084f177f3b734f5fa8f9d0ec4ee7a1c905c926e3bb1d2b3405855982af",
+          "size_bytes": 162464
+        }
+      },
+      "positive_events": 286988,
+      "native_families": 82,
+      "cohorts": 12,
+      "cohort_events": 10025,
+      "comparison_status_counts": {
+        "compared": 9,
+        "reference_only": 3
+      },
+      "scored_events": 2023,
+      "reference_events": 8002,
+      "symmetric_dp_cohorts": 12,
+      "symmetric_dp_events": 10025,
+      "top_absolute_scored_activity_residuals": [
+        {
+          "operator_type": "SituMxQuant",
+          "scored_event_count": 368,
+          "scored_activity_sum_ms": 54.141796,
+          "predicted_scored_activity_sum_ms": 5.502603636363637,
+          "signed_activity_residual_ms": -48.63919236363636,
+          "relative_activity_error": -0.8983668063696365
+        },
+        {
+          "operator_type": "layer_norm_gated_fwd_kernel",
+          "scored_event_count": 276,
+          "scored_activity_sum_ms": 37.608294,
+          "predicted_scored_activity_sum_ms": 5.209343232,
+          "signed_activity_residual_ms": -32.398950768,
+          "relative_activity_error": -0.8614841919710583
+        },
+        {
+          "operator_type": "DynamicMxQuant",
+          "scored_event_count": 1208,
+          "scored_activity_sum_ms": 77.21905,
+          "predicted_scored_activity_sum_ms": 50.398232576,
+          "signed_activity_residual_ms": -26.820817423999998,
+          "relative_activity_error": -0.34733420605407606
+        },
+        {
+          "operator_type": "MatMulV3",
+          "scored_event_count": 163,
+          "scored_activity_sum_ms": 46.984711000000004,
+          "predicted_scored_activity_sum_ms": 72.76356995645958,
+          "signed_activity_residual_ms": 25.778858956459572,
+          "relative_activity_error": 0.5486648402809069
+        },
+        {
+          "operator_type": "QuantBatchMatmulV3",
+          "scored_event_count": 8,
+          "scored_activity_sum_ms": 6.967156,
+          "predicted_scored_activity_sum_ms": 12.13553744678488,
+          "signed_activity_residual_ms": 5.16838144678488,
+          "relative_activity_error": 0.7418208300179987
+        }
+      ],
+      "kimi_matmul_cohorts": [
+        {
+          "cohort_id": "sha256:6245720e105e492d82d614ff923548212a1ae44a18ca47e40d8266cc51edf6fa",
+          "contract": [
+            "matrix",
+            [
+              8192,
+              1536,
+              7168
+            ],
+            "bf16",
+            "bf16",
+            "bf16",
+            [],
+            ""
+          ],
+          "declared_candidate_instance_count": 372,
+          "declared_instance_count": 93,
+          "declared_layer_count": 93,
+          "event_count": 96,
+          "placement": {
+            "basis": "single_rank_symmetric_dp",
+            "replica_candidates": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "replica_binding_implied": false
+          },
+          "replica": null,
+          "multiplicity": {
+            "observed_calls": 96,
+            "declared_instances": 93,
+            "declared_candidate_instances": 372,
+            "calls_per_declared_instance": 1.032258064516129,
+            "steps_in_window": null,
+            "basis": "window_counts_not_layer_binding; step_label_is_not_completeness_evidence",
+            "instance_scope": "per_capture_device_symmetric_dp"
+          }
+        },
+        {
+          "cohort_id": "sha256:def842f3983259e8572b56f4b7d28cfe6590f9c3c3447c42e44a7db83e101448",
+          "contract": [
+            "matrix",
+            [
+              1,
+              20480,
+              7168
+            ],
+            "bf16",
+            "bf16",
+            "bf16",
+            [],
+            ""
+          ],
+          "declared_candidate_instance_count": 4,
+          "declared_instance_count": 1,
+          "declared_layer_count": 0,
+          "event_count": 67,
+          "placement": {
+            "basis": "single_rank_symmetric_dp",
+            "replica_candidates": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "replica_binding_implied": false
+          },
+          "replica": null,
+          "multiplicity": {
+            "observed_calls": 67,
+            "declared_instances": 1,
+            "declared_candidate_instances": 4,
+            "calls_per_declared_instance": 67.0,
+            "steps_in_window": null,
+            "basis": "window_counts_not_layer_binding; step_label_is_not_completeness_evidence",
+            "instance_scope": "per_capture_device_symmetric_dp"
+          }
+        }
+      ],
+      "cohort_excluded_event_counts": {
+        "no_tensor_candidates": 276963
+      }
+    },
+    {
+      "summary": {
+        "file": "fusion-cohort-a5_kimi_k3_decode_checkpoint-reference.json",
+        "sha256": "1eeb404097f7fe14a3a69eb745da0cfd424e58db74ed2d4ce3d1d263a78b6c7b",
+        "size_bytes": 11115
+      },
+      "capture_key": "a5_kimi_k3",
+      "declaration_key": "a5_kimi_k3_decode_checkpoint",
+      "variant": "current_checkpoint_conditional",
+      "graph_id": "sha256:4e36212b6422955d69fec949ea7b33d30c449dd9145b97ee57f9ceca8e53fa5c",
+      "source_sha256": "ab1d44d3613ecb92d71af6d790ab9dfc72be5aabfe92bf4f99d584fbd0f9e648",
+      "artifacts": {
+        "mapping": {
+          "file": "fusion-cohort-a5_kimi_k3_decode_checkpoint-reference.mapping.json",
+          "sha256": "b46dd116e43f4a7f63ed117dad477c8b11f195f924cd85d74118c5a6de2e2a43",
+          "size_bytes": 989850
+        },
+        "case": {
+          "file": "fusion-cohort-a5_kimi_k3_decode_checkpoint-reference.case.json",
+          "sha256": "2c51fb1e78b8e7999b3f5567e638428ab14778bfeac8292cd67032194436e631",
+          "size_bytes": 6443
+        },
+        "comparison_input": {
+          "file": "fusion-cohort-a5_kimi_k3_decode_checkpoint-reference.comparison-input.json",
+          "sha256": "f274dc2ced25642365a279df6bb1d9bb4c53d9a33024095aa2feb8b81c03b3f4",
+          "size_bytes": 990069
+        },
+        "comparison": {
+          "file": "fusion-cohort-a5_kimi_k3_decode_checkpoint-reference.comparison.json",
+          "sha256": "756059043a20c3bf69b5b303619ddb51f2a0e6ae091f8a8a28af0cf723501221",
+          "size_bytes": 98015
+        },
+        "families": {
+          "file": "fusion-cohort-a5_kimi_k3_decode_checkpoint-reference.families.json",
+          "sha256": "4969d02981f4fb0785ee68511d8eaa2f3f167b185810fadfc738ef94ba7c0485",
+          "size_bytes": 161737
+        }
+      },
+      "positive_events": 286988,
+      "native_families": 82,
+      "cohorts": 12,
+      "cohort_events": 66328,
+      "comparison_status_counts": {
+        "reference_only": 4,
+        "compared": 8
+      },
+      "scored_events": 43469,
+      "reference_events": 22859,
+      "symmetric_dp_cohorts": 12,
+      "symmetric_dp_events": 66328,
+      "top_absolute_scored_activity_residuals": [
+        {
+          "operator_type": "SituMxQuant",
+          "scored_event_count": 6898,
+          "scored_activity_sum_ms": 449.295093,
+          "predicted_scored_activity_sum_ms": 0.01259080965909091,
+          "signed_activity_residual_ms": -449.2825021903409,
+          "relative_activity_error": -0.9999719765253277
+        },
+        {
+          "operator_type": "DynamicMxQuant",
+          "scored_event_count": 18971,
+          "scored_activity_sum_ms": 78.421712,
+          "predicted_scored_activity_sum_ms": 0.10305047199999999,
+          "signed_activity_residual_ms": -78.31866152799999,
+          "relative_activity_error": -0.9986859446271716
+        },
+        {
+          "operator_type": "MatMulV3",
+          "scored_event_count": 8838,
+          "scored_activity_sum_ms": 124.025739,
+          "predicted_scored_activity_sum_ms": 75.80979470894563,
+          "signed_activity_residual_ms": -48.21594429105437,
+          "relative_activity_error": -0.38875756500071623
+        },
+        {
+          "operator_type": "RmsNormDynamicMxQuant",
+          "scored_event_count": 6897,
+          "scored_activity_sum_ms": 20.610572,
+          "predicted_scored_activity_sum_ms": 0.03314609375,
+          "signed_activity_residual_ms": -20.577425906250003,
+          "relative_activity_error": -0.9983917916615803
+        },
+        {
+          "operator_type": "TransposeBatchMatMul",
+          "scored_event_count": 1798,
+          "scored_activity_sum_ms": 10.495825,
+          "predicted_scored_activity_sum_ms": 1.9081099558787882,
+          "signed_activity_residual_ms": -8.587715044121211,
+          "relative_activity_error": -0.8182029563298943
+        }
+      ],
+      "kimi_matmul_cohorts": [
+        {
+          "cohort_id": "sha256:bf540f85fc794851d09129253466e67a72b9fd45df896b2f3a193111929ddca6",
+          "contract": [
+            "matrix",
+            [
+              1,
+              20480,
+              7168
+            ],
+            "bf16",
+            "bf16",
+            "bf16",
+            [],
+            ""
+          ],
+          "declared_candidate_instance_count": 4,
+          "declared_instance_count": 1,
+          "declared_layer_count": 0,
+          "event_count": 67,
+          "placement": {
+            "basis": "single_rank_symmetric_dp",
+            "replica_candidates": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "replica_binding_implied": false
+          },
+          "replica": null,
+          "multiplicity": {
+            "observed_calls": 67,
+            "declared_instances": 1,
+            "declared_candidate_instances": 4,
+            "calls_per_declared_instance": 67.0,
+            "steps_in_window": null,
+            "basis": "window_counts_not_layer_binding; step_label_is_not_completeness_evidence",
+            "instance_scope": "per_capture_device_symmetric_dp"
+          }
+        },
+        {
+          "cohort_id": "sha256:1026c3e1dcd5adf7e56f572cfb27c6f9e85d69f5434b9461781867f0c44d05e6",
+          "contract": [
+            "matrix",
+            [
+              1,
+              7168,
+              1536
+            ],
+            "bf16",
+            "bf16",
+            "bf16",
+            [],
+            ""
+          ],
+          "declared_candidate_instance_count": 372,
+          "declared_instance_count": 93,
+          "declared_layer_count": 93,
+          "event_count": 6973,
+          "placement": {
+            "basis": "single_rank_symmetric_dp",
+            "replica_candidates": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "replica_binding_implied": false
+          },
+          "replica": null,
+          "multiplicity": {
+            "observed_calls": 6973,
+            "declared_instances": 93,
+            "declared_candidate_instances": 372,
+            "calls_per_declared_instance": 74.97849462365592,
+            "steps_in_window": null,
+            "basis": "window_counts_not_layer_binding; step_label_is_not_completeness_evidence",
+            "instance_scope": "per_capture_device_symmetric_dp"
+          }
+        },
+        {
+          "cohort_id": "sha256:52bda07cb78aa80fcf43666ed1762ad6dfbeaa4887dc52d4579f180911ff137a",
+          "contract": [
+            "matrix",
+            [
+              1,
+              1536,
+              7168
+            ],
+            "bf16",
+            "bf16",
+            "bf16",
+            [],
+            ""
+          ],
+          "declared_candidate_instance_count": 372,
+          "declared_instance_count": 93,
+          "declared_layer_count": 93,
+          "event_count": 1798,
+          "placement": {
+            "basis": "single_rank_symmetric_dp",
+            "replica_candidates": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "replica_binding_implied": false
+          },
+          "replica": null,
+          "multiplicity": {
+            "observed_calls": 1798,
+            "declared_instances": 93,
+            "declared_candidate_instances": 372,
+            "calls_per_declared_instance": 19.333333333333332,
+            "steps_in_window": null,
+            "basis": "window_counts_not_layer_binding; step_label_is_not_completeness_evidence",
+            "instance_scope": "per_capture_device_symmetric_dp"
+          }
+        }
+      ],
+      "cohort_excluded_event_counts": {
+        "no_tensor_candidates": 220660
+      }
+    },
+    {
+      "summary": {
+        "file": "fusion-cohort-a5_qwen38-reference.json",
+        "sha256": "182a9d6502dd7c705c541418eef117dc36d4520e5b9888f540c68d76cc8d7c3d",
+        "size_bytes": 6929
+      },
+      "capture_key": "a5_qwen38",
+      "declaration_key": "a5_qwen38",
+      "variant": "case_default",
+      "graph_id": "sha256:83f53cbcffb2bab2a1dab5381b0adf82fc3d7b116bfaaa70f8b19c7402ea8fda",
+      "source_sha256": "ec7fbcff6138d06fd7d0ed20497d8d4af2f78a179372db976090d4206a3d17ca",
+      "artifacts": {
+        "mapping": {
+          "file": "fusion-cohort-a5_qwen38-reference.mapping.json",
+          "sha256": "097bcdc6648aed945168bd0bb7ba5c5b9c69353ba0b29b8d8a3a184608d8944a",
+          "size_bytes": 207774
+        },
+        "case": {
+          "file": "fusion-cohort-a5_qwen38-reference.case.json",
+          "sha256": "9048fa43435e5c36ba04e915a8faac8e09bf27c8eb1838e0e551fe58c40bc5cc",
+          "size_bytes": 5178
+        },
+        "comparison_input": {
+          "file": "fusion-cohort-a5_qwen38-reference.comparison-input.json",
+          "sha256": "253a8b9725dcd022706ec8c51354812d185dd334257705a7e029a839197e23e9",
+          "size_bytes": 207993
+        },
+        "comparison": {
+          "file": "fusion-cohort-a5_qwen38-reference.comparison.json",
+          "sha256": "5482c2331759cfc83cc379add523d21898e032efb1f62867b300d3ea993e2431",
+          "size_bytes": 93594
+        },
+        "families": {
+          "file": "fusion-cohort-a5_qwen38-reference.families.json",
+          "sha256": "f6a594bd605f25a24942534c6c515fc885d374639d946baf3c141e4f993ed4db",
+          "size_bytes": 145846
+        }
+      },
       "positive_events": 22486,
       "native_families": 56,
       "cohorts": 22,
       "cohort_events": 989,
-      "status_counts": {
+      "comparison_status_counts": {
         "compared": 22
       },
-      "family_json_sha256": "0768fcd91b6377d3ffc65129b0bcef609097fbfac2c57b5a7dc66496c38111f0",
-      "comparison_json_sha256": "4a1ca1ed57956c19e88d7d94269f09e31eb08faf8bdba908f3c75b4e73e5a268"
+      "scored_events": 989,
+      "reference_events": 0,
+      "symmetric_dp_cohorts": 0,
+      "symmetric_dp_events": 0,
+      "top_absolute_scored_activity_residuals": [
+        {
+          "operator_type": "QuantBatchMatmulV3",
+          "scored_event_count": 160,
+          "scored_activity_sum_ms": 714.307065,
+          "predicted_scored_activity_sum_ms": 1253.3826330383008,
+          "signed_activity_residual_ms": 539.0755680383008,
+          "relative_activity_error": 0.7546832370169836
+        },
+        {
+          "operator_type": "MatMulV3",
+          "scored_event_count": 184,
+          "scored_activity_sum_ms": 458.38147499999997,
+          "predicted_scored_activity_sum_ms": 749.7731040624631,
+          "signed_activity_residual_ms": 291.3916290624631,
+          "relative_activity_error": 0.6356967830396356
+        },
+        {
+          "operator_type": "FusedInferAttentionScore",
+          "scored_event_count": 17,
+          "scored_activity_sum_ms": 213.741698,
+          "predicted_scored_activity_sum_ms": 129.65003636363636,
+          "signed_activity_residual_ms": -84.09166163636365,
+          "relative_activity_error": -0.393426563104985
+        },
+        {
+          "operator_type": "ChunkGatedDeltaRuleFwdPrepare",
+          "scored_event_count": 48,
+          "scored_activity_sum_ms": 73.923782,
+          "predicted_scored_activity_sum_ms": 58.96452696436449,
+          "signed_activity_residual_ms": -14.959255035635515,
+          "relative_activity_error": -0.2023605209435242
+        },
+        {
+          "operator_type": "ChunkFwdO",
+          "scored_event_count": 48,
+          "scored_activity_sum_ms": 24.817066,
+          "predicted_scored_activity_sum_ms": 17.12786785745431,
+          "signed_activity_residual_ms": -7.689198142545692,
+          "relative_activity_error": -0.30983510067409625
+        }
+      ],
+      "kimi_matmul_cohorts": [],
+      "cohort_excluded_event_counts": {
+        "no_tensor_candidates": 21305,
+        "candidate_physical_work_differs": 192
+      }
     }
-  ],
-  "totals": {
-    "unique_sources": 8,
-    "unique_capture_events": 668835,
-    "cohort_status_counts_across_declarations": {
-      "compared": 176,
-      "reference_only": 29
-    }
-  },
-  "checks": [
-    "all positive-event family denominators retained",
-    "cohort/excluded and scored/unscored counts reconcile",
-    "Mean/P50/min/max/activity/union recomputed for four original captures",
-    "per-call and cumulative residual equations recomputed for every compared cohort",
-    "W4A8 correction epilogue remains reference_only",
-    "no bound occurrences or inferred step counts",
-    "no error fields for reference_only",
-    "capture variants are not summed as independent measurements"
   ],
   "limitations": [
-    "Statistical consistency does not certify prediction accuracy or native dispatch identity.",
-    "Large residuals remain visible; this audit does not change calibration or model parameters.",
-    "Routing contracts unavailable for MoeInitRoutingV3/MoeTokenUnpermute remain unscored, even where implementation correspondence exists."
+    "Repeated declarations share captures and are not additional independent hardware evidence.",
+    "Activity is a sum of event durations, not wall-clock latency or end-to-end throughput.",
+    "Reference predictions retain observations but do not contribute scored error denominators.",
+    "Symmetric DP collapses per-device multiplicity only; it never binds a layer or replica.",
+    "Capture phases and hardware dispatch remain caller declarations unless independently evidenced.",
+    "Original raw scans, source hashes and timing extraction are trusted only through the separate replay receipt."
   ]
 }

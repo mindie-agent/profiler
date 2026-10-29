@@ -6829,6 +6829,148 @@
           "fixture_csv_line": 100
         }
       ]
+    },
+    {
+      "source": "/Volumes/data-tmp/tmp/mindie-body-profiling-kimi-op-summary.csv",
+      "source_sha256": "ab1d44d3613ecb92d71af6d790ab9dfc72be5aabfe92bf4f99d584fbd0f9e648",
+      "source_identity_basis": "unchanged full source recorded in fusion_contracts/provenance.json; extraction reads through source line 240 only",
+      "source_size_bytes": 110031770,
+      "archive": {
+        "path": "/Volumes/data/mindie-sim-data/a5/2026-10-23/kimi-k3-longctx/k3lc-os1.tgz",
+        "sha256": "8b74c09cfdbdb14d010f7c941b4911abc88e865a9d625e88813f4096ed91a00d",
+        "member": "raw/prof-export/op_summary_20261023053244.csv"
+      },
+      "fixture": "kimi_matrix_branches.csv",
+      "fixture_sha256": "062b7b8ccb100bea282714bd339867ab34ec52cd5d0eae4dff3bd880baac0f56",
+      "rows": [
+        {
+          "source_csv_line": 53,
+          "fixture_csv_line": 2,
+          "operator_type": "GroupedMatmul"
+        },
+        {
+          "source_csv_line": 136,
+          "fixture_csv_line": 3,
+          "operator_type": "GroupedMatmul"
+        },
+        {
+          "source_csv_line": 163,
+          "fixture_csv_line": 4,
+          "operator_type": "GroupedMatmulSituQuant"
+        },
+        {
+          "source_csv_line": 164,
+          "fixture_csv_line": 5,
+          "operator_type": "SituMxQuant"
+        },
+        {
+          "source_csv_line": 165,
+          "fixture_csv_line": 6,
+          "operator_type": "GroupedMatmul"
+        },
+        {
+          "source_csv_line": 167,
+          "fixture_csv_line": 7,
+          "operator_type": "QuantBatchMatmulV4"
+        },
+        {
+          "source_csv_line": 174,
+          "fixture_csv_line": 8,
+          "operator_type": "GroupedMatmul"
+        },
+        {
+          "source_csv_line": 238,
+          "fixture_csv_line": 9,
+          "operator_type": "GroupedMatmulSituQuant"
+        },
+        {
+          "source_csv_line": 240,
+          "fixture_csv_line": 10,
+          "operator_type": "GroupedMatmul"
+        }
+      ],
+      "edits": "No cells changed; CSV serialization normalized to LF.",
+      "implementation_sources": {
+        "grouped_situ": {
+          "archive": "/Volumes/data/temp/codex-session-01a09c11-01b6-7ef2-bf23-6dae53e42dae/work/gmmsituquant-latest-0916/gmmsituquant-latest-overlay.zip",
+          "archive_sha256": "fd5ded62862cabd7b686feceadcd8f39b692bdbb1989eb93c72eea29f4fc11da",
+          "base_revision": "75f52c1d7df8df8548d854a01b64935727a70e88",
+          "source_state": "independent_local_delivery_overlay",
+          "references": [
+            {
+              "member": "csrc/moe/grouped_matmul_situ_quant/op_host/grouped_matmul_situ_quant_def.cpp",
+              "sha256": "8ebe2c7f0c9eaa93633b476821799c35ab3ce07229c9538ba6082d2a2bcf2a97",
+              "lines": [
+                9,
+                54
+              ]
+            },
+            {
+              "member": "csrc/moe/grouped_matmul_situ_quant/grouped_matmul_situ_quant_torch_adpt.h",
+              "sha256": "d1bd2db4fedebcdd075cce5a0ce0022d145719bfdad7d5c2729308471a8771d3",
+              "lines": [
+                148,
+                183
+              ]
+            },
+            {
+              "member": "csrc/moe/grouped_matmul_situ_quant/op_kernel/situ_epilogue.h",
+              "sha256": "1111088ac27c0d3df8e92dfe8e92177b04e85219ec071b8040895c50539335ca",
+              "lines": [
+                277,
+                450
+              ]
+            }
+          ],
+          "verified_domain": "Five-input/two-output stacked MX A8W4 native ABI; FP4 NZ_C0_16 packed weight and paired E8M0 scales. Device group-list values, beta/linear_beta and captured binary identity remain unknown."
+        },
+        "grouped_down_mxfp4": {
+          "path": "/Users/maoxx241/code/vllm-ascend/vllm_ascend/device/device_op.py",
+          "sha256": "95a54b37c47aebeaafa09d3fec860ed53d91a8f83de364619094f85599367cb6",
+          "base_revision": "175ef4d49c2072f9233619636f0309f4f88b4e2c",
+          "source_state": "clean_at_revision",
+          "lines": [
+            1349,
+            1385
+          ],
+          "verified_domain": "W4A8MXFP grouped down puts weight microscales in antiquant_scale; no scaleOptional or affine offsets in retained rows."
+        }
+      },
+      "capture_id": "a5_kimi_k3",
+      "source_report": "subgraph-a5_kimi_k3.json",
+      "additional_branch_fixture": true,
+      "details_provenance": "kimi_matrix_branches.provenance.json"
+    },
+    {
+      "capture_id": "a5_kimi_k3",
+      "source": "/Volumes/data-tmp/tmp/mindie-body-profiling-kimi-op-summary.csv",
+      "source_sha256": "ab1d44d3613ecb92d71af6d790ab9dfc72be5aabfe92bf4f99d584fbd0f9e648",
+      "source_size_bytes": 110031770,
+      "original_archive": {
+        "path": "/Volumes/data/mindie-sim-data/a5/2026-10-23/kimi-k3-longctx/k3lc-os1.tgz",
+        "sha256": "8b74c09cfdbdb14d010f7c941b4911abc88e865a9d625e88813f4096ed91a00d",
+        "member": "raw/prof-export/op_summary_20261023053244.csv"
+      },
+      "schema_version": "mindie-derived-capture-fixture/1",
+      "fixture": "kimi_matmul_decode.csv",
+      "source_identity_basis": "Prior complete capture provenance; this extraction streams only through source line 30616.",
+      "derivation": "Original field values including durations and native descriptors retained; CSV serialized with LF.",
+      "fixture_sha256": "f1d29ba0e8625cdb859cf1a37116bdae9b216c7e31fd2e074b7ba9e0932de908",
+      "rows": [
+        {
+          "source_csv_line": 30517,
+          "fixture_csv_line": 2,
+          "operator_type": "MatMulV3"
+        },
+        {
+          "source_csv_line": 30616,
+          "fixture_csv_line": 3,
+          "operator_type": "MatMulV3"
+        }
+      ],
+      "source_report": "subgraph-a5_kimi_k3.json",
+      "additional_branch_fixture": true,
+      "details_provenance": "kimi_matmul_decode.provenance.json"
     }
   ]
 }
