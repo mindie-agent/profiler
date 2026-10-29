@@ -6,6 +6,7 @@ import pytest
 
 from mindie_profiler.decode_segmentation import _Row, _anchor, _query_geometry, auto_segment_decode_forwards
 from mindie_profiler.normalized import kernel_rows
+from mindie_profiler.tensor_contracts import observed_contract, observed_contract_scope
 
 FIXTURE = Path(__file__).parent / "fixtures/decode_forward"
 
@@ -44,6 +45,13 @@ def test_actual_glm_flash_mla_abis_supply_active_query_not_cache_capacity():
         row = _Row(item.event, item.input_shapes, item.output_shapes)
         assert _anchor(row, config) == "mla"
         geometry.append(_query_geometry([row], item.input_shapes[0][0]))
+        # Preserve the actual native interface until a source-declared active
+        # projection is available; packed INT8 KV is not a BF16 latent cache.
+        contract = observed_contract(item)
+        assert contract[0] == "native_tensor_abi"
+        assert len(contract[2]) == (18 if row.kind == "SparseFlashMla" else 9)
+        assert contract[2][1][1] == ("bf16" if row.kind == "SparseFlashMla" else "int8")
+        assert not observed_contract_scope(item)["occurrence_identity"]
     assert [item["sequences_per_replica"] for item in geometry] == [1, 1]
     assert [item["tokens_per_sequence"] for item in geometry] == [4, 256]
     assert all(item["context_tokens"] is None for item in geometry)

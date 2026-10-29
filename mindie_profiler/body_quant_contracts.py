@@ -9,7 +9,7 @@
 from __future__ import annotations
 
 
-QUANT_FUSION_TYPES = {"DynamicQuant", "AddRmsNormDynamicQuant", "RmsNormCast"}
+QUANT_FUSION_TYPES = {"DynamicQuant", "DynamicQuantV2", "AddRmsNormDynamicQuant", "RmsNormCast"}
 _FLOAT = {"bf16", "fp16"}
 _EMPTY = ((), None, None)
 
@@ -24,13 +24,15 @@ def _issue(kind, reason, detail, missing=()):
 
 def quant_fusion_contract(native):
     _, kind, inputs, outputs = native
-    arities = {"DynamicQuant": {(1, 2)}, "AddRmsNormDynamicQuant": {(3, 5), (4, 5)},
+    arities = {"DynamicQuant": {(1, 2)}, "DynamicQuantV2": {(1, 3)},
+               "AddRmsNormDynamicQuant": {(3, 5), (4, 5)},
                "RmsNormCast": {(2, 2)}}
     if (len(inputs), len(outputs)) not in arities[kind]:
         return None, _issue(kind, "unsupported_native_tensor_slots",
                             "Captured slot counts do not match the retained native quantization ABI.")
     required_in = range(min(len(inputs), 3)) if kind == "AddRmsNormDynamicQuant" else range(len(inputs))
-    required_out = (0, 2, 3) if kind == "AddRmsNormDynamicQuant" else (0, 1)
+    required_out = ((0, 2, 3) if kind == "AddRmsNormDynamicQuant"
+                    else range(len(outputs)))
     missing = [f"input[{i}].shape" for i in required_in if not inputs[i][0]]
     missing += [f"output[{i}].shape" for i in required_out if not outputs[i][0]]
     if missing:
@@ -48,6 +50,14 @@ def quant_fusion_contract(native):
                                 "RmsNormCast must expose both the original-dtype and FP32 normalized outputs.")
         return native, None
     y, scale = (x[0], "int8", "ND"), ((rows,), "fp32", "ND")
+    if kind == "DynamicQuantV2":
+        # The exported offset is a materialized result, even when its values
+        # happen to be zero. Its work cannot be folded into the 1/2-output ABI.
+        offset = ((rows,), "fp32", "ND")
+        if outputs != (y, scale, offset):
+            return None, _issue(kind, "inconsistent_dynamic_quant_v2_geometry",
+                                "DynamicQuantV2 retains separate per-row FP32 scale and offset outputs.")
+        return ("dynamic_quant_v2_active", kind, x, y, scale, offset), None
     if kind == "DynamicQuant":
         if outputs != (y, scale):
             return None, _issue(kind, "inconsistent_dynamic_quant_geometry",
@@ -73,9 +83,10 @@ def quant_fusion_scope(kind):
         "unobserved": ["tensor_values", "scalar_dispatch_arguments", "module_or_layer_identity"],
         "not_compared": ["epsilon", "scale_values", "rounding_mode"],
     }
-    if kind == "DynamicQuant":
+    if kind in {"DynamicQuant", "DynamicQuantV2"}:
         return {**scope, "kind": "dynamic_int8_tensor_descriptors",
-                "compared": ["native_operator_type", "input_output_and_scale_slots"]}
+                "compared": ["native_operator_type", "input_output_and_scale_slots",
+                             *(["materialized_offset_slot"] if kind == "DynamicQuantV2" else [])]}
     if kind == "RmsNormCast":
         return {**scope, "kind": "native_tensor_slots",
                 "compared": ["native_operator_type", "all_input_and_output_slots"]}
