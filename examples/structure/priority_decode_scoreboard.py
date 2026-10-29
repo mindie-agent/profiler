@@ -49,12 +49,14 @@ def body_rows(receipt, identity):
     for case in receipt["cases"]:
         comparison = case["comparison"]
         observed = case.get("observed", {})
-        layers = case.get("per_layer_comparison", {})
+        layers = case.get("per_layer_comparison") or {}
         row = {"model_group": _family(case["case_id"]), "case_id": case["case_id"],
                "variant_id": case.get("variant_id", receipt.get("variant_id")),
                "receipt": identity, "source_identity": case.get("source_identity"),
                "runtime_identity": case.get("runtime_identity"), "geometry": case.get("geometry"),
                "declared_runtime": case.get("declared_runtime"), "comparison": comparison,
+               "display_status": ("prediction_deferred" if "prediction_deferred_by_population_priority"
+                                  in comparison.get("reasons", []) else comparison["status"]),
                "body_activity_ms": observed.get("body_activity_ms"),
                "body_internal_gap_ms": observed.get("body_internal_gap_ms"),
                "per_layer": layers}
@@ -75,11 +77,17 @@ def operator_rows(receipt, identity):
                 "case_identity": case.get("case_identity")}
         for family in case["families"]:
             observed = family["observed_us"]
+            measured_us = observed["count"] * observed["mean"]
+            scored_us = sum(row["observed"]["complete_activity_sum_ns"] / 1000
+                            for row in family.get("cohorts", []) if row["status"] == "compared")
+            if scored_us > measured_us + 1e-6:
+                raise ValueError("scored cohort activity exceeds its measured family")
             families.append({**base, **{key: family.get(key) for key in (
                 "native_operator_type", "declared_role", "status", "evidence_strength",
                 "observed_us", "scored_event_count", "unscored_event_count",
                 "passed_cohort_count", "compared_cohort_count", "cohort_reasons")},
-                "measured_activity_ms_per_forward": observed["count"] * observed["mean"] / count / 1000,
+                "measured_activity_ms_per_forward": measured_us / count / 1000,
+                "unscored_activity_ms_per_forward": max(0, measured_us - scored_us) / count / 1000,
                 "missing_match_is_missing_cost": False})
             for cohort in family.get("cohorts", []):
                 calls = cohort["observed"]["complete_event_count"]
@@ -104,7 +112,7 @@ def operator_rows(receipt, identity):
     return families, cohorts
 
 
-def build(body_paths, operator_paths, reference_paths=()):
+def build(body_paths, operator_paths, reference_paths=(), evidence_paths=()):
     bodies, families, cohorts, references, inputs = [], [], [], [], []
     for path in body_paths:
         receipt, identity = _read(path)
@@ -136,12 +144,37 @@ def build(body_paths, operator_paths, reference_paths=()):
     bodies.sort(key=lambda row: abs(row["comparison"].get("per_forward_diff_ms") or 0), reverse=True)
     cohorts.sort(key=lambda row: row["absolute_activity_residual_ms_per_forward"], reverse=True)
     families.sort(key=lambda row: row["measured_activity_ms_per_forward"], reverse=True)
-    return {"schema_version": "mindie-priority-decode-scoreboard/1", "inputs": inputs,
+    evidence = []
+    for path in evidence_paths:
+        _, identity = _read(path)
+        evidence.append(identity)
+    populations = {}
+    for row in bodies:
+        geometry, source = row["geometry"] or {}, row["source_identity"] or {}
+        key = (source.get("sha256"), geometry.get("query_rows"),
+               geometry.get("tokens_per_sequence"), geometry.get("sequences_per_replica"))
+        observed = row["comparison"]["observed_ms"]
+        if key in populations and populations[key] != observed:
+            raise ValueError("different measured populations share a source/geometry identity")
+        populations[key] = observed
+    tiers = {}
+    for heavy, label in ((True, "heavy_relative_15pct"), (False, "micro_absolute_15us")):
+        selected = [row for row in cohorts if row["status"] == "compared" and row["heavy_call"] == heavy]
+        tiers[label] = {"compared": len(selected), "passed": sum(row["accuracy_pass"] is True for row in selected)}
+    return {"schema_version": "mindie-priority-decode-scoreboard/1",
+            "coverage_status": "partial" if (not cohorts or any(row["comparison"]["status"] != "compared" for row in bodies)
+                                                or any(row.get("unscored_event_count") for row in families)) else "compared",
+            "inputs": inputs, "additional_evidence": evidence,
             "body_comparisons": bodies, "operator_families": families, "operator_cohorts": cohorts,
             "source_role_references": references,
             "summary": {"body_compared": sum(row["comparison"]["status"] == "compared" for row in bodies),
                         "body_passed": sum(row["comparison"].get("passed") is True for row in bodies),
+                        "body_denominator": "prediction_variants; identical observed populations are not additional captures",
+                        "unique_source_count": len({key[0] for key in populations}),
+                        "unique_source_geometry_populations": len(populations),
+                        "unique_observed_forward_count": sum(item["count"] for item in populations.values()),
                         "operator_status_counts": dict(Counter(row["status"] for row in cohorts)),
+                        "operator_accuracy_by_tier": tiers,
                         "heavy_cohorts": sum(row["heavy_call"] for row in cohorts)},
             "limitations": [
                 "Rows retain their own source/runtime/geometry; independently produced receipts are not merged into a synthetic run.",
@@ -160,17 +193,24 @@ def _runtime_tag(row):
 
 
 def render(report):
+    summary = report["summary"]
     lines = ["# Priority Decode body, layer and operator scoreboard", "",
-             "Completed local replay receipts only. Body errors are measured wall-clock differences; "
+             f"Coverage status: **{report['coverage_status']}**. Missing predictions and unmatched roles stay visible.", "",
+             f"Body: **{summary['body_passed']}/{summary['body_compared']} prediction arms passed**; "
+             f"{summary['unique_source_count']} unique sources, {summary['unique_source_geometry_populations']} measured geometry populations, "
+             f"{summary['unique_observed_forward_count']} unique complete Forwards (includes deferred populations).", "",
+             "Operator strict accuracy: " + "; ".join(f"{key}: **{value['passed']}/{value['compared']}**"
+                 for key, value in summary["operator_accuracy_by_tier"].items()) + ". Conditional references are excluded.", "",
+             "Local replay receipts with explicit comparison coverage. Body errors are measured wall-clock differences; "
              "operator priorities are nonadditive kernel activity residuals per complete Forward.", "",
              "## Whole Decode Body — sorted by absolute ms error", "",
-             "| Case / variant | Calls | Real Mean / P50 / P90 ms | Activity ms | Sim ms | Diff ms | Error |",
-             "|---|---:|---:|---:|---:|---:|---:|"]
+             "| Case / variant | Status | Calls | Real Mean / P50 / P90 ms | Activity ms | Sim ms | Diff ms | Error |",
+             "|---|---|---:|---:|---:|---:|---:|---:|"]
     for row in report["body_comparisons"]:
         comp, activity = row["comparison"], row["body_activity_ms"] or {}
         observed = comp["observed_ms"]
         error = comp.get("relative_error")
-        lines.append(f"| {row['case_id']} / {row['variant_id']} / `{_runtime_tag(row)}` | {observed['count']} | "
+        lines.append(f"| {row['case_id']} / {row['variant_id']} / `{_runtime_tag(row)}` | {row['display_status']} | {observed['count']} | "
                      f"{_num(observed['mean'])} / {_num(observed['p50'])} / {_num(observed['p90'])} | "
                      f"{_num(activity.get('mean'))} | {_num(comp.get('predicted_ms'))} | "
                      f"{_num(comp.get('per_forward_diff_ms'))} | {_num(error * 100 if error is not None else None)}% |")
@@ -190,7 +230,7 @@ def render(report):
             preds = [item.get("predicted_ms") for item in values]
             pred = sum(preds) / len(preds) if all(value is not None for value in preds) else None
             error = (pred / observed - 1) * 100 if pred is not None and observed else None
-            lines.append(f"| {row['case_id']} | {' / '.join(str(part) for part in key)} | {len(values)} | "
+            lines.append(f"| {row['case_id']} / {row['variant_id']} | {' / '.join(str(part) for part in key)} | {len(values)} | "
                          f"{observed:.4f} | {p50:.4f} | {_num(pred, 4)} | {_num(error)}% |")
     for heavy in (True, False):
         lines += ["", f"## {'Heavy >50us' if heavy else 'Micro <=50us'} operators — activity residual priority", "",
@@ -203,11 +243,13 @@ def render(report):
                          f"{row['per_call_diff_us']:.3f} | {row['absolute_activity_residual_ms_per_forward']:.3f} | "
                          f"{row['accuracy_pass']} ({row['status']}) |")
     lines += ["", "## Highest unscored activity — coverage gaps, not zero predictions", "",
-              "| Case | Operator / role | Unscored calls | Observed activity ms / Forward (whole family) | Status |",
+              "| Case | Operator / role | Unscored calls | Unscored observed activity ms / Forward | Status |",
               "|---|---|---:|---:|---|"]
-    for row in [item for item in report["operator_families"] if item.get("unscored_event_count")][:40]:
+    gaps = sorted((item for item in report["operator_families"] if item.get("unscored_event_count")),
+                  key=lambda row: row["unscored_activity_ms_per_forward"], reverse=True)
+    for row in gaps[:40]:
         lines.append(f"| {row['case_id']} | {row['native_operator_type']} / {row['declared_role']} | "
-                     f"{row['unscored_event_count']} | {row['measured_activity_ms_per_forward']:.3f} | {row['status']} |")
+                     f"{row['unscored_event_count']} | {row['unscored_activity_ms_per_forward']:.3f} | {row['status']} |")
     lines += ["", "## Source-role references — already costed work is not an extra budget", "",
               "Reference differences have distinct evidence and are excluded from strict cohort accuracy counts.", "",
               "| Case | Operator / region | Real / reference us | Real / Sim service ms per Forward | Residual ms | Boundary |",
@@ -222,6 +264,9 @@ def render(report):
                      f"{_num(row['reference_residual_ms_per_forward'])} | {row['status']} |")
     lines += ["", "## Receipt identities", ""]
     lines += [f"- [{Path(item['path']).name}]({item['path']}), SHA256 `{item['sha256']}`" for item in report["inputs"]]
+    if report["additional_evidence"]:
+        lines += ["", "Additional coverage/source evidence (not silently promoted into body or operator predictions):", ""]
+        lines += [f"- [{Path(item['path']).name}]({item['path']}), SHA256 `{item['sha256']}`" for item in report["additional_evidence"]]
     lines += ["", *[f"- {text}" for text in report["limitations"]], ""]
     return "\n".join(lines)
 
@@ -231,9 +276,10 @@ def main():
     parser.add_argument("--body", type=Path, action="append", default=[])
     parser.add_argument("--operators", type=Path, action="append", default=[])
     parser.add_argument("--references", type=Path, action="append", default=[])
+    parser.add_argument("--evidence", type=Path, action="append", default=[])
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    report = build(args.body, args.operators, args.references)
+    report = build(args.body, args.operators, args.references, args.evidence)
     args.output.write_text(json.dumps(report, indent=2) + "\n")
     args.output.with_suffix(".md").write_text(render(report))
     print(json.dumps(report["summary"]))

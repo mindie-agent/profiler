@@ -1,0 +1,35 @@
+{
+  "schema_version": "mindie-priority-scoreboard-independent-review/1",
+  "status": "passed",
+  "checks": 2503,
+  "failures": [],
+  "report_sha256": "3c5e690db09c39c9dac97fd031cd5899c042acb4e06990a521721a8916144b6f",
+  "summary": {
+    "body_compared": 24,
+    "body_passed": 6,
+    "body_denominator": "prediction_variants; identical observed populations are not additional captures",
+    "unique_source_count": 23,
+    "unique_source_geometry_populations": 83,
+    "unique_observed_forward_count": 1564,
+    "operator_status_counts": {
+      "reference_only": 4,
+      "compared": 12
+    },
+    "operator_accuracy_by_tier": {
+      "heavy_relative_15pct": {
+        "compared": 1,
+        "passed": 0
+      },
+      "micro_absolute_15us": {
+        "compared": 11,
+        "passed": 11
+      }
+    },
+    "heavy_cohorts": 2
+  },
+  "body_rows": 84,
+  "family_rows": 77,
+  "cohort_rows": 16,
+  "reference_rows": 78,
+  "scope": "Receipt/source/runtime identities, exact observed denominator deduplication, body and per-call residual arithmetic, tier rules, and conditional references kept unscored. No raw scan or prediction."
+}
