@@ -926,7 +926,7 @@
   "source_selected_scfa_validation": {
     "schema_version": "mindie-profiler.source-selected-scfa-validation/1",
     "date": "2026-10-29",
-    "status": "historical_contract_blocker_reproduced_fix_available_awaiting_isolated_revalidation",
+    "status": "contract_fix_verified_original_hardware_parameters_still_missing",
     "scope": "Additional focused source-selection validation. Existing captures, coverage, graph IDs, error values and validation receipt above are unchanged.",
     "new_live_collection": false,
     "capture_scans": 0,
@@ -1212,7 +1212,7 @@
       "pytest_result": "2 failed in 0.93 seconds; both desired retained active-contract assertions returned None.",
       "fix_boundary": "A narrow explicit selected-SCFA contract entrance must preserve source_boundary=kernel and active comparison exclusions. Clearing the boundary was a diagnostic only, not a supported fix.",
       "reported_fix_commit": "6437916f",
-      "reported_fix_status": "Parent reports fix committed; this section has not yet rerun it because the isolated runtime remains pinned for the active replay."
+      "reported_fix_status": "Independently verified on 6018eaa1, which contains fix 6437916f; the contract blocker is resolved."
     },
     "validation": {
       "method": "Build baseline and selected ordinary target_operators; compare all untouched operators, dependencies and selected tensor contracts; project real retained fixture rows; run one representative selected operator through graph_costs with original hardware.",
@@ -1234,8 +1234,76 @@
       "command_prefix": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/tmp/mindie-sim-cohort-wave6-20261029:/Users/maoxx241/code/profiler /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python"
     },
     "revalidation": {
-      "status": "pending_stable_isolated_runtime_update",
-      "accepted_source_accuracy_result": false
-    }
+      "status": "active_tensor_contracts_verified_original_hardware_pricing_blocked",
+      "runtime_revision": "6018eaa1c3ac3ef867cc1b7d696fc1642f2c2cf7",
+      "fix_commit": "6437916f",
+      "fix_is_ancestor_of_tested_revision": true,
+      "python": "3.13.12",
+      "new_live_collection": false,
+      "capture_scans": 0,
+      "descriptor_compatible_events": 141,
+      "total_existing_sparse_events": 292,
+      "accepted_source_accuracy_result": false,
+      "fixture_regressions": {
+        "passed": 2,
+        "failed": 0,
+        "elapsed_seconds": 0.45,
+        "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/tmp/mindie-sim-cohort-wave6-20261029:/Users/maoxx241/code/profiler /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python -m pytest -q -p no:cacheprovider /tmp/test_scfa_selected_contract_regression.py"
+      },
+      "focused_elapsed_seconds": 0.4357045420911163,
+      "peak_rss_bytes": 61440000,
+      "budget_bytes": 536870912,
+      "runtime_source_sha256": {
+        "mindie_sim/prediction/family_sharedkv.py": "e198c4392506a2baef2768cfb898a079cf03be0db77d36f4506ae5ed83c5c71e",
+        "mindie_sim/prediction/sharedkv_attention.py": "9c64573879392a6a706bfafc8fb9577f73fca409d390501cecabe497cce2c4dc",
+        "mindie_sim/structure_native_contracts.py": "514400baec6320272bd1a6cb3dc999db3709baaf4a5483c7c5a2506800b9e367",
+        "mindie_sim/structure_contracts.py": "24065136e31272ff6f50b00b0f61dba6df2ab8d81af61635f44f66612d18d873",
+        "mindie_sim/structure.py": "ed5a0bd14c60f98934c08fa90b14ce5f8a7f40fad603c44369fab6ed1f10b05c",
+        "data/verification/sharedkv-attention-coarse-20261029.json": "98187d9db56219f5d7d7724bfd6d967a0c88dc91abe0d34a5b6f696033d71e16"
+      },
+      "source_scope": "The fix restores the selected SCFA active tensor contract while retaining source_boundary=kernel. The scope still excludes index values, sinks, dispatch and occurrence identity; this is not full native ABI equality.",
+      "hardware_scope": "The original cases still lack mte2_aic/mte2_aiv/mte1/fixpipe rates and have mte3 ownership 20 instead of required 40. No synthetic rates or ownership overrides were used.",
+      "captures": [
+        {
+          "capture_key": "a3_v4f",
+          "source_case_sha256": "2445cf26fce3d99f00de416dc3c79539183c33d328aecde973f1b1500dc1fce3",
+          "descriptor_compatible_scfa_events": 21,
+          "selected_scfa_operators": 21,
+          "selected_tensor_contracts": 21,
+          "source_boundary": "kernel",
+          "real_fixture_matches_selected_contract": true,
+          "all_unselected_operators_equal_baseline": true,
+          "selected_dependencies_and_shapes_equal_baseline": true,
+          "contract_scope": "active_query_output_and_cache_head_descriptors; cache_capacity_page_size_sequence_and_index_tensors_sink_and_dispatch_not_compared; no_kernel_implementation_or_occurrence_proof",
+          "original_hardware_execution": {
+            "status": "blocked_by_declared_hardware",
+            "type": "ModelingError",
+            "reason": "physical_resource_rate_missing:mte1"
+          },
+          "elapsed_seconds": 0.21924995898734778,
+          "peak_rss_bytes": 58458112
+        },
+        {
+          "capture_key": "a3_v4pro",
+          "source_case_sha256": "10707301e6c3645626661748ad57ca6a340b78eed383259ee92ee0fd1bd642f1",
+          "descriptor_compatible_scfa_events": 120,
+          "selected_scfa_operators": 30,
+          "selected_tensor_contracts": 30,
+          "source_boundary": "kernel",
+          "real_fixture_matches_selected_contract": true,
+          "all_unselected_operators_equal_baseline": true,
+          "selected_dependencies_and_shapes_equal_baseline": true,
+          "contract_scope": "active_query_output_and_cache_head_descriptors; cache_capacity_page_size_sequence_and_index_tensors_sink_and_dispatch_not_compared; no_kernel_implementation_or_occurrence_proof",
+          "original_hardware_execution": {
+            "status": "blocked_by_declared_hardware",
+            "type": "ModelingError",
+            "reason": "physical_resource_rate_missing:mte1"
+          },
+          "elapsed_seconds": 0.21645458310376853,
+          "peak_rss_bytes": 61440000
+        }
+      ]
+    },
+    "runtime_revision_scope": "Initial 2cd reproduction; the current independent result is recorded under revalidation."
   }
 }

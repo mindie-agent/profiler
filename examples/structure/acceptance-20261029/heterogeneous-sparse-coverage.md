@@ -170,10 +170,21 @@ cases fail in 0.93 seconds. The existing scope still excludes index values,
 sinks and dispatch; correcting the entry must preserve that active comparison
 scope and the kernel resource boundary.
 
-The parent reports this entry fixed in `6437916f`. That fix is **pending
-independent revalidation** after the active replay releases the isolated
-runtime; the reproduced defect is historical, not a claim about the fixed
-revision. Hardware-parameter admission remains a separate requirement.
-The two focused checks take 0.218 and 0.217 seconds with peak RSS
-59,506,688 bytes. Temporary reproduction inputs and scripts are recorded in
-the appended JSON object.
+The contract entry is now independently verified as **fixed** on
+`6018eaa1c3ac3ef867cc1b7d696fc1642f2c2cf7`, which contains fix `6437916f`.
+All 21 V4Flash and 30 V4Pro selected operators retain their kernel boundary
+and export the active tensor contracts matching the real fixtures.
+The two fixture regressions pass in 0.45 seconds. The nonselected attention
+branches, dependencies, shapes and the 141/292-event subset remain unchanged.
+The scope continues to exclude index values, sinks, dispatch and occurrence
+identity; the fix does not promote the contract to complete native ABI equality.
+
+Hardware-parameter admission remains a separate, reproduced limitation.
+Each original-hardware single-operator execution still reports
+`physical_resource_rate_missing:mte1`; all four missing rates and the
+20-versus-40 `mte3` ownership mismatch remain. No synthetic rates were added,
+and no SCFA prediction or accuracy result was obtained. The two current
+focused checks take 0.219 and 0.216 seconds, with peak RSS 61,440,000 bytes.
+The JSON retains the initial `2cdffce` failure separately from this successful
+contract revalidation, including both source hash sets. Temporary reproduction
+inputs and scripts are recorded in that object.
