@@ -152,6 +152,21 @@ Attention、cache、fused 契约复用 sim 现有 GQA/MLA/DSA/GDN/KDA 前端，
 新版 sim 可只读查询该清单，自动替换预测成本尚未接通。参见
 [profiling 复用与观测查询](examples/kernel-inventory/README.md)。
 
+Decode 主体计时可以直接读取 CSV，不需要手写同步边界 JSON：
+`mindie_profiler.decode_segmentation.auto_segment_decode_forwards(events, model_config)`
+接受统一解析后的事件和 Sim 现有层计划，按完整层拓扑、张量几何与词表投影
+切分 target body、层及 head。输出 `body_forward_span_ms` 的 mean/P50/P90、
+`per_layer_ms` 和边界定位符，并将结构推断与确定的 Host/module 绑定分开。
+它保留内部通信和间隙，单列跨后继依赖边界的 AICPU 尾等待；不把活动量相加
+当作 Forward 跨度。多 Case 回放与 Sim 对账见
+[Decode 主体回放](examples/structure/acceptance-20261029/decode-forward-replay.md)：
+
+```bash
+python examples/structure/replay_decode_forwards.py \
+  --manifest examples/structure/acceptance-20261029/decode-forward-cases.json \
+  --output examples/structure/acceptance-20261029/decode-forward-replay.json
+```
+
 开发期也可用 `mindie-profiler camodel --trace ... --plan ... --output ...`
 把 CAModel Chrome trace 导出为旧版 `mindie-sim pipeline --durations` 的阶段成本。
 该入口离线运行，保留仿真来源，不写入真机校准库；窗口、时钟单位和阶段选择
