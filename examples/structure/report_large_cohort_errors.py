@@ -140,11 +140,24 @@ def _markdown(report):
         "excluded fields remain subject to contract_scope in JSON.",
         "Variant totals reuse captures. Activity sums can overlap and are not full-model latency. "
         "A homogeneous cohort does not identify a layer, invocation, or DP replica.", "",
+        "| Tier | Passed / compared cohorts | Failed |",
+        "| --- | ---: | ---: |",
+    ]
+    for tier, counts in report["accuracy_summary_across_variants"].items():
+        lines.append(
+            f"| {tier} | {counts['passed_cohort_count']} / {counts['cohort_count']} | "
+            f"{counts['failed_cohort_count']} |")
+    total = Counter()
+    for counts in report["accuracy_summary_across_variants"].values():
+        total.update(counts)
+    lines.extend([
+        f"| All scored | {total['passed_cohort_count']} / {total['cohort_count']} | "
+        f"{total['failed_cohort_count']} |", "",
         "| # | Declaration / variant | Native / cohort suffix | Calls | Observed mean / p50 us | "
         "Predicted us | Signed / abs diff us | Relative | Signed / abs total gap ms | "
         "Prediction boundary / single program | Saved tensor contract |",
         "| ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |",
-    ]
+    ])
     for index, row in enumerate(report["cohorts"][:30], 1):
         p50 = row["observed_duration_us"]["p50"]
         p50_text = "unknown" if p50 is None else f"{p50:.3f}"
@@ -192,6 +205,7 @@ def build_report(output_dir, sort_by):
         raise ValueError("large_call_report_requires_successful_full_replay")
     cases, rows, inputs, seen = [], [], [], set()
     statuses, references = Counter(), {}
+    accuracy = {tier: Counter() for tier in ("relative_15pct", "absolute_15us")}
     for capture in receipt["captures"]:
         for entry in capture["reports"]:
             summary_path = output_dir / entry["report"]
@@ -199,6 +213,8 @@ def build_report(output_dir, sort_by):
                 raise ValueError(f"duplicate_replay_summary:{summary_path.name}")
             seen.add(summary_path.name)
             summary_identity, summary = _identity(summary_path), _read(summary_path)
+            if summary_identity != entry.get("summary_identity"):
+                raise ValueError(f"summary_generation_mismatch:{summary_path}")
             if (summary["capture_key"] != capture["capture_key"]
                     or summary["source_identity"] != capture["source_identity"]
                     or summary["comparison"]["status"] != "completed"):
@@ -218,6 +234,11 @@ def build_report(output_dir, sort_by):
             for window in comparison["windows"]:
                 for row in window["cohorts"]:
                     statuses[row["status"]] += 1
+                    if row["status"] == "compared":
+                        counts = accuracy[row["accuracy_tier"]]
+                        counts["cohort_count"] += 1
+                        counts["passed_cohort_count"] += int(row["accuracy_pass"])
+                        counts["failed_cohort_count"] += int(not row["accuracy_pass"])
                     if row["status"] == "reference_only":
                         counts = references.setdefault(row["reason"], {
                             "cohort_count": 0, "event_count": 0,
@@ -259,6 +280,7 @@ def build_report(output_dir, sort_by):
         "unique_capture_event_count": receipt["unique_capture_event_count"],
         "distinct_captured_sources": receipt["distinct_captured_sources"],
         "variant_totals_are_not_independent_captures": True,
+        "accuracy_summary_across_variants": accuracy,
         "totals_across_variants": {
             "variant_count": len(cases), "cohort_status_counts": dict(statuses),
             "failed_large_cohort_count": len(rows),

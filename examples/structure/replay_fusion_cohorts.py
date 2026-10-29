@@ -29,6 +29,7 @@ from mindie_sim.cohort_accuracy import accuracy_fields, accuracy_policy
 from fusion_replay_cases import _hash, _read, variants as case_variants
 from fusion_cohort_reporting import (
     family_table as _family_table, write_family_overview as _write_family_overview,
+    write_full_replay_summary,
 )
 
 
@@ -66,12 +67,15 @@ def _runtime_identity():
         *sorted((sim / "examples/cases").glob("*.json")),
         *sorted((sim / "data/observations/sources/kimi-checkpoint-20261029").glob("*.json")),
         sim / "data/verification/model-scoreboard-20261029-glm53-w4a8-msd-case.json",
+        sim / "data/verification/matrix-cohort-wave4-20261029/a5_qwen38-steady.case.json",
+        *sorted((sim / "data/verification/shared-quant-wave4-20261029").glob("*.case.json")),
         Path(__file__).resolve(), Path(__file__).with_name("fusion_replay_cases.py"),
         Path(__file__).with_name("fusion_replay_paged_cases.py"),
         Path(__file__).with_name("fusion_cohort_reporting.py"),
         Path(__file__).with_name("fusion_cohort_refresh.py"),
         BASE / "head-normalization-evidence.json",
         BASE / "compressor-normalization-evidence.json",
+        *sorted((ROOT / "tests/fixtures/kimi_grouped_attnres/source_image_883670fc").glob("*.*")),
     ]
     return {str(path): _hash(path) for path in files}
 
@@ -420,6 +424,10 @@ def _compare_report(args, report):
             "file": path.name, "sha256": _hash(path), "size_bytes": path.stat().st_size}
     _write(summary_path, summary)
     report["comparison"] = comparison
+    report["summary_identity"] = {
+        "file": summary_path.name, "sha256": _hash(summary_path),
+        "size_bytes": summary_path.stat().st_size,
+    }
     print(json.dumps({"report": summary_path.name, "comparison": comparison}), flush=True)
 
 
@@ -603,6 +611,8 @@ def main():
         "distinct_captured_sources")}), flush=True)
     if result["status"] != "completed":
         raise SystemExit(1)
+    if not args.compare_existing:
+        write_full_replay_summary(args.output_dir, result)
 
 
 if __name__ == "__main__":

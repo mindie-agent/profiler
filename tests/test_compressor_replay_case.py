@@ -40,8 +40,10 @@ def scenario(request, cases_module):
         "declared_execution": {"phase": "prefill", "tokens": tokens, "context": 0, "sequences": 1},
         "declaration_source": {"case_path": str(path)},
     }
-    variants = cases_module.variants(request.param, old, BASE)
-    return request.param, original, variants
+    variants = {row["name"]: row for row in cases_module.variants(request.param, old, BASE)}
+    selected = [variants[request.param + suffix] for suffix in (
+        "-reference", "-selected", "_compressor_fp32-reference")]
+    return request.param, original, selected
 
 
 def test_source_variant_changes_only_compressor_norm_precision_and_preserves_old_choices(scenario):

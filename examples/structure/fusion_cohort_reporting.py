@@ -284,6 +284,11 @@ def write_family_overview(args, captures):
     for tier, counts in summaries.items():
         lines.append(f"| {tier} | {counts['cohort_count']} | "
                      f"{counts['passed_cohort_count']} | {counts['failed_cohort_count']} |")
+    total = Counter()
+    for counts in summaries.values():
+        total.update(counts)
+    lines.append(f"| All scored | {total['cohort_count']} | "
+                 f"{total['passed_cohort_count']} | {total['failed_cohort_count']} |")
     lines.extend(["", *sections])
     suffix = "comparison" if args.compare_existing else "replay"
     unique_events = {row["source_identity"]["sha256"]: row["event_count"] for row in variants}
@@ -299,3 +304,101 @@ def write_family_overview(args, captures):
         json.dumps(overview, separators=(",", ":"), allow_nan=False) + "\n")
     (args.output_dir / f"fusion-cohort-{suffix}-top-errors.md").write_text(
         "\n".join(lines).rstrip() + "\n")
+
+
+def write_full_replay_summary(output_dir, receipt):
+    """Build the global scoreboard from the same completed replay artifacts."""
+    for capture in receipt["captures"]:
+        for entry in capture["reports"]:
+            path = output_dir / entry["report"]
+            if entry.get("summary_identity") != {
+                "file": path.name, "sha256": _hash(path), "size_bytes": path.stat().st_size,
+            }:
+                raise ValueError(f"summary_generation_mismatch:{path}")
+    overview = _read(output_dir / "fusion-cohort-replay-families.json")
+    tiers = overview["accuracy_summary_across_variants"]
+    total = Counter()
+    for counts in tiers.values():
+        total.update(counts)
+    statuses = receipt["comparison_cohort_status_counts"]
+    if total["cohort_count"] != statuses.get("compared", 0):
+        raise ValueError("full_replay_summary_compared_denominator_mismatch")
+    lines = [
+        "# Complete Family And Physical-Cohort Replay", "",
+        f"This completed historical replay uses **{receipt['distinct_captured_sources']} "
+        f"complete A3/A5 captures and {receipt['unique_capture_event_count']:,} "
+        f"positive-duration events**, with {receipt['declaration_variant_count']} variants "
+        f"and {receipt['raw_parsed_capture_scans']} serial capture scans. "
+        "No new NPU workload was launched.", "",
+        "Every valid tensor/physical-work cohort enters comparison. There is no operator-type "
+        "allowlist. Different declarations reuse the same captures; their counts below are "
+        "conditional comparisons, not independent hardware trials.", "",
+        "## Global Accuracy", "",
+        "| Observed complete-event mean | Criterion | Passed / compared cohorts | Failed |",
+        "| --- | --- | ---: | ---: |",
+    ]
+    for tier, label, criterion in (
+        ("absolute_15us", "<= 50 us", "Absolute per-call difference <= 15 us"),
+        ("relative_15pct", "> 50 us", "Absolute relative error <= 15%"),
+    ):
+        counts = tiers[tier]
+        lines.append(
+            f"| {label} | {criterion} | {counts['passed_cohort_count']} / "
+            f"{counts['cohort_count']} | {counts['failed_cohort_count']} |")
+    lines.extend([
+        f"| All scored | Each cohort's own tier | {total['passed_cohort_count']} / "
+        f"{total['cohort_count']} | {total['failed_cohort_count']} |", "",
+        f"**{statuses.get('reference_only', 0)} reference cohorts remain unscored.** "
+        "The absolute tolerance does not change predictions or establish that launch overhead "
+        "caused a residual. Family means are call-count weighted; cancellation of signed "
+        "errors cannot turn a failed cohort into a pass.", "",
+        "## Complete Variant Results", "",
+        "| Declaration / variant | Cohort events | Scored events | Reference events | "
+        "Passed / compared | Reference cohorts |",
+        "| --- | ---: | ---: | ---: | ---: | ---: |",
+    ])
+    for variant in overview["variants"]:
+        table = _read(output_dir / variant["file"])
+        counts = Counter()
+        for tier in table["accuracy_summary"].values():
+            counts.update({key: tier[key] for key in (
+                "passed_cohort_count", "cohort_count", "scored_event_count")})
+        families = table["families"]
+        lines.append(
+            f"| {variant['declaration_key']} / {variant['variant']} | "
+            f"{sum(row['cohort_event_count'] for row in families):,} | "
+            f"{counts['scored_event_count']:,} | "
+            f"{sum(row['reference_event_count'] for row in families):,} | "
+            f"{counts['passed_cohort_count']} / {counts['cohort_count']} | "
+            f"{sum(row['cohort_status_counts'].get('reference_only', 0) for row in families)} |")
+    lines.extend([
+        "", "## Coverage And Interpretation", "",
+        "Paged attention uses independently declared query and cache-block geometry. "
+        "Cache capacity does not establish active context, and query width does not identify "
+        "verify or draft execution. Recurrent GDN retains exact state dtype. Sparse-attention "
+        "buckets use observed index descriptors and independently declared layer structure; "
+        "no event is duplicated between heterogeneous buckets.", "",
+        "Source-selected shared INT32 quantization separates the accumulator producer from "
+        "its dequantization/activation consumer. Compressor normalization references retain "
+        "their missing native state-write/reuse boundary and stay outside accuracy counts. "
+        "Kimi single-bank wrappers require their explicit source caller and execution domain. "
+        "Missing routing/scalar/dispatch evidence remains visible in the unscored reasons.", "",
+        "All occurrence-level layer/replica/step identities remain unbound. "
+        "Activity sums count overlapping events separately and are not model latency. "
+        "Per-operator passes do not establish complete model coverage or end-to-end accuracy.", "",
+        "## Reproducibility", "",
+        f"Full replay: {receipt['elapsed_seconds']:.3f} seconds. Peak mapping "
+        f"{receipt['peak_worker_rss_bytes'] / 1024**2:.2f} MiB; peak comparison "
+        f"{receipt['peak_comparison_rss_bytes'] / 1024**2:.2f} MiB. "
+        f"Runtime sources unchanged: {receipt['runtime_sources_unchanged']}. "
+        f"Capture failures: {len(receipt['failures'])}; comparison failures: "
+        f"{len(receipt['comparison_failures'])}.", "",
+        "The [full replay receipt](fusion-cohort-validation.json) records capture SHA256, "
+        "runtime source hashes, case declarations and program budgets. "
+        "The [Top Errors](fusion-cohort-replay-top-errors.md), "
+        "[large-call report](fusion-cohort-large-call-errors.md), and "
+        "[complete family JSON index](fusion-cohort-replay-families.json) share this replay. "
+        "See [maintained-suite verification](cohort-verification.json) and "
+        "[independent review](fusion-cohort-independent-review.json) for their recorded runs.", "",
+    ])
+    (output_dir / "cohort-full-family-replay.md").write_text("\n".join(lines))

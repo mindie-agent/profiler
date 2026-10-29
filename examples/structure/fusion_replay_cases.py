@@ -27,11 +27,17 @@ def _hash(path):
 
 
 def _variant(key, old, base, *, decode=False, fused=False, checkpoint=False):
+    import mindie_sim
+
     execution = {name: old["declared_execution"][name]
                  for name in ("phase", "tokens", "context", "sequences")}
     if decode:
         execution.update(phase="decode", tokens=1, context=32768)
-    case_path = Path(old["declaration_source"]["case_path"])
+    historical_case = Path(old["declaration_source"]["case_path"])
+    # A replay checkout owns its declarations as well as its imported runtime;
+    # the capture receipt's original checkout may still be under development.
+    case_path = (Path(mindie_sim.__file__).resolve().parents[1]
+                 / "examples/cases" / historical_case.name)
     source_program_evidence = None
     if fused and "glm53" in key:
         case_path = (case_path.parents[2] / "data/verification"
@@ -119,6 +125,7 @@ def _variant(key, old, base, *, decode=False, fused=False, checkpoint=False):
                     "source_declared_unfused_reference" if lowerings else "case_default"),
         "declaration_source": {
             "case_path": str(case_path), "case_sha256": _hash(case_path),
+            "historical_case_path": str(historical_case),
             "implementation_overrides": lowerings,
             "lowering_passes_override": passes,
             "override_basis": "caller_declared_source_selection",
@@ -171,6 +178,91 @@ def _compressor_fp32_variant(key, old, base):
     return variant
 
 
+def _steady_matmul_variant(key, old, base):
+    variant = _variant(key, old, base)
+    source = variant["declaration_source"]
+    case_path = (Path(source["case_path"]).parents[2] / "data/verification"
+                 / "matrix-cohort-wave4-20261029/a5_qwen38-steady.case.json")
+    variant.update(
+        name=key + "_steady-selected", declaration_key=key + "_steady",
+        variant="selected_steady_matrix_conditional", case=_read(case_path),
+    )
+    source.update(
+        case_path=str(case_path), case_sha256=_hash(case_path),
+        override_basis="explicit_source_recipe_selection",
+        source_evidence={
+            "steady_matrix": {
+                "source_commit": "ea0bae98",
+                "case_path": str(case_path), "case_sha256": _hash(case_path),
+                "program": "steady_matmul",
+                "capture_dispatch_identity_verified": False,
+                "replaces_reference_variant": False,
+            },
+        },
+    )
+    return variant
+
+
+def _shared_quant_variant(key, old, base):
+    variant = _variant(key, old, base)
+    source = variant["declaration_source"]
+    source_key = "a3_glm53_prefill" if key == "a3_glm53_decode" else key
+    case_path = (Path(source["case_path"]).parents[2] / "data/verification"
+                 / "shared-quant-wave4-20261029" / f"{source_key}.case.json")
+    variant.update(
+        name=key + "_shared_quant-selected", declaration_key=key + "_shared_quant",
+        variant="source_shared_int32_conditional", case=_read(case_path),
+    )
+    source.update(
+        case_path=str(case_path), case_sha256=_hash(case_path),
+        implementation_overrides=variant["case"]["runtime"]["kernels"]["lowerings"],
+        lowering_passes_override=variant["case"]["runtime"].get("lowering_passes"),
+        override_basis="independent_source_separate_int32_producer_and_dequant_consumer",
+        source_evidence={
+            "shared_quant": {
+                "source_commit": "0ad29aa3",
+                "case_path": str(case_path), "case_sha256": _hash(case_path),
+                "implementation": "ascend_shared_gate_up_int32",
+                "geometry_basis": "existing_independent_capture_phase_declaration",
+                "capture_dispatch_identity_verified": False,
+                "replaces_reference_variant": False,
+            },
+        },
+    )
+    return variant
+
+
+def _kimi_single_group_variant(key, old, base, *, decode):
+    variant = _variant(key, old, base, decode=decode, checkpoint=True)
+    case, source = variant["case"], variant["declaration_source"]
+    selection = {
+        "implementation": "vllm_ascend_mxfp8_single_group_eager",
+        "options": {"projection_recipes": ["latent_projection"]},
+    }
+    case["runtime"]["graph_mode"] = "eager"
+    case["runtime"]["kernels"]["lowerings"]["matrix_wrapper"] = selection
+    source["implementation_overrides"]["matrix_wrapper"] = selection
+    source["runtime_overrides"] = {"graph_mode": "eager"}
+    evidence_path = (base.parents[2] / "tests/fixtures/kimi_grouped_attnres"
+                     / "source_image_883670fc/provenance.json")
+    source["source_evidence"]["single_group_wrapper"] = {
+        "file": str(evidence_path), "sha256": _hash(evidence_path),
+        "implementation": selection["implementation"],
+        "caller_domain": ["latent_projection"],
+        "group_list_source": "wrapper_sets_one_group_covering_all_input_rows",
+        "source_image": "sha256:883670fcc91cbd75a7070b00501be0ecd81a266b81366a21bf02139d8e6a33e1",
+        "captured_eager_dispatch_verified": False,
+        "excluded_source_callers": ["unrepresented_fused_kda_qkv"],
+        "excluded_matrix_domains": ["routed_expert_banks"],
+    }
+    declaration = variant["declaration_key"] + "_eager_single_group"
+    variant.update(
+        name=declaration + "-reference", declaration_key=declaration,
+        variant="source_single_group_mxfp8_conditional",
+    )
+    return variant
+
+
 def variants(key, old, base):
     values = [_variant(key, old, base)]
     if "glm53" in key or key in {"a3_v4f", "a3_v4pro"}:
@@ -181,6 +273,12 @@ def variants(key, old, base):
         values.append(_variant(key, old, base, decode=True))
         values.extend(_variant(key, old, base, decode=decode, checkpoint=True)
                       for decode in (False, True))
+        values.extend(_kimi_single_group_variant(key, old, base, decode=decode)
+                      for decode in (False, True))
+    elif key == "a5_qwen38":
+        values.append(_steady_matmul_variant(key, old, base))
+    if key in {"a3_glm53_prefill", "a3_glm53_decode", "a3_v4f"}:
+        values.append(_shared_quant_variant(key, old, base))
     from fusion_replay_paged_cases import paged_variants
 
     values.extend(paged_variants(key, values[0]))
