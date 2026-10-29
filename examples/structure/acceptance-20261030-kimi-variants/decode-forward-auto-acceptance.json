@@ -1,0 +1,2411 @@
+{
+  "schema_version": "mindie-decode-auto-acceptance/1",
+  "status": "completed",
+  "not_new_live_collection": true,
+  "basis": "structure_guided_topology_alignment",
+  "manifest": {
+    "path": "examples/structure/acceptance-20261030-kimi-variants/decode-forward-auto-cases.json",
+    "sha256": "5b020b01f810453fade6054f284133b77b98c06d51dc9324440f37353300e223"
+  },
+  "segmentation_runtime": {
+    "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+    "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+    "dependencies": {
+      "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+    }
+  },
+  "cases": [
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c1",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c1_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 3766618,
+        "mtime_ns": 1793303770000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "1b0e4fcb7c3d80fefa5a1484937508502b0da346ea5657ed48e6bc0b893587c3"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c1.json",
+      "report_sha256": "ab9cf65040454bf42bf918eaf4ddd45f8b04490c37c668349341cecfe018a9a0",
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c1.json",
+        "sha256": "1e330f71aa60d6447992093395639e34ece2b6cd104abdd5672bebb22b1bb7bd"
+      },
+      "body_forward_span_ms": {
+        "count": 254,
+        "mean": 3.180249913385827,
+        "p50": 3.127828,
+        "p90": 3.431912,
+        "min": 2.848903,
+        "max": 4.822624
+      },
+      "body_activity_ms": {
+        "count": 254,
+        "mean": 3.088475720472441,
+        "p50": 3.0407805000000003,
+        "p90": 3.349055,
+        "min": 2.762944,
+        "max": 4.727427
+      },
+      "body_internal_gap_ms": {
+        "count": 254,
+        "mean": 0.09177419291338583,
+        "p50": 0.0896495,
+        "p90": 0.103555,
+        "min": 0.059438,
+        "max": 0.219336
+      },
+      "geometry": {
+        "query_rows": 1,
+        "sequences_per_replica": 1,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 1,
+            "sequences_per_replica": 1,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 254,
+            "mean": 3.180249913385827,
+            "p50": 3.127828,
+            "p90": 3.431912,
+            "min": 2.848903,
+            "max": 4.822624
+          },
+          "body_activity_ms": {
+            "count": 254,
+            "mean": 3.088475720472441,
+            "p50": 3.0407805000000003,
+            "p90": 3.349055,
+            "min": 2.762944,
+            "max": 4.727427
+          },
+          "body_internal_gap_ms": {
+            "count": 254,
+            "mean": 0.09177419291338583,
+            "p50": 0.0896495,
+            "p90": 0.103555,
+            "min": 0.059438,
+            "max": 0.219336
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 68002,
+        "positive_events": 68002,
+        "vocabulary_head_occurrences": 256,
+        "rejected_segment_events": 936,
+        "complete_body_segment_events": 67056,
+        "trailing_segment_events": 10
+      },
+      "anomaly_counts": {
+        "prefill_or_mixed_phase_sequence": 2,
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p90": null,
+        "min": null,
+        "max": null
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 2.424,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c16",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c16_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 4324200,
+        "mtime_ns": 1793303771000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "9fdc461cb0f4061ae156e87301b1b586dc68d2f12bbf925df52d0ebbb1c71991"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c16.json",
+      "report_sha256": "609cdc4a84b7a0d46a8c33eca3f575328186680b5401f0754fdc461472a4b2d9",
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c16.json",
+        "sha256": "aa81d66799f4a95d6626f8d6a086d3e555512da541abf7a1e5701229d329fff3"
+      },
+      "body_forward_span_ms": {
+        "count": 238,
+        "mean": 4.794950130252101,
+        "p50": 4.778785,
+        "p90": 5.00962,
+        "min": 2.814464,
+        "max": 6.352814
+      },
+      "body_activity_ms": {
+        "count": 238,
+        "mean": 4.6972694285714285,
+        "p50": 4.6772685,
+        "p90": 4.906464,
+        "min": 2.735545,
+        "max": 6.266534
+      },
+      "body_internal_gap_ms": {
+        "count": 238,
+        "mean": 0.09768070168067226,
+        "p50": 0.097077,
+        "p90": 0.105877,
+        "min": 0.078919,
+        "max": 0.143679
+      },
+      "geometry": null,
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 1,
+            "sequences_per_replica": 1,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 3,
+            "mean": 3.8447766666666667,
+            "p50": 3.280615,
+            "p90": 5.439251,
+            "min": 2.814464,
+            "max": 5.439251
+          },
+          "body_activity_ms": {
+            "count": 3,
+            "mean": 3.7422113333333336,
+            "p50": 3.195517,
+            "p90": 5.295572,
+            "min": 2.735545,
+            "max": 5.295572
+          },
+          "body_internal_gap_ms": {
+            "count": 3,
+            "mean": 0.10256533333333333,
+            "p50": 0.085098,
+            "p90": 0.143679,
+            "min": 0.078919,
+            "max": 0.143679
+          }
+        },
+        {
+          "geometry": {
+            "query_rows": 16,
+            "sequences_per_replica": 16,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 235,
+            "mean": 4.807080004255319,
+            "p50": 4.779005,
+            "p90": 4.99208,
+            "min": 4.54517,
+            "max": 6.352814
+          },
+          "body_activity_ms": {
+            "count": 235,
+            "mean": 4.709461659574468,
+            "p50": 4.677289,
+            "p90": 4.890242,
+            "min": 4.44883,
+            "max": 6.266534
+          },
+          "body_internal_gap_ms": {
+            "count": 235,
+            "mean": 0.09761834468085107,
+            "p50": 0.097097,
+            "p90": 0.105719,
+            "min": 0.081179,
+            "max": 0.116236
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 75535,
+        "positive_events": 75535,
+        "vocabulary_head_occurrences": 275,
+        "rejected_segment_events": 14808,
+        "complete_body_segment_events": 60717,
+        "trailing_segment_events": 10
+      },
+      "anomaly_counts": {
+        "prefill_or_mixed_phase_sequence": 19,
+        "layer_query_geometry_changes": 18,
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p90": null,
+        "min": null,
+        "max": null
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 2.484,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c32",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c32_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 4803119,
+        "mtime_ns": 1793303771000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "c7deb048fabcf5650aeb014c411b0eda709758e8dd4227119f7de5316a1c294e"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c32.json",
+      "report_sha256": "2170a9f270b4efca5773cb41b27b9d849ffc75bc054bdd1f6808afd4fcc6be74",
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c32.json",
+        "sha256": "f62e551f6e52b7f8376bb30fa774fd762b89748dca40c4e6a9b36dcd0048f4c3"
+      },
+      "body_forward_span_ms": {
+        "count": 229,
+        "mean": 6.586571986899563,
+        "p50": 6.655727,
+        "p90": 6.922921,
+        "min": 2.978001,
+        "max": 8.187096
+      },
+      "body_activity_ms": {
+        "count": 229,
+        "mean": 6.482984358078602,
+        "p50": 6.55203,
+        "p90": 6.810582,
+        "min": 2.886602,
+        "max": 8.072537
+      },
+      "body_internal_gap_ms": {
+        "count": 229,
+        "mean": 0.1035876288209607,
+        "p50": 0.103616,
+        "p90": 0.114357,
+        "min": 0.059539,
+        "max": 0.124
+      },
+      "geometry": null,
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 1,
+            "sequences_per_replica": 1,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 3,
+            "mean": 3.2403016666666664,
+            "p50": 3.278234,
+            "p90": 3.410932,
+            "min": 3.031739,
+            "max": 3.410932
+          },
+          "body_activity_ms": {
+            "count": 3,
+            "mean": 3.159277,
+            "p50": 3.201057,
+            "p90": 3.318912,
+            "min": 2.957862,
+            "max": 3.318912
+          },
+          "body_internal_gap_ms": {
+            "count": 3,
+            "mean": 0.08102466666666666,
+            "p50": 0.077177,
+            "p90": 0.09202,
+            "min": 0.073877,
+            "max": 0.09202
+          }
+        },
+        {
+          "geometry": {
+            "query_rows": 32,
+            "sequences_per_replica": 32,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 220,
+            "mean": 6.7137816818181815,
+            "p50": 6.6647870000000005,
+            "p90": 6.922921,
+            "min": 6.497851,
+            "max": 8.187096
+          },
+          "body_activity_ms": {
+            "count": 220,
+            "mean": 6.609395490909091,
+            "p50": 6.5604195,
+            "p90": 6.810582,
+            "min": 6.396452,
+            "max": 8.072537
+          },
+          "body_internal_gap_ms": {
+            "count": 220,
+            "mean": 0.1043861909090909,
+            "p50": 0.104017,
+            "p90": 0.114357,
+            "min": 0.0835,
+            "max": 0.124
+          }
+        },
+        {
+          "geometry": {
+            "query_rows": 8,
+            "sequences_per_replica": 8,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 1,
+            "mean": 3.812064,
+            "p50": 3.812064,
+            "p90": 3.812064,
+            "min": 3.812064,
+            "max": 3.812064
+          },
+          "body_activity_ms": {
+            "count": 1,
+            "mean": 3.719127,
+            "p50": 3.719127,
+            "p90": 3.719127,
+            "min": 3.719127,
+            "max": 3.719127
+          },
+          "body_internal_gap_ms": {
+            "count": 1,
+            "mean": 0.092937,
+            "p50": 0.092937,
+            "p90": 0.092937,
+            "min": 0.092937,
+            "max": 0.092937
+          }
+        },
+        {
+          "geometry": {
+            "query_rows": 4,
+            "sequences_per_replica": 4,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 3,
+            "mean": 3.3638529999999998,
+            "p50": 3.379593,
+            "p90": 3.466951,
+            "min": 3.245015,
+            "max": 3.466951
+          },
+          "body_activity_ms": {
+            "count": 3,
+            "mean": 3.2826543333333333,
+            "p50": 3.298195,
+            "p90": 3.364292,
+            "min": 3.185476,
+            "max": 3.364292
+          },
+          "body_internal_gap_ms": {
+            "count": 3,
+            "mean": 0.08119866666666667,
+            "p50": 0.081398,
+            "p90": 0.102659,
+            "min": 0.059539,
+            "max": 0.102659
+          }
+        },
+        {
+          "geometry": {
+            "query_rows": 2,
+            "sequences_per_replica": 2,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 1,
+            "mean": 2.978001,
+            "p50": 2.978001,
+            "p90": 2.978001,
+            "min": 2.978001,
+            "max": 2.978001
+          },
+          "body_activity_ms": {
+            "count": 1,
+            "mean": 2.886602,
+            "p50": 2.886602,
+            "p90": 2.886602,
+            "min": 2.886602,
+            "max": 2.886602
+          },
+          "body_internal_gap_ms": {
+            "count": 1,
+            "mean": 0.091399,
+            "p50": 0.091399,
+            "p90": 0.091399,
+            "min": 0.091399,
+            "max": 0.091399
+          }
+        },
+        {
+          "geometry": {
+            "query_rows": 16,
+            "sequences_per_replica": 16,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 1,
+            "mean": 4.690486,
+            "p50": 4.690486,
+            "p90": 4.690486,
+            "min": 4.690486,
+            "max": 4.690486
+          },
+          "body_activity_ms": {
+            "count": 1,
+            "mean": 4.604887,
+            "p50": 4.604887,
+            "p90": 4.604887,
+            "min": 4.604887,
+            "max": 4.604887
+          },
+          "body_internal_gap_ms": {
+            "count": 1,
+            "mean": 0.085599,
+            "p50": 0.085599,
+            "p90": 0.085599,
+            "min": 0.085599,
+            "max": 0.085599
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 83335,
+        "positive_events": 83335,
+        "vocabulary_head_occurrences": 290,
+        "rejected_segment_events": 24361,
+        "complete_body_segment_events": 58964,
+        "trailing_segment_events": 10
+      },
+      "anomaly_counts": {
+        "prefill_or_mixed_phase_sequence": 31,
+        "layer_query_geometry_changes": 30,
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p90": null,
+        "min": null,
+        "max": null
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 2.775,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c4",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 4218000,
+        "mtime_ns": 1793303770000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "c51c0c5b4ec2b0eef777237b726fe20f82a94b866b21c0b3a2844d8aca56d857"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c4.json",
+      "report_sha256": "478283c1c963a000f5ce66a0cd38ba1c2312b1300c03de9ffa01d266b4096f2b",
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c4.json",
+        "sha256": "757c4b069f21976c8b95603336576d059c2146c0a3ea09f12696ab96f3a1b1c9"
+      },
+      "body_forward_span_ms": {
+        "count": 253,
+        "mean": 3.471372351778656,
+        "p50": 3.432072,
+        "p90": 3.654607,
+        "min": 3.03302,
+        "max": 4.537409
+      },
+      "body_activity_ms": {
+        "count": 253,
+        "mean": 3.3750030158102766,
+        "p50": 3.339893,
+        "p90": 3.550368,
+        "min": 2.941061,
+        "max": 4.344992
+      },
+      "body_internal_gap_ms": {
+        "count": 253,
+        "mean": 0.09636933596837945,
+        "p50": 0.097078,
+        "p90": 0.105397,
+        "min": 0.064379,
+        "max": 0.192417
+      },
+      "geometry": null,
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 1,
+            "sequences_per_replica": 1,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 3,
+            "mean": 3.190596333333333,
+            "p50": 3.244875,
+            "p90": 3.293894,
+            "min": 3.03302,
+            "max": 3.293894
+          },
+          "body_activity_ms": {
+            "count": 3,
+            "mean": 3.0937449999999997,
+            "p50": 3.154959,
+            "p90": 3.185215,
+            "min": 2.941061,
+            "max": 3.185215
+          },
+          "body_internal_gap_ms": {
+            "count": 3,
+            "mean": 0.09685133333333333,
+            "p50": 0.091959,
+            "p90": 0.108679,
+            "min": 0.089916,
+            "max": 0.108679
+          }
+        },
+        {
+          "geometry": {
+            "query_rows": 2,
+            "sequences_per_replica": 2,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 4,
+            "mean": 3.37566275,
+            "p50": 3.3464735,
+            "p90": 3.556049,
+            "min": 3.253655,
+            "max": 3.556049
+          },
+          "body_activity_ms": {
+            "count": 4,
+            "mean": 3.2816685,
+            "p50": 3.254334,
+            "p90": 3.46175,
+            "min": 3.156256,
+            "max": 3.46175
+          },
+          "body_internal_gap_ms": {
+            "count": 4,
+            "mean": 0.09399425,
+            "p50": 0.09584899999999999,
+            "p90": 0.102219,
+            "min": 0.08206,
+            "max": 0.102219
+          }
+        },
+        {
+          "geometry": {
+            "query_rows": 4,
+            "sequences_per_replica": 4,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 246,
+            "mean": 3.4763527032520325,
+            "p50": 3.437971,
+            "p90": 3.655687,
+            "min": 3.196796,
+            "max": 4.537409
+          },
+          "body_activity_ms": {
+            "count": 246,
+            "mean": 3.37995062601626,
+            "p50": 3.3410325,
+            "p90": 3.556408,
+            "min": 3.110578,
+            "max": 4.344992
+          },
+          "body_internal_gap_ms": {
+            "count": 246,
+            "mean": 0.09640207723577236,
+            "p50": 0.0970875,
+            "p90": 0.105397,
+            "min": 0.064379,
+            "max": 0.192417
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 75289,
+        "positive_events": 75289,
+        "vocabulary_head_occurrences": 264,
+        "rejected_segment_events": 4728,
+        "complete_body_segment_events": 70551,
+        "trailing_segment_events": 10
+      },
+      "anomaly_counts": {
+        "prefill_or_mixed_phase_sequence": 7,
+        "layer_query_geometry_changes": 4,
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p90": null,
+        "min": null,
+        "max": null
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 2.602,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c64",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c64_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 5642669,
+        "mtime_ns": 1793303771000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "2137943b502a105b3c044dd1cd88635cf88fe19786e86fdf84d75c059d347fa2"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c64.json",
+      "report_sha256": "976a0a82eaf11bdea80c2f7e63678b12ba959ce94cc2a38c7198a771de4615f4",
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c64.json",
+        "sha256": "3910afb1e7071059817fc77d706c6e478f5530b6144f72be9eae7640a0f81f1f"
+      },
+      "body_forward_span_ms": {
+        "count": 207,
+        "mean": 9.364761584541062,
+        "p50": 9.54523,
+        "p90": 9.774144,
+        "min": 2.780444,
+        "max": 11.01722
+      },
+      "body_activity_ms": {
+        "count": 207,
+        "mean": 9.252690990338165,
+        "p50": 9.432472,
+        "p90": 9.659245,
+        "min": 2.710807,
+        "max": 10.901361
+      },
+      "body_internal_gap_ms": {
+        "count": 207,
+        "mean": 0.11207059420289855,
+        "p50": 0.112418,
+        "p90": 0.119936,
+        "min": 0.069637,
+        "max": 0.134357
+      },
+      "geometry": null,
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 1,
+            "sequences_per_replica": 1,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 3,
+            "mean": 3.1784963333333334,
+            "p50": 3.253895,
+            "p90": 3.50115,
+            "min": 2.780444,
+            "max": 3.50115
+          },
+          "body_activity_ms": {
+            "count": 3,
+            "mean": 3.096751333333333,
+            "p50": 3.175956,
+            "p90": 3.403491,
+            "min": 2.710807,
+            "max": 3.403491
+          },
+          "body_internal_gap_ms": {
+            "count": 3,
+            "mean": 0.081745,
+            "p50": 0.077939,
+            "p90": 0.097659,
+            "min": 0.069637,
+            "max": 0.097659
+          }
+        },
+        {
+          "geometry": {
+            "query_rows": 64,
+            "sequences_per_replica": 64,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 196,
+            "mean": 9.615403801020408,
+            "p50": 9.549548999999999,
+            "p90": 9.774245,
+            "min": 9.484191,
+            "max": 11.01722
+          },
+          "body_activity_ms": {
+            "count": 196,
+            "mean": 9.502317183673469,
+            "p50": 9.435582,
+            "p90": 9.660049,
+            "min": 9.380092,
+            "max": 10.901361
+          },
+          "body_internal_gap_ms": {
+            "count": 196,
+            "mean": 0.11308661734693877,
+            "p50": 0.1130375,
+            "p90": 0.119978,
+            "min": 0.100118,
+            "max": 0.134357
+          }
+        },
+        {
+          "geometry": {
+            "query_rows": 48,
+            "sequences_per_replica": 48,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 2,
+            "mean": 8.472921,
+            "p50": 8.472921,
+            "p90": 8.559829,
+            "min": 8.386013,
+            "max": 8.559829
+          },
+          "body_activity_ms": {
+            "count": 2,
+            "mean": 8.364464,
+            "p50": 8.364464,
+            "p90": 8.456732,
+            "min": 8.272196,
+            "max": 8.456732
+          },
+          "body_internal_gap_ms": {
+            "count": 2,
+            "mean": 0.108457,
+            "p50": 0.108457,
+            "p90": 0.113817,
+            "min": 0.103097,
+            "max": 0.113817
+          }
+        },
+        {
+          "geometry": {
+            "query_rows": 24,
+            "sequences_per_replica": 24,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 2,
+            "mean": 5.631387500000001,
+            "p50": 5.631387500000001,
+            "p90": 5.719806,
+            "min": 5.542969,
+            "max": 5.719806
+          },
+          "body_activity_ms": {
+            "count": 2,
+            "mean": 5.5317405,
+            "p50": 5.5317405,
+            "p90": 5.613788,
+            "min": 5.449693,
+            "max": 5.613788
+          },
+          "body_internal_gap_ms": {
+            "count": 2,
+            "mean": 0.099647,
+            "p50": 0.099647,
+            "p90": 0.106018,
+            "min": 0.093276,
+            "max": 0.106018
+          }
+        },
+        {
+          "geometry": {
+            "query_rows": 16,
+            "sequences_per_replica": 16,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 2,
+            "mean": 4.7227155,
+            "p50": 4.7227155,
+            "p90": 4.738645,
+            "min": 4.706786,
+            "max": 4.738645
+          },
+          "body_activity_ms": {
+            "count": 2,
+            "mean": 4.622307,
+            "p50": 4.622307,
+            "p90": 4.638327,
+            "min": 4.606287,
+            "max": 4.638327
+          },
+          "body_internal_gap_ms": {
+            "count": 2,
+            "mean": 0.10040850000000001,
+            "p50": 0.10040850000000001,
+            "p90": 0.100499,
+            "min": 0.100318,
+            "max": 0.100499
+          }
+        },
+        {
+          "geometry": {
+            "query_rows": 2,
+            "sequences_per_replica": 2,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 1,
+            "mean": 3.160037,
+            "p50": 3.160037,
+            "p90": 3.160037,
+            "min": 3.160037,
+            "max": 3.160037
+          },
+          "body_activity_ms": {
+            "count": 1,
+            "mean": 3.06954,
+            "p50": 3.06954,
+            "p90": 3.06954,
+            "min": 3.06954,
+            "max": 3.06954
+          },
+          "body_internal_gap_ms": {
+            "count": 1,
+            "mean": 0.090497,
+            "p50": 0.090497,
+            "p90": 0.090497,
+            "min": 0.090497,
+            "max": 0.090497
+          }
+        },
+        {
+          "geometry": {
+            "query_rows": 4,
+            "sequences_per_replica": 4,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 1,
+            "mean": 3.536929,
+            "p50": 3.536929,
+            "p90": 3.536929,
+            "min": 3.536929,
+            "max": 3.536929
+          },
+          "body_activity_ms": {
+            "count": 1,
+            "mean": 3.45605,
+            "p50": 3.45605,
+            "p90": 3.45605,
+            "min": 3.45605,
+            "max": 3.45605
+          },
+          "body_internal_gap_ms": {
+            "count": 1,
+            "mean": 0.080879,
+            "p50": 0.080879,
+            "p90": 0.080879,
+            "min": 0.080879,
+            "max": 0.080879
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 96863,
+        "positive_events": 96863,
+        "vocabulary_head_occurrences": 314,
+        "rejected_segment_events": 43784,
+        "complete_body_segment_events": 53069,
+        "trailing_segment_events": 10
+      },
+      "anomaly_counts": {
+        "prefill_or_mixed_phase_sequence": 58,
+        "layer_query_geometry_changes": 49,
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p90": null,
+        "min": null,
+        "max": null
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 3.22,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c16_p16k",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c16_p16k_20261030/kernel_details.csv",
+        "size_bytes": 85273567,
+        "mtime_ns": 1793305138000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "0bb137f44691457fb0d8a3fbe186d7dffa95945ae273de8ee71f6f384694f851"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c16_p16k.json",
+      "report_sha256": "f4866ce7a2bc4224a7d69fb1ca51a8b6509743d9e82323acb1eb885501868316",
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c16_p16k.json",
+        "sha256": "fb7222f634c5fa335dae7916e93a80ee0d3ff8ebb273fd2627f9c0fe09716da9"
+      },
+      "body_forward_span_ms": {
+        "count": 47,
+        "mean": 39.24738604255319,
+        "p50": 39.244948,
+        "p90": 39.26292,
+        "min": 39.210652,
+        "max": 39.369144
+      },
+      "body_activity_ms": {
+        "count": 47,
+        "mean": 38.56657704255319,
+        "p50": 38.564006,
+        "p90": 38.5836,
+        "min": 38.529185,
+        "max": 38.687521
+      },
+      "body_internal_gap_ms": {
+        "count": 47,
+        "mean": 0.680809,
+        "p50": 0.680912,
+        "p90": 0.682966,
+        "min": 0.676663,
+        "max": 0.683697
+      },
+      "geometry": {
+        "query_rows": 16,
+        "sequences_per_replica": 16,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 16,
+            "sequences_per_replica": 16,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 47,
+            "mean": 39.24738604255319,
+            "p50": 39.244948,
+            "p90": 39.26292,
+            "min": 39.210652,
+            "max": 39.369144
+          },
+          "body_activity_ms": {
+            "count": 47,
+            "mean": 38.56657704255319,
+            "p50": 38.564006,
+            "p90": 38.5836,
+            "min": 38.529185,
+            "max": 38.687521
+          },
+          "body_internal_gap_ms": {
+            "count": 47,
+            "mean": 0.680809,
+            "p50": 0.680912,
+            "p90": 0.682966,
+            "min": 0.676663,
+            "max": 0.683697
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 255868,
+        "positive_events": 255868,
+        "vocabulary_head_occurrences": 47,
+        "complete_body_segment_events": 255856,
+        "trailing_segment_events": 12
+      },
+      "anomaly_counts": {
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p90": null,
+        "min": null,
+        "max": null
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 9.593,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c16_p4k",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c16_p4k_20261030/kernel_details.csv",
+        "size_bytes": 88893922,
+        "mtime_ns": 1793304346000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "c74cb4160daf0d07420b3288c234e6f4a0c07d7ddcc9ffde5053aea131426664"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c16_p4k.json",
+      "report_sha256": "e390092edf19a7658285a03e63c8e0c6dac555c4db65a0cd4f223002c6f4a112",
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c16_p4k.json",
+        "sha256": "643489d1591f3f42f00d4a8adff0d7a48ee863ebf49d9454524da4cb44c649e5"
+      },
+      "body_forward_span_ms": {
+        "count": 49,
+        "mean": 36.985292306122446,
+        "p50": 36.952793,
+        "p90": 36.968819,
+        "min": 36.921841,
+        "max": 38.586878
+      },
+      "body_activity_ms": {
+        "count": 49,
+        "mean": 36.30466506122449,
+        "p50": 36.27145,
+        "p90": 36.287786,
+        "min": 36.243254,
+        "max": 37.906193
+      },
+      "body_internal_gap_ms": {
+        "count": 49,
+        "mean": 0.6806272448979592,
+        "p50": 0.680918,
+        "p90": 0.682862,
+        "min": 0.676887,
+        "max": 0.683856
+      },
+      "geometry": {
+        "query_rows": 16,
+        "sequences_per_replica": 16,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 16,
+            "sequences_per_replica": 16,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 49,
+            "mean": 36.985292306122446,
+            "p50": 36.952793,
+            "p90": 36.968819,
+            "min": 36.921841,
+            "max": 38.586878
+          },
+          "body_activity_ms": {
+            "count": 49,
+            "mean": 36.30466506122449,
+            "p50": 36.27145,
+            "p90": 36.287786,
+            "min": 36.243254,
+            "max": 37.906193
+          },
+          "body_internal_gap_ms": {
+            "count": 49,
+            "mean": 0.6806272448979592,
+            "p50": 0.680918,
+            "p90": 0.682862,
+            "min": 0.676887,
+            "max": 0.683856
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 266756,
+        "positive_events": 266756,
+        "vocabulary_head_occurrences": 49,
+        "complete_body_segment_events": 266744,
+        "trailing_segment_events": 12
+      },
+      "anomaly_counts": {
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p90": null,
+        "min": null,
+        "max": null
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 10.036,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c1_p16k",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p16k_20261030/kernel_details.csv",
+        "size_bytes": 102198993,
+        "mtime_ns": 1793304534000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "cc316ae15600914b4c58c7ef10a0103026a7d5abae1dc733dd3eedcaa0397f8e"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c1_p16k.json",
+      "report_sha256": "ec2f6d076f9932acc764b1ea5cbb3e267f8acb9bf4316894b47ae463359b1fd7",
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c1_p16k.json",
+        "sha256": "1417e212711faa3927b28ac8f20b51aa27c8dfb89cd228cecc4833cb2df5ca58"
+      },
+      "body_forward_span_ms": {
+        "count": 59,
+        "mean": 30.823435050847458,
+        "p50": 30.822007,
+        "p90": 30.838985,
+        "min": 30.788124,
+        "max": 30.913849
+      },
+      "body_activity_ms": {
+        "count": 59,
+        "mean": 30.183881118644067,
+        "p50": 30.183504,
+        "p90": 30.199715,
+        "min": 30.148762,
+        "max": 30.272575
+      },
+      "body_internal_gap_ms": {
+        "count": 59,
+        "mean": 0.6395539322033899,
+        "p50": 0.639507,
+        "p90": 0.641346,
+        "min": 0.637158,
+        "max": 0.642764
+      },
+      "geometry": {
+        "query_rows": 1,
+        "sequences_per_replica": 1,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 1,
+            "sequences_per_replica": 1,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 59,
+            "mean": 30.823435050847458,
+            "p50": 30.822007,
+            "p90": 30.838985,
+            "min": 30.788124,
+            "max": 30.913849
+          },
+          "body_activity_ms": {
+            "count": 59,
+            "mean": 30.183881118644067,
+            "p50": 30.183504,
+            "p90": 30.199715,
+            "min": 30.148762,
+            "max": 30.272575
+          },
+          "body_internal_gap_ms": {
+            "count": 59,
+            "mean": 0.6395539322033899,
+            "p50": 0.639507,
+            "p90": 0.641346,
+            "min": 0.637158,
+            "max": 0.642764
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 306269,
+        "positive_events": 306269,
+        "vocabulary_head_occurrences": 59,
+        "complete_body_segment_events": 306258,
+        "trailing_segment_events": 11
+      },
+      "anomaly_counts": {
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p90": null,
+        "min": null,
+        "max": null
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 11.704,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c1_p4k",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
+        "size_bytes": 102190664,
+        "mtime_ns": 1793304273000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "95fe4cc26e249dbd597c62ae1db12710fca8ea758ff16cf1f12e6ed5584d256d"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c1_p4k.json",
+      "report_sha256": "43c7ec349511b81db6cc734668c054960dbfca28338ce45f403ea645e9216406",
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "sha256": "992206347ff5e45c6f64705a34a769929e7e37c4a45d2ac36ffb09451e527ef0"
+      },
+      "body_forward_span_ms": {
+        "count": 59,
+        "mean": 30.63685447457627,
+        "p50": 30.614967,
+        "p90": 30.632466,
+        "min": 30.590459,
+        "max": 31.877413
+      },
+      "body_activity_ms": {
+        "count": 59,
+        "mean": 29.99704152542373,
+        "p50": 29.974707,
+        "p90": 29.991924,
+        "min": 29.951982,
+        "max": 31.23542
+      },
+      "body_internal_gap_ms": {
+        "count": 59,
+        "mean": 0.6398129491525424,
+        "p50": 0.639717,
+        "p90": 0.641756,
+        "min": 0.636349,
+        "max": 0.6438
+      },
+      "geometry": {
+        "query_rows": 1,
+        "sequences_per_replica": 1,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 1,
+            "sequences_per_replica": 1,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 59,
+            "mean": 30.63685447457627,
+            "p50": 30.614967,
+            "p90": 30.632466,
+            "min": 30.590459,
+            "max": 31.877413
+          },
+          "body_activity_ms": {
+            "count": 59,
+            "mean": 29.99704152542373,
+            "p50": 29.974707,
+            "p90": 29.991924,
+            "min": 29.951982,
+            "max": 31.23542
+          },
+          "body_internal_gap_ms": {
+            "count": 59,
+            "mean": 0.6398129491525424,
+            "p50": 0.639717,
+            "p90": 0.641756,
+            "min": 0.636349,
+            "max": 0.6438
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 306269,
+        "positive_events": 306269,
+        "vocabulary_head_occurrences": 59,
+        "complete_body_segment_events": 306258,
+        "trailing_segment_events": 11
+      },
+      "anomaly_counts": {
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p90": null,
+        "min": null,
+        "max": null
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 12.127,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c2_p16k",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c2_p16k_20261030/kernel_details.csv",
+        "size_bytes": 101430417,
+        "mtime_ns": 1793304547000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "61a5ff863f23b0ebc55338e6b48de1b8211fa2ed6179ec3304d3e4bcf0852e62"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c2_p16k.json",
+      "report_sha256": "309fa1dbda9d74ac8a8f187c385e883299124ddd6670663906cd3739bec70549",
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c2_p16k.json",
+        "sha256": "34e4d743a2fec0d03196ff266cdda4ddd427ae9f5bdc9d53e9d6bd6a81b3f633"
+      },
+      "body_forward_span_ms": {
+        "count": 54,
+        "mean": 33.875752685185184,
+        "p50": 33.8579965,
+        "p90": 33.873078,
+        "min": 33.828032,
+        "max": 34.818002
+      },
+      "body_activity_ms": {
+        "count": 54,
+        "mean": 33.19040864814815,
+        "p50": 33.173148499999996,
+        "p90": 33.187759,
+        "min": 33.143103,
+        "max": 34.133282
+      },
+      "body_internal_gap_ms": {
+        "count": 54,
+        "mean": 0.6853440370370371,
+        "p50": 0.6851365,
+        "p90": 0.687782,
+        "min": 0.681957,
+        "max": 0.689586
+      },
+      "geometry": {
+        "query_rows": 2,
+        "sequences_per_replica": 2,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 2,
+            "sequences_per_replica": 2,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 54,
+            "mean": 33.875752685185184,
+            "p50": 33.8579965,
+            "p90": 33.873078,
+            "min": 33.828032,
+            "max": 34.818002
+          },
+          "body_activity_ms": {
+            "count": 54,
+            "mean": 33.19040864814815,
+            "p50": 33.173148499999996,
+            "p90": 33.187759,
+            "min": 33.143103,
+            "max": 34.133282
+          },
+          "body_internal_gap_ms": {
+            "count": 54,
+            "mean": 0.6853440370370371,
+            "p50": 0.6851365,
+            "p90": 0.687782,
+            "min": 0.681957,
+            "max": 0.689586
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 304398,
+        "positive_events": 304398,
+        "vocabulary_head_occurrences": 54,
+        "complete_body_segment_events": 304386,
+        "trailing_segment_events": 12
+      },
+      "anomaly_counts": {
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p90": null,
+        "min": null,
+        "max": null
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 11.7,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c2_p4k",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c2_p4k_20261030/kernel_details.csv",
+        "size_bytes": 103300812,
+        "mtime_ns": 1793304286000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "3c42b0662a8b658cdf071cbac275883d050c883b8f0730035ee074a12f4d307d"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c2_p4k.json",
+      "report_sha256": "d30a075ee94131af229f83e97fe855ec9ef9a9985ed726cf30dedda0b342aa69",
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c2_p4k.json",
+        "sha256": "24a1bf2ccdda1599d00694af3003e58fa50968cede7c8c6ec562782b7627d591"
+      },
+      "body_forward_span_ms": {
+        "count": 55,
+        "mean": 33.54763016363636,
+        "p50": 33.515767,
+        "p90": 33.532651,
+        "min": 33.479871,
+        "max": 35.311278
+      },
+      "body_activity_ms": {
+        "count": 55,
+        "mean": 32.85694663636364,
+        "p50": 32.829131,
+        "p90": 32.845414,
+        "min": 32.771764,
+        "max": 34.628525
+      },
+      "body_internal_gap_ms": {
+        "count": 55,
+        "mean": 0.6906835272727273,
+        "p50": 0.685806,
+        "p90": 0.709615,
+        "min": 0.682329,
+        "max": 0.735624
+      },
+      "geometry": {
+        "query_rows": 2,
+        "sequences_per_replica": 2,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 2,
+            "sequences_per_replica": 2,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 55,
+            "mean": 33.54763016363636,
+            "p50": 33.515767,
+            "p90": 33.532651,
+            "min": 33.479871,
+            "max": 35.311278
+          },
+          "body_activity_ms": {
+            "count": 55,
+            "mean": 32.85694663636364,
+            "p50": 32.829131,
+            "p90": 32.845414,
+            "min": 32.771764,
+            "max": 34.628525
+          },
+          "body_internal_gap_ms": {
+            "count": 55,
+            "mean": 0.6906835272727273,
+            "p50": 0.685806,
+            "p90": 0.709615,
+            "min": 0.682329,
+            "max": 0.735624
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 310035,
+        "positive_events": 310035,
+        "vocabulary_head_occurrences": 55,
+        "complete_body_segment_events": 310023,
+        "trailing_segment_events": 12
+      },
+      "anomaly_counts": {
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p90": null,
+        "min": null,
+        "max": null
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 11.657,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c32_p16k",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p16k_20261030/kernel_details.csv",
+        "size_bytes": 74642919,
+        "mtime_ns": 1793305149000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "e0165e2c51d162f7dcfafa75346acbc739f1e30fbea2bd741e7c5b40f5b7437d"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c32_p16k.json",
+      "report_sha256": "32603ec3c89290a1bf49cc73bba8c2f177f14e45c70d60d417703197674f7730",
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c32_p16k.json",
+        "sha256": "ac19ba8368d1e989d59dc164286611802e21fd0f325309bf9357a52d20db8022"
+      },
+      "body_forward_span_ms": {
+        "count": 41,
+        "mean": 44.66619290243902,
+        "p50": 44.645272,
+        "p90": 44.661803,
+        "min": 44.607823,
+        "max": 45.58843
+      },
+      "body_activity_ms": {
+        "count": 41,
+        "mean": 43.970836195121954,
+        "p50": 43.949904,
+        "p90": 43.967229,
+        "min": 43.912793,
+        "max": 44.892919
+      },
+      "body_internal_gap_ms": {
+        "count": 41,
+        "mean": 0.6953567073170732,
+        "p50": 0.695291,
+        "p90": 0.696624,
+        "min": 0.693094,
+        "max": 0.699281
+      },
+      "geometry": {
+        "query_rows": 32,
+        "sequences_per_replica": 32,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 32,
+            "sequences_per_replica": 32,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 41,
+            "mean": 44.66619290243902,
+            "p50": 44.645272,
+            "p90": 44.661803,
+            "min": 44.607823,
+            "max": 45.58843
+          },
+          "body_activity_ms": {
+            "count": 41,
+            "mean": 43.970836195121954,
+            "p50": 43.949904,
+            "p90": 43.967229,
+            "min": 43.912793,
+            "max": 44.892919
+          },
+          "body_internal_gap_ms": {
+            "count": 41,
+            "mean": 0.6953567073170732,
+            "p50": 0.695291,
+            "p90": 0.696624,
+            "min": 0.693094,
+            "max": 0.699281
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 223286,
+        "positive_events": 223286,
+        "vocabulary_head_occurrences": 41,
+        "complete_body_segment_events": 223274,
+        "trailing_segment_events": 12
+      },
+      "anomaly_counts": {
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p90": null,
+        "min": null,
+        "max": null
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 8.321,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c32_p4k",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+        "size_bytes": 83732721,
+        "mtime_ns": 1793304365000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "d734e9ec764b0f1baf35589d4886f6b9e2cd9254c660721f3ad6a86b0602c504"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c32_p4k.json",
+      "report_sha256": "bae71e3372414a9a3963716f67f62eb0f42f8f14dd584e50702ba4e92e64a7f4",
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c32_p4k.json",
+        "sha256": "92832ef3fdec0a19feeb94419a816947a5edc41c427673717224462eae7759f2"
+      },
+      "body_forward_span_ms": {
+        "count": 46,
+        "mean": 40.01872763043478,
+        "p50": 40.017751,
+        "p90": 40.043741,
+        "min": 39.986677,
+        "max": 40.057115
+      },
+      "body_activity_ms": {
+        "count": 46,
+        "mean": 39.32292602173913,
+        "p50": 39.322436499999995,
+        "p90": 39.346585,
+        "min": 39.290059,
+        "max": 39.362491
+      },
+      "body_internal_gap_ms": {
+        "count": 46,
+        "mean": 0.6958016086956522,
+        "p50": 0.6957070000000001,
+        "p90": 0.697369,
+        "min": 0.692584,
+        "max": 0.699091
+      },
+      "geometry": {
+        "query_rows": 32,
+        "sequences_per_replica": 32,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 32,
+            "sequences_per_replica": 32,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 46,
+            "mean": 40.01872763043478,
+            "p50": 40.017751,
+            "p90": 40.043741,
+            "min": 39.986677,
+            "max": 40.057115
+          },
+          "body_activity_ms": {
+            "count": 46,
+            "mean": 39.32292602173913,
+            "p50": 39.322436499999995,
+            "p90": 39.346585,
+            "min": 39.290059,
+            "max": 39.362491
+          },
+          "body_internal_gap_ms": {
+            "count": 46,
+            "mean": 0.6958016086956522,
+            "p50": 0.6957070000000001,
+            "p90": 0.697369,
+            "min": 0.692584,
+            "max": 0.699091
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 250516,
+        "positive_events": 250516,
+        "vocabulary_head_occurrences": 46,
+        "complete_body_segment_events": 250504,
+        "trailing_segment_events": 12
+      },
+      "anomaly_counts": {
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p90": null,
+        "min": null,
+        "max": null
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 9.364,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c4_p16k",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c4_p16k_20261030/kernel_details.csv",
+        "size_bytes": 97721387,
+        "mtime_ns": 1793304558000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "215453044c83a8d780b14de5ffd329404f8c9cdae2a5f6d56001889d85e17b49"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c4_p16k.json",
+      "report_sha256": "070feb2f3f5fc40f00c96c0af4a23234a1ceb9ff3256d13f36dbdca0d6922ef1",
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c4_p16k.json",
+        "sha256": "ee788a188b5e42187a0d3818a2cdd313554bc5c2c3bce99969b342895f0d8958"
+      },
+      "body_forward_span_ms": {
+        "count": 52,
+        "mean": 34.816498326923075,
+        "p50": 34.793753,
+        "p90": 34.812948,
+        "min": 34.776447,
+        "max": 35.845448
+      },
+      "body_activity_ms": {
+        "count": 52,
+        "mean": 34.11509425,
+        "p50": 34.091063,
+        "p90": 34.111433,
+        "min": 34.074051,
+        "max": 35.144953
+      },
+      "body_internal_gap_ms": {
+        "count": 52,
+        "mean": 0.7014040769230769,
+        "p50": 0.701613,
+        "p90": 0.70326,
+        "min": 0.697706,
+        "max": 0.704104
+      },
+      "geometry": {
+        "query_rows": 4,
+        "sequences_per_replica": 4,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 4,
+            "sequences_per_replica": 4,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 52,
+            "mean": 34.816498326923075,
+            "p50": 34.793753,
+            "p90": 34.812948,
+            "min": 34.776447,
+            "max": 35.845448
+          },
+          "body_activity_ms": {
+            "count": 52,
+            "mean": 34.11509425,
+            "p50": 34.091063,
+            "p90": 34.111433,
+            "min": 34.074051,
+            "max": 35.144953
+          },
+          "body_internal_gap_ms": {
+            "count": 52,
+            "mean": 0.7014040769230769,
+            "p50": 0.701613,
+            "p90": 0.70326,
+            "min": 0.697706,
+            "max": 0.704104
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 293124,
+        "positive_events": 293124,
+        "vocabulary_head_occurrences": 52,
+        "complete_body_segment_events": 293112,
+        "trailing_segment_events": 12
+      },
+      "anomaly_counts": {
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p90": null,
+        "min": null,
+        "max": null
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 11.1,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c4_p4k",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c4_p4k_20261030/kernel_details.csv",
+        "size_bytes": 99591450,
+        "mtime_ns": 1793304308000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "7e0bf0c288bb9df7aa08b19f698030892771a0d6a9990b0d9447c22f973c133e"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c4_p4k.json",
+      "report_sha256": "3e4ff65147e722c6bfc13ddbd57094f50a1a1694530a7db67d536f04abbefa88",
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c4_p4k.json",
+        "sha256": "089ffbcd4d6c6c71302dc7766c4a6d61da65e4ad03bcb78a42e632a12d1c7c4a"
+      },
+      "body_forward_span_ms": {
+        "count": 53,
+        "mean": 34.19370916981132,
+        "p50": 34.177425,
+        "p90": 34.19419,
+        "min": 34.154841,
+        "max": 35.028676
+      },
+      "body_activity_ms": {
+        "count": 53,
+        "mean": 33.49147737735849,
+        "p50": 33.474926,
+        "p90": 33.493238,
+        "min": 33.452191,
+        "max": 34.319495
+      },
+      "body_internal_gap_ms": {
+        "count": 53,
+        "mean": 0.7022317924528302,
+        "p50": 0.701909,
+        "p90": 0.704132,
+        "min": 0.698997,
+        "max": 0.709181
+      },
+      "geometry": {
+        "query_rows": 4,
+        "sequences_per_replica": 4,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 4,
+            "sequences_per_replica": 4,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 53,
+            "mean": 34.19370916981132,
+            "p50": 34.177425,
+            "p90": 34.19419,
+            "min": 34.154841,
+            "max": 35.028676
+          },
+          "body_activity_ms": {
+            "count": 53,
+            "mean": 33.49147737735849,
+            "p50": 33.474926,
+            "p90": 33.493238,
+            "min": 33.452191,
+            "max": 34.319495
+          },
+          "body_internal_gap_ms": {
+            "count": 53,
+            "mean": 0.7022317924528302,
+            "p50": 0.701909,
+            "p90": 0.704132,
+            "min": 0.698997,
+            "max": 0.709181
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 298761,
+        "positive_events": 298761,
+        "vocabulary_head_occurrences": 53,
+        "complete_body_segment_events": 298749,
+        "trailing_segment_events": 12
+      },
+      "anomaly_counts": {
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p90": null,
+        "min": null,
+        "max": null
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 11.145,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c8_p16k",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c8_p16k_20261030/kernel_details.csv",
+        "size_bytes": 92257150,
+        "mtime_ns": 1793305126000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "705cd2cd4965560f3a1149bcb62d2a053cded55e0aff15aabb374d318011f749"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c8_p16k.json",
+      "report_sha256": "211680948d42765e113f1e083810f878e672c7dfcb109bfff245a3940b63d899",
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c8_p16k.json",
+        "sha256": "03290ccc759b051d3931a911ec58c74ef00d807da7da25b2214afac1e7abf163"
+      },
+      "body_forward_span_ms": {
+        "count": 51,
+        "mean": 35.964417431372546,
+        "p50": 35.962094,
+        "p90": 35.978788,
+        "min": 35.933269,
+        "max": 36.117961
+      },
+      "body_activity_ms": {
+        "count": 51,
+        "mean": 35.28159441176471,
+        "p50": 35.280294,
+        "p90": 35.302061,
+        "min": 35.241342,
+        "max": 35.439989
+      },
+      "body_internal_gap_ms": {
+        "count": 51,
+        "mean": 0.6828230196078431,
+        "p50": 0.677025,
+        "p90": 0.721166,
+        "min": 0.673257,
+        "max": 0.72426
+      },
+      "geometry": {
+        "query_rows": 8,
+        "sequences_per_replica": 8,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 8,
+            "sequences_per_replica": 8,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 51,
+            "mean": 35.964417431372546,
+            "p50": 35.962094,
+            "p90": 35.978788,
+            "min": 35.933269,
+            "max": 36.117961
+          },
+          "body_activity_ms": {
+            "count": 51,
+            "mean": 35.28159441176471,
+            "p50": 35.280294,
+            "p90": 35.302061,
+            "min": 35.241342,
+            "max": 35.439989
+          },
+          "body_internal_gap_ms": {
+            "count": 51,
+            "mean": 0.6828230196078431,
+            "p50": 0.677025,
+            "p90": 0.721166,
+            "min": 0.673257,
+            "max": 0.72426
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 277644,
+        "positive_events": 277644,
+        "vocabulary_head_occurrences": 51,
+        "complete_body_segment_events": 277632,
+        "trailing_segment_events": 12
+      },
+      "anomaly_counts": {
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p90": null,
+        "min": null,
+        "max": null
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 10.386,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c8_p4k",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+        "size_bytes": 94064897,
+        "mtime_ns": 1793304321000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "00fb1678504ab7023ac1a258f05e78f9d793ef009147a985c1174527e3be8b3f"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c8_p4k.json",
+      "report_sha256": "8cf223045682a6c9676ea6bedb7e7d3d1c390af90869cbbce74252bc48f0a744",
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c8_p4k.json",
+        "sha256": "3ecf922b3c9aa1ad59359c58c6d06a2111ab04807b5d925941ab68c068a4a208"
+      },
+      "body_forward_span_ms": {
+        "count": 52,
+        "mean": 34.81921332692308,
+        "p50": 34.79111,
+        "p90": 34.808453,
+        "min": 34.764297,
+        "max": 36.278757
+      },
+      "body_activity_ms": {
+        "count": 52,
+        "mean": 34.14221507692308,
+        "p50": 34.1149235,
+        "p90": 34.130432,
+        "min": 34.087633,
+        "max": 35.600794
+      },
+      "body_internal_gap_ms": {
+        "count": 52,
+        "mean": 0.67699825,
+        "p50": 0.6769385,
+        "p90": 0.67879,
+        "min": 0.674288,
+        "max": 0.680216
+      },
+      "geometry": {
+        "query_rows": 8,
+        "sequences_per_replica": 8,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 8,
+            "sequences_per_replica": 8,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 52,
+            "mean": 34.81921332692308,
+            "p50": 34.79111,
+            "p90": 34.808453,
+            "min": 34.764297,
+            "max": 36.278757
+          },
+          "body_activity_ms": {
+            "count": 52,
+            "mean": 34.14221507692308,
+            "p50": 34.1149235,
+            "p90": 34.130432,
+            "min": 34.087633,
+            "max": 35.600794
+          },
+          "body_internal_gap_ms": {
+            "count": 52,
+            "mean": 0.67699825,
+            "p50": 0.6769385,
+            "p90": 0.67879,
+            "min": 0.674288,
+            "max": 0.680216
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 283088,
+        "positive_events": 283088,
+        "vocabulary_head_occurrences": 52,
+        "complete_body_segment_events": 283076,
+        "trailing_segment_events": 12
+      },
+      "anomaly_counts": {
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p90": null,
+        "min": null,
+        "max": null
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 10.801,
+      "reused_extraction": null
+    }
+  ],
+  "case_count": 17,
+  "total_complete_forwards": 1799,
+  "source_positive_events": 3775038,
+  "elapsed_seconds": 141.57,
+  "maximum_resident_set_size_raw": 86048768,
+  "runtime_sources_unchanged": true,
+  "source_scans_in_this_execution": 17,
+  "reused_source_extractions": 0,
+  "reused_extraction_elapsed_seconds": 0
+}

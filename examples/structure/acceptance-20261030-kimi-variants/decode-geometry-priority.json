@@ -1,0 +1,5463 @@
+{
+  "schema_version": "mindie-decode-geometry-priority/1",
+  "manifest": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/decode-forward-auto-cases.json",
+    "sha256": "5b020b01f810453fade6054f284133b77b98c06d51dc9324440f37353300e223"
+  },
+  "extraction_receipt": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/decode-forward-auto-acceptance.json",
+    "sha256": "22bf15c1570ff3bc1738183f38e76137d33d63a7a6785739c0154af4430aac78"
+  },
+  "case_count": 17,
+  "geometry_group_count": 31,
+  "total_forward_count": 1799,
+  "primary_geometry_forward_count": 1769,
+  "ranking_basis": "largest observed complete-forward population within each source; all secondary buckets remain retained",
+  "rows": [
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c1",
+      "geometry_index": 0,
+      "geometry": {
+        "query_rows": 1,
+        "sequences_per_replica": 1,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 1,
+      "primary_population": true,
+      "forward_count": 254,
+      "case_forward_count": 254,
+      "case_population_fraction": 1.0,
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c1_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 3766618,
+        "mtime_ns": 1793303770000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "1b0e4fcb7c3d80fefa5a1484937508502b0da346ea5657ed48e6bc0b893587c3"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c1.json",
+        "sha256": "ab9cf65040454bf42bf918eaf4ddd45f8b04490c37c668349341cecfe018a9a0"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c1.json",
+        "sha256": "1e330f71aa60d6447992093395639e34ece2b6cd104abdd5672bebb22b1bb7bd"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 1,
+        "input_len": 4096,
+        "observed_prompt_tokens": [
+          4096
+        ],
+        "output_len": 128
+      },
+      "body_forward_span_ms": {
+        "count": 254,
+        "mean": 3.180249913385827,
+        "p50": 3.127828,
+        "p90": 3.431912,
+        "min": 2.848903,
+        "max": 4.822624
+      },
+      "body_activity_ms": {
+        "count": 254,
+        "mean": 3.088475720472441,
+        "p50": 3.0407805000000003,
+        "p90": 3.349055,
+        "min": 2.762944,
+        "max": 4.727427
+      },
+      "body_internal_gap_ms": {
+        "count": 254,
+        "mean": 0.09177419291338583,
+        "p50": 0.0896495,
+        "p90": 0.103555,
+        "min": 0.059438,
+        "max": 0.219336
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 254,
+          "mean": 0.9219175590551181,
+          "p50": 0.9116015,
+          "p90": 1.01182,
+          "min": 0.640347,
+          "max": 2.00392
+        },
+        "activity_ms_stats": {
+          "count": 254,
+          "mean": 0.9117751299212599,
+          "p50": 0.9024019999999999,
+          "p90": 1.003959,
+          "min": 0.632407,
+          "max": 2.0019
+        },
+        "internal_gap_ms_stats": {
+          "count": 254,
+          "mean": 0.010142429133858268,
+          "p50": 0.0105,
+          "p90": 0.01308,
+          "min": 0.00202,
+          "max": 0.015338
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2
+          ],
+          "declared_layer_count": 2,
+          "observed_layer_call_count": 508,
+          "observed_call_weighted_mean_ms": 0.7774346299212598,
+          "median_of_layer_call_p50_ms": 0.72543575,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.7608971909448818,
+          "internal_gap_call_weighted_mean_ms": 0.016537438976377956,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3
+          ],
+          "declared_layer_count": 1,
+          "observed_layer_call_count": 254,
+          "observed_call_weighted_mean_ms": 0.8359386338582677,
+          "median_of_layer_call_p50_ms": 0.7994145,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.7846982716535433,
+          "internal_gap_call_weighted_mean_ms": 0.05124036220472441,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c16",
+      "geometry_index": 1,
+      "geometry": {
+        "query_rows": 16,
+        "sequences_per_replica": 16,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 1,
+      "primary_population": true,
+      "forward_count": 235,
+      "case_forward_count": 238,
+      "case_population_fraction": 0.9873949579831933,
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c16_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 4324200,
+        "mtime_ns": 1793303771000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "9fdc461cb0f4061ae156e87301b1b586dc68d2f12bbf925df52d0ebbb1c71991"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c16.json",
+        "sha256": "609cdc4a84b7a0d46a8c33eca3f575328186680b5401f0754fdc461472a4b2d9"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c16.json",
+        "sha256": "aa81d66799f4a95d6626f8d6a086d3e555512da541abf7a1e5701229d329fff3"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 16,
+        "input_len": 4096,
+        "observed_prompt_tokens": [
+          4096
+        ],
+        "output_len": 128
+      },
+      "body_forward_span_ms": {
+        "count": 235,
+        "mean": 4.807080004255319,
+        "p50": 4.779005,
+        "p90": 4.99208,
+        "min": 4.54517,
+        "max": 6.352814
+      },
+      "body_activity_ms": {
+        "count": 235,
+        "mean": 4.709461659574468,
+        "p50": 4.677289,
+        "p90": 4.890242,
+        "min": 4.44883,
+        "max": 6.266534
+      },
+      "body_internal_gap_ms": {
+        "count": 235,
+        "mean": 0.09761834468085107,
+        "p50": 0.097097,
+        "p90": 0.105719,
+        "min": 0.081179,
+        "max": 0.116236
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 235,
+          "mean": 0.9021242680851064,
+          "p50": 0.935902,
+          "p90": 1.03242,
+          "min": 0.628768,
+          "max": 2.295755
+        },
+        "activity_ms_stats": {
+          "count": 235,
+          "mean": 0.8946994638297873,
+          "p50": 0.928182,
+          "p90": 1.02386,
+          "min": 0.622888,
+          "max": 2.292735
+        },
+        "internal_gap_ms_stats": {
+          "count": 235,
+          "mean": 0.007424804255319149,
+          "p50": 0.0077,
+          "p90": 0.00942,
+          "min": 0.00206,
+          "max": 0.0119
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2
+          ],
+          "declared_layer_count": 2,
+          "observed_layer_call_count": 470,
+          "observed_call_weighted_mean_ms": 1.2772982829787234,
+          "median_of_layer_call_p50_ms": 1.2656645,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 1.2580943276595744,
+          "internal_gap_call_weighted_mean_ms": 0.019203955319148938,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3
+          ],
+          "declared_layer_count": 1,
+          "observed_layer_call_count": 235,
+          "observed_call_weighted_mean_ms": 1.4534880127659575,
+          "median_of_layer_call_p50_ms": 1.452451,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 1.3996916085106383,
+          "internal_gap_call_weighted_mean_ms": 0.05379640425531915,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c16",
+      "geometry_index": 0,
+      "geometry": {
+        "query_rows": 1,
+        "sequences_per_replica": 1,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 2,
+      "primary_population": false,
+      "forward_count": 3,
+      "case_forward_count": 238,
+      "case_population_fraction": 0.012605042016806723,
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c16_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 4324200,
+        "mtime_ns": 1793303771000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "9fdc461cb0f4061ae156e87301b1b586dc68d2f12bbf925df52d0ebbb1c71991"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c16.json",
+        "sha256": "609cdc4a84b7a0d46a8c33eca3f575328186680b5401f0754fdc461472a4b2d9"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c16.json",
+        "sha256": "aa81d66799f4a95d6626f8d6a086d3e555512da541abf7a1e5701229d329fff3"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 16,
+        "input_len": 4096,
+        "observed_prompt_tokens": [
+          4096
+        ],
+        "output_len": 128
+      },
+      "body_forward_span_ms": {
+        "count": 3,
+        "mean": 3.8447766666666667,
+        "p50": 3.280615,
+        "p90": 5.439251,
+        "min": 2.814464,
+        "max": 5.439251
+      },
+      "body_activity_ms": {
+        "count": 3,
+        "mean": 3.7422113333333336,
+        "p50": 3.195517,
+        "p90": 5.295572,
+        "min": 2.735545,
+        "max": 5.295572
+      },
+      "body_internal_gap_ms": {
+        "count": 3,
+        "mean": 0.10256533333333333,
+        "p50": 0.085098,
+        "p90": 0.143679,
+        "min": 0.078919,
+        "max": 0.143679
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 3,
+          "mean": 1.5857416666666666,
+          "p50": 0.954261,
+          "p90": 3.195436,
+          "min": 0.607528,
+          "max": 3.195436
+        },
+        "activity_ms_stats": {
+          "count": 3,
+          "mean": 1.5739953333333332,
+          "p50": 0.942382,
+          "p90": 3.175956,
+          "min": 0.603648,
+          "max": 3.175956
+        },
+        "internal_gap_ms_stats": {
+          "count": 3,
+          "mean": 0.011746333333333334,
+          "p50": 0.011879,
+          "p90": 0.01948,
+          "min": 0.00388,
+          "max": 0.01948
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2
+          ],
+          "declared_layer_count": 2,
+          "observed_layer_call_count": 6,
+          "observed_call_weighted_mean_ms": 0.7418348333333333,
+          "median_of_layer_call_p50_ms": 0.7255655000000001,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.7204816666666666,
+          "internal_gap_call_weighted_mean_ms": 0.021353166666666663,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3
+          ],
+          "declared_layer_count": 1,
+          "observed_layer_call_count": 3,
+          "observed_call_weighted_mean_ms": 0.8746026666666668,
+          "median_of_layer_call_p50_ms": 0.800864,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.82445,
+          "internal_gap_call_weighted_mean_ms": 0.05015266666666666,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c32",
+      "geometry_index": 1,
+      "geometry": {
+        "query_rows": 32,
+        "sequences_per_replica": 32,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 1,
+      "primary_population": true,
+      "forward_count": 220,
+      "case_forward_count": 229,
+      "case_population_fraction": 0.9606986899563319,
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c32_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 4803119,
+        "mtime_ns": 1793303771000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "c7deb048fabcf5650aeb014c411b0eda709758e8dd4227119f7de5316a1c294e"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c32.json",
+        "sha256": "2170a9f270b4efca5773cb41b27b9d849ffc75bc054bdd1f6808afd4fcc6be74"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c32.json",
+        "sha256": "f62e551f6e52b7f8376bb30fa774fd762b89748dca40c4e6a9b36dcd0048f4c3"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 32,
+        "input_len": 4096,
+        "observed_prompt_tokens": [
+          4096
+        ],
+        "output_len": 128
+      },
+      "body_forward_span_ms": {
+        "count": 220,
+        "mean": 6.7137816818181815,
+        "p50": 6.6647870000000005,
+        "p90": 6.922921,
+        "min": 6.497851,
+        "max": 8.187096
+      },
+      "body_activity_ms": {
+        "count": 220,
+        "mean": 6.609395490909091,
+        "p50": 6.5604195,
+        "p90": 6.810582,
+        "min": 6.396452,
+        "max": 8.072537
+      },
+      "body_internal_gap_ms": {
+        "count": 220,
+        "mean": 0.1043861909090909,
+        "p50": 0.104017,
+        "p90": 0.114357,
+        "min": 0.0835,
+        "max": 0.124
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 220,
+          "mean": 0.8846650409090909,
+          "p50": 0.9180714999999999,
+          "p90": 1.03558,
+          "min": 0.665147,
+          "max": 2.443731
+        },
+        "activity_ms_stats": {
+          "count": 220,
+          "mean": 0.8778444590909091,
+          "p50": 0.9099215,
+          "p90": 1.02782,
+          "min": 0.658687,
+          "max": 2.433751
+        },
+        "internal_gap_ms_stats": {
+          "count": 220,
+          "mean": 0.006820581818181818,
+          "p50": 0.00678,
+          "p90": 0.0095,
+          "min": 0.00146,
+          "max": 0.01406
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2
+          ],
+          "declared_layer_count": 2,
+          "observed_layer_call_count": 440,
+          "observed_call_weighted_mean_ms": 1.8592314772727274,
+          "median_of_layer_call_p50_ms": 1.84078825,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 1.8369914431818182,
+          "internal_gap_call_weighted_mean_ms": 0.02224003409090909,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3
+          ],
+          "declared_layer_count": 1,
+          "observed_layer_call_count": 220,
+          "observed_call_weighted_mean_ms": 2.1726153681818183,
+          "median_of_layer_call_p50_ms": 2.172336,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 2.1187421045454546,
+          "internal_gap_call_weighted_mean_ms": 0.05387326363636363,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c32",
+      "geometry_index": 0,
+      "geometry": {
+        "query_rows": 1,
+        "sequences_per_replica": 1,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 2,
+      "primary_population": false,
+      "forward_count": 3,
+      "case_forward_count": 229,
+      "case_population_fraction": 0.013100436681222707,
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c32_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 4803119,
+        "mtime_ns": 1793303771000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "c7deb048fabcf5650aeb014c411b0eda709758e8dd4227119f7de5316a1c294e"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c32.json",
+        "sha256": "2170a9f270b4efca5773cb41b27b9d849ffc75bc054bdd1f6808afd4fcc6be74"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c32.json",
+        "sha256": "f62e551f6e52b7f8376bb30fa774fd762b89748dca40c4e6a9b36dcd0048f4c3"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 32,
+        "input_len": 4096,
+        "observed_prompt_tokens": [
+          4096
+        ],
+        "output_len": 128
+      },
+      "body_forward_span_ms": {
+        "count": 3,
+        "mean": 3.2403016666666664,
+        "p50": 3.278234,
+        "p90": 3.410932,
+        "min": 3.031739,
+        "max": 3.410932
+      },
+      "body_activity_ms": {
+        "count": 3,
+        "mean": 3.159277,
+        "p50": 3.201057,
+        "p90": 3.318912,
+        "min": 2.957862,
+        "max": 3.318912
+      },
+      "body_internal_gap_ms": {
+        "count": 3,
+        "mean": 0.08102466666666666,
+        "p50": 0.077177,
+        "p90": 0.09202,
+        "min": 0.073877,
+        "max": 0.09202
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 3,
+          "mean": 0.8857953333333333,
+          "p50": 0.913381,
+          "p90": 0.945101,
+          "min": 0.798904,
+          "max": 0.945101
+        },
+        "activity_ms_stats": {
+          "count": 3,
+          "mean": 0.876949,
+          "p50": 0.906562,
+          "p90": 0.935201,
+          "min": 0.789084,
+          "max": 0.935201
+        },
+        "internal_gap_ms_stats": {
+          "count": 3,
+          "mean": 0.008846333333333335,
+          "p50": 0.00982,
+          "p90": 0.0099,
+          "min": 0.006819,
+          "max": 0.0099
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2
+          ],
+          "declared_layer_count": 2,
+          "observed_layer_call_count": 6,
+          "observed_call_weighted_mean_ms": 0.7772743333333333,
+          "median_of_layer_call_p50_ms": 0.7198555,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.7629413333333334,
+          "internal_gap_call_weighted_mean_ms": 0.014332999999999999,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3
+          ],
+          "declared_layer_count": 1,
+          "observed_layer_call_count": 3,
+          "observed_call_weighted_mean_ms": 0.864783,
+          "median_of_layer_call_p50_ms": 0.795665,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.8211106666666667,
+          "internal_gap_call_weighted_mean_ms": 0.043672333333333334,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c32",
+      "geometry_index": 3,
+      "geometry": {
+        "query_rows": 4,
+        "sequences_per_replica": 4,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 3,
+      "primary_population": false,
+      "forward_count": 3,
+      "case_forward_count": 229,
+      "case_population_fraction": 0.013100436681222707,
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c32_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 4803119,
+        "mtime_ns": 1793303771000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "c7deb048fabcf5650aeb014c411b0eda709758e8dd4227119f7de5316a1c294e"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c32.json",
+        "sha256": "2170a9f270b4efca5773cb41b27b9d849ffc75bc054bdd1f6808afd4fcc6be74"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c32.json",
+        "sha256": "f62e551f6e52b7f8376bb30fa774fd762b89748dca40c4e6a9b36dcd0048f4c3"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 32,
+        "input_len": 4096,
+        "observed_prompt_tokens": [
+          4096
+        ],
+        "output_len": 128
+      },
+      "body_forward_span_ms": {
+        "count": 3,
+        "mean": 3.3638529999999998,
+        "p50": 3.379593,
+        "p90": 3.466951,
+        "min": 3.245015,
+        "max": 3.466951
+      },
+      "body_activity_ms": {
+        "count": 3,
+        "mean": 3.2826543333333333,
+        "p50": 3.298195,
+        "p90": 3.364292,
+        "min": 3.185476,
+        "max": 3.364292
+      },
+      "body_internal_gap_ms": {
+        "count": 3,
+        "mean": 0.08119866666666667,
+        "p50": 0.081398,
+        "p90": 0.102659,
+        "min": 0.059539,
+        "max": 0.102659
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 3,
+          "mean": 0.761212,
+          "p50": 0.740706,
+          "p90": 0.923002,
+          "min": 0.619928,
+          "max": 0.923002
+        },
+        "activity_ms_stats": {
+          "count": 3,
+          "mean": 0.7525986666666666,
+          "p50": 0.730206,
+          "p90": 0.912082,
+          "min": 0.615508,
+          "max": 0.912082
+        },
+        "internal_gap_ms_stats": {
+          "count": 3,
+          "mean": 0.008613333333333334,
+          "p50": 0.0105,
+          "p90": 0.01092,
+          "min": 0.00442,
+          "max": 0.01092
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2
+          ],
+          "declared_layer_count": 2,
+          "observed_layer_call_count": 6,
+          "observed_call_weighted_mean_ms": 1.0128696666666668,
+          "median_of_layer_call_p50_ms": 1.078618,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.9959998333333333,
+          "internal_gap_call_weighted_mean_ms": 0.016869833333333334,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3
+          ],
+          "declared_layer_count": 1,
+          "observed_layer_call_count": 3,
+          "observed_call_weighted_mean_ms": 0.9686473333333333,
+          "median_of_layer_call_p50_ms": 0.96952,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.9131553333333334,
+          "internal_gap_call_weighted_mean_ms": 0.05549200000000001,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c32",
+      "geometry_index": 2,
+      "geometry": {
+        "query_rows": 8,
+        "sequences_per_replica": 8,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 4,
+      "primary_population": false,
+      "forward_count": 1,
+      "case_forward_count": 229,
+      "case_population_fraction": 0.004366812227074236,
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c32_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 4803119,
+        "mtime_ns": 1793303771000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "c7deb048fabcf5650aeb014c411b0eda709758e8dd4227119f7de5316a1c294e"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c32.json",
+        "sha256": "2170a9f270b4efca5773cb41b27b9d849ffc75bc054bdd1f6808afd4fcc6be74"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c32.json",
+        "sha256": "f62e551f6e52b7f8376bb30fa774fd762b89748dca40c4e6a9b36dcd0048f4c3"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 32,
+        "input_len": 4096,
+        "observed_prompt_tokens": [
+          4096
+        ],
+        "output_len": 128
+      },
+      "body_forward_span_ms": {
+        "count": 1,
+        "mean": 3.812064,
+        "p50": 3.812064,
+        "p90": 3.812064,
+        "min": 3.812064,
+        "max": 3.812064
+      },
+      "body_activity_ms": {
+        "count": 1,
+        "mean": 3.719127,
+        "p50": 3.719127,
+        "p90": 3.719127,
+        "min": 3.719127,
+        "max": 3.719127
+      },
+      "body_internal_gap_ms": {
+        "count": 1,
+        "mean": 0.092937,
+        "p50": 0.092937,
+        "p90": 0.092937,
+        "min": 0.092937,
+        "max": 0.092937
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 1,
+          "mean": 0.799364,
+          "p50": 0.799364,
+          "p90": 0.799364,
+          "min": 0.799364,
+          "max": 0.799364
+        },
+        "activity_ms_stats": {
+          "count": 1,
+          "mean": 0.788604,
+          "p50": 0.788604,
+          "p90": 0.788604,
+          "min": 0.788604,
+          "max": 0.788604
+        },
+        "internal_gap_ms_stats": {
+          "count": 1,
+          "mean": 0.01076,
+          "p50": 0.01076,
+          "p90": 0.01076,
+          "min": 0.01076,
+          "max": 0.01076
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2
+          ],
+          "declared_layer_count": 2,
+          "observed_layer_call_count": 2,
+          "observed_call_weighted_mean_ms": 0.961511,
+          "median_of_layer_call_p50_ms": 0.961511,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.9469215,
+          "internal_gap_call_weighted_mean_ms": 0.014589499999999998,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3
+          ],
+          "declared_layer_count": 1,
+          "observed_layer_call_count": 1,
+          "observed_call_weighted_mean_ms": 1.088738,
+          "median_of_layer_call_p50_ms": 1.088738,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 1.03668,
+          "internal_gap_call_weighted_mean_ms": 0.052058,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c32",
+      "geometry_index": 4,
+      "geometry": {
+        "query_rows": 2,
+        "sequences_per_replica": 2,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 5,
+      "primary_population": false,
+      "forward_count": 1,
+      "case_forward_count": 229,
+      "case_population_fraction": 0.004366812227074236,
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c32_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 4803119,
+        "mtime_ns": 1793303771000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "c7deb048fabcf5650aeb014c411b0eda709758e8dd4227119f7de5316a1c294e"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c32.json",
+        "sha256": "2170a9f270b4efca5773cb41b27b9d849ffc75bc054bdd1f6808afd4fcc6be74"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c32.json",
+        "sha256": "f62e551f6e52b7f8376bb30fa774fd762b89748dca40c4e6a9b36dcd0048f4c3"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 32,
+        "input_len": 4096,
+        "observed_prompt_tokens": [
+          4096
+        ],
+        "output_len": 128
+      },
+      "body_forward_span_ms": {
+        "count": 1,
+        "mean": 2.978001,
+        "p50": 2.978001,
+        "p90": 2.978001,
+        "min": 2.978001,
+        "max": 2.978001
+      },
+      "body_activity_ms": {
+        "count": 1,
+        "mean": 2.886602,
+        "p50": 2.886602,
+        "p90": 2.886602,
+        "min": 2.886602,
+        "max": 2.886602
+      },
+      "body_internal_gap_ms": {
+        "count": 1,
+        "mean": 0.091399,
+        "p50": 0.091399,
+        "p90": 0.091399,
+        "min": 0.091399,
+        "max": 0.091399
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 1,
+          "mean": 0.594828,
+          "p50": 0.594828,
+          "p90": 0.594828,
+          "min": 0.594828,
+          "max": 0.594828
+        },
+        "activity_ms_stats": {
+          "count": 1,
+          "mean": 0.588328,
+          "p50": 0.588328,
+          "p90": 0.588328,
+          "min": 0.588328,
+          "max": 0.588328
+        },
+        "internal_gap_ms_stats": {
+          "count": 1,
+          "mean": 0.0065,
+          "p50": 0.0065,
+          "p90": 0.0065,
+          "min": 0.0065,
+          "max": 0.0065
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2
+          ],
+          "declared_layer_count": 2,
+          "observed_layer_call_count": 2,
+          "observed_call_weighted_mean_ms": 0.877332,
+          "median_of_layer_call_p50_ms": 0.877332,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.8565625,
+          "internal_gap_call_weighted_mean_ms": 0.0207695,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3
+          ],
+          "declared_layer_count": 1,
+          "observed_layer_call_count": 1,
+          "observed_call_weighted_mean_ms": 0.889203,
+          "median_of_layer_call_p50_ms": 0.889203,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.834483,
+          "internal_gap_call_weighted_mean_ms": 0.05472,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c32",
+      "geometry_index": 5,
+      "geometry": {
+        "query_rows": 16,
+        "sequences_per_replica": 16,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 6,
+      "primary_population": false,
+      "forward_count": 1,
+      "case_forward_count": 229,
+      "case_population_fraction": 0.004366812227074236,
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c32_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 4803119,
+        "mtime_ns": 1793303771000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "c7deb048fabcf5650aeb014c411b0eda709758e8dd4227119f7de5316a1c294e"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c32.json",
+        "sha256": "2170a9f270b4efca5773cb41b27b9d849ffc75bc054bdd1f6808afd4fcc6be74"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c32.json",
+        "sha256": "f62e551f6e52b7f8376bb30fa774fd762b89748dca40c4e6a9b36dcd0048f4c3"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 32,
+        "input_len": 4096,
+        "observed_prompt_tokens": [
+          4096
+        ],
+        "output_len": 128
+      },
+      "body_forward_span_ms": {
+        "count": 1,
+        "mean": 4.690486,
+        "p50": 4.690486,
+        "p90": 4.690486,
+        "min": 4.690486,
+        "max": 4.690486
+      },
+      "body_activity_ms": {
+        "count": 1,
+        "mean": 4.604887,
+        "p50": 4.604887,
+        "p90": 4.604887,
+        "min": 4.604887,
+        "max": 4.604887
+      },
+      "body_internal_gap_ms": {
+        "count": 1,
+        "mean": 0.085599,
+        "p50": 0.085599,
+        "p90": 0.085599,
+        "min": 0.085599,
+        "max": 0.085599
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 1,
+          "mean": 0.743685,
+          "p50": 0.743685,
+          "p90": 0.743685,
+          "min": 0.743685,
+          "max": 0.743685
+        },
+        "activity_ms_stats": {
+          "count": 1,
+          "mean": 0.737565,
+          "p50": 0.737565,
+          "p90": 0.737565,
+          "min": 0.737565,
+          "max": 0.737565
+        },
+        "internal_gap_ms_stats": {
+          "count": 1,
+          "mean": 0.00612,
+          "p50": 0.00612,
+          "p90": 0.00612,
+          "min": 0.00612,
+          "max": 0.00612
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2
+          ],
+          "declared_layer_count": 2,
+          "observed_layer_call_count": 2,
+          "observed_call_weighted_mean_ms": 1.2484449999999998,
+          "median_of_layer_call_p50_ms": 1.2484449999999998,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 1.235825,
+          "internal_gap_call_weighted_mean_ms": 0.01262,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3
+          ],
+          "declared_layer_count": 1,
+          "observed_layer_call_count": 1,
+          "observed_call_weighted_mean_ms": 1.449251,
+          "median_of_layer_call_p50_ms": 1.449251,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 1.395672,
+          "internal_gap_call_weighted_mean_ms": 0.053579,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c4",
+      "geometry_index": 2,
+      "geometry": {
+        "query_rows": 4,
+        "sequences_per_replica": 4,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 1,
+      "primary_population": true,
+      "forward_count": 246,
+      "case_forward_count": 253,
+      "case_population_fraction": 0.9723320158102767,
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 4218000,
+        "mtime_ns": 1793303770000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "c51c0c5b4ec2b0eef777237b726fe20f82a94b866b21c0b3a2844d8aca56d857"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c4.json",
+        "sha256": "478283c1c963a000f5ce66a0cd38ba1c2312b1300c03de9ffa01d266b4096f2b"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c4.json",
+        "sha256": "757c4b069f21976c8b95603336576d059c2146c0a3ea09f12696ab96f3a1b1c9"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 4,
+        "input_len": 4096,
+        "observed_prompt_tokens": [
+          4096
+        ],
+        "output_len": 128
+      },
+      "body_forward_span_ms": {
+        "count": 246,
+        "mean": 3.4763527032520325,
+        "p50": 3.437971,
+        "p90": 3.655687,
+        "min": 3.196796,
+        "max": 4.537409
+      },
+      "body_activity_ms": {
+        "count": 246,
+        "mean": 3.37995062601626,
+        "p50": 3.3410325,
+        "p90": 3.556408,
+        "min": 3.110578,
+        "max": 4.344992
+      },
+      "body_internal_gap_ms": {
+        "count": 246,
+        "mean": 0.09640207723577236,
+        "p50": 0.0970875,
+        "p90": 0.105397,
+        "min": 0.064379,
+        "max": 0.192417
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 246,
+          "mean": 0.8688050609756097,
+          "p50": 0.892722,
+          "p90": 0.98662,
+          "min": 0.553809,
+          "max": 1.666567
+        },
+        "activity_ms_stats": {
+          "count": 246,
+          "mean": 0.8592661544715448,
+          "p50": 0.8829020000000001,
+          "p90": 0.97736,
+          "min": 0.54749,
+          "max": 1.655847
+        },
+        "internal_gap_ms_stats": {
+          "count": 246,
+          "mean": 0.009538906504065041,
+          "p50": 0.00978,
+          "p90": 0.0119,
+          "min": 0.0024,
+          "max": 0.0156
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2
+          ],
+          "declared_layer_count": 2,
+          "observed_layer_call_count": 492,
+          "observed_call_weighted_mean_ms": 0.8909638577235773,
+          "median_of_layer_call_p50_ms": 0.848128,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.8738019024390243,
+          "internal_gap_call_weighted_mean_ms": 0.017161955284552843,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3
+          ],
+          "declared_layer_count": 1,
+          "observed_layer_call_count": 246,
+          "observed_call_weighted_mean_ms": 0.9683155081300813,
+          "median_of_layer_call_p50_ms": 0.9616505,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.9124339471544716,
+          "internal_gap_call_weighted_mean_ms": 0.055881560975609756,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c4",
+      "geometry_index": 1,
+      "geometry": {
+        "query_rows": 2,
+        "sequences_per_replica": 2,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 2,
+      "primary_population": false,
+      "forward_count": 4,
+      "case_forward_count": 253,
+      "case_population_fraction": 0.015810276679841896,
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 4218000,
+        "mtime_ns": 1793303770000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "c51c0c5b4ec2b0eef777237b726fe20f82a94b866b21c0b3a2844d8aca56d857"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c4.json",
+        "sha256": "478283c1c963a000f5ce66a0cd38ba1c2312b1300c03de9ffa01d266b4096f2b"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c4.json",
+        "sha256": "757c4b069f21976c8b95603336576d059c2146c0a3ea09f12696ab96f3a1b1c9"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 4,
+        "input_len": 4096,
+        "observed_prompt_tokens": [
+          4096
+        ],
+        "output_len": 128
+      },
+      "body_forward_span_ms": {
+        "count": 4,
+        "mean": 3.37566275,
+        "p50": 3.3464735,
+        "p90": 3.556049,
+        "min": 3.253655,
+        "max": 3.556049
+      },
+      "body_activity_ms": {
+        "count": 4,
+        "mean": 3.2816685,
+        "p50": 3.254334,
+        "p90": 3.46175,
+        "min": 3.156256,
+        "max": 3.46175
+      },
+      "body_internal_gap_ms": {
+        "count": 4,
+        "mean": 0.09399425,
+        "p50": 0.09584899999999999,
+        "p90": 0.102219,
+        "min": 0.08206,
+        "max": 0.102219
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 4,
+          "mean": 0.8683777500000001,
+          "p50": 0.901022,
+          "p90": 0.969121,
+          "min": 0.702346,
+          "max": 0.969121
+        },
+        "activity_ms_stats": {
+          "count": 4,
+          "mean": 0.85811275,
+          "p50": 0.891982,
+          "p90": 0.956741,
+          "min": 0.691746,
+          "max": 0.956741
+        },
+        "internal_gap_ms_stats": {
+          "count": 4,
+          "mean": 0.010265,
+          "p50": 0.011470000000000001,
+          "p90": 0.01238,
+          "min": 0.00574,
+          "max": 0.01238
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2
+          ],
+          "declared_layer_count": 2,
+          "observed_layer_call_count": 8,
+          "observed_call_weighted_mean_ms": 0.8773299999999999,
+          "median_of_layer_call_p50_ms": 0.853693,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.861155,
+          "internal_gap_call_weighted_mean_ms": 0.016175000000000002,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3
+          ],
+          "declared_layer_count": 1,
+          "observed_layer_call_count": 4,
+          "observed_call_weighted_mean_ms": 0.901427,
+          "median_of_layer_call_p50_ms": 0.8872025,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.84741775,
+          "internal_gap_call_weighted_mean_ms": 0.05400925,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c4",
+      "geometry_index": 0,
+      "geometry": {
+        "query_rows": 1,
+        "sequences_per_replica": 1,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 3,
+      "primary_population": false,
+      "forward_count": 3,
+      "case_forward_count": 253,
+      "case_population_fraction": 0.011857707509881422,
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 4218000,
+        "mtime_ns": 1793303770000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "c51c0c5b4ec2b0eef777237b726fe20f82a94b866b21c0b3a2844d8aca56d857"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c4.json",
+        "sha256": "478283c1c963a000f5ce66a0cd38ba1c2312b1300c03de9ffa01d266b4096f2b"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c4.json",
+        "sha256": "757c4b069f21976c8b95603336576d059c2146c0a3ea09f12696ab96f3a1b1c9"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 4,
+        "input_len": 4096,
+        "observed_prompt_tokens": [
+          4096
+        ],
+        "output_len": 128
+      },
+      "body_forward_span_ms": {
+        "count": 3,
+        "mean": 3.190596333333333,
+        "p50": 3.244875,
+        "p90": 3.293894,
+        "min": 3.03302,
+        "max": 3.293894
+      },
+      "body_activity_ms": {
+        "count": 3,
+        "mean": 3.0937449999999997,
+        "p50": 3.154959,
+        "p90": 3.185215,
+        "min": 2.941061,
+        "max": 3.185215
+      },
+      "body_internal_gap_ms": {
+        "count": 3,
+        "mean": 0.09685133333333333,
+        "p50": 0.091959,
+        "p90": 0.108679,
+        "min": 0.089916,
+        "max": 0.108679
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 3,
+          "mean": 0.8544963333333333,
+          "p50": 0.810804,
+          "p90": 0.966301,
+          "min": 0.786384,
+          "max": 0.966301
+        },
+        "activity_ms_stats": {
+          "count": 3,
+          "mean": 0.8425896666666667,
+          "p50": 0.796364,
+          "p90": 0.956981,
+          "min": 0.774424,
+          "max": 0.956981
+        },
+        "internal_gap_ms_stats": {
+          "count": 3,
+          "mean": 0.011906666666666666,
+          "p50": 0.01196,
+          "p90": 0.01444,
+          "min": 0.00932,
+          "max": 0.01444
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2
+          ],
+          "declared_layer_count": 2,
+          "observed_layer_call_count": 6,
+          "observed_call_weighted_mean_ms": 0.8115941666666666,
+          "median_of_layer_call_p50_ms": 0.7975145,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.7937943333333334,
+          "internal_gap_call_weighted_mean_ms": 0.017799833333333334,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3
+          ],
+          "declared_layer_count": 1,
+          "observed_layer_call_count": 3,
+          "observed_call_weighted_mean_ms": 0.845176,
+          "median_of_layer_call_p50_ms": 0.870622,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.7925313333333334,
+          "internal_gap_call_weighted_mean_ms": 0.052644666666666666,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c64",
+      "geometry_index": 1,
+      "geometry": {
+        "query_rows": 64,
+        "sequences_per_replica": 64,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 1,
+      "primary_population": true,
+      "forward_count": 196,
+      "case_forward_count": 207,
+      "case_population_fraction": 0.9468599033816425,
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c64_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 5642669,
+        "mtime_ns": 1793303771000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "2137943b502a105b3c044dd1cd88635cf88fe19786e86fdf84d75c059d347fa2"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c64.json",
+        "sha256": "976a0a82eaf11bdea80c2f7e63678b12ba959ce94cc2a38c7198a771de4615f4"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c64.json",
+        "sha256": "3910afb1e7071059817fc77d706c6e478f5530b6144f72be9eae7640a0f81f1f"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 64,
+        "input_len": 4096,
+        "observed_prompt_tokens": [
+          4096
+        ],
+        "output_len": 128
+      },
+      "body_forward_span_ms": {
+        "count": 196,
+        "mean": 9.615403801020408,
+        "p50": 9.549548999999999,
+        "p90": 9.774245,
+        "min": 9.484191,
+        "max": 11.01722
+      },
+      "body_activity_ms": {
+        "count": 196,
+        "mean": 9.502317183673469,
+        "p50": 9.435582,
+        "p90": 9.660049,
+        "min": 9.380092,
+        "max": 10.901361
+      },
+      "body_internal_gap_ms": {
+        "count": 196,
+        "mean": 0.11308661734693877,
+        "p50": 0.1130375,
+        "p90": 0.119978,
+        "min": 0.100118,
+        "max": 0.134357
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 196,
+          "mean": 0.960436275510204,
+          "p50": 0.952631,
+          "p90": 1.021539,
+          "min": 0.785325,
+          "max": 2.296494
+        },
+        "activity_ms_stats": {
+          "count": 196,
+          "mean": 0.9544269081632653,
+          "p50": 0.9461115,
+          "p90": 1.015899,
+          "min": 0.779165,
+          "max": 2.292014
+        },
+        "internal_gap_ms_stats": {
+          "count": 196,
+          "mean": 0.006009367346938775,
+          "p50": 0.0059895,
+          "p90": 0.00762,
+          "min": 0.00294,
+          "max": 0.01352
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2
+          ],
+          "declared_layer_count": 2,
+          "observed_layer_call_count": 392,
+          "observed_call_weighted_mean_ms": 2.7713991530612248,
+          "median_of_layer_call_p50_ms": 2.756885,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 2.7440355076530616,
+          "internal_gap_call_weighted_mean_ms": 0.027363645408163263,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3
+          ],
+          "declared_layer_count": 1,
+          "observed_layer_call_count": 196,
+          "observed_call_weighted_mean_ms": 3.209221505102041,
+          "median_of_layer_call_p50_ms": 3.208946,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 3.1551929081632655,
+          "internal_gap_call_weighted_mean_ms": 0.05402859693877551,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c64",
+      "geometry_index": 0,
+      "geometry": {
+        "query_rows": 1,
+        "sequences_per_replica": 1,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 2,
+      "primary_population": false,
+      "forward_count": 3,
+      "case_forward_count": 207,
+      "case_population_fraction": 0.014492753623188406,
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c64_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 5642669,
+        "mtime_ns": 1793303771000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "2137943b502a105b3c044dd1cd88635cf88fe19786e86fdf84d75c059d347fa2"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c64.json",
+        "sha256": "976a0a82eaf11bdea80c2f7e63678b12ba959ce94cc2a38c7198a771de4615f4"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c64.json",
+        "sha256": "3910afb1e7071059817fc77d706c6e478f5530b6144f72be9eae7640a0f81f1f"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 64,
+        "input_len": 4096,
+        "observed_prompt_tokens": [
+          4096
+        ],
+        "output_len": 128
+      },
+      "body_forward_span_ms": {
+        "count": 3,
+        "mean": 3.1784963333333334,
+        "p50": 3.253895,
+        "p90": 3.50115,
+        "min": 2.780444,
+        "max": 3.50115
+      },
+      "body_activity_ms": {
+        "count": 3,
+        "mean": 3.096751333333333,
+        "p50": 3.175956,
+        "p90": 3.403491,
+        "min": 2.710807,
+        "max": 3.403491
+      },
+      "body_internal_gap_ms": {
+        "count": 3,
+        "mean": 0.081745,
+        "p50": 0.077939,
+        "p90": 0.097659,
+        "min": 0.069637,
+        "max": 0.097659
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 3,
+          "mean": 0.8516893333333333,
+          "p50": 0.937621,
+          "p90": 1.027839,
+          "min": 0.589608,
+          "max": 1.027839
+        },
+        "activity_ms_stats": {
+          "count": 3,
+          "mean": 0.8453563333333334,
+          "p50": 0.927021,
+          "p90": 1.024639,
+          "min": 0.584409,
+          "max": 1.024639
+        },
+        "internal_gap_ms_stats": {
+          "count": 3,
+          "mean": 0.006333,
+          "p50": 0.005199,
+          "p90": 0.0106,
+          "min": 0.0032,
+          "max": 0.0106
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2
+          ],
+          "declared_layer_count": 2,
+          "observed_layer_call_count": 6,
+          "observed_call_weighted_mean_ms": 0.7531951666666666,
+          "median_of_layer_call_p50_ms": 0.724396,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.7384856666666666,
+          "internal_gap_call_weighted_mean_ms": 0.0147095,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3
+          ],
+          "declared_layer_count": 1,
+          "observed_layer_call_count": 3,
+          "observed_call_weighted_mean_ms": 0.876449,
+          "median_of_layer_call_p50_ms": 0.800904,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.8294026666666667,
+          "internal_gap_call_weighted_mean_ms": 0.047046333333333336,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c64",
+      "geometry_index": 2,
+      "geometry": {
+        "query_rows": 48,
+        "sequences_per_replica": 48,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 3,
+      "primary_population": false,
+      "forward_count": 2,
+      "case_forward_count": 207,
+      "case_population_fraction": 0.00966183574879227,
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c64_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 5642669,
+        "mtime_ns": 1793303771000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "2137943b502a105b3c044dd1cd88635cf88fe19786e86fdf84d75c059d347fa2"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c64.json",
+        "sha256": "976a0a82eaf11bdea80c2f7e63678b12ba959ce94cc2a38c7198a771de4615f4"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c64.json",
+        "sha256": "3910afb1e7071059817fc77d706c6e478f5530b6144f72be9eae7640a0f81f1f"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 64,
+        "input_len": 4096,
+        "observed_prompt_tokens": [
+          4096
+        ],
+        "output_len": 128
+      },
+      "body_forward_span_ms": {
+        "count": 2,
+        "mean": 8.472921,
+        "p50": 8.472921,
+        "p90": 8.559829,
+        "min": 8.386013,
+        "max": 8.559829
+      },
+      "body_activity_ms": {
+        "count": 2,
+        "mean": 8.364464,
+        "p50": 8.364464,
+        "p90": 8.456732,
+        "min": 8.272196,
+        "max": 8.456732
+      },
+      "body_internal_gap_ms": {
+        "count": 2,
+        "mean": 0.108457,
+        "p50": 0.108457,
+        "p90": 0.113817,
+        "min": 0.103097,
+        "max": 0.113817
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 2,
+          "mean": 0.8500829999999999,
+          "p50": 0.8500829999999999,
+          "p90": 0.932921,
+          "min": 0.767245,
+          "max": 0.932921
+        },
+        "activity_ms_stats": {
+          "count": 2,
+          "mean": 0.843203,
+          "p50": 0.843203,
+          "p90": 0.926521,
+          "min": 0.759885,
+          "max": 0.926521
+        },
+        "internal_gap_ms_stats": {
+          "count": 2,
+          "mean": 0.006880000000000001,
+          "p50": 0.006880000000000001,
+          "p90": 0.00736,
+          "min": 0.0064,
+          "max": 0.00736
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2
+          ],
+          "declared_layer_count": 2,
+          "observed_layer_call_count": 4,
+          "observed_call_weighted_mean_ms": 2.405372,
+          "median_of_layer_call_p50_ms": 2.405372,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 2.3818279999999996,
+          "internal_gap_call_weighted_mean_ms": 0.023544,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3
+          ],
+          "declared_layer_count": 1,
+          "observed_layer_call_count": 2,
+          "observed_call_weighted_mean_ms": 2.811444,
+          "median_of_layer_call_p50_ms": 2.811444,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 2.757605,
+          "internal_gap_call_weighted_mean_ms": 0.053839,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c64",
+      "geometry_index": 3,
+      "geometry": {
+        "query_rows": 24,
+        "sequences_per_replica": 24,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 4,
+      "primary_population": false,
+      "forward_count": 2,
+      "case_forward_count": 207,
+      "case_population_fraction": 0.00966183574879227,
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c64_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 5642669,
+        "mtime_ns": 1793303771000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "2137943b502a105b3c044dd1cd88635cf88fe19786e86fdf84d75c059d347fa2"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c64.json",
+        "sha256": "976a0a82eaf11bdea80c2f7e63678b12ba959ce94cc2a38c7198a771de4615f4"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c64.json",
+        "sha256": "3910afb1e7071059817fc77d706c6e478f5530b6144f72be9eae7640a0f81f1f"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 64,
+        "input_len": 4096,
+        "observed_prompt_tokens": [
+          4096
+        ],
+        "output_len": 128
+      },
+      "body_forward_span_ms": {
+        "count": 2,
+        "mean": 5.631387500000001,
+        "p50": 5.631387500000001,
+        "p90": 5.719806,
+        "min": 5.542969,
+        "max": 5.719806
+      },
+      "body_activity_ms": {
+        "count": 2,
+        "mean": 5.5317405,
+        "p50": 5.5317405,
+        "p90": 5.613788,
+        "min": 5.449693,
+        "max": 5.613788
+      },
+      "body_internal_gap_ms": {
+        "count": 2,
+        "mean": 0.099647,
+        "p50": 0.099647,
+        "p90": 0.106018,
+        "min": 0.093276,
+        "max": 0.106018
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 2,
+          "mean": 0.7391555000000001,
+          "p50": 0.7391555000000001,
+          "p90": 0.786605,
+          "min": 0.691706,
+          "max": 0.786605
+        },
+        "activity_ms_stats": {
+          "count": 2,
+          "mean": 0.732156,
+          "p50": 0.732156,
+          "p90": 0.778625,
+          "min": 0.685687,
+          "max": 0.778625
+        },
+        "internal_gap_ms_stats": {
+          "count": 2,
+          "mean": 0.0069995,
+          "p50": 0.0069995,
+          "p90": 0.00798,
+          "min": 0.006019,
+          "max": 0.00798
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2
+          ],
+          "declared_layer_count": 2,
+          "observed_layer_call_count": 4,
+          "observed_call_weighted_mean_ms": 1.58802325,
+          "median_of_layer_call_p50_ms": 1.58802325,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 1.56721375,
+          "internal_gap_call_weighted_mean_ms": 0.0208095,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3
+          ],
+          "declared_layer_count": 1,
+          "observed_layer_call_count": 2,
+          "observed_call_weighted_mean_ms": 1.805574,
+          "median_of_layer_call_p50_ms": 1.805574,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 1.7524454999999999,
+          "internal_gap_call_weighted_mean_ms": 0.0531285,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c64",
+      "geometry_index": 4,
+      "geometry": {
+        "query_rows": 16,
+        "sequences_per_replica": 16,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 5,
+      "primary_population": false,
+      "forward_count": 2,
+      "case_forward_count": 207,
+      "case_population_fraction": 0.00966183574879227,
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c64_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 5642669,
+        "mtime_ns": 1793303771000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "2137943b502a105b3c044dd1cd88635cf88fe19786e86fdf84d75c059d347fa2"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c64.json",
+        "sha256": "976a0a82eaf11bdea80c2f7e63678b12ba959ce94cc2a38c7198a771de4615f4"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c64.json",
+        "sha256": "3910afb1e7071059817fc77d706c6e478f5530b6144f72be9eae7640a0f81f1f"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 64,
+        "input_len": 4096,
+        "observed_prompt_tokens": [
+          4096
+        ],
+        "output_len": 128
+      },
+      "body_forward_span_ms": {
+        "count": 2,
+        "mean": 4.7227155,
+        "p50": 4.7227155,
+        "p90": 4.738645,
+        "min": 4.706786,
+        "max": 4.738645
+      },
+      "body_activity_ms": {
+        "count": 2,
+        "mean": 4.622307,
+        "p50": 4.622307,
+        "p90": 4.638327,
+        "min": 4.606287,
+        "max": 4.638327
+      },
+      "body_internal_gap_ms": {
+        "count": 2,
+        "mean": 0.10040850000000001,
+        "p50": 0.10040850000000001,
+        "p90": 0.100499,
+        "min": 0.100318,
+        "max": 0.100499
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 2,
+          "mean": 0.7810045,
+          "p50": 0.7810045,
+          "p90": 0.784764,
+          "min": 0.777245,
+          "max": 0.784764
+        },
+        "activity_ms_stats": {
+          "count": 2,
+          "mean": 0.771705,
+          "p50": 0.771705,
+          "p90": 0.774565,
+          "min": 0.768845,
+          "max": 0.774565
+        },
+        "internal_gap_ms_stats": {
+          "count": 2,
+          "mean": 0.009299499999999999,
+          "p50": 0.009299499999999999,
+          "p90": 0.010199,
+          "min": 0.0084,
+          "max": 0.010199
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2
+          ],
+          "declared_layer_count": 2,
+          "observed_layer_call_count": 4,
+          "observed_call_weighted_mean_ms": 1.24065,
+          "median_of_layer_call_p50_ms": 1.24065,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 1.22251,
+          "internal_gap_call_weighted_mean_ms": 0.018139999999999996,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3
+          ],
+          "declared_layer_count": 1,
+          "observed_layer_call_count": 2,
+          "observed_call_weighted_mean_ms": 1.459611,
+          "median_of_layer_call_p50_ms": 1.459611,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 1.4055819999999999,
+          "internal_gap_call_weighted_mean_ms": 0.054029,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c64",
+      "geometry_index": 5,
+      "geometry": {
+        "query_rows": 2,
+        "sequences_per_replica": 2,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 6,
+      "primary_population": false,
+      "forward_count": 1,
+      "case_forward_count": 207,
+      "case_population_fraction": 0.004830917874396135,
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c64_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 5642669,
+        "mtime_ns": 1793303771000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "2137943b502a105b3c044dd1cd88635cf88fe19786e86fdf84d75c059d347fa2"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c64.json",
+        "sha256": "976a0a82eaf11bdea80c2f7e63678b12ba959ce94cc2a38c7198a771de4615f4"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c64.json",
+        "sha256": "3910afb1e7071059817fc77d706c6e478f5530b6144f72be9eae7640a0f81f1f"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 64,
+        "input_len": 4096,
+        "observed_prompt_tokens": [
+          4096
+        ],
+        "output_len": 128
+      },
+      "body_forward_span_ms": {
+        "count": 1,
+        "mean": 3.160037,
+        "p50": 3.160037,
+        "p90": 3.160037,
+        "min": 3.160037,
+        "max": 3.160037
+      },
+      "body_activity_ms": {
+        "count": 1,
+        "mean": 3.06954,
+        "p50": 3.06954,
+        "p90": 3.06954,
+        "min": 3.06954,
+        "max": 3.06954
+      },
+      "body_internal_gap_ms": {
+        "count": 1,
+        "mean": 0.090497,
+        "p50": 0.090497,
+        "p90": 0.090497,
+        "min": 0.090497,
+        "max": 0.090497
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 1,
+          "mean": 0.908722,
+          "p50": 0.908722,
+          "p90": 0.908722,
+          "min": 0.908722,
+          "max": 0.908722
+        },
+        "activity_ms_stats": {
+          "count": 1,
+          "mean": 0.898042,
+          "p50": 0.898042,
+          "p90": 0.898042,
+          "min": 0.898042,
+          "max": 0.898042
+        },
+        "internal_gap_ms_stats": {
+          "count": 1,
+          "mean": 0.01068,
+          "p50": 0.01068,
+          "p90": 0.01068,
+          "min": 0.01068,
+          "max": 0.01068
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2
+          ],
+          "declared_layer_count": 2,
+          "observed_layer_call_count": 2,
+          "observed_call_weighted_mean_ms": 0.757565,
+          "median_of_layer_call_p50_ms": 0.757565,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.7413055,
+          "internal_gap_call_weighted_mean_ms": 0.0162595,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3
+          ],
+          "declared_layer_count": 1,
+          "observed_layer_call_count": 1,
+          "observed_call_weighted_mean_ms": 0.885102,
+          "median_of_layer_call_p50_ms": 0.885102,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.835724,
+          "internal_gap_call_weighted_mean_ms": 0.049378,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c64",
+      "geometry_index": 6,
+      "geometry": {
+        "query_rows": 4,
+        "sequences_per_replica": 4,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 7,
+      "primary_population": false,
+      "forward_count": 1,
+      "case_forward_count": 207,
+      "case_population_fraction": 0.004830917874396135,
+      "model_declaration": {
+        "name": "kimi-k3-4layer-w4a8-conditional",
+        "layers": 4,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c64_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 5642669,
+        "mtime_ns": 1793303771000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "2137943b502a105b3c044dd1cd88635cf88fe19786e86fdf84d75c059d347fa2"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c64.json",
+        "sha256": "976a0a82eaf11bdea80c2f7e63678b12ba959ce94cc2a38c7198a771de4615f4"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c64.json",
+        "sha256": "3910afb1e7071059817fc77d706c6e478f5530b6144f72be9eae7640a0f81f1f"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 64,
+        "input_len": 4096,
+        "observed_prompt_tokens": [
+          4096
+        ],
+        "output_len": 128
+      },
+      "body_forward_span_ms": {
+        "count": 1,
+        "mean": 3.536929,
+        "p50": 3.536929,
+        "p90": 3.536929,
+        "min": 3.536929,
+        "max": 3.536929
+      },
+      "body_activity_ms": {
+        "count": 1,
+        "mean": 3.45605,
+        "p50": 3.45605,
+        "p90": 3.45605,
+        "min": 3.45605,
+        "max": 3.45605
+      },
+      "body_internal_gap_ms": {
+        "count": 1,
+        "mean": 0.080879,
+        "p50": 0.080879,
+        "p90": 0.080879,
+        "min": 0.080879,
+        "max": 0.080879
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 1,
+          "mean": 0.635147,
+          "p50": 0.635147,
+          "p90": 0.635147,
+          "min": 0.635147,
+          "max": 0.635147
+        },
+        "activity_ms_stats": {
+          "count": 1,
+          "mean": 0.629347,
+          "p50": 0.629347,
+          "p90": 0.629347,
+          "min": 0.629347,
+          "max": 0.629347
+        },
+        "internal_gap_ms_stats": {
+          "count": 1,
+          "mean": 0.0058,
+          "p50": 0.0058,
+          "p90": 0.0058,
+          "min": 0.0058,
+          "max": 0.0058
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2
+          ],
+          "declared_layer_count": 2,
+          "observed_layer_call_count": 2,
+          "observed_call_weighted_mean_ms": 1.139557,
+          "median_of_layer_call_p50_ms": 1.139557,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 1.1239975000000002,
+          "internal_gap_call_weighted_mean_ms": 0.0155595,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3
+          ],
+          "declared_layer_count": 1,
+          "observed_layer_call_count": 1,
+          "observed_call_weighted_mean_ms": 0.961001,
+          "median_of_layer_call_p50_ms": 0.961001,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.912062,
+          "internal_gap_call_weighted_mean_ms": 0.048939,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c16_p16k",
+      "geometry_index": 0,
+      "geometry": {
+        "query_rows": 16,
+        "sequences_per_replica": 16,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 1,
+      "primary_population": true,
+      "forward_count": 47,
+      "case_forward_count": 47,
+      "case_population_fraction": 1.0,
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c16_p16k_20261030/kernel_details.csv",
+        "size_bytes": 85273567,
+        "mtime_ns": 1793305138000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "0bb137f44691457fb0d8a3fbe186d7dffa95945ae273de8ee71f6f384694f851"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c16_p16k.json",
+        "sha256": "f4866ce7a2bc4224a7d69fb1ca51a8b6509743d9e82323acb1eb885501868316"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c16_p16k.json",
+        "sha256": "fb7222f634c5fa335dae7916e93a80ee0d3ff8ebb273fd2627f9c0fe09716da9"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 16,
+        "input_len": 16392,
+        "observed_prompt_tokens": [
+          16392
+        ],
+        "output_len": 256
+      },
+      "body_forward_span_ms": {
+        "count": 47,
+        "mean": 39.24738604255319,
+        "p50": 39.244948,
+        "p90": 39.26292,
+        "min": 39.210652,
+        "max": 39.369144
+      },
+      "body_activity_ms": {
+        "count": 47,
+        "mean": 38.56657704255319,
+        "p50": 38.564006,
+        "p90": 38.5836,
+        "min": 38.529185,
+        "max": 38.687521
+      },
+      "body_internal_gap_ms": {
+        "count": 47,
+        "mean": 0.680809,
+        "p50": 0.680912,
+        "p90": 0.682966,
+        "min": 0.676663,
+        "max": 0.683697
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 47,
+          "mean": 0.30470674468085107,
+          "p50": 0.30228,
+          "p90": 0.304417,
+          "min": 0.299152,
+          "max": 0.414436
+        },
+        "activity_ms_stats": {
+          "count": 47,
+          "mean": 0.29748370212765957,
+          "p50": 0.295178,
+          "p90": 0.297062,
+          "min": 0.292145,
+          "max": 0.407298
+        },
+        "internal_gap_ms_stats": {
+          "count": 47,
+          "mean": 0.007223042553191489,
+          "p50": 0.007183,
+          "p90": 0.00746,
+          "min": 0.00699,
+          "max": 0.00776
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2,
+            4,
+            5,
+            6,
+            8,
+            9,
+            10,
+            12,
+            13,
+            14,
+            16,
+            17,
+            18,
+            20,
+            21,
+            22,
+            24,
+            25,
+            26,
+            28,
+            29,
+            30,
+            32,
+            33,
+            34,
+            36,
+            37,
+            38,
+            40,
+            41,
+            42,
+            44,
+            45,
+            46,
+            48,
+            49,
+            50,
+            52,
+            53,
+            54,
+            56,
+            57,
+            58,
+            60,
+            61,
+            62,
+            64,
+            65,
+            66,
+            68,
+            69,
+            70,
+            72,
+            73,
+            74,
+            76,
+            77,
+            78,
+            80,
+            81,
+            82,
+            84,
+            85,
+            86,
+            88,
+            89,
+            90
+          ],
+          "declared_layer_count": 68,
+          "observed_layer_call_count": 3196,
+          "observed_call_weighted_mean_ms": 0.38582121245306633,
+          "median_of_layer_call_p50_ms": 0.3855965,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.3802539856070088,
+          "internal_gap_call_weighted_mean_ms": 0.005567226846057573,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3,
+            7,
+            11,
+            15,
+            19,
+            23,
+            27,
+            31,
+            35,
+            39,
+            43,
+            47,
+            51,
+            55,
+            59,
+            63,
+            67,
+            71,
+            75,
+            79,
+            83,
+            87,
+            91,
+            92
+          ],
+          "declared_layer_count": 24,
+          "observed_layer_call_count": 1128,
+          "observed_call_weighted_mean_ms": 0.5293362251773049,
+          "median_of_layer_call_p50_ms": 0.5223424999999999,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.5171592632978723,
+          "internal_gap_call_weighted_mean_ms": 0.012176961879432624,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c16_p4k",
+      "geometry_index": 0,
+      "geometry": {
+        "query_rows": 16,
+        "sequences_per_replica": 16,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 1,
+      "primary_population": true,
+      "forward_count": 49,
+      "case_forward_count": 49,
+      "case_population_fraction": 1.0,
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c16_p4k_20261030/kernel_details.csv",
+        "size_bytes": 88893922,
+        "mtime_ns": 1793304346000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "c74cb4160daf0d07420b3288c234e6f4a0c07d7ddcc9ffde5053aea131426664"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c16_p4k.json",
+        "sha256": "e390092edf19a7658285a03e63c8e0c6dac555c4db65a0cd4f223002c6f4a112"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c16_p4k.json",
+        "sha256": "643489d1591f3f42f00d4a8adff0d7a48ee863ebf49d9454524da4cb44c649e5"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 16,
+        "input_len": 4104,
+        "observed_prompt_tokens": [
+          4104
+        ],
+        "output_len": 256
+      },
+      "body_forward_span_ms": {
+        "count": 49,
+        "mean": 36.985292306122446,
+        "p50": 36.952793,
+        "p90": 36.968819,
+        "min": 36.921841,
+        "max": 38.586878
+      },
+      "body_activity_ms": {
+        "count": 49,
+        "mean": 36.30466506122449,
+        "p50": 36.27145,
+        "p90": 36.287786,
+        "min": 36.243254,
+        "max": 37.906193
+      },
+      "body_internal_gap_ms": {
+        "count": 49,
+        "mean": 0.6806272448979592,
+        "p50": 0.680918,
+        "p90": 0.682862,
+        "min": 0.676887,
+        "max": 0.683856
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 49,
+          "mean": 0.3353306530612245,
+          "p50": 0.302283,
+          "p90": 0.304588,
+          "min": 0.29899,
+          "max": 1.927314
+        },
+        "activity_ms_stats": {
+          "count": 49,
+          "mean": 0.3281180612244898,
+          "p50": 0.294945,
+          "p90": 0.297369,
+          "min": 0.291903,
+          "max": 1.920384
+        },
+        "internal_gap_ms_stats": {
+          "count": 49,
+          "mean": 0.007212591836734694,
+          "p50": 0.007183,
+          "p90": 0.007542,
+          "min": 0.00693,
+          "max": 0.007969
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2,
+            4,
+            5,
+            6,
+            8,
+            9,
+            10,
+            12,
+            13,
+            14,
+            16,
+            17,
+            18,
+            20,
+            21,
+            22,
+            24,
+            25,
+            26,
+            28,
+            29,
+            30,
+            32,
+            33,
+            34,
+            36,
+            37,
+            38,
+            40,
+            41,
+            42,
+            44,
+            45,
+            46,
+            48,
+            49,
+            50,
+            52,
+            53,
+            54,
+            56,
+            57,
+            58,
+            60,
+            61,
+            62,
+            64,
+            65,
+            66,
+            68,
+            69,
+            70,
+            72,
+            73,
+            74,
+            76,
+            77,
+            78,
+            80,
+            81,
+            82,
+            84,
+            85,
+            86,
+            88,
+            89,
+            90
+          ],
+          "declared_layer_count": 68,
+          "observed_layer_call_count": 3332,
+          "observed_call_weighted_mean_ms": 0.3857436068427371,
+          "median_of_layer_call_p50_ms": 0.3855305,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.3801788022208884,
+          "internal_gap_call_weighted_mean_ms": 0.00556480462184874,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3,
+            7,
+            11,
+            15,
+            19,
+            23,
+            27,
+            31,
+            35,
+            39,
+            43,
+            47,
+            51,
+            55,
+            59,
+            63,
+            67,
+            71,
+            75,
+            79,
+            83,
+            87,
+            91,
+            92
+          ],
+          "declared_layer_count": 24,
+          "observed_layer_call_count": 1176,
+          "observed_call_weighted_mean_ms": 0.4340259005102041,
+          "median_of_layer_call_p50_ms": 0.426871,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.421849518707483,
+          "internal_gap_call_weighted_mean_ms": 0.01217638180272109,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c1_p16k",
+      "geometry_index": 0,
+      "geometry": {
+        "query_rows": 1,
+        "sequences_per_replica": 1,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 1,
+      "primary_population": true,
+      "forward_count": 59,
+      "case_forward_count": 59,
+      "case_population_fraction": 1.0,
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p16k_20261030/kernel_details.csv",
+        "size_bytes": 102198993,
+        "mtime_ns": 1793304534000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "cc316ae15600914b4c58c7ef10a0103026a7d5abae1dc733dd3eedcaa0397f8e"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c1_p16k.json",
+        "sha256": "ec2f6d076f9932acc764b1ea5cbb3e267f8acb9bf4316894b47ae463359b1fd7"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c1_p16k.json",
+        "sha256": "1417e212711faa3927b28ac8f20b51aa27c8dfb89cd228cecc4833cb2df5ca58"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 1,
+        "input_len": 16392,
+        "observed_prompt_tokens": [
+          16392
+        ],
+        "output_len": 256
+      },
+      "body_forward_span_ms": {
+        "count": 59,
+        "mean": 30.823435050847458,
+        "p50": 30.822007,
+        "p90": 30.838985,
+        "min": 30.788124,
+        "max": 30.913849
+      },
+      "body_activity_ms": {
+        "count": 59,
+        "mean": 30.183881118644067,
+        "p50": 30.183504,
+        "p90": 30.199715,
+        "min": 30.148762,
+        "max": 30.272575
+      },
+      "body_internal_gap_ms": {
+        "count": 59,
+        "mean": 0.6395539322033899,
+        "p50": 0.639507,
+        "p90": 0.641346,
+        "min": 0.637158,
+        "max": 0.642764
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 59,
+          "mean": 0.2594931525423729,
+          "p50": 0.25814,
+          "p90": 0.25972,
+          "min": 0.254685,
+          "max": 0.34347
+        },
+        "activity_ms_stats": {
+          "count": 59,
+          "mean": 0.2527013898305085,
+          "p50": 0.251417,
+          "p90": 0.252889,
+          "min": 0.247999,
+          "max": 0.336632
+        },
+        "internal_gap_ms_stats": {
+          "count": 59,
+          "mean": 0.006791762711864407,
+          "p50": 0.006794,
+          "p90": 0.007022,
+          "min": 0.006572,
+          "max": 0.007329
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2,
+            4,
+            5,
+            6,
+            8,
+            9,
+            10,
+            12,
+            13,
+            14,
+            16,
+            17,
+            18,
+            20,
+            21,
+            22,
+            24,
+            25,
+            26,
+            28,
+            29,
+            30,
+            32,
+            33,
+            34,
+            36,
+            37,
+            38,
+            40,
+            41,
+            42,
+            44,
+            45,
+            46,
+            48,
+            49,
+            50,
+            52,
+            53,
+            54,
+            56,
+            57,
+            58,
+            60,
+            61,
+            62,
+            64,
+            65,
+            66,
+            68,
+            69,
+            70,
+            72,
+            73,
+            74,
+            76,
+            77,
+            78,
+            80,
+            81,
+            82,
+            84,
+            85,
+            86,
+            88,
+            89,
+            90
+          ],
+          "declared_layer_count": 68,
+          "observed_layer_call_count": 4012,
+          "observed_call_weighted_mean_ms": 0.32079829860418746,
+          "median_of_layer_call_p50_ms": 0.32080949999999997,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.315865583998006,
+          "internal_gap_call_weighted_mean_ms": 0.004932714606181456,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3,
+            7,
+            11,
+            15,
+            19,
+            23,
+            27,
+            31,
+            35,
+            39,
+            43,
+            47,
+            51,
+            55,
+            59,
+            63,
+            67,
+            71,
+            75,
+            79,
+            83,
+            87,
+            91,
+            92
+          ],
+          "declared_layer_count": 24,
+          "observed_layer_call_count": 1416,
+          "observed_call_weighted_mean_ms": 0.3644490819209039,
+          "median_of_layer_call_p50_ms": 0.35773900000000003,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.3521800007062147,
+          "internal_gap_call_weighted_mean_ms": 0.012269081214689266,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c1_p4k",
+      "geometry_index": 0,
+      "geometry": {
+        "query_rows": 1,
+        "sequences_per_replica": 1,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 1,
+      "primary_population": true,
+      "forward_count": 59,
+      "case_forward_count": 59,
+      "case_population_fraction": 1.0,
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
+        "size_bytes": 102190664,
+        "mtime_ns": 1793304273000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "95fe4cc26e249dbd597c62ae1db12710fca8ea758ff16cf1f12e6ed5584d256d"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "sha256": "43c7ec349511b81db6cc734668c054960dbfca28338ce45f403ea645e9216406"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "sha256": "992206347ff5e45c6f64705a34a769929e7e37c4a45d2ac36ffb09451e527ef0"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 1,
+        "input_len": 4104,
+        "observed_prompt_tokens": [
+          4104
+        ],
+        "output_len": 256
+      },
+      "body_forward_span_ms": {
+        "count": 59,
+        "mean": 30.63685447457627,
+        "p50": 30.614967,
+        "p90": 30.632466,
+        "min": 30.590459,
+        "max": 31.877413
+      },
+      "body_activity_ms": {
+        "count": 59,
+        "mean": 29.99704152542373,
+        "p50": 29.974707,
+        "p90": 29.991924,
+        "min": 29.951982,
+        "max": 31.23542
+      },
+      "body_internal_gap_ms": {
+        "count": 59,
+        "mean": 0.6398129491525424,
+        "p50": 0.639717,
+        "p90": 0.641756,
+        "min": 0.636349,
+        "max": 0.6438
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 59,
+          "mean": 0.2772176779661017,
+          "p50": 0.257813,
+          "p90": 0.259545,
+          "min": 0.255443,
+          "max": 1.41112
+        },
+        "activity_ms_stats": {
+          "count": 59,
+          "mean": 0.2704372033898305,
+          "p50": 0.250828,
+          "p90": 0.252953,
+          "min": 0.248659,
+          "max": 1.404135
+        },
+        "internal_gap_ms_stats": {
+          "count": 59,
+          "mean": 0.006780474576271186,
+          "p50": 0.006745,
+          "p90": 0.007064,
+          "min": 0.006565,
+          "max": 0.007335
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2,
+            4,
+            5,
+            6,
+            8,
+            9,
+            10,
+            12,
+            13,
+            14,
+            16,
+            17,
+            18,
+            20,
+            21,
+            22,
+            24,
+            25,
+            26,
+            28,
+            29,
+            30,
+            32,
+            33,
+            34,
+            36,
+            37,
+            38,
+            40,
+            41,
+            42,
+            44,
+            45,
+            46,
+            48,
+            49,
+            50,
+            52,
+            53,
+            54,
+            56,
+            57,
+            58,
+            60,
+            61,
+            62,
+            64,
+            65,
+            66,
+            68,
+            69,
+            70,
+            72,
+            73,
+            74,
+            76,
+            77,
+            78,
+            80,
+            81,
+            82,
+            84,
+            85,
+            86,
+            88,
+            89,
+            90
+          ],
+          "declared_layer_count": 68,
+          "observed_layer_call_count": 4012,
+          "observed_call_weighted_mean_ms": 0.3209011380857428,
+          "median_of_layer_call_p50_ms": 0.32101199999999996,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.31596487013958124,
+          "internal_gap_call_weighted_mean_ms": 0.004936267946161516,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3,
+            7,
+            11,
+            15,
+            19,
+            23,
+            27,
+            31,
+            35,
+            39,
+            43,
+            47,
+            51,
+            55,
+            59,
+            63,
+            67,
+            71,
+            75,
+            79,
+            83,
+            87,
+            91,
+            92
+          ],
+          "declared_layer_count": 24,
+          "observed_layer_call_count": 1416,
+          "observed_call_weighted_mean_ms": 0.35564472810734465,
+          "median_of_layer_call_p50_ms": 0.34870100000000004,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.3433747146892655,
+          "internal_gap_call_weighted_mean_ms": 0.012270013418079095,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c2_p16k",
+      "geometry_index": 0,
+      "geometry": {
+        "query_rows": 2,
+        "sequences_per_replica": 2,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 1,
+      "primary_population": true,
+      "forward_count": 54,
+      "case_forward_count": 54,
+      "case_population_fraction": 1.0,
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c2_p16k_20261030/kernel_details.csv",
+        "size_bytes": 101430417,
+        "mtime_ns": 1793304547000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "61a5ff863f23b0ebc55338e6b48de1b8211fa2ed6179ec3304d3e4bcf0852e62"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c2_p16k.json",
+        "sha256": "309fa1dbda9d74ac8a8f187c385e883299124ddd6670663906cd3739bec70549"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c2_p16k.json",
+        "sha256": "34e4d743a2fec0d03196ff266cdda4ddd427ae9f5bdc9d53e9d6bd6a81b3f633"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 2,
+        "input_len": 16392,
+        "observed_prompt_tokens": [
+          16392
+        ],
+        "output_len": 256
+      },
+      "body_forward_span_ms": {
+        "count": 54,
+        "mean": 33.875752685185184,
+        "p50": 33.8579965,
+        "p90": 33.873078,
+        "min": 33.828032,
+        "max": 34.818002
+      },
+      "body_activity_ms": {
+        "count": 54,
+        "mean": 33.19040864814815,
+        "p50": 33.173148499999996,
+        "p90": 33.187759,
+        "min": 33.143103,
+        "max": 34.133282
+      },
+      "body_internal_gap_ms": {
+        "count": 54,
+        "mean": 0.6853440370370371,
+        "p50": 0.6851365,
+        "p90": 0.687782,
+        "min": 0.681957,
+        "max": 0.689586
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 54,
+          "mean": 0.28755735185185183,
+          "p50": 0.2697925,
+          "p90": 0.271359,
+          "min": 0.26722,
+          "max": 1.22527
+        },
+        "activity_ms_stats": {
+          "count": 54,
+          "mean": 0.27987625925925924,
+          "p50": 0.2621715,
+          "p90": 0.26381,
+          "min": 0.259493,
+          "max": 1.217467
+        },
+        "internal_gap_ms_stats": {
+          "count": 54,
+          "mean": 0.007681092592592593,
+          "p50": 0.007704,
+          "p90": 0.007903,
+          "min": 0.00738,
+          "max": 0.008034
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2,
+            4,
+            5,
+            6,
+            8,
+            9,
+            10,
+            12,
+            13,
+            14,
+            16,
+            17,
+            18,
+            20,
+            21,
+            22,
+            24,
+            25,
+            26,
+            28,
+            29,
+            30,
+            32,
+            33,
+            34,
+            36,
+            37,
+            38,
+            40,
+            41,
+            42,
+            44,
+            45,
+            46,
+            48,
+            49,
+            50,
+            52,
+            53,
+            54,
+            56,
+            57,
+            58,
+            60,
+            61,
+            62,
+            64,
+            65,
+            66,
+            68,
+            69,
+            70,
+            72,
+            73,
+            74,
+            76,
+            77,
+            78,
+            80,
+            81,
+            82,
+            84,
+            85,
+            86,
+            88,
+            89,
+            90
+          ],
+          "declared_layer_count": 68,
+          "observed_layer_call_count": 3672,
+          "observed_call_weighted_mean_ms": 0.35311001715686274,
+          "median_of_layer_call_p50_ms": 0.3529025,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.3475403477668845,
+          "internal_gap_call_weighted_mean_ms": 0.005569669389978214,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3,
+            7,
+            11,
+            15,
+            19,
+            23,
+            27,
+            31,
+            35,
+            39,
+            43,
+            47,
+            51,
+            55,
+            59,
+            63,
+            67,
+            71,
+            75,
+            79,
+            83,
+            87,
+            91,
+            92
+          ],
+          "declared_layer_count": 24,
+          "observed_layer_call_count": 1296,
+          "observed_call_weighted_mean_ms": 0.39891295524691356,
+          "median_of_layer_call_p50_ms": 0.3917665,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.3865745308641975,
+          "internal_gap_call_weighted_mean_ms": 0.01233842438271605,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c2_p4k",
+      "geometry_index": 0,
+      "geometry": {
+        "query_rows": 2,
+        "sequences_per_replica": 2,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 1,
+      "primary_population": true,
+      "forward_count": 55,
+      "case_forward_count": 55,
+      "case_population_fraction": 1.0,
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c2_p4k_20261030/kernel_details.csv",
+        "size_bytes": 103300812,
+        "mtime_ns": 1793304286000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "3c42b0662a8b658cdf071cbac275883d050c883b8f0730035ee074a12f4d307d"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c2_p4k.json",
+        "sha256": "d30a075ee94131af229f83e97fe855ec9ef9a9985ed726cf30dedda0b342aa69"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c2_p4k.json",
+        "sha256": "24a1bf2ccdda1599d00694af3003e58fa50968cede7c8c6ec562782b7627d591"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 2,
+        "input_len": 4104,
+        "observed_prompt_tokens": [
+          4104
+        ],
+        "output_len": 256
+      },
+      "body_forward_span_ms": {
+        "count": 55,
+        "mean": 33.54763016363636,
+        "p50": 33.515767,
+        "p90": 33.532651,
+        "min": 33.479871,
+        "max": 35.311278
+      },
+      "body_activity_ms": {
+        "count": 55,
+        "mean": 32.85694663636364,
+        "p50": 32.829131,
+        "p90": 32.845414,
+        "min": 32.771764,
+        "max": 34.628525
+      },
+      "body_internal_gap_ms": {
+        "count": 55,
+        "mean": 0.6906835272727273,
+        "p50": 0.685806,
+        "p90": 0.709615,
+        "min": 0.682329,
+        "max": 0.735624
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 55,
+          "mean": 0.3026510727272727,
+          "p50": 0.26984,
+          "p90": 0.271908,
+          "min": 0.267787,
+          "max": 2.061177
+        },
+        "activity_ms_stats": {
+          "count": 55,
+          "mean": 0.2948056909090909,
+          "p50": 0.262202,
+          "p90": 0.264005,
+          "min": 0.259511,
+          "max": 2.053508
+        },
+        "internal_gap_ms_stats": {
+          "count": 55,
+          "mean": 0.007845381818181818,
+          "p50": 0.007666,
+          "p90": 0.008174,
+          "min": 0.007458,
+          "max": 0.013186
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2,
+            4,
+            5,
+            6,
+            8,
+            9,
+            10,
+            12,
+            13,
+            14,
+            16,
+            17,
+            18,
+            20,
+            21,
+            22,
+            24,
+            25,
+            26,
+            28,
+            29,
+            30,
+            32,
+            33,
+            34,
+            36,
+            37,
+            38,
+            40,
+            41,
+            42,
+            44,
+            45,
+            46,
+            48,
+            49,
+            50,
+            52,
+            53,
+            54,
+            56,
+            57,
+            58,
+            60,
+            61,
+            62,
+            64,
+            65,
+            66,
+            68,
+            69,
+            70,
+            72,
+            73,
+            74,
+            76,
+            77,
+            78,
+            80,
+            81,
+            82,
+            84,
+            85,
+            86,
+            88,
+            89,
+            90
+          ],
+          "declared_layer_count": 68,
+          "observed_layer_call_count": 3740,
+          "observed_call_weighted_mean_ms": 0.35332991336898395,
+          "median_of_layer_call_p50_ms": 0.3531485,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.34770497647058823,
+          "internal_gap_call_weighted_mean_ms": 0.005624936898395722,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3,
+            7,
+            11,
+            15,
+            19,
+            23,
+            27,
+            31,
+            35,
+            39,
+            43,
+            47,
+            51,
+            55,
+            59,
+            63,
+            67,
+            71,
+            75,
+            79,
+            83,
+            87,
+            91,
+            92
+          ],
+          "declared_layer_count": 24,
+          "observed_layer_call_count": 1320,
+          "observed_call_weighted_mean_ms": 0.3839881818181818,
+          "median_of_layer_call_p50_ms": 0.3767235,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.37159177272727273,
+          "internal_gap_call_weighted_mean_ms": 0.012396409090909092,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c32_p16k",
+      "geometry_index": 0,
+      "geometry": {
+        "query_rows": 32,
+        "sequences_per_replica": 32,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 1,
+      "primary_population": true,
+      "forward_count": 41,
+      "case_forward_count": 41,
+      "case_population_fraction": 1.0,
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p16k_20261030/kernel_details.csv",
+        "size_bytes": 74642919,
+        "mtime_ns": 1793305149000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "e0165e2c51d162f7dcfafa75346acbc739f1e30fbea2bd741e7c5b40f5b7437d"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c32_p16k.json",
+        "sha256": "32603ec3c89290a1bf49cc73bba8c2f177f14e45c70d60d417703197674f7730"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c32_p16k.json",
+        "sha256": "ac19ba8368d1e989d59dc164286611802e21fd0f325309bf9357a52d20db8022"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 32,
+        "input_len": 16392,
+        "observed_prompt_tokens": [
+          16392
+        ],
+        "output_len": 256
+      },
+      "body_forward_span_ms": {
+        "count": 41,
+        "mean": 44.66619290243902,
+        "p50": 44.645272,
+        "p90": 44.661803,
+        "min": 44.607823,
+        "max": 45.58843
+      },
+      "body_activity_ms": {
+        "count": 41,
+        "mean": 43.970836195121954,
+        "p50": 43.949904,
+        "p90": 43.967229,
+        "min": 43.912793,
+        "max": 44.892919
+      },
+      "body_internal_gap_ms": {
+        "count": 41,
+        "mean": 0.6953567073170732,
+        "p50": 0.695291,
+        "p90": 0.696624,
+        "min": 0.693094,
+        "max": 0.699281
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 41,
+          "mean": 0.36200473170731706,
+          "p50": 0.338372,
+          "p90": 0.341159,
+          "min": 0.33518,
+          "max": 1.289542
+        },
+        "activity_ms_stats": {
+          "count": 41,
+          "mean": 0.3542740243902439,
+          "p50": 0.330538,
+          "p90": 0.33362,
+          "min": 0.327646,
+          "max": 1.282002
+        },
+        "internal_gap_ms_stats": {
+          "count": 41,
+          "mean": 0.0077307073170731705,
+          "p50": 0.007718,
+          "p90": 0.007941,
+          "min": 0.007531,
+          "max": 0.008168
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2,
+            4,
+            5,
+            6,
+            8,
+            9,
+            10,
+            12,
+            13,
+            14,
+            16,
+            17,
+            18,
+            20,
+            21,
+            22,
+            24,
+            25,
+            26,
+            28,
+            29,
+            30,
+            32,
+            33,
+            34,
+            36,
+            37,
+            38,
+            40,
+            41,
+            42,
+            44,
+            45,
+            46,
+            48,
+            49,
+            50,
+            52,
+            53,
+            54,
+            56,
+            57,
+            58,
+            60,
+            61,
+            62,
+            64,
+            65,
+            66,
+            68,
+            69,
+            70,
+            72,
+            73,
+            74,
+            76,
+            77,
+            78,
+            80,
+            81,
+            82,
+            84,
+            85,
+            86,
+            88,
+            89,
+            90
+          ],
+          "declared_layer_count": 68,
+          "observed_layer_call_count": 2788,
+          "observed_call_weighted_mean_ms": 0.41448331097560975,
+          "median_of_layer_call_p50_ms": 0.414203,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.4087603862984218,
+          "internal_gap_call_weighted_mean_ms": 0.005722924677187948,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3,
+            7,
+            11,
+            15,
+            19,
+            23,
+            27,
+            31,
+            35,
+            39,
+            43,
+            47,
+            51,
+            55,
+            59,
+            63,
+            67,
+            71,
+            75,
+            79,
+            83,
+            87,
+            91,
+            92
+          ],
+          "declared_layer_count": 24,
+          "observed_layer_call_count": 984,
+          "observed_call_weighted_mean_ms": 0.671523493902439,
+          "median_of_layer_call_p50_ms": 0.6643795,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.6592023292682927,
+          "internal_gap_call_weighted_mean_ms": 0.012321164634146342,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c32_p4k",
+      "geometry_index": 0,
+      "geometry": {
+        "query_rows": 32,
+        "sequences_per_replica": 32,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 1,
+      "primary_population": true,
+      "forward_count": 46,
+      "case_forward_count": 46,
+      "case_population_fraction": 1.0,
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+        "size_bytes": 83732721,
+        "mtime_ns": 1793304365000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "d734e9ec764b0f1baf35589d4886f6b9e2cd9254c660721f3ad6a86b0602c504"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c32_p4k.json",
+        "sha256": "bae71e3372414a9a3963716f67f62eb0f42f8f14dd584e50702ba4e92e64a7f4"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c32_p4k.json",
+        "sha256": "92832ef3fdec0a19feeb94419a816947a5edc41c427673717224462eae7759f2"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 32,
+        "input_len": 4104,
+        "observed_prompt_tokens": [
+          4104
+        ],
+        "output_len": 256
+      },
+      "body_forward_span_ms": {
+        "count": 46,
+        "mean": 40.01872763043478,
+        "p50": 40.017751,
+        "p90": 40.043741,
+        "min": 39.986677,
+        "max": 40.057115
+      },
+      "body_activity_ms": {
+        "count": 46,
+        "mean": 39.32292602173913,
+        "p50": 39.322436499999995,
+        "p90": 39.346585,
+        "min": 39.290059,
+        "max": 39.362491
+      },
+      "body_internal_gap_ms": {
+        "count": 46,
+        "mean": 0.6958016086956522,
+        "p50": 0.6957070000000001,
+        "p90": 0.697369,
+        "min": 0.692584,
+        "max": 0.699091
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 46,
+          "mean": 0.33791591304347823,
+          "p50": 0.3375645,
+          "p90": 0.341257,
+          "min": 0.334149,
+          "max": 0.344714
+        },
+        "activity_ms_stats": {
+          "count": 46,
+          "mean": 0.330196,
+          "p50": 0.3298135,
+          "p90": 0.333385,
+          "min": 0.326426,
+          "max": 0.336741
+        },
+        "internal_gap_ms_stats": {
+          "count": 46,
+          "mean": 0.007719913043478261,
+          "p50": 0.007702499999999999,
+          "p90": 0.007965,
+          "min": 0.00751,
+          "max": 0.0081
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2,
+            4,
+            5,
+            6,
+            8,
+            9,
+            10,
+            12,
+            13,
+            14,
+            16,
+            17,
+            18,
+            20,
+            21,
+            22,
+            24,
+            25,
+            26,
+            28,
+            29,
+            30,
+            32,
+            33,
+            34,
+            36,
+            37,
+            38,
+            40,
+            41,
+            42,
+            44,
+            45,
+            46,
+            48,
+            49,
+            50,
+            52,
+            53,
+            54,
+            56,
+            57,
+            58,
+            60,
+            61,
+            62,
+            64,
+            65,
+            66,
+            68,
+            69,
+            70,
+            72,
+            73,
+            74,
+            76,
+            77,
+            78,
+            80,
+            81,
+            82,
+            84,
+            85,
+            86,
+            88,
+            89,
+            90
+          ],
+          "declared_layer_count": 68,
+          "observed_layer_call_count": 3128,
+          "observed_call_weighted_mean_ms": 0.4141369923273657,
+          "median_of_layer_call_p50_ms": 0.41403999999999996,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.4084117998721228,
+          "internal_gap_call_weighted_mean_ms": 0.005725192455242966,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3,
+            7,
+            11,
+            15,
+            19,
+            23,
+            27,
+            31,
+            35,
+            39,
+            43,
+            47,
+            51,
+            55,
+            59,
+            63,
+            67,
+            71,
+            75,
+            79,
+            83,
+            87,
+            91,
+            92
+          ],
+          "declared_layer_count": 24,
+          "observed_layer_call_count": 1104,
+          "observed_call_weighted_mean_ms": 0.4798645597826087,
+          "median_of_layer_call_p50_ms": 0.4722225,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.46753031793478256,
+          "internal_gap_call_weighted_mean_ms": 0.012334241847826088,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c4_p16k",
+      "geometry_index": 0,
+      "geometry": {
+        "query_rows": 4,
+        "sequences_per_replica": 4,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 1,
+      "primary_population": true,
+      "forward_count": 52,
+      "case_forward_count": 52,
+      "case_population_fraction": 1.0,
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c4_p16k_20261030/kernel_details.csv",
+        "size_bytes": 97721387,
+        "mtime_ns": 1793304558000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "215453044c83a8d780b14de5ffd329404f8c9cdae2a5f6d56001889d85e17b49"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c4_p16k.json",
+        "sha256": "070feb2f3f5fc40f00c96c0af4a23234a1ceb9ff3256d13f36dbdca0d6922ef1"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c4_p16k.json",
+        "sha256": "ee788a188b5e42187a0d3818a2cdd313554bc5c2c3bce99969b342895f0d8958"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 4,
+        "input_len": 16392,
+        "observed_prompt_tokens": [
+          16392
+        ],
+        "output_len": 256
+      },
+      "body_forward_span_ms": {
+        "count": 52,
+        "mean": 34.816498326923075,
+        "p50": 34.793753,
+        "p90": 34.812948,
+        "min": 34.776447,
+        "max": 35.845448
+      },
+      "body_activity_ms": {
+        "count": 52,
+        "mean": 34.11509425,
+        "p50": 34.091063,
+        "p90": 34.111433,
+        "min": 34.074051,
+        "max": 35.144953
+      },
+      "body_internal_gap_ms": {
+        "count": 52,
+        "mean": 0.7014040769230769,
+        "p50": 0.701613,
+        "p90": 0.70326,
+        "min": 0.697706,
+        "max": 0.704104
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 52,
+          "mean": 0.29740671153846154,
+          "p50": 0.27699799999999997,
+          "p90": 0.278997,
+          "min": 0.274575,
+          "max": 1.332744
+        },
+        "activity_ms_stats": {
+          "count": 52,
+          "mean": 0.28965726923076923,
+          "p50": 0.2692715,
+          "p90": 0.271041,
+          "min": 0.266896,
+          "max": 1.32519
+        },
+        "internal_gap_ms_stats": {
+          "count": 52,
+          "mean": 0.007749442307692308,
+          "p50": 0.0077615,
+          "p90": 0.007942,
+          "min": 0.007453,
+          "max": 0.008187
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2,
+            4,
+            5,
+            6,
+            8,
+            9,
+            10,
+            12,
+            13,
+            14,
+            16,
+            17,
+            18,
+            20,
+            21,
+            22,
+            24,
+            25,
+            26,
+            28,
+            29,
+            30,
+            32,
+            33,
+            34,
+            36,
+            37,
+            38,
+            40,
+            41,
+            42,
+            44,
+            45,
+            46,
+            48,
+            49,
+            50,
+            52,
+            53,
+            54,
+            56,
+            57,
+            58,
+            60,
+            61,
+            62,
+            64,
+            65,
+            66,
+            68,
+            69,
+            70,
+            72,
+            73,
+            74,
+            76,
+            77,
+            78,
+            80,
+            81,
+            82,
+            84,
+            85,
+            86,
+            88,
+            89,
+            90
+          ],
+          "declared_layer_count": 68,
+          "observed_layer_call_count": 3536,
+          "observed_call_weighted_mean_ms": 0.35962247822398186,
+          "median_of_layer_call_p50_ms": 0.35923499999999997,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.3538659162895928,
+          "internal_gap_call_weighted_mean_ms": 0.00575656193438914,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3,
+            7,
+            11,
+            15,
+            19,
+            23,
+            27,
+            31,
+            35,
+            39,
+            43,
+            47,
+            51,
+            55,
+            59,
+            63,
+            67,
+            71,
+            75,
+            79,
+            83,
+            87,
+            91,
+            92
+          ],
+          "declared_layer_count": 24,
+          "observed_layer_call_count": 1248,
+          "observed_call_weighted_mean_ms": 0.4192470104166667,
+          "median_of_layer_call_p50_ms": 0.412474,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.40677311137820515,
+          "internal_gap_call_weighted_mean_ms": 0.012473899038461538,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c4_p4k",
+      "geometry_index": 0,
+      "geometry": {
+        "query_rows": 4,
+        "sequences_per_replica": 4,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 1,
+      "primary_population": true,
+      "forward_count": 53,
+      "case_forward_count": 53,
+      "case_population_fraction": 1.0,
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c4_p4k_20261030/kernel_details.csv",
+        "size_bytes": 99591450,
+        "mtime_ns": 1793304308000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "7e0bf0c288bb9df7aa08b19f698030892771a0d6a9990b0d9447c22f973c133e"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c4_p4k.json",
+        "sha256": "3e4ff65147e722c6bfc13ddbd57094f50a1a1694530a7db67d536f04abbefa88"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c4_p4k.json",
+        "sha256": "089ffbcd4d6c6c71302dc7766c4a6d61da65e4ad03bcb78a42e632a12d1c7c4a"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 4,
+        "input_len": 4104,
+        "observed_prompt_tokens": [
+          4104
+        ],
+        "output_len": 256
+      },
+      "body_forward_span_ms": {
+        "count": 53,
+        "mean": 34.19370916981132,
+        "p50": 34.177425,
+        "p90": 34.19419,
+        "min": 34.154841,
+        "max": 35.028676
+      },
+      "body_activity_ms": {
+        "count": 53,
+        "mean": 33.49147737735849,
+        "p50": 33.474926,
+        "p90": 33.493238,
+        "min": 33.452191,
+        "max": 34.319495
+      },
+      "body_internal_gap_ms": {
+        "count": 53,
+        "mean": 0.7022317924528302,
+        "p50": 0.701909,
+        "p90": 0.704132,
+        "min": 0.698997,
+        "max": 0.709181
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 53,
+          "mean": 0.293014320754717,
+          "p50": 0.277106,
+          "p90": 0.279247,
+          "min": 0.274783,
+          "max": 1.112316
+        },
+        "activity_ms_stats": {
+          "count": 53,
+          "mean": 0.285265320754717,
+          "p50": 0.269533,
+          "p90": 0.271582,
+          "min": 0.266688,
+          "max": 1.104382
+        },
+        "internal_gap_ms_stats": {
+          "count": 53,
+          "mean": 0.007749,
+          "p50": 0.007748,
+          "p90": 0.007962,
+          "min": 0.007462,
+          "max": 0.008181
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2,
+            4,
+            5,
+            6,
+            8,
+            9,
+            10,
+            12,
+            13,
+            14,
+            16,
+            17,
+            18,
+            20,
+            21,
+            22,
+            24,
+            25,
+            26,
+            28,
+            29,
+            30,
+            32,
+            33,
+            34,
+            36,
+            37,
+            38,
+            40,
+            41,
+            42,
+            44,
+            45,
+            46,
+            48,
+            49,
+            50,
+            52,
+            53,
+            54,
+            56,
+            57,
+            58,
+            60,
+            61,
+            62,
+            64,
+            65,
+            66,
+            68,
+            69,
+            70,
+            72,
+            73,
+            74,
+            76,
+            77,
+            78,
+            80,
+            81,
+            82,
+            84,
+            85,
+            86,
+            88,
+            89,
+            90
+          ],
+          "declared_layer_count": 68,
+          "observed_layer_call_count": 3604,
+          "observed_call_weighted_mean_ms": 0.3596319139844617,
+          "median_of_layer_call_p50_ms": 0.3595525,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.35386765399556047,
+          "internal_gap_call_weighted_mean_ms": 0.005764259988901221,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3,
+            7,
+            11,
+            15,
+            19,
+            23,
+            27,
+            31,
+            35,
+            39,
+            43,
+            47,
+            51,
+            55,
+            59,
+            63,
+            67,
+            71,
+            75,
+            79,
+            83,
+            87,
+            91,
+            92
+          ],
+          "declared_layer_count": 24,
+          "observed_layer_call_count": 1272,
+          "observed_call_weighted_mean_ms": 0.3934539724842767,
+          "median_of_layer_call_p50_ms": 0.386327,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.3809671493710692,
+          "internal_gap_call_weighted_mean_ms": 0.012486823113207547,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c8_p16k",
+      "geometry_index": 0,
+      "geometry": {
+        "query_rows": 8,
+        "sequences_per_replica": 8,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 1,
+      "primary_population": true,
+      "forward_count": 51,
+      "case_forward_count": 51,
+      "case_population_fraction": 1.0,
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c8_p16k_20261030/kernel_details.csv",
+        "size_bytes": 92257150,
+        "mtime_ns": 1793305126000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "705cd2cd4965560f3a1149bcb62d2a053cded55e0aff15aabb374d318011f749"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c8_p16k.json",
+        "sha256": "211680948d42765e113f1e083810f878e672c7dfcb109bfff245a3940b63d899"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c8_p16k.json",
+        "sha256": "03290ccc759b051d3931a911ec58c74ef00d807da7da25b2214afac1e7abf163"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 8,
+        "input_len": 16392,
+        "observed_prompt_tokens": [
+          16392
+        ],
+        "output_len": 256
+      },
+      "body_forward_span_ms": {
+        "count": 51,
+        "mean": 35.964417431372546,
+        "p50": 35.962094,
+        "p90": 35.978788,
+        "min": 35.933269,
+        "max": 36.117961
+      },
+      "body_activity_ms": {
+        "count": 51,
+        "mean": 35.28159441176471,
+        "p50": 35.280294,
+        "p90": 35.302061,
+        "min": 35.241342,
+        "max": 35.439989
+      },
+      "body_internal_gap_ms": {
+        "count": 51,
+        "mean": 0.6828230196078431,
+        "p50": 0.677025,
+        "p90": 0.721166,
+        "min": 0.673257,
+        "max": 0.72426
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 51,
+          "mean": 0.28401933333333335,
+          "p50": 0.281037,
+          "p90": 0.283397,
+          "min": 0.278169,
+          "max": 0.429086
+        },
+        "activity_ms_stats": {
+          "count": 51,
+          "mean": 0.276693,
+          "p50": 0.273759,
+          "p90": 0.276098,
+          "min": 0.270539,
+          "max": 0.421707
+        },
+        "internal_gap_ms_stats": {
+          "count": 51,
+          "mean": 0.007326333333333333,
+          "p50": 0.007255,
+          "p90": 0.007796,
+          "min": 0.006961,
+          "max": 0.008219
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2,
+            4,
+            5,
+            6,
+            8,
+            9,
+            10,
+            12,
+            13,
+            14,
+            16,
+            17,
+            18,
+            20,
+            21,
+            22,
+            24,
+            25,
+            26,
+            28,
+            29,
+            30,
+            32,
+            33,
+            34,
+            36,
+            37,
+            38,
+            40,
+            41,
+            42,
+            44,
+            45,
+            46,
+            48,
+            49,
+            50,
+            52,
+            53,
+            54,
+            56,
+            57,
+            58,
+            60,
+            61,
+            62,
+            64,
+            65,
+            66,
+            68,
+            69,
+            70,
+            72,
+            73,
+            74,
+            76,
+            77,
+            78,
+            80,
+            81,
+            82,
+            84,
+            85,
+            86,
+            88,
+            89,
+            90
+          ],
+          "declared_layer_count": 68,
+          "observed_layer_call_count": 3468,
+          "observed_call_weighted_mean_ms": 0.36525693021914646,
+          "median_of_layer_call_p50_ms": 0.3649675,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.3596822598039216,
+          "internal_gap_call_weighted_mean_ms": 0.005574670415224914,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3,
+            7,
+            11,
+            15,
+            19,
+            23,
+            27,
+            31,
+            35,
+            39,
+            43,
+            47,
+            51,
+            55,
+            59,
+            63,
+            67,
+            71,
+            75,
+            79,
+            83,
+            87,
+            91,
+            92
+          ],
+          "declared_layer_count": 24,
+          "observed_layer_call_count": 1224,
+          "observed_call_weighted_mean_ms": 0.45167174183006537,
+          "median_of_layer_call_p50_ms": 0.445448,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.43943782271241827,
+          "internal_gap_call_weighted_mean_ms": 0.01223391911764706,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c8_p4k",
+      "geometry_index": 0,
+      "geometry": {
+        "query_rows": 8,
+        "sequences_per_replica": 8,
+        "tokens_per_sequence": 1,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "rank_within_case_by_forward_count": 1,
+      "primary_population": true,
+      "forward_count": 52,
+      "case_forward_count": 52,
+      "case_population_fraction": 1.0,
+      "model_declaration": {
+        "name": "kimi-k3-e16-bf16-conditional",
+        "layers": 93,
+        "hidden_size": 7168,
+        "vocab_size": 163840,
+        "tp": 8
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+        "size_bytes": 94064897,
+        "mtime_ns": 1793304321000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "00fb1678504ab7023ac1a258f05e78f9d793ef009147a985c1174527e3be8b3f"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c8_p4k.json",
+        "sha256": "8cf223045682a6c9676ea6bedb7e7d3d1c390af90869cbbce74252bc48f0a744"
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c8_p4k.json",
+        "sha256": "3ecf922b3c9aa1ad59359c58c6d06a2111ab04807b5d925941ab68c068a4a208"
+      },
+      "extraction_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "0e6f33ed32cb065ffd38bc9177c0d6323b1193340a0a9058dbd7922725eab728",
+        "dependencies": {
+          "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "dcecd80d6207b0594b8f19910a0a8ee00f843ea72063aec8d09536677346e656"
+        }
+      },
+      "client": {
+        "concurrency": 8,
+        "input_len": 4104,
+        "observed_prompt_tokens": [
+          4104
+        ],
+        "output_len": 256
+      },
+      "body_forward_span_ms": {
+        "count": 52,
+        "mean": 34.81921332692308,
+        "p50": 34.79111,
+        "p90": 34.808453,
+        "min": 34.764297,
+        "max": 36.278757
+      },
+      "body_activity_ms": {
+        "count": 52,
+        "mean": 34.14221507692308,
+        "p50": 34.1149235,
+        "p90": 34.130432,
+        "min": 34.087633,
+        "max": 35.600794
+      },
+      "body_internal_gap_ms": {
+        "count": 52,
+        "mean": 0.67699825,
+        "p50": 0.6769385,
+        "p90": 0.67879,
+        "min": 0.674288,
+        "max": 0.680216
+      },
+      "layer0": {
+        "kind": "dense_layer",
+        "stats": {
+          "count": 52,
+          "mean": 0.3101591730769231,
+          "p50": 0.281559,
+          "p90": 0.283741,
+          "min": 0.279031,
+          "max": 1.764642
+        },
+        "activity_ms_stats": {
+          "count": 52,
+          "mean": 0.30294201923076924,
+          "p50": 0.27439749999999996,
+          "p90": 0.276609,
+          "min": 0.271703,
+          "max": 1.757058
+        },
+        "internal_gap_ms_stats": {
+          "count": 52,
+          "mean": 0.007217153846153846,
+          "p50": 0.0071555,
+          "p90": 0.007549,
+          "min": 0.006965,
+          "max": 0.007869
+        }
+      },
+      "steady_layer_groups": [
+        {
+          "attention_kind": "kda",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            1,
+            2,
+            4,
+            5,
+            6,
+            8,
+            9,
+            10,
+            12,
+            13,
+            14,
+            16,
+            17,
+            18,
+            20,
+            21,
+            22,
+            24,
+            25,
+            26,
+            28,
+            29,
+            30,
+            32,
+            33,
+            34,
+            36,
+            37,
+            38,
+            40,
+            41,
+            42,
+            44,
+            45,
+            46,
+            48,
+            49,
+            50,
+            52,
+            53,
+            54,
+            56,
+            57,
+            58,
+            60,
+            61,
+            62,
+            64,
+            65,
+            66,
+            68,
+            69,
+            70,
+            72,
+            73,
+            74,
+            76,
+            77,
+            78,
+            80,
+            81,
+            82,
+            84,
+            85,
+            86,
+            88,
+            89,
+            90
+          ],
+          "declared_layer_count": 68,
+          "observed_layer_call_count": 3536,
+          "observed_call_weighted_mean_ms": 0.3652427876131222,
+          "median_of_layer_call_p50_ms": 0.36478849999999996,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.3597270653280543,
+          "internal_gap_call_weighted_mean_ms": 0.005515722285067874,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        },
+        {
+          "attention_kind": "mla",
+          "ffn_layer_kind": "moe_layer",
+          "layer_ids": [
+            3,
+            7,
+            11,
+            15,
+            19,
+            23,
+            27,
+            31,
+            35,
+            39,
+            43,
+            47,
+            51,
+            55,
+            59,
+            63,
+            67,
+            71,
+            75,
+            79,
+            83,
+            87,
+            91,
+            92
+          ],
+          "declared_layer_count": 24,
+          "observed_layer_call_count": 1248,
+          "observed_call_weighted_mean_ms": 0.40290649599358974,
+          "median_of_layer_call_p50_ms": 0.39598749999999994,
+          "pooled_layer_call_p50_ms": null,
+          "activity_call_weighted_mean_ms": 0.39074302564102564,
+          "internal_gap_call_weighted_mean_ms": 0.012163470352564102,
+          "quantile_basis": "median_of_complete_per_layer_invocation_P50; not pooled invocation P50"
+        }
+      ],
+      "source_role_basis": "complete declared topology plus tensor contracts; conditional device occurrence alignment, not Host binding",
+      "prediction_status": "not_executed_by_this_index",
+      "sim_omission_claim": false
+    }
+  ],
+  "limitations": [
+    "This index does not run Sim or call missing cost predictions model omissions.",
+    "Per-case primary buckets prioritize coverage without discarding smaller execution geometries.",
+    "Layer0 is retained separately; body spans are unchanged.",
+    "Steady group means are exact weighted means; pooled call P50 needs complete per-invocation samples and stays null here."
+  ]
+}
