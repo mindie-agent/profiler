@@ -288,7 +288,7 @@ def geometry_key(geometry):
     return tuple(geometry.get(key) for key in ('tokens_per_sequence','sequences_per_replica','query_rows'))
 
 
-def extract_case(entry, case_paths, output):
+def extract_case(entry, case_paths, output, *, context_tokens=None, geometry_limit=None):
     started=time.perf_counter(); runtime_before=runtime_identity()
     prior=read(entry['report_path'])
     if digest(entry['report_path'])!=entry['report_sha256']:raise ValueError('body_acceptance_identity_changed')
@@ -302,10 +302,14 @@ def extract_case(entry, case_paths, output):
         key=geometry_key(forward['geometry'])
         if any(value is None for value in key):raise ValueError('complete_forward_execution_geometry_unresolved')
         geometries[key]=forward['geometry'];expected_by_geometry[key][forward['forward_id']]=forward
+    if geometry_limit is not None:
+        selected = sorted(geometries, key=lambda key: (-len(expected_by_geometry[key]), key))[:geometry_limit]
+        geometries = {key: geometries[key] for key in selected}
     variants=[]
     for case_path in case_paths:
         case_json=read(case_path);case=parse_case(case_json)
-        context=case_json['workload']['requests'][0]['prompt_tokens']
+        context=(context_tokens if context_tokens is not None
+                 else case_json['workload']['requests'][0]['prompt_tokens'])
         config=case.model.to_dict();config.update(tp=case.runtime.parallel.tp)
         config.update(prior.get('segmentation_options', {}))
         for key,geometry in geometries.items():
@@ -337,6 +341,9 @@ def extract_case(entry, case_paths, output):
         result={'schema_version':'mindie-body-operator-actual/1','case_id':case_id,'source_case_id':entry['case_id'],'variant':variant,
                 'source_identity':source_identity,'body_acceptance_identity':identity(entry['report_path']),
                 'case_identity':declaration_identity,'geometry':geometry,'conditional_context_tokens':context,
+                'context_basis':'explicit_representative_context' if context_tokens is not None else 'case_request_prompt_tokens',
+                'geometry_selection':'largest_complete_forward_populations' if geometry_limit is not None else 'all_complete_populations',
+                'unselected_source_forward_count':len(prior['forwards'])-sum(len(expected_by_geometry[key]) for key in geometries),
                 'forward_count':len(consumer.forward_ids),'source_forward_count':len(prior['forwards']),
                 'geometry_group_count':len(geometries),'counts':dict(consumer.counts),
                 'scan_counts':actual['scan_counts'],'families':families,'steady_layer_groups':pooled,
@@ -361,6 +368,8 @@ def main():
     parser.add_argument('--case-dir',type=Path,action='append')
     parser.add_argument('--receipt',type=Path,default=BASE/'decode-forward-auto-acceptance.json')
     parser.add_argument('--output-dir',type=Path,default=BASE)
+    parser.add_argument('--context-tokens',type=int,help='Explicit representative context; does not alter measured q/batch')
+    parser.add_argument('--geometry-limit',type=int,help='Select the largest N measured populations; preserve total source denominator')
     args = parser.parse_args()
     receipt = read(args.receipt)
     args.output_dir.mkdir(parents=True,exist_ok=True)
@@ -370,7 +379,8 @@ def main():
             continue
         name=Path(entry['model_structure_identity']['path']).name
         case_paths=[directory/name for directory in args.case_dir] if args.case_dir else [Path(entry['model_structure_identity']['path'])]
-        extracted=extract_case(entry,case_paths,args.output_dir);records.extend(extracted)
+        extracted=extract_case(entry,case_paths,args.output_dir,context_tokens=args.context_tokens,
+                               geometry_limit=args.geometry_limit);records.extend(extracted)
         print(json.dumps({'case_id':entry['case_id'],'status':'extracted','forward_count':sum(record['forward_count'] for record in extracted),'geometry_groups':len(extracted)}),flush=True)
     write(args.output_dir/'steady-layer-pooled.json',{'schema_version':'mindie-steady-layer-pooled/1',
           'cases':records,'population_basis':'pooled_layer_calls_excluding_layer0',
