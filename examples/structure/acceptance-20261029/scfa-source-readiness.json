@@ -1,0 +1,558 @@
+{
+  "schema_version": "mindie-profiler.scfa-source-readiness/1",
+  "status": "completed_focused_conditional_replay",
+  "not_new_live_collection": true,
+  "runtime": {
+    "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029",
+    "revision": "26f5adb48dd418584cd18c79d6a63ca8ab42afd7",
+    "source_sha256": {
+      "mindie_sim/backends/profiles/ascend.json": "82ed11081fc7462c8b2c932e2245ef84e17a4d169418c4fa1381a548c8a25532",
+      "mindie_sim/prediction/family_sharedkv.py": "e198c4392506a2baef2768cfb898a079cf03be0db77d36f4506ae5ed83c5c71e",
+      "mindie_sim/prediction/sharedkv_attention.py": "9c64573879392a6a706bfafc8fb9577f73fca409d390501cecabe497cce2c4dc"
+    },
+    "python": "3.13.12 (main, Mar  3 2026, 15:32:44) [Clang 21.1.4 ]"
+  },
+  "helper_commit": "44d250e",
+  "selection": {
+    "sharedkv_attention": {
+      "implementation": "vllm_ascend_sharedkv_scfa",
+      "options": {
+        "owner_schedule": "one_query_per_core",
+        "selected_rows": "valid_prefix",
+        "sinks_dtype": "fp32",
+        "metadata_s2_split": false,
+        "return_softmax_lse": false,
+        "scratch_policy": "offchip"
+      }
+    }
+  },
+  "selection_provenance": {
+    "native_source_revision": "175ef4d49c2072f9233619636f0309f4f88b4e2c",
+    "implementation": "vllm_ascend_sharedkv_scfa",
+    "files": [
+      {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/backends/profiles/ascend.json",
+        "sha256": "82ed11081fc7462c8b2c932e2245ef84e17a4d169418c4fa1381a548c8a25532"
+      },
+      {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/family_sharedkv.py",
+        "sha256": "e198c4392506a2baef2768cfb898a079cf03be0db77d36f4506ae5ed83c5c71e"
+      },
+      {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/sharedkv_attention.py",
+        "sha256": "9c64573879392a6a706bfafc8fb9577f73fca409d390501cecabe497cce2c4dc"
+      }
+    ],
+    "hardware_basis": "registered_nominal_analytical_profile_with_original_case_overrides",
+    "hardware_overrides_changed": false,
+    "context_observed": false,
+    "phase_observed": false,
+    "index_values_observed": false,
+    "capture_dispatch_identity_verified": false,
+    "selection_scope": "single_contiguous_prefill_with_compressed_index_producer",
+    "excluded_branches": [
+      "SWA",
+      "CFA",
+      "decode",
+      "multiple_sequences"
+    ],
+    "resource_limits": [
+      "Profile copy rates are nominal analytical declarations, not measured peaks.",
+      "AIV read rate maps the platform scalar to a per-owner analytical supply.",
+      "Fixpipe GM supply extends the documented L0C-to-L1 instruction rate.",
+      "Original device overrides remain effective, including the MTE3 rate.",
+      "Offchip scratch, valid-prefix indices and owner scheduling are caller conditions."
+    ]
+  },
+  "hardware": {
+    "rates": {
+      "fixpipe": 4224000000000.0,
+      "hbm": 1200000000000.0,
+      "mte1": 4224000000000.0,
+      "mte2": 2400000000000.0,
+      "mte2_aic": 1056000000000.0,
+      "mte2_aiv": 2112000000000.0,
+      "mte3": 2400000000000.0,
+      "vector": 8448000000000.0
+    },
+    "service_modes": {
+      "mte1_l0a": [
+        "mte1",
+        8448000000000.0
+      ],
+      "mte1_l0b": [
+        "mte1",
+        4224000000000.0
+      ]
+    },
+    "resource_units": {
+      "fixpipe": 20,
+      "mte1": 20,
+      "mte2_aic": 20,
+      "mte2_aiv": 40,
+      "mte3": 40,
+      "vector": 40
+    },
+    "assumptions": {
+      "accuracy": "nominal analytical resource profile; no accuracy claim",
+      "clock_provenance": "configured 1650 MHz is retained; the read-only CANN 9.2.0 platform ini cube_freq 1500 MHz is not substituted.",
+      "fixpipe": "128 B/cycle*20*1.65 GHz=4.224e12 B/s. Generic use for GM destinations is an explicit analytical assumption; the pinned instruction table directly establishes L0C->L1 BF16/FP16 at 128 B/cycle and INT8 output at 64 B/cycle, not universal 128 B/cycle.",
+      "kernel_invocations": "A3 user-reported device Vector 2-3us (midpoint 2.5), Cube about 5us; completion minimum, independent of host launch",
+      "launch_us": "20 nominal unless explicitly overridden",
+      "memory_path": "one shared HBM at 1.2e12 B/s; AIC/AIV split read roles are local path supplies and actual GM transfers also charge shared HBM; no pair-shared private AIC/AIV rate is declared",
+      "mte1": "one physical MTE1 resource with 20 AIC owners; generic aggregate supply 128 B/cycle*20*1.65 GHz=4.224e12 B/s is a conservative undifferentiated A/B supply. mte1_l0a and mte1_l0b both bind to this same resource and owner set: L1->L0A 256 B/cycle*20=8.448e12 B/s and L1->L0B 128 B/cycle*20=4.224e12 B/s. No independent mte1_a/mte1_b resources.",
+      "mte2": "AIC read 32 B/cycle*20*1.65 GHz=1.056e12 B/s; AIV read 32 B/cycle*40*1.65 GHz=2.112e12 B/s. The AIV 32 B/cycle is an explicit analytical per-owner mapping of the platform memory-path ddr_read_rate scalar, not a measured physical instruction peak. No generic third mte2 read pipe is declared; split roles are local supplies.",
+      "mte3": "AIV-owned UB->GM 64 B/cycle*40*1.65 GHz=4.224e12 B/s. No additional AIC MTE3 pipe is fabricated.",
+      "pipeline_provenance": "asc-devkit pinned revision 56500ea0dc219380f50f4a17ce73ef5264f830fc: npu_arch_2201.md SHA d16edc43d897cc4eba425802e0b7d1f61b1bc76fb50768f336d458ddd4927994 (AIC:AIV 1:2, independent cores, GM communication, PIPE_MTE1 256/128 B/cycle); cube_instruction_theoretical_perf_summary.md SHA 3a249d10fb6b794849d15f66208e43fa27ccd5edc6b635418911ebf11020f728 (table 3 direction rates, table 7 Fixpipe L0C->L1 BF16/FP16 128 B/cycle and INT8 64 B/cycle). The read-only sim-runner CANN 9.2.0 ini SHA ffd0e8d061db7fa8b3877bcbaf8151edac77abcf3a50df95b42b21e2332a9ca3 confirms 20 AIC/40 AIV, 64 GiB, ddr_read 32, ub_to_ddr 64, cube_freq 1500 and has only AICoreMemoryRates, with no AIV-specific rates; the retained CANN 9.1beta1 ini SHA 5135cf6bc5e2eb56811917c9010341eb3946b5a3c2b51baab7fa775ffffc315c is preserved in data/verification/a3-9362-platform-metadata-20261029.json.",
+      "pipeline_rates": "nominal analytical supply from the configured 1.65 GHz clock and pinned public instruction tables; these are not measured peaks, do not replace the configured clock with the platform ini 1500 MHz, and are not fitted from observed model gaps",
+      "profile": "registered SKU geometry and nominal rates",
+      "source_discrepancy": "the read-only CANN 9.2.0 ini reports only AICoreMemoryRates l1_to_l0_a/l1_to_l0_b at 512/256 B/cycle, while the pinned public instruction table documents 256/128 B/cycle. The profile chooses the documented instruction 256/128 and preserves this discrepancy; no measurement is implied.",
+      "vector_issue": "one FP32 lane operation per cycle unless explicitly overridden"
+    },
+    "original_device_overrides": {
+      "hbm_gib": 64,
+      "cube_flops_per_s": 270336000000000.0,
+      "vector_ops_per_s": 8448000000000.0,
+      "hbm_bw_bytes_per_s": 1200000000000.0,
+      "mte_bw_bytes_per_s": 2400000000000.0,
+      "launch_us": 20.0,
+      "l2_bytes": 176160768,
+      "aic_count": 20,
+      "aiv_count": 40
+    }
+  },
+  "totals": {
+    "distinct_capture_sources": 2,
+    "all_sparse_events": 292,
+    "selected_compared_events": 141,
+    "reference_only_events": 0,
+    "occurrence_bound_events": 0,
+    "compared_cohorts": 2,
+    "accuracy_pass_cohorts": 0,
+    "accuracy_fail_cohorts": 2,
+    "remaining_sparse_events": 151
+  },
+  "cases": [
+    {
+      "capture_key": "a3_v4f",
+      "variant": "source_scfa_offchip_conditional",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4f-prefill/raw/pre4096.kernel_details.csv",
+        "size_bytes": 1391917,
+        "mtime_ns": 1792795906356307712,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "b56b7439213cc9f76eaae63347393d4add6ae5c985bf28a6a7737f5783c81788"
+      },
+      "graph_id": "sha256:41ed867cb195edc2bbc730300591c194c001c8e2ed666253e2c6ab597934b733",
+      "selected_source_target_count": 21,
+      "other_sparse_cohort_events": 23,
+      "occurrence_bound_events": 0,
+      "elapsed_seconds": 10.780461125075817,
+      "maximum_resident_set_size_bytes": 93732864,
+      "runtime_source_unchanged": true,
+      "geometry": {
+        "phase": "prefill",
+        "tokens": 4096,
+        "context": 0,
+        "sequences": 1
+      },
+      "case_source": {
+        "case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/v4f-a3-w8a8-tp8.json",
+        "case_sha256": "2445cf26fce3d99f00de416dc3c79539183c33d328aecde973f1b1500dc1fce3",
+        "historical_case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/v4f-a3-w8a8-tp8.json"
+      },
+      "source_shape": {
+        "branch": "SCFA",
+        "query": 4096,
+        "context": 0,
+        "window": 128,
+        "cmp_ratio": 4,
+        "topk": 512,
+        "heads": 8,
+        "width": 512,
+        "cp": 1,
+        "pcp": 1,
+        "query_dtype": "bf16",
+        "cache_dtype": "bf16",
+        "sparse_block_size": 1,
+        "output_dtype": "bf16",
+        "query_layout": "TND",
+        "cache_layout": "PA_ND",
+        "kv_heads": 1,
+        "sequences": 1,
+        "views": 1,
+        "owner_schedule": "one_query_per_core",
+        "selected_rows": "valid_prefix",
+        "sinks_dtype": "fp32",
+        "metadata_s2_split": false,
+        "return_softmax_lse": false
+      },
+      "complete_capture_event_count": 4064,
+      "all_sparse_events": 44,
+      "selected_compared_events": 21,
+      "sparse_events_excluded_from_cohorts": 0,
+      "comparison": {
+        "cohort_id": "sha256:9a01c1e675c4c847f4f30ace8860d3ef9799dc5f40a7304f3d01cc1bca7f41dd",
+        "physical_signature": "sha256:b8ac49759de4066a52fe37293469e2c9297168b6180288709336848a36599a5f",
+        "status": "compared",
+        "reason": "same_declared_single_program_boundary",
+        "observed_per_call_us": 3738.518619047619,
+        "predicted_per_call_us": 7037.370577617591,
+        "per_call_diff_us": 3298.8519585699723,
+        "abs_error_per_call_us": 3298.8519585699723,
+        "accuracy_tier": "relative_15pct",
+        "accuracy_status": "outside_tolerance",
+        "accuracy_pass": false,
+        "accuracy_tolerance": {
+          "unit": "ratio",
+          "value": 0.15
+        },
+        "accuracy_policy": "mindie-sim.cohort-accuracy/1",
+        "contract_scope": "active_query_output_and_cache_head_descriptors; cache_capacity_page_size_sequence_and_index_tensors_sink_and_dispatch_not_compared; no_kernel_implementation_or_occurrence_proof",
+        "multiplicity": {
+          "observed_calls": 21,
+          "declared_instances": 21,
+          "declared_candidate_instances": 21,
+          "calls_per_declared_instance": 1.0,
+          "steps_in_window": null,
+          "basis": "window_counts_not_layer_binding; step_label_is_not_completeness_evidence",
+          "instance_scope": "single_declared_replica"
+        },
+        "occurrence_binding_implied": false,
+        "relative_error": 0.8823954872827005
+      },
+      "resource_audit": {
+        "source_work": {
+          "matrix": {
+            "bf16": 68971134976
+          },
+          "resources": {
+            "mte1": 4865130496,
+            "mte3": 1744658432,
+            "vector": 235994512,
+            "mte2_aiv": 1879229696,
+            "mte2_aic": 4377773056,
+            "fixpipe": 403046400,
+            "hbm": 8417286400
+          }
+        },
+        "aggregate_resource_lower_bounds_us": {
+          "mte1": 1151.782787878788,
+          "mte3": 726.9410133333333,
+          "vector": 27.93495643939394,
+          "mte2_aiv": 889.7867878787879,
+          "mte2_aic": 4145.618424242424,
+          "fixpipe": 95.41818181818182,
+          "hbm": 7014.405333333334
+        },
+        "fixed_owner_lower_bounds_us": {
+          "mte2_aic": 4159.049393939394,
+          "mte1": 1155.3163636363636,
+          "fixpipe": 95.60242424242425,
+          "mte2_aiv": 1147.520606060606,
+          "vector": 56.005909090909086,
+          "mte3": 897.4677333333333
+        },
+        "matrix_lower_bounds_us": {
+          "bf16": 255.13115151515152
+        },
+        "execution_minus_hbm_bound_us": 22.965244284257096,
+        "hbm_bound_fraction_of_prediction": 0.9967366725922749,
+        "useful_kv_rows_by_branch": {
+          "ori": 516160,
+          "cmp": 1572352
+        },
+        "source_tile_counts_by_branch": {
+          "ori": 4096,
+          "cmp": 4093
+        },
+        "executed_minus_declared_source_work": {
+          "mte1": 0.0006103515625,
+          "mte3": -6.222724914550781e-05,
+          "vector": 5.960464477539063e-08,
+          "mte2_aiv": 7.987022399902344e-05,
+          "mte2_aic": -0.0019426345825195312,
+          "fixpipe": 4.112720489501953e-06,
+          "hbm": -0.0029144287109375
+        },
+        "exported_cohort_physical_work": {
+          "flops": 34218180608.0,
+          "hbm_bytes": 1687681024.0,
+          "mte2_bytes": 1654126592.0,
+          "mte3_bytes": 33554432.0,
+          "vector_ops": 83540480.0,
+          "link_bytes": 0.0,
+          "matrix_flops": {},
+          "launches": 1
+        },
+        "input_artifact_hashes_verified": true,
+        "runtime_recorded_source_hashes_verified": true
+      },
+      "artifacts": {
+        "case": {
+          "file": "scfa-final-a3_v4f.case.json",
+          "sha256": "a6e483a9ac12b4fc33adf6e7bba5f60fba4fa0162e7117b4700dc0fd7ef9ed9f",
+          "size_bytes": 7027,
+          "path": "/tmp/scfa-final-a3_v4f.case.json"
+        },
+        "mapping": {
+          "file": "scfa-final-a3_v4f.mapping.json",
+          "sha256": "606c4a53ac6445ea7175c8519c24027d396bc320f7c9b4108b6a2bee9b2487ae",
+          "size_bytes": 373853,
+          "path": "/tmp/scfa-final-a3_v4f.mapping.json"
+        },
+        "comparison_input": {
+          "file": "scfa-final-a3_v4f.comparison-input.json",
+          "sha256": "ebe06452d267ca3249432f3b1214cab011d30d1376c55264cc461445e8bd17e9",
+          "size_bytes": 254677,
+          "path": "/tmp/scfa-final-a3_v4f.comparison-input.json"
+        },
+        "comparison": {
+          "file": "scfa-final-a3_v4f.comparison.json",
+          "sha256": "9abc1931eae79e75af3e7a492db07e6ef621227cda119d52c575f1e496394195",
+          "size_bytes": 56182,
+          "path": "/tmp/scfa-final-a3_v4f.comparison.json"
+        }
+      },
+      "focused_receipt": {
+        "path": "/tmp/scfa-final-a3_v4f.json",
+        "sha256": "6beb3a356ec6f1ce298050604fb9284c46623eb6953fae644b76af02ae8025b9",
+        "size_bytes": 76277
+      }
+    },
+    {
+      "capture_key": "a3_v4pro",
+      "variant": "source_scfa_offchip_conditional",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4pro-prefill/raw/pre4096.kernel_details.csv",
+        "size_bytes": 8274767,
+        "mtime_ns": 1792801452077404970,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "5ffe5625942e4caf787ce047438576527b8513452d6dd6871b24682a19968abd"
+      },
+      "graph_id": "sha256:6a4cd198da22737b82e1c2158e8b2acfcadd2c79476a1b451e8cb3fd8fd77eef",
+      "selected_source_target_count": 30,
+      "other_sparse_cohort_events": 124,
+      "occurrence_bound_events": 0,
+      "elapsed_seconds": 5.504538083914667,
+      "maximum_resident_set_size_bytes": 115933184,
+      "runtime_source_unchanged": true,
+      "geometry": {
+        "phase": "prefill",
+        "tokens": 1024,
+        "context": 0,
+        "sequences": 1
+      },
+      "case_source": {
+        "case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/v4pro-a3-w4a8-tp16.json",
+        "case_sha256": "10707301e6c3645626661748ad57ca6a340b78eed383259ee92ee0fd1bd642f1",
+        "historical_case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/v4pro-a3-w4a8-tp16.json"
+      },
+      "source_shape": {
+        "branch": "SCFA",
+        "query": 1024,
+        "context": 0,
+        "window": 128,
+        "cmp_ratio": 4,
+        "topk": 1024,
+        "heads": 8,
+        "width": 512,
+        "cp": 1,
+        "pcp": 1,
+        "query_dtype": "bf16",
+        "cache_dtype": "bf16",
+        "sparse_block_size": 1,
+        "output_dtype": "bf16",
+        "query_layout": "TND",
+        "cache_layout": "PA_ND",
+        "kv_heads": 1,
+        "sequences": 1,
+        "views": 1,
+        "owner_schedule": "one_query_per_core",
+        "selected_rows": "valid_prefix",
+        "sinks_dtype": "fp32",
+        "metadata_s2_split": false,
+        "return_softmax_lse": false
+      },
+      "complete_capture_event_count": 24271,
+      "all_sparse_events": 248,
+      "selected_compared_events": 120,
+      "sparse_events_excluded_from_cohorts": 4,
+      "comparison": {
+        "cohort_id": "sha256:fa1afea7d3a759a5bf291c399d39871f9230e0b8d9b38b04ff3e35398f24b388",
+        "physical_signature": "sha256:9faac93d98053784e3dd4f19abbfffea92c6729965a76f2a72e6a5e68db74ad3",
+        "status": "compared",
+        "reason": "same_declared_single_program_boundary",
+        "observed_per_call_us": 1180.3460416666667,
+        "predicted_per_call_us": 835.6003708140373,
+        "per_call_diff_us": -344.74567085262936,
+        "abs_error_per_call_us": 344.74567085262936,
+        "accuracy_tier": "relative_15pct",
+        "accuracy_status": "outside_tolerance",
+        "accuracy_pass": false,
+        "accuracy_tolerance": {
+          "unit": "ratio",
+          "value": 0.15
+        },
+        "accuracy_policy": "mindie-sim.cohort-accuracy/1",
+        "contract_scope": "active_query_output_and_cache_head_descriptors; cache_capacity_page_size_sequence_and_index_tensors_sink_and_dispatch_not_compared; no_kernel_implementation_or_occurrence_proof",
+        "multiplicity": {
+          "observed_calls": 120,
+          "declared_instances": 30,
+          "declared_candidate_instances": 30,
+          "calls_per_declared_instance": 4.0,
+          "steps_in_window": null,
+          "basis": "window_counts_not_layer_binding; step_label_is_not_completeness_evidence",
+          "instance_scope": "single_declared_replica"
+        },
+        "occurrence_binding_implied": false,
+        "relative_error": -0.2920716965050716,
+        "population_scope": "context_0_source_declaration_vs_complete_capture_population; not_verified_same_context_error"
+      },
+      "resource_audit": {
+        "source_work": {
+          "matrix": {
+            "bf16": 8598323200
+          },
+          "resources": {
+            "mte1": 612827136,
+            "mte3": 163418112,
+            "vector": 41794960,
+            "mte2_aiv": 192881920,
+            "mte2_aic": 540513280,
+            "fixpipe": 83804160,
+            "hbm": 981664000
+          }
+        },
+        "aggregate_resource_lower_bounds_us": {
+          "mte1": 145.08218181818182,
+          "mte3": 68.09088,
+          "vector": 4.947320075757576,
+          "mte2_aiv": 91.32666666666667,
+          "mte2_aic": 511.849696969697,
+          "fixpipe": 19.84,
+          "hbm": 818.0533333333334
+        },
+        "fixed_owner_lower_bounds_us": {
+          "mte2_aic": 520.0175757575757,
+          "mte1": 147.40363636363637,
+          "fixpipe": 20.174545454545452,
+          "mte2_aiv": 186.3569696969697,
+          "vector": 10.05939393939394,
+          "mte3": 139.01653333333334
+        },
+        "matrix_lower_bounds_us": {
+          "bf16": 31.80606060606061
+        },
+        "execution_minus_hbm_bound_us": 17.54703748070392,
+        "hbm_bound_fraction_of_prediction": 0.9790006825109356,
+        "useful_kv_rows_by_branch": {
+          "ori": 122944,
+          "cmp": 130816
+        },
+        "source_tile_counts_by_branch": {
+          "ori": 1024,
+          "cmp": 1021
+        },
+        "executed_minus_declared_source_work": {
+          "mte1": 4.088878631591797e-05,
+          "mte3": -6.765127182006836e-06,
+          "vector": -4.0978193283081055e-07,
+          "mte2_aiv": 1.7404556274414062e-05,
+          "mte2_aic": -4.1604042053222656e-05,
+          "fixpipe": -2.980232238769531e-07,
+          "hbm": 0.0002703666687011719
+        },
+        "exported_cohort_physical_work": {
+          "flops": 4157603840.0,
+          "hbm_bytes": 152304640.0,
+          "mte2_bytes": 143916032.0,
+          "mte3_bytes": 8388608.0,
+          "vector_ops": 10150400.0,
+          "link_bytes": 0.0,
+          "matrix_flops": {},
+          "launches": 1
+        },
+        "input_artifact_hashes_verified": true,
+        "runtime_recorded_source_hashes_verified": true
+      },
+      "artifacts": {
+        "case": {
+          "file": "scfa-final-a3_v4pro.case.json",
+          "sha256": "60f8599974beb6152a4ba86fe8f9180d155131641d111139ce85868f8001ec2a",
+          "size_bytes": 10359,
+          "path": "/tmp/scfa-final-a3_v4pro.case.json"
+        },
+        "mapping": {
+          "file": "scfa-final-a3_v4pro.mapping.json",
+          "sha256": "4e4420043e7223ff428e945f90f530482c2c3e38335f24b60607dd5a18d7ee70",
+          "size_bytes": 436806,
+          "path": "/tmp/scfa-final-a3_v4pro.mapping.json"
+        },
+        "comparison_input": {
+          "file": "scfa-final-a3_v4pro.comparison-input.json",
+          "sha256": "958b8477ff7f3202988debde051d139f2691b2d5eec88cb03008a3661a75d281",
+          "size_bytes": 315594,
+          "path": "/tmp/scfa-final-a3_v4pro.comparison-input.json"
+        },
+        "comparison": {
+          "file": "scfa-final-a3_v4pro.comparison.json",
+          "sha256": "c6722d0ec8a58430925c9106466275c9c351f3119c8222da4f802d3e281b7867",
+          "size_bytes": 89705,
+          "path": "/tmp/scfa-final-a3_v4pro.comparison.json"
+        }
+      },
+      "focused_receipt": {
+        "path": "/tmp/scfa-final-a3_v4pro.json",
+        "sha256": "a4a883f0df28b6bf5235bf742ce7baf2f124d31a3514dee4064f73c6a3ffa6b8",
+        "size_bytes": 112664
+      },
+      "context_scenarios": {
+        "independent_prompt_tokens": 4096,
+        "independent_max_batch_tokens": 1024,
+        "candidate_declared_contexts": [
+          0,
+          1024,
+          2048,
+          3072
+        ],
+        "scenarios_predicted_here": [
+          0
+        ],
+        "per_event_context_assignment": null,
+        "timing_used_to_select_context": false
+      }
+    }
+  ],
+  "limitations": [
+    "Source conditions do not prove captured kernel dispatch, scalar options, phase, context, index values, or layer occurrence.",
+    "Only the indexed SCFA descriptor subset is priced here. SWA/CFA are separate programs; 4 V4Pro empty-compressed-cache events remain outside tensor cohorts.",
+    "Observed complete-event means greater than 50 us use 15 percent relative tolerance; no prediction floor is added by the accuracy policy. The model separately retains device completion minimum and host launch declarations.",
+    "The directly selected SCFA node exports its semantic envelope as physical_work_per_instance; actual prediction uses Prepared source Work. The exported envelope must not be used as the source resource ledger.",
+    "Both cases use context=0, one sequence, valid-prefix selected rows, one query per core, and offchip scratch. Capture descriptors do not establish these scalar conditions.",
+    "The full campaign receipt is separate; these focused results do not claim completion or accuracy of that campaign."
+  ],
+  "source_work_export_gap": {
+    "file": "mindie_sim/structure.py",
+    "function": "export_structure",
+    "prepare_guard": "fusion_group_key",
+    "prediction_source": "mindie_sim/prediction/mechanism.py:PlannedRecipe.prepare",
+    "impact": "Exported semantic work differs from correctly executed source plan; no heterogeneous grouping corruption demonstrated for these homogeneous source-target cohorts.",
+    "fix_included": false
+  },
+  "audit": {
+    "scope": "read existing comparison and recompute source Work only; no raw scans or timing predictions",
+    "elapsed_seconds": 0.348550874972716,
+    "peak_rss_bytes": 53870592,
+    "source_artifact": {
+      "path": "/tmp/scfa-mechanism-audit.json",
+      "sha256": "ab62f8e208fb28baf5134a4a502df055df49e249f98675a5fcc452bcdff6be5e"
+    }
+  },
+  "primary_report_links": [
+    "cohort-full-family-replay.md",
+    "fusion-cohort-replay-top-errors.md",
+    "fusion-cohort-large-call-errors.md"
+  ],
+  "historical_descriptor_evidence": "heterogeneous-sparse-coverage.md"
+}
