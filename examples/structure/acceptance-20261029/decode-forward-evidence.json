@@ -1,0 +1,258 @@
+{
+  "schema_version": "mindie-decode-forward-evidence/1",
+  "status": "completed",
+  "data_root": "/Volumes/data/mindie-sim-data",
+  "latest_date_directories": {
+    "a3": "2026-10-25",
+    "a5": "2026-10-25"
+  },
+  "cases": [
+    {
+      "case_id": "a5_qwen36_p126976_c1_hold",
+      "graph_envelopes_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261029/decode-graph-a5_qwen36-p126976_c1_hold.json",
+      "graph_occurrences": 242,
+      "unmatched_markers": 0,
+      "request_input_len": 126976,
+      "request_concurrency": 1,
+      "graph_execution_groups": [
+        {
+          "observed_model_ids": "30",
+          "count": 121,
+          "mean_ms": 3.780232867768595,
+          "p50_ms": 3.779702,
+          "p90_ms": 3.786663
+        },
+        {
+          "observed_model_ids": "31",
+          "count": 121,
+          "mean_ms": 25.302806818181818,
+          "p50_ms": 25.232906,
+          "p90_ms": 25.328025
+        }
+      ]
+    },
+    {
+      "case_id": "a5_qwen36_p126976_c4_hold",
+      "graph_envelopes_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261029/decode-graph-a5_qwen36-p126976_c4_hold.json",
+      "graph_occurrences": 352,
+      "unmatched_markers": 0,
+      "request_input_len": 126976,
+      "request_concurrency": 4,
+      "graph_execution_groups": [
+        {
+          "observed_model_ids": "34",
+          "count": 176,
+          "mean_ms": 3.9646768011363633,
+          "p50_ms": 3.964433,
+          "p90_ms": 3.973242
+        },
+        {
+          "observed_model_ids": "35",
+          "count": 176,
+          "mean_ms": 26.678599732954545,
+          "p50_ms": 26.682677,
+          "p90_ms": 26.798517
+        }
+      ]
+    },
+    {
+      "case_id": "a5_qwen36_p16384_c1_hold",
+      "graph_envelopes_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261029/decode-graph-a5_qwen36-p16384_c1_hold.json",
+      "graph_occurrences": 342,
+      "unmatched_markers": 0,
+      "request_input_len": 16384,
+      "request_concurrency": 1,
+      "graph_execution_groups": [
+        {
+          "observed_model_ids": "30",
+          "count": 171,
+          "mean_ms": 1.5412264327485379,
+          "p50_ms": 1.36619,
+          "p90_ms": 2.387656
+        },
+        {
+          "observed_model_ids": "31",
+          "count": 171,
+          "mean_ms": 12.055129485380117,
+          "p50_ms": 12.126933,
+          "p90_ms": 12.246094
+        }
+      ]
+    },
+    {
+      "case_id": "a5_qwen36_p16384_c4_hold",
+      "graph_envelopes_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261029/decode-graph-a5_qwen36-p16384_c4_hold.json",
+      "graph_occurrences": 362,
+      "unmatched_markers": 0,
+      "request_input_len": 16384,
+      "request_concurrency": 4,
+      "graph_execution_groups": [
+        {
+          "observed_model_ids": "34",
+          "count": 181,
+          "mean_ms": 1.5895943922651934,
+          "p50_ms": 1.58847,
+          "p90_ms": 1.594678
+        },
+        {
+          "observed_model_ids": "35",
+          "count": 181,
+          "mean_ms": 13.650284994475138,
+          "p50_ms": 13.649505,
+          "p90_ms": 13.729639
+        }
+      ]
+    },
+    {
+      "case_id": "a5_qwen36_p4096_c1_hold",
+      "graph_envelopes_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261029/decode-graph-a5_qwen36-p4096_c1_hold.json",
+      "graph_occurrences": 364,
+      "unmatched_markers": 0,
+      "request_input_len": 4096,
+      "request_concurrency": 1,
+      "graph_execution_groups": [
+        {
+          "observed_model_ids": "30",
+          "count": 182,
+          "mean_ms": 1.8098433021978022,
+          "p50_ms": 1.487827,
+          "p90_ms": 2.794142
+        },
+        {
+          "observed_model_ids": "31",
+          "count": 182,
+          "mean_ms": 10.569126631868132,
+          "p50_ms": 10.654659,
+          "p90_ms": 10.780908
+        }
+      ]
+    },
+    {
+      "case_id": "a5_qwen36_p4096_c4_hold",
+      "graph_envelopes_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261029/decode-graph-a5_qwen36-p4096_c4_hold.json",
+      "graph_occurrences": 338,
+      "unmatched_markers": 0,
+      "request_input_len": 4096,
+      "request_concurrency": 4,
+      "graph_execution_groups": [
+        {
+          "observed_model_ids": "34",
+          "count": 169,
+          "mean_ms": 1.594355372781065,
+          "p50_ms": 1.258563,
+          "p90_ms": 2.302573
+        },
+        {
+          "observed_model_ids": "35",
+          "count": 169,
+          "mean_ms": 12.076910810650887,
+          "p50_ms": 12.041938,
+          "p90_ms": 12.143699
+        }
+      ]
+    },
+    {
+      "case_id": "a5_qwen36_p65536_c1_hold",
+      "graph_envelopes_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261029/decode-graph-a5_qwen36-p65536_c1_hold.json",
+      "graph_occurrences": 274,
+      "unmatched_markers": 0,
+      "request_input_len": 65536,
+      "request_concurrency": 1,
+      "graph_execution_groups": [
+        {
+          "observed_model_ids": "30",
+          "count": 137,
+          "mean_ms": 2.483824204379562,
+          "p50_ms": 2.483841,
+          "p90_ms": 2.489069
+        },
+        {
+          "observed_model_ids": "31",
+          "count": 137,
+          "mean_ms": 17.832785912408756,
+          "p50_ms": 17.827785,
+          "p90_ms": 17.927751
+        }
+      ]
+    },
+    {
+      "case_id": "a5_qwen36_p65536_c4_hold",
+      "graph_envelopes_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261029/decode-graph-a5_qwen36-p65536_c4_hold.json",
+      "graph_occurrences": 366,
+      "unmatched_markers": 0,
+      "request_input_len": 65536,
+      "request_concurrency": 4,
+      "graph_execution_groups": [
+        {
+          "observed_model_ids": "34",
+          "count": 183,
+          "mean_ms": 2.6388057103825138,
+          "p50_ms": 2.638474,
+          "p90_ms": 2.644872
+        },
+        {
+          "observed_model_ids": "35",
+          "count": 183,
+          "mean_ms": 19.162225956284153,
+          "p50_ms": 19.143633,
+          "p90_ms": 19.248715
+        }
+      ]
+    }
+  ],
+  "body_forward_span_ms": null,
+  "per_layer_ms": null,
+  "limitations": [
+    "Graph execution envelopes include internal waits/communication; only between-graph gaps are absent.",
+    "Temporal Model ID containment does not identify body, embedding, layer, or MTP scope.",
+    "Existing Q36 request scenarios have prefix caching disabled and do not verify forced balancing/0.8 acceptance/DSpark.",
+    "Old sampler-marker/gdn-gap reductions are heuristics, not exact layer boundaries.",
+    "Full-model Q35 and Q38 exports retain kernel CSVs but commonly omit Host DB/task exports."
+  ],
+  "elapsed_seconds": 20.13,
+  "maximum_resident_set_size_raw": 35323904,
+  "candidate_csv_inventory": {
+    "a3/2026-10-23/decode-attn": {
+      "csv_count": 12,
+      "bytes": 103627396
+    },
+    "a3/2026-10-23/decode-attn-short": {
+      "csv_count": 24,
+      "bytes": 200949656
+    },
+    "a3/2026-10-23/qwen35-gdn": {
+      "csv_count": 14,
+      "bytes": 764934082
+    },
+    "a3/2026-10-23/qwen36-rows": {
+      "csv_count": 8,
+      "bytes": 217435239
+    },
+    "a5/2026-10-22/qwen35-decode-attn": {
+      "csv_count": 10,
+      "bytes": 151625533
+    },
+    "a5/2026-10-22/qwen35-grouped": {
+      "csv_count": 8,
+      "bytes": 419550814
+    },
+    "a5/2026-10-22/qwen35-prefill-attn": {
+      "csv_count": 6,
+      "bytes": 53866333
+    },
+    "a5/2026-10-22/qwen38-c4-16k": {
+      "csv_count": 3,
+      "bytes": 87086183
+    },
+    "a5/2026-10-22/qwen38-c4attn": {
+      "csv_count": 2,
+      "bytes": 78344203
+    },
+    "a5/2026-10-24/qwen38-c8": {
+      "csv_count": 8,
+      "bytes": 293291403
+    }
+  },
+  "inventory_scope": "discovery_candidates; campaign model scope requires separate verification",
+  "graph_execution_percentile_method": "sorted_values[round(p * (n - 1))]; Python round; no interpolation"
+}

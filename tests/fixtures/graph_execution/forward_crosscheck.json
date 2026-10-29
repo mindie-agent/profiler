@@ -1,0 +1,278 @@
+{
+  "schema_version": "mindie-real-graph-crosscheck-fixture/1",
+  "source_artifacts": [
+    {
+      "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261029/auto-forward-a5_qwen36_p4096_c1_hold.json",
+      "sha256": "f1af07187ed36ca690c6830af7b67f8b15ab7144de1fc9c4d2f7d8a0a9daa3df"
+    },
+    {
+      "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261029/decode-graph-a5_qwen36-p4096_c1_hold.json",
+      "sha256": "23a11778254051881218e5cfeea110b254d583fcb776479b74eacc3033f67666"
+    }
+  ],
+  "observed": {
+    "source_identity": {
+      "path": "/Volumes/data/mindie-sim-data/a5/2026-10-23/qwen36-attn/traces/p4096_c1_hold/op_summary.csv.gz",
+      "size_bytes": 27930261,
+      "mtime_ns": 1792730801000000000,
+      "schema_version": "kernel_details_csv_48col",
+      "sha256": "c08c3058f507ecee22c0f6d9e47e8865b439c544ad5fccad73a0481fe49e36f3"
+    },
+    "forwards": [
+      {
+        "forward_id": "auto:0",
+        "phase": "decode",
+        "status": "measured",
+        "basis": "structure_guided_topology_alignment",
+        "body_forward_span_ms": 10.301681,
+        "geometry": {
+          "query_rows": 4,
+          "sequences_per_replica": 1,
+          "tokens_per_sequence": 4,
+          "context_tokens": null,
+          "batch_basis": "captured_paged_attention_block_table_rows",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "start_ns": 1792729149280522581,
+        "end_ns": 1792729149290824262,
+        "rank_id": "",
+        "device_id": "6",
+        "head_start_ns": 1792729149290855312,
+        "head_end_ns": 1792729149290950658,
+        "query_rows": 4,
+        "closed_segment_event_count": 1945,
+        "stage_count": 68,
+        "stage_details_retained": true
+      },
+      {
+        "forward_id": "auto:1",
+        "phase": "decode",
+        "status": "measured",
+        "basis": "structure_guided_topology_alignment",
+        "body_forward_span_ms": 10.468239,
+        "geometry": {
+          "query_rows": 4,
+          "sequences_per_replica": 1,
+          "tokens_per_sequence": 4,
+          "context_tokens": null,
+          "batch_basis": "captured_paged_attention_block_table_rows",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "start_ns": 1792729149302254623,
+        "end_ns": 1792729149312722862,
+        "rank_id": "",
+        "device_id": "6",
+        "head_start_ns": 1792729149312754071,
+        "head_end_ns": 1792729149312849490,
+        "query_rows": 4,
+        "closed_segment_event_count": 1948,
+        "stage_count": 68,
+        "stage_details_retained": true
+      }
+    ],
+    "auxiliary_occurrences": [
+      {
+        "start_ns": 1792729149291368342,
+        "end_ns": 1792729149291924446,
+        "head_start_ns": 1792729149291828839,
+        "head_end_ns": 1792729149291924446,
+        "device_id": "6",
+        "rank_id": "",
+        "span_ms": 0.556104,
+        "query_rows": 1,
+        "anchor_count": 1,
+        "identity_status": "short_closed_subgraph_not_proven_mtp"
+      },
+      {
+        "start_ns": 1792729149292046935,
+        "end_ns": 1792729149292311097,
+        "head_start_ns": 1792729149292216196,
+        "head_end_ns": 1792729149292311097,
+        "device_id": "6",
+        "rank_id": "",
+        "span_ms": 0.264162,
+        "query_rows": 1,
+        "anchor_count": 1,
+        "identity_status": "short_closed_subgraph_not_proven_mtp"
+      },
+      {
+        "start_ns": 1792729149292416689,
+        "end_ns": 1792729149292683296,
+        "head_start_ns": 1792729149292587627,
+        "head_end_ns": 1792729149292683296,
+        "device_id": "6",
+        "rank_id": "",
+        "span_ms": 0.266607,
+        "query_rows": 1,
+        "anchor_count": 1,
+        "identity_status": "short_closed_subgraph_not_proven_mtp"
+      },
+      {
+        "start_ns": 1792729149313208067,
+        "end_ns": 1792729149313820840,
+        "head_start_ns": 1792729149313724514,
+        "head_end_ns": 1792729149313820840,
+        "device_id": "6",
+        "rank_id": "",
+        "span_ms": 0.612773,
+        "query_rows": 1,
+        "anchor_count": 1,
+        "identity_status": "short_closed_subgraph_not_proven_mtp"
+      },
+      {
+        "start_ns": 1792729149313942687,
+        "end_ns": 1792729149314207454,
+        "head_start_ns": 1792729149314112631,
+        "head_end_ns": 1792729149314207454,
+        "device_id": "6",
+        "rank_id": "",
+        "span_ms": 0.264767,
+        "query_rows": 1,
+        "anchor_count": 1,
+        "identity_status": "short_closed_subgraph_not_proven_mtp"
+      },
+      {
+        "start_ns": 1792729149314316516,
+        "end_ns": 1792729149314577766,
+        "head_start_ns": 1792729149314482405,
+        "head_end_ns": 1792729149314577766,
+        "device_id": "6",
+        "rank_id": "",
+        "span_ms": 0.26125,
+        "query_rows": 1,
+        "anchor_count": 1,
+        "identity_status": "short_closed_subgraph_not_proven_mtp"
+      }
+    ]
+  },
+  "graph_report": {
+    "operator_source": {
+      "path": "/Volumes/data/mindie-sim-data/a5/2026-10-23/qwen36-attn/traces/p4096_c1_hold/op_summary.csv.gz",
+      "size_bytes": 27930261,
+      "mtime_ns": 1792730801000000000,
+      "sha256": "c08c3058f507ecee22c0f6d9e47e8865b439c544ad5fccad73a0481fe49e36f3"
+    },
+    "windows": [
+      {
+        "kind": "graph_execution",
+        "semantic_role": "unresolved",
+        "device_id": "6",
+        "stream_id": "61",
+        "start_ns": 1792729149280519372,
+        "end_ns": 1792729149290851792,
+        "boundary_basis": "captured_consecutive_execute_completion_tasks",
+        "execute": {
+          "kind": "MODEL_EXECUTE",
+          "task_id": "361348",
+          "start_ns": 1792729149280519372,
+          "end_ns": 1792729149280525392,
+          "csv_line": 138
+        },
+        "completion": {
+          "kind": "MODEL_WAIT_COMPLETE",
+          "task_id": "361349",
+          "start_ns": 1792729149280539426,
+          "end_ns": 1792729149290851792,
+          "csv_line": 144
+        },
+        "body_forward_span_ms": null,
+        "per_layer_ms": null,
+        "occurrence_id": "graph-execution:0",
+        "observed_model_ids": {
+          "31": 1666
+        },
+        "dynamic_operator_count": 208
+      },
+      {
+        "kind": "graph_execution",
+        "semantic_role": "unresolved",
+        "device_id": "6",
+        "stream_id": "61",
+        "start_ns": 1792729149291322130,
+        "end_ns": 1792729149292705835,
+        "boundary_basis": "captured_consecutive_execute_completion_tasks",
+        "execute": {
+          "kind": "MODEL_EXECUTE",
+          "task_id": "361525",
+          "start_ns": 1792729149291322130,
+          "end_ns": 1792729149291328064,
+          "csv_line": 3422
+        },
+        "completion": {
+          "kind": "MODEL_WAIT_COMPLETE",
+          "task_id": "361526",
+          "start_ns": 1792729149291339072,
+          "end_ns": 1792729149292705835,
+          "csv_line": 3429
+        },
+        "body_forward_span_ms": null,
+        "per_layer_ms": null,
+        "occurrence_id": "graph-execution:1",
+        "observed_model_ids": {
+          "30": 161
+        },
+        "dynamic_operator_count": 8
+      },
+      {
+        "kind": "graph_execution",
+        "semantic_role": "unresolved",
+        "device_id": "6",
+        "stream_id": "61",
+        "start_ns": 1792729149302251421,
+        "end_ns": 1792729149312750334,
+        "boundary_basis": "captured_consecutive_execute_completion_tasks",
+        "execute": {
+          "kind": "MODEL_EXECUTE",
+          "task_id": "361682",
+          "start_ns": 1792729149302251421,
+          "end_ns": 1792729149302257457,
+          "csv_line": 3885
+        },
+        "completion": {
+          "kind": "MODEL_WAIT_COMPLETE",
+          "task_id": "361683",
+          "start_ns": 1792729149302269818,
+          "end_ns": 1792729149312750334,
+          "csv_line": 3891
+        },
+        "body_forward_span_ms": null,
+        "per_layer_ms": null,
+        "occurrence_id": "graph-execution:2",
+        "observed_model_ids": {
+          "31": 1666
+        },
+        "dynamic_operator_count": 208
+      },
+      {
+        "kind": "graph_execution",
+        "semantic_role": "unresolved",
+        "device_id": "6",
+        "stream_id": "61",
+        "start_ns": 1792729149313160076,
+        "end_ns": 1792729149314600490,
+        "boundary_basis": "captured_consecutive_execute_completion_tasks",
+        "execute": {
+          "kind": "MODEL_EXECUTE",
+          "task_id": "361859",
+          "start_ns": 1792729149313160076,
+          "end_ns": 1792729149313166184,
+          "csv_line": 7169
+        },
+        "completion": {
+          "kind": "MODEL_WAIT_COMPLETE",
+          "task_id": "361860",
+          "start_ns": 1792729149313178123,
+          "end_ns": 1792729149314600490,
+          "csv_line": 7176
+        },
+        "body_forward_span_ms": null,
+        "per_layer_ms": null,
+        "occurrence_id": "graph-execution:3",
+        "observed_model_ids": {
+          "30": 161
+        },
+        "dynamic_operator_count": 8
+      }
+    ]
+  }
+}

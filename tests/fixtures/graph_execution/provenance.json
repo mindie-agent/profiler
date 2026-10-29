@@ -1,0 +1,38 @@
+{
+  "schema_version": "mindie-real-fixture/1",
+  "sources": [
+    {
+      "path": "/Volumes/data/mindie-sim-data/a5/2026-10-23/qwen36-attn/traces/p4096_c1_hold/task_time.csv.gz",
+      "sha256": "bd9232cbe4814e4ff07333f0fc43412a1e0c9874d6cf2bbe7170e09b49f8c4af",
+      "fixture": "task_time.csv",
+      "source_csv_lines": [
+        138,
+        144,
+        3422,
+        3429,
+        3885,
+        3891,
+        7169,
+        7176
+      ]
+    },
+    {
+      "path": "/Volumes/data/mindie-sim-data/a5/2026-10-23/qwen36-attn/traces/p4096_c1_hold/op_summary.csv.gz",
+      "sha256": "c08c3058f507ecee22c0f6d9e47e8865b439c544ad5fccad73a0481fe49e36f3",
+      "fixture": "op_summary.csv",
+      "source_csv_lines": [
+        2,
+        3,
+        4,
+        71,
+        72,
+        73,
+        2043,
+        2044,
+        2045
+      ]
+    }
+  ],
+  "scope": "unaltered rows from one actual A5 Qwen3.6 serving capture; no semantic graph binding",
+  "fixture_serialization": "CSV cell values preserved; task fields quoted to retain native trailing tab cells with LF line endings"
+}
