@@ -44,8 +44,11 @@ def main():
                 subprocess.run(command, env=env, stdout=stream, stderr=subprocess.STDOUT,
                                check=True, timeout=300)
             print(json.dumps({'case_id': case['case_id'], 'status': 'extracted', 'log': str(log_path)}), flush=True)
-    subprocess.run([sys.executable, str(scripts / 'compare_body_operator_families.py'),
-                    '--output-dir', str(args.output_dir)], env=env, check=True, timeout=900)
+    with (args.output_dir / 'comparison.log').open('w') as stream:
+        subprocess.run([sys.executable, str(scripts / 'compare_body_operator_families.py'),
+                        '--output-dir', str(args.output_dir)], env=env, check=True, timeout=900,
+                       stdout=stream, stderr=subprocess.STDOUT)
+    print(json.dumps({'status': 'compared', 'output_dir': str(args.output_dir)}), flush=True)
 
 
 if __name__ == '__main__':
