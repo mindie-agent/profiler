@@ -1,0 +1,30 @@
+{
+  "schema_version": "mindie-body-operator-independent-review/1",
+  "status": "passed",
+  "checks": 781,
+  "failures": [],
+  "scoreboard_sha256": "aaaa97d5505c5cc8d6b4d44decae3d3ab0074e973204896ae47f2aa42f2a9d7b",
+  "steady_layer_pooled_sha256": null,
+  "source_count": 1,
+  "forward_count": 152,
+  "comparison_status_counts": {
+    "compared": 18
+  },
+  "accuracy_by_tier": {
+    "absolute_15us": {
+      "compared": 18,
+      "passed": 18
+    }
+  },
+  "cases": [
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1 / v41-dp8",
+      "passed": 18,
+      "compared": 18
+    }
+  ],
+  "method": "independent stdlib histogram/count/identity arithmetic; no profiler or Sim import",
+  "raw_capture_reads": 0,
+  "prediction_executions": 0,
+  "script_sha256": "a78c05e391fda8e90dde248aee25f2f84a4c70d5472a42c1a0b44889306c9b78"
+}

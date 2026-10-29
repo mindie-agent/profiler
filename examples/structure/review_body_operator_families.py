@@ -76,6 +76,28 @@ for case in report['cases']:
    near(family['scored_observed_mean_us'],observed,familylabel+':weighted_observation')
    near(family['per_call_diff_us'],predicted-observed,familylabel+':signed_diff')
   if family['status']=='reference_only':eq(family['compared_cohort_count'],0,familylabel+':reference_excluded')
+  references=family.get('conditional_source_role_references', [])
+  if references:
+   eq(sum(group['observed_us']['count'] for group in references),family['observed_us']['count'],familylabel+':source_reference_population')
+   pooled_hist=Counter()
+   for group in references:
+    glabel=familylabel+':'+group['group_id']
+    verify_stats(group['observed_us'],group['duration_ns_counter'],1000,glabel)
+    histogram=Counter({int(value):int(n) for value,n in group['duration_ns_counter']});pooled_hist.update(histogram)
+    activity=sum(value*n for value,n in histogram.items())
+    eq(group['observed_activity_sum_ns'],activity,glabel+':source_reference_activity_ns')
+    near(group['observed_activity_ms_per_forward'],activity/1e6/case['forward_count'],glabel+':source_reference_activity_per_forward')
+    near(group['predicted_service_ms_per_forward'],group['predicted_reference_us']/1000*sum(histogram.values())/case['forward_count'],glabel+':source_reference_service_per_forward')
+    near(group['per_call_reference_diff_us'],group['predicted_reference_us']-group['observed_us']['mean'],glabel+':source_reference_difference')
+    eq(group['additional_budget_allowed'],False,glabel+':source_reference_no_extra_work')
+    eq(group['occurrence_binding_implied'],False,glabel+':source_reference_not_host_binding')
+    check('accuracy_pass' not in group,glabel+':source_reference_no_strict_accuracy')
+    relation=group['source_correspondence']
+    if relation['boundary_relation']=='capacity_vs_valid_rows_conditional':
+     eq(relation['observed_valid_routed_rows'],None,glabel+':capacity_does_not_prove_routed_rows')
+    if 'communication_bandwidth_calibration_allowed' in relation:
+     eq(relation['communication_bandwidth_calibration_allowed'],False,glabel+':native_peer_wait_not_bandwidth')
+   eq(pooled_hist,Counter({int(value):int(n) for value,n in family['duration_ns_counter']}),familylabel+':source_reference_exact_histogram_partition')
   if family['native_operator_type'].startswith('hcom_'):
    reference=family['conditional_program_reference']
    if reference['status']=='reference_only':eq(reference['communication_bandwidth_calibration_allowed'],False,familylabel+':no_peer_wait_bandwidth_fit')

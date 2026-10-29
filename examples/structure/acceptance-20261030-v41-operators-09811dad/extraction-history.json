@@ -1,0 +1,35 @@
+{
+  "schema_version": "mindie-body-operator-extraction-history/1",
+  "prior_diagnostic": {
+    "status": "completed_diagnostic_not_final_accuracy",
+    "artifact": {
+      "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators/body-operator-a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1-v41-dp8.actual.json",
+      "sha256": "2869edf0aef08f37a21af5e7a4a2eccce96dd50516071dafcebe47f333c2fceb"
+    },
+    "conditional_context_tokens": 1,
+    "forward_count": 152,
+    "elapsed_seconds": 52.967,
+    "maximum_resident_set_size_bytes": 362987520,
+    "limitations": [
+      "Workload placeholder context1 does not represent profiled2048 context.",
+      "ND FP8 matrix support and native component source-role references were not yet available."
+    ]
+  },
+  "current_generation": {
+    "sim_commit": "09811dad268203b6d021e01715b1c245d877c40f",
+    "profiler_reference_commit": "8de7807",
+    "context_tokens": 2048,
+    "reason_for_c1_source_reread": "Validate ND FP8 contract repair and native component references using corrected independent profiled context.",
+    "serial_process_interruption": {
+      "exit_code": 130,
+      "requested_after_complete_sources": [
+        "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1"
+      ],
+      "reason": "Release shared profiler core for sibling Kimi segmentation fixes; c1 outputs completed before interruption.",
+      "subsequent_sources_completed": [],
+      "partially_read_source": "a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8",
+      "partial_source_outputs_saved": false,
+      "partial_source_rows_read": null
+    }
+  }
+}
