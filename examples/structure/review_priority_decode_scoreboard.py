@@ -111,6 +111,8 @@ def review(path):
         return result
 
     body = index(report["body_comparisons"], ["case_id"])
+    selected_body_keys = {(row["receipt"]["path"], row["case_id"]) for row in report["current_body_comparisons"]
+                          if row["comparison"]["status"] == "compared"}
     family = index(report["operator_families"],
                    ["case_id", "native_operator_type", "declared_role"])
     cohort = index(report["operator_cohorts"],
@@ -182,7 +184,13 @@ def review(path):
                     check(row[field] == case.get(field), f"Body {field}: {key}")
                 check(row["per_layer"] == (case.get("per_layer_comparison") or {}), f"Layer comparison: {key}")
                 for field in ["body_activity_ms", "body_internal_gap_ms"]:
-                    check(row[field] == case.get("observed", {}).get(field), f"Body {field}: {key}")
+                    check(row[field] == (case.get("observed") or {}).get(field), f"Body {field}: {key}")
+                if shown["status"] == "failed":
+                    check(row.get("error") == case.get("error"), f"Failed input error retained: {key}")
+                    check(shown["observed_ms"]["count"] == 0, f"Failed read has no measured population: {key}")
+                    check(all(shown.get(field) is None for field in ("predicted_ms", "relative_error", "passed")),
+                          f"Failed prediction is not zero: {key}")
+                    continue
                 pk = population(row)
                 check(all(value is not None for value in pk), f"Complete population identity: {key}")
                 if pk in populations:
@@ -195,7 +203,7 @@ def review(path):
                     check(near(shown["relative_error"], error), f"Body error: {key}")
                     check(near(shown["per_forward_diff_ms"], shown["predicted_ms"] - shown["observed_ms"]["mean"]), f"Body difference: {key}")
                     check(shown["passed"] == (abs(error) <= .15), f"Body pass: {key}")
-                    if "window8" in source_path and "kimi" in source_path:
+                    if ("window8" in source_path and "kimi" in source_path) or (key in selected_body_keys and "kimi" in case["case_id"].lower()):
                         identity = case["prediction_execution"]["case_identity"]
                         case_path = Path(identity["path"])
                         if digest(case_path) == identity["sha256"]:
@@ -282,6 +290,9 @@ def review(path):
         gc.collect()
 
     check(seen_body == set(body), "All body receipt rows included exactly once")
+    failed_rows = [row for row in body.values() if row["comparison"]["status"] == "failed"]
+    check(Counter(canonical(row) for row in report.get("body_failed_attempts", [])) ==
+          Counter(canonical(row) for row in failed_rows), "Failed attempts remain visible outside measured population")
     check(seen_family == set(family), "All operator families included exactly once")
     check(seen_cohort == set(cohort), "All numeric cohorts included exactly once")
     check(reference == expected_references, "All conditional references retain evidence and remain unscored")
@@ -296,6 +307,19 @@ def review(path):
           Counter(canonical(row) for row in expected_current_families), "Current operator families use latest receipt")
     check(Counter(canonical(row) for row in report["current_operator_cohorts"]) ==
           Counter(canonical(row) for row in expected_current_cohorts), "Current operator cohorts use latest receipt")
+    if "current_source_role_references" in report:
+        expected_current_references = [row for row in report["source_role_references"]
+            if population(row) not in current_operator or current_operator[population(row)] ==
+            (row["receipt"]["path"], row["case_id"])]
+        check(Counter(canonical(row) for row in report["current_source_role_references"]) ==
+              Counter(canonical(row) for row in expected_current_references),
+              "Current source references exclude older overwritten program generations")
+    current_runtime_populations = {}
+    for row in expected_current_families:
+        key, value = population(row), row["runtime_identity"]["recorded_sim_file_map_sha256"]
+        if key in current_runtime_populations:
+            check(current_runtime_populations[key] == value, "Every current population has one recorded runtime")
+        current_runtime_populations[key] = value
     summary = report["summary"]
     expected_summary = {"body_compared": sum(row["comparison"]["status"] == "compared" for row in body.values()),
         "body_passed": sum(row["comparison"].get("passed") is True for row in body.values()),
@@ -307,9 +331,12 @@ def review(path):
         "unique_observed_forward_count": sum(stats["count"] for stats in populations.values()),
         "operator_status_counts": dict(Counter(row["status"] for row in cohort.values())),
         "current_operator_source_populations": len(current_operator),
+        "current_operator_runtime_populations": dict(Counter(current_runtime_populations.values())),
         "current_operator_scored_events": sum(row["scored_event_count"] for row in expected_current_families),
         "current_operator_body_events": sum(row["observed_us"]["count"] for row in expected_current_families),
         "heavy_cohorts": sum(row["heavy_call"] for row in cohort.values())}
+    if "body_failed_attempts" in summary:
+        expected_summary["body_failed_attempts"] = len(failed_rows)
     for key, value in expected_summary.items():
         check(summary[key] == value, f"Summary {key}")
     tiers = {}

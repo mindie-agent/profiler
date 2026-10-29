@@ -1,43 +1,49 @@
 {
   "schema_version": "mindie-priority-scoreboard-independent-review/2",
   "status": "passed",
-  "checks": 38911,
+  "checks": 75325,
   "failures": [],
-  "report_sha256": "8c42d646d9f3bf5a14646980c667394c7413dae26f8f92ce777450fc76e4efa1",
+  "report_sha256": "f94917fc4d028eaf712327edd405eb3f8ef9939ecfcff20e0efdb4da9ac042a9",
   "summary": {
-    "body_compared": 81,
-    "body_passed": 20,
+    "body_compared": 147,
+    "body_passed": 36,
     "current_body_compared": 66,
-    "current_body_passed": 18,
+    "current_body_passed": 16,
     "invalidated_body_prediction_arms": 31,
+    "body_failed_attempts": 3,
     "body_denominator": "prediction_variants; identical observed populations are not additional captures",
     "unique_source_count": 66,
     "unique_source_geometry_populations": 222,
     "unique_observed_forward_count": 5250,
     "operator_status_counts": {
-      "reference_only": 46,
-      "compared": 618
+      "reference_only": 79,
+      "compared": 1165
     },
     "operator_accuracy_by_tier": {
       "heavy_relative_15pct": {
         "compared": 23,
-        "passed": 6
+        "passed": 5
       },
       "micro_absolute_15us": {
         "compared": 591,
-        "passed": 568
+        "passed": 581
       }
     },
     "current_operator_source_populations": 44,
+    "current_operator_runtime_populations": {
+      "886c1fa5bd454f2209aae1cfac5188e378fa3fbb128fbbce7774d01556e236d9": 1,
+      "df7c8117e01b47901f4b3c626a88be091b80d8d2941e15ab93f3dc3134ed034f": 3,
+      "c27d72c215c2c98f804908823d9c4172ab85399134814ec639fbb2f059cbbe05": 40
+    },
     "current_operator_scored_events": 1134343,
     "current_operator_body_events": 6729791,
-    "heavy_cohorts": 33
+    "heavy_cohorts": 62
   },
-  "body_rows": 280,
-  "family_rows": 2322,
-  "cohort_rows": 664,
-  "reference_rows": 208,
-  "corrected_kimi_quant_cases_checked": 18,
+  "body_rows": 505,
+  "family_rows": 4375,
+  "cohort_rows": 1244,
+  "reference_rows": 248,
+  "corrected_kimi_quant_cases_checked": 36,
   "historical_case_resolutions": [
     {
       "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c16_p16k.json",
@@ -125,8 +131,8 @@
     }
   ],
   "execution": {
-    "elapsed_seconds": 4.889242707984522,
-    "peak_rss_bytes": 203997184,
+    "elapsed_seconds": 5.545825292007066,
+    "peak_rss_bytes": 221904896,
     "receipt_read_engine": "ijson top-level metadata and sequential cases; scoreboard bounded JSON"
   },
   "scope": "Independent sequential receipt reconciliation; no raw capture parsing or prediction. Invalidation, effective current Kimi precision, source/geometry deduplication, explicit input order, strict tier arithmetic and unscored source references are checked separately."
