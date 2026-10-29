@@ -190,3 +190,19 @@ def test_device_activity_union_deduplicates_hcom_and_preserves_internal_gap(capt
     streams = {row["stream_id"]: row["activity_union_ms"] for row in scope["per_stream_activity_ms"]}
     assert streams == {"comm": 100 / 1e6, "N/A": 100 / 1e6, "compute": 200 / 1e6}
     assert sum(streams.values()) > scope["device_activity_union_ms"]
+
+
+def test_forward_consumer_receives_complete_layers_before_detail_limit(capture):
+    events, config = capture
+    seen = []
+    def consume(result, segment):
+        layers = [row for row in result["stages"] if row["layer_id"] is not None]
+        seen.append((len(layers), len(segment), sum(row["span_ms"] for row in layers[1:])))
+        assert segment[-1].start_ns == result["head_start_ns"]
+        assert segment[-1].start_ns > result["end_ns"]
+    report = auto_segment_decode_forwards(events, config, max_detailed_forwards=0,
+                                         max_samples_per_layer=0, on_forward=consume)
+    assert seen[0][:2] == (64, 1944)
+    assert seen[0][2] > 0
+    assert report["forwards"][0]["stages"] == []
+    assert report["body_forward_span_ms"]["mean"] == pytest.approx(17.202996)

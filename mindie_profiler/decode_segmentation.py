@@ -304,7 +304,8 @@ def _align(rows, config, ordinal):
 def auto_segment_decode_forwards(events, model_config, *, source=None, max_events=5_000_000,
                                  max_forward_events=100_000, max_forwards=1024,
                                  max_anomalies=200, max_detailed_forwards=3,
-                                 max_samples_per_layer=3, max_closed_segments=16_384):
+                                 max_samples_per_layer=3, max_closed_segments=16_384,
+                                 on_forward=None):
     """Align chronological Events against existing Sim ModelSpec/layer_plans.
 
     ``model_config`` is ModelSpec or its serialized dictionary, plus explicit
@@ -314,6 +315,10 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
     segments cannot be promoted into a complete body. Unknown or corrupted
     sequences remain anomalies. The result measures conditional device spans,
     and does not assert Host-labelled forward or server-phase identity.
+    ``on_forward(result, events)`` consumes each complete aligned segment before
+    details are bounded; consumers must not mutate either argument or retain
+    unbounded event history. The event tuple includes separate prefix/head work,
+    so consumers select the measured body boundaries explicitly.
     """
     config = _model(model_config)
     active, previous = defaultdict(list), {}
@@ -389,6 +394,8 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
         if result:
             result["closed_segment_event_count"] = len(active[key])
             counts["complete_body_segment_events"] += len(active[key])
+            if on_forward is not None:
+                on_forward(result, tuple(row.event for row in active[key]))
             accumulate_stages(result)
             result["stage_count"] = len(result["stages"])
             result["stage_details_retained"] = len(forwards) < max_detailed_forwards
