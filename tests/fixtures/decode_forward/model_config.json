@@ -1,0 +1,394 @@
+{
+  "name": "qwen3.6-27b",
+  "layers": 64,
+  "body_layers": 64,
+  "hidden_size": 5120,
+  "vocab_size": 248320,
+  "tp": 4,
+  "layer_plans": [
+    {
+      "index": 0,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 1,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 2,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 3,
+      "attention": "gqa",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 4,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 5,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 6,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 7,
+      "attention": "gqa",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 8,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 9,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 10,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 11,
+      "attention": "gqa",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 12,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 13,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 14,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 15,
+      "attention": "gqa",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 16,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 17,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 18,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 19,
+      "attention": "gqa",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 20,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 21,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 22,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 23,
+      "attention": "gqa",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 24,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 25,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 26,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 27,
+      "attention": "gqa",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 28,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 29,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 30,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 31,
+      "attention": "gqa",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 32,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 33,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 34,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 35,
+      "attention": "gqa",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 36,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 37,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 38,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 39,
+      "attention": "gqa",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 40,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 41,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 42,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 43,
+      "attention": "gqa",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 44,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 45,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 46,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 47,
+      "attention": "gqa",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 48,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 49,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 50,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 51,
+      "attention": "gqa",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 52,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 53,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 54,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 55,
+      "attention": "gqa",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 56,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 57,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 58,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 59,
+      "attention": "gqa",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 60,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 61,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 62,
+      "attention": "gdn",
+      "ffn": "dense",
+      "mtp": false
+    },
+    {
+      "index": 63,
+      "attention": "gqa",
+      "ffn": "dense",
+      "mtp": false
+    }
+  ]
+}

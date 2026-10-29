@@ -1,0 +1,23 @@
+{
+  "schema_version": "mindie-derived-capture-fixture/1",
+  "source": {
+    "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+    "size_bytes": 13245065,
+    "mtime_ns": 1792795904000000000,
+    "schema_version": "kernel_details_csv_46col",
+    "sha256": "797260bd9ea48a7fb75831c397a6c0716be11233f4df953d299e5bdf99084d7f"
+  },
+  "source_csv_lines": [
+    5785,
+    7728
+  ],
+  "derivation": "All consecutive rows from the embedding of the first complete q=4 target body through its vocabulary projection. Parsed CSV fields and integer-time source strings preserved; surrounding MTP/prefill excluded. Expected boundaries are independently checked against the retained layer-plan declaration, not assumed from the slice length.",
+  "fixture_sha256": "5b8aeb0ef155dc550ba5b055827b589ce0cf88c0c9c909d36b97185ae2d5026e",
+  "declaration": {
+    "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/qwen36-a3-tp4.json",
+    "case_sha256": "e1c8e9d7d5e2be4d4f7475875a605808917a34ce0849931696a4b2fe7bc45297",
+    "basis": "existing Sim parse_case ModelSpec layer_plans projection"
+  },
+  "not_new_live_collection": true,
+  "not_host_annotated_forward": true
+}
