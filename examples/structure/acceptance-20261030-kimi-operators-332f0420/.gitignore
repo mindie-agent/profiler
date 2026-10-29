@@ -1,0 +1,2 @@
+# Local replay stdout/stderr; commands, budgets and hashes are retained in receipts.
+*.log
