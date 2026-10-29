@@ -1,0 +1,40 @@
+{
+  "schema_version": "mindie-repriced-body-operator-review/1",
+  "status": "passed",
+  "checks": 929,
+  "failures": [],
+  "scoreboard_sha256": "354e76568d7f1ddbda9b3825933e90a077c67cd8103e0e0315fd4f36b2031f31",
+  "script_sha256": "c3cfd24286af5a02131357fa5c5993095d69196da1a357d1adeb6a9de969cde7",
+  "source_count": 1,
+  "counts": {
+    "passed": 18,
+    "compared": 18,
+    "strict_events": 42851,
+    "retained_reference_groups": 7,
+    "excluded_reference_groups": 2,
+    "strict_rebind_exclusions": 0,
+    "forward_count": 73
+  },
+  "accuracy_by_tier": {
+    "absolute_15us": {
+      "compared": 18,
+      "passed": 18
+    }
+  },
+  "cases": [
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c128_p2k / runtime86-baseline",
+      "passed": 18,
+      "compared": 18,
+      "strict_events": 42851,
+      "retained_reference_groups": 7,
+      "excluded_reference_groups": 2,
+      "reference_worker_status": "completed",
+      "strict_rebind_exclusions": 0,
+      "forward_count": 73
+    }
+  ],
+  "raw_capture_reads": 0,
+  "prediction_executions": 0,
+  "method": "stdlib identities/histograms, old-to-new observed partition equality and independent tier math"
+}

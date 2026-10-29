@@ -1,0 +1,2692 @@
+{
+  "schema_version": "mindie-v41-operator-arms/1",
+  "status": "completed",
+  "runtime_commit": "86c1ee8f18b9b997eacb315476e2461b99b59fb1",
+  "baseline": {
+    "cases": {
+      "a5_v41_fp8_tp1_dp8_ep8_c16_p2k": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_c16_p2k-matrix-extension.actual.json",
+          "sha256": "26fb9664ec7aabcb0261d5375dc9d5974b4109b83c501173587e39087f02bb13",
+          "size_bytes": 2392744
+        },
+        "case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/matrix-extension/a5_v41_fp8_tp1_dp8_ep8_c16_p2k.json",
+          "sha256": "9c6eece99a4d1e538b7109bee5f85889c7a4388cc7a23f372c9145e0b76d29b1",
+          "size_bytes": 13054
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c16_p2k_20261030/kernel_details.csv",
+          "size_bytes": 86067988,
+          "mtime_ns": 1793305018000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "8294b03bbf47e43f172941354c4517fea55a7b57656ea209938f688f518f8832"
+        },
+        "geometry": {
+          "query_rows": 2,
+          "sequences_per_replica": 2,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "forward_count": 129,
+        "passed": 18,
+        "strict_compared": 18,
+        "strict_failed": 0,
+        "reference_groups": 7,
+        "reference_exclusions": [
+          {
+            "group_id": "sha256:37749e62b52ecf22c8cd3e73e010299a8dff98a41bb3c23adb585127c198c9f2",
+            "native_operator_type": "MoeDistributeDispatchV3",
+            "declared_role": "expert_dispatch_native",
+            "event_count": 5160,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:72006795a36b301e96ae0d75e8b7e51030f5d806f38123e69239d23f15dd0ac2",
+            "native_operator_type": "MoeDistributeCombineV3",
+            "declared_role": "expert_combine_native",
+            "event_count": 5160,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          }
+        ],
+        "strict_rebind_exclusions": [],
+        "maximum_worker_rss_bytes": 404504576,
+        "grouped_matrix_references": {
+          "expert_down": {
+            "count": 5160,
+            "observed_us": {
+              "count": 5160,
+              "mean": 37.43861879844961,
+              "p50": 37.167,
+              "p90": 39.425,
+              "min": 35.547,
+              "max": 41.459
+            },
+            "predicted_us": 22.162797309090912,
+            "observed_activity_ms_per_forward": 1.4975447519379845,
+            "predicted_service_ms_per_forward": 0.8865118923636364,
+            "residual_activity_ms_per_forward": -0.6110328595743482,
+            "buffer_capacity_rows": 96,
+            "declared_valid_rows": 12,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "4ec797d839404d31a17c4410d841546459494271ec159238841002f564f603ff"
+          },
+          "expert_up": {
+            "count": 5160,
+            "observed_us": {
+              "count": 5160,
+              "mean": 68.07610968992248,
+              "p50": 67.7785,
+              "p90": 69.417,
+              "min": 65.889,
+              "max": 77.458
+            },
+            "predicted_us": 44.74572800000004,
+            "observed_activity_ms_per_forward": 2.7230443875968993,
+            "predicted_service_ms_per_forward": 1.7898291200000016,
+            "residual_activity_ms_per_forward": -0.9332152675968977,
+            "buffer_capacity_rows": 96,
+            "declared_valid_rows": 12,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "aa6f8240b10c60432609e0c52dd4bad134ef0a0963fc3da861899d01d643a8aa"
+          }
+        }
+      },
+      "a5_v41_fp8_tp1_dp8_ep8_c32_p2k": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_c32_p2k-matrix-extension.actual.json",
+          "sha256": "2473a4fd93f8d0aaee75a473f99b603eaa987dd1b780eac4673b4cfad18cc0fd",
+          "size_bytes": 2350913
+        },
+        "case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/matrix-extension/a5_v41_fp8_tp1_dp8_ep8_c32_p2k.json",
+          "sha256": "fe355153fb182021a4081621b8bff2301a0bbccb2a905fd14a74fff6a127c995",
+          "size_bytes": 13053
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c32_p2k_20261030/kernel_details.csv",
+          "size_bytes": 70173237,
+          "mtime_ns": 1793305117000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "e20b27b78f65b08fac9e034b6c5a31b550f4795a1dd5dbcf514172031640d94e"
+        },
+        "geometry": {
+          "query_rows": 4,
+          "sequences_per_replica": 4,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "forward_count": 105,
+        "passed": 18,
+        "strict_compared": 18,
+        "strict_failed": 0,
+        "reference_groups": 7,
+        "reference_exclusions": [
+          {
+            "group_id": "sha256:3b652b81ab8e6d793c9a102fe613a440a5777f6a805c448f427d61fc7fac2b70",
+            "native_operator_type": "MoeDistributeDispatchV3",
+            "declared_role": "expert_dispatch_native",
+            "event_count": 4200,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:a4393b75b889ecaa670189193fcda7f53984d61886d01f0de2a97899ca1903c0",
+            "native_operator_type": "MoeDistributeCombineV3",
+            "declared_role": "expert_combine_native",
+            "event_count": 4200,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          }
+        ],
+        "strict_rebind_exclusions": [],
+        "maximum_worker_rss_bytes": 422838272,
+        "grouped_matrix_references": {
+          "expert_down": {
+            "count": 4200,
+            "observed_us": {
+              "count": 4200,
+              "mean": 65.23752380952381,
+              "p50": 64.6675,
+              "p90": 69.338,
+              "min": 62.639,
+              "max": 73.321
+            },
+            "predicted_us": 44.27523098181819,
+            "observed_activity_ms_per_forward": 2.609500952380952,
+            "predicted_service_ms_per_forward": 1.7710092392727275,
+            "residual_activity_ms_per_forward": -0.8384917131082246,
+            "buffer_capacity_rows": 192,
+            "declared_valid_rows": 24,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "b9d151422cb8c37b604ed93d7805afb140291f4b734275250a2e985144eddde7"
+          },
+          "expert_up": {
+            "count": 4200,
+            "observed_us": {
+              "count": 4200,
+              "mean": 127.40574023809523,
+              "p50": 126.789,
+              "p90": 128.91,
+              "min": 123.848,
+              "max": 138.189
+            },
+            "predicted_us": 86.32970933333333,
+            "observed_activity_ms_per_forward": 5.096229609523809,
+            "predicted_service_ms_per_forward": 3.453188373333333,
+            "residual_activity_ms_per_forward": -1.6430412361904763,
+            "buffer_capacity_rows": 192,
+            "declared_valid_rows": 24,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "f2fedb2db944c188bacf0fbda4745edd0f2a520000d4abd51e1a30b1b877c6b2"
+          }
+        }
+      },
+      "a5_v41_fp8_tp1_dp8_ep8_c4_p2k": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_c4_p2k-matrix-extension.actual.json",
+          "sha256": "6466b706d43be8a00df89a4502f3dacdd46f2650b6ced697b743dc97ef6d82f4",
+          "size_bytes": 2435472
+        },
+        "case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/matrix-extension/a5_v41_fp8_tp1_dp8_ep8_c4_p2k.json",
+          "sha256": "5ae1a5da5c803c2910ac2744afc546756f59d8a238d33f60280fcc65ef447a10",
+          "size_bytes": 13050
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c4_p2k_20261030/kernel_details.csv",
+          "size_bytes": 100369788,
+          "mtime_ns": 1793304900000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "cf36aecc0160029872eeaf55cf397261d121cf7d7e591d6043751488a367b964"
+        },
+        "geometry": {
+          "query_rows": 1,
+          "sequences_per_replica": 1,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "forward_count": 151,
+        "passed": 18,
+        "strict_compared": 18,
+        "strict_failed": 0,
+        "reference_groups": 7,
+        "reference_exclusions": [
+          {
+            "group_id": "sha256:d60c70d6559df52b27b578118adde0e5859df358cd805a2b8806820c42ee5984",
+            "native_operator_type": "MoeDistributeCombineV3",
+            "declared_role": "expert_combine_native",
+            "event_count": 6040,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:eadba6e155e42629a33317265600e50f09cdb4c038bd77af409226f12670c137",
+            "native_operator_type": "MoeDistributeDispatchV3",
+            "declared_role": "expert_dispatch_native",
+            "event_count": 6040,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          }
+        ],
+        "strict_rebind_exclusions": [],
+        "maximum_worker_rss_bytes": 396623872,
+        "grouped_matrix_references": {
+          "expert_down": {
+            "count": 6040,
+            "observed_us": {
+              "count": 6040,
+              "mean": 23.603551986754965,
+              "p50": 23.476,
+              "p90": 24.505,
+              "min": 22.046,
+              "max": 26.77
+            },
+            "predicted_us": 11.81254031515152,
+            "observed_activity_ms_per_forward": 0.9441420794701986,
+            "predicted_service_ms_per_forward": 0.4725016126060608,
+            "residual_activity_ms_per_forward": -0.4716404668641378,
+            "buffer_capacity_rows": 48,
+            "declared_valid_rows": 6,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "5c42a4de599addfc280fde0abb2146ccf4821ff5e852381e8a881e282643bc36"
+          },
+          "expert_up": {
+            "count": 6040,
+            "observed_us": {
+              "count": 6040,
+              "mean": 38.808786920529805,
+              "p50": 38.6605,
+              "p90": 39.896,
+              "min": 37.005,
+              "max": 46.25
+            },
+            "predicted_us": 22.384348848484862,
+            "observed_activity_ms_per_forward": 1.552351476821192,
+            "predicted_service_ms_per_forward": 0.8953739539393945,
+            "residual_activity_ms_per_forward": -0.6569775228817974,
+            "buffer_capacity_rows": 48,
+            "declared_valid_rows": 6,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "051be937660a17bbf8d3f3d28ec79263d9525a8766cdbafcc5a7ea2472128458"
+          }
+        }
+      },
+      "a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8-v41-dp8.actual.json",
+          "sha256": "0150875fae46728125a70bf80220635f792b5669fea7926c003ef68bfa1aac69",
+          "size_bytes": 2444252
+        },
+        "case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-dp8/a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8.json",
+          "sha256": "ecf2a6a2550b59acd682044fd24a74e31db0938bf45dfa69f37a094f7d08df69",
+          "size_bytes": 12777
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot10ms_c8_20261030/kernel_details.csv",
+          "size_bytes": 96044757,
+          "mtime_ns": 1793303576000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "17b7ed9ee87a8449f1c92d04a0e0f2eebd5aecd6edd39e4073d8787976974866"
+        },
+        "geometry": {
+          "query_rows": 1,
+          "sequences_per_replica": 1,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "forward_count": 145,
+        "passed": 18,
+        "strict_compared": 18,
+        "strict_failed": 0,
+        "reference_groups": 7,
+        "reference_exclusions": [
+          {
+            "group_id": "sha256:d60c70d6559df52b27b578118adde0e5859df358cd805a2b8806820c42ee5984",
+            "native_operator_type": "MoeDistributeCombineV3",
+            "declared_role": "expert_combine_native",
+            "event_count": 5800,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:eadba6e155e42629a33317265600e50f09cdb4c038bd77af409226f12670c137",
+            "native_operator_type": "MoeDistributeDispatchV3",
+            "declared_role": "expert_dispatch_native",
+            "event_count": 5800,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          }
+        ],
+        "strict_rebind_exclusions": [],
+        "maximum_worker_rss_bytes": 438222848,
+        "grouped_matrix_references": {
+          "expert_down": {
+            "count": 5800,
+            "observed_us": {
+              "count": 5800,
+              "mean": 23.65608931034483,
+              "p50": 23.572,
+              "p90": 24.508,
+              "min": 22.085,
+              "max": 29.845
+            },
+            "predicted_us": 11.81254031515152,
+            "observed_activity_ms_per_forward": 0.9462435724137931,
+            "predicted_service_ms_per_forward": 0.47250161260606083,
+            "residual_activity_ms_per_forward": -0.47374195980773226,
+            "buffer_capacity_rows": 48,
+            "declared_valid_rows": 6,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "5c42a4de599addfc280fde0abb2146ccf4821ff5e852381e8a881e282643bc36"
+          },
+          "expert_up": {
+            "count": 5800,
+            "observed_us": {
+              "count": 5800,
+              "mean": 38.54120551724138,
+              "p50": 38.378,
+              "p90": 39.613,
+              "min": 37.064,
+              "max": 44.047
+            },
+            "predicted_us": 22.384348848484862,
+            "observed_activity_ms_per_forward": 1.5416482206896551,
+            "predicted_service_ms_per_forward": 0.8953739539393945,
+            "residual_activity_ms_per_forward": -0.6462742667502607,
+            "buffer_capacity_rows": 48,
+            "declared_valid_rows": 6,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "051be937660a17bbf8d3f3d28ec79263d9525a8766cdbafcc5a7ea2472128458"
+          }
+        }
+      },
+      "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-v41-dp8.actual.json",
+          "sha256": "40aa392d165e490ee550607e157af8fd07d8c5f5317d21a3ce82caaf8822b5b5",
+          "size_bytes": 2146216
+        },
+        "case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-dp8/a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64.json",
+          "sha256": "c89a390ef6d697978dc915574db56d7d71e03b43f6f17c8aaa6b765ab6831eaf",
+          "size_bytes": 12779
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
+          "size_bytes": 50179338,
+          "mtime_ns": 1793303665000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "085c8c00a0560d14a3ca4beb9b965efc04b6be1f40b47734cd47102af4363282"
+        },
+        "geometry": {
+          "query_rows": 8,
+          "sequences_per_replica": 8,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "forward_count": 75,
+        "passed": 18,
+        "strict_compared": 18,
+        "strict_failed": 0,
+        "reference_groups": 7,
+        "reference_exclusions": [
+          {
+            "group_id": "sha256:85d05e14fc443da528d6020199c9b94032cef94c85972dbbcc6aee4df0c5a402",
+            "native_operator_type": "MoeDistributeDispatchV3",
+            "declared_role": "expert_dispatch_native",
+            "event_count": 3000,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:eb54a57382e2816f3be6aba98babf8c113bbb3b45345adf035206ae0a5bc38df",
+            "native_operator_type": "MoeDistributeCombineV3",
+            "declared_role": "expert_combine_native",
+            "event_count": 3000,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          }
+        ],
+        "strict_rebind_exclusions": [],
+        "maximum_worker_rss_bytes": 457555968,
+        "grouped_matrix_references": {
+          "expert_down": {
+            "count": 3000,
+            "observed_us": {
+              "count": 3000,
+              "mean": 119.85432899999999,
+              "p50": 118.821,
+              "p90": 127.094,
+              "min": 115.81,
+              "max": 132.167
+            },
+            "predicted_us": 88.54114007272727,
+            "observed_activity_ms_per_forward": 4.794173160000001,
+            "predicted_service_ms_per_forward": 3.541645602909091,
+            "residual_activity_ms_per_forward": -1.2525275570909096,
+            "buffer_capacity_rows": 384,
+            "declared_valid_rows": 48,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "0b9c6427bc9d28765d096a04d011ab33c1be6caae38676c0c01a5868451adc67"
+          },
+          "expert_up": {
+            "count": 3000,
+            "observed_us": {
+              "count": 3000,
+              "mean": 242.5993,
+              "p50": 241.3305,
+              "p90": 243.901,
+              "min": 237.834,
+              "max": 268.851
+            },
+            "predicted_us": 172.56796412121213,
+            "observed_activity_ms_per_forward": 9.703972,
+            "predicted_service_ms_per_forward": 6.9027185648484854,
+            "residual_activity_ms_per_forward": -2.801253435151515,
+            "buffer_capacity_rows": 384,
+            "declared_valid_rows": 48,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "dcaa614fe8e47a19e3df4b32e6357846137852e0047dc18eb3a4c7a048409741"
+          }
+        }
+      },
+      "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1-v41-dp8.actual.json",
+          "sha256": "7216605d23da66e6b91e752ea3bf8415d262551d5c638c5c7bc1d875f4d9e20b",
+          "size_bytes": 2454386
+        },
+        "case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-dp8/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1.json",
+          "sha256": "fb4bda10d8076d9f5ee87effddf518e95429d998e5439dc98196df1e01383f3f",
+          "size_bytes": 12753
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+          "size_bytes": 101041319,
+          "mtime_ns": 1793303454000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "323f2e48f662c7b255b6d2ae69d3ba1ea3045578d375be54c503876ff3f45861"
+        },
+        "geometry": {
+          "query_rows": 1,
+          "sequences_per_replica": 1,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "forward_count": 152,
+        "passed": 18,
+        "strict_compared": 18,
+        "strict_failed": 0,
+        "reference_groups": 7,
+        "reference_exclusions": [
+          {
+            "group_id": "sha256:d60c70d6559df52b27b578118adde0e5859df358cd805a2b8806820c42ee5984",
+            "native_operator_type": "MoeDistributeCombineV3",
+            "declared_role": "expert_combine_native",
+            "event_count": 6080,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:eadba6e155e42629a33317265600e50f09cdb4c038bd77af409226f12670c137",
+            "native_operator_type": "MoeDistributeDispatchV3",
+            "declared_role": "expert_dispatch_native",
+            "event_count": 6080,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          }
+        ],
+        "strict_rebind_exclusions": [],
+        "maximum_worker_rss_bytes": 443269120,
+        "grouped_matrix_references": {
+          "expert_down": {
+            "count": 6080,
+            "observed_us": {
+              "count": 6080,
+              "mean": 23.639003782894736,
+              "p50": 23.5425,
+              "p90": 24.505,
+              "min": 22.032,
+              "max": 30.396
+            },
+            "predicted_us": 11.81254031515152,
+            "observed_activity_ms_per_forward": 0.9455601513157895,
+            "predicted_service_ms_per_forward": 0.47250161260606083,
+            "residual_activity_ms_per_forward": -0.4730585387097287,
+            "buffer_capacity_rows": 48,
+            "declared_valid_rows": 6,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "5c42a4de599addfc280fde0abb2146ccf4821ff5e852381e8a881e282643bc36"
+          },
+          "expert_up": {
+            "count": 6080,
+            "observed_us": {
+              "count": 6080,
+              "mean": 38.59189029605263,
+              "p50": 38.458,
+              "p90": 39.666,
+              "min": 36.891,
+              "max": 42.862
+            },
+            "predicted_us": 22.384348848484862,
+            "observed_activity_ms_per_forward": 1.543675611842105,
+            "predicted_service_ms_per_forward": 0.8953739539393943,
+            "residual_activity_ms_per_forward": -0.6483016579027108,
+            "buffer_capacity_rows": 48,
+            "declared_valid_rows": 6,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "051be937660a17bbf8d3f3d28ec79263d9525a8766cdbafcc5a7ea2472128458"
+          }
+        }
+      },
+      "a5_v41_fp8_tp1_dp8_ep8_c128_p2k": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-final6-operators-e8/body-operator-a5_v41_fp8_tp1_dp8_ep8_c128_p2k-v41-new6.actual.json",
+          "sha256": "61478be4a4902a9a541fa5c31ce8b100c2c58f52b82411a25bfc4d30959fcbd3",
+          "size_bytes": 2160689
+        },
+        "case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-new6/a5_v41_fp8_tp1_dp8_ep8_c128_p2k.json",
+          "sha256": "948b702e9a458482fa629c6acacb16920e6cc91e62d0332e4d462061b2a3c3be",
+          "size_bytes": 146319
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c128_p2k_20261030/kernel_details.csv",
+          "size_bytes": 49316349,
+          "mtime_ns": 1793305202000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "9f4378314a899c8389ba107c89a43dd5fa90c329553bd204ae546ffad39a2f41"
+        },
+        "geometry": {
+          "query_rows": 16,
+          "sequences_per_replica": 16,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "forward_count": 73,
+        "passed": 18,
+        "strict_compared": 18,
+        "strict_failed": 0,
+        "reference_groups": 7,
+        "reference_exclusions": [
+          {
+            "group_id": "sha256:3973a2a94c37ee72c5d284cd68f91939d9d357b7564183a85d0eb68a4f8cdc30",
+            "native_operator_type": "MoeDistributeCombineV3",
+            "declared_role": "expert_combine_native",
+            "event_count": 2920,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:62dcfaa2bb0ae7210b718e33e12389c7c868a617f3b55e1179f4144122e4ee4a",
+            "native_operator_type": "MoeDistributeDispatchV3",
+            "declared_role": "expert_dispatch_native",
+            "event_count": 2920,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          }
+        ],
+        "strict_rebind_exclusions": [],
+        "maximum_worker_rss_bytes": 531513344,
+        "grouped_matrix_references": {
+          "expert_down": {
+            "count": 2920,
+            "observed_us": {
+              "count": 2920,
+              "mean": 123.27315787671233,
+              "p50": 122.228,
+              "p90": 130.236,
+              "min": 119.179,
+              "max": 135.248
+            },
+            "predicted_us": 89.3367131151515,
+            "observed_activity_ms_per_forward": 4.930926315068493,
+            "predicted_service_ms_per_forward": 3.57346852460606,
+            "residual_activity_ms_per_forward": -1.3574577904624334,
+            "buffer_capacity_rows": 768,
+            "declared_valid_rows": 96,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "0de22282283eb809eb034ca456745aae838047338c2cf3fc6abd13b05c65a977"
+          },
+          "expert_up": {
+            "count": 2920,
+            "observed_us": {
+              "count": 2920,
+              "mean": 250.140776369863,
+              "p50": 248.818,
+              "p90": 251.394,
+              "min": 244.422,
+              "max": 273.203
+            },
+            "predicted_us": 174.00417939393938,
+            "observed_activity_ms_per_forward": 10.00563105479452,
+            "predicted_service_ms_per_forward": 6.960167175757575,
+            "residual_activity_ms_per_forward": -3.0454638790369453,
+            "buffer_capacity_rows": 768,
+            "declared_valid_rows": 96,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "4cb2d1b1c397bca727ab3719677b5da3dfb835df705ce9c1ddfaf8048120b07d"
+          }
+        }
+      }
+    },
+    "reports": [
+      {
+        "report": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-baseline/body-operator-family-scoreboard.json",
+          "sha256": "424ec5eea0417cefa30e5ff98340309924b3f16b6abc731284eb0de7edb024fb",
+          "size_bytes": 1149564
+        },
+        "review": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-baseline/body-operator-reprice-independent-review.json",
+          "sha256": "08e18ac9dfcb313a48a5d58b391696589d5005f405ea2083d06ddfab9098e096",
+          "size_bytes": 2896
+        },
+        "status": "completed"
+      },
+      {
+        "report": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-c128-operators-86c1ee8f-baseline/body-operator-family-scoreboard.json",
+          "sha256": "354e76568d7f1ddbda9b3825933e90a077c67cd8103e0e0315fd4f36b2031f31",
+          "size_bytes": 248013
+        },
+        "review": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-c128-operators-86c1ee8f-baseline/body-operator-reprice-independent-review.json",
+          "sha256": "f99aed7fdd6f4b54d839ab47e44036517d758998f0a070ea628c13a4c4a266bd",
+          "size_bytes": 1162
+        },
+        "status": "completed"
+      }
+    ],
+    "totals": {
+      "forward_count": 830,
+      "passed": 126,
+      "strict_compared": 126,
+      "strict_failed": 0,
+      "reference_groups": 49,
+      "reference_exclusions": 14,
+      "strict_rebind_exclusions": 0,
+      "strict_scored_events": 487210
+    },
+    "accuracy_by_tier": {
+      "absolute_15us": {
+        "compared": 126,
+        "passed": 126
+      }
+    }
+  },
+  "source_symmetric_conditional": {
+    "cases": {
+      "a5_v41_fp8_tp1_dp8_ep8_c128_p2k": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-final6-operators-e8/body-operator-a5_v41_fp8_tp1_dp8_ep8_c128_p2k-v41-new6.actual.json",
+          "sha256": "61478be4a4902a9a541fa5c31ce8b100c2c58f52b82411a25bfc4d30959fcbd3",
+          "size_bytes": 2160689
+        },
+        "case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_c128_p2k-source.json",
+          "sha256": "a170a2f47e5fc9b7099505ef13a3da59ac3f9ca1d7aff9fbb6c97a9e4458d566",
+          "size_bytes": 151628
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c128_p2k_20261030/kernel_details.csv",
+          "size_bytes": 49316349,
+          "mtime_ns": 1793305202000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "9f4378314a899c8389ba107c89a43dd5fa90c329553bd204ae546ffad39a2f41"
+        },
+        "geometry": {
+          "query_rows": 16,
+          "sequences_per_replica": 16,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "forward_count": 73,
+        "passed": 16,
+        "strict_compared": 16,
+        "strict_failed": 0,
+        "reference_groups": 2,
+        "reference_exclusions": [
+          {
+            "group_id": "sha256:02aefc51e2481e999b47eb4d170b960929275f1ef791fb0779186b8c71bb160d",
+            "native_operator_type": "HcPre",
+            "declared_role": "attention.hc_pre",
+            "event_count": 2920,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:3973a2a94c37ee72c5d284cd68f91939d9d357b7564183a85d0eb68a4f8cdc30",
+            "native_operator_type": "MoeDistributeCombineV3",
+            "declared_role": "expert_combine_native",
+            "event_count": 2920,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:60c905587437d38807bc922fc9bfbfbbb32c4c0b1efe5f8902fc191d66d2ded5",
+            "native_operator_type": "MqsmlaKernel___call__",
+            "declared_role": "attention_core",
+            "event_count": 1460,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": false
+          },
+          {
+            "group_id": "sha256:627aaf63dbe2d732e7390ffdb40be3e5836b58de5f9044d78e5ff131a42f5bfc",
+            "native_operator_type": "MqsmlaKernel___call__",
+            "declared_role": "attention_core",
+            "event_count": 1314,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": false
+          },
+          {
+            "group_id": "sha256:62dcfaa2bb0ae7210b718e33e12389c7c868a617f3b55e1179f4144122e4ee4a",
+            "native_operator_type": "MoeDistributeDispatchV3",
+            "declared_role": "expert_dispatch_native",
+            "event_count": 2920,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:890b32e9df83f0b2b922a8096cf3eb76353db55f4a736d8f090624581d22b5c2",
+            "native_operator_type": "HcPre",
+            "declared_role": "ffn.hc_pre",
+            "event_count": 2920,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:9075893ae8ccd22225ac8dfba1b68dfb9abd29ecfa22182edcfe0e04d7af96c9",
+            "native_operator_type": "MqsmlaKernel___call__",
+            "declared_role": "attention_core",
+            "event_count": 146,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": false
+          }
+        ],
+        "strict_rebind_exclusions": [
+          {
+            "old_cohort_id": "sha256:8dc759ce821c195fbb1cb71dd8b0181bd821f61deadbb829b0bc077454c2faeb",
+            "native_operator_type": "HcPost",
+            "declared_roles": [
+              "attention.hc_post_group"
+            ],
+            "event_count": 2920,
+            "reason": "aggregate_resource_boundary_changed",
+            "observed_contract": [
+              "hyper_connection_active",
+              "HcPost",
+              [
+                [
+                  [
+                    16,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    16,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    16,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ],
+                [
+                  [
+                    16,
+                    4,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    16,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ]
+              ]
+            ],
+            "requires": "richer_observed_partition_or_targeted_evidence"
+          },
+          {
+            "old_cohort_id": "sha256:374889f64e8702c0b4aee146d30d728088c97ac7e732b4a05180153be401fd0b",
+            "native_operator_type": "HcPost",
+            "declared_roles": [
+              "ffn.hc_post_group"
+            ],
+            "event_count": 2920,
+            "reason": "aggregate_resource_boundary_changed",
+            "observed_contract": [
+              "hyper_connection_active",
+              "HcPost",
+              [
+                [
+                  [
+                    16,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    16,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    16,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ],
+                [
+                  [
+                    16,
+                    4,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    16,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ]
+              ]
+            ],
+            "requires": "richer_observed_partition_or_targeted_evidence"
+          }
+        ],
+        "maximum_worker_rss_bytes": 500760576,
+        "grouped_matrix_references": {
+          "expert_down": {
+            "count": 2920,
+            "observed_us": {
+              "count": 2920,
+              "mean": 123.27315787671233,
+              "p50": 122.228,
+              "p90": 130.236,
+              "min": 119.179,
+              "max": 135.248
+            },
+            "predicted_us": 210.0480930909091,
+            "observed_activity_ms_per_forward": 4.930926315068493,
+            "predicted_service_ms_per_forward": 8.401923723636365,
+            "residual_activity_ms_per_forward": 3.4709974085678716,
+            "buffer_capacity_rows": 768,
+            "declared_valid_rows": 96,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "0de22282283eb809eb034ca456745aae838047338c2cf3fc6abd13b05c65a977"
+          },
+          "expert_up": {
+            "count": 2920,
+            "observed_us": {
+              "count": 2920,
+              "mean": 250.140776369863,
+              "p50": 248.818,
+              "p90": 251.394,
+              "min": 244.422,
+              "max": 273.203
+            },
+            "predicted_us": 447.7853556363638,
+            "observed_activity_ms_per_forward": 10.00563105479452,
+            "predicted_service_ms_per_forward": 17.91141422545455,
+            "residual_activity_ms_per_forward": 7.90578317066003,
+            "buffer_capacity_rows": 768,
+            "declared_valid_rows": 96,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "4cb2d1b1c397bca727ab3719677b5da3dfb835df705ce9c1ddfaf8048120b07d"
+          }
+        }
+      },
+      "a5_v41_fp8_tp1_dp8_ep8_c16_p2k": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_c16_p2k-matrix-extension.actual.json",
+          "sha256": "26fb9664ec7aabcb0261d5375dc9d5974b4109b83c501173587e39087f02bb13",
+          "size_bytes": 2392744
+        },
+        "case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_c16_p2k-source.json",
+          "sha256": "facd0000ecf285f0eea38ffb1e2df774c8ab8716dd55bf799d3798c14f265aca",
+          "size_bytes": 18364
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c16_p2k_20261030/kernel_details.csv",
+          "size_bytes": 86067988,
+          "mtime_ns": 1793305018000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "8294b03bbf47e43f172941354c4517fea55a7b57656ea209938f688f518f8832"
+        },
+        "geometry": {
+          "query_rows": 2,
+          "sequences_per_replica": 2,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "forward_count": 129,
+        "passed": 16,
+        "strict_compared": 16,
+        "strict_failed": 0,
+        "reference_groups": 2,
+        "reference_exclusions": [
+          {
+            "group_id": "sha256:360784d9b7c36238f3136022a43a8be273376ce27724ca5cbc1dabac605d1c12",
+            "native_operator_type": "MqsmlaKernel___call__",
+            "declared_role": "attention_core",
+            "event_count": 2580,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": false
+          },
+          {
+            "group_id": "sha256:37749e62b52ecf22c8cd3e73e010299a8dff98a41bb3c23adb585127c198c9f2",
+            "native_operator_type": "MoeDistributeDispatchV3",
+            "declared_role": "expert_dispatch_native",
+            "event_count": 5160,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:3a63c5dd486206d07f4e4f0df0a2ba83c85e75db0ef27594a5f42021edf8ec1b",
+            "native_operator_type": "MqsmlaKernel___call__",
+            "declared_role": "attention_core",
+            "event_count": 2322,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": false
+          },
+          {
+            "group_id": "sha256:72006795a36b301e96ae0d75e8b7e51030f5d806f38123e69239d23f15dd0ac2",
+            "native_operator_type": "MoeDistributeCombineV3",
+            "declared_role": "expert_combine_native",
+            "event_count": 5160,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:960ae79300e32d8b9b8a3ab1c508d890b7c7f90f29ad8dd21adaf902969ea684",
+            "native_operator_type": "HcPre",
+            "declared_role": "attention.hc_pre",
+            "event_count": 5160,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:a5e185c6f254a24990a1e1a39ef6d0e2686e5bfdfe5f844aa7a738b07fb42970",
+            "native_operator_type": "HcPre",
+            "declared_role": "ffn.hc_pre",
+            "event_count": 5160,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:a7da6c6d9f1dd6183033ee07995b9f7bb1311c52a17b3cf69f1188b643b62bb6",
+            "native_operator_type": "MqsmlaKernel___call__",
+            "declared_role": "attention_core",
+            "event_count": 258,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": false
+          }
+        ],
+        "strict_rebind_exclusions": [
+          {
+            "old_cohort_id": "sha256:c9dc3ed1b2e4bc1598cc6d739b1b0b411b8b3e36f0bf7e4b7a32d19ee5b89880",
+            "native_operator_type": "HcPost",
+            "declared_roles": [
+              "attention.hc_post_group"
+            ],
+            "event_count": 5160,
+            "reason": "aggregate_resource_boundary_changed",
+            "observed_contract": [
+              "hyper_connection_active",
+              "HcPost",
+              [
+                [
+                  [
+                    2,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    2,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    2,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ],
+                [
+                  [
+                    2,
+                    4,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    2,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ]
+              ]
+            ],
+            "requires": "richer_observed_partition_or_targeted_evidence"
+          },
+          {
+            "old_cohort_id": "sha256:e01db4502f3830c736eb71ec1644c551aedff3967f7c330b45579b1ac06afeee",
+            "native_operator_type": "HcPost",
+            "declared_roles": [
+              "ffn.hc_post_group"
+            ],
+            "event_count": 5160,
+            "reason": "aggregate_resource_boundary_changed",
+            "observed_contract": [
+              "hyper_connection_active",
+              "HcPost",
+              [
+                [
+                  [
+                    2,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    2,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    2,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ],
+                [
+                  [
+                    2,
+                    4,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    2,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ]
+              ]
+            ],
+            "requires": "richer_observed_partition_or_targeted_evidence"
+          }
+        ],
+        "maximum_worker_rss_bytes": 480051200,
+        "grouped_matrix_references": {
+          "expert_down": {
+            "count": 5160,
+            "observed_us": {
+              "count": 5160,
+              "mean": 37.43861879844961,
+              "p50": 37.167,
+              "p90": 39.425,
+              "min": 35.547,
+              "max": 41.459
+            },
+            "predicted_us": 52.25627927272729,
+            "observed_activity_ms_per_forward": 1.4975447519379845,
+            "predicted_service_ms_per_forward": 2.0902511709090916,
+            "residual_activity_ms_per_forward": 0.5927064189711071,
+            "buffer_capacity_rows": 96,
+            "declared_valid_rows": 12,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "4ec797d839404d31a17c4410d841546459494271ec159238841002f564f603ff"
+          },
+          "expert_up": {
+            "count": 5160,
+            "observed_us": {
+              "count": 5160,
+              "mean": 68.07610968992248,
+              "p50": 67.7785,
+              "p90": 69.417,
+              "min": 65.889,
+              "max": 77.458
+            },
+            "predicted_us": 111.7591970909091,
+            "observed_activity_ms_per_forward": 2.7230443875968993,
+            "predicted_service_ms_per_forward": 4.470367883636364,
+            "residual_activity_ms_per_forward": 1.7473234960394644,
+            "buffer_capacity_rows": 96,
+            "declared_valid_rows": 12,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "aa6f8240b10c60432609e0c52dd4bad134ef0a0963fc3da861899d01d643a8aa"
+          }
+        }
+      },
+      "a5_v41_fp8_tp1_dp8_ep8_c32_p2k": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_c32_p2k-matrix-extension.actual.json",
+          "sha256": "2473a4fd93f8d0aaee75a473f99b603eaa987dd1b780eac4673b4cfad18cc0fd",
+          "size_bytes": 2350913
+        },
+        "case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_c32_p2k-source.json",
+          "sha256": "e4eb73effbf019f5661059ccc3b0435a8a58a0d191fe96e21555a731e094b976",
+          "size_bytes": 18363
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c32_p2k_20261030/kernel_details.csv",
+          "size_bytes": 70173237,
+          "mtime_ns": 1793305117000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "e20b27b78f65b08fac9e034b6c5a31b550f4795a1dd5dbcf514172031640d94e"
+        },
+        "geometry": {
+          "query_rows": 4,
+          "sequences_per_replica": 4,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "forward_count": 105,
+        "passed": 16,
+        "strict_compared": 16,
+        "strict_failed": 0,
+        "reference_groups": 2,
+        "reference_exclusions": [
+          {
+            "group_id": "sha256:0dfc64aab2e1815dfe46304a3620564fe556ad1885c7a645148811e5c1ff67db",
+            "native_operator_type": "MqsmlaKernel___call__",
+            "declared_role": "attention_core",
+            "event_count": 210,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": false
+          },
+          {
+            "group_id": "sha256:3b652b81ab8e6d793c9a102fe613a440a5777f6a805c448f427d61fc7fac2b70",
+            "native_operator_type": "MoeDistributeDispatchV3",
+            "declared_role": "expert_dispatch_native",
+            "event_count": 4200,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:51a706de4250945d782224938ad9d84ef08d387bdd0c42865960d5a7fab13ab5",
+            "native_operator_type": "MqsmlaKernel___call__",
+            "declared_role": "attention_core",
+            "event_count": 1890,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": false
+          },
+          {
+            "group_id": "sha256:6a0dca46e48b78faa88c6470e91110f46c2c0fc3d7c8b89e4b35c1ae7a98b23b",
+            "native_operator_type": "MqsmlaKernel___call__",
+            "declared_role": "attention_core",
+            "event_count": 2100,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": false
+          },
+          {
+            "group_id": "sha256:a328c5dca46968aa691da3ad4230de8ace0447b26f995ff3a60d8b2823c225b4",
+            "native_operator_type": "HcPre",
+            "declared_role": "attention.hc_pre",
+            "event_count": 4200,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:a4393b75b889ecaa670189193fcda7f53984d61886d01f0de2a97899ca1903c0",
+            "native_operator_type": "MoeDistributeCombineV3",
+            "declared_role": "expert_combine_native",
+            "event_count": 4200,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:e0ed9e29d43901769aa3200b79dd1dc1d9963d99cafc10b95b7e6c9ea20c872b",
+            "native_operator_type": "HcPre",
+            "declared_role": "ffn.hc_pre",
+            "event_count": 4200,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          }
+        ],
+        "strict_rebind_exclusions": [
+          {
+            "old_cohort_id": "sha256:076d12f4eae165cba87d39f0a700d47bc979fc15a56b0008884ab75be3159e59",
+            "native_operator_type": "HcPost",
+            "declared_roles": [
+              "attention.hc_post_group"
+            ],
+            "event_count": 4200,
+            "reason": "aggregate_resource_boundary_changed",
+            "observed_contract": [
+              "hyper_connection_active",
+              "HcPost",
+              [
+                [
+                  [
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    4,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    4,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ],
+                [
+                  [
+                    4,
+                    4,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    4,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ]
+              ]
+            ],
+            "requires": "richer_observed_partition_or_targeted_evidence"
+          },
+          {
+            "old_cohort_id": "sha256:f7120831d323fa2ec1d2fc29571152cbc93b55018e9fb033931a204232307739",
+            "native_operator_type": "HcPost",
+            "declared_roles": [
+              "ffn.hc_post_group"
+            ],
+            "event_count": 4200,
+            "reason": "aggregate_resource_boundary_changed",
+            "observed_contract": [
+              "hyper_connection_active",
+              "HcPost",
+              [
+                [
+                  [
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    4,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    4,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ],
+                [
+                  [
+                    4,
+                    4,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    4,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ]
+              ]
+            ],
+            "requires": "richer_observed_partition_or_targeted_evidence"
+          }
+        ],
+        "maximum_worker_rss_bytes": 482770944,
+        "grouped_matrix_references": {
+          "expert_down": {
+            "count": 4200,
+            "observed_us": {
+              "count": 4200,
+              "mean": 65.23752380952381,
+              "p50": 64.6675,
+              "p90": 69.338,
+              "min": 62.639,
+              "max": 73.321
+            },
+            "predicted_us": 104.50846254545458,
+            "observed_activity_ms_per_forward": 2.609500952380952,
+            "predicted_service_ms_per_forward": 4.180338501818183,
+            "residual_activity_ms_per_forward": 1.5708375494372313,
+            "buffer_capacity_rows": 192,
+            "declared_valid_rows": 24,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "b9d151422cb8c37b604ed93d7805afb140291f4b734275250a2e985144eddde7"
+          },
+          "expert_up": {
+            "count": 4200,
+            "observed_us": {
+              "count": 4200,
+              "mean": 127.40574023809523,
+              "p50": 126.789,
+              "p90": 128.91,
+              "min": 123.848,
+              "max": 138.189
+            },
+            "predicted_us": 223.5142981818182,
+            "observed_activity_ms_per_forward": 5.096229609523809,
+            "predicted_service_ms_per_forward": 8.940571927272728,
+            "residual_activity_ms_per_forward": 3.844342317748919,
+            "buffer_capacity_rows": 192,
+            "declared_valid_rows": 24,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "f2fedb2db944c188bacf0fbda4745edd0f2a520000d4abd51e1a30b1b877c6b2"
+          }
+        }
+      },
+      "a5_v41_fp8_tp1_dp8_ep8_c4_p2k": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_c4_p2k-matrix-extension.actual.json",
+          "sha256": "6466b706d43be8a00df89a4502f3dacdd46f2650b6ced697b743dc97ef6d82f4",
+          "size_bytes": 2435472
+        },
+        "case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_c4_p2k-source.json",
+          "sha256": "d1bade67440c3e98c6061eb9167cb364352961b031cdc77b7f1d56df10510cc9",
+          "size_bytes": 18358
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c4_p2k_20261030/kernel_details.csv",
+          "size_bytes": 100369788,
+          "mtime_ns": 1793304900000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "cf36aecc0160029872eeaf55cf397261d121cf7d7e591d6043751488a367b964"
+        },
+        "geometry": {
+          "query_rows": 1,
+          "sequences_per_replica": 1,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "forward_count": 151,
+        "passed": 16,
+        "strict_compared": 16,
+        "strict_failed": 0,
+        "reference_groups": 2,
+        "reference_exclusions": [
+          {
+            "group_id": "sha256:04ae7a49e89759b5e30b140705b60dea7ed4b2abd61342226fabbdd10c816f49",
+            "native_operator_type": "HcPre",
+            "declared_role": "ffn.hc_pre",
+            "event_count": 6040,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:2f23339844057524d28b79b042cbad4d08165a5da0301064496d283c0022a3c4",
+            "native_operator_type": "MqsmlaKernel___call__",
+            "declared_role": "attention_core",
+            "event_count": 302,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": false
+          },
+          {
+            "group_id": "sha256:5a9848056c5fecfad2b57626951ce689e9625607da130e126bd3518a46176819",
+            "native_operator_type": "MqsmlaKernel___call__",
+            "declared_role": "attention_core",
+            "event_count": 3020,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": false
+          },
+          {
+            "group_id": "sha256:5bd2b48a3c65d31ab292fca2fb556dd02d790474450375153bcbbb596a8e2ec0",
+            "native_operator_type": "MqsmlaKernel___call__",
+            "declared_role": "attention_core",
+            "event_count": 2718,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": false
+          },
+          {
+            "group_id": "sha256:d60c70d6559df52b27b578118adde0e5859df358cd805a2b8806820c42ee5984",
+            "native_operator_type": "MoeDistributeCombineV3",
+            "declared_role": "expert_combine_native",
+            "event_count": 6040,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:eadba6e155e42629a33317265600e50f09cdb4c038bd77af409226f12670c137",
+            "native_operator_type": "MoeDistributeDispatchV3",
+            "declared_role": "expert_dispatch_native",
+            "event_count": 6040,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:fc18de48c7596fccaa4d9469a49be8be943d98c32bb3a33e7da787d483e462ef",
+            "native_operator_type": "HcPre",
+            "declared_role": "attention.hc_pre",
+            "event_count": 6040,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          }
+        ],
+        "strict_rebind_exclusions": [
+          {
+            "old_cohort_id": "sha256:93b8a31b5e515e163a1fd593c519b82a779305c15d7264ca84d6677384d3ace4",
+            "native_operator_type": "HcPost",
+            "declared_roles": [
+              "attention.hc_post_group"
+            ],
+            "event_count": 6040,
+            "reason": "aggregate_resource_boundary_changed",
+            "observed_contract": [
+              "hyper_connection_active",
+              "HcPost",
+              [
+                [
+                  [
+                    1,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    1,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    1,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ],
+                [
+                  [
+                    1,
+                    4,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    1,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ]
+              ]
+            ],
+            "requires": "richer_observed_partition_or_targeted_evidence"
+          },
+          {
+            "old_cohort_id": "sha256:8773e1d0228f03744701eb8bf916811720433021ac12256a9225b8a23d0f5089",
+            "native_operator_type": "HcPost",
+            "declared_roles": [
+              "ffn.hc_post_group"
+            ],
+            "event_count": 6040,
+            "reason": "aggregate_resource_boundary_changed",
+            "observed_contract": [
+              "hyper_connection_active",
+              "HcPost",
+              [
+                [
+                  [
+                    1,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    1,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    1,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ],
+                [
+                  [
+                    1,
+                    4,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    1,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ]
+              ]
+            ],
+            "requires": "richer_observed_partition_or_targeted_evidence"
+          }
+        ],
+        "maximum_worker_rss_bytes": 479068160,
+        "grouped_matrix_references": {
+          "expert_down": {
+            "count": 6040,
+            "observed_us": {
+              "count": 6040,
+              "mean": 23.603551986754965,
+              "p50": 23.476,
+              "p90": 24.505,
+              "min": 22.046,
+              "max": 26.77
+            },
+            "predicted_us": 26.130187636363644,
+            "observed_activity_ms_per_forward": 0.9441420794701986,
+            "predicted_service_ms_per_forward": 1.0452075054545458,
+            "residual_activity_ms_per_forward": 0.1010654259843472,
+            "buffer_capacity_rows": 48,
+            "declared_valid_rows": 6,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "5c42a4de599addfc280fde0abb2146ccf4821ff5e852381e8a881e282643bc36"
+          },
+          "expert_up": {
+            "count": 6040,
+            "observed_us": {
+              "count": 6040,
+              "mean": 38.808786920529805,
+              "p50": 38.6605,
+              "p90": 39.896,
+              "min": 37.005,
+              "max": 46.25
+            },
+            "predicted_us": 55.88164654545455,
+            "observed_activity_ms_per_forward": 1.552351476821192,
+            "predicted_service_ms_per_forward": 2.235265861818182,
+            "residual_activity_ms_per_forward": 0.6829143849969903,
+            "buffer_capacity_rows": 48,
+            "declared_valid_rows": 6,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "051be937660a17bbf8d3f3d28ec79263d9525a8766cdbafcc5a7ea2472128458"
+          }
+        }
+      },
+      "a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8-v41-dp8.actual.json",
+          "sha256": "0150875fae46728125a70bf80220635f792b5669fea7926c003ef68bfa1aac69",
+          "size_bytes": 2444252
+        },
+        "case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8-source.json",
+          "sha256": "3ef3966875471c63eadfba7aa57f648abadb4024a20020c171685c15dfdd28b8",
+          "size_bytes": 18174
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot10ms_c8_20261030/kernel_details.csv",
+          "size_bytes": 96044757,
+          "mtime_ns": 1793303576000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "17b7ed9ee87a8449f1c92d04a0e0f2eebd5aecd6edd39e4073d8787976974866"
+        },
+        "geometry": {
+          "query_rows": 1,
+          "sequences_per_replica": 1,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "forward_count": 145,
+        "passed": 16,
+        "strict_compared": 16,
+        "strict_failed": 0,
+        "reference_groups": 2,
+        "reference_exclusions": [
+          {
+            "group_id": "sha256:04ae7a49e89759b5e30b140705b60dea7ed4b2abd61342226fabbdd10c816f49",
+            "native_operator_type": "HcPre",
+            "declared_role": "ffn.hc_pre",
+            "event_count": 5800,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:2f23339844057524d28b79b042cbad4d08165a5da0301064496d283c0022a3c4",
+            "native_operator_type": "MqsmlaKernel___call__",
+            "declared_role": "attention_core",
+            "event_count": 290,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": false
+          },
+          {
+            "group_id": "sha256:5a9848056c5fecfad2b57626951ce689e9625607da130e126bd3518a46176819",
+            "native_operator_type": "MqsmlaKernel___call__",
+            "declared_role": "attention_core",
+            "event_count": 2900,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": false
+          },
+          {
+            "group_id": "sha256:5bd2b48a3c65d31ab292fca2fb556dd02d790474450375153bcbbb596a8e2ec0",
+            "native_operator_type": "MqsmlaKernel___call__",
+            "declared_role": "attention_core",
+            "event_count": 2610,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": false
+          },
+          {
+            "group_id": "sha256:d60c70d6559df52b27b578118adde0e5859df358cd805a2b8806820c42ee5984",
+            "native_operator_type": "MoeDistributeCombineV3",
+            "declared_role": "expert_combine_native",
+            "event_count": 5800,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:eadba6e155e42629a33317265600e50f09cdb4c038bd77af409226f12670c137",
+            "native_operator_type": "MoeDistributeDispatchV3",
+            "declared_role": "expert_dispatch_native",
+            "event_count": 5800,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:fc18de48c7596fccaa4d9469a49be8be943d98c32bb3a33e7da787d483e462ef",
+            "native_operator_type": "HcPre",
+            "declared_role": "attention.hc_pre",
+            "event_count": 5800,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          }
+        ],
+        "strict_rebind_exclusions": [
+          {
+            "old_cohort_id": "sha256:93b8a31b5e515e163a1fd593c519b82a779305c15d7264ca84d6677384d3ace4",
+            "native_operator_type": "HcPost",
+            "declared_roles": [
+              "attention.hc_post_group"
+            ],
+            "event_count": 5800,
+            "reason": "aggregate_resource_boundary_changed",
+            "observed_contract": [
+              "hyper_connection_active",
+              "HcPost",
+              [
+                [
+                  [
+                    1,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    1,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    1,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ],
+                [
+                  [
+                    1,
+                    4,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    1,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ]
+              ]
+            ],
+            "requires": "richer_observed_partition_or_targeted_evidence"
+          },
+          {
+            "old_cohort_id": "sha256:8773e1d0228f03744701eb8bf916811720433021ac12256a9225b8a23d0f5089",
+            "native_operator_type": "HcPost",
+            "declared_roles": [
+              "ffn.hc_post_group"
+            ],
+            "event_count": 5800,
+            "reason": "aggregate_resource_boundary_changed",
+            "observed_contract": [
+              "hyper_connection_active",
+              "HcPost",
+              [
+                [
+                  [
+                    1,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    1,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    1,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ],
+                [
+                  [
+                    1,
+                    4,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    1,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ]
+              ]
+            ],
+            "requires": "richer_observed_partition_or_targeted_evidence"
+          }
+        ],
+        "maximum_worker_rss_bytes": 478560256,
+        "grouped_matrix_references": {
+          "expert_down": {
+            "count": 5800,
+            "observed_us": {
+              "count": 5800,
+              "mean": 23.65608931034483,
+              "p50": 23.572,
+              "p90": 24.508,
+              "min": 22.085,
+              "max": 29.845
+            },
+            "predicted_us": 26.130187636363644,
+            "observed_activity_ms_per_forward": 0.9462435724137931,
+            "predicted_service_ms_per_forward": 1.0452075054545458,
+            "residual_activity_ms_per_forward": 0.09896393304075268,
+            "buffer_capacity_rows": 48,
+            "declared_valid_rows": 6,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "5c42a4de599addfc280fde0abb2146ccf4821ff5e852381e8a881e282643bc36"
+          },
+          "expert_up": {
+            "count": 5800,
+            "observed_us": {
+              "count": 5800,
+              "mean": 38.54120551724138,
+              "p50": 38.378,
+              "p90": 39.613,
+              "min": 37.064,
+              "max": 44.047
+            },
+            "predicted_us": 55.88164654545455,
+            "observed_activity_ms_per_forward": 1.5416482206896551,
+            "predicted_service_ms_per_forward": 2.2352658618181818,
+            "residual_activity_ms_per_forward": 0.6936176411285266,
+            "buffer_capacity_rows": 48,
+            "declared_valid_rows": 6,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "051be937660a17bbf8d3f3d28ec79263d9525a8766cdbafcc5a7ea2472128458"
+          }
+        }
+      },
+      "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-v41-dp8.actual.json",
+          "sha256": "40aa392d165e490ee550607e157af8fd07d8c5f5317d21a3ce82caaf8822b5b5",
+          "size_bytes": 2146216
+        },
+        "case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-source.json",
+          "sha256": "e973339edabbed29a63a2a31da765aa312a7e870e70f3cce0809234ca9fb02bd",
+          "size_bytes": 18178
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
+          "size_bytes": 50179338,
+          "mtime_ns": 1793303665000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "085c8c00a0560d14a3ca4beb9b965efc04b6be1f40b47734cd47102af4363282"
+        },
+        "geometry": {
+          "query_rows": 8,
+          "sequences_per_replica": 8,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "forward_count": 75,
+        "passed": 16,
+        "strict_compared": 16,
+        "strict_failed": 0,
+        "reference_groups": 2,
+        "reference_exclusions": [
+          {
+            "group_id": "sha256:4d2df8ae2066c5afd6883db6851dcd7e4ba7140935fde1f7e05ca3daf320539e",
+            "native_operator_type": "MqsmlaKernel___call__",
+            "declared_role": "attention_core",
+            "event_count": 1350,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": false
+          },
+          {
+            "group_id": "sha256:85d05e14fc443da528d6020199c9b94032cef94c85972dbbcc6aee4df0c5a402",
+            "native_operator_type": "MoeDistributeDispatchV3",
+            "declared_role": "expert_dispatch_native",
+            "event_count": 3000,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:bee6d8280da4ee964d2af2111118620bdba9a455c87c1a3bd9b624a83e1a0026",
+            "native_operator_type": "HcPre",
+            "declared_role": "ffn.hc_pre",
+            "event_count": 3000,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:c451abd49556fe5929061eb5759f25fee22ae9576928bdf05b8cd667897fd4c0",
+            "native_operator_type": "MqsmlaKernel___call__",
+            "declared_role": "attention_core",
+            "event_count": 150,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": false
+          },
+          {
+            "group_id": "sha256:e4ec83aade6dd7e3d579bb96146ba68fcb43ff116824c4aeeec036205aef4cab",
+            "native_operator_type": "MqsmlaKernel___call__",
+            "declared_role": "attention_core",
+            "event_count": 1500,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": false
+          },
+          {
+            "group_id": "sha256:eb54a57382e2816f3be6aba98babf8c113bbb3b45345adf035206ae0a5bc38df",
+            "native_operator_type": "MoeDistributeCombineV3",
+            "declared_role": "expert_combine_native",
+            "event_count": 3000,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:f2e88ae2132906c913c30fd9dcf486efc6371e4f7588a683a3bb64f5ee0235dd",
+            "native_operator_type": "HcPre",
+            "declared_role": "attention.hc_pre",
+            "event_count": 3000,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          }
+        ],
+        "strict_rebind_exclusions": [
+          {
+            "old_cohort_id": "sha256:bf4dfd3e9f1c6e94f98712196b394192e601a0c2429699beb0b3296ed4b3b8a6",
+            "native_operator_type": "HcPost",
+            "declared_roles": [
+              "attention.hc_post_group"
+            ],
+            "event_count": 3000,
+            "reason": "aggregate_resource_boundary_changed",
+            "observed_contract": [
+              "hyper_connection_active",
+              "HcPost",
+              [
+                [
+                  [
+                    8,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    8,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    8,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ],
+                [
+                  [
+                    8,
+                    4,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    8,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ]
+              ]
+            ],
+            "requires": "richer_observed_partition_or_targeted_evidence"
+          },
+          {
+            "old_cohort_id": "sha256:7abd4ec106d7db1f212b275976aadc9e921dc4dda850eca1ad558f87265c81ad",
+            "native_operator_type": "HcPost",
+            "declared_roles": [
+              "ffn.hc_post_group"
+            ],
+            "event_count": 3000,
+            "reason": "aggregate_resource_boundary_changed",
+            "observed_contract": [
+              "hyper_connection_active",
+              "HcPost",
+              [
+                [
+                  [
+                    8,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    8,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    8,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ],
+                [
+                  [
+                    8,
+                    4,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    8,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ]
+              ]
+            ],
+            "requires": "richer_observed_partition_or_targeted_evidence"
+          }
+        ],
+        "maximum_worker_rss_bytes": 488423424,
+        "grouped_matrix_references": {
+          "expert_down": {
+            "count": 3000,
+            "observed_us": {
+              "count": 3000,
+              "mean": 119.85432899999999,
+              "p50": 118.821,
+              "p90": 127.094,
+              "min": 115.81,
+              "max": 132.167
+            },
+            "predicted_us": 209.01282909090915,
+            "observed_activity_ms_per_forward": 4.794173160000001,
+            "predicted_service_ms_per_forward": 8.360513163636366,
+            "residual_activity_ms_per_forward": 3.5663400036363653,
+            "buffer_capacity_rows": 384,
+            "declared_valid_rows": 48,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "0b9c6427bc9d28765d096a04d011ab33c1be6caae38676c0c01a5868451adc67"
+          },
+          "expert_up": {
+            "count": 3000,
+            "observed_us": {
+              "count": 3000,
+              "mean": 242.5993,
+              "p50": 241.3305,
+              "p90": 243.901,
+              "min": 237.834,
+              "max": 268.851
+            },
+            "predicted_us": 447.0245003636364,
+            "observed_activity_ms_per_forward": 9.703972,
+            "predicted_service_ms_per_forward": 17.880980014545454,
+            "residual_activity_ms_per_forward": 8.177008014545454,
+            "buffer_capacity_rows": 384,
+            "declared_valid_rows": 48,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "dcaa614fe8e47a19e3df4b32e6357846137852e0047dc18eb3a4c7a048409741"
+          }
+        }
+      },
+      "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1": {
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1-v41-dp8.actual.json",
+          "sha256": "7216605d23da66e6b91e752ea3bf8415d262551d5c638c5c7bc1d875f4d9e20b",
+          "size_bytes": 2454386
+        },
+        "case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-source-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1-source.json",
+          "sha256": "859a5d614caba8eb208d37e2516f2cb45a69c20eaa38590bf34fd9df6a4e2a95",
+          "size_bytes": 18148
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+          "size_bytes": 101041319,
+          "mtime_ns": 1793303454000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "323f2e48f662c7b255b6d2ae69d3ba1ea3045578d375be54c503876ff3f45861"
+        },
+        "geometry": {
+          "query_rows": 1,
+          "sequences_per_replica": 1,
+          "tokens_per_sequence": 1,
+          "context_tokens": null,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity"
+        },
+        "forward_count": 152,
+        "passed": 16,
+        "strict_compared": 16,
+        "strict_failed": 0,
+        "reference_groups": 2,
+        "reference_exclusions": [
+          {
+            "group_id": "sha256:04ae7a49e89759b5e30b140705b60dea7ed4b2abd61342226fabbdd10c816f49",
+            "native_operator_type": "HcPre",
+            "declared_role": "ffn.hc_pre",
+            "event_count": 6080,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:2f23339844057524d28b79b042cbad4d08165a5da0301064496d283c0022a3c4",
+            "native_operator_type": "MqsmlaKernel___call__",
+            "declared_role": "attention_core",
+            "event_count": 304,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": false
+          },
+          {
+            "group_id": "sha256:5a9848056c5fecfad2b57626951ce689e9625607da130e126bd3518a46176819",
+            "native_operator_type": "MqsmlaKernel___call__",
+            "declared_role": "attention_core",
+            "event_count": 3040,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": false
+          },
+          {
+            "group_id": "sha256:5bd2b48a3c65d31ab292fca2fb556dd02d790474450375153bcbbb596a8e2ec0",
+            "native_operator_type": "MqsmlaKernel___call__",
+            "declared_role": "attention_core",
+            "event_count": 2736,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": false
+          },
+          {
+            "group_id": "sha256:d60c70d6559df52b27b578118adde0e5859df358cd805a2b8806820c42ee5984",
+            "native_operator_type": "MoeDistributeCombineV3",
+            "declared_role": "expert_combine_native",
+            "event_count": 6080,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:eadba6e155e42629a33317265600e50f09cdb4c038bd77af409226f12670c137",
+            "native_operator_type": "MoeDistributeDispatchV3",
+            "declared_role": "expert_dispatch_native",
+            "event_count": 6080,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          },
+          {
+            "group_id": "sha256:fc18de48c7596fccaa4d9469a49be8be943d98c32bb3a33e7da787d483e462ef",
+            "native_operator_type": "HcPre",
+            "declared_role": "attention.hc_pre",
+            "event_count": 6080,
+            "reason": "source_reference_requires_fresh_abi_or_source_correspondence_rebind",
+            "full_native_abi_retained": true
+          }
+        ],
+        "strict_rebind_exclusions": [
+          {
+            "old_cohort_id": "sha256:93b8a31b5e515e163a1fd593c519b82a779305c15d7264ca84d6677384d3ace4",
+            "native_operator_type": "HcPost",
+            "declared_roles": [
+              "attention.hc_post_group"
+            ],
+            "event_count": 6080,
+            "reason": "aggregate_resource_boundary_changed",
+            "observed_contract": [
+              "hyper_connection_active",
+              "HcPost",
+              [
+                [
+                  [
+                    1,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    1,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    1,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ],
+                [
+                  [
+                    1,
+                    4,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    1,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ]
+              ]
+            ],
+            "requires": "richer_observed_partition_or_targeted_evidence"
+          },
+          {
+            "old_cohort_id": "sha256:8773e1d0228f03744701eb8bf916811720433021ac12256a9225b8a23d0f5089",
+            "native_operator_type": "HcPost",
+            "declared_roles": [
+              "ffn.hc_post_group"
+            ],
+            "event_count": 6080,
+            "reason": "aggregate_resource_boundary_changed",
+            "observed_contract": [
+              "hyper_connection_active",
+              "HcPost",
+              [
+                [
+                  [
+                    1,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    1,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    1,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ],
+                [
+                  [
+                    1,
+                    4,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    1,
+                    4,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ]
+              ]
+            ],
+            "requires": "richer_observed_partition_or_targeted_evidence"
+          }
+        ],
+        "maximum_worker_rss_bytes": 471531520,
+        "grouped_matrix_references": {
+          "expert_down": {
+            "count": 6080,
+            "observed_us": {
+              "count": 6080,
+              "mean": 23.639003782894736,
+              "p50": 23.5425,
+              "p90": 24.505,
+              "min": 22.032,
+              "max": 30.396
+            },
+            "predicted_us": 26.130187636363644,
+            "observed_activity_ms_per_forward": 0.9455601513157895,
+            "predicted_service_ms_per_forward": 1.045207505454546,
+            "residual_activity_ms_per_forward": 0.09964735413875647,
+            "buffer_capacity_rows": 48,
+            "declared_valid_rows": 6,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "5c42a4de599addfc280fde0abb2146ccf4821ff5e852381e8a881e282643bc36"
+          },
+          "expert_up": {
+            "count": 6080,
+            "observed_us": {
+              "count": 6080,
+              "mean": 38.59189029605263,
+              "p50": 38.458,
+              "p90": 39.666,
+              "min": 36.891,
+              "max": 42.862
+            },
+            "predicted_us": 55.88164654545455,
+            "observed_activity_ms_per_forward": 1.543675611842105,
+            "predicted_service_ms_per_forward": 2.2352658618181818,
+            "residual_activity_ms_per_forward": 0.6915902499760767,
+            "buffer_capacity_rows": 48,
+            "declared_valid_rows": 6,
+            "observed_valid_rows": null,
+            "group_list_values": null,
+            "boundary_relation": "capacity_vs_valid_rows_conditional",
+            "strict_accuracy_eligible": false,
+            "native_abi_sha256": "051be937660a17bbf8d3f3d28ec79263d9525a8766cdbafcc5a7ea2472128458"
+          }
+        }
+      }
+    },
+    "reports": [
+      {
+        "report": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/a5_v41_fp8_tp1_dp8_ep8_c128_p2k/body-operator-family-scoreboard.json",
+          "sha256": "74aa5551c4aa9136037d9c3732d30b6023bfbe81c771bf529c552375d5284810",
+          "size_bytes": 217165
+        },
+        "review": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/a5_v41_fp8_tp1_dp8_ep8_c128_p2k/body-operator-reprice-independent-review.json",
+          "sha256": "2446de630c0fa6e9991e2cd846846ba8205ce75a27442ef582afdcd4d7e5e53c",
+          "size_bytes": 1170
+        },
+        "status": "completed"
+      },
+      {
+        "report": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/a5_v41_fp8_tp1_dp8_ep8_c16_p2k/body-operator-family-scoreboard.json",
+          "sha256": "78ad5b07c56d96c83a1bb3bf8c7ce0c2ceafc9172ec7cd13183587ccb2a470f2",
+          "size_bytes": 215962
+        },
+        "review": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/a5_v41_fp8_tp1_dp8_ep8_c16_p2k/body-operator-reprice-independent-review.json",
+          "sha256": "b348d6d0fad73e79d1fcc102c10021f69b197ffb8d8df61febf61ff1a7584e7b",
+          "size_bytes": 1171
+        },
+        "status": "completed"
+      },
+      {
+        "report": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/a5_v41_fp8_tp1_dp8_ep8_c32_p2k/body-operator-family-scoreboard.json",
+          "sha256": "58327cc7638e3360939444c2ef4d87e37c9bb7e779d7bd356d336c95d88de4f7",
+          "size_bytes": 214842
+        },
+        "review": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/a5_v41_fp8_tp1_dp8_ep8_c32_p2k/body-operator-reprice-independent-review.json",
+          "sha256": "80e92f204e2d32248bd93852837601bd2ce46937c564d31651c7dfce19ed34af",
+          "size_bytes": 1171
+        },
+        "status": "completed"
+      },
+      {
+        "report": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/a5_v41_fp8_tp1_dp8_ep8_c4_p2k/body-operator-family-scoreboard.json",
+          "sha256": "2d2cfc122609cebd3a9d0cf8c710f88ba6574f485bebc8a6d15c36d024e8bc83",
+          "size_bytes": 215890
+        },
+        "review": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/a5_v41_fp8_tp1_dp8_ep8_c4_p2k/body-operator-reprice-independent-review.json",
+          "sha256": "3654bebc110b9c7fe84b77f486b23d7dbc3d7970ff2281e62cdee58c1c1c1cb2",
+          "size_bytes": 1170
+        },
+        "status": "completed"
+      },
+      {
+        "report": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8/body-operator-family-scoreboard.json",
+          "sha256": "19337c672cb43a4e6fb4251c865783db191336760eaf50fd85a2b6222fc0878f",
+          "size_bytes": 215965
+        },
+        "review": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8/body-operator-reprice-independent-review.json",
+          "sha256": "7e3c5332e3ca1cc735d7f1fea89fa474caad0e5926a28d85f81c034dd01a752c",
+          "size_bytes": 1175
+        },
+        "status": "completed"
+      },
+      {
+        "report": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64/body-operator-family-scoreboard.json",
+          "sha256": "63d28f7b4e59de7378f135f0465fb22284ed08b1953c3e69b2d8035f40de72dc",
+          "size_bytes": 214502
+        },
+        "review": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64/body-operator-reprice-independent-review.json",
+          "sha256": "2f14b9d8d7efd7a198bd49c598014c1592dde3a68e7b29d46c99276f10017740",
+          "size_bytes": 1174
+        },
+        "status": "completed"
+      },
+      {
+        "report": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1/body-operator-family-scoreboard.json",
+          "sha256": "3bc5f04bdf39dc086886ae20759d43b5538510054e90992c34c63fde66b30aac",
+          "size_bytes": 216056
+        },
+        "review": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1/body-operator-reprice-independent-review.json",
+          "sha256": "35930e3c18b545ada4bd43bcdb44f416ff2c885c5e84e7381fe1b8e8eaf63226",
+          "size_bytes": 1174
+        },
+        "status": "completed"
+      }
+    ],
+    "totals": {
+      "forward_count": 830,
+      "passed": 112,
+      "strict_compared": 112,
+      "strict_failed": 0,
+      "reference_groups": 14,
+      "reference_exclusions": 49,
+      "strict_rebind_exclusions": 14,
+      "strict_scored_events": 420810
+    },
+    "accuracy_by_tier": {
+      "absolute_15us": {
+        "compared": 112,
+        "passed": 112
+      }
+    }
+  },
+  "arm_join_checks": 98,
+  "arm_observed_populations_identical": true,
+  "raw_capture_reads": 0,
+  "cost_executions": 0,
+  "no_cross_arm_accuracy_denominator": true,
+  "conditions": [
+    "Baseline preserves each prior case; only the Sim runtime changes.",
+    "Source-symmetric uses explicit MXA8W4 NZ + mixed-packed MQSMLA + source HC selectors.",
+    "Both inherit integer sequences B: [B]*8 is a declared symmetric DP condition, not observed load.",
+    "No single_active_rank0 arm is inferred and neither arm is selected by smaller error.",
+    "GroupedMatmul capacity and full ABI are observed; valid rows, active expert histogram and group-list values remain unobserved.",
+    "Reference kernel activity residuals are not additive body-wall-clock budgets."
+  ]
+}

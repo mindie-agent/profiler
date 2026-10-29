@@ -158,8 +158,9 @@ def review(directory):
                     check(rebind['new_graph_id']==mapping['graph_id'],label+':reference_fresh_graph')
                     check(not rebind['strict_tensor_cohort_implied'],label+':reference_not_strict')
                     check(group['source_correspondence']['observed_valid_routed_rows'] is None
-                          and group['source_correspondence']['observed_active_mask_values'] is None,
-                          label+':mask_and_valid_rows_still_unknown')
+                          and group['source_correspondence'].get('observed_active_mask_values') is None
+                          and group['source_correspondence'].get('observed_group_list_values') is None,
+                          label+':mask_group_list_and_valid_rows_still_unknown')
                 observed_stats(group,label+':reference')
                 activity = sum(value*n for value,n in group['duration_ns_counter'])
                 near(group['observed_activity_ms_per_forward'],activity/1e6/case['forward_count'],label+':reference_activity')

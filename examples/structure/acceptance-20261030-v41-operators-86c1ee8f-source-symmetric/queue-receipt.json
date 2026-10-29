@@ -1,0 +1,61 @@
+{
+  "cases": [
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1",
+      "returncode": 0,
+      "elapsed_seconds": 123.471331208013,
+      "report": "/Users/maoxx241/code/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1/body-operator-family-scoreboard.json",
+      "scenario": "symmetric_declared",
+      "sequences_basis": "retained integer B expands to [B]*8; conditional, not observed DP load"
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c4_p2k",
+      "returncode": 0,
+      "elapsed_seconds": 110.57873333396856,
+      "report": "/Users/maoxx241/code/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/a5_v41_fp8_tp1_dp8_ep8_c4_p2k/body-operator-family-scoreboard.json",
+      "scenario": "symmetric_declared",
+      "sequences_basis": "retained integer B expands to [B]*8; conditional, not observed DP load"
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8",
+      "returncode": 0,
+      "elapsed_seconds": 83.82671037502587,
+      "report": "/Users/maoxx241/code/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8/body-operator-family-scoreboard.json",
+      "scenario": "symmetric_declared",
+      "sequences_basis": "retained integer B expands to [B]*8; conditional, not observed DP load"
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c16_p2k",
+      "returncode": 0,
+      "elapsed_seconds": 82.43907737499103,
+      "report": "/Users/maoxx241/code/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/a5_v41_fp8_tp1_dp8_ep8_c16_p2k/body-operator-family-scoreboard.json",
+      "scenario": "symmetric_declared",
+      "sequences_basis": "retained integer B expands to [B]*8; conditional, not observed DP load"
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c32_p2k",
+      "returncode": 0,
+      "elapsed_seconds": 83.4636311250506,
+      "report": "/Users/maoxx241/code/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/a5_v41_fp8_tp1_dp8_ep8_c32_p2k/body-operator-family-scoreboard.json",
+      "scenario": "symmetric_declared",
+      "sequences_basis": "retained integer B expands to [B]*8; conditional, not observed DP load"
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64",
+      "returncode": 0,
+      "elapsed_seconds": 92.27812233299483,
+      "report": "/Users/maoxx241/code/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64/body-operator-family-scoreboard.json",
+      "scenario": "symmetric_declared",
+      "sequences_basis": "retained integer B expands to [B]*8; conditional, not observed DP load"
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c128_p2k",
+      "returncode": 0,
+      "elapsed_seconds": 91.42580791702494,
+      "report": "/Users/maoxx241/code/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/a5_v41_fp8_tp1_dp8_ep8_c128_p2k/body-operator-family-scoreboard.json",
+      "scenario": "symmetric_declared",
+      "sequences_basis": "retained integer B expands to [B]*8; conditional, not observed DP load"
+    }
+  ],
+  "status": "completed"
+}

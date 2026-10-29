@@ -39,7 +39,8 @@ def canonical(value):
 
 def runtime_identity():
     result = prediction_runtime_identity()
-    for path in (Path(__file__).resolve(), Path(__file__).with_name("rebind_body_source_roles.py").resolve()):
+    for path in (Path(__file__).resolve(), Path(__file__).with_name("rebind_body_source_roles.py").resolve(),
+                 Path(__file__).with_name("rebind_grouped_source_roles.py").resolve()):
         source = identity(path)
         result[source["path"]] = source["sha256"]
     return result
@@ -244,7 +245,10 @@ def worker(args):
         rebindings = []
         if args.frozen_native_rebind:
             from rebind_body_source_roles import rebind_frozen_native_groups
+            from rebind_grouped_source_roles import rebind_frozen_grouped_groups
             actual, rebindings = rebind_frozen_native_groups(actual, manifest)
+            actual, grouped_rebindings = rebind_frozen_grouped_groups(actual, manifest)
+            rebindings += grouped_rebindings
         retained, excluded = safe_reference_actual(actual, manifest)
         del manifest
         result = {"references": program_references(args.case, mapping, retained), "excluded": excluded,
@@ -537,7 +541,7 @@ def main():
     parser.add_argument("--retry-references-from", type=Path,
                         help="Retry only failed references; preserve same-runtime successful strict comparisons")
     parser.add_argument("--frozen-native-rebind", action="store_true",
-                        help="Revalidate complete retained MC2 native-ABI partitions as conditional references")
+                        help="Revalidate complete retained MC2 and GroupedMatmul ABI partitions as conditional references")
     parser.add_argument("--mapping", type=Path)
     parser.add_argument("--case", type=Path)
     parser.add_argument("--case-dir", type=Path)
