@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import argparse
+from hashlib import sha256
 import json
 import os
 from pathlib import Path
@@ -26,6 +27,7 @@ def main():
     scripts = Path(__file__).resolve().parent
     env = {**os.environ, 'PYTHONPATH': os.pathsep.join((str(args.sim_root), str(scripts.parents[1])))}
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    pooled = []
     for manifest_path in args.manifest:
         manifest = json.loads(manifest_path.read_text())
         receipt = manifest_path.with_name('decode-forward-auto-acceptance.json')
@@ -43,7 +45,14 @@ def main():
             with log_path.open('w') as stream:
                 subprocess.run(command, env=env, stdout=stream, stderr=subprocess.STDOUT,
                                check=True, timeout=300)
+            sidecar = json.loads((args.output_dir / 'steady-layer-pooled.json').read_text())
+            pooled.extend(sidecar['cases'])
             print(json.dumps({'case_id': case['case_id'], 'status': 'extracted', 'log': str(log_path)}), flush=True)
+    (args.output_dir / 'steady-layer-pooled.json').write_text(json.dumps({
+        'schema_version': 'mindie-steady-layer-pooled/1', 'cases': pooled,
+        'population_basis': 'pooled_layer_calls_excluding_layer0',
+        'input_manifests': [{'path': str(path), 'sha256': sha256(path.read_bytes()).hexdigest()}
+                            for path in args.manifest]}, separators=(',', ':')) + '\n')
     with (args.output_dir / 'comparison.log').open('w') as stream:
         subprocess.run([sys.executable, str(scripts / 'compare_body_operator_families.py'),
                         '--output-dir', str(args.output_dir)], env=env, check=True, timeout=900,

@@ -14,6 +14,38 @@ from collections import Counter
 import hashlib
 import json
 from pathlib import Path
+import resource
+import sys
+import time
+
+
+def _receipt_parts(path):
+    """Read one case at a time; the native-cohort receipts carry large ABIs."""
+    from mindie_profiler.sources_trace import _JsonStream
+    with _JsonStream(path) as reader:
+        reader.expect("{")
+        while reader.peek() != "}":
+            key = reader.value()
+            reader.expect(":")
+            if key == "cases":
+                for case in reader.iter_array():
+                    yield "case", case
+            else:
+                yield key, reader.value()
+            if reader.peek() == ",":
+                reader.expect(",")
+            elif reader.peek() != "}":
+                reader.expect("}")
+        reader.expect("}")
+
+
+def _operator_metadata(path):
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(block)
+    metadata = {key: value for key, value in _receipt_parts(path) if key != "case"}
+    return metadata, {"path": str(path.resolve()), "sha256": digest.hexdigest()}
 
 
 def _read(path):
@@ -142,12 +174,14 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
                 row["display_status"] = invalidation["status"]
         bodies.extend(rows)
     for path in operator_paths:
-        receipt, identity = _read(path)
+        receipt, identity = _operator_metadata(path)
         inputs.append(identity)
-        actual, compared = operator_rows(receipt, identity)
-        families.extend(actual)
-        cohorts.extend(compared)
-        for case in receipt["cases"]:
+        for key, case in _receipt_parts(path):
+            if key != "case":
+                continue
+            actual, compared = operator_rows({**receipt, "cases": [case]}, identity)
+            families.extend(actual)
+            cohorts.extend(compared)
             for family in case["families"]:
                 for group in family.get("conditional_source_role_references", ()):
                     observed = group.get("observed_activity_ms_per_forward")
@@ -248,6 +282,9 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
                         "unique_observed_forward_count": sum(item["count"] for item in populations.values()),
                         "operator_status_counts": dict(Counter(row["status"] for row in cohorts)),
                         "operator_accuracy_by_tier": tiers,
+                        "current_operator_source_populations": len(operator_selection),
+                        "current_operator_scored_events": sum(row.get("scored_event_count") or 0 for row in current_families),
+                        "current_operator_body_events": sum(row["observed_us"]["count"] for row in current_families),
                         "heavy_cohorts": sum(row["heavy_call"] for row in cohorts)},
             "limitations": [
                 "Rows retain their own source/runtime/geometry; independently produced receipts are not merged into a synthetic run.",
@@ -278,6 +315,9 @@ def render(report):
              "superseded predictions and layer errors are excluded from accuracy statistics.", "",
              "Current operator strict accuracy (latest input receipt per source/geometry): " + "; ".join(f"{key}: **{value['passed']}/{value['compared']}**"
                  for key, value in summary["operator_accuracy_by_tier"].items()) + ". Conditional references are excluded.", "",
+             f"Strict event coverage: **{summary['current_operator_scored_events']:,}/{summary['current_operator_body_events']:,}** "
+             f"events across {summary['current_operator_source_populations']} measured source/geometry populations. "
+             "A high pass rate within this subset does not establish whole-model accuracy.", "",
              "Local replay receipts with explicit comparison coverage. Body errors are measured wall-clock differences; "
              "operator priorities are nonadditive kernel activity residuals per complete Forward.", "",
              "## Whole Decode Body — sorted by absolute ms error", "",
@@ -355,6 +395,7 @@ def render(report):
 
 
 def main():
+    started = time.perf_counter()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input-manifest", type=Path,
                         help="Ordered body/operators/references/evidence receipt lists; CLI inputs append")
@@ -375,7 +416,16 @@ def main():
     report = build(args.body, args.operators, args.references, args.evidence, args.invalidations)
     if manifest_identity:
         report["input_manifest_identity"] = manifest_identity
-    args.output.write_text(json.dumps(report, indent=2) + "\n")
+    peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    report["execution"] = {
+        "aggregation_seconds": time.perf_counter() - started,
+        "aggregation_peak_rss_bytes": int(peak if sys.platform == "darwin" else peak * 1024),
+        "receipt_read_strategy": "stream_native_operator_cases; bounded_body_receipts",
+        "raw_capture_scans": 0, "prediction_executions": 0,
+    }
+    with args.output.open("w") as stream:
+        json.dump(report, stream, indent=2)
+        stream.write("\n")
     args.output.with_suffix(".md").write_text(render(report))
     print(json.dumps(report["summary"]))
 
