@@ -11,6 +11,38 @@ from mindie_profiler.tensor_contracts import observed_contract, observed_contrac
 FIXTURE = Path(__file__).parent / "fixtures/decode_forward"
 
 
+def test_v41_hidden_output_forward_closes_at_real_final_norm_without_a_head():
+    rows = list(kernel_rows(FIXTURE / "v41_dp8_first_body.csv"))
+    config = json.loads((FIXTURE / "v41_dp8_model_config.json").read_text())
+    result = auto_segment_decode_forwards(rows, config)
+    forward = result["forwards"][0]
+    assert result["body_forward_span_ms"]["count"] == 1
+    assert forward["body_forward_span_ms"] == pytest.approx(13.848067)
+    assert forward["geometry"]["sequences_per_replica"] == 1
+    assert forward["geometry"]["tokens_per_sequence"] == 1
+    assert forward["head_start_ns"] is None
+    assert forward["confidence"]["closure_basis"] == "mhc_final_norm"
+    assert not forward["confidence"]["vocabulary_head_contract_matches"]
+    layers = [stage for stage in forward["stages"] if stage["layer_id"] is not None]
+    assert len(layers) == 40
+    assert layers[0]["evidence"]["first_locator"]["csv_line"] == 65
+    assert layers[-1]["evidence"]["last_locator"]["csv_line"] == 1808
+    assert all(layer["span_ms"] == pytest.approx(layer["device_activity_union_ms"]
+                                               + layer["internal_uncovered_gap_ms"])
+               for layer in layers)
+    final = next(stage for stage in forward["stages"] if stage["kind"] == "final_norm")
+    assert final["evidence"]["first_locator"]["csv_line"] == 1813
+    # An unexported attention ABI remains unexported after structural alignment.
+    anchors = [row for row in rows if row.event.op_type == "MqsmlaKernel___call__"]
+    assert len(anchors) == 40
+    assert all(row.input_shapes is None and observed_contract(row) is None for row in anchors)
+    broken = auto_segment_decode_forwards([row for row in rows if row is not anchors[0]], config)
+    assert broken["body_forward_span_ms"]["count"] == 0
+    assert broken["anomaly_counts"]["auxiliary_or_partial_layer_sequence"] == 1
+    no_source = {key: value for key, value in config.items() if key != "source_attention_anchors"}
+    assert auto_segment_decode_forwards(rows, no_source)["body_forward_span_ms"]["count"] == 0
+
+
 def test_complete_v4_mhc_body_excludes_output_head_collapse():
     rows = list(kernel_rows(FIXTURE / "v4f_a3_mhc_verify.csv"))
     config = json.loads((FIXTURE / "v4f_model_config.json").read_text())

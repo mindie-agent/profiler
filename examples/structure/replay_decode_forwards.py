@@ -335,6 +335,7 @@ def replay_case(row, base, *, max_events=5_000_000, timeout_s=30,
         case_path = _path(base, row["sim_case_path"])
         case = _read(case_path)
         config = _model_config(case)
+        config.update(row.get("segmentation_options", {}))
         result["declared_runtime"] = _declared_runtime(case)
         reused = (_path(base, row["extraction_path"]) if row.get("extraction_path") else
                   Path(reuse_extractions) / f"auto-forward-{row['case_id']}.json"

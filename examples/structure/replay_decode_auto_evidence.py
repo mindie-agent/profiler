@@ -86,6 +86,7 @@ def replay(manifest_path, output, *, validation_baseline=None, reuse_extractions
         case = parse_case(_read(model_path))
         config = asdict(case.model)
         config["tp"] = case.runtime.parallel.tp
+        config.update(row.get("segmentation_options", {}))
         schema = probe_csv(path)
         source = SourceRef("", None, "csv", str(path), path.name, digest, stat.st_size,
                            schema.schema_version, schema.schema_variant, mtime_ns=stat.st_mtime_ns)

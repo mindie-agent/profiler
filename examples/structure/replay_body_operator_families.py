@@ -301,6 +301,7 @@ def extract_case(entry, case_paths, output):
         case_json=read(case_path);case=parse_case(case_json)
         context=case_json['workload']['requests'][0]['prompt_tokens']
         config=case.model.to_dict();config.update(tp=case.runtime.parallel.tp)
+        config.update(prior.get('segmentation_options', {}))
         for key,geometry in geometries.items():
             manifest=export_structure(case,phase='decode',tokens=geometry['tokens_per_sequence'],
                                   sequences=geometry['sequences_per_replica'],context=context,scope='body')

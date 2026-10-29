@@ -3,7 +3,7 @@
 [Role] Automatically segment Decode-like forwards using existing Sim layer plans.
 [Invariants] Alignment is an explicitly labelled structural inference, not Host
   occurrence evidence. It requires the entire ordered layer plan and a vocabulary
-  head closure; repeated kernel names alone never determine a layer. Device
+  head or source-declared terminal norm; kernel names alone never identify layers. Device
   timestamps remain measured. Body spans exclude final norm/head/sampling and
   between-forward gaps, retain internal communication, and expose AICPU tails.
 [Timeouts & Locks] One bounded chronological scan, one active segment per device;
@@ -19,7 +19,8 @@ from math import prod
 from .accounting import union_length
 from .events import ProfilerUsageError
 from .forward_spans import _statistics
-from .normalized import shapes
+from .normalized import shapes, row_from_event
+from .body_attention_contracts import fia_block_table_slot
 
 _MATRICES = {"MatMul", "MatMulV2", "MatMulV3", "QuantBatchMatmulV3",
              "QuantBatchMatmulV4", "TransposeBatchMatMul", "BatchMatMulV2"}
@@ -65,6 +66,8 @@ def _model(value):
         raise ProfilerUsageError("declared body layer count differs from existing layer_plans")
     config["layer_plans"] = plans
     config["tp"] = int(config.get("tp", 1))
+    if config.get("source_decode_query") and config["source_decode_query"]["tokens_per_sequence"] <= 0:
+        raise ProfilerUsageError("source-declared decode query must be positive")
     return config
 
 
@@ -91,6 +94,9 @@ def _head(row, config):
 
 
 def _anchor(row, config):
+    for declaration in config.get("source_attention_anchors", ()):
+        if (row.kind == declaration["op_type"] and row.event.name == declaration["name"]):
+            return declaration["attention"]
     kind = _ANCHORS.get(row.kind)
     if kind is None or not row.inputs or not row.inputs[0]:
         return None
@@ -102,13 +108,16 @@ def _anchor(row, config):
     return kind
 
 
-def _query_geometry(anchors, query_rows):
+def _query_geometry(anchors, query_rows, config=None):
     batches = set()
     for row in anchors:
         inputs = row.inputs
         slot = None
-        if row.kind == "FusedInferAttentionScore" and len(inputs) in {7, 31}:
-            slot = inputs[6 if len(inputs) == 7 else 14]
+        if not inputs:
+            continue
+        if row.kind == "FusedInferAttentionScore":
+            table_slot = fia_block_table_slot(row_from_event(row.event))
+            slot = inputs[table_slot] if table_slot is not None else None
         elif row.kind == "SparseFlashAttention" and len(inputs) == 9:
             slot = inputs[4]
         elif row.kind == "SparseAttnSharedkv" and len(inputs) == 14:
@@ -121,9 +130,15 @@ def _query_geometry(anchors, query_rows):
             batches.add(slot[0])
     batch = next(iter(batches)) if len(batches) == 1 else None
     q = query_rows // batch if batch and query_rows % batch == 0 else None
+    basis = "captured_paged_attention_block_table_rows" if batch else None
+    declaration = (config or {}).get("source_decode_query")
+    if not batches and declaration:
+        q = declaration["tokens_per_sequence"]
+        batch = query_rows // q if query_rows % q == 0 else None
+        basis = "measured_hidden_rows_divided_by_source_declared_decode_query" if batch else None
     return {"query_rows": query_rows, "sequences_per_replica": batch,
             "tokens_per_sequence": q, "context_tokens": None,
-            "batch_basis": "captured_paged_attention_block_table_rows" if batch else None,
+            "batch_basis": basis,
             "context_basis": "not_observed_from_cache_capacity"}
 
 
@@ -144,15 +159,37 @@ def _norm_start(rows, index, hidden):
     # mHC collapses residual streams before the ordinary hidden-width norm.
     # Compare actual tensor geometry; its extra stream axis is not query rows.
     previous = index - 1
-    # Other-stream scheduling wrappers can start between these two dependent
-    # kernels. They do not break their explicit output-to-input geometry.
-    while previous >= 0 and _scheduler(rows[previous]):
-        previous -= 1
-    if previous >= 0 and rows[previous].kind == "HcPre":
+    # Other-stream metadata kernels can start between these dependent kernels.
+    # Another residual output/hidden norm closes the search, so a previous
+    # layer's HcPre cannot be borrowed across the layer boundary.
+    while previous >= 0:
         pre, norm = rows[previous], rows[index]
-        if pre.outputs and norm.inputs and pre.outputs[0] == norm.inputs[0]:
-            return previous
+        if pre.kind == "HcPre":
+            if pre.outputs and norm.inputs and pre.outputs[0] == norm.inputs[0]:
+                return previous
+            break
+        if pre.kind == "HcPost" or _norm(pre, hidden):
+            break
+        previous -= 1
     return index
+
+
+def _terminal_norm(rows, config):
+    """A source-declared hidden-output forward can end before compute_logits."""
+    if config.get("forward_closure") != "mhc_final_norm" or len(rows) < 6:
+        return False
+    tail = rows[-6:]
+    if [row.kind for row in tail] != ["HcPost", "Cast", "Mul", "ReduceSum", "Cast", "RmsNorm"]:
+        return False
+    residual, _, _, reduced, copied, norm = tail
+    plan = config["layer_plans"][-1]
+    if not plan.get("hyper_connections") or not _norm(norm, config["hidden_size"]):
+        return False
+    hidden, mult = config["hidden_size"], plan["hc_mult"]
+    return (residual.outputs and residual.outputs[0][-2:] == (mult, hidden)
+            and reduced.outputs and copied.outputs and norm.inputs and norm.outputs
+            and reduced.outputs[0] == copied.outputs[0] == norm.inputs[0] == norm.outputs[0]
+            and prod(residual.outputs[0][:-2]) == prod(norm.inputs[0][:-1]))
 
 
 def _body_end(rows, final_norm, last_anchor, plan, query_rows, hidden):
@@ -217,7 +254,7 @@ def _scope(rows, kind, identity, *, layer=None, plan=None, successor=None):
                          "successor_locator": successor.event.locator if successor else None}}
 
 
-def _align(rows, config, ordinal):
+def _align(rows, config, ordinal, *, terminal_norm=False):
     hidden, plans = config["hidden_size"], config["layer_plans"]
     anchors = [(index, _anchor(row, config)) for index, row in enumerate(rows)
                if _anchor(row, config) is not None]
@@ -268,7 +305,7 @@ def _align(rows, config, ordinal):
     if len(query_sizes) != 1:
         return None, {"reason": "layer_query_geometry_changes", "query_rows": sorted(query_sizes)}
     query_rows = next(iter(query_sizes))
-    geometry = _query_geometry([rows[index] for index, _ in anchors], query_rows)
+    geometry = _query_geometry([rows[index] for index, _ in anchors], query_rows, config)
     # Recurrent GDN/KDA anchors distinguish this path from chunk prefill; short
     # paged attention requires the declared decode query bound as another check.
     recurrent = any(kind in {"gdn", "kda"} for _, kind in anchors)
@@ -312,8 +349,9 @@ def _align(rows, config, ordinal):
     body = _scope(rows[starts[0]:body_end], "target_body", "body", successor=rows[final_successor])
     head_preparation = (_scope(rows[body_end:final_norm], "output_head_preparation", "head_preparation",
                                successor=rows[final_norm]) if body_end < final_norm else None)
-    final = _scope(rows[final_norm:-1], "final_norm", "final_norm", successor=rows[-1])
-    head = _scope(rows[-1:], "lm_head", "lm_head")
+    final = _scope(rows[final_norm:] if terminal_norm else rows[final_norm:-1],
+                   "final_norm", "final_norm", successor=None if terminal_norm else rows[-1])
+    head = None if terminal_norm else _scope(rows[-1:], "lm_head", "lm_head")
     embeddings = [row for row in rows[:starts[0]] if row.kind in {"Gather", "GatherV2", "Embedding", "IndexSelect"}
                   and row.inputs and row.outputs and len(row.outputs[0]) == 2
                   and row.outputs[0][-1] == hidden and any(
@@ -331,15 +369,21 @@ def _align(rows, config, ordinal):
         "per_stream_activity_ms": body["per_stream_activity_ms"],
         "start_ns": body["start_ns"], "end_ns": body["end_ns"],
         "rank_id": body["rank_id"], "device_id": body["device_id"],
-        "head_start_ns": head["start_ns"], "head_end_ns": head["end_ns"],
+        "head_start_ns": head["start_ns"] if head else None,
+        "head_end_ns": head["end_ns"] if head else None,
         "query_rows": query_rows, "stages": [item for item in stages if item is not None],
         "confidence": {"level": "conditional_structural_alignment",
                        "matched_layers": len(layers), "declared_layers": len(plans),
                        "ordered_attention_plan_matches": True,
                        "hidden_norm_boundaries_match": True, "ffn_path_present_each_layer": True,
-                       "vocabulary_head_contract_matches": True,
+                       "vocabulary_head_contract_matches": not terminal_norm,
+                       "closure_basis": "mhc_final_norm" if terminal_norm else "vocabulary_head",
+                       "source_attention_anchors": config.get("source_attention_anchors", []),
+                       "source_decode_query": config.get("source_decode_query"),
                        "server_phase_marker_observed": False,
-                       "phase_basis": "recurrent_attention" if recurrent else "short_paged_query",
+                       "phase_basis": ("recurrent_attention" if recurrent else
+                                       "source_declared_decode_query" if config.get("source_decode_query")
+                                       else "short_paged_query"),
                        "individual_layer_identity_is_inferred": True},
     }, None
 
@@ -354,7 +398,10 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
     ``model_config`` is ModelSpec or its serialized dictionary, plus explicit
     ``tp`` for sharded vocabulary heads. No caller-created boundary JSON is
     required. Device streams share one active segment per (rank,device), closed
-    by an independently declared vocabulary projection; shorter auxiliary/MTP
+    by an independently declared vocabulary projection, or an explicit
+    ``mhc_final_norm`` closure for captures of hidden-output model.forward.
+    Source-only anchors/short-query declarations remain visible evidence;
+    they never manufacture tensor descriptors. Shorter auxiliary/MTP
     segments cannot be promoted into a complete body. Unknown or corrupted
     sequences remain anomalies. The result measures conditional device spans,
     and does not assert Host-labelled forward or server-phase identity.
@@ -428,12 +475,13 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
         active[key].append(row)
         if sum(map(len, active.values())) > max_forward_events:
             raise ProfilerUsageError(f"active forward events exceed {max_forward_events}; no trustworthy head closure")
-        if not _head(row, config):
+        terminal_norm = _terminal_norm(active[key], config)
+        if not _head(row, config) and not terminal_norm:
             continue
-        counts["vocabulary_head_occurrences"] += 1
-        if counts["vocabulary_head_occurrences"] > max_closed_segments:
+        counts["terminal_norm_occurrences" if terminal_norm else "vocabulary_head_occurrences"] += 1
+        if counts["terminal_norm_occurrences"] + counts["vocabulary_head_occurrences"] > max_closed_segments:
             raise ProfilerUsageError(f"closed forward segments exceed {max_closed_segments}")
-        result, failure = _align(active[key], config, len(forwards))
+        result, failure = _align(active[key], config, len(forwards), terminal_norm=terminal_norm)
         if result:
             result["closed_segment_event_count"] = len(active[key])
             counts["complete_body_segment_events"] += len(active[key])
@@ -464,7 +512,8 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
     for key, rows in active.items():
         if rows:
             counts["trailing_segment_events"] += len(rows)
-            anomaly({"reason": "trailing_segment_without_vocabulary_head", "event_count": len(rows),
+            anomaly({"reason": ("trailing_segment_without_terminal_norm" if config.get("forward_closure")
+                                == "mhc_final_norm" else "trailing_segment_without_vocabulary_head"), "event_count": len(rows),
                      "rank_id": key[0], "device_id": key[1]})
     def groups(values):
         return [{"kind": key[0], "layer_id": key[1], "rank_id": key[2], "device_id": key[3],
@@ -490,6 +539,8 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
         "source_identity": source.content_identity() if source is not None else None,
         "geometry": geometry, "query_rows": geometry["query_rows"] if geometry else None,
         "model_declaration": {key: config.get(key) for key in ("name", "layers", "hidden_size", "vocab_size", "tp")},
+        "segmentation_options": {key: config[key] for key in (
+            "source_attention_anchors", "source_decode_query", "forward_closure") if key in config},
         "body_forward_span_ms": _statistics([row["body_forward_span_ms"] for row in forwards]),
         "body_activity_ms": _statistics([row["body_activity_ms"] for row in forwards]),
         "body_internal_gap_ms": _statistics([row["body_internal_gap_ms"] for row in forwards]),
@@ -509,7 +560,7 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
                             for group in geometry_groups.values()],
         "scan_counts": dict(counts), "anomaly_counts": dict(reasons), "anomalies": anomalies,
         "limitations": ["Layer identity is inferred from complete declared topology, not observed Host scopes.",
-                        "Decode phase uses recurrent/short-paged-query evidence; no server-phase marker is asserted.",
+                        "Decode phase uses recurrent/paged-query evidence or an explicit source declaration; no server-phase marker is asserted.",
                         "AICPU scheduler suffixes beyond real device completion are excluded conditionally.",
                         "Internal device communication and gaps remain; stage spans are not additive.",
                         "Activity is the same-device union excluding typed AICPU scheduling wrappers; real HCOM is retained.",
