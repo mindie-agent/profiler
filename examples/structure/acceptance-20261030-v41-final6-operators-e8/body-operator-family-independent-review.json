@@ -1,0 +1,55 @@
+{
+  "schema_version": "mindie-body-operator-independent-review/1",
+  "status": "passed",
+  "checks": 3266,
+  "failures": [],
+  "scoreboard_sha256": "9cc875e1a79d728c77aaef1fbc71ac558483892a229f8f2f9af366006c401a67",
+  "steady_layer_pooled_sha256": "716ce4dc84876d895608e733a9ae6046f07db769a48586baf91f6ad9d700af12",
+  "source_count": 6,
+  "forward_count": 225,
+  "comparison_status_counts": {
+    "compared": 63
+  },
+  "accuracy_by_tier": {
+    "absolute_15us": {
+      "compared": 63,
+      "passed": 60
+    }
+  },
+  "cases": [
+    {
+      "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c16 / v41-new6",
+      "passed": 9,
+      "compared": 9
+    },
+    {
+      "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c32 / v41-new6",
+      "passed": 8,
+      "compared": 9
+    },
+    {
+      "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4 / v41-new6",
+      "passed": 8,
+      "compared": 9
+    },
+    {
+      "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64 / v41-new6",
+      "passed": 8,
+      "compared": 9
+    },
+    {
+      "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8 / v41-new6",
+      "passed": 9,
+      "compared": 9
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c128_p2k / v41-new6",
+      "passed": 18,
+      "compared": 18
+    }
+  ],
+  "method": "independent stdlib histogram/count/identity arithmetic; no profiler or Sim import",
+  "raw_capture_reads": 0,
+  "prediction_executions": 0,
+  "script_sha256": "e452efebfb53ccff46be16279ef795aedd163b05de0b34c4da02620b56710c77"
+}
