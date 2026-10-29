@@ -1,0 +1,941 @@
+{
+  "schema_version": "mindie-kimi-four-layer-probe-findings/1",
+  "status": "bounded_source_evidence",
+  "cases": [
+    {
+      "probe_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators/a3-kimi-four-layer-c1-bounded-probe.json",
+        "sha256": "3015cdfda80b99281d874f4940776eaa2f48b24170703d288a62fbee33c25308"
+      },
+      "client_concurrency": 1,
+      "head_query_rows": 1,
+      "verified_ordered_anchor_segments": 3,
+      "ordered_anchor_sequence": [
+        "RecurrentKda",
+        "RecurrentKda",
+        "RecurrentKda",
+        "FusedInferAttentionScore"
+      ],
+      "families": [
+        {
+          "native_operator_type": "RecurrentKda",
+          "calls": 9,
+          "calls_per_anchor_closed_segment": 3.0,
+          "mean_us": 17.337444444444444,
+          "sum_activity_ms_per_anchor_closed_segment": 0.052012333333333334,
+          "duration_ns_samples": [
+            20560,
+            15220,
+            15900,
+            19399,
+            15359,
+            16420,
+            20960,
+            15560,
+            16659
+          ],
+          "representative": {
+            "line": 558,
+            "kind": "RecurrentKda",
+            "name": "aclnnRecurrentKda_RecurrentKda_RecurrentKda",
+            "core": "AI_VECTOR_CORE",
+            "start_ns": 1793303332774501621,
+            "duration_ns": 20560,
+            "blocks": 12,
+            "inputs": [
+              [
+                4608
+              ],
+              [
+                4608
+              ],
+              [
+                4608
+              ],
+              [
+                1,
+                1,
+                12,
+                128
+              ],
+              [
+                1,
+                1,
+                12
+              ],
+              [
+                1939965184
+              ],
+              [
+                2
+              ],
+              [
+                1
+              ],
+              [
+                12
+              ],
+              [
+                1536
+              ]
+            ],
+            "input_dtypes": [
+              "DT_BF16",
+              "DT_BF16",
+              "DT_BF16",
+              "DT_BF16",
+              "FLOAT",
+              "FLOAT",
+              "INT32",
+              "INT32",
+              "FLOAT",
+              "FLOAT"
+            ],
+            "outputs": [
+              [
+                1536
+              ],
+              [
+                1939965184
+              ],
+              [
+                1939965184
+              ]
+            ],
+            "output_dtypes": [
+              "DT_BF16",
+              "FLOAT",
+              "FLOAT"
+            ]
+          }
+        },
+        {
+          "native_operator_type": "MoeDistributeDispatchV2",
+          "calls": 9,
+          "calls_per_anchor_closed_segment": 3.0,
+          "mean_us": 54.754333333333335,
+          "sum_activity_ms_per_anchor_closed_segment": 0.164263,
+          "duration_ns_samples": [
+            55998,
+            54599,
+            56599,
+            52059,
+            54859,
+            54639,
+            54079,
+            52539,
+            57418
+          ],
+          "representative": {
+            "line": 611,
+            "kind": "MoeDistributeDispatchV2",
+            "name": "MoeDistributeDispatchV2",
+            "core": "MIX_AIV",
+            "start_ns": 1793303332775336745,
+            "duration_ns": 55998,
+            "blocks": 40,
+            "inputs": [
+              [
+                1,
+                3584
+              ],
+              [
+                1,
+                16
+              ],
+              [],
+              [
+                1
+              ],
+              [],
+              [],
+              []
+            ],
+            "input_dtypes": [
+              "DT_BF16",
+              "INT32",
+              "DT_UNDEFINED",
+              "BOOL",
+              "DT_UNDEFINED",
+              "DT_UNDEFINED",
+              "DT_UNDEFINED"
+            ],
+            "outputs": [
+              [
+                128,
+                3584
+              ],
+              [
+                128
+              ],
+              [
+                16384
+              ],
+              [
+                112
+              ],
+              [
+                896
+              ],
+              [
+                1
+              ],
+              [
+                128
+              ]
+            ],
+            "output_dtypes": [
+              "INT8",
+              "FLOAT",
+              "INT32",
+              "INT64",
+              "INT32",
+              "INT32",
+              "FLOAT"
+            ]
+          }
+        },
+        {
+          "native_operator_type": "GroupedMatmul",
+          "calls": 18,
+          "calls_per_anchor_closed_segment": 6.0,
+          "mean_us": 47.45111111111111,
+          "sum_activity_ms_per_anchor_closed_segment": 0.28470666666666666,
+          "duration_ns_samples": [
+            58079,
+            33819,
+            56258,
+            42099,
+            54699,
+            39519,
+            59079,
+            33839,
+            55119,
+            42919,
+            55679,
+            39739,
+            55298,
+            34099,
+            55639,
+            42919,
+            55859,
+            39459
+          ],
+          "representative": {
+            "line": 612,
+            "kind": "GroupedMatmul",
+            "name": "aclnnGroupedMatmulWeightNz_GroupedMatmul_GroupedMatmul",
+            "core": "MIX_AIC",
+            "start_ns": 1793303332775395603,
+            "duration_ns": 58079,
+            "blocks": 20,
+            "inputs": [
+              [
+                128,
+                3584
+              ],
+              [
+                112,
+                3584,
+                6144
+              ],
+              [
+                112,
+                6144
+              ],
+              [
+                112,
+                1,
+                6144
+              ],
+              [],
+              [],
+              [],
+              [
+                112
+              ],
+              [
+                128
+              ]
+            ],
+            "input_dtypes": [
+              "INT8",
+              "DT_INT4",
+              "FLOAT",
+              "UINT64",
+              "FLOAT",
+              "FLOAT16",
+              "FLOAT16",
+              "INT64",
+              "FLOAT"
+            ],
+            "outputs": [
+              [
+                128,
+                6144
+              ]
+            ],
+            "output_dtypes": [
+              "DT_BF16"
+            ]
+          }
+        },
+        {
+          "native_operator_type": "MoeDistributeCombineV2",
+          "calls": 9,
+          "calls_per_anchor_closed_segment": 3.0,
+          "mean_us": 19.853,
+          "sum_activity_ms_per_anchor_closed_segment": 0.059559,
+          "duration_ns_samples": [
+            22920,
+            17840,
+            14200,
+            32479,
+            17560,
+            15139,
+            26660,
+            18499,
+            13380
+          ],
+          "representative": {
+            "line": 616,
+            "kind": "MoeDistributeCombineV2",
+            "name": "MoeDistributeCombineV2",
+            "core": "MIX_AIV",
+            "start_ns": 1793303332775507521,
+            "duration_ns": 22920,
+            "blocks": 40,
+            "inputs": [
+              [
+                128,
+                3584
+              ],
+              [
+                1,
+                16
+              ],
+              [
+                16384
+              ],
+              [
+                896
+              ],
+              [
+                1,
+                16
+              ],
+              [
+                1
+              ],
+              [
+                1
+              ],
+              [],
+              [],
+              [],
+              [
+                128
+              ],
+              [],
+              [],
+              [],
+              [],
+              [],
+              [],
+              []
+            ],
+            "input_dtypes": [
+              "DT_BF16",
+              "INT32",
+              "INT32",
+              "INT32",
+              "FLOAT",
+              "INT32",
+              "BOOL",
+              "DT_UNDEFINED",
+              "DT_UNDEFINED",
+              "DT_UNDEFINED",
+              "FLOAT",
+              "DT_UNDEFINED",
+              "DT_UNDEFINED",
+              "DT_UNDEFINED",
+              "DT_UNDEFINED",
+              "DT_UNDEFINED",
+              "DT_UNDEFINED",
+              "DT_UNDEFINED"
+            ],
+            "outputs": [
+              [
+                1,
+                3584
+              ]
+            ],
+            "output_dtypes": [
+              "DT_BF16"
+            ]
+          }
+        },
+        {
+          "native_operator_type": "FusedInferAttentionScore",
+          "calls": 3,
+          "calls_per_anchor_closed_segment": 1.0,
+          "mean_us": 36.592666666666666,
+          "sum_activity_ms_per_anchor_closed_segment": 0.03659266666666666,
+          "duration_ns_samples": [
+            36159,
+            37120,
+            36499
+          ],
+          "representative": {
+            "line": 689,
+            "kind": "FusedInferAttentionScore",
+            "name": "aclnnFusedInferAttentionScoreV4_FusedInferAttentionScore_FusedInferAttentionScore",
+            "core": "MIX_AIC",
+            "start_ns": 1793303332776565640,
+            "duration_ns": 36159,
+            "blocks": 9,
+            "inputs": [
+              [
+                1,
+                16,
+                1,
+                512
+              ],
+              [
+                285642,
+                1,
+                128,
+                512
+              ],
+              [
+                285642,
+                1,
+                128,
+                512
+              ],
+              [
+                1
+              ],
+              [
+                1,
+                258
+              ],
+              [
+                1,
+                16,
+                1,
+                64
+              ],
+              [
+                285642,
+                1,
+                128,
+                64
+              ]
+            ],
+            "input_dtypes": [
+              "DT_BF16",
+              "DT_BF16",
+              "DT_BF16",
+              "INT64",
+              "INT32",
+              "DT_BF16",
+              "DT_BF16"
+            ],
+            "outputs": [
+              [
+                16,
+                1,
+                1,
+                512
+              ],
+              []
+            ],
+            "output_dtypes": [
+              "DT_BF16",
+              "FLOAT"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "probe_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators/a3-kimi-four-layer-c64-bounded-b64-probe.json",
+        "sha256": "42b6ffd26330154d017b299c6e39ba1ac4e6012bb47ba41d2bce8a8d1aea1537"
+      },
+      "client_concurrency": 64,
+      "head_query_rows": 64,
+      "verified_ordered_anchor_segments": 3,
+      "ordered_anchor_sequence": [
+        "RecurrentKda",
+        "RecurrentKda",
+        "RecurrentKda",
+        "FusedInferAttentionScore"
+      ],
+      "families": [
+        {
+          "native_operator_type": "RecurrentKda",
+          "calls": 9,
+          "calls_per_anchor_closed_segment": 3.0,
+          "mean_us": 176.08066666666664,
+          "sum_activity_ms_per_anchor_closed_segment": 0.528242,
+          "duration_ns_samples": [
+            175056,
+            171216,
+            178117,
+            178596,
+            171216,
+            178817,
+            178716,
+            171276,
+            181716
+          ],
+          "representative": {
+            "line": 16625,
+            "kind": "RecurrentKda",
+            "name": "aclnnRecurrentKda_RecurrentKda_RecurrentKda",
+            "core": "AI_VECTOR_CORE",
+            "start_ns": 1793303467852423417,
+            "duration_ns": 175056,
+            "blocks": 40,
+            "inputs": [
+              [
+                294912
+              ],
+              [
+                293376
+              ],
+              [
+                291840
+              ],
+              [
+                1,
+                64,
+                12,
+                128
+              ],
+              [
+                1,
+                64,
+                12
+              ],
+              [
+                1939965184
+              ],
+              [
+                65
+              ],
+              [
+                64
+              ],
+              [
+                12
+              ],
+              [
+                1536
+              ]
+            ],
+            "input_dtypes": [
+              "DT_BF16",
+              "DT_BF16",
+              "DT_BF16",
+              "DT_BF16",
+              "FLOAT",
+              "FLOAT",
+              "INT32",
+              "INT32",
+              "FLOAT",
+              "FLOAT"
+            ],
+            "outputs": [
+              [
+                98304
+              ],
+              [
+                1939965184
+              ],
+              [
+                1939965184
+              ]
+            ],
+            "output_dtypes": [
+              "DT_BF16",
+              "FLOAT",
+              "FLOAT"
+            ]
+          }
+        },
+        {
+          "native_operator_type": "MoeDistributeDispatchV2",
+          "calls": 9,
+          "calls_per_anchor_closed_segment": 3.0,
+          "mean_us": 64.22766666666666,
+          "sum_activity_ms_per_anchor_closed_segment": 0.192683,
+          "duration_ns_samples": [
+            71819,
+            65059,
+            62819,
+            64538,
+            61599,
+            61198,
+            63599,
+            61919,
+            65499
+          ],
+          "representative": {
+            "line": 16677,
+            "kind": "MoeDistributeDispatchV2",
+            "name": "MoeDistributeDispatchV2",
+            "core": "MIX_AIV",
+            "start_ns": 1793303467853520855,
+            "duration_ns": 71819,
+            "blocks": 40,
+            "inputs": [
+              [
+                8,
+                3584
+              ],
+              [
+                8,
+                16
+              ],
+              [],
+              [
+                8
+              ],
+              [],
+              [],
+              []
+            ],
+            "input_dtypes": [
+              "DT_BF16",
+              "INT32",
+              "DT_UNDEFINED",
+              "BOOL",
+              "DT_UNDEFINED",
+              "DT_UNDEFINED",
+              "DT_UNDEFINED"
+            ],
+            "outputs": [
+              [
+                1024,
+                3584
+              ],
+              [
+                1024
+              ],
+              [
+                131072
+              ],
+              [
+                112
+              ],
+              [
+                896
+              ],
+              [
+                1
+              ],
+              [
+                1024
+              ]
+            ],
+            "output_dtypes": [
+              "INT8",
+              "FLOAT",
+              "INT32",
+              "INT64",
+              "INT32",
+              "INT32",
+              "FLOAT"
+            ]
+          }
+        },
+        {
+          "native_operator_type": "GroupedMatmul",
+          "calls": 18,
+          "calls_per_anchor_closed_segment": 6.0,
+          "mean_us": 806.6814444444445,
+          "sum_activity_ms_per_anchor_closed_segment": 4.840088666666667,
+          "duration_ns_samples": [
+            1109857,
+            534829,
+            1096358,
+            518389,
+            1080878,
+            501950,
+            1112738,
+            536069,
+            1107318,
+            509950,
+            1072079,
+            499930,
+            1112037,
+            532889,
+            1100218,
+            513809,
+            1077978,
+            502990
+          ],
+          "representative": {
+            "line": 16679,
+            "kind": "GroupedMatmul",
+            "name": "aclnnGroupedMatmulWeightNz_GroupedMatmul_GroupedMatmul",
+            "core": "MIX_AIC",
+            "start_ns": 1793303467853595254,
+            "duration_ns": 1109857,
+            "blocks": 20,
+            "inputs": [
+              [
+                1024,
+                3584
+              ],
+              [
+                112,
+                3584,
+                6144
+              ],
+              [
+                112,
+                6144
+              ],
+              [
+                112,
+                1,
+                6144
+              ],
+              [],
+              [],
+              [],
+              [
+                112
+              ],
+              [
+                1024
+              ]
+            ],
+            "input_dtypes": [
+              "INT8",
+              "DT_INT4",
+              "FLOAT",
+              "UINT64",
+              "FLOAT",
+              "FLOAT16",
+              "FLOAT16",
+              "INT64",
+              "FLOAT"
+            ],
+            "outputs": [
+              [
+                1024,
+                6144
+              ]
+            ],
+            "output_dtypes": [
+              "DT_BF16"
+            ]
+          }
+        },
+        {
+          "native_operator_type": "MoeDistributeCombineV2",
+          "calls": 9,
+          "calls_per_anchor_closed_segment": 3.0,
+          "mean_us": 32.12844444444445,
+          "sum_activity_ms_per_anchor_closed_segment": 0.09638533333333332,
+          "duration_ns_samples": [
+            36919,
+            24560,
+            42959,
+            24759,
+            27560,
+            42820,
+            22440,
+            27760,
+            39379
+          ],
+          "representative": {
+            "line": 16690,
+            "kind": "MoeDistributeCombineV2",
+            "name": "MoeDistributeCombineV2",
+            "core": "MIX_AIV",
+            "start_ns": 1793303467855518515,
+            "duration_ns": 36919,
+            "blocks": 40,
+            "inputs": [
+              [
+                1024,
+                3584
+              ],
+              [
+                8,
+                16
+              ],
+              [
+                131072
+              ],
+              [
+                896
+              ],
+              [
+                8,
+                16
+              ],
+              [
+                1
+              ],
+              [
+                8
+              ],
+              [],
+              [],
+              [],
+              [
+                1024
+              ],
+              [],
+              [],
+              [],
+              [],
+              [],
+              [],
+              []
+            ],
+            "input_dtypes": [
+              "DT_BF16",
+              "INT32",
+              "INT32",
+              "INT32",
+              "FLOAT",
+              "INT32",
+              "BOOL",
+              "DT_UNDEFINED",
+              "DT_UNDEFINED",
+              "DT_UNDEFINED",
+              "FLOAT",
+              "DT_UNDEFINED",
+              "DT_UNDEFINED",
+              "DT_UNDEFINED",
+              "DT_UNDEFINED",
+              "DT_UNDEFINED",
+              "DT_UNDEFINED",
+              "DT_UNDEFINED"
+            ],
+            "outputs": [
+              [
+                8,
+                3584
+              ]
+            ],
+            "output_dtypes": [
+              "DT_BF16"
+            ]
+          }
+        },
+        {
+          "native_operator_type": "FusedInferAttentionScore",
+          "calls": 3,
+          "calls_per_anchor_closed_segment": 1.0,
+          "mean_us": 502.863,
+          "sum_activity_ms_per_anchor_closed_segment": 0.502863,
+          "duration_ns_samples": [
+            507409,
+            499170,
+            502010
+          ],
+          "representative": {
+            "line": 16759,
+            "kind": "FusedInferAttentionScore",
+            "name": "aclnnFusedInferAttentionScoreV4_FusedInferAttentionScore_FusedInferAttentionScore",
+            "core": "MIX_AIC",
+            "start_ns": 1793303467858746431,
+            "duration_ns": 507409,
+            "blocks": 20,
+            "inputs": [
+              [
+                64,
+                16,
+                1,
+                512
+              ],
+              [
+                285642,
+                1,
+                128,
+                512
+              ],
+              [
+                285642,
+                1,
+                128,
+                512
+              ],
+              [
+                64
+              ],
+              [
+                64,
+                258
+              ],
+              [
+                64,
+                16,
+                1,
+                64
+              ],
+              [
+                285642,
+                1,
+                128,
+                64
+              ]
+            ],
+            "input_dtypes": [
+              "DT_BF16",
+              "DT_BF16",
+              "DT_BF16",
+              "INT64",
+              "INT32",
+              "DT_BF16",
+              "DT_BF16"
+            ],
+            "outputs": [
+              [
+                16,
+                64,
+                1,
+                512
+              ],
+              []
+            ],
+            "output_dtypes": [
+              "DT_BF16",
+              "FLOAT"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "capture_traits": [
+    "The launch states four layers, TP8/EP8, no MTP. Independently observed pure decode sequences have three RecurrentKda anchors and one MLA FIA before the vocabulary projection. This is not a full-capture body acceptance.",
+    "FIA 7-input MLA ABI stores the block table at input 4; input 6 is the rope cache. Query/head rows, not directory concurrency, identify execution batch.",
+    "The B64 branch has KDA/FIA/head execution rows 64 but MoE input rows 8 at hidden width 3584. TP8 sequence partition is explicit observed geometry, not a generic assumption that every layer operator uses M64.",
+    "Native expert collectives are V2 on this A3 capture, not the V3 names from the historical A5 capture.",
+    "GroupedMatmul activation buffers contain 128 rows at B1 and 1024 at B64. Buffer capacity does not prove the group-list cumulative valid row total."
+  ],
+  "limitations": [
+    "No independently loaded four-layer Sim case was used in this probe; the 93-layer declaration was not substituted.",
+    "The c64 source starts with small-batch and mixed prefill/decode ramp; these were omitted from the B64 examples.",
+    "Kernel activity sums and three sampled segments are not full-capture mean body latency.",
+    "First and last AttnRes include differing history/SP buffers and final normalization; they require source-role boundaries rather than shape-only workload inference."
+  ],
+  "additional_budget_allowed": false,
+  "new_predictions": 0,
+  "raw_scan_budget": {
+    "c1_prefix_rows": 1255,
+    "c64_initial_prefix_rows": 1778,
+    "c64_larger_batch_followup_rows": 17303,
+    "second_c64_prefix_read_reason": "initial four head closures only covered ramp; follow-up located first three pure B64 four-anchor segments"
+  }
+}

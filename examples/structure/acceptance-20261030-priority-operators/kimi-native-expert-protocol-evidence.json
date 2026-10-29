@@ -1,0 +1,126 @@
+{
+  "schema_version": "mindie-native-expert-protocol-evidence/1",
+  "status": "source_reference",
+  "source_repository": "/Users/maoxx241/code/refs/ops-transformer",
+  "source_commit": "a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
+  "source_repository_clean": true,
+  "upstream": "https://gitcode.com/cann/ops-transformer",
+  "files": [
+    {
+      "path": "/Users/maoxx241/code/refs/ops-transformer/mc2/moe_distribute_dispatch_v3/op_kernel/arch35/moe_distribute_dispatch_v3_apt.cpp",
+      "repository_relative_path": "mc2/moe_distribute_dispatch_v3/op_kernel/arch35/moe_distribute_dispatch_v3_apt.cpp",
+      "sha256": "85724d3f0d8271fbb1d467ab013e00aa8b385e72ab9e9e4f36dcae0fecd5bf3b",
+      "size_bytes": 9163,
+      "line_ranges": [
+        [
+          40,
+          134
+        ]
+      ],
+      "finding": "DispatchV3 selects a default or fullmesh MTE implementation by compile-time tiling key; quantization is part of the native operation."
+    },
+    {
+      "path": "/Users/maoxx241/code/refs/ops-transformer/mc2/moe_distribute_dispatch_v2/op_kernel/moe_distribute_dispatch_v2.h",
+      "repository_relative_path": "mc2/moe_distribute_dispatch_v2/op_kernel/moe_distribute_dispatch_v2.h",
+      "sha256": "30e7c115caf29608dab9a5c6669977fa39d5a3e41acf2d601685bb4bd0acff5e",
+      "size_bytes": 83886,
+      "line_ranges": [
+        [
+          726,
+          773
+        ],
+        [
+          949,
+          1000
+        ],
+        [
+          1631,
+          1644
+        ]
+      ],
+      "finding": "Default implementation partitions valid routed token work over AIV cores, writes destination rank windows, then publishes counts, waits for arrivals and compacts local expert data."
+    },
+    {
+      "path": "/Users/maoxx241/code/refs/ops-transformer/mc2/moe_distribute_dispatch_v2/op_kernel/arch35/moe_distribute_dispatch_v2_a5_full_mesh.h",
+      "repository_relative_path": "mc2/moe_distribute_dispatch_v2/op_kernel/arch35/moe_distribute_dispatch_v2_a5_full_mesh.h",
+      "sha256": "76db25293e4d3b34784012ace8fd824a977e4055fa974a9e3370c99975467c1e",
+      "size_bytes": 97066,
+      "line_ranges": [
+        [
+          635,
+          686
+        ],
+        [
+          1087,
+          1124
+        ],
+        [
+          1813,
+          1826
+        ]
+      ],
+      "finding": "Fullmesh implementation divides sender and count-prefix work across cores and uses destination windows plus aggregated arrival flags; it does not serialize a separate host/kernel startup per peer."
+    },
+    {
+      "path": "/Users/maoxx241/code/refs/ops-transformer/mc2/moe_distribute_combine_v3/op_kernel/arch35/moe_distribute_combine_v3_apt.cpp",
+      "repository_relative_path": "mc2/moe_distribute_combine_v3/op_kernel/arch35/moe_distribute_combine_v3_apt.cpp",
+      "sha256": "2cc24e36c4c9c8cbb2028ca19d26425ad054e1f2c842b2d5391b81175498d207",
+      "size_bytes": 3350,
+      "line_ranges": [
+        [
+          12,
+          73
+        ]
+      ],
+      "finding": "CombineV3 reuses A5 data-as-flag MTE combine."
+    },
+    {
+      "path": "/Users/maoxx241/code/refs/ops-transformer/mc2/moe_distribute_combine_v2/op_kernel/arch35/moe_distribute_combine_v2_a5_mte.h",
+      "repository_relative_path": "mc2/moe_distribute_combine_v2/op_kernel/arch35/moe_distribute_combine_v2_a5_mte.h",
+      "sha256": "133aef717fce163e06f942c82ffb162e5cc0fe8d8e9c56fcbaaccd13afd63429",
+      "size_bytes": 82012,
+      "line_ranges": [
+        [
+          845,
+          897
+        ],
+        [
+          1020,
+          1058
+        ],
+        [
+          1560,
+          1603
+        ],
+        [
+          1620,
+          1630
+        ]
+      ],
+      "finding": "Combine sends routed token results using expandIdx, checks required topK/shared slots, and combines each token when its required slots arrive. Elapsed time includes genuine peer waiting."
+    }
+  ],
+  "capture_binding": {
+    "operator_names": [
+      "MoeDistributeDispatchV3",
+      "MoeDistributeCombineV3"
+    ],
+    "architecture": "A5 arch35",
+    "exact_compiled_binary_or_tiling_key_verified": false,
+    "selected_dispatch_fullmesh_branch": null
+  },
+  "conclusion": "The inspected native protocol provides token-driven destination-window transfers, aggregated arrival flags and local vector work. The generic model assumption of (EP-1) separately serialized 5us startups is not established by this source reference. Replace it only with a source-bound program, keeping branch, active peers, payload, flags, quantization and synchronization explicit.",
+  "known_unknowns": [
+    "The inspected source commit is not proven to be the exact library build used by the historical capture.",
+    "CSV lacks dispatch FullMesh tiling key, actual expert routes and active peer population.",
+    "Peer waiting is real elapsed time and cannot identify link bandwidth or be removed from the measured native kernel."
+  ],
+  "budget_diagnostic": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators/kimi-d911-budget-findings.json",
+    "sha256": "4e7bb3da071149cb8527dab96042be2c60794785d459b8953f12a4d6df17b921"
+  },
+  "additional_budget_allowed": false,
+  "bandwidth_calibration_allowed": false,
+  "raw_capture_reads": 0,
+  "prediction_executions": 0
+}
