@@ -1,6 +1,6 @@
 {
   "schema_version": "mindie-retained-v41-assets/1",
-  "inventoried_at_utc": "2026-10-29T19:15:26.771358+00:00",
+  "inventoried_at_utc": "2026-10-29T19:34:34.358676+00:00",
   "whole_model_trees": [
     {
       "root": "/Volumes/data/mindie-sim-data/a5/2026-10-24/v41-dp4-small",
@@ -219,6 +219,8 @@
           "has_pytorch_api": false,
           "observed_tensor_descriptor_rows": 0,
           "capture_scope": "primitive_microbenchmark",
+          "measured_kernel_activity_us_per_invocation": 6105.868666666666,
+          "activity_basis": "sum of raw kernel duration divided by retained invocation count; not a whole-model or multistream wall span",
           "declared_cell": {
             "kernel_names": [
               [
@@ -233,6 +235,36 @@
             "rows": 3,
             "trace": "/home/hp-op-sweep-a5/runs/prof_mla/decode_b1_kv65536/rack08os7_2011_20261024120745236_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
             "wall_s": 6.57
+          },
+          "source_contract": {
+            "status": "conditional_source_declared_contract",
+            "harness": {
+              "path": "/Volumes/data/mindie-sim-data/a5/2026-10-24/op-sweep/scripts/bench_mla.py",
+              "sha256": "ab963f3a29fd1b5909438640a289f43d3561fde32cf3528f0cd468cfa1287121",
+              "size_bytes": 10392
+            },
+            "execution_time_harness_hash_attested": false,
+            "observed_tensor_contract": null,
+            "declared": {
+              "dtype": "bfloat16",
+              "phase": "decode",
+              "batch": 1,
+              "query_tokens": 1,
+              "active_kv": 65536,
+              "query_heads": 128,
+              "kv_heads": 1,
+              "qk_dim": 576,
+              "value_dim": 512,
+              "api": "npu_fusion_attention",
+              "layout": "BNSD",
+              "sparse_mode": 3,
+              "inner_precise": 0,
+              "operation_boundary": "dense MLA attention only; not CSA or an entire attention block"
+            },
+            "limitations": [
+              "Retained harness and named capture cell agree, but capture metadata does not attest the producer source hash.",
+              "Absent observed descriptors remain absent; this is a primitive latency reference, not model-layer binding."
+            ]
           }
         },
         {
@@ -255,6 +287,8 @@
           "has_pytorch_api": false,
           "observed_tensor_descriptor_rows": 0,
           "capture_scope": "primitive_microbenchmark",
+          "measured_kernel_activity_us_per_invocation": 11206.663999999999,
+          "activity_basis": "sum of raw kernel duration divided by retained invocation count; not a whole-model or multistream wall span",
           "declared_cell": {
             "kernel_names": [
               [
@@ -269,6 +303,36 @@
             "rows": 3,
             "trace": "/home/hp-op-sweep-a5/runs/prof_mla/prefill_q4096_kv4096/rack08os7_2011_20261024120756884_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
             "wall_s": 11.6
+          },
+          "source_contract": {
+            "status": "conditional_source_declared_contract",
+            "harness": {
+              "path": "/Volumes/data/mindie-sim-data/a5/2026-10-24/op-sweep/scripts/bench_mla.py",
+              "sha256": "ab963f3a29fd1b5909438640a289f43d3561fde32cf3528f0cd468cfa1287121",
+              "size_bytes": 10392
+            },
+            "execution_time_harness_hash_attested": false,
+            "observed_tensor_contract": null,
+            "declared": {
+              "dtype": "bfloat16",
+              "phase": "prefill",
+              "batch": 1,
+              "query_tokens": 4096,
+              "active_kv": 4096,
+              "query_heads": 128,
+              "kv_heads": 1,
+              "qk_dim": 576,
+              "value_dim": 512,
+              "api": "npu_fusion_attention",
+              "layout": "TND",
+              "sparse_mode": 3,
+              "inner_precise": 0,
+              "operation_boundary": "dense MLA attention only; not CSA or an entire attention block"
+            },
+            "limitations": [
+              "Retained harness and named capture cell agree, but capture metadata does not attest the producer source hash.",
+              "Absent observed descriptors remain absent; this is a primitive latency reference, not model-layer binding."
+            ]
           }
         },
         {
@@ -291,6 +355,8 @@
           "has_pytorch_api": false,
           "observed_tensor_descriptor_rows": 0,
           "capture_scope": "primitive_microbenchmark",
+          "measured_kernel_activity_us_per_invocation": 345055.345,
+          "activity_basis": "sum of raw kernel duration divided by retained invocation count; not a whole-model or multistream wall span",
           "declared_cell": {
             "kernel_names": [
               [
@@ -305,6 +371,36 @@
             "rows": 3,
             "trace": "/home/hp-op-sweep-a5/runs/prof_mla/prefill_q4096_kv65536/rack08os7_2011_20261024120810892_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
             "wall_s": 15.03
+          },
+          "source_contract": {
+            "status": "conditional_source_declared_contract",
+            "harness": {
+              "path": "/Volumes/data/mindie-sim-data/a5/2026-10-24/op-sweep/scripts/bench_mla.py",
+              "sha256": "ab963f3a29fd1b5909438640a289f43d3561fde32cf3528f0cd468cfa1287121",
+              "size_bytes": 10392
+            },
+            "execution_time_harness_hash_attested": false,
+            "observed_tensor_contract": null,
+            "declared": {
+              "dtype": "bfloat16",
+              "phase": "prefill",
+              "batch": 1,
+              "query_tokens": 4096,
+              "active_kv": 65536,
+              "query_heads": 128,
+              "kv_heads": 1,
+              "qk_dim": 576,
+              "value_dim": 512,
+              "api": "npu_fusion_attention",
+              "layout": "TND",
+              "sparse_mode": 3,
+              "inner_precise": 0,
+              "operation_boundary": "dense MLA attention only; not CSA or an entire attention block"
+            },
+            "limitations": [
+              "Retained harness and named capture cell agree, but capture metadata does not attest the producer source hash.",
+              "Absent observed descriptors remain absent; this is a primitive latency reference, not model-layer binding."
+            ]
           }
         }
       ]
@@ -345,6 +441,8 @@
           "has_pytorch_api": false,
           "observed_tensor_descriptor_rows": 0,
           "capture_scope": "primitive_microbenchmark",
+          "measured_kernel_activity_us_per_invocation": 54.230333333333334,
+          "activity_basis": "sum of raw kernel duration divided by retained invocation count; not a whole-model or multistream wall span",
           "declared_cell": {
             "kernel_names": [
               [
@@ -359,6 +457,42 @@
             "rows": 3,
             "trace": "/home/hp-op-sweep-a5/runs/prof_dsa/decode_b1_kv65536/rack08os7_3218_20261024120828878_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
             "wall_s": 5.8
+          },
+          "source_contract": {
+            "status": "conditional_source_declared_contract",
+            "harness": {
+              "path": "/Volumes/data/mindie-sim-data/a5/2026-10-24/op-sweep/scripts/bench_dsa.py",
+              "sha256": "8f84f346c80d2fe5d16d974573f2c3169d2d4d26171facc7e948806f1c8e5d64",
+              "size_bytes": 11035
+            },
+            "execution_time_harness_hash_attested": false,
+            "observed_tensor_contract": null,
+            "declared": {
+              "dtype": "bfloat16",
+              "phase": "decode",
+              "batch": 1,
+              "query_tokens": 1,
+              "active_kv": 65536,
+              "query_heads": 128,
+              "kv_heads": 1,
+              "qk_dim": 576,
+              "value_dim": 512,
+              "api": "npu_sparse_flash_attention",
+              "layout_query": "TND",
+              "layout_kv": "PA_BSND",
+              "nonrope_dim": 512,
+              "rope_dim": 64,
+              "page_block_size": 128,
+              "selected_indices": 2048,
+              "sparse_block_size": 1,
+              "sparse_mode": 3,
+              "attention_mode": 2,
+              "operation_boundary": "Sparse attention only; index generation is outside profiling"
+            },
+            "limitations": [
+              "Retained harness and named capture cell agree, but capture metadata does not attest the producer source hash.",
+              "Absent observed descriptors remain absent; this is a primitive latency reference, not model-layer binding."
+            ]
           }
         },
         {
@@ -381,6 +515,8 @@
           "has_pytorch_api": false,
           "observed_tensor_descriptor_rows": 0,
           "capture_scope": "primitive_microbenchmark",
+          "measured_kernel_activity_us_per_invocation": 54.06333333333333,
+          "activity_basis": "sum of raw kernel duration divided by retained invocation count; not a whole-model or multistream wall span",
           "declared_cell": {
             "kernel_names": [
               [
@@ -395,6 +531,42 @@
             "rows": 3,
             "trace": "/home/hp-op-sweep-a5/runs/prof_dsa/decode_b4_kv131072/rack08os7_3218_20261024120835508_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
             "wall_s": 6.38
+          },
+          "source_contract": {
+            "status": "conditional_source_declared_contract",
+            "harness": {
+              "path": "/Volumes/data/mindie-sim-data/a5/2026-10-24/op-sweep/scripts/bench_dsa.py",
+              "sha256": "8f84f346c80d2fe5d16d974573f2c3169d2d4d26171facc7e948806f1c8e5d64",
+              "size_bytes": 11035
+            },
+            "execution_time_harness_hash_attested": false,
+            "observed_tensor_contract": null,
+            "declared": {
+              "dtype": "bfloat16",
+              "phase": "decode",
+              "batch": 4,
+              "query_tokens": 1,
+              "active_kv": 131072,
+              "query_heads": 128,
+              "kv_heads": 1,
+              "qk_dim": 576,
+              "value_dim": 512,
+              "api": "npu_sparse_flash_attention",
+              "layout_query": "TND",
+              "layout_kv": "PA_BSND",
+              "nonrope_dim": 512,
+              "rope_dim": 64,
+              "page_block_size": 128,
+              "selected_indices": 2048,
+              "sparse_block_size": 1,
+              "sparse_mode": 3,
+              "attention_mode": 2,
+              "operation_boundary": "Sparse attention only; index generation is outside profiling"
+            },
+            "limitations": [
+              "Retained harness and named capture cell agree, but capture metadata does not attest the producer source hash.",
+              "Absent observed descriptors remain absent; this is a primitive latency reference, not model-layer binding."
+            ]
           }
         },
         {
@@ -417,6 +589,8 @@
           "has_pytorch_api": false,
           "observed_tensor_descriptor_rows": 0,
           "capture_scope": "primitive_microbenchmark",
+          "measured_kernel_activity_us_per_invocation": 11400.999333333333,
+          "activity_basis": "sum of raw kernel duration divided by retained invocation count; not a whole-model or multistream wall span",
           "declared_cell": {
             "kernel_names": [
               [
@@ -431,6 +605,42 @@
             "rows": 3,
             "trace": "/home/hp-op-sweep-a5/runs/prof_dsa/prefill_q4096_kv65536/rack08os7_3218_20261024120847704_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
             "wall_s": 12.37
+          },
+          "source_contract": {
+            "status": "conditional_source_declared_contract",
+            "harness": {
+              "path": "/Volumes/data/mindie-sim-data/a5/2026-10-24/op-sweep/scripts/bench_dsa.py",
+              "sha256": "8f84f346c80d2fe5d16d974573f2c3169d2d4d26171facc7e948806f1c8e5d64",
+              "size_bytes": 11035
+            },
+            "execution_time_harness_hash_attested": false,
+            "observed_tensor_contract": null,
+            "declared": {
+              "dtype": "bfloat16",
+              "phase": "prefill",
+              "batch": 1,
+              "query_tokens": 4096,
+              "active_kv": 65536,
+              "query_heads": 128,
+              "kv_heads": 1,
+              "qk_dim": 576,
+              "value_dim": 512,
+              "api": "npu_sparse_flash_attention",
+              "layout_query": "TND",
+              "layout_kv": "PA_BSND",
+              "nonrope_dim": 512,
+              "rope_dim": 64,
+              "page_block_size": 128,
+              "selected_indices": 2048,
+              "sparse_block_size": 1,
+              "sparse_mode": 3,
+              "attention_mode": 2,
+              "operation_boundary": "Sparse attention only; index generation is outside profiling"
+            },
+            "limitations": [
+              "Retained harness and named capture cell agree, but capture metadata does not attest the producer source hash.",
+              "Absent observed descriptors remain absent; this is a primitive latency reference, not model-layer binding."
+            ]
           }
         }
       ]
@@ -471,6 +681,8 @@
           "has_pytorch_api": false,
           "observed_tensor_descriptor_rows": 0,
           "capture_scope": "primitive_microbenchmark",
+          "measured_kernel_activity_us_per_invocation": 11.308333333333335,
+          "activity_basis": "sum of raw kernel duration divided by retained invocation count; not a whole-model or multistream wall span",
           "declared_cell": {
             "kernel_names": [
               [
@@ -485,6 +697,31 @@
             "rows": 3,
             "trace": "/home/hp-op-sweep-a5/runs/prof_quant/fp4_dequant_m4096_k5120/rack08os7_4072_20261024120922598_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
             "wall_s": 5.29
+          },
+          "source_contract": {
+            "status": "conditional_source_declared_contract",
+            "harness": {
+              "path": "/Volumes/data/mindie-sim-data/a5/2026-10-24/op-sweep/scripts/bench_quant.py",
+              "sha256": "fa2aaf5aa84be3b66913524112ee658b4f058712afc5a16296e7ed4a84f7a56d",
+              "size_bytes": 18641
+            },
+            "execution_time_harness_hash_attested": false,
+            "observed_tensor_contract": null,
+            "declared": {
+              "dtype": "FP4_source_enum_296",
+              "m": 4096,
+              "k": 5120,
+              "output_dtype": "bfloat16",
+              "api": "npu_anti_mx_quant",
+              "src_type": 296,
+              "dst_type": 15,
+              "axis": -1,
+              "operation_boundary": "FP4 dequantization only; not FP4 GEMM"
+            },
+            "limitations": [
+              "Retained harness and named capture cell agree, but capture metadata does not attest the producer source hash.",
+              "Absent observed descriptors remain absent; this is a primitive latency reference, not model-layer binding."
+            ]
           }
         },
         {
@@ -507,6 +744,8 @@
           "has_pytorch_api": false,
           "observed_tensor_descriptor_rows": 0,
           "capture_scope": "primitive_microbenchmark",
+          "measured_kernel_activity_us_per_invocation": 6573.534666666666,
+          "activity_basis": "sum of raw kernel duration divided by retained invocation count; not a whole-model or multistream wall span",
           "declared_cell": {
             "kernel_names": [
               [
@@ -521,6 +760,36 @@
             "rows": 3,
             "trace": "/home/hp-op-sweep-a5/runs/prof_quant/mxfp8_m16384_n33792_k5120/rack08os7_4072_20261024120917233_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
             "wall_s": 10.53
+          },
+          "source_contract": {
+            "status": "conditional_source_declared_contract",
+            "harness": {
+              "path": "/Volumes/data/mindie-sim-data/a5/2026-10-24/op-sweep/scripts/bench_quant.py",
+              "sha256": "fa2aaf5aa84be3b66913524112ee658b4f058712afc5a16296e7ed4a84f7a56d",
+              "size_bytes": 18641
+            },
+            "execution_time_harness_hash_attested": false,
+            "observed_tensor_contract": null,
+            "declared": {
+              "dtype": "float8_e4m3fn",
+              "m": 16384,
+              "n": 33792,
+              "k": 5120,
+              "output_dtype": "bfloat16",
+              "api": "npu_quant_matmul",
+              "scale_dtype": "float8_e8m0fnu",
+              "group_sizes": [
+                1,
+                1,
+                32
+              ],
+              "weight_layout": "K,N transposed contiguous; scale[K/64,N,2]",
+              "operation_boundary": "MXFP8 matmul only; input/weight quantization occurs before profiling"
+            },
+            "limitations": [
+              "Retained harness and named capture cell agree, but capture metadata does not attest the producer source hash.",
+              "Absent observed descriptors remain absent; this is a primitive latency reference, not model-layer binding."
+            ]
           }
         },
         {
@@ -543,6 +812,8 @@
           "has_pytorch_api": false,
           "observed_tensor_descriptor_rows": 0,
           "capture_scope": "primitive_microbenchmark",
+          "measured_kernel_activity_us_per_invocation": 858.2389999999999,
+          "activity_basis": "sum of raw kernel duration divided by retained invocation count; not a whole-model or multistream wall span",
           "declared_cell": {
             "kernel_names": [
               [
@@ -557,6 +828,36 @@
             "rows": 3,
             "trace": "/home/hp-op-sweep-a5/runs/prof_quant/mxfp8_m4096_n17408_k5120/rack08os7_4072_20261024120906685_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
             "wall_s": 10.87
+          },
+          "source_contract": {
+            "status": "conditional_source_declared_contract",
+            "harness": {
+              "path": "/Volumes/data/mindie-sim-data/a5/2026-10-24/op-sweep/scripts/bench_quant.py",
+              "sha256": "fa2aaf5aa84be3b66913524112ee658b4f058712afc5a16296e7ed4a84f7a56d",
+              "size_bytes": 18641
+            },
+            "execution_time_harness_hash_attested": false,
+            "observed_tensor_contract": null,
+            "declared": {
+              "dtype": "float8_e4m3fn",
+              "m": 4096,
+              "n": 17408,
+              "k": 5120,
+              "output_dtype": "bfloat16",
+              "api": "npu_quant_matmul",
+              "scale_dtype": "float8_e8m0fnu",
+              "group_sizes": [
+                1,
+                1,
+                32
+              ],
+              "weight_layout": "K,N transposed contiguous; scale[K/64,N,2]",
+              "operation_boundary": "MXFP8 matmul only; input/weight quantization occurs before profiling"
+            },
+            "limitations": [
+              "Retained harness and named capture cell agree, but capture metadata does not attest the producer source hash.",
+              "Absent observed descriptors remain absent; this is a primitive latency reference, not model-layer binding."
+            ]
           }
         }
       ]
@@ -598,6 +899,8 @@
           "has_pytorch_api": false,
           "observed_tensor_descriptor_rows": 0,
           "capture_scope": "primitive_microbenchmark",
+          "measured_kernel_activity_us_per_invocation": 1043.573333333333,
+          "activity_basis": "sum of raw kernel duration divided by retained invocation count; not a whole-model or multistream wall span",
           "declared_cell": {
             "kernel_names": [
               [
@@ -616,6 +919,33 @@
             "rows": 6,
             "trace": "/home/hp-op-sweep-a5/runs/prof_act/geglu_separate_t16384_i17408/rack08os7_6054_20261024121257663_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
             "wall_s": 17.18
+          },
+          "source_contract": {
+            "status": "conditional_source_declared_contract",
+            "harness": {
+              "path": "/Volumes/data/mindie-sim-data/a5/2026-10-24/op-sweep/scripts/bench_activation.py",
+              "sha256": "070d1bef90d5a2a0466b4b7f1826a15c09a29d3fd11654b7c4fb34cbc66dc24c",
+              "size_bytes": 10155
+            },
+            "execution_time_harness_hash_attested": false,
+            "observed_tensor_contract": null,
+            "declared": {
+              "dtype": "bfloat16",
+              "tokens": 16384,
+              "intermediate": 17408,
+              "variant": "geglu_separate",
+              "fused_input_shape": null,
+              "split_input_shape": [
+                16384,
+                17408
+              ],
+              "gelu_approximate": "tanh",
+              "operation_boundary": "Activation primitive; hidden-size labels do not change this input shape"
+            },
+            "limitations": [
+              "Retained harness and named capture cell agree, but capture metadata does not attest the producer source hash.",
+              "Absent observed descriptors remain absent; this is a primitive latency reference, not model-layer binding."
+            ]
           }
         },
         {
@@ -638,6 +968,8 @@
           "has_pytorch_api": false,
           "observed_tensor_descriptor_rows": 0,
           "capture_scope": "primitive_microbenchmark",
+          "measured_kernel_activity_us_per_invocation": 530.5680000000001,
+          "activity_basis": "sum of raw kernel duration divided by retained invocation count; not a whole-model or multistream wall span",
           "declared_cell": {
             "kernel_names": [
               [
@@ -652,6 +984,33 @@
             "rows": 3,
             "trace": "/home/hp-op-sweep-a5/runs/prof_act/gelu_t16384_i17408/rack08os7_6054_20261024121332068_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
             "wall_s": 17.26
+          },
+          "source_contract": {
+            "status": "conditional_source_declared_contract",
+            "harness": {
+              "path": "/Volumes/data/mindie-sim-data/a5/2026-10-24/op-sweep/scripts/bench_activation.py",
+              "sha256": "070d1bef90d5a2a0466b4b7f1826a15c09a29d3fd11654b7c4fb34cbc66dc24c",
+              "size_bytes": 10155
+            },
+            "execution_time_harness_hash_attested": false,
+            "observed_tensor_contract": null,
+            "declared": {
+              "dtype": "bfloat16",
+              "tokens": 16384,
+              "intermediate": 17408,
+              "variant": "gelu",
+              "fused_input_shape": null,
+              "split_input_shape": [
+                16384,
+                17408
+              ],
+              "gelu_approximate": "tanh",
+              "operation_boundary": "Activation primitive; hidden-size labels do not change this input shape"
+            },
+            "limitations": [
+              "Retained harness and named capture cell agree, but capture metadata does not attest the producer source hash.",
+              "Absent observed descriptors remain absent; this is a primitive latency reference, not model-layer binding."
+            ]
           }
         },
         {
@@ -674,6 +1033,8 @@
           "has_pytorch_api": false,
           "observed_tensor_descriptor_rows": 0,
           "capture_scope": "primitive_microbenchmark",
+          "measured_kernel_activity_us_per_invocation": 347.96600000000007,
+          "activity_basis": "sum of raw kernel duration divided by retained invocation count; not a whole-model or multistream wall span",
           "declared_cell": {
             "kernel_names": [
               [
@@ -688,6 +1049,33 @@
             "rows": 3,
             "trace": "/home/hp-op-sweep-a5/runs/prof_act/silu_t16384_i17408/rack08os7_6054_20261024121314838_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
             "wall_s": 17.23
+          },
+          "source_contract": {
+            "status": "conditional_source_declared_contract",
+            "harness": {
+              "path": "/Volumes/data/mindie-sim-data/a5/2026-10-24/op-sweep/scripts/bench_activation.py",
+              "sha256": "070d1bef90d5a2a0466b4b7f1826a15c09a29d3fd11654b7c4fb34cbc66dc24c",
+              "size_bytes": 10155
+            },
+            "execution_time_harness_hash_attested": false,
+            "observed_tensor_contract": null,
+            "declared": {
+              "dtype": "bfloat16",
+              "tokens": 16384,
+              "intermediate": 17408,
+              "variant": "silu",
+              "fused_input_shape": null,
+              "split_input_shape": [
+                16384,
+                17408
+              ],
+              "gelu_approximate": "tanh",
+              "operation_boundary": "Activation primitive; hidden-size labels do not change this input shape"
+            },
+            "limitations": [
+              "Retained harness and named capture cell agree, but capture metadata does not attest the producer source hash.",
+              "Absent observed descriptors remain absent; this is a primitive latency reference, not model-layer binding."
+            ]
           }
         },
         {
@@ -710,6 +1098,8 @@
           "has_pytorch_api": false,
           "observed_tensor_descriptor_rows": 0,
           "capture_scope": "primitive_microbenchmark",
+          "measured_kernel_activity_us_per_invocation": 515.793,
+          "activity_basis": "sum of raw kernel duration divided by retained invocation count; not a whole-model or multistream wall span",
           "declared_cell": {
             "kernel_names": [
               [
@@ -724,6 +1114,33 @@
             "rows": 3,
             "trace": "/home/hp-op-sweep-a5/runs/prof_act/swiglu_fused_t16384_i17408/rack08os7_6054_20261024121222916_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
             "wall_s": 19.66
+          },
+          "source_contract": {
+            "status": "conditional_source_declared_contract",
+            "harness": {
+              "path": "/Volumes/data/mindie-sim-data/a5/2026-10-24/op-sweep/scripts/bench_activation.py",
+              "sha256": "070d1bef90d5a2a0466b4b7f1826a15c09a29d3fd11654b7c4fb34cbc66dc24c",
+              "size_bytes": 10155
+            },
+            "execution_time_harness_hash_attested": false,
+            "observed_tensor_contract": null,
+            "declared": {
+              "dtype": "bfloat16",
+              "tokens": 16384,
+              "intermediate": 17408,
+              "variant": "swiglu_fused",
+              "fused_input_shape": [
+                16384,
+                34816
+              ],
+              "split_input_shape": null,
+              "gelu_approximate": "tanh",
+              "operation_boundary": "Activation primitive; hidden-size labels do not change this input shape"
+            },
+            "limitations": [
+              "Retained harness and named capture cell agree, but capture metadata does not attest the producer source hash.",
+              "Absent observed descriptors remain absent; this is a primitive latency reference, not model-layer binding."
+            ]
           }
         },
         {
@@ -747,6 +1164,8 @@
           "has_pytorch_api": false,
           "observed_tensor_descriptor_rows": 0,
           "capture_scope": "primitive_microbenchmark",
+          "measured_kernel_activity_us_per_invocation": 867.0213333333335,
+          "activity_basis": "sum of raw kernel duration divided by retained invocation count; not a whole-model or multistream wall span",
           "declared_cell": {
             "kernel_names": [
               [
@@ -765,6 +1184,33 @@
             "rows": 6,
             "trace": "/home/hp-op-sweep-a5/runs/prof_act/swiglu_separate_t16384_i17408/rack08os7_6054_20261024121240459_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
             "wall_s": 17.48
+          },
+          "source_contract": {
+            "status": "conditional_source_declared_contract",
+            "harness": {
+              "path": "/Volumes/data/mindie-sim-data/a5/2026-10-24/op-sweep/scripts/bench_activation.py",
+              "sha256": "070d1bef90d5a2a0466b4b7f1826a15c09a29d3fd11654b7c4fb34cbc66dc24c",
+              "size_bytes": 10155
+            },
+            "execution_time_harness_hash_attested": false,
+            "observed_tensor_contract": null,
+            "declared": {
+              "dtype": "bfloat16",
+              "tokens": 16384,
+              "intermediate": 17408,
+              "variant": "swiglu_separate",
+              "fused_input_shape": null,
+              "split_input_shape": [
+                16384,
+                17408
+              ],
+              "gelu_approximate": "tanh",
+              "operation_boundary": "Activation primitive; hidden-size labels do not change this input shape"
+            },
+            "limitations": [
+              "Retained harness and named capture cell agree, but capture metadata does not attest the producer source hash.",
+              "Absent observed descriptors remain absent; this is a primitive latency reference, not model-layer binding."
+            ]
           }
         }
       ]
@@ -805,6 +1251,8 @@
           "has_pytorch_api": false,
           "observed_tensor_descriptor_rows": 0,
           "capture_scope": "primitive_microbenchmark",
+          "measured_kernel_activity_us_per_invocation": 155.9185,
+          "activity_basis": "sum of raw kernel duration divided by retained invocation count; not a whole-model or multistream wall span",
           "declared_cell": {
             "kernel_names": [
               [
@@ -819,6 +1267,29 @@
             "rows": 2,
             "trace": "/home/hp-op-sweep-a5/runs/prof_elem/rms_norm_t16384_h7168/rack08os7_4922_20261024121139634_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
             "wall_s": 5.22
+          },
+          "source_contract": {
+            "status": "conditional_source_declared_contract",
+            "harness": {
+              "path": "/Volumes/data/mindie-sim-data/a5/2026-10-24/op-sweep/scripts/bench_elementwise.py",
+              "sha256": "06834c0d8cb0ad70ae27303a39b144d6508942e51ac68565417e14a5b07a3ff1",
+              "size_bytes": 12889
+            },
+            "execution_time_harness_hash_attested": false,
+            "observed_tensor_contract": null,
+            "declared": {
+              "dtype": "bfloat16",
+              "api": "npu_rms_norm",
+              "shape": [
+                16384,
+                7168
+              ],
+              "epsilon": 1e-06
+            },
+            "limitations": [
+              "Retained harness and named capture cell agree, but capture metadata does not attest the producer source hash.",
+              "Absent observed descriptors remain absent; this is a primitive latency reference, not model-layer binding."
+            ]
           }
         },
         {
@@ -841,6 +1312,8 @@
           "has_pytorch_api": false,
           "observed_tensor_descriptor_rows": 0,
           "capture_scope": "primitive_microbenchmark",
+          "measured_kernel_activity_us_per_invocation": 226.34199999999998,
+          "activity_basis": "sum of raw kernel duration divided by retained invocation count; not a whole-model or multistream wall span",
           "declared_cell": {
             "kernel_names": [
               [
@@ -855,6 +1328,44 @@
             "rows": 2,
             "trace": "/home/hp-op-sweep-a5/runs/prof_elem/rope_t16384_h7168/rack08os7_4922_20261024121144494_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
             "wall_s": 4.79
+          },
+          "source_contract": {
+            "status": "conditional_source_declared_contract",
+            "harness": {
+              "path": "/Volumes/data/mindie-sim-data/a5/2026-10-24/op-sweep/scripts/bench_elementwise.py",
+              "sha256": "06834c0d8cb0ad70ae27303a39b144d6508942e51ac68565417e14a5b07a3ff1",
+              "size_bytes": 12889
+            },
+            "execution_time_harness_hash_attested": false,
+            "observed_tensor_contract": null,
+            "declared": {
+              "dtype": "bfloat16",
+              "api": "npu_apply_rotary_pos_emb",
+              "q": [
+                1,
+                16384,
+                56,
+                128
+              ],
+              "k": [
+                1,
+                16384,
+                8,
+                128
+              ],
+              "cos_sin": [
+                1,
+                16384,
+                1,
+                128
+              ],
+              "layout": "BSND",
+              "rotary_mode": "half"
+            },
+            "limitations": [
+              "Retained harness and named capture cell agree, but capture metadata does not attest the producer source hash.",
+              "Absent observed descriptors remain absent; this is a primitive latency reference, not model-layer binding."
+            ]
           }
         },
         {
@@ -877,6 +1388,8 @@
           "has_pytorch_api": false,
           "observed_tensor_descriptor_rows": 0,
           "capture_scope": "primitive_microbenchmark",
+          "measured_kernel_activity_us_per_invocation": 7518.371999999999,
+          "activity_basis": "sum of raw kernel duration divided by retained invocation count; not a whole-model or multistream wall span",
           "declared_cell": {
             "kernel_names": [
               [
@@ -891,6 +1404,29 @@
             "rows": 2,
             "trace": "/home/hp-op-sweep-a5/runs/prof_elem/softmax_t16384_v248320/rack08os7_4922_20261024121149317_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
             "wall_s": 4.85
+          },
+          "source_contract": {
+            "status": "conditional_source_declared_contract",
+            "harness": {
+              "path": "/Volumes/data/mindie-sim-data/a5/2026-10-24/op-sweep/scripts/bench_elementwise.py",
+              "sha256": "06834c0d8cb0ad70ae27303a39b144d6508942e51ac68565417e14a5b07a3ff1",
+              "size_bytes": 12889
+            },
+            "execution_time_harness_hash_attested": false,
+            "observed_tensor_contract": null,
+            "declared": {
+              "dtype": "bfloat16",
+              "api": "torch.softmax",
+              "shape": [
+                16384,
+                248320
+              ],
+              "axis": -1
+            },
+            "limitations": [
+              "Retained harness and named capture cell agree, but capture metadata does not attest the producer source hash.",
+              "Absent observed descriptors remain absent; this is a primitive latency reference, not model-layer binding."
+            ]
           }
         },
         {
@@ -914,6 +1450,8 @@
           "has_pytorch_api": false,
           "observed_tensor_descriptor_rows": 0,
           "capture_scope": "primitive_microbenchmark",
+          "measured_kernel_activity_us_per_invocation": 53200.9495,
+          "activity_basis": "sum of raw kernel duration divided by retained invocation count; not a whole-model or multistream wall span",
           "declared_cell": {
             "kernel_names": [
               [
@@ -932,6 +1470,30 @@
             "rows": 4,
             "trace": "/home/hp-op-sweep-a5/runs/prof_elem/top_k_top_p_t4096_v248320/rack08os7_4922_20261024121154272_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
             "wall_s": 5.06
+          },
+          "source_contract": {
+            "status": "conditional_source_declared_contract",
+            "harness": {
+              "path": "/Volumes/data/mindie-sim-data/a5/2026-10-24/op-sweep/scripts/bench_elementwise.py",
+              "sha256": "06834c0d8cb0ad70ae27303a39b144d6508942e51ac68565417e14a5b07a3ff1",
+              "size_bytes": 12889
+            },
+            "execution_time_harness_hash_attested": false,
+            "observed_tensor_contract": null,
+            "declared": {
+              "dtype": "bfloat16",
+              "api": "npu_top_k_top_p",
+              "shape": [
+                4096,
+                248320
+              ],
+              "k": 50,
+              "p": 0.9
+            },
+            "limitations": [
+              "Retained harness and named capture cell agree, but capture metadata does not attest the producer source hash.",
+              "Absent observed descriptors remain absent; this is a primitive latency reference, not model-layer binding."
+            ]
           }
         }
       ]

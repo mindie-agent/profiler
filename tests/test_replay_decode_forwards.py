@@ -82,6 +82,24 @@ def test_geometry_compaction_preserves_separate_layer_populations(replay):
     assert len(groups[1]["per_layer_ms"][0]["samples"]) == 1
 
 
+def test_real_mixed_geometry_priority_retains_tail_population(replay):
+    directory = ROOT / "examples/structure/acceptance-20261030-expanded"
+    manifest = json.loads((directory / "decode-forward-auto-cases.json").read_text())
+    declaration = next(row for row in manifest["cases"] if row["case_id"] == "v4flash-a3-tp8-c4")
+    observed = json.loads((directory / f"auto-forward-{declaration['case_id']}.json").read_text())
+    scenarios = replay._automatic_scenarios(declaration, observed)
+    result = {"case_id": declaration["case_id"]}
+    replay._compare_scenarios(result, scenarios, None, {}, prediction_timeout_s=1,
+                             run_predictions=False, geometry_limit=1)
+    rows = result["geometry_cases"]
+    assert len(rows) == 2
+    assert [row["comparison"]["observed_forward_count"] for row in rows] == [104, 4]
+    assert rows[0]["comparison"]["reasons"] == ["prediction_not_requested"]
+    assert rows[1]["comparison"]["reasons"] == ["prediction_deferred_by_population_priority"]
+    assert sum(row["comparison"]["observed_forward_count"] for row in rows) == observed["body_forward_span_ms"]["count"]
+    assert all(row["comparison"]["predicted_ms"] is None for row in rows)
+
+
 def test_prediction_worker_has_bounded_receipt_and_reuses_completed_geometry(replay, monkeypatch, tmp_path):
     sim = pytest.importorskip("mindie_sim.prediction.body")
     path = Path(sim.__file__).resolve().parents[2] / "examples/quickstart.json"

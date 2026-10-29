@@ -132,8 +132,11 @@ def _declared_runtime(case):
 
     runtime = parse_case(case).runtime
     placement = runtime.parallel
+    metadata = dict(runtime.metadata)
     return {"tp": placement.tp, "dp": placement.dp, "ep": placement.ep, "pp": placement.pp,
-            "graph_mode": runtime.graph_mode, "graph_capture_mode": runtime.graph_capture_mode}
+            "graph_mode": runtime.graph_mode, "graph_capture_mode": runtime.graph_capture_mode,
+            "captured_execution_mode": metadata.get("captured_execution_mode"),
+            "captured_mode_basis": "source_bound_case_metadata"}
 
 
 def _predict_bounded(case_path, geometry, cache, *, timeout_s):
@@ -263,10 +266,15 @@ def _automatic_scenarios(row, observed):
     return scenarios
 
 
-def _compare_scenarios(result, scenarios, case_path, cache, *, prediction_timeout_s, run_predictions):
+def _compare_scenarios(result, scenarios, case_path, cache, *, prediction_timeout_s, run_predictions,
+                       geometry_limit=None, on_geometry=None):
     rows = []
-    for scenario in scenarios:
-        if not scenario["geometry_resolved"] or not run_predictions:
+    scenarios = sorted(scenarios, key=lambda item: -item["observed"]["body_forward_span_ms"]["count"])
+    for index, scenario in enumerate(scenarios):
+        deferred = geometry_limit is not None and index >= geometry_limit
+        if deferred:
+            worker = {"status": "unresolved", "reason": "prediction_deferred_by_population_priority"}
+        elif not scenario["geometry_resolved"] or not run_predictions:
             worker = {"status": "unresolved", "reason": "observed_forward_geometry_unresolved"
                       if not scenario["geometry_resolved"] else "prediction_not_requested"}
         else:
@@ -291,12 +299,17 @@ def _compare_scenarios(result, scenarios, case_path, cache, *, prediction_timeou
             "per_layer_comparison": compare_layers(worker["prediction"], scenario["observed"])
             if worker["status"] == "completed" else None,
         })
+        if on_geometry is not None:
+            on_geometry({"source_case_id": result["case_id"], "geometry_index": index + 1,
+                         "geometry_count": len(scenarios), "forward_count": compare["observed_forward_count"],
+                         "geometry": geometry, "status": compare["status"],
+                         "reason": worker.get("reason"), "reused_prediction": worker.get("reused_prediction")})
     result["geometry_cases"] = rows
 
 
 def replay_case(row, base, *, max_events=5_000_000, timeout_s=30,
                 prediction_timeout_s=90, prediction_cache=None, run_predictions=True,
-                reuse_extractions=None):
+                reuse_extractions=None, geometry_limit=None, on_geometry=None):
     prediction_cache = prediction_cache if prediction_cache is not None else {}
     result = {
         "case_id": row["case_id"], "status": "unresolved",
@@ -321,8 +334,11 @@ def replay_case(row, base, *, max_events=5_000_000, timeout_s=30,
         case = _read(case_path)
         config = _model_config(case)
         result["declared_runtime"] = _declared_runtime(case)
-        reused = (Path(reuse_extractions) / f"auto-forward-{row['case_id']}.json"
+        reused = (_path(base, row["extraction_path"]) if row.get("extraction_path") else
+                  Path(reuse_extractions) / f"auto-forward-{row['case_id']}.json"
                   if reuse_extractions else None)
+        if row.get("extraction_path") and not reused.is_file():
+            raise ValueError("declared_forward_extraction_missing")
         if reused and reused.is_file():
             observed = _read(reused)
             identity = observed.get("source_identity") or {}
@@ -354,7 +370,8 @@ def replay_case(row, base, *, max_events=5_000_000, timeout_s=30,
         scenarios = _automatic_scenarios(row, observed)
         if scenarios:
             _compare_scenarios(result, scenarios, case_path, prediction_cache,
-                               prediction_timeout_s=prediction_timeout_s, run_predictions=run_predictions)
+                               prediction_timeout_s=prediction_timeout_s, run_predictions=run_predictions,
+                               geometry_limit=geometry_limit, on_geometry=on_geometry)
         else:
             result["comparison"] = _empty_comparison(["complete_decode_topology_not_found"])
             result["comparison"].update(observed_ms=observed["body_forward_span_ms"],
@@ -402,7 +419,7 @@ def replay_case(row, base, *, max_events=5_000_000, timeout_s=30,
 
 def replay_manifest(manifest, *, base, max_events=5_000_000, timeout_s=30,
                     prediction_timeout_s=90, run_predictions=True, reuse_extractions=None,
-                    prediction_cache_dir=None, on_case=None):
+                    prediction_cache_dir=None, on_case=None, geometry_limit=None, on_geometry=None):
     if manifest.get("schema_version") != "mindie-decode-forward-replay/1":
         raise ValueError("unknown_decode_forward_manifest_schema")
     rows, seen, prediction_cache = [], set(), PredictionCache(prediction_cache_dir)
@@ -413,7 +430,8 @@ def replay_manifest(manifest, *, base, max_events=5_000_000, timeout_s=30,
         try:
             result = replay_case(row, base, max_events=max_events, timeout_s=timeout_s,
                                  prediction_timeout_s=prediction_timeout_s, prediction_cache=prediction_cache,
-                                 run_predictions=run_predictions, reuse_extractions=reuse_extractions)
+                                 run_predictions=run_predictions, reuse_extractions=reuse_extractions,
+                                 geometry_limit=geometry_limit, on_geometry=on_geometry)
             rows.extend(result.pop("geometry_cases", None) or [result])
         except (OSError, ValueError, ProfilerError) as error:
             rows.append({"case_id": row["case_id"], "status": "failed",
@@ -509,8 +527,9 @@ def render(report):
         activity = (observed.get("body_activity_ms") or {}).get("mean")
         gap = (observed.get("body_internal_gap_ms") or {}).get("mean")
         body = row["comparison"]["observed_ms"].get("mean")
-        mode = (row.get("scenario_evidence") or {}).get("runtime", {}).get("graph_mode", "—")
         declared = row.get("declared_runtime") or {}
+        mode = ((row.get("scenario_evidence") or {}).get("runtime", {}).get("graph_mode")
+                or declared.get("captured_execution_mode") or "not_established")
         lines.append("| " + " | ".join([
             row["case_id"], number(body), number(activity), number(gap),
             f"{gap / body:.2%}" if gap is not None and body else "—", mode,
@@ -603,8 +622,8 @@ def render(report):
             ]) + " |")
     lines.extend(["", "## Execution batch and client TPOT", "",
                   "Execution batch comes from captured tensor geometry and may include graph padding. Client concurrency describes requests. Representative K is the explicitly declared context or client prompt length; generated-token growth during the window is not observed. These single-rank comparisons assume symmetric rank completion. TPOT includes serving work beyond the body; profiled and unprofiled measurements remain separate.", "",
-                  "| Case | Executed q | Executed batch | Representative K | Client concurrency | Profiled client TPOT mean ms | Profiled client TPOT P50 ms | Profiled window TPOT estimate ms | Unprofiled sweep TPOT ms |",
-                  "|---|---:|---:|---:|---:|---:|---:|---:|---:|"])
+                  "| Case | Executed q | Executed batch | Query rows | Valid active rows | Representative K | Client concurrency | Profiled client TPOT mean ms | Profiled client TPOT P50 ms | Profiled window TPOT estimate ms | Unprofiled sweep TPOT ms |",
+                  "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|"])
     for row in report["cases"]:
         evidence = row.get("scenario_evidence") or {}
         tpot = evidence.get("tpot") or {}
@@ -613,6 +632,7 @@ def render(report):
         lines.append("| " + " | ".join([
             row["case_id"], str(geometry.get("tokens_per_sequence", "—")),
             str(geometry.get("sequences_per_replica", "—")),
+            str(geometry.get("query_rows", "—")), str(geometry.get("valid_rows") or "unknown"),
             str(geometry.get("context_tokens", "—")),
             str(evidence.get("client", {}).get("concurrency", "—")),
             number(profiled.get("mean")), number(profiled.get("median")),
@@ -649,6 +669,8 @@ def main():
     parser.add_argument("--runtime-source-commit", help="Caller-declared source commit; selected package hash is independently recorded")
     parser.add_argument("--steady-pooled", type=Path, help="Source-pinned exact layer-call quantiles from a prior capture scan")
     parser.add_argument("--case-id", action="append")
+    parser.add_argument("--geometry-limit", type=int,
+                        help="Predict the largest N Forward populations per source; retain every other bucket as deferred")
     args = parser.parse_args()
     manifest = _read(args.manifest)
     if args.case_id:
@@ -663,6 +685,8 @@ def main():
                              prediction_timeout_s=args.prediction_timeout,
                              run_predictions=not args.extract_only, reuse_extractions=args.reuse_extractions,
                              prediction_cache_dir=args.prediction_cache_dir,
+                             geometry_limit=args.geometry_limit,
+                             on_geometry=lambda row: print(json.dumps(row), flush=True),
                              on_case=lambda row: print(json.dumps(row), flush=True))
     if args.steady_pooled:
         attach_pooled_steady_layers(report, args.steady_pooled)
