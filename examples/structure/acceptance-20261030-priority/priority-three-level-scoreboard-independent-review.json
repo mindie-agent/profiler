@@ -1,37 +1,47 @@
 {
-  "schema_version": "mindie-priority-scoreboard-independent-review/1",
+  "schema_version": "mindie-priority-scoreboard-independent-review/2",
   "status": "passed",
-  "checks": 6291,
+  "checks": 35080,
   "failures": [],
-  "report_sha256": "ed1d52a37d92deb161fb51f11cabd2b1fdf84e639ec755ca60f58b239fbb02db",
+  "report_sha256": "4cf02c20aa311b96668cf2d19d9f0a432920fe6399e0f8145a6bf8f24ff19e1d",
   "summary": {
-    "body_compared": 40,
-    "body_passed": 11,
-    "current_body_compared": 29,
-    "current_body_passed": 9,
+    "body_compared": 81,
+    "body_passed": 20,
+    "current_body_compared": 66,
+    "current_body_passed": 18,
+    "invalidated_body_prediction_arms": 31,
     "body_denominator": "prediction_variants; identical observed populations are not additional captures",
-    "unique_source_count": 29,
-    "unique_source_geometry_populations": 96,
-    "unique_observed_forward_count": 2098,
+    "unique_source_count": 66,
+    "unique_source_geometry_populations": 222,
+    "unique_observed_forward_count": 5250,
     "operator_status_counts": {
-      "reference_only": 13,
-      "compared": 71
+      "reference_only": 46,
+      "compared": 555
     },
     "operator_accuracy_by_tier": {
       "heavy_relative_15pct": {
-        "compared": 2,
-        "passed": 0
+        "compared": 23,
+        "passed": 6
       },
       "micro_absolute_15us": {
-        "compared": 69,
-        "passed": 68
+        "compared": 528,
+        "passed": 508
       }
     },
-    "heavy_cohorts": 4
+    "current_operator_source_populations": 38,
+    "current_operator_scored_events": 1056988,
+    "current_operator_body_events": 6364462,
+    "heavy_cohorts": 33
   },
-  "body_rows": 119,
-  "family_rows": 269,
-  "cohort_rows": 84,
-  "reference_rows": 78,
-  "scope": "Receipt/source/runtime identities, exact observed denominator deduplication, body and per-call residual arithmetic, tier rules, and conditional references kept unscored. No raw scan or prediction."
+  "body_rows": 280,
+  "family_rows": 2054,
+  "cohort_rows": 601,
+  "reference_rows": 194,
+  "corrected_kimi_quant_cases_checked": 18,
+  "execution": {
+    "elapsed_seconds": 4.037496709031984,
+    "peak_rss_bytes": 205717504,
+    "receipt_read_engine": "ijson top-level metadata and sequential cases; scoreboard bounded JSON"
+  },
+  "scope": "Independent sequential receipt reconciliation; no raw capture parsing or prediction. Invalidation, effective current Kimi precision, source/geometry deduplication, explicit input order, strict tier arithmetic and unscored source references are checked separately."
 }
