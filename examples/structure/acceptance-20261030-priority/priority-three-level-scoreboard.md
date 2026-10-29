@@ -8,9 +8,9 @@ Body: **20/81 prediction arms passed**; 66 unique sources, 222 measured geometry
 
 Invalidated prediction rows: **31**. Their measured populations remain; superseded predictions and layer errors are excluded from accuracy statistics.
 
-Current operator strict accuracy (latest input receipt per source/geometry): heavy_relative_15pct: **6/23**; micro_absolute_15us: **508/528**. Conditional references are excluded.
+Current operator strict accuracy (latest input receipt per source/geometry): heavy_relative_15pct: **6/23**; micro_absolute_15us: **568/591**. Conditional references are excluded.
 
-Strict event coverage: **1,056,988/6,364,462** events across 38 measured source/geometry populations. A high pass rate within this subset does not establish whole-model accuracy.
+Strict event coverage: **1,134,343/6,729,791** events across 44 measured source/geometry populations. A high pass rate within this subset does not establish whole-model accuracy.
 
 Local replay receipts with explicit comparison coverage. Body errors are measured wall-clock differences; operator priorities are nonadditive kernel activity residuals per complete Forward.
 
@@ -537,10 +537,16 @@ The steady P50 column is median of per-layer call P50, unless a separately linke
 
 | Case | Operator / role | Unscored calls | Unscored observed activity ms / Forward | Status |
 |---|---|---:|---:|---|
+| a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64 / v41-new6 | DispatchFFNCombine / routed_ffn_native | 840 | 28.737 | reference_only |
+| a3_v41_w8a8_tp4_dp4_ep16_dspark7_c32 / v41-new6 | DispatchFFNCombine / routed_ffn_native | 880 | 28.722 | reference_only |
+| a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4 / v41-new6 | DispatchFFNCombine / routed_ffn_native | 1920 | 28.483 | reference_only |
+| a3_v41_w8a8_tp4_dp4_ep16_dspark7_c16 / v41-new6 | DispatchFFNCombine / routed_ffn_native | 1280 | 27.940 | reference_only |
+| a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8 / v41-new6 | DispatchFFNCombine / routed_ffn_native | 1160 | 27.761 | reference_only |
 | a3_glm53flash_tp16_aclgraph_c64 / matrix-extension | KvQuantSparseFlashAttentionVllm / unresolved | 517 | 17.956 | unresolved |
 | a3_glm53flash_tp16_aclgraph_c64 / matrix-extension | GroupedMatmulSwigluQuant / grouped_gate_up_activation_quant | 1974 | 10.307 | reference_only |
 | a3_glm53flash_tp16_aclgraph_c32 / matrix-extension | GroupedMatmulSwigluQuant / grouped_gate_up_activation_quant | 2058 | 10.206 | reference_only |
 | a3_glm53flash_tp16_aclgraph_c16 / matrix-extension | GroupedMatmulSwigluQuant / grouped_gate_up_activation_quant | 2100 | 10.156 | reference_only |
+| a5_v41_fp8_tp1_dp8_ep8_c128_p2k / v41-new6 | GroupedMatmul / expert_up | 2920 | 10.006 | reference_only |
 | a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64 / v41-dp8 | GroupedMatmul / expert_up | 3000 | 9.704 | reference_only |
 | a3_glm53flash_tp16_aclgraph_c8 / matrix-extension | GroupedMatmulSwigluQuant / grouped_gate_up_activation_quant | 1974 | 9.493 | reference_only |
 | a3_glm53flash_tp16_aclgraph_c32 / matrix-extension | KvQuantSparseFlashAttentionVllm / unresolved | 539 | 9.128 | unresolved |
@@ -563,20 +569,14 @@ The steady P50 column is median of per-layer call P50, unless a separately linke
 | a5_kimi_tp8_e16_bf16_c32_p16k / kimi-variants | FusedInferAttentionScore / unresolved | 984 | 6.338 | reference_only |
 | a3_glm53flash_tp16_aclgraph_c64 / matrix-extension | hcom_allReduce_ / ffn_down_communication | 2115 | 6.083 | unresolved |
 | glm53flash-a3-tp16-c16-livepre-q6-b16 / new17 | GroupedMatmulSwigluQuant / grouped_gate_up_activation_quant | 1554 | 5.981 | reference_only |
+| a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64 / v41-new6 | SparseFlashMla / unresolved | 840 | 5.957 | unresolved |
+| a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4 / v41-new6 | reduce_scatterAicpuKernel / unresolved | 1920 | 5.643 | unresolved |
+| a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8 / v41-new6 | reduce_scatterAicpuKernel / unresolved | 1160 | 5.633 | unresolved |
+| a3_v41_w8a8_tp4_dp4_ep16_dspark7_c16 / v41-new6 | reduce_scatterAicpuKernel / unresolved | 1280 | 5.599 | unresolved |
+| a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64 / v41-new6 | reduce_scatterAicpuKernel / unresolved | 840 | 5.539 | unresolved |
+| a3_v41_w8a8_tp4_dp4_ep16_dspark7_c32 / v41-new6 | reduce_scatterAicpuKernel / unresolved | 880 | 5.507 | unresolved |
 | a5_v41_fp8_tp1_dp8_ep8_c32_p2k / matrix-extension | GroupedMatmul / expert_up | 4200 | 5.096 | reference_only |
 | a3_glm53flash_tp16_aclgraph_c64 / matrix-extension | GroupedMatmul / expert_down | 1974 | 5.080 | reference_only |
-| a3_glm53flash_tp16_aclgraph_c32 / matrix-extension | GroupedMatmul / expert_down | 2058 | 5.045 | reference_only |
-| a3_glm53flash_tp16_aclgraph_c16 / matrix-extension | GroupedMatmul / expert_down | 2100 | 5.020 | reference_only |
-| a3_glm53flash_tp16_aclgraph_c32 / matrix-extension | RecurrentKda / unresolved | 1666 | 4.888 | unresolved |
-| a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64 / v41-dp8 | GroupedMatmul / expert_down | 3000 | 4.794 | reference_only |
-| a3_glm53flash_tp16_aclgraph_c8 / matrix-extension | GroupedMatmul / expert_down | 1974 | 4.779 | reference_only |
-| a3_glm53flash_tp16_aclgraph_c16 / matrix-extension | KvQuantSparseFlashAttentionVllm / unresolved | 550 | 4.663 | unresolved |
-| a5_kimi_tp8_e16_bf16_c32_p4k / kimi-variants | GroupedMatmul / expert_up | 4232 | 4.254 | reference_only |
-| a5_kimi_tp8_e16_bf16_c32_p16k / kimi-variants | GroupedMatmul / expert_up | 3772 | 4.252 | reference_only |
-| glm53flash-a3-tp16-c16-livepre-q6-b16 / new17 | KvQuantSparseFlashAttentionVllm / unresolved | 407 | 4.153 | unresolved |
-| glm53flash-a5-tp8-c3 / new17 | GroupedMatmulSwigluQuantV2 / unresolved | 2226 | 4.147 | unresolved |
-| a5_glm53flash_tp8_c4_p8k / glm-flash-ws9 | GroupedMatmulSwigluQuantV2 / unresolved | 462 | 4.135 | unresolved |
-| a5_kimi_tp8_e16_bf16_c16_p16k / kimi-variants | GroupedMatmul / expert_up | 4324 | 4.052 | reference_only |
 
 ## Source-role references — already costed work is not an extra budget
 
@@ -584,6 +584,12 @@ Reference differences have distinct evidence and are excluded from strict cohort
 
 | Case | Operator / region | Real / reference us | Real / Sim service ms per Forward | Residual ms | Boundary |
 |---|---|---:|---:|---:|---|
+| a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64 / v41-new6 / `ddbc84222bf7` | DispatchFFNCombine / routed_ffn_native / mla / ffn | 718.428 / 972.699 | 28.737 / 38.908 | 10.171 | whole_routed_ffn_decomposed_program_reference |
+| a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8 / v41-new6 / `ddbc84222bf7` | DispatchFFNCombine / routed_ffn_native / mla / ffn | 694.018 / 921.873 | 27.761 / 36.875 | 9.114 | whole_routed_ffn_decomposed_program_reference |
+| a3_v41_w8a8_tp4_dp4_ep16_dspark7_c16 / v41-new6 / `ddbc84222bf7` | DispatchFFNCombine / routed_ffn_native / mla / ffn | 698.498 / 924.931 | 27.940 / 36.997 | 9.057 | whole_routed_ffn_decomposed_program_reference |
+| a3_v41_w8a8_tp4_dp4_ep16_dspark7_c32 / v41-new6 / `ddbc84222bf7` | DispatchFFNCombine / routed_ffn_native / mla / ffn | 718.046 / 940.671 | 28.722 / 37.627 | 8.905 | whole_routed_ffn_decomposed_program_reference |
+| a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4 / v41-new6 / `ddbc84222bf7` | DispatchFFNCombine / routed_ffn_native / mla / ffn | 712.078 / 915.819 | 28.483 / 36.633 | 8.150 | whole_routed_ffn_decomposed_program_reference |
+| a5_v41_fp8_tp1_dp8_ep8_c128_p2k / v41-new6 / `ddbc84222bf7` | GroupedMatmul / expert_up / mla / ffn | 250.141 / 174.182 | 10.006 / 6.967 | -3.038 | capacity_vs_valid_rows_conditional |
 | a5_kimi_tp8_e16_bf16_c2_p16k / kimi-variants / `ddbc84222bf7` | MoeDistributeCombineV3 / expert_combine_native / kda / ffn | 34.585 / 3.240 | 3.182 / 0.298 | -2.884 | transport_unpack_weighted_combine_reference |
 | a5_kimi_tp8_e16_bf16_c2_p4k / kimi-variants / `ddbc84222bf7` | MoeDistributeCombineV3 / expert_combine_native / kda / ffn | 34.497 / 3.240 | 3.174 / 0.298 | -2.876 | transport_unpack_weighted_combine_reference |
 | a5_kimi_tp8_e16_bf16_c32_p16k / kimi-variants / `ddbc84222bf7` | MoeDistributeDispatchV3 / expert_dispatch_native / kda / ffn | 34.207 / 3.624 | 3.147 / 0.333 | -2.814 | pack_transport_output_quant_reference |
@@ -616,6 +622,7 @@ Reference differences have distinct evidence and are excluded from strict cohort
 | a5_qwen36_highconc_c128 / `886c1fa5bd45` | hcom_allReduce_ / linear_reduce / gdn / attention | 81.530 / 48.606 | 3.913 / 2.333 | -1.580 | reference_only |
 | a3_glm53flash_tp16_aclgraph_c32 / matrix-extension / `ab58f99ac6e3` | GroupedMatmul / expert_down / mla / ffn | 120.125 / 155.873 | 5.045 / 6.547 | 1.501 | capacity_vs_valid_rows_conditional |
 | a3_glm53flash_tp16_aclgraph_c16 / matrix-extension / `ab58f99ac6e3` | GroupedMatmul / expert_down / mla / ffn | 119.516 / 153.715 | 5.020 / 6.456 | 1.436 | capacity_vs_valid_rows_conditional |
+| a5_v41_fp8_tp1_dp8_ep8_c128_p2k / v41-new6 / `ddbc84222bf7` | GroupedMatmul / expert_down / mla / ffn | 123.273 / 89.536 | 4.931 / 3.581 | -1.350 | capacity_vs_valid_rows_conditional |
 | a5_v41_fp8_tp1_dp8_ep8_c4_p2k / matrix-extension / `ab58f99ac6e3` | MoeDistributeDispatchV3 / expert_dispatch_native / mla / ffn | 47.766 / 15.361 | 1.911 / 0.614 | -1.296 | pack_transport_output_quant_reference |
 | a5_qwen36_highconc_c40 / `886c1fa5bd45` | hcom_allReduce_ / linear_reduce / gdn / attention | 58.791 / 32.514 | 2.822 / 1.561 | -1.261 | reference_only |
 | a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64 / v41-dp8 / `ab58f99ac6e3` | GroupedMatmul / expert_down / mla / ffn | 119.854 / 88.639 | 4.794 / 3.546 | -1.249 | capacity_vs_valid_rows_conditional |
@@ -649,6 +656,8 @@ Reference differences have distinct evidence and are excluded from strict cohort
 | a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1 / v41-dp8 / `ab58f99ac6e3` | GroupedMatmul / expert_up / mla / ffn | 38.592 / 22.384 | 1.544 / 0.895 | -0.648 | capacity_vs_valid_rows_conditional |
 | a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8 / v41-dp8 / `ab58f99ac6e3` | GroupedMatmul / expert_up / mla / ffn | 38.541 / 22.384 | 1.542 / 0.895 | -0.646 | capacity_vs_valid_rows_conditional |
 | a5_v41_fp8_tp1_dp8_ep8_c16_p2k / matrix-extension / `ab58f99ac6e3` | GroupedMatmul / expert_down / mla / ffn | 37.439 / 22.163 | 1.498 / 0.887 | -0.611 | capacity_vs_valid_rows_conditional |
+| a5_v41_fp8_tp1_dp8_ep8_c128_p2k / v41-new6 / `ddbc84222bf7` | HcPre / attention.hc_pre / mla / attention | 12.178 / 26.480 | 0.487 / 1.059 | 0.572 | partial_base_program_reference_premix_branch_unresolved |
+| a5_v41_fp8_tp1_dp8_ep8_c128_p2k / v41-new6 / `ddbc84222bf7` | HcPre / ffn.hc_pre / mla / ffn | 12.209 / 26.480 | 0.488 / 1.059 | 0.571 | partial_base_program_reference_premix_branch_unresolved |
 | a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8 / v41-dp8 / `ab58f99ac6e3` | MoeDistributeDispatchV3 / expert_dispatch_native / mla / ffn | 29.449 / 15.361 | 1.178 / 0.614 | -0.564 | pack_transport_output_quant_reference |
 | a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8 / v41-dp8 / `ab58f99ac6e3` | MqsmlaKernel___call__ / attention_core / mla / attention | 29.224 / 1.578 | 0.584 / 0.032 | -0.553 | source_symbol_to_declared_attention_program |
 | a5_v41_fp8_tp1_dp8_ep8_c16_p2k / matrix-extension / `ab58f99ac6e3` | MqsmlaKernel___call__ / attention_core / mla / attention | 29.623 / 3.156 | 0.592 / 0.063 | -0.529 | source_symbol_to_declared_attention_program |
@@ -692,6 +701,7 @@ Reference differences have distinct evidence and are excluded from strict cohort
 | a5_qwen38_highconc_c128 / `886c1fa5bd45` | l2norm_fwd_kernel2 /  / gdn / attention | 3.779 / 1.312 | 0.363 / 0.126 | -0.237 | reference_only |
 | a5_v41_fp8_tp1_dp8_ep8_c16_p2k / matrix-extension / `ab58f99ac6e3` | HcPre / ffn.hc_pre / mla / ffn | 11.978 / 17.747 | 0.479 / 0.710 | 0.231 | partial_base_program_reference_premix_branch_unresolved |
 | a3_kimi4_tp8_w4a8_c4 / kimi-variants / `ddbc84222bf7` | GroupedMatmul / expert_up / kda / ffn | 103.723 / 175.598 | 0.311 / 0.527 | 0.216 | capacity_vs_valid_rows_conditional |
+| a5_v41_fp8_tp1_dp8_ep8_c128_p2k / v41-new6 / `ddbc84222bf7` | MqsmlaKernel___call__ / attention_core / mla / attention | 35.488 / 25.248 | 0.710 / 0.505 | -0.205 | source_symbol_to_declared_attention_program |
 | a5_qwen36_highconc_c4 / `886c1fa5bd45` | hcom_allReduce_ / tp / gdn / ffn | 21.976 / 25.931 | 1.055 / 1.245 | 0.190 | reference_only |
 | a5_qwen38_highconc_c32 / `886c1fa5bd45` | _layer_norm_fwd_1pass_kernel_npu /  / gdn / attention | 5.123 / 1.312 | 0.246 / 0.063 | -0.183 | reference_only |
 | a5_qwen36_highconc_c40 / `886c1fa5bd45` | split_qkv_rmsnorm_mrope_kernel /  / gqa / attention | 13.451 / 2.788 | 0.215 / 0.045 | -0.171 | reference_only |
@@ -701,7 +711,9 @@ Reference differences have distinct evidence and are excluded from strict cohort
 | a5_v41_fp8_tp1_dp8_ep8_c4_p2k / matrix-extension / `ab58f99ac6e3` | MqsmlaKernel___call__ / attention_core / mla / attention | 9.938 / 1.578 | 0.199 / 0.032 | -0.167 | source_symbol_to_declared_attention_program |
 | a5_qwen36_highconc_c40 / `886c1fa5bd45` | _layer_norm_fwd_1pass_kernel_npu /  / gdn / attention | 4.702 / 1.312 | 0.226 / 0.063 | -0.163 | reference_only |
 | a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64 / v41-dp8 / `ab58f99ac6e3` | MoeDistributeCombineV3 / expert_combine_native / mla / ffn | 19.057 / 15.009 | 0.762 / 0.600 | -0.162 | transport_unpack_weighted_combine_reference |
+| a5_v41_fp8_tp1_dp8_ep8_c128_p2k / v41-new6 / `ddbc84222bf7` | MqsmlaKernel___call__ / attention_core / mla / attention | 34.016 / 25.248 | 0.612 / 0.454 | -0.158 | source_symbol_to_declared_attention_program |
 | a3_kimi4_tp8_w4a8_c1 / kimi-variants / `ddbc84222bf7` | GroupedMatmul / expert_down / kda / ffn | 38.730 / 89.061 | 0.116 / 0.267 | 0.151 | capacity_vs_valid_rows_conditional |
+| a5_v41_fp8_tp1_dp8_ep8_c128_p2k / v41-new6 / `ddbc84222bf7` | MoeDistributeDispatchV3 / expert_dispatch_native / mla / ffn | 21.045 / 17.418 | 0.842 / 0.697 | -0.145 | pack_transport_output_quant_reference |
 | a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64 / v41-dp8 / `ab58f99ac6e3` | MoeDistributeDispatchV3 / expert_dispatch_native / mla / ffn | 19.944 / 16.321 | 0.798 / 0.653 | -0.145 | pack_transport_output_quant_reference |
 | a5_qwen38_highconc_c32 / `886c1fa5bd45` | l2norm_fwd_kernel2 /  / gdn / attention | 2.769 / 1.312 | 0.266 / 0.126 | -0.140 | reference_only |
 | a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1 / v41-dp8 / `ab58f99ac6e3` | MqsmlaKernel___call__ / attention_core / mla / attention | 9.205 / 1.578 | 0.166 / 0.028 | -0.137 | source_symbol_to_declared_attention_program |
@@ -731,6 +743,7 @@ Reference differences have distinct evidence and are excluded from strict cohort
 | a5_qwen36_highconc_c4 / `886c1fa5bd45` | split_qkv_rmsnorm_mrope_kernel /  / gqa / attention | 5.634 / 2.640 | 0.090 / 0.042 | -0.048 | reference_only |
 | a5_kimi_tp8_e16_bf16_c2_p4k / kimi-variants / `ddbc84222bf7` | GroupedMatmul / expert_up / kda / ffn | 22.426 / 22.059 | 2.063 / 2.029 | -0.034 | capacity_vs_valid_rows_conditional |
 | a5_qwen36_highconc_c40 / `886c1fa5bd45` | hcom_allReduce_ / tp / gqa / ffn | 30.577 / 32.514 | 0.489 / 0.520 | 0.031 | reference_only |
+| a5_v41_fp8_tp1_dp8_ep8_c128_p2k / v41-new6 / `ddbc84222bf7` | MoeDistributeCombineV3 / expert_combine_native / mla / ffn | 15.402 / 16.106 | 0.616 / 0.644 | 0.028 | transport_unpack_weighted_combine_reference |
 | a5_qwen36_highconc_c4 / `886c1fa5bd45` | hcom_allReduce_ / tp_attn / gqa / attention | 24.240 / 25.931 | 0.388 / 0.415 | 0.027 | reference_only |
 | a5_kimi_tp8_e16_bf16_c2_p16k / kimi-variants / `ddbc84222bf7` | GroupedMatmul / expert_up / kda / ffn | 22.335 / 22.059 | 2.055 / 2.029 | -0.025 | capacity_vs_valid_rows_conditional |
 | a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8 / v41-dp8 / `ab58f99ac6e3` | MqsmlaKernel___call__ / attention_core / mla / attention | 11.092 / 1.578 | 0.022 / 0.003 | -0.019 | source_symbol_to_declared_attention_program |
@@ -740,6 +753,7 @@ Reference differences have distinct evidence and are excluded from strict cohort
 | a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1 / v41-dp8 / `ab58f99ac6e3` | MqsmlaKernel___call__ / attention_core / mla / attention | 8.170 / 1.578 | 0.016 / 0.003 | -0.013 | source_symbol_to_declared_attention_program |
 | a5_kimi_tp8_e16_bf16_c1_p4k / kimi-variants / `ddbc84222bf7` | GroupedMatmul / expert_up / kda / ffn | 21.918 / 22.059 | 2.016 / 2.029 | 0.013 | capacity_vs_valid_rows_conditional |
 | a5_v41_fp8_tp1_dp8_ep8_c4_p2k / matrix-extension / `ab58f99ac6e3` | MqsmlaKernel___call__ / attention_core / mla / attention | 7.891 / 1.578 | 0.016 / 0.003 | -0.013 | source_symbol_to_declared_attention_program |
+| a5_v41_fp8_tp1_dp8_ep8_c128_p2k / v41-new6 / `ddbc84222bf7` | MqsmlaKernel___call__ / attention_core / mla / attention | 19.397 / 25.248 | 0.039 / 0.050 | 0.012 | source_symbol_to_declared_attention_program |
 | a5_kimi_tp8_e16_bf16_c1_p16k / kimi-variants / `ddbc84222bf7` | GroupedMatmul / expert_up / kda / ffn | 21.957 / 22.059 | 2.020 / 2.029 | 0.009 | capacity_vs_valid_rows_conditional |
 | a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64 / v41-dp8 / `ab58f99ac6e3` | MqsmlaKernel___call__ / attention_core / mla / attention | 16.005 / 12.624 | 0.032 / 0.025 | -0.007 | source_symbol_to_declared_attention_program |
 | a5_qwen36_highconc_c128 / `886c1fa5bd45` | DynamicQuantV2 /  / gdn / attention | 7.494 / — | 0.360 / — | — | boundary_unresolved |
@@ -802,6 +816,7 @@ Reference differences have distinct evidence and are excluded from strict cohort
 - [body-operator-family-scoreboard.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-family-scoreboard.json), SHA256 `53e528b2254c3ca55b4eb9e1afa5fc4e46f89ed6ccbee3059639dbbaed10175d`
 - [body-operator-family-scoreboard.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-family-scoreboard.json), SHA256 `66c1e8335a7585608524322f2415ffc5648ae91d2259deadbc47fb8b99391f73`
 - [body-operator-family-scoreboard.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-operators-332f0420/body-operator-family-scoreboard.json), SHA256 `e2d2bfaffcb017ffa47bc5ac3af1c0e5612951ac21d5dd6324797d9ef31efa6d`
+- [body-operator-family-scoreboard.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-final6-operators-e8/body-operator-family-scoreboard.json), SHA256 `9cc875e1a79d728c77aaef1fbc71ac558483892a229f8f2f9af366006c401a67`
 - [body-communication-references.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency/body-communication-references.json), SHA256 `dd98c1ba7677ea8d5ef9ea1670c69937a4f8fa2e24ec096c7392c3440ace0caa`
 
 Additional coverage/source evidence (not silently promoted into body or operator predictions):
