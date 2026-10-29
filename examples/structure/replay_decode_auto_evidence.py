@@ -119,6 +119,7 @@ def replay(manifest_path, output, *, validation_baseline=None, reuse_extractions
         observed["replay_control_elapsed_seconds"] = round(time.monotonic() - case_started, 3)
         if not reused:
             observed["elapsed_seconds"] = observed["replay_control_elapsed_seconds"]
+            observed["maximum_resident_set_size_raw"] = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
         if row.get("graph_envelopes_path"):
             graph = _read(Path(row["graph_envelopes_path"]))
             observed["graph_crosscheck"] = correlate_forward_envelopes(observed, graph)
