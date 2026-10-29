@@ -237,6 +237,13 @@ def _automatic_scenarios(row, observed):
         **{key: group.get(key, []) for key in (
             "body_forward_span_ms", "per_layer_ms", "stage_span_ms", "representative_forwards")},
         "geometry": geometry,
+        "batch_evidence": {
+            "execution_sequences_per_replica": geometry.get("sequences_per_replica"),
+            "execution_query_rows": geometry.get("query_rows"),
+            "client_concurrency": evidence.get("client", {}).get("concurrency"),
+            "basis": geometry.get("batch_basis"),
+            "interpretation": "Tensor-export execution batch may include graph padding; client concurrency is a request-level condition, not substituted for the captured execution batch.",
+        },
         "comparison_assumptions": [
             f"Context basis: {context_basis}; active KV increments during this capture are not established.",
             "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
@@ -421,9 +428,17 @@ def replay_manifest(manifest, *, base, max_events=5_000_000, timeout_s=30,
 
 def render(report):
     lines = ["# Decode body-forward replay", "",
-             "Existing local captures only. Automatic topology alignment is labelled separately from explicit Host/module boundaries; graph envelopes are separate diagnostics.", "",
+             "Existing local captures only. Automatic topology alignment is labelled separately from explicit Host/module boundaries; graph envelopes are separate diagnostics.", ""]
+    if report.get("runtime_provenance"):
+        lines.extend(["Runtime source declaration: " + json.dumps(report["runtime_provenance"], sort_keys=True) + ".", ""])
+    runtimes = {json.dumps(row["runtime_identity"], sort_keys=True)
+                for row in report["cases"] if row.get("runtime_identity")}
+    for runtime in sorted(runtimes):
+        identity = json.loads(runtime)
+        lines.extend([f"Sim {identity['version']}; {identity['file_count']} package files; SHA256 `{identity['package_sha256']}`; package `{identity['package_path']}`.", ""])
+    lines.extend([
              "| Case | Body calls | Real mean ms | P50 ms | P90 ms | Sim ms | Error | Status / reason |",
-             "|---|---:|---:|---:|---:|---:|---:|---|"]
+             "|---|---:|---:|---:|---:|---:|---:|---|"])
     number = lambda value: "—" if value is None else f"{value:.6f}"
     for row in report["cases"]:
         compare = row["comparison"]
@@ -435,6 +450,66 @@ def render(report):
             "—" if error is None else f"{error:+.2%}",
             row["status"] + (": " + "; ".join(compare["reasons"]) if compare["reasons"] else ""),
         ]) + " |")
+    lines.extend(["", "## Per-layer comparison", "",
+                  "Dense/MoE labels identify the FFN inside each transformer layer. Statistics below are across measured layer means within the same q/batch group; attention remains part of its declared layer. DP replicas are not summed.", "",
+                  "| Case | FFN structure | Layers passed / compared | Real layer mean ms | P50 ms | P90 ms | Sim layer mean ms | Error |",
+                  "|---|---|---:|---:|---:|---:|---:|---:|"])
+    for row in report["cases"]:
+        layers = row.get("per_layer_comparison") or {}
+        for group in layers.get("ffn_kind_distributions", []):
+            observed, predicted = group["observed_ms"], group["predicted_ms"]
+            selected = [layer for layer in layers["layers"] if layer["kind"] == group["kind"]]
+            passed = sum(layer["passed"] is True for layer in selected)
+            count = sum(layer["status"] == "compared" for layer in selected)
+            error = (predicted["mean"] - observed["mean"]) / observed["mean"]
+            lines.append("| " + " | ".join([
+                row["case_id"], group["kind"], f"{passed} / {count}", number(observed["mean"]),
+                number(observed["p50"]), number(observed["p90"]), number(predicted["mean"]), f"{error:+.2%}",
+            ]) + " |")
+    lines.extend(["", "## Layers grouped by attention structure", "",
+                  "Each value is a complete transformer-layer span, grouped by its declared attention structure; it is not the duration of attention alone. These groups partition the same per-layer comparisons above.", "",
+                  "| Case | Attention structure | Layers passed / compared | Real layer mean ms | P50 ms | P90 ms | Sim layer mean ms | Error |",
+                  "|---|---|---:|---:|---:|---:|---:|---:|"])
+    for row in report["cases"]:
+        for group in (row.get("per_layer_comparison") or {}).get("attention_kind_distributions", []):
+            observed, predicted = group["observed_ms"], group["predicted_ms"]
+            error = (predicted["mean"] - observed["mean"]) / observed["mean"]
+            lines.append("| " + " | ".join([
+                row["case_id"], group["attention_kind"],
+                f"{group['passed_layers']} / {group['compared_layers']}",
+                number(observed["mean"]), number(observed["p50"]), number(observed["p90"]),
+                number(predicted["mean"]), f"{error:+.2%}",
+            ]) + " |")
+    lines.extend(["", "## Execution batch and client TPOT", "",
+                  "Execution batch comes from captured tensor geometry and may include graph padding. Client concurrency describes requests. Representative K is the explicitly declared context or client prompt length; generated-token growth during the window is not observed. These single-rank comparisons assume symmetric rank completion. TPOT includes serving work beyond the body; profiled and unprofiled measurements remain separate.", "",
+                  "| Case | Executed q | Executed batch | Representative K | Client concurrency | Profiled client TPOT mean ms | Profiled client TPOT P50 ms | Profiled window TPOT estimate ms | Unprofiled sweep TPOT ms |",
+                  "|---|---:|---:|---:|---:|---:|---:|---:|---:|"])
+    for row in report["cases"]:
+        evidence = row.get("scenario_evidence") or {}
+        tpot = evidence.get("tpot") or {}
+        profiled = tpot.get("profiled_run_client_ms") or {}
+        geometry = row.get("geometry") or {}
+        lines.append("| " + " | ".join([
+            row["case_id"], str(geometry.get("tokens_per_sequence", "—")),
+            str(geometry.get("sequences_per_replica", "—")),
+            str(geometry.get("context_tokens", "—")),
+            str(evidence.get("client", {}).get("concurrency", "—")),
+            number(profiled.get("mean")), number(profiled.get("median")),
+            number(tpot.get("profiled_engine_window_estimate_ms")),
+            number(tpot.get("unprofiled_sweep_ms")),
+        ]) + " |")
+    lines.extend(["", "## Separate model boundaries", "",
+                  "These measured scopes are outside the target body comparison. Unavailable scopes have no numeric row; a missing scope is not zero cost. The original stage kind is retained, including ambiguous auxiliary/MTP labels.", "",
+                  "| Case | Boundary | Observed calls | Mean ms | P50 ms | P90 ms |",
+                  "|---|---|---:|---:|---:|---:|"])
+    for row in report["cases"]:
+        for stage in (row.get("observed") or {}).get("stage_span_ms", []):
+            stats = stage["stats"]
+            if stats["count"]:
+                lines.append("| " + " | ".join([
+                    row["case_id"], stage["kind"], str(stats["count"]), number(stats["mean"]),
+                    number(stats["p50"]), number(stats["p90"]),
+                ]) + " |")
     lines.extend(["", "Summary: " + json.dumps(report["summary"], sort_keys=True), ""])
     return "\n".join(lines)
 
@@ -450,6 +525,7 @@ def main():
     parser.add_argument("--extract-only", action="store_true")
     parser.add_argument("--reuse-extractions", type=Path)
     parser.add_argument("--prediction-cache-dir", type=Path)
+    parser.add_argument("--runtime-source-commit", help="Caller-declared source commit; installed package hash is independently recorded")
     parser.add_argument("--case-id", action="append")
     args = parser.parse_args()
     manifest = _read(args.manifest)
@@ -466,6 +542,9 @@ def main():
                              on_case=lambda row: print(json.dumps(row), flush=True))
     report["manifest_identity"] = {"path": str(args.manifest.resolve()),
                                    "sha256": sha256_file(args.manifest)}
+    if args.runtime_source_commit:
+        report["runtime_provenance"] = {"source_commit": args.runtime_source_commit,
+                                        "basis": "caller_identified_installed_package"}
     # getrusage has platform-specific units; placement is unchanged.
     peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     peak = int(peak if sys.platform == "darwin" else peak * 1024)

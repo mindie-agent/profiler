@@ -120,3 +120,7 @@ def test_layer_error_uses_declared_ordinal_and_ffn_kind_without_replica_sum(adap
     assert result["summary"]["passed_layers"] == 0
     assert all(row["relative_error"] == pytest.approx(.25) for row in result["layers"])
     assert result["ffn_kind_distributions"][0]["observed_ms"]["count"] == case["model"]["layers"]
+    group = result["attention_kind_distributions"][0]
+    assert group["observed_ms"]["count"] == case["model"]["layers"]
+    assert group["predicted_ms"]["mean"] / group["observed_ms"]["mean"] == pytest.approx(1.25)
+    assert group["passed_layers"] == 0

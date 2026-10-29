@@ -182,12 +182,13 @@ def compare_layers(predicted, observed):
     """Collapse symmetric DP copies to one representative, without summing them."""
     replica = min((row["replica"] for row in predicted["per_layer_ms"]), default=None)
     indexed = {row["layer_id"]: row for row in predicted["per_layer_ms"] if row["replica"] == replica}
-    comparisons, grouped = [], defaultdict(list)
+    comparisons, grouped, attention = [], defaultdict(list), defaultdict(list)
     for row in observed.get("per_layer_ms", []):
         layer = indexed.get(row["layer_id"])
         stats = row["stats"]
         value = stats.get("mean")
         result = {"layer_id": row["layer_id"], "kind": row["kind"], "rank_id": row.get("rank_id"),
+                  "attention_kind": layer["attention_kind"] if layer else None,
                   "representative_replica": replica, "observed_ms": stats,
                   "predicted_ms": layer["span_ms"] if layer else None,
                   "relative_error": None, "passed": None, "status": "unresolved", "reasons": []}
@@ -201,6 +202,7 @@ def compare_layers(predicted, observed):
             error = (layer["span_ms"] - value) / value
             result.update(status="compared", relative_error=error, passed=abs(error) <= .15)
             grouped[row["kind"]].append(result)
+            attention[layer["attention_kind"]].append(result)
         comparisons.append(result)
     return {
         "basis": "conditional_topology_layer_alignment_single_representative_replica",
@@ -216,6 +218,13 @@ def compare_layers(predicted, observed):
              "observed_ms": _stats([row["observed_ms"]["mean"] for row in rows]),
              "predicted_ms": _stats([row["predicted_ms"] for row in rows])}
             for kind, rows in sorted(grouped.items())],
+        "attention_kind_distributions": [
+            {"attention_kind": kind, "statistic_scope": "across_complete_layer_means_in_this_geometry",
+             "observed_ms": _stats([row["observed_ms"]["mean"] for row in rows]),
+             "predicted_ms": _stats([row["predicted_ms"] for row in rows]),
+             "compared_layers": len(rows),
+             "passed_layers": sum(row["passed"] is True for row in rows)}
+            for kind, rows in sorted(attention.items())],
     }
 
 
