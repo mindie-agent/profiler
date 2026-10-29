@@ -1,198 +1,67 @@
 {
   "kind": "shared_structure_cohort_maintained_suite_verification",
   "date": "2026-10-29",
-  "runtime_source_identity_sha256": "dd8834a35bb729963d48934be29149c11f23d28cc33ff62a53a5af87c6f862d1",
-  "runtime_source_identity_file": "fusion-cohort-validation.json#runtime_source_identity",
-  "runtime_git_base": "239f443c25b640d8545416ef115cafd64b26d031",
+  "status": "provisional_runtime_regression",
   "not_new_live_npu_acceptance": true,
+  "sim_runtime_commit": "2cdffcecdc4954313836143e7a167dbf8fbef97e",
+  "runtime_checkout": "/tmp/mindie-sim-cohort-wave6-20261029",
+  "runtime_source_identity_sha256": "1db5973237dff6d13dc5c19d563acb0e9f666f81e7bd6cd44bce2f474b805244",
+  "runtime_source_identity_file": "fusion-cohort-validation.json#runtime_source_identity",
   "suites": {
     "profiler": {
-      "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/Users/maoxx241/code/sim-rewrite-20261027 /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python -m pytest -q",
-      "cwd": "/Users/maoxx241/code/profiler",
-      "passed": 533,
+      "passed": 572,
       "skipped": 26,
-      "seconds": 25.09,
-      "log_path": "/tmp/profiler-full-replay-239f443c-tests-20261029.log",
-      "log_sha256": "6169b58b30aea81430ae06918fc6137de36cf8ce210966c58e7391bd93715a99"
+      "failed": 0,
+      "seconds": 36.43,
+      "log_path": "/tmp/profiler-wave6-2cdffcec-tests.log",
+      "log_sha256": "008fb1c9dde1a5ca063f69d145f655ca835fcc7ef6cba674fc4ec266e8168daa",
+      "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/tmp/mindie-sim-cohort-wave6-20261029 /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python -m pytest -q",
+      "cwd": "/Users/maoxx241/code/profiler"
     },
     "sim": {
-      "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/Users/maoxx241/code/sim-rewrite-20261027 .venv/bin/python -m pytest -q -m 'not live_npu'",
-      "cwd": "/Users/maoxx241/code/sim-rewrite-20261027",
-      "passed": 1657,
+      "passed": 1786,
       "skipped": 0,
-      "seconds": 235.42,
-      "log_path": "/tmp/sim-integrated-20261029.log",
-      "log_sha256": "4663e4212606b0c705e3e6ac2806c618acbb7e112ddb22081d1902c4c95c5a9a",
-      "provenance": "Executed by coordinating sim thread 01a17dbe; local log verified."
+      "failed": 1,
+      "seconds": 234.16,
+      "log_path": "/tmp/sim-wave6-2cdffcec-tests.log",
+      "log_sha256": "726edcd160c652ae7a0349f47dbcc057a8f4bbee440d2832b507b32d1e9ba303",
+      "excluded_marker": "live_npu",
+      "failure": "test_real_kimi_decode_matrix_crosses_semantic_recipes_without_choosing_a_replica",
+      "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/tmp/mindie-sim-cohort-wave6-20261029 /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python -m pytest -q -m 'not live_npu'",
+      "cwd": "/tmp/mindie-sim-cohort-wave6-20261029"
+    },
+    "new_reporting_regression": {
+      "passed": 7,
+      "seconds": 0.26,
+      "commit": "92d136c",
+      "included_in_profiler_suite_above": false
     }
   },
   "full_capture_replay": {
     "status": "completed",
-    "elapsed_seconds": 668.622,
+    "elapsed_seconds": 1294.532,
     "memory_budget_passed": true,
-    "mapping_peak_rss_bytes": 467484672,
-    "comparison_peak_rss_bytes": 469499904,
-    "log_path": "/tmp/profiler-full-replay-239f443c-20261029.log",
-    "receipt_sha256": "27c84748367ab934e66106b2b3c4aa55ee85f0a7809869e7300b94a550f1f0b9",
-    "runtime_sources_unchanged": true
+    "peak_worker_rss_bytes": 474710016,
+    "peak_comparison_rss_bytes": 476758016,
+    "runtime_sources_unchanged": true,
+    "declaration_variant_count": 32,
+    "raw_parsed_capture_scans": 28,
+    "unique_capture_event_count": 668835,
+    "comparison_cohort_status_counts": {
+      "compared": 442,
+      "reference_only": 67
+    },
+    "receipt_sha256": "00ea12406cfcd09eaa9890b9a96250e88f66bab3ca7655e0f7f7017350c767ec",
+    "log_path": "/tmp/profiler-wave6-2cdffcec-full-replay.log",
+    "log_sha256": "1a8502a1618ebc65948dfa833a78f6afc5a9af33d820256624862ddf014de718"
   },
-  "memory_regression": {
-    "initial_checkpoint_mapping_peak_rss_bytes": 575717376,
-    "corrective_change": "Stream canonical graph hashing without retaining whole JSON and UTF8 copies. Graph IDs and complete mapping content remain identical.",
-    "isolated_fixed_checkpoint_mapping_peak_rss_bytes": 463208448,
-    "isolated_complete_capture_event_count": 286988,
-    "final_all_capture_validation": "fusion-cohort-validation.json"
-  },
-  "inventory_refresh": {
-    "status": "completed",
-    "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/Users/maoxx241/code/sim-rewrite-20261027 /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python examples/structure/refresh_fusion_inventory.py",
-    "cwd": "/Users/maoxx241/code/profiler",
-    "elapsed_seconds": null,
-    "elapsed_status": "not_measured",
-    "graph_worker_count": 24,
-    "maximum_graph_worker_rss_bytes": 454492160,
-    "parent_peak_rss_bytes": 53215232,
-    "memory_budget_passed": true,
-    "execution_details": "fusion-coverage-inventory.json#refresh_execution",
-    "prior_single_process_peak_rss_bytes": 659636224,
-    "corrective_change": "Export each declaration in a fresh subprocess; retain only compact contract and coverage summaries in the parent.",
-    "log_path": "/tmp/profiler-full-replay-239f443c-inventory-20261029.log",
-    "graph_identity_scope": "fresh graph export checked against current replay; old runtime graph identities are different"
-  },
-  "sim_runtime_commit": "239f443c25b640d8545416ef115cafd64b26d031",
-  "tiered_accuracy": {
-    "sim_commit": "0b7926e668a0962b62089f020ea92b65d36d6d7e",
-    "policy": {
-      "version": "mindie-sim.cohort-accuracy/1",
-      "observed_statistic": "complete_event_mean",
-      "time_unit": "us",
-      "eligible_status": "compared",
-      "relative_15pct": {
-        "observed_us_gt": 50.0,
-        "tolerance": {
-          "unit": "ratio",
-          "value": 0.15
-        },
-        "pass_status": "within_relative_tolerance"
-      },
-      "absolute_15us": {
-        "observed_us_lte": 50.0,
-        "tolerance": {
-          "unit": "us",
-          "value": 15.0
-        },
-        "pass_status": "within_launch_floor_tolerance"
-      },
-      "fail_status": "outside_tolerance",
-      "tolerance_inclusive": true,
-      "prediction_adjustment": "none",
-      "interpretation": "conditional_per_call_comparison; not_native_dispatch_certification"
-    },
-    "accuracy_refresh": {
-      "receipt": "fusion-cohort-accuracy-validation.json",
-      "receipt_sha256": "9104dfd41e83bc5fc3821864aba7b6104a6282ae31662eba0fbb0e701050a643",
-      "status": "completed",
-      "elapsed_seconds": 0.176,
-      "maximum_resident_set_size_bytes": 46137344,
-      "raw_capture_reads": 0,
-      "prediction_executions": 0,
-      "original_metrics_unchanged": true
-    },
-    "maintained_suites": {
-      "profiler": {
-        "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/Users/maoxx241/code/sim-rewrite-20261027 /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python -m pytest -q",
-        "cwd": "/Users/maoxx241/code/profiler",
-        "passed": 533,
-        "skipped": 26,
-        "seconds": 28.67,
-        "log_path": "/tmp/profiler-cohort-tiered-final-tests-20261029.log",
-        "log_sha256": "cda428fe5a695132e61e64420d12bd91b5dad0edb87bd823533fad926ad22caf"
-      },
-      "sim": {
-        "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/Users/maoxx241/code/sim-rewrite-20261027 .venv/bin/python -m pytest -q -m 'not live_npu'",
-        "cwd": "/Users/maoxx241/code/sim-rewrite-20261027",
-        "passed": 1459,
-        "skipped": 0,
-        "seconds": 221.68,
-        "log_path": "/tmp/sim-cohort-tiered-tests-20261029.log",
-        "log_sha256": "59ea3888f61e2e846ab4c94f88213f3d12e9513546c87af396598380eb78ba79"
-      }
-    },
-    "accuracy_summary_across_variants": {
-      "relative_15pct": {
-        "cohort_count": 141,
-        "passed_cohort_count": 32,
-        "failed_cohort_count": 109,
-        "scored_event_count": 41912,
-        "passed_event_count": 2714,
-        "failed_event_count": 39198
-      },
-      "absolute_15us": {
-        "cohort_count": 69,
-        "passed_cohort_count": 54,
-        "failed_cohort_count": 15,
-        "scored_event_count": 158044,
-        "passed_event_count": 148730,
-        "failed_event_count": 9314
-      }
-    },
-    "independent_review": {
-      "receipt": "fusion-cohort-independent-review.json",
-      "status": "passed",
-      "checks": 127030
-    },
-    "scope": "Additive per-call policy and report grouping; historical raw replay and its original suite evidence remain separate."
-  },
-  "historical_full_replay": {
-    "runtime_source_identity_sha256": "c4109afb7e1389c296fe3d628cc1290b76c8086548fa15098157fce7b54d2436",
-    "runtime_git_base": "d965c8608f2586c461e8a41283a33946580a7acc",
-    "suites": {
-      "profiler": {
-        "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/Users/maoxx241/code/sim-rewrite-20261027 /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python -m pytest -q",
-        "cwd": "/Users/maoxx241/code/profiler",
-        "passed": 533,
-        "skipped": 26,
-        "seconds": 25.09,
-        "log_path": "/tmp/profiler-full-replay-239f443c-tests-20261029.log",
-        "log_sha256": "6169b58b30aea81430ae06918fc6137de36cf8ce210966c58e7391bd93715a99"
-      },
-      "sim": {
-        "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/Users/maoxx241/code/sim-rewrite-20261027 .venv/bin/python -m pytest -q -m 'not live_npu'",
-        "cwd": "/Users/maoxx241/code/sim-rewrite-20261027",
-        "passed": 1657,
-        "skipped": 0,
-        "seconds": 235.42,
-        "log_path": "/tmp/sim-integrated-20261029.log",
-        "log_sha256": "4663e4212606b0c705e3e6ac2806c618acbb7e112ddb22081d1902c4c95c5a9a",
-        "provenance": "Executed by coordinating sim thread 01a17dbe; local log verified."
-      }
-    },
-    "full_capture_replay": {
-      "status": "completed",
-      "elapsed_seconds": 668.622,
-      "memory_budget_passed": true,
-      "mapping_peak_rss_bytes": 467484672,
-      "comparison_peak_rss_bytes": 469499904,
-      "log_path": "/tmp/profiler-full-replay-239f443c-20261029.log",
-      "receipt_sha256": "27c84748367ab934e66106b2b3c4aa55ee85f0a7809869e7300b94a550f1f0b9",
-      "runtime_sources_unchanged": true
-    },
-    "sim_runtime_commit": "414f520ea8baac5b4179302b26db933fd57a67d4"
-  },
-  "runtime_source_identity_hash_encoding": "sha256 of sorted compact JSON runtime_source_identity mapping",
-  "current_independent_review": {
-    "receipt": "fusion-cohort-independent-review.json",
-    "status": "passed",
-    "checks": 105015,
-    "runtime_file_count": 320
-  },
-  "runtime_prediction_delta": {
-    "paired_cohorts": 242,
-    "graph_ids_changed": 15,
-    "material_prediction_changes": 21,
-    "roundoff_prediction_changes": 7,
-    "a5_predictions_changed": false,
-    "selected_glm_invocation_minima_present": false,
-    "model_declarations_partial": 15
-  }
+  "known_runtime_regressions": [
+    {
+      "reason": "semantic_ffn_role_metadata_entered_generic_matrix_physical_signature",
+      "effect": "Kimi baseline identical-work candidates were split; decode excludes 1798 matching events.",
+      "correction_commit": "6437916f",
+      "correction_in_this_replay": false,
+      "policy": "Retain this checkpoint honestly; rerun after the separately committed correction."
+    }
+  ]
 }
