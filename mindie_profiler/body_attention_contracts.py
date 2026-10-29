@@ -16,7 +16,8 @@ from .body_subgraph_contracts import (
 
 
 # Arity variants come from retained original A3/A5 rows, including explicit
-# undefined slots. Compact FIA captures retain the block-table as input 6.
+# undefined slots. Compact GQA uses input 6 for the block table; the independent
+# seven-input MLA ABI uses input 4 and retains query/key rotary tensors.
 _ARITIES = {
     "FusedInferAttentionScore": ({6, 7, 31}, {2}),
     "ReshapeAndCacheNdKernel": ({5}, {2}),
@@ -83,6 +84,46 @@ def _paged_fia(inputs, outputs):
     tails = tuple((slot[0][1:], slot[1], slot[2]) for slot in (key, value))
     return ("attention_paged_active_qkv", "FusedInferAttentionScore",
             query, tails, output, table[0][0])
+
+
+def _paged_mla_fia(inputs, outputs):
+    # mla_v1's BNSD_NBSD path preserves native axes rather than flattening them
+    # into the GQA TND contract. Slot 6 is a rotary cache, never a block table.
+    if len(inputs) != 7:
+        return None
+    query, key, value, lengths, table, rope, key_rope = inputs
+    output = outputs[0]
+    floating = {"bf16", "fp16"}
+    active = (query, key, value, rope, key_rope, output)
+    if (not all(_nd_tensor(slot, 4, floating) for slot in active)
+            or len({slot[1] for slot in active}) != 1
+            or not _nd_tensor(table, 2, {"int32"})
+            or not _nd_tensor(lengths, 1, {"int64"})
+            or key != value or key[0][1] != 1
+            or key_rope[0][:3] != key[0][:3]
+            or rope[0][:3] != query[0][:3]
+            or rope[0][-1] != key_rope[0][-1]
+            or query[0][-1] != key[0][-1]
+            or query[0][2] != 1
+            or table[0][0] != query[0][0] or lengths[0] != (query[0][0],)
+            or output[0] != (query[0][1], query[0][0], query[0][2], query[0][3])):
+        return None
+    tails = tuple((slot[0][1:], slot[1], slot[2]) for slot in (key, value, key_rope))
+    return ("attention_paged_mla_qk_rope", "FusedInferAttentionScore",
+            (query, rope), tails, output, table[0][0])
+
+
+def fia_block_table_slot(row):
+    """Return the table slot only for a validated captured paged FIA ABI."""
+    native = _native(row)
+    if native is None or row.kind != "FusedInferAttentionScore":
+        return None
+    inputs, outputs = native[2:]
+    if _paged_mla_fia(inputs, outputs):
+        return 4
+    if _paged_fia(inputs, outputs):
+        return 6 if len(inputs) == 7 else 14
+    return None
 
 
 def _reshape_cache(inputs, outputs):
@@ -171,7 +212,8 @@ def observed_attention_contract(row):
         return subgraph_contract(native)[0]
     inputs, outputs = native[2:]
     if row.kind == "FusedInferAttentionScore":
-        return _dense_fia(inputs, outputs) or _paged_fia(inputs, outputs) or native
+        return (_dense_fia(inputs, outputs) or _paged_fia(inputs, outputs)
+                or _paged_mla_fia(inputs, outputs) or native)
     if row.kind == "ReshapeAndCacheNdKernel":
         return _reshape_cache(inputs, outputs) or native
     if row.kind == "ScatterPaKvCache":
@@ -216,6 +258,20 @@ def attention_contract_scope(row):
             "storage_boundary": "paged_BSH_cache_and_TND_query_descriptors",
             "conditions": "Execution geometry and context require an independent declaration; "
                           "query token count does not identify a verify or draft invocation.",
+        }
+    if contract[0] == "attention_paged_mla_qk_rope":
+        return {
+            **common, "kind": "active_paged_mla_rotary_tensor_descriptors",
+            "compared": ["native_operator_type", "native_BNSD_query_shape_dtype_format",
+                         "native_BNSD_query_rope_shape_dtype_format",
+                         "cache_heads_block_size_width_dtype_format",
+                         "native_NBSD_output_shape_dtype_format", "block_table_batch_count"],
+            "not_compared": ["cache_capacity", "block_table_column_count_and_values",
+                             "sequence_length_values", "scale", "sparse_mode",
+                             "causal_flag", "auxiliary_output", "phase", "context_length",
+                             "verify_or_draft_role"],
+            "storage_boundary": "BNSD_query_NBSD_output_and_paged_rope_cache",
+            "validated_capture_abi": "seven_inputs; sequence_lengths_slot3; block_table_slot4; rotary_slots5_6",
         }
     if contract[0] == "kv_cache_store_active":
         return {

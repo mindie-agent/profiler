@@ -1,0 +1,22 @@
+{
+  "schema_version": "mindie-derived-capture-fixture/1",
+  "derivation": "Exact original full CSV fields; gzip prefix read for selected records only; LF serialization. No synthesized tensor/timing fields.",
+  "fixture": "a3_kimi_four_layer_mla.csv",
+  "fixture_sha256": "760e62af615ff0377b22855daea7ef0b285c4c24d0a77f2709ea18d4d65b8928",
+  "sources": [
+    {
+      "source": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c1_20261030/ranks/tp0/kernel_details.csv.gz",
+      "compressed_sha256": "1b0e4fcb7c3d80fefa5a1484937508502b0da346ea5657ed48e6bc0b893587c3",
+      "source_size_bytes": 3766618,
+      "source_csv_line": 689,
+      "fixture_csv_line": 2
+    },
+    {
+      "source": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c64_20261030/ranks/tp0/kernel_details.csv.gz",
+      "compressed_sha256": "2137943b502a105b3c044dd1cd88635cf88fe19786e86fdf84d75c059d347fa2",
+      "source_size_bytes": 5642669,
+      "source_csv_line": 16759,
+      "fixture_csv_line": 3
+    }
+  ]
+}
