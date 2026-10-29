@@ -25,7 +25,12 @@
     "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-timeout-retry-replay.json",
     "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-default/decode-forward-qwen-replay.json",
     "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-default/decode-forward-glm-replay.json",
-    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-default/decode-forward-v4_kimi-replay.json"
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-default/decode-forward-v4_kimi-replay.json",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-logical96/decode-forward-p4k-replay.json",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-logical96/decode-forward-p16k-replay.json",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-fixed-grid/decode-forward-qwen-replay.json",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-fixed-grid/decode-forward-glm-replay.json",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-fixed-grid/decode-forward-v4_kimi-replay.json"
   ],
   "operators": [
     "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators/body-operator-family-scoreboard.json",
@@ -46,7 +51,10 @@
     "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-c128-operators-86c1ee8f-baseline/body-operator-family-scoreboard.json",
     "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-p32k-operators-86c1ee8f/body-operator-family-scoreboard.json",
     "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-default/glm-low-concurrency-operators/body-operator-family-scoreboard.json",
-    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-default/glm-a3-livepre-operators/body-operator-family-scoreboard.json"
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-default/glm-a3-livepre-operators/body-operator-family-scoreboard.json",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-logical96-operators/full-matrix-canonical/body-operator-family-scoreboard.json",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-fixed-grid/glm-low-concurrency-operators/body-operator-family-scoreboard.json",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-fixed-grid/glm-a3-livepre-operators/body-operator-family-scoreboard.json"
   ],
   "references": [
     "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency/body-communication-references.json",
@@ -64,7 +72,9 @@
     "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-86c1ee8f-source-symmetric/v41-seven-arm-comparison.json",
     "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/kimi-c32-projection-bounded-evidence.json",
     "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-default/body-runtime-delta.json",
-    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/remaining-family-gap-ledger.json"
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/remaining-family-gap-ledger.json",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-fixed-grid/body-runtime-delta.json",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-logical96/body-runtime-delta.json"
   ],
   "invalidations": [
     "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/prediction-input-binding-invalidation.json"

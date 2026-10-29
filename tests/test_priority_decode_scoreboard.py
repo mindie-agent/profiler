@@ -116,7 +116,8 @@ def test_runtime_controls_replace_current_prediction_without_duplicating_real_fo
         + sum(row["comparison"]["observed_ms"]["count"] for row in new_populations))
 
 
-def test_full_native_reference_groups_survive_operator_selection_without_scoring(monkeypatch, tmp_path):
+@pytest.mark.parametrize("generic_schema", [False, True])
+def test_full_native_reference_groups_survive_operator_selection_without_scoring(monkeypatch, tmp_path, generic_schema):
     root = Path(__file__).resolve().parents[1]
     monkeypatch.syspath_prepend(str(root / "examples/structure"))
     module = importlib.import_module("priority_decode_scoreboard")
@@ -125,6 +126,11 @@ def test_full_native_reference_groups_survive_operator_selection_without_scoring
     operators = [base / "acceptance-20261030-matrix-fix" / name / "body-operator-family-scoreboard.json"
                  for name in ("glm-operators-86c1ee8f", "glm-low-concurrency-86c1ee8f")]
     refs = base / "acceptance-20261030-glm-native-references-c2261d63/glm-native-reference-scoreboard.json"
+    if generic_schema:
+        retained = json.loads(refs.read_text())
+        retained["schema_version"] = "mindie-native-body-reference-batch/1"
+        refs = tmp_path / "generic-native-references.json"
+        refs.write_text(json.dumps(retained))
     before = module.build([], operators)
     after = module.build([], operators, [refs])
     assert after["current_operator_cohorts"] == before["current_operator_cohorts"]

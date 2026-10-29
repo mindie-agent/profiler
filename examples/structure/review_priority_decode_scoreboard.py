@@ -338,7 +338,8 @@ def review(path):
                     for group in original.get("conditional_source_role_references", []):
                         check_reference(item, case, group, expected_runtime, True)
             elif "groups" in case:
-                native = source.get("schema_version") == "mindie-glm-native-reference-batch/1"
+                native = source.get("schema_version") in {
+                    "mindie-glm-native-reference-batch/1", "mindie-native-body-reference-batch/1"}
                 for group in [*case["groups"], *case.get("source_role_gap_references", [])]:
                     check_reference(item, case, group, expected_runtime, False, native=native)
         del source

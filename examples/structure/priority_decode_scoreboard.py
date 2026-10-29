@@ -275,7 +275,8 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
         receipt, identity = _read(path)
         inputs.append(identity)
         for case in receipt["cases"]:
-            if receipt.get("schema_version") == "mindie-glm-native-reference-batch/1":
+            if receipt.get("schema_version") in {
+                    "mindie-glm-native-reference-batch/1", "mindie-native-body-reference-batch/1"}:
                 references.extend(native_reference_rows(case, identity))
                 continue
             for item in [*case["groups"], *case["source_role_gap_references"]]:

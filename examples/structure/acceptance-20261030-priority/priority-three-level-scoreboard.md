@@ -2,19 +2,19 @@
 
 Coverage status: **partial**. Missing predictions and unmatched roles stay visible.
 
-Current selected Body arms: **12/66 passed**. One latest completed receipt per measured source/geometry, selected in input order; each row retains its own runtime and case.
+Current selected Body arms: **18/66 passed**. One latest completed receipt per measured source/geometry, selected in input order; each row retains its own runtime and case.
 
-Latest attempted Body arms: **66/66 completed**, **0 failed**, **12 passed**. An earlier completed prediction remains available above when the newest attempt fails; it is not a successful new replay.
+Latest attempted Body arms: **66/66 completed**, **0 failed**, **18 passed**. An earlier completed prediction remains available above when the newest attempt fails; it is not a successful new replay.
 
-Body: **57/233 prediction arms passed**; 66 unique sources, 222 measured geometry populations, 5250 unique complete Forwards (includes deferred populations).
+Body: **67/267 prediction arms passed**; 66 unique sources, 222 measured geometry populations, 5250 unique complete Forwards (includes deferred populations).
 
 Invalidated prediction rows: **31**. Their measured populations remain; superseded predictions and layer errors are excluded from accuracy statistics.
 
-Current operator strict accuracy (latest input receipt per source/geometry): heavy_relative_15pct: **5/22**; micro_absolute_15us: **570/584**. Conditional references are excluded.
+Current operator strict accuracy (latest input receipt per source/geometry): heavy_relative_15pct: **5/22**; micro_absolute_15us: **588/602**. Conditional references are excluded.
 
-Operator runtime coverage (recorded Sim file-map hash → source/geometry populations): `c27d72c215c2` → 5; `20dbf57be438` → 36; `c465214ba3da` → 3. Scores retain the latest available receipt for each population; this aggregate can contain different runtimes.
+Operator runtime coverage (recorded Sim file-map hash → source/geometry populations): `c27d72c215c2` → 5; `20dbf57be438` → 24; `72ba9f7d0726` → 12; `2db4b7b48698` → 3. Scores retain the latest available receipt for each population; this aggregate can contain different runtimes.
 
-Strict event coverage: **1,097,929/6,729,791** events across 44 measured source/geometry populations. A high pass rate within this subset does not establish whole-model accuracy.
+Strict event coverage: **1,161,649/6,729,791** events across 44 measured source/geometry populations. A high pass rate within this subset does not establish whole-model accuracy.
 
 Local replay receipts with explicit comparison coverage. Body errors are measured wall-clock differences; operator priorities are nonadditive kernel activity residuals per complete Forward.
 
@@ -22,65 +22,65 @@ Local replay receipts with explicit comparison coverage. Body errors are measure
 
 | Case / variant | Status | Calls | Real Mean / P50 / P90 ms | Activity ms | Sim ms | Diff ms | Mean / P50 error |
 |---|---|---:|---:|---:|---:|---:|---:|
-| qwen36-a5-tp2-c96:q4_b96_m384 / body-default-qwen / `a24d0690d120` | compared | 24 | 63.853 / 63.562 / 65.419 | 63.565 | 40.972 | -22.881 | -35.834% / -35.540% |
 | a3_glm53_w4a8_tp16_tpot50_c2:q6_b2_m12 / runtime86-glm / `ca6d966131d8` | compared | 44 | 57.817 / 57.597 / 59.092 | 55.203 | 36.987 | -20.830 | -36.027% / -35.783% |
 | a3_glm53_w4a8_tp16_tpot30_c2:q6_b2_m12 / runtime86-glm / `ca6d966131d8` | compared | 44 | 57.639 / 57.562 / 58.995 | 55.027 | 36.987 | -20.652 | -35.830% / -35.743% |
+| qwen36-a5-tp2-c96:q4_b96_m384 / body-fixed-grid-qwen / `d0c30b4d63aa` | compared | 24 | 63.853 / 63.562 / 65.419 | 63.565 | 45.410 | -18.443 | -28.884% / -28.558% |
+| glm53flash-a3-tp16-c16-livepre:q6_b16_m96 / body-fixed-grid-glm / `d0c30b4d63aa` | compared | 37 | 41.069 / 40.940 / 41.282 | 39.691 | 59.251 | 18.182 | 44.271% / 44.725% |
 | a3_glm53flash_tp16_aclgraph_c64:q6_b64_m384 / runtime86-glm / `ca6d966131d8` | compared | 47 | 97.375 / 97.487 / 97.895 | 95.785 | 79.274 | -18.101 | -18.589% / -18.682% |
-| qwen35-397b-a3-tp16-c136:q4_b160_m640 / body-default-qwen / `a24d0690d120` | compared | 18 | 119.054 / 119.131 / 119.486 | 118.048 | 101.371 | -17.683 | -14.853% / -14.908% |
-| glm53flash-a5-tp8-c96:q4_b96_m384 / body-default-glm / `a24d0690d120` | compared | 27 | 57.590 / 57.573 / 57.734 | 57.355 | 40.529 | -17.061 | -29.625% / -29.604% |
+| qwen35-397b-a3-tp16-c136:q4_b160_m640 / body-fixed-grid-qwen / `d0c30b4d63aa` | compared | 18 | 119.054 / 119.131 / 119.486 | 118.048 | 102.866 | -16.188 | -13.597% / -13.653% |
 | a5_glm53flash_tp8_c64_p4k:q4_b64_m256 / runtime86-glm / `ca6d966131d8` | compared | 31 | 46.528 / 46.499 / 46.645 | 46.293 | 32.407 | -14.122 | -30.351% / -30.306% |
 | a3_glm53_w4a8_tp16_tpot88_c8:q6_b8_m48 / runtime86-glm / `ca6d966131d8` | compared | 49 | 69.556 / 69.489 / 69.830 | 66.970 | 55.529 | -14.027 | -20.167% / -20.089% |
-| qwen35-35b-a5-tp4-c128-graph:q4_b128_m512 / body-default-qwen / `a24d0690d120` | compared | 76 | 28.585 / 28.571 / 28.704 | 28.300 | 14.650 | -13.935 | -48.749% / -48.724% |
-| qwen36-a5-tp2-c12:q4_b12_m48 / body-default-qwen / `a24d0690d120` | compared | 55 | 24.226 / 24.053 / 24.711 | 23.858 | 10.643 | -13.583 | -56.069% / -55.753% |
+| qwen35-35b-a5-tp4-c128-graph:q4_b128_m512 / body-fixed-grid-qwen / `d0c30b4d63aa` | compared | 76 | 28.585 / 28.571 / 28.704 | 28.300 | 14.845 | -13.740 | -48.066% / -48.041% |
 | a3_glm53flash_tp16_aclgraph_c32:q6_b32_m192 / runtime86-glm / `ca6d966131d8` | compared | 49 | 69.361 / 69.418 / 69.528 | 67.823 | 55.921 | -13.440 | -19.377% / -19.444% |
+| qwen36-a5-tp2-c12:q4_b12_m48 / body-fixed-grid-qwen / `d0c30b4d63aa` | compared | 55 | 24.226 / 24.053 / 24.711 | 23.858 | 11.090 | -13.136 | -54.223% / -53.894% |
 | a5_glm53flash_tp8_c32_p8k:q4_b32_m128 / runtime86-glm / `ca6d966131d8` | compared | 35 | 38.713 / 38.722 / 38.759 | 38.458 | 25.578 | -13.136 | -33.931% / -33.945% |
 | a5_glm53flash_tp8_c32_p4k:q4_b32_m128 / runtime86-glm / `ca6d966131d8` | compared | 31 | 37.669 / 37.665 / 37.761 | 37.413 | 25.198 | -12.471 | -33.106% / -33.099% |
-| a5_kimi_tp8_e16_bf16_c32_p16k:q1_b32_m32 / runtime86-v4-kimi / `ca6d966131d8` | compared | 41 | 44.666 / 44.645 / 44.662 | 43.971 | 32.347 | -12.319 | -27.581% / -27.547% |
+| a5_kimi_tp8_e16_bf16_c32_p16k:q1_b32_m32 / kimi-logical96-p16k / `7f30d18bcf75` | compared | 41 | 44.666 / 44.645 / 44.662 | 43.971 | 32.304 | -12.362 | -27.677% / -27.643% |
 | a5_glm53flash_tp8_c16_p8k:q4_b16_m64 / runtime86-glm / `ca6d966131d8` | compared | 32 | 33.616 / 33.626 / 33.710 | 33.358 | 21.502 | -12.115 | -36.038% / -36.056% |
-| a5_kimi_tp8_e16_bf16_c16_p16k:q1_b16_m16 / runtime86-v4-kimi / `ca6d966131d8` | compared | 47 | 39.247 / 39.245 / 39.263 | 38.567 | 27.200 | -12.047 | -30.696% / -30.692% |
-| qwen35-35b-a5-tp4-c64-graph:q4_b64_m256 / body-default-qwen / `a24d0690d120` | compared | 79 | 21.957 / 22.001 / 22.068 | 21.571 | 10.175 | -11.781 | -53.657% / -53.750% |
+| a5_kimi_tp8_e16_bf16_c16_p16k:q1_b16_m16 / kimi-logical96-p16k / `7f30d18bcf75` | compared | 47 | 39.247 / 39.245 / 39.263 | 38.567 | 27.155 | -12.093 | -30.811% / -30.807% |
 | a5_glm53flash_tp8_c16_p4k:q4_b16_m64 / runtime86-glm / `ca6d966131d8` | compared | 30 | 33.031 / 33.026 / 33.164 | 32.773 | 21.314 | -11.717 | -35.472% / -35.464% |
-| a5_kimi_tp8_e16_bf16_c8_p16k:q1_b8_m8 / runtime86-v4-kimi / `ca6d966131d8` | compared | 51 | 35.964 / 35.962 / 35.979 | 35.282 | 24.652 | -11.313 | -31.455% / -31.451% |
-| a5_kimi_tp8_e16_bf16_c4_p16k:q1_b4_m4 / runtime86-v4-kimi / `ca6d966131d8` | compared | 52 | 34.816 / 34.794 / 34.813 | 34.115 | 23.763 | -11.053 | -31.747% / -31.702% |
-| a5_kimi_tp8_e16_bf16_c16_p4k:q1_b16_m16 / runtime86-v4-kimi / `ca6d966131d8` | compared | 49 | 36.985 / 36.953 / 36.969 | 36.305 | 25.990 | -10.996 | -29.730% / -29.668% |
-| a5_kimi_tp8_e16_bf16_c8_p4k:q1_b8_m8 / runtime86-v4-kimi / `ca6d966131d8` | compared | 52 | 34.819 / 34.791 / 34.808 | 34.142 | 24.047 | -10.773 | -30.939% / -30.883% |
-| a5_kimi_tp8_e16_bf16_c4_p4k:q1_b4_m4 / runtime86-v4-kimi / `ca6d966131d8` | compared | 53 | 34.194 / 34.177 / 34.194 | 33.491 | 23.461 | -10.733 | -31.388% / -31.356% |
-| a5_kimi_tp8_e16_bf16_c2_p16k:q1_b2_m2 / runtime86-v4-kimi / `ca6d966131d8` | compared | 54 | 33.876 / 33.858 / 33.873 | 33.190 | 23.319 | -10.557 | -31.164% / -31.128% |
-| a5_kimi_tp8_e16_bf16_c2_p4k:q1_b2_m2 / runtime86-v4-kimi / `ca6d966131d8` | compared | 55 | 33.548 / 33.516 / 33.533 | 32.857 | 23.167 | -10.380 | -30.942% / -30.876% |
+| qwen35-35b-a5-tp4-c64-graph:q4_b64_m256 / body-fixed-grid-qwen / `d0c30b4d63aa` | compared | 79 | 21.957 / 22.001 / 22.068 | 21.571 | 10.305 | -11.652 | -53.066% / -53.160% |
+| a5_kimi_tp8_e16_bf16_c8_p16k:q1_b8_m8 / kimi-logical96-p16k / `7f30d18bcf75` | compared | 51 | 35.964 / 35.962 / 35.979 | 35.282 | 24.605 | -11.359 | -31.584% / -31.580% |
+| a5_kimi_tp8_e16_bf16_c4_p16k:q1_b4_m4 / kimi-logical96-p16k / `7f30d18bcf75` | compared | 52 | 34.816 / 34.794 / 34.813 | 34.115 | 23.717 | -11.100 | -31.880% / -31.836% |
+| a5_kimi_tp8_e16_bf16_c16_p4k:q1_b16_m16 / kimi-logical96-p4k / `7f30d18bcf75` | compared | 49 | 36.985 / 36.953 / 36.969 | 36.305 | 25.944 | -11.041 | -29.852% / -29.790% |
+| a5_kimi_tp8_e16_bf16_c8_p4k:q1_b8_m8 / kimi-logical96-p4k / `7f30d18bcf75` | compared | 52 | 34.819 / 34.791 / 34.808 | 34.142 | 24.000 | -10.819 | -31.072% / -31.017% |
+| a5_kimi_tp8_e16_bf16_c4_p4k:q1_b4_m4 / kimi-logical96-p4k / `7f30d18bcf75` | compared | 53 | 34.194 / 34.177 / 34.194 | 33.491 | 23.414 | -10.779 | -31.524% / -31.492% |
+| a5_kimi_tp8_e16_bf16_c2_p16k:q1_b2_m2 / kimi-logical96-p16k / `7f30d18bcf75` | compared | 54 | 33.876 / 33.858 / 33.873 | 33.190 | 23.272 | -10.604 | -31.301% / -31.265% |
+| a5_kimi_tp8_e16_bf16_c2_p4k:q1_b2_m2 / kimi-logical96-p4k / `7f30d18bcf75` | compared | 55 | 33.548 / 33.516 / 33.533 | 32.857 | 23.121 | -10.427 | -31.080% / -31.015% |
 | a5_glm53flash_tp8_c8_p4k:q4_b8_m32 / runtime86-glm / `ca6d966131d8` | compared | 30 | 28.833 / 28.828 / 28.885 | 28.568 | 18.482 | -10.351 | -35.899% / -35.889% |
-| a5_kimi_tp8_e16_bf16_c32_p4k:q1_b32_m32 / runtime86-v4-kimi / `ca6d966131d8` | compared | 46 | 40.019 / 40.018 / 40.044 | 39.323 | 29.926 | -10.092 | -25.219% / -25.217% |
-| a3_glm53_dc4k_b2:q1_b2_m2 / body-default-glm / `a24d0690d120` | compared | 70 | 40.970 / 40.935 / 41.046 | — | 31.561 | -9.409 | -22.965% / -22.899% |
-| a3_glm53_dc16k_b1:q1_b1_m1 / body-default-glm / `a24d0690d120` | compared | 74 | 39.112 / 39.105 / 39.196 | — | 29.717 | -9.395 | -24.021% / -24.007% |
-| a3_glm53_dc4k_b1:q1_b1_m1 / body-default-glm / `a24d0690d120` | compared | 74 | 38.955 / 38.943 / 39.036 | — | 29.717 | -9.238 | -23.714% / -23.690% |
+| a5_kimi_tp8_e16_bf16_c32_p4k:q1_b32_m32 / kimi-logical96-p4k / `7f30d18bcf75` | compared | 46 | 40.019 / 40.018 / 40.044 | 39.323 | 29.883 | -10.135 | -25.326% / -25.325% |
 | a3_glm53flash_tp16_aclgraph_c16:q6_b16_m96 / runtime86-glm / `ca6d966131d8` | compared | 50 | 53.893 / 53.871 / 54.021 | 52.393 | 45.037 | -8.857 | -16.433% / -16.398% |
-| a3_glm53_dc4k_b4:q1_b4_m4 / body-default-glm / `a24d0690d120` | compared | 67 | 43.438 / 43.437 / 43.598 | — | 34.707 | -8.731 | -20.100% / -20.099% |
-| v4flash-a3-tp8-c4:q2_b4_m8 / body-default-v4_kimi / `a24d0690d120` | compared | 104 | 32.486 / 32.416 / 32.734 | 30.611 | 24.150 | -8.336 | -25.659% / -25.500% |
 | a5_glm53flash_tp8_c4_p8k:q4_b4_m16 / runtime86-glm / `ca6d966131d8` | compared | 11 | 21.418 / 21.408 / 21.432 | 21.147 | 13.178 | -8.240 | -38.472% / -38.443% |
-| qwen35-397b-a3-tp16-c48:q4_b64_m256 / body-default-qwen / `a24d0690d120` | compared | 23 | 76.089 / 76.132 / 76.632 | 75.005 | 67.884 | -8.205 | -10.783% / -10.834% |
-| glm53flash-a3-tp16-c4:q6_b4_m24 / body-default-glm / `a24d0690d120` | compared | 46 | 39.841 / 39.798 / 40.057 | 38.324 | 31.687 | -8.154 | -20.467% / -20.381% |
 | a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64:q1_b8_m8 / runtime86-v4-kimi / `ca6d966131d8` | compared | 75 | 26.328 / 26.306 / 26.336 | 26.229 | 18.273 | -8.055 | -30.594% / -30.535% |
-| glm53flash-a5-tp8-c3:q4_b4_m16 / body-default-glm / `a24d0690d120` | compared | 53 | 21.068 / 21.057 / 21.170 | 20.805 | 13.131 | -7.936 | -37.670% / -37.640% |
-| glm53flash-a3-tp16-c2:q6_b2_m12 / body-default-glm / `a24d0690d120` | compared | 46 | 34.118 / 33.910 / 35.073 | 32.625 | 26.233 | -7.885 | -23.111% / -22.639% |
+| qwen35-397b-a3-tp16-c48:q4_b64_m256 / body-fixed-grid-qwen / `d0c30b4d63aa` | compared | 23 | 76.089 / 76.132 / 76.632 | 75.005 | 68.305 | -7.784 | -10.231% / -10.282% |
 | a5_v41_fp8_tp1_dp8_ep8_c128_p2k:q1_b16_m16 / runtime86-v4-kimi / `ca6d966131d8` | compared | 73 | 27.286 / 27.266 / 27.290 | 27.188 | 19.508 | -7.778 | -28.506% / -28.453% |
-| a5_kimi_tp8_e16_bf16_c1_p16k:q1_b1_m1 / runtime86-v4-kimi / `ca6d966131d8` | compared | 59 | 30.823 / 30.822 / 30.839 | 30.184 | 23.096 | -7.727 | -25.069% / -25.066% |
-| a5_kimi_tp8_e16_bf16_c1_p4k:q1_b1_m1 / runtime86-v4-kimi / `ca6d966131d8` | compared | 59 | 30.637 / 30.615 / 30.632 | 29.997 | 23.021 | -7.616 | -24.860% / -24.806% |
-| glm53flash-a5-tp8-c1:q4_b1_m4 / body-default-glm / `a24d0690d120` | compared | 65 | 15.683 / 15.670 / 15.738 | 15.421 | 8.594 | -7.089 | -45.202% / -45.157% |
+| a5_kimi_tp8_e16_bf16_c1_p16k:q1_b1_m1 / kimi-logical96-p16k / `7f30d18bcf75` | compared | 59 | 30.823 / 30.822 / 30.839 | 30.184 | 23.050 | -7.774 | -25.220% / -25.216% |
+| a5_kimi_tp8_e16_bf16_c1_p4k:q1_b1_m1 / kimi-logical96-p4k / `7f30d18bcf75` | compared | 59 | 30.637 / 30.615 / 30.632 | 29.997 | 22.974 | -7.663 | -25.011% / -24.958% |
 | a3_glm53flash_tp16_aclgraph_c8:q6_b8_m48 / runtime86-glm / `ca6d966131d8` | compared | 47 | 46.859 / 46.817 / 47.175 | 45.372 | 39.883 | -6.976 | -14.888% / -14.812% |
-| a3_glm53_dc4k_b8:q1_b8_m8 / body-default-glm / `a24d0690d120` | compared | 61 | 47.113 / 47.149 / 47.402 | — | 40.195 | -6.919 | -14.685% / -14.749% |
-| v4flash-a3-tp8-c8:q2_b8_m16 / body-default-v4_kimi / `a24d0690d120` | compared | 104 | 37.763 / 37.868 / 38.082 | 36.154 | 31.160 | -6.603 | -17.485% / -17.714% |
-| qwen35-35b-a5-tp4-c4-graph:q4_b4_m16 / body-default-qwen / `a24d0690d120` | compared | 84 | 11.551 / 11.482 / 11.818 | 11.135 | 5.066 | -6.486 | -56.146% / -55.879% |
-| glm53flash-a3-tp16-c16-livepre:q6_b16_m96 / body-default-glm / `a24d0690d120` | compared | 37 | 41.069 / 40.940 / 41.282 | 39.691 | 47.550 | 6.481 | 15.780% / 16.144% |
+| glm53flash-a5-tp8-c3:q4_b4_m16 / body-fixed-grid-glm / `d0c30b4d63aa` | compared | 53 | 21.068 / 21.057 / 21.170 | 20.805 | 14.300 | -6.768 | -32.124% / -32.090% |
+| qwen35-35b-a5-tp4-c4-graph:q4_b4_m16 / body-fixed-grid-qwen / `d0c30b4d63aa` | compared | 84 | 11.551 / 11.482 / 11.818 | 11.135 | 5.066 | -6.486 | -56.146% / -55.879% |
+| glm53flash-a5-tp8-c1:q4_b1_m4 / body-fixed-grid-glm / `d0c30b4d63aa` | compared | 65 | 15.683 / 15.670 / 15.738 | 15.421 | 9.542 | -6.141 | -39.157% / -39.107% |
 | a5_v41_fp8_tp1_dp8_ep8_c32_p2k:q1_b4_m4 / runtime86-v4-kimi / `ca6d966131d8` | compared | 105 | 18.625 / 18.616 / 18.640 | 18.526 | 12.487 | -6.138 | -32.956% / -32.924% |
+| v4flash-a3-tp8-c4:q2_b4_m8 / body-fixed-grid-v4_kimi / `d0c30b4d63aa` | compared | 104 | 32.486 / 32.416 / 32.734 | 30.611 | 26.525 | -5.961 | -18.349% / -18.174% |
+| glm53flash-a3-tp16-c2:q6_b2_m12 / body-fixed-grid-glm / `d0c30b4d63aa` | compared | 46 | 34.118 / 33.910 / 35.073 | 32.625 | 28.616 | -5.502 | -16.127% / -15.612% |
+| a3_glm53_dc4k_b2:q1_b2_m2 / body-fixed-grid-glm / `d0c30b4d63aa` | compared | 70 | 40.970 / 40.935 / 41.046 | — | 35.483 | -5.487 | -13.394% / -13.319% |
+| a3_glm53_dc16k_b1:q1_b1_m1 / body-fixed-grid-glm / `d0c30b4d63aa` | compared | 74 | 39.112 / 39.105 / 39.196 | — | 33.637 | -5.475 | -13.999% / -13.983% |
+| a3_glm53_dc4k_b1:q1_b1_m1 / body-fixed-grid-glm / `d0c30b4d63aa` | compared | 74 | 38.955 / 38.943 / 39.036 | — | 33.637 | -5.318 | -13.652% / -13.625% |
 | a5_v41_fp8_tp1_dp8_ep8_c16_p2k:q1_b2_m2 / runtime86-v4-kimi / `ca6d966131d8` | compared | 129 | 14.929 / 14.914 / 14.929 | 14.832 | 9.658 | -5.271 | -35.309% / -35.244% |
+| glm53flash-a3-tp16-c4-livepre:q6_b4_m24 / body-fixed-grid-glm / `d0c30b4d63aa` | compared | 46 | 29.762 / 29.664 / 30.046 | 28.242 | 34.990 | 5.228 | 17.566% / 17.954% |
 | a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8:q1_b1_m1 / runtime86-v4-kimi / `ca6d966131d8` | compared | 145 | 13.292 / 12.803 / 12.817 | 13.196 | 8.209 | -5.082 | -38.238% / -35.881% |
 | a5_v41_fp8_tp1_dp8_ep8_c4_p2k:q1_b1_m1 / runtime86-v4-kimi / `ca6d966131d8` | compared | 151 | 13.239 / 13.209 / 13.227 | 13.143 | 8.209 | -5.030 | -37.992% / -37.851% |
-| qwen36-a5-tp2-c1:q4_b1_m4 / body-default-qwen / `a24d0690d120` | compared | 85 | 12.318 / 12.279 / 12.362 | 11.956 | 7.382 | -4.936 | -40.071% / -39.880% |
 | a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1:q1_b1_m1 / runtime86-v4-kimi / `ca6d966131d8` | compared | 152 | 13.135 / 13.129 / 13.145 | 13.039 | 8.209 | -4.926 | -37.500% / -37.475% |
+| qwen36-a5-tp2-c1:q4_b1_m4 / body-fixed-grid-qwen / `d0c30b4d63aa` | compared | 85 | 12.318 / 12.279 / 12.362 | 11.956 | 7.426 | -4.892 | -39.712% / -39.520% |
+| glm53flash-a3-tp16-c4:q6_b4_m24 / body-fixed-grid-glm / `d0c30b4d63aa` | compared | 46 | 39.841 / 39.798 / 40.057 | 38.324 | 34.990 | -4.852 | -12.178% / -12.083% |
+| a3_glm53_dc4k_b4:q1_b4_m4 / body-fixed-grid-glm / `d0c30b4d63aa` | compared | 67 | 43.438 / 43.437 / 43.598 | — | 38.631 | -4.807 | -11.066% / -11.065% |
+| v4flash-a3-tp8-c8:q2_b8_m16 / body-fixed-grid-v4_kimi / `d0c30b4d63aa` | compared | 104 | 37.763 / 37.868 / 38.082 | 36.154 | 33.556 | -4.207 | -11.142% / -11.388% |
 | a5_kimi_k3_p32768_c1:q1_b1_m1 / runtime86-v4-kimi / `ca6d966131d8` | compared | 63 | 32.555 / 32.533 / 32.674 | — | 28.761 | -3.795 | -11.657% / -11.596% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8:q8_b4_m32 / runtime86-v4-kimi / `ca6d966131d8` | compared | 29 | 48.582 / 48.412 / 48.662 | 47.883 | 51.673 | 3.091 | 6.362% / 6.736% |
+| a3_glm53_dc4k_b8:q1_b8_m8 / body-fixed-grid-glm / `d0c30b4d63aa` | compared | 61 | 47.113 / 47.149 / 47.402 | — | 44.125 | -2.989 | -6.344% / -6.414% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4:q8_b2_m16 / runtime86-v4-kimi / `ca6d966131d8` | compared | 48 | 47.654 / 47.425 / 47.666 | 46.949 | 50.270 | 2.616 | 5.489% / 5.998% |
+| glm53flash-a5-tp8-c96:q4_b96_m384 / body-fixed-grid-glm / `d0c30b4d63aa` | compared | 27 | 57.590 / 57.573 / 57.734 | 57.355 | 55.027 | -2.563 | -4.450% / -4.422% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c16:q8_b5_m40 / runtime86-v4-kimi / `ca6d966131d8` | compared | 32 | 49.985 / 49.802 / 50.230 | 49.318 | 52.474 | 2.490 | 4.981% / 5.365% |
-| glm53flash-a3-tp16-c4-livepre:q6_b4_m24 / body-default-glm / `a24d0690d120` | compared | 46 | 29.762 / 29.664 / 30.046 | 28.242 | 31.687 | 1.925 | 6.469% / 6.820% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64:q8_b17_m136 / runtime86-v4-kimi / `ca6d966131d8` | compared | 21 | 61.811 / 61.629 / 62.042 | 61.115 | 63.541 | 1.729 | 2.798% / 3.102% |
 | a3_kimi4_tp8_w4a8_c16:q1_b16_m16 / runtime86-v4-kimi / `ca6d966131d8` | compared | 235 | 4.807 / 4.779 / 4.992 | 4.709 | 3.698 | -1.110 | -23.081% / -22.629% |
 | a3_kimi4_tp8_w4a8_c32:q1_b32_m32 / runtime86-v4-kimi / `ca6d966131d8` | compared | 220 | 6.714 / 6.665 / 6.923 | 6.609 | 5.684 | -1.029 | -15.332% / -14.709% |
@@ -265,26 +265,26 @@ The steady P50 column is median of per-layer call P50, unless a separately linke
 
 | Case | Group | Layers | Real Mean ms | Median layer-call P50 ms | Sim Mean ms | Mean / P50 error |
 |---|---|---:|---:|---:|---:|---:|
-| qwen36-a5-tp2-c96:q4_b96_m384 / body-default-qwen | Layer 0 / gdn / dense_layer | 1 | 1.3691 | 1.0682 | 0.6895 | -49.640% / -35.451% |
-| qwen36-a5-tp2-c96:q4_b96_m384 / body-default-qwen | Steady / gdn / dense_layer | 47 | 1.0584 | 1.0584 | 0.6895 | -34.858% / -34.856% |
-| qwen36-a5-tp2-c96:q4_b96_m384 / body-default-qwen | Steady / gqa / dense_layer | 16 | 0.7931 | 0.7928 | 0.4923 | -37.930% / -37.899% |
 | a3_glm53_w4a8_tp16_tpot50_c2:q6_b2_m12 / runtime86-glm | Layer 0 / mla / dense_layer | 1 | 0.6279 | 0.5491 | 0.3579 | -43.007% / -34.821% |
 | a3_glm53_w4a8_tp16_tpot50_c2:q6_b2_m12 / runtime86-glm | Steady / mla / dense_layer | 2 | 0.5676 | 0.5344 | 0.3579 | -36.948% / -33.033% |
 | a3_glm53_w4a8_tp16_tpot50_c2:q6_b2_m12 / runtime86-glm | Steady / mla / moe_layer | 75 | 0.7473 | 0.7151 | 0.4788 | -35.926% / -33.037% |
 | a3_glm53_w4a8_tp16_tpot30_c2:q6_b2_m12 / runtime86-glm | Layer 0 / mla / dense_layer | 1 | 0.5858 | 0.5425 | 0.3579 | -38.903% / -34.034% |
 | a3_glm53_w4a8_tp16_tpot30_c2:q6_b2_m12 / runtime86-glm | Steady / mla / dense_layer | 2 | 0.5667 | 0.5291 | 0.3579 | -36.851% / -32.360% |
 | a3_glm53_w4a8_tp16_tpot30_c2:q6_b2_m12 / runtime86-glm | Steady / mla / moe_layer | 75 | 0.7455 | 0.7151 | 0.4788 | -35.772% / -33.033% |
+| qwen36-a5-tp2-c96:q4_b96_m384 / body-fixed-grid-qwen | Layer 0 / gdn / dense_layer | 1 | 1.3691 | 1.0682 | 0.7603 | -44.469% / -28.823% |
+| qwen36-a5-tp2-c96:q4_b96_m384 / body-fixed-grid-qwen | Steady / gdn / dense_layer | 47 | 1.0584 | 1.0584 | 0.7603 | -28.169% / -28.168% |
+| qwen36-a5-tp2-c96:q4_b96_m384 / body-fixed-grid-qwen | Steady / gqa / dense_layer | 16 | 0.7931 | 0.7928 | 0.5573 | -29.737% / -29.702% |
+| glm53flash-a3-tp16-c16-livepre:q6_b16_m96 / body-fixed-grid-glm | Layer 0 / kda / dense_layer | 1 | 1.0092 | 0.8498 | 0.7070 | -29.951% / -16.806% |
+| glm53flash-a3-tp16-c16-livepre:q6_b16_m96 / body-fixed-grid-glm | Steady / kda / dense_layer | 2 | 0.4246 | 0.4245 | 0.7070 | 66.495% / 66.545% |
+| glm53flash-a3-tp16-c16-livepre:q6_b16_m96 / body-fixed-grid-glm | Steady / mla / moe_layer | 11 | 1.3710 | 1.3767 | 1.5103 | 10.161% / 9.707% |
+| glm53flash-a3-tp16-c16-livepre:q6_b16_m96 / body-fixed-grid-glm | Steady / kda / moe_layer | 31 | 0.7767 | 0.7741 | 1.3070 | 68.271% / 68.839% |
 | a3_glm53flash_tp16_aclgraph_c64:q6_b64_m384 / runtime86-glm | Layer 0 / kda / dense_layer | 1 | 1.3232 | 1.3221 | 1.0894 | -17.672% / -17.602% |
 | a3_glm53flash_tp16_aclgraph_c64:q6_b64_m384 / runtime86-glm | Steady / kda / dense_layer | 2 | 1.2997 | 1.3012 | 1.0894 | -16.179% / -16.279% |
 | a3_glm53flash_tp16_aclgraph_c64:q6_b64_m384 / runtime86-glm | Steady / mla / moe_layer | 11 | 3.5285 | 3.5319 | 2.2271 | -36.884% / -36.945% |
 | a3_glm53flash_tp16_aclgraph_c64:q6_b64_m384 / runtime86-glm | Steady / kda / moe_layer | 31 | 1.7609 | 1.7632 | 1.6616 | -5.640% / -5.764% |
-| qwen35-397b-a3-tp16-c136:q4_b160_m640 / body-default-qwen | Layer 0 / gdn / moe_layer | 1 | 2.0473 | 1.9983 | 1.6321 | -20.279% / -18.324% |
-| qwen35-397b-a3-tp16-c136:q4_b160_m640 / body-default-qwen | Steady / gdn / moe_layer | 44 | 1.9572 | 1.9352 | 1.6321 | -16.611% / -15.661% |
-| qwen35-397b-a3-tp16-c136:q4_b160_m640 / body-default-qwen | Steady / gqa / moe_layer | 15 | 2.0544 | 2.0314 | 1.8618 | -9.375% / -8.349% |
-| glm53flash-a5-tp8-c96:q4_b96_m384 / body-default-glm | Layer 0 / kda / dense_layer | 1 | 0.6036 | 0.5889 | 0.4320 | -28.431% / -26.640% |
-| glm53flash-a5-tp8-c96:q4_b96_m384 / body-default-glm | Steady / kda / dense_layer | 2 | 0.5724 | 0.5723 | 0.4320 | -24.524% / -24.507% |
-| glm53flash-a5-tp8-c96:q4_b96_m384 / body-default-glm | Steady / mla / moe_layer | 11 | 2.2334 | 2.2329 | 1.0908 | -51.160% / -51.148% |
-| glm53flash-a5-tp8-c96:q4_b96_m384 / body-default-glm | Steady / kda / moe_layer | 31 | 1.0088 | 1.0088 | 0.8785 | -12.915% / -12.914% |
+| qwen35-397b-a3-tp16-c136:q4_b160_m640 / body-fixed-grid-qwen | Layer 0 / gdn / moe_layer | 1 | 2.0473 | 1.9983 | 1.6636 | -18.740% / -16.748% |
+| qwen35-397b-a3-tp16-c136:q4_b160_m640 / body-fixed-grid-qwen | Steady / gdn / moe_layer | 44 | 1.9572 | 1.9352 | 1.6636 | -15.001% / -14.033% |
+| qwen35-397b-a3-tp16-c136:q4_b160_m640 / body-fixed-grid-qwen | Steady / gqa / moe_layer | 15 | 2.0544 | 2.0314 | 1.8669 | -9.125% / -8.096% |
 | a5_glm53flash_tp8_c64_p4k:q4_b64_m256 / runtime86-glm | Layer 0 / kda / dense_layer | 1 | 0.5510 | 0.5299 | 0.3126 | -43.261% / -41.001% |
 | a5_glm53flash_tp8_c64_p4k:q4_b64_m256 / runtime86-glm | Steady / kda / dense_layer | 2 | 0.4693 | 0.4691 | 0.3126 | -33.383% / -33.352% |
 | a5_glm53flash_tp8_c64_p4k:q4_b64_m256 / runtime86-glm | Steady / mla / moe_layer | 11 | 1.5929 | 1.5839 | 0.8605 | -45.982% / -45.675% |
@@ -292,16 +292,16 @@ The steady P50 column is median of per-layer call P50, unless a separately linke
 | a3_glm53_w4a8_tp16_tpot88_c8:q6_b8_m48 / runtime86-glm | Layer 0 / mla / dense_layer | 1 | 0.6710 | 0.6210 | 0.4630 | -31.000% / -25.451% |
 | a3_glm53_w4a8_tp16_tpot88_c8:q6_b8_m48 / runtime86-glm | Steady / mla / dense_layer | 2 | 0.6345 | 0.6104 | 0.4630 | -27.037% / -24.156% |
 | a3_glm53_w4a8_tp16_tpot88_c8:q6_b8_m48 / runtime86-glm | Steady / mla / moe_layer | 75 | 0.9015 | 0.8670 | 0.7219 | -19.926% / -16.736% |
-| qwen35-35b-a5-tp4-c128-graph:q4_b128_m512 / body-default-qwen | Layer 0 / gdn / moe_layer | 1 | 0.7544 | 0.7238 | 0.3790 | -49.757% / -47.629% |
-| qwen35-35b-a5-tp4-c128-graph:q4_b128_m512 / body-default-qwen | Steady / gdn / moe_layer | 29 | 0.7199 | 0.7199 | 0.3790 | -47.345% / -47.349% |
-| qwen35-35b-a5-tp4-c128-graph:q4_b128_m512 / body-default-qwen | Steady / gqa / moe_layer | 10 | 0.6953 | 0.6941 | 0.3279 | -52.849% / -52.767% |
-| qwen36-a5-tp2-c12:q4_b12_m48 / body-default-qwen | Layer 0 / gdn / dense_layer | 1 | 0.6168 | 0.3931 | 0.1767 | -71.361% / -55.062% |
-| qwen36-a5-tp2-c12:q4_b12_m48 / body-default-qwen | Steady / gdn / dense_layer | 47 | 0.4044 | 0.4033 | 0.1767 | -56.318% / -56.199% |
-| qwen36-a5-tp2-c12:q4_b12_m48 / body-default-qwen | Steady / gqa / dense_layer | 16 | 0.2846 | 0.2843 | 0.1352 | -52.489% / -52.435% |
+| qwen35-35b-a5-tp4-c128-graph:q4_b128_m512 / body-fixed-grid-qwen | Layer 0 / gdn / moe_layer | 1 | 0.7544 | 0.7238 | 0.3848 | -48.997% / -46.837% |
+| qwen35-35b-a5-tp4-c128-graph:q4_b128_m512 / body-fixed-grid-qwen | Steady / gdn / moe_layer | 29 | 0.7199 | 0.7199 | 0.3848 | -46.548% / -46.552% |
+| qwen35-35b-a5-tp4-c128-graph:q4_b128_m512 / body-fixed-grid-qwen | Steady / gqa / moe_layer | 10 | 0.6953 | 0.6941 | 0.3302 | -52.518% / -52.435% |
 | a3_glm53flash_tp16_aclgraph_c32:q6_b32_m192 / runtime86-glm | Layer 0 / kda / dense_layer | 1 | 0.9534 | 0.9082 | 0.6823 | -28.434% / -24.871% |
 | a3_glm53flash_tp16_aclgraph_c32:q6_b32_m192 / runtime86-glm | Steady / kda / dense_layer | 2 | 0.8762 | 0.8787 | 0.6823 | -22.129% / -22.348% |
 | a3_glm53flash_tp16_aclgraph_c32:q6_b32_m192 / runtime86-glm | Steady / mla / moe_layer | 11 | 2.3319 | 2.3310 | 1.5221 | -34.728% / -34.702% |
 | a3_glm53flash_tp16_aclgraph_c32:q6_b32_m192 / runtime86-glm | Steady / kda / moe_layer | 31 | 1.3210 | 1.3204 | 1.1978 | -9.331% / -9.289% |
+| qwen36-a5-tp2-c12:q4_b12_m48 / body-fixed-grid-qwen | Layer 0 / gdn / dense_layer | 1 | 0.6168 | 0.3931 | 0.1839 | -70.181% / -53.210% |
+| qwen36-a5-tp2-c12:q4_b12_m48 / body-fixed-grid-qwen | Steady / gdn / dense_layer | 47 | 0.4044 | 0.4033 | 0.1839 | -54.519% / -54.394% |
+| qwen36-a5-tp2-c12:q4_b12_m48 / body-fixed-grid-qwen | Steady / gqa / dense_layer | 16 | 0.2846 | 0.2843 | 0.1413 | -50.342% / -50.286% |
 | a5_glm53flash_tp8_c32_p8k:q4_b32_m128 / runtime86-glm | Layer 0 / kda / dense_layer | 1 | 0.4891 | 0.4818 | 0.2159 | -55.847% / -55.180% |
 | a5_glm53flash_tp8_c32_p8k:q4_b32_m128 / runtime86-glm | Steady / kda / dense_layer | 2 | 0.3535 | 0.3535 | 0.2159 | -38.919% / -38.907% |
 | a5_glm53flash_tp8_c32_p8k:q4_b32_m128 / runtime86-glm | Steady / mla / moe_layer | 11 | 1.2946 | 1.2899 | 0.6931 | -46.463% / -46.270% |
@@ -310,144 +310,144 @@ The steady P50 column is median of per-layer call P50, unless a separately linke
 | a5_glm53flash_tp8_c32_p4k:q4_b32_m128 / runtime86-glm | Steady / kda / dense_layer | 2 | 0.3528 | 0.3529 | 0.2159 | -38.795% / -38.804% |
 | a5_glm53flash_tp8_c32_p4k:q4_b32_m128 / runtime86-glm | Steady / mla / moe_layer | 11 | 1.1973 | 1.1925 | 0.6586 | -44.992% / -44.770% |
 | a5_glm53flash_tp8_c32_p4k:q4_b32_m128 / runtime86-glm | Steady / kda / moe_layer | 31 | 0.7518 | 0.7522 | 0.5583 | -25.741% / -25.784% |
-| a5_kimi_tp8_e16_bf16_c32_p16k:q1_b32_m32 / runtime86-v4-kimi | Layer 0 / kda / dense_layer | 1 | 0.3620 | 0.3384 | 0.2902 | -19.839% / -14.241% |
-| a5_kimi_tp8_e16_bf16_c32_p16k:q1_b32_m32 / runtime86-v4-kimi | Steady / kda / moe_layer | 68 | 0.4145 | 0.4142 | 0.3302 | -20.342% / -20.289% |
-| a5_kimi_tp8_e16_bf16_c32_p16k:q1_b32_m32 / runtime86-v4-kimi | Steady / mla / moe_layer | 24 | 0.6715 | 0.6644 | 0.3997 | -40.485% / -39.845% |
+| a5_kimi_tp8_e16_bf16_c32_p16k:q1_b32_m32 / kimi-logical96-p16k | Layer 0 / kda / dense_layer | 1 | 0.3620 | 0.3384 | 0.2902 | -19.839% / -14.241% |
+| a5_kimi_tp8_e16_bf16_c32_p16k:q1_b32_m32 / kimi-logical96-p16k | Steady / kda / moe_layer | 68 | 0.4145 | 0.4142 | 0.3302 | -20.342% / -20.288% |
+| a5_kimi_tp8_e16_bf16_c32_p16k:q1_b32_m32 / kimi-logical96-p16k | Steady / mla / moe_layer | 24 | 0.6715 | 0.6644 | 0.3979 | -40.751% / -40.114% |
 | a5_glm53flash_tp8_c16_p8k:q4_b16_m64 / runtime86-glm | Layer 0 / kda / dense_layer | 1 | 0.3876 | 0.4019 | 0.1697 | -56.227% / -57.785% |
 | a5_glm53flash_tp8_c16_p8k:q4_b16_m64 / runtime86-glm | Steady / kda / dense_layer | 2 | 0.2980 | 0.2974 | 0.1697 | -43.067% / -42.944% |
 | a5_glm53flash_tp8_c16_p8k:q4_b16_m64 / runtime86-glm | Steady / mla / moe_layer | 11 | 1.0591 | 1.0543 | 0.5573 | -47.377% / -47.139% |
 | a5_glm53flash_tp8_c16_p8k:q4_b16_m64 / runtime86-glm | Steady / kda / moe_layer | 31 | 0.6768 | 0.6768 | 0.4794 | -29.166% / -29.165% |
-| a5_kimi_tp8_e16_bf16_c16_p16k:q1_b16_m16 / runtime86-v4-kimi | Layer 0 / kda / dense_layer | 1 | 0.3047 | 0.3023 | 0.2451 | -19.551% / -18.905% |
-| a5_kimi_tp8_e16_bf16_c16_p16k:q1_b16_m16 / runtime86-v4-kimi | Steady / kda / moe_layer | 68 | 0.3858 | 0.3856 | 0.2866 | -25.710% / -25.666% |
-| a5_kimi_tp8_e16_bf16_c16_p16k:q1_b16_m16 / runtime86-v4-kimi | Steady / mla / moe_layer | 24 | 0.5293 | 0.5223 | 0.3105 | -41.349% / -40.563% |
-| qwen35-35b-a5-tp4-c64-graph:q4_b64_m256 / body-default-qwen | Layer 0 / gdn / moe_layer | 1 | 0.7737 | 0.8216 | 0.2631 | -65.993% / -67.977% |
-| qwen35-35b-a5-tp4-c64-graph:q4_b64_m256 / body-default-qwen | Steady / gdn / moe_layer | 29 | 0.5470 | 0.5467 | 0.2631 | -51.899% / -51.876% |
-| qwen35-35b-a5-tp4-c64-graph:q4_b64_m256 / body-default-qwen | Steady / gqa / moe_layer | 10 | 0.5320 | 0.5323 | 0.2283 | -57.097% / -57.121% |
+| a5_kimi_tp8_e16_bf16_c16_p16k:q1_b16_m16 / kimi-logical96-p16k | Layer 0 / kda / dense_layer | 1 | 0.3047 | 0.3023 | 0.2451 | -19.551% / -18.905% |
+| a5_kimi_tp8_e16_bf16_c16_p16k:q1_b16_m16 / kimi-logical96-p16k | Steady / kda / moe_layer | 68 | 0.3858 | 0.3856 | 0.2866 | -25.710% / -25.666% |
+| a5_kimi_tp8_e16_bf16_c16_p16k:q1_b16_m16 / kimi-logical96-p16k | Steady / mla / moe_layer | 24 | 0.5293 | 0.5223 | 0.3086 | -41.705% / -40.925% |
 | a5_glm53flash_tp8_c16_p4k:q4_b16_m64 / runtime86-glm | Layer 0 / kda / dense_layer | 1 | 0.3980 | 0.3937 | 0.1697 | -57.364% / -56.901% |
 | a5_glm53flash_tp8_c16_p4k:q4_b16_m64 / runtime86-glm | Steady / kda / dense_layer | 2 | 0.2982 | 0.2982 | 0.1697 | -43.106% / -43.099% |
 | a5_glm53flash_tp8_c16_p4k:q4_b16_m64 / runtime86-glm | Steady / mla / moe_layer | 11 | 1.0018 | 0.9978 | 0.5403 | -46.068% / -45.852% |
 | a5_glm53flash_tp8_c16_p4k:q4_b16_m64 / runtime86-glm | Steady / kda / moe_layer | 31 | 0.6779 | 0.6772 | 0.4794 | -29.282% / -29.204% |
-| a5_kimi_tp8_e16_bf16_c8_p16k:q1_b8_m8 / runtime86-v4-kimi | Layer 0 / kda / dense_layer | 1 | 0.2840 | 0.2810 | 0.2226 | -21.623% / -20.791% |
-| a5_kimi_tp8_e16_bf16_c8_p16k:q1_b8_m8 / runtime86-v4-kimi | Steady / kda / moe_layer | 68 | 0.3653 | 0.3650 | 0.2651 | -27.412% / -27.355% |
-| a5_kimi_tp8_e16_bf16_c8_p16k:q1_b8_m8 / runtime86-v4-kimi | Steady / mla / moe_layer | 24 | 0.4517 | 0.4454 | 0.2661 | -41.077% / -40.254% |
-| a5_kimi_tp8_e16_bf16_c4_p16k:q1_b4_m4 / runtime86-v4-kimi | Layer 0 / kda / dense_layer | 1 | 0.2974 | 0.2770 | 0.2163 | -27.273% / -21.915% |
-| a5_kimi_tp8_e16_bf16_c4_p16k:q1_b4_m4 / runtime86-v4-kimi | Steady / kda / moe_layer | 68 | 0.3596 | 0.3592 | 0.2588 | -28.030% / -27.953% |
-| a5_kimi_tp8_e16_bf16_c4_p16k:q1_b4_m4 / runtime86-v4-kimi | Steady / mla / moe_layer | 24 | 0.4192 | 0.4125 | 0.2472 | -41.033% / -40.064% |
-| a5_kimi_tp8_e16_bf16_c16_p4k:q1_b16_m16 / runtime86-v4-kimi | Layer 0 / kda / dense_layer | 1 | 0.3353 | 0.3023 | 0.2451 | -26.898% / -18.906% |
-| a5_kimi_tp8_e16_bf16_c16_p4k:q1_b16_m16 / runtime86-v4-kimi | Steady / kda / moe_layer | 68 | 0.3857 | 0.3855 | 0.2866 | -25.695% / -25.654% |
-| a5_kimi_tp8_e16_bf16_c16_p4k:q1_b16_m16 / runtime86-v4-kimi | Steady / mla / moe_layer | 24 | 0.4340 | 0.4269 | 0.2600 | -40.088% / -39.084% |
-| a5_kimi_tp8_e16_bf16_c8_p4k:q1_b8_m8 / runtime86-v4-kimi | Layer 0 / kda / dense_layer | 1 | 0.3102 | 0.2816 | 0.2226 | -28.228% / -20.938% |
-| a5_kimi_tp8_e16_bf16_c8_p4k:q1_b8_m8 / runtime86-v4-kimi | Steady / kda / moe_layer | 68 | 0.3652 | 0.3648 | 0.2651 | -27.409% / -27.319% |
-| a5_kimi_tp8_e16_bf16_c8_p4k:q1_b8_m8 / runtime86-v4-kimi | Steady / mla / moe_layer | 24 | 0.4029 | 0.3960 | 0.2409 | -40.204% / -39.159% |
-| a5_kimi_tp8_e16_bf16_c4_p4k:q1_b4_m4 / runtime86-v4-kimi | Layer 0 / kda / dense_layer | 1 | 0.2930 | 0.2771 | 0.2163 | -26.183% / -21.945% |
-| a5_kimi_tp8_e16_bf16_c4_p4k:q1_b4_m4 / runtime86-v4-kimi | Steady / kda / moe_layer | 68 | 0.3596 | 0.3596 | 0.2588 | -28.032% / -28.016% |
-| a5_kimi_tp8_e16_bf16_c4_p4k:q1_b4_m4 / runtime86-v4-kimi | Steady / mla / moe_layer | 24 | 0.3935 | 0.3863 | 0.2346 | -40.371% / -39.271% |
-| a5_kimi_tp8_e16_bf16_c2_p16k:q1_b2_m2 / runtime86-v4-kimi | Layer 0 / kda / dense_layer | 1 | 0.2876 | 0.2698 | 0.2131 | -25.880% / -20.999% |
-| a5_kimi_tp8_e16_bf16_c2_p16k:q1_b2_m2 / runtime86-v4-kimi | Steady / kda / moe_layer | 68 | 0.3531 | 0.3529 | 0.2557 | -27.597% / -27.554% |
-| a5_kimi_tp8_e16_bf16_c2_p16k:q1_b2_m2 / runtime86-v4-kimi | Steady / mla / moe_layer | 24 | 0.3989 | 0.3918 | 0.2378 | -40.398% / -39.311% |
-| a5_kimi_tp8_e16_bf16_c2_p4k:q1_b2_m2 / runtime86-v4-kimi | Layer 0 / kda / dense_layer | 1 | 0.3027 | 0.2698 | 0.2131 | -29.576% / -21.013% |
-| a5_kimi_tp8_e16_bf16_c2_p4k:q1_b2_m2 / runtime86-v4-kimi | Steady / kda / moe_layer | 68 | 0.3533 | 0.3531 | 0.2557 | -27.642% / -27.604% |
-| a5_kimi_tp8_e16_bf16_c2_p4k:q1_b2_m2 / runtime86-v4-kimi | Steady / mla / moe_layer | 24 | 0.3840 | 0.3767 | 0.2315 | -39.723% / -38.561% |
+| qwen35-35b-a5-tp4-c64-graph:q4_b64_m256 / body-fixed-grid-qwen | Layer 0 / gdn / moe_layer | 1 | 0.7737 | 0.8216 | 0.2668 | -65.511% / -67.524% |
+| qwen35-35b-a5-tp4-c64-graph:q4_b64_m256 / body-fixed-grid-qwen | Steady / gdn / moe_layer | 29 | 0.5470 | 0.5467 | 0.2668 | -51.218% / -51.194% |
+| qwen35-35b-a5-tp4-c64-graph:q4_b64_m256 / body-fixed-grid-qwen | Steady / gqa / moe_layer | 10 | 0.5320 | 0.5323 | 0.2300 | -56.761% / -56.785% |
+| a5_kimi_tp8_e16_bf16_c8_p16k:q1_b8_m8 / kimi-logical96-p16k | Layer 0 / kda / dense_layer | 1 | 0.2840 | 0.2810 | 0.2226 | -21.623% / -20.791% |
+| a5_kimi_tp8_e16_bf16_c8_p16k:q1_b8_m8 / kimi-logical96-p16k | Steady / kda / moe_layer | 68 | 0.3653 | 0.3650 | 0.2651 | -27.412% / -27.355% |
+| a5_kimi_tp8_e16_bf16_c8_p16k:q1_b8_m8 / kimi-logical96-p16k | Steady / mla / moe_layer | 24 | 0.4517 | 0.4454 | 0.2642 | -41.506% / -40.688% |
+| a5_kimi_tp8_e16_bf16_c4_p16k:q1_b4_m4 / kimi-logical96-p16k | Layer 0 / kda / dense_layer | 1 | 0.2974 | 0.2770 | 0.2163 | -27.273% / -21.915% |
+| a5_kimi_tp8_e16_bf16_c4_p16k:q1_b4_m4 / kimi-logical96-p16k | Steady / kda / moe_layer | 68 | 0.3596 | 0.3592 | 0.2588 | -28.030% / -27.953% |
+| a5_kimi_tp8_e16_bf16_c4_p16k:q1_b4_m4 / kimi-logical96-p16k | Steady / mla / moe_layer | 24 | 0.4192 | 0.4125 | 0.2453 | -41.495% / -40.534% |
+| a5_kimi_tp8_e16_bf16_c16_p4k:q1_b16_m16 / kimi-logical96-p4k | Layer 0 / kda / dense_layer | 1 | 0.3353 | 0.3023 | 0.2451 | -26.898% / -18.906% |
+| a5_kimi_tp8_e16_bf16_c16_p4k:q1_b16_m16 / kimi-logical96-p4k | Steady / kda / moe_layer | 68 | 0.3857 | 0.3855 | 0.2866 | -25.695% / -25.653% |
+| a5_kimi_tp8_e16_bf16_c16_p4k:q1_b16_m16 / kimi-logical96-p4k | Steady / mla / moe_layer | 24 | 0.4340 | 0.4269 | 0.2581 | -40.523% / -39.526% |
+| a5_kimi_tp8_e16_bf16_c8_p4k:q1_b8_m8 / kimi-logical96-p4k | Layer 0 / kda / dense_layer | 1 | 0.3102 | 0.2816 | 0.2226 | -28.228% / -20.938% |
+| a5_kimi_tp8_e16_bf16_c8_p4k:q1_b8_m8 / kimi-logical96-p4k | Steady / kda / moe_layer | 68 | 0.3652 | 0.3648 | 0.2651 | -27.409% / -27.319% |
+| a5_kimi_tp8_e16_bf16_c8_p4k:q1_b8_m8 / kimi-logical96-p4k | Steady / mla / moe_layer | 24 | 0.4029 | 0.3960 | 0.2390 | -40.684% / -39.648% |
+| a5_kimi_tp8_e16_bf16_c4_p4k:q1_b4_m4 / kimi-logical96-p4k | Layer 0 / kda / dense_layer | 1 | 0.2930 | 0.2771 | 0.2163 | -26.183% / -21.945% |
+| a5_kimi_tp8_e16_bf16_c4_p4k:q1_b4_m4 / kimi-logical96-p4k | Steady / kda / moe_layer | 68 | 0.3596 | 0.3596 | 0.2588 | -28.032% / -28.016% |
+| a5_kimi_tp8_e16_bf16_c4_p4k:q1_b4_m4 / kimi-logical96-p4k | Steady / mla / moe_layer | 24 | 0.3935 | 0.3863 | 0.2327 | -40.864% / -39.773% |
+| a5_kimi_tp8_e16_bf16_c2_p16k:q1_b2_m2 / kimi-logical96-p16k | Layer 0 / kda / dense_layer | 1 | 0.2876 | 0.2698 | 0.2131 | -25.880% / -20.999% |
+| a5_kimi_tp8_e16_bf16_c2_p16k:q1_b2_m2 / kimi-logical96-p16k | Steady / kda / moe_layer | 68 | 0.3531 | 0.3529 | 0.2557 | -27.597% / -27.554% |
+| a5_kimi_tp8_e16_bf16_c2_p16k:q1_b2_m2 / kimi-logical96-p16k | Steady / mla / moe_layer | 24 | 0.3989 | 0.3918 | 0.2358 | -40.884% / -39.805% |
+| a5_kimi_tp8_e16_bf16_c2_p4k:q1_b2_m2 / kimi-logical96-p4k | Layer 0 / kda / dense_layer | 1 | 0.3027 | 0.2698 | 0.2131 | -29.576% / -21.013% |
+| a5_kimi_tp8_e16_bf16_c2_p4k:q1_b2_m2 / kimi-logical96-p4k | Steady / kda / moe_layer | 68 | 0.3533 | 0.3531 | 0.2557 | -27.642% / -27.604% |
+| a5_kimi_tp8_e16_bf16_c2_p4k:q1_b2_m2 / kimi-logical96-p4k | Steady / mla / moe_layer | 24 | 0.3840 | 0.3767 | 0.2295 | -40.228% / -39.075% |
 | a5_glm53flash_tp8_c8_p4k:q4_b8_m32 / runtime86-glm | Layer 0 / kda / dense_layer | 1 | 0.4973 | 0.4989 | 0.1496 | -69.915% / -70.010% |
 | a5_glm53flash_tp8_c8_p4k:q4_b8_m32 / runtime86-glm | Steady / kda / dense_layer | 2 | 0.2536 | 0.2520 | 0.1496 | -41.010% / -40.636% |
 | a5_glm53flash_tp8_c8_p4k:q4_b8_m32 / runtime86-glm | Steady / mla / moe_layer | 11 | 0.8678 | 0.8641 | 0.4599 | -47.005% / -46.776% |
 | a5_glm53flash_tp8_c8_p4k:q4_b8_m32 / runtime86-glm | Steady / kda / moe_layer | 31 | 0.5897 | 0.5893 | 0.4185 | -29.030% / -28.980% |
-| a5_kimi_tp8_e16_bf16_c32_p4k:q1_b32_m32 / runtime86-v4-kimi | Layer 0 / kda / dense_layer | 1 | 0.3379 | 0.3376 | 0.2902 | -14.125% / -14.035% |
-| a5_kimi_tp8_e16_bf16_c32_p4k:q1_b32_m32 / runtime86-v4-kimi | Steady / kda / moe_layer | 68 | 0.4141 | 0.4140 | 0.3302 | -20.276% / -20.257% |
-| a5_kimi_tp8_e16_bf16_c32_p4k:q1_b32_m32 / runtime86-v4-kimi | Steady / mla / moe_layer | 24 | 0.4799 | 0.4722 | 0.2988 | -37.733% / -36.726% |
-| a3_glm53_dc4k_b2:q1_b2_m2 / body-default-glm | Layer 0 / mla / dense_layer | 1 | 0.4105 | 0.3960 | 0.3550 | -13.518% / -10.337% |
-| a3_glm53_dc4k_b2:q1_b2_m2 / body-default-glm | Steady / mla / dense_layer | 2 | 0.3997 | 0.3865 | 0.3550 | -11.173% / -8.147% |
-| a3_glm53_dc4k_b2:q1_b2_m2 / body-default-glm | Steady / mla / moe_layer | 75 | 0.5293 | 0.5092 | 0.4066 | -23.176% / -20.140% |
-| a3_glm53_dc16k_b1:q1_b1_m1 / body-default-glm | Layer 0 / mla / dense_layer | 1 | 0.4020 | 0.3967 | 0.3537 | -12.022% / -10.835% |
-| a3_glm53_dc16k_b1:q1_b1_m1 / body-default-glm | Steady / mla / dense_layer | 2 | 0.3934 | 0.3879 | 0.3537 | -10.091% / -8.821% |
-| a3_glm53_dc16k_b1:q1_b1_m1 / body-default-glm | Steady / mla / moe_layer | 75 | 0.5045 | 0.4834 | 0.3821 | -24.263% / -20.968% |
-| a3_glm53_dc4k_b1:q1_b1_m1 / body-default-glm | Layer 0 / mla / dense_layer | 1 | 0.3943 | 0.3854 | 0.3537 | -10.285% / -8.214% |
-| a3_glm53_dc4k_b1:q1_b1_m1 / body-default-glm | Steady / mla / dense_layer | 2 | 0.3841 | 0.3775 | 0.3537 | -7.923% / -6.295% |
-| a3_glm53_dc4k_b1:q1_b1_m1 / body-default-glm | Steady / mla / moe_layer | 75 | 0.5031 | 0.4848 | 0.3821 | -24.051% / -21.188% |
+| a5_kimi_tp8_e16_bf16_c32_p4k:q1_b32_m32 / kimi-logical96-p4k | Layer 0 / kda / dense_layer | 1 | 0.3379 | 0.3376 | 0.2902 | -14.125% / -14.035% |
+| a5_kimi_tp8_e16_bf16_c32_p4k:q1_b32_m32 / kimi-logical96-p4k | Steady / kda / moe_layer | 68 | 0.4141 | 0.4140 | 0.3302 | -20.276% / -20.257% |
+| a5_kimi_tp8_e16_bf16_c32_p4k:q1_b32_m32 / kimi-logical96-p4k | Steady / mla / moe_layer | 24 | 0.4799 | 0.4722 | 0.2970 | -38.106% / -37.104% |
 | a3_glm53flash_tp16_aclgraph_c16:q6_b16_m96 / runtime86-glm | Layer 0 / kda / dense_layer | 1 | 0.6895 | 0.6689 | 0.4851 | -29.643% / -27.470% |
 | a3_glm53flash_tp16_aclgraph_c16:q6_b16_m96 / runtime86-glm | Steady / kda / dense_layer | 2 | 0.6561 | 0.6366 | 0.4851 | -26.056% / -23.788% |
 | a3_glm53flash_tp16_aclgraph_c16:q6_b16_m96 / runtime86-glm | Steady / mla / moe_layer | 11 | 1.6861 | 1.6864 | 1.1823 | -29.880% / -29.893% |
 | a3_glm53flash_tp16_aclgraph_c16:q6_b16_m96 / runtime86-glm | Steady / kda / moe_layer | 31 | 1.0740 | 1.0740 | 0.9863 | -8.160% / -8.162% |
-| a3_glm53_dc4k_b4:q1_b4_m4 / body-default-glm | Layer 0 / mla / dense_layer | 1 | 0.4118 | 0.4071 | 0.3577 | -13.140% / -12.146% |
-| a3_glm53_dc4k_b4:q1_b4_m4 / body-default-glm | Steady / mla / dense_layer | 2 | 0.3968 | 0.3931 | 0.3577 | -9.873% / -9.005% |
-| a3_glm53_dc4k_b4:q1_b4_m4 / body-default-glm | Steady / mla / moe_layer | 75 | 0.5622 | 0.5411 | 0.4484 | -20.230% / -17.130% |
-| v4flash-a3-tp8-c4:q2_b4_m8 / body-default-v4_kimi | Layer 0 / mla / moe_layer | 1 | 0.7568 | 0.7178 | 0.4773 | -36.938% / -33.510% |
-| v4flash-a3-tp8-c4:q2_b4_m8 / body-default-v4_kimi | Steady / mla / moe_layer | 42 | 0.7543 | 0.7537 | 0.5636 | -25.273% / -25.215% |
 | a5_glm53flash_tp8_c4_p8k:q4_b4_m16 / runtime86-glm | Layer 0 / kda / dense_layer | 1 | 0.3235 | 0.2805 | 0.1399 | -56.742% / -50.115% |
 | a5_glm53flash_tp8_c4_p8k:q4_b4_m16 / runtime86-glm | Steady / kda / dense_layer | 2 | 0.2349 | 0.2350 | 0.1399 | -40.442% / -40.454% |
 | a5_glm53flash_tp8_c4_p8k:q4_b4_m16 / runtime86-glm | Steady / mla / moe_layer | 11 | 0.6731 | 0.6714 | 0.3303 | -50.929% / -50.798% |
 | a5_glm53flash_tp8_c4_p8k:q4_b4_m16 / runtime86-glm | Steady / kda / moe_layer | 31 | 0.4264 | 0.4251 | 0.2944 | -30.974% / -30.757% |
-| qwen35-397b-a3-tp16-c48:q4_b64_m256 / body-default-qwen | Layer 0 / gdn / moe_layer | 1 | 1.3503 | 1.2865 | 1.0992 | -18.601% / -14.562% |
-| qwen35-397b-a3-tp16-c48:q4_b64_m256 / body-default-qwen | Steady / gdn / moe_layer | 44 | 1.2329 | 1.2077 | 1.0992 | -10.848% / -8.989% |
-| qwen35-397b-a3-tp16-c48:q4_b64_m256 / body-default-qwen | Steady / gqa / moe_layer | 15 | 1.3614 | 1.3469 | 1.2282 | -9.789% / -8.816% |
-| glm53flash-a3-tp16-c4:q6_b4_m24 / body-default-glm | Layer 0 / kda / dense_layer | 1 | 0.6141 | 0.5825 | 0.3654 | -40.491% / -37.262% |
-| glm53flash-a3-tp16-c4:q6_b4_m24 / body-default-glm | Steady / kda / dense_layer | 2 | 0.6160 | 0.5541 | 0.3654 | -40.679% / -34.045% |
-| glm53flash-a3-tp16-c4:q6_b4_m24 / body-default-glm | Steady / mla / moe_layer | 11 | 1.1665 | 1.1644 | 0.7979 | -31.602% / -31.478% |
-| glm53flash-a3-tp16-c4:q6_b4_m24 / body-default-glm | Steady / kda / moe_layer | 31 | 0.8101 | 0.8087 | 0.7037 | -13.132% / -12.986% |
 | a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64:q1_b8_m8 / runtime86-v4-kimi | Layer 0 / mla / moe_layer | 1 | 0.7498 | 0.7292 | 0.4465 | -40.449% / -38.762% |
 | a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64:q1_b8_m8 / runtime86-v4-kimi | Steady / mla / moe_layer | 39 | 0.6558 | 0.6334 | 0.4571 | -30.299% / -27.831% |
-| glm53flash-a5-tp8-c3:q4_b4_m16 / body-default-glm | Layer 0 / kda / dense_layer | 1 | 0.4650 | 0.4745 | 0.1399 | -69.908% / -70.509% |
-| glm53flash-a5-tp8-c3:q4_b4_m16 / body-default-glm | Steady / kda / dense_layer | 2 | 0.2383 | 0.2328 | 0.1399 | -41.283% / -39.896% |
-| glm53flash-a5-tp8-c3:q4_b4_m16 / body-default-glm | Steady / mla / moe_layer | 11 | 0.6392 | 0.6337 | 0.3261 | -48.987% / -48.545% |
-| glm53flash-a5-tp8-c3:q4_b4_m16 / body-default-glm | Steady / kda / moe_layer | 31 | 0.4224 | 0.4216 | 0.2944 | -30.313% / -30.189% |
-| glm53flash-a3-tp16-c2:q6_b2_m12 / body-default-glm | Layer 0 / kda / dense_layer | 1 | 0.5732 | 0.5010 | 0.3402 | -40.647% / -32.092% |
-| glm53flash-a3-tp16-c2:q6_b2_m12 / body-default-glm | Steady / kda / dense_layer | 2 | 0.5965 | 0.5414 | 0.3402 | -42.962% / -37.156% |
-| glm53flash-a3-tp16-c2:q6_b2_m12 / body-default-glm | Steady / mla / moe_layer | 11 | 0.9546 | 0.9395 | 0.6573 | -31.145% / -30.037% |
-| glm53flash-a3-tp16-c2:q6_b2_m12 / body-default-glm | Steady / kda / moe_layer | 31 | 0.7032 | 0.6643 | 0.5801 | -17.513% / -12.680% |
+| qwen35-397b-a3-tp16-c48:q4_b64_m256 / body-fixed-grid-qwen | Layer 0 / gdn / moe_layer | 1 | 1.3503 | 1.2865 | 1.1044 | -18.212% / -14.153% |
+| qwen35-397b-a3-tp16-c48:q4_b64_m256 / body-fixed-grid-qwen | Steady / gdn / moe_layer | 44 | 1.2329 | 1.2077 | 1.1044 | -10.421% / -8.553% |
+| qwen35-397b-a3-tp16-c48:q4_b64_m256 / body-fixed-grid-qwen | Steady / gqa / moe_layer | 15 | 1.3614 | 1.3469 | 1.2404 | -8.891% / -7.908% |
 | a5_v41_fp8_tp1_dp8_ep8_c128_p2k:q1_b16_m16 / runtime86-v4-kimi | Layer 0 / mla / moe_layer | 1 | 0.8025 | 0.7842 | 0.4766 | -40.611% / -39.224% |
 | a5_v41_fp8_tp1_dp8_ep8_c128_p2k:q1_b16_m16 / runtime86-v4-kimi | Steady / mla / moe_layer | 39 | 0.6790 | 0.6545 | 0.4880 | -28.136% / -25.445% |
-| a5_kimi_tp8_e16_bf16_c1_p16k:q1_b1_m1 / runtime86-v4-kimi | Layer 0 / kda / dense_layer | 1 | 0.2595 | 0.2581 | 0.2116 | -18.472% / -18.044% |
-| a5_kimi_tp8_e16_bf16_c1_p16k:q1_b1_m1 / runtime86-v4-kimi | Steady / kda / moe_layer | 68 | 0.3208 | 0.3208 | 0.2541 | -20.796% / -20.799% |
-| a5_kimi_tp8_e16_bf16_c1_p16k:q1_b1_m1 / runtime86-v4-kimi | Steady / mla / moe_layer | 24 | 0.3644 | 0.3577 | 0.2330 | -36.060% / -34.861% |
-| a5_kimi_tp8_e16_bf16_c1_p4k:q1_b1_m1 / runtime86-v4-kimi | Layer 0 / kda / dense_layer | 1 | 0.2772 | 0.2578 | 0.2116 | -23.684% / -17.940% |
-| a5_kimi_tp8_e16_bf16_c1_p4k:q1_b1_m1 / runtime86-v4-kimi | Steady / kda / moe_layer | 68 | 0.3209 | 0.3210 | 0.2541 | -20.821% / -20.849% |
-| a5_kimi_tp8_e16_bf16_c1_p4k:q1_b1_m1 / runtime86-v4-kimi | Steady / mla / moe_layer | 24 | 0.3556 | 0.3487 | 0.2299 | -35.363% / -34.076% |
-| glm53flash-a5-tp8-c1:q4_b1_m4 / body-default-glm | Layer 0 / kda / dense_layer | 1 | 0.4222 | 0.4383 | 0.1206 | -71.437% / -72.482% |
-| glm53flash-a5-tp8-c1:q4_b1_m4 / body-default-glm | Steady / kda / dense_layer | 2 | 0.2487 | 0.2314 | 0.1206 | -51.504% / -47.881% |
-| glm53flash-a5-tp8-c1:q4_b1_m4 / body-default-glm | Steady / mla / moe_layer | 11 | 0.4952 | 0.4903 | 0.2145 | -56.688% / -56.256% |
-| glm53flash-a5-tp8-c1:q4_b1_m4 / body-default-glm | Steady / kda / moe_layer | 31 | 0.3005 | 0.2985 | 0.1895 | -36.956% / -36.537% |
+| a5_kimi_tp8_e16_bf16_c1_p16k:q1_b1_m1 / kimi-logical96-p16k | Layer 0 / kda / dense_layer | 1 | 0.2595 | 0.2581 | 0.2116 | -18.472% / -18.044% |
+| a5_kimi_tp8_e16_bf16_c1_p16k:q1_b1_m1 / kimi-logical96-p16k | Steady / kda / moe_layer | 68 | 0.3208 | 0.3208 | 0.2541 | -20.796% / -20.799% |
+| a5_kimi_tp8_e16_bf16_c1_p16k:q1_b1_m1 / kimi-logical96-p16k | Steady / mla / moe_layer | 24 | 0.3644 | 0.3577 | 0.2311 | -36.591% / -35.402% |
+| a5_kimi_tp8_e16_bf16_c1_p4k:q1_b1_m1 / kimi-logical96-p4k | Layer 0 / kda / dense_layer | 1 | 0.2772 | 0.2578 | 0.2116 | -23.684% / -17.940% |
+| a5_kimi_tp8_e16_bf16_c1_p4k:q1_b1_m1 / kimi-logical96-p4k | Steady / kda / moe_layer | 68 | 0.3209 | 0.3210 | 0.2541 | -20.821% / -20.849% |
+| a5_kimi_tp8_e16_bf16_c1_p4k:q1_b1_m1 / kimi-logical96-p4k | Steady / mla / moe_layer | 24 | 0.3556 | 0.3487 | 0.2279 | -35.908% / -34.631% |
 | a3_glm53flash_tp16_aclgraph_c8:q6_b8_m48 / runtime86-glm | Layer 0 / kda / dense_layer | 1 | 0.6412 | 0.5810 | 0.4012 | -37.426% / -30.945% |
 | a3_glm53flash_tp16_aclgraph_c8:q6_b8_m48 / runtime86-glm | Steady / kda / dense_layer | 2 | 0.6152 | 0.5329 | 0.4012 | -34.785% / -24.712% |
 | a3_glm53flash_tp16_aclgraph_c8:q6_b8_m48 / runtime86-glm | Steady / mla / moe_layer | 11 | 1.4099 | 1.4072 | 1.0155 | -27.971% / -27.835% |
 | a3_glm53flash_tp16_aclgraph_c8:q6_b8_m48 / runtime86-glm | Steady / kda / moe_layer | 31 | 0.9493 | 0.9478 | 0.8874 | -6.521% / -6.375% |
-| a3_glm53_dc4k_b8:q1_b8_m8 / body-default-glm | Layer 0 / mla / dense_layer | 1 | 0.4244 | 0.4227 | 0.3651 | -13.984% / -13.632% |
-| a3_glm53_dc4k_b8:q1_b8_m8 / body-default-glm | Steady / mla / dense_layer | 2 | 0.4119 | 0.4111 | 0.3651 | -11.364% / -11.208% |
-| a3_glm53_dc4k_b8:q1_b8_m8 / body-default-glm | Steady / mla / moe_layer | 75 | 0.6105 | 0.5863 | 0.5213 | -14.613% / -11.086% |
-| v4flash-a3-tp8-c8:q2_b8_m16 / body-default-v4_kimi | Layer 0 / mla / moe_layer | 1 | 0.8072 | 0.7668 | 0.6357 | -21.250% / -17.093% |
-| v4flash-a3-tp8-c8:q2_b8_m16 / body-default-v4_kimi | Steady / mla / moe_layer | 42 | 0.8787 | 0.8831 | 0.7268 | -17.293% / -17.702% |
-| qwen35-35b-a5-tp4-c4-graph:q4_b4_m16 / body-default-qwen | Layer 0 / gdn / moe_layer | 1 | 0.3868 | 0.2973 | 0.1246 | -67.780% / -58.089% |
-| qwen35-35b-a5-tp4-c4-graph:q4_b4_m16 / body-default-qwen | Steady / gdn / moe_layer | 29 | 0.2819 | 0.2827 | 0.1246 | -55.795% / -55.923% |
-| qwen35-35b-a5-tp4-c4-graph:q4_b4_m16 / body-default-qwen | Steady / gqa / moe_layer | 10 | 0.2989 | 0.2992 | 0.1327 | -55.586% / -55.631% |
-| glm53flash-a3-tp16-c16-livepre:q6_b16_m96 / body-default-glm | Layer 0 / kda / dense_layer | 1 | 1.0092 | 0.8498 | 0.4851 | -51.930% / -42.909% |
-| glm53flash-a3-tp16-c16-livepre:q6_b16_m96 / body-default-glm | Steady / kda / dense_layer | 2 | 0.4246 | 0.4245 | 0.4851 | 14.255% / 14.289% |
-| glm53flash-a3-tp16-c16-livepre:q6_b16_m96 / body-default-glm | Steady / mla / moe_layer | 11 | 1.3710 | 1.3767 | 1.2421 | -9.402% / -9.775% |
-| glm53flash-a3-tp16-c16-livepre:q6_b16_m96 / body-default-glm | Steady / kda / moe_layer | 31 | 0.7767 | 0.7741 | 1.0462 | 34.691% / 35.145% |
+| glm53flash-a5-tp8-c3:q4_b4_m16 / body-fixed-grid-glm | Layer 0 / kda / dense_layer | 1 | 0.4650 | 0.4745 | 0.1492 | -67.916% / -68.556% |
+| glm53flash-a5-tp8-c3:q4_b4_m16 / body-fixed-grid-glm | Steady / kda / dense_layer | 2 | 0.2383 | 0.2328 | 0.1492 | -37.395% / -35.916% |
+| glm53flash-a5-tp8-c3:q4_b4_m16 / body-fixed-grid-glm | Steady / mla / moe_layer | 11 | 0.6392 | 0.6337 | 0.3532 | -44.738% / -44.259% |
+| glm53flash-a5-tp8-c3:q4_b4_m16 / body-fixed-grid-glm | Steady / kda / moe_layer | 31 | 0.4224 | 0.4216 | 0.3215 | -23.883% / -23.747% |
+| qwen35-35b-a5-tp4-c4-graph:q4_b4_m16 / body-fixed-grid-qwen | Layer 0 / gdn / moe_layer | 1 | 0.3868 | 0.2973 | 0.1246 | -67.780% / -58.089% |
+| qwen35-35b-a5-tp4-c4-graph:q4_b4_m16 / body-fixed-grid-qwen | Steady / gdn / moe_layer | 29 | 0.2819 | 0.2827 | 0.1246 | -55.795% / -55.923% |
+| qwen35-35b-a5-tp4-c4-graph:q4_b4_m16 / body-fixed-grid-qwen | Steady / gqa / moe_layer | 10 | 0.2989 | 0.2992 | 0.1327 | -55.586% / -55.631% |
+| glm53flash-a5-tp8-c1:q4_b1_m4 / body-fixed-grid-glm | Layer 0 / kda / dense_layer | 1 | 0.4222 | 0.4383 | 0.1286 | -69.546% / -70.661% |
+| glm53flash-a5-tp8-c1:q4_b1_m4 / body-fixed-grid-glm | Steady / kda / dense_layer | 2 | 0.2487 | 0.2314 | 0.1286 | -48.294% / -44.430% |
+| glm53flash-a5-tp8-c1:q4_b1_m4 / body-fixed-grid-glm | Steady / mla / moe_layer | 11 | 0.4952 | 0.4903 | 0.2365 | -52.244% / -51.768% |
+| glm53flash-a5-tp8-c1:q4_b1_m4 / body-fixed-grid-glm | Steady / kda / moe_layer | 31 | 0.3005 | 0.2985 | 0.2115 | -29.634% / -29.167% |
 | a5_v41_fp8_tp1_dp8_ep8_c32_p2k:q1_b4_m4 / runtime86-v4-kimi | Layer 0 / mla / moe_layer | 1 | 0.5279 | 0.5209 | 0.3022 | -42.754% / -41.979% |
 | a5_v41_fp8_tp1_dp8_ep8_c32_p2k:q1_b4_m4 / runtime86-v4-kimi | Steady / mla / moe_layer | 39 | 0.4640 | 0.4441 | 0.3124 | -32.661% / -29.644% |
+| v4flash-a3-tp8-c4:q2_b4_m8 / body-fixed-grid-v4_kimi | Layer 0 / mla / moe_layer | 1 | 0.7568 | 0.7178 | 0.5323 | -29.661% / -25.837% |
+| v4flash-a3-tp8-c4:q2_b4_m8 / body-fixed-grid-v4_kimi | Steady / mla / moe_layer | 42 | 0.7543 | 0.7537 | 0.6189 | -17.951% / -17.887% |
+| glm53flash-a3-tp16-c2:q6_b2_m12 / body-fixed-grid-glm | Layer 0 / kda / dense_layer | 1 | 0.5732 | 0.5010 | 0.3604 | -37.133% / -28.072% |
+| glm53flash-a3-tp16-c2:q6_b2_m12 / body-fixed-grid-glm | Steady / kda / dense_layer | 2 | 0.5965 | 0.5414 | 0.3604 | -39.585% / -33.435% |
+| glm53flash-a3-tp16-c2:q6_b2_m12 / body-fixed-grid-glm | Steady / mla / moe_layer | 11 | 0.9546 | 0.9395 | 0.7133 | -25.281% / -24.078% |
+| glm53flash-a3-tp16-c2:q6_b2_m12 / body-fixed-grid-glm | Steady / kda / moe_layer | 31 | 0.7032 | 0.6643 | 0.6351 | -9.683% / -4.392% |
+| a3_glm53_dc4k_b2:q1_b2_m2 / body-fixed-grid-glm | Layer 0 / mla / dense_layer | 1 | 0.4105 | 0.3960 | 0.3553 | -13.446% / -10.263% |
+| a3_glm53_dc4k_b2:q1_b2_m2 / body-fixed-grid-glm | Steady / mla / dense_layer | 2 | 0.3997 | 0.3865 | 0.3553 | -11.099% / -8.071% |
+| a3_glm53_dc4k_b2:q1_b2_m2 / body-fixed-grid-glm | Steady / mla / moe_layer | 75 | 0.5293 | 0.5092 | 0.4589 | -13.300% / -9.874% |
+| a3_glm53_dc16k_b1:q1_b1_m1 / body-fixed-grid-glm | Layer 0 / mla / dense_layer | 1 | 0.4020 | 0.3967 | 0.3538 | -11.986% / -10.799% |
+| a3_glm53_dc16k_b1:q1_b1_m1 / body-fixed-grid-glm | Steady / mla / dense_layer | 2 | 0.3934 | 0.3879 | 0.3538 | -10.055% / -8.784% |
+| a3_glm53_dc16k_b1:q1_b1_m1 / body-fixed-grid-glm | Steady / mla / moe_layer | 75 | 0.5045 | 0.4834 | 0.4343 | -13.904% / -10.159% |
+| a3_glm53_dc4k_b1:q1_b1_m1 / body-fixed-grid-glm | Layer 0 / mla / dense_layer | 1 | 0.3943 | 0.3854 | 0.3538 | -10.249% / -8.177% |
+| a3_glm53_dc4k_b1:q1_b1_m1 / body-fixed-grid-glm | Steady / mla / dense_layer | 2 | 0.3841 | 0.3775 | 0.3538 | -7.886% / -6.257% |
+| a3_glm53_dc4k_b1:q1_b1_m1 / body-fixed-grid-glm | Steady / mla / moe_layer | 75 | 0.5031 | 0.4848 | 0.4343 | -13.663% / -10.409% |
 | a5_v41_fp8_tp1_dp8_ep8_c16_p2k:q1_b2_m2 / runtime86-v4-kimi | Layer 0 / mla / moe_layer | 1 | 0.4353 | 0.4201 | 0.2316 | -46.780% / -44.859% |
 | a5_v41_fp8_tp1_dp8_ep8_c16_p2k:q1_b2_m2 / runtime86-v4-kimi | Steady / mla / moe_layer | 39 | 0.3716 | 0.3526 | 0.2417 | -34.953% / -31.456% |
+| glm53flash-a3-tp16-c4-livepre:q6_b4_m24 / body-fixed-grid-glm | Layer 0 / kda / dense_layer | 1 | 0.8292 | 0.7249 | 0.4057 | -51.070% / -44.026% |
+| glm53flash-a3-tp16-c4-livepre:q6_b4_m24 / body-fixed-grid-glm | Steady / kda / dense_layer | 2 | 0.2964 | 0.2961 | 0.4057 | 36.893% / 37.020% |
+| glm53flash-a3-tp16-c4-livepre:q6_b4_m24 / body-fixed-grid-glm | Steady / mla / moe_layer | 11 | 0.9295 | 0.9276 | 0.8750 | -5.864% / -5.669% |
+| glm53flash-a3-tp16-c4-livepre:q6_b4_m24 / body-fixed-grid-glm | Steady / kda / moe_layer | 31 | 0.5827 | 0.5821 | 0.7789 | 33.681% / 33.812% |
 | a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8:q1_b1_m1 / runtime86-v4-kimi | Layer 0 / mla / moe_layer | 1 | 0.8501 | 0.3611 | 0.1955 | -77.005% / -45.858% |
 | a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8:q1_b1_m1 / runtime86-v4-kimi | Steady / mla / moe_layer | 39 | 0.3189 | 0.3014 | 0.2055 | -35.577% / -31.819% |
 | a5_v41_fp8_tp1_dp8_ep8_c4_p2k:q1_b1_m1 / runtime86-v4-kimi | Layer 0 / mla / moe_layer | 1 | 0.8470 | 0.8162 | 0.1955 | -76.920% / -76.049% |
 | a5_v41_fp8_tp1_dp8_ep8_c4_p2k:q1_b1_m1 / runtime86-v4-kimi | Steady / mla / moe_layer | 39 | 0.3177 | 0.3003 | 0.2055 | -35.319% / -31.576% |
-| qwen36-a5-tp2-c1:q4_b1_m4 / body-default-qwen | Layer 0 / gdn / dense_layer | 1 | 0.2400 | 0.1984 | 0.1149 | -52.097% / -42.061% |
-| qwen36-a5-tp2-c1:q4_b1_m4 / body-default-qwen | Steady / gdn / dense_layer | 47 | 0.1919 | 0.1915 | 0.1149 | -40.096% / -39.968% |
-| qwen36-a5-tp2-c1:q4_b1_m4 / body-default-qwen | Steady / gqa / dense_layer | 16 | 0.1880 | 0.1876 | 0.1166 | -38.003% / -37.862% |
 | a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1:q1_b1_m1 / runtime86-v4-kimi | Layer 0 / mla / moe_layer | 1 | 0.8189 | 0.8103 | 0.1955 | -76.128% / -75.874% |
 | a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1:q1_b1_m1 / runtime86-v4-kimi | Steady / mla / moe_layer | 39 | 0.3157 | 0.2984 | 0.2055 | -34.919% / -31.131% |
+| qwen36-a5-tp2-c1:q4_b1_m4 / body-fixed-grid-qwen | Layer 0 / gdn / dense_layer | 1 | 0.2400 | 0.1984 | 0.1156 | -51.821% / -41.727% |
+| qwen36-a5-tp2-c1:q4_b1_m4 / body-fixed-grid-qwen | Steady / gdn / dense_layer | 47 | 0.1919 | 0.1915 | 0.1156 | -39.751% / -39.623% |
+| qwen36-a5-tp2-c1:q4_b1_m4 / body-fixed-grid-qwen | Steady / gqa / dense_layer | 16 | 0.1880 | 0.1876 | 0.1173 | -37.590% / -37.448% |
+| glm53flash-a3-tp16-c4:q6_b4_m24 / body-fixed-grid-glm | Layer 0 / kda / dense_layer | 1 | 0.6141 | 0.5825 | 0.4057 | -33.925% / -30.341% |
+| glm53flash-a3-tp16-c4:q6_b4_m24 / body-fixed-grid-glm | Steady / kda / dense_layer | 2 | 0.6160 | 0.5541 | 0.4057 | -34.135% / -26.769% |
+| glm53flash-a3-tp16-c4:q6_b4_m24 / body-fixed-grid-glm | Steady / mla / moe_layer | 11 | 1.1665 | 1.1644 | 0.8750 | -24.991% / -24.855% |
+| glm53flash-a3-tp16-c4:q6_b4_m24 / body-fixed-grid-glm | Steady / kda / moe_layer | 31 | 0.8101 | 0.8087 | 0.7789 | -3.840% / -3.679% |
+| a3_glm53_dc4k_b4:q1_b4_m4 / body-fixed-grid-glm | Layer 0 / mla / dense_layer | 1 | 0.4118 | 0.4071 | 0.3583 | -12.995% / -11.999% |
+| a3_glm53_dc4k_b4:q1_b4_m4 / body-fixed-grid-glm | Steady / mla / dense_layer | 2 | 0.3968 | 0.3931 | 0.3583 | -9.722% / -8.853% |
+| a3_glm53_dc4k_b4:q1_b4_m4 / body-fixed-grid-glm | Steady / mla / moe_layer | 75 | 0.5622 | 0.5411 | 0.5007 | -10.927% / -7.466% |
+| v4flash-a3-tp8-c8:q2_b8_m16 / body-fixed-grid-v4_kimi | Layer 0 / mla / moe_layer | 1 | 0.8072 | 0.7668 | 0.6911 | -14.386% / -9.867% |
+| v4flash-a3-tp8-c8:q2_b8_m16 / body-fixed-grid-v4_kimi | Steady / mla / moe_layer | 42 | 0.8787 | 0.8831 | 0.7825 | -10.952% / -11.393% |
 | a5_kimi_k3_p32768_c1:q1_b1_m1 / runtime86-v4-kimi | Layer 0 / kda / dense_layer | 1 | 0.2579 | 0.2383 | 0.1850 | -28.258% / -22.349% |
 | a5_kimi_k3_p32768_c1:q1_b1_m1 / runtime86-v4-kimi | Steady / kda / moe_layer | 68 | 0.3399 | 0.3386 | 0.3140 | -7.638% / -7.276% |
 | a5_kimi_k3_p32768_c1:q1_b1_m1 / runtime86-v4-kimi | Steady / mla / moe_layer | 24 | 0.3835 | 0.3747 | 0.3004 | -21.664% / -19.811% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8:q8_b4_m32 / runtime86-v4-kimi | Layer 0 / mla / moe_layer | 1 | 1.4227 | 1.2523 | 1.2727 | -10.548% / 1.624% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8:q8_b4_m32 / runtime86-v4-kimi | Steady / mla / moe_layer | 39 | 1.2164 | 1.1586 | 1.2923 | 6.243% / 11.537% |
+| a3_glm53_dc4k_b8:q1_b8_m8 / body-fixed-grid-glm | Layer 0 / mla / dense_layer | 1 | 0.4244 | 0.4227 | 0.3663 | -13.700% / -13.347% |
+| a3_glm53_dc4k_b8:q1_b8_m8 / body-fixed-grid-glm | Steady / mla / dense_layer | 2 | 0.4119 | 0.4111 | 0.3663 | -11.071% / -10.914% |
+| a3_glm53_dc4k_b8:q1_b8_m8 / body-fixed-grid-glm | Steady / mla / moe_layer | 75 | 0.6105 | 0.5863 | 0.5737 | -6.039% / -2.158% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4:q8_b2_m16 / runtime86-v4-kimi | Layer 0 / mla / moe_layer | 1 | 1.9490 | 1.6565 | 1.2401 | -36.373% / -25.139% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4:q8_b2_m16 / runtime86-v4-kimi | Steady / mla / moe_layer | 39 | 1.1795 | 1.1292 | 1.2572 | 6.588% / 11.333% |
+| glm53flash-a5-tp8-c96:q4_b96_m384 / body-fixed-grid-glm | Layer 0 / kda / dense_layer | 1 | 0.6036 | 0.5889 | 0.6465 | 7.102% / 9.781% |
+| glm53flash-a5-tp8-c96:q4_b96_m384 / body-fixed-grid-glm | Steady / kda / dense_layer | 2 | 0.5724 | 0.5723 | 0.6465 | 12.948% / 12.973% |
+| glm53flash-a5-tp8-c96:q4_b96_m384 / body-fixed-grid-glm | Steady / mla / moe_layer | 11 | 2.2334 | 2.2329 | 1.4272 | -36.097% / -36.082% |
+| glm53flash-a5-tp8-c96:q4_b96_m384 / body-fixed-grid-glm | Steady / kda / moe_layer | 31 | 1.0088 | 1.0088 | 1.2061 | 19.554% / 19.556% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c16:q8_b5_m40 / runtime86-v4-kimi | Layer 0 / mla / moe_layer | 1 | 1.4398 | 1.2987 | 1.2914 | -10.306% / -0.560% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c16:q8_b5_m40 / runtime86-v4-kimi | Steady / mla / moe_layer | 39 | 1.2521 | 1.1883 | 1.3124 | 4.811% / 10.444% |
-| glm53flash-a3-tp16-c4-livepre:q6_b4_m24 / body-default-glm | Layer 0 / kda / dense_layer | 1 | 0.8292 | 0.7249 | 0.3654 | -55.932% / -49.588% |
-| glm53flash-a3-tp16-c4-livepre:q6_b4_m24 / body-default-glm | Steady / kda / dense_layer | 2 | 0.2964 | 0.2961 | 0.3654 | 23.291% / 23.405% |
-| glm53flash-a3-tp16-c4-livepre:q6_b4_m24 / body-default-glm | Steady / mla / moe_layer | 11 | 0.9295 | 0.9276 | 0.7979 | -14.160% / -13.983% |
-| glm53flash-a3-tp16-c4-livepre:q6_b4_m24 / body-default-glm | Steady / kda / moe_layer | 31 | 0.5827 | 0.5821 | 0.7037 | 20.763% / 20.881% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64:q8_b17_m136 / runtime86-v4-kimi | Layer 0 / mla / moe_layer | 1 | 1.6498 | 1.4734 | 1.5525 | -5.894% / 5.374% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64:q8_b17_m136 / runtime86-v4-kimi | Steady / mla / moe_layer | 39 | 1.5477 | 1.4627 | 1.5894 | 2.698% / 8.664% |
 | a3_kimi4_tp8_w4a8_c16:q1_b16_m16 / runtime86-v4-kimi | Layer 0 / kda / dense_layer | 1 | 0.9021 | 0.9359 | 0.5081 | -43.678% / -45.710% |
@@ -472,7 +472,7 @@ The steady P50 column is median of per-layer call P50, unless a separately linke
 
 | Case | Operator / role | Calls | Real / Sim us | Diff us | Absolute ms / Forward | Tier pass |
 |---|---|---:|---:|---:|---:|---|
-| glm53flash-a3-tp16-c16-livepre-q6-b16 / body-default-0e2d144f / `c465214ba3da` | GroupedMatmulSwigluQuant / grouped_gate_up_activation_quant | 1554 | 142.415 / 285.783 | 143.367 | 6.021 | None (reference_only) |
+| glm53flash-a3-tp16-c16-livepre-q6-b16 / body-fixed-grid-0b822d0e / `2db4b7b48698` | GroupedMatmulSwigluQuant / grouped_gate_up_activation_quant | 1554 | 142.415 / 285.783 | 143.367 | 6.021 | None (reference_only) |
 | a3_glm53flash_tp16_aclgraph_c8 / 86c1ee8f / `20dbf57be438` | GroupedMatmulSwigluQuant / grouped_gate_up_activation_quant | 1974 | 226.015 / 307.364 | 81.349 | 3.417 | None (reference_only) |
 | a3_glm53flash_tp16_aclgraph_c64 / 86c1ee8f / `20dbf57be438` | HcPre / attention.hc_pre | 2115 | 66.201 / 140.275 | 74.073 | 3.333 | None (reference_only) |
 | a3_glm53flash_tp16_aclgraph_c64 / 86c1ee8f / `20dbf57be438` | GroupedMatmulSwigluQuant / grouped_gate_up_activation_quant | 1974 | 245.405 / 320.328 | 74.923 | 3.147 | None (reference_only) |
@@ -489,7 +489,7 @@ The steady P50 column is median of per-layer call P50, unless a separately linke
 | a5_glm53flash_tp8_c16_p4k / 86c1ee8f / `20dbf57be438` | GroupedMatmul / expert_down | 1260 | 103.104 / 86.575 | -16.528 | 0.694 | False (compared) |
 | a5_glm53flash_tp8_c16_p8k / 86c1ee8f / `20dbf57be438` | GroupedMatmul / expert_down | 1344 | 102.724 / 86.575 | -16.149 | 0.678 | False (compared) |
 | a5_glm53flash_tp8_c8_p4k / 86c1ee8f / `20dbf57be438` | GroupedMatmul / expert_down | 1260 | 91.186 / 76.439 | -14.748 | 0.619 | False (compared) |
-| glm53flash-a5-tp8-c3 / body-default-0e2d144f / `c465214ba3da` | GroupedMatmul / expert_down | 2226 | 51.524 / 38.227 | -13.297 | 0.558 | False (compared) |
+| glm53flash-a5-tp8-c3 / body-fixed-grid-0b822d0e / `2db4b7b48698` | GroupedMatmul / expert_down | 2226 | 51.524 / 38.227 | -13.297 | 0.558 | False (compared) |
 | a5_glm53flash_tp8_c4_p8k / 86c1ee8f / `20dbf57be438` | GroupedMatmul / expert_down | 462 | 51.435 / 38.227 | -13.208 | 0.555 | False (compared) |
 | a3_glm53flash_tp16_aclgraph_c64 / 86c1ee8f / `20dbf57be438` | MatMulV2 / qkv_a | 517 | 56.384 / 101.486 | 45.102 | 0.496 | False (compared) |
 | a3_glm53flash_tp16_aclgraph_c64 / 86c1ee8f / `20dbf57be438` | MatMulV2 / index_q | 517 | 59.327 / 70.876 | 11.549 | 0.127 | False (compared) |
@@ -498,56 +498,56 @@ The steady P50 column is median of per-layer call P50, unless a separately linke
 | a3_kimi4_tp8_w4a8_c16 / runtime86 / `20dbf57be438` | QuantBatchMatmulV3 / gate_up | 235 | 55.989 / 74.718 | 18.729 | 0.019 | False (compared) |
 | a3_kimi4_tp8_w4a8_c4 / runtime86 / `20dbf57be438` | QuantBatchMatmulV3 / gate_up | 246 | 54.590 / 72.287 | 17.698 | 0.018 | False (compared) |
 | a3_kimi4_tp8_w4a8_c1 / runtime86 / `20dbf57be438` | QuantBatchMatmulV3 / gate_up | 254 | 56.548 / 72.287 | 15.739 | 0.016 | False (compared) |
-| a5_kimi_tp8_e16_bf16_c32_p16k / runtime86 / `20dbf57be438` | MatMulV3 / gate_up | 41 | 59.157 / 52.713 | -6.444 | 0.006 | True (compared) |
-| a5_kimi_tp8_e16_bf16_c32_p4k / runtime86 / `20dbf57be438` | MatMulV3 / gate_up | 46 | 59.094 / 52.713 | -6.381 | 0.006 | True (compared) |
-| a5_kimi_tp8_e16_bf16_c16_p16k / runtime86 / `20dbf57be438` | MatMulV3 / gate_up | 47 | 53.443 / 47.325 | -6.118 | 0.006 | True (compared) |
-| a5_kimi_tp8_e16_bf16_c16_p4k / runtime86 / `20dbf57be438` | MatMulV3 / gate_up | 49 | 53.114 / 47.325 | -5.789 | 0.006 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c32_p16k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / gate_up | 41 | 59.157 / 52.713 | -6.444 | 0.006 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c32_p4k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / gate_up | 46 | 59.094 / 52.713 | -6.381 | 0.006 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c16_p16k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / gate_up | 47 | 53.443 / 47.325 | -6.118 | 0.006 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c16_p4k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / gate_up | 49 | 53.114 / 47.325 | -5.789 | 0.006 | True (compared) |
 | a3_kimi4_tp8_w4a8_c64 / runtime86 / `20dbf57be438` | MatMulV2 / output_gate | 196 | 51.145 / 52.683 | 1.538 | 0.002 | True (compared) |
 
 ## Micro <=50us operators — activity residual priority
 
 | Case | Operator / role | Calls | Real / Sim us | Diff us | Absolute ms / Forward | Tier pass |
 |---|---|---:|---:|---:|---:|---|
+| glm53flash-a3-tp16-c16-livepre-q6-b16 / body-fixed-grid-0b822d0e / `2db4b7b48698` | HcPre / attention.hc_pre | 1665 | 33.367 / 170.607 | 137.240 | 6.176 | None (reference_only) |
+| glm53flash-a3-tp16-c16-livepre-q6-b16 / body-fixed-grid-0b822d0e / `2db4b7b48698` | HcPre / ffn.hc_pre | 1665 | 36.039 / 170.607 | 134.568 | 6.056 | None (reference_only) |
 | a3_glm53flash_tp16_aclgraph_c64 / 86c1ee8f / `20dbf57be438` | QuantBatchMatmulV3 / shared.down | 1974 | 41.694 / 8.888 | -32.806 | 1.378 | False (compared) |
-| glm53flash-a3-tp16-c16-livepre-q6-b16 / body-default-0e2d144f / `c465214ba3da` | HcPre / attention.hc_pre | 1665 | 33.367 / 61.206 | 27.839 | 1.253 | None (reference_only) |
-| a5_kimi_tp8_e16_bf16_c32_p16k / runtime86 / `20dbf57be438` | MatMulV3 / latent_down | 3772 | 26.876 / 14.433 | -12.443 | 1.145 | True (compared) |
-| a5_kimi_tp8_e16_bf16_c32_p4k / runtime86 / `20dbf57be438` | MatMulV3 / latent_down | 4232 | 26.875 / 14.433 | -12.442 | 1.145 | True (compared) |
-| glm53flash-a3-tp16-c16-livepre-q6-b16 / body-default-0e2d144f / `c465214ba3da` | HcPre / ffn.hc_pre | 1665 | 36.039 / 61.206 | 25.167 | 1.133 | None (reference_only) |
-| a5_kimi_tp8_e16_bf16_c16_p16k / runtime86 / `20dbf57be438` | MatMulV3 / latent_down | 4324 | 25.351 / 14.206 | -11.145 | 1.025 | True (compared) |
-| a5_kimi_tp8_e16_bf16_c16_p4k / runtime86 / `20dbf57be438` | MatMulV3 / latent_down | 4508 | 25.319 / 14.206 | -11.113 | 1.022 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c32_p16k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / latent_down | 3772 | 26.876 / 14.433 | -12.443 | 1.145 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c32_p4k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / latent_down | 4232 | 26.875 / 14.433 | -12.442 | 1.145 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c16_p16k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / latent_down | 4324 | 25.351 / 14.206 | -11.145 | 1.025 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c16_p4k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / latent_down | 4508 | 25.319 / 14.206 | -11.113 | 1.022 | True (compared) |
 | a3_glm53flash_tp16_aclgraph_c32 / 86c1ee8f / `20dbf57be438` | QuantBatchMatmulV3 / shared.down | 2058 | 28.641 / 5.000 | -23.641 | 0.993 | False (compared) |
 | a3_glm53flash_tp16_aclgraph_c16 / 86c1ee8f / `20dbf57be438` | HcPre / attention.hc_pre | 2250 | 39.826 / 61.206 | 21.381 | 0.962 | None (reference_only) |
-| a5_kimi_tp8_e16_bf16_c8_p4k / runtime86 / `20dbf57be438` | MatMulV3 / latent_down | 4784 | 24.439 / 14.093 | -10.346 | 0.952 | True (compared) |
-| a5_kimi_tp8_e16_bf16_c8_p16k / runtime86 / `20dbf57be438` | MatMulV3 / latent_down | 4692 | 24.431 / 14.093 | -10.338 | 0.951 | True (compared) |
-| a5_kimi_tp8_e16_bf16_c4_p4k / runtime86 / `20dbf57be438` | MatMulV3 / latent_down | 4876 | 24.291 / 14.093 | -10.198 | 0.938 | True (compared) |
-| a5_kimi_tp8_e16_bf16_c4_p16k / runtime86 / `20dbf57be438` | MatMulV3 / latent_down | 4784 | 24.241 / 14.093 | -10.149 | 0.934 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c8_p4k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / latent_down | 4784 | 24.439 / 14.093 | -10.346 | 0.952 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c8_p16k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / latent_down | 4692 | 24.431 / 14.093 | -10.338 | 0.951 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c4_p4k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / latent_down | 4876 | 24.291 / 14.093 | -10.198 | 0.938 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c4_p16k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / latent_down | 4784 | 24.241 / 14.093 | -10.149 | 0.934 | True (compared) |
 | a3_glm53flash_tp16_aclgraph_c64 / 86c1ee8f / `20dbf57be438` | HcPost / ffn.hc_post_group | 2115 | 47.315 / 26.810 | -20.505 | 0.923 | False (compared) |
 | a3_glm53flash_tp16_aclgraph_c16 / 86c1ee8f / `20dbf57be438` | HcPre / ffn.hc_pre | 2250 | 41.007 / 61.206 | 20.200 | 0.909 | None (reference_only) |
-| a5_kimi_tp8_e16_bf16_c2_p4k / runtime86 / `20dbf57be438` | MatMulV3 / latent_down | 5060 | 23.910 / 14.093 | -9.818 | 0.903 | True (compared) |
-| a5_kimi_tp8_e16_bf16_c2_p16k / runtime86 / `20dbf57be438` | MatMulV3 / latent_down | 4968 | 23.893 / 14.093 | -9.800 | 0.902 | True (compared) |
-| a5_kimi_tp8_e16_bf16_c1_p4k / runtime86 / `20dbf57be438` | MatMulV3 / latent_down | 5428 | 23.858 / 14.093 | -9.765 | 0.898 | True (compared) |
-| a5_kimi_tp8_e16_bf16_c1_p16k / runtime86 / `20dbf57be438` | MatMulV3 / latent_down | 5428 | 23.857 / 14.093 | -9.765 | 0.898 | True (compared) |
-| a5_kimi_tp8_e16_bf16_c32_p16k / runtime86 / `20dbf57be438` | MatMulV3 / latent_up | 3772 | 22.659 / 14.303 | -8.357 | 0.769 | True (compared) |
-| a5_kimi_tp8_e16_bf16_c32_p4k / runtime86 / `20dbf57be438` | MatMulV3 / latent_up | 4232 | 22.651 / 14.303 | -8.348 | 0.768 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c2_p4k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / latent_down | 5060 | 23.910 / 14.093 | -9.818 | 0.903 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c2_p16k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / latent_down | 4968 | 23.893 / 14.093 | -9.800 | 0.902 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c1_p4k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / latent_down | 5428 | 23.858 / 14.093 | -9.765 | 0.898 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c1_p16k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / latent_down | 5428 | 23.857 / 14.093 | -9.765 | 0.898 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c32_p16k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / latent_up | 3772 | 22.659 / 14.303 | -8.357 | 0.769 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c32_p4k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / latent_up | 4232 | 22.651 / 14.303 | -8.348 | 0.768 | True (compared) |
 | a3_glm53flash_tp16_aclgraph_c32 / 86c1ee8f / `20dbf57be438` | HcPost / attention.hc_post_group | 2205 | 30.239 / 13.405 | -16.834 | 0.758 | False (compared) |
 | a3_glm53flash_tp16_aclgraph_c8 / 86c1ee8f / `20dbf57be438` | HcPre / attention.hc_pre | 2115 | 37.137 / 53.874 | 16.738 | 0.753 | None (reference_only) |
 | a3_glm53flash_tp16_aclgraph_c8 / 86c1ee8f / `20dbf57be438` | HcPre / ffn.hc_pre | 2115 | 37.220 / 53.874 | 16.655 | 0.749 | None (reference_only) |
 | a3_glm53flash_tp16_aclgraph_c32 / 86c1ee8f / `20dbf57be438` | MatMulV2 / index_k | 1078 | 8.236 / 40.495 | 32.258 | 0.710 | False (compared) |
-| a5_kimi_tp8_e16_bf16_c16_p4k / runtime86 / `20dbf57be438` | MatMulV3 / latent_up | 4508 | 21.792 / 14.180 | -7.613 | 0.700 | True (compared) |
-| a5_kimi_tp8_e16_bf16_c16_p16k / runtime86 / `20dbf57be438` | MatMulV3 / latent_up | 4324 | 21.790 / 14.180 | -7.610 | 0.700 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c16_p4k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / latent_up | 4508 | 21.792 / 14.180 | -7.613 | 0.700 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c16_p16k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / latent_up | 4324 | 21.790 / 14.180 | -7.610 | 0.700 | True (compared) |
+| glm53flash-a5-tp8-c3 / body-fixed-grid-0b822d0e / `2db4b7b48698` | HcPre / attention.hc_pre | 2385 | 11.753 / 27.199 | 15.446 | 0.695 | None (reference_only) |
 | a3_glm53flash_tp16_aclgraph_c32 / 86c1ee8f / `20dbf57be438` | HcPost / ffn.hc_post_group | 2205 | 28.713 / 13.405 | -15.308 | 0.689 | False (compared) |
+| glm53flash-a5-tp8-c3 / body-fixed-grid-0b822d0e / `2db4b7b48698` | HcPre / ffn.hc_pre | 2385 | 11.905 / 27.199 | 15.293 | 0.688 | None (reference_only) |
 | a3_glm53flash_tp16_aclgraph_c16 / 86c1ee8f / `20dbf57be438` | QuantBatchMatmulV3 / shared.down | 2100 | 20.759 / 5.000 | -15.759 | 0.662 | False (compared) |
 | a3_glm53flash_tp16_aclgraph_c64 / 86c1ee8f / `20dbf57be438` | MatMulV2 / index_k | 1034 | 10.620 / 40.495 | 29.875 | 0.657 | False (compared) |
 | a3_glm53flash_tp16_aclgraph_c16 / 86c1ee8f / `20dbf57be438` | HcPost / attention.hc_post_group | 2250 | 21.017 / 6.703 | -14.314 | 0.644 | True (compared) |
-| a5_kimi_tp8_e16_bf16_c8_p4k / runtime86 / `20dbf57be438` | MatMulV3 / latent_up | 4784 | 21.042 / 14.118 | -6.924 | 0.637 | True (compared) |
-| a5_kimi_tp8_e16_bf16_c8_p16k / runtime86 / `20dbf57be438` | MatMulV3 / latent_up | 4692 | 21.032 / 14.118 | -6.913 | 0.636 | True (compared) |
-| a5_kimi_tp8_e16_bf16_c4_p16k / runtime86 / `20dbf57be438` | MatMulV3 / latent_up | 4784 | 20.956 / 14.118 | -6.838 | 0.629 | True (compared) |
-| a5_kimi_tp8_e16_bf16_c4_p4k / runtime86 / `20dbf57be438` | MatMulV3 / latent_up | 4876 | 20.950 / 14.118 | -6.831 | 0.628 | True (compared) |
-| glm53flash-a3-tp16-c16-livepre-q6-b16 / body-default-0e2d144f / `c465214ba3da` | MatMulV2 / index_k | 814 | 7.501 / 35.375 | 27.873 | 0.613 | False (compared) |
-| a5_kimi_tp8_e16_bf16_c2_p16k / runtime86 / `20dbf57be438` | MatMulV3 / latent_up | 4968 | 20.767 / 14.118 | -6.648 | 0.612 | True (compared) |
-| a5_kimi_tp8_e16_bf16_c2_p4k / runtime86 / `20dbf57be438` | MatMulV3 / latent_up | 5060 | 20.757 / 14.118 | -6.639 | 0.611 | True (compared) |
-| glm53flash-a3-tp16-c16-livepre-q6-b16 / body-default-0e2d144f / `c465214ba3da` | HcPost / attention.hc_post_group | 1665 | 20.206 / 6.703 | -13.504 | 0.608 | True (compared) |
-| glm53flash-a3-tp16-c16-livepre-q6-b16 / body-default-0e2d144f / `c465214ba3da` | HcPost / ffn.hc_post_group | 1665 | 20.082 / 6.703 | -13.379 | 0.602 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c8_p4k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / latent_up | 4784 | 21.042 / 14.118 | -6.924 | 0.637 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c8_p16k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / latent_up | 4692 | 21.032 / 14.118 | -6.913 | 0.636 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c4_p16k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / latent_up | 4784 | 20.956 / 14.118 | -6.838 | 0.629 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c4_p4k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / latent_up | 4876 | 20.950 / 14.118 | -6.831 | 0.628 | True (compared) |
+| glm53flash-a3-tp16-c16-livepre-q6-b16 / body-fixed-grid-0b822d0e / `2db4b7b48698` | MatMulV2 / index_k | 814 | 7.501 / 35.375 | 27.873 | 0.613 | False (compared) |
+| a5_kimi_tp8_e16_bf16_c2_p16k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / latent_up | 4968 | 20.767 / 14.118 | -6.648 | 0.612 | True (compared) |
+| a5_kimi_tp8_e16_bf16_c2_p4k / logical96-full-matrix / `72ba9f7d0726` | MatMulV3 / latent_up | 5060 | 20.757 / 14.118 | -6.639 | 0.611 | True (compared) |
 
 ## Highest unscored activity — coverage gaps, not zero predictions
 
@@ -573,19 +573,19 @@ The steady P50 column is median of per-layer call P50, unless a separately linke
 | a5_glm53flash_tp8_c16_p8k / 86c1ee8f | GroupedMatmulSwigluQuantV2 / unresolved | 1344 | 8.656 | unresolved |
 | a3_glm53flash_tp16_aclgraph_c64 / 86c1ee8f | RecurrentKda / unresolved | 1598 | 8.348 | unresolved |
 | a5_glm53flash_tp8_c8_p4k / 86c1ee8f | GroupedMatmulSwigluQuantV2 / unresolved | 1260 | 7.753 | unresolved |
-| a5_kimi_tp8_e16_bf16_c4_p4k / runtime86 | MatMulV3 / unresolved | 28143 | 7.451 | unresolved |
-| a5_kimi_tp8_e16_bf16_c4_p16k / runtime86 | MatMulV3 / unresolved | 27612 | 7.448 | unresolved |
-| a5_kimi_tp8_e16_bf16_c2_p16k / runtime86 | MatMulV3 / unresolved | 28674 | 7.325 | unresolved |
-| a5_kimi_tp8_e16_bf16_c2_p4k / runtime86 | MatMulV3 / unresolved | 29205 | 7.323 | unresolved |
-| a5_kimi_tp8_e16_bf16_c1_p4k / runtime86 | MatMulV3 / unresolved | 31329 | 7.269 | unresolved |
-| a5_kimi_tp8_e16_bf16_c1_p16k / runtime86 | MatMulV3 / unresolved | 31329 | 7.268 | unresolved |
 | a5_kimi_k3_p32768_c1 / runtime86-context32768-matrix-only | GroupedMatmul / unresolved | 21735 | 6.993 | unresolved |
 | a5_kimi_k3_p32768_c1 / runtime86-context32768-matrix-only | GroupedMatmulSituQuant / grouped_gate_up_situ_quant | 5796 | 6.831 | unresolved |
+| a5_kimi_tp8_e16_bf16_c4_p4k / logical96-full-matrix | MatMulV3 / unresolved | 23267 | 6.745 | unresolved |
+| a5_kimi_tp8_e16_bf16_c4_p16k / logical96-full-matrix | MatMulV3 / unresolved | 22828 | 6.743 | unresolved |
 | a3_glm53flash_tp16_aclgraph_c64 / 86c1ee8f | hcom_allReduce_ / attention_output_communication | 2115 | 6.713 | reference_only |
-| a5_kimi_tp8_e16_bf16_c32_p16k / runtime86 | FusedInferAttentionScore / unresolved | 984 | 6.338 | reference_only |
+| a5_kimi_tp8_e16_bf16_c2_p16k / logical96-full-matrix | MatMulV3 / unresolved | 23706 | 6.640 | unresolved |
+| a5_kimi_tp8_e16_bf16_c2_p4k / logical96-full-matrix | MatMulV3 / unresolved | 24145 | 6.635 | unresolved |
+| a5_kimi_tp8_e16_bf16_c1_p16k / logical96-full-matrix | MatMulV3 / unresolved | 25901 | 6.594 | unresolved |
+| a5_kimi_tp8_e16_bf16_c1_p4k / logical96-full-matrix | MatMulV3 / unresolved | 25901 | 6.593 | unresolved |
+| a5_kimi_tp8_e16_bf16_c32_p16k / logical96-full-matrix | FusedInferAttentionScore / unresolved | 984 | 6.338 | reference_only |
 | a3_glm53flash_tp16_aclgraph_c64 / 86c1ee8f | hcom_allReduce_ / ffn_down_communication | 2115 | 6.083 | unresolved |
 | a5_kimi_k3_p32768_c1 / runtime86-context32768-matrix-only | SituMxQuant / shared.situ_quant | 5796 | 5.994 | unresolved |
-| glm53flash-a3-tp16-c16-livepre-q6-b16 / body-default-0e2d144f | GroupedMatmulSwigluQuant / grouped_gate_up_activation_quant | 1554 | 5.981 | reference_only |
+| glm53flash-a3-tp16-c16-livepre-q6-b16 / body-fixed-grid-0b822d0e | GroupedMatmulSwigluQuant / grouped_gate_up_activation_quant | 1554 | 5.981 | reference_only |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64 / runtime67-refs | SparseFlashMla / unresolved | 840 | 5.957 | unresolved |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4 / runtime67-refs | reduce_scatterAicpuKernel / unresolved | 1920 | 5.643 | unresolved |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8 / runtime67-refs | reduce_scatterAicpuKernel / unresolved | 1160 | 5.633 | unresolved |
@@ -611,14 +611,14 @@ External native references are selected independently by measured source/geometr
 | a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64 / runtime86-baseline / `20dbf57be438` | GroupedMatmul / expert_up / mla / ffn | 3000 | 242.599 / 241.331 / 172.568 | 9.704 / 6.903 | -2.801 | capacity_vs_valid_rows_conditional |
 | a5_qwen38_highconc_c128 / `886c1fa5bd45` | hcom_allReduce_AicpuKernel / linear_reduce / gdn / attention | 1392 | 79.592 / 79.195 / 30.862 | 3.820 / 1.481 | -2.339 | reference_only |
 | a5_qwen38_highconc_c128 / `886c1fa5bd45` | hcom_allReduce_AicpuKernel / tp / gdn / ffn | 1392 | 76.826 / 76.629 / 30.862 | 3.688 / 1.481 | -2.206 | reference_only |
-| a5_kimi_tp8_e16_bf16_c32_p4k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_up / kda / ffn | 4232 | 46.237 / 47.053 / 23.889 | 4.254 / 2.198 | -2.056 | capacity_vs_valid_rows_conditional |
-| a5_kimi_tp8_e16_bf16_c32_p16k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_up / kda / ffn | 3772 | 46.220 / 47.020 / 23.889 | 4.252 / 2.198 | -2.054 | capacity_vs_valid_rows_conditional |
-| a5_kimi_tp8_e16_bf16_c16_p16k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_up / kda / ffn | 4324 | 44.038 / 44.390 / 22.487 | 4.052 / 2.069 | -1.983 | capacity_vs_valid_rows_conditional |
-| a5_kimi_tp8_e16_bf16_c16_p4k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_up / kda / ffn | 4508 | 43.967 / 44.307 / 22.487 | 4.045 / 2.069 | -1.976 | capacity_vs_valid_rows_conditional |
-| a5_kimi_tp8_e16_bf16_c8_p16k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_up / kda / ffn | 4692 | 42.682 / 42.857 / 22.059 | 3.927 / 2.029 | -1.897 | capacity_vs_valid_rows_conditional |
-| a5_kimi_tp8_e16_bf16_c8_p4k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_up / kda / ffn | 4784 | 42.630 / 42.813 / 22.059 | 3.922 / 2.029 | -1.893 | capacity_vs_valid_rows_conditional |
-| a5_kimi_tp8_e16_bf16_c4_p16k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_up / kda / ffn | 4784 | 41.471 / 41.486 / 22.059 | 3.815 / 2.029 | -1.786 | capacity_vs_valid_rows_conditional |
-| a5_kimi_tp8_e16_bf16_c4_p4k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_up / kda / ffn | 4876 | 41.239 / 41.265 / 22.059 | 3.794 / 2.029 | -1.765 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c32_p4k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_up / kda / ffn | 4232 | 46.237 / 47.053 / 23.889 | 4.254 / 2.198 | -2.056 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c32_p16k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_up / kda / ffn | 3772 | 46.220 / 47.020 / 23.889 | 4.252 / 2.198 | -2.054 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c16_p16k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_up / kda / ffn | 4324 | 44.038 / 44.390 / 22.487 | 4.052 / 2.069 | -1.983 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c16_p4k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_up / kda / ffn | 4508 | 43.967 / 44.307 / 22.487 | 4.045 / 2.069 | -1.976 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c8_p16k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_up / kda / ffn | 4692 | 42.682 / 42.857 / 22.059 | 3.927 / 2.029 | -1.897 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c8_p4k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_up / kda / ffn | 4784 | 42.630 / 42.813 / 22.059 | 3.922 / 2.029 | -1.893 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c4_p16k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_up / kda / ffn | 4784 | 41.471 / 41.486 / 22.059 | 3.815 / 2.029 | -1.786 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c4_p4k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_up / kda / ffn | 4876 | 41.239 / 41.265 / 22.059 | 3.794 / 2.029 | -1.765 | capacity_vs_valid_rows_conditional |
 | a5_qwen36_highconc_c4 / `886c1fa5bd45` | hcom_allReduce_ / linear_reduce / gdn / attention | 3504 | 61.908 / 23.244 / 25.931 | 2.972 / 1.245 | -1.727 | reference_only |
 | a5_glm53flash_tp8_c64_p4k / `380cb5516b56` | SparseFlashMla / indexed_attention_batch / layers 3,7,11,15,19,23,27,31,35,39,43 | 341 | 288.254 / 285.492 / 135.791 | 3.171 / 1.494 | -1.677 | whole_batch_indexed_attention_decomposed_reference |
 | a3_glm53flash_tp16_aclgraph_c64 / 86c1ee8f / `20dbf57be438` | GroupedMatmul / expert_down / mla / ffn | 1974 | 120.959 / 120.713 / 160.177 | 5.080 / 6.727 | 1.647 | capacity_vs_valid_rows_conditional |
@@ -643,19 +643,19 @@ External native references are selected independently by measured source/geometr
 | a5_qwen38_highconc_c32 / `886c1fa5bd45` | hcom_allReduce_AicpuKernel / tp / gdn / ffn | 2304 | 34.882 / 34.719 / 15.816 | 1.674 / 0.759 | -0.915 | reference_only |
 | a5_glm53flash_tp8_c64_p4k / `380cb5516b56` | RecurrentKda / kda_recurrent / layers 0,1,2,4,5,6,8,9,10,12,13,14,16,17,18,20,21,22,24,25,26,28,29,30,32,33,34,36,37,38,40,41,42,44 | 1054 | 78.338 / 78.285 / 103.616 | 2.664 / 3.523 | 0.859 | whole_batch_generic_gating_and_recurrent_reference |
 | a5_v41_fp8_tp1_dp8_ep8_c32_p2k / runtime86-baseline / `20dbf57be438` | GroupedMatmul / expert_down / mla / ffn | 4200 | 65.238 / 64.668 / 44.275 | 2.610 / 1.771 | -0.838 | capacity_vs_valid_rows_conditional |
-| a5_kimi_tp8_e16_bf16_c32_p4k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_down / kda / ffn | 4232 | 22.016 / 22.110 / 12.931 | 2.025 / 1.190 | -0.836 | capacity_vs_valid_rows_conditional |
-| a5_kimi_tp8_e16_bf16_c32_p16k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_down / kda / ffn | 3772 | 22.006 / 22.107 / 12.931 | 2.025 / 1.190 | -0.835 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c32_p4k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_down / kda / ffn | 4232 | 22.016 / 22.110 / 12.931 | 2.025 / 1.190 | -0.836 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c32_p16k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_down / kda / ffn | 3772 | 22.006 / 22.107 / 12.931 | 2.025 / 1.190 | -0.835 | capacity_vs_valid_rows_conditional |
 | glm53flash-a5-tp8-c3 / `380cb5516b56` | GroupedMatmulSwigluQuantV2 / grouped_gate_up_activation_quant / layers 4,5,6,8,9,10,12,13,14,16,17,18,20,21,22,24,25,26,28,29,30,32,33,34,36,37,38,40,41,42,44 | 1643 | 98.658 / 98.458 / 72.080 | 3.058 / 2.234 | -0.824 | FP8_MX_expert_gate_up_activation_quant_decomposed_reference |
 | a5_glm53flash_tp8_c4_p8k / `380cb5516b56` | GroupedMatmulSwigluQuantV2 / grouped_gate_up_activation_quant / layers 4,5,6,8,9,10,12,13,14,16,17,18,20,21,22,24,25,26,28,29,30,32,33,34,36,37,38,40,41,42,44 | 341 | 98.439 / 98.184 / 71.998 | 3.052 / 2.232 | -0.820 | FP8_MX_expert_gate_up_activation_quant_decomposed_reference |
-| a5_kimi_tp8_e16_bf16_c16_p4k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_down / kda / ffn | 4508 | 21.325 / 21.385 / 12.501 | 1.962 / 1.150 | -0.812 | capacity_vs_valid_rows_conditional |
-| a5_kimi_tp8_e16_bf16_c16_p16k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_down / kda / ffn | 4324 | 21.305 / 21.374 / 12.501 | 1.960 / 1.150 | -0.810 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c16_p4k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_down / kda / ffn | 4508 | 21.325 / 21.385 / 12.501 | 1.962 / 1.150 | -0.812 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c16_p16k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_down / kda / ffn | 4324 | 21.305 / 21.374 / 12.501 | 1.960 / 1.150 | -0.810 | capacity_vs_valid_rows_conditional |
 | a5_qwen38_highconc_c128 / `886c1fa5bd45` | hcom_allReduce_AicpuKernel / tp_attn / gqa / attention | 464 | 79.629 / 78.483 / 30.862 | 1.274 / 0.494 | -0.780 | reference_only |
-| a5_kimi_tp8_e16_bf16_c8_p4k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_down / kda / ffn | 4784 | 20.594 / 20.584 / 12.286 | 1.895 / 1.130 | -0.764 | capacity_vs_valid_rows_conditional |
-| a5_kimi_tp8_e16_bf16_c8_p16k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_down / kda / ffn | 4692 | 20.570 / 20.564 / 12.286 | 1.892 / 1.130 | -0.762 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c8_p4k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_down / kda / ffn | 4784 | 20.594 / 20.584 / 12.286 | 1.895 / 1.130 | -0.764 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c8_p16k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_down / kda / ffn | 4692 | 20.570 / 20.564 / 12.286 | 1.892 / 1.130 | -0.762 | capacity_vs_valid_rows_conditional |
 | a5_qwen36_highconc_c128 / `886c1fa5bd45` | hcom_allReduce_ / tp / gdn / ffn | 1824 | 64.239 / 64.206 / 48.606 | 3.083 / 2.333 | -0.750 | reference_only |
 | a5_qwen38_highconc_c128 / `886c1fa5bd45` | hcom_allReduce_AicpuKernel / tp / gqa / ffn | 464 | 76.434 / 76.275 / 30.862 | 1.223 / 0.494 | -0.729 | reference_only |
-| a5_kimi_tp8_e16_bf16_c4_p16k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_down / kda / ffn | 4784 | 20.097 / 20.084 / 12.286 | 1.849 / 1.130 | -0.719 | capacity_vs_valid_rows_conditional |
-| a5_kimi_tp8_e16_bf16_c4_p4k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_down / kda / ffn | 4876 | 20.066 / 20.058 / 12.286 | 1.846 / 1.130 | -0.716 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c4_p16k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_down / kda / ffn | 4784 | 20.097 / 20.084 / 12.286 | 1.849 / 1.130 | -0.719 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c4_p4k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_down / kda / ffn | 4876 | 20.066 / 20.058 / 12.286 | 1.846 / 1.130 | -0.716 | capacity_vs_valid_rows_conditional |
 | a5_v41_fp8_tp1_dp8_ep8_c4_p2k / runtime86-baseline / `20dbf57be438` | GroupedMatmul / expert_up / mla / ffn | 6040 | 38.809 / 38.660 / 22.384 | 1.552 / 0.895 | -0.657 | capacity_vs_valid_rows_conditional |
 | a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1 / runtime86-baseline / `20dbf57be438` | GroupedMatmul / expert_up / mla / ffn | 6080 | 38.592 / 38.458 / 22.384 | 1.544 / 0.895 | -0.648 | capacity_vs_valid_rows_conditional |
 | a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8 / runtime86-baseline / `20dbf57be438` | GroupedMatmul / expert_up / mla / ffn | 5800 | 38.541 / 38.378 / 22.384 | 1.542 / 0.895 | -0.646 | capacity_vs_valid_rows_conditional |
@@ -691,13 +691,13 @@ External native references are selected independently by measured source/geometr
 | a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64 / runtime86-baseline / `20dbf57be438` | HcPre / attention.hc_pre / mla / attention | 3000 | 11.719 / 11.552 / 21.524 | 0.469 / 0.861 | 0.392 | partial_base_program_reference_premix_branch_unresolved |
 | a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64 / runtime86-baseline / `20dbf57be438` | MqsmlaKernel___call__ / attention_core / mla / attention | 1350 | 33.893 / 34.158 / 12.624 | 0.610 / 0.227 | -0.383 | source_symbol_to_declared_attention_program |
 | a5_qwen36_highconc_c128 / `886c1fa5bd45` | split_qkv_rmsnorm_mrope_kernel /  / gqa / attention | 608 | 26.844 / 26.806 / 3.148 | 0.429 / 0.050 | -0.379 | reference_only |
-| a5_kimi_tp8_e16_bf16_c2_p16k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_down / kda / ffn | 4968 | 16.222 / 16.216 / 12.286 | 1.492 / 1.130 | -0.362 | capacity_vs_valid_rows_conditional |
-| a5_kimi_tp8_e16_bf16_c2_p4k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_down / kda / ffn | 5060 | 16.222 / 16.211 / 12.286 | 1.492 / 1.130 | -0.362 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c2_p16k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_down / kda / ffn | 4968 | 16.222 / 16.216 / 12.286 | 1.492 / 1.130 | -0.362 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c2_p4k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_down / kda / ffn | 5060 | 16.222 / 16.211 / 12.286 | 1.492 / 1.130 | -0.362 | capacity_vs_valid_rows_conditional |
 | a3_kimi4_tp8_w4a8_c1 / runtime86 / `20dbf57be438` | GroupedMatmul / expert_up / kda / ffn | 762 | 55.722 / 55.499 / 175.598 | 0.167 / 0.527 | 0.360 | capacity_vs_valid_rows_conditional |
 | a3_kimi4_tp8_w4a8_c64 / runtime86 / `20dbf57be438` | GroupedMatmul / expert_up / kda / ffn | 588 | 1095.630 / 1098.018 / 1214.924 | 3.287 / 3.645 | 0.358 | capacity_vs_valid_rows_conditional |
 | a5_qwen38_highconc_c4 / `886c1fa5bd45` | hcom_allReduce_AicpuKernel / linear_reduce / gdn / attention | 2160 | 18.655 / 18.451 / 11.427 | 0.895 / 0.548 | -0.347 | reference_only |
-| a5_kimi_tp8_e16_bf16_c1_p16k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_down / kda / ffn | 5428 | 16.052 / 16.026 / 12.286 | 1.477 / 1.130 | -0.346 | capacity_vs_valid_rows_conditional |
-| a5_kimi_tp8_e16_bf16_c1_p4k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_down / kda / ffn | 5428 | 16.045 / 16.026 / 12.286 | 1.476 / 1.130 | -0.346 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c1_p16k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_down / kda / ffn | 5428 | 16.052 / 16.026 / 12.286 | 1.477 / 1.130 | -0.346 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c1_p4k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_down / kda / ffn | 5428 | 16.045 / 16.026 / 12.286 | 1.476 / 1.130 | -0.346 | capacity_vs_valid_rows_conditional |
 | a5_qwen38_highconc_c32 / `886c1fa5bd45` | hcom_allReduce_AicpuKernel / tp_attn / gqa / attention | 768 | 36.991 / 36.346 / 15.816 | 0.592 / 0.253 | -0.339 | reference_only |
 | a5_qwen38_highconc_c128 / `886c1fa5bd45` | _layer_norm_fwd_1pass_kernel_npu /  / gdn / attention | 1392 | 8.186 / 8.182 / 1.312 | 0.393 / 0.063 | -0.330 | reference_only |
 | a5_v41_fp8_tp1_dp8_ep8_c32_p2k / runtime86-baseline / `20dbf57be438` | HcPre / ffn.hc_pre / mla / ffn | 4200 | 11.183 / 11.022 / 19.016 | 0.447 / 0.761 | 0.313 | partial_base_program_reference_premix_branch_unresolved |
@@ -758,19 +758,19 @@ External native references are selected independently by measured source/geometr
 | a5_qwen36_highconc_c4 / `886c1fa5bd45` | l2norm_fwd_kernel2 /  / gdn / attention | 7008 | 1.817 / 1.841 / 1.312 | 0.174 / 0.126 | -0.049 | reference_only |
 | a5_qwen36_highconc_c4 / `886c1fa5bd45` | split_qkv_rmsnorm_mrope_kernel /  / gqa / attention | 1168 | 5.634 / 5.654 / 2.640 | 0.090 / 0.042 | -0.048 | reference_only |
 | a5_glm53flash_tp8_c8_p4k / `380cb5516b56` | RecurrentKda / kda_recurrent / layers 0,1,2,4,5,6,8,9,10,12,13,14,16,17,18,20,21,22,24,25,26,28,29,30,32,33,34,36,37,38,40,41,42,44 | 1020 | 16.455 / 16.289 / 15.248 | 0.559 / 0.518 | -0.041 | whole_batch_generic_gating_and_recurrent_reference |
-| a5_kimi_tp8_e16_bf16_c2_p4k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_up / kda / ffn | 5060 | 22.426 / 22.406 / 22.059 | 2.063 / 2.029 | -0.034 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c2_p4k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_up / kda / ffn | 5060 | 22.426 / 22.406 / 22.059 | 2.063 / 2.029 | -0.034 | capacity_vs_valid_rows_conditional |
 | a5_qwen36_highconc_c40 / `886c1fa5bd45` | hcom_allReduce_ / tp / gqa / ffn | 864 | 30.577 / 30.497 / 32.514 | 0.489 / 0.520 | 0.031 | reference_only |
 | a5_qwen36_highconc_c4 / `886c1fa5bd45` | hcom_allReduce_ / tp_attn / gqa / attention | 1168 | 24.240 / 23.529 / 25.931 | 0.388 / 0.415 | 0.027 | reference_only |
-| a5_kimi_tp8_e16_bf16_c2_p16k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_up / kda / ffn | 4968 | 22.335 / 22.320 / 22.059 | 2.055 / 2.029 | -0.025 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c2_p16k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_up / kda / ffn | 4968 | 22.335 / 22.320 / 22.059 | 2.055 / 2.029 | -0.025 | capacity_vs_valid_rows_conditional |
 | a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8 / runtime86-baseline / `20dbf57be438` | MqsmlaKernel___call__ / attention_core / mla / attention | 290 | 11.092 / 11.153 / 1.578 | 0.022 / 0.003 | -0.019 | source_symbol_to_declared_attention_program |
 | a5_v41_fp8_tp1_dp8_ep8_c16_p2k / runtime86-baseline / `20dbf57be438` | MqsmlaKernel___call__ / attention_core / mla / attention | 258 | 11.257 / 11.309 / 3.156 | 0.023 / 0.006 | -0.016 | source_symbol_to_declared_attention_program |
 | a3_kimi4_tp8_w4a8_c16 / runtime86 / `20dbf57be438` | GroupedMatmul / expert_down / kda / ffn | 705 | 168.962 / 167.496 / 174.251 | 0.507 / 0.523 | 0.016 | capacity_vs_valid_rows_conditional |
 | a5_v41_fp8_tp1_dp8_ep8_c32_p2k / runtime86-baseline / `20dbf57be438` | MqsmlaKernel___call__ / attention_core / mla / attention | 210 | 13.400 / 12.342 / 6.312 | 0.027 / 0.013 | -0.014 | source_symbol_to_declared_attention_program |
 | a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1 / runtime86-baseline / `20dbf57be438` | MqsmlaKernel___call__ / attention_core / mla / attention | 304 | 8.170 / 8.110 / 1.578 | 0.016 / 0.003 | -0.013 | source_symbol_to_declared_attention_program |
-| a5_kimi_tp8_e16_bf16_c1_p4k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_up / kda / ffn | 5428 | 21.918 / 21.895 / 22.059 | 2.016 / 2.029 | 0.013 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c1_p4k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_up / kda / ffn | 5428 | 21.918 / 21.895 / 22.059 | 2.016 / 2.029 | 0.013 | capacity_vs_valid_rows_conditional |
 | a5_v41_fp8_tp1_dp8_ep8_c4_p2k / runtime86-baseline / `20dbf57be438` | MqsmlaKernel___call__ / attention_core / mla / attention | 302 | 7.891 / 7.845 / 1.578 | 0.016 / 0.003 | -0.013 | source_symbol_to_declared_attention_program |
 | a5_v41_fp8_tp1_dp8_ep8_c128_p2k / runtime86-baseline / `20dbf57be438` | MqsmlaKernel___call__ / attention_core / mla / attention | 146 | 19.397 / 12.614 / 25.248 | 0.039 / 0.050 | 0.012 | source_symbol_to_declared_attention_program |
-| a5_kimi_tp8_e16_bf16_c1_p16k / runtime86 / `20dbf57be438` | GroupedMatmul / expert_up / kda / ffn | 5428 | 21.957 / 21.948 / 22.059 | 2.020 / 2.029 | 0.009 | capacity_vs_valid_rows_conditional |
+| a5_kimi_tp8_e16_bf16_c1_p16k / logical96-full-matrix / `72ba9f7d0726` | GroupedMatmul / expert_up / kda / ffn | 5428 | 21.957 / 21.948 / 22.059 | 2.020 / 2.029 | 0.009 | capacity_vs_valid_rows_conditional |
 | a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64 / runtime86-baseline / `20dbf57be438` | MqsmlaKernel___call__ / attention_core / mla / attention | 150 | 16.005 / 12.507 / 12.624 | 0.032 / 0.025 | -0.007 | source_symbol_to_declared_attention_program |
 | a5_qwen36_highconc_c128 / `886c1fa5bd45` | DynamicQuantV2 /  / gdn / attention | 1824 | 7.494 / 7.449 / — | 0.360 / — | — | boundary_unresolved |
 | a5_qwen36_highconc_c128 / `886c1fa5bd45` | AddRmsNormDynamicQuant /  / gdn / ffn | 1824 | 15.340 / 15.292 / — | 0.736 / — | — | boundary_unresolved |
@@ -838,6 +838,11 @@ External native references are selected independently by measured source/geometr
 - [decode-forward-qwen-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-default/decode-forward-qwen-replay.json), SHA256 `c378087d659fbac1b9f7b1d58efb9d54cbf97f5fdb3a19ab69288bf8b07fa1c6`
 - [decode-forward-glm-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-default/decode-forward-glm-replay.json), SHA256 `5c87f299c6b84adfaf6828e8b61f61fe3e273d88f453b0ebe95dd87cd4d1f093`
 - [decode-forward-v4_kimi-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-default/decode-forward-v4_kimi-replay.json), SHA256 `0ece8f6cc91da98705d0b4577140d8fa5033d51aeca88b9d2deb797d9161213e`
+- [decode-forward-p4k-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-logical96/decode-forward-p4k-replay.json), SHA256 `9f171a13f6a59cfd758c46f964ca36ea9984a7fadd0dcf0c12adc8149cb23e1d`
+- [decode-forward-p16k-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-logical96/decode-forward-p16k-replay.json), SHA256 `fe489f097ec0f7fd39bbe14c078501ea15d6a9c0b548be9e4b62df99954774cf`
+- [decode-forward-qwen-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-fixed-grid/decode-forward-qwen-replay.json), SHA256 `ae90641e330e9ab8d8afe7322124825f35a0d74ce1e3ed67df24fcb0c3e4990a`
+- [decode-forward-glm-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-fixed-grid/decode-forward-glm-replay.json), SHA256 `60fce49c84f782b4858db1981a7198481b5c54564704bb8ef3d4ec56d1580d0b`
+- [decode-forward-v4_kimi-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-fixed-grid/decode-forward-v4_kimi-replay.json), SHA256 `ca1d29ac82aef23c533d42ad851e924f3140dd9b5c759d8ce56c480b89bcbd68`
 - [body-operator-family-scoreboard.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators/body-operator-family-scoreboard.json), SHA256 `7126d4a275a5f005537517386747e366322a7bed7365763e21cb3a66319b13fc`
 - [body-operator-family-scoreboard.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators-5935c87b/body-operator-family-scoreboard.json), SHA256 `4f475bce99de8a8908c8fa745ea1ab9cabb8c570ef3b3ec5ef7c9d5d7f29265e`
 - [body-operator-family-scoreboard.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-family-scoreboard.json), SHA256 `53e528b2254c3ca55b4eb9e1afa5fc4e46f89ed6ccbee3059639dbbaed10175d`
@@ -857,6 +862,9 @@ External native references are selected independently by measured source/geometr
 - [body-operator-family-scoreboard.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-p32k-operators-86c1ee8f/body-operator-family-scoreboard.json), SHA256 `85cfaad1a2e0a795471c27de7301b1dda18bbf8409b529d6011d636da928daf2`
 - [body-operator-family-scoreboard.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-default/glm-low-concurrency-operators/body-operator-family-scoreboard.json), SHA256 `3c866c0eea14329da75ba70c09f743980e3374ed3a1a2f68d0699c2ee3d0837b`
 - [body-operator-family-scoreboard.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-default/glm-a3-livepre-operators/body-operator-family-scoreboard.json), SHA256 `2e1488d70330a4c337de7229878345b649220d80ff32a2c663a2436ef8ba0b1b`
+- [body-operator-family-scoreboard.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-logical96-operators/full-matrix-canonical/body-operator-family-scoreboard.json), SHA256 `4c97e7d99d17285aa07d8e4c1b0224b36aa9690a0cf7211347e87f2299e66918`
+- [body-operator-family-scoreboard.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-fixed-grid/glm-low-concurrency-operators/body-operator-family-scoreboard.json), SHA256 `c76aad000e201800e8675dc4cec71f87c4a5b6a3cc81a78c11513dd2ed7fa369`
+- [body-operator-family-scoreboard.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-fixed-grid/glm-a3-livepre-operators/body-operator-family-scoreboard.json), SHA256 `3ab0f547ae14192513d0ca57bf8141c2a488684eb93acf64302267f43a6e1c46`
 - [body-communication-references.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency/body-communication-references.json), SHA256 `dd98c1ba7677ea8d5ef9ea1670c69937a4f8fa2e24ec096c7392c3440ace0caa`
 - [glm-native-reference-scoreboard.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-native-references-c2261d63/glm-native-reference-scoreboard.json), SHA256 `9f0532c8440ca21ada6e591666b1eee28b7962d0cddc556f26b814211445d60a`
 
@@ -874,6 +882,8 @@ Additional coverage/source evidence (not silently promoted into body or operator
 - [kimi-c32-projection-bounded-evidence.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/kimi-c32-projection-bounded-evidence.json), SHA256 `bce98d4671c7b96b8c784872bd7964fc32f7d37cfa9e7ecb57aa94100d12ee74`
 - [body-runtime-delta.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-default/body-runtime-delta.json), SHA256 `3b60065c34d0ee7ae54182118ec020712f8e38f35a50a62cc986332fa7cebeaa`
 - [remaining-family-gap-ledger.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/remaining-family-gap-ledger.json), SHA256 `a2eed876b4e91beba82550ac21e734bcee764fd5f81444631e71333ca7a3621a`
+- [body-runtime-delta.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-body-fixed-grid/body-runtime-delta.json), SHA256 `b7b2c24bd90a80439d555217ff8e717426f5a9f91e10ce3927e2efa44fa5d56f`
+- [body-runtime-delta.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-logical96/body-runtime-delta.json), SHA256 `559a5050e945a87d8ac2a33371b2b8120d9eac2090a98f353bb5a60b96cfa9cb`
 
 - Rows retain their own source/runtime/geometry; independently produced receipts are not merged into a synthetic run.
 - Per-forward kernel activity residual ranks work to investigate; overlap prevents interpreting its sum as body wall-clock error.
