@@ -16,6 +16,7 @@ from collections import Counter, defaultdict
 from dataclasses import asdict, dataclass, is_dataclass
 from math import prod
 
+from .accounting import union_length
 from .events import ProfilerUsageError
 from .forward_spans import _statistics
 from .normalized import shapes
@@ -154,10 +155,21 @@ def _scope(rows, kind, identity, *, layer=None, plan=None, successor=None):
     # its suffix can be removed. AICPU completions inside the layer remain real
     # measured work; HCCL device task completions are never shortened.
     excluded = sum(max(0, row.event.end_ns - max(last, row.event.start_ns)) for row in tails)
+    intervals = [(row.event.start_ns, row.event.end_ns) for row in ordinary]
+    activity_ns = union_length(intervals)
+    per_stream = defaultdict(list)
+    for row in ordinary:
+        per_stream[row.event.stream_id].append((row.event.start_ns, row.event.end_ns))
     return {"scope_id": identity, "kind": kind, "layer_id": layer,
             "rank_id": ordinary[0].event.rank_id, "device_id": ordinary[0].event.device_id,
             "replica": None, "stage": None, "status": "measured",
             "start_ns": first, "end_ns": last, "span_ms": (last - first) / 1e6,
+            "device_activity_union_ms": activity_ns / 1e6,
+            "internal_uncovered_gap_ms": (last - first - activity_ns) / 1e6,
+            "activity_basis": "same_device_non_scheduler_interval_union_including_real_hcom",
+            "activity_excluded_scheduler_event_count": len(rows) - len(ordinary),
+            "per_stream_activity_ms": [{"stream_id": stream, "activity_union_ms": union_length(values) / 1e6}
+                                       for stream, values in per_stream.items()],
             "event_count": len(rows), "attention": plan.get("attention") if plan else None,
             "span_start_basis": "first_retained_device_event_start",
             "span_end_basis": "last_retained_device_event_end",
@@ -271,6 +283,9 @@ def _align(rows, config, ordinal):
         "forward_id": f"auto:{ordinal}", "phase": "decode", "status": "measured",
         "basis": "structure_guided_topology_alignment",
         "body_forward_span_ms": body["span_ms"], "geometry": geometry,
+        "body_activity_ms": body["device_activity_union_ms"],
+        "body_internal_gap_ms": body["internal_uncovered_gap_ms"],
+        "per_stream_activity_ms": body["per_stream_activity_ms"],
         "start_ns": body["start_ns"], "end_ns": body["end_ns"],
         "rank_id": body["rank_id"], "device_id": body["device_id"],
         "head_start_ns": head["start_ns"], "head_end_ns": head["end_ns"],
@@ -314,20 +329,35 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
                         geometry["sequences_per_replica"], geometry["tokens_per_sequence"])
         geometry_group = geometry_groups.setdefault(geometry_key, {
             "geometry": geometry, "rank_id": result["rank_id"], "device_id": result["device_id"],
-            "forward_ids": [], "values": [], "layers": {}, "stages": {}})
+            "forward_ids": [], "values": [], "activity": [], "gaps": [],
+            "streams": defaultdict(list), "layers": {}, "stages": {}})
         geometry_group["forward_ids"].append(result["forward_id"])
         geometry_group["values"].append(result["body_forward_span_ms"])
+        geometry_group["activity"].append(result["body_activity_ms"])
+        geometry_group["gaps"].append(result["body_internal_gap_ms"])
+        for stream in result["per_stream_activity_ms"]:
+            geometry_group["streams"][stream["stream_id"]].append(stream["activity_union_ms"])
         for stage in result["stages"]:
             if stage["kind"] == "target_body":
                 continue
             key = (stage["kind"], stage["layer_id"], stage["rank_id"], stage["device_id"])
             values = per_layer if stage["layer_id"] is not None else stages
-            group = values.setdefault(key, {"values": [], "samples": []})
-            group["values"].append(stage["span_ms"])
+            group = values.setdefault(key, scope_values())
+            append_scope(group, stage)
             if len(group["samples"]) < max_samples_per_layer:
                 group["samples"].append({"forward_id": result["forward_id"], **stage})
             collection = geometry_group["layers" if stage["layer_id"] is not None else "stages"]
-            collection.setdefault(key, {"values": [], "samples": []})["values"].append(stage["span_ms"])
+            append_scope(collection.setdefault(key, scope_values()), stage)
+
+    def scope_values():
+        return {"values": [], "activity": [], "gaps": [], "streams": defaultdict(list), "samples": []}
+
+    def append_scope(group, stage):
+        group["values"].append(stage["span_ms"])
+        group["activity"].append(stage["device_activity_union_ms"])
+        group["gaps"].append(stage["internal_uncovered_gap_ms"])
+        for stream in stage["per_stream_activity_ms"]:
+            group["streams"][stream["stream_id"]].append(stream["activity_union_ms"])
 
     def anomaly(value):
         reasons[value["reason"]] += 1
@@ -389,8 +419,15 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
     def groups(values):
         return [{"kind": key[0], "layer_id": key[1], "rank_id": key[2], "device_id": key[3],
                  "replica": None, "stage": None, "stats": _statistics(group["values"]),
+                 "activity_ms_stats": _statistics(group["activity"]),
+                 "internal_gap_ms_stats": _statistics(group["gaps"]),
+                 "per_stream_activity_ms": stream_stats(group["streams"]),
                  "sample_count": len(group["samples"]), "total_count": len(group["values"]),
                  "samples": group["samples"]} for key, group in values.items()]
+
+    def stream_stats(streams):
+        return [{"stream_id": stream, "stats": _statistics(values),
+                 "additive_across_streams": False} for stream, values in streams.items()]
 
     geometries = [forward["geometry"] for forward in forwards]
     geometry = geometries[0] if geometries and all(value == geometries[0] for value in geometries) else None
@@ -404,6 +441,8 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
         "geometry": geometry, "query_rows": geometry["query_rows"] if geometry else None,
         "model_declaration": {key: config.get(key) for key in ("name", "layers", "hidden_size", "vocab_size", "tp")},
         "body_forward_span_ms": _statistics([row["body_forward_span_ms"] for row in forwards]),
+        "body_activity_ms": _statistics([row["body_activity_ms"] for row in forwards]),
+        "body_internal_gap_ms": _statistics([row["body_internal_gap_ms"] for row in forwards]),
         "forwards": forwards, "per_layer_ms": groups(per_layer), "stage_span_ms": groups(stages),
         "auxiliary_forward_span_ms": _statistics(auxiliary_values),
         "auxiliary_candidates": auxiliaries,
@@ -412,6 +451,9 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
                              "device_id": group["device_id"], "forward_ids": group["forward_ids"],
                              "representative_forwards": [],
                              "body_forward_span_ms": _statistics(group["values"]),
+                             "body_activity_ms": _statistics(group["activity"]),
+                             "body_internal_gap_ms": _statistics(group["gaps"]),
+                             "per_stream_activity_ms": stream_stats(group["streams"]),
                              "per_layer_ms": groups(group["layers"]),
                              "stage_span_ms": groups(group["stages"])}
                             for group in geometry_groups.values()],
@@ -420,5 +462,7 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
                         "Decode phase uses recurrent/short-paged-query evidence; no server-phase marker is asserted.",
                         "AICPU scheduler suffixes beyond real device completion are excluded conditionally.",
                         "Internal device communication and gaps remain; stage spans are not additive.",
+                        "Activity is the same-device union excluding typed AICPU scheduling wrappers; real HCOM is retained.",
+                        "Internal uncovered gaps are not attributed to Host; per-stream activity cannot be summed across streams.",
                         "Cache tensor capacity does not reveal active context or prefix-cache hit rate."],
     }

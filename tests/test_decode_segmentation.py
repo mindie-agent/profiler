@@ -87,6 +87,14 @@ def test_bounded_details_preserve_all_geometry_and_layer_statistics(capture):
                for row in report["per_layer_ms"])
     assert report["geometry_groups"][0]["body_forward_span_ms"]["count"] == 2
     assert all(row["stats"]["count"] == 2 for row in report["geometry_groups"][0]["per_layer_ms"])
+    group = report["geometry_groups"][0]
+    assert group["body_activity_ms"]["count"] == group["body_internal_gap_ms"]["count"] == 2
+    assert group["body_activity_ms"]["mean"] + group["body_internal_gap_ms"]["mean"] == pytest.approx(
+        group["body_forward_span_ms"]["mean"])
+    for layer in group["per_layer_ms"]:
+        assert layer["activity_ms_stats"]["count"] == layer["internal_gap_ms_stats"]["count"] == 2
+        assert layer["activity_ms_stats"]["mean"] + layer["internal_gap_ms_stats"]["mean"] == pytest.approx(
+            layer["stats"]["mean"])
 
 
 def test_gemma_parameter_preparation_belongs_to_following_norm_layer(capture):
@@ -159,3 +167,26 @@ def test_actual_a5_hccl_launch_suffix_crosses_norm_but_real_hcom_is_retained():
     unbounded = _scope(source, "dense_layer", "no_successor")
     assert unbounded["end_ns"] == max(row.event.end_ns for row in source)
     assert unbounded["excluded_tail_wait_activity_ms"] == 0
+
+
+def test_device_activity_union_deduplicates_hcom_and_preserves_internal_gap(capture):
+    events, _ = capture
+    hcom = next(event for event in events if event.op_type == "hcom_allReduce_")
+    compute = next(event for event in events if event.op_type == "QuantBatchMatmulV3")
+    scheduler = next(event for event in events if event.op_type == "allreduceAicpuKernel")
+    # Controlled intervals on actual exported event schemas. The communication
+    # summary duplicates a device task; overlapping streams never add latency.
+    selected = [replace(hcom, start_ns=100, end_ns=200, stream_id="comm"),
+                replace(hcom, start_ns=100, end_ns=200, stream_id="N/A"),
+                replace(compute, start_ns=150, end_ns=250, stream_id="compute"),
+                replace(compute, start_ns=300, end_ns=400, stream_id="compute"),
+                replace(scheduler, start_ns=100, end_ns=400, stream_id="scheduler")]
+    rows = [_Row(event, shapes(event.input_shapes), shapes(event.output_shapes)) for event in selected]
+    scope = _scope(rows, "dense_layer", "overlap_and_gap")
+    assert scope["span_ms"] == 300 / 1e6
+    assert scope["device_activity_union_ms"] == 250 / 1e6
+    assert scope["internal_uncovered_gap_ms"] == 50 / 1e6
+    assert scope["activity_excluded_scheduler_event_count"] == 1
+    streams = {row["stream_id"]: row["activity_union_ms"] for row in scope["per_stream_activity_ms"]}
+    assert streams == {"comm": 100 / 1e6, "N/A": 100 / 1e6, "compute": 200 / 1e6}
+    assert sum(streams.values()) > scope["device_activity_union_ms"]
