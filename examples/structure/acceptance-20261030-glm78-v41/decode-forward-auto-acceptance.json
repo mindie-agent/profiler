@@ -1,0 +1,595 @@
+{
+  "schema_version": "mindie-decode-auto-acceptance/1",
+  "status": "completed",
+  "not_new_live_collection": true,
+  "basis": "structure_guided_topology_alignment",
+  "manifest": {
+    "path": "examples/structure/acceptance-20261030-glm78-v41/decode-forward-auto-cases.json",
+    "sha256": "6bca38da75cb4ac348c7c6790ad7836dd845491083848d30391f81485c878273"
+  },
+  "segmentation_runtime": {
+    "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+    "sha256": "994f155b74fe59aaa4e9ccfcaa05e3a55eddd9606e2752816d593ff1d8643a7a"
+  },
+  "cases": [
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot30_c2",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+        "size_bytes": 61482469,
+        "mtime_ns": 1793302496483652627,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "5c13263d015f971a90b790b1c94aba384b402a1e15ed6417dc6794b0c3b40ab5"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm78-v41/auto-forward-a3_glm53_w4a8_tp16_tpot30_c2.json",
+      "report_sha256": "b45348df4c76d6f581468dd7a32765b0f279a5aac1c985de6faf6e2c64173806",
+      "model_declaration": {
+        "name": "glm-5.3",
+        "layers": 78,
+        "hidden_size": 6144,
+        "vocab_size": 154880,
+        "tp": 16
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-glm-projection-contracts-20261030/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot30_c2.json",
+        "sha256": "e555a4428633b264671b748f9cd0dcd04342845fcc0636aaba8178d606312b04"
+      },
+      "body_forward_span_ms": {
+        "count": 48,
+        "mean": 57.596383645833335,
+        "p50": 57.483128,
+        "p90": 58.994579,
+        "min": 56.158442,
+        "max": 59.463088
+      },
+      "body_activity_ms": {
+        "count": 48,
+        "mean": 54.9904985,
+        "p50": 54.9171075,
+        "p90": 56.376469,
+        "min": 53.543372,
+        "max": 56.869481
+      },
+      "body_internal_gap_ms": {
+        "count": 48,
+        "mean": 2.605885145833333,
+        "p50": 2.610069,
+        "p90": 2.624023,
+        "min": 2.528886,
+        "max": 2.645939
+      },
+      "geometry": null,
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 6,
+            "sequences_per_replica": 1,
+            "tokens_per_sequence": 6,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 4,
+            "mean": 57.12463625,
+            "p50": 57.2811745,
+            "p90": 57.499588,
+            "min": 56.436608,
+            "max": 57.499588
+          },
+          "body_activity_ms": {
+            "count": 4,
+            "mean": 54.59034275,
+            "p50": 54.751333,
+            "p90": 54.964196,
+            "min": 53.894509,
+            "max": 54.964196
+          },
+          "body_internal_gap_ms": {
+            "count": 4,
+            "mean": 2.5342935,
+            "p50": 2.5330945,
+            "p90": 2.542099,
+            "min": 2.528886,
+            "max": 2.542099
+          }
+        },
+        {
+          "geometry": {
+            "query_rows": 12,
+            "sequences_per_replica": 2,
+            "tokens_per_sequence": 6,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 44,
+            "mean": 57.639269772727275,
+            "p50": 57.56154,
+            "p90": 58.994579,
+            "min": 56.158442,
+            "max": 59.463088
+          },
+          "body_activity_ms": {
+            "count": 44,
+            "mean": 55.02687629545454,
+            "p50": 54.9491995,
+            "p90": 56.376469,
+            "min": 53.543372,
+            "max": 56.869481
+          },
+          "body_internal_gap_ms": {
+            "count": 44,
+            "mean": 2.612393477272727,
+            "p50": 2.6108445,
+            "p90": 2.624023,
+            "min": 2.593607,
+            "max": 2.645939
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 174238,
+        "positive_events": 174238,
+        "vocabulary_head_occurrences": 318,
+        "rejected_segment_events": 17860,
+        "auxiliary_candidate_segment_events": 34077,
+        "complete_body_segment_events": 122298,
+        "trailing_segment_events": 3
+      },
+      "anomaly_counts": {
+        "decode_query_geometry_unresolved": 3,
+        "auxiliary_or_partial_layer_sequence": 266,
+        "ordered_layer_topology_mismatch": 1,
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 266,
+        "mean": 1.398755887218045,
+        "p50": 0.804616,
+        "p90": 0.928378,
+        "min": 0.734254,
+        "max": 60.160762
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 5.946,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot50_c2",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+        "size_bytes": 68070780,
+        "mtime_ns": 1793302496541966032,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "1f91ecac9a99c7ab0687fb1175db3ceefa39c6d31cca0bc4e4a4edb859a9ad13"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm78-v41/auto-forward-a3_glm53_w4a8_tp16_tpot50_c2.json",
+      "report_sha256": "768b6962c94d2c21e4328166531ecaf20c5e63c45c666f4ec56d1ae93e937107",
+      "model_declaration": {
+        "name": "glm-5.3",
+        "layers": 78,
+        "hidden_size": 6144,
+        "vocab_size": 154880,
+        "tp": 16
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-glm-projection-contracts-20261030/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot50_c2.json",
+        "sha256": "4b1b2260e0b9d0da00261e5fad5875b52dc3d94dd79aaf96555329c1d9c4521e"
+      },
+      "body_forward_span_ms": {
+        "count": 53,
+        "mean": 57.79947560377359,
+        "p50": 57.596251,
+        "p90": 59.07384,
+        "min": 56.314125,
+        "max": 61.739433
+      },
+      "body_activity_ms": {
+        "count": 53,
+        "mean": 55.19860233962264,
+        "p50": 54.979544,
+        "p90": 56.458523,
+        "min": 53.685342,
+        "max": 59.119066
+      },
+      "body_internal_gap_ms": {
+        "count": 53,
+        "mean": 2.6008732641509433,
+        "p50": 2.61173,
+        "p90": 2.623137,
+        "min": 2.524568,
+        "max": 2.644461
+      },
+      "geometry": null,
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 6,
+            "sequences_per_replica": 1,
+            "tokens_per_sequence": 6,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 9,
+            "mean": 57.713255333333336,
+            "p50": 57.52421,
+            "p90": 58.619531,
+            "min": 57.000979,
+            "max": 58.619531
+          },
+          "body_activity_ms": {
+            "count": 9,
+            "mean": 55.17869322222222,
+            "p50": 54.991837,
+            "p90": 56.073915,
+            "min": 54.462446,
+            "max": 56.073915
+          },
+          "body_internal_gap_ms": {
+            "count": 9,
+            "mean": 2.534562111111111,
+            "p50": 2.533096,
+            "p90": 2.545616,
+            "min": 2.524568,
+            "max": 2.545616
+          }
+        },
+        {
+          "geometry": {
+            "query_rows": 12,
+            "sequences_per_replica": 2,
+            "tokens_per_sequence": 6,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 44,
+            "mean": 57.817111568181815,
+            "p50": 57.597031,
+            "p90": 59.091621,
+            "min": 56.314125,
+            "max": 61.739433
+          },
+          "body_activity_ms": {
+            "count": 44,
+            "mean": 55.20267465909091,
+            "p50": 54.979168,
+            "p90": 56.470814,
+            "min": 53.685342,
+            "max": 59.119066
+          },
+          "body_internal_gap_ms": {
+            "count": 44,
+            "mean": 2.614436909090909,
+            "p50": 2.613532,
+            "p90": 2.624952,
+            "min": 2.589656,
+            "max": 2.644461
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 192825,
+        "positive_events": 192825,
+        "vocabulary_head_occurrences": 348,
+        "rejected_segment_events": 22371,
+        "auxiliary_candidate_segment_events": 35434,
+        "complete_body_segment_events": 135017,
+        "trailing_segment_events": 3
+      },
+      "anomaly_counts": {
+        "decode_query_geometry_unresolved": 3,
+        "auxiliary_or_partial_layer_sequence": 290,
+        "ordered_layer_topology_mismatch": 2,
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 290,
+        "mean": 1.1266465137931034,
+        "p50": 0.803696,
+        "p90": 0.927458,
+        "min": 0.733195,
+        "max": 8.03634
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 6.629,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot88_c8",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot88_c8_20261030/kernel_details.csv",
+        "size_bytes": 75781277,
+        "mtime_ns": 1793302496606117183,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "59f5666d6709695fad7e1f8502a656de699a200932199f2344c44aaa07662ee8"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm78-v41/auto-forward-a3_glm53_w4a8_tp16_tpot88_c8.json",
+      "report_sha256": "e96481877a55c9fdc6919a18cd8829b63caec3893e90badcce1bfdd7dee98d7b",
+      "model_declaration": {
+        "name": "glm-5.3",
+        "layers": 78,
+        "hidden_size": 6144,
+        "vocab_size": 154880,
+        "tp": 16
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-glm-projection-contracts-20261030/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot88_c8.json",
+        "sha256": "5f745effaa4d40b208a4d04c3ecd43bfd38a13c67b556dd5250e0452c10ae13e"
+      },
+      "body_forward_span_ms": {
+        "count": 61,
+        "mean": 67.49786888524591,
+        "p50": 69.446428,
+        "p90": 69.765654,
+        "min": 56.456848,
+        "max": 70.623391
+      },
+      "body_activity_ms": {
+        "count": 61,
+        "mean": 64.90560493442624,
+        "p50": 66.871654,
+        "p90": 67.189609,
+        "min": 53.929684,
+        "max": 68.060138
+      },
+      "body_internal_gap_ms": {
+        "count": 61,
+        "mean": 2.5922639508196723,
+        "p50": 2.582608,
+        "p90": 2.643365,
+        "min": 2.524805,
+        "max": 2.724956
+      },
+      "geometry": null,
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 6,
+            "sequences_per_replica": 1,
+            "tokens_per_sequence": 6,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 4,
+            "mean": 56.950323,
+            "p50": 56.9828385,
+            "p90": 57.378767,
+            "min": 56.456848,
+            "max": 57.378767
+          },
+          "body_activity_ms": {
+            "count": 4,
+            "mean": 54.41639275,
+            "p50": 54.453398500000006,
+            "p90": 54.82909,
+            "min": 53.929684,
+            "max": 54.82909
+          },
+          "body_internal_gap_ms": {
+            "count": 4,
+            "mean": 2.53393025,
+            "p50": 2.5306195000000002,
+            "p90": 2.549677,
+            "min": 2.524805,
+            "max": 2.549677
+          }
+        },
+        {
+          "geometry": {
+            "query_rows": 48,
+            "sequences_per_replica": 8,
+            "tokens_per_sequence": 6,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 49,
+            "mean": 69.55629785714285,
+            "p50": 69.488848,
+            "p90": 69.830375,
+            "min": 69.123061,
+            "max": 70.623391
+          },
+          "body_activity_ms": {
+            "count": 49,
+            "mean": 66.97032404081632,
+            "p50": 66.908956,
+            "p90": 67.243651,
+            "min": 66.544565,
+            "max": 68.060138
+          },
+          "body_internal_gap_ms": {
+            "count": 49,
+            "mean": 2.5859738163265305,
+            "p50": 2.580076,
+            "p90": 2.618056,
+            "min": 2.556233,
+            "max": 2.708189
+          }
+        },
+        {
+          "geometry": {
+            "query_rows": 36,
+            "sequences_per_replica": 6,
+            "tokens_per_sequence": 6,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 2,
+            "mean": 68.63274100000001,
+            "p50": 68.63274100000001,
+            "p90": 68.639131,
+            "min": 68.626351,
+            "max": 68.639131
+          },
+          "body_activity_ms": {
+            "count": 2,
+            "mean": 65.9966255,
+            "p50": 65.9966255,
+            "p90": 66.010265,
+            "min": 65.982986,
+            "max": 66.010265
+          },
+          "body_internal_gap_ms": {
+            "count": 2,
+            "mean": 2.6361155,
+            "p50": 2.6361155,
+            "p90": 2.643365,
+            "min": 2.628866,
+            "max": 2.643365
+          }
+        },
+        {
+          "geometry": {
+            "query_rows": 24,
+            "sequences_per_replica": 4,
+            "tokens_per_sequence": 6,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 1,
+            "mean": 57.387626,
+            "p50": 57.387626,
+            "p90": 57.387626,
+            "min": 57.387626,
+            "max": 57.387626
+          },
+          "body_activity_ms": {
+            "count": 1,
+            "mean": 54.748359,
+            "p50": 54.748359,
+            "p90": 54.748359,
+            "min": 54.748359,
+            "max": 54.748359
+          },
+          "body_internal_gap_ms": {
+            "count": 1,
+            "mean": 2.639267,
+            "p50": 2.639267,
+            "p90": 2.639267,
+            "min": 2.639267,
+            "max": 2.639267
+          }
+        },
+        {
+          "geometry": {
+            "query_rows": 18,
+            "sequences_per_replica": 3,
+            "tokens_per_sequence": 6,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 2,
+            "mean": 58.058189999999996,
+            "p50": 58.058189999999996,
+            "p90": 58.239184,
+            "min": 57.877196,
+            "max": 58.239184
+          },
+          "body_activity_ms": {
+            "count": 2,
+            "mean": 55.387721,
+            "p50": 55.387721,
+            "p90": 55.545117,
+            "min": 55.230325,
+            "max": 55.545117
+          },
+          "body_internal_gap_ms": {
+            "count": 2,
+            "mean": 2.6704689999999998,
+            "p50": 2.6704689999999998,
+            "p90": 2.694067,
+            "min": 2.646871,
+            "max": 2.694067
+          }
+        },
+        {
+          "geometry": {
+            "query_rows": 12,
+            "sequences_per_replica": 2,
+            "tokens_per_sequence": 6,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 3,
+            "mean": 56.84687566666667,
+            "p50": 56.895876,
+            "p90": 57.002119,
+            "min": 56.642632,
+            "max": 57.002119
+          },
+          "body_activity_ms": {
+            "count": 3,
+            "mean": 54.17113333333333,
+            "p50": 54.245706,
+            "p90": 54.277163,
+            "min": 53.990531,
+            "max": 54.277163
+          },
+          "body_internal_gap_ms": {
+            "count": 3,
+            "mean": 2.6757423333333334,
+            "p50": 2.652101,
+            "p90": 2.724956,
+            "min": 2.65017,
+            "max": 2.724956
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 214404,
+        "positive_events": 214404,
+        "vocabulary_head_occurrences": 396,
+        "rejected_segment_events": 20250,
+        "auxiliary_candidate_segment_events": 42183,
+        "complete_body_segment_events": 151967,
+        "trailing_segment_events": 4
+      },
+      "anomaly_counts": {
+        "decode_query_geometry_unresolved": 4,
+        "auxiliary_or_partial_layer_sequence": 331,
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 331,
+        "mean": 1.81894701510574,
+        "p50": 0.953759,
+        "p90": 1.288065,
+        "min": 0.737374,
+        "max": 70.272744
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 7.462,
+      "reused_extraction": null
+    }
+  ],
+  "case_count": 3,
+  "total_complete_forwards": 162,
+  "source_positive_events": 581467,
+  "elapsed_seconds": 20.079,
+  "maximum_resident_set_size_raw": 80822272,
+  "runtime_sources_unchanged": true,
+  "source_scans_in_this_execution": 3,
+  "reused_source_extractions": 0,
+  "reused_extraction_elapsed_seconds": 0
+}
