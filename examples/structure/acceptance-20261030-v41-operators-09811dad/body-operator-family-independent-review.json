@@ -1,22 +1,47 @@
 {
   "schema_version": "mindie-body-operator-independent-review/1",
   "status": "passed",
-  "checks": 781,
+  "checks": 4842,
   "failures": [],
-  "scoreboard_sha256": "aaaa97d5505c5cc8d6b4d44decae3d3ab0074e973204896ae47f2aa42f2a9d7b",
-  "steady_layer_pooled_sha256": null,
-  "source_count": 1,
-  "forward_count": 152,
+  "scoreboard_sha256": "53e528b2254c3ca55b4eb9e1afa5fc4e46f89ed6ccbee3059639dbbaed10175d",
+  "steady_layer_pooled_sha256": "a75ce393bbc09dcf09fbe01419638825699ebcb0db9f2ef3fcbca389f887a1c8",
+  "source_count": 6,
+  "forward_count": 757,
   "comparison_status_counts": {
-    "compared": 18
+    "compared": 108
   },
   "accuracy_by_tier": {
     "absolute_15us": {
-      "compared": 18,
-      "passed": 18
+      "compared": 108,
+      "passed": 108
     }
   },
   "cases": [
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c16_p2k / matrix-extension",
+      "passed": 18,
+      "compared": 18
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c32_p2k / matrix-extension",
+      "passed": 18,
+      "compared": 18
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c4_p2k / matrix-extension",
+      "passed": 18,
+      "compared": 18
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8 / v41-dp8",
+      "passed": 18,
+      "compared": 18
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64 / v41-dp8",
+      "passed": 18,
+      "compared": 18
+    },
     {
       "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1 / v41-dp8",
       "passed": 18,
@@ -26,5 +51,5 @@
   "method": "independent stdlib histogram/count/identity arithmetic; no profiler or Sim import",
   "raw_capture_reads": 0,
   "prediction_executions": 0,
-  "script_sha256": "a78c05e391fda8e90dde248aee25f2f84a4c70d5472a42c1a0b44889306c9b78"
+  "script_sha256": "e452efebfb53ccff46be16279ef795aedd163b05de0b34c4da02620b56710c77"
 }

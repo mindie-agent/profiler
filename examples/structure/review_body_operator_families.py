@@ -118,12 +118,19 @@ pooled={'cases':[]} if args.skip_pooled else read(BASE/'steady-layer-pooled.json
 for case in pooled['cases']:
  verify_identity(case['extraction_identity'],case['case_id']+':pooled_source')
  actual=read(case['extraction_identity']['path']);prior=read(actual['body_acceptance_identity']['path'])
- prior_layers={row['layer_id']:row['stats'] for row in prior['per_layer_ms']}
+ geometries=[group for group in prior['geometry_groups'] if all(group['geometry'].get(key)==case['geometry'].get(key)
+             for key in ('query_rows','tokens_per_sequence','sequences_per_replica'))]
+ eq(len(geometries),1,case['case_id']+':pooled_exact_geometry')
+ layer_rows=geometries[0]['per_layer_ms']
+ prior_layers={row['layer_id']:row['stats'] for row in layer_rows}
+ attention_by_layer={row['layer_id']:row['samples'][0]['attention'] for row in prior['per_layer_ms'] if row['samples']}
  for group in case['groups']:
   label=case['case_id']+':pooled:'+str(group['attention_kind'])
   verify_stats(group['stats'],group['duration_ns_counter'],1e6,label)
   eq(group['stats']['count'],len(group['layer_ids'])*case['forward_count'],label+':population')
-  eq(len(group['layer_ids']),63 if group['attention_kind'] is None else 47 if group['attention_kind']=='gdn' else 16,label+':layer_count')
+  expected_ids=sorted(row['layer_id'] for row in layer_rows if row['layer_id']!=0
+                     and (group['attention_kind'] is None or attention_by_layer[row['layer_id']]==group['attention_kind']))
+  eq(group['layer_ids'],expected_ids,label+':declared_geometry_layer_population')
   check(0 not in group['layer_ids'],label+':exclude_layer0')
   layers=[prior_layers[layer_id] for layer_id in group['layer_ids']]
   count=sum(layer['count'] for layer in layers)

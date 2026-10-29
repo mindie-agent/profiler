@@ -30,6 +30,64 @@
       "partially_read_source": "a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8",
       "partial_source_outputs_saved": false,
       "partial_source_rows_read": null
-    }
+    },
+    "successful_source_passes": [
+      {
+        "case_id": "a5_v41_fp8_tp1_dp8_ep8_c16_p2k",
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_c16_p2k-matrix-extension.actual.json",
+          "sha256": "26fb9664ec7aabcb0261d5375dc9d5974b4109b83c501173587e39087f02bb13",
+          "size_bytes": 2392744
+        }
+      },
+      {
+        "case_id": "a5_v41_fp8_tp1_dp8_ep8_c32_p2k",
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_c32_p2k-matrix-extension.actual.json",
+          "sha256": "2473a4fd93f8d0aaee75a473f99b603eaa987dd1b780eac4673b4cfad18cc0fd",
+          "size_bytes": 2350913
+        }
+      },
+      {
+        "case_id": "a5_v41_fp8_tp1_dp8_ep8_c4_p2k",
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_c4_p2k-matrix-extension.actual.json",
+          "sha256": "6466b706d43be8a00df89a4502f3dacdd46f2650b6ced697b743dc97ef6d82f4",
+          "size_bytes": 2435472
+        }
+      },
+      {
+        "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8",
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8-v41-dp8.actual.json",
+          "sha256": "0150875fae46728125a70bf80220635f792b5669fea7926c003ef68bfa1aac69",
+          "size_bytes": 2444252
+        }
+      },
+      {
+        "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64",
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-v41-dp8.actual.json",
+          "sha256": "40aa392d165e490ee550607e157af8fd07d8c5f5317d21a3ce82caaf8822b5b5",
+          "size_bytes": 2146216
+        }
+      },
+      {
+        "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1",
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1-v41-dp8.actual.json",
+          "sha256": "7216605d23da66e6b91e752ea3bf8415d262551d5c638c5c7bc1d875f4d9e20b",
+          "size_bytes": 2454386
+        }
+      }
+    ],
+    "successful_complete_bodies": 757,
+    "successful_source_elapsed_seconds": 391.413,
+    "maximum_resident_set_size_bytes": 437305344,
+    "profiler_reference_commits": [
+      "8de7807",
+      "5f4422e"
+    ],
+    "runtime_identity_policy": "Each actual artifact preserves the exact Sim/profiler source SHA map used by its successful pass. Final strict predictions reuse only matching case, graph and fixed Sim identities."
   }
 }
