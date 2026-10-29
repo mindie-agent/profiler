@@ -408,9 +408,20 @@ def test_accuracy_refresh_preserves_real_metrics_and_updates_verified_artifact_h
     original_artifacts = dict(summary["artifacts"])
     (tmp_path / name).write_text(json.dumps(summary))
     receipt_path = tmp_path / "fusion-cohort-validation.json"
+    # This successfully predicted declaration remains usable when a different
+    # declaration in the live replay has timed out. Project its actual result;
+    # never promote the status of the enclosing failed replay.
+    assert summary["comparison"]["status"] == "completed"
+    assert all(row["status"] in {"compared", "reference_only"}
+               for window in comparison["windows"] for row in window["cohorts"])
+    reference = {**reference, "summary_identity": identity(tmp_path / name)}
     receipt_path.write_text(json.dumps({
-        "status": historical["status"],
-        "captures": [{"capture_key": capture["capture_key"], "reports": [reference]}],
+        "status": summary["comparison"]["status"],
+        "captures": [{**capture, "reports": [reference]}],
+        "declaration_variant_count": 1,
+        "comparison_cohort_status_counts": dict(Counter(
+            row["status"] for window in comparison["windows"] for row in window["cohorts"])),
+        "projection_basis": "completed_declaration_subset_of_retained_replay",
     }))
     original_receipt = receipt_path.read_bytes()
     refresh.refresh_accuracy(
@@ -437,3 +448,43 @@ def test_accuracy_refresh_preserves_real_metrics_and_updates_verified_artifact_h
     assert validation["variant_count"] == 1
     assert validation["original_metrics_unchanged"] is True
     assert validation["raw_capture_reads"] == validation["prediction_executions"] == 0
+
+
+def test_real_fia_timeout_is_visible_in_partial_reports_and_never_scored(reporting, tmp_path):
+    large = importlib.import_module("report_large_cohort_errors")
+    fixture = json.loads((HISTORICAL.parent / "prediction-timeout-cohorts.json").read_text())
+    mapping, comparison, summary = (fixture[key] for key in ("mapping", "comparison", "summary"))
+    table = reporting.family_table(mapping, comparison)
+    failed = next(row for window in comparison["windows"] for row in window["cohorts"]
+                  if row["status"] == "prediction_failed")
+    assert [row["timeout_seconds"] for row in failed["prediction_failure"]["attempts"]] == [120, 300]
+
+    def write(name, value):
+        path = tmp_path / name
+        path.write_text(json.dumps(value, separators=(",", ":")) + "\n")
+        return {"file": path.name, "sha256": sha256(path.read_bytes()).hexdigest(),
+                "size_bytes": path.stat().st_size}
+
+    prefix = "fusion-cohort-timeout-projection"
+    summary["artifacts"] = {kind: write(prefix + "." + kind + ".json", value)
+                            for kind, value in (("mapping", mapping), ("comparison", comparison),
+                                                ("families", table))}
+    identity = write(prefix + ".json", summary)
+    captures = [{"capture_key": summary["capture_key"], "source_identity": summary["source_identity"],
+                 "reports": [{"report": identity["file"], "summary_identity": identity}]}]
+    receipt = {**fixture["report_receipt"], "captures": captures}
+    write("fusion-cohort-validation.json", receipt)
+    reporting.write_family_overview(SimpleNamespace(output_dir=tmp_path, compare_existing=False), captures)
+    reporting.write_full_replay_summary(tmp_path, receipt)
+    result = large.build_report(tmp_path, "observed_activity")
+    assert result["status"] == "partial"
+    assert result["totals_across_variants"]["cohort_status_counts"] == {"compared": 1, "prediction_failed": 1}
+    assert sum(row["cohort_count"] for row in result["accuracy_summary_across_variants"].values()) == 1
+    assert failed["cohort_id"] not in {row["cohort_id"] for row in result["cohorts"]}
+    failure, = result["prediction_failures"]
+    assert failure["observed_event_count"] == 17 and failure["accuracy_pass"] is None
+    assert len(failure["failure"]["attempts"]) == 2
+    assert "partial historical replay" in (tmp_path / "cohort-full-family-replay.md").read_text()
+    assert "Partial prediction coverage" in (tmp_path / "fusion-cohort-replay-top-errors.md").read_text()
+    assert "Report status: **partial**" in large._markdown(result)
+    assert json.loads((tmp_path / "fusion-cohort-validation.json").read_text())["status"] == "failed"

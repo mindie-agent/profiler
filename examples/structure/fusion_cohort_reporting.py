@@ -253,12 +253,15 @@ def _family_index(summary, table, identity):
 
 def write_family_overview(args, captures):
     variants, sections, summaries = [], [], {tier: Counter() for tier in TIERS}
+    statuses = Counter()
     for capture in captures:
         for report in capture["reports"]:
             summary_path = args.output_dir / report["report"]
             summary = _read(summary_path)
             family_path = summary_path.with_suffix(".families.json")
             table = _read(family_path)
+            for family in table["families"]:
+                statuses.update(family["cohort_status_counts"])
             variants.append(_family_index(summary, table, {
                 "file": family_path.name, "sha256": _hash(family_path)}))
             for tier, counts in table["accuracy_summary"].items():
@@ -296,6 +299,10 @@ def write_family_overview(args, captures):
         total.update(counts)
     lines.append(f"| All scored | {total['cohort_count']} | "
                  f"{total['passed_cohort_count']} | {total['failed_cohort_count']} |")
+    if statuses.get("prediction_failed"):
+        lines.extend(["", f"**Partial prediction coverage: {statuses['prediction_failed']} "
+                      "cohort predictions failed and remain outside accuracy denominators.** "
+                      "The full replay receipt retains their failure and retry records."])
     body_lines, body_identity = body_scoreboard(args.output_dir)
     lines.extend([*body_lines, "", *sections])
     suffix = "comparison" if args.compare_existing else "replay"
@@ -308,6 +315,8 @@ def write_family_overview(args, captures):
         "variant_totals_are_not_independent_captures": True,
         "not_new_live_collection": True, "occurrence_binding_implied": False,
         "body_forward_scoreboard": body_identity,
+        "status": "partial" if statuses.get("prediction_failed") else "completed",
+        "comparison_cohort_status_counts": dict(statuses),
     }
     (args.output_dir / f"fusion-cohort-{suffix}-families.json").write_text(
         json.dumps(overview, separators=(",", ":"), allow_nan=False) + "\n")
@@ -316,7 +325,7 @@ def write_family_overview(args, captures):
 
 
 def write_full_replay_summary(output_dir, receipt):
-    """Build the global scoreboard from the same completed replay artifacts."""
+    """Build the global scoreboard from one verified saved replay generation."""
     expected_variants = []
     expected_tiers = {tier: Counter() for tier in TIERS}
     for capture in receipt["captures"]:
@@ -357,7 +366,7 @@ def write_full_replay_summary(output_dir, receipt):
         raise ValueError("full_replay_summary_compared_denominator_mismatch")
     lines = [
         "# Complete Family And Physical-Cohort Replay", "",
-        f"This completed historical replay uses **{receipt['distinct_captured_sources']} "
+        f"This {'completed' if receipt['status'] == 'completed' else 'partial'} historical replay uses **{receipt['distinct_captured_sources']} "
         f"complete A3/A5 captures and {receipt['unique_capture_event_count']:,} "
         f"positive-duration events**, with {receipt['declaration_variant_count']} variants "
         f"and {receipt['raw_parsed_capture_scans']} serial capture scans. "
@@ -365,6 +374,11 @@ def write_full_replay_summary(output_dir, receipt):
         "Every valid tensor/physical-work cohort enters comparison. There is no operator-type "
         "allowlist. Different declarations reuse the same captures; their counts below are "
         "conditional comparisons, not independent hardware trials.", "",
+        f"Prediction status: **{receipt['status']}**; "
+        f"{statuses.get('compared', 0)} compared, {statuses.get('reference_only', 0)} reference, "
+        f"{statuses.get('prediction_failed', 0)} prediction-failed cohorts. "
+        "Prediction failures remain outside the accuracy denominator; recorded timeout attempts "
+        "remain in the full replay receipt.", "",
         "## Global Accuracy", "",
         "| Observed complete-event mean | Criterion | Passed / compared cohorts | Failed |",
         "| --- | --- | ---: | ---: |",

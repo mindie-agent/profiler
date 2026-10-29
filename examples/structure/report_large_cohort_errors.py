@@ -1,8 +1,8 @@
 """Explain failed large-call cohorts using verified, saved replay evidence.
 
 [Role] Preserve descriptors and measurement/prediction boundaries for triage.
-[Invariants] Only completed full replays are accepted. All referenced artifacts
-  are hash-checked. Cohort/variant totals are not unique capture or model latency.
+[Invariants] Complete capture scans are required; failed predictions stay visibly
+  unscored. All artifacts are hash-checked. Variant totals are not model latency.
   Missing model coverage stays unknown; no occurrence or dispatch is inferred.
 [Timeouts & Locks] Finite metadata files, each at most 32 MiB; no subprocesses.
 [Side-Effect Policy] Writes two derived reports; no raw scans or sim execution.
@@ -135,6 +135,9 @@ def _markdown(report):
         "cohorts; this table shows the first 30.", "",
         f"Receipt SHA256: `{report['validation']['sha256']}`.",
         f"Script SHA256: `{report['script']['sha256']}`.", "",
+        f"Report status: **{report['status']}**. "
+        f"{totals.get('prediction_failed_cohort_count', 0)} prediction-failed cohorts are unscored; "
+        "the receipt and JSON preserve their failure/retry records.", "",
         "Each observed call is one captured native profiler event. The prediction boundary is "
         "reported separately. Contract positions and stored tensor shapes/dtypes are shown verbatim; "
         "excluded fields remain subject to contract_scope in JSON.",
@@ -199,11 +202,14 @@ def _markdown(report):
 def build_report(output_dir, sort_by):
     receipt_path = output_dir / "fusion-cohort-validation.json"
     receipt_identity, receipt = _identity(receipt_path), _read(receipt_path)
-    if (receipt["status"] != "completed" or receipt.get("comparison_only")
+    partial = receipt["status"] == "failed" and bool(
+        receipt.get("comparison_cohort_status_counts", {}).get("prediction_failed"))
+    if ((receipt["status"] != "completed" and not partial) or receipt.get("comparison_only")
             or not receipt["runtime_sources_unchanged"] or not receipt["memory_budget_passed"]
-            or receipt["failures"] or receipt["comparison_failures"]):
-        raise ValueError("large_call_report_requires_successful_full_replay")
+            or receipt["failures"] or (receipt["comparison_failures"] and not partial)):
+        raise ValueError("large_call_report_requires_complete_capture_and_recorded_prediction_results")
     cases, rows, inputs, seen = [], [], [], set()
+    prediction_failures = []
     statuses, references = Counter(), {}
     accuracy = {tier: Counter() for tier in ("relative_15pct", "absolute_15us")}
     for capture in receipt["captures"]:
@@ -217,12 +223,16 @@ def build_report(output_dir, sort_by):
                 raise ValueError(f"summary_generation_mismatch:{summary_path}")
             if (summary["capture_key"] != capture["capture_key"]
                     or summary["source_identity"] != capture["source_identity"]
-                    or summary["comparison"]["status"] != "completed"):
+                    or summary["comparison"]["status"] not in {"completed", "failed"}):
                 raise ValueError(f"summary_receipt_mismatch:{summary_path}")
             for artifact in summary["artifacts"].values():
                 if _identity(output_dir / artifact["file"]) != artifact:
                     raise ValueError(f"artifact_identity_mismatch:{artifact['file']}")
             comparison = _read(output_dir / summary["artifacts"]["comparison"]["file"])
+            failed_count = sum(row["status"] == "prediction_failed"
+                               for window in comparison["windows"] for row in window["cohorts"])
+            if (summary["comparison"]["status"] == "failed") != bool(failed_count):
+                raise ValueError(f"comparison_failure_population_mismatch:{summary_path}")
             if comparison["graph_id"] != summary["graph_id"]:
                 raise ValueError(f"comparison_graph_mismatch:{summary_path}")
             cases.append({
@@ -234,6 +244,14 @@ def build_report(output_dir, sort_by):
             for window in comparison["windows"]:
                 for row in window["cohorts"]:
                     statuses[row["status"]] += 1
+                    if row["status"] == "prediction_failed":
+                        prediction_failures.append({
+                            "declaration_key": summary["declaration_key"], "cohort_id": row["cohort_id"],
+                            "native_operator_type": row["native_operator_type"],
+                            "observed_event_count": row["observed"]["event_count"],
+                            "reason": row["reason"], "failure": row["prediction_failure"],
+                            "accuracy_pass": None,
+                        })
                     if row["status"] == "compared":
                         counts = accuracy[row["accuracy_tier"]]
                         counts["cohort_count"] += 1
@@ -253,6 +271,8 @@ def build_report(output_dir, sort_by):
                         rows.append(_record(summary, window, row))
     if len(cases) != receipt["declaration_variant_count"]:
         raise ValueError("replay_variant_count_mismatch")
+    if dict(statuses) != receipt["comparison_cohort_status_counts"]:
+        raise ValueError("replay_cohort_status_count_mismatch")
     # Recheck metadata identities before writing so an in-progress replay cannot
     # produce a report assembled from different artifact generations.
     for record in inputs:
@@ -268,7 +288,7 @@ def build_report(output_dir, sort_by):
     rows.sort(key=lambda row: (-row[sort_field], row["declaration_key"],
                               row["variant"], row["cohort_id"]))
     return {
-        "schema_version": "mindie-large-cohort-errors/1", "status": "completed",
+        "schema_version": "mindie-large-cohort-errors/1", "status": "partial" if partial else "completed",
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "selection": {"status": "compared", "accuracy_tier": "relative_15pct",
                       "accuracy_pass": False, "observed_mean_us_gt": 50},
@@ -283,11 +303,13 @@ def build_report(output_dir, sort_by):
         "accuracy_summary_across_variants": accuracy,
         "totals_across_variants": {
             "variant_count": len(cases), "cohort_status_counts": dict(statuses),
+            "prediction_failed_cohort_count": len(prediction_failures),
             "failed_large_cohort_count": len(rows),
             "failed_large_event_count": sum(row["observed"]["event_count"] for row in rows),
             "reference_cohort_count": sum(row["cohort_count"] for row in references.values()),
             "reference_event_count": sum(row["event_count"] for row in references.values())},
         "reference_by_reason": references, "cases": cases, "cohorts": rows,
+        "prediction_failures": prediction_failures,
     }
 
 
