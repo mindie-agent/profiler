@@ -1,0 +1,139 @@
+{
+  "schema_version": "mindie-independent-steady-pool-review/1",
+  "source": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency/steady-layer-pooled.json",
+    "sha256": "5e293aa87252c9bcde19a5a6004d7f63ecdc61b5c548129d48dad3e8830d7f06"
+  },
+  "checks": 234,
+  "failures": [],
+  "status": "passed",
+  "basis": "independent Counter order-statistics + prior complete layer summary moments; no raw source rescan",
+  "rows": [
+    {
+      "case_id": "a5_qwen36_highconc_c40",
+      "attention_group": "all",
+      "count": 3402,
+      "pooled_p50_ms": 0.30614,
+      "median_of_layer_call_p50_ms": 0.30657
+    },
+    {
+      "case_id": "a5_qwen36_highconc_c40",
+      "attention_group": "gdn",
+      "count": 2538,
+      "pooled_p50_ms": 0.30766150000000003,
+      "median_of_layer_call_p50_ms": 0.307554
+    },
+    {
+      "case_id": "a5_qwen36_highconc_c40",
+      "attention_group": "gqa",
+      "count": 864,
+      "pooled_p50_ms": 0.289581,
+      "median_of_layer_call_p50_ms": 0.2896375
+    },
+    {
+      "case_id": "a5_qwen36_highconc_c128",
+      "attention_group": "all",
+      "count": 2394,
+      "pooled_p50_ms": 0.4990615,
+      "median_of_layer_call_p50_ms": 0.49960550000000004
+    },
+    {
+      "case_id": "a5_qwen36_highconc_c128",
+      "attention_group": "gdn",
+      "count": 1786,
+      "pooled_p50_ms": 0.499981,
+      "median_of_layer_call_p50_ms": 0.5000815000000001
+    },
+    {
+      "case_id": "a5_qwen36_highconc_c128",
+      "attention_group": "gqa",
+      "count": 608,
+      "pooled_p50_ms": 0.4886645,
+      "median_of_layer_call_p50_ms": 0.4882795
+    },
+    {
+      "case_id": "a5_qwen36_highconc_c4",
+      "attention_group": "all",
+      "count": 4599,
+      "pooled_p50_ms": 0.177736,
+      "median_of_layer_call_p50_ms": 0.177573
+    },
+    {
+      "case_id": "a5_qwen36_highconc_c4",
+      "attention_group": "gdn",
+      "count": 3431,
+      "pooled_p50_ms": 0.177161,
+      "median_of_layer_call_p50_ms": 0.17705
+    },
+    {
+      "case_id": "a5_qwen36_highconc_c4",
+      "attention_group": "gqa",
+      "count": 1168,
+      "pooled_p50_ms": 0.18261149999999998,
+      "median_of_layer_call_p50_ms": 0.18260500000000002
+    },
+    {
+      "case_id": "a5_qwen38_highconc_c32",
+      "attention_group": "all",
+      "count": 3024,
+      "pooled_p50_ms": 0.3782695,
+      "median_of_layer_call_p50_ms": 0.378495
+    },
+    {
+      "case_id": "a5_qwen38_highconc_c32",
+      "attention_group": "gdn",
+      "count": 2256,
+      "pooled_p50_ms": 0.3813125,
+      "median_of_layer_call_p50_ms": 0.38132049999999995
+    },
+    {
+      "case_id": "a5_qwen38_highconc_c32",
+      "attention_group": "gqa",
+      "count": 768,
+      "pooled_p50_ms": 0.273906,
+      "median_of_layer_call_p50_ms": 0.273753
+    },
+    {
+      "case_id": "a5_qwen38_highconc_c128",
+      "attention_group": "all",
+      "count": 1827,
+      "pooled_p50_ms": 0.76041,
+      "median_of_layer_call_p50_ms": 0.760662
+    },
+    {
+      "case_id": "a5_qwen38_highconc_c128",
+      "attention_group": "gdn",
+      "count": 1363,
+      "pooled_p50_ms": 0.761669,
+      "median_of_layer_call_p50_ms": 0.761792
+    },
+    {
+      "case_id": "a5_qwen38_highconc_c128",
+      "attention_group": "gqa",
+      "count": 464,
+      "pooled_p50_ms": 0.5664735000000001,
+      "median_of_layer_call_p50_ms": 0.5664659999999999
+    },
+    {
+      "case_id": "a5_qwen38_highconc_c4",
+      "attention_group": "all",
+      "count": 2835,
+      "pooled_p50_ms": 0.206745,
+      "median_of_layer_call_p50_ms": 0.207114
+    },
+    {
+      "case_id": "a5_qwen38_highconc_c4",
+      "attention_group": "gdn",
+      "count": 2115,
+      "pooled_p50_ms": 0.20749,
+      "median_of_layer_call_p50_ms": 0.207576
+    },
+    {
+      "case_id": "a5_qwen38_highconc_c4",
+      "attention_group": "gqa",
+      "count": 720,
+      "pooled_p50_ms": 0.181596,
+      "median_of_layer_call_p50_ms": 0.181647
+    }
+  ]
+}
