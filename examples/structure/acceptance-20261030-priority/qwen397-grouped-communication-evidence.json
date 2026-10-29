@@ -1,0 +1,862 @@
+{
+  "schema_version": "mindie-grouped-moe-work-evidence/1",
+  "source_identity": {
+    "path": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/kernel_details.csv",
+    "size_bytes": 17680559,
+    "mtime_ns": 1793299567000000000,
+    "schema_version": "kernel_details_csv_46col",
+    "sha256": "5478ef37efc67c6d1c6227608d935a639c2c4285214a26f08a4d42250c12a1d0"
+  },
+  "case_identity": {
+    "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new17/qwen35-397b-a3-tp16-c136.json",
+    "sha256": "db38775bbd863fb8867a189b390c8919c26fd7f243c49d20c6029e96e56136bb"
+  },
+  "body_report_identity": {
+    "path": "examples/structure/acceptance-20261030-expanded/auto-forward-qwen35-397b-a3-tp16-c136.json",
+    "sha256": "6494094f99353a1432520e220b118dda9fcc5ce7a76758b67ed2625a780de4b1"
+  },
+  "runtime_identity": {
+    "package_path": "/Users/maoxx241/code/sim-rewrite-20261027/mindie_sim",
+    "version": "0.8.0",
+    "package_sha256": "b79e1539e4db91ed6748c84291d9205535cdcf02befa726db8d3503836c7c1f6",
+    "file_count": 227,
+    "algorithm": "sha256(sorted relative-path to file-sha256 JSON)",
+    "sources_unchanged": true
+  },
+  "geometry": {
+    "query_rows": 640,
+    "sequences_per_replica": 160,
+    "tokens_per_sequence": 4,
+    "context_tokens": null,
+    "batch_basis": "captured_paged_attention_block_table_rows",
+    "context_basis": "not_observed_from_cache_capacity"
+  },
+  "layer_id": 0,
+  "actual": [
+    {
+      "native_operator_type": "GemmaRmsNorm",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 963,
+        "csv_line": 965,
+        "task_id": "0",
+        "stream_id": "163",
+        "device_id": "0"
+      },
+      "input_shapes": [
+        [
+          640,
+          4096
+        ],
+        [
+          4096
+        ]
+      ],
+      "output_shapes": [
+        [
+          640,
+          4096
+        ],
+        [
+          640,
+          1
+        ]
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "DT_BF16"
+      ],
+      "output_dtypes": [
+        "DT_BF16",
+        "FLOAT"
+      ],
+      "duration_us": 26.14
+    },
+    {
+      "native_operator_type": "MatMulV2",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 965,
+        "csv_line": 967,
+        "task_id": "1",
+        "stream_id": "163",
+        "device_id": "0"
+      },
+      "input_shapes": [
+        [
+          640,
+          4096
+        ],
+        [
+          1280,
+          4096
+        ]
+      ],
+      "output_shapes": [
+        [
+          640,
+          1280
+        ]
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "DT_BF16"
+      ],
+      "output_dtypes": [
+        "DT_BF16"
+      ],
+      "duration_us": 47.36
+    },
+    {
+      "native_operator_type": "MatMulV2",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 966,
+        "csv_line": 968,
+        "task_id": "2",
+        "stream_id": "163",
+        "device_id": "0"
+      },
+      "input_shapes": [
+        [
+          640,
+          4096
+        ],
+        [
+          8,
+          4096
+        ]
+      ],
+      "output_shapes": [
+        [
+          640,
+          8
+        ]
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "DT_BF16"
+      ],
+      "output_dtypes": [
+        "DT_BF16"
+      ],
+      "duration_us": 9.04
+    },
+    {
+      "native_operator_type": "MatMulV2",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 985,
+        "csv_line": 987,
+        "task_id": "21",
+        "stream_id": "163",
+        "device_id": "0"
+      },
+      "input_shapes": [
+        [
+          640,
+          512
+        ],
+        [
+          4096,
+          512
+        ]
+      ],
+      "output_shapes": [
+        [
+          640,
+          4096
+        ]
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "DT_BF16"
+      ],
+      "output_dtypes": [
+        "DT_BF16"
+      ],
+      "duration_us": 24.36
+    },
+    {
+      "native_operator_type": "hcom_allReduce_",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 986,
+        "csv_line": 988,
+        "task_id": "N/A",
+        "stream_id": "N/A",
+        "device_id": "0"
+      },
+      "input_shapes": null,
+      "output_shapes": null,
+      "input_dtypes": [
+        "N/A"
+      ],
+      "output_dtypes": [
+        "N/A"
+      ],
+      "duration_us": 1033.7
+    },
+    {
+      "native_operator_type": "AddRmsNormBias",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 992,
+        "csv_line": 994,
+        "task_id": "25",
+        "stream_id": "163",
+        "device_id": "0"
+      },
+      "input_shapes": [
+        [
+          640,
+          4096
+        ],
+        [
+          640,
+          4096
+        ],
+        [
+          4096
+        ],
+        []
+      ],
+      "output_shapes": [
+        [
+          640,
+          4096
+        ],
+        [
+          640,
+          1
+        ],
+        [
+          640,
+          4096
+        ]
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "DT_BF16",
+        "DT_BF16",
+        "DT_UNDEFINED"
+      ],
+      "output_dtypes": [
+        "DT_BF16",
+        "FLOAT",
+        "DT_BF16"
+      ],
+      "duration_us": 40.48
+    },
+    {
+      "native_operator_type": "MatMulV2",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 993,
+        "csv_line": 995,
+        "task_id": "27",
+        "stream_id": "163",
+        "device_id": "0"
+      },
+      "input_shapes": [
+        [
+          640,
+          4096
+        ],
+        [
+          512,
+          4096
+        ]
+      ],
+      "output_shapes": [
+        [
+          640,
+          512
+        ]
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "DT_BF16"
+      ],
+      "output_dtypes": [
+        "DT_BF16"
+      ],
+      "duration_us": 24.44
+    },
+    {
+      "native_operator_type": "MoeGatingTopK",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 994,
+        "csv_line": 996,
+        "task_id": "29",
+        "stream_id": "163",
+        "device_id": "0"
+      },
+      "input_shapes": [
+        [
+          640,
+          512
+        ],
+        []
+      ],
+      "output_shapes": [
+        [
+          640,
+          10
+        ],
+        [
+          640,
+          10
+        ],
+        [
+          640,
+          512
+        ]
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "DT_UNDEFINED"
+      ],
+      "output_dtypes": [
+        "DT_BF16",
+        "INT32",
+        "FLOAT"
+      ],
+      "duration_us": 37.28
+    },
+    {
+      "native_operator_type": "MoeInitRoutingV3",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 995,
+        "csv_line": 997,
+        "task_id": "31",
+        "stream_id": "163",
+        "device_id": "0"
+      },
+      "input_shapes": [
+        [
+          640,
+          4096
+        ],
+        [
+          640,
+          10
+        ]
+      ],
+      "output_shapes": [
+        [
+          6400,
+          4096
+        ],
+        [
+          6400
+        ],
+        [
+          512
+        ],
+        [
+          6400
+        ]
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "INT32"
+      ],
+      "output_dtypes": [
+        "INT8",
+        "INT32",
+        "INT64",
+        "FLOAT"
+      ],
+      "duration_us": 94.6
+    },
+    {
+      "native_operator_type": "GroupedMatmulSwigluQuant",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 998,
+        "csv_line": 1000,
+        "task_id": "33",
+        "stream_id": "163",
+        "device_id": "0"
+      },
+      "input_shapes": [
+        [
+          6400,
+          4096
+        ],
+        [
+          512,
+          4,
+          256,
+          16,
+          32
+        ],
+        [
+          512,
+          128
+        ],
+        [
+          6400
+        ],
+        [
+          512
+        ]
+      ],
+      "output_shapes": [
+        [
+          6400,
+          64
+        ],
+        [
+          6400
+        ]
+      ],
+      "input_dtypes": [
+        "INT8",
+        "INT8",
+        "FLOAT",
+        "FLOAT",
+        "INT64"
+      ],
+      "output_dtypes": [
+        "INT8",
+        "FLOAT"
+      ],
+      "duration_us": 260.08
+    },
+    {
+      "native_operator_type": "GroupedMatmul",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 1000,
+        "csv_line": 1002,
+        "task_id": "35",
+        "stream_id": "163",
+        "device_id": "0"
+      },
+      "input_shapes": [
+        [
+          6400,
+          64
+        ],
+        [
+          512,
+          64,
+          4096
+        ],
+        [],
+        [
+          512,
+          4096
+        ],
+        [],
+        [],
+        [],
+        [
+          512
+        ],
+        [
+          6400
+        ]
+      ],
+      "output_shapes": [
+        [
+          6400,
+          4096
+        ]
+      ],
+      "input_dtypes": [
+        "INT8",
+        "INT8",
+        "INT32",
+        "DT_BF16",
+        "FLOAT",
+        "FLOAT16",
+        "FLOAT16",
+        "INT64",
+        "FLOAT"
+      ],
+      "output_dtypes": [
+        "DT_BF16"
+      ],
+      "duration_us": 290.14
+    },
+    {
+      "native_operator_type": "MoeTokenUnpermute",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 1003,
+        "csv_line": 1005,
+        "task_id": "38",
+        "stream_id": "163",
+        "device_id": "0"
+      },
+      "input_shapes": [
+        [
+          6400,
+          4096
+        ],
+        [
+          6400
+        ],
+        [
+          640,
+          10
+        ]
+      ],
+      "output_shapes": [
+        [
+          640,
+          4096
+        ]
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "INT32",
+        "DT_BF16"
+      ],
+      "output_dtypes": [
+        "DT_BF16"
+      ],
+      "duration_us": 44.02
+    },
+    {
+      "native_operator_type": "MatMulV2",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 1004,
+        "csv_line": 1006,
+        "task_id": "39",
+        "stream_id": "163",
+        "device_id": "0"
+      },
+      "input_shapes": [
+        [
+          640,
+          4096
+        ],
+        [
+          128,
+          4096
+        ]
+      ],
+      "output_shapes": [
+        [
+          640,
+          128
+        ]
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "DT_BF16"
+      ],
+      "output_dtypes": [
+        "DT_BF16"
+      ],
+      "duration_us": 14.18
+    },
+    {
+      "native_operator_type": "MatMulV2",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 1006,
+        "csv_line": 1008,
+        "task_id": "41",
+        "stream_id": "163",
+        "device_id": "0"
+      },
+      "input_shapes": [
+        [
+          640,
+          64
+        ],
+        [
+          4096,
+          64
+        ]
+      ],
+      "output_shapes": [
+        [
+          640,
+          4096
+        ]
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "DT_BF16"
+      ],
+      "output_dtypes": [
+        "DT_BF16"
+      ],
+      "duration_us": 20.32
+    },
+    {
+      "native_operator_type": "MatMulV2",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 1008,
+        "csv_line": 1010,
+        "task_id": "42",
+        "stream_id": "163",
+        "device_id": "0"
+      },
+      "input_shapes": [
+        [
+          640,
+          4096
+        ],
+        [
+          1,
+          4096
+        ]
+      ],
+      "output_shapes": [
+        [
+          640,
+          1
+        ]
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "DT_BF16"
+      ],
+      "output_dtypes": [
+        "DT_BF16"
+      ],
+      "duration_us": 9.12
+    },
+    {
+      "native_operator_type": "ForeachAddList",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 1011,
+        "csv_line": 1013,
+        "task_id": "45",
+        "stream_id": "163",
+        "device_id": "0"
+      },
+      "input_shapes": [
+        [
+          640,
+          4096
+        ],
+        [
+          640,
+          4096
+        ],
+        []
+      ],
+      "output_shapes": [
+        [
+          640,
+          4096
+        ]
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "DT_BF16",
+        "FLOAT"
+      ],
+      "output_dtypes": [
+        "DT_BF16"
+      ],
+      "duration_us": 24.88
+    },
+    {
+      "native_operator_type": "hcom_allReduce_",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 1012,
+        "csv_line": 1014,
+        "task_id": "N/A",
+        "stream_id": "N/A",
+        "device_id": "0"
+      },
+      "input_shapes": null,
+      "output_shapes": null,
+      "input_dtypes": [
+        "N/A"
+      ],
+      "output_dtypes": [
+        "N/A"
+      ],
+      "duration_us": 251.86
+    }
+  ],
+  "declared": [
+    {
+      "op_id": "s0.l0.expert_up",
+      "family": "grouped_gemm",
+      "recipe": "grouped_gate_up",
+      "local_shape": [
+        6400,
+        128,
+        4096
+      ],
+      "metadata": {
+        "semantic_family": "grouped_gemm",
+        "weight_format": "int8",
+        "weight_dtype": "int8",
+        "activation_format": "int8",
+        "input_format": "int8",
+        "output_format": "bf16",
+        "compute_format": "int8",
+        "quant_category": "routed_expert",
+        "catalog_category": "routed_expert",
+        "packed_weight_bytes": 268958858.2906466,
+        "matrix_groups": 1,
+        "weight_representation": "int8_per_channel",
+        "dequant_before_compute": false,
+        "activation_group_size": 4096,
+        "activation_scale_format": "fp32",
+        "activation_scale_shape": [
+          6400
+        ],
+        "activation_scale_bytes": 25600.0,
+        "activation_scale_in_mte2": true,
+        "dequant": "none",
+        "dequant_traffic": 0.0,
+        "weight_bytes": 268958858.2906466,
+        "implementation_assumption": "declared_matrix_operand_formats",
+        "matrix_epilogue": {
+          "kind": "row_column_scale",
+          "row_scale_bytes": 25600.0,
+          "column_scale_bytes": 524286.273471046,
+          "operations_per_output": 4.0
+        },
+        "matrix_output_contract": "int32_cast_row_scale_column_scale_output_cast",
+        "column_metadata_policy": "retains_declared_scale_and_offset_storage_traffic",
+        "program_kind": "matmul",
+        "matrix_mapping_domain": "aggregate_experts",
+        "matrix_weight_bank_groups": 512,
+        "routing_basis": "probability_moments",
+        "expected_rows": 6400.0,
+        "expected_active_experts": 511.99831393656837,
+        "structure_block": "ffn",
+        "structure_role": "body",
+        "structure_subgraph_memberships": [
+          "s0.l0.grouped_gate_up_activation_quant"
+        ],
+        "structure_subgraph_entries": [
+          "s0.l0.grouped_gate_up_activation_quant"
+        ],
+        "activation_producer": "explicit_quantization",
+        "graph_replay_scope": "none"
+      }
+    },
+    {
+      "op_id": "s0.l0.expert_down",
+      "family": "grouped_gemm",
+      "recipe": "grouped_down",
+      "local_shape": [
+        6400,
+        4096,
+        64
+      ],
+      "metadata": {
+        "semantic_family": "grouped_gemm",
+        "weight_format": "int8",
+        "weight_dtype": "int8",
+        "activation_format": "int8",
+        "input_format": "int8",
+        "output_format": "bf16",
+        "compute_format": "int8",
+        "quant_category": "routed_expert",
+        "catalog_category": "routed_expert",
+        "packed_weight_bytes": 150994446.75966126,
+        "matrix_groups": 1,
+        "weight_representation": "int8_per_channel",
+        "dequant_before_compute": false,
+        "activation_group_size": 64,
+        "activation_scale_format": "fp32",
+        "activation_scale_shape": [
+          6400
+        ],
+        "activation_scale_bytes": 25600.0,
+        "activation_scale_in_mte2": true,
+        "dequant": "none",
+        "dequant_traffic": 0.0,
+        "weight_bytes": 150994446.75966126,
+        "implementation_assumption": "declared_matrix_operand_formats",
+        "matrix_epilogue": {
+          "kind": "row_column_scale",
+          "row_scale_bytes": 25600.0,
+          "column_scale_bytes": 16777160.751073472,
+          "operations_per_output": 4.0
+        },
+        "matrix_output_contract": "int32_cast_row_scale_column_scale_output_cast",
+        "column_metadata_policy": "retains_declared_scale_and_offset_storage_traffic",
+        "program_kind": "matmul",
+        "matrix_mapping_domain": "aggregate_experts",
+        "matrix_weight_bank_groups": 512,
+        "routing_basis": "probability_moments",
+        "expected_rows": 6400.0,
+        "expected_active_experts": 511.99831393656837,
+        "input_conversion_subgraphs": [
+          "s0.l0.grouped_gate_up_activation_quant"
+        ],
+        "structure_block": "ffn",
+        "structure_role": "body",
+        "activation_producer": "explicit_quantization",
+        "graph_replay_scope": "none"
+      }
+    },
+    {
+      "op_id": "s0.l0.expert_reduce",
+      "family": "allreduce",
+      "recipe": "expert_tensor_reduce",
+      "local_shape": [
+        6400,
+        4096
+      ],
+      "metadata": {
+        "group_axis": "etp",
+        "structure_block": "ffn",
+        "structure_role": "body",
+        "graph_replay_scope": "none"
+      }
+    },
+    {
+      "op_id": "s0.l0.shared.tp",
+      "family": "allreduce",
+      "recipe": "ring_allreduce",
+      "local_shape": [
+        640,
+        4096
+      ],
+      "metadata": {
+        "group_axis": "tp",
+        "steps": 30,
+        "structure_block": "ffn",
+        "structure_role": "body",
+        "graph_replay_scope": "none"
+      }
+    }
+  ],
+  "limitations": [
+    "One measured layer sample; timing is not an acceptance population.",
+    "Grouped input rows are a total routed extent, not rows for every expert.",
+    "Group-list values and per-expert padding are not exposed by shape alone.",
+    "No cost prediction is run; context=0 only exports context-independent MoE nodes."
+  ]
+}
