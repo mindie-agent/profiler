@@ -1,0 +1,11 @@
+{
+  "source": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_flash_w8a8_mtp_high_conc_decode_tpot30_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+  "source_sha256": "540c7fbc1816b7ecaf68317df8d6dc291441ee389fe59b41e76109f483f1e2cd",
+  "source_first_csv_line": 4063,
+  "source_last_csv_line": 6417,
+  "fixture_sha256": "4ea93af5b35edbe9bdce2c9e4b6862202306dcf68193bf9f1b4257e681530b8d",
+  "row_fields_modified": false,
+  "line_endings": "LF",
+  "model_case": "examples/cases/v4f-a3-w8a8-tp8.json",
+  "purpose": "One unchanged complete 43-layer mHC decode frame; source rows retain all fields."
+}

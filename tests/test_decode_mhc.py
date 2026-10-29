@@ -1,0 +1,49 @@
+"""Actual mHC body closure and new GLM paged MLA ABI regression evidence."""
+import json
+from pathlib import Path
+
+import pytest
+
+from mindie_profiler.decode_segmentation import _Row, _anchor, _query_geometry, auto_segment_decode_forwards
+from mindie_profiler.normalized import kernel_rows
+
+FIXTURE = Path(__file__).parent / "fixtures/decode_forward"
+
+
+def test_complete_v4_mhc_body_excludes_output_head_collapse():
+    rows = list(kernel_rows(FIXTURE / "v4f_a3_mhc_verify.csv"))
+    config = json.loads((FIXTURE / "v4f_model_config.json").read_text())
+    result = auto_segment_decode_forwards(rows, config)
+    assert result["body_forward_span_ms"]["count"] == 1
+    assert result["body_forward_span_ms"]["mean"] == pytest.approx(29.317754)
+    assert result["geometry"]["tokens_per_sequence"] == 2
+    assert result["geometry"]["sequences_per_replica"] == 1
+    forward = result["forwards"][0]
+    layers = [stage for stage in forward["stages"] if stage["layer_id"] is not None]
+    assert len(layers) == 43
+    by_line = {row.event.locator["csv_line"]: row.event for row in rows}
+    for layer in layers:
+        first = by_line[layer["evidence"]["first_locator"]["csv_line"]]
+        assert first.op_type == "HcPre"
+        assert layer["device_activity_union_ms"] + layer["internal_uncovered_gap_ms"] == pytest.approx(layer["span_ms"])
+    assert by_line[layers[-1]["evidence"]["last_locator"]["csv_line"]].op_type == "HcPost"
+    preparation = next(stage for stage in forward["stages"] if stage["kind"] == "output_head_preparation")
+    assert preparation["span_ms"] == pytest.approx(0.474830)
+    assert forward["end_ns"] < preparation["start_ns"] < forward["head_start_ns"]
+    # Removal probes use this unchanged capture but are not hardware evidence.
+    last_post = by_line[layers[-1]["evidence"]["last_locator"]["csv_line"]]
+    broken = auto_segment_decode_forwards([row for row in rows if row.event is not last_post], config)
+    assert broken["body_forward_span_ms"]["count"] == 0
+
+
+def test_actual_glm_flash_mla_abis_supply_active_query_not_cache_capacity():
+    rows = list(kernel_rows(FIXTURE / "glm_flash_mla_abi.csv"))
+    config = {"layer_plans": [{"attention": "kda"}, {"attention": "mla"}]}
+    geometry = []
+    for item in rows:
+        row = _Row(item.event, item.input_shapes, item.output_shapes)
+        assert _anchor(row, config) == "mla"
+        geometry.append(_query_geometry([row], item.input_shapes[0][0]))
+    assert [item["sequences_per_replica"] for item in geometry] == [1, 1]
+    assert [item["tokens_per_sequence"] for item in geometry] == [4, 256]
+    assert all(item["context_tokens"] is None for item in geometry)

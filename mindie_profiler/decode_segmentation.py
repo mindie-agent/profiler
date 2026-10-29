@@ -23,7 +23,7 @@ from .normalized import shapes
 
 _MATRICES = {"MatMul", "MatMulV2", "MatMulV3", "QuantBatchMatmulV3",
              "QuantBatchMatmulV4", "TransposeBatchMatMul", "BatchMatMulV2"}
-_NORMS = {"RmsNorm", "GemmaRmsNorm", "AddRmsNorm", "AddRmsNormBias",
+_NORMS = {"RmsNorm", "RmsNormCast", "GemmaRmsNorm", "AddRmsNorm", "AddRmsNormBias",
           "AddRmsNormDynamicQuant", "AddRmsNormDynamicMxQuant", "RmsNormQuant",
           "RmsNormDynamicQuant", "RmsNormDynamicMxQuant"}
 _ACTIVATIONS = {"SwiGlu", "SwiGLU", "DequantSwigluQuant", "SwigluQuant",
@@ -33,6 +33,7 @@ _ACTIVATIONS = {"SwiGlu", "SwiGLU", "DequantSwigluQuant", "SwigluQuant",
                 "GroupedMatmulSituQuant", "Sigmoid", "Tanh"}
 _ANCHORS = {"RecurrentGatedDeltaRule": "gdn", "FusedInferAttentionScore": "gqa",
             "SparseFlashAttention": "mla", "SparseAttnSharedkv": "mla",
+            "SparseFlashMla": "mla", "KvQuantSparseFlashAttentionVllm": "mla",
             "RecurrentKda": "kda", "RecurrentKdaFwd": "kda",
             "FusedRecurrentKda": "kda", "RecurrentGatedDeltaRuleV2": "gdn"}
 _PREFILL_ANCHORS = {"ChunkGatedDeltaRuleFwd", "ChunkKdaFwd", "ChunkFwdH"}
@@ -111,6 +112,10 @@ def _query_geometry(anchors, query_rows):
             slot = inputs[4]
         elif row.kind == "SparseAttnSharedkv" and len(inputs) == 14:
             slot = inputs[5]
+        elif row.kind == "SparseFlashMla" and len(inputs) == 18:
+            slot = inputs[5]
+        elif row.kind == "KvQuantSparseFlashAttentionVllm" and len(inputs) == 9:
+            slot = inputs[6]
         if slot and len(slot) == 2 and slot[0] > 0:
             batches.add(slot[0])
     batch = next(iter(batches)) if len(batches) == 1 else None
@@ -125,25 +130,52 @@ def _parameter_only(row, hidden):
     return row.kind == "Add" and row.inputs and row.inputs[0] == (hidden,)
 
 
+def _scheduler(row):
+    typed = any("aicpu" in value.lower().replace("_", "")
+                for value in (row.event.core, row.event.task_type))
+    return typed and row.kind in _TAIL_NAMES
+
+
 def _norm_start(rows, index, hidden):
     # Gemma's 1 + gamma preparation is actual work of the following norm.
-    return index - 1 if index and _parameter_only(rows[index - 1], hidden) else index
+    if index and _parameter_only(rows[index - 1], hidden):
+        return index - 1
+    # mHC collapses residual streams before the ordinary hidden-width norm.
+    # Compare actual tensor geometry; its extra stream axis is not query rows.
+    previous = index - 1
+    # Other-stream scheduling wrappers can start between these two dependent
+    # kernels. They do not break their explicit output-to-input geometry.
+    while previous >= 0 and _scheduler(rows[previous]):
+        previous -= 1
+    if previous >= 0 and rows[previous].kind == "HcPre":
+        pre, norm = rows[previous], rows[index]
+        if pre.outputs and norm.inputs and pre.outputs[0] == norm.inputs[0]:
+            return previous
+    return index
+
+
+def _body_end(rows, final_norm, last_anchor, plan, query_rows, hidden):
+    if not plan.get("hyper_connections"):
+        return final_norm
+    # The final layer returns the multi-stream residual. Its subsequent head
+    # collapse is a separate model scope, even when no Host label is available.
+    expected_tail = (plan["hc_mult"], hidden)
+    posts = [index for index in range(last_anchor + 1, final_norm)
+             if rows[index].kind == "HcPost" and rows[index].outputs
+             and rows[index].outputs[0][-2:] == expected_tail
+             and prod(rows[index].outputs[0][:-2]) == query_rows]
+    return posts[-1] + 1 if posts else None
 
 
 def _scope(rows, kind, identity, *, layer=None, plan=None, successor=None):
-    def scheduler(row):
-        typed = any("aicpu" in value.lower().replace("_", "")
-                    for value in (row.event.core, row.event.task_type))
-        return typed and row.kind in _TAIL_NAMES
-
-    ordinary = [row for row in rows if not scheduler(row)]
+    ordinary = [row for row in rows if not _scheduler(row)]
     if not ordinary:
         return None
     first = min(row.event.start_ns for row in ordinary)
     last = max(row.event.end_ns for row in ordinary)
-    tails = [row for row in rows if scheduler(row) and successor is not None
+    tails = [row for row in rows if _scheduler(row) and successor is not None
              and row.event.end_ns > successor.event.start_ns]
-    retained_scheduler = [row for row in rows if scheduler(row) and row not in tails]
+    retained_scheduler = [row for row in rows if _scheduler(row) and row not in tails]
     if retained_scheduler:
         first = min(first, min(row.event.start_ns for row in retained_scheduler))
         last = max(last, max(row.event.end_ns for row in retained_scheduler))
@@ -239,12 +271,17 @@ def _align(rows, config, ordinal):
     # Recurrent GDN/KDA anchors distinguish this path from chunk prefill; short
     # paged attention requires the declared decode query bound as another check.
     recurrent = any(kind in {"gdn", "kda"} for _, kind in anchors)
-    if (not recurrent and (geometry["tokens_per_sequence"] is None
-                           or geometry["tokens_per_sequence"] > config.get("max_decode_query", 16))):
+    observed_query = geometry["tokens_per_sequence"]
+    if ((observed_query is not None and observed_query > config.get("max_decode_query", 16))
+            or (not recurrent and observed_query is None)):
         return None, {"reason": "decode_query_geometry_unresolved", "geometry": geometry}
+    body_end = _body_end(rows, final_norm, anchors[-1][0], plans[-1], query_rows, hidden)
+    if body_end is None:
+        return None, {"reason": "final_mhc_residual_output_unresolved"}
+    final_successor = body_end if body_end < final_norm else final_norms[-1]
     layers = []
     for layer, (start, end, (anchor_index, _), plan) in enumerate(zip(
-            starts, [*starts[1:], final_norm], anchors, plans)):
+            starts, [*starts[1:], body_end], anchors, plans)):
         ffn_norms = [index for index in norm_indices if anchor_index < index < end]
         if not ffn_norms:
             return None, {"reason": "ffn_input_boundary_unresolved", "layer": layer}
@@ -264,11 +301,16 @@ def _align(rows, config, ordinal):
         if not returned_hidden:
             return None, {"reason": "ffn_output_hidden_contract_missing", "layer": layer}
         chunk = rows[start:end]
+        successor_index = final_successor
+        if layer + 1 < len(plans):
+            successor_index = (starts[layer + 1] if rows[starts[layer + 1]].kind == "HcPre"
+                               else input_norms[layer + 1])
         layers.append(_scope(chunk, "moe_layer" if plan["ffn"] == "moe" else "dense_layer",
                              f"layer:{plan['index']}", layer=plan["index"], plan=plan,
-                             successor=rows[input_norms[layer + 1] if layer + 1 < len(plans) else final_norms[-1]]))
-    body = _scope(rows[starts[0]:final_norm], "target_body", "body",
-                  successor=rows[final_norms[-1]])
+                             successor=rows[successor_index]))
+    body = _scope(rows[starts[0]:body_end], "target_body", "body", successor=rows[final_successor])
+    head_preparation = (_scope(rows[body_end:final_norm], "output_head_preparation", "head_preparation",
+                               successor=rows[final_norm]) if body_end < final_norm else None)
     final = _scope(rows[final_norm:-1], "final_norm", "final_norm", successor=rows[-1])
     head = _scope(rows[-1:], "lm_head", "lm_head")
     embeddings = [row for row in rows[:starts[0]] if row.kind in {"Gather", "GatherV2", "Embedding", "IndexSelect"}
@@ -278,7 +320,7 @@ def _align(rows, config, ordinal):
                       and shape[0] in {config["vocab_size"], config["vocab_size"] // config["tp"]}
                       for shape in row.inputs)]
     embedding = _scope(embeddings, "embedding", "embedding") if embeddings else None
-    stages = [embedding, body, *layers, final, head]
+    stages = [embedding, body, *layers, head_preparation, final, head]
     return {
         "forward_id": f"auto:{ordinal}", "phase": "decode", "status": "measured",
         "basis": "structure_guided_topology_alignment",
