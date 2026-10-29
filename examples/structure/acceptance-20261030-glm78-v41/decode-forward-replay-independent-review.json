@@ -1,0 +1,45 @@
+{
+  "schema_version": "mindie-priority-body-independent-review/1",
+  "status": "passed",
+  "checks": 1347,
+  "failures": [],
+  "report_sha256": "c05015ddbd7e42c0bf907c6eed83723ea232632d21d68ce94383ca8984d76296",
+  "manifest_sha256": "dee54a25a632bb24f8027d4d13730f3850d863cd479970afc86365a018fcf8c2",
+  "source_cases": 3,
+  "geometry_groups": 10,
+  "all_forward_count": 162,
+  "compared_forward_count": 137,
+  "compared_cases": 3,
+  "passed_cases": 0,
+  "deferred_geometry_groups": 7,
+  "compared_layers": 234,
+  "passed_layers": 0,
+  "new_workers": 3,
+  "rows": [
+    {
+      "case": "a3_glm53_w4a8_tp16_tpot30_c2:q6_b2_m12",
+      "forwards": 44,
+      "mean_ms": 57.639269772727275,
+      "predicted_ms": 39.72079965778854,
+      "error": -0.3108726079562007,
+      "passed": false
+    },
+    {
+      "case": "a3_glm53_w4a8_tp16_tpot50_c2:q6_b2_m12",
+      "forwards": 44,
+      "mean_ms": 57.817111568181815,
+      "predicted_ms": 39.72079965778854,
+      "error": -0.3129923204318654,
+      "passed": false
+    },
+    {
+      "case": "a3_glm53_w4a8_tp16_tpot88_c8:q6_b8_m48",
+      "forwards": 49,
+      "mean_ms": 69.55629785714285,
+      "predicted_ms": 57.63020003278906,
+      "error": -0.17145964048932025,
+      "passed": false
+    }
+  ],
+  "scope": "Independent receipt/extraction/case/runtime identities, per-geometry model/layer arithmetic, representative replica, and retained deferred denominators. No raw profile scan or prediction."
+}
