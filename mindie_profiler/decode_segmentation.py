@@ -35,7 +35,8 @@ _ANCHORS = {"RecurrentGatedDeltaRule": "gdn", "FusedInferAttentionScore": "gqa",
             "RecurrentKda": "kda", "RecurrentKdaFwd": "kda",
             "FusedRecurrentKda": "kda", "RecurrentGatedDeltaRuleV2": "gdn"}
 _PREFILL_ANCHORS = {"ChunkGatedDeltaRuleFwd", "ChunkKdaFwd", "ChunkFwdH"}
-_TAIL_NAMES = {"allreduceAicpuKernel", "allgatherAicpuKernel", "reducescatterAicpuKernel"}
+_TAIL_NAMES = {"allreduceAicpuKernel", "allgatherAicpuKernel", "reducescatterAicpuKernel",
+               "HcclLaunchAicpuKernel"}
 
 
 @dataclass(slots=True)

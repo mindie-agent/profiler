@@ -1,0 +1,14 @@
+{
+  "source_path": "/Volumes/data/mindie-sim-data/a5/qwen3_8_27b_w8a8_mxfp8_mtp_high_conc_decode_tpot5ms_near_c4_20261030/kernel_details.csv",
+  "source_csv_lines": [
+    95,
+    128
+  ],
+  "successor_norm_fixture_line": 35,
+  "next_layer_start_fixture_line": 34,
+  "fixture_sha256": "71d1e8a667eb35a9baa71c3f11ab25897075a37bbe19c06a75ebc93f3734471e",
+  "derivation": "Consecutive unchanged exported fields for Qwen3.8 A5 TP4 first complete target layer and successor input norm. Complete 64-layer recognition and source shape checks were run on the full source before selecting this slice. HcclLaunchAicpuKernel is AI_CPU; only its suffix crossing that successor input norm is a conditional scheduler tail.",
+  "not_new_live_collection": true,
+  "full_source_probe": "/tmp/new6-auto-qwen38-c4.json",
+  "full_source_probe_sha256": "ca002503408569c834473bc88301863285988409472b054fca46affa0a58c779"
+}

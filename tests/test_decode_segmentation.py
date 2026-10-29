@@ -137,3 +137,25 @@ def test_endpoint_locator_tracks_completion_not_last_started_operator(capture):
     assert scope["evidence"]["first_locator"] == communication.locator
     assert scope["evidence"]["last_locator"] == communication.locator
     assert scope["evidence"]["last_started_locator"] == following.locator
+
+
+def test_actual_a5_hccl_launch_suffix_crosses_norm_but_real_hcom_is_retained():
+    identity = json.loads((FIXTURE / "qwen38_a5_hccl_launch_layer.provenance.json").read_text())
+    rows = list(kernel_rows(FIXTURE / "qwen38_a5_hccl_launch_layer.csv", rank_id="rank_0"))
+    source = [_Row(row.event, row.input_shapes, row.output_shapes) for row in rows
+              if row.line < identity["next_layer_start_fixture_line"]]
+    successor_raw = next(row for row in rows if row.line == identity["successor_norm_fixture_line"])
+    successor = _Row(successor_raw.event, successor_raw.input_shapes, successor_raw.output_shapes)
+    tail = next(row for row in source if row.kind == "HcclLaunchAicpuKernel"
+                and row.event.end_ns > successor.event.start_ns)
+    scope = _scope(source, "dense_layer", "actual_layer", successor=successor)
+    hcom = [row for row in source if row.kind.startswith("hcom_")]
+    assert hcom
+    assert scope["end_ns"] >= max(row.event.end_ns for row in hcom)
+    assert scope["end_ns"] < successor.event.start_ns < tail.event.end_ns
+    assert scope["excluded_tail_wait_activity_ms"] > 0
+    # With no successor dependency evidence this same captured AICPU duration
+    # is retained; its name alone never authorizes truncating a measurement.
+    unbounded = _scope(source, "dense_layer", "no_successor")
+    assert unbounded["end_ns"] == max(row.event.end_ns for row in source)
+    assert unbounded["excluded_tail_wait_activity_ms"] == 0
