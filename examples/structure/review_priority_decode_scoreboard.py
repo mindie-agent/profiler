@@ -3,7 +3,8 @@
 [Role] Verify reported populations, current selections and numerical accuracy.
 [Invariants] Invalid input bindings retain observations but never earn a pass;
   conditional source references never enter strict operator accuracy counts.
-[Timeouts & Locks] Sequential bounded receipt reads; no locks or subprocesses.
+[Timeouts & Locks] Sequential bounded receipt reads; local historical Git reads
+  have a five-second timeout. No locks, prediction or capture subprocesses.
 [Side-Effect Policy] Writes only one review JSON; never predicts or parses captures.
 """
 from __future__ import annotations
@@ -16,6 +17,7 @@ import json
 import math
 from pathlib import Path
 import resource
+import subprocess
 import sys
 import time
 
@@ -42,7 +44,7 @@ def read(path):
 def receipt_metadata(path):
     """Read only needed top-level fields; never materialize the cases array."""
     wanted = {"runtime_source_identity", "runtime_sources_unchanged",
-              "invalidated_body_receipts", "reason", "status"}
+              "invalidated_body_receipts", "reason", "status", "runtime_provenance"}
     result, active, builder = {}, None, None
     with Path(path).open("rb") as stream:
         for prefix, event, value in ijson.parse(stream, use_float=True):
@@ -119,6 +121,7 @@ def review(path):
     invalidations = {}
     body_order, operator_order = [], []
     corrected_quant_cases = 0
+    historical_case_resolutions = []
     expected_references = Counter()
 
     def check_reference(receipt_path, case, group, expected_runtime, embedded):
@@ -194,8 +197,22 @@ def review(path):
                     check(shown["passed"] == (abs(error) <= .15), f"Body pass: {key}")
                     if "window8" in source_path and "kimi" in source_path:
                         identity = case["prediction_execution"]["case_identity"]
-                        check(digest(identity["path"]) == identity["sha256"], f"Current Kimi case SHA: {key}")
-                        declaration = read(identity["path"])
+                        case_path = Path(identity["path"])
+                        if digest(case_path) == identity["sha256"]:
+                            declaration = read(case_path)
+                        else:
+                            commit = source.get("runtime_provenance", {}).get("source_commit")
+                            repo = next(parent for parent in case_path.parents if (parent / ".git").exists())
+                            historical = subprocess.run(["git", "show", f"{commit}:{case_path.relative_to(repo)}"],
+                                cwd=repo, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                timeout=5).stdout
+                            historical_sha = hashlib.sha256(historical).hexdigest()
+                            check(historical_sha == identity["sha256"], f"Historical Kimi case SHA: {key}")
+                            declaration = json.loads(historical)
+                            historical_case_resolutions.append({"case_path": str(case_path),
+                                "source_commit": commit, "recorded_sha256": identity["sha256"],
+                                "historical_sha256": historical_sha,
+                                "current_path_sha256": digest(case_path)})
                         actual = case["prediction"]["model_representation"]["quant"]
                         from mindie_sim.prediction.structure import parse_case
                         effective = parse_case(declaration).model.quant.to_dict()
@@ -316,6 +333,7 @@ def review(path):
         "failures": failures, "report_sha256": digest(path), "summary": summary,
         "body_rows": len(body), "family_rows": len(family), "cohort_rows": len(cohort),
         "reference_rows": sum(reference.values()), "corrected_kimi_quant_cases_checked": corrected_quant_cases,
+        "historical_case_resolutions": historical_case_resolutions,
         "execution": {"elapsed_seconds": time.monotonic() - started, "peak_rss_bytes": peak_bytes,
                       "receipt_read_engine": "ijson top-level metadata and sequential cases; scoreboard bounded JSON"},
         "scope": "Independent sequential receipt reconciliation; no raw capture parsing or prediction. "

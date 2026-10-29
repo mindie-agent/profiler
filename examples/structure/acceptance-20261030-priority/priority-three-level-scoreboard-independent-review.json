@@ -1,7 +1,7 @@
 {
   "schema_version": "mindie-priority-scoreboard-independent-review/2",
   "status": "passed",
-  "checks": 38917,
+  "checks": 38911,
   "failures": [],
   "report_sha256": "8c42d646d9f3bf5a14646980c667394c7413dae26f8f92ce777450fc76e4efa1",
   "summary": {
@@ -38,9 +38,95 @@
   "cohort_rows": 664,
   "reference_rows": 208,
   "corrected_kimi_quant_cases_checked": 18,
+  "historical_case_resolutions": [
+    {
+      "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c16_p16k.json",
+      "source_commit": "332f0420",
+      "recorded_sha256": "9dd36b2295ceda35ab6d4d556b56435e660327c8521eeccfb8ad9926bfbc531f",
+      "historical_sha256": "9dd36b2295ceda35ab6d4d556b56435e660327c8521eeccfb8ad9926bfbc531f",
+      "current_path_sha256": "e2c085b21db418851570f09914f6bd60cd51ce37b8ab4cdc32bb3248517e8c8c"
+    },
+    {
+      "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c16_p4k.json",
+      "source_commit": "332f0420",
+      "recorded_sha256": "68824365f6f2faeb40a6bdac5740a083b5a0b15b7dd48f753392620bd7100591",
+      "historical_sha256": "68824365f6f2faeb40a6bdac5740a083b5a0b15b7dd48f753392620bd7100591",
+      "current_path_sha256": "53bc3a2e5a5dd3a9153edcdf003058ba9f0bcb13e1d439924591dcdd5d756c47"
+    },
+    {
+      "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c1_p16k.json",
+      "source_commit": "332f0420",
+      "recorded_sha256": "27c1a25e6d31e036dcdf643dd30442026da83ebd2e033b5c45ed61222c61c99c",
+      "historical_sha256": "27c1a25e6d31e036dcdf643dd30442026da83ebd2e033b5c45ed61222c61c99c",
+      "current_path_sha256": "849f75f63a8ef53273ce4c3175dc01b892739d1126ff9312311ec38aeea16b83"
+    },
+    {
+      "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c1_p4k.json",
+      "source_commit": "332f0420",
+      "recorded_sha256": "d88ee92304563cd45434b9c95e6f21ccc3c414c0f4f7d4e150827c8ba98ffec4",
+      "historical_sha256": "d88ee92304563cd45434b9c95e6f21ccc3c414c0f4f7d4e150827c8ba98ffec4",
+      "current_path_sha256": "0405576ee7a9486660935884050a0b54e29ccdc5dc4a38b8402bcd5fd54c0cde"
+    },
+    {
+      "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c2_p16k.json",
+      "source_commit": "332f0420",
+      "recorded_sha256": "47852254011ef711b5e56c9145e0a874c7a14ddebef2238f73e60597557c6c4f",
+      "historical_sha256": "47852254011ef711b5e56c9145e0a874c7a14ddebef2238f73e60597557c6c4f",
+      "current_path_sha256": "974be4ce8dadc60efb583dafce0c9ccf2169aa1c6ea6dbe9d966d714a02cac3c"
+    },
+    {
+      "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c2_p4k.json",
+      "source_commit": "332f0420",
+      "recorded_sha256": "595f0e70113685b9875d3c3e273413d4544eba891109c393bdc47494331f9cd7",
+      "historical_sha256": "595f0e70113685b9875d3c3e273413d4544eba891109c393bdc47494331f9cd7",
+      "current_path_sha256": "425fad801af44fbf1b92750f43055f762b71a3fde8f0b17c447d86111b4c9f09"
+    },
+    {
+      "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c32_p16k.json",
+      "source_commit": "332f0420",
+      "recorded_sha256": "e487af18843eef5be083a78e9ed2730816d906f7968f4142f63c116d072cef65",
+      "historical_sha256": "e487af18843eef5be083a78e9ed2730816d906f7968f4142f63c116d072cef65",
+      "current_path_sha256": "6254b52e93371657637dd9ba21684558f4ca91e25e11866f22a8a179c7f91c8f"
+    },
+    {
+      "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c32_p4k.json",
+      "source_commit": "332f0420",
+      "recorded_sha256": "f9934b66546d2933affd282db2d16064f1aa25e6fdcb46526eb17d245a235269",
+      "historical_sha256": "f9934b66546d2933affd282db2d16064f1aa25e6fdcb46526eb17d245a235269",
+      "current_path_sha256": "3156080674bb7c32ca29acb91b8db0c1d5cfaebd41fc81b867a17f11471aaa40"
+    },
+    {
+      "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c4_p16k.json",
+      "source_commit": "332f0420",
+      "recorded_sha256": "969c6d0ae6cd92c2323d45ce72ea199e245b25eab70a074aeb2326fcdf14242c",
+      "historical_sha256": "969c6d0ae6cd92c2323d45ce72ea199e245b25eab70a074aeb2326fcdf14242c",
+      "current_path_sha256": "682f206e282c59f7b30bcf63ba76654a7309ebf4f4acd6191295ecc74173ef32"
+    },
+    {
+      "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c4_p4k.json",
+      "source_commit": "332f0420",
+      "recorded_sha256": "137dc22c439b727d2599461f3e939e61a561f482253bf774bd55910f39a17a86",
+      "historical_sha256": "137dc22c439b727d2599461f3e939e61a561f482253bf774bd55910f39a17a86",
+      "current_path_sha256": "622bce3c19ce8e9bee18637dd8561d6ed2a0ef21c8e27695681102434c893ebe"
+    },
+    {
+      "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c8_p16k.json",
+      "source_commit": "332f0420",
+      "recorded_sha256": "bb2ce2375b4ebddb4827cf888339e884291d219fd9c6169f338d1e628a12253a",
+      "historical_sha256": "bb2ce2375b4ebddb4827cf888339e884291d219fd9c6169f338d1e628a12253a",
+      "current_path_sha256": "478e56a034803bad3282562b1642a2f6de444471b502c5e19381f09f1f72c4bf"
+    },
+    {
+      "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c8_p4k.json",
+      "source_commit": "332f0420",
+      "recorded_sha256": "2679541a4b8ef64533391c2897ffd9dfd9eff60eef3273a5c721f3e396ebc0f8",
+      "historical_sha256": "2679541a4b8ef64533391c2897ffd9dfd9eff60eef3273a5c721f3e396ebc0f8",
+      "current_path_sha256": "120ec23793496bdea7f11043a31fb4ab181e548f3731c545284fdacdf3c2438a"
+    }
+  ],
   "execution": {
-    "elapsed_seconds": 4.2095012499485165,
-    "peak_rss_bytes": 215089152,
+    "elapsed_seconds": 4.889242707984522,
+    "peak_rss_bytes": 203997184,
     "receipt_read_engine": "ijson top-level metadata and sequential cases; scoreboard bounded JSON"
   },
   "scope": "Independent sequential receipt reconciliation; no raw capture parsing or prediction. Invalidation, effective current Kimi precision, source/geometry deduplication, explicit input order, strict tier arithmetic and unscored source references are checked separately."
