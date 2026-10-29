@@ -263,6 +263,86 @@ def _kimi_single_group_variant(key, old, base, *, decode):
     return variant
 
 
+def _kimi_sp_variant(key, old, base):
+    variant = _kimi_single_group_variant(key, old, base, decode=False)
+    source = variant["declaration_source"]
+    case_path = Path(source["case_path"]).with_name(
+        "kimi-k3-a5-sequence-parallel-conditional.json")
+    case = _read(case_path)
+    evidence = source["source_evidence"]
+    source.update(
+        case_path=str(case_path), case_sha256=_hash(case_path),
+        implementation_overrides=case["runtime"]["kernels"].get("lowerings", {}),
+        lowering_passes_override=case["runtime"].get("lowering_passes"),
+        runtime_overrides={
+            "graph_mode": case["runtime"]["graph_mode"],
+            "kernels.sequence_parallel": case["runtime"]["kernels"]["sequence_parallel"],
+        },
+        source_evidence={
+            "current_checkpoint": evidence["current_checkpoint"],
+            "single_group_wrapper": evidence["single_group_wrapper"],
+            "sequence_parallel": {
+                "source_commit": "1aeb52ad",
+                "case_path": str(case_path), "case_sha256": _hash(case_path),
+                "global_token_basis": "per_data_parallel_replica",
+                "local_row_basis": "independently_declared_global_tokens_divided_by_tp",
+                "expert_pool_basis": "complete_data_parallel_expert_cohort",
+                "padding": "none",
+                "small_m_decode_padding_supported": False,
+                "capture_dispatch_identity_verified": False,
+            },
+        },
+    )
+    declaration = variant["declaration_key"] + "_sp"
+    variant.update(
+        name=declaration + "-selected", declaration_key=declaration, case=case,
+        variant="source_sp_single_group_mxfp8_conditional",
+    )
+    return variant
+
+
+def _staged_paged_variants(key, values):
+    from copy import deepcopy
+
+    if key != "a5_qwen38":
+        return []
+    result = []
+    for original in values:
+        if (original["variant"] != "paged_body_geometry_conditional"
+                or original["geometry"]["phase"] != "decode"):
+            continue
+        value = deepcopy(original)
+        source = value["declaration_source"]
+        sim = Path(source["case_path"]).parents[2]
+        case_path = sim / "examples/source-families/paged-fia-a5-decode.json"
+        evidence_path = sim / "data/verification/paged-fia-selection-20261029.json"
+        case = _read(case_path)
+        declaration = value["declaration_key"] + "_staged"
+        value.update(
+            name=declaration + "-selected", declaration_key=declaration, case=case,
+            variant="source_paged_decode_program_conditional",
+        )
+        source.update(
+            case_path=str(case_path), case_sha256=_hash(case_path),
+            runtime_overrides={
+                "attention_policy": case["runtime"]["attention_policy"],
+                "kernels.recipes": case["runtime"]["kernels"]["recipes"],
+            },
+        )
+        source["source_evidence"]["paged_attention_program"] = {
+            "source_commit": "fb66e7d5",
+            "case_path": str(case_path), "case_sha256": _hash(case_path),
+            "paired_evidence_path": str(evidence_path),
+            "paired_evidence_sha256": _hash(evidence_path),
+            "program": "staged_gqa_decode",
+            "basis": "explicit_source_recipe_selection; measured_durations_not_used_as_model_input",
+            "capture_dispatch_identity_verified": False,
+            "applies_to_architecture": "A5",
+        }
+        result.append(value)
+    return result
+
+
 def variants(key, old, base):
     values = [_variant(key, old, base)]
     if "glm53" in key or key in {"a3_v4f", "a3_v4pro"}:
@@ -275,6 +355,7 @@ def variants(key, old, base):
                       for decode in (False, True))
         values.extend(_kimi_single_group_variant(key, old, base, decode=decode)
                       for decode in (False, True))
+        values.append(_kimi_sp_variant(key, old, base))
     elif key == "a5_qwen38":
         values.append(_steady_matmul_variant(key, old, base))
     if key in {"a3_glm53_prefill", "a3_glm53_decode", "a3_v4f"}:
@@ -282,4 +363,5 @@ def variants(key, old, base):
     from fusion_replay_paged_cases import paged_variants
 
     values.extend(paged_variants(key, values[0]))
+    values.extend(_staged_paged_variants(key, values))
     return values

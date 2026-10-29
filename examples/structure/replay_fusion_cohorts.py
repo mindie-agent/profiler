@@ -69,6 +69,8 @@ def _runtime_identity():
         sim / "data/verification/model-scoreboard-20261029-glm53-w4a8-msd-case.json",
         sim / "data/verification/matrix-cohort-wave4-20261029/a5_qwen38-steady.case.json",
         *sorted((sim / "data/verification/shared-quant-wave4-20261029").glob("*.case.json")),
+        sim / "examples/source-families/paged-fia-a5-decode.json",
+        sim / "data/verification/paged-fia-selection-20261029.json",
         Path(__file__).resolve(), Path(__file__).with_name("fusion_replay_cases.py"),
         Path(__file__).with_name("fusion_replay_paged_cases.py"),
         Path(__file__).with_name("fusion_cohort_reporting.py"),
