@@ -1,0 +1,485 @@
+"""Replay local Decode forward evidence without promoting step envelopes.
+
+[Role] Join source-pinned profiler boundaries and the public Sim body API.
+[Invariants] Automatic topology alignment remains labelled as an estimate,
+  separate from explicit Host/module boundaries. Scenario targets are not
+  measured capture facts; graph envelopes remain a separate diagnostic.
+[Timeouts & Locks] Serial cases; bounded source scans and declaration reads.
+[Side-Effect Policy] Read local captures and write requested reports; no devices.
+"""
+from __future__ import annotations
+
+import argparse
+from collections import Counter
+from dataclasses import replace
+from hashlib import sha256
+import json
+from pathlib import Path
+import resource
+import subprocess
+import sys
+import tempfile
+import time
+
+from mindie_profiler.events import ProfilerError, SourceRef, Window
+from mindie_profiler.forward_spans import measure_forward_spans
+from mindie_profiler.normalized import kernel_rows
+from mindie_profiler.sources_csv import probe_csv
+from mindie_profiler.sources_db import DbSource, probe_db, sha256_file
+
+from body_forward_comparison import GEOMETRY_FIELDS, _stats, compare_body_forward, compare_layers
+
+
+class PredictionCache(dict):
+    def __init__(self, directory=None):
+        super().__init__()
+        self.directory = Path(directory) if directory else None
+        if self.directory:
+            self.directory.mkdir(parents=True, exist_ok=True)
+
+
+def _read(path):
+    if path.stat().st_size > 50 * 1024 ** 2:
+        raise ValueError(f"forward_declaration_too_large:{path}")
+    return json.loads(path.read_text())
+
+
+def _path(base, value):
+    path = Path(value)
+    return path.resolve() if path.is_absolute() else (base / path).resolve()
+
+
+def _empty_comparison(reasons):
+    return {
+        "status": "unresolved", "reasons": reasons, "observed_forward_count": 0,
+        "observed_ms": {"count": 0, "mean": None, "p50": None, "p90": None,
+                        "min": None, "max": None},
+        "predicted_ms": None, "relative_error": None, "per_forward_diff_ms": None,
+        "passed": None,
+    }
+
+
+def _source(path, declaration, boundaries, *, max_events, timeout_s):
+    rank_id, rank_index = declaration.get("rank_id", ""), declaration.get("rank_index")
+    digest = sha256_file(path)
+    if declaration.get("sha256") and digest != declaration["sha256"]:
+        raise ValueError("forward_capture_source_hash_mismatch")
+    kind = declaration.get("kind", "db" if path.suffix == ".db" else "csv")
+    if kind == "db":
+        schema = probe_db(path, timeout_s=timeout_s)
+        scopes = [scope for row in (boundaries or {}).get("forwards", []) for scope in row.get("scopes", [])]
+        if not scopes:
+            interval = DbSource(schema).capture_range_ns(timeout_s=timeout_s) if boundaries is None else None
+            rows, stats = DbSource(schema).iter_window(
+                Window(*interval), max_rows=max_events, timeout_s=timeout_s) if interval else ([], None)
+            events = (replace(event, rank_id=rank_id, rank_index=rank_index) for event in rows)
+        else:
+            window = Window(min(s["start_ns"] for s in scopes), max(s["end_ns"] for s in scopes))
+            rows, stats = DbSource(schema).iter_window(window, max_rows=max_events, timeout_s=timeout_s)
+            if stats.bad_rows:
+                raise ValueError("forward_source_has_invalid_event_rows")
+            events = (replace(event, rank_id=rank_id, rank_index=rank_index) for event in rows)
+    elif kind == "csv":
+        schema = probe_csv(path)
+        events = (row.event for row in kernel_rows(
+            path, rank_id=rank_id, rank_index=rank_index,
+            max_rows=max_events, timeout_s=timeout_s))
+    else:
+        raise ValueError(f"unsupported_forward_source_kind:{kind}")
+    ref = SourceRef(
+        rank_id=rank_id, rank_index=rank_index, kind=kind, path=str(path),
+        basename=path.name, sha256=digest, size_bytes=path.stat().st_size,
+        schema_version=schema.schema_version, schema_variant=schema.schema_variant,
+        mtime_ns=path.stat().st_mtime_ns,
+    )
+    return events, ref
+
+
+def _sim_identity():
+    import mindie_sim
+
+    package = Path(mindie_sim.__file__).resolve().parent
+    files = {str(path.relative_to(package)): sha256_file(path)
+             for path in sorted(package.rglob("*")) if path.suffix in {".py", ".json"}}
+    return {"package_path": str(package), "version": mindie_sim.__version__,
+            "package_sha256": sha256(json.dumps(files, sort_keys=True).encode()).hexdigest(),
+            "file_count": len(files), "algorithm": "sha256(sorted relative-path to file-sha256 JSON)"}
+
+
+def _model_config(case):
+    """Reuse the Sim front end to declare topology; these are not observed rows."""
+    from mindie_sim import target_graphs
+    from mindie_sim.prediction.structure import parse_case
+
+    parsed = parse_case(case)
+    config = parsed.model.to_dict()
+    config["tp"] = parsed.runtime.parallel.tp
+    proposals = int(dict(parsed.runtime.metadata).get("draft_proposal_tokens", 0))
+    config["decode_max_tokens"] = max(32, parsed.runtime.max_num_seqs * (proposals + 1))
+    graphs = target_graphs(parsed, phase="decode", tokens=1, context=0, sequences=1, scope="body")
+    topology = []
+    for op in next(iter(graphs.values())):
+        if op.layer >= 0:
+            topology.append({"layer_id": op.layer, "family": op.family, "recipe": op.recipe,
+                             "local_shape": list(op.local_shape), "source_boundary": op.source_boundary})
+    config["layer_signatures"] = topology
+    config["layer_signature_geometry"] = {"tokens": 1, "context": 0, "basis": "declared_topology_only"}
+    return config
+
+
+def _predict_bounded(case_path, geometry, cache, *, timeout_s):
+    before = _sim_identity()
+    key = (sha256_file(case_path), geometry["phase"], geometry["tokens_per_sequence"],
+           geometry["context_tokens"], geometry["sequences_per_replica"])
+    cache_key = (*key, before["package_sha256"])
+    if cache_key in cache:
+        return {**cache[cache_key], "reused_prediction": True}
+    directory = getattr(cache, "directory", None)
+    cached_path = (directory / (sha256(json.dumps(cache_key).encode()).hexdigest() + ".json")) if directory else None
+    if cached_path and cached_path.is_file():
+        receipt = _read(cached_path)
+        if receipt.get("cache_key") != list(cache_key) or receipt.get("result", {}).get("status") != "completed":
+            raise ValueError("body_prediction_cache_identity_mismatch")
+        cache[cache_key] = receipt["result"]
+        return {**receipt["result"], "reused_prediction": True}
+    with tempfile.TemporaryDirectory(prefix="mindie-body-prediction-") as directory:
+        output = Path(directory) / "prediction.json"
+        command = [sys.executable, str(Path(__file__).with_name("body_forward_comparison.py")),
+                   "--case", str(case_path), "--tokens", str(key[2]), "--context", str(key[3]),
+                   "--sequences", str(key[4]), "--phase", key[1], "--output", str(output)]
+        try:
+            completed = subprocess.run(command, timeout=timeout_s, capture_output=True, text=True)
+        except subprocess.TimeoutExpired:
+            return {"status": "failed", "reason": "body_prediction_timeout",
+                    "timeout_s": timeout_s, "runtime_identity": before}
+        if completed.returncode:
+            return {"status": "failed", "reason": "body_prediction_worker_failed",
+                    "returncode": completed.returncode, "stderr": completed.stderr[-2000:],
+                    "runtime_identity": before}
+        value = _read(output)
+    after = _sim_identity()
+    value["runtime_identity"] = {**before, "sources_unchanged": before == after}
+    value["case_identity"] = {"path": str(case_path), "sha256": key[0],
+                              "source_unchanged": sha256_file(case_path) == key[0]}
+    value["status"] = "completed"
+    if before != after:
+        value.update(status="failed", reason="sim_runtime_changed_during_prediction")
+    elif not value["case_identity"]["source_unchanged"]:
+        value.update(status="failed", reason="sim_case_changed_during_prediction")
+    elif value["execution"]["peak_rss_bytes"] > 512 * 1024 ** 2:
+        value.update(status="failed", reason="body_prediction_memory_budget_exceeded")
+    value["reused_prediction"] = False
+    if value["status"] == "completed":
+        cache[cache_key] = value
+        if cached_path:
+            cached_path.write_text(json.dumps({"cache_key": cache_key, "result": value}) + "\n")
+    return value
+
+
+def compact_observation(observed):
+    """Keep geometry-specific statistics and bounded original endpoint examples."""
+    if "geometry_groups" in observed:
+        return observed
+    groups = {}
+    for forward in observed.get("forwards", []):
+        if forward.get("status") != "measured":
+            continue
+        geometry = forward.get("geometry") or observed.get("geometry") or {}
+        key = json.dumps(geometry, sort_keys=True)
+        groups.setdefault(key, {"geometry": geometry, "forwards": []})["forwards"].append(forward)
+    result = {key: value for key, value in observed.items()
+              if key not in {"forwards", "per_layer_ms", "stage_span_ms"}}
+    result["geometry_groups"] = []
+    for group in groups.values():
+        forwards = group["forwards"]
+        ids = {row["forward_id"] for row in forwards}
+        sample_forwards = []
+        for forward in forwards[:3]:
+            sample_forwards.append({**forward, "stages": [
+                scope for scope in forward.get("stages", [])
+                if scope["kind"] not in {"dense_layer", "moe_layer"}]})
+        entry = {"geometry": group["geometry"], "forward_count": len(forwards),
+                 "body_forward_span_ms": _stats([row["body_forward_span_ms"] for row in forwards]),
+                 "representative_forwards": sample_forwards}
+        for field in ("per_layer_ms", "stage_span_ms"):
+            entry[field] = []
+            for layer in observed.get(field, []):
+                samples = [sample for sample in layer.get("samples", [])
+                           if sample["forward_id"] in ids and sample.get("status") == "measured"]
+                if samples:
+                    entry[field].append({**{key: value for key, value in layer.items()
+                                           if key not in {"samples", "stats"}},
+                                         "stats": _stats([sample["span_ms"] for sample in samples]),
+                                         "sample_count": len(samples), "samples": samples[:1]})
+        result["geometry_groups"].append(entry)
+    result["detail_policy"] = "All statistics retain complete populations; up to three body endpoints and one example per layer/stage per geometry are retained."
+    return result
+
+
+def _automatic_scenarios(row, observed):
+    """Keep captured q/batch separate from the declared representative context."""
+    evidence = row.get("scenario_evidence", {})
+    context = (row.get("geometry") or {}).get("context_tokens")
+    context_basis = "explicit_case_geometry"
+    if context is None:
+        context = evidence.get("client", {}).get("input_len", evidence.get("request_input_len"))
+        context_basis = "client_prompt_tokens_as_representative_initial_context"
+    scenarios = []
+    for group in observed.get("geometry_groups", []):
+        geometry = dict(group["geometry"])
+        geometry.update(phase="decode", context_tokens=context)
+        geometry_key = tuple(geometry.get(field) for field in (
+            "tokens_per_sequence", "context_tokens", "sequences_per_replica"))
+        scenarios.append({"geometry": geometry, "geometry_resolved": all(value is not None for value in geometry_key), "observed": {
+        **{key: observed.get(key) for key in (
+            "schema_version", "metric_boundary", "status", "basis", "comparison_scope",
+            "span_start_basis", "span_end_basis", "source_identity", "model_declaration")},
+        **{key: group.get(key, []) for key in (
+            "body_forward_span_ms", "per_layer_ms", "stage_span_ms", "representative_forwards")},
+        "geometry": geometry,
+        "comparison_assumptions": [
+            f"Context basis: {context_basis}; active KV increments during this capture are not established.",
+            "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+        ]}})
+    return scenarios
+
+
+def _compare_scenarios(result, scenarios, case_path, cache, *, prediction_timeout_s, run_predictions):
+    rows = []
+    for scenario in scenarios:
+        if not scenario["geometry_resolved"] or not run_predictions:
+            worker = {"status": "unresolved", "reason": "observed_forward_geometry_unresolved"
+                      if not scenario["geometry_resolved"] else "prediction_not_requested"}
+        else:
+            worker = _predict_bounded(case_path, scenario["geometry"], cache, timeout_s=prediction_timeout_s)
+        if worker["status"] != "completed":
+            compare = _empty_comparison([worker["reason"]])
+            compare.update(observed_ms=scenario["observed"]["body_forward_span_ms"],
+                           observed_forward_count=scenario["observed"]["body_forward_span_ms"]["count"])
+        else:
+            compare = compare_body_forward(worker["prediction"], scenario["observed"])
+        if worker["status"] == "failed":
+            compare["status"] = "failed"
+        geometry = scenario["geometry"]
+        suffix = f"q{geometry.get('tokens_per_sequence')}_b{geometry.get('sequences_per_replica')}_m{geometry.get('query_rows')}"
+        rows.append({
+            **{key: value for key, value in result.items() if key not in {"observed", "prediction"}},
+            "source_case_id": result["case_id"], "case_id": result["case_id"] + ":" + suffix,
+            "status": compare["status"], "geometry": geometry, "observed": scenario["observed"],
+            "comparison": compare, "prediction": worker.get("prediction"),
+            "prediction_execution": {key: value for key, value in worker.items() if key != "prediction"},
+            "runtime_identity": worker.get("runtime_identity"),
+            "per_layer_comparison": compare_layers(worker["prediction"], scenario["observed"])
+            if worker["status"] == "completed" else None,
+        })
+    result["geometry_cases"] = rows
+
+
+def replay_case(row, base, *, max_events=5_000_000, timeout_s=30,
+                prediction_timeout_s=90, prediction_cache=None, run_predictions=True,
+                reuse_extractions=None):
+    prediction_cache = prediction_cache if prediction_cache is not None else {}
+    result = {
+        "case_id": row["case_id"], "status": "unresolved",
+        "source_identity": dict(row["source"]), "geometry": row.get("geometry"),
+        "scenario_evidence": row.get("scenario_evidence", {}),
+        "observed": None, "prediction": None, "runtime_identity": None,
+        "comparison": _empty_comparison(list(row.get("unresolved_reasons", []))),
+        "auxiliary_graph_envelopes": {
+            "reference": row.get("graph_envelopes_path"), "not_body_forward": True},
+    }
+    automatic = not row.get("boundaries_path")
+    if automatic and not row.get("sim_case_path"):
+        result["comparison"]["reasons"].append("target_body_boundary_evidence_missing")
+        return result
+    boundary_path = _path(base, row["boundaries_path"]) if not automatic else None
+    boundaries = _read(boundary_path) if boundary_path else None
+    if automatic:
+        from mindie_profiler.decode_segmentation import auto_segment_decode_forwards
+
+        case_path = _path(base, row["sim_case_path"])
+        config = _model_config(_read(case_path))
+        reused = (Path(reuse_extractions) / f"auto-forward-{row['case_id']}.json"
+                  if reuse_extractions else None)
+        if reused and reused.is_file():
+            observed = _read(reused)
+            identity = observed.get("source_identity") or {}
+            current_hash = sha256_file(_path(base, row["source"]["path"]))
+            if identity.get("sha256") != current_hash or current_hash != row["source"].get("sha256"):
+                raise ValueError("reused_forward_extraction_source_hash_mismatch")
+            for key in ("name", "layers", "hidden_size", "vocab_size", "tp"):
+                if observed.get("model_declaration", {}).get(key) != config[key]:
+                    raise ValueError(f"reused_forward_model_declaration_differs:{key}")
+            result["extraction_identity"] = {"path": str(reused), "sha256": sha256_file(reused),
+                                             "reused_existing_extraction": True}
+        else:
+            events, source = _source(_path(base, row["source"]["path"]), row["source"], None,
+                                     max_events=max_events, timeout_s=timeout_s)
+            observed = auto_segment_decode_forwards(events, config, source=source, max_events=max_events)
+        observed = compact_observation(observed)
+        result["source_identity"] = observed["source_identity"]
+        result["model_structure_identity"] = {"path": str(case_path), "sha256": sha256_file(case_path)}
+    else:
+        events, source = _source(_path(base, row["source"]["path"]), row["source"], boundaries,
+                                 max_events=max_events, timeout_s=timeout_s)
+        result["source_identity"] = source.content_identity()
+        result["boundary_identity"] = {"path": str(boundary_path), "sha256": sha256_file(boundary_path)}
+        observed = measure_forward_spans(
+            events, boundaries, source=source, clock_domain=row.get("clock_domain", "unix_wall_ns"),
+            max_events=max_events)
+    result["observed"] = observed
+    if automatic:
+        scenarios = _automatic_scenarios(row, observed)
+        if scenarios:
+            _compare_scenarios(result, scenarios, case_path, prediction_cache,
+                               prediction_timeout_s=prediction_timeout_s, run_predictions=run_predictions)
+        else:
+            result["comparison"] = _empty_comparison(["complete_decode_topology_not_found"])
+            result["comparison"].update(observed_ms=observed["body_forward_span_ms"],
+                                         observed_forward_count=observed["body_forward_span_ms"]["count"])
+        return result
+    reasons = []
+    if not observed["body_forward_span_ms"]["count"]:
+        reasons.append("measured_body_forward_unresolved")
+    if not row.get("sim_case_path"):
+        reasons.append("sim_case_declaration_missing")
+    geometry = row.get("geometry") or {}
+    for field in GEOMETRY_FIELDS:
+        if geometry.get(field) is None:
+            reasons.append(f"declared_geometry_missing:{field}")
+        elif (observed.get("geometry") or {}).get(field) != geometry[field]:
+            reasons.append(f"observed_declared_geometry_differs:{field}")
+    if reasons:
+        result["comparison"] = _empty_comparison(reasons)
+        result["comparison"].update(observed_ms=observed["body_forward_span_ms"],
+                                     observed_forward_count=observed["body_forward_span_ms"]["count"])
+        return result
+    case_path = _path(base, row["sim_case_path"])
+    result["case_identity"] = {"path": str(case_path), "sha256": sha256_file(case_path)}
+    if not run_predictions:
+        result["comparison"] = _empty_comparison(["prediction_not_requested"])
+        result["comparison"].update(observed_ms=observed["body_forward_span_ms"],
+                                     observed_forward_count=observed["body_forward_span_ms"]["count"])
+        return result
+    worker = _predict_bounded(case_path, geometry, prediction_cache, timeout_s=prediction_timeout_s)
+    result["prediction_execution"] = {key: value for key, value in worker.items() if key != "prediction"}
+    result["runtime_identity"] = worker.get("runtime_identity")
+    if worker["status"] != "completed":
+        result["status"] = "failed"
+        result["comparison"] = {**_empty_comparison([worker["reason"]]), "status": "failed"}
+        result["comparison"].update(observed_ms=observed["body_forward_span_ms"],
+                                     observed_forward_count=observed["body_forward_span_ms"]["count"])
+        return result
+    predicted = worker["prediction"]
+    result["prediction"] = predicted
+    result["comparison"] = compare_body_forward(predicted, observed)
+    result["per_layer_comparison"] = compare_layers(predicted, observed)
+    result["status"] = result["comparison"]["status"]
+    return result
+
+
+def replay_manifest(manifest, *, base, max_events=5_000_000, timeout_s=30,
+                    prediction_timeout_s=90, run_predictions=True, reuse_extractions=None,
+                    prediction_cache_dir=None, on_case=None):
+    if manifest.get("schema_version") != "mindie-decode-forward-replay/1":
+        raise ValueError("unknown_decode_forward_manifest_schema")
+    rows, seen, prediction_cache = [], set(), PredictionCache(prediction_cache_dir)
+    for row in manifest["cases"]:
+        if row["case_id"] in seen:
+            raise ValueError(f"duplicate_forward_case:{row['case_id']}")
+        seen.add(row["case_id"])
+        try:
+            result = replay_case(row, base, max_events=max_events, timeout_s=timeout_s,
+                                 prediction_timeout_s=prediction_timeout_s, prediction_cache=prediction_cache,
+                                 run_predictions=run_predictions, reuse_extractions=reuse_extractions)
+            rows.extend(result.pop("geometry_cases", None) or [result])
+        except (OSError, ValueError, ProfilerError) as error:
+            rows.append({"case_id": row["case_id"], "status": "failed",
+                         "source_identity": row["source"], "observed": None, "prediction": None,
+                         "comparison": {**_empty_comparison([str(error)]), "status": "failed"},
+                         "error": {"type": type(error).__name__, "message": str(error)}})
+        if on_case is not None:
+            on_case({"source_case_id": row["case_id"], "completed_source_cases": len(seen),
+                     "total_source_cases": len(manifest["cases"]),
+                     "geometry_rows": sum(result.get("source_case_id", result["case_id"]) == row["case_id"]
+                                          for result in rows)})
+    counts = Counter(row["status"] for row in rows)
+    return {
+        "schema_version": "mindie-decode-forward-replay-report/1",
+        "not_new_live_collection": True, "cases": rows,
+        "summary": {"case_count": len(rows), "source_case_count": len(seen),
+                    "measured_cases": sum(bool(row.get("observed", {}).get("body_forward_span_ms", {}).get("count"))
+                                          for row in rows if row.get("observed")),
+                    "compared_cases": counts["compared"],
+                    "passed_cases": sum(row["comparison"]["passed"] is True for row in rows),
+                    "unresolved_cases": counts["unresolved"], "failed_cases": counts["failed"]},
+        "limitations": ["Graph execution envelopes and TPOT are not target-body spans.",
+                        "Automatic topology alignment is not exact Host/module occurrence binding.",
+                        "Scenario targets do not establish capture conditions."],
+    }
+
+
+def render(report):
+    lines = ["# Decode body-forward replay", "",
+             "Existing local captures only. Automatic topology alignment is labelled separately from explicit Host/module boundaries; graph envelopes are separate diagnostics.", "",
+             "| Case | Body calls | Real mean ms | P50 ms | P90 ms | Sim ms | Error | Status / reason |",
+             "|---|---:|---:|---:|---:|---:|---:|---|"]
+    number = lambda value: "—" if value is None else f"{value:.6f}"
+    for row in report["cases"]:
+        compare = row["comparison"]
+        stats = compare["observed_ms"]
+        error = compare["relative_error"]
+        lines.append("| " + " | ".join([
+            row["case_id"], str(stats["count"]), number(stats["mean"]), number(stats["p50"]),
+            number(stats["p90"]), number(compare["predicted_ms"]),
+            "—" if error is None else f"{error:+.2%}",
+            row["status"] + (": " + "; ".join(compare["reasons"]) if compare["reasons"] else ""),
+        ]) + " |")
+    lines.extend(["", "Summary: " + json.dumps(report["summary"], sort_keys=True), ""])
+    return "\n".join(lines)
+
+
+def main():
+    started = time.perf_counter()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--manifest", required=True, type=Path)
+    parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--max-events", type=int, default=5_000_000)
+    parser.add_argument("--timeout", type=float, default=30)
+    parser.add_argument("--prediction-timeout", type=float, default=90)
+    parser.add_argument("--extract-only", action="store_true")
+    parser.add_argument("--reuse-extractions", type=Path)
+    parser.add_argument("--prediction-cache-dir", type=Path)
+    parser.add_argument("--case-id", action="append")
+    args = parser.parse_args()
+    manifest = _read(args.manifest)
+    if args.case_id:
+        available = {row["case_id"] for row in manifest["cases"]}
+        if set(args.case_id) - available:
+            parser.error("requested case ID is absent from manifest")
+        manifest["cases"] = [row for row in manifest["cases"] if row["case_id"] in args.case_id]
+    report = replay_manifest(manifest, base=args.manifest.resolve().parent,
+                             max_events=args.max_events, timeout_s=args.timeout,
+                             prediction_timeout_s=args.prediction_timeout,
+                             run_predictions=not args.extract_only, reuse_extractions=args.reuse_extractions,
+                             prediction_cache_dir=args.prediction_cache_dir,
+                             on_case=lambda row: print(json.dumps(row), flush=True))
+    report["manifest_identity"] = {"path": str(args.manifest.resolve()),
+                                   "sha256": sha256_file(args.manifest)}
+    # getrusage has platform-specific units; placement is unchanged.
+    peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    peak = int(peak if sys.platform == "darwin" else peak * 1024)
+    report["execution"] = {"elapsed_seconds": time.perf_counter() - started,
+                           "peak_rss_bytes": peak, "memory_limit_bytes": 512 * 1024 ** 2,
+                           "memory_budget_passed": peak <= 512 * 1024 ** 2,
+                           "prediction_timeout_seconds": args.prediction_timeout,
+                           "source_scan_timeout_seconds": args.timeout}
+    report["status"] = "failed" if report["summary"]["failed_cases"] or not report["execution"]["memory_budget_passed"] else "completed"
+    args.output.write_text(json.dumps(report, indent=2) + "\n")
+    args.output.with_suffix(".md").write_text(render(report))
+    print(json.dumps(report["summary"]))
+    return 1 if report["status"] == "failed" else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
