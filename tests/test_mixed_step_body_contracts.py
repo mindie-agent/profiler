@@ -27,6 +27,30 @@ def change_slot(row, field, slot, value):
     return replace(row, **{field: tuple(values)})
 
 
+def test_glm_decode_shared_int32_producer_and_dequant_consumer_remain_separate():
+    producer = captured("a3_glm53_decode", "QuantBatchMatmulV3")
+    consumer = captured("a3_glm53_decode", "DequantSwigluQuant")
+    matrix = ("matrix", (1, 512, 6144), "int8", "int8", "int32", (), "")
+    dequant = (
+        "dequant_swiglu_quant_active", "DequantSwigluQuant",
+        ((1, 512), "int32", "ND"), ((512,), "fp32", "ND"),
+        ((1,), "fp32", "ND"), ((1, 256), "int8", "ND"), ((1,), "fp32", "ND"),
+    )
+    assert observed_contract(producer) == matrix
+    assert observed_contract(consumer) == dequant
+    assert observed_contract_scope(producer)["output_boundary"] == "integer_accumulator"
+    assert "input_matrix_multiplication" in \
+        observed_contract_scope(consumer)["excluded_semantic_work"]
+    for row, expected in ((producer, matrix), (consumer, dequant)):
+        assert observed_contract(replace(row, duration_ns=1)) == expected
+        assert observed_contract(replace(row, duration_ns=999999999)) == expected
+    # Three producer slots do not describe a floating epilogue; the separate
+    # consumer requires the captured integer accumulator and per-row scales.
+    assert observed_contract(change_slot(producer, "output_dtypes", 0, "DT_BF16")) is None
+    assert observed_contract(change_slot(consumer, "input_dtypes", 0, "DT_BF16")) is None
+    assert observed_contract(change_slot(consumer, "input_shapes", 2, (2,))) is None
+
+
 @pytest.mark.parametrize("name,tokens,heads,width", [
     ("a3_qwen35", 2, 4, 256),
     ("a3_qwen36", 1, 6, 256),

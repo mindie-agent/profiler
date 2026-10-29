@@ -4072,6 +4072,189 @@
           "fixture_csv_line": 2
         }
       ]
+    },
+    {
+      "capture_id": "a3_glm53_decode",
+      "fixture": "a3_glm53_decode.csv",
+      "fixture_sha256": "5952c5a9a4b8e4a76dae029175f42d0fced91ff779d4982012934979f7f472ac",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/dc4k_b1.csv.gz",
+        "size_bytes": 9236949,
+        "mtime_ns": 1792775834549057000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "ed5e9696949d51c2d1d31ab099a71a2c98722d5719f004fcf90c9ceff036f60c"
+      },
+      "rows": [
+        {
+          "source_csv_line": 150,
+          "operator_type": "QuantBatchMatmulV3",
+          "count": 5550,
+          "activity_sum_ns": 72928216,
+          "input_shapes": [
+            [
+              1,
+              6144
+            ],
+            [
+              16,
+              384,
+              16,
+              32
+            ],
+            [
+              512
+            ]
+          ],
+          "output_shapes": [
+            [
+              1,
+              512
+            ]
+          ],
+          "input_dtypes": [
+            "INT8",
+            "INT8",
+            "DT_BF16"
+          ],
+          "output_dtypes": [
+            "INT32"
+          ],
+          "input_formats": [
+            "ND",
+            "FRACTAL_NZ",
+            "ND"
+          ],
+          "output_formats": [
+            "ND"
+          ],
+          "contract": [
+            "matrix",
+            [
+              1,
+              512,
+              6144
+            ],
+            "int8",
+            "int8",
+            "int32",
+            [],
+            ""
+          ],
+          "diagnostic": {
+            "category": "tensor_contract_available",
+            "reason": "observed_tensor_contract_available",
+            "operator_type": "QuantBatchMatmulV3",
+            "detail": "Source-defined operand and scale geometry is available; dispatch and values remain unknown."
+          },
+          "fixture_csv_line": 2
+        },
+        {
+          "source_csv_line": 151,
+          "operator_type": "DequantSwigluQuant",
+          "count": 5550,
+          "activity_sum_ns": 18781713,
+          "input_shapes": [
+            [
+              1,
+              512
+            ],
+            [
+              512
+            ],
+            [
+              1
+            ],
+            [],
+            [],
+            [],
+            []
+          ],
+          "output_shapes": [
+            [
+              1,
+              256
+            ],
+            [
+              1
+            ]
+          ],
+          "input_dtypes": [
+            "INT32",
+            "FLOAT",
+            "FLOAT",
+            "DT_UNDEFINED",
+            "DT_UNDEFINED",
+            "DT_UNDEFINED",
+            "DT_UNDEFINED"
+          ],
+          "output_dtypes": [
+            "INT8",
+            "FLOAT"
+          ],
+          "input_formats": [
+            "ND",
+            "ND",
+            "ND",
+            "NULL",
+            "NULL",
+            "NULL",
+            "NULL"
+          ],
+          "output_formats": [
+            "ND",
+            "ND"
+          ],
+          "contract": [
+            "dequant_swiglu_quant_active",
+            "DequantSwigluQuant",
+            [
+              [
+                1,
+                512
+              ],
+              "int32",
+              "ND"
+            ],
+            [
+              [
+                512
+              ],
+              "fp32",
+              "ND"
+            ],
+            [
+              [
+                1
+              ],
+              "fp32",
+              "ND"
+            ],
+            [
+              [
+                1,
+                256
+              ],
+              "int8",
+              "ND"
+            ],
+            [
+              [
+                1
+              ],
+              "fp32",
+              "ND"
+            ]
+          ],
+          "diagnostic": {
+            "category": "tensor_contract_available",
+            "reason": "observed_tensor_contract_available",
+            "operator_type": "DequantSwigluQuant",
+            "detail": "Compared active tensor descriptors are available; values, dispatch arguments and model occurrence are not established."
+          },
+          "fixture_csv_line": 3
+        }
+      ],
+      "scope": "Unique INT32 shared-gate/up producer and separate DequantSwigluQuant consumer descriptors. Counts do not establish layer or step occurrence."
     }
   ],
   "abi_evidence": {
