@@ -74,6 +74,15 @@ def _add_analyze_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--graph-mode", default=None, help="graph mode, e.g. piecewise_graph")
     parser.add_argument("--clock-domain", default=None, help="clock domain, e.g. syscnt_aligned")
     parser.add_argument("--input-signature", default=None, help="identity of the profiled workload and inputs")
+    parser.add_argument("--structure", help="sim mindie-model-structure/1 JSON; attaches measured mapping")
+    parser.add_argument("--bindings", help="explicit occurrence/Host scope bindings for --structure")
+    parser.add_argument("--correlation", action="append", default=[],
+                        help="correlate JSON for Host-evidence mapping (repeatable)")
+    parser.add_argument("--module-trace", action="append", default=[],
+                        help="hash-linked synchronized leaf-module trace (repeatable)")
+    parser.add_argument("--mapping-limit", type=int, default=200, help="mapping rows retained in JSON")
+    parser.add_argument("--max-mapping-events", type=int, default=100_000,
+                        help="total event-window budget for structural mapping")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -196,6 +205,12 @@ def _run_analyze(argv: Sequence[str]) -> int:
         group_by=args.group_by,
         request_wall_ms=args.request_wall_ms,
         scene=_scene(args),
+        structure=args.structure,
+        structure_bindings=args.bindings,
+        structure_correlations=args.correlation,
+        structure_module_traces=args.module_trace,
+        mapping_limit=args.mapping_limit,
+        max_mapping_events=args.max_mapping_events,
         output=args.output,
     )
     summary = {
@@ -207,6 +222,11 @@ def _run_analyze(argv: Sequence[str]) -> int:
         "hotspot_grouping": report.get("hotspot_grouping"),
         "limitations": [item["code"] for item in report["limitations"]],
     }
+    if "structure_mapping" in report:
+        mapping = report["structure_mapping"]
+        summary["structure_mapping"] = {
+            key: mapping[key] for key in ("graph_id", "status", "event_window_count", "status_counts")
+        }
     if args.output:
         print(json.dumps(summary, ensure_ascii=False, sort_keys=True))
         return 0

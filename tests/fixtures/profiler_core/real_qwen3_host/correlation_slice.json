@@ -1,0 +1,238 @@
+{
+  "provenance": {
+    "source_path": "/Volumes/data/Profiling/vllm-ascend-workspace/v6_inputs_remote/qwen3_8b_s1/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler_0.db",
+    "source_sha256": "97339f6512100662a89eefc2518b35391afba42af01b31aae7c267af99a85cc5",
+    "source_size_bytes": 2568192,
+    "selection_queries": {
+      "META_DATA": "SELECT rowid, * FROM META_DATA ORDER BY rowid",
+      "TASK": "SELECT rowid, * FROM TASK WHERE globalTaskId=27 ORDER BY rowid",
+      "COMPUTE_TASK_INFO": "SELECT rowid, * FROM COMPUTE_TASK_INFO WHERE globalTaskId=27 ORDER BY rowid",
+      "CANN_API": "SELECT rowid, * FROM CANN_API WHERE connectionId=1523 ORDER BY rowid",
+      "PYTORCH_API": "SELECT rowid, * FROM PYTORCH_API WHERE rowid IN (74,2959) ORDER BY rowid",
+      "CONNECTION_IDS": "SELECT rowid, * FROM CONNECTION_IDS WHERE id IN (1523,2900) ORDER BY rowid",
+      "STRING_IDS": "SELECT rowid, * FROM STRING_IDS WHERE id IN (5,6,7,9,11,22,73,360,361,362,363,364,268435497,268435528) ORDER BY rowid"
+    },
+    "row_encoding": "Each row contains original SQLite rowid followed by original table columns; no values synthesized.",
+    "purpose": "Actual Qwen3 s1 CANN direct connection1523 collides with PYTORCH connection index1523; index2900 maps to TASK1523.",
+    "window_ns": [
+      1776098194709000000,
+      1776098194724100000
+    ]
+  },
+  "tables": {
+    "META_DATA": {
+      "schema": "CREATE TABLE META_DATA (name TEXT, value TEXT)",
+      "rows": [
+        [
+          1,
+          "SCHEMA_VERSION_MICRO",
+          "0"
+        ],
+        [
+          2,
+          "SCHEMA_VERSION_MINOR",
+          "2"
+        ],
+        [
+          3,
+          "SCHEMA_VERSION_MAJOR",
+          "1"
+        ],
+        [
+          4,
+          "SCHEMA_VERSION",
+          "1.2.0"
+        ],
+        [
+          5,
+          "ENV_VARIABLES",
+          "{\"ASCEND_GLOBAL_LOG_LEVEL\": \"\", \"HCCL_RDMA_TC\": \"\", \"HCCL_RDMA_SL\": \"\", \"ACLNN_CACHE_LIMIT\": \"\", \"HOST_CACHE_CAPACITY\": \"\", \"ASCEND_ENHANCE_ENABLE\": \"\", \"PYTORCH_NPU_ALLOC_CONF\": \"\", \"ASCEND_LAUNCH_BLOCKING\": \"\", \"HCCL_ALGO\": \"\"}"
+        ],
+        [
+          6,
+          "ENV_VARIABLES",
+          "{\"ASCEND_GLOBAL_LOG_LEVEL\": \"\", \"HCCL_RDMA_TC\": \"\", \"HCCL_RDMA_SL\": \"\", \"ACLNN_CACHE_LIMIT\": \"\", \"HOST_CACHE_CAPACITY\": \"\", \"ASCEND_ENHANCE_ENABLE\": \"\", \"PYTORCH_NPU_ALLOC_CONF\": \"expandable_segments:True\", \"ASCEND_LAUNCH_BLOCKING\": \"\", \"HCCL_ALGO\": \"\"}"
+        ]
+      ]
+    },
+    "TASK": {
+      "schema": "CREATE TABLE TASK (startNs INTEGER, endNs INTEGER, deviceId INTEGER, connectionId INTEGER, globalTaskId INTEGER, globalPid INTEGER, taskType INTEGER, contextId INTEGER, streamId INTEGER, taskId INTEGER, modelId INTEGER)",
+      "rows": [
+        [
+          8,
+          1776098194711418190,
+          1776098194711421430,
+          0,
+          1523,
+          27,
+          1397308,
+          59,
+          4294967295,
+          2,
+          1079,
+          4294967295
+        ]
+      ]
+    },
+    "COMPUTE_TASK_INFO": {
+      "schema": "CREATE TABLE COMPUTE_TASK_INFO (name INTEGER, globalTaskId INTEGER PRIMARY KEY, blockDim INTEGER, mixBlockDim INTEGER, taskType INTEGER, opType INTEGER, inputFormats INTEGER, inputDataTypes INTEGER, inputShapes INTEGER, outputFormats INTEGER, outputDataTypes INTEGER, outputShapes INTEGER, attrInfo INTEGER, opState INTEGER, hf32Eligible INTEGER)",
+      "rows": [
+        [
+          27,
+          360,
+          27,
+          1,
+          0,
+          3,
+          361,
+          22,
+          362,
+          363,
+          5,
+          6,
+          7,
+          9,
+          364,
+          11
+        ]
+      ]
+    },
+    "CANN_API": {
+      "schema": "CREATE TABLE CANN_API (startNs INTEGER, endNs INTEGER, type INTEGER, globalTid INTEGER, connectionId INTEGER PRIMARY KEY, name INTEGER)",
+      "rows": [
+        [
+          1523,
+          1776098194711267680,
+          1776098194711456100,
+          10000,
+          6001392163836772,
+          1523,
+          73
+        ]
+      ]
+    },
+    "PYTORCH_API": {
+      "schema": "CREATE TABLE PYTORCH_API (startNs TEXT, endNs TEXT, globalTid INTEGER, connectionId INTEGER, name INTEGER, sequenceNumber INTEGER, fwdThreadId INTEGER, inputDtypes INTEGER, inputShapes INTEGER, callchainId INTEGER, type INTEGER)",
+      "rows": [
+        [
+          74,
+          "1776098194724072720",
+          "1776098194724080580",
+          6001392163836476,
+          1523,
+          268435497,
+          null,
+          null,
+          null,
+          null,
+          null,
+          50002
+        ],
+        [
+          2959,
+          "1776098194709026580",
+          "1776098194709037990",
+          6001392163836476,
+          2900,
+          268435528,
+          -1,
+          0,
+          null,
+          null,
+          null,
+          50001
+        ]
+      ]
+    },
+    "CONNECTION_IDS": {
+      "schema": "CREATE TABLE CONNECTION_IDS (id INTEGER, connectionId INTEGER)",
+      "rows": [
+        [
+          1524,
+          1523,
+          1342188552
+        ],
+        [
+          2901,
+          2900,
+          1523
+        ]
+      ]
+    },
+    "STRING_IDS": {
+      "schema": "CREATE TABLE STRING_IDS (id INTEGER PRIMARY KEY, value TEXT)",
+      "rows": [
+        [
+          5,
+          5,
+          "ND"
+        ],
+        [
+          6,
+          6,
+          "INT32"
+        ],
+        [
+          7,
+          7,
+          "\"64\""
+        ],
+        [
+          9,
+          9,
+          ""
+        ],
+        [
+          11,
+          11,
+          "NO"
+        ],
+        [
+          22,
+          22,
+          "ND;ND"
+        ],
+        [
+          73,
+          73,
+          "launch"
+        ],
+        [
+          360,
+          360,
+          "aclnnInplaceFillScalar_FillAiCore_Fill"
+        ],
+        [
+          361,
+          361,
+          "Fill"
+        ],
+        [
+          362,
+          362,
+          "INT64;INT32"
+        ],
+        [
+          363,
+          363,
+          "\"1;\""
+        ],
+        [
+          364,
+          364,
+          "dynamic"
+        ],
+        [
+          268435497,
+          268435497,
+          "Enqueue@aclnnMatmul"
+        ],
+        [
+          268435528,
+          268435528,
+          "aclnnInplaceFillScalar"
+        ]
+      ]
+    }
+  }
+}

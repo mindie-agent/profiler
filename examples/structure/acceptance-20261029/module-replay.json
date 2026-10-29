@@ -1,0 +1,1601 @@
+{
+  "kind": "historical_capture_structure_replay",
+  "report_schema_version": "mindie-profile-summary/1",
+  "not_new_live_collection": true,
+  "source_identity": {
+    "source_kind": "ascend_pytorch_profiler_db",
+    "db_files_sha256": {
+      "b2bb20466bf7_49402_20261019214842958_ascend_pt": "5ca5235f1e3e91c58909ffbc11b9041d963f0a210dbe87fcce787ac36523a72b"
+    },
+    "csv_files_sha256": {},
+    "exporter_schema_version": "torch_npu_db_v1.2.0",
+    "parser_version": "mindie_profiler/0.5.0",
+    "query_elapsed_ms": 1395.745625,
+    "timing_scope": "schema probe + bounded explicit-window reads (plus sha256 only with --hash); capture, export, and first cold full-table scan are excluded",
+    "cache_state": "path_size_mtime",
+    "cache_scope": "content sha256 is opt-in (--hash); the default identity is path+size_bytes+mtime_ns+schema_version",
+    "query_timings": [
+      {
+        "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+        "phase": "sha256",
+        "elapsed_ms": 16.973209,
+        "enabled": true
+      },
+      {
+        "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+        "phase": "schema_probe",
+        "elapsed_ms": 0.923875,
+        "schema_version": "1.2.0"
+      },
+      {
+        "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+        "phase": "read",
+        "window": "step_1",
+        "rows_read": 6000,
+        "rows_selected": 6000,
+        "elapsed_ms": 366.411375,
+        "bad_rows": 0,
+        "unresolved_string_ids": 0
+      },
+      {
+        "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+        "phase": "read",
+        "window": "step_2",
+        "rows_read": 6000,
+        "rows_selected": 6000,
+        "elapsed_ms": 395.127458,
+        "bad_rows": 0,
+        "unresolved_string_ids": 0
+      },
+      {
+        "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+        "phase": "read",
+        "window": "step_3",
+        "rows_read": 6000,
+        "rows_selected": 6000,
+        "elapsed_ms": 490.275333,
+        "bad_rows": 0,
+        "unresolved_string_ids": 0
+      }
+    ],
+    "sources": [
+      {
+        "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+        "kind": "db",
+        "basename": "ascend_pytorch_profiler.db",
+        "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+        "sha256": "5ca5235f1e3e91c58909ffbc11b9041d963f0a210dbe87fcce787ac36523a72b",
+        "size_bytes": 38690816,
+        "mtime_ns": 1792446540000000000,
+        "schema_version": "torch_npu_db_v1.2.0",
+        "schema_variant": "v1.2.0_blockDim_pmu",
+        "header_sha256": null,
+        "optional_missing": [
+          "COMMUNICATION_OP",
+          "COMMUNICATION_SCHEDULE_TASK_INFO"
+        ],
+        "notes": [],
+        "content_identity": {
+          "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+          "size_bytes": 38690816,
+          "mtime_ns": 1792446540000000000,
+          "schema_version": "torch_npu_db_v1.2.0",
+          "sha256": "5ca5235f1e3e91c58909ffbc11b9041d963f0a210dbe87fcce787ac36523a72b"
+        }
+      }
+    ],
+    "source_fingerprints": {
+      "b2bb20466bf7_49402_20261019214842958_ascend_pt": {
+        "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+        "size_bytes": 38690816,
+        "mtime_ns": 1792446540000000000,
+        "schema_version": "torch_npu_db_v1.2.0",
+        "sha256": "5ca5235f1e3e91c58909ffbc11b9041d963f0a210dbe87fcce787ac36523a72b"
+      }
+    },
+    "schema": [
+      {
+        "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+        "kind": "db",
+        "basename": "ascend_pytorch_profiler.db",
+        "schema_version": "1.2.0",
+        "schema_variant": "v1.2.0_blockDim_pmu",
+        "tables": [
+          "ACC_PMU",
+          "AICORE_FREQ",
+          "CANN_API",
+          "COMPUTE_TASK_INFO",
+          "CONNECTION_IDS",
+          "ENUM_API_TYPE",
+          "ENUM_HCCL_DATA_TYPE",
+          "ENUM_HCCL_LINK_TYPE",
+          "ENUM_HCCL_RDMA_TYPE",
+          "ENUM_HCCL_TRANSPORT_TYPE",
+          "ENUM_MEMCPY_OPERATION",
+          "ENUM_MODULE",
+          "ENUM_MSTX_EVENT_TYPE",
+          "ENUM_OVERLAP_ANALYSIS_TYPE",
+          "HBM",
+          "HOST_INFO",
+          "LLC",
+          "MEMORY_RECORD",
+          "META_DATA",
+          "NPU_INFO",
+          "NPU_MEM",
+          "NPU_MODULE_MEM",
+          "OP_MEMORY",
+          "OVERLAP_ANALYSIS",
+          "PYTORCH_API",
+          "QOS",
+          "RANK_DEVICE_MAP",
+          "SESSION_TIME_INFO",
+          "SOC_BANDWIDTH_LEVEL",
+          "STEP_TIME",
+          "STRING_IDS",
+          "TASK",
+          "TASK_PMU_INFO"
+        ],
+        "optional_missing": [
+          "COMMUNICATION_OP",
+          "COMMUNICATION_SCHEDULE_TASK_INFO"
+        ],
+        "block_column": "blockDim",
+        "mix_block_column": "mixBlockNum",
+        "shape_columns": [
+          "inputShapes",
+          "inputDataTypes",
+          "inputFormats",
+          "outputShapes",
+          "outputDataTypes",
+          "outputFormats",
+          "opState"
+        ],
+        "has_wait_ns": false,
+        "size_bytes": 38690816
+      }
+    ]
+  },
+  "scene": {
+    "framework": null,
+    "phase": "eager_mlp",
+    "tp": null,
+    "dp": null,
+    "graph_mode": null,
+    "clock_domain": "unix_wall",
+    "scene_source": "provided"
+  },
+  "window_accounting": [
+    {
+      "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+      "rank_index": null,
+      "step": 1,
+      "label": "step_1",
+      "window_origin_ns": 1792446524431924369,
+      "window_start_ns": 1792446524431924369,
+      "window_end_ns": 1792446525730030111,
+      "window_start_us": 0.0,
+      "window_end_us": 1298105.742,
+      "event_count": 6000,
+      "complete_event_count": 6000,
+      "clipped_event_count": 0,
+      "comm_event_count": 0,
+      "stream_count": 1,
+      "request_wall_ms": null,
+      "window_duration_ms": 1298.105742,
+      "observed_event_span_ms": 1297.70736,
+      "device_busy_union_ms": 19.33122,
+      "device_activity_sum_ms": 19.33122,
+      "exposed_comm_ms": 0.0,
+      "device_uncovered_ms": 1278.37614,
+      "host_dispatch_gap_ms": null,
+      "total_cost_ms": 1297.70736,
+      "wall_ms": 1297.70736,
+      "busy_union_ms": 19.33122,
+      "kernel_sum_ms": 19.33122,
+      "host_gap_ms": 1278.37614,
+      "exposed_aicpu_ms": 0.0,
+      "underfeed_bubble_ratio": 0.985104,
+      "aicpu_exposed_ratio": 0.0,
+      "coverage_ratio": 0.999693,
+      "largest_internal_bubble_ms": 2.36762,
+      "block_union_ms": {
+        "Attention": 0.0,
+        "MoE": 0.0,
+        "Comm": 0.0,
+        "Norm": 0.0,
+        "Copy_Layout": 0.0,
+        "Unclassified": 19.33122,
+        "Host_Gap": 1278.37614
+      },
+      "block_share_pct": {
+        "Attention": 0.0,
+        "MoE": 0.0,
+        "Comm": 0.0,
+        "Norm": 0.0,
+        "Copy_Layout": 0.0,
+        "Unclassified": 100.0,
+        "Host_Gap": null
+      },
+      "source": {
+        "kind": "db",
+        "basename": "ascend_pytorch_profiler.db",
+        "sha256": "5ca5235f1e3e91c58909ffbc11b9041d963f0a210dbe87fcce787ac36523a72b",
+        "schema_version": "torch_npu_db_v1.2.0"
+      },
+      "query": {
+        "rows_read": 6000,
+        "rows_selected": 6000,
+        "bad_rows": 0,
+        "elapsed_ms": 366.411375
+      }
+    },
+    {
+      "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+      "rank_index": null,
+      "step": 2,
+      "label": "step_2",
+      "window_origin_ns": 1792446525730341846,
+      "window_start_ns": 1792446525730341846,
+      "window_end_ns": 1792446527183888508,
+      "window_start_us": 0.0,
+      "window_end_us": 1453546.662,
+      "event_count": 6000,
+      "complete_event_count": 6000,
+      "clipped_event_count": 0,
+      "comm_event_count": 0,
+      "stream_count": 1,
+      "request_wall_ms": null,
+      "window_duration_ms": 1453.546662,
+      "observed_event_span_ms": 1453.2311,
+      "device_busy_union_ms": 19.3299,
+      "device_activity_sum_ms": 19.3299,
+      "exposed_comm_ms": 0.0,
+      "device_uncovered_ms": 1433.9012,
+      "host_dispatch_gap_ms": null,
+      "total_cost_ms": 1453.2311,
+      "wall_ms": 1453.2311,
+      "busy_union_ms": 19.3299,
+      "kernel_sum_ms": 19.3299,
+      "host_gap_ms": 1433.9012,
+      "exposed_aicpu_ms": 0.0,
+      "underfeed_bubble_ratio": 0.986699,
+      "aicpu_exposed_ratio": 0.0,
+      "coverage_ratio": 0.999783,
+      "largest_internal_bubble_ms": 191.8456,
+      "block_union_ms": {
+        "Attention": 0.0,
+        "MoE": 0.0,
+        "Comm": 0.0,
+        "Norm": 0.0,
+        "Copy_Layout": 0.0,
+        "Unclassified": 19.3299,
+        "Host_Gap": 1433.9012
+      },
+      "block_share_pct": {
+        "Attention": 0.0,
+        "MoE": 0.0,
+        "Comm": 0.0,
+        "Norm": 0.0,
+        "Copy_Layout": 0.0,
+        "Unclassified": 100.0,
+        "Host_Gap": null
+      },
+      "source": {
+        "kind": "db",
+        "basename": "ascend_pytorch_profiler.db",
+        "sha256": "5ca5235f1e3e91c58909ffbc11b9041d963f0a210dbe87fcce787ac36523a72b",
+        "schema_version": "torch_npu_db_v1.2.0"
+      },
+      "query": {
+        "rows_read": 6000,
+        "rows_selected": 6000,
+        "bad_rows": 0,
+        "elapsed_ms": 395.127458
+      }
+    },
+    {
+      "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+      "rank_index": null,
+      "step": 3,
+      "label": "step_3",
+      "window_origin_ns": 1792446527184189162,
+      "window_start_ns": 1792446527184189162,
+      "window_end_ns": 1792446528415296070,
+      "window_start_us": 0.0,
+      "window_end_us": 1231106.908,
+      "event_count": 6000,
+      "complete_event_count": 6000,
+      "clipped_event_count": 0,
+      "comm_event_count": 0,
+      "stream_count": 1,
+      "request_wall_ms": null,
+      "window_duration_ms": 1231.106908,
+      "observed_event_span_ms": 1230.78868,
+      "device_busy_union_ms": 19.32838,
+      "device_activity_sum_ms": 19.32838,
+      "exposed_comm_ms": 0.0,
+      "device_uncovered_ms": 1211.4603,
+      "host_dispatch_gap_ms": null,
+      "total_cost_ms": 1230.78868,
+      "wall_ms": 1230.78868,
+      "busy_union_ms": 19.32838,
+      "kernel_sum_ms": 19.32838,
+      "host_gap_ms": 1211.4603,
+      "exposed_aicpu_ms": 0.0,
+      "underfeed_bubble_ratio": 0.984296,
+      "aicpu_exposed_ratio": 0.0,
+      "coverage_ratio": 0.999742,
+      "largest_internal_bubble_ms": 0.7714,
+      "block_union_ms": {
+        "Attention": 0.0,
+        "MoE": 0.0,
+        "Comm": 0.0,
+        "Norm": 0.0,
+        "Copy_Layout": 0.0,
+        "Unclassified": 19.32838,
+        "Host_Gap": 1211.4603
+      },
+      "block_share_pct": {
+        "Attention": 0.0,
+        "MoE": 0.0,
+        "Comm": 0.0,
+        "Norm": 0.0,
+        "Copy_Layout": 0.0,
+        "Unclassified": 100.0,
+        "Host_Gap": null
+      },
+      "source": {
+        "kind": "db",
+        "basename": "ascend_pytorch_profiler.db",
+        "sha256": "5ca5235f1e3e91c58909ffbc11b9041d963f0a210dbe87fcce787ac36523a72b",
+        "schema_version": "torch_npu_db_v1.2.0"
+      },
+      "query": {
+        "rows_read": 6000,
+        "rows_selected": 6000,
+        "bad_rows": 0,
+        "elapsed_ms": 490.275333
+      }
+    }
+  ],
+  "structure_mapping": {
+    "schema_version": "mindie-profile-structure-mapping/1",
+    "graph_id": "sha256:7187edaabfa0acff89ae928e7daa2d902b1f51af9129109acdd96a90a6afbf08",
+    "structure_source": {
+      "path": "/Volumes/data/code/mindie-release-20261014/profiler/tests/live_framework_capture_workload.py",
+      "sha256": "1c71968ecdb20f1b9fbec9a3ad2292cbc4c2125891c96276a0e504b7cc729088",
+      "declaration": "Linear(hidden,2*hidden), ReLU(), Linear(2*hidden,hidden)",
+      "arguments": {
+        "hidden": 256,
+        "batch": 8,
+        "activation": "relu"
+      }
+    },
+    "declared_execution": {
+      "phase": "eager_mlp",
+      "scope": "model",
+      "replica_axis": "data_parallel",
+      "shard_scope": "unsharded",
+      "stage_scope": "single_stage",
+      "expand_calls": true,
+      "replicas": [
+        0
+      ]
+    },
+    "observed_phase": "eager_mlp",
+    "status": "mapped",
+    "event_window_count": 18000,
+    "status_counts": {
+      "bound": 18000
+    },
+    "reason_counts": {
+      "synchronized_module_and_tensor": 18000
+    },
+    "windows": [
+      {
+        "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+        "step": 1,
+        "window": {
+          "start_ns": 1792446524431924369,
+          "end_ns": 1792446525730030111,
+          "label": "step_1"
+        },
+        "event_count": 6000,
+        "status_counts": {
+          "bound": 6000
+        },
+        "reason_counts": {
+          "synchronized_module_and_tensor": 6000
+        },
+        "diagnostic_counts": {},
+        "bound_event_fraction": 1.0,
+        "observed_busy_union_ns": 19331220,
+        "bound_busy_union_ns": 19331220,
+        "bound_busy_fraction": 1.0,
+        "rank_scope": {
+          "replica": null,
+          "stage": null,
+          "basis": "unspecified"
+        },
+        "nodes": [
+          {
+            "node_id": "rank:0/0",
+            "op_id": "0",
+            "replica": 0,
+            "stage": 0,
+            "layer": -1,
+            "block": null,
+            "family": "linear",
+            "event_count": 2000,
+            "boundary": "semantic",
+            "lineage": {
+              "source_call_id": null,
+              "fused_from": null,
+              "semantic_recipe": null
+            },
+            "contract_scope": "tensor_contract; analytical_program_not_binary_tiling",
+            "shared_event_count": 0,
+            "activity_sum_ns": 8339820,
+            "busy_union_ns": 8339820,
+            "attribution": "inclusive_nonadditive"
+          },
+          {
+            "node_id": "rank:0/1",
+            "op_id": "1",
+            "replica": 0,
+            "stage": 0,
+            "layer": -1,
+            "block": null,
+            "family": "relu",
+            "event_count": 2000,
+            "boundary": "semantic",
+            "lineage": {
+              "source_call_id": null,
+              "fused_from": null,
+              "semantic_recipe": null
+            },
+            "contract_scope": "tensor_contract; analytical_program_not_binary_tiling",
+            "shared_event_count": 0,
+            "activity_sum_ns": 2559200,
+            "busy_union_ns": 2559200,
+            "attribution": "inclusive_nonadditive"
+          },
+          {
+            "node_id": "rank:0/2",
+            "op_id": "2",
+            "replica": 0,
+            "stage": 0,
+            "layer": -1,
+            "block": null,
+            "family": "linear",
+            "event_count": 2000,
+            "boundary": "semantic",
+            "lineage": {
+              "source_call_id": null,
+              "fused_from": null,
+              "semantic_recipe": null
+            },
+            "contract_scope": "tensor_contract; analytical_program_not_binary_tiling",
+            "shared_event_count": 0,
+            "activity_sum_ns": 8432200,
+            "busy_union_ns": 8432200,
+            "attribution": "inclusive_nonadditive"
+          }
+        ],
+        "layers": [],
+        "blocks": [],
+        "unobserved_node_ids": []
+      },
+      {
+        "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+        "step": 2,
+        "window": {
+          "start_ns": 1792446525730341846,
+          "end_ns": 1792446527183888508,
+          "label": "step_2"
+        },
+        "event_count": 6000,
+        "status_counts": {
+          "bound": 6000
+        },
+        "reason_counts": {
+          "synchronized_module_and_tensor": 6000
+        },
+        "diagnostic_counts": {},
+        "bound_event_fraction": 1.0,
+        "observed_busy_union_ns": 19329900,
+        "bound_busy_union_ns": 19329900,
+        "bound_busy_fraction": 1.0,
+        "rank_scope": {
+          "replica": null,
+          "stage": null,
+          "basis": "unspecified"
+        },
+        "nodes": [
+          {
+            "node_id": "rank:0/0",
+            "op_id": "0",
+            "replica": 0,
+            "stage": 0,
+            "layer": -1,
+            "block": null,
+            "family": "linear",
+            "event_count": 2000,
+            "boundary": "semantic",
+            "lineage": {
+              "source_call_id": null,
+              "fused_from": null,
+              "semantic_recipe": null
+            },
+            "contract_scope": "tensor_contract; analytical_program_not_binary_tiling",
+            "shared_event_count": 0,
+            "activity_sum_ns": 8336020,
+            "busy_union_ns": 8336020,
+            "attribution": "inclusive_nonadditive"
+          },
+          {
+            "node_id": "rank:0/1",
+            "op_id": "1",
+            "replica": 0,
+            "stage": 0,
+            "layer": -1,
+            "block": null,
+            "family": "relu",
+            "event_count": 2000,
+            "boundary": "semantic",
+            "lineage": {
+              "source_call_id": null,
+              "fused_from": null,
+              "semantic_recipe": null
+            },
+            "contract_scope": "tensor_contract; analytical_program_not_binary_tiling",
+            "shared_event_count": 0,
+            "activity_sum_ns": 2560100,
+            "busy_union_ns": 2560100,
+            "attribution": "inclusive_nonadditive"
+          },
+          {
+            "node_id": "rank:0/2",
+            "op_id": "2",
+            "replica": 0,
+            "stage": 0,
+            "layer": -1,
+            "block": null,
+            "family": "linear",
+            "event_count": 2000,
+            "boundary": "semantic",
+            "lineage": {
+              "source_call_id": null,
+              "fused_from": null,
+              "semantic_recipe": null
+            },
+            "contract_scope": "tensor_contract; analytical_program_not_binary_tiling",
+            "shared_event_count": 0,
+            "activity_sum_ns": 8433780,
+            "busy_union_ns": 8433780,
+            "attribution": "inclusive_nonadditive"
+          }
+        ],
+        "layers": [],
+        "blocks": [],
+        "unobserved_node_ids": []
+      },
+      {
+        "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+        "step": 3,
+        "window": {
+          "start_ns": 1792446527184189162,
+          "end_ns": 1792446528415296070,
+          "label": "step_3"
+        },
+        "event_count": 6000,
+        "status_counts": {
+          "bound": 6000
+        },
+        "reason_counts": {
+          "synchronized_module_and_tensor": 6000
+        },
+        "diagnostic_counts": {},
+        "bound_event_fraction": 1.0,
+        "observed_busy_union_ns": 19328380,
+        "bound_busy_union_ns": 19328380,
+        "bound_busy_fraction": 1.0,
+        "rank_scope": {
+          "replica": null,
+          "stage": null,
+          "basis": "unspecified"
+        },
+        "nodes": [
+          {
+            "node_id": "rank:0/0",
+            "op_id": "0",
+            "replica": 0,
+            "stage": 0,
+            "layer": -1,
+            "block": null,
+            "family": "linear",
+            "event_count": 2000,
+            "boundary": "semantic",
+            "lineage": {
+              "source_call_id": null,
+              "fused_from": null,
+              "semantic_recipe": null
+            },
+            "contract_scope": "tensor_contract; analytical_program_not_binary_tiling",
+            "shared_event_count": 0,
+            "activity_sum_ns": 8338600,
+            "busy_union_ns": 8338600,
+            "attribution": "inclusive_nonadditive"
+          },
+          {
+            "node_id": "rank:0/1",
+            "op_id": "1",
+            "replica": 0,
+            "stage": 0,
+            "layer": -1,
+            "block": null,
+            "family": "relu",
+            "event_count": 2000,
+            "boundary": "semantic",
+            "lineage": {
+              "source_call_id": null,
+              "fused_from": null,
+              "semantic_recipe": null
+            },
+            "contract_scope": "tensor_contract; analytical_program_not_binary_tiling",
+            "shared_event_count": 0,
+            "activity_sum_ns": 2559920,
+            "busy_union_ns": 2559920,
+            "attribution": "inclusive_nonadditive"
+          },
+          {
+            "node_id": "rank:0/2",
+            "op_id": "2",
+            "replica": 0,
+            "stage": 0,
+            "layer": -1,
+            "block": null,
+            "family": "linear",
+            "event_count": 2000,
+            "boundary": "semantic",
+            "lineage": {
+              "source_call_id": null,
+              "fused_from": null,
+              "semantic_recipe": null
+            },
+            "contract_scope": "tensor_contract; analytical_program_not_binary_tiling",
+            "shared_event_count": 0,
+            "activity_sum_ns": 8429860,
+            "busy_union_ns": 8429860,
+            "attribution": "inclusive_nonadditive"
+          }
+        ],
+        "layers": [],
+        "blocks": [],
+        "unobserved_node_ids": []
+      }
+    ],
+    "diagnostic_counts": {},
+    "module_evidence": [
+      {
+        "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/module_trace.json",
+        "db_sha256": "5ca5235f1e3e91c58909ffbc11b9041d963f0a210dbe87fcce787ac36523a72b",
+        "matched_sources": [
+          "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db"
+        ],
+        "records_scanned": 24000,
+        "records_retained": 18000,
+        "instrumentation": {
+          "npu_synchronize": true,
+          "scope": "profiled_run_only",
+          "overhead_scope": "includes per-leaf-module NPU synchronization and hook timing",
+          "throughput_evidence": false
+        },
+        "not_application_throughput": true
+      }
+    ],
+    "event_mappings": [
+      {
+        "event_id": "event:7b19335f142e761478783fe0",
+        "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+        "step": 1,
+        "window": "step_1",
+        "kernel_name": "aclnnAddmm_MatMulCommon_MatMulV2",
+        "start_ns": 1792446524432176580,
+        "end_ns": 1792446524432180960,
+        "clipped_start_ns": 1792446524432176580,
+        "clipped_end_ns": 1792446524432180960,
+        "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+        "locator": {
+          "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+          "table": "COMPUTE_TASK_INFO",
+          "task_global_id": 58,
+          "task_id": "24009",
+          "stream_id": "2",
+          "device_id": "0",
+          "task_occurrences_full_capture": 1
+        },
+        "status": "bound",
+        "node_ids": [
+          "rank:0/0"
+        ],
+        "candidate_node_ids": [
+          "rank:0/0"
+        ],
+        "candidate_count": 1,
+        "basis": "synchronized_module_and_tensor",
+        "evidence": [
+          {
+            "module_id": "0",
+            "module_type": "Linear",
+            "invocation": 6000,
+            "step_id": 1,
+            "wall_start_ns": 1792446524432017190,
+            "wall_end_ns": 1792446524432235883,
+            "input_tensors": [
+              {
+                "shape": [
+                  8,
+                  256
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "output_tensors": [
+              {
+                "shape": [
+                  8,
+                  512
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/module_trace.json",
+            "basis": "synchronized_unique_containment"
+          }
+        ],
+        "observed_contract": [
+          "matrix_bias",
+          [
+            8,
+            512,
+            256
+          ],
+          "fp32",
+          "fp32",
+          "fp32",
+          [
+            512
+          ],
+          "fp32"
+        ],
+        "diagnostic": null
+      },
+      {
+        "event_id": "event:8e75fa52d175dd3ce70d8b38",
+        "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+        "step": 1,
+        "window": "step_1",
+        "kernel_name": "aclnnRelu_Relu_Relu",
+        "start_ns": 1792446524432362680,
+        "end_ns": 1792446524432363980,
+        "clipped_start_ns": 1792446524432362680,
+        "clipped_end_ns": 1792446524432363980,
+        "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+        "locator": {
+          "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+          "table": "COMPUTE_TASK_INFO",
+          "task_global_id": 61,
+          "task_id": "24010",
+          "stream_id": "2",
+          "device_id": "0",
+          "task_occurrences_full_capture": 1
+        },
+        "status": "bound",
+        "node_ids": [
+          "rank:0/1"
+        ],
+        "candidate_node_ids": [
+          "rank:0/1"
+        ],
+        "candidate_count": 1,
+        "basis": "synchronized_module_and_tensor",
+        "evidence": [
+          {
+            "module_id": "1",
+            "module_type": "ReLU",
+            "invocation": 6001,
+            "step_id": 1,
+            "wall_start_ns": 1792446524432291564,
+            "wall_end_ns": 1792446524432418286,
+            "input_tensors": [
+              {
+                "shape": [
+                  8,
+                  512
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "output_tensors": [
+              {
+                "shape": [
+                  8,
+                  512
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/module_trace.json",
+            "basis": "synchronized_unique_containment"
+          }
+        ],
+        "observed_contract": [
+          "relu",
+          [
+            8,
+            512
+          ],
+          "fp32"
+        ],
+        "diagnostic": null
+      },
+      {
+        "event_id": "event:ed68159e1d19a541b34e3c79",
+        "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+        "step": 1,
+        "window": "step_1",
+        "kernel_name": "aclnnAddmm_MatMulCommon_MatMulV2",
+        "start_ns": 1792446524432575140,
+        "end_ns": 1792446524432579320,
+        "clipped_start_ns": 1792446524432575140,
+        "clipped_end_ns": 1792446524432579320,
+        "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+        "locator": {
+          "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+          "table": "COMPUTE_TASK_INFO",
+          "task_global_id": 63,
+          "task_id": "24011",
+          "stream_id": "2",
+          "device_id": "0",
+          "task_occurrences_full_capture": 1
+        },
+        "status": "bound",
+        "node_ids": [
+          "rank:0/2"
+        ],
+        "candidate_node_ids": [
+          "rank:0/2"
+        ],
+        "candidate_count": 1,
+        "basis": "synchronized_module_and_tensor",
+        "evidence": [
+          {
+            "module_id": "2",
+            "module_type": "Linear",
+            "invocation": 6002,
+            "step_id": 1,
+            "wall_start_ns": 1792446524432480647,
+            "wall_end_ns": 1792446524432630859,
+            "input_tensors": [
+              {
+                "shape": [
+                  8,
+                  512
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "output_tensors": [
+              {
+                "shape": [
+                  8,
+                  256
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/module_trace.json",
+            "basis": "synchronized_unique_containment"
+          }
+        ],
+        "observed_contract": [
+          "matrix_bias",
+          [
+            8,
+            256,
+            512
+          ],
+          "fp32",
+          "fp32",
+          "fp32",
+          [
+            256
+          ],
+          "fp32"
+        ],
+        "diagnostic": null
+      },
+      {
+        "event_id": "event:c38e097769179a087565545d",
+        "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+        "step": 1,
+        "window": "step_1",
+        "kernel_name": "aclnnAddmm_MatMulCommon_MatMulV2",
+        "start_ns": 1792446524432799600,
+        "end_ns": 1792446524432804160,
+        "clipped_start_ns": 1792446524432799600,
+        "clipped_end_ns": 1792446524432804160,
+        "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+        "locator": {
+          "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+          "table": "COMPUTE_TASK_INFO",
+          "task_global_id": 64,
+          "task_id": "24012",
+          "stream_id": "2",
+          "device_id": "0",
+          "task_occurrences_full_capture": 1
+        },
+        "status": "bound",
+        "node_ids": [
+          "rank:0/0"
+        ],
+        "candidate_node_ids": [
+          "rank:0/0"
+        ],
+        "candidate_count": 1,
+        "basis": "synchronized_module_and_tensor",
+        "evidence": [
+          {
+            "module_id": "0",
+            "module_type": "Linear",
+            "invocation": 6003,
+            "step_id": 1,
+            "wall_start_ns": 1792446524432707130,
+            "wall_end_ns": 1792446524432853792,
+            "input_tensors": [
+              {
+                "shape": [
+                  8,
+                  256
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "output_tensors": [
+              {
+                "shape": [
+                  8,
+                  512
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/module_trace.json",
+            "basis": "synchronized_unique_containment"
+          }
+        ],
+        "observed_contract": [
+          "matrix_bias",
+          [
+            8,
+            512,
+            256
+          ],
+          "fp32",
+          "fp32",
+          "fp32",
+          [
+            512
+          ],
+          "fp32"
+        ],
+        "diagnostic": null
+      },
+      {
+        "event_id": "event:8218518d93ed4a623462b9c7",
+        "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+        "step": 1,
+        "window": "step_1",
+        "kernel_name": "aclnnRelu_Relu_Relu",
+        "start_ns": 1792446524432975120,
+        "end_ns": 1792446524432976440,
+        "clipped_start_ns": 1792446524432975120,
+        "clipped_end_ns": 1792446524432976440,
+        "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+        "locator": {
+          "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+          "table": "COMPUTE_TASK_INFO",
+          "task_global_id": 65,
+          "task_id": "24013",
+          "stream_id": "2",
+          "device_id": "0",
+          "task_occurrences_full_capture": 1
+        },
+        "status": "bound",
+        "node_ids": [
+          "rank:0/1"
+        ],
+        "candidate_node_ids": [
+          "rank:0/1"
+        ],
+        "candidate_count": 1,
+        "basis": "synchronized_module_and_tensor",
+        "evidence": [
+          {
+            "module_id": "1",
+            "module_type": "ReLU",
+            "invocation": 6004,
+            "step_id": 1,
+            "wall_start_ns": 1792446524432906963,
+            "wall_end_ns": 1792446524433023385,
+            "input_tensors": [
+              {
+                "shape": [
+                  8,
+                  512
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "output_tensors": [
+              {
+                "shape": [
+                  8,
+                  512
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/module_trace.json",
+            "basis": "synchronized_unique_containment"
+          }
+        ],
+        "observed_contract": [
+          "relu",
+          [
+            8,
+            512
+          ],
+          "fp32"
+        ],
+        "diagnostic": null
+      },
+      {
+        "event_id": "event:44a7daf1dcd2128da08b03c8",
+        "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+        "step": 1,
+        "window": "step_1",
+        "kernel_name": "aclnnAddmm_MatMulCommon_MatMulV2",
+        "start_ns": 1792446524433178540,
+        "end_ns": 1792446524433182720,
+        "clipped_start_ns": 1792446524433178540,
+        "clipped_end_ns": 1792446524433182720,
+        "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+        "locator": {
+          "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+          "table": "COMPUTE_TASK_INFO",
+          "task_global_id": 67,
+          "task_id": "24014",
+          "stream_id": "2",
+          "device_id": "0",
+          "task_occurrences_full_capture": 1
+        },
+        "status": "bound",
+        "node_ids": [
+          "rank:0/2"
+        ],
+        "candidate_node_ids": [
+          "rank:0/2"
+        ],
+        "candidate_count": 1,
+        "basis": "synchronized_module_and_tensor",
+        "evidence": [
+          {
+            "module_id": "2",
+            "module_type": "Linear",
+            "invocation": 6005,
+            "step_id": 1,
+            "wall_start_ns": 1792446524433085365,
+            "wall_end_ns": 1792446524433232457,
+            "input_tensors": [
+              {
+                "shape": [
+                  8,
+                  512
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "output_tensors": [
+              {
+                "shape": [
+                  8,
+                  256
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/module_trace.json",
+            "basis": "synchronized_unique_containment"
+          }
+        ],
+        "observed_contract": [
+          "matrix_bias",
+          [
+            8,
+            256,
+            512
+          ],
+          "fp32",
+          "fp32",
+          "fp32",
+          [
+            256
+          ],
+          "fp32"
+        ],
+        "diagnostic": null
+      },
+      {
+        "event_id": "event:243e634746b5ff1a340405dd",
+        "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+        "step": 1,
+        "window": "step_1",
+        "kernel_name": "aclnnAddmm_MatMulCommon_MatMulV2",
+        "start_ns": 1792446524433408460,
+        "end_ns": 1792446524433412620,
+        "clipped_start_ns": 1792446524433408460,
+        "clipped_end_ns": 1792446524433412620,
+        "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+        "locator": {
+          "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+          "table": "COMPUTE_TASK_INFO",
+          "task_global_id": 71,
+          "task_id": "24015",
+          "stream_id": "2",
+          "device_id": "0",
+          "task_occurrences_full_capture": 1
+        },
+        "status": "bound",
+        "node_ids": [
+          "rank:0/0"
+        ],
+        "candidate_node_ids": [
+          "rank:0/0"
+        ],
+        "candidate_count": 1,
+        "basis": "synchronized_module_and_tensor",
+        "evidence": [
+          {
+            "module_id": "0",
+            "module_type": "Linear",
+            "invocation": 6006,
+            "step_id": 1,
+            "wall_start_ns": 1792446524433314099,
+            "wall_end_ns": 1792446524433462761,
+            "input_tensors": [
+              {
+                "shape": [
+                  8,
+                  256
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "output_tensors": [
+              {
+                "shape": [
+                  8,
+                  512
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/module_trace.json",
+            "basis": "synchronized_unique_containment"
+          }
+        ],
+        "observed_contract": [
+          "matrix_bias",
+          [
+            8,
+            512,
+            256
+          ],
+          "fp32",
+          "fp32",
+          "fp32",
+          [
+            512
+          ],
+          "fp32"
+        ],
+        "diagnostic": null
+      },
+      {
+        "event_id": "event:f9d5fa33e504f72bdeb15a2d",
+        "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+        "step": 1,
+        "window": "step_1",
+        "kernel_name": "aclnnRelu_Relu_Relu",
+        "start_ns": 1792446524433581800,
+        "end_ns": 1792446524433582980,
+        "clipped_start_ns": 1792446524433581800,
+        "clipped_end_ns": 1792446524433582980,
+        "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+        "locator": {
+          "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+          "table": "COMPUTE_TASK_INFO",
+          "task_global_id": 72,
+          "task_id": "24016",
+          "stream_id": "2",
+          "device_id": "0",
+          "task_occurrences_full_capture": 1
+        },
+        "status": "bound",
+        "node_ids": [
+          "rank:0/1"
+        ],
+        "candidate_node_ids": [
+          "rank:0/1"
+        ],
+        "candidate_count": 1,
+        "basis": "synchronized_module_and_tensor",
+        "evidence": [
+          {
+            "module_id": "1",
+            "module_type": "ReLU",
+            "invocation": 6007,
+            "step_id": 1,
+            "wall_start_ns": 1792446524433514821,
+            "wall_end_ns": 1792446524433632643,
+            "input_tensors": [
+              {
+                "shape": [
+                  8,
+                  512
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "output_tensors": [
+              {
+                "shape": [
+                  8,
+                  512
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/module_trace.json",
+            "basis": "synchronized_unique_containment"
+          }
+        ],
+        "observed_contract": [
+          "relu",
+          [
+            8,
+            512
+          ],
+          "fp32"
+        ],
+        "diagnostic": null
+      },
+      {
+        "event_id": "event:bd0cac8475aea96acb05e4c4",
+        "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+        "step": 1,
+        "window": "step_1",
+        "kernel_name": "aclnnAddmm_MatMulCommon_MatMulV2",
+        "start_ns": 1792446524433784040,
+        "end_ns": 1792446524433787900,
+        "clipped_start_ns": 1792446524433784040,
+        "clipped_end_ns": 1792446524433787900,
+        "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+        "locator": {
+          "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+          "table": "COMPUTE_TASK_INFO",
+          "task_global_id": 74,
+          "task_id": "24017",
+          "stream_id": "2",
+          "device_id": "0",
+          "task_occurrences_full_capture": 1
+        },
+        "status": "bound",
+        "node_ids": [
+          "rank:0/2"
+        ],
+        "candidate_node_ids": [
+          "rank:0/2"
+        ],
+        "candidate_count": 1,
+        "basis": "synchronized_module_and_tensor",
+        "evidence": [
+          {
+            "module_id": "2",
+            "module_type": "Linear",
+            "invocation": 6008,
+            "step_id": 1,
+            "wall_start_ns": 1792446524433692474,
+            "wall_end_ns": 1792446524433841956,
+            "input_tensors": [
+              {
+                "shape": [
+                  8,
+                  512
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "output_tensors": [
+              {
+                "shape": [
+                  8,
+                  256
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/module_trace.json",
+            "basis": "synchronized_unique_containment"
+          }
+        ],
+        "observed_contract": [
+          "matrix_bias",
+          [
+            8,
+            256,
+            512
+          ],
+          "fp32",
+          "fp32",
+          "fp32",
+          [
+            256
+          ],
+          "fp32"
+        ],
+        "diagnostic": null
+      },
+      {
+        "event_id": "event:ac4ac1e8fcc34f86b9f3dc74",
+        "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+        "step": 1,
+        "window": "step_1",
+        "kernel_name": "aclnnAddmm_MatMulCommon_MatMulV2",
+        "start_ns": 1792446524434007540,
+        "end_ns": 1792446524434011680,
+        "clipped_start_ns": 1792446524434007540,
+        "clipped_end_ns": 1792446524434011680,
+        "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+        "locator": {
+          "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+          "table": "COMPUTE_TASK_INFO",
+          "task_global_id": 75,
+          "task_id": "24018",
+          "stream_id": "2",
+          "device_id": "0",
+          "task_occurrences_full_capture": 1
+        },
+        "status": "bound",
+        "node_ids": [
+          "rank:0/0"
+        ],
+        "candidate_node_ids": [
+          "rank:0/0"
+        ],
+        "candidate_count": 1,
+        "basis": "synchronized_module_and_tensor",
+        "evidence": [
+          {
+            "module_id": "0",
+            "module_type": "Linear",
+            "invocation": 6009,
+            "step_id": 1,
+            "wall_start_ns": 1792446524433917607,
+            "wall_end_ns": 1792446524434061459,
+            "input_tensors": [
+              {
+                "shape": [
+                  8,
+                  256
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "output_tensors": [
+              {
+                "shape": [
+                  8,
+                  512
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/module_trace.json",
+            "basis": "synchronized_unique_containment"
+          }
+        ],
+        "observed_contract": [
+          "matrix_bias",
+          [
+            8,
+            512,
+            256
+          ],
+          "fp32",
+          "fp32",
+          "fp32",
+          [
+            512
+          ],
+          "fp32"
+        ],
+        "diagnostic": null
+      },
+      {
+        "event_id": "event:74c235a1ff300fa96ae19210",
+        "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+        "step": 1,
+        "window": "step_1",
+        "kernel_name": "aclnnRelu_Relu_Relu",
+        "start_ns": 1792446524434179260,
+        "end_ns": 1792446524434180520,
+        "clipped_start_ns": 1792446524434179260,
+        "clipped_end_ns": 1792446524434180520,
+        "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+        "locator": {
+          "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+          "table": "COMPUTE_TASK_INFO",
+          "task_global_id": 77,
+          "task_id": "24019",
+          "stream_id": "2",
+          "device_id": "0",
+          "task_occurrences_full_capture": 1
+        },
+        "status": "bound",
+        "node_ids": [
+          "rank:0/1"
+        ],
+        "candidate_node_ids": [
+          "rank:0/1"
+        ],
+        "candidate_count": 1,
+        "basis": "synchronized_module_and_tensor",
+        "evidence": [
+          {
+            "module_id": "1",
+            "module_type": "ReLU",
+            "invocation": 6010,
+            "step_id": 1,
+            "wall_start_ns": 1792446524434113070,
+            "wall_end_ns": 1792446524434227521,
+            "input_tensors": [
+              {
+                "shape": [
+                  8,
+                  512
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "output_tensors": [
+              {
+                "shape": [
+                  8,
+                  512
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/module_trace.json",
+            "basis": "synchronized_unique_containment"
+          }
+        ],
+        "observed_contract": [
+          "relu",
+          [
+            8,
+            512
+          ],
+          "fp32"
+        ],
+        "diagnostic": null
+      },
+      {
+        "event_id": "event:af727e43edb20807875ba7f5",
+        "rank_id": "b2bb20466bf7_49402_20261019214842958_ascend_pt",
+        "step": 1,
+        "window": "step_1",
+        "kernel_name": "aclnnAddmm_MatMulCommon_MatMulV2",
+        "start_ns": 1792446524434386500,
+        "end_ns": 1792446524434390380,
+        "clipped_start_ns": 1792446524434386500,
+        "clipped_end_ns": 1792446524434390380,
+        "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+        "locator": {
+          "source": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+          "table": "COMPUTE_TASK_INFO",
+          "task_global_id": 80,
+          "task_id": "24020",
+          "stream_id": "2",
+          "device_id": "0",
+          "task_occurrences_full_capture": 1
+        },
+        "status": "bound",
+        "node_ids": [
+          "rank:0/2"
+        ],
+        "candidate_node_ids": [
+          "rank:0/2"
+        ],
+        "candidate_count": 1,
+        "basis": "synchronized_module_and_tensor",
+        "evidence": [
+          {
+            "module_id": "2",
+            "module_type": "Linear",
+            "invocation": 6011,
+            "step_id": 1,
+            "wall_start_ns": 1792446524434293052,
+            "wall_end_ns": 1792446524434439644,
+            "input_tensors": [
+              {
+                "shape": [
+                  8,
+                  512
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "output_tensors": [
+              {
+                "shape": [
+                  8,
+                  256
+                ],
+                "dtype": "torch.float32"
+              }
+            ],
+            "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/module_trace.json",
+            "basis": "synchronized_unique_containment"
+          }
+        ],
+        "observed_contract": [
+          "matrix_bias",
+          [
+            8,
+            256,
+            512
+          ],
+          "fp32",
+          "fp32",
+          "fp32",
+          [
+            256
+          ],
+          "fp32"
+        ],
+        "diagnostic": null
+      }
+    ],
+    "retained_event_mappings": 12,
+    "event_mappings_truncated": true,
+    "unused_explicit_event_ids": [],
+    "semantics": {
+      "structure": "declared; absence of a measured event does not prove nonexecution",
+      "candidate": "tensor contract match; not a verified layer assignment",
+      "bound": "explicit occurrence evidence, Host connection plus tensor contract, or hash-verified synchronized module containment plus tensor contract",
+      "timing": "measured clipped intervals only; no predicted costs or duration-based matching",
+      "aggregation": "independent windows; node/layer/block unions are inclusive and not additive",
+      "rank": "physical rank is not a DP replica; only explicit placement filters candidates"
+    }
+  },
+  "analysis_resource_measurement": {
+    "command": "/usr/bin/time -l python examples/structure/replay_module_capture.py (original DB/module trace/steps; compact report)",
+    "wall_seconds": 3.96,
+    "maximum_resident_set_bytes": 198230016,
+    "scope": "local historical capture replay; not device latency"
+  }
+}

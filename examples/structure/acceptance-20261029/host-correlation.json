@@ -1,0 +1,549 @@
+{
+  "schema_version": "mindie-host-correlation-acceptance/1",
+  "accepted_at_local_date": "2026-10-29",
+  "source": {
+    "source_path": "/Volumes/data/Profiling/vllm-ascend-workspace/v6_inputs_remote/qwen3_8b_s1/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler_0.db",
+    "source_sha256": "97339f6512100662a89eefc2518b35391afba42af01b31aae7c267af99a85cc5",
+    "source_size_bytes": 2568192
+  },
+  "window_ns": [
+    1776098194709000000,
+    1776098194714600000
+  ],
+  "command": "python3 -m mindie_profiler correlate --root /Volumes/data/Profiling/vllm-ascend-workspace/v6_inputs_remote/qwen3_8b_s1/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler_0.db --unit ns --window 1776098194709000000:1776098194714600000 --max-rows 5000 --limit 5000 --output /tmp/mindie-qwen-s1-correlate-after-cli.json",
+  "working_directory": "/Users/maoxx241/code/profiler",
+  "independent_sql": {
+    "namespace_collision_query": "SELECT COUNT(*) FROM CANN_API c JOIN CONNECTION_IDS l ON c.connectionId=l.id WHERE c.connectionId!=l.connectionId",
+    "namespace_collision_count": 2785,
+    "window_cann_direct_query": "SELECT COUNT(DISTINCT t.rowid) FROM TASK t JOIN CANN_API c ON c.connectionId=t.connectionId WHERE t.endNs>? AND t.startNs<? AND c.endNs>? AND c.startNs<? AND t.endNs>t.startNs AND c.endNs>c.startNs",
+    "window_cann_direct_parameters": [
+      1776098194709000000,
+      1776098194714600000,
+      1776098194709000000,
+      1776098194714600000
+    ],
+    "window_cann_direct_count": 9
+  },
+  "before_fix": {
+    "tasks": 10,
+    "matched_task_count": 10,
+    "tables": {
+      "PYTORCH_API": 175,
+      "MSTX_EVENTS": 0,
+      "CANN_API": 52,
+      "CONNECTION_IDS": 88,
+      "TASK": 10
+    },
+    "cann_direct_connection_count": 0,
+    "proven_host_chain_count": 2,
+    "association_basis_counts": {
+      "{'cann': 'cann_interval_contains_task', 'pytorch': 'same_global_tid_containment'}": 8,
+      "{'cann': None, 'pytorch': 'connection_ids'}": 2
+    },
+    "sample_global_task_27": {
+      "kernel_name": "aclnnInplaceFillScalar_FillAiCore_Fill",
+      "device_task": {
+        "global_task_id": 27,
+        "start_ns": 1776098194711418190,
+        "end_ns": 1776098194711421430,
+        "task_id": "1079",
+        "stream_id": "2",
+        "device_id": "0",
+        "connection_id": 1523,
+        "model_id": 4294967295,
+        "global_task_id_occurrences": 1,
+        "ambiguous_global_task_id": false
+      },
+      "host_stack": [
+        {
+          "table": "PYTORCH_API",
+          "name": "Dequeue@aclnnInplaceFillScalar",
+          "start_ns": 1776098194709042810,
+          "end_ns": 1776098194711476570,
+          "duration_ms": 2.43376,
+          "global_tid": "6001392163836772"
+        }
+      ],
+      "mstx_stack": [],
+      "cann_api": {
+        "name": "aclnnInplaceFillScalar",
+        "start_ns": 1776098194709060360,
+        "end_ns": 1776098194711472910,
+        "duration_ms": 2.41255
+      },
+      "association_basis": {
+        "cann": "cann_interval_contains_task",
+        "pytorch": "same_global_tid_containment"
+      },
+      "association_unique": {
+        "cann": false,
+        "pytorch": true
+      },
+      "association_candidate_counts": {
+        "cann": 4,
+        "pytorch": 1
+      },
+      "dispatch": {
+        "host_dispatch_gap_ms": 0.0,
+        "basis": "max(0, task.startNs - associated_host.endNs)",
+        "host_duration_ms": 2.41255,
+        "anchor_table": "CANN_API"
+      },
+      "global_task_id_unique": true,
+      "ambiguous_global_task_id": false
+    }
+  },
+  "after_fix": {
+    "tasks": 10,
+    "matched_task_count": 10,
+    "tables": {
+      "CANN_API": 52,
+      "CONNECTION_IDS": 36,
+      "MSTX_EVENTS": 0,
+      "PYTORCH_API": 175,
+      "TASK": 10
+    },
+    "cann_direct_connection_count": 9,
+    "proven_host_chain_count": 10,
+    "association_basis_counts": {
+      "{'cann': 'connection_ids', 'pytorch': 'connection_ids'}": 5,
+      "{'cann': 'connection_ids', 'pytorch': 'same_global_tid_containment'}": 4,
+      "{'cann': None, 'pytorch': 'connection_ids'}": 1
+    },
+    "sample_global_task_27": {
+      "ambiguous_global_task_id": false,
+      "association_basis": {
+        "cann": "connection_ids",
+        "pytorch": "connection_ids"
+      },
+      "association_candidate_counts": {
+        "cann": 1,
+        "pytorch": 1
+      },
+      "association_unique": {
+        "cann": true,
+        "pytorch": true
+      },
+      "cann_api": {
+        "duration_ms": 0.18842,
+        "end_ns": 1776098194711456100,
+        "name": "launch",
+        "start_ns": 1776098194711267680
+      },
+      "device_task": {
+        "ambiguous_global_task_id": false,
+        "connection_id": 1523,
+        "device_id": "0",
+        "end_ns": 1776098194711421430,
+        "global_task_id": 27,
+        "global_task_id_occurrences": 1,
+        "model_id": 4294967295,
+        "start_ns": 1776098194711418190,
+        "stream_id": "2",
+        "task_id": "1079"
+      },
+      "dispatch": {
+        "anchor_table": "CANN_API",
+        "basis": "max(0, task.startNs - associated_host.endNs)",
+        "host_dispatch_gap_ms": 0.0,
+        "host_duration_ms": 0.18842
+      },
+      "global_task_id_unique": true,
+      "host_stack": [
+        {
+          "duration_ms": 1.66494,
+          "end_ns": 1776098194709043490,
+          "global_tid": "6001392163836476",
+          "name": "aten::fill_",
+          "start_ns": 1776098194707378550,
+          "table": "PYTORCH_API"
+        },
+        {
+          "duration_ms": 0.01141,
+          "end_ns": 1776098194709037990,
+          "global_tid": "6001392163836476",
+          "name": "aclnnInplaceFillScalar",
+          "start_ns": 1776098194709026580,
+          "table": "PYTORCH_API"
+        }
+      ],
+      "kernel_name": "aclnnInplaceFillScalar_FillAiCore_Fill",
+      "mstx_stack": []
+    }
+  },
+  "regression_fixture": {
+    "path": "tests/fixtures/profiler_core/real_qwen3_host/correlation_slice.json",
+    "sha256": "8c14d86acb517b3ddf5131cc4542f5c81b0d7dd33a42df3eda86ef3db758bd25",
+    "description": "Unmodified original schema and rows, including original SQLite rowid. Missing-mapping tests delete evidence only."
+  },
+  "validation": {
+    "command": "python3 -m pytest -q tests/test_profiler_inventory_correlate.py tests/test_structure_mapping.py",
+    "result": "26 passed in 0.26s"
+  },
+  "limitations": [
+    "This window validates raw Host/CANN/TASK connection semantics, not module/layer identity.",
+    "Matched count includes weaker display-only interval associations; use association_basis and association_unique for evidence strength.",
+    "One selected TASK has no CANN row overlapping the selected window.",
+    "TASK globalTaskId111 has startNs=endNs and is excluded by both correlation and the independent SQL valid-interval count."
+  ],
+  "full_capture": {
+    "scope": "Entire TASK MIN(startNs)..MAX(endNs) span; every positive-duration TASK retained; API rows selected by overlap with that span.",
+    "range_query": "SELECT MIN(startNs), MAX(endNs) FROM TASK",
+    "window_ns": [
+      1776098194706443210,
+      1776098204678386210
+    ],
+    "duration_ms": 9971.943,
+    "command": "python3 -m mindie_profiler correlate --root /Volumes/data/Profiling/vllm-ascend-workspace/v6_inputs_remote/qwen3_8b_s1/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler_0.db --unit ns --window 1776098194706443210:1776098204678386210 --max-rows 20000 --limit 20000 --timeout-s 30",
+    "executed_python_api": "correlate_profile(Path(source_path), window=Window(*window_ns), max_rows=20000, call_limit=20000, timeout_s=30.0)",
+    "elapsed_seconds": 9.675301,
+    "source_hash_reverified": "97339f6512100662a89eefc2518b35391afba42af01b31aae7c267af99a85cc5",
+    "calls_truncated": false,
+    "counts": {
+      "raw_task_rows": 1556,
+      "positive_duration_task_rows": 1551,
+      "zero_duration_task_rows": 5,
+      "negative_duration_task_rows": 0,
+      "selected_task_count": 1551,
+      "returned_call_count": 1551,
+      "matched_display_count": 1549,
+      "unmatched_display_count": 2,
+      "proven_unique_host_chain_count": 1549,
+      "not_proven_unique_host_chain_count": 2,
+      "cann_direct_connection_count": 1549,
+      "cann_interval_fallback_count": 0,
+      "missing_cann_count": 2,
+      "pytorch_connection_count": 1494,
+      "pytorch_same_thread_containment_count": 55,
+      "missing_pytorch_host_count": 2,
+      "nonunique_cann_candidate_count": 0,
+      "nonunique_pytorch_candidate_count": 0,
+      "global_task_id_unique_call_count": 1551,
+      "global_task_id_repeated_call_count": 0,
+      "global_task_id_repeated_group_count": 0
+    },
+    "host_tables_read": {
+      "PYTORCH_API": 15333,
+      "MSTX_EVENTS": 0,
+      "CANN_API": 7421,
+      "CONNECTION_IDS": 4270,
+      "TASK": 1551
+    },
+    "association_basis_and_uniqueness_counts": [
+      {
+        "cann_basis": null,
+        "pytorch_basis": null,
+        "cann_unique": false,
+        "pytorch_unique": false,
+        "count": 2
+      },
+      {
+        "cann_basis": "connection_ids",
+        "pytorch_basis": "same_global_tid_containment",
+        "cann_unique": true,
+        "pytorch_unique": true,
+        "count": 55
+      },
+      {
+        "cann_basis": "connection_ids",
+        "pytorch_basis": "connection_ids",
+        "cann_unique": true,
+        "pytorch_unique": true,
+        "count": 1494
+      }
+    ],
+    "independent_sql": {
+      "cann_direct_in_window_query": "SELECT COUNT(DISTINCT t.rowid) FROM TASK t JOIN CANN_API c ON c.connectionId=t.connectionId WHERE t.endNs>t.startNs AND c.endNs>c.startNs AND t.endNs>? AND t.startNs<? AND c.endNs>? AND c.startNs<?",
+      "parameters": [
+        1776098194706443210,
+        1776098204678386210,
+        1776098194706443210,
+        1776098204678386210
+      ],
+      "cann_direct_in_window_count": 1549,
+      "cann_direct_all_api_times_query": "SELECT COUNT(DISTINCT t.rowid) FROM TASK t JOIN CANN_API c ON c.connectionId=t.connectionId WHERE t.endNs>t.startNs AND c.endNs>c.startNs",
+      "cann_direct_all_api_times_count": 1551,
+      "duplicate_global_id_query": "SELECT globalTaskId, COUNT(*) FROM TASK GROUP BY globalTaskId HAVING COUNT(*)>1",
+      "duplicate_global_id_groups": [],
+      "missing_window_cann_boundary_query": "SELECT t.globalTaskId,t.connectionId,t.startNs,t.endNs,c.startNs,c.endNs FROM TASK t JOIN CANN_API c ON c.connectionId=t.connectionId WHERE t.globalTaskId IN (76,77) ORDER BY t.globalTaskId",
+      "missing_window_cann_boundary_rows": [
+        {
+          "global_task_id": 76,
+          "connection_id": 1496,
+          "task_start_ns": 1776098194706443210,
+          "task_end_ns": 1776098194706445570,
+          "cann_start_ns": 1776098194706383180,
+          "cann_end_ns": 1776098194706408790,
+          "cann_end_before_window_start_ns": 34420
+        },
+        {
+          "global_task_id": 77,
+          "connection_id": 1498,
+          "task_start_ns": 1776098194706451490,
+          "task_end_ns": 1776098194706453790,
+          "cann_start_ns": 1776098194706435780,
+          "cann_end_ns": 1776098194706441870,
+          "cann_end_before_window_start_ns": 1340
+        }
+      ]
+    },
+    "not_proven_examples": [
+      {
+        "global_task_id": 76,
+        "connection_id": 1496,
+        "kernel_name": null,
+        "association_basis": {
+          "cann": null,
+          "pytorch": null
+        },
+        "association_unique": {
+          "cann": false,
+          "pytorch": false
+        },
+        "host_stack_names": []
+      },
+      {
+        "global_task_id": 77,
+        "connection_id": 1498,
+        "kernel_name": null,
+        "association_basis": {
+          "cann": null,
+          "pytorch": null
+        },
+        "association_unique": {
+          "cann": false,
+          "pytorch": false
+        },
+        "host_stack_names": []
+      }
+    ],
+    "limitations": [
+      "Display matched includes CANN-only and ambiguous interval associations. Only proven_unique_host_chain_count meets current binder edge and TASK uniqueness conditions.",
+      "A unique Host chain does not establish a model module or layer identity without a declared exact scope mapping.",
+      "The TASK time span excludes Host calls completed before its start; absence in this window is not proof the complete database lacks Host evidence."
+    ]
+  },
+  "module_evidence_fix_review": {
+    "reviewed_at_local_date": "2026-10-29",
+    "cross_step_uniqueness": {
+      "result": "fixed",
+      "method": "Direct interval-index probe with two records for steps1/2 both covering [10,30] and event [20,25]. Both step1 and unlabeled windows return overlapping_module_invocations.",
+      "source": "mindie_profiler/module_evidence.py:157"
+    },
+    "shared_record_budget": {
+      "result": "fixed",
+      "method": "Source review confirms max_records-retained passed to each trace. Reading the same real six-record fixture twice with max_records=10 fails during second read with module records exceed4, before the duplicate-source guard; this probe checks remaining-budget propagation only.",
+      "source": "mindie_profiler/module_evidence.py:119"
+    },
+    "regression_tests": {
+      "command": "PYTHONPATH=/Users/maoxx241/code/sim-rewrite-20261027:/Users/maoxx241/code/profiler python3 -m pytest -q tests/test_structure_module_acceptance.py",
+      "result": "6 passed in 0.15s",
+      "coverage": [
+        "real module attribution",
+        "cross-step overlap rejection",
+        "wrong-step rejection",
+        "cross-boundary rejection",
+        "source-hash and synchronization requirements",
+        "old summary exclusion and record cap"
+      ]
+    }
+  },
+  "full_capture_with_host_bounds": {
+    "scope": "Union of complete TASK, PYTORCH_API and CANN_API time bounds; includes Host launches before first device TASK. TEXT time columns explicitly cast to INTEGER.",
+    "bounds_queries": {
+      "TASK": "SELECT MIN(CAST(startNs AS INTEGER)), MAX(CAST(endNs AS INTEGER)), COUNT(*) FROM TASK",
+      "PYTORCH_API": "SELECT MIN(CAST(startNs AS INTEGER)), MAX(CAST(endNs AS INTEGER)), COUNT(*) FROM PYTORCH_API",
+      "CANN_API": "SELECT MIN(CAST(startNs AS INTEGER)), MAX(CAST(endNs AS INTEGER)), COUNT(*) FROM CANN_API"
+    },
+    "table_bounds": {
+      "TASK": {
+        "start_ns": 1776098194706443210,
+        "end_ns": 1776098204678386210,
+        "raw_rows": 1556
+      },
+      "PYTORCH_API": {
+        "start_ns": 1776098194705616050,
+        "end_ns": 1776098195070655810,
+        "raw_rows": 15350
+      },
+      "CANN_API": {
+        "start_ns": 1776098194706360240,
+        "end_ns": 1776098204673617570,
+        "raw_rows": 7425
+      }
+    },
+    "window_ns": [
+      1776098194705616050,
+      1776098204678386210
+    ],
+    "duration_ms": 9972.77016,
+    "command": "python3 -m mindie_profiler correlate --root /Volumes/data/Profiling/vllm-ascend-workspace/v6_inputs_remote/qwen3_8b_s1/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler_0.db --unit ns --window 1776098194705616050:1776098204678386210 --max-rows 20000 --limit 20000 --timeout-s 30",
+    "executed_python_api": "correlate_profile(Path(source_path), window=Window(*window_ns), max_rows=20000, call_limit=20000, timeout_s=30.0)",
+    "elapsed_seconds": 9.986103,
+    "counts": {
+      "positive_duration_task_rows": 1551,
+      "selected_task_count": 1551,
+      "returned_call_count": 1551,
+      "matched_display_count": 1551,
+      "unmatched_display_count": 0,
+      "proven_unique_host_chain_count": 1551,
+      "not_proven_unique_host_chain_count": 0,
+      "cann_direct_connection_count": 1551,
+      "cann_interval_fallback_count": 0,
+      "missing_cann_count": 0,
+      "pytorch_connection_count": 1494,
+      "pytorch_same_thread_containment_count": 57,
+      "missing_pytorch_host_count": 0,
+      "nonunique_cann_candidate_count": 0,
+      "nonunique_pytorch_candidate_count": 0,
+      "global_task_id_unique_call_count": 1551,
+      "global_task_id_repeated_call_count": 0,
+      "global_task_id_repeated_group_count": 0
+    },
+    "host_tables_read": {
+      "PYTORCH_API": 15350,
+      "MSTX_EVENTS": 0,
+      "CANN_API": 7425,
+      "CONNECTION_IDS": 4274,
+      "TASK": 1551
+    },
+    "calls_truncated": false,
+    "association_basis_and_uniqueness_counts": [
+      {
+        "cann_basis": "connection_ids",
+        "pytorch_basis": "same_global_tid_containment",
+        "cann_unique": true,
+        "pytorch_unique": true,
+        "count": 57
+      },
+      {
+        "cann_basis": "connection_ids",
+        "pytorch_basis": "connection_ids",
+        "cann_unique": true,
+        "pytorch_unique": true,
+        "count": 1494
+      }
+    ],
+    "independent_sql": {
+      "cann_direct_query": "SELECT COUNT(DISTINCT t.rowid) FROM TASK t JOIN CANN_API c ON c.connectionId=t.connectionId WHERE t.endNs>t.startNs AND c.endNs>c.startNs AND t.endNs>? AND t.startNs<? AND c.endNs>? AND c.startNs<?",
+      "parameters": [
+        1776098194705616050,
+        1776098204678386210,
+        1776098194705616050,
+        1776098204678386210
+      ],
+      "cann_direct_count": 1551
+    },
+    "previously_missing_task_samples": [
+      {
+        "kernel_name": null,
+        "device_task": {
+          "global_task_id": 76,
+          "start_ns": 1776098194706443210,
+          "end_ns": 1776098194706445570,
+          "task_id": "1072",
+          "stream_id": "2",
+          "device_id": "0",
+          "connection_id": 1496,
+          "model_id": 4294967295,
+          "global_task_id_occurrences": 1,
+          "ambiguous_global_task_id": false
+        },
+        "host_stack": [
+          {
+            "table": "PYTORCH_API",
+            "name": "Dequeue@acl_memcpy_host_to_device",
+            "start_ns": 1776098194706369470,
+            "end_ns": 1776098194706412970,
+            "duration_ms": 0.0435,
+            "global_tid": "6001392163836772"
+          }
+        ],
+        "mstx_stack": [],
+        "cann_api": {
+          "name": "aclrtMemcpyAsync",
+          "start_ns": 1776098194706383180,
+          "end_ns": 1776098194706408790,
+          "duration_ms": 0.02561
+        },
+        "association_basis": {
+          "cann": "connection_ids",
+          "pytorch": "same_global_tid_containment"
+        },
+        "association_unique": {
+          "cann": true,
+          "pytorch": true
+        },
+        "association_candidate_counts": {
+          "cann": 1,
+          "pytorch": 1
+        },
+        "dispatch": {
+          "host_dispatch_gap_ms": 0.03442,
+          "basis": "max(0, task.startNs - associated_host.endNs)",
+          "host_duration_ms": 0.02561,
+          "anchor_table": "CANN_API"
+        },
+        "global_task_id_unique": true,
+        "ambiguous_global_task_id": false
+      },
+      {
+        "kernel_name": null,
+        "device_task": {
+          "global_task_id": 77,
+          "start_ns": 1776098194706451490,
+          "end_ns": 1776098194706453790,
+          "task_id": "1073",
+          "stream_id": "2",
+          "device_id": "0",
+          "connection_id": 1498,
+          "model_id": 4294967295,
+          "global_task_id_occurrences": 1,
+          "ambiguous_global_task_id": false
+        },
+        "host_stack": [
+          {
+            "table": "PYTORCH_API",
+            "name": "Dequeue@acl_memcpy_host_to_device",
+            "start_ns": 1776098194706434480,
+            "end_ns": 1776098194706442580,
+            "duration_ms": 0.0081,
+            "global_tid": "6001392163836772"
+          }
+        ],
+        "mstx_stack": [],
+        "cann_api": {
+          "name": "aclrtMemcpyAsync",
+          "start_ns": 1776098194706435780,
+          "end_ns": 1776098194706441870,
+          "duration_ms": 0.00609
+        },
+        "association_basis": {
+          "cann": "connection_ids",
+          "pytorch": "same_global_tid_containment"
+        },
+        "association_unique": {
+          "cann": true,
+          "pytorch": true
+        },
+        "association_candidate_counts": {
+          "cann": 1,
+          "pytorch": 1
+        },
+        "dispatch": {
+          "host_dispatch_gap_ms": 0.00962,
+          "basis": "max(0, task.startNs - associated_host.endNs)",
+          "host_duration_ms": 0.00609,
+          "anchor_table": "CANN_API"
+        },
+        "global_task_id_unique": true,
+        "ambiguous_global_task_id": false
+      }
+    ],
+    "not_proven_examples": [],
+    "limitations": [
+      "A unique, connected Host chain does not establish a model module or layer identity without independent exact scope mapping.",
+      "Matched count is reported separately from association uniqueness; CANN-only or ambiguous matches would not count as proven Host chains."
+    ]
+  }
+}

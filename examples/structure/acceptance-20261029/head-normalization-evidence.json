@@ -1,0 +1,114 @@
+{
+  "schema_version": "mindie-normalization-source-evidence/1",
+  "date": "2026-10-29",
+  "scope": "Read-only checkpoint metadata and independent source declarations; no model weights, NPU execution or captured binary identity.",
+  "glm_checkpoint": {
+    "host": "192.168.13.165",
+    "path": "/mnt/weight/GLM-5.3-W4A8-INT/quant_model_description.json",
+    "size_bytes": 17219752,
+    "sha256": "08ce843a3517323bc0e93de00ea90e673b83d5b5766c9bd432108ede0a703503",
+    "verification": "Parent agent read current host metadata by SSH BatchMode; old hp-glm53-attn container is no longer present.",
+    "norm_weight_or_bias_key_count": 364,
+    "norm_bias_key_count": 22,
+    "norm_bias_keys": {
+      "model.layers.0.self_attn.indexer.k_norm.bias": "FLOAT",
+      "model.layers.1.self_attn.indexer.k_norm.bias": "FLOAT",
+      "model.layers.2.self_attn.indexer.k_norm.bias": "FLOAT",
+      "model.layers.6.self_attn.indexer.k_norm.bias": "FLOAT",
+      "model.layers.10.self_attn.indexer.k_norm.bias": "FLOAT",
+      "model.layers.14.self_attn.indexer.k_norm.bias": "FLOAT",
+      "model.layers.18.self_attn.indexer.k_norm.bias": "FLOAT",
+      "model.layers.22.self_attn.indexer.k_norm.bias": "FLOAT",
+      "model.layers.26.self_attn.indexer.k_norm.bias": "FLOAT",
+      "model.layers.30.self_attn.indexer.k_norm.bias": "FLOAT",
+      "model.layers.34.self_attn.indexer.k_norm.bias": "FLOAT",
+      "model.layers.38.self_attn.indexer.k_norm.bias": "FLOAT",
+      "model.layers.42.self_attn.indexer.k_norm.bias": "FLOAT",
+      "model.layers.46.self_attn.indexer.k_norm.bias": "FLOAT",
+      "model.layers.50.self_attn.indexer.k_norm.bias": "FLOAT",
+      "model.layers.54.self_attn.indexer.k_norm.bias": "FLOAT",
+      "model.layers.58.self_attn.indexer.k_norm.bias": "FLOAT",
+      "model.layers.62.self_attn.indexer.k_norm.bias": "FLOAT",
+      "model.layers.66.self_attn.indexer.k_norm.bias": "FLOAT",
+      "model.layers.70.self_attn.indexer.k_norm.bias": "FLOAT",
+      "model.layers.74.self_attn.indexer.k_norm.bias": "FLOAT",
+      "model.layers.78.self_attn.indexer.k_norm.bias": "FLOAT"
+    },
+    "input_or_post_attention_norm_bias_keys": [],
+    "historical_reference": "Adjacent glm53-w4a8/env/weight-hashes.txt independently records the same hash; actual retained capture metadata identifies glm53-attn on .165, not the adjacent .154 deployment."
+  },
+  "glm_runtime_source": {
+    "path": "/Users/maoxx241/code/vllm-ascend/vllm_ascend/ops/layernorm.py",
+    "base_revision": "175ef4d49c2072f9233619636f0309f4f88b4e2c",
+    "source_state": "clean_at_revision",
+    "sha256": "3782d77a4d1a5493121ee51c676b455304ccfdcd1abccbe58b45f5d4ad861a1e",
+    "allocation_lines": [
+      42,
+      47
+    ],
+    "residual_call_lines": [
+      70,
+      78
+    ],
+    "ordinary_norm_lines": [
+      81,
+      83
+    ],
+    "predicate": "any(\"norm.bias\" in name for name in quant_description)",
+    "consequence": "The predicate is global, not parameter-prefix specific. The 22 indexer keys cause all AscendRMSNorm instances to allocate zero-initialized beta. Residual forward passes beta even when bias_loaded is false; ordinary no-residual forward adds beta only if loaded.",
+    "limitation": "Source/checkpoint-conditional declaration; capture runtime revision and loaded tensor values are not established."
+  },
+  "selected_glm_scenario": {
+    "lowering_passes": [
+      "activation_quantization",
+      "norm_quant",
+      "residual_norm"
+    ],
+    "kernels": {
+      "lowerings": {
+        "add_rmsnorm": {
+          "implementation": "vllm_ascend_native_norm",
+          "options": {
+            "has_bias": true
+          }
+        },
+        "add_rmsnorm_quant": {
+          "implementation": "vllm_ascend_native_norm",
+          "options": {
+            "has_bias": true
+          }
+        }
+      }
+    },
+    "native_resources": "Reuse residual_norm/norm_quant intermediate elimination; include beta channel reads and per-element adds. AddRmsNormBias additionally writes FP32 rstd and retains residual; dynamic quant retains residual and scales. Unused native quant auxiliary stores are not established."
+  },
+  "kimi_latent_norm": {
+    "source": "/Users/maoxx241/code/vllm-ascend/vllm_ascend/models/kimi_k3.py",
+    "base_revision": "175ef4d49c2072f9233619636f0309f4f88b4e2c",
+    "source_state": "added_in_index",
+    "sha256": "498839ee000fd1d0731915613de1b98b562474c9da5c5357c686b5ae2cc0922d",
+    "lines": [
+      645,
+      713
+    ],
+    "independent_model_config": "mindie_sim/model_configs/kimi-k3.json: latent_moe_use_norm=true, routed_expert_hidden_size=3584",
+    "boundary": "routed combine -> weighted RMSNorm -> latent up projection; norm is not before expert packing.",
+    "precision_limitation": "Retained base catalog declares BF16 activation. MXFP8 matching scenario explicitly declares FP8 weights/activations and E8M0 block32 scales; not an identified captured checkpoint."
+  },
+  "situ_mx": {
+    "source": "/Users/maoxx241/code/vllm-ascend/csrc/moe/situ_mx_quant/op_kernel/arch35/situ_mx_quant_axis_last.h",
+    "source_state": "added_in_index",
+    "sha256": "2a9bd1b0058d5c5727dc313c10f1e6920ea900390c64402d5263c8a602470284",
+    "local_intermediate_lines": [
+      186,
+      227
+    ],
+    "external_store_lines": [
+      251,
+      274
+    ],
+    "traffic_profile": "situ_mx_quant_arch35_2a9bd1b0",
+    "internal_reuse": "Only SiTU BF16 result write and quantizer read are removed; input read, FP8 result and E8M0 scale writes remain.",
+    "comparison_scope": "Active tensor descriptors only. beta=4 and linear_beta=25 are independent Kimi config parameters; profiler does not observe activation scalar values."
+  }
+}

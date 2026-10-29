@@ -1,0 +1,502 @@
+{
+  "method": "one direct csv.Decimal timing scan per capture; exact duration Counters/interval unions; captured descriptors grouped by shared contract API; all report/family arithmetic independently recomputed",
+  "results": [
+    {
+      "capture": "a3_glm53_prefill",
+      "variant": "reference",
+      "positive_events": 2392,
+      "zero_duration_rows": 0,
+      "native_families": 47,
+      "cohorts_checked": 22,
+      "cohort_events": 1076,
+      "scored_events": 752,
+      "statuses": {
+        "compared": 16,
+        "reference_only": 6
+      },
+      "top_absolute_activity_residuals": [
+        {
+          "operator": "SparseFlashAttention",
+          "count": 78,
+          "actual_ms": 1029.573832,
+          "predicted_ms": 477.45165312000006,
+          "residual_ms": -552.12217888,
+          "relative_error": -0.5362628319792028
+        },
+        {
+          "operator": "AddRmsNormBias",
+          "count": 153,
+          "actual_ms": 37.924261,
+          "predicted_ms": 25.674362880000004,
+          "residual_ms": -12.249898119999997,
+          "relative_error": -0.3230095405155027
+        },
+        {
+          "operator": "QuantBatchMatmulV3",
+          "count": 180,
+          "actual_ms": 46.253634,
+          "predicted_ms": 34.289111040000314,
+          "residual_ms": -11.964522959999684,
+          "relative_error": -0.2586720636912482
+        },
+        {
+          "operator": "DynamicQuant",
+          "count": 234,
+          "actual_ms": 16.527492000000002,
+          "predicted_ms": 11.31208704,
+          "residual_ms": -5.2154049600000025,
+          "relative_error": -0.3155593698063809
+        }
+      ]
+    },
+    {
+      "capture": "a3_glm53_prefill",
+      "variant": "selected",
+      "positive_events": 2392,
+      "zero_duration_rows": 0,
+      "native_families": 47,
+      "cohorts_checked": 22,
+      "cohort_events": 1076,
+      "scored_events": 851,
+      "statuses": {
+        "compared": 19,
+        "reference_only": 3
+      },
+      "top_absolute_activity_residuals": [
+        {
+          "operator": "SparseFlashAttention",
+          "count": 78,
+          "actual_ms": 1029.573832,
+          "predicted_ms": 477.45165312000006,
+          "residual_ms": -552.12217888,
+          "relative_error": -0.5362628319792028
+        },
+        {
+          "operator": "MlaPrologV3",
+          "count": 78,
+          "actual_ms": 99.33811299999999,
+          "predicted_ms": 37.28675660679727,
+          "residual_ms": -62.051356393202724,
+          "relative_error": -0.624648028025283
+        },
+        {
+          "operator": "AddRmsNormBias",
+          "count": 153,
+          "actual_ms": 37.924261,
+          "predicted_ms": 25.674362880000004,
+          "residual_ms": -12.249898119999997,
+          "relative_error": -0.3230095405155027
+        },
+        {
+          "operator": "QuantBatchMatmulV3",
+          "count": 180,
+          "actual_ms": 46.253634,
+          "predicted_ms": 34.289111040000314,
+          "residual_ms": -11.964522959999684,
+          "relative_error": -0.2586720636912482
+        }
+      ]
+    },
+    {
+      "capture": "a3_glm53_decode",
+      "variant": "reference",
+      "positive_events": 166204,
+      "zero_duration_rows": 0,
+      "native_families": 46,
+      "cohorts_checked": 22,
+      "cohort_events": 79624,
+      "scored_events": 55648,
+      "statuses": {
+        "compared": 16,
+        "reference_only": 6
+      },
+      "top_absolute_activity_residuals": [
+        {
+          "operator": "SparseFlashAttention",
+          "count": 5772,
+          "actual_ms": 523.697702,
+          "predicted_ms": 11.47134976,
+          "residual_ms": -512.2263522400001,
+          "relative_error": -0.9780954743238496
+        },
+        {
+          "operator": "QuantBatchMatmulV3",
+          "count": 13320,
+          "actual_ms": 237.110986,
+          "predicted_ms": 84.64484591272726,
+          "residual_ms": -152.46614008727272,
+          "relative_error": -0.6430159254083349
+        },
+        {
+          "operator": "TransposeBatchMatMul",
+          "count": 5772,
+          "actual_ms": 81.807902,
+          "predicted_ms": 10.160399127272726,
+          "residual_ms": -71.64750287272727,
+          "relative_error": -0.875801739454549
+        },
+        {
+          "operator": "DynamicQuant",
+          "count": 17316,
+          "actual_ms": 50.443836000000005,
+          "predicted_ms": 0.20436876,
+          "residual_ms": -50.23946724,
+          "relative_error": -0.9959485880494894
+        }
+      ]
+    },
+    {
+      "capture": "a3_glm53_decode",
+      "variant": "selected",
+      "positive_events": 166204,
+      "zero_duration_rows": 0,
+      "native_families": 46,
+      "cohorts_checked": 22,
+      "cohort_events": 79624,
+      "scored_events": 62974,
+      "statuses": {
+        "compared": 19,
+        "reference_only": 3
+      },
+      "top_absolute_activity_residuals": [
+        {
+          "operator": "SparseFlashAttention",
+          "count": 5772,
+          "actual_ms": 523.697702,
+          "predicted_ms": 11.47134976,
+          "residual_ms": -512.2263522400001,
+          "relative_error": -0.9780954743238496
+        },
+        {
+          "operator": "QuantBatchMatmulV3",
+          "count": 13320,
+          "actual_ms": 237.110986,
+          "predicted_ms": 84.64484591272726,
+          "residual_ms": -152.46614008727272,
+          "relative_error": -0.6430159254083349
+        },
+        {
+          "operator": "MlaPrologV3",
+          "count": 5772,
+          "actual_ms": 236.734905,
+          "predicted_ms": 105.79143088353797,
+          "residual_ms": -130.94347411646203,
+          "relative_error": -0.553122802556142
+        },
+        {
+          "operator": "TransposeBatchMatMul",
+          "count": 5772,
+          "actual_ms": 81.807902,
+          "predicted_ms": 10.160399127272726,
+          "residual_ms": -71.64750287272727,
+          "relative_error": -0.875801739454549
+        }
+      ]
+    },
+    {
+      "capture": "a3_qwen35",
+      "variant": "reference",
+      "positive_events": 121802,
+      "zero_duration_rows": 0,
+      "native_families": 68,
+      "cohorts_checked": 15,
+      "cohort_events": 3442,
+      "scored_events": 762,
+      "statuses": {
+        "compared": 14,
+        "reference_only": 1
+      },
+      "top_absolute_activity_residuals": [
+        {
+          "operator": "GroupedMatmul",
+          "count": 80,
+          "actual_ms": 55.146201,
+          "predicted_ms": 25.818241551515584,
+          "residual_ms": -29.327959448484414,
+          "relative_error": -0.5318219372624493
+        },
+        {
+          "operator": "MoeGatingTopK",
+          "count": 82,
+          "actual_ms": 19.99684,
+          "predicted_ms": 0.6513881212121213,
+          "residual_ms": -19.345451878787877,
+          "relative_error": -0.9674254471600452
+        },
+        {
+          "operator": "MatMulV2",
+          "count": 315,
+          "actual_ms": 28.121405,
+          "predicted_ms": 23.186204819394135,
+          "residual_ms": -4.9352001806058645,
+          "relative_error": -0.17549621651570624
+        },
+        {
+          "operator": "FusedInferAttentionScore",
+          "count": 11,
+          "actual_ms": 9.698794,
+          "predicted_ms": 5.593088000000001,
+          "residual_ms": -4.105705999999999,
+          "relative_error": -0.42332129128631857
+        }
+      ]
+    },
+    {
+      "capture": "a3_qwen36",
+      "variant": "reference",
+      "positive_events": 40628,
+      "zero_duration_rows": 0,
+      "native_families": 62,
+      "cohorts_checked": 14,
+      "cohort_events": 1292,
+      "scored_events": 1292,
+      "statuses": {
+        "compared": 14
+      },
+      "top_absolute_activity_residuals": [
+        {
+          "operator": "DynamicQuant",
+          "count": 440,
+          "actual_ms": 53.447497,
+          "predicted_ms": 41.25250901333333,
+          "residual_ms": -12.194987986666668,
+          "relative_error": -0.22816761628082727
+        },
+        {
+          "operator": "FusedInferAttentionScore",
+          "count": 17,
+          "actual_ms": 21.613626,
+          "predicted_ms": 12.965794909090908,
+          "residual_ms": -8.647831090909092,
+          "relative_error": -0.4001101476868847
+        },
+        {
+          "operator": "QuantBatchMatmulV3",
+          "count": 402,
+          "actual_ms": 422.311375,
+          "predicted_ms": 415.35009760974395,
+          "residual_ms": -6.961277390256043,
+          "relative_error": -0.01648375535765767
+        },
+        {
+          "operator": "_layer_norm_fwd_1pass_kernel_npu",
+          "count": 96,
+          "actual_ms": 10.35177,
+          "predicted_ms": 6.039818240000001,
+          "residual_ms": -4.3119517599999995,
+          "relative_error": -0.4165424618205389
+        }
+      ]
+    }
+  ],
+  "schema_version": "mindie-profiler-independent-cohort-review/1",
+  "status": "passed",
+  "review_scope": {
+    "direct_raw_sources": 4,
+    "direct_raw_positive_events": 331026,
+    "raw_verified_variants": 6,
+    "raw_verified_cohorts": 117,
+    "report_arithmetic_variants": 13,
+    "independent_raw_method": "csv.DictReader and Decimal nanosecond conversion, exact duration counters and sorted interval unions; only descriptor contracts reuse the profiler API",
+    "other_four_sources": "report arithmetic checked; source scans and hashes rely on separate replay receipts"
+  },
+  "report_arithmetic": [
+    {
+      "variant": "a3_glm53_prefill-reference",
+      "graph_id": "sha256:b791771d7482c37285717afaa86d276b457748a9faa4ce52351deddb6957b46d",
+      "positive_events": 2392,
+      "native_families": 47,
+      "cohorts": 22,
+      "cohort_events": 1076,
+      "status_counts": {
+        "compared": 16,
+        "reference_only": 6
+      },
+      "family_json_sha256": "5c360c3e6492e074e359b20219a54503258b1f55d818816fcd4dc18f0d8276ec",
+      "comparison_json_sha256": "3f0bbb1f3e4832d4195b2d714bafdd78aca5762d011219649456da52f6edc088"
+    },
+    {
+      "variant": "a3_glm53_prefill-selected",
+      "graph_id": "sha256:c59d4cdf682919a09521ff275beb2e233e1b0dbdbfe6016d212cbc4c6d56ab88",
+      "positive_events": 2392,
+      "native_families": 47,
+      "cohorts": 22,
+      "cohort_events": 1076,
+      "status_counts": {
+        "compared": 19,
+        "reference_only": 3
+      },
+      "family_json_sha256": "4fb4701fe6c8687b529d11dff84d1c741f99fac4cff7609a3378a8d30b53bcc1",
+      "comparison_json_sha256": "ec6d1395462ec403390080e42b8e75d0d79202d09f3be3db14ad4a0e08b9e7e3"
+    },
+    {
+      "variant": "a3_glm53_decode-reference",
+      "graph_id": "sha256:5511e36128cfcd1456dae497732a2e2fcf72de5b73293c4cbb5ed077ff44a2dd",
+      "positive_events": 166204,
+      "native_families": 46,
+      "cohorts": 22,
+      "cohort_events": 79624,
+      "status_counts": {
+        "compared": 16,
+        "reference_only": 6
+      },
+      "family_json_sha256": "e4fd41233f8d01f8ad2c30ecc6ffc739be3c4388aed333a83243086561bd210b",
+      "comparison_json_sha256": "6e94740762bb5019e0b5a589084d21adc86886d36c05d34d6e868c23c6a9e760"
+    },
+    {
+      "variant": "a3_glm53_decode-selected",
+      "graph_id": "sha256:45a83f71659e42cd95c3b37d9a2bcf243f6f484461ef6c1edee9b64298f34a92",
+      "positive_events": 166204,
+      "native_families": 46,
+      "cohorts": 22,
+      "cohort_events": 79624,
+      "status_counts": {
+        "compared": 19,
+        "reference_only": 3
+      },
+      "family_json_sha256": "295394380138b66044430c3ce998ba17b1e0807c6a60e7e525f9fa2d2b20da7e",
+      "comparison_json_sha256": "1a65329a1fd73570046c80d31d65135be75b76437d36f7d6c48bb90e7b9d13d4"
+    },
+    {
+      "variant": "a3_qwen35-reference",
+      "graph_id": "sha256:c8d0db9443f604bc6678e6bbd4d473f47fd1a793545f4cc6e62829302b89bfea",
+      "positive_events": 121802,
+      "native_families": 68,
+      "cohorts": 15,
+      "cohort_events": 3442,
+      "status_counts": {
+        "compared": 14,
+        "reference_only": 1
+      },
+      "family_json_sha256": "992fefc2d512dec12438233fd4f412a1e3bf33d65de273834d25cf59cded0c00",
+      "comparison_json_sha256": "808c22cead8a103e53393a2b4c04b17f30d3027451bf17f739d38697e40c82d0"
+    },
+    {
+      "variant": "a3_qwen36-reference",
+      "graph_id": "sha256:7527b4310d3beb047e6a1d95e083df0fbaf6d77ebbe85aa09d65dbf4049e118d",
+      "positive_events": 40628,
+      "native_families": 62,
+      "cohorts": 14,
+      "cohort_events": 1292,
+      "status_counts": {
+        "compared": 14
+      },
+      "family_json_sha256": "121bece207c82e915e5546b92f7be63ae28dbe20c2a1aefc879204cd93222c02",
+      "comparison_json_sha256": "d6147d17745fcbc5ecf718b0136968fe57f1a2df58be186f2e5f330e11e9ce91"
+    },
+    {
+      "variant": "a3_v4f-reference",
+      "graph_id": "sha256:ccdf3b27ef091aef68ebbe9a296126ba56835705763d21530fa9686ea03677d7",
+      "positive_events": 4064,
+      "native_families": 66,
+      "cohorts": 16,
+      "cohort_events": 684,
+      "status_counts": {
+        "reference_only": 3,
+        "compared": 13
+      },
+      "family_json_sha256": "ba2e96a315afeb94f2381a1061a9f5f51cfe56cf8cf74c3883a9269b8559f8fb",
+      "comparison_json_sha256": "30b4ffe6d870e656b6cc6cc73f771576832d6dbcb10a9a396b05a925247f1a2c"
+    },
+    {
+      "variant": "a3_v4f-selected",
+      "graph_id": "sha256:e3c6926ee6f4db6d2b708bab1e3d82b51f14d46e7520bcbc63eb7fdd12cc8813",
+      "positive_events": 4064,
+      "native_families": 66,
+      "cohorts": 16,
+      "cohort_events": 684,
+      "status_counts": {
+        "compared": 14,
+        "reference_only": 2
+      },
+      "family_json_sha256": "9f990d2f26802885a4f531c4170a23216d74891ad344437314343bddebef411a",
+      "comparison_json_sha256": "201c5b4ff8a94b96316fa408e277f4f42c90e28a36196eabedd7d7f6b2f8edd3"
+    },
+    {
+      "variant": "a3_v4pro-reference",
+      "graph_id": "sha256:2d5c508b966fd7cf5926c01c57736bfe5e093da8ea755c718f8c500d0adbce23",
+      "positive_events": 24271,
+      "native_families": 65,
+      "cohorts": 17,
+      "cohort_events": 4336,
+      "status_counts": {
+        "reference_only": 3,
+        "compared": 14
+      },
+      "family_json_sha256": "373eedcbf7d10950921bd07432ae273b30fa4fef22db7e03be2a199359c18e73",
+      "comparison_json_sha256": "3187f6aa57ddc3080a8088fa408b39f375aca5fc62f8fcad6d8a2499df05e71b"
+    },
+    {
+      "variant": "a3_v4pro-selected",
+      "graph_id": "sha256:b923c8c76e939da2bc0cf16de60c422006eb80196b321a21516e8bf1b71655fa",
+      "positive_events": 24271,
+      "native_families": 65,
+      "cohorts": 17,
+      "cohort_events": 4336,
+      "status_counts": {
+        "compared": 15,
+        "reference_only": 2
+      },
+      "family_json_sha256": "bcdfebbdfd346b8b8d2573316d94ffce3532839cb7877a42ae62ec483a36d07b",
+      "comparison_json_sha256": "2047b9eb9c875da4ab9db5cb31371443ae0f16246e90bc5e330315890cf0d43a"
+    },
+    {
+      "variant": "a5_kimi_k3-reference",
+      "graph_id": "sha256:b67b7d3c3422c9db6f6854198367166850d897db40b59a2744ab9904dd363dc7",
+      "positive_events": 286988,
+      "native_families": 82,
+      "cohorts": 0,
+      "cohort_events": 0,
+      "status_counts": {},
+      "family_json_sha256": "908067d2fdbb92fbc2f10ea7349bbd4da6493e2acafe898fb7043342dee6de60",
+      "comparison_json_sha256": "32f5475bec9838039c4f4ee886cecba22cded2e965bc3587284c0df1bea5044f"
+    },
+    {
+      "variant": "a5_kimi_k3_decode-reference",
+      "graph_id": "sha256:c1b63a290d169ad9e6ae0c7a6423667c04853ec1a2a205a3c6a48ceb7efb5f88",
+      "positive_events": 286988,
+      "native_families": 82,
+      "cohorts": 0,
+      "cohort_events": 0,
+      "status_counts": {},
+      "family_json_sha256": "65cab1364d3bde21df81e604a858d8f7f31c20e5b62f57257ba84a0567237320",
+      "comparison_json_sha256": "172263703b3b22c1d264f6400a1299c7e1624118e98684eb04cf5579e0e3aa4d"
+    },
+    {
+      "variant": "a5_qwen38-reference",
+      "graph_id": "sha256:adf2d50a3280ffcd34219075c500fa232f93247c25e0ef0d4979a4ed6e99cf96",
+      "positive_events": 22486,
+      "native_families": 56,
+      "cohorts": 22,
+      "cohort_events": 989,
+      "status_counts": {
+        "compared": 22
+      },
+      "family_json_sha256": "0768fcd91b6377d3ffc65129b0bcef609097fbfac2c57b5a7dc66496c38111f0",
+      "comparison_json_sha256": "4a1ca1ed57956c19e88d7d94269f09e31eb08faf8bdba908f3c75b4e73e5a268"
+    }
+  ],
+  "totals": {
+    "unique_sources": 8,
+    "unique_capture_events": 668835,
+    "cohort_status_counts_across_declarations": {
+      "compared": 176,
+      "reference_only": 29
+    }
+  },
+  "checks": [
+    "all positive-event family denominators retained",
+    "cohort/excluded and scored/unscored counts reconcile",
+    "Mean/P50/min/max/activity/union recomputed for four original captures",
+    "per-call and cumulative residual equations recomputed for every compared cohort",
+    "W4A8 correction epilogue remains reference_only",
+    "no bound occurrences or inferred step counts",
+    "no error fields for reference_only",
+    "capture variants are not summed as independent measurements"
+  ],
+  "limitations": [
+    "Statistical consistency does not certify prediction accuracy or native dispatch identity.",
+    "Large residuals remain visible; this audit does not change calibration or model parameters.",
+    "Routing contracts unavailable for MoeInitRoutingV3/MoeTokenUnpermute remain unscored, even where implementation correspondence exists."
+  ]
+}

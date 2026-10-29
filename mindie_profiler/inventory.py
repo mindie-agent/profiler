@@ -101,7 +101,7 @@ def _discover_rank_dirs(root: Path, *, max_dirs: int) -> list[Path]:
             raise ProfilerError(f"inventory discovery exceeded {max_dirs} directories under {root}")
         current_path = Path(current)
         has_db = any(name.startswith("ascend_pytorch_profiler") and name.endswith(".db") for name in filenames)
-        has_csv = "kernel_details.csv" in filenames
+        has_csv = any(name in filenames for name in ("kernel_details.csv", "kernel_details.csv.gz"))
         has_trace = any(name.startswith("trace_view") and name.endswith(".json") for name in filenames)
         has_output = _OUTPUT_DIR in dirnames
         if has_db or has_csv or has_trace:
@@ -120,7 +120,7 @@ def _discover_rank_dirs(root: Path, *, max_dirs: int) -> list[Path]:
                 names = set()
             if (
                 any(name.startswith("ascend_pytorch_profiler") and name.endswith(".db") for name in names)
-                or "kernel_details.csv" in names
+                or any(name in names for name in ("kernel_details.csv", "kernel_details.csv.gz"))
                 or any(name.startswith("trace_view") and name.endswith(".json") for name in names)
             ):
                 if current_path not in seen:
@@ -277,11 +277,21 @@ def _db_facts(path: Path, *, timeout_s: float) -> dict[str, Any]:
     return facts
 
 
-def _rank_facts(rank_dir: Path, *, ordinal: int, timeout_s: float) -> dict[str, Any]:
+def _rank_facts(rank_dir: Path, *, ordinal: int, timeout_s: float,
+                explicit_file: Path | None = None) -> dict[str, Any]:
     rank_id = infer_rank_id(rank_dir, ordinal)
     db_candidates = find_db_candidates(rank_dir)
     csv_candidates = find_csv_candidates(rank_dir)
     trace_candidates = find_trace_candidates(rank_dir)
+    if explicit_file is not None:
+        if explicit_file.suffix == ".db":
+            db_candidates, csv_candidates, trace_candidates = [explicit_file], [], []
+        elif explicit_file.name.endswith((".csv", ".csv.gz")):
+            db_candidates, csv_candidates, trace_candidates = [], [explicit_file], []
+        elif explicit_file.name.endswith((".json", ".json.gz")):
+            db_candidates, csv_candidates, trace_candidates = [], [], [explicit_file]
+        else:
+            raise ProfilerError(f"unsupported profiling source file: {explicit_file}")
     dbs = [_db_facts(path, timeout_s=timeout_s) for path in db_candidates]
     files = (
         [*dbs]
@@ -325,7 +335,7 @@ def inventory_profile(
     ranks: list[dict[str, Any]] = []
     if path.is_file():
         rank_dir = path.parent.parent if path.parent.name == _OUTPUT_DIR else path.parent
-        ranks.append(_rank_facts(rank_dir, ordinal=0, timeout_s=timeout_s))
+        ranks.append(_rank_facts(rank_dir, ordinal=0, timeout_s=timeout_s, explicit_file=path))
     else:
         resolved = path.resolve()
         if resolved.name == _OUTPUT_DIR:

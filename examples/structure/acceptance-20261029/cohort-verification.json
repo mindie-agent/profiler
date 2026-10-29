@@ -1,0 +1,28 @@
+{
+  "kind": "shared_structure_cohort_maintained_suite_verification",
+  "date": "2026-10-29",
+  "runtime_source_identity_sha256": "bb45b39f606a6793c6630216d76cfe2fdbaaea50804e045539df7f95b67eded7",
+  "runtime_source_identity_file": "fusion-cohort-validation.json#runtime_source_identity",
+  "runtime_git_base": "c23683728f8237ad00659208ff35eeab8c2fdd48",
+  "not_new_live_npu_acceptance": true,
+  "suites": {
+    "profiler": {
+      "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/Users/maoxx241/code/sim-rewrite-20261027 /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python -m pytest -q",
+      "cwd": "/Users/maoxx241/code/profiler",
+      "passed": 517,
+      "skipped": 26,
+      "seconds": 16.66,
+      "log_path": "/tmp/profiler-cohort-full-final-20261029.log",
+      "log_sha256": "ce196a9424fae34b395d3dc9d9d459d41a2930dc7398c4f5b63449552a033dc9"
+    },
+    "sim": {
+      "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/Users/maoxx241/code/sim-rewrite-20261027 .venv/bin/python -m pytest -q -m 'not live_npu'",
+      "cwd": "/Users/maoxx241/code/sim-rewrite-20261027",
+      "passed": 1351,
+      "skipped": 0,
+      "seconds": 214.1,
+      "log_path": "/tmp/sim-cohort-full-final-20261029.log",
+      "log_sha256": "208226845eb4f23a2317e26d1380aecc3dc69163c4d8d636f47c4f44b3f62d24"
+    }
+  }
+}

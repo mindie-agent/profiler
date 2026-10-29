@@ -140,6 +140,12 @@ class Event:
     input_shapes: str = ""
     input_dtypes: str = ""
     input_formats: str = ""
+    output_shapes: str = ""
+    output_dtypes: str = ""
+    output_formats: str = ""
+    block_dim: int | None = None
+    mix_block_dim: int | None = None
+    op_state: str = ""
     wait_ns: int | None = None
     wait_status: str = "not_available"
     wait_source: str | None = None

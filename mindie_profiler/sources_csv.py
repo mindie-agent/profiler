@@ -26,6 +26,7 @@
 from __future__ import annotations
 
 import csv
+import gzip
 import hashlib
 import time
 from dataclasses import dataclass
@@ -87,13 +88,20 @@ def _header_digest(header: tuple[str, ...]) -> str:
     return hashlib.sha256("\x1f".join(header).encode("utf-8")).hexdigest()
 
 
+def _open_csv_text(path: Path):
+    """Compressed exports use the same decoder and decompressed row locators."""
+    if path.name.endswith(".csv.gz"):
+        return gzip.open(path, "rt", encoding="utf-8-sig", newline="")
+    return path.open("r", encoding="utf-8-sig", newline="")
+
+
 def probe_csv(path: str | Path, *, mapping: Mapping[str, Any] | None = None) -> CsvSchema:
     mapping = mapping or load_mapping()
     csv_path = Path(path)
     if not csv_path.is_file():
         raise ProfilerSchemaError(f"kernel_details.csv not found: {csv_path}")
     try:
-        with csv_path.open("r", encoding="utf-8-sig", newline="") as handle:
+        with _open_csv_text(csv_path) as handle:
             reader = csv.reader(handle)
             header = next(reader, None)
     except TimeoutError:
@@ -140,8 +148,9 @@ def probe_csv(path: str | Path, *, mapping: Mapping[str, Any] | None = None) -> 
         logical
         for logical in (
             "core", "type", "stream_id", "task_id", "device_id",
-            "block_dim", "mix_block_dim", "input_shapes", "input_dtypes", "input_formats",
-            "wait_us",
+            "block_dim", "mix_block_dim", "op_state",
+            "input_shapes", "input_dtypes", "input_formats",
+            "output_shapes", "output_dtypes", "output_formats", "wait_us",
         )
         if logical not in columns
     )
@@ -174,13 +183,143 @@ def _number(text: str) -> Decimal | None:
     if not text:
         return None
     try:
-        return Decimal(text)
+        value = Decimal(text)
+        return value if value.is_finite() else None
     except (InvalidOperation, ValueError):
         return None
 
 
 def _us_to_ns(value: Decimal) -> int:
     return int((value * Decimal(1000)).to_integral_value())
+
+
+def _optional_int(text: str) -> int | None:
+    value = _number(text)
+    return int(value) if value is not None and value == value.to_integral_value() else None
+
+
+def decode_csv_row(row: list[str], row_index: int, schema: CsvSchema, *,
+                   rank_id: str, rank_index: int | None, stats: QueryStats,
+                   strict: bool = False, include_zero_duration: bool = False) -> Event | None:
+    """Decode one exporter row; analysis counts malformed times, raw reads fail."""
+    columns = schema.columns
+
+    def invalid_timing():
+        stats.bad_rows += 1
+        if strict:
+            raise ProfilerSchemaError(
+                f"{schema.path}: CSV line {row_index + 2} has invalid timing")
+        return None
+
+    start_us = _number(_cell(row, columns.get("start_us")))
+    duration_us = _number(_cell(row, columns.get("duration_us")))
+    if duration_us is None:
+        end_us = _number(_cell(row, columns.get("end_us")))
+        duration_us = None if end_us is None or start_us is None else end_us - start_us
+    if start_us is None or duration_us is None or duration_us < 0:
+        return invalid_timing()
+    if duration_us == 0 and not include_zero_duration:
+        return None
+    start_ns = _us_to_ns(start_us)
+    end_ns = start_ns + _us_to_ns(duration_us)
+    if end_ns <= start_ns and not (include_zero_duration and duration_us == 0):
+        return invalid_timing()
+    name = _cell(row, columns.get("name"))
+    core = _cell(row, columns.get("core"))
+    op_type = _cell(row, columns.get("type")) or core
+    wait_us = _number(_cell(row, columns.get("wait_us")))
+    if schema.wait_column is None:
+        wait_ns, wait_status = None, "not_available"
+    elif wait_us is None:
+        wait_ns, wait_status = None, "absent"
+    elif wait_us < 0:
+        wait_ns, wait_status = None, "invalid_value"
+    else:
+        wait_ns, wait_status = _us_to_ns(wait_us), "bound"
+    core_key = core.upper().replace(" ", "_")
+    pmu_applicable = not (
+        "AI_CPU" in core_key
+        or "AICPU" in core_key
+        or "COMMUNICATION" in core_key
+        or "HCCL" in core_key
+    )
+    pmu: dict[str, float] = {}
+    pmu_resolution: dict[str, float] = {}
+    if pmu_applicable:
+        for canonical, index in schema.pmu_columns.items():
+            value = _number(_cell(row, index))
+            if value is not None:
+                pmu[canonical] = float(value) * schema.pmu_scales[canonical]
+                if value.is_finite():
+                    pmu_resolution[canonical] = (
+                        float(Decimal(1).scaleb(value.as_tuple().exponent))
+                        * schema.pmu_scales[canonical]
+                    )
+    if not schema.pmu_columns:
+        pmu_status = "not_available"
+    elif not pmu_applicable:
+        pmu_status = "not_applicable"
+    elif not pmu:
+        pmu_status = "absent"
+    else:
+        pmu_status = "bound"
+    event = Event(
+        rank_id=rank_id,
+        rank_index=rank_index,
+        name=name,
+        op_type=op_type,
+        task_type=core,
+        core=core,
+        stream_id=_cell(row, columns.get("stream_id")),
+        task_id=_cell(row, columns.get("task_id")),
+        device_id=_cell(row, columns.get("device_id")),
+        start_ns=start_ns,
+        end_ns=end_ns,
+        source_kind=schema.source_kind,
+        table="kernel_details.csv",
+        input_shapes=_cell(row, columns.get("input_shapes")),
+        input_dtypes=_cell(row, columns.get("input_dtypes")),
+        input_formats=_cell(row, columns.get("input_formats")),
+        output_shapes=_cell(row, columns.get("output_shapes")),
+        output_dtypes=_cell(row, columns.get("output_dtypes")),
+        output_formats=_cell(row, columns.get("output_formats")),
+        block_dim=_optional_int(_cell(row, columns.get("block_dim"))),
+        mix_block_dim=_optional_int(_cell(row, columns.get("mix_block_dim"))),
+        op_state=_cell(row, columns.get("op_state")),
+        wait_ns=wait_ns,
+        wait_status=wait_status,
+        wait_source=(schema.wait_column if schema.wait_column else None),
+        wait_provenance={
+            "table": "kernel_details.csv",
+            "column": schema.wait_column,
+            "row_index": row_index,
+            "status": wait_status,
+            "raw_wait_ns": wait_ns,
+        },
+        pmu=tuple(sorted(pmu.items())),
+        pmu_status=pmu_status,
+        pmu_source="kernel_details.csv",
+        pmu_kind="aicore" if pmu_applicable else "not_applicable",
+        pmu_provenance={
+            "table": "kernel_details.csv",
+            "row_index": row_index,
+            "status": pmu_status,
+            "raw_rows": len(pmu),
+            "metric_count": len(pmu),
+            "binding": "per_row",
+            "export_resolution": pmu_resolution,
+        },
+        locator={
+            "source": schema.path,
+            "table": "kernel_details.csv",
+            "row_index": row_index,
+            "csv_line": row_index + 2,
+            "task_id": _cell(row, columns.get("task_id")),
+            "stream_id": _cell(row, columns.get("stream_id")),
+            "device_id": _cell(row, columns.get("device_id")),
+        },
+    )
+    return event
 
 
 class CsvSource:
@@ -191,6 +330,34 @@ class CsvSource:
         self.rank_id = rank_id
         self.rank_index = rank_index
 
+    def iter_events(
+        self, *, max_rows: int = 5_000_000, timeout_s: float = 30.0,
+        stats: QueryStats | None = None, strict: bool = False,
+        include_zero_duration: bool = False,
+    ):
+        """Stream normalized events without retaining the full capture."""
+        if stats is None:
+            stats = QueryStats(rank_id=self.rank_id, window_label="csv_scan", budget=max_rows)
+        deadline = time.perf_counter() + max(0.1, timeout_s)
+        path = Path(self.schema.path)
+        with _open_csv_text(path) as handle:
+            reader = csv.reader(handle)
+            next(reader, None)
+            for row_index, row in enumerate(reader):
+                if row_index % 1024 == 0 and time.perf_counter() > deadline:
+                    raise ProfilerQueryError(
+                        f"{path.name}: CSV scan exceeded {timeout_s:.1f}s after {row_index} rows")
+                if row_index >= max_rows:
+                    raise ProfilerQueryError(
+                        f"{path.name}: CSV row budget {max_rows} exceeded; narrow the capture or raise --max-rows")
+                stats.rows_read += 1
+                event = decode_csv_row(
+                    row, row_index, self.schema, rank_id=self.rank_id,
+                    rank_index=self.rank_index, stats=stats, strict=strict,
+                    include_zero_duration=include_zero_duration)
+                if event is not None:
+                    yield event
+
     def read_windows(
         self,
         windows: list[Window],
@@ -199,145 +366,27 @@ class CsvSource:
         timeout_s: float = 30.0,
     ) -> dict[int, tuple[list[Event], QueryStats]]:
         started = time.perf_counter()
-        deadline = started + max(0.1, timeout_s)
         results = {
             index: (list(), QueryStats(rank_id=self.rank_id, window_label=window.label or str(window.step), budget=max_rows))
             for index, window in enumerate(windows)
         }
         stats = QueryStats(rank_id=self.rank_id, window_label="csv_scan", budget=max_rows)
-        columns = self.schema.columns
-        path = Path(self.schema.path)
-        bad = 0
-        with path.open("r", encoding="utf-8-sig", newline="") as handle:
-            reader = csv.reader(handle)
-            next(reader, None)
-            for row_index, row in enumerate(reader):
-                if row_index % 1024 == 0 and time.perf_counter() > deadline:
-                    raise ProfilerQueryError(
-                        f"{path.name}: CSV scan exceeded {timeout_s:.1f}s after {row_index} rows"
-                    )
-                if row_index >= max_rows:
-                    raise ProfilerQueryError(
-                        f"{path.name}: CSV row budget {max_rows} exceeded; narrow the capture or raise --max-rows"
-                    )
-                stats.rows_read += 1
-                start_us = _number(_cell(row, columns.get("start_us")))
-                duration_us = _number(_cell(row, columns.get("duration_us")))
-                if duration_us is None:
-                    end_us = _number(_cell(row, columns.get("end_us")))
-                    duration_us = None if end_us is None or start_us is None else end_us - start_us
-                if start_us is None or duration_us is None or duration_us < 0:
-                    bad += 1
-                    continue
-                if duration_us == 0:
-                    continue
-                start_ns = _us_to_ns(start_us)
-                end_ns = start_ns + _us_to_ns(duration_us)
-                if end_ns <= start_ns:
-                    bad += 1
-                    continue
-                name = _cell(row, columns.get("name"))
-                core = _cell(row, columns.get("core"))
-                op_type = _cell(row, columns.get("type")) or core
-                wait_us = _number(_cell(row, columns.get("wait_us")))
-                if self.schema.wait_column is None:
-                    wait_ns, wait_status = None, "not_available"
-                elif wait_us is None:
-                    wait_ns, wait_status = None, "absent"
-                elif wait_us < 0:
-                    wait_ns, wait_status = None, "invalid_value"
-                else:
-                    wait_ns, wait_status = _us_to_ns(wait_us), "bound"
-                core_key = core.upper().replace(" ", "_")
-                pmu_applicable = not (
-                    "AI_CPU" in core_key
-                    or "AICPU" in core_key
-                    or "COMMUNICATION" in core_key
-                    or "HCCL" in core_key
-                )
-                pmu: dict[str, float] = {}
-                pmu_resolution: dict[str, float] = {}
-                if pmu_applicable:
-                    for canonical, index in self.schema.pmu_columns.items():
-                        value = _number(_cell(row, index))
-                        if value is not None:
-                            pmu[canonical] = float(value) * self.schema.pmu_scales[canonical]
-                            if value.is_finite():
-                                pmu_resolution[canonical] = (
-                                    float(Decimal(1).scaleb(value.as_tuple().exponent))
-                                    * self.schema.pmu_scales[canonical]
-                                )
-                if not self.schema.pmu_columns:
-                    pmu_status = "not_available"
-                elif not pmu_applicable:
-                    pmu_status = "not_applicable"
-                elif not pmu:
-                    pmu_status = "absent"
-                else:
-                    pmu_status = "bound"
-                event = Event(
-                    rank_id=self.rank_id,
-                    rank_index=self.rank_index,
-                    name=name,
-                    op_type=op_type,
-                    task_type=core,
-                    core=core,
-                    stream_id=_cell(row, columns.get("stream_id")),
-                    task_id=_cell(row, columns.get("task_id")),
-                    device_id=_cell(row, columns.get("device_id")),
-                    start_ns=start_ns,
-                    end_ns=end_ns,
-                    source_kind=self.schema.source_kind,
-                    table="kernel_details.csv",
-                    input_shapes=_cell(row, columns.get("input_shapes")),
-                    input_dtypes=_cell(row, columns.get("input_dtypes")),
-                    input_formats=_cell(row, columns.get("input_formats")),
-                    wait_ns=wait_ns,
-                    wait_status=wait_status,
-                    wait_source=(self.schema.wait_column if self.schema.wait_column else None),
-                    wait_provenance={
-                        "table": "kernel_details.csv",
-                        "column": self.schema.wait_column,
-                        "row_index": row_index,
-                        "status": wait_status,
-                        "raw_wait_ns": wait_ns,
-                    },
-                    pmu=tuple(sorted(pmu.items())),
-                    pmu_status=pmu_status,
-                    pmu_source="kernel_details.csv",
-                    pmu_kind="aicore" if pmu_applicable else "not_applicable",
-                    pmu_provenance={
-                        "table": "kernel_details.csv",
-                        "row_index": row_index,
-                        "status": pmu_status,
-                        "raw_rows": len(pmu),
-                        "metric_count": len(pmu),
-                        "binding": "per_row",
-                        "export_resolution": pmu_resolution,
-                    },
-                    locator={
-                        "table": "kernel_details.csv",
-                        "row_index": row_index,
-                        "task_id": _cell(row, columns.get("task_id")),
-                        "stream_id": _cell(row, columns.get("stream_id")),
-                        "device_id": _cell(row, columns.get("device_id")),
-                    },
-                )
-                for index, window in enumerate(windows):
-                    if event.start_ns < window.end_ns and event.end_ns > window.start_ns:
-                        results[index][0].append(event)
-                        window_stats = results[index][1]
-                        if wait_status == "bound":
-                            window_stats.wait_bound_rows += 1
-                        if pmu_status == "bound":
-                            window_stats.pmu_bound_rows += 1
-                            window_stats.pmu_rows += len(pmu)
+        for event in self.iter_events(max_rows=max_rows, timeout_s=timeout_s, stats=stats):
+            for index, window in enumerate(windows):
+                if event.start_ns < window.end_ns and event.end_ns > window.start_ns:
+                    results[index][0].append(event)
+                    window_stats = results[index][1]
+                    if event.wait_status == "bound":
+                        window_stats.wait_bound_rows += 1
+                    if event.pmu_status == "bound":
+                        window_stats.pmu_bound_rows += 1
+                        window_stats.pmu_rows += len(event.pmu)
         elapsed_ms = round((time.perf_counter() - started) * 1000.0, 6)
         for index, (events, window_stats) in results.items():
             window_stats.rows_read = stats.rows_read
             window_stats.rows_selected = len(events)
             window_stats.compute_rows = len(events)
-            window_stats.bad_rows = bad
+            window_stats.bad_rows = stats.bad_rows
             window_stats.elapsed_ms = elapsed_ms
             events.sort(key=lambda item: (item.start_ns, item.end_ns, item.task_id))
         return results

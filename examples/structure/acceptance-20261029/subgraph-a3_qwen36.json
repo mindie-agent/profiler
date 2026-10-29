@@ -1,0 +1,2956 @@
+{
+  "kind": "historical_full_capture_structure_subgraph_replay",
+  "not_new_live_collection": true,
+  "source_identity": {
+    "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+    "size_bytes": 13245065,
+    "mtime_ns": 1792795904000000000,
+    "schema_version": "kernel_details_csv_46col",
+    "sha256": "797260bd9ea48a7fb75831c397a6c0716be11233f4df953d299e5bdf99084d7f"
+  },
+  "declaration_source": {
+    "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/qwen36-a3-tp4.json",
+    "case_sha256": "e1c8e9d7d5e2be4d4f7475875a605808917a34ce0849931696a4b2fe7bc45297"
+  },
+  "model": "qwen3.6-27b",
+  "graph_id": "sha256:b48ec87b71ffb6db1532d8ce1222ab2e52ba9e49a0b4ef74bb02b523081ec33f",
+  "declared_execution": {
+    "phase": "prefill",
+    "tokens": 8192,
+    "context": 0,
+    "sequences": 1,
+    "scope": "model",
+    "software": {
+      "parallel": {
+        "dp": 1,
+        "tp": 4,
+        "ep": 1,
+        "pp": 1,
+        "cp": 1,
+        "pcp": 1,
+        "cp_plan": "none"
+      },
+      "pp_layer_partition": [
+        64
+      ],
+      "pipeline_microbatches": 1,
+      "graph_mode": "auto",
+      "graph_capture_mode": "full",
+      "graph_buckets": [
+        1,
+        2,
+        4,
+        8,
+        16,
+        24,
+        32
+      ],
+      "graph_capture_keys": [],
+      "piecewise_capture_keys": [],
+      "mixed_mode": "none",
+      "splitting_ops": null,
+      "kv_block_size": 128,
+      "moe_recipe": "alltoall",
+      "mc2_chunks": 4,
+      "multistream_overlap_shared_expert": false,
+      "vllm_impl": "",
+      "vllm_version": "",
+      "kernel_format": "",
+      "attention_policy": {},
+      "routing": {},
+      "tensor_layouts": {},
+      "final_norm_scope": "all",
+      "lowering_passes": [
+        "activation_quantization"
+      ],
+      "kernels": {
+        "lowerings": {}
+      }
+    },
+    "replica_scope": "first_independent_dp_cohort",
+    "replica_axis": "data_parallel",
+    "shard_scope": "representative_tp_pcp_shard",
+    "stage_scope": "all_pipeline_stages",
+    "expand_calls": true,
+    "replicas": [
+      0
+    ]
+  },
+  "observed_phase": null,
+  "capture_bounds_ns": [
+    1792795651729858400,
+    1792795653510769477
+  ],
+  "raw_rows": 40628,
+  "positive_event_count": 40628,
+  "status_counts": {
+    "unmapped": 40178,
+    "ambiguous": 397,
+    "candidate": 53
+  },
+  "diagnostic_counts": {
+    "contract_support_gap": 17957,
+    "capture_metadata_missing": 8853,
+    "declared_structure_mismatch": 13368,
+    "occurrence_evidence_missing": 450
+  },
+  "reason_counts": {
+    "unsupported_operator_contract": 14217,
+    "missing_tensor_metadata": 8770,
+    "declared_geometry_or_scope_mismatch": 8617,
+    "repeated_tensor_contract": 397,
+    "unsupported_tensor_contract": 3740,
+    "declared_dtype_or_quantization_mismatch": 192,
+    "declared_operator_family_absent": 4120,
+    "incomplete_native_tensor_slots": 83,
+    "tensor_contract_only": 53,
+    "declared_tensor_descriptor_mismatch": 439
+  },
+  "body_contracts": {
+    "event_count": 4233,
+    "contract_available_events": 3190,
+    "status_counts": {
+      "bound": 0,
+      "candidate": 0,
+      "ambiguous": 167,
+      "unmapped": 4066
+    },
+    "operators": [
+      {
+        "operator_type": "AddRmsNormBias",
+        "event_count": 2278,
+        "contract_available_events": 2278,
+        "status_counts": {
+          "unmapped": 2278
+        },
+        "reason_counts": {
+          "declared_operator_family_absent": 2278
+        },
+        "diagnostic_counts": {
+          "declared_structure_mismatch": 2278
+        }
+      },
+      {
+        "operator_type": "FusedInferAttentionScore",
+        "event_count": 323,
+        "contract_available_events": 323,
+        "status_counts": {
+          "ambiguous": 17,
+          "unmapped": 306
+        },
+        "reason_counts": {
+          "repeated_tensor_contract": 17,
+          "declared_operator_family_absent": 306
+        },
+        "diagnostic_counts": {
+          "occurrence_evidence_missing": 17,
+          "declared_structure_mismatch": 306
+        }
+      },
+      {
+        "operator_type": "GemmaRmsNorm",
+        "event_count": 170,
+        "contract_available_events": 170,
+        "status_counts": {
+          "ambiguous": 20,
+          "unmapped": 150
+        },
+        "reason_counts": {
+          "repeated_tensor_contract": 20,
+          "declared_tensor_descriptor_mismatch": 150
+        },
+        "diagnostic_counts": {
+          "occurrence_evidence_missing": 20,
+          "declared_structure_mismatch": 150
+        }
+      },
+      {
+        "operator_type": "ScatterPaKvCache",
+        "event_count": 323,
+        "contract_available_events": 323,
+        "status_counts": {
+          "ambiguous": 34,
+          "unmapped": 289
+        },
+        "reason_counts": {
+          "repeated_tensor_contract": 34,
+          "declared_tensor_descriptor_mismatch": 289
+        },
+        "diagnostic_counts": {
+          "occurrence_evidence_missing": 34,
+          "declared_structure_mismatch": 289
+        }
+      },
+      {
+        "operator_type": "_layer_norm_fwd_1pass_kernel_npu",
+        "event_count": 816,
+        "contract_available_events": 96,
+        "status_counts": {
+          "ambiguous": 96,
+          "unmapped": 720
+        },
+        "reason_counts": {
+          "repeated_tensor_contract": 96,
+          "missing_tensor_metadata": 720
+        },
+        "diagnostic_counts": {
+          "occurrence_evidence_missing": 96,
+          "capture_metadata_missing": 720
+        }
+      },
+      {
+        "operator_type": "split_qkv_rmsnorm_mrope_kernel",
+        "event_count": 323,
+        "contract_available_events": 0,
+        "status_counts": {
+          "unmapped": 323
+        },
+        "reason_counts": {
+          "incomplete_native_tensor_slots": 83,
+          "missing_tensor_metadata": 240
+        },
+        "diagnostic_counts": {
+          "capture_metadata_missing": 323
+        }
+      }
+    ]
+  },
+  "other_operators": [
+    {
+      "operator_type": "Add",
+      "event_count": 3141,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 3141
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 3141
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 3141
+      }
+    },
+    {
+      "operator_type": "ArgMaxV2",
+      "event_count": 83,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 83
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 83
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 83
+      }
+    },
+    {
+      "operator_type": "BroadcastTo",
+      "event_count": 81,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 81
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 81
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 81
+      }
+    },
+    {
+      "operator_type": "Cast",
+      "event_count": 1036,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 1036
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 1036
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 1036
+      }
+    },
+    {
+      "operator_type": "CausalConv1d",
+      "event_count": 816,
+      "contract_available_events": 816,
+      "status_counts": {
+        "unmapped": 816
+      },
+      "reason_counts": {
+        "declared_operator_family_absent": 816
+      },
+      "diagnostic_counts": {
+        "declared_structure_mismatch": 816
+      }
+    },
+    {
+      "operator_type": "ChunkGatedDeltaRuleFwd",
+      "event_count": 96,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 96
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 96
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 96
+      }
+    },
+    {
+      "operator_type": "ClipByValueV2",
+      "event_count": 49,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 49
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 49
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 49
+      }
+    },
+    {
+      "operator_type": "ConcatD",
+      "event_count": 51,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 51
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 51
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 51
+      }
+    },
+    {
+      "operator_type": "DynamicQuant",
+      "event_count": 3740,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 3740
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 3740
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 3740
+      }
+    },
+    {
+      "operator_type": "Equal",
+      "event_count": 15,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 15
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 15
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 15
+      }
+    },
+    {
+      "operator_type": "Fill",
+      "event_count": 225,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 225
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 225
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 225
+      }
+    },
+    {
+      "operator_type": "FloorDiv",
+      "event_count": 34,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 34
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 34
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 34
+      }
+    },
+    {
+      "operator_type": "FloorMod",
+      "event_count": 34,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 34
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 34
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 34
+      }
+    },
+    {
+      "operator_type": "GatherElementsV2",
+      "event_count": 51,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 51
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 51
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 51
+      }
+    },
+    {
+      "operator_type": "GatherV2",
+      "event_count": 68,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 68
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 68
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 68
+      }
+    },
+    {
+      "operator_type": "GatherV3",
+      "event_count": 90,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 90
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 90
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 90
+      }
+    },
+    {
+      "operator_type": "Greater",
+      "event_count": 55,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 55
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 55
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 55
+      }
+    },
+    {
+      "operator_type": "GreaterEqual",
+      "event_count": 151,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 151
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 151
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 151
+      }
+    },
+    {
+      "operator_type": "Index",
+      "event_count": 673,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 673
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 673
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 673
+      }
+    },
+    {
+      "operator_type": "IndexCheck",
+      "event_count": 720,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 720
+      },
+      "reason_counts": {
+        "missing_tensor_metadata": 720
+      },
+      "diagnostic_counts": {
+        "capture_metadata_missing": 720
+      }
+    },
+    {
+      "operator_type": "IndexFill",
+      "event_count": 1,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 1
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 1
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 1
+      }
+    },
+    {
+      "operator_type": "IndexPutV2",
+      "event_count": 47,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 47
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 47
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 47
+      }
+    },
+    {
+      "operator_type": "Less",
+      "event_count": 85,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 85
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 85
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 85
+      }
+    },
+    {
+      "operator_type": "LinearIndex",
+      "event_count": 30,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 30
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 30
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 30
+      }
+    },
+    {
+      "operator_type": "LogicalAnd",
+      "event_count": 100,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 100
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 100
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 100
+      }
+    },
+    {
+      "operator_type": "LogicalNot",
+      "event_count": 68,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 68
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 68
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 68
+      }
+    },
+    {
+      "operator_type": "MaskedFill",
+      "event_count": 151,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 151
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 151
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 151
+      }
+    },
+    {
+      "operator_type": "MatMulV2",
+      "event_count": 1649,
+      "contract_available_events": 1649,
+      "status_counts": {
+        "unmapped": 1596,
+        "candidate": 53
+      },
+      "reason_counts": {
+        "declared_dtype_or_quantization_mismatch": 96,
+        "tensor_contract_only": 53,
+        "declared_geometry_or_scope_mismatch": 1500
+      },
+      "diagnostic_counts": {
+        "declared_structure_mismatch": 1596,
+        "occurrence_evidence_missing": 53
+      }
+    },
+    {
+      "operator_type": "MatMulV3",
+      "event_count": 102,
+      "contract_available_events": 102,
+      "status_counts": {
+        "unmapped": 102
+      },
+      "reason_counts": {
+        "declared_dtype_or_quantization_mismatch": 96,
+        "declared_geometry_or_scope_mismatch": 6
+      },
+      "diagnostic_counts": {
+        "declared_structure_mismatch": 102
+      }
+    },
+    {
+      "operator_type": "Mul",
+      "event_count": 493,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 493
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 493
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 493
+      }
+    },
+    {
+      "operator_type": "NotEqual",
+      "event_count": 51,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 51
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 51
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 51
+      }
+    },
+    {
+      "operator_type": "QuantBatchMatmulV3",
+      "event_count": 3740,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 3740
+      },
+      "reason_counts": {
+        "unsupported_tensor_contract": 3740
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 3740
+      }
+    },
+    {
+      "operator_type": "Range",
+      "event_count": 45,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 45
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 45
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 45
+      }
+    },
+    {
+      "operator_type": "RecurrentGatedDeltaRule",
+      "event_count": 720,
+      "contract_available_events": 720,
+      "status_counts": {
+        "unmapped": 720
+      },
+      "reason_counts": {
+        "declared_operator_family_absent": 720
+      },
+      "diagnostic_counts": {
+        "declared_structure_mismatch": 720
+      }
+    },
+    {
+      "operator_type": "ReduceSum",
+      "event_count": 34,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 34
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 34
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 34
+      }
+    },
+    {
+      "operator_type": "ScatterElementsV2",
+      "event_count": 30,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 30
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 30
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 30
+      }
+    },
+    {
+      "operator_type": "SelectV2",
+      "event_count": 115,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 115
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 115
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 115
+      }
+    },
+    {
+      "operator_type": "Sigmoid",
+      "event_count": 323,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 323
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 323
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 323
+      }
+    },
+    {
+      "operator_type": "Slice",
+      "event_count": 6106,
+      "contract_available_events": 6106,
+      "status_counts": {
+        "unmapped": 6106
+      },
+      "reason_counts": {
+        "declared_geometry_or_scope_mismatch": 6106
+      },
+      "diagnostic_counts": {
+        "declared_structure_mismatch": 6106
+      }
+    },
+    {
+      "operator_type": "Sub",
+      "event_count": 223,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 223
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 223
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 223
+      }
+    },
+    {
+      "operator_type": "SwiGlu",
+      "event_count": 1139,
+      "contract_available_events": 1139,
+      "status_counts": {
+        "ambiguous": 134,
+        "unmapped": 1005
+      },
+      "reason_counts": {
+        "repeated_tensor_contract": 134,
+        "declared_geometry_or_scope_mismatch": 1005
+      },
+      "diagnostic_counts": {
+        "occurrence_evidence_missing": 134,
+        "declared_structure_mismatch": 1005
+      }
+    },
+    {
+      "operator_type": "TensorMove",
+      "event_count": 285,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 285
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 285
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 285
+      }
+    },
+    {
+      "operator_type": "Transpose",
+      "event_count": 1028,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 1028
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 1028
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 1028
+      }
+    },
+    {
+      "operator_type": "ViewCopy",
+      "event_count": 85,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 85
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 85
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 85
+      }
+    },
+    {
+      "operator_type": "ZerosLike",
+      "event_count": 919,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 919
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 919
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 919
+      }
+    },
+    {
+      "operator_type": "_compute_slot_mapping_kernel",
+      "event_count": 17,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 17
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 17
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 17
+      }
+    },
+    {
+      "operator_type": "_gather_ssm_states_kernel",
+      "event_count": 96,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 96
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 96
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 96
+      }
+    },
+    {
+      "operator_type": "_scatter_ssm_states_kernel",
+      "event_count": 96,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 96
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 96
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 96
+      }
+    },
+    {
+      "operator_type": "allgatherAicpuKernel",
+      "event_count": 119,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 119
+      },
+      "reason_counts": {
+        "missing_tensor_metadata": 119
+      },
+      "diagnostic_counts": {
+        "capture_metadata_missing": 119
+      }
+    },
+    {
+      "operator_type": "allreduceAicpuKernel",
+      "event_count": 2346,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 2346
+      },
+      "reason_counts": {
+        "missing_tensor_metadata": 2346
+      },
+      "diagnostic_counts": {
+        "capture_metadata_missing": 2346
+      }
+    },
+    {
+      "operator_type": "fused_gdn_gating_kernel",
+      "event_count": 816,
+      "contract_available_events": 96,
+      "status_counts": {
+        "ambiguous": 96,
+        "unmapped": 720
+      },
+      "reason_counts": {
+        "repeated_tensor_contract": 96,
+        "missing_tensor_metadata": 720
+      },
+      "diagnostic_counts": {
+        "occurrence_evidence_missing": 96,
+        "capture_metadata_missing": 720
+      }
+    },
+    {
+      "operator_type": "hcom_allGather_",
+      "event_count": 119,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 119
+      },
+      "reason_counts": {
+        "missing_tensor_metadata": 119
+      },
+      "diagnostic_counts": {
+        "capture_metadata_missing": 119
+      }
+    },
+    {
+      "operator_type": "hcom_allReduce_",
+      "event_count": 2346,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 2346
+      },
+      "reason_counts": {
+        "missing_tensor_metadata": 2346
+      },
+      "diagnostic_counts": {
+        "capture_metadata_missing": 2346
+      }
+    },
+    {
+      "operator_type": "l2norm_fwd_kernel2",
+      "event_count": 1632,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 1632
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 192,
+        "missing_tensor_metadata": 1440
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 192,
+        "capture_metadata_missing": 1440
+      }
+    },
+    {
+      "operator_type": "prepare_inputs_padded_kernel",
+      "event_count": 15,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 15
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 15
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 15
+      }
+    },
+    {
+      "operator_type": "rejection_greedy_sample_triton",
+      "event_count": 15,
+      "contract_available_events": 0,
+      "status_counts": {
+        "unmapped": 15
+      },
+      "reason_counts": {
+        "unsupported_operator_contract": 15
+      },
+      "diagnostic_counts": {
+        "contract_support_gap": 15
+      }
+    }
+  ],
+  "declaration_coverage": {
+    "node_count": 1574,
+    "contracted_node_count": 930,
+    "node_families": {
+      "barrier": 1,
+      "embedding": 1,
+      "rmsnorm": 145,
+      "quantize": 256,
+      "gemm": 144,
+      "elementwise": 288,
+      "gdn_gating": 48,
+      "recurrent_local": 96,
+      "triangular_solve": 48,
+      "recurrent_scan": 48,
+      "recurrent_output": 48,
+      "tensor_copy": 48,
+      "allreduce": 128,
+      "gate_up_projection": 64,
+      "swiglu": 64,
+      "down_projection": 64,
+      "qkv_projection": 16,
+      "rotary": 16,
+      "cache_store": 16,
+      "attention": 16,
+      "output_projection": 16,
+      "tensor_select": 1,
+      "logits": 1,
+      "allgather": 1
+    },
+    "subgraph_count": 0,
+    "contracted_subgraph_count": 0,
+    "subgraph_roles": {}
+  },
+  "structural_groups": [
+    {
+      "block": "attention",
+      "role": "body",
+      "structure": {
+        "attention_kind": "gdn",
+        "attention_architecture": "gdn",
+        "ffn_kind": "dense",
+        "residual_kind": "residual",
+        "cache_kind": "dense",
+        "compress_ratio": 0,
+        "window": 0,
+        "indexer": false,
+        "owns_topk": false,
+        "index_query_per_layer": false,
+        "topk_owner_layer_id": -1
+      },
+      "event_count": 192,
+      "status_counts": {
+        "ambiguous": 192
+      },
+      "activity_sum_ns": 14568204,
+      "basis": "declared_target_structure; see_status_counts",
+      "occurrence_binding_implied": false,
+      "busy_union_ns": 14568204,
+      "attribution": "inclusive_nonadditive"
+    },
+    {
+      "block": "ffn",
+      "role": "body",
+      "structure": {
+        "ffn_kind": "dense",
+        "residual_kind": "residual",
+        "cache_kind": "dense",
+        "compress_ratio": 0,
+        "window": 0,
+        "indexer": false,
+        "owns_topk": false,
+        "index_query_per_layer": false,
+        "topk_owner_layer_id": -1
+      },
+      "event_count": 134,
+      "status_counts": {
+        "ambiguous": 134
+      },
+      "activity_sum_ns": 27999878,
+      "basis": "declared_target_structure; see_status_counts",
+      "occurrence_binding_implied": false,
+      "busy_union_ns": 27999878,
+      "attribution": "inclusive_nonadditive"
+    },
+    {
+      "block": "attention",
+      "role": "body",
+      "structure": {
+        "attention_kind": "gqa",
+        "attention_architecture": "gated_gqa",
+        "ffn_kind": "dense",
+        "residual_kind": "residual",
+        "cache_kind": "dense",
+        "compress_ratio": 0,
+        "window": 0,
+        "indexer": false,
+        "owns_topk": false,
+        "index_query_per_layer": false,
+        "topk_owner_layer_id": -1
+      },
+      "event_count": 51,
+      "status_counts": {
+        "ambiguous": 51
+      },
+      "activity_sum_ns": 23807242,
+      "basis": "declared_target_structure; see_status_counts",
+      "occurrence_binding_implied": false,
+      "busy_union_ns": 23807242,
+      "attribution": "inclusive_nonadditive"
+    },
+    {
+      "block": "logits",
+      "event_count": 53,
+      "status_counts": {
+        "candidate": 53
+      },
+      "activity_sum_ns": 29338935,
+      "basis": "declared_target_structure; see_status_counts",
+      "occurrence_binding_implied": false,
+      "busy_union_ns": 29338935,
+      "attribution": "inclusive_nonadditive"
+    }
+  ],
+  "bound_subgraphs": [],
+  "bound_layers": [],
+  "bound_busy_union_ns": 0,
+  "retained_examples": [
+    {
+      "event_id": "event:fafbcb80cc2bec553f855001",
+      "rank_id": "rank_0",
+      "step": null,
+      "window": "complete_capture_mixed_phase_possible",
+      "kernel_name": "aclnnInplaceFillScalar_FillAiCore_Fill",
+      "operator_type": "Fill",
+      "start_ns": 1792795651729858400,
+      "end_ns": 1792795651729859920,
+      "clipped_start_ns": 1792795651729858400,
+      "clipped_end_ns": 1792795651729859920,
+      "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 0,
+        "csv_line": 2,
+        "task_id": "9894",
+        "stream_id": "45",
+        "device_id": "0"
+      },
+      "status": "unmapped",
+      "node_ids": [],
+      "subgraph_ids": [],
+      "covered_node_ids": [],
+      "candidate_node_ids": [],
+      "candidate_subgraph_ids": [],
+      "candidate_count": 0,
+      "basis": "unsupported_operator_contract",
+      "evidence": null,
+      "structural_classification": {
+        "basis": "common_to_all_declared_tensor_candidates",
+        "common": {},
+        "occurrence_binding_implied": false
+      },
+      "observed_contract": null,
+      "observed_contract_scope": {
+        "comparison_scope": "captured_tensor_contract",
+        "basis": "captured_tensor_descriptors",
+        "semantic_limits": [
+          "Tensor equality alone does not establish layer occurrence or implementation flags."
+        ]
+      },
+      "observed_native_tensor_abi": null,
+      "diagnostic": {
+        "category": "contract_support_gap",
+        "reason": "unsupported_operator_contract",
+        "detail": "Tensor descriptors are present, but this operator type has no observed contract.",
+        "operator_type": "Fill"
+      }
+    },
+    {
+      "event_id": "event:b4ac1c857611cdede0054fe8",
+      "rank_id": "rank_0",
+      "step": null,
+      "window": "complete_capture_mixed_phase_possible",
+      "kernel_name": "aclnnIndex_IndexCheck_IndexCheck",
+      "operator_type": "IndexCheck",
+      "start_ns": 1792795651730465408,
+      "end_ns": 1792795651730477868,
+      "clipped_start_ns": 1792795651730465408,
+      "clipped_end_ns": 1792795651730477868,
+      "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 1,
+        "csv_line": 3,
+        "task_id": "9905",
+        "stream_id": "45",
+        "device_id": "0"
+      },
+      "status": "unmapped",
+      "node_ids": [],
+      "subgraph_ids": [],
+      "covered_node_ids": [],
+      "candidate_node_ids": [],
+      "candidate_subgraph_ids": [],
+      "candidate_count": 0,
+      "basis": "missing_tensor_metadata",
+      "evidence": null,
+      "structural_classification": {
+        "basis": "common_to_all_declared_tensor_candidates",
+        "common": {},
+        "occurrence_binding_implied": false
+      },
+      "observed_contract": null,
+      "observed_contract_scope": {
+        "comparison_scope": "captured_tensor_contract",
+        "basis": "captured_tensor_descriptors",
+        "semantic_limits": [
+          "Tensor equality alone does not establish layer occurrence or implementation flags."
+        ]
+      },
+      "observed_native_tensor_abi": null,
+      "diagnostic": {
+        "category": "capture_metadata_missing",
+        "reason": "missing_tensor_metadata",
+        "detail": "The captured tensor fields needed by this contract are absent or incomplete.",
+        "missing_fields": [
+          "output_shapes"
+        ],
+        "operator_type": "IndexCheck"
+      }
+    },
+    {
+      "event_id": "event:f90663cd0faa8119041daf42",
+      "rank_id": "rank_0",
+      "step": null,
+      "window": "complete_capture_mixed_phase_possible",
+      "kernel_name": "aclnnIndex_IndexAiCore_Index",
+      "operator_type": "Index",
+      "start_ns": 1792795651730477908,
+      "end_ns": 1792795651730502267,
+      "clipped_start_ns": 1792795651730477908,
+      "clipped_end_ns": 1792795651730502267,
+      "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 2,
+        "csv_line": 4,
+        "task_id": "9906",
+        "stream_id": "45",
+        "device_id": "0"
+      },
+      "status": "unmapped",
+      "node_ids": [],
+      "subgraph_ids": [],
+      "covered_node_ids": [],
+      "candidate_node_ids": [],
+      "candidate_subgraph_ids": [],
+      "candidate_count": 0,
+      "basis": "unsupported_operator_contract",
+      "evidence": null,
+      "structural_classification": {
+        "basis": "common_to_all_declared_tensor_candidates",
+        "common": {},
+        "occurrence_binding_implied": false
+      },
+      "observed_contract": null,
+      "observed_contract_scope": {
+        "comparison_scope": "captured_tensor_contract",
+        "basis": "captured_tensor_descriptors",
+        "semantic_limits": [
+          "Tensor equality alone does not establish layer occurrence or implementation flags."
+        ]
+      },
+      "observed_native_tensor_abi": null,
+      "diagnostic": {
+        "category": "contract_support_gap",
+        "reason": "unsupported_operator_contract",
+        "detail": "Tensor descriptors are present, but this operator type has no observed contract.",
+        "operator_type": "Index"
+      }
+    },
+    {
+      "event_id": "event:7a90255a11a1491d3d43127a",
+      "rank_id": "rank_0",
+      "step": null,
+      "window": "complete_capture_mixed_phase_possible",
+      "kernel_name": "aclnnInplaceCopy_CastAiCore_Cast",
+      "operator_type": "Cast",
+      "start_ns": 1792795651730503407,
+      "end_ns": 1792795651730506967,
+      "clipped_start_ns": 1792795651730503407,
+      "clipped_end_ns": 1792795651730506967,
+      "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 3,
+        "csv_line": 5,
+        "task_id": "9907",
+        "stream_id": "45",
+        "device_id": "0"
+      },
+      "status": "unmapped",
+      "node_ids": [],
+      "subgraph_ids": [],
+      "covered_node_ids": [],
+      "candidate_node_ids": [],
+      "candidate_subgraph_ids": [],
+      "candidate_count": 0,
+      "basis": "unsupported_operator_contract",
+      "evidence": null,
+      "structural_classification": {
+        "basis": "common_to_all_declared_tensor_candidates",
+        "common": {},
+        "occurrence_binding_implied": false
+      },
+      "observed_contract": null,
+      "observed_contract_scope": {
+        "comparison_scope": "captured_tensor_contract",
+        "basis": "captured_tensor_descriptors",
+        "semantic_limits": [
+          "Tensor equality alone does not establish layer occurrence or implementation flags."
+        ]
+      },
+      "observed_native_tensor_abi": null,
+      "diagnostic": {
+        "category": "contract_support_gap",
+        "reason": "unsupported_operator_contract",
+        "detail": "Tensor descriptors are present, but this operator type has no observed contract.",
+        "operator_type": "Cast"
+      }
+    }
+  ],
+  "retained_body_examples": [
+    {
+      "event_id": "event:019b1e1ceb7c517124f92f22",
+      "rank_id": "rank_0",
+      "step": null,
+      "window": "complete_capture_mixed_phase_possible",
+      "kernel_name": "GemmaRmsNorm",
+      "operator_type": "GemmaRmsNorm",
+      "start_ns": 1792795651736706823,
+      "end_ns": 1792795651736908759,
+      "clipped_start_ns": 1792795651736706823,
+      "clipped_end_ns": 1792795651736908759,
+      "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 63,
+        "csv_line": 65,
+        "task_id": "9971",
+        "stream_id": "45",
+        "device_id": "0"
+      },
+      "status": "ambiguous",
+      "node_ids": [],
+      "subgraph_ids": [],
+      "covered_node_ids": [],
+      "candidate_node_ids": [
+        "rank:0/s0.l0.norm1",
+        "rank:0/s0.l0.norm2",
+        "rank:0/s0.l1.norm1",
+        "rank:0/s0.l1.norm2",
+        "rank:0/s0.l2.norm1",
+        "rank:0/s0.l2.norm2",
+        "rank:0/s0.l3.norm1",
+        "rank:0/s0.l3.norm2",
+        "rank:0/s0.l4.norm1",
+        "rank:0/s0.l4.norm2",
+        "rank:0/s0.l5.norm1",
+        "rank:0/s0.l5.norm2",
+        "rank:0/s0.l6.norm1",
+        "rank:0/s0.l6.norm2",
+        "rank:0/s0.l7.norm1",
+        "rank:0/s0.l7.norm2",
+        "rank:0/s0.l8.norm1",
+        "rank:0/s0.l8.norm2",
+        "rank:0/s0.l9.norm1",
+        "rank:0/s0.l9.norm2",
+        "rank:0/s0.l10.norm1",
+        "rank:0/s0.l10.norm2",
+        "rank:0/s0.l11.norm1",
+        "rank:0/s0.l11.norm2",
+        "rank:0/s0.l12.norm1",
+        "rank:0/s0.l12.norm2",
+        "rank:0/s0.l13.norm1",
+        "rank:0/s0.l13.norm2",
+        "rank:0/s0.l14.norm1",
+        "rank:0/s0.l14.norm2",
+        "rank:0/s0.l15.norm1",
+        "rank:0/s0.l15.norm2",
+        "rank:0/s0.l16.norm1",
+        "rank:0/s0.l16.norm2",
+        "rank:0/s0.l17.norm1",
+        "rank:0/s0.l17.norm2",
+        "rank:0/s0.l18.norm1",
+        "rank:0/s0.l18.norm2",
+        "rank:0/s0.l19.norm1",
+        "rank:0/s0.l19.norm2",
+        "rank:0/s0.l20.norm1",
+        "rank:0/s0.l20.norm2",
+        "rank:0/s0.l21.norm1",
+        "rank:0/s0.l21.norm2",
+        "rank:0/s0.l22.norm1",
+        "rank:0/s0.l22.norm2",
+        "rank:0/s0.l23.norm1",
+        "rank:0/s0.l23.norm2",
+        "rank:0/s0.l24.norm1",
+        "rank:0/s0.l24.norm2",
+        "rank:0/s0.l25.norm1",
+        "rank:0/s0.l25.norm2",
+        "rank:0/s0.l26.norm1",
+        "rank:0/s0.l26.norm2",
+        "rank:0/s0.l27.norm1",
+        "rank:0/s0.l27.norm2",
+        "rank:0/s0.l28.norm1",
+        "rank:0/s0.l28.norm2",
+        "rank:0/s0.l29.norm1",
+        "rank:0/s0.l29.norm2",
+        "rank:0/s0.l30.norm1",
+        "rank:0/s0.l30.norm2",
+        "rank:0/s0.l31.norm1",
+        "rank:0/s0.l31.norm2"
+      ],
+      "candidate_subgraph_ids": [],
+      "candidate_count": 129,
+      "basis": "repeated_tensor_contract",
+      "evidence": null,
+      "structural_classification": {
+        "basis": "common_to_all_declared_tensor_candidates",
+        "common": {},
+        "occurrence_binding_implied": false
+      },
+      "observed_contract": [
+        "native_tensor_abi",
+        "GemmaRmsNorm",
+        [
+          [
+            [
+              8192,
+              5120
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              5120
+            ],
+            "bf16",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              8192,
+              5120
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              8192,
+              1
+            ],
+            "fp32",
+            "ND"
+          ]
+        ]
+      ],
+      "observed_contract_scope": {
+        "comparison_scope": "native_tensor_slots; scalar_flags_and_tensor_values_not_observed",
+        "unobserved_fields": [
+          "eps",
+          "weight_values"
+        ],
+        "basis": "captured_tensor_descriptors",
+        "semantic_limits": [
+          "Tensor equality does not establish compiled flags, numerical equivalence or layer occurrence.",
+          "The native Gemma operator identity is retained; it is not aliased to ordinary RmsNorm."
+        ]
+      },
+      "observed_native_tensor_abi": null,
+      "diagnostic": {
+        "category": "occurrence_evidence_missing",
+        "reason": "repeated_tensor_contract",
+        "detail": "Tensor matches need independent evidence of the module occurrence."
+      }
+    },
+    {
+      "event_id": "event:93349a2fc018325c77f1eeca",
+      "rank_id": "rank_0",
+      "step": null,
+      "window": "complete_capture_mixed_phase_possible",
+      "kernel_name": "_layer_norm_fwd_1pass_kernel_npu",
+      "operator_type": "_layer_norm_fwd_1pass_kernel_npu",
+      "start_ns": 1792795651740447609,
+      "end_ns": 1792795651740553526,
+      "clipped_start_ns": 1792795651740447609,
+      "clipped_end_ns": 1792795651740553526,
+      "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 93,
+        "csv_line": 95,
+        "task_id": "10000",
+        "stream_id": "45",
+        "device_id": "0"
+      },
+      "status": "ambiguous",
+      "node_ids": [],
+      "subgraph_ids": [],
+      "covered_node_ids": [],
+      "candidate_node_ids": [
+        "rank:0/s0.l0.linear_output_norm_gate",
+        "rank:0/s0.l1.linear_output_norm_gate",
+        "rank:0/s0.l2.linear_output_norm_gate",
+        "rank:0/s0.l4.linear_output_norm_gate",
+        "rank:0/s0.l5.linear_output_norm_gate",
+        "rank:0/s0.l6.linear_output_norm_gate",
+        "rank:0/s0.l8.linear_output_norm_gate",
+        "rank:0/s0.l9.linear_output_norm_gate",
+        "rank:0/s0.l10.linear_output_norm_gate",
+        "rank:0/s0.l12.linear_output_norm_gate",
+        "rank:0/s0.l13.linear_output_norm_gate",
+        "rank:0/s0.l14.linear_output_norm_gate",
+        "rank:0/s0.l16.linear_output_norm_gate",
+        "rank:0/s0.l17.linear_output_norm_gate",
+        "rank:0/s0.l18.linear_output_norm_gate",
+        "rank:0/s0.l20.linear_output_norm_gate",
+        "rank:0/s0.l21.linear_output_norm_gate",
+        "rank:0/s0.l22.linear_output_norm_gate",
+        "rank:0/s0.l24.linear_output_norm_gate",
+        "rank:0/s0.l25.linear_output_norm_gate",
+        "rank:0/s0.l26.linear_output_norm_gate",
+        "rank:0/s0.l28.linear_output_norm_gate",
+        "rank:0/s0.l29.linear_output_norm_gate",
+        "rank:0/s0.l30.linear_output_norm_gate",
+        "rank:0/s0.l32.linear_output_norm_gate",
+        "rank:0/s0.l33.linear_output_norm_gate",
+        "rank:0/s0.l34.linear_output_norm_gate",
+        "rank:0/s0.l36.linear_output_norm_gate",
+        "rank:0/s0.l37.linear_output_norm_gate",
+        "rank:0/s0.l38.linear_output_norm_gate",
+        "rank:0/s0.l40.linear_output_norm_gate",
+        "rank:0/s0.l41.linear_output_norm_gate",
+        "rank:0/s0.l42.linear_output_norm_gate",
+        "rank:0/s0.l44.linear_output_norm_gate",
+        "rank:0/s0.l45.linear_output_norm_gate",
+        "rank:0/s0.l46.linear_output_norm_gate",
+        "rank:0/s0.l48.linear_output_norm_gate",
+        "rank:0/s0.l49.linear_output_norm_gate",
+        "rank:0/s0.l50.linear_output_norm_gate",
+        "rank:0/s0.l52.linear_output_norm_gate",
+        "rank:0/s0.l53.linear_output_norm_gate",
+        "rank:0/s0.l54.linear_output_norm_gate",
+        "rank:0/s0.l56.linear_output_norm_gate",
+        "rank:0/s0.l57.linear_output_norm_gate",
+        "rank:0/s0.l58.linear_output_norm_gate",
+        "rank:0/s0.l60.linear_output_norm_gate",
+        "rank:0/s0.l61.linear_output_norm_gate",
+        "rank:0/s0.l62.linear_output_norm_gate"
+      ],
+      "candidate_subgraph_ids": [],
+      "candidate_count": 48,
+      "basis": "repeated_tensor_contract",
+      "evidence": null,
+      "structural_classification": {
+        "basis": "common_to_all_declared_tensor_candidates",
+        "common": {
+          "block": "attention",
+          "role": "body",
+          "structure": {
+            "attention_kind": "gdn",
+            "attention_architecture": "gdn",
+            "ffn_kind": "dense",
+            "residual_kind": "residual",
+            "cache_kind": "dense",
+            "compress_ratio": 0,
+            "window": 0,
+            "indexer": false,
+            "owns_topk": false,
+            "index_query_per_layer": false,
+            "topk_owner_layer_id": -1
+          }
+        },
+        "occurrence_binding_implied": false
+      },
+      "observed_contract": [
+        "native_tensor_abi",
+        "_layer_norm_fwd_1pass_kernel_npu",
+        [
+          [
+            [
+              98304,
+              128
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              128
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              98304,
+              128
+            ],
+            "bf16",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              98304,
+              128
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              98304
+            ],
+            "fp32",
+            "ND"
+          ]
+        ]
+      ],
+      "observed_contract_scope": {
+        "comparison_scope": "native_tensor_slots; scalar_flags_and_tensor_values_not_observed",
+        "unobserved_fields": [
+          "eps",
+          "norm_before_gate",
+          "gate_activation",
+          "is_rms_norm",
+          "group_size",
+          "strides"
+        ],
+        "basis": "captured_tensor_descriptors",
+        "semantic_limits": [
+          "Tensor equality does not establish compiled flags, numerical equivalence or layer occurrence."
+        ]
+      },
+      "observed_native_tensor_abi": null,
+      "diagnostic": {
+        "category": "occurrence_evidence_missing",
+        "reason": "repeated_tensor_contract",
+        "detail": "Tensor matches need independent evidence of the module occurrence."
+      }
+    },
+    {
+      "event_id": "event:99ea38a9d82204b7353f083d",
+      "rank_id": "rank_0",
+      "step": null,
+      "window": "complete_capture_mixed_phase_possible",
+      "kernel_name": "AddRmsNormBias",
+      "operator_type": "AddRmsNormBias",
+      "start_ns": 1792795651742260492,
+      "end_ns": 1792795651742631645,
+      "clipped_start_ns": 1792795651742260492,
+      "clipped_end_ns": 1792795651742631645,
+      "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 97,
+        "csv_line": 99,
+        "task_id": "10005",
+        "stream_id": "45",
+        "device_id": "0"
+      },
+      "status": "unmapped",
+      "node_ids": [],
+      "subgraph_ids": [],
+      "covered_node_ids": [],
+      "candidate_node_ids": [],
+      "candidate_subgraph_ids": [],
+      "candidate_count": 0,
+      "basis": "declared_operator_family_absent",
+      "evidence": null,
+      "structural_classification": {
+        "basis": "common_to_all_declared_tensor_candidates",
+        "common": {},
+        "occurrence_binding_implied": false
+      },
+      "observed_contract": [
+        "native_tensor_abi",
+        "AddRmsNormBias",
+        [
+          [
+            [
+              8192,
+              5120
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              8192,
+              5120
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              5120
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [],
+            null,
+            null
+          ]
+        ],
+        [
+          [
+            [
+              8192,
+              5120
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              8192,
+              1
+            ],
+            "fp32",
+            "ND"
+          ],
+          [
+            [
+              8192,
+              5120
+            ],
+            "bf16",
+            "ND"
+          ]
+        ]
+      ],
+      "observed_contract_scope": {
+        "comparison_scope": "native_tensor_slots; scalar_flags_and_tensor_values_not_observed",
+        "unobserved_fields": [
+          "eps",
+          "weight_values"
+        ],
+        "basis": "captured_tensor_descriptors",
+        "semantic_limits": [
+          "Tensor equality does not establish compiled flags, numerical equivalence or layer occurrence.",
+          "An explicit empty fourth slot establishes absent bias. Caller-side weight shifts remain unknown."
+        ]
+      },
+      "observed_native_tensor_abi": null,
+      "diagnostic": {
+        "category": "declared_structure_mismatch",
+        "reason": "declared_operator_family_absent",
+        "detail": "No declared contract in the selected rank/scope has this operator family."
+      }
+    },
+    {
+      "event_id": "event:696bdedc65a72a5253e97c7d",
+      "rank_id": "rank_0",
+      "step": null,
+      "window": "complete_capture_mixed_phase_possible",
+      "kernel_name": "split_qkv_rmsnorm_mrope_kernel",
+      "operator_type": "split_qkv_rmsnorm_mrope_kernel",
+      "start_ns": 1792795651766104356,
+      "end_ns": 1792795651766506588,
+      "clipped_start_ns": 1792795651766104356,
+      "clipped_end_ns": 1792795651766506588,
+      "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 212,
+        "csv_line": 214,
+        "task_id": "10109",
+        "stream_id": "45",
+        "device_id": "0"
+      },
+      "status": "unmapped",
+      "node_ids": [],
+      "subgraph_ids": [],
+      "covered_node_ids": [],
+      "candidate_node_ids": [],
+      "candidate_subgraph_ids": [],
+      "candidate_count": 0,
+      "basis": "incomplete_native_tensor_slots",
+      "evidence": null,
+      "structural_classification": {
+        "basis": "common_to_all_declared_tensor_candidates",
+        "common": {},
+        "occurrence_binding_implied": false
+      },
+      "observed_contract": null,
+      "observed_contract_scope": {
+        "comparison_scope": "incomplete_native_output_slots; no_contract_equality",
+        "unobserved_fields": [
+          "eps",
+          "mrope_sections",
+          "is_interleaved",
+          "partial_rope",
+          "output_slot_identity",
+          "unrecorded_output_tensors"
+        ],
+        "basis": "captured_tensor_descriptors",
+        "semantic_limits": [
+          "Tensor equality does not establish compiled flags, numerical equivalence or layer occurrence.",
+          "The referenced wrapper declares Q/K/V/gate outputs; the retained export cannot identify them."
+        ],
+        "required_output_slots": 4,
+        "observed_output_slots": 1
+      },
+      "observed_native_tensor_abi": null,
+      "diagnostic": {
+        "category": "capture_metadata_missing",
+        "reason": "incomplete_native_tensor_slots",
+        "detail": "The QKV normalization/rotary wrapper returns Q, K, V and gate tensors, but this capture records fewer than four outputs. Q and gate can have the same shape; missing slots and output identity cannot be inferred.",
+        "operator_type": "split_qkv_rmsnorm_mrope_kernel",
+        "observed_output_slots": 1,
+        "required_output_slots": 4,
+        "captured_descriptor": [
+          "native_tensor_abi",
+          "split_qkv_rmsnorm_mrope_kernel",
+          [
+            [
+              [
+                8192,
+                3584
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [
+                256
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [
+                256
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [
+                3,
+                8192,
+                64
+              ],
+              "bf16",
+              "ND"
+            ]
+          ],
+          [
+            [
+              [
+                8192,
+                1536
+              ],
+              "bf16",
+              "ND"
+            ]
+          ]
+        ],
+        "unobserved_fields": [
+          "eps",
+          "mrope_sections",
+          "is_interleaved",
+          "partial_rope",
+          "output_slot_identity",
+          "unrecorded_output_tensors"
+        ]
+      }
+    },
+    {
+      "event_id": "event:7c67de7e2f1867d3cfcff788",
+      "rank_id": "rank_0",
+      "step": null,
+      "window": "complete_capture_mixed_phase_possible",
+      "kernel_name": "aclnnScatterPaKvCache_ScatterPaKvCache_ScatterPaKvCache",
+      "operator_type": "ScatterPaKvCache",
+      "start_ns": 1792795651766506608,
+      "end_ns": 1792795651766570527,
+      "clipped_start_ns": 1792795651766506608,
+      "clipped_end_ns": 1792795651766570527,
+      "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 213,
+        "csv_line": 215,
+        "task_id": "10110",
+        "stream_id": "45",
+        "device_id": "0"
+      },
+      "status": "ambiguous",
+      "node_ids": [],
+      "subgraph_ids": [],
+      "covered_node_ids": [],
+      "candidate_node_ids": [
+        "rank:0/s0.l3.cache",
+        "rank:0/s0.l7.cache",
+        "rank:0/s0.l11.cache",
+        "rank:0/s0.l15.cache",
+        "rank:0/s0.l19.cache",
+        "rank:0/s0.l23.cache",
+        "rank:0/s0.l27.cache",
+        "rank:0/s0.l31.cache",
+        "rank:0/s0.l35.cache",
+        "rank:0/s0.l39.cache",
+        "rank:0/s0.l43.cache",
+        "rank:0/s0.l47.cache",
+        "rank:0/s0.l51.cache",
+        "rank:0/s0.l55.cache",
+        "rank:0/s0.l59.cache",
+        "rank:0/s0.l63.cache"
+      ],
+      "candidate_subgraph_ids": [],
+      "candidate_count": 16,
+      "basis": "repeated_tensor_contract",
+      "evidence": null,
+      "structural_classification": {
+        "basis": "common_to_all_declared_tensor_candidates",
+        "common": {
+          "block": "attention",
+          "role": "body",
+          "structure": {
+            "attention_kind": "gqa",
+            "attention_architecture": "gated_gqa",
+            "ffn_kind": "dense",
+            "residual_kind": "residual",
+            "cache_kind": "dense",
+            "compress_ratio": 0,
+            "window": 0,
+            "indexer": false,
+            "owns_topk": false,
+            "index_query_per_layer": false,
+            "topk_owner_layer_id": -1
+          }
+        },
+        "occurrence_binding_implied": false
+      },
+      "observed_contract": [
+        "kv_cache_store_active_elements",
+        "ScatterPaKvCache",
+        [
+          [
+            2097152,
+            "bf16"
+          ],
+          [
+            2097152,
+            "bf16"
+          ]
+        ],
+        [
+          8192
+        ]
+      ],
+      "observed_contract_scope": {
+        "occurrence_identity": false,
+        "unobserved": [
+          "tensor_values",
+          "scalar_dispatch_arguments",
+          "selected_tiling",
+          "module_or_layer_identity"
+        ],
+        "kind": "active_cache_store_elements",
+        "compared": [
+          "key_element_count_dtype",
+          "value_element_count_dtype",
+          "slot_mapping_shape"
+        ],
+        "validated_capture_abi": "flattened_NCL_key_value_NCHW_cache_ND_slots",
+        "not_compared": [
+          "native_storage_layout",
+          "head_shape_factorization",
+          "cache_capacity",
+          "cache_block_size",
+          "slot_mapping_dtype",
+          "slot_mapping_values",
+          "cache_mode",
+          "compression_scalar_arguments"
+        ]
+      },
+      "observed_native_tensor_abi": [
+        "native_tensor_abi",
+        "ScatterPaKvCache",
+        [
+          [
+            [
+              2097152
+            ],
+            "bf16",
+            "NCL"
+          ],
+          [
+            [
+              2553217024
+            ],
+            "bf16",
+            "NCHW"
+          ],
+          [
+            [
+              8192
+            ],
+            "int32",
+            "ND"
+          ],
+          [
+            [
+              2097152
+            ],
+            "bf16",
+            "NCL"
+          ],
+          [
+            [
+              2553184256
+            ],
+            "bf16",
+            "NCHW"
+          ],
+          [
+            [],
+            "int64",
+            "ND"
+          ],
+          [
+            [],
+            "int64",
+            "ND"
+          ],
+          [
+            [],
+            "int64",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              2553217024
+            ],
+            "bf16",
+            "NCHW"
+          ],
+          [
+            [
+              2553184256
+            ],
+            "bf16",
+            "NCHW"
+          ]
+        ]
+      ],
+      "diagnostic": {
+        "category": "occurrence_evidence_missing",
+        "reason": "repeated_tensor_contract",
+        "detail": "Tensor matches need independent evidence of the module occurrence."
+      }
+    },
+    {
+      "event_id": "event:58ece635ed18958cea890f5b",
+      "rank_id": "rank_0",
+      "step": null,
+      "window": "complete_capture_mixed_phase_possible",
+      "kernel_name": "aclnnFusedInferAttentionScoreV3_FusedInferAttentionScore_FusedInferAttentionScore",
+      "operator_type": "FusedInferAttentionScore",
+      "start_ns": 1792795651766571827,
+      "end_ns": 1792795651767855981,
+      "clipped_start_ns": 1792795651766571827,
+      "clipped_end_ns": 1792795651767855981,
+      "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 214,
+        "csv_line": 216,
+        "task_id": "10111",
+        "stream_id": "45",
+        "device_id": "0"
+      },
+      "status": "ambiguous",
+      "node_ids": [],
+      "subgraph_ids": [],
+      "covered_node_ids": [],
+      "candidate_node_ids": [
+        "rank:0/s0.l3.attention",
+        "rank:0/s0.l7.attention",
+        "rank:0/s0.l11.attention",
+        "rank:0/s0.l15.attention",
+        "rank:0/s0.l19.attention",
+        "rank:0/s0.l23.attention",
+        "rank:0/s0.l27.attention",
+        "rank:0/s0.l31.attention",
+        "rank:0/s0.l35.attention",
+        "rank:0/s0.l39.attention",
+        "rank:0/s0.l43.attention",
+        "rank:0/s0.l47.attention",
+        "rank:0/s0.l51.attention",
+        "rank:0/s0.l55.attention",
+        "rank:0/s0.l59.attention",
+        "rank:0/s0.l63.attention"
+      ],
+      "candidate_subgraph_ids": [],
+      "candidate_count": 16,
+      "basis": "repeated_tensor_contract",
+      "evidence": null,
+      "structural_classification": {
+        "basis": "common_to_all_declared_tensor_candidates",
+        "common": {
+          "block": "attention",
+          "role": "body",
+          "structure": {
+            "attention_kind": "gqa",
+            "attention_architecture": "gated_gqa",
+            "ffn_kind": "dense",
+            "residual_kind": "residual",
+            "cache_kind": "dense",
+            "compress_ratio": 0,
+            "window": 0,
+            "indexer": false,
+            "owns_topk": false,
+            "index_query_per_layer": false,
+            "topk_owner_layer_id": -1
+          }
+        },
+        "occurrence_binding_implied": false
+      },
+      "observed_contract": [
+        "attention_active_qkv",
+        "FusedInferAttentionScore",
+        [
+          [
+            [
+              8192,
+              6,
+              256
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              8192,
+              1,
+              256
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              8192,
+              1,
+              256
+            ],
+            "bf16",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              8192,
+              6,
+              256
+            ],
+            "bf16",
+            "ND"
+          ]
+        ]
+      ],
+      "observed_contract_scope": {
+        "occurrence_identity": false,
+        "unobserved": [
+          "tensor_values",
+          "scalar_dispatch_arguments",
+          "selected_tiling",
+          "module_or_layer_identity"
+        ],
+        "kind": "active_attention_tensor_descriptors",
+        "compared": [
+          "query_shape_dtype_format",
+          "key_shape_dtype_format",
+          "value_shape_dtype_format",
+          "main_output_shape_dtype_format"
+        ],
+        "not_compared": [
+          "mask_descriptor_and_values",
+          "sequence_length_arrays",
+          "optional_auxiliary_tensors",
+          "scale",
+          "sparse_mode",
+          "causal_flag",
+          "logical_input_layout",
+          "phase"
+        ],
+        "storage_boundary": "nonpaged_qkv_descriptors"
+      },
+      "observed_native_tensor_abi": [
+        "native_tensor_abi",
+        "FusedInferAttentionScore",
+        [
+          [
+            [
+              8192,
+              6,
+              256
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              8192,
+              1,
+              256
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              8192,
+              1,
+              256
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              2048,
+              2048
+            ],
+            "int8",
+            "ND"
+          ],
+          [
+            [
+              1
+            ],
+            "int64",
+            "ND"
+          ],
+          [
+            [
+              1
+            ],
+            "int64",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              8192,
+              6,
+              256
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [],
+            "fp32",
+            "ND"
+          ]
+        ]
+      ],
+      "diagnostic": {
+        "category": "occurrence_evidence_missing",
+        "reason": "repeated_tensor_contract",
+        "detail": "Tensor matches need independent evidence of the module occurrence."
+      }
+    },
+    {
+      "event_id": "event:b4068cf2cb8df939f5949caf",
+      "rank_id": "rank_0",
+      "step": null,
+      "window": "complete_capture_mixed_phase_possible",
+      "kernel_name": "aclnnScatterPaKvCache_ScatterPaKvCache_ScatterPaKvCache",
+      "operator_type": "ScatterPaKvCache",
+      "start_ns": 1792795652333849232,
+      "end_ns": 1792795652333851612,
+      "clipped_start_ns": 1792795652333849232,
+      "clipped_end_ns": 1792795652333851612,
+      "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 2777,
+        "csv_line": 2779,
+        "task_id": "12739",
+        "stream_id": "45",
+        "device_id": "0"
+      },
+      "status": "unmapped",
+      "node_ids": [],
+      "subgraph_ids": [],
+      "covered_node_ids": [],
+      "candidate_node_ids": [],
+      "candidate_subgraph_ids": [],
+      "candidate_count": 0,
+      "basis": "declared_tensor_descriptor_mismatch",
+      "evidence": null,
+      "structural_classification": {
+        "basis": "common_to_all_declared_tensor_candidates",
+        "common": {},
+        "occurrence_binding_implied": false
+      },
+      "observed_contract": [
+        "kv_cache_store_active_elements",
+        "ScatterPaKvCache",
+        [
+          [
+            2097152,
+            "bf16"
+          ],
+          [
+            2097152,
+            "bf16"
+          ]
+        ],
+        [
+          1
+        ]
+      ],
+      "observed_contract_scope": {
+        "occurrence_identity": false,
+        "unobserved": [
+          "tensor_values",
+          "scalar_dispatch_arguments",
+          "selected_tiling",
+          "module_or_layer_identity"
+        ],
+        "kind": "active_cache_store_elements",
+        "compared": [
+          "key_element_count_dtype",
+          "value_element_count_dtype",
+          "slot_mapping_shape"
+        ],
+        "validated_capture_abi": "flattened_NCL_key_value_NCHW_cache_ND_slots",
+        "not_compared": [
+          "native_storage_layout",
+          "head_shape_factorization",
+          "cache_capacity",
+          "cache_block_size",
+          "slot_mapping_dtype",
+          "slot_mapping_values",
+          "cache_mode",
+          "compression_scalar_arguments"
+        ]
+      },
+      "observed_native_tensor_abi": [
+        "native_tensor_abi",
+        "ScatterPaKvCache",
+        [
+          [
+            [
+              2097152
+            ],
+            "bf16",
+            "NCL"
+          ],
+          [
+            [
+              1413414912
+            ],
+            "bf16",
+            "NCHW"
+          ],
+          [
+            [
+              1
+            ],
+            "int32",
+            "ND"
+          ],
+          [
+            [
+              2097152
+            ],
+            "bf16",
+            "NCL"
+          ],
+          [
+            [
+              1413382144
+            ],
+            "bf16",
+            "NCHW"
+          ],
+          [
+            [],
+            "int64",
+            "ND"
+          ],
+          [
+            [],
+            "int64",
+            "ND"
+          ],
+          [
+            [],
+            "int64",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              1413414912
+            ],
+            "bf16",
+            "NCHW"
+          ],
+          [
+            [
+              1413382144
+            ],
+            "bf16",
+            "NCHW"
+          ]
+        ]
+      ],
+      "diagnostic": {
+        "category": "declared_structure_mismatch",
+        "reason": "declared_tensor_descriptor_mismatch",
+        "detail": "Compare the selected execution geometry, precision and scope with the capture; tensor descriptors alone do not establish prefill/decode or draft ownership.",
+        "near_contracts": [
+          {
+            "contract": [
+              "kv_cache_store_active_elements",
+              "ScatterPaKvCache",
+              [
+                [
+                  2097152,
+                  "bf16"
+                ],
+                [
+                  2097152,
+                  "bf16"
+                ]
+              ],
+              [
+                8192
+              ]
+            ],
+            "differing_fields": [
+              "slot_mapping_shape"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "event_id": "event:4958dbcc672825980f49d7c7",
+      "rank_id": "rank_0",
+      "step": null,
+      "window": "complete_capture_mixed_phase_possible",
+      "kernel_name": "aclnnFusedInferAttentionScoreV3_FusedInferAttentionScore_FusedInferAttentionScore",
+      "operator_type": "FusedInferAttentionScore",
+      "start_ns": 1792795652333852872,
+      "end_ns": 1792795652333899471,
+      "clipped_start_ns": 1792795652333852872,
+      "clipped_end_ns": 1792795652333899471,
+      "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 2778,
+        "csv_line": 2780,
+        "task_id": "12740",
+        "stream_id": "45",
+        "device_id": "0"
+      },
+      "status": "unmapped",
+      "node_ids": [],
+      "subgraph_ids": [],
+      "covered_node_ids": [],
+      "candidate_node_ids": [],
+      "candidate_subgraph_ids": [],
+      "candidate_count": 0,
+      "basis": "declared_operator_family_absent",
+      "evidence": null,
+      "structural_classification": {
+        "basis": "common_to_all_declared_tensor_candidates",
+        "common": {},
+        "occurrence_binding_implied": false
+      },
+      "observed_contract": [
+        "native_tensor_abi",
+        "FusedInferAttentionScore",
+        [
+          [
+            [
+              1,
+              6,
+              256
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              21567,
+              128,
+              256
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              21567,
+              128,
+              256
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              2048,
+              2048
+            ],
+            "int8",
+            "ND"
+          ],
+          [
+            [
+              1
+            ],
+            "int64",
+            "ND"
+          ],
+          [
+            [
+              1
+            ],
+            "int64",
+            "ND"
+          ],
+          [
+            [
+              1,
+              1029
+            ],
+            "int32",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              1,
+              6,
+              256
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [],
+            "fp32",
+            "ND"
+          ]
+        ]
+      ],
+      "observed_contract_scope": {
+        "occurrence_identity": false,
+        "unobserved": [
+          "tensor_values",
+          "scalar_dispatch_arguments",
+          "selected_tiling",
+          "module_or_layer_identity"
+        ],
+        "kind": "native_tensor_abi",
+        "compared": [
+          "all_ordered_tensor_shapes",
+          "all_tensor_dtypes",
+          "all_tensor_formats"
+        ],
+        "not_compared": [
+          "block_table_values",
+          "slot_mapping_values",
+          "sequence_length_values",
+          "cache_mode",
+          "scale",
+          "sparse_mode",
+          "logical_input_layout"
+        ]
+      },
+      "observed_native_tensor_abi": null,
+      "diagnostic": {
+        "category": "declared_structure_mismatch",
+        "reason": "declared_operator_family_absent",
+        "detail": "No declared contract in the selected rank/scope has this operator family."
+      }
+    },
+    {
+      "event_id": "event:0edeed8bfc444d10a04ff4a7",
+      "rank_id": "rank_0",
+      "step": null,
+      "window": "complete_capture_mixed_phase_possible",
+      "kernel_name": "GemmaRmsNorm",
+      "operator_type": "GemmaRmsNorm",
+      "start_ns": 1792795653012143100,
+      "end_ns": 1792795653012149560,
+      "clipped_start_ns": 1792795653012143100,
+      "clipped_end_ns": 1792795653012149560,
+      "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 5786,
+        "csv_line": 5788,
+        "task_id": "0",
+        "stream_id": "125",
+        "device_id": "0"
+      },
+      "status": "unmapped",
+      "node_ids": [],
+      "subgraph_ids": [],
+      "covered_node_ids": [],
+      "candidate_node_ids": [],
+      "candidate_subgraph_ids": [],
+      "candidate_count": 0,
+      "basis": "declared_tensor_descriptor_mismatch",
+      "evidence": null,
+      "structural_classification": {
+        "basis": "common_to_all_declared_tensor_candidates",
+        "common": {},
+        "occurrence_binding_implied": false
+      },
+      "observed_contract": [
+        "native_tensor_abi",
+        "GemmaRmsNorm",
+        [
+          [
+            [
+              4,
+              5120
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              5120
+            ],
+            "bf16",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              4,
+              5120
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              4,
+              1
+            ],
+            "fp32",
+            "ND"
+          ]
+        ]
+      ],
+      "observed_contract_scope": {
+        "comparison_scope": "native_tensor_slots; scalar_flags_and_tensor_values_not_observed",
+        "unobserved_fields": [
+          "eps",
+          "weight_values"
+        ],
+        "basis": "captured_tensor_descriptors",
+        "semantic_limits": [
+          "Tensor equality does not establish compiled flags, numerical equivalence or layer occurrence.",
+          "The native Gemma operator identity is retained; it is not aliased to ordinary RmsNorm."
+        ]
+      },
+      "observed_native_tensor_abi": null,
+      "diagnostic": {
+        "category": "declared_structure_mismatch",
+        "reason": "declared_tensor_descriptor_mismatch",
+        "detail": "Compare the selected execution geometry, precision and scope with the capture; tensor descriptors alone do not establish prefill/decode or draft ownership.",
+        "near_contracts": [
+          {
+            "contract": [
+              "native_tensor_abi",
+              "GemmaRmsNorm",
+              [
+                [
+                  [
+                    8192,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    8192,
+                    5120
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    8192,
+                    1
+                  ],
+                  "fp32",
+                  "ND"
+                ]
+              ]
+            ],
+            "differing_fields": [
+              "input_slots",
+              "output_slots"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "event_id": "event:8a38e99fb1374f707d35cdcf",
+      "rank_id": "rank_0",
+      "step": null,
+      "window": "complete_capture_mixed_phase_possible",
+      "kernel_name": "_layer_norm_fwd_1pass_kernel_npu",
+      "operator_type": "_layer_norm_fwd_1pass_kernel_npu",
+      "start_ns": 1792795653012268338,
+      "end_ns": 1792795653012273377,
+      "clipped_start_ns": 1792795653012268338,
+      "clipped_end_ns": 1792795653012273377,
+      "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 5804,
+        "csv_line": 5806,
+        "task_id": "20",
+        "stream_id": "125",
+        "device_id": "0"
+      },
+      "status": "unmapped",
+      "node_ids": [],
+      "subgraph_ids": [],
+      "covered_node_ids": [],
+      "candidate_node_ids": [],
+      "candidate_subgraph_ids": [],
+      "candidate_count": 0,
+      "basis": "missing_tensor_metadata",
+      "evidence": null,
+      "structural_classification": {
+        "basis": "common_to_all_declared_tensor_candidates",
+        "common": {},
+        "occurrence_binding_implied": false
+      },
+      "observed_contract": null,
+      "observed_contract_scope": {
+        "comparison_scope": "native_tensor_slots; scalar_flags_and_tensor_values_not_observed",
+        "unobserved_fields": [
+          "eps",
+          "norm_before_gate",
+          "gate_activation",
+          "is_rms_norm",
+          "group_size",
+          "strides"
+        ],
+        "basis": "captured_tensor_descriptors",
+        "semantic_limits": [
+          "Tensor equality does not establish compiled flags, numerical equivalence or layer occurrence."
+        ]
+      },
+      "observed_native_tensor_abi": null,
+      "diagnostic": {
+        "category": "capture_metadata_missing",
+        "reason": "missing_tensor_metadata",
+        "detail": "Native tensor ABI requires captured input and output descriptors.",
+        "missing_fields": [
+          "input_shapes"
+        ],
+        "operator_type": "_layer_norm_fwd_1pass_kernel_npu",
+        "unobserved_fields": [
+          "eps",
+          "norm_before_gate",
+          "gate_activation",
+          "is_rms_norm",
+          "group_size",
+          "strides"
+        ]
+      }
+    },
+    {
+      "event_id": "event:a24854ae138d746e72d27dee",
+      "rank_id": "rank_0",
+      "step": null,
+      "window": "complete_capture_mixed_phase_possible",
+      "kernel_name": "split_qkv_rmsnorm_mrope_kernel",
+      "operator_type": "split_qkv_rmsnorm_mrope_kernel",
+      "start_ns": 1792795653013084581,
+      "end_ns": 1792795653013091681,
+      "clipped_start_ns": 1792795653013084581,
+      "clipped_end_ns": 1792795653013091681,
+      "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 5888,
+        "csv_line": 5890,
+        "task_id": "111",
+        "stream_id": "125",
+        "device_id": "0"
+      },
+      "status": "unmapped",
+      "node_ids": [],
+      "subgraph_ids": [],
+      "covered_node_ids": [],
+      "candidate_node_ids": [],
+      "candidate_subgraph_ids": [],
+      "candidate_count": 0,
+      "basis": "missing_tensor_metadata",
+      "evidence": null,
+      "structural_classification": {
+        "basis": "common_to_all_declared_tensor_candidates",
+        "common": {},
+        "occurrence_binding_implied": false
+      },
+      "observed_contract": null,
+      "observed_contract_scope": {
+        "comparison_scope": "incomplete_native_output_slots; no_contract_equality",
+        "unobserved_fields": [
+          "eps",
+          "mrope_sections",
+          "is_interleaved",
+          "partial_rope",
+          "output_slot_identity",
+          "unrecorded_output_tensors"
+        ],
+        "basis": "captured_tensor_descriptors",
+        "semantic_limits": [
+          "Tensor equality does not establish compiled flags, numerical equivalence or layer occurrence.",
+          "The referenced wrapper declares Q/K/V/gate outputs; the retained export cannot identify them."
+        ],
+        "required_output_slots": 4,
+        "observed_output_slots": 0
+      },
+      "observed_native_tensor_abi": null,
+      "diagnostic": {
+        "category": "capture_metadata_missing",
+        "reason": "missing_tensor_metadata",
+        "detail": "Native tensor ABI requires captured input and output descriptors.",
+        "missing_fields": [
+          "input_shapes"
+        ],
+        "operator_type": "split_qkv_rmsnorm_mrope_kernel",
+        "unobserved_fields": [
+          "eps",
+          "mrope_sections",
+          "is_interleaved",
+          "partial_rope",
+          "output_slot_identity",
+          "unrecorded_output_tensors"
+        ]
+      }
+    }
+  ],
+  "body_example_selection": "First event per native type, comparison family, candidate count and missing reason; at most 64 examples, separate from complete-window denominators.",
+  "elapsed_seconds": 6.621,
+  "limitations": [
+    "One selected rank is scanned completely; this does not prove other ranks were collected.",
+    "The declared execution is one comparison hypothesis, not an inferred event phase.",
+    "Tensor candidates do not prove model identity, layer identity or selected scalar flags.",
+    "No Host/module occurrence scopes are supplied in this replay; no automatic binding is expected.",
+    "Native ABI and active projections have different comparison scopes, preserved per event."
+  ],
+  "previous_body_report": "body-a3_qwen36.json",
+  "same_capture_replayed_under_a_declaration": true,
+  "runtime_source_identity": {
+    "/Users/maoxx241/code/profiler/mindie_profiler/structure_mapping.py": "0d05cffc00534e0e1d25fe6dd2a74b142d78c4ba7ad9a51143a5780e6510c434",
+    "/Users/maoxx241/code/profiler/mindie_profiler/structure_subgraphs.py": "f346e3d8a3f3c2cda27f86e2fcc3f8edeaffd19944aaa15079750d190d80dd3d",
+    "/Users/maoxx241/code/profiler/mindie_profiler/structure_diagnostics.py": "bbd9f5e666cee0054d70537a591c9a5bca920b54f0637f0d2c38f8a41959beb1",
+    "/Users/maoxx241/code/profiler/mindie_profiler/body_subgraph_contracts.py": "f325a2e00b8c38c9cf488abce769387416ca97ff3ef1eac8cd3c9ef13a2262ae",
+    "/Users/maoxx241/code/profiler/mindie_profiler/body_attention_contracts.py": "f57b1c7a9ec9f509fc7247196d78eac3234e9d41652e80740c34c0538c1ef17a",
+    "/Users/maoxx241/code/profiler/mindie_profiler/tensor_contracts.py": "7ddd278ed440915fd40102b5fae72d3f82ab7d700480c5fc2f6c573584530909",
+    "/Users/maoxx241/code/profiler/mindie_profiler/sources_csv.py": "c185a73c56a7892acf56e6ca485eba4962de60e0a80c72ef4fe7d397909aef91",
+    "/Users/maoxx241/code/profiler/mindie_profiler/normalized.py": "568e7aeaf5ca271d80e6e3493a31c974089d00de41c1d0ce0c70110bfa349ef3",
+    "/Users/maoxx241/code/profiler/examples/structure/replay_body_capture.py": "6044383d8f6dbfa20089d886b9765bc49c46f6bd7a54eb1468419a698bae525e",
+    "/Users/maoxx241/code/sim-rewrite-20261027/mindie_sim/structure.py": "d130dc1238458351d6401c3d89fd77abdfde4d9a14199288f214925ebf4f66f7",
+    "/Users/maoxx241/code/sim-rewrite-20261027/mindie_sim/structure_subgraphs.py": "64a1283a8f1fcc0d174d6557645bd205e3307fbf7b5c53b2b2a45fa365160906",
+    "/Users/maoxx241/code/sim-rewrite-20261027/mindie_sim/structure_contracts.py": "73a0946efcec85208680b06e6ae93cdbc534b9fae165a0519fe8f618436e03ee",
+    "/Users/maoxx241/code/sim-rewrite-20261027/mindie_sim/structure_native_contracts.py": "c6df71d00e4b19db3113181c6462b2a1397762fb97bcdfdaa0f4c7172530de8c",
+    "/Users/maoxx241/code/sim-rewrite-20261027/mindie_sim/prediction/frontend.py": "9ed09bf7d69e9ea304681fdc61548611a8069b11efafe4352640c103b8cf8e46",
+    "/Users/maoxx241/code/sim-rewrite-20261027/mindie_sim/prediction/family_mla_prolog.py": "e64153fad77649da0b9566a98e19eb17da17c909889a11b58cc0d5002f150f98",
+    "/Users/maoxx241/code/sim-rewrite-20261027/mindie_sim/prediction/mla_structure.py": "883a25b8507f09490244ed4f519c91a20998942979dba111f0f62afc283573dc",
+    "/Users/maoxx241/code/sim-rewrite-20261027/mindie_sim/catalog/glm.py": "ece0d553bdb10fcc7dbd9b3eb42a60e92519f73b2665138d256c50245749a67e"
+  }
+}

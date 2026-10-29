@@ -36,7 +36,7 @@ When tuning LLM inference (`vLLM-Ascend`, `MindIE` multi-node `DP × TP × EP`) 
 - **In-place read-only analysis of all Ascend profiler artifacts**: Directly inspects `ascend_pytorch_profiler_*.db` (`output.db`), `step_trace_time.csv`, `kernel_details.csv`, `op_summary.csv`, `operator_memory.csv`, `memory_record.csv`, and streaming `trace_view.json` without uploading gigabytes of raw trace files into the LLM context window.
 - **Nanosecond Interval Union Accounting**: Computes exact integer-nanosecond interval unions and differences to separate window span (`observed_event_span_ms`), true union device busy time (`device_busy_union_ms`), summed stream activity (`device_activity_sum_ms`), and uncovered gaps (`device_uncovered_ms`) — preventing multi-stream overlap from exceeding 100% of wall time and excluding boundary-clipped kernels (`clipped_event_count`) from single-call P50/P90/Max distributions.
 - **Shape-Preserving Hotspots & Dominant Bottleneck Classification**: Aggregates hotspots by `(rank_id, semantic_block, kernel_name, input_shapes, input_dtypes, input_formats)` and classifies dominant bottlenecks into `compute_bound`, `memory_bound`, `communication_bound`, `host_launch_bound`, `stream_sync_bound`, and `idle_gap`.
-- **Direct Bridge to `mindie-sim`**: Exports observed operator shapes, dtypes, layouts, and durations (`mindie-modeling-inputs/1`) directly into [`mindie-sim`](https://github.com/mindie-agent/sim) for Roofline, HAP (Hardware Achievable Performance), and micro-stage pipeline modeling.
+- **Shared `mindie-sim` Structure and Measured Attribution**: The development `analyze --structure` path consumes sim's duration-free model graph and fused subgraph boundaries, retains tensor candidates, and associates layers, blocks and operators using explicit events, Host connections or synchronized module evidence. Common structural classification remains available when repeated layers are unresolved; composite time is not split into separately measured member timings. Sim reuses profiler's raw observations for independent comparison. See the [structure example](examples/structure/README.md).
 
 ```mermaid
 flowchart LR
@@ -44,7 +44,7 @@ flowchart LR
     CLI["🔬 mindie-profiler<br/>(In-Place Read-Only CLI & Python API)"]
     Union["⏱️ Nanosecond Interval Union Engine<br/>(Multi-Stream Dedup / Host-Device Join /<br/>P0-P4 Memory / A-B Comparability)"]
     C7["📄 mindie-profile-summary/1<br/>(Compact C7 JSON / Bottlenecks / Diffs)"]
-    Consumer["🤖 AI Coding Agent & mindie-sim<br/>(Root-Cause Diagnosis / Roofline / Gate)"]
+    Consumer["🤖 AI Coding Agent<br/>(Diagnosis / Explicit Attribution / Verification)"]
 
     Artifacts -->|"mode=ro in-place scan"| CLI
     CLI -->|"Explicit step / time window"| Union
@@ -127,7 +127,28 @@ pytest -m "not live_npu"
 | **`sql`**<br/>`mindie-profiler sql` | **Read-only guarded SQL queries**: Runs `SELECT` / `WITH` / `EXPLAIN` against `output.db` with `mode=ro`, `PRAGMA query_only=ON`, row cap (`--limit`, overflow errors instead of silent truncation), deadline (`--timeout-s`), and automatic `STRING_IDS` resolution | `ascend_pytorch_profiler_*.db` / `output.db` + SQL query string or file | Structured JSON with `columns`, `rows`, `row_count`, and `elapsed_ms` |
 | **`capture`**<br/>`python3 -m mindie_profiler.collect`<br/>`python3 -m mindie_profiler.framework_capture` | **Bounded profiling wrapper & window control**: Sends a single `/start_profile` or `/stop_profile` HTTP action to a framework-injected window (`--profiler-config` / `VLLM_TORCH_PROFILER_DIR`) or builds bounded step capture plans with honest `completed` / `failed` / `unknown` state accounting | Serving `--endpoint` + `--execution-id` + `--profile-dir`, or step bounds | `mindie-profile-control/1` control receipt JSON and `mindie-profiler-window/1` capture plan |
 | **`memory`**<br/>`mindie_profiler.memory_profile`<br/>`python3 -m mindie_profiler.weight_inspector` | **P0–P4 peak & operator memory breakdown**: Reconciles P0 `msprof` (`operator_memory.csv` / `memory_record.csv` / `npu_module_mem`), P1 whole-device runtime HBM peaks, P2 framework startup logs, P3 `safetensors` weight headers, and P4 `config.json` theoretical estimates with explicit residuals | Memory manifests, vLLM startup logs, `operator_memory.csv`, `memory_record.csv`, model weight dir | `mindie-memory-attribution/1` JSON report (weights, KV cache, activations, communication buffers, and uninvented residual) |
-| **`modeling-inputs`**<br/>`mindie_profiler.modeling_inputs`<br/>`python3 -m mindie_profiler.enrichment_model` | **Bridge to `mindie-sim` for Roofline & pipeline modeling**: Extracts observed operator shapes, dtypes, layouts, and durations into a portable `ModelingInputsBundle` and computes single-kernel ideal Roofline lower bounds | C7 summary JSON, hotspot records, and raw physical hardware peaks | `mindie-modeling-inputs/1` bundle and 3-value alignment (`ideal_hardware_lower_bound_ms`, `model_predicted_ms`, `measured_device_ms`) |
+| **`modeling-inputs`**<br/>`mindie_profiler.modeling_inputs`<br/>`python3 -m mindie_profiler.enrichment_model` | **Retained observation export and Roofline comparison**: Extracts shapes, dtypes, layouts, durations and hardware peaks into `ModelingInputsBundle` and computes single-kernel ideal lower bounds; rewritten sim does not natively consume this legacy bundle | C7 summary JSON, hotspot records, and raw physical hardware peaks | `mindie-modeling-inputs/1` observation bundle and 3-value alignment (`ideal_hardware_lower_bound_ms`, `model_predicted_ms`, `measured_device_ms`) |
+
+Attention, cache and fused contracts reuse sim's GQA/MLA/DSA/GDN/KDA frontend.
+They preserve native operator identity, active tensor comparison scope and
+unobserved fields; repeated layers never bind automatically. CSV, native
+`op_summary` and `.csv.gz` use one decoder. See the [eight complete A3/A5
+body replays and remaining boundaries](examples/structure/acceptance-20261029/body-contract-replay.md).
+
+Development `analyze --structure FILE [--bindings FILE] [--correlation FILE] [--module-trace FILE]`
+adds `mindie-profile-structure-mapping/1` to C7. It separates `candidate`,
+`ambiguous`, `bound` and `unmapped`, accounting for layers, blocks and nodes with
+measured event intervals. This path requires matching development sources; see
+the [structure example](examples/structure/README.md) for installation and evidence
+boundaries.
+
+Repeated candidates with equal contracts, physical work and placement also
+produce `windows[].cohorts`: observed calls, declared instances/layers, per-call
+Mean/P50 and cumulative measured activity. Sim consumes the C7 report directly
+with `python -m mindie_sim.cohort_comparison CASE REPORT -o RESULT`. Comparisons
+remain conditional; selected fusion programs and unfused references are
+distinct, and internal HBM traffic is removed only under an explicit source
+profile.
 
 ### Key Accounting & Classification Guarantees
 
@@ -196,9 +217,13 @@ mindie-profiler compare \
   --output /tmp/compare-receipt.json
 ```
 
-### Example 4: Run P0–P4 memory attribution and export modeling inputs to `mindie-sim` via Python API
+### Example 4: Run P0–P4 memory attribution and export observed inputs via Python API
 
-Use `attribute_memory` to break down device HBM usage and `extract_modeling_inputs` to feed operator measurements into [`mindie-sim`](https://github.com/mindie-agent/sim):
+Use `attribute_memory` to break down device HBM usage and the retained
+`extract_modeling_inputs` API to export operator measurements and compute ideal
+Roofline lower bounds. `mindie-modeling-inputs/1` is an existing observation
+contract, not a native input of rewritten sim. For current structure attribution,
+see the [structure example](examples/structure/README.md).
 
 ```python
 from mindie_profiler.memory_profile import attribute_memory
@@ -252,7 +277,9 @@ profiler/
 │   ├── sql.py / sources_*.py        # Read-only SQLite (mode=ro) runner, CSV reader & streaming JSON Trace index
 │   ├── collect.py / framework_capture.py # Online /start_profile & /stop_profile window controller & bounded capture plans
 │   ├── memory_*.py / weight_inspector.py # P0-P4 multi-source peak memory attribution & safetensors weight inspector
-│   ├── modeling_inputs.py / theoretical_model.py # Bridge to mindie-sim & single-kernel ideal Roofline lower bound
+│   ├── normalized.py / tensor_contracts.py # Shared raw observations & conservative tensor contracts
+│   ├── structure_mapping.py        # Declared graph/event association & layer/block interval accounting
+│   ├── modeling_inputs.py / theoretical_model.py # Retained observation export & ideal Roofline lower bound
 │   └── knowledge/db_source_mapping.json # Hardware-verified Ascend Profiler SQLite schema mapping dictionary
 ├── benchmarks/                      # Release benchmark suite (benchmarks/release.json and microbenchmark scripts)
 ├── tests/                           # Unit tests and non-destructive live A2/A3 NPU integration tests (@pytest.mark.live_npu)
@@ -271,7 +298,8 @@ profiler/
 | Release Benchmark Suite Definition | [benchmarks/release.json](./benchmarks/release.json) |
 | MindIE Agent Profiler Architecture Design (中文) | [mindie-agent/docs/profiler-system.md](https://github.com/mindie-agent/mindie-agent/blob/main/docs/profiler-system.md) |
 | MindIE Agent Profiler System Design (English) | [mindie-agent/docs/profiler-system.en.md](https://github.com/mindie-agent/mindie-agent/blob/main/docs/profiler-system.en.md) |
-| Companion Simulator: `mindie-sim` (4-Layer Performance Modeling & Roofline Solver) | [mindie-agent/sim](https://github.com/mindie-agent/sim) |
+| Declared Structure and Measured Attribution (Development and Offline Acceptance) | [examples/structure/README.md](examples/structure/README.md) |
+| Companion Simulator: `mindie-sim` (Structure-Driven Causal Performance Modeling and Independent Validation) | [mindie-agent/sim](https://github.com/mindie-agent/sim) |
 
 ---
 

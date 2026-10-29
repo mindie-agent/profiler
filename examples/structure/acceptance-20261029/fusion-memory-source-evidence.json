@@ -1,0 +1,356 @@
+{
+  "schema_version": "mindie-fusion-memory-source-evidence/1",
+  "date": "2026-10-29",
+  "scope": "Read-only local native source audit; not hardware traffic measurement or captured binary attestation. GM means address-space traffic; physical HBM/cache hits need a separate resource model.",
+  "policy": [
+    "Never remove all intra-subgraph traffic merely because a native operator is fused.",
+    "A storage alias or workspace reuse does not remove a producer write and consumer read.",
+    "Preserve arithmetic, required external outputs, source input rereads, quantization scales and cache side effects.",
+    "Subtract only edge payloads explicitly carried through local storage in the independently selected implementation.",
+    "No observed duration is divided among members."
+  ],
+  "operators": [
+    {
+      "native_kind": "MlaPrologV3",
+      "implementation_domain": "Inspected arch35 split-M/split-N native implementation; capture tiling/build and A3 implementation identity are not established by this source.",
+      "preserved_gm_edges": [
+        "q_down output -> q_norm input",
+        "q_norm output -> q_up input, including queryNormFlag=0 workspace and queryNormFlag=1 external output",
+        "kv_down output -> kv_norm and K rope input",
+        "q_up output -> absorbed key projection and Q rope input",
+        "quantized q_up dequantized intermediate -> absorbed key projection input where enabled",
+        "query/Qrope outputs and cache scatter final writes",
+        "scale outputs/workspaces where quantized mode requires them"
+      ],
+      "internal_edges": [
+        {
+          "producer": "kv_norm",
+          "consumer": "cache_scatter",
+          "payload": "normalized latent K",
+          "storage": "LocalTensor/UB",
+          "eliminable": "Standalone normalized latent tensor GM write plus scatter GM read; final cache write stays."
+        },
+        {
+          "producer": "K rotary",
+          "consumer": "cache_scatter",
+          "payload": "rotated K rope",
+          "storage": "LocalTensor/UB",
+          "eliminable": "Standalone K-rope GM write plus scatter GM read; Q-rope external write and final cache write stay."
+        }
+      ],
+      "sources": [
+        {
+          "path": "/Users/maoxx241/code/vllm-ascend-v41-private/csrc/attention/mla_prolog_v3/op_kernel/arch35/kernel_mla_prolog_split_m.h",
+          "lines": [
+            [
+              578,
+              627
+            ],
+            [
+              1170,
+              1177
+            ],
+            [
+              1294,
+              1307
+            ],
+            [
+              1460,
+              1469
+            ]
+          ],
+          "sha256": "c0d49290db61a0bfc418415255a2ee96d2bff4cbfdcd49be4f1a65b57d541ea3",
+          "base_revision": "ae923905948f360f4b7ab06df52d0789a0c9316e",
+          "source_state": "clean_at_revision",
+          "capture_binary_identity": "not_established"
+        },
+        {
+          "path": "/Users/maoxx241/code/vllm-ascend-v41-private/csrc/attention/mla_prolog_v3/op_kernel/arch35/kernel_mla_prolog_split_n.h",
+          "lines": [
+            [
+              682,
+              713
+            ],
+            [
+              1395,
+              1406
+            ],
+            [
+              1554,
+              1566
+            ],
+            [
+              1718,
+              1726
+            ]
+          ],
+          "sha256": "12258f0b7e0674d06c602d8cfe6a146b3030b496c44f6541bfcf9c0dce2046bf",
+          "base_revision": "ae923905948f360f4b7ab06df52d0789a0c9316e",
+          "source_state": "clean_at_revision",
+          "capture_binary_identity": "not_established"
+        },
+        {
+          "path": "/Users/maoxx241/code/vllm-ascend-v41-private/csrc/attention/mla_prolog_v3/op_kernel/arch35/service_matmul.h",
+          "lines": [
+            [
+              381,
+              403
+            ]
+          ],
+          "sha256": "f817b10b0e33a185836a08f778469a3b6a42e470bce1a07ff9ede636211d752c",
+          "base_revision": "ae923905948f360f4b7ab06df52d0789a0c9316e",
+          "source_state": "clean_at_revision",
+          "capture_binary_identity": "not_established"
+        }
+      ]
+    },
+    {
+      "native_kind": "HcPre",
+      "implementation_domain": "A3 key=0, arch35 key=1000 K-split and key=1001 M-split differ; preserve conservative GM workspaces unless tiling selection is independently declared.",
+      "preserved_gm_edges": [
+        "A3 cast FP32 X workspace write and cube input read",
+        "A3 partial square-sum and projection/mixes workspace write/read",
+        "arch35 K-split partial RMS and projection/mixes workspace write/read",
+        "X read for initial normalization/projection and reread for final pre-weighted reduction",
+        "post/comb coefficient external writes and reduced y final write"
+      ],
+      "internal_edges": [
+        {
+          "producer": "pre coefficient sigmoid",
+          "consumer": "weighted residual reduction",
+          "storage": "LocalTensor",
+          "eliminable": "Coefficient consumer read from GM; optional external pre-coefficient write, if an ABI exposes it, must stay."
+        },
+        {
+          "producer": "affine comb coefficients",
+          "consumer": "softmax/Sinkhorn iterations",
+          "storage": "LocalTensor",
+          "eliminable": "Only the explicitly represented local intermediate writes/reads, not projection workspace traffic."
+        },
+        {
+          "producer": "X cast",
+          "consumer": "projection",
+          "storage": "UB->L1, only arch35 M-split key1001",
+          "eliminable": "Cast intermediate GM write/read only with this exact declared tiling branch."
+        },
+        {
+          "producer": "projection",
+          "consumer": "normalization/mixing",
+          "storage": "L0C->UB, only arch35 M-split key1001",
+          "eliminable": "Projection intermediate GM write/read only with this exact declared tiling branch."
+        }
+      ],
+      "sources": [
+        {
+          "path": "/Users/maoxx241/code/vllm-ascend/csrc/moe/hc_pre/op_kernel/hc_pre.cpp",
+          "lines": [
+            [
+              48,
+              87
+            ]
+          ],
+          "sha256": "284443c5d0fdd7e9b1abad9ec581a4cb2eafd060c490866955a70f646dccd32c",
+          "base_revision": "175ef4d49c2072f9233619636f0309f4f88b4e2c",
+          "source_state": "clean_at_revision",
+          "capture_binary_identity": "not_established"
+        },
+        {
+          "path": "/Users/maoxx241/code/vllm-ascend/csrc/moe/hc_pre/op_kernel/hc_pre_m_k_split_core.h",
+          "lines": [
+            [
+              51,
+              59
+            ],
+            [
+              126,
+              159
+            ],
+            [
+              349,
+              395
+            ],
+            [
+              399,
+              428
+            ],
+            [
+              438,
+              490
+            ]
+          ],
+          "sha256": "f14eeb0888a27f80a17708fd6f5e57ec0a217176cfe97da512b6bac7218e7fac",
+          "base_revision": "175ef4d49c2072f9233619636f0309f4f88b4e2c",
+          "source_state": "clean_at_revision",
+          "capture_binary_identity": "not_established"
+        },
+        {
+          "path": "/Users/maoxx241/code/vllm-ascend/csrc/moe/hc_pre/op_kernel/hc_pre_m_k_split_core_arch35.h",
+          "lines": [
+            [
+              37,
+              40
+            ],
+            [
+              145,
+              145
+            ],
+            [
+              206,
+              206
+            ],
+            [
+              328,
+              385
+            ]
+          ],
+          "sha256": "2077956c339dce8090ee39869baba03476848295e7659d9abade63f26b638481",
+          "base_revision": "175ef4d49c2072f9233619636f0309f4f88b4e2c",
+          "source_state": "clean_at_revision",
+          "capture_binary_identity": "not_established"
+        },
+        {
+          "path": "/Users/maoxx241/code/vllm-ascend/csrc/moe/hc_pre/op_kernel/hc_pre_m_split_core_arch35.h",
+          "lines": [
+            [
+              181,
+              184
+            ],
+            [
+              207,
+              236
+            ],
+            [
+              275,
+              322
+            ]
+          ],
+          "sha256": "5c13d197565a90d42ed74d0a6569f36ced375d1bfdc6418050e7e1a4df77202e",
+          "base_revision": "175ef4d49c2072f9233619636f0309f4f88b4e2c",
+          "source_state": "clean_at_revision",
+          "capture_binary_identity": "not_established"
+        },
+        {
+          "path": "/Users/maoxx241/code/vllm-ascend/csrc/moe/hc_pre/op_kernel/hc_pre_cube_compute_arch35.h",
+          "lines": [
+            [
+              192,
+              227
+            ]
+          ],
+          "sha256": "cf197ddead3807f57c4791e173eee8de4c1116c19bea6a17ddae12b40d9a2b3b",
+          "base_revision": "175ef4d49c2072f9233619636f0309f4f88b4e2c",
+          "source_state": "clean_at_revision",
+          "capture_binary_identity": "not_established"
+        }
+      ]
+    },
+    {
+      "native_kind": "HcPost",
+      "implementation_domain": "Inspected A3 D-split and arch35 BF16 branches; no internal GlobalTensor workspace is established in these paths.",
+      "preserved_gm_edges": [
+        "x/residual/post/comb input reads",
+        "final y write"
+      ],
+      "internal_edges": [
+        {
+          "producer": "post weighted x and comb weighted residuals",
+          "consumer": "accumulated residual mix",
+          "storage": "UB/registers",
+          "eliminable": "Intermediate products and repeated accumulator materialization between explicit semantic nodes; keep arithmetic and final output."
+        }
+      ],
+      "sources": [
+        {
+          "path": "/Users/maoxx241/code/vllm-ascend/csrc/moe/hc_post/op_kernel/hc_post.cpp",
+          "lines": [
+            [
+              32,
+              57
+            ]
+          ],
+          "sha256": "c735e1e4534bc2d701fbd06636e42082567c81ea3f0ed24e4e10b9a71867eda4",
+          "base_revision": "175ef4d49c2072f9233619636f0309f4f88b4e2c",
+          "source_state": "clean_at_revision",
+          "capture_binary_identity": "not_established"
+        },
+        {
+          "path": "/Users/maoxx241/code/vllm-ascend/csrc/moe/hc_post/op_kernel/hc_post_d_split.h",
+          "lines": [
+            [
+              136,
+              140
+            ],
+            [
+              174,
+              239
+            ],
+            [
+              299,
+              357
+            ]
+          ],
+          "sha256": "9b7a4a6e1d0fde01632813589566f173ac6561522d0c0cf62463589004f2d58a",
+          "base_revision": "175ef4d49c2072f9233619636f0309f4f88b4e2c",
+          "source_state": "clean_at_revision",
+          "capture_binary_identity": "not_established"
+        },
+        {
+          "path": "/Users/maoxx241/code/vllm-ascend/csrc/moe/hc_post/op_kernel/hc_post_bfloat16.h",
+          "lines": [
+            [
+              108,
+              119
+            ],
+            [
+              136,
+              200
+            ],
+            [
+              205,
+              250
+            ]
+          ],
+          "sha256": "72559bcd3201153c00b4493818ddef751104e964cce8691bffb52368b62b5a50",
+          "base_revision": "175ef4d49c2072f9233619636f0309f4f88b4e2c",
+          "source_state": "clean_at_revision",
+          "capture_binary_identity": "not_established"
+        }
+      ]
+    },
+    {
+      "native_kind": "AttnResFwd",
+      "implementation_domain": "Exact captured native implementation not located. Independent Triton _apply_attn_res_kernel is not an alias or evidence of this binary.",
+      "preserved_gm_edges": [
+        "Independent Triton candidate reads each residual/prefix twice: score pass and weighted-sum pass",
+        "Norm/projection weights load from GM; final output writes GM"
+      ],
+      "internal_edges": [
+        {
+          "producer": "normalization/score projection/softmax",
+          "consumer": "weighted residual sum",
+          "storage": "Triton local values/register abstraction",
+          "eliminable": "Only for explicitly selecting this independent Triton implementation; no automatic AttnResFwd resource folding from this source."
+        }
+      ],
+      "sources": [
+        {
+          "path": "/Users/maoxx241/code/vllm-ascend-v41-private/vllm_ascend/ops/triton/kimi_k3/attention_residual.py",
+          "lines": [
+            [
+              46,
+              75
+            ],
+            [
+              78,
+              115
+            ]
+          ],
+          "sha256": "655f5880b43100a28c11869d19468716c7669a65374ecc05c0211a713df31714",
+          "base_revision": "ae923905948f360f4b7ab06df52d0789a0c9316e",
+          "source_state": "clean_at_revision",
+          "capture_binary_identity": "not_established"
+        }
+      ]
+    }
+  ]
+}

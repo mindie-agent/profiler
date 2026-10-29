@@ -42,7 +42,11 @@
       "inputShapes",
       "inputDataTypes",
       "inputFormats",
-      "waitNs"
+      "waitNs",
+      "outputShapes",
+      "outputDataTypes",
+      "outputFormats",
+      "opState"
     ],
     "compute_alias_groups": {
       "block_dim": [
@@ -110,12 +114,14 @@
         "Start Time",
         "Start(us)",
         "Start",
-        "ts"
+        "ts",
+        "Task Start Time(us)"
       ],
       "duration_us": [
         "Duration(us)",
         "Duration",
-        "dur"
+        "dur",
+        "Task Duration(us)"
       ],
       "end_us": [
         "End Time(us)",
@@ -147,6 +153,7 @@
         "Type"
       ],
       "type": [
+        "OP Type",
         "Type",
         "Task Type",
         "Kernel Type"
@@ -185,7 +192,8 @@
         "Wait Time(us)",
         "Wait Time",
         "Wait(us)",
-        "wait"
+        "wait",
+        "Task Wait Time(us)"
       ],
       "context_id": [
         "Context ID",
@@ -196,6 +204,19 @@
         "Model ID",
         "ModelId",
         "model_id"
+      ],
+      "output_shapes": [
+        "Output Shapes",
+        "Output Shape"
+      ],
+      "output_dtypes": [
+        "Output Data Types",
+        "Output DataType",
+        "Output Dtypes"
+      ],
+      "output_formats": [
+        "Output Formats",
+        "Output Format"
       ]
     }
   },

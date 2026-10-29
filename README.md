@@ -36,7 +36,7 @@
 - **原地只读解析全系昇腾产物**：直接读取 `ascend_pytorch_profiler_*.db`（或 `output.db`）、`step_trace_time.csv`、`kernel_details.csv`、`op_summary.csv`、`operator_memory.csv`、`memory_record.csv` 与流式 `trace_view.json`，输出几 KB 的标准化 `mindie-profile-summary/1`（C7 JSON）结构化摘要。
 - **纳秒区间并集计量（Interval Union Accounting）**：使用整数纳秒区间并集与差集运算，严格区分窗口跨度（`observed_event_span_ms`）、设备真实忙时并集（`device_busy_union_ms`）、多流累加工作量（`device_activity_sum_ms`）与设备未覆盖间隙（`device_uncovered_ms`），彻底杜绝多流重叠耗时超 100%，并自动剔除窗口边界被截断算子（`clipped_event_count`）对 P50/P90 分布的污染。
 - **精准瓶颈定界与算子变体聚合**：按 `(rank_id, semantic_block, kernel_name, input_shapes, input_dtypes, input_formats)` 保留真实 Shape 变体，结合 PMU 计数器与 Host-Device 关联区分 `compute_bound`、`memory_bound`、`communication_bound`、`host_launch_bound`、`stream_sync_bound` 与 `idle_gap`。
-- **与 `mindie-sim` 无缝联动**：一键将实测算子 Shape、Dtype、Layout 与耗时导出为 `mindie-modeling-inputs/1` 契约，直接送入 [`mindie-sim`](https://github.com/mindie-agent/sim) 做 Roofline / HAP 硬件可达性能评分与流水线仿真。
+- **复用 `mindie-sim` 结构关联实测**：开发版通过 `analyze --structure` 消费 sim 导出的无时延模型图及融合子图边界，按张量契约保留候选，并依据显式事件、Host 或同步 module 证据关联层、块与算子。重复层尚不能区分时保留共同结构分类；子图总耗时不分摊成成员的独立实测。原始观测由 profiler 统一读取，sim 在独立比较入口复用；见[结构关联示例](examples/structure/README.md)。
 
 ```mermaid
 flowchart LR
@@ -44,7 +44,7 @@ flowchart LR
     CLI["🔬 mindie-profiler<br/>(原地只读 CLI & Python API)"]
     Union["⏱️ 纳秒区间并集与关联引擎<br/>(多流去重 / Host-Device 关联 /<br/>P0-P4 显存归因 / A-B 可比性校验)"]
     C7["📄 mindie-profile-summary/1<br/>(紧凑 C7 JSON / 瓶颈分类 / 对比回执)"]
-    Consumer["🤖 AI 编程助手 & mindie-sim<br/>(定位真瓶颈 / Roofline 建模 / 收益验收)"]
+    Consumer["🤖 AI 编程助手<br/>(瓶颈定位 / 显式结构关联 / 收益验收)"]
 
     Artifacts -->|"mode=ro 原地只读扫描"| CLI
     CLI -->|"显式 Step / 时间窗口"| Union
@@ -127,7 +127,25 @@ pytest -m "not live_npu"
 | **`sql`**<br/>`mindie-profiler sql` | **只读受保护 SQL 下钻查询**：以 `mode=ro` + `PRAGMA query_only=ON` 对单个 Profiler `.db` 执行 `SELECT` / `WITH` / `EXPLAIN`，内置行数上限（`--limit`，超限报错绝不静默截断）、超时保护（`--timeout-s`）并自动关联 `STRING_IDS` 字典 | `ascend_pytorch_profiler_*.db` / `output.db` + SQL 语句或文件 | 含 `columns`、`rows`、`row_count`、`elapsed_ms` 的结构化查询结果 JSON |
 | **`capture`**<br/>`python3 -m mindie_profiler.collect`<br/>`python3 -m mindie_profiler.framework_capture` | **受控采集包装与在线窗口控制**：向注入了 `--profiler-config` / `VLLM_TORCH_PROFILER_DIR` 的推理服务发送单次 `/start_profile` 与 `/stop_profile` 请求，或生成有界 Step 采集计划；严格区分 `completed` / `failed` / `unknown` 状态，拒绝盲目重试 | 在线服务 `--endpoint` + `--execution-id` + `--profile-dir`，或起止 Step 计划 | `mindie-profile-control/1` 控制回执 JSON 与 `mindie-profiler-window/1` 采集清单 |
 | **`memory`**<br/>`mindie_profiler.memory_profile`<br/>`python3 -m mindie_profiler.weight_inspector` | **P0–P4 峰值与算子级显存归因**：融合 P0 `msprof`（`operator_memory.csv` / `memory_record.csv` / `npu_module_mem`）、P1 整卡运行时 HBM 峰值、P2 框架启动日志、P3 `safetensors` 权重头与 P4 `config.json` 理论估算，诚实报告未解释残差（Residual） | 显存采集清单、服务日志、`operator_memory.csv`、`memory_record.csv`、模型权重目录 | `mindie-memory-attribution/1` 显存归因报告（含权重、KV Cache、激活值、通信 Buffer 与残差） |
-| **`modeling-inputs`**<br/>`mindie_profiler.modeling_inputs`<br/>`python3 -m mindie_profiler.enrichment_model` | **向 `mindie-sim` 导出建模输入与 Roofline 对照**：从实测热点算子中提取 Shape、Dtype、Layout、实测耗时与硬件规格，生成标准化 `ModelingInputsBundle` 并计算单算子理想 Roofline 下界，无缝桥接 `mindie-sim` 四层仿真器 | C7 剖析摘要、算子热点记录、硬件峰值规格（或 `msmodeling` 提供方） | `mindie-modeling-inputs/1` 建模输入包与三值对齐记录（理想下界 / 模型预测 / 实测耗时） |
+| **`modeling-inputs`**<br/>`mindie_profiler.modeling_inputs`<br/>`python3 -m mindie_profiler.enrichment_model` | **保留的观测导出与 Roofline 对照接口**：从实测热点提取 Shape、Dtype、Layout、耗时与硬件规格，生成 `ModelingInputsBundle` 并计算单算子理想 Roofline 下界；新版 sim 不原生消费此旧输入包 | C7 剖析摘要、算子热点记录、硬件峰值规格（或 `msmodeling` 提供方） | `mindie-modeling-inputs/1` 观测包与三值对齐记录（理想下界 / 模型预测 / 实测耗时） |
+
+开发版 `analyze --structure FILE [--bindings FILE] [--correlation FILE] [--module-trace FILE]`
+在 C7 中附加 `mindie-profile-structure-mapping/1`，区分 `candidate`、`ambiguous`、
+`bound` 与 `unmapped`，并按实际事件区间核算层、块和节点。该路径需配套开发源码；
+已有同步 module trace 可通过 DB SHA256 和唯一完整包含绑定；报告区分真实缺字段、
+契约缺口、声明不一致与 occurrence 证据不足。安装与证据边界见[结构关联示例](examples/structure/README.md)，
+完整历史采集回放见[验收记录](examples/structure/acceptance-20261029/README.md)。
+
+相同契约、物理工作量及部署范围的重复候选通过 `windows[].cohorts` 输出实测
+调用数、声明实例/层数、单次 Mean/P50 和整组累计耗时。sim 的
+`python -m mindie_sim.cohort_comparison CASE REPORT -o RESULT` 直接消费该报告，
+给出同一声明程序的条件性预测误差；没有具体层绑定也能进行集合级对账。
+所选融合资源程序与未融合参考值分别标识，不将所有内部 HBM 传输自动归零。
+
+Attention、cache、fused 契约复用 sim 现有 GQA/MLA/DSA/GDN/KDA 前端，
+分别保留原生类型、活动张量比较范围与未观察字段；重复层不自动绑定。
+普通 CSV、原生 `op_summary` 与 `.csv.gz` 共用解析器。八组完整 A3/A5
+采集的结果及未完成边界见[body 契约验收](examples/structure/acceptance-20261029/body-contract-replay.md)。
 
 ### 为什么 `mindie-profiler` 的数据不会骗人？
 
@@ -196,9 +214,9 @@ mindie-profiler compare \
   --output /tmp/compare-receipt.json
 ```
 
-### 场景 4：通过 Python API 做 P0–P4 显存归因并导出 `mindie-sim` 建模输入
+### 场景 4：通过 Python API 做 P0–P4 显存归因并导出观测输入
 
-在 Python 脚本中直接调用 `attribute_memory` 拆解显存去向，或用 `extract_modeling_inputs` 导出算子实测数据供 [`mindie-sim`](https://github.com/mindie-agent/sim) 建立 Roofline 模版：
+在 Python 脚本中调用 `attribute_memory` 拆解显存去向，或用保留的 `extract_modeling_inputs` 接口导出算子实测数据并计算理想 Roofline 下界。`mindie-modeling-inputs/1` 是已有观测契约，不是新版 sim 的原生输入；新结构关联流程见[结构关联示例](examples/structure/README.md)。
 
 ```python
 from mindie_profiler.memory_profile import attribute_memory
@@ -252,7 +270,9 @@ profiler/
 │   ├── sql.py / sources_*.py        # 只读 SQLite (mode=ro) 查询器、CSV 扫描器与流式 JSON Trace 索引
 │   ├── collect.py / framework_capture.py # 在线 /start_profile & /stop_profile 窗口控制与受控采集计划
 │   ├── memory_*.py / weight_inspector.py # P0-P4 多源峰值显存归因与 safetensors 权重分片检查器
-│   ├── modeling_inputs.py / theoretical_model.py # mindie-sim 建模输入桥接与单算子理想 Roofline 下界
+│   ├── normalized.py / tensor_contracts.py # 共享原始观测与保守张量契约
+│   ├── structure_mapping.py        # 声明图与具体事件关联、层块区间核算
+│   ├── modeling_inputs.py / theoretical_model.py # 保留的观测导出与单算子理想 Roofline 下界
 │   └── knowledge/db_source_mapping.json # 经真机验证的昇腾 Profiler SQLite 表结构映射字典
 ├── benchmarks/                      # 发布基准测试套件（benchmarks/release.json 与微基准脚本）
 ├── tests/                           # 单元测试与常驻 A2/A3 NPU 真机非破坏性集成测试（@pytest.mark.live_npu）
@@ -271,7 +291,8 @@ profiler/
 | 发布基准测试定义 | [benchmarks/release.json](./benchmarks/release.json) |
 | MindIE Agent Profiler 系统架构设计（中文） | [mindie-agent/docs/profiler-system.md](https://github.com/mindie-agent/mindie-agent/blob/main/docs/profiler-system.md) |
 | MindIE Agent Profiler System Design (English) | [mindie-agent/docs/profiler-system.en.md](https://github.com/mindie-agent/mindie-agent/blob/main/docs/profiler-system.en.md) |
-| 关联仿真组件：`mindie-sim`（四层性能建模与 Roofline 求解器） | [mindie-agent/sim](https://github.com/mindie-agent/sim) |
+| 声明结构与实测关联（开发接口及离线验收） | [examples/structure/README.md](examples/structure/README.md) |
+| 关联仿真组件：`mindie-sim`（结构驱动的因果性能建模与独立验证） | [mindie-agent/sim](https://github.com/mindie-agent/sim) |
 
 ---
 

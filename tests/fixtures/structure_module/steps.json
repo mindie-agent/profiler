@@ -1,0 +1,34 @@
+{
+  "schema_version": "mindie-steps-evidence/1",
+  "time_unit": "ns",
+  "clock_domain": "unix_wall",
+  "capture_wall": {
+    "start_ns": 1792446522958434095,
+    "end_ns": 1792446541388996128,
+    "start_ts": 1792446522.958434,
+    "end_ts": 1792446541.3889961
+  },
+  "capture_active_wall": {
+    "start_ns": 1792446524431924369,
+    "end_ns": 1792446528415296070,
+    "start_ts": 1792446524.4319246,
+    "end_ts": 1792446528.415296
+  },
+  "source": "caller_declared_capture_active_records",
+  "steps": [
+    {
+      "step": 1,
+      "start": 1792446524431924369,
+      "end": 1792446525730030111,
+      "start_ns": 1792446524431924369,
+      "end_ns": 1792446525730030111,
+      "start_ts": 1792446524.4319246,
+      "end_ts": 1792446525.73003,
+      "perf_start_ns": 1371005207958128,
+      "perf_end_ns": 1371006506062570,
+      "duration_ms": 1298.104442,
+      "clock_domain": "unix_wall",
+      "identity_source": "framework_capture.step_records"
+    }
+  ]
+}

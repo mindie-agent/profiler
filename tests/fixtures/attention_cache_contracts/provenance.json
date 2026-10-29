@@ -1,0 +1,318 @@
+{
+  "schema_version": "mindie-derived-capture-fixture/1",
+  "derivation": "All selected CSV fields preserved from original records. No shape, dtype, layout or timing values synthesized. CSV newline serialization is LF.",
+  "sources": [
+    {
+      "fixture": "a5_qwen38.csv",
+      "source": "/Volumes/data/mindie-sim-data/a5/2026-10-22/qwen38-c4-16k/raw/prof/p16384_c1_o32/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "source_size_bytes": 7978835,
+      "source_sha256": "ec7fbcff6138d06fd7d0ed20497d8d4af2f78a179372db976090d4206a3d17ca",
+      "rows": [
+        {
+          "source_csv_line": 172,
+          "fixture_csv_line": 2,
+          "operator_type": "ScatterPaKvCache"
+        },
+        {
+          "source_csv_line": 173,
+          "fixture_csv_line": 3,
+          "operator_type": "FusedInferAttentionScore"
+        },
+        {
+          "source_csv_line": 314,
+          "fixture_csv_line": 4,
+          "operator_type": "ScatterPaKvCache"
+        },
+        {
+          "source_csv_line": 2449,
+          "fixture_csv_line": 5,
+          "operator_type": "FusedInferAttentionScore"
+        }
+      ]
+    },
+    {
+      "fixture": "a3_qwen35.csv",
+      "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen35-gdn/prof/p_16384_c1/dp0_pp0_tp0_dcp0_ep0_rank0_351_20261023191719697_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "source_size_bytes": 38931005,
+      "source_sha256": "2c2fb28ab36674f8eaef52042e1350a949a972225b4d4c5f52da1fe27fa58b53",
+      "rows": [
+        {
+          "source_csv_line": 236,
+          "fixture_csv_line": 2,
+          "operator_type": "ScatterPaKvCache"
+        },
+        {
+          "source_csv_line": 237,
+          "fixture_csv_line": 3,
+          "operator_type": "FusedInferAttentionScore"
+        },
+        {
+          "source_csv_line": 2351,
+          "fixture_csv_line": 4,
+          "operator_type": "FusedInferAttentionScore"
+        }
+      ]
+    },
+    {
+      "fixture": "a3_qwen36.csv",
+      "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "source_size_bytes": 13245065,
+      "source_sha256": "797260bd9ea48a7fb75831c397a6c0716be11233f4df953d299e5bdf99084d7f",
+      "rows": [
+        {
+          "source_csv_line": 215,
+          "fixture_csv_line": 2,
+          "operator_type": "ScatterPaKvCache"
+        },
+        {
+          "source_csv_line": 216,
+          "fixture_csv_line": 3,
+          "operator_type": "FusedInferAttentionScore"
+        }
+      ]
+    },
+    {
+      "fixture": "qwen3_8b_s1.csv",
+      "source": "/Volumes/data/Profiling/vllm-ascend-workspace/v6_inputs_remote/qwen3_8b_s1/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "source_size_bytes": 553190,
+      "source_sha256": "8caf340d3d164b8cc70f78f76293da1c3b164dcb357e8e7ee6d80c9098cf8c06",
+      "rows": [
+        {
+          "source_csv_line": 15,
+          "fixture_csv_line": 2,
+          "operator_type": "ReshapeAndCacheNdKernel"
+        },
+        {
+          "source_csv_line": 16,
+          "fixture_csv_line": 3,
+          "operator_type": "FusedInferAttentionScore"
+        }
+      ]
+    },
+    {
+      "fixture": "dsv2lite_s1.csv",
+      "source": "/Volumes/data/Profiling/vllm-ascend-workspace/v6_inputs_remote/dsv2lite_s1/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "source_size_bytes": 1642240,
+      "source_sha256": "4c8411f8deae95592ab1f4be43bc06e9c6ccd5a5c12bd7c4da5c35bc6ebb6792",
+      "rows": [
+        {
+          "source_csv_line": 22,
+          "fixture_csv_line": 2,
+          "operator_type": "KvRmsNormRopeCache"
+        },
+        {
+          "source_csv_line": 28,
+          "fixture_csv_line": 3,
+          "operator_type": "RINGMLAPrefillBF16Kernel"
+        },
+        {
+          "source_csv_line": 969,
+          "fixture_csv_line": 4,
+          "operator_type": "PagedCacheLoadNdKernel"
+        }
+      ]
+    },
+    {
+      "fixture": "a3_deepseek_v4f.csv",
+      "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4f-prefill/raw/pre4096.kernel_details.csv",
+      "source_size_bytes": 1391917,
+      "source_sha256": "b56b7439213cc9f76eaae63347393d4add6ae5c985bf28a6a7737f5783c81788",
+      "rows": [
+        {
+          "source_csv_line": 137,
+          "fixture_csv_line": 2,
+          "operator_type": "ScatterNdUpdateSk"
+        },
+        {
+          "source_csv_line": 140,
+          "fixture_csv_line": 3,
+          "operator_type": "SparseAttnSharedkv"
+        }
+      ]
+    },
+    {
+      "fixture": "a5_fia_paged_probe.csv",
+      "source": "/Users/maoxx241/code/sim-rewrite-20261027/raw/fia-paged-probe/op_summary_20261025101818.csv",
+      "source_size_bytes": 192366,
+      "source_sha256": "db393d959c2edc9786a7fee9852fead63b55e9b6f4ce4a86708e7d4d17cd0f32",
+      "rows": [
+        {
+          "source_csv_line": 6,
+          "fixture_csv_line": 2,
+          "operator_type": "FusedInferAttentionScore"
+        }
+      ]
+    },
+    {
+      "fixture": "a3_glm53.csv",
+      "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/pf4k_b1.csv.gz",
+      "source_size_bytes": 154828,
+      "source_sha256": "ded3a03adc7a82b0801acc6a88bb85589b8f3a3f3a4a416a1322ebfb514c614f",
+      "compression": "gzip; source line numbers refer to decompressed CSV",
+      "rows": [
+        {
+          "fixture_csv_line": 2,
+          "source_csv_line": 53,
+          "operator_type": "MlaPrologV3"
+        },
+        {
+          "fixture_csv_line": 3,
+          "source_csv_line": 66,
+          "operator_type": "LightningIndexer"
+        },
+        {
+          "fixture_csv_line": 4,
+          "source_csv_line": 70,
+          "operator_type": "SparseFlashAttention"
+        }
+      ]
+    },
+    {
+      "fixture": "a3_deepseek_v4f_compressed.csv",
+      "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4f-prefill/raw/pre4096.kernel_details.csv",
+      "source_size_bytes": 1391917,
+      "source_sha256": "b56b7439213cc9f76eaae63347393d4add6ae5c985bf28a6a7737f5783c81788",
+      "rows": [
+        {
+          "fixture_csv_line": 2,
+          "source_csv_line": 319,
+          "operator_type": "SparseAttnSharedkv"
+        },
+        {
+          "fixture_csv_line": 3,
+          "source_csv_line": 401,
+          "operator_type": "SparseAttnSharedkv"
+        }
+      ]
+    },
+    {
+      "fixture": "a3_glm53_prolog_no_index.csv",
+      "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/pf4k_b1.csv.gz",
+      "source_size_bytes": 154828,
+      "source_sha256": "ded3a03adc7a82b0801acc6a88bb85589b8f3a3f3a4a416a1322ebfb514c614f",
+      "compression": "gzip; source line numbers refer to decompressed CSV",
+      "rows": [
+        {
+          "fixture_csv_line": 2,
+          "source_csv_line": 152,
+          "operator_type": "MlaPrologV3"
+        }
+      ]
+    },
+    {
+      "fixture": "a3_glm53_decode.csv",
+      "source": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/dc4k_b1.csv.gz",
+      "source_size_bytes": 9236949,
+      "source_sha256": "ed5e9696949d51c2d1d31ab099a71a2c98722d5719f004fcf90c9ceff036f60c",
+      "compression": "gzip; source line numbers refer to decompressed CSV",
+      "rows": [
+        {
+          "fixture_csv_line": 2,
+          "source_csv_line": 56,
+          "operator_type": "MlaPrologV3"
+        },
+        {
+          "fixture_csv_line": 3,
+          "source_csv_line": 65,
+          "operator_type": "LightningIndexer"
+        },
+        {
+          "fixture_csv_line": 4,
+          "source_csv_line": 132,
+          "operator_type": "MlaPrologV3"
+        }
+      ]
+    }
+  ],
+  "source_semantics": [
+    {
+      "source": "/Users/maoxx241/code/vllm-ascend/vllm_ascend/attention/attention_v1.py",
+      "lines": [
+        1281,
+        1339,
+        1403,
+        1418
+      ],
+      "evidence": "No-cache Q/K/V are passed to the TND FIA interface; paged paths view caches as (num_block,block_size,packed_width) and pass a block table."
+    },
+    {
+      "source": "https://gitcode.com/cann/ops-transformer/tree/9.0.0-beta.1/attention/scatter_pa_kv_cache",
+      "evidence": "Operator graph input order is key,keyCacheRef,slotMapping,value,valueCacheRef; cache capacities and mapping values are not active input geometry."
+    },
+    {
+      "source": "/Users/maoxx241/code/vllm-ascend/csrc/attention/sparse_flash_attention/op_host/sparse_flash_attention_def.cpp",
+      "lines": [
+        23,
+        43,
+        63,
+        73
+      ],
+      "evidence": "Native order Q,K,V,indices,table,q lengths,kv lengths,Qrope,Krope; primary output attention_out."
+    },
+    {
+      "source": "/Users/maoxx241/code/vllm-ascend/csrc/attention/sparse_flash_attention/op_host/sparse_flash_attention_tiling.cpp",
+      "lines": [
+        111,
+        114,
+        1786,
+        1791
+      ],
+      "evidence": "TND is (tokens,heads,dim); PA_BSND is (block_count,block_size,heads,dim). Projection requires recorded rank-four caches and block table, excludes page dimensions and scalar layout value."
+    },
+    {
+      "source": "/Users/maoxx241/code/vllm-ascend/csrc/attention/sparse_attn_sharedkv/op_host/sparse_attn_sharedkv_def.cpp",
+      "lines": [
+        23,
+        28,
+        33,
+        48,
+        53,
+        93
+      ],
+      "evidence": "Native order retains separate original and optional compressed KV tensors and block tables; compressed presence is compared, scalar compression ratio/masks are not."
+    },
+    {
+      "source": "/Users/maoxx241/code/vllm-ascend/csrc/attention/sparse_attn_sharedkv/op_host/sparse_attn_sharedkv_tiling.cpp",
+      "lines": [
+        105,
+        111,
+        583,
+        596
+      ],
+      "evidence": "PA_ND cache axes are (block_count,block_size,heads,dim); separate original/compressed block tables are checked by source."
+    },
+    {
+      "source": "/Users/maoxx241/code/vllm-ascend/vllm_ascend/attention/sfa_v1.py",
+      "lines": [
+        977,
+        986,
+        1041,
+        1054,
+        1057,
+        1666
+      ],
+      "evidence": "MLA prolog consumes Q/KV projection, absorption and RMS parameters, writes paged caches and returns latent Q/Qrope plus optional query norm; shared-index layers reuse indices."
+    },
+    {
+      "source": "https://gitcode.com/cann/ops-transformer/blob/2fb644d4a0417c15995a9c09f71888f2604cfd00/attention/mla_prolog_v3/README.md",
+      "evidence": "Native token input supports T,H or B,S,H; Q outputs append head and feature axes. Row projection preserves product of only the recorded leading axes; scalar mode, scale and rope inputs remain outside the selected active scope."
+    },
+    {
+      "source": "/Users/maoxx241/code/vllm-ascend/csrc/attention/lightning_indexer/op_host/lightning_indexer_def.cpp",
+      "lines": [
+        23,
+        33,
+        38,
+        48,
+        53,
+        58
+      ],
+      "evidence": "Ordered Q,K,weights,query lengths,key lengths,block table inputs; sparse indices and optional values outputs. This boundary is score plus selection, not query projection or index cache construction."
+    }
+  ],
+  "limitations": [
+    "A raw native tensor ABI is not a model-layer or phase assignment.",
+    "Active contracts do not compare scalar dispatch flags, mask values, sequence-length values, cache capacities or slot indices.",
+    "Legacy v6_inputs_remote captures are identified by their archived source names; their hardware generation is not independently asserted here."
+  ]
+}

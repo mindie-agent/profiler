@@ -1,0 +1,521 @@
+{
+  "schema": "mindie-model-profile-evidence-inventory/1",
+  "audit_date": "2026-10-29",
+  "method": "Read-only original CSV/gzip/tar streams and SQLite mode=ro. No new collection, original mutation or whole-archive extraction. At parent request, only the Kimi op_summary member was copied in1MiB chunks to a reusable temporary CSV for full replay.",
+  "definitions": {
+    "full_model_capture": "All retained kernel records from one serving rank/device within the recorded window; does not mean all ranks, entire generation, or identified layer occurrences.",
+    "independent_geometry": "Serving command/model config/request receipt independently recorded before observed kernel matching.",
+    "primitive": "Standalone tensor/operator call, insufficient for whole-model acceptance."
+  },
+  "entries": [
+    {
+      "id": "glm53_a3",
+      "model": "GLM-5.3-W4A8-INT",
+      "hardware": "A3, 8 cards / 16 physical dies, 64 GiB per die",
+      "hardware_evidence": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/env/npu-smi-host-run.log",
+      "hardware_confidence": "direct topology and image/host recipe agree",
+      "scope": "full-model rank-0 exported kernels; 16 capture files, not primitive",
+      "representative_sources": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/pf4k_b1.csv.gz",
+          "sha256": "ded3a03adc7a82b0801acc6a88bb85589b8f3a3f3a4a416a1322ebfb514c614f",
+          "rows": 2392,
+          "devices": {
+            "8": 2392
+          },
+          "body_kinds": {
+            "MlaPrologV3": 78,
+            "LightningIndexer": 21,
+            "SparseFlashAttention": 78
+          }
+        },
+        {
+          "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/dc4k_b1.csv.gz",
+          "sha256": "ed5e9696949d51c2d1d31ab099a71a2c98722d5719f004fcf90c9ceff036f60c",
+          "rows": 166204,
+          "devices": {
+            "8": 166204
+          },
+          "body_kinds": {
+            "MlaPrologV3": 5772,
+            "LightningIndexer": 1554,
+            "SparseFlashAttention": 5772
+          }
+        }
+      ],
+      "available_host_module": "No Host DB or model module trace retained alongside the exported CSVs.",
+      "independent_geometry": {
+        "model_geometry_path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/env/model-geometry.json",
+        "num_hidden_layers": 78,
+        "hidden_size": 6144,
+        "num_attention_heads": 64,
+        "q_lora_rank": 2048,
+        "kv_lora_rank": 512,
+        "tp": 8,
+        "prefill_request": {
+          "input_len": 4096,
+          "output_len": 1,
+          "concurrency": 1
+        },
+        "decode_request": {
+          "input_len": 4096,
+          "output_len": 256,
+          "concurrency": 1
+        }
+      },
+      "evidence_paths": [
+        "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/cfg/serve_attn.sh",
+        "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/cfg/profile_cell.sh",
+        "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/cfg/export_all.sh",
+        "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/pf4k_b1.json",
+        "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/dc4k_b1.json",
+        "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/dc4k_b1.gate.json"
+      ],
+      "phase_scope": "prefill request window captured whole; decode opened after independent metrics gate, recorded 3-second window. Exact decode token/occurrence IDs not recorded.",
+      "acceptance_scope": "Can stream complete retained CSV windows; shape candidates do not prove layer occurrences."
+    },
+    {
+      "id": "v4f-prefill_a3",
+      "model": "DeepSeek-V4-Flash-w8a8-mtp",
+      "hardware": "A3 recipe on 192.168.13.165",
+      "hardware_confidence": "A3 corroborated by same-model/same-day host npu-smi dual-die topology and profiler container recipe on192.168.13.165; not inferred from kernel timing or folder alone.",
+      "scope": "full-model rank capture exported around one prefill request",
+      "representative_sources": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4f-prefill/raw/pre4096.kernel_details.csv",
+          "sha256": "b56b7439213cc9f76eaae63347393d4add6ae5c985bf28a6a7737f5783c81788",
+          "rows": 4064,
+          "devices": {
+            "8": 4064
+          },
+          "body_kinds": {
+            "CompressorMetadata": 3,
+            "SparseAttnSharedkvMetadata": 4,
+            "VllmAscendQuantLightningIndexerV2Metadata": 1,
+            "SparseAttnSharedkv": 44,
+            "Compressor": 62,
+            "VllmAscendQuantLightningIndexerV2": 21
+          }
+        }
+      ],
+      "available_host_module": "No retained Host DB or module trace in this campaign; raw kernel CSV only.",
+      "independent_geometry": {
+        "tp": 8,
+        "ep": 8,
+        "dp": 1,
+        "max_batched_tokens": 8192,
+        "request": {
+          "input_len": 4096,
+          "output_len": 1,
+          "concurrency": 1
+        },
+        "model_config": "Model path and serving recipe retained; standalone config.json geometry not found in inspected campaign."
+      },
+      "evidence_paths": [
+        "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4f-prefill/cfg/serve_prefill.sh",
+        "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4f-prefill/cfg/create_container.sh",
+        "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4f-prefill/cfg/profile_cell.sh",
+        "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4f-prefill/cfg/export_trace.sh",
+        "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4f-prefill/logs/torch-npu-visible.log",
+        "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4f-prefill/raw/pre4096.json"
+      ],
+      "phase_scope": "One input4096/output1 request; V4-Pro recipe chunks at1024. No per-layer occurrence IDs.",
+      "acceptance_scope": "Can stream complete CSV; body includes attention, compressor, MoE and communication. Additional c4/prompt-length captures retained.",
+      "hardware_evidence": {
+        "same_model_same_day_host_npu_smi": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4f-w8a8-tp8/logs/npu-smi-series.txt",
+        "host_identity_recipe": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4f-w8a8-tp8/cfg/create_container.sh",
+        "observed_topology": "8 cards, two physical dies per card, Phy-ID0..15,64GiB per die",
+        "boundary": "Hardware log is from the same-model serving campaign on the same declared host, not embedded in the profiling CSV."
+      }
+    },
+    {
+      "id": "v4pro-prefill_a3",
+      "model": "DeepSeek-V4-Pro-w4a8-mtp",
+      "hardware": "A3 recipe on 192.168.13.165",
+      "hardware_confidence": "A3 corroborated by same-model/same-day host npu-smi dual-die topology and profiler container recipe on192.168.13.165; not inferred from kernel timing or folder alone.",
+      "scope": "full-model rank capture exported around one prefill request",
+      "representative_sources": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4pro-prefill/raw/pre4096.kernel_details.csv",
+          "sha256": "5ffe5625942e4caf787ce047438576527b8513452d6dd6871b24682a19968abd",
+          "rows": 24271,
+          "devices": {
+            "0": 24271
+          },
+          "body_kinds": {
+            "CompressorMetadata": 12,
+            "SparseAttnSharedkvMetadata": 16,
+            "VllmAscendQuantLightningIndexerV2Metadata": 4,
+            "Compressor": 364,
+            "SparseAttnSharedkv": 248,
+            "VllmAscendQuantLightningIndexerV2": 120
+          }
+        }
+      ],
+      "available_host_module": "No retained Host DB or module trace in this campaign; raw kernel CSV only.",
+      "independent_geometry": {
+        "tp": 16,
+        "ep": 16,
+        "dp": 1,
+        "max_batched_tokens": 1024,
+        "request": {
+          "input_len": 4096,
+          "output_len": 1,
+          "concurrency": 1
+        },
+        "model_config": "Model path and serving recipe retained; standalone config.json geometry not found in inspected campaign."
+      },
+      "evidence_paths": [
+        "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4pro-prefill/cfg/serve_prefill.sh",
+        "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4pro-prefill/cfg/create_container.sh",
+        "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4pro-prefill/cfg/profile_cell.sh",
+        "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4pro-prefill/cfg/export_trace.sh",
+        "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4pro-prefill/logs/torch-npu-visible.log",
+        "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4pro-prefill/raw/pre4096.json"
+      ],
+      "phase_scope": "One input4096/output1 request; V4-Pro recipe chunks at1024. No per-layer occurrence IDs.",
+      "acceptance_scope": "Can stream complete CSV; body includes attention, compressor, MoE and communication. Additional c4/prompt-length captures retained.",
+      "hardware_evidence": {
+        "same_model_same_day_host_npu_smi": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4pro-w4a8-tp16/logs/npu-smi-series.txt",
+        "host_identity_recipe": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4pro-w4a8-tp16/cfg/create_container.sh",
+        "observed_topology": "8 cards, two physical dies per card, Phy-ID0..15,64GiB per die",
+        "boundary": "Hardware log is from the same-model serving campaign on the same declared host, not embedded in the profiling CSV."
+      }
+    },
+    {
+      "id": "kimi_k3_a5",
+      "model": "Kimi-K3-w4a8-mxfp-quarot",
+      "hardware": "Ascend950DT (A5), 98,304 MiB per reported device",
+      "hardware_confidence": "same rack06 os1 serving campaign npu-smi log and explicit A5 recipe; NPU hardware table not retained inside longctx archive",
+      "hardware_evidence": "/Volumes/data/mindie-sim-data/a5/2026-10-22/kimi-k3/raw-rack06/npu-smi-after-bench-os1.txt",
+      "scope": "full-model mixed prefill/decode Device0 kernel capture; other ranks not retained here",
+      "source_archive": "/Volumes/data/mindie-sim-data/a5/2026-10-23/kimi-k3-longctx/k3lc-os1.tgz",
+      "source_archive_sha256": "8b74c09cfdbdb14d010f7c941b4911abc88e865a9d625e88813f4096ed91a00d",
+      "source_member": "raw/prof-export/op_summary_20261023053244.csv",
+      "source_member_sha256": "ab1d44d3613ecb92d71af6d790ab9dfc72be5aabfe92bf4f99d584fbd0f9e648",
+      "source_member_bytes": 110031770,
+      "rows": 286988,
+      "key_header_aliases": [
+        "OP Type",
+        "Op Name",
+        "Task Type",
+        "Task Start Time(us)",
+        "Task Duration(us)",
+        "Input Shapes",
+        "Output Shapes"
+      ],
+      "available_host_module": {
+        "trace_member": "prof/rack06os1_17.async_llm.1792733137816022620.pt.trace.json.gz",
+        "trace_uncompressed_bytes": 122925642,
+        "event_categories": {
+          "python_function": 425759,
+          "Trace": 1
+        },
+        "python_module_attribute_hits": 0,
+        "interpretation": "API async_llm process Python trace only. No kernel/flow/model module events; cannot establish model layer membership."
+      },
+      "independent_geometry": {
+        "tp": 8,
+        "dp": 4,
+        "ep": 32,
+        "input_len": 32768,
+        "output_len": 64,
+        "concurrency": 1,
+        "num_prompts": 1,
+        "seed": 4131,
+        "max_batched_tokens": 8192,
+        "model_path": "/home/models/Kimi-K3-w4a8-mxfp-quarot",
+        "model_config": "No standalone target config.json retained in this archive; do not infer architecture dimensions from observed tensors."
+      },
+      "evidence_members": [
+        "serve_kimi_dp4.sh",
+        "profile_cell.sh",
+        "raw/longctx/profile_p32k_o64.json"
+      ],
+      "phase_scope": "Request geometry is independently recorded. Whole capture mixes phases. profile_phases/profile_breakdown are heuristic derived reports; counts and phase splits disagree and are not used as event identity evidence.",
+      "acceptance_scope": "Complete CSV can be streamed from archive without full extraction; pipeline needs archive-member reader or explicit streaming export to one analysis input. Kernel count is286988, not derived report1482236.",
+      "source_missing_tensor_fields": {
+        "input_shapes": 38153,
+        "output_shapes": 38220
+      },
+      "body_kinds": {
+        "ChunkKdaFwd": 1104,
+        "RecurrentKda": 5175,
+        "FusedInferAttentionScore": 1966,
+        "ScatterPaKvCache": 96,
+        "AttentionUpdate": 72,
+        "MlaPrologV3": 1798,
+        "layer_norm_gated_fwd_kernel": 5451
+      },
+      "fixture_path": "/Users/maoxx241/code/profiler/tests/fixtures/body_attention/kimi_a5_full_model.csv",
+      "temporary_replay_input": "/tmp/mindie-body-profiling-kimi-op-summary.csv",
+      "temporary_replay_input_sha256": "ab1d44d3613ecb92d71af6d790ab9dfc72be5aabfe92bf4f99d584fbd0f9e648"
+    },
+    {
+      "id": "0.18.0_0426_d_dp32ep32_8K_4K_bs1536",
+      "model": "DeepSeek V4 (transfer directory label)",
+      "hardware": "Unresolved exact A2/A3 SKU; NPU_INFO says Ascend910B",
+      "hardware_confidence": "Do not classify as A3 from folder. Raw per-die resource configuration is retained; exact product topology/SKU not independently present.",
+      "source_db": "/Volumes/data/Profiling/Downloads/transfer_dsv4/0.18.0_0426_d_dp32ep32_8K_4K_bs1536/vllm_profile/dp17_pp0_tp0_dcp0_ep17_rank0_111830_20260426214843068_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler_17.db",
+      "source_bytes": 119250944,
+      "scope": "full serving workload capture, not standalone primitive; exact run geometry not independently proven",
+      "counts": {
+        "TASK": 213225,
+        "PYTORCH_API": 189599,
+        "CANN_API": 102555,
+        "CONNECTION_IDS": 58819
+      },
+      "npu_info": [
+        [
+          1,
+          "Ascend910B"
+        ]
+      ],
+      "device_resource_evidence": {
+        "path": "/Volumes/data/Profiling/Downloads/transfer_dsv4/0.18.0_0426_d_dp32ep32_8K_4K_bs1536/vllm_profile/dp17_pp0_tp0_dcp0_ep17_rank0_111830_20260426214843068_ascend_pt/PROF_000001_20260426214843069_MLMKCAHACLALCGFA/device_1/info.json.1",
+        "hostname": "node-39-185",
+        "ai_core_num": 24,
+        "aiv_num": 48,
+        "aic_frequency": "1800"
+      },
+      "available_host_module": "Real Host PyTorch/CANN APIs and connection IDs; bounded STRING_IDS query found no model/module hierarchy names. with_modules=false, with_stack=false.",
+      "profiler_info_path": "/Volumes/data/Profiling/Downloads/transfer_dsv4/0.18.0_0426_d_dp32ep32_8K_4K_bs1536/vllm_profile/dp17_pp0_tp0_dcp0_ep17_rank0_111830_20260426214843068_ascend_pt/profiler_info_17.json",
+      "capture_flags": {
+        "activities": [
+          "ProfilerActivity.CPU",
+          "ProfilerActivity.NPU"
+        ],
+        "schedule": {},
+        "record_shapes": false,
+        "profile_memory": false,
+        "with_stack": false,
+        "with_flops": false,
+        "with_modules": false
+      },
+      "independent_geometry": "None found in inspected export tree. Parallel group metadata may establish rank membership, not request lengths/model geometry. Folder labels remain unverified workload hints.",
+      "acceptance_scope": "Useful for Host/device correlation and raw accounting, not exact independent model-geometry acceptance."
+    },
+    {
+      "id": "0.18.0_0426_p_dp16ep16_8K_4K_bs1536",
+      "model": "DeepSeek V4 (transfer directory label)",
+      "hardware": "Unresolved exact A2/A3 SKU; NPU_INFO says Ascend910B",
+      "hardware_confidence": "Do not classify as A3 from folder. Raw per-die resource configuration is retained; exact product topology/SKU not independently present.",
+      "source_db": "/Volumes/data/Profiling/Downloads/transfer_dsv4/0.18.0_0426_p_dp16ep16_8K_4K_bs1536/vllm_profile/dp1_pp0_tp0_dcp0_ep1_rank0_64433_20260426214624606_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler_1.db",
+      "source_bytes": 25862144,
+      "scope": "full serving workload capture, not standalone primitive; exact run geometry not independently proven",
+      "counts": {
+        "TASK": 27332,
+        "PYTORCH_API": 142159,
+        "CANN_API": 101676,
+        "CONNECTION_IDS": 58261
+      },
+      "npu_info": [
+        [
+          1,
+          "Ascend910B"
+        ]
+      ],
+      "device_resource_evidence": {
+        "path": "/Volumes/data/Profiling/Downloads/transfer_dsv4/0.18.0_0426_p_dp16ep16_8K_4K_bs1536/vllm_profile/dp1_pp0_tp0_dcp0_ep1_rank0_64433_20260426214624606_ascend_pt/PROF_000001_20260426214624609_LOAGLLJNCMJKOAJB/device_1/info.json.1",
+        "hostname": "node-39-173",
+        "ai_core_num": 24,
+        "aiv_num": 48,
+        "aic_frequency": "1800"
+      },
+      "available_host_module": "Real Host PyTorch/CANN APIs and connection IDs; bounded STRING_IDS query found no model/module hierarchy names. with_modules=false, with_stack=false.",
+      "profiler_info_path": "/Volumes/data/Profiling/Downloads/transfer_dsv4/0.18.0_0426_p_dp16ep16_8K_4K_bs1536/vllm_profile/dp1_pp0_tp0_dcp0_ep1_rank0_64433_20260426214624606_ascend_pt/profiler_info_1.json",
+      "capture_flags": {
+        "activities": [
+          "ProfilerActivity.CPU",
+          "ProfilerActivity.NPU"
+        ],
+        "schedule": {},
+        "record_shapes": false,
+        "profile_memory": false,
+        "with_stack": false,
+        "with_flops": false,
+        "with_modules": false
+      },
+      "independent_geometry": "None found in inspected export tree. Parallel group metadata may establish rank membership, not request lengths/model geometry. Folder labels remain unverified workload hints.",
+      "acceptance_scope": "Useful for Host/device correlation and raw accounting, not exact independent model-geometry acceptance."
+    },
+    {
+      "id": "0_18_0422_A2_mix_8k_1k_9TPS",
+      "model": "DeepSeek V4 (transfer directory label)",
+      "hardware": "Unresolved exact A2/A3 SKU; NPU_INFO says Ascend910B",
+      "hardware_confidence": "Do not classify as A3 from folder. Raw per-die resource configuration is retained; exact product topology/SKU not independently present.",
+      "source_db": "/Volumes/data/Profiling/Downloads/transfer_dsv4/0_18_0422_A2_mix_8k_1k_9TPS/vllm_profile1/dp0_pp0_tp0_dcp0_ep0_rank0_6563_20260422172204343_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler_0.db",
+      "source_bytes": 66555904,
+      "scope": "full serving workload capture, not standalone primitive; exact run geometry not independently proven",
+      "counts": {
+        "TASK": 241614,
+        "PYTORCH_API": 251295,
+        "CANN_API": 142942,
+        "CONNECTION_IDS": 87206
+      },
+      "npu_info": [
+        [
+          0,
+          "Ascend910B"
+        ]
+      ],
+      "device_resource_evidence": {
+        "path": "/Volumes/data/Profiling/Downloads/transfer_dsv4/0_18_0422_A2_mix_8k_1k_9TPS/vllm_profile1/dp0_pp0_tp0_dcp0_ep0_rank0_6563_20260422172204343_ascend_pt/PROF_000003_20260422172204346_EARGLQFOHKEEPQBC/device_0/info.json.0",
+        "hostname": "localhost.localdomain",
+        "ai_core_num": 20,
+        "aiv_num": 40,
+        "aic_frequency": "1650"
+      },
+      "available_host_module": "Real Host PyTorch/CANN APIs and connection IDs; bounded STRING_IDS query found no model/module hierarchy names. with_modules=false, with_stack=false.",
+      "profiler_info_path": "/Volumes/data/Profiling/Downloads/transfer_dsv4/0_18_0422_A2_mix_8k_1k_9TPS/vllm_profile1/dp0_pp0_tp0_dcp0_ep0_rank0_6563_20260422172204343_ascend_pt/profiler_info_0.json",
+      "capture_flags": {
+        "activities": [
+          "ProfilerActivity.CPU",
+          "ProfilerActivity.NPU"
+        ],
+        "schedule": {},
+        "record_shapes": false,
+        "profile_memory": false,
+        "with_stack": false,
+        "with_flops": false,
+        "with_modules": false
+      },
+      "independent_geometry": "None found in inspected export tree. Parallel group metadata may establish rank membership, not request lengths/model geometry. Folder labels remain unverified workload hints.",
+      "acceptance_scope": "Useful for Host/device correlation and raw accounting, not exact independent model-geometry acceptance."
+    },
+    {
+      "id": "0_18_0_0420_A3_EP32_3_5K_1_5K_2000TPS",
+      "model": "DeepSeek V4 (transfer directory label)",
+      "hardware": "Unresolved exact A2/A3 SKU; NPU_INFO says Ascend910B",
+      "hardware_confidence": "Do not classify as A3 from folder. Raw per-die resource configuration is retained; exact product topology/SKU not independently present.",
+      "source_db": "/Volumes/data/Profiling/Downloads/transfer_dsv4/0_18_0_0420_A3_EP32_3_5K_1_5K_2000TPS/dp0_pp0_tp0_dcp0_ep0_rank0_162625_20260420174100849_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler_0.db",
+      "source_bytes": 89251840,
+      "scope": "full serving workload capture, not standalone primitive; exact run geometry not independently proven",
+      "counts": {
+        "TASK": 147921,
+        "PYTORCH_API": 233876,
+        "CANN_API": 121021,
+        "CONNECTION_IDS": 66702
+      },
+      "npu_info": [
+        [
+          0,
+          "Ascend910B"
+        ]
+      ],
+      "device_resource_evidence": {
+        "path": "/Volumes/data/Profiling/Downloads/transfer_dsv4/0_18_0_0420_A3_EP32_3_5K_1_5K_2000TPS/dp0_pp0_tp0_dcp0_ep0_rank0_162625_20260420174100849_ascend_pt/PROF_000001_20260420174100850_JPDGDBJIBJOCNCKA/device_0/info.json.0",
+        "hostname": "node-39-113",
+        "ai_core_num": 24,
+        "aiv_num": 48,
+        "aic_frequency": "1800"
+      },
+      "available_host_module": "Real Host PyTorch/CANN APIs and connection IDs; bounded STRING_IDS query found no model/module hierarchy names. with_modules=false, with_stack=false.",
+      "profiler_info_path": "/Volumes/data/Profiling/Downloads/transfer_dsv4/0_18_0_0420_A3_EP32_3_5K_1_5K_2000TPS/dp0_pp0_tp0_dcp0_ep0_rank0_162625_20260420174100849_ascend_pt/profiler_info_0.json",
+      "capture_flags": {
+        "activities": [
+          "ProfilerActivity.CPU",
+          "ProfilerActivity.NPU"
+        ],
+        "schedule": {},
+        "record_shapes": false,
+        "profile_memory": false,
+        "with_stack": false,
+        "with_flops": false,
+        "with_modules": false
+      },
+      "independent_geometry": "None found in inspected export tree. Parallel group metadata may establish rank membership, not request lengths/model geometry. Folder labels remain unverified workload hints.",
+      "acceptance_scope": "Useful for Host/device correlation and raw accounting, not exact independent model-geometry acceptance."
+    },
+    {
+      "id": "glm45",
+      "model": "GLM-4.5 (directory label)",
+      "hardware": "Unresolved exact A2/A3 SKU; NPU_INFO says Ascend910B",
+      "hardware_confidence": "Do not classify as A3 from folder. Raw per-die resource configuration is retained; exact product topology/SKU not independently present.",
+      "source_db": "/Volumes/data/Profiling/Downloads/transfer/glm45/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler_0.db",
+      "source_bytes": 109031424,
+      "scope": "full serving workload capture, not standalone primitive; exact run geometry not independently proven",
+      "counts": {
+        "TASK": 252644,
+        "PYTORCH_API": 154106,
+        "CANN_API": 48964,
+        "CONNECTION_IDS": 55852
+      },
+      "npu_info": [
+        [
+          0,
+          "Ascend910B"
+        ]
+      ],
+      "device_resource_evidence": {
+        "path": "/Volumes/data/Profiling/Downloads/transfer/glm45/PROF_000001_20251118165604734_JQBLKECEECLQONRB/device_0/info.json.0",
+        "hostname": "localhost.localdomain",
+        "ai_core_num": 20,
+        "aiv_num": 40,
+        "aic_frequency": "1650"
+      },
+      "available_host_module": "Real Host PyTorch/CANN APIs and connection IDs; bounded STRING_IDS query found no model/module hierarchy names. with_modules=false, with_stack=false.",
+      "profiler_info_path": "/Volumes/data/Profiling/Downloads/transfer/glm45/profiler_info_0.json",
+      "capture_flags": {
+        "activities": [
+          "ProfilerActivity.CPU",
+          "ProfilerActivity.NPU"
+        ],
+        "schedule": {},
+        "record_shapes": false,
+        "profile_memory": false,
+        "with_stack": false,
+        "with_flops": false,
+        "with_modules": false
+      },
+      "independent_geometry": "None found in inspected export tree. Parallel group metadata may establish rank membership, not request lengths/model geometry. Folder labels remain unverified workload hints.",
+      "acceptance_scope": "Useful for Host/device correlation and raw accounting, not exact independent model-geometry acceptance."
+    },
+    {
+      "id": "glm53_a5_metrics_only",
+      "model": "GLM-5.3",
+      "hardware": "A5 campaign label",
+      "scope": "serving metrics only in inspected archives",
+      "inspected_archives": [
+        "/Volumes/data/mindie-sim-data/a5/2026-10-23/glm53-a5/glm53a5-raw.tar.gz",
+        "/Volumes/data/mindie-sim-data/a5/2026-10-23/glm53-tp8/glm53tp8-raw.tar.gz",
+        "/Volumes/data/mindie-sim-data/a5/2026-10-24/glm-c2c8/glm53a5-c2c8-raw.tar.gz"
+      ],
+      "evidence": "Streamed all archive member names and sizes. CSV members are request/cells/metrics; no kernel event CSV, profiler DB, or device trace retained in these three archives.",
+      "acceptance_scope": "Cannot count as kernel mapping acceptance."
+    },
+    {
+      "id": "deepseek_a5_metrics_only",
+      "model": "DeepSeek V4.1",
+      "hardware": "A5 campaign label",
+      "scope": "serving metrics only in inspected directories",
+      "inspected_directories": [
+        "/Volumes/data/mindie-sim-data/a5/2026-10-24/v41-dp4-16k",
+        "/Volumes/data/mindie-sim-data/a5/2026-10-25/v41-dp4-16k-aoff"
+      ],
+      "evidence": "CSV headers are t_epoch/metrics counters or request summaries. No raw kernel CSV/DB found in these scopes.",
+      "acceptance_scope": "Cannot count as kernel mapping acceptance."
+    },
+    {
+      "id": "kimi_primitives_a3_a5",
+      "model": "Kimi-shaped KDA/GDN/MLA operators",
+      "hardware": "A3 and A5 campaign labels",
+      "scope": "standalone primitive microbenchmarks, not full model runs",
+      "source_roots": [
+        "/Volumes/data/mindie-sim-data/a3/2026-10-24/k3-gdn-shape",
+        "/Volumes/data/mindie-sim-data/a3/2026-10-24/mla-dsa",
+        "/Volumes/data/mindie-sim-data/a5/2026-10-24/k3-gdn-shape",
+        "/Volumes/data/mindie-sim-data/a5/2026-10-24/k3-mla",
+        "/Volumes/data/mindie-sim-data/a5/2026-10-24/k3-mla-matched"
+      ],
+      "scope_evidence": "A3 cfg/profile_k3_gdn.py invokes standalone B.gdn_ops/B.kda_ops; bench_k3_gdn.py constructs tensors and calls chunk_kda_fwd/recurrent_kda, without full model serving.",
+      "available_host_module": "Primitive DBs retain Host/device events for the primitive invocation; they do not prove whole-model layer identity.",
+      "acceptance_scope": "Useful ABI/operator tests only. No complete A3 Kimi model kernel capture found in inspected roots; historical k3-v026-gqa-gsm8k archive also lacks kernel CSV/DB/trace members."
+    }
+  ],
+  "limitations": [
+    "Inventory is bounded to named inspected roots and archives; absence is not a claim about every file on this machine.",
+    "Hardware names in generic NPU_INFO do not uniquely resolve product topology.",
+    "No timing-derived shape or phase was promoted to declaration evidence."
+  ]
+}

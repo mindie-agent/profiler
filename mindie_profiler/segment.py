@@ -93,6 +93,8 @@ def find_csv_candidates(rank_dir: Path | str) -> list[Path]:
         for candidate in (
             base_dir / "kernel_details.csv",
             base_dir / _OUTPUT_DIR / "kernel_details.csv",
+            base_dir / "kernel_details.csv.gz",
+            base_dir / _OUTPUT_DIR / "kernel_details.csv.gz",
         )
         if candidate.is_file()
     ]
@@ -220,7 +222,7 @@ def discover_rank_sources(
             raise ProfilerUsageError(f"rank discovery exceeded {max_dirs} directories under {root_path}")
         current_path = Path(current)
         has_db = any(name.startswith("ascend_pytorch_profiler") and name.endswith(".db") for name in filenames)
-        has_csv = "kernel_details.csv" in filenames
+        has_csv = any(name in filenames for name in ("kernel_details.csv", "kernel_details.csv.gz"))
         has_output = _OUTPUT_DIR in dirnames
         if has_db or has_csv:
             if current_path not in seen:
@@ -238,7 +240,7 @@ def discover_rank_sources(
             except OSError:
                 pass
             if (
-                "kernel_details.csv" in output_names
+                any(name in output_names for name in ("kernel_details.csv", "kernel_details.csv.gz"))
                 or any(name.startswith("ascend_pytorch_profiler") and name.endswith(".db") for name in output_names)
             ):
                 if current_path not in seen:

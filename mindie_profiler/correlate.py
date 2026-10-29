@@ -10,8 +10,9 @@
 [Invariants]
   * Host parent/child edges require exact integer-nanosecond containment on the
     same ``globalTid``; they are never guessed from display names.
-  * TASK association prefers ``CONNECTION_IDS``/``connectionId``; a same-thread
-    CANN containment fallback is tagged with its basis.
+  * CANN_API.connectionId directly identifies TASK.connectionId; only
+    PYTORCH_API.connectionId indexes CONNECTION_IDS. Missing mappings never
+    become literal connection values. Interval fallbacks carry their basis.
   * ACLGraph protection: ``globalTaskId`` rows repeated anywhere in the full
     ``TASK`` table are marked ambiguous.  No wait/PMU value is summed, averaged,
     or attached to one replay.
@@ -19,10 +20,13 @@
     themselves.  ``host_dispatch_gap_ms`` is emitted only for associated host
     calls and carries its measurement basis.
   * Missing optional tables produce limitations, never fabricated zero rows.
+  * Host association uniqueness is explicit per edge and selected window;
+    repeated connections or ambiguous ancestry remain display-only candidates.
 
 [Timeouts & Locks]
   ``timeout_s`` (default 20s) is enforced through a sqlite progress handler.
-  Every table read has an explicit row cap; the connection closes in finally.
+  Window events and referenced connections have row caps; the connection closes
+  in finally. STRING_IDS remains a shared capture dictionary.
 
 [Side-Effect Policy]
   Read-only sqlite access to one DB.  No writes, index files, or network.
@@ -53,8 +57,8 @@ _CONNECTION_TABLE = "CONNECTION_IDS"
 def _columns(con: sqlite3.Connection, table: str) -> set[str]:
     try:
         return {str(row[1]) for row in con.execute(f"PRAGMA table_info({table})")}
-    except sqlite3.Error:
-        return set()
+    except sqlite3.Error as exc:
+        raise ProfilerQueryError(f"cannot inspect {table} columns: {exc}") from exc
 
 
 def _tables(con: sqlite3.Connection) -> set[str]:
@@ -86,8 +90,8 @@ def _strings(con: sqlite3.Connection) -> dict[int, str]:
             int(row[0]): str(row[1]) if row[1] is not None else ""
             for row in con.execute("SELECT id, value FROM STRING_IDS")
         }
-    except sqlite3.Error:
-        return {}
+    except sqlite3.Error as exc:
+        raise ProfilerQueryError(f"cannot read STRING_IDS: {exc}") from exc
 
 
 def _host_rows(
@@ -117,9 +121,11 @@ def _host_rows(
         f"WHERE {end_col} > ? AND {start_col} < ? ORDER BY {start_col}, rowid LIMIT ?"
     )
     try:
-        rows = con.execute(sql, (start_ns, end_ns, int(limit))).fetchall()
-    except sqlite3.Error:
-        return []
+        rows = con.execute(sql, (start_ns, end_ns, int(limit) + 1)).fetchall()
+    except sqlite3.Error as exc:
+        raise ProfilerQueryError(f"cannot read {table} rows: {exc}") from exc
+    if len(rows) > limit:
+        raise ProfilerQueryError(f"{table} exceeds correlation row budget {limit}")
     out: list[dict[str, Any]] = []
     unresolved: list[int] = []
     for row in rows:
@@ -168,9 +174,11 @@ def _task_rows(
         f"WHERE {end_col} > ? AND {start_col} < ? ORDER BY {start_col}, {global_col} LIMIT ?"
     )
     try:
-        rows = con.execute(sql, (start_ns, end_ns, int(limit))).fetchall()
+        rows = con.execute(sql, (start_ns, end_ns, int(limit) + 1)).fetchall()
     except sqlite3.Error as exc:
         raise ProfilerQueryError(f"cannot read TASK rows: {exc}") from exc
+    if len(rows) > limit:
+        raise ProfilerQueryError(f"TASK exceeds correlation row budget {limit}")
     out: list[dict[str, Any]] = []
     for row in rows:
         start, end = _int(row[1]), _int(row[2])
@@ -217,30 +225,42 @@ def _compute_names(
                 f"WHERE {global_col} IN ({placeholders})",
                 chunk,
             ).fetchall()
-        except sqlite3.Error:
-            return out
+        except sqlite3.Error as exc:
+            raise ProfilerQueryError(f"cannot read COMPUTE_TASK_INFO names: {exc}") from exc
         for global_id, name_id in rows:
             out[int(global_id)] = _text(strings, name_id, unresolved)
     return out
 
 
-def _connections(con: sqlite3.Connection) -> dict[int, int]:
-    if _CONNECTION_TABLE not in _tables(con):
+def _connections(con: sqlite3.Connection, references: Iterable[int], *, limit: int) -> dict[int, set[int]]:
+    ids = sorted(set(references))
+    if not ids or _CONNECTION_TABLE not in _tables(con):
         return {}
     columns = _columns(con, _CONNECTION_TABLE)
     id_col = _pick(columns, ("id",))
     conn_col = _pick(columns, ("connectionId", "connection_id"))
     if id_col is None or conn_col is None:
         return {}
-    out: dict[int, int] = {}
+    out: dict[int, set[int]] = {}
+    selected = 0
     try:
-        for left, right in con.execute(f"SELECT {id_col}, {conn_col} FROM {_CONNECTION_TABLE}"):
-            left_int, right_int = _int(left), _int(right)
-            if left_int is not None and right_int is not None:
-                out[left_int] = right_int
-                out.setdefault(right_int, left_int)
-    except sqlite3.Error:
-        return {}
+        for offset in range(0, len(ids), 500):
+            chunk = ids[offset:offset + 500]
+            placeholders = ",".join("?" for _ in chunk)
+            rows = con.execute(
+                f"SELECT {id_col}, {conn_col} FROM {_CONNECTION_TABLE} "
+                f"WHERE {id_col} IN ({placeholders}) LIMIT ?",
+                (*chunk, limit - selected + 1),
+            ).fetchall()
+            selected += len(rows)
+            if selected > limit:
+                raise ProfilerQueryError(f"referenced CONNECTION_IDS exceeds correlation row budget {limit}")
+            for left, right in rows:
+                left_int, right_int = _int(left), _int(right)
+                if left_int is not None and right_int is not None:
+                    out.setdefault(left_int, set()).add(right_int)
+    except sqlite3.Error as exc:
+        raise ProfilerQueryError(f"cannot read CONNECTION_IDS: {exc}") from exc
     return out
 
 
@@ -260,21 +280,22 @@ def _task_occurrences(con: sqlite3.Connection, global_ids: Sequence[int], *, lim
                 f"WHERE {global_col} IN ({placeholders}) GROUP BY {global_col}",
                 chunk,
             ).fetchall()
-        except sqlite3.Error:
-            return counts
+        except sqlite3.Error as exc:
+            raise ProfilerQueryError(f"cannot count TASK occurrences: {exc}") from exc
         for global_id, count in rows:
             counts[int(global_id)] = int(count)
     return counts
 
 
-def _connection_for(event: dict[str, Any], links: dict[int, int]) -> int | None:
-    direct = event.get("connection_id")
-    if direct is not None:
-        return links.get(direct, direct)
-    event_id = event.get("id")
-    if event_id is not None:
-        return links.get(event_id)
-    return None
+def _connections_for(event: dict[str, Any], links: dict[int, set[int]]) -> set[int]:
+    connection = event.get("connection_id")
+    if connection is None:
+        return set()
+    if event["table"] == "CANN_API":
+        return {connection}
+    if event["table"] == "PYTORCH_API":
+        return links.get(connection, set())
+    return set()
 
 
 _STEP_MARKER = re.compile(r"^ProfilerStep#", re.IGNORECASE)
@@ -287,15 +308,14 @@ def _is_step_marker(event: dict[str, Any]) -> bool:
 def _attach_stacks(events: list[dict[str, Any]]) -> None:
     by_thread: dict[str, list[dict[str, Any]]] = {}
     for event in events:
-        by_thread.setdefault(str(event.get("global_tid") or ""), []).append(event)
+        if event.get("global_tid") is None or _is_step_marker(event):
+            event["parent"], event["depth"] = None, 0
+            continue
+        by_thread.setdefault(str(event["global_tid"]), []).append(event)
     for thread_events in by_thread.values():
         thread_events.sort(key=lambda item: (item["start_ns"], -item["end_ns"]))
         stack: list[dict[str, Any]] = []
         for event in thread_events:
-            if not _is_step_marker(event):
-                # Step markers are native window evidence, not module frames.
-                while stack and _is_step_marker(stack[-1]):
-                    stack.pop()
             while stack and not (
                 stack[-1]["start_ns"] <= event["start_ns"] and stack[-1]["end_ns"] >= event["end_ns"]
             ):
@@ -326,52 +346,85 @@ def _stack_path(event: dict[str, Any] | None, *, limit: int = 8) -> list[dict[st
 def _find_cann(
     task: dict[str, Any],
     cann_events: Sequence[dict[str, Any]],
-    links: dict[int, int],
-) -> tuple[dict[str, Any] | None, str | None]:
+    links: dict[int, set[int]],
+) -> tuple[dict[str, Any] | None, str | None, bool, int]:
     connection = task.get("connection_id")
     if connection is not None:
-        for event in cann_events:
-            if _connection_for(event, links) == connection:
-                return event, "connection_ids"
-    for event in cann_events:
-        if event["start_ns"] <= task["start_ns"] and event["end_ns"] >= task["end_ns"]:
-            return event, "cann_interval_contains_task"
-    return None, None
+        candidates = [event for event in cann_events if connection in _connections_for(event, links)]
+        if candidates:
+            return candidates[0], "connection_ids", len(candidates) == 1, len(candidates)
+    candidates = [
+        event for event in cann_events
+        if event["start_ns"] <= task["start_ns"] and event["end_ns"] >= task["end_ns"]
+    ]
+    if candidates:
+        return candidates[0], "cann_interval_contains_task", len(candidates) == 1, len(candidates)
+    return None, None, False, 0
+
+
+def _strict_stack(events: Sequence[dict[str, Any]]) -> bool:
+    """Equal or crossing host intervals do not prove a unique ancestry."""
+    ordered = sorted(events, key=lambda event: (event["start_ns"], -event["end_ns"]))
+    return all(
+        outer["start_ns"] <= inner["start_ns"]
+        and outer["end_ns"] >= inner["end_ns"]
+        and (outer["start_ns"], outer["end_ns"]) != (inner["start_ns"], inner["end_ns"])
+        for outer, inner in zip(ordered, ordered[1:])
+    )
+
+
+def _host_stack_unique(event, pytorch_events):
+    tid = event.get("global_tid")
+    if tid is None:
+        return True  # No ancestry is attached without a known thread.
+    parents = [
+        candidate for candidate in pytorch_events
+        if not _is_step_marker(candidate) and candidate.get("global_tid") == tid
+        and candidate["start_ns"] <= event["start_ns"]
+        and candidate["end_ns"] >= event["end_ns"]
+    ]
+    return _strict_stack(parents)
 
 
 def _find_pytorch(
     cann: dict[str, Any] | None,
     pytorch_events: Sequence[dict[str, Any]],
-    links: dict[int, int],
+    links: dict[int, set[int]],
     task: dict[str, Any],
-) -> tuple[dict[str, Any] | None, str | None]:
+) -> tuple[dict[str, Any] | None, str | None, bool, int]:
     if cann is not None:
-        connection = _connection_for(cann, links)
-        if connection is not None:
-            for event in pytorch_events:
-                if _connection_for(event, links) == connection:
-                    return event, "connection_ids"
+        connections = _connections_for(cann, links)
+        if task.get("connection_id") in connections:
+            connections = {task["connection_id"]}
+        candidates = [
+            event for event in pytorch_events
+            if not _is_step_marker(event) and _connections_for(event, links) & connections
+        ]
+        if candidates:
+            unique = len(candidates) == 1 and _host_stack_unique(candidates[0], pytorch_events)
+            return candidates[0], "connection_ids", unique, len(candidates)
         tid = cann.get("global_tid")
         candidates = [
             event
             for event in pytorch_events
-            if tid is not None
+            if not _is_step_marker(event) and tid is not None
             and event.get("global_tid") == tid
             and event["start_ns"] <= cann["start_ns"]
             and event["end_ns"] >= cann["end_ns"]
         ]
         if candidates:
-            # Tightest containing parent: latest start, then earliest end.
-            return max(candidates, key=lambda event: (event["start_ns"], -event["end_ns"])), "same_global_tid_containment"
-        if cann.get("parent") is not None:
-            # Defensive fallback for a same-table stack if one is ever supplied.
-            return cann["parent"], "same_global_tid_containment"
+            selected = max(candidates, key=lambda event: (event["start_ns"], -event["end_ns"]))
+            return selected, "same_global_tid_containment", _strict_stack(candidates), len(candidates)
     connection = task.get("connection_id")
     if connection is not None:
-        for event in pytorch_events:
-            if _connection_for(event, links) == connection:
-                return event, "connection_ids"
-    return None, None
+        candidates = [
+            event for event in pytorch_events
+            if not _is_step_marker(event) and connection in _connections_for(event, links)
+        ]
+        if candidates:
+            unique = len(candidates) == 1 and _host_stack_unique(candidates[0], pytorch_events)
+            return candidates[0], "connection_ids", unique, len(candidates)
+    return None, None, False, 0
 
 
 def _gap_intervals(intervals: Sequence[tuple[int, int]], start_ns: int, end_ns: int) -> list[tuple[int, int]]:
@@ -417,6 +470,11 @@ def correlate_profile(
     if item.db_path is None:
         raise ProfilerUsageError(f"rank {item.rank_id!r} has no DB source")
     db_path = Path(item.db_path)
+    source_stat = db_path.stat()
+    source_identity = {
+        "path": str(db_path.resolve()), "size_bytes": source_stat.st_size,
+        "mtime_ns": source_stat.st_mtime_ns,
+    }
     con = open_readonly(db_path, timeout_s=timeout_s, allow_pragma=True)
     started = time.perf_counter()
     deadline = started + max(0.1, timeout_s)
@@ -450,10 +508,16 @@ def correlate_profile(
             else []
         )
         _attach_stacks(cann_events)
-        links = _connections(con)
+        connection_refs = {
+            event["connection_id"] for event in pytorch_events
+        } - {None}
+        links = _connections(con, connection_refs, limit=max_rows)
         tasks = _task_rows(con, strings, start_ns=window.start_ns, end_ns=window.end_ns, limit=max_rows)
         compute_names = _compute_names(con, strings, [task["global_task_id"] for task in tasks if task["global_task_id"] is not None])
-        occurrences = _task_occurrences(con, [task["global_task_id"] for task in tasks if task["global_task_id"] is not None])
+        occurrences = _task_occurrences(
+            con, [task["global_task_id"] for task in tasks if task["global_task_id"] is not None],
+            limit=max_rows,
+        )
         if kernel_name:
             try:
                 pattern = re.compile(kernel_name, re.IGNORECASE)
@@ -472,8 +536,10 @@ def correlate_profile(
             if pattern is not None and not pattern.search(name or ""):
                 continue
             selected += 1
-            cann, cann_basis = _find_cann(task, cann_events, links)
-            pytorch, pytorch_basis = _find_pytorch(cann, pytorch_events, links, task)
+            cann, cann_basis, cann_unique, cann_candidates = _find_cann(task, cann_events, links)
+            pytorch, pytorch_basis, pytorch_unique, pytorch_candidates = _find_pytorch(
+                cann, pytorch_events, links, task,
+            )
             global_id = task["global_task_id"]
             count = occurrences.get(global_id, 0) if global_id is not None else 0
             task["global_task_id_occurrences"] = count
@@ -513,6 +579,10 @@ def correlate_profile(
                         "association_basis": {
                             "cann": cann_basis,
                             "pytorch": pytorch_basis,
+                        },
+                        "association_unique": {"cann": cann_unique, "pytorch": pytorch_unique},
+                        "association_candidate_counts": {
+                            "cann": cann_candidates, "pytorch": pytorch_candidates,
                         },
                         "dispatch": {
                             "host_dispatch_gap_ms": _ms(gap_ns),
@@ -558,6 +628,7 @@ def correlate_profile(
             "root": str(Path(root).expanduser().resolve()),
             "rank_id": item.rank_id,
             "db": str(db_path),
+            "source_identity": source_identity,
             "window": {
                 "start_ns": window.start_ns,
                 "end_ns": window.end_ns,

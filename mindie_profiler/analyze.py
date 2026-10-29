@@ -355,6 +355,12 @@ def analyze_profile(
     model_inputs: Any | None = None,
     model_hardware: Any | None = None,
     steady_config: Any | None = None,
+    structure: Any | None = None,
+    structure_bindings: Any | None = None,
+    structure_correlations: Sequence[Any] | None = None,
+    structure_module_traces: Sequence[str | Path] | None = None,
+    mapping_limit: int = 200,
+    max_mapping_events: int = 100_000,
     output: str | Path | None = None,
 ) -> dict:
     """Analyze explicit windows and return the enriched C7 report dict.
@@ -371,6 +377,10 @@ def analyze_profile(
     """
 
     started = time.perf_counter()
+    if structure is None and (
+        structure_bindings is not None or structure_correlations or structure_module_traces
+    ):
+        raise ProfilerUsageError("structure bindings/correlations/module traces require a structure manifest")
     if top_n <= 0:
         raise ProfilerUsageError("top_n must be positive")
     if max_rows <= 0:
@@ -508,6 +518,16 @@ def analyze_profile(
         model_hardware=model_hardware,
         steady_config=steady_config,
     )
+    if structure is not None:
+        from .structure_mapping import map_structure
+
+        report["structure_mapping"] = map_structure(
+            observations, structure, bindings=structure_bindings,
+            correlations=structure_correlations, mapping_limit=mapping_limit,
+            module_traces=structure_module_traces,
+            max_events=max_mapping_events,
+            phase=(scene or {}).get("phase"),
+        )
     if output is not None:
         write_report(report, output)
     return report

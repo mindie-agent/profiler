@@ -1,0 +1,260 @@
+{
+  "schema_version": "mindie-derived-capture-fixture/1",
+  "derivation": "Select the first complete-tensor and first absent-tensor row for each retained fusion kind from each original capture. All CSV fields remain unchanged; LF serialization only. No tensor slots or timing values are synthesized.",
+  "sources": [
+    {
+      "label": "a3_qwen35",
+      "source_path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen35-gdn/prof/p_16384_c1/dp0_pp0_tp0_dcp0_ep0_rank0_351_20261023191719697_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "source_sha256": "2c2fb28ab36674f8eaef52042e1350a949a972225b4d4c5f52da1fe27fa58b53",
+      "source_size_bytes": 38931005,
+      "fixture": "a3_qwen35.csv",
+      "fixture_sha256": "72f2d67268c42164adacaa632e45283169bb4b874a3672b50b78a98311a1a5da",
+      "rows": [
+        {
+          "fixture_csv_line": 2,
+          "source_csv_line": 70,
+          "kind": "GemmaRmsNorm",
+          "input_shapes_raw": "\"8192,2048;2048\"",
+          "output_shapes_raw": "\"8192,2048;8192,1\""
+        },
+        {
+          "fixture_csv_line": 3,
+          "source_csv_line": 98,
+          "kind": "_layer_norm_fwd_1pass_kernel_npu",
+          "input_shapes_raw": "\"65536,128;128;65536,128\"",
+          "output_shapes_raw": "\"65536,128;65536\""
+        },
+        {
+          "fixture_csv_line": 4,
+          "source_csv_line": 102,
+          "kind": "AddRmsNormBias",
+          "input_shapes_raw": "\"8192,2048;8192,2048;2048;\"",
+          "output_shapes_raw": "\"8192,2048;8192,1;8192,2048\""
+        },
+        {
+          "fixture_csv_line": 5,
+          "source_csv_line": 235,
+          "kind": "split_qkv_rmsnorm_mrope_kernel",
+          "input_shapes_raw": "\"8192,2560;256;256;3,8192,64\"",
+          "output_shapes_raw": "\"8192,1024\""
+        },
+        {
+          "fixture_csv_line": 6,
+          "source_csv_line": 4337,
+          "kind": "_layer_norm_fwd_1pass_kernel_npu",
+          "input_shapes_raw": "N/A",
+          "output_shapes_raw": "N/A"
+        },
+        {
+          "fixture_csv_line": 7,
+          "source_csv_line": 4456,
+          "kind": "split_qkv_rmsnorm_mrope_kernel",
+          "input_shapes_raw": "N/A",
+          "output_shapes_raw": "N/A"
+        }
+      ],
+      "capture_counts": [
+        {
+          "kind": "GemmaRmsNorm",
+          "shape_state": "present",
+          "count": 268
+        },
+        {
+          "kind": "_layer_norm_fwd_1pass_kernel_npu",
+          "shape_state": "present",
+          "count": 60
+        },
+        {
+          "kind": "AddRmsNormBias",
+          "shape_state": "present",
+          "count": 5494
+        },
+        {
+          "kind": "split_qkv_rmsnorm_mrope_kernel",
+          "shape_state": "present",
+          "count": 22
+        },
+        {
+          "kind": "_layer_norm_fwd_1pass_kernel_npu",
+          "shape_state": "absent",
+          "count": 1950
+        },
+        {
+          "kind": "split_qkv_rmsnorm_mrope_kernel",
+          "shape_state": "absent",
+          "count": 715
+        }
+      ]
+    },
+    {
+      "label": "a3_qwen36",
+      "source_path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "source_sha256": "797260bd9ea48a7fb75831c397a6c0716be11233f4df953d299e5bdf99084d7f",
+      "source_size_bytes": 13245065,
+      "fixture": "a3_qwen36.csv",
+      "fixture_sha256": "fc7b2f7b6fd80f1465e2f949c8a75fbc2f4011ec1e31988c72cd058a1c032219",
+      "rows": [
+        {
+          "fixture_csv_line": 2,
+          "source_csv_line": 65,
+          "kind": "GemmaRmsNorm",
+          "input_shapes_raw": "\"8192,5120;5120\"",
+          "output_shapes_raw": "\"8192,5120;8192,1\""
+        },
+        {
+          "fixture_csv_line": 3,
+          "source_csv_line": 95,
+          "kind": "_layer_norm_fwd_1pass_kernel_npu",
+          "input_shapes_raw": "\"98304,128;128;98304,128\"",
+          "output_shapes_raw": "\"98304,128;98304\""
+        },
+        {
+          "fixture_csv_line": 4,
+          "source_csv_line": 99,
+          "kind": "AddRmsNormBias",
+          "input_shapes_raw": "\"8192,5120;8192,5120;5120;\"",
+          "output_shapes_raw": "\"8192,5120;8192,1;8192,5120\""
+        },
+        {
+          "fixture_csv_line": 5,
+          "source_csv_line": 214,
+          "kind": "split_qkv_rmsnorm_mrope_kernel",
+          "input_shapes_raw": "\"8192,3584;256;256;3,8192,64\"",
+          "output_shapes_raw": "\"8192,1536\""
+        },
+        {
+          "fixture_csv_line": 6,
+          "source_csv_line": 5806,
+          "kind": "_layer_norm_fwd_1pass_kernel_npu",
+          "input_shapes_raw": "N/A",
+          "output_shapes_raw": "N/A"
+        },
+        {
+          "fixture_csv_line": 7,
+          "source_csv_line": 5890,
+          "kind": "split_qkv_rmsnorm_mrope_kernel",
+          "input_shapes_raw": "N/A",
+          "output_shapes_raw": "N/A"
+        }
+      ],
+      "capture_counts": [
+        {
+          "kind": "GemmaRmsNorm",
+          "shape_state": "present",
+          "count": 170
+        },
+        {
+          "kind": "_layer_norm_fwd_1pass_kernel_npu",
+          "shape_state": "present",
+          "count": 96
+        },
+        {
+          "kind": "AddRmsNormBias",
+          "shape_state": "present",
+          "count": 2278
+        },
+        {
+          "kind": "split_qkv_rmsnorm_mrope_kernel",
+          "shape_state": "present",
+          "count": 83
+        },
+        {
+          "kind": "_layer_norm_fwd_1pass_kernel_npu",
+          "shape_state": "absent",
+          "count": 720
+        },
+        {
+          "kind": "split_qkv_rmsnorm_mrope_kernel",
+          "shape_state": "absent",
+          "count": 240
+        }
+      ]
+    },
+    {
+      "label": "a5_qwen38",
+      "source_path": "/Volumes/data/mindie-sim-data/a5/2026-10-22/qwen38-c4-16k/raw/prof/p16384_c1_o32/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+      "source_sha256": "ec7fbcff6138d06fd7d0ed20497d8d4af2f78a179372db976090d4206a3d17ca",
+      "source_size_bytes": 7978835,
+      "fixture": "a5_qwen38.csv",
+      "fixture_sha256": "bf1f9ff14808e4db0c5611e12c91bb84cbc14d4ecd5a3ff9585b1dd3a385a7d5",
+      "rows": [
+        {
+          "fixture_csv_line": 2,
+          "source_csv_line": 76,
+          "kind": "_layer_norm_fwd_1pass_kernel_npu",
+          "input_shapes_raw": "\"786432,128;128;786432,128\"",
+          "output_shapes_raw": "\"786432,128;786432\""
+        },
+        {
+          "fixture_csv_line": 3,
+          "source_csv_line": 171,
+          "kind": "split_qkv_rmsnorm_mrope_kernel",
+          "input_shapes_raw": "\"16384,14336;256;256;3,16384,64\"",
+          "output_shapes_raw": "\"16384,6144\""
+        },
+        {
+          "fixture_csv_line": 4,
+          "source_csv_line": 2576,
+          "kind": "_layer_norm_fwd_1pass_kernel_npu",
+          "input_shapes_raw": "N/A",
+          "output_shapes_raw": "N/A"
+        },
+        {
+          "fixture_csv_line": 5,
+          "source_csv_line": 2643,
+          "kind": "split_qkv_rmsnorm_mrope_kernel",
+          "input_shapes_raw": "N/A",
+          "output_shapes_raw": "N/A"
+        }
+      ],
+      "capture_counts": [
+        {
+          "kind": "_layer_norm_fwd_1pass_kernel_npu",
+          "shape_state": "present",
+          "count": 48
+        },
+        {
+          "kind": "split_qkv_rmsnorm_mrope_kernel",
+          "shape_state": "present",
+          "count": 52
+        },
+        {
+          "kind": "_layer_norm_fwd_1pass_kernel_npu",
+          "shape_state": "absent",
+          "count": 528
+        },
+        {
+          "kind": "split_qkv_rmsnorm_mrope_kernel",
+          "shape_state": "absent",
+          "count": 176
+        }
+      ]
+    }
+  ],
+  "source_implementation_reference": {
+    "repository": "/Users/maoxx241/code/vllm-ascend",
+    "revision": "175ef4d49c2072f9233619636f0309f4f88b4e2c",
+    "files": {
+      "ops/triton/layernorm_gated.py": {
+        "path": "/Users/maoxx241/code/vllm-ascend/vllm_ascend/ops/triton/layernorm_gated.py",
+        "sha256": "ecdd125ce32f969e1b1c0e4f8b4e84ee8657332cd02cdcc4c72edd2bff13aff2"
+      },
+      "ops/triton/linearnorm/split_qkv_rmsnorm_mrope.py": {
+        "path": "/Users/maoxx241/code/vllm-ascend/vllm_ascend/ops/triton/linearnorm/split_qkv_rmsnorm_mrope.py",
+        "sha256": "ba3c7e740c3a2a9c8850733d3be77fefac79bc3ed02a45b4be076b58d6f7632d"
+      },
+      "ops/layernorm.py": {
+        "path": "/Users/maoxx241/code/vllm-ascend/vllm_ascend/ops/layernorm.py",
+        "sha256": "3782d77a4d1a5493121ee51c676b455304ccfdcd1abccbe58b45f5d4ad861a1e"
+      }
+    },
+    "scope": "Local implementation corroborates tensor-slot semantics; its revision is not claimed to equal the capture image binary. QKV wrapper allocates and returns Q/K/V/gate at lines 325-366; CSV only reports one output.",
+    "capture_image_version_note": "A3 Qwen35 source provenance identifies vllm-ascend daily v0.30.0 A3 CANN9.2.1 from 2026-10-21; A5 capture is from 2026-10-22. Existing raw capture remains the evidence of recorded fields."
+  },
+  "limitations": [
+    "These are selected rows within mixed prefill/decode/draft captures, not complete model passes.",
+    "A native tensor ABI contract does not expose eps, weight values or compile-time flags; matching tensor slots does not establish model layer occurrence.",
+    "The QKV fusion output in these captures is incomplete. Neither Q nor gate output identity can be selected from the equal shapes; no contract is emitted for the incomplete row.",
+    "Missing raw N/A remains missing; neither normalization nor tests fill it from neighbouring invocations."
+  ]
+}

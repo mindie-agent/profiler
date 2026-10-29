@@ -1,0 +1,126 @@
+{
+  "schema_version": "mindie-derived-capture-fixture/1",
+  "derivation": "Six unchanged TASK rows and their original COMPUTE_TASK_INFO/PMU rows, original metadata/string tables, original matching synchronized module records, and original step 1 record. This is a partial slice of step 1, not a complete step capture. No tensor values, event timing, module intervals, or identities were synthesized.",
+  "capture": {
+    "label": "baseline-v3",
+    "hardware": "Ascend910B4",
+    "host": "173.125.1.2",
+    "physical_card": 0,
+    "model": "tiny-mlp-256-relu",
+    "input_shape": [
+      8,
+      256
+    ],
+    "input_dtype": "float32",
+    "profiled_run_only": true,
+    "not_application_throughput": true
+  },
+  "sources": {
+    "database": {
+      "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+      "sha256": "5ca5235f1e3e91c58909ffbc11b9041d963f0a210dbe87fcce787ac36523a72b"
+    },
+    "module_trace": {
+      "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/module_trace.json",
+      "sha256": "30d623bab85fb380bb6b4837cb5717d78d019407590ff49ca409f1e95b4d2113"
+    },
+    "steps": {
+      "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/steps.json",
+      "sha256": "f4690183e18ab913a6438a3fcb1fe32f873c3a77f02258cecace9429e7b3f664"
+    },
+    "result": {
+      "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/result.json",
+      "sha256": "f4658ee4e11756619c339d9509e3fe711185ddd8ee07956f4910036fbf44f214"
+    }
+  },
+  "original_trace_source_identity": {
+    "db_path": "/tmp/mindie-npu-test-profiler-baseline-v3-d5dbc18a96e9484fbb8e65d5d2b3a643/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+    "db_sha256": "5ca5235f1e3e91c58909ffbc11b9041d963f0a210dbe87fcce787ac36523a72b",
+    "steps_file": null,
+    "steps_sha256": null,
+    "parser_version": "mindie_profiler/0.0.3",
+    "step_stats": {
+      "1": {
+        "events": 6000,
+        "rows_read": 6000
+      },
+      "2": {
+        "events": 6000,
+        "rows_read": 6000
+      },
+      "3": {
+        "events": 6000,
+        "rows_read": 6000
+      }
+    }
+  },
+  "selection": {
+    "table_where": {
+      "TASK": "rowid IN (1,2,3,4,5,6)",
+      "COMPUTE_TASK_INFO": "globalTaskId IN (58,61,63,64,65,67)",
+      "TASK_PMU_INFO": "globalTaskId IN (58,61,63,64,65,67)",
+      "STRING_IDS": "1",
+      "META_DATA": "1",
+      "NPU_INFO": "1",
+      "HOST_INFO": "1",
+      "RANK_DEVICE_MAP": "1",
+      "SESSION_TIME_INFO": "1",
+      "STEP_TIME": "id = 1"
+    },
+    "copied_row_counts": {
+      "TASK": 6,
+      "COMPUTE_TASK_INFO": 6,
+      "TASK_PMU_INFO": 168,
+      "STRING_IDS": 86,
+      "META_DATA": 6,
+      "NPU_INFO": 1,
+      "HOST_INFO": 1,
+      "RANK_DEVICE_MAP": 1,
+      "SESSION_TIME_INFO": 1,
+      "STEP_TIME": 1
+    },
+    "task_rowids": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "global_task_ids": [
+      58,
+      61,
+      63,
+      64,
+      65,
+      67
+    ],
+    "module_invocations": [
+      6000,
+      6001,
+      6002,
+      6003,
+      6004,
+      6005
+    ],
+    "step_ids": [
+      1
+    ],
+    "preserved_sqlite_rowids": true,
+    "schema": "Original CREATE TABLE statements for copied tables. Unrelated source tables omitted."
+  },
+  "derived_identity": {
+    "capture.db": "e17c2775a16fd2186f46430cb4e3352e15f4d4fea2106f44efe67a742feac090",
+    "module_trace.json": "8c19c5db48f4b443caf066df253b8962a95ecc3ecabfdfb423bd6b7d416c93d3",
+    "steps.json": "14761ed99284581fcc5ca87d6e1c7ac88a3843bd0523cd3eff81cf0d0e9bed57"
+  },
+  "removed_trace_fields": [
+    "mapping_result",
+    "structure"
+  ],
+  "limitations": [
+    "Only two invocations per leaf module, six events total. Step and capture wall bounds retain original bounds, so they extend past this selected subset.",
+    "Original module source_identity retained here; derived trace source_identity points to the sliced database and steps.",
+    "Original parser-version/step_stats aggregate metadata is not applied to the derived slice."
+  ]
+}

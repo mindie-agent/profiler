@@ -1,0 +1,183 @@
+"""Observed quantized and grouped matrix geometry with explicit ABI branches.
+
+[Role] Project verified ND/NZ operand and scale descriptors into matrix contracts.
+[Invariants] MX V3 and MXA8W4 V4 use different scale order and weight axes.
+  Expert banks remain grouped; a descriptor never supplies per-expert row values.
+  Only the retained bias-free dense interfaces and declared grouped branches pass.
+[Timeouts & Locks] Bounded tensor-slot arithmetic; no waits or locks.
+[Side-Effect Policy] No I/O, sim imports, capture timing or configuration changes.
+
+Geometry evidence: CANN ops-nn 955f8b33985b6d72989ebff341bb9c2c564a51bc,
+matmul/quant_batch_matmul_v4/docs/aclnnQuantMatmulV5.md (NZ axes and MX scales),
+and vllm-ascend quantization/methods/{w8a8_dynamic,w8a8_mxfp8,w4a8_mxfp4,w4a8}.py.
+The retained capture slot order is checked separately from the public op schema.
+"""
+from .native_tensor_abi import native_tensor_contract, native_tensor_diagnostic
+
+
+MATRIX_BODY_TYPES = {"QuantBatchMatmulV3", "QuantBatchMatmulV4", "GroupedMatmul"}
+_DTYPES = {"DT_INT4": "int4", "INT4": "int4", "DT_FLOAT4_E2M1": "mxfp4",
+           "UINT64": "uint64", "DT_UINT64": "uint64"}
+
+
+def _slots(row):
+    native = native_tensor_contract(row)
+    if native is None:
+        return None
+    return tuple(tuple((shape, _DTYPES.get(dtype, dtype), layout)
+                       for shape, dtype, layout in side) for side in native[2:])
+
+
+def _issue(row, reason, detail):
+    return {"category": "contract_support_gap", "operator_type": row.kind,
+            "reason": reason, "detail": detail}
+
+
+def _dense(row, inputs, outputs):
+    expected = 4 if row.kind == "QuantBatchMatmulV3" else 5
+    if len(inputs) != expected or len(outputs) != 1:
+        return None, _issue(row, "unsupported_quant_matrix_slots",
+                            "Supported retained interfaces are V3 four inputs and V4 five inputs, "
+                            "each with one output; additional epilogues are not discarded.")
+    x, weight, y = inputs[0], inputs[1], outputs[0]
+    if (len(x[0]) != 2 or len(y[0]) != 2 or x[0][0] != y[0][0]
+            or any(v <= 0 for v in (*x[0], *y[0]))):
+        return None, _issue(row, "unsupported_quant_matrix_geometry",
+                            "This projection requires positive 2-D input and output with equal rows.")
+    m, k = x[0]
+    _, n = y[0]
+    if x[2] != "ND" or y[2] != "ND" or weight[2] != "FRACTAL_NZ":
+        return None, _issue(row, "unsupported_quant_matrix_layout",
+                            "Only retained ND activation/output and source-defined NZ weight layouts pass.")
+    groups = (k + 63) // 64
+    if row.kind == "QuantBatchMatmulV3":
+        ws, xs = inputs[2:4]
+        if k % 16 or n % 32 or weight[0] != (n // 32, k // 16, 16, 32):
+            return None, _issue(row, "inconsistent_quant_matrix_weight_axes",
+                                "V3 non-transposed NZ weight axes are [N/32,K/16,16,32].")
+        if x[1] == weight[1] == "int8":
+            valid = (ws[0] == (n,) and ws[1] in {"bf16", "fp32"} and ws[2] == "ND"
+                     and xs == ((m,), "fp32", "ND")
+                     and (y[1] == "bf16" or y[1] == "fp16" and ws[1] == "fp32"))
+        elif x[1] == weight[1] == "fp8_e4m3":
+            valid = (ws == ((groups, n, 2), "fp8_e8m0", "ND")
+                     and xs == ((m, groups, 2), "fp8_e8m0", "ND")
+                     and y[1] in {"bf16", "fp16", "fp32"})
+        else:
+            valid = False
+    else:
+        xs, ws, bias = inputs[2:5]
+        if bias[0]:
+            return None, _issue(row, "quant_matrix_bias_boundary_not_declared",
+                                "The observed V4 bias epilogue requires a corresponding declared program.")
+        if weight[0] != ((k + 31) // 32, (n + 15) // 16, 16, 32):
+            return None, _issue(row, "inconsistent_quant_matrix_weight_axes",
+                                "The retained transposed NZ weight has [ceil(K/32),ceil(N/16),16,32] axes.")
+        valid = (
+            x[1] == "fp8_e4m3" and weight[1] == "mxfp4"
+            and xs == ((m, groups, 2), "fp8_e8m0", "ND")
+            and ws == ((n, groups, 2), "fp8_e8m0", "ND")
+            and y[1] in {"bf16", "fp16"}
+            and bias[1] in {None, y[1]} and bias[2] in {None, "ND"})
+    if not valid:
+        return None, _issue(row, "unsupported_quant_matrix_scale_or_precision",
+                            "Operand/output precision and both scale descriptors must satisfy "
+                            "the retained INT8 per-token/per-channel or MX paired-scale interface.")
+    return ("matrix", (m, n, k), x[1], weight[1], y[1], xs[0], xs[1]), None
+
+
+def _grouped(row, inputs, outputs):
+    if len(inputs) not in {8, 9} or len(outputs) != 1:
+        return None, _issue(row, "unsupported_grouped_matrix_slots",
+                            "Only one activation, one expert bank and one output are supported; "
+                            "dynamic multi-tensor lists are not flattened.")
+    x, weight, bias, scale, offset, anti_scale, anti_offset, group_list = inputs[:8]
+    y = outputs[0]
+    if (len(x[0]) != 2 or len(y[0]) != 2 or x[0][0] != y[0][0]
+            or any(v <= 0 for v in (*x[0], *y[0])) or x[2] != y[2] or x[2] != "ND"
+            or len(group_list[0]) != 1 or group_list[0][0] <= 0
+            or group_list[1:] != ("int64", "ND")):
+        return None, _issue(row, "unsupported_grouped_matrix_geometry",
+                            "Grouped rows require ND input/output and an explicit INT64 expert-group vector.")
+    m, k = x[0]
+    n, experts = y[0][1], group_list[0][0]
+    xs = inputs[8] if len(inputs) == 9 else ((), None, None)
+    if any(slot[0] for slot in (offset, anti_scale, anti_offset)):
+        return None, _issue(row, "grouped_matrix_antiquant_boundary_not_declared",
+                            "Materialized offset/antiquant interfaces are separate semantic branches.")
+    if weight[0] == (experts, k, n) and weight[2] == "FRACTAL_NZ":
+        if x[1] == weight[1] == "int8":
+            valid = (not bias[0] and scale == ((experts, n), "bf16", "ND")
+                     and xs == ((m,), "fp32", "ND") and y[1] == "bf16")
+        elif x[1] == "int8" and weight[1] == "int4":
+            valid = (bias == ((experts, n), "fp32", "ND")
+                     and scale == ((experts, 1, n), "uint64", "NCL")
+                     and xs == ((m,), "fp32", "ND") and y[1] == "bf16")
+        else:
+            valid = False
+    elif (weight[0] == (experts, k, n) and weight[2] == "NCL"
+          and x[1] == weight[1] == y[1] == "bf16"):
+        valid = not any(slot[0] for slot in (bias, scale, xs))
+    elif (weight[0] == (experts, n // 32, k // 16, 16, 32)
+          and not n % 32 and not k % 16 and weight[2] == "FRACTAL_NZ"
+          and x[1] == weight[1] == "fp8_e4m3"):
+        groups = (k + 63) // 64
+        valid = (not bias[0] and scale == ((experts, groups, n, 2), "fp8_e8m0", "NCHW")
+                 and xs == ((m, groups, 2), "fp8_e8m0", "NCL") and y[1] == "bf16")
+    else:
+        valid = False
+    if not valid:
+        return None, _issue(row, "unsupported_grouped_matrix_precision_or_axes",
+                            "The expert bank, grouped scale and per-token scale must match "
+                            "a retained BF16, INT8, INT4 or MXFP8 interface.")
+    return ("grouped_matrix", (experts, m, n, k), x[1], weight[1], y[1],
+            xs[0], xs[1] if xs[0] else ""), None
+
+
+def _project(row):
+    slots = _slots(row)
+    if slots is None:
+        return None, native_tensor_diagnostic(row)
+    if row.kind == "GroupedMatmul":
+        return _grouped(row, *slots)
+    if row.kind in {"QuantBatchMatmulV3", "QuantBatchMatmulV4"}:
+        return _dense(row, *slots)
+    return None, _issue(row, "unsupported_matrix_native_type", "No matrix projection is declared.")
+
+
+def observed_matrix_contract(row):
+    return _project(row)[0]
+
+
+def matrix_contract_diagnostic(row):
+    contract, issue = _project(row)
+    return issue or {
+        "category": "tensor_contract_available", "reason": "observed_tensor_contract_available",
+        "operator_type": row.kind,
+        "detail": "Source-defined operand and scale geometry is available; dispatch and values remain unknown.",
+    }
+
+
+def matrix_contract_scope(row):
+    grouped = row.kind == "GroupedMatmul"
+    return {
+        "kind": "grouped_matrix_active_geometry" if grouped else "quantized_matrix_active_geometry",
+        "compared": ["logical_M_N_K", "activation_weight_output_precision",
+                     "activation_scale_shape_dtype", *(["expert_bank_count"] if grouped else [])],
+        "validated_observed": ["native_operator_type", "weight_storage_axes_layout",
+                               "weight_scale_shape_dtype_layout", "activation_output_layout",
+                               "supported_bias_or_quant_correction_branch"],
+        "not_compared": ["native_binary_or_tiling", "scale_values", "scalar_flags",
+                         "weight_scale_storage_representation",
+                         *(["per_expert_row_counts", "active_expert_values", "group_list_values",
+                            "quant_correction_bias_values"] if grouped else [])],
+        "conditions": (
+            "Declared routed work may use probability moments; equal total rows do not prove "
+            "the captured expert histogram or active weight reads." if grouped else
+            "The retained V4 five-slot capture orders scales before optional bias; "
+            "the public ten-slot graph definition and ND-only MX documentation are not "
+            "claimed as the captured NZ custom-dtype implementation identity."
+            if row.kind == "QuantBatchMatmulV4" else
+            "V3 INT8 per-channel/per-token and MX paired-scale interfaces are checked separately."),
+        "occurrence_identity": False,
+    }

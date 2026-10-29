@@ -1,0 +1,223 @@
+{
+  "schema_version": "mindie-module-trace/1",
+  "scope": "tiny_mlp_leaf_modules",
+  "module_scope": "actual_pytorch_leaf_modules",
+  "not_application_throughput": true,
+  "instrumentation": {
+    "npu_synchronize": true,
+    "scope": "profiled_run_only",
+    "overhead_scope": "includes per-leaf-module NPU synchronization and hook timing",
+    "throughput_evidence": false
+  },
+  "modules": [
+    {
+      "module_id": "0",
+      "module_name": "0",
+      "module_type": "Linear",
+      "ordinal": 0
+    },
+    {
+      "module_id": "1",
+      "module_name": "1",
+      "module_type": "ReLU",
+      "ordinal": 1
+    },
+    {
+      "module_id": "2",
+      "module_name": "2",
+      "module_type": "Linear",
+      "ordinal": 2
+    }
+  ],
+  "steps": [
+    1
+  ],
+  "records": [
+    {
+      "module_id": "0",
+      "module_name": "0",
+      "module_type": "Linear",
+      "ordinal": 0,
+      "invocation": 6000,
+      "step_id": 1,
+      "wall_start_ns": 1792446524432017190,
+      "wall_end_ns": 1792446524432235883,
+      "monotonic_start_ns": 1371005208051069,
+      "monotonic_end_ns": 1371005208270032,
+      "input_tensors": [
+        {
+          "shape": [
+            8,
+            256
+          ],
+          "dtype": "torch.float32"
+        }
+      ],
+      "output_tensors": [
+        {
+          "shape": [
+            8,
+            512
+          ],
+          "dtype": "torch.float32"
+        }
+      ]
+    },
+    {
+      "module_id": "1",
+      "module_name": "1",
+      "module_type": "ReLU",
+      "ordinal": 1,
+      "invocation": 6001,
+      "step_id": 1,
+      "wall_start_ns": 1792446524432291564,
+      "wall_end_ns": 1792446524432418286,
+      "monotonic_start_ns": 1371005208325263,
+      "monotonic_end_ns": 1371005208452325,
+      "input_tensors": [
+        {
+          "shape": [
+            8,
+            512
+          ],
+          "dtype": "torch.float32"
+        }
+      ],
+      "output_tensors": [
+        {
+          "shape": [
+            8,
+            512
+          ],
+          "dtype": "torch.float32"
+        }
+      ]
+    },
+    {
+      "module_id": "2",
+      "module_name": "2",
+      "module_type": "Linear",
+      "ordinal": 2,
+      "invocation": 6002,
+      "step_id": 1,
+      "wall_start_ns": 1792446524432480647,
+      "wall_end_ns": 1792446524432630859,
+      "monotonic_start_ns": 1371005208514446,
+      "monotonic_end_ns": 1371005208664868,
+      "input_tensors": [
+        {
+          "shape": [
+            8,
+            512
+          ],
+          "dtype": "torch.float32"
+        }
+      ],
+      "output_tensors": [
+        {
+          "shape": [
+            8,
+            256
+          ],
+          "dtype": "torch.float32"
+        }
+      ]
+    },
+    {
+      "module_id": "0",
+      "module_name": "0",
+      "module_type": "Linear",
+      "ordinal": 0,
+      "invocation": 6003,
+      "step_id": 1,
+      "wall_start_ns": 1792446524432707130,
+      "wall_end_ns": 1792446524432853792,
+      "monotonic_start_ns": 1371005208740929,
+      "monotonic_end_ns": 1371005208887851,
+      "input_tensors": [
+        {
+          "shape": [
+            8,
+            256
+          ],
+          "dtype": "torch.float32"
+        }
+      ],
+      "output_tensors": [
+        {
+          "shape": [
+            8,
+            512
+          ],
+          "dtype": "torch.float32"
+        }
+      ]
+    },
+    {
+      "module_id": "1",
+      "module_name": "1",
+      "module_type": "ReLU",
+      "ordinal": 1,
+      "invocation": 6004,
+      "step_id": 1,
+      "wall_start_ns": 1792446524432906963,
+      "wall_end_ns": 1792446524433023385,
+      "monotonic_start_ns": 1371005208940622,
+      "monotonic_end_ns": 1371005209057274,
+      "input_tensors": [
+        {
+          "shape": [
+            8,
+            512
+          ],
+          "dtype": "torch.float32"
+        }
+      ],
+      "output_tensors": [
+        {
+          "shape": [
+            8,
+            512
+          ],
+          "dtype": "torch.float32"
+        }
+      ]
+    },
+    {
+      "module_id": "2",
+      "module_name": "2",
+      "module_type": "Linear",
+      "ordinal": 2,
+      "invocation": 6005,
+      "step_id": 1,
+      "wall_start_ns": 1792446524433085365,
+      "wall_end_ns": 1792446524433232457,
+      "monotonic_start_ns": 1371005209119104,
+      "monotonic_end_ns": 1371005209266456,
+      "input_tensors": [
+        {
+          "shape": [
+            8,
+            512
+          ],
+          "dtype": "torch.float32"
+        }
+      ],
+      "output_tensors": [
+        {
+          "shape": [
+            8,
+            256
+          ],
+          "dtype": "torch.float32"
+        }
+      ]
+    }
+  ],
+  "source_identity": {
+    "db_path": "capture.db",
+    "db_sha256": "e17c2775a16fd2186f46430cb4e3352e15f4d4fea2106f44efe67a742feac090",
+    "steps_file": "steps.json",
+    "steps_sha256": "14761ed99284581fcc5ca87d6e1c7ac88a3843bd0523cd3eff81cf0d0e9bed57"
+  }
+}

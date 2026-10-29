@@ -552,12 +552,17 @@ class DbSource:
             for column in ("inputShapes", "inputDataTypes", "inputFormats"):
                 expression = f"c.{column}" if column in self.schema.shape_columns else "NULL"
                 shape_exprs.append(f"{expression} AS {column}")
+            output_exprs = [
+                (f"c.{column}" if column in self.schema.shape_columns else "NULL") + f" AS {column}"
+                for column in ("outputShapes", "outputDataTypes", "outputFormats", "opState")
+            ]
             wait_expr = f"c.{self.schema.wait_column}" if self.schema.wait_column else "NULL"
             sql = (
                 "SELECT t.globalTaskId, t.startNs, t.endNs, t.deviceId, t.streamId, t.taskId, "
                 "t.modelId, t.contextId, c.name, c.opType, c.taskType, "
                 + ", ".join(shape_exprs)
-                + ", " + wait_expr + " AS wait_ns, " + block + " AS block_dim, " + mix + " AS mix_block_dim "
+                + ", " + wait_expr + " AS wait_ns, " + block + " AS block_dim, " + mix + " AS mix_block_dim, "
+                + ", ".join(output_exprs) + " "
                 f"FROM {names['task']} t JOIN {compute} c ON c.globalTaskId = t.globalTaskId "
                 "WHERE t.endNs > ? AND t.startNs < ? ORDER BY t.startNs, t.globalTaskId LIMIT ?"
             )
@@ -601,6 +606,12 @@ class DbSource:
                     input_shapes=_text(strings, row[11], unresolved),
                     input_dtypes=_text(strings, row[12], unresolved),
                     input_formats=_text(strings, row[13], unresolved),
+                    block_dim=_as_optional_int(row[15]),
+                    mix_block_dim=_as_optional_int(row[16]),
+                    output_shapes=_text(strings, row[17], unresolved),
+                    output_dtypes=_text(strings, row[18], unresolved),
+                    output_formats=_text(strings, row[19], unresolved),
+                    op_state=_text(strings, row[20], unresolved),
                     wait_ns=wait_ns,
                     wait_status=wait_status,
                     wait_source=(f"COMPUTE_TASK_INFO.{self.schema.wait_column}" if self.schema.wait_column else None),
@@ -616,6 +627,7 @@ class DbSource:
                     pmu_source="TASK_PMU_INFO",
                     task_occurrences_full_capture=occurrence_count,
                     locator={
+                        "source": self.schema.path,
                         "table": compute,
                         "task_global_id": global_id,
                         "task_id": _as_text(row[5]),
@@ -704,6 +716,7 @@ class DbSource:
                             pmu_status="not_applicable",
                             pmu_kind="not_applicable",
                             locator={
+                                "source": self.schema.path,
                                 "table": comm,
                                 "rowid": _as_optional_int(row[0]),
                                 "device_id": _as_text(row[5]),
@@ -752,6 +765,7 @@ class DbSource:
                             pmu_kind="not_applicable",
                             task_occurrences_full_capture=(occurrences.get(global_id) if global_id is not None else None),
                             locator={
+                                "source": self.schema.path,
                                 "table": sched,
                                 "task_global_id": global_id,
                                 "stream_id": _as_text(row[7]),

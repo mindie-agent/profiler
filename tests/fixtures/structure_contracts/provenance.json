@@ -1,0 +1,33 @@
+{
+  "schema_version": "mindie-derived-capture-fixture/1",
+  "source": "/Volumes/data/mindie-sim-data/a5/2026-10-22/qwen38-c4-16k/raw/prof/p16384_c1_o32/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+  "sha256": "ec7fbcff6138d06fd7d0ed20497d8d4af2f78a179372db976090d4206a3d17ca",
+  "derivation": "Four original A5 CSV records with every field preserved; CSV newline serialization is LF. No tensor or timing values synthesized.",
+  "rows": [
+    {
+      "fixture_csv_line": 2,
+      "source_csv_line": 2,
+      "operator_type": "Fill"
+    },
+    {
+      "fixture_csv_line": 3,
+      "source_csv_line": 73,
+      "operator_type": "Slice"
+    },
+    {
+      "fixture_csv_line": 4,
+      "source_csv_line": 81,
+      "operator_type": "SwiGlu"
+    },
+    {
+      "fixture_csv_line": 5,
+      "source_csv_line": 2571,
+      "operator_type": "fused_gdn_gating_kernel"
+    }
+  ],
+  "limitations": [
+    "A mixed-phase Qwen3.5 capture; these selected rows do not establish layer or iteration identity.",
+    "Slice offset/size tensor values were not captured.",
+    "All tensor fields for the selected fused_gdn_gating_kernel record are literally N/A in the source."
+  ]
+}
