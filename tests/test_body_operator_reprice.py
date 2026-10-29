@@ -127,3 +127,27 @@ def test_partial_real_mqsmla_groups_preserve_full_family_population(reprice):
     assert counts["reference_event_count"] + counts["excluded_reference_event_count"] == family["observed_us"]["count"]
     assert family["scored_event_count"] == family["passed_cohort_count"] == 0
     assert family["duration_ns_counter"] == next(row for row in actual["families"] if row["native_operator_type"] == "MqsmlaKernel___call__")["duration_ns_counter"]
+
+
+def test_reference_retry_preserves_successful_real_strict_comparison(reprice):
+    row = {key: reprice.identity(PREFIX.with_suffix(suffix)) for key, suffix in (
+        ("actual_identity", ".actual.json"), ("mapping_identity", ".mapping.json"),
+        ("case_identity", ".case.json"), ("comparison_identity", ".comparison.json"))}
+    runtime = reprice.runtime_identity()
+    actual, mapping, comparison = reprice.validate_reference_retry(row, runtime, runtime)
+    assert actual["forward_count"] == 31
+    assert comparison["graph_id"] == mapping["graph_id"]
+    assert comparison["status_counts"]["compared"] == 19
+    assert all(receipt["status"] == "completed" for receipt in comparison["program_receipts"])
+
+
+def test_reference_retry_rejects_new_sim_cost_under_old_success_receipt(reprice):
+    row = {key: reprice.identity(PREFIX.with_suffix(suffix)) for key, suffix in (
+        ("actual_identity", ".actual.json"), ("mapping_identity", ".mapping.json"),
+        ("case_identity", ".case.json"), ("comparison_identity", ".comparison.json"))}
+    runtime = reprice.runtime_identity()
+    changed = dict(runtime)
+    sim_file = next(path for path in reprice.sim_sources(changed) if path.endswith("cohort_comparison.py"))
+    changed[sim_file] = "changed-cost-source"
+    with pytest.raises(ValueError, match="reference_retry_sim_runtime_changed"):
+        reprice.validate_reference_retry(row, runtime, changed)

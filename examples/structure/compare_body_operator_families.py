@@ -76,6 +76,9 @@ def program_references(case_path, mapping, actual=None):
             'evidence_strength':'conditional_source_role_program; not_a_tensor_contract_cohort',
             'single_device_program':prediction['single_device_program'],
             'observed_duration_used_for_selection':False}
+    # The source-reference pass builds its own graph. Keeping this full-model
+    # graph alive doubles DP-expanded working state without changing any cost.
+    del graphs, by_id, book
     results['_source_role_groups'] = predict_source_role_references(case, manifest, actual or {})
     return results
 

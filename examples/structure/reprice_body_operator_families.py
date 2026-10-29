@@ -39,8 +39,9 @@ def canonical(value):
 
 def runtime_identity():
     result = prediction_runtime_identity()
-    own = identity(Path(__file__).resolve())
-    result[own["path"]] = own["sha256"]
+    for path in (Path(__file__).resolve(), Path(__file__).with_name("rebind_body_source_roles.py").resolve()):
+        source = identity(path)
+        result[source["path"]] = source["sha256"]
     return result
 
 
@@ -240,8 +241,14 @@ def worker(args):
     else:
         actual = read(args.actual)
         manifest = fresh_structure(args.case, mapping)
+        rebindings = []
+        if args.frozen_native_rebind:
+            from rebind_body_source_roles import rebind_frozen_native_groups
+            actual, rebindings = rebind_frozen_native_groups(actual, manifest)
         retained, excluded = safe_reference_actual(actual, manifest)
-        result = {"references": program_references(args.case, mapping, retained), "excluded": excluded}
+        del manifest
+        result = {"references": program_references(args.case, mapping, retained), "excluded": excluded,
+                  "frozen_native_rebindings": rebindings}
     result.update(maximum_resident_set_size_bytes=_rss(), elapsed_seconds=time.perf_counter() - started)
     if result["maximum_resident_set_size_bytes"] > MAX_RSS:
         raise RuntimeError("comparison_worker_exceeds_512_mib")
@@ -255,6 +262,8 @@ def run_worker(args, *, kind, actual_path, mapping_path, case_path, output, key=
                "--worker-output", str(output)]
     if key is not None:
         command += ["--program-key", json.dumps(key)]
+    if kind == "references" and args.frozen_native_rebind:
+        command.append("--frozen-native-rebind")
     started = time.perf_counter()
     try:
         child = subprocess.run(command, capture_output=True, text=True, timeout=timeout, check=False)
@@ -376,6 +385,8 @@ def reprice(args):
             "families": families, "passed_cohorts": sum(f["passed_cohort_count"] for f in families),
             "comparison_status_counts": comparison["status_counts"], "strict_prediction_reused_from": None,
             "reference_receipt": reference_receipt, "reference_exclusions": reference_exclusions,
+            "frozen_native_rebindings": (reference_result.get("frozen_native_rebindings", [])
+                if not args.skip_references and reference_result else []),
             "declaration_refresh": plan}
         detail_path = prefix.with_suffix(".family-scoreboard.json")
         detail = {"schema_version": "mindie-body-operator-comparison/1", "cases": [row],
@@ -388,7 +399,9 @@ def reprice(args):
         for record in input_pins.values():
             if identity(record["path"]) != record:
                 raise ValueError("retained_input_changed_during_reprice")
-        del actual, old_mapping, manifest, mapping, comparison, families, row, detail
+        del actual, old_mapping, manifest, mapping, comparison, families, row, detail, references
+        if not args.skip_references:
+            del reference_result
     if runtime_identity() != before:
         raise ValueError("runtime_changed_during_reprice")
     write(args.output_dir / "reprice-plan.json", {"schema_version": "mindie-body-reprice-plan/1", "cases": plans,
@@ -409,9 +422,122 @@ def reprice(args):
         raise SystemExit("reprice_contains_visible_prediction_failures")
 
 
+def sim_sources(runtime):
+    return {path: digest for path, digest in runtime.items() if "mindie_sim" in Path(path).parts}
+
+
+def validate_reference_retry(row, original_runtime, current_runtime):
+    """Reuse successful costs only under the identical Sim, case and mapping."""
+    original_sim = sim_sources(original_runtime)
+    if not original_sim or original_sim != sim_sources(current_runtime):
+        raise ValueError("reference_retry_sim_runtime_changed")
+    for key in ("actual_identity", "mapping_identity", "case_identity", "comparison_identity"):
+        if identity(row[key]["path"]) != row[key]:
+            raise ValueError("reference_retry_input_identity_changed:" + key)
+    actual = read(row["actual_identity"]["path"])
+    mapping = read(row["mapping_identity"]["path"])
+    comparison = read(row["comparison_identity"]["path"])
+    validate_observation_join(actual, mapping)
+    if comparison["graph_id"] != mapping["graph_id"]:
+        raise ValueError("reference_retry_comparison_graph_differs")
+    if comparison["status_counts"].get("prediction_failed"):
+        raise ValueError("reference_retry_requires_successful_strict_predictions")
+    return actual, mapping, comparison
+
+
+def retry_references(args):
+    """Retry failed references in a new arm; preserve successful strict receipts."""
+    before, started = runtime_identity(), time.perf_counter()
+    source_report = args.retry_references_from.resolve()
+    report_identity, original = identity(source_report), read(source_report)
+    args.output_dir = args.output_dir.resolve()
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    if (args.output_dir / "body-operator-family-scoreboard.json").exists():
+        raise ValueError("choose_a_new_output_arm_existing_report_not_overwritten")
+    cases, attempts = [], 0
+    for previous in original["cases"]:
+        detail_identity = previous["case_detail_identity"]
+        if identity(detail_identity["path"]) != detail_identity:
+            raise ValueError("reference_retry_detail_identity_changed")
+        saved = read(detail_identity["path"])["cases"][0]
+        actual, mapping, comparison = validate_reference_retry(
+            saved, original["runtime_source_identity"], before)
+        prefix = args.output_dir / ("body-operator-" + actual["case_id"] + "-" + args.variant)
+        row = {**saved, "case_id": actual["case_id"] + " / " + args.variant, "variant": args.variant,
+               "strict_prediction_reused_from": saved["comparison_identity"],
+               "reference_retry_source_report": report_identity,
+               "previous_reference_receipt": saved["reference_receipt"]}
+        eligible_rebind = args.frozen_native_rebind and any(
+            group["native_operator_type"] == "DispatchFFNCombine"
+            for group in actual.get("source_role_references", ()))
+        retried = saved["reference_receipt"]["status"] == "failed" or eligible_rebind
+        history = list(saved.get("reference_attempt_history", []))
+        if not history:
+            if saved.get("previous_reference_receipt"):
+                history.append(saved["previous_reference_receipt"])
+            history.append(saved["reference_receipt"])
+        if retried:
+            attempts += 1
+            result, receipt = run_worker(args, kind="references", actual_path=Path(saved["actual_identity"]["path"]),
+                mapping_path=Path(saved["mapping_identity"]["path"]), case_path=Path(saved["case_identity"]["path"]),
+                output=prefix.with_suffix(".references-worker.json"))
+            references = result["references"] if result else {}
+            excluded = result["excluded"] if result else [{"reason": "reference_prediction_failed", **receipt}]
+            families = repriced_family_rows(actual, mapping, comparison, references, excluded)
+            for family in families:
+                family["retained_observation_classification"] = "original_mapping_generation"
+                family["current_rebind_exclusions"] = [item for item in saved["declaration_refresh"]["excluded"]
+                    if item["native_operator_type"] == family["native_operator_type"]
+                    and "|".join(item["declared_roles"]) == family["declared_role"]]
+                family["current_source_reference_exclusions"] = [item for item in excluded
+                    if item.get("native_operator_type") in {None, family["native_operator_type"]}
+                    and item.get("declared_role") in {None, family["declared_role"]}]
+            row.update(families=families, reference_receipt=receipt, reference_exclusions=excluded,
+                       frozen_native_rebindings=result.get("frozen_native_rebindings", []) if result else [])
+            history.append(receipt)
+            del result, references, excluded, families
+        row["reference_attempt_history"] = history
+        row["reference_retry"] = {"attempted": retried, "strict_programs_executed": 0,
+                                  "raw_capture_reads": 0, "sim_sources_identical": True}
+        detail_path = prefix.with_suffix(".family-scoreboard.json")
+        detail = {"schema_version": "mindie-body-operator-comparison/1", "cases": [row],
+                  "runtime_source_identity": before, "strict_prediction_source_report": report_identity,
+                  "raw_capture_reads": 0, "successful_strict_predictions_reused": True}
+        write(detail_path, detail)
+        prefix.with_suffix(".family-scoreboard.md").write_text(render_repriced(detail))
+        cases.append({**compact_case(row), "case_detail_identity": identity(detail_path),
+                      "projection": "statistics_and_costs; exact_histograms_in_case_detail"})
+        print(json.dumps({"case": actual["case_id"], "reference_retry": retried,
+                          "status": row["reference_receipt"]["status"]}), flush=True)
+        for key in ("actual_identity", "mapping_identity", "case_identity", "comparison_identity"):
+            if identity(saved[key]["path"]) != saved[key]:
+                raise ValueError("reference_retry_input_changed_during_execution")
+        del actual, mapping, comparison, saved, row, detail
+    if runtime_identity() != before or identity(source_report) != report_identity:
+        raise ValueError("reference_retry_runtime_or_original_report_changed")
+    failed = any(case["reference_receipt"]["status"] == "failed" for case in cases)
+    report = {"schema_version": "mindie-body-operator-comparison/1", "status": "partial" if failed else "completed",
+              "cases": cases, "runtime_source_identity": before, "runtime_sources_unchanged": True,
+              "runtime_source_commit": original.get("runtime_source_commit"),
+              "runtime_validation_status": original.get("runtime_validation_status"),
+              "strict_prediction_source_report": report_identity, "reference_retry_count": attempts,
+              "frozen_native_rebind_requested": args.frozen_native_rebind,
+              "new_strict_program_count": 0, "successful_strict_predictions_reused": True,
+              "coverage_status": original["coverage_status"], "raw_capture_reads": 0,
+              "elapsed_seconds": time.perf_counter() - started}
+    write(args.output_dir / "body-operator-family-scoreboard.json", report)
+    (args.output_dir / "body-operator-family-scoreboard.md").write_text(render_repriced(report))
+    if failed:
+        raise SystemExit("reference_retry_contains_visible_failures")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--actual", type=Path, action="append", required=True)
+    parser.add_argument("--actual", type=Path, action="append", default=[])
+    parser.add_argument("--retry-references-from", type=Path,
+                        help="Retry only failed references; preserve same-runtime successful strict comparisons")
+    parser.add_argument("--frozen-native-rebind", action="store_true",
+                        help="Revalidate complete retained MC2 native-ABI partitions as conditional references")
     parser.add_argument("--mapping", type=Path)
     parser.add_argument("--case", type=Path)
     parser.add_argument("--case-dir", type=Path)
@@ -433,8 +559,12 @@ def main():
     if args.worker:
         args.actual = args.actual[0]
         worker(args)
+    elif args.retry_references_from:
+        if args.output_dir is None or args.actual or args.case or args.mapping or args.validate_only:
+            parser.error("reference retry requires output-dir and the prior report only")
+        retry_references(args)
     else:
-        if args.output_dir is None or len(args.actual) > 1 and (args.case or args.mapping):
+        if not args.actual or args.output_dir is None or len(args.actual) > 1 and (args.case or args.mapping):
             parser.error("output-dir is required; explicit case/mapping accepts one actual input")
         reprice(args)
 
