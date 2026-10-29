@@ -224,6 +224,35 @@ its matrix geometry forms a valid cohort. MXFP4 programs with an unmodeled
 native unpack/scale/matrix path also remain references. The replay entry point is
 `replay_fusion_cohorts.py --run`; `--compare-existing --run` reuses saved mappings
 and still verifies their graph identity.
+
+Accuracy is evaluated per cohort using the observed complete-event mean:
+above 50 us, absolute relative error must be at most 15%; at or below 50 us,
+the absolute per-call difference must be at most 15 us. The latter reports
+`within_launch_floor_tolerance`. This acceptance allowance does not add a floor
+to predictions or attribute the residual to measured launch overhead.
+The shared sim policy exports `observed_per_call_us`, `predicted_per_call_us`,
+`per_call_diff_us` (predicted minus observed), `abs_error_per_call_us`,
+`accuracy_tier`, `accuracy_status`, `accuracy_pass`, `accuracy_tolerance` and
+versioned `accuracy_policy`. References and unscored rows have no pass decision.
+
+Family means are weighted by scored call counts. Acceptance and counts are
+aggregated from individual cohorts, separately by tier, so a family mean cannot
+hide a slower failed cohort. Event-weighted pass counts describe cohort-mean
+decisions, not a test of each event. Top Errors separates large-call failures,
+small-call failures, within-tolerance groups and unscored coverage; original
+relative and cumulative residuals remain available.
+
+```bash
+PYTHONPATH=/path/to/sim-rewrite:/path/to/profiler /path/to/sim-rewrite/.venv/bin/python \
+  examples/structure/replay_fusion_cohorts.py --refresh-accuracy --run
+```
+
+This mode checks saved artifact identities and refreshes all completed variants.
+It reads neither raw captures nor weights and does not execute predictions.
+Original observed/predicted values, graph IDs and residuals remain identical;
+`fusion-cohort-accuracy-validation.json` records the policy refresh separately
+from the historical full-replay receipt.
+
 Kimi's current-checkpoint variants retain independently collected per-module
 quantization metadata. Their config hash matches the historical campaign, but
 the historical quantization-file hash was not retained. They are conditional

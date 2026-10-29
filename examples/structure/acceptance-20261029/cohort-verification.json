@@ -58,5 +58,88 @@
     "validation_record_scope": "Post-run validation record, not the original stdout transcript.",
     "validation_record_sha256": "634129f699a57fdbad0d74ca266e9296352754c2925f518c4200205bab1519ee"
   },
-  "sim_runtime_commit": "414f520ea8baac5b4179302b26db933fd57a67d4"
+  "sim_runtime_commit": "414f520ea8baac5b4179302b26db933fd57a67d4",
+  "tiered_accuracy": {
+    "sim_commit": "0b7926e668a0962b62089f020ea92b65d36d6d7e",
+    "policy": {
+      "version": "mindie-sim.cohort-accuracy/1",
+      "observed_statistic": "complete_event_mean",
+      "time_unit": "us",
+      "eligible_status": "compared",
+      "relative_15pct": {
+        "observed_us_gt": 50.0,
+        "tolerance": {
+          "unit": "ratio",
+          "value": 0.15
+        },
+        "pass_status": "within_relative_tolerance"
+      },
+      "absolute_15us": {
+        "observed_us_lte": 50.0,
+        "tolerance": {
+          "unit": "us",
+          "value": 15.0
+        },
+        "pass_status": "within_launch_floor_tolerance"
+      },
+      "fail_status": "outside_tolerance",
+      "tolerance_inclusive": true,
+      "prediction_adjustment": "none",
+      "interpretation": "conditional_per_call_comparison; not_native_dispatch_certification"
+    },
+    "accuracy_refresh": {
+      "receipt": "fusion-cohort-accuracy-validation.json",
+      "receipt_sha256": "9104dfd41e83bc5fc3821864aba7b6104a6282ae31662eba0fbb0e701050a643",
+      "status": "completed",
+      "elapsed_seconds": 0.176,
+      "maximum_resident_set_size_bytes": 46137344,
+      "raw_capture_reads": 0,
+      "prediction_executions": 0,
+      "original_metrics_unchanged": true
+    },
+    "maintained_suites": {
+      "profiler": {
+        "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/Users/maoxx241/code/sim-rewrite-20261027 /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python -m pytest -q",
+        "cwd": "/Users/maoxx241/code/profiler",
+        "passed": 533,
+        "skipped": 26,
+        "seconds": 28.67,
+        "log_path": "/tmp/profiler-cohort-tiered-final-tests-20261029.log",
+        "log_sha256": "cda428fe5a695132e61e64420d12bd91b5dad0edb87bd823533fad926ad22caf"
+      },
+      "sim": {
+        "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/Users/maoxx241/code/sim-rewrite-20261027 .venv/bin/python -m pytest -q -m 'not live_npu'",
+        "cwd": "/Users/maoxx241/code/sim-rewrite-20261027",
+        "passed": 1459,
+        "skipped": 0,
+        "seconds": 221.68,
+        "log_path": "/tmp/sim-cohort-tiered-tests-20261029.log",
+        "log_sha256": "59ea3888f61e2e846ab4c94f88213f3d12e9513546c87af396598380eb78ba79"
+      }
+    },
+    "accuracy_summary_across_variants": {
+      "relative_15pct": {
+        "cohort_count": 141,
+        "passed_cohort_count": 32,
+        "failed_cohort_count": 109,
+        "scored_event_count": 41912,
+        "passed_event_count": 2714,
+        "failed_event_count": 39198
+      },
+      "absolute_15us": {
+        "cohort_count": 69,
+        "passed_cohort_count": 54,
+        "failed_cohort_count": 15,
+        "scored_event_count": 158044,
+        "passed_event_count": 148730,
+        "failed_event_count": 9314
+      }
+    },
+    "independent_review": {
+      "receipt": "fusion-cohort-independent-review.json",
+      "status": "passed",
+      "checks": 127030
+    },
+    "scope": "Additive per-call policy and report grouping; historical raw replay and its original suite evidence remain separate."
+  }
 }

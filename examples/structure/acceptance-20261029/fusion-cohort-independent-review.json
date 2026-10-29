@@ -1,39 +1,63 @@
 {
-  "schema_version": "mindie-fusion-cohort-independent-review/2",
-  "reviewed_at_utc": "2026-10-29T12:09:34.681636+00:00",
+  "schema_version": "mindie-fusion-cohort-independent-review/3",
+  "reviewed_at_utc": "2026-10-29T12:42:29.805873+00:00",
   "status": "passed",
   "scope": {
-    "method": "pure_stdlib_independent_artifact_hash_and_arithmetic_reconciliation",
+    "method": "pure_stdlib_saved_artifact_arithmetic_and_committed_baseline_reconciliation",
     "runtime_imports": false,
     "direct_raw_sources": 0,
     "direct_raw_positive_events": 0,
+    "prediction_executions": 0,
     "report_arithmetic_variants": 15,
-    "raw_evidence_basis": "separate_final_replay_receipts; no_original_capture_rescan_or_rehash_in_this_review",
+    "raw_evidence_basis": "historical_full_replay_receipt_only; no_fresh_raw_scan_or_raw_rehash",
     "median_check": "copied_values_and_range_consistency_only; not_recomputed_from_raw_events",
     "union_check": "copied_values_and_bounds_only; not_recomputed_from_raw_intervals",
-    "runtime_identity_check": "current_recorded_runtime_files_stream_hashed_against_final_receipt",
-    "accuracy_claim": "none; arithmetic_consistency_does_not_certify_prediction_accuracy_or_dispatch"
+    "runtime_identity_check": "current_sources_hashed_against_accuracy_refresh_receipt_not_historical_replay",
+    "original_values_check": "all_original_comparison_fields_exact_canonical_equal_to_git_baseline",
+    "acceptance_basis": "complete_event_mean_per_cohort; family_pass_requires_all_scored_cohorts_pass",
+    "accuracy_claim": "conditional_tolerance_classification_only; no_dispatch_or_end_to_end_accuracy_proof"
   },
   "validation": {
     "file": "fusion-cohort-validation.json",
     "sha256": "31c8609ea0860814f1fbbaf88c4c023f6b0c0c3d80847fea97460732b3b8be17",
     "size_bytes": 86016
   },
+  "accuracy_refresh_validation": {
+    "file": "fusion-cohort-accuracy-validation.json",
+    "sha256": "9104dfd41e83bc5fc3821864aba7b6104a6282ae31662eba0fbb0e701050a643",
+    "size_bytes": 82314
+  },
+  "historical_baseline": {
+    "git_revision": "ec7e2ef",
+    "prior_independent_review_checks": 33245,
+    "prior_independent_review_status": "passed",
+    "prior_review_scope": "artifact_arithmetic_audit_not_fresh_raw_evidence"
+  },
   "family_overview": {
     "file": "fusion-cohort-replay-families.json",
-    "sha256": "7e4a9dc6a9dc4c5d8cffbac7390c1029b4a78ee12740821292ba77d6f02d63e9",
-    "size_bytes": 10009
+    "sha256": "4d011c8aa934a2b09a15cdf33bd4b4a2da63309db06b3f1c9c6319d4bb9e33b3",
+    "size_bytes": 36302
+  },
+  "top_errors": {
+    "file": "fusion-cohort-replay-top-errors.md",
+    "sha256": "bc3e0d763c70a83cde63953c74acbb45713546d46b453b3a5fe4e9b2612c6d25",
+    "size_bytes": 59143
   },
   "review_script": {
+    "file": "review-accuracy-cohorts.py",
+    "sha256": "2b1044fd73dfde5b5fa707f56b97a801aa26fc40a5ac072a1bbdfc839ee368ef",
+    "size_bytes": 27080
+  },
+  "reused_arithmetic_script": {
     "file": "review-round2-cohorts.py",
     "sha256": "9ce3487777f61c9aa9275c5cce8012aa76d923c322711df71ccde74e73c38daf",
     "size_bytes": 28562
   },
-  "checks": 33245,
+  "checks": 127030,
   "failures": [],
   "distinct_capture_count": 8,
   "unique_capture_positive_events": 668835,
-  "runtime_files_checked": 309,
+  "runtime_files_checked": 312,
   "raw_capture_receipts": [
     {
       "capture_key": "a3_glm53_prefill",
@@ -128,12 +152,178 @@
     "compared": 210,
     "reference_only": 32
   },
+  "accuracy_summary_across_variants": {
+    "relative_15pct": {
+      "cohort_count": 141,
+      "passed_cohort_count": 32,
+      "failed_cohort_count": 109,
+      "scored_event_count": 41912,
+      "passed_event_count": 2714,
+      "failed_event_count": 39198
+    },
+    "absolute_15us": {
+      "cohort_count": 69,
+      "passed_cohort_count": 54,
+      "failed_cohort_count": 15,
+      "scored_event_count": 158044,
+      "passed_event_count": 148730,
+      "failed_event_count": 9314
+    }
+  },
+  "accuracy_passed_cohorts": 86,
+  "accuracy_failed_cohorts": 124,
+  "family_outcomes_across_variants": {
+    "all_fail": 70,
+    "mixed_pass_fail": 17,
+    "all_pass": 35
+  },
+  "mixed_tier_families": [
+    {
+      "variant": "fusion-cohort-a3_glm53_prefill-reference",
+      "operator_type": "DynamicQuant",
+      "passed_cohorts": 1,
+      "failed_cohorts": 2
+    },
+    {
+      "variant": "fusion-cohort-a3_glm53_prefill-selected",
+      "operator_type": "DynamicQuant",
+      "passed_cohorts": 1,
+      "failed_cohorts": 2
+    },
+    {
+      "variant": "fusion-cohort-a3_qwen35-reference",
+      "operator_type": "MatMulV2",
+      "passed_cohorts": 2,
+      "failed_cohorts": 1
+    },
+    {
+      "variant": "fusion-cohort-a3_v4f-reference",
+      "operator_type": "DynamicQuant",
+      "passed_cohorts": 0,
+      "failed_cohorts": 3
+    },
+    {
+      "variant": "fusion-cohort-a3_v4f-selected",
+      "operator_type": "DynamicQuant",
+      "passed_cohorts": 0,
+      "failed_cohorts": 3
+    },
+    {
+      "variant": "fusion-cohort-a3_v4pro-reference",
+      "operator_type": "MatMulV2",
+      "passed_cohorts": 3,
+      "failed_cohorts": 1
+    },
+    {
+      "variant": "fusion-cohort-a3_v4pro-selected",
+      "operator_type": "MatMulV2",
+      "passed_cohorts": 3,
+      "failed_cohorts": 1
+    },
+    {
+      "variant": "fusion-cohort-a5_kimi_k3_decode-reference",
+      "operator_type": "MatMulV3",
+      "passed_cohorts": 2,
+      "failed_cohorts": 1
+    },
+    {
+      "variant": "fusion-cohort-a5_kimi_k3_checkpoint-reference",
+      "operator_type": "DynamicMxQuant",
+      "passed_cohorts": 1,
+      "failed_cohorts": 2
+    },
+    {
+      "variant": "fusion-cohort-a5_kimi_k3_decode_checkpoint-reference",
+      "operator_type": "MatMulV3",
+      "passed_cohorts": 2,
+      "failed_cohorts": 1
+    }
+  ],
+  "rendered_table_rows_checked": 339,
+  "original_comparison_values": [
+    {
+      "file": "fusion-cohort-a3_glm53_prefill-reference.comparison.json",
+      "original_canonical_sha256": "f6278bfb82e7e0d09b35fd3088087c055c0997e0fb3313fc0eb951840dab8215",
+      "current_without_accuracy_canonical_sha256": "f6278bfb82e7e0d09b35fd3088087c055c0997e0fb3313fc0eb951840dab8215"
+    },
+    {
+      "file": "fusion-cohort-a3_glm53_prefill-selected.comparison.json",
+      "original_canonical_sha256": "0186a1e14cf6ed614114cbb4a3657cd5c8a9ee798f29707bae27405a5b784996",
+      "current_without_accuracy_canonical_sha256": "0186a1e14cf6ed614114cbb4a3657cd5c8a9ee798f29707bae27405a5b784996"
+    },
+    {
+      "file": "fusion-cohort-a3_glm53_decode-reference.comparison.json",
+      "original_canonical_sha256": "4f5e4f8843696b0b3c49b6005d0bfda125739f6dc6a9607bb63105e6f1ea4243",
+      "current_without_accuracy_canonical_sha256": "4f5e4f8843696b0b3c49b6005d0bfda125739f6dc6a9607bb63105e6f1ea4243"
+    },
+    {
+      "file": "fusion-cohort-a3_glm53_decode-selected.comparison.json",
+      "original_canonical_sha256": "82f5e98678015eee7e21f8ea230bca9e88b4ff9e956f1043ba07f2513ce25420",
+      "current_without_accuracy_canonical_sha256": "82f5e98678015eee7e21f8ea230bca9e88b4ff9e956f1043ba07f2513ce25420"
+    },
+    {
+      "file": "fusion-cohort-a3_qwen35-reference.comparison.json",
+      "original_canonical_sha256": "ec6cfafb92c32229bd0f24ba1a474a8e4817cebc673fa230bf9c65984c22bb39",
+      "current_without_accuracy_canonical_sha256": "ec6cfafb92c32229bd0f24ba1a474a8e4817cebc673fa230bf9c65984c22bb39"
+    },
+    {
+      "file": "fusion-cohort-a3_qwen36-reference.comparison.json",
+      "original_canonical_sha256": "ce89fcfd534f9571448c16edae40d8c743e071d74fffe35b6f51753882e1a5c6",
+      "current_without_accuracy_canonical_sha256": "ce89fcfd534f9571448c16edae40d8c743e071d74fffe35b6f51753882e1a5c6"
+    },
+    {
+      "file": "fusion-cohort-a3_v4f-reference.comparison.json",
+      "original_canonical_sha256": "8bd724306de8aaaccde25187ec10897c4762dae0eb8986c9298ff9b6186c09b6",
+      "current_without_accuracy_canonical_sha256": "8bd724306de8aaaccde25187ec10897c4762dae0eb8986c9298ff9b6186c09b6"
+    },
+    {
+      "file": "fusion-cohort-a3_v4f-selected.comparison.json",
+      "original_canonical_sha256": "0c11639043bee70395daaa6c9cc9a3da203e4a13846fcee625d53bc0502aba83",
+      "current_without_accuracy_canonical_sha256": "0c11639043bee70395daaa6c9cc9a3da203e4a13846fcee625d53bc0502aba83"
+    },
+    {
+      "file": "fusion-cohort-a3_v4pro-reference.comparison.json",
+      "original_canonical_sha256": "00c57318b8536e2e18dddacafe819e25b4d1f8094f02dd11499b6b3011621445",
+      "current_without_accuracy_canonical_sha256": "00c57318b8536e2e18dddacafe819e25b4d1f8094f02dd11499b6b3011621445"
+    },
+    {
+      "file": "fusion-cohort-a3_v4pro-selected.comparison.json",
+      "original_canonical_sha256": "0fe3c4de1c7c5c4e6300e48ae47d6a2bf34e9dd5ff91ea94a36170fa6a27a6ef",
+      "current_without_accuracy_canonical_sha256": "0fe3c4de1c7c5c4e6300e48ae47d6a2bf34e9dd5ff91ea94a36170fa6a27a6ef"
+    },
+    {
+      "file": "fusion-cohort-a5_kimi_k3-reference.comparison.json",
+      "original_canonical_sha256": "33cb6c4b4d04e340e0f2c486924b3b33c1646a7869c83b3bf81c06ddd9d55e24",
+      "current_without_accuracy_canonical_sha256": "33cb6c4b4d04e340e0f2c486924b3b33c1646a7869c83b3bf81c06ddd9d55e24"
+    },
+    {
+      "file": "fusion-cohort-a5_kimi_k3_decode-reference.comparison.json",
+      "original_canonical_sha256": "2fa384212c43716b638b654d0bf624b5cf02af4f30680d61b25acd3dd2a5373c",
+      "current_without_accuracy_canonical_sha256": "2fa384212c43716b638b654d0bf624b5cf02af4f30680d61b25acd3dd2a5373c"
+    },
+    {
+      "file": "fusion-cohort-a5_kimi_k3_checkpoint-reference.comparison.json",
+      "original_canonical_sha256": "9e4e7b467baaa10fc06c4528602a9738854a7fa9268ec36b6658bc2d61f6cd3c",
+      "current_without_accuracy_canonical_sha256": "9e4e7b467baaa10fc06c4528602a9738854a7fa9268ec36b6658bc2d61f6cd3c"
+    },
+    {
+      "file": "fusion-cohort-a5_kimi_k3_decode_checkpoint-reference.comparison.json",
+      "original_canonical_sha256": "05c36b8e4757fb41cf0720dd8a7d98103456eef3d2dcac25a4f125b7dfaca347",
+      "current_without_accuracy_canonical_sha256": "05c36b8e4757fb41cf0720dd8a7d98103456eef3d2dcac25a4f125b7dfaca347"
+    },
+    {
+      "file": "fusion-cohort-a5_qwen38-reference.comparison.json",
+      "original_canonical_sha256": "fef602fdb1ea9f77a6066417014dc8ba6f84208f11189b532599841bb0ed7aa5",
+      "current_without_accuracy_canonical_sha256": "fef602fdb1ea9f77a6066417014dc8ba6f84208f11189b532599841bb0ed7aa5"
+    }
+  ],
+  "derived_family_floating_roundoff_fields": 0,
   "variants": [
     {
       "summary": {
         "file": "fusion-cohort-a3_glm53_prefill-reference.json",
-        "sha256": "1e11363b6f8f9a55f7c3faf7199a2853fe1e1a052cbc115fe5252ab3536e8bf6",
-        "size_bytes": 7317
+        "sha256": "0cff34ebfb6d9dc49ef22d253b87c27076a697d9b642d81c303133139e0a0fd8",
+        "size_bytes": 9856
       },
       "capture_key": "a3_glm53_prefill",
       "declaration_key": "a3_glm53_prefill",
@@ -158,13 +348,13 @@
         },
         "comparison": {
           "file": "fusion-cohort-a3_glm53_prefill-reference.comparison.json",
-          "sha256": "3a011bf07a66cd4f245dc632e162a6fc45e27fc642d266f54f93f58192f25d94",
-          "size_bytes": 92012
+          "sha256": "3ef7b3ef2b1d392582b6cbd346139f7e5e71826e4e69a92fe34cfa39f255defe",
+          "size_bytes": 100430
         },
         "families": {
           "file": "fusion-cohort-a3_glm53_prefill-reference.families.json",
-          "sha256": "9e689d86519fe02d3b6584537de487cac2551a7241e011e793a002dc2fc0cd47",
-          "size_bytes": 143660
+          "sha256": "1040ffb4cc1e0245644fccd5a7009adee187470be09576d5083d77ce7996a9eb",
+          "size_bytes": 242154
         }
       },
       "positive_events": 2392,
@@ -229,8 +419,8 @@
     {
       "summary": {
         "file": "fusion-cohort-a3_glm53_prefill-selected.json",
-        "sha256": "53c2354d63f87dde5ba69c97e72d7c3edc9272829d4e7c4eda91e8af53946677",
-        "size_bytes": 9300
+        "sha256": "7d882f33ed10bf72bb25596f9b0c1d7ace7fffa16a9f8b6b43509b6fc8cd204a",
+        "size_bytes": 11832
       },
       "capture_key": "a3_glm53_prefill",
       "declaration_key": "a3_glm53_prefill",
@@ -255,13 +445,13 @@
         },
         "comparison": {
           "file": "fusion-cohort-a3_glm53_prefill-selected.comparison.json",
-          "sha256": "8e1c289dcd03f2b7f508dbcb85731e5e8a8b56349f551703a4b09708347c712f",
-          "size_bytes": 96755
+          "sha256": "fbec92ff58c9e794f2a752558175d583e1efcc0b07234dd39282095bdcab1b44",
+          "size_bytes": 105311
         },
         "families": {
           "file": "fusion-cohort-a3_glm53_prefill-selected.families.json",
-          "sha256": "0feacbf22d4554b62caccd296209fc71a29e9896dbe56b35ec8080730d819322",
-          "size_bytes": 145307
+          "sha256": "8a421c5cbae687462a429f660da5b6d86b2fd2a3a37d4478e1e4d74831607fb4",
+          "size_bytes": 245181
         }
       },
       "positive_events": 2392,
@@ -326,8 +516,8 @@
     {
       "summary": {
         "file": "fusion-cohort-a3_glm53_decode-reference.json",
-        "sha256": "38ab3d9ef1a4b8fd369a2c39d49072718fc0c52a24ac01f0c39935f5f0dfb555",
-        "size_bytes": 7404
+        "sha256": "9dc22398da53ef749d5a00bab00e7bd5a57d9621cd1b0ad60f0b745f016535b2",
+        "size_bytes": 9937
       },
       "capture_key": "a3_glm53_decode",
       "declaration_key": "a3_glm53_decode",
@@ -352,13 +542,13 @@
         },
         "comparison": {
           "file": "fusion-cohort-a3_glm53_decode-reference.comparison.json",
-          "sha256": "60fd573b9d66d19ba3aea499eed395508be784641c0edd20fec36592f6aca9af",
-          "size_bytes": 91611
+          "sha256": "36c430ed8f5292d7aef19eddcb3a00864166454ca7e22d0307cf75b56a384e94",
+          "size_bytes": 100159
         },
         "families": {
           "file": "fusion-cohort-a3_glm53_decode-reference.families.json",
-          "sha256": "496d15b05828ca76564aff50a9448efbeb62233d3109fe5e53527dc8ae5b8de5",
-          "size_bytes": 143266
+          "sha256": "0a7cc35b213d92eb3b37fb7b07a8a5a2acde47ecacba118c8fd466dec35011a6",
+          "size_bytes": 239877
         }
       },
       "positive_events": 166204,
@@ -423,8 +613,8 @@
     {
       "summary": {
         "file": "fusion-cohort-a3_glm53_decode-selected.json",
-        "sha256": "bbf89064b8fb9d389dc8d9fe4a6095d769fefc317aecbdecad107e0a78c7ffbc",
-        "size_bytes": 9386
+        "sha256": "4e085591a59b24ffc20b1f5c5d920dc028b9fed744468a5fc6959a526c24d188",
+        "size_bytes": 11946
       },
       "capture_key": "a3_glm53_decode",
       "declaration_key": "a3_glm53_decode",
@@ -449,13 +639,13 @@
         },
         "comparison": {
           "file": "fusion-cohort-a3_glm53_decode-selected.comparison.json",
-          "sha256": "f46d230a94892dd5f43997ba3bddbf442e5a23f1dbac825a4de995af6e96e692",
-          "size_bytes": 96333
+          "sha256": "5d895dd13e9d7f86483ccb596b684cacca9c6a461207f08a93e18a059e88b73e",
+          "size_bytes": 105019
         },
         "families": {
           "file": "fusion-cohort-a3_glm53_decode-selected.families.json",
-          "sha256": "8f7b56db1a9d253c492d87dd34f9da5cb1a5cfc7f0de5b3181475c7d8610df91",
-          "size_bytes": 144880
+          "sha256": "77655a78272c2ef0f3cf3ff48564d38715561a8a4c1ad2f226c6f2af195d0627",
+          "size_bytes": 242945
         }
       },
       "positive_events": 166204,
@@ -520,8 +710,8 @@
     {
       "summary": {
         "file": "fusion-cohort-a3_qwen35-reference.json",
-        "sha256": "6948859959c55e012ab66abc4cb3c9b027576bf21620cf857f4d2ff408a29eef",
-        "size_bytes": 6439
+        "sha256": "523026ea4ecc5fcd4827087271e7ba56942d7a6afe5f5230a8c6f6deb8379bd5",
+        "size_bytes": 8973
       },
       "capture_key": "a3_qwen35",
       "declaration_key": "a3_qwen35",
@@ -546,13 +736,13 @@
         },
         "comparison": {
           "file": "fusion-cohort-a3_qwen35-reference.comparison.json",
-          "sha256": "723c02c1578239bd27bfb8e36ce5dfdeff6f0f134728c067fb7d6bcd3e9e87df",
-          "size_bytes": 62117
+          "sha256": "2e7450448af3b122f6404e213644b1b7ff27dc1d103921e19c092f4ec3d505aa",
+          "size_bytes": 68131
         },
         "families": {
           "file": "fusion-cohort-a3_qwen35-reference.families.json",
-          "sha256": "64b43ec4e421c9d2bb443b83f34c8fdc503858bd85e18145cdd3e8cb0d14c1a9",
-          "size_bytes": 134034
+          "sha256": "e0b8a734608cdba81b1b951102636216f81a9deaf05407ad4749b8d9ddbc96b0",
+          "size_bytes": 268427
         }
       },
       "positive_events": 121802,
@@ -617,8 +807,8 @@
     {
       "summary": {
         "file": "fusion-cohort-a3_qwen36-reference.json",
-        "sha256": "5ef0c868f018caa6d1acd86380ccb44e9d514d98a12164faf771e50531999098",
-        "size_bytes": 6163
+        "sha256": "ba7a0f6040beb63e9efc34c022679840dce797fdc98345e6936af39eff0c74fa",
+        "size_bytes": 8671
       },
       "capture_key": "a3_qwen36",
       "declaration_key": "a3_qwen36",
@@ -643,13 +833,13 @@
         },
         "comparison": {
           "file": "fusion-cohort-a3_qwen36-reference.comparison.json",
-          "sha256": "153bfc9ad652d7e49e9281006764a1fc2ef83e73fe85aa0935f2e86b3206a445",
-          "size_bytes": 62330
+          "sha256": "fcfd92956f16b682ac4451490adb62087a9e43eee2b9571127e37a853816a96b",
+          "size_bytes": 68408
         },
         "families": {
           "file": "fusion-cohort-a3_qwen36-reference.families.json",
-          "sha256": "fa2ee35aaa0ebe340541769a87ff938f1f4a25afc7e6a73fe1baab4953aac5c0",
-          "size_bytes": 120445
+          "sha256": "67759860530c6589ac5adcc9b08a505c38b5715558a2b8b46a0a4be9d74634bd",
+          "size_bytes": 243236
         }
       },
       "positive_events": 40628,
@@ -713,8 +903,8 @@
     {
       "summary": {
         "file": "fusion-cohort-a3_v4f-reference.json",
-        "sha256": "a527f794368a2d220bc2490b0a82eb3bdaa1ce98befb8409eef492bcd69429fd",
-        "size_bytes": 6365
+        "sha256": "eead66c6e026fc8606d7cbaa590eea64e3207ea250694920dbe1c361f9b0638b",
+        "size_bytes": 8908
       },
       "capture_key": "a3_v4f",
       "declaration_key": "a3_v4f",
@@ -739,13 +929,13 @@
         },
         "comparison": {
           "file": "fusion-cohort-a3_v4f-reference.comparison.json",
-          "sha256": "ddf832e95927cbaf884bccd703b34de9a9a26f0f744a7f29142552817271bbb8",
-          "size_bytes": 76733
+          "sha256": "b2c5136d3a86c6679965be42de74e49c75bfdee96fde5a330e4fb1bb0841e678",
+          "size_bytes": 83761
         },
         "families": {
           "file": "fusion-cohort-a3_v4f-reference.families.json",
-          "sha256": "6402827db8c70e54b227350b41b6119153993c78328907f61910e6d263e1408e",
-          "size_bytes": 147366
+          "sha256": "45baac8b37738b5b7659237660811a92888cc5d1f76ad7b17688ea8fdd9d3784",
+          "size_bytes": 277685
         }
       },
       "positive_events": 4064,
@@ -811,8 +1001,8 @@
     {
       "summary": {
         "file": "fusion-cohort-a3_v4f-selected.json",
-        "sha256": "ec65b44820942d1bdda59475d2939fbc38be776c954abc77f1040be0cb21cff4",
-        "size_bytes": 7435
+        "sha256": "d9399fd29e63d8bf82a617ea6299dc1db1c5e470b700847e7d47aa3574563d7a",
+        "size_bytes": 9979
       },
       "capture_key": "a3_v4f",
       "declaration_key": "a3_v4f",
@@ -837,13 +1027,13 @@
         },
         "comparison": {
           "file": "fusion-cohort-a3_v4f-selected.comparison.json",
-          "sha256": "f30635b2f9173c07471631999eb9f9221031e39aa4686fa8f2f8e83b431d72a6",
-          "size_bytes": 78356
+          "sha256": "c3ecf5ce9421ee25b4e0b9580b9cf020eb6a8122514e911fe55d27b585c768b7",
+          "size_bytes": 85417
         },
         "families": {
           "file": "fusion-cohort-a3_v4f-selected.families.json",
-          "sha256": "c52537babcaeb9cc186ab9a2bdfcf2b39bad35473d2ea906a183cb2dc5426ef7",
-          "size_bytes": 147681
+          "sha256": "b0b631f1fa5c3bce3810732070df36dc9d71f837297c574c9b0d0ac3c9bcd650",
+          "size_bytes": 278352
         }
       },
       "positive_events": 4064,
@@ -909,8 +1099,8 @@
     {
       "summary": {
         "file": "fusion-cohort-a3_v4pro-reference.json",
-        "sha256": "c93db41acfacbe79b5615236cdd46c07325cb9ad83f90953911588c819a09b93",
-        "size_bytes": 6304
+        "sha256": "2ae2b1341fe49ef0f6383cc1f737581d0dde48d28058033b69f85760bd01bdcd",
+        "size_bytes": 8864
       },
       "capture_key": "a3_v4pro",
       "declaration_key": "a3_v4pro",
@@ -935,13 +1125,13 @@
         },
         "comparison": {
           "file": "fusion-cohort-a3_v4pro-reference.comparison.json",
-          "sha256": "631be02b2db93ee9c07eaec7c1da597714e3be62959e50b379539e6d851188c4",
-          "size_bytes": 77895
+          "sha256": "2bb62751044910e57b2d0c6eddc17c1152b027f4259a4ea4db700d7782fc882d",
+          "size_bytes": 84601
         },
         "families": {
           "file": "fusion-cohort-a3_v4pro-reference.families.json",
-          "sha256": "41bd9cc513b8d8bdd058452af2cc0132434d304065a132e24d9dfd6f38ac6b18",
-          "size_bytes": 149164
+          "sha256": "c3d6f5193b36f59a3d4b0ce0ba63025ddecee33b9c612ec40b91860c7a7921e7",
+          "size_bytes": 277027
         }
       },
       "positive_events": 24271,
@@ -1007,8 +1197,8 @@
     {
       "summary": {
         "file": "fusion-cohort-a3_v4pro-selected.json",
-        "sha256": "c482d8593724c7b4f18ea46ba11fe55240d425190c2a4d5f823474f065ebba85",
-        "size_bytes": 7374
+        "sha256": "9703c1ff136564ce153c5b719d1f403df9d984a4d57f3c0d302f975d7f6f4e24",
+        "size_bytes": 9937
       },
       "capture_key": "a3_v4pro",
       "declaration_key": "a3_v4pro",
@@ -1033,13 +1223,13 @@
         },
         "comparison": {
           "file": "fusion-cohort-a3_v4pro-selected.comparison.json",
-          "sha256": "78c2a2945d3b8ccb94d17298042e1ced051ce5f837db5f146c0f4609d3a6b145",
-          "size_bytes": 79478
+          "sha256": "e592312de6f5129e876910374319bb89a47b1e78ad1d7903144dc16a5cd08415",
+          "size_bytes": 86215
         },
         "families": {
           "file": "fusion-cohort-a3_v4pro-selected.families.json",
-          "sha256": "8832e87bd22dba3f88ba2155cd5880e30fb3f5eb3ac997fce5a5687a882579f1",
-          "size_bytes": 149452
+          "sha256": "59845484c4fcb502f0b6ab4811ba49a8a310951ddf99cf4a28d4896c0a04f803",
+          "size_bytes": 277662
         }
       },
       "positive_events": 24271,
@@ -1105,8 +1295,8 @@
     {
       "summary": {
         "file": "fusion-cohort-a5_kimi_k3-reference.json",
-        "sha256": "99de59a7dc47c4a65a481c6d1743c8f79f77d043496e72c1a161cb39111131c7",
-        "size_bytes": 6824
+        "sha256": "12f648323df46d0dfc154e0995e3089f684feb13dd1b3bed88cfa541d74b9f2e",
+        "size_bytes": 9180
       },
       "capture_key": "a5_kimi_k3",
       "declaration_key": "a5_kimi_k3",
@@ -1131,13 +1321,13 @@
         },
         "comparison": {
           "file": "fusion-cohort-a5_kimi_k3-reference.comparison.json",
-          "sha256": "14b25e515bec4d265de71475a44e8e99cf25555b359f14287bb38bc52709ec13",
-          "size_bytes": 57233
+          "sha256": "0e9a04447e4228879a0e0376db932321e3b0e9f9b25767db78493354b5f51ac8",
+          "size_bytes": 59007
         },
         "families": {
           "file": "fusion-cohort-a5_kimi_k3-reference.families.json",
-          "sha256": "16d27c76f1df52fb5d97d23d8b9b32026171e37121527f4520b5979301634336",
-          "size_bytes": 112253
+          "sha256": "64c14aa34b07a66ff19627b66c8d34ba64a24f43c39bf9fe6dd555896a7d0c76",
+          "size_bytes": 264688
         }
       },
       "positive_events": 286988,
@@ -1258,8 +1448,8 @@
     {
       "summary": {
         "file": "fusion-cohort-a5_kimi_k3_decode-reference.json",
-        "sha256": "8430d38f6cd09ab165198a77d8253a0115585db697d2fefd068894ec817229c8",
-        "size_bytes": 7242
+        "sha256": "da839575996ecea4bfb44fbdd83c91a10500a1a28c2d5c3f4f28ddb4431bf696",
+        "size_bytes": 9770
       },
       "capture_key": "a5_kimi_k3",
       "declaration_key": "a5_kimi_k3_decode",
@@ -1284,13 +1474,13 @@
         },
         "comparison": {
           "file": "fusion-cohort-a5_kimi_k3_decode-reference.comparison.json",
-          "sha256": "52afc470d8b1a4cab6ef4a5aa99901a019a2e80fc44f645a0b20f10a1bb649b0",
-          "size_bytes": 64725
+          "sha256": "f0f289c39f0841e26b43b6a2e22dac691928e5b35a00d65693986564be1bfeda",
+          "size_bytes": 67244
         },
         "families": {
           "file": "fusion-cohort-a5_kimi_k3_decode-reference.families.json",
-          "sha256": "4fbc7640b52d9fee24cbdc5f22313d13737a8d0927644ed09457306f33111d8f",
-          "size_bytes": 120984
+          "sha256": "8c33faf6a834adecd5c78cfee9833f09c4a4a260ece07c6d2d55f983cf9f7ed8",
+          "size_bytes": 274708
         }
       },
       "positive_events": 286988,
@@ -1459,8 +1649,8 @@
     {
       "summary": {
         "file": "fusion-cohort-a5_kimi_k3_checkpoint-reference.json",
-        "sha256": "e31f74c2d0b4f603ae2331fd0981bedad7f9ee3fe8cf5c1a972f6bf183581562",
-        "size_bytes": 11026
+        "sha256": "7d89974beea933c038225edef3c984938d0a5436d5ee889b7aa4096351742f15",
+        "size_bytes": 13555
       },
       "capture_key": "a5_kimi_k3",
       "declaration_key": "a5_kimi_k3_checkpoint",
@@ -1485,13 +1675,13 @@
         },
         "comparison": {
           "file": "fusion-cohort-a5_kimi_k3_checkpoint-reference.comparison.json",
-          "sha256": "c89e3a6dd2e02b5c1108f33e373f37c925ff3609d2aadd95778421cc54623885",
-          "size_bytes": 98766
+          "sha256": "b010ea8dbce949a9a478b0f1027ab42ebc678c99e1fa5c14354f4f149fec6833",
+          "size_bytes": 103639
         },
         "families": {
           "file": "fusion-cohort-a5_kimi_k3_checkpoint-reference.families.json",
-          "sha256": "84fdf0084f177f3b734f5fa8f9d0ec4ee7a1c905c926e3bb1d2b3405855982af",
-          "size_bytes": 162464
+          "sha256": "a3e8d83e9036ef804442e05ee724bf9c980d346526e9f8fed89886db6c17606a",
+          "size_bytes": 319242
         }
       },
       "positive_events": 286988,
@@ -1637,8 +1827,8 @@
     {
       "summary": {
         "file": "fusion-cohort-a5_kimi_k3_decode_checkpoint-reference.json",
-        "sha256": "1eeb404097f7fe14a3a69eb745da0cfd424e58db74ed2d4ce3d1d263a78b6c7b",
-        "size_bytes": 11115
+        "sha256": "f5d707f063656ca8010601962e630bf22eecc185bcc1f669f3d3f1f69d7ec740",
+        "size_bytes": 13647
       },
       "capture_key": "a5_kimi_k3",
       "declaration_key": "a5_kimi_k3_decode_checkpoint",
@@ -1663,13 +1853,13 @@
         },
         "comparison": {
           "file": "fusion-cohort-a5_kimi_k3_decode_checkpoint-reference.comparison.json",
-          "sha256": "756059043a20c3bf69b5b303619ddb51f2a0e6ae091f8a8a28af0cf723501221",
-          "size_bytes": 98015
+          "sha256": "f9d236d84de04cf35e058f797e9a998489d18e8c0188e579eabaf40f9aa28ae3",
+          "size_bytes": 102925
         },
         "families": {
           "file": "fusion-cohort-a5_kimi_k3_decode_checkpoint-reference.families.json",
-          "sha256": "4969d02981f4fb0785ee68511d8eaa2f3f167b185810fadfc738ef94ba7c0485",
-          "size_bytes": 161737
+          "sha256": "08f251538fe38652d9bfeaf73202a70a534e343f95c7df51397e8cf9b37dcb54",
+          "size_bytes": 318784
         }
       },
       "positive_events": 286988,
@@ -1855,8 +2045,8 @@
     {
       "summary": {
         "file": "fusion-cohort-a5_qwen38-reference.json",
-        "sha256": "182a9d6502dd7c705c541418eef117dc36d4520e5b9888f540c68d76cc8d7c3d",
-        "size_bytes": 6929
+        "sha256": "2b93638ac7a124ca86fb9d5a8d28319a1039f15e574814a0b8bf1fb701e684f7",
+        "size_bytes": 9290
       },
       "capture_key": "a5_qwen38",
       "declaration_key": "a5_qwen38",
@@ -1881,13 +2071,13 @@
         },
         "comparison": {
           "file": "fusion-cohort-a5_qwen38-reference.comparison.json",
-          "sha256": "5482c2331759cfc83cc379add523d21898e032efb1f62867b300d3ea993e2431",
-          "size_bytes": 93594
+          "sha256": "5649ad6c1571eb688144185854bc042439cdce3edc2bb157d0f7c219768d549e",
+          "size_bytes": 102071
         },
         "families": {
           "file": "fusion-cohort-a5_qwen38-reference.families.json",
-          "sha256": "f6a594bd605f25a24942534c6c515fc885d374639d946baf3c141e4f993ed4db",
-          "size_bytes": 145846
+          "sha256": "047830ef357e08a74d5900e025b6f6ed638f7dd5d0014e8536e534aba35f4b61",
+          "size_bytes": 261617
         }
       },
       "positive_events": 22486,
@@ -1951,11 +2141,14 @@
     }
   ],
   "limitations": [
-    "Repeated declarations share captures and are not additional independent hardware evidence.",
-    "Activity is a sum of event durations, not wall-clock latency or end-to-end throughput.",
-    "Reference predictions retain observations but do not contribute scored error denominators.",
-    "Symmetric DP collapses per-device multiplicity only; it never binds a layer or replica.",
-    "Capture phases and hardware dispatch remain caller declarations unless independently evidenced.",
-    "Original raw scans, source hashes and timing extraction are trusted only through the separate replay receipt."
+    "This refresh and audit do not scan raw captures or execute simulation.",
+    "Historical 33245-check review was an artifact audit, not fresh raw evidence.",
+    "Repeated variants reuse captures; cohort-weighted event totals are not independent coverage.",
+    "Per-call acceptance applies to each cohort mean, not to every event in the cohort.",
+    "Reference, unmatched and failed prediction rows remain outside acceptance denominators.",
+    "Family averages are descriptive; failing cohorts cannot cancel in signed averages.",
+    "Activity sums overlap and are not model latency or throughput.",
+    "No tolerance floor or timing adjustment was added to any prediction.",
+    "Recomputed family sums may differ by floating-point rounding; original comparison values are exact."
   ]
 }

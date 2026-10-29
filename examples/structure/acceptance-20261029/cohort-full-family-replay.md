@@ -41,8 +41,8 @@ scored and reference events, full activity denominators and remaining reasons.
 Its [JSON index](fusion-cohort-replay-families.json) links all fifteen complete
 family tables. Activity sums include overlapping events and are not model
 wall-clock time. The [independent review](fusion-cohort-independent-review.json)
-checks 33,245 artifact/identity/arithmetic conditions. That review does not
-rescan raw P50 or interval unions; it checks consistency across saved artifacts.
+checks artifact identities, arithmetic and the current per-call policy. It does
+not rescan raw P50 or interval unions; those checks concern saved artifacts.
 
 The [refreshed inventory](fusion-coverage-inventory.md) uses exact saved cases
 and fresh graph identities. Of 59 required model-body types, 51 have a declared
@@ -50,6 +50,44 @@ native boundary, 49 have a complete boundary, 37 have a comparable contract,
 and 35 match a retained original fixture row. These evidence levels do not
 establish captured layer occurrences. Fixture registration contains 798 unique
 original records; overlapping retained Kimi source lines are deduplicated.
+
+## Per-call accuracy policy
+
+The policy refresh reuses the same fifteen saved comparisons. No capture is
+rescanned, no prediction is rerun, and no launch constant is added. All measured
+and predicted values, original relative errors and cumulative gaps are preserved.
+
+| Observed complete-event mean | Acceptance criterion | Passed / compared cohorts |
+| --- | --- | ---: |
+| <= 50 us | Absolute per-call difference <= 15 us | 54 / 69 |
+| > 50 us | Absolute relative error <= 15% | 32 / 141 |
+| Both tiers | Apply each cohort's own tier | 86 / 210 |
+
+The 32 reference cohorts remain unscored. A uniform 15% rule would pass 40
+cohorts; the requested small-call tolerance adds 46 passes. These counts span
+declaration variants and do not represent independent hardware trials.
+The versioned policy and unchanged-value checks are recorded in
+[accuracy refresh validation](fusion-cohort-accuracy-validation.json).
+
+All family tables now expose observed/predicted us per call, signed and absolute
+per-call differences, tier, tolerance and pass status. Family means use scored
+call-count weights; family acceptance requires its scored cohorts to pass.
+Mixed tiers are displayed separately. For example, Kimi decode MatMulV3's family
+mean is 14.033 -> 8.578 us, but its 67-call slow cohort is
+92.208 -> 73.978 us (-19.77%) and remains a large-call failure.
+
+| GLM decode reference family | Calls | Observed us/call | Predicted us/call | Absolute diff us | Tier result |
+| --- | ---: | ---: | ---: | ---: | --- |
+| DynamicQuant | 17,316 | 2.913 | 0.012 | 2.901 | Within launch-floor tolerance |
+| AddRmsNormBias | 11,322 | 3.952 | 0.061 | 3.890 | Within launch-floor tolerance |
+| TransposeBatchMatMul | 5,772 | 14.173 | 1.760 | 12.413 | Within launch-floor tolerance |
+| QuantBatchMatmulV3 | 13,320 | 17.801 | 6.355 | 11.446 | Within launch-floor tolerance |
+
+Top Errors prioritizes large failed cohorts by observed activity. Small calls
+outside their absolute allowance are listed separately; within-tolerance calls
+have a separate table. GLM decode selected MLA still differs by about 23 us and
+LightningIndexer by about 24 us, so the relaxed criterion does not pass them.
+HC and large matrix errors retain the 15% criterion.
 
 ## Kimi: zero cohort fixed, remaining boundaries visible
 
@@ -120,9 +158,11 @@ complete selected source program removes its implemented epilogue gaps.
 | AddRmsNormBias | 153 / -32.30% | 11,322 / -98.45% |
 | AddRmsNormDynamicQuant | 3 / -44.69% | 222 / -98.81% |
 
-Only the prefill MSD gate/up result is within 15%. Old up/down entries were
-references without a score, so this is new comparison coverage, not a proved
-accuracy improvement over an old score. Norm-bias predictions are unchanged;
+The prefill MSD gate/up result passes the large-call 15% criterion. Decode
+norm-bias and norm-quantization pass the small-call 15 us criterion despite their
+large raw relative errors. Down and MLA remain outside their applicable
+tolerances. Old up/down entries were references without a score, so this is new
+comparison coverage, not a proved improvement over an old score. Norm-bias predictions are unchanged;
 MLA/W8 differences also include the newly selected matrix program. GLM sparse
 attention still has -53.63%/-97.81% prefill/decode error, and A5 Qwen3.8 V3
 matrix cohorts have +75.47% error. This is not full-model accuracy acceptance.
@@ -142,8 +182,8 @@ Streaming canonical graph hashing removes the complete JSON/UTF8 temporary
 copies; graph IDs and full mapping content remain identical. The final result
 above is a fresh complete replay after that repair, not the failed receipt.
 
-[Maintained-suite verification](cohort-verification.json) records the same
-runtime-source identity: profiler **527 passed, 26 skipped (24.83s)**;
+[Historical full-replay suite verification](cohort-verification.json) records
+that replay's runtime-source identity: profiler **527 passed, 26 skipped (24.83s)**;
 sim **1,444 passed (224.80s)**. Skipped live tests and historical replay do not
 constitute a newly executed hardware workload. All fresh graph checks and tests
 use **CPython 3.13.12** from the sim environment.
@@ -163,6 +203,22 @@ default declarations) in fresh serial workers. Maximum worker RSS is
 441.44 MiB and parent RSS is 57.70 MiB, both within budget. This replaces the
 earlier 629.08 MiB single-process refresh; all graph IDs and coverage results
 remain identical. Inventory refresh does not rerun the raw captures.
+
+To update only accuracy policy and reporting on saved comparisons:
+
+```bash
+PYTHONPATH=/path/to/sim-rewrite:/path/to/profiler /path/to/sim-rewrite/.venv/bin/python \
+  examples/structure/replay_fusion_cohorts.py --refresh-accuracy --run
+```
+
+The historical full replay and its source hashes remain separate from this
+policy projection. Current policy tests and refresh resource use are recorded
+under `tiered_accuracy` in `cohort-verification.json`.
+The policy/report update passes profiler **533 tests, 26 skipped (28.67s)** and
+sim **1,459 tests (221.68s)**. Refreshing all fifteen saved variants takes
+0.176 seconds at **44 MiB** peak RSS, with zero raw reads and zero predictions.
+Independent review checks 127,030 identity, arithmetic and grouping conditions;
+all original comparison values agree with the previous committed replay.
 
 A pre-existing cross-version routing sensitivity remains separate: for V4 Pro's
 uniform 384-expert/top-6/EP16/1,024-token declaration, `RoutingPolicy.local`

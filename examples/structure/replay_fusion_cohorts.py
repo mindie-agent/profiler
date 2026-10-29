@@ -25,7 +25,11 @@ import time
 from mindie_profiler.events import Observation, QueryStats, SourceRef, Window
 from mindie_profiler.sources_csv import CsvSource, probe_csv
 from mindie_profiler.structure_mapping import StructureMapper
+from mindie_sim.cohort_accuracy import accuracy_fields, accuracy_policy
 from fusion_replay_cases import _hash, _read, variants as case_variants
+from fusion_cohort_reporting import (
+    family_table as _family_table, write_family_overview as _write_family_overview,
+)
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -63,6 +67,8 @@ def _runtime_identity():
         *sorted((sim / "data/observations/sources/kimi-checkpoint-20261029").glob("*.json")),
         sim / "data/verification/model-scoreboard-20261029-glm53-w4a8-msd-case.json",
         Path(__file__).resolve(), Path(__file__).with_name("fusion_replay_cases.py"),
+        Path(__file__).with_name("fusion_cohort_reporting.py"),
+        Path(__file__).with_name("fusion_cohort_refresh.py"),
         BASE / "head-normalization-evidence.json",
     ]
     return {str(path): _hash(path) for path in files}
@@ -230,7 +236,7 @@ def _program_key(row):
 
 
 def _failed_cohort(row, failure):
-    return {
+    result = {
         **{key: row.get(key) for key in (
             "cohort_id", "native_operator_type", "physical_signature", "target_kind",
             "replica", "stage", "phase", "placement", "device_id",
@@ -245,6 +251,7 @@ def _failed_cohort(row, failure):
         "prediction_failure": failure, "prediction": None, "comparison": None,
         "occurrence_binding_implied": False,
     }
+    return {**result, **accuracy_fields(result)}
 
 
 def _compare_programs(args, prefix, mapping):
@@ -317,6 +324,7 @@ def _compare_programs(args, prefix, mapping):
                     "report_schema_version": "mindie-sim.cohort-comparison/1",
                     "graph_id": mapping["graph_id"]}),
         "windows": windows, "status_counts": dict(counts),
+        "accuracy_policy": accuracy_policy(),
         "comparison_selection": _comparison_input(mapping)["comparison_selection"],
         "distinct_priced_programs": sum(row.get("distinct_priced_programs", 0) for row in receipts),
         "attempted_physical_programs": len(keys), "program_receipts": receipts,
@@ -325,71 +333,6 @@ def _compare_programs(args, prefix, mapping):
     }
     _write(output_path, output)
     return output
-
-
-def _family_table(mapping, comparison):
-    grouped = {}
-    for window_index, window in enumerate(comparison["windows"]):
-        for row in window["cohorts"]:
-            grouped.setdefault((window_index, row["native_operator_type"]), []).append(row)
-    families = []
-    for window_index, window in enumerate(mapping["windows"]):
-        for operator in window["operators"]:
-            kind = operator["operator_type"]
-            cohorts = grouped.get((window_index, kind), [])
-            scored = [row for row in cohorts if row["status"] == "compared"]
-            references = [row for row in cohorts if row["status"] == "reference_only"]
-            actual = sum(row["observed"]["activity_sum_ns"] / 1e6 for row in scored)
-            predicted = sum(row["prediction"]["observed_call_count_total_ms"] for row in scored)
-            unscored = Counter(operator.get("cohort_excluded_event_counts", {}))
-            for row in cohorts:
-                if row["status"] != "compared":
-                    unscored[row["reason"]] += row["observed"]["event_count"]
-            missing_reasons = operator["event_count"] - sum(
-                row["observed"]["event_count"] for row in scored) - sum(unscored.values())
-            if "cohort_excluded_event_counts" in operator and missing_reasons:
-                raise ValueError("native_family_unscored_denominator_inconsistent")
-            families.append({
-                **operator, "cohort_count": len(cohorts),
-                "activity_sum_ns": operator.get("activity_sum_ns"),
-                "complete_activity_sum_ns": operator.get("complete_activity_sum_ns"),
-                "cohort_status_counts": dict(Counter(row["status"] for row in cohorts)),
-                "cohort_event_count": sum(row["observed"]["event_count"] for row in cohorts),
-                "scored_event_count": sum(row["observed"]["event_count"] for row in scored),
-                "reference_event_count": sum(row["observed"]["event_count"] for row in references),
-                "reference_activity_sum_ms": sum(
-                    row["observed"]["activity_sum_ns"] / 1e6 for row in references),
-                "predicted_reference_activity_sum_ms": sum(
-                    row["prediction"]["observed_call_count_total_ms"] for row in references),
-                "scored_activity_sum_ms": actual,
-                "predicted_scored_activity_sum_ms": predicted,
-                "signed_activity_residual_ms": predicted - actual if scored else None,
-                "relative_activity_error": predicted / actual - 1 if actual > 0 else None,
-                "unscored_event_reason_counts": dict(unscored),
-                "unscored_events_without_reason_metadata": missing_reasons,
-                "cohorts": [{
-                    key: row.get(key) for key in (
-                        "cohort_id", "target_kind", "physical_signature",
-                        "contract_scope", "structural_classification", "status", "reason", "observed",
-                        "declared_instance_count", "declared_layer_count", "multiplicity",
-                        "prediction", "comparison")}
-                    for row in cohorts],
-            })
-    has_duration = all(row["activity_sum_ns"] is not None for row in families)
-    return {
-        "kind": "complete_capture_native_family_conditional_errors",
-        "graph_id": mapping["graph_id"],
-        "event_denominator": "all_valid_positive_duration_events_in_complete_capture_window",
-        "activity_denominator": "sum_of_event_intersections_with_window; overlapping_events_count_separately",
-        "sort_basis": "complete_capture_activity_sum_ns" if has_duration else "complete_capture_event_count",
-        "families": sorted(families, key=lambda row: (
-            -(row["activity_sum_ns"] if has_duration else row["event_count"]), row["operator_type"])),
-        "limitations": [
-            "Every native type in the complete mapping denominator is included, including zero-cohort types.",
-            "Residuals use only scored cohorts; they do not estimate errors for unscored events.",
-            "Activity sums may overlap and are not full model latency or throughput.",
-        ],
-    }
 
 
 def _capture_worker(args):
@@ -476,90 +419,14 @@ def _compare_report(args, report):
     print(json.dumps({"report": summary_path.name, "comparison": comparison}), flush=True)
 
 
-def _write_family_overview(args, captures):
-    variants, lines = [], [
-        "# Complete-Capture Operator Families And Conditional Errors", "",
-        "Historical captures replayed locally; no new live collection.", "",
-        "The event denominator is every valid positive-duration event in the complete capture window. "
-        "Activity sums add event intersections separately, including overlapping events. "
-        "Every native type remains in the JSON tables, including types with no valid cohort. "
-        "This readable view shows the 20 highest measured-activity families per declaration "
-        "(event count when old mapping metadata has no activity total), plus all subgraph cohorts. "
-        "Reference events have a cohort and conditional cost but do not enter error scoring. "
-        "Errors cover only scored events; activity sums are not wall-clock latency or throughput.", "",
-        "Several declarations may reuse one capture. Their event totals are not independent "
-        "and must not be added as additional captures.", "",
-    ]
-    for capture in captures:
-        for report in capture["reports"]:
-            summary_path = args.output_dir / report["report"]
-            summary = _read(summary_path)
-            family_path = summary_path.with_suffix(".families.json")
-            table = _read(family_path)
-            variants.append({
-                "capture_key": capture["capture_key"], "variant": summary["variant"],
-                "declaration_key": summary["declaration_key"], "graph_id": summary["graph_id"],
-                "source_identity": summary["source_identity"],
-                "file": family_path.name, "sha256": _hash(family_path),
-                "family_count": len(table["families"]),
-                "event_count": sum(row["event_count"] for row in table["families"]),
-            })
-            lines.extend([
-                f"## {summary['declaration_key']} / {summary['variant']}", "",
-                f"Sort: `{table['sort_basis']}`. Graph: `{summary['graph_id']}`.", "",
-                "| Native family | All events | All activity ms | Scored events | Reference events | Scored observed ms | Predicted ms | Relative error | Mapping / comparison reason |",
-                "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |",
-            ])
-            for row in table["families"][:20]:
-                actual_all = row["activity_sum_ns"]
-                activity = "-" if actual_all is None else f"{actual_all / 1e6:.3f}"
-                scored = row["scored_event_count"]
-                actual = f"{row['scored_activity_sum_ms']:.3f}" if scored else "-"
-                predicted = f"{row['predicted_scored_activity_sum_ms']:.3f}" if scored else "-"
-                error = row["relative_activity_error"]
-                error_text = "-" if error is None else f"{error * 100:+.1f}%"
-                reasons = row["unscored_event_reason_counts"]
-                reason = ", ".join(f"{key} ({count})" for key, count in
-                                   sorted(reasons.items(), key=lambda item: -item[1])[:2])
-                lines.append(
-                    f"| {row['operator_type']} | {row['event_count']} | {activity} | {scored} | "
-                    f"{row['reference_event_count']} | {actual} | {predicted} | {error_text} | "
-                    f"{reason.replace('|', '/')} |")
-            subgraphs = [(family["operator_type"], row)
-                         for family in table["families"] for row in family["cohorts"]
-                         if row["target_kind"] == "subgraph"]
-            lines.extend([
-                "", "| Subgraph native family | Cohort | Events | Status | Observed mean ms | Predicted call ms | Mean error |",
-                "| --- | --- | ---: | --- | ---: | ---: | ---: |",
-            ])
-            for kind, row in subgraphs:
-                actual = row["observed"]["duration_ns"].get("mean")
-                predicted = (row["prediction"] or {}).get("per_call_ms")
-                residual = (row["comparison"] or {}).get("per_call_mean", {}).get("relative_error")
-                value = lambda item: "-" if item is None else f"{item:.6f}"
-                lines.append(
-                    f"| {kind} | {row['cohort_id'][-12:]} | {row['observed']['event_count']} | "
-                    f"{row['status']} | {value(None if actual is None else actual / 1e6)} | "
-                    f"{value(predicted)} | {'-' if residual is None else f'{residual * 100:+.1f}%'} |")
-            if not subgraphs:
-                lines.append("| - | - | 0 | No valid subgraph cohort | - | - | - |")
-            lines.append("")
-    suffix = "comparison" if args.compare_existing else "replay"
-    unique_events = {row["source_identity"]["sha256"]: row["event_count"] for row in variants}
-    _write(args.output_dir / f"fusion-cohort-{suffix}-families.json", {
-        "kind": "complete_capture_native_family_tables", "variants": variants,
-        "distinct_capture_count": len(unique_events),
-        "unique_capture_event_count": sum(unique_events.values()),
-        "variant_totals_are_not_independent_captures": True,
-        "not_new_live_collection": True, "occurrence_binding_implied": False})
-    (args.output_dir / f"fusion-cohort-{suffix}-top-errors.md").write_text("\n".join(lines).rstrip() + "\n")
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--run", action="store_true", help="Execute; otherwise show the bounded plan")
-    parser.add_argument("--compare-existing", action="store_true",
-                        help="Compare saved mappings and exact cases without reading raw captures")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--compare-existing", action="store_true",
+                      help="Compare saved mappings and exact cases without reading raw captures")
+    mode.add_argument("--refresh-accuracy", action="store_true",
+                      help="Re-evaluate all saved comparisons without reading captures or running prediction")
     parser.add_argument("--output-dir", type=Path, default=BASE)
     parser.add_argument("--only", choices=CAPTURE_KEYS, action="append")
     parser.add_argument("--capture-timeout", type=float, default=180)
@@ -573,6 +440,19 @@ def main():
     parser.add_argument("--compare-output", type=Path)
     parser.add_argument("--program-key", help=argparse.SUPPRESS)
     args = parser.parse_args()
+    if args.refresh_accuracy:
+        if args.only:
+            parser.error("--refresh-accuracy covers every saved replay variant; omit --only")
+        if not args.run:
+            print(json.dumps({
+                "mode": "refresh_saved_accuracy", "output_dir": str(args.output_dir),
+                "raw_capture_reads": 0, "prediction_executions": 0,
+                "scope": "all_variants_in_saved_completed_replay",
+            }, indent=2))
+        else:
+            from fusion_cohort_refresh import refresh_accuracy
+            refresh_accuracy(args, runtime_identity=_runtime_identity, rss=_rss)
+        return
     if args.compare_input:
         _compare_worker(args)
         return
