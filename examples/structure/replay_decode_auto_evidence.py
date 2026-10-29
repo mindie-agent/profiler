@@ -58,7 +58,7 @@ def numeric_digest(observed):
     return hashlib.sha256(json.dumps(state, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 
 
-def replay(manifest_path, output, *, validation_baseline=None):
+def replay(manifest_path, output, *, validation_baseline=None, reuse_extractions=None):
     started = time.monotonic()
     manifest = _read(manifest_path)
     baseline = _read(validation_baseline) if validation_baseline else None
@@ -89,8 +89,19 @@ def replay(manifest_path, output, *, validation_baseline=None):
         schema = probe_csv(path)
         source = SourceRef("", None, "csv", str(path), path.name, digest, stat.st_size,
                            schema.schema_version, schema.schema_variant, mtime_ns=stat.st_mtime_ns)
-        observed = auto_segment_decode_forwards(kernel_rows(path, timeout_s=120), config,
-                                                source=source)
+        cached = (reuse_extractions / f"auto-forward-{row['case_id']}.json"
+                  if reuse_extractions else None)
+        reused = bool(cached and cached.exists())
+        if reused:
+            observed = _read(cached)
+            if (observed["source_identity"] != source.content_identity()
+                    or observed["model_structure_identity"]["sha256"] != model_hash
+                    or observed["extraction_runtime"]["sha256"] != module_hash):
+                raise ValueError(f"precomputed extraction has a different source/model/core: {cached}")
+            observed["reused_extraction"] = {"path": str(cached), "sha256": _hash(cached)}
+        else:
+            observed = auto_segment_decode_forwards(kernel_rows(path, timeout_s=120), config,
+                                                    source=source)
         counts = observed["scan_counts"]
         accounted = sum(counts.get(key, 0) for key in (
             "complete_body_segment_events", "auxiliary_candidate_segment_events",
@@ -105,7 +116,9 @@ def replay(manifest_path, output, *, validation_baseline=None):
         observed["model_structure_identity"] = {"path": str(model_path), "sha256": model_hash}
         observed["extraction_runtime"] = {"path": str(module), "sha256": module_hash}
         observed["positive_event_partition_verified"] = True
-        observed["elapsed_seconds"] = round(time.monotonic() - case_started, 3)
+        observed["replay_control_elapsed_seconds"] = round(time.monotonic() - case_started, 3)
+        if not reused:
+            observed["elapsed_seconds"] = observed["replay_control_elapsed_seconds"]
         if row.get("graph_envelopes_path"):
             graph = _read(Path(row["graph_envelopes_path"]))
             observed["graph_crosscheck"] = correlate_forward_envelopes(observed, graph)
@@ -130,7 +143,8 @@ def replay(manifest_path, output, *, validation_baseline=None):
                    "auxiliary_forward_span_ms": observed["auxiliary_forward_span_ms"],
                    "positive_event_partition_verified": True,
                    "graph_crosscheck": observed.get("graph_crosscheck"),
-                   "elapsed_seconds": observed["elapsed_seconds"]}
+                   "elapsed_seconds": observed["elapsed_seconds"],
+                   "reused_extraction": observed.get("reused_extraction")}
         summaries.append(summary)
         print(json.dumps({"case_id": row["case_id"], "body": summary["body_forward_span_ms"],
                           "geometry_groups": summary["geometry_groups"],
@@ -148,6 +162,10 @@ def replay(manifest_path, output, *, validation_baseline=None):
                "elapsed_seconds": round(time.monotonic() - started, 3),
                "maximum_resident_set_size_raw": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
                "runtime_sources_unchanged": _hash(module) == module_hash}
+    receipt["source_scans_in_this_execution"] = sum(not row["reused_extraction"] for row in summaries)
+    receipt["reused_source_extractions"] = sum(bool(row["reused_extraction"]) for row in summaries)
+    receipt["reused_extraction_elapsed_seconds"] = sum(
+        row["elapsed_seconds"] for row in summaries if row["reused_extraction"])
     if baseline:
         receipt["validation_rerun"] = {
             "reason": "Correct endpoint provenance to actual min-start/max-end events; measured spans are unchanged.",
@@ -167,11 +185,12 @@ def replay(manifest_path, output, *, validation_baseline=None):
         s = row["body_forward_span_ms"]
         vals = [f"{s[key]:.6f}" if s[key] is not None else "—" for key in ("mean", "p50", "p90")]
         lines.append(f"| {row['case_id']} | {row['scan_counts']['positive_events']} | {s['count']} | {' | '.join(vals)} |")
-    lines += ["", "不同请求并发和实际 query/batch 的统计分别保留在 geometry_groups；上表不直接用于混合工况的 Sim 误差判定。",
-              "Qwen3.6 A5 的完整主体还与独立 MODEL_EXECUTE/MODEL_WAIT_COMPLETE 窗口逐一交叉核验，"
-              "Model ID 在层序列对齐之后才归组。", "",
-              "历史采集未证实强制负载均衡、固定 0.8 接收率、DSpark 或 100% Prefix Cache 命中；"
-              "请求长度不冒充每步精确 KV 长度。", ""]
+    lines += ["", "不同请求并发和实际 query/batch 的统计分别保留在 geometry_groups；上表不直接用于混合工况的 Sim 误差判定。"]
+    if any(row["graph_crosscheck"] for row in summaries):
+        lines += ["已有 graph 证据的完整主体与独立 MODEL_EXECUTE/MODEL_WAIT_COMPLETE 窗口逐一交叉核验，"
+                  "Model ID 在层序列对齐之后才归组。"]
+    lines += ["", "负载均衡、MTP 接收率与 Prefix Cache 命中按 manifest 中的实测或配置证据分别报告；"
+              "请求长度不冒充每步精确 KV 长度，客户端 TPOT 不冒充单次模型主体耗时。", ""]
     if baseline:
         lines += ["端点来源修复后再次流式回放同一 30 份源；两批统计逐项一致，仅端点 locator 更精确。"
                   "JSON 同时记录首批与验证批的核心身份、扫描量和耗时，未把重复验证计作新增采集或新增覆盖。", ""]
@@ -186,5 +205,7 @@ if __name__ == "__main__":
     parser.add_argument("--manifest", type=Path, default=base / "decode-forward-auto-cases.json")
     parser.add_argument("--output", type=Path, default=base)
     parser.add_argument("--validation-baseline", type=Path)
+    parser.add_argument("--reuse-extractions", type=Path)
     args = parser.parse_args()
-    print(json.dumps(replay(args.manifest, args.output, validation_baseline=args.validation_baseline)))
+    print(json.dumps(replay(args.manifest, args.output, validation_baseline=args.validation_baseline,
+                           reuse_extractions=args.reuse_extractions)))

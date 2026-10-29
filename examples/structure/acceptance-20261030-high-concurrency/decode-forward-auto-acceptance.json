@@ -1,0 +1,605 @@
+{
+  "schema_version": "mindie-decode-auto-acceptance/1",
+  "status": "completed",
+  "not_new_live_collection": true,
+  "basis": "structure_guided_topology_alignment",
+  "manifest": {
+    "path": "examples/structure/acceptance-20261030-high-concurrency/decode-forward-auto-cases.json",
+    "sha256": "1b141d4d2164a322fbbfa2efe1645c51741d93d934ac29f5ff48111034e8133f"
+  },
+  "segmentation_runtime": {
+    "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+    "sha256": "67327179db996df5ed8ce5d1c8c25cf5101d6aa935590229118272fce8326a67"
+  },
+  "cases": [
+    {
+      "case_id": "a5_qwen36_highconc_c40",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot10ms_c40_20261030/kernel_details.csv",
+        "size_bytes": 42891903,
+        "mtime_ns": 1793296375000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "5e83432a7c2f3b3804c7f12d489f0c203bf8665a36857d12dad4770d5efc73e3"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency/auto-forward-a5_qwen36_highconc_c40.json",
+      "report_sha256": "e59167772401ee3322db5424e09eeee793443781b360c179cf397261e4c5b4db",
+      "model_declaration": {
+        "name": "qwen3.6-27b",
+        "layers": 64,
+        "hidden_size": 5120,
+        "vocab_size": 248320,
+        "tp": 8
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/qwen36-a5-tp8-c40.json",
+        "sha256": "f1fb33fd6cc08b47f6768ac7eac3988b86f4ef12cb29ea16a3a81a123c501bc7"
+      },
+      "body_forward_span_ms": {
+        "count": 54,
+        "mean": 20.683910537037036,
+        "p50": 20.6115265,
+        "p90": 21.333773,
+        "min": 19.418858,
+        "max": 28.384353
+      },
+      "geometry": {
+        "query_rows": 160,
+        "sequences_per_replica": 40,
+        "tokens_per_sequence": 4,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 160,
+            "sequences_per_replica": 40,
+            "tokens_per_sequence": 4,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 54,
+            "mean": 20.683910537037036,
+            "p50": 20.6115265,
+            "p90": 21.333773,
+            "min": 19.418858,
+            "max": 28.384353
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 124200,
+        "positive_events": 124200,
+        "vocabulary_head_occurrences": 216,
+        "complete_body_segment_events": 109185,
+        "auxiliary_candidate_segment_events": 15012,
+        "trailing_segment_events": 3
+      },
+      "anomaly_counts": {
+        "auxiliary_or_partial_layer_sequence": 162,
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 162,
+        "mean": 0.4530556604938272,
+        "p50": 0.4518205,
+        "p90": 0.459923,
+        "min": 0.444757,
+        "max": 0.466483
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 4.107,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a5_qwen36_highconc_c128",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot30ms_near_c128_20261030/kernel_details.csv",
+        "size_bytes": 31449458,
+        "mtime_ns": 1793296375000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "65211276673c3f9e9ad9cbc8b2b618dede1c4724d1e343bfadb0c1f6cc3d9bba"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency/auto-forward-a5_qwen36_highconc_c128.json",
+      "report_sha256": "bdfd64f8f9e7122684a008306b55156a9866274d56361aae8df262212fefb20a",
+      "model_declaration": {
+        "name": "qwen3.6-27b",
+        "layers": 64,
+        "hidden_size": 5120,
+        "vocab_size": 248320,
+        "tp": 8
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/qwen36-a5-tp8-c128.json",
+        "sha256": "72a5105f6e2867965f3c2544a31e845e9f7c8097c65cfb7cb32196b567c9453e"
+      },
+      "body_forward_span_ms": {
+        "count": 38,
+        "mean": 32.608990342105265,
+        "p50": 32.2274355,
+        "p90": 33.851394,
+        "min": 31.679256,
+        "max": 37.205106
+      },
+      "geometry": {
+        "query_rows": 512,
+        "sequences_per_replica": 128,
+        "tokens_per_sequence": 4,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 512,
+            "sequences_per_replica": 128,
+            "tokens_per_sequence": 4,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 38,
+            "mean": 32.608990342105265,
+            "p50": 32.2274355,
+            "p90": 33.851394,
+            "min": 31.679256,
+            "max": 37.205106
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 91086,
+        "positive_events": 91086,
+        "vocabulary_head_occurrences": 152,
+        "complete_body_segment_events": 80481,
+        "auxiliary_candidate_segment_events": 10602,
+        "trailing_segment_events": 3
+      },
+      "anomaly_counts": {
+        "auxiliary_or_partial_layer_sequence": 114,
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 114,
+        "mean": 0.7043587807017544,
+        "p50": 0.7390525,
+        "p90": 0.746334,
+        "min": 0.61455,
+        "max": 0.749211
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 3.398,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a5_qwen36_highconc_c4",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot5ms_near_c4_20261030/kernel_details.csv",
+        "size_bytes": 57259297,
+        "mtime_ns": 1793296375000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "28644d6d5713e35de51f16b1a20dacd7574ea342c399d8afe049c487d0c8c880"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency/auto-forward-a5_qwen36_highconc_c4.json",
+      "report_sha256": "703e163ab9645b8616aa4df5f6f46aaa4b4e0d035830dd5382646c7892ead97e",
+      "model_declaration": {
+        "name": "qwen3.6-27b",
+        "layers": 64,
+        "hidden_size": 5120,
+        "vocab_size": 248320,
+        "tp": 8
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/qwen36-a5-tp8-c4.json",
+        "sha256": "afc945e7372947d15c2ba857e55cdcabeb862b6fe26faa8517d5f19866ee66a5"
+      },
+      "body_forward_span_ms": {
+        "count": 73,
+        "mean": 13.342454479452055,
+        "p50": 13.244635,
+        "p90": 13.484726,
+        "min": 13.132256,
+        "max": 17.924451
+      },
+      "geometry": {
+        "query_rows": 16,
+        "sequences_per_replica": 4,
+        "tokens_per_sequence": 4,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 16,
+            "sequences_per_replica": 4,
+            "tokens_per_sequence": 4,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 73,
+            "mean": 13.342454479452055,
+            "p50": 13.244635,
+            "p90": 13.484726,
+            "min": 13.132256,
+            "max": 17.924451
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 167389,
+        "positive_events": 167389,
+        "vocabulary_head_occurrences": 292,
+        "complete_body_segment_events": 147602,
+        "auxiliary_candidate_segment_events": 19783,
+        "trailing_segment_events": 4
+      },
+      "anomaly_counts": {
+        "auxiliary_or_partial_layer_sequence": 219,
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 219,
+        "mean": 0.31469118264840185,
+        "p50": 0.285127,
+        "p90": 0.306304,
+        "min": 0.280742,
+        "max": 0.853259
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 5.647,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a5_qwen38_highconc_c32",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_8_27b_w8a8_mxfp8_mtp_high_conc_decode_tpot10ms_near_c32_20261030/kernel_details.csv",
+        "size_bytes": 37515638,
+        "mtime_ns": 1793295977000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "53a8f0e6b5603dd248d42278d7cbb32243eed2b729f22a6224f2041b9790349f"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency/auto-forward-a5_qwen38_highconc_c32.json",
+      "report_sha256": "ba601973135b96e43990b38ae99b6da23147147b986b5021f5d46f21c7359c40",
+      "model_declaration": {
+        "name": "qwen3.8-27b",
+        "layers": 64,
+        "hidden_size": 5120,
+        "vocab_size": 248320,
+        "tp": 4
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/qwen38-a5-tp4-c32.json",
+        "sha256": "776770c0e007b4d4a7871951c360b7e8c231299a9f54b86f2dc81fc526381e77"
+      },
+      "body_forward_span_ms": {
+        "count": 48,
+        "mean": 22.7913348125,
+        "p50": 22.711011,
+        "p90": 22.894013,
+        "min": 22.66106,
+        "max": 24.545633
+      },
+      "geometry": {
+        "query_rows": 128,
+        "sequences_per_replica": 32,
+        "tokens_per_sequence": 4,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 128,
+            "sequences_per_replica": 32,
+            "tokens_per_sequence": 4,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 48,
+            "mean": 22.7913348125,
+            "p50": 22.711011,
+            "p90": 22.894013,
+            "min": 22.66106,
+            "max": 24.545633
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 107904,
+        "positive_events": 107904,
+        "vocabulary_head_occurrences": 192,
+        "complete_body_segment_events": 94749,
+        "auxiliary_candidate_segment_events": 13152,
+        "trailing_segment_events": 3
+      },
+      "anomaly_counts": {
+        "auxiliary_or_partial_layer_sequence": 144,
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 144,
+        "mean": 0.5311009027777778,
+        "p50": 0.542726,
+        "p90": 0.547716,
+        "min": 0.498811,
+        "max": 0.550145
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 3.627,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a5_qwen38_highconc_c128",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_8_27b_w8a8_mxfp8_mtp_high_conc_decode_tpot30ms_near_c128_20261030/kernel_details.csv",
+        "size_bytes": 23586546,
+        "mtime_ns": 1793295978000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "8f99679e518ef3022c20b12ca17edbb080395a367cd10686f61f5ddf34b8f6f3"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency/auto-forward-a5_qwen38_highconc_c128.json",
+      "report_sha256": "4329a3bfb2662f9b3981524118b00f2dad34e6d1e89ca1b89af531f91ee337ab",
+      "model_declaration": {
+        "name": "qwen3.8-27b",
+        "layers": 64,
+        "hidden_size": 5120,
+        "vocab_size": 248320,
+        "tp": 4
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/qwen38-a5-tp4-c128.json",
+        "sha256": "64f22537e3d68ec898306cf6929f676b2bb615c1b31fdff7b915354f4166649d"
+      },
+      "body_forward_span_ms": {
+        "count": 29,
+        "mean": 45.68931427586207,
+        "p50": 45.690342,
+        "p90": 45.735162,
+        "min": 45.609628,
+        "max": 45.75225
+      },
+      "geometry": {
+        "query_rows": 512,
+        "sequences_per_replica": 128,
+        "tokens_per_sequence": 4,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 512,
+            "sequences_per_replica": 128,
+            "tokens_per_sequence": 4,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 29,
+            "mean": 45.68931427586207,
+            "p50": 45.690342,
+            "p90": 45.735162,
+            "min": 45.609628,
+            "max": 45.75225
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 68121,
+        "positive_events": 68121,
+        "vocabulary_head_occurrences": 116,
+        "complete_body_segment_events": 60027,
+        "auxiliary_candidate_segment_events": 8091,
+        "trailing_segment_events": 3
+      },
+      "anomaly_counts": {
+        "auxiliary_or_partial_layer_sequence": 87,
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 87,
+        "mean": 0.9846555747126436,
+        "p50": 1.06742,
+        "p90": 1.077809,
+        "min": 0.806092,
+        "max": 1.084523
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 2.296,
+      "reused_extraction": null
+    },
+    {
+      "case_id": "a5_qwen38_highconc_c4",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_8_27b_w8a8_mxfp8_mtp_high_conc_decode_tpot5ms_near_c4_20261030/kernel_details.csv",
+        "size_bytes": 34821728,
+        "mtime_ns": 1793295977000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "8da79c3777fd59a5cd4dc210169e069862688f0855b8f590732b1c96b2431840"
+      },
+      "report_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency/auto-forward-a5_qwen38_highconc_c4.json",
+      "report_sha256": "b415311f5a5738aa0856b324013e49325f8ac3d1043c81a76c51c6d18ec2abbd",
+      "model_declaration": {
+        "name": "qwen3.8-27b",
+        "layers": 64,
+        "hidden_size": 5120,
+        "vocab_size": 248320,
+        "tp": 4
+      },
+      "model_structure_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/qwen38-a5-tp4-c4.json",
+        "sha256": "bb02663171eb0685d8558b05aba49076b63c79f0e20d537be45e9bc2762e9683"
+      },
+      "body_forward_span_ms": {
+        "count": 45,
+        "mean": 13.026720555555556,
+        "p50": 13.005325,
+        "p90": 13.166872,
+        "min": 12.914152,
+        "max": 13.401375
+      },
+      "geometry": {
+        "query_rows": 16,
+        "sequences_per_replica": 4,
+        "tokens_per_sequence": 4,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "geometry_groups": [
+        {
+          "geometry": {
+            "query_rows": 16,
+            "sequences_per_replica": 4,
+            "tokens_per_sequence": 4,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          },
+          "body_forward_span_ms": {
+            "count": 45,
+            "mean": 13.026720555555556,
+            "p50": 13.005325,
+            "p90": 13.166872,
+            "min": 12.914152,
+            "max": 13.401375
+          }
+        }
+      ],
+      "scan_counts": {
+        "scanned_events": 101025,
+        "positive_events": 101025,
+        "vocabulary_head_occurrences": 180,
+        "complete_body_segment_events": 88820,
+        "auxiliary_candidate_segment_events": 12201,
+        "trailing_segment_events": 4
+      },
+      "anomaly_counts": {
+        "auxiliary_or_partial_layer_sequence": 135,
+        "trailing_segment_without_vocabulary_head": 1
+      },
+      "auxiliary_forward_span_ms": {
+        "count": 135,
+        "mean": 0.5763874666666666,
+        "p50": 0.377784,
+        "p90": 0.998947,
+        "min": 0.373169,
+        "max": 1.2964
+      },
+      "positive_event_partition_verified": true,
+      "graph_crosscheck": null,
+      "elapsed_seconds": 3.456,
+      "reused_extraction": null
+    }
+  ],
+  "case_count": 6,
+  "total_complete_forwards": 287,
+  "source_positive_events": 659725,
+  "elapsed_seconds": 22.565,
+  "maximum_resident_set_size_raw": 58736640,
+  "runtime_sources_unchanged": true,
+  "source_scans_in_this_execution": 6,
+  "reused_source_extractions": 0,
+  "reused_extraction_elapsed_seconds": 0,
+  "validation_rerun": {
+    "reason": "New A5 TP4 HcclLaunchAicpuKernel controller tails can cross the next layer norm; add this actual typed ABI to the existing cross-boundary rule and rerun every new capture. Source-derived Sim cases were also replaced by parent-reviewed d31d6b09 cases; model topology declaration is unchanged.",
+    "validation_passes": 2,
+    "source_scans_per_pass": 6,
+    "initial_generation": {
+      "receipt_sha256": "cb174a074c06adc2714666452a8765b45452de7ee00de98ca94b5c703f348e0f",
+      "segmentation_runtime": {
+        "path": "/Users/maoxx241/code/profiler/mindie_profiler/decode_segmentation.py",
+        "sha256": "ccfbafc9bb5b56b692c045e008ddfc48a4e88d0feaaa23e8fce3b0a4b62c2fc7"
+      },
+      "manifest": {
+        "path": "examples/structure/acceptance-20261030-high-concurrency/decode-forward-auto-cases.json",
+        "sha256": "3b4eeb22b1e0e555180629d84b6252d4baf18cea1c14db500c311e33b789a23c"
+      },
+      "complete_forwards": 287,
+      "positive_events": 659725,
+      "elapsed_replay_seconds": 14.569,
+      "prior_representative_extraction_seconds": 9.508,
+      "maximum_resident_set_size_raw": 54525952,
+      "case_report_sha256": {
+        "a5_qwen36_highconc_c40": "23e34a8571a17e181ef04c84d7d904c0a6e0b2e6878269a827e6bdbcbaf94942",
+        "a5_qwen36_highconc_c128": "2278382e10509248d0f5b0ec23deeede6202c1d7483eec3f0d28e81bbad9cfae",
+        "a5_qwen36_highconc_c4": "8781526fcd0e67fb7fcefd116f86bb549c0957cfb6687a5c040257c0ea26cbf1",
+        "a5_qwen38_highconc_c32": "96a9d6052d5428197c0418a4464a71fe79257393c425dcf645bb1b6052b6a7dc",
+        "a5_qwen38_highconc_c128": "ee83724ee17b0911cf56f052abd31d0f9ae0061b6f8dd46d8874c5049116f197",
+        "a5_qwen38_highconc_c4": "51d033f6feff2ae9214663b62928e370617ab3ef23ba02f2b1ff6b8d03f4fe04"
+      }
+    },
+    "changes": [
+      {
+        "case_id": "a5_qwen36_highconc_c40",
+        "body_mean_before_ms": 20.683910537037036,
+        "body_mean_after_ms": 20.683910537037036,
+        "layer_statistics_changed": 8,
+        "model_topology_declaration_unchanged": true,
+        "event_partition_counts_unchanged": true
+      },
+      {
+        "case_id": "a5_qwen36_highconc_c128",
+        "body_mean_before_ms": 32.608990342105265,
+        "body_mean_after_ms": 32.608990342105265,
+        "layer_statistics_changed": 8,
+        "model_topology_declaration_unchanged": true,
+        "event_partition_counts_unchanged": true
+      },
+      {
+        "case_id": "a5_qwen36_highconc_c4",
+        "body_mean_before_ms": 13.342454479452055,
+        "body_mean_after_ms": 13.342454479452055,
+        "layer_statistics_changed": 9,
+        "model_topology_declaration_unchanged": true,
+        "event_partition_counts_unchanged": true
+      },
+      {
+        "case_id": "a5_qwen38_highconc_c32",
+        "body_mean_before_ms": 22.7913348125,
+        "body_mean_after_ms": 22.7913348125,
+        "layer_statistics_changed": 29,
+        "model_topology_declaration_unchanged": true,
+        "event_partition_counts_unchanged": true
+      },
+      {
+        "case_id": "a5_qwen38_highconc_c128",
+        "body_mean_before_ms": 45.68931427586207,
+        "body_mean_after_ms": 45.68931427586207,
+        "layer_statistics_changed": 15,
+        "model_topology_declaration_unchanged": true,
+        "event_partition_counts_unchanged": true
+      },
+      {
+        "case_id": "a5_qwen38_highconc_c4",
+        "body_mean_before_ms": 13.026720555555556,
+        "body_mean_after_ms": 13.026720555555556,
+        "layer_statistics_changed": 41,
+        "model_topology_declaration_unchanged": true,
+        "event_partition_counts_unchanged": true
+      }
+    ],
+    "source_positive_events_read_across_generations": 1319450,
+    "total_elapsed_seconds_across_generations": 46.642,
+    "old_30_source_generation_unchanged": true
+  }
+}

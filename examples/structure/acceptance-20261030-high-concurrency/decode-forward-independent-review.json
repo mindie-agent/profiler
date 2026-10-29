@@ -1,0 +1,48 @@
+{
+  "status": "passed",
+  "checks": 3659,
+  "failures": [],
+  "cases": 6,
+  "forwards": 287,
+  "positive_events": 659725,
+  "receipt_sha256": "984fbd70ed17cc556577468d3a58e7773200c68b8e48e5470418288db3abddcd",
+  "scope": "independent arithmetic, population, nonoverlap and per-geometry statistics; no new source inference or prediction",
+  "reports": [
+    {
+      "case_id": "a5_qwen36_highconc_c40",
+      "sha256": "e59167772401ee3322db5424e09eeee793443781b360c179cf397261e4c5b4db",
+      "forwards": 54,
+      "positive_events": 124200
+    },
+    {
+      "case_id": "a5_qwen36_highconc_c128",
+      "sha256": "bdfd64f8f9e7122684a008306b55156a9866274d56361aae8df262212fefb20a",
+      "forwards": 38,
+      "positive_events": 91086
+    },
+    {
+      "case_id": "a5_qwen36_highconc_c4",
+      "sha256": "703e163ab9645b8616aa4df5f6f46aaa4b4e0d035830dd5382646c7892ead97e",
+      "forwards": 73,
+      "positive_events": 167389
+    },
+    {
+      "case_id": "a5_qwen38_highconc_c32",
+      "sha256": "ba601973135b96e43990b38ae99b6da23147147b986b5021f5d46f21c7359c40",
+      "forwards": 48,
+      "positive_events": 107904
+    },
+    {
+      "case_id": "a5_qwen38_highconc_c128",
+      "sha256": "4329a3bfb2662f9b3981524118b00f2dad34e6d1e89ca1b89af531f91ee337ab",
+      "forwards": 29,
+      "positive_events": 68121
+    },
+    {
+      "case_id": "a5_qwen38_highconc_c4",
+      "sha256": "b415311f5a5738aa0856b324013e49325f8ac3d1043c81a76c51c6d18ec2abbd",
+      "forwards": 45,
+      "positive_events": 101025
+    }
+  ]
+}
