@@ -1,0 +1,288 @@
+{
+  "schema_version": "mindie-profiler.compressor-fp32-source-selection/1",
+  "date": "2026-10-29",
+  "basis": "independent_local_git_source; no observed tensor used to populate model precision",
+  "selection": {
+    "compressor_norm_dtype": "fp32",
+    "layer_scope": "independently declared plans with a compressor and compression ratio greater than one",
+    "native_compressor_fusion_selected": false,
+    "existing_hyper_connection_selection_preserved": true,
+    "historical_reference_and_selected_variants_unchanged": true
+  },
+  "norm_source": {
+    "repository": "vllm-ascend",
+    "local_repository": "/Users/maoxx241/code/vllm-ascend",
+    "revision": "90f72ef299d4252a3658e1cf1477f1a25d178cd4",
+    "path": "vllm_ascend/models/deepseek_v4/compressor.py",
+    "sha256": "832aff707a64b63c1088d8917f2d9124adfae1f72e9f6a3b53e380d1c18f1702",
+    "size_bytes": 9135,
+    "lines": [
+      142,
+      143,
+      211,
+      217
+    ],
+    "symbol": "Compressor.__init__ / Compressor.forward",
+    "evidence": "RMSNorm is constructed with dtype=torch.float32 on every hardware branch; the native call receives self.norm.weight.",
+    "commit_subject": "fix(dsv4): create compressor RMSNorm in float32",
+    "commit_explanation": "The compressor accepts FP32 norm weights; allocate at initialization so checkpoint loading casts once instead of converting on every forward.",
+    "reproduce_blob": [
+      "git",
+      "-C",
+      "/Users/maoxx241/code/vllm-ascend",
+      "show",
+      "90f72ef299d4252a3658e1cf1477f1a25d178cd4:vllm_ascend/models/deepseek_v4/compressor.py"
+    ],
+    "capture_binary_identity_verified": false
+  },
+  "corroborating_source": {
+    "revision": "7ec872b5651a359e8ba305fac2055adad8d652e3",
+    "path": "vllm_ascend/models/deepseek_v4/compressor.py",
+    "sha256": "45ffa48a240a8aee46736d551bebf534443cd1baa1f4255981b27a2299ea8072",
+    "size_bytes": 8837,
+    "lines": [
+      147,
+      148
+    ],
+    "evidence": "The hardware-capability version also initializes compressor RMSNorm with dtype=torch.float32."
+  },
+  "resource_coverage": {
+    "status": "reference_only",
+    "single_launch_selection": false,
+    "reason": "native_compressor_state_update_work_not_explicitly_declared",
+    "limitations": [
+      "semantic projection/pool/norm/rope work remains an unfused five-phase reference",
+      "state-cache writeback is a native side effect not explicitly represented by the current compressor resource ledger",
+      "native internal tensor reuse and workspace traffic are not reconstructed",
+      "preserve_workspaces does not supply missing state-write work and therefore cannot justify a complete one-launch program",
+      "reserved output capacity is not evidence of completed compression groups",
+      "historical A3 capture runtime identity is not established by selecting an independently available source revision"
+    ],
+    "native_state_write_source": {
+      "repository": "vllm-ascend",
+      "revision": "90f72ef299d4252a3658e1cf1477f1a25d178cd4",
+      "path": "csrc/attention/compressor/op_kernel/arch32/compressor_block_vec_perf.h",
+      "sha256": "1051ddec1e43a8e2837ad5ccf8cc5a55d83b31c62a722b16f8c202d45d4d1514",
+      "size_bytes": 70674,
+      "lines": [
+        676,
+        802,
+        822,
+        842,
+        848
+      ],
+      "symbols": [
+        "SaveState",
+        "WriteToCacheState"
+      ],
+      "evidence": "SaveState calls WriteToCacheState, whose valid block-table branch copies updated state to global memory. Exact per-call state-write volume depends on sequence and block-table values."
+    },
+    "sim_reference": {
+      "path": "mindie_sim/prediction/compression.py",
+      "symbol": "compressor",
+      "evidence": "The pool output write budget covers valid compressed rows; norm and rotary cover compressed outputs. No separate state-cache writeback output is priced."
+    }
+  },
+  "offline_replay_validation": {
+    "new_live_collection": false,
+    "python": "3.13.12",
+    "sim_revision_at_evidence_finalization": "aa88a478113165c4485108662a127ce9e31bd6ad",
+    "focused_tests": 4,
+    "pytest_seconds": 5.83,
+    "parsed_capture_scans": 2,
+    "captures": [
+      {
+        "capture_key": "a3_v4f",
+        "declaration_key": "a3_v4f_compressor_fp32",
+        "graph_id": "sha256:2edfac7c7fafd5a9f30d720725a11d4f992d8138a37b09546e4f7b8783d3c928",
+        "geometry": {
+          "phase": "prefill",
+          "tokens": 4096,
+          "context": 0,
+          "sequences": 1
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4f-prefill/raw/pre4096.kernel_details.csv",
+          "size_bytes": 1391917,
+          "mtime_ns": 1792795906356307712,
+          "schema_version": "kernel_details_csv_46col",
+          "sha256": "b56b7439213cc9f76eaae63347393d4add6ae5c985bf28a6a7737f5783c81788"
+        },
+        "positive_event_count": 4064,
+        "operator": {
+          "operator_type": "Compressor",
+          "event_count": 62,
+          "activity_sum_ns": 27361114,
+          "cohort_event_count": 62,
+          "cohort_excluded_event_counts": {}
+        },
+        "groups": [
+          {
+            "cohort_id": "sha256:3defdc5ee14c74bdaa40dfa4d4bfa955bfa1027d2898dba325dcd92e4cdfaa99",
+            "event_count": 21,
+            "declared_instances": 21,
+            "ape_shape": [
+              4,
+              1024
+            ],
+            "norm_shape": [
+              512
+            ],
+            "norm_dtype": "fp32",
+            "status": "reference_only",
+            "reason": "unfused_subgraph_is_not_the_observed_native_kernel",
+            "observed_activity_ms": 15.922063,
+            "observed_mean_us": 758.1934761904762,
+            "reference_per_call_us": 497.22873212122346,
+            "reference_observed_calls_total_ms": 10.441803374545692,
+            "accuracy_pass": null
+          },
+          {
+            "cohort_id": "sha256:4b850d4ea466af03033b537febfffb0f494bc3c7b7430c2803b9d0010bc9f5ad",
+            "event_count": 21,
+            "declared_instances": 21,
+            "ape_shape": [
+              4,
+              256
+            ],
+            "norm_shape": [
+              128
+            ],
+            "norm_dtype": "fp32",
+            "status": "reference_only",
+            "reason": "unfused_subgraph_is_not_the_observed_native_kernel",
+            "observed_activity_ms": 5.02178,
+            "observed_mean_us": 239.13238095238094,
+            "reference_per_call_us": 155.0647175757568,
+            "reference_observed_calls_total_ms": 3.256359069090893,
+            "accuracy_pass": null
+          },
+          {
+            "cohort_id": "sha256:a8dd9a293a590b5ef04094fee47a104008e1a82fc9a1ee18be9e7027c3b0e893",
+            "event_count": 20,
+            "declared_instances": 20,
+            "ape_shape": [
+              128,
+              512
+            ],
+            "norm_shape": [
+              512
+            ],
+            "norm_dtype": "fp32",
+            "status": "reference_only",
+            "reason": "unfused_subgraph_is_not_the_observed_native_kernel",
+            "observed_activity_ms": 6.417271,
+            "observed_mean_us": 320.86355,
+            "reference_per_call_us": 269.22178909090985,
+            "reference_observed_calls_total_ms": 5.384435781818197,
+            "accuracy_pass": null
+          }
+        ],
+        "elapsed_seconds": 2.2649199590086937,
+        "peak_rss_bytes": 110510080
+      },
+      {
+        "capture_key": "a3_v4pro",
+        "declaration_key": "a3_v4pro_compressor_fp32",
+        "graph_id": "sha256:e2d7aedb54b80798d00fda7133c8b617115ff9ebc51caa0b94672cb65c2d02ad",
+        "geometry": {
+          "phase": "prefill",
+          "tokens": 1024,
+          "context": 0,
+          "sequences": 1
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4pro-prefill/raw/pre4096.kernel_details.csv",
+          "size_bytes": 8274767,
+          "mtime_ns": 1792801452077404970,
+          "schema_version": "kernel_details_csv_46col",
+          "sha256": "5ffe5625942e4caf787ce047438576527b8513452d6dd6871b24682a19968abd"
+        },
+        "positive_event_count": 24271,
+        "operator": {
+          "operator_type": "Compressor",
+          "event_count": 364,
+          "activity_sum_ns": 77516420,
+          "cohort_event_count": 364,
+          "cohort_excluded_event_counts": {}
+        },
+        "groups": [
+          {
+            "cohort_id": "sha256:1ed3e2f985c63f0c65df486b677ba4ce15ab850b5424d3c21170584fa03844a2",
+            "event_count": 124,
+            "declared_instances": 31,
+            "ape_shape": [
+              128,
+              512
+            ],
+            "norm_shape": [
+              512
+            ],
+            "norm_dtype": "fp32",
+            "status": "reference_only",
+            "reason": "unfused_subgraph_is_not_the_observed_native_kernel",
+            "observed_activity_ms": 18.388809,
+            "observed_mean_us": 148.29684677419354,
+            "reference_per_call_us": 133.38787878787912,
+            "reference_observed_calls_total_ms": 16.54009696969701,
+            "accuracy_pass": null
+          },
+          {
+            "cohort_id": "sha256:a6d0f542d4369cc93af83ff5de1204a76083df350e61bea40290f9a682f729e1",
+            "event_count": 120,
+            "declared_instances": 30,
+            "ape_shape": [
+              4,
+              1024
+            ],
+            "norm_shape": [
+              512
+            ],
+            "norm_dtype": "fp32",
+            "status": "reference_only",
+            "reason": "unfused_subgraph_is_not_the_observed_native_kernel",
+            "observed_activity_ms": 36.063958,
+            "observed_mean_us": 300.53298333333333,
+            "reference_per_call_us": 259.97351757575797,
+            "reference_observed_calls_total_ms": 31.19682210909096,
+            "accuracy_pass": null
+          },
+          {
+            "cohort_id": "sha256:19fdc8e91bd0dbd1a7111e0ceb26dafa5a3aa8ba7a12ec31701dbd312fb76cb8",
+            "event_count": 120,
+            "declared_instances": 30,
+            "ape_shape": [
+              4,
+              256
+            ],
+            "norm_shape": [
+              128
+            ],
+            "norm_dtype": "fp32",
+            "status": "reference_only",
+            "reason": "unfused_subgraph_is_not_the_observed_native_kernel",
+            "observed_activity_ms": 23.063653,
+            "observed_mean_us": 192.19710833333335,
+            "reference_per_call_us": 70.16135272727288,
+            "reference_observed_calls_total_ms": 8.419362327272747,
+            "accuracy_pass": null
+          }
+        ],
+        "elapsed_seconds": 3.6819220419274643,
+        "peak_rss_bytes": 145276928
+      }
+    ],
+    "totals": {
+      "observed_compressor_events": 426,
+      "matched_events": 426,
+      "cohorts": 6,
+      "compared_events": 0,
+      "reference_only_events": 426,
+      "observed_activity_ms": 104.877534,
+      "unfused_reference_observed_count_total_ms": 75.2388796315155,
+      "elapsed_seconds": 5.946842000936158,
+      "peak_rss_bytes": 145276928,
+      "accuracy_evaluation": "not_applicable; unfused/incomplete resource reference is not a measured native-kernel prediction"
+    }
+  }
+}

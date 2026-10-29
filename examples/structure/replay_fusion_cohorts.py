@@ -67,9 +67,11 @@ def _runtime_identity():
         *sorted((sim / "data/observations/sources/kimi-checkpoint-20261029").glob("*.json")),
         sim / "data/verification/model-scoreboard-20261029-glm53-w4a8-msd-case.json",
         Path(__file__).resolve(), Path(__file__).with_name("fusion_replay_cases.py"),
+        Path(__file__).with_name("fusion_replay_paged_cases.py"),
         Path(__file__).with_name("fusion_cohort_reporting.py"),
         Path(__file__).with_name("fusion_cohort_refresh.py"),
         BASE / "head-normalization-evidence.json",
+        BASE / "compressor-normalization-evidence.json",
     ]
     return {str(path): _hash(path) for path in files}
 
@@ -341,6 +343,8 @@ def _capture_worker(args):
     variants = case_variants(args.capture_key, old, BASE)
     if args.declaration_key:
         variants = [row for row in variants if row["declaration_key"] == args.declaration_key]
+    if len(variants) > 2:
+        raise ValueError("capture_worker_requires_declaration_key_for_more_than_two_variants")
     results, scan = _scan(
         args.capture_key, old, variants, max_rows=args.max_rows, timeout=args.capture_timeout)
     reports = []
@@ -465,6 +469,8 @@ def main():
         old = _read(BASE / f"body-{key}.json")
         variants = [{k: v[k] for k in ("name", "variant", "geometry", "declaration_source")}
                     for v in case_variants(key, old, BASE)]
+        declaration_count = len({v["declaration_key"]
+                                 for v in case_variants(key, old, BASE)})
         if args.compare_existing:
             variants = []
             for variant in case_variants(key, old, BASE):
@@ -476,16 +482,16 @@ def main():
                     "declaration_source": saved["declaration_source"],
                 })
         plan.append({"capture_key": key, "source": old["source_identity"],
+                     "declaration_count": declaration_count,
                      "variants": variants})
     if not args.run:
         print(json.dumps({"capture_jobs": plan,
                           "raw_parsed_scans_per_capture": {
                               capture["capture_key"]: (
-                                  0 if args.compare_existing else len(capture["variants"])
-                                  if capture["capture_key"] == "a5_kimi_k3" else 1)
+                                  0 if args.compare_existing else capture["declaration_count"])
                               for capture in plan},
                           "max_bounded_consumers": 2,
-                          "kimi_phase_policy": "separate_serial_workers_to_stay_below_512_mib",
+                          "declaration_policy": "separate_serial_workers_to_stay_below_512_mib",
                           "comparison_scope": "all_valid_physical_work_cohorts",
                           "timeout_seconds_per_distinct_physical_program": args.compare_timeout},
                          indent=2))
@@ -515,11 +521,10 @@ def main():
             }
             completed.append(capture)
         else:
-            # Kimi declarations exceed the memory target when retained together.
-            # Serial reads keep phase and checkpoint variants within the budget.
-            jobs = ([row["declaration_key"] for row in case_variants(
-                key, _read(BASE / f"body-{key}.json"), BASE)]
-                    if key == "a5_kimi_k3" else [None])
+            # Separate workload/precision declarations must not accumulate
+            # multiple complete graphs in a single worker's working set.
+            jobs = list(dict.fromkeys(row["declaration_key"] for row in case_variants(
+                key, _read(BASE / f"body-{key}.json"), BASE)))
             for declaration_key in jobs:
                 command = [sys.executable, str(Path(__file__).resolve()), "--capture-key", key,
                            "--output-dir", str(args.output_dir), "--max-rows", str(args.max_rows),

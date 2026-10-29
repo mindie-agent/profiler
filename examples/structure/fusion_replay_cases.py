@@ -134,12 +134,54 @@ def _variant(key, old, base, *, decode=False, fused=False, checkpoint=False):
     }
 
 
+def _compressor_fp32_variant(key, old, base):
+    """Choose independently documented norm precision without claiming dispatch."""
+    from mindie_sim.prediction.structure import parse_case
+
+    variant = _variant(key, old, base, fused=True)
+    case = variant["case"]
+    evidence_path = base / "compressor-normalization-evidence.json"
+    evidence = _read(evidence_path)
+    plans = parse_case(case).model.layer_plans
+    overrides = case["model"].setdefault("layer_overrides", {})
+    selected = {}
+    for plan in plans:
+        if plan.compressor_kind != "none" and plan.compress_ratio > 1:
+            change = {"compressor_norm_dtype": evidence["selection"]["compressor_norm_dtype"]}
+            overrides.setdefault(str(plan.index), {}).update(change)
+            selected[str(plan.index)] = change
+    variant.update(
+        name=key + "_compressor_fp32-reference",
+        declaration_key=key + "_compressor_fp32",
+        variant="source_compressor_fp32_conditional_reference",
+    )
+    source = variant["declaration_source"]
+    source["model_layer_overrides"] = selected
+    source["source_evidence"]["compressor_norm"] = {
+        "file": str(evidence_path), "sha256": _hash(evidence_path),
+        "basis": "independent_runtime_source_parameter_precision",
+        "source_revision": evidence["norm_source"]["revision"],
+        "source_sha256": evidence["norm_source"]["sha256"],
+        "capture_dispatch_identity_verified": False,
+        "historical_capture_source_revision_verified": False,
+        "resource_boundary": "unfused_semantic_reference",
+        "single_launch_selection": False,
+        "limitations": evidence["resource_coverage"]["limitations"],
+    }
+    return variant
+
+
 def variants(key, old, base):
     values = [_variant(key, old, base)]
     if "glm53" in key or key in {"a3_v4f", "a3_v4pro"}:
         values.append(_variant(key, old, base, fused=True))
+        if key in {"a3_v4f", "a3_v4pro"}:
+            values.append(_compressor_fp32_variant(key, old, base))
     elif key == "a5_kimi_k3":
         values.append(_variant(key, old, base, decode=True))
         values.extend(_variant(key, old, base, decode=decode, checkpoint=True)
                       for decode in (False, True))
+    from fusion_replay_paged_cases import paged_variants
+
+    values.extend(paged_variants(key, values[0]))
     return values
