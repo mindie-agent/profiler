@@ -43,18 +43,29 @@ def test_dense_fia_keeps_real_local_heads_and_native_tensor_axes(capture, qshape
     assert observed_attention_contract(changed_layout)[0] == "native_tensor_abi"
 
 
-@pytest.mark.parametrize("capture,index", [
-    ("a3_qwen35", 2), ("a5_qwen38", 3), ("a5_fia_paged_probe", 0),
+@pytest.mark.parametrize("capture,index,family", [
+    ("a3_qwen35", 2, "attention_paged_active_qkv"),
+    ("a5_qwen38", 3, "attention_paged_active_qkv"),
+    ("a5_fia_paged_probe", 0, "native_tensor_abi"),
 ])
-def test_paged_fia_retains_native_cache_and_block_table_descriptors(capture, index):
+def test_paged_fia_retains_native_cache_and_block_table_descriptors(capture, index, family):
     row = rows(capture)[index]
     contract = observed_attention_contract(row)
-    assert contract[0:2] == ("native_tensor_abi", "FusedInferAttentionScore")
-    assert contract[2][1][0] == row.input_shapes[1]
+    assert contract[0:2] == (family, "FusedInferAttentionScore")
+    native = native_tensor_contract(row)
+    assert native[2][1][0] == row.input_shapes[1]
     table_slot = 6 if len(row.input_shapes) == 7 else 14
-    assert contract[2][table_slot][0] == row.input_shapes[table_slot]
-    assert contract[2][table_slot][1] == "int32"
-    assert "block_table_values" in attention_contract_scope(row)["not_compared"]
+    assert native[2][table_slot][0] == row.input_shapes[table_slot]
+    assert native[2][table_slot][1] == "int32"
+    if family == "attention_paged_active_qkv":
+        assert contract[3][0][0] == row.input_shapes[1][1:]
+        assert contract[-1] == row.input_shapes[table_slot][0]
+        assert "block_table_column_count_and_values" in attention_contract_scope(row)["not_compared"]
+    else:
+        # The separate probe uses four-dimensional cache storage. Do not infer
+        # a flattening or axis order from the serving capture's three-D view.
+        assert contract == native
+        assert len(native[2][1][0]) == 4
 
 
 def test_explicit_empty_slots_do_not_become_scalar_or_disappear():

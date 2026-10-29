@@ -35,7 +35,7 @@ NATIVE_BODY_TYPES = (FUSION_TYPES | FUSED_TYPES | ATTENTION_CACHE_TYPES
                      | LAYOUT_BODY_TYPES | ROUTER_TYPES | MATRIX_BODY_TYPES)
 SUPPORTED_TYPES = GDN_NATIVE_TYPES | MATRIX_TYPES | SWIGLU_TYPES | NATIVE_BODY_TYPES | {
     "CausalConv1d", "DynamicMxQuant", "AddRmsNormDynamicMxQuant",
-    "fused_gdn_gating_kernel", "RecurrentGatedDeltaRule", "Slice",
+    "fused_gdn_gating_kernel", "Slice",
     "RmsNorm", "AddRmsNorm", "Relu",
 }
 _ABSENT = {"", "N/A", "NULL", "DT_UNDEFINED"}
@@ -133,16 +133,6 @@ def observed_contract(row):
         return ("matrix", (m, n, k), *dtypes, *scale)
     if row.kind == "fused_gdn_gating_kernel" and len(inputs) >= 3:
         return ("gdn_gating", inputs[1])
-    if row.kind == "RecurrentGatedDeltaRule" and len(inputs) >= 6:
-        if len(inputs[0]) != 3 or len(inputs[2]) != 3 or len(inputs[5]) != 1:
-            return None
-        dtype = DTYPES.get(row.input_dtypes[4])
-        if dtype is None:
-            return None
-        q, kh, dk = inputs[0]
-        _, vh, dv = inputs[2]
-        return ("recurrent_vector", (q, kh, vh, dk, dv), inputs[5][0] - 1,
-                dtype)
     if (row.kind == "Slice" and len(inputs[0]) in {2, 3}
             and len(outputs) == 1 and len(outputs[0]) == len(inputs[0])):
         # Captured geometry does not include index tensor values or source offsets.

@@ -29,6 +29,8 @@ _ARITIES = {
     "LightningIndexer": ({6}, {2}),
     "SparseFlashAttention": ({9}, {3}),
     "MlaPrologV3": ({21}, {7}),
+    "ChunkGatedDeltaRuleFwd": ({9, 10}, {4}),
+    "RecurrentGatedDeltaRule": ({9, 10}, {2}),
 }
 ATTENTION_CACHE_TYPES = frozenset(_ARITIES)
 
@@ -59,6 +61,25 @@ def _dense_fia(inputs, outputs):
             or len({slot[1] for slot in active}) != 1):
         return None
     return ("attention_active_qkv", "FusedInferAttentionScore", inputs[:3], outputs[:1])
+
+
+def _paged_fia(inputs, outputs):
+    # attention_v1._get_fia_params views (pages, block, KVheads, dim) as
+    # (pages, block, packed_width). Preserve the packed width without dividing
+    # it by the query width: GQA's KV-head count is a separate caller argument.
+    if len(inputs) not in {7, 31}:
+        return None
+    query, key, value, output = *inputs[:3], outputs[0]
+    table = inputs[6 if len(inputs) == 7 else 14]
+    floating = {"bf16", "fp16"}
+    if (not all(_nd_tensor(slot, 3, floating) for slot in (query, key, value, output))
+            or not _nd_tensor(table, 2, {"int32"})
+            or key[0][:2] != value[0][:2] or output != query
+            or len({slot[1] for slot in (query, key, value, output)}) != 1):
+        return None
+    tails = tuple((slot[0][1:], slot[1], slot[2]) for slot in (key, value))
+    return ("attention_paged_active_qkv", "FusedInferAttentionScore",
+            query, tails, output, table[0][0])
 
 
 def _reshape_cache(inputs, outputs):
@@ -147,7 +168,7 @@ def observed_attention_contract(row):
         return subgraph_contract(native)[0]
     inputs, outputs = native[2:]
     if row.kind == "FusedInferAttentionScore":
-        return _dense_fia(inputs, outputs) or native
+        return _dense_fia(inputs, outputs) or _paged_fia(inputs, outputs) or native
     if row.kind == "ReshapeAndCacheNdKernel":
         return _reshape_cache(inputs, outputs) or native
     if row.kind == "ScatterPaKvCache":
@@ -177,6 +198,21 @@ def attention_contract_scope(row):
                              "optional_auxiliary_tensors", "scale", "sparse_mode",
                              "causal_flag", "logical_input_layout", "phase"],
             "storage_boundary": "nonpaged_qkv_descriptors",
+        }
+    if contract[0] == "attention_paged_active_qkv":
+        return {
+            **common, "kind": "active_paged_attention_tensor_descriptors",
+            "compared": ["native_operator_type", "query_shape_dtype_format",
+                         "cache_block_size_packed_row_width_dtype_format",
+                         "main_output_shape_dtype_format", "block_table_batch_count"],
+            "not_compared": ["cache_capacity", "block_table_column_count_and_values",
+                             "sequence_length_array_values", "kv_head_factorization",
+                             "mask_descriptor_and_values", "optional_auxiliary_tensors",
+                             "scale", "sparse_mode", "causal_flag", "logical_input_layout",
+                             "phase", "context_length", "verify_or_draft_role"],
+            "storage_boundary": "paged_BSH_cache_and_TND_query_descriptors",
+            "conditions": "Execution geometry and context require an independent declaration; "
+                          "query token count does not identify a verify or draft invocation.",
         }
     if contract[0] == "kv_cache_store_active":
         return {

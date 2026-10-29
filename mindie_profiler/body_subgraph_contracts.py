@@ -10,7 +10,9 @@
 import math
 
 
-SUBGRAPH_TYPES = {"MlaPrologV3", "LightningIndexer"}
+SUBGRAPH_TYPES = {
+    "MlaPrologV3", "LightningIndexer", "ChunkGatedDeltaRuleFwd", "RecurrentGatedDeltaRule",
+}
 _FLOAT = {"bf16", "fp16"}
 _ACTIVATION = _FLOAT | {"int8", "fp8_e4m3"}
 _EMPTY = ((), None, None)
@@ -120,9 +122,74 @@ def _mla(inputs, outputs):
             parameters, cache_heads, output_slots), None
 
 
+def _recurrent_gdn(inputs, outputs):
+    kind = "RecurrentGatedDeltaRule"
+    query, key, value, beta, state, lengths, indices, gate = inputs[:8]
+    gk, accepted = (_EMPTY, inputs[8]) if len(inputs) == 9 else inputs[8:10]
+    if (not all(_tensor(slot, 3, {"bf16"}) for slot in (query, key, value))
+            or key != query or outputs[0] != value
+            or not _tensor(state, 4, {"bf16", "fp32"}) or outputs[1] != state
+            or not _tensor(lengths, 1, {"int32"}) or lengths[0][0] < 2):
+        return None, _issue(kind, "inconsistent_recurrent_gdn_tensors",
+                            "Recurrent GDN requires equal BF16 Q/K, BF16 value/output, "
+                            "the same state input/output, and cumulative sequence descriptors.")
+    tokens, key_heads, dk = query[0]
+    value_tokens, heads, dv = value[0]
+    sequences = lengths[0][0] - 1
+    if (value_tokens != tokens or heads % key_heads or state[0][1:] != (heads, dv, dk)
+            or beta != ((tokens, heads), "bf16", "ND")
+            or indices != ((tokens,), "int32", "ND")
+            or gate != ((tokens, heads), "fp32", "ND") or gk != _EMPTY
+            or accepted not in {_EMPTY, ((sequences,), "int32", "ND")}):
+        return None, _issue(kind, "unsupported_recurrent_gdn_geometry",
+                            "The retained scalar-decay ABI requires TND operands, V-first "
+                            "state, per-token state indices and optional per-sequence accepted counts.")
+    return ("recurrent_vector", (tokens, key_heads, heads, dk, dv), sequences, state[1]), None
+
+
+def _chunk_gdn(native):
+    _, kind, inputs, outputs = native
+    query, key, value, beta, workspace, gate = inputs[:6]
+    gk, state, lengths, chunks = ((_EMPTY, *inputs[6:]) if len(inputs) == 9 else inputs[6:])
+    if (not all(_tensor(slot, 4, _FLOAT, ("NCHW", "ND"))
+                for slot in (query, key, value, workspace))
+            or not _tensor(state, 4, _FLOAT | {"fp32"}, ("NCHW", "ND"))
+            or query != key or not _tensor(lengths, 1, {"int64"})
+            or not _tensor(chunks, 1, {"int64"}) or lengths[0][0] < 2 or gk != _EMPTY):
+        return None, _issue(kind, "unsupported_chunk_gdn_native_geometry",
+                            "The retained legacy chunk ABI needs complete BHTD operands, "
+                            "state, INT64 cumulative lengths/chunk metadata and no vector gate.")
+    batch, key_heads, tokens, dk = query[0]
+    vb, heads, vt, dv = value[0]
+    chunk = workspace[0][-1]
+    state_shape, state_dtype, _ = state
+    if (batch != 1 or (vb, vt) != (batch, tokens) or heads % key_heads
+            or workspace[0] != (batch, heads, tokens, chunk) or chunk not in {64, 128}
+            or state_shape != (lengths[0][0] - 1, heads, dk, dv)
+            or len({query[1], value[1], workspace[1], outputs[0][1], outputs[3][1]}) != 1
+            or beta != ((batch, heads, tokens), "fp32", "ND")
+            or gate not in {((batch, tokens, heads), "fp32", "ND"),
+                            ((batch, heads, tokens), "fp32", "ND")}
+            or chunks[0][0] % 2
+            or outputs[0][0] != (batch, tokens, heads, dv) or outputs[0][2] != "ND"
+            or outputs[1][0] != (math.prod(state_shape),) or outputs[1][1] != state_dtype
+            or outputs[2] != ((batch * tokens * heads,), "fp32", "ND")
+            or outputs[3][0] != (batch * heads * tokens * chunk,)):
+        return None, _issue(kind, "inconsistent_chunk_gdn_native_tensors",
+                            "The legacy chunk's Q/K/V, workspace, scalar gates, state and "
+                            "materialized auxiliary-output descriptors must agree.")
+    # The retained wrapper uses a different TND/BF16-state interface. Preserve
+    # this complete native boundary until a declaration selects the same ABI.
+    return native, None
+
+
 def subgraph_contract(native):
     """Return (active contract, issue) after native slot cardinality validation."""
     _, kind, inputs, outputs = native
+    if kind == "RecurrentGatedDeltaRule":
+        return _recurrent_gdn(inputs, outputs)
+    if kind == "ChunkGatedDeltaRuleFwd":
+        return _chunk_gdn(native)
     return _mla(inputs, outputs) if kind == "MlaPrologV3" else _lightning(inputs, outputs)
 
 
@@ -133,6 +200,27 @@ def subgraph_contract_scope(row):
                        "module_or_layer_identity"],
         "timing_scope": "inclusive_fused_subgraph; no_member_time_split",
     }
+    if row.kind == "RecurrentGatedDeltaRule":
+        return {
+            **common, "kind": "active_recurrent_gdn_geometry",
+            "compared": ["query_token_count", "query_key_heads", "value_heads",
+                         "key_width", "value_width", "sequence_count", "state_dtype"],
+            "validated_capture_abi": [
+                "BF16_ND_query_key_value_beta_and_output", "FP32_ND_scalar_decay",
+                "V_first_state_input_output_identity", "INT32_sequence_and_state_indices",
+            ],
+            "not_compared": ["state_capacity", "state_indices_values", "sequence_length_values",
+                             "accepted_token_values", "scale", "phase", "verify_or_draft_role"],
+        }
+    if row.kind == "ChunkGatedDeltaRuleFwd":
+        return {
+            **common, "kind": "native_chunk_gdn_tensor_abi",
+            "compared": ["all_ordered_tensor_shapes", "all_tensor_dtypes", "all_tensor_formats"],
+            "not_compared": ["sequence_length_values", "chunk_indices_values", "scale",
+                             "scalar_flags", "selected_kernel_binary", "phase"],
+            "boundary_limit": "Legacy BHTD/FP32-state capture is distinct from the "
+                              "generic TND/BF16-state wrapper; no default subgraph match is implied.",
+        }
     if row.kind == "LightningIndexer":
         return {
             **common, "kind": "active_indexer_selection_descriptors",
