@@ -1,0 +1,1327 @@
+{
+  "schema_version": "mindie-decode-forward-replay/1",
+  "variant_id": "glm_indexed_owner_and_projection_controls",
+  "cases": [
+    {
+      "case_id": "a3_glm53_dc4k_b1",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/dc4k_b1.csv.gz",
+        "size_bytes": 9236949,
+        "sha256": "ed5e9696949d51c2d1d31ab099a71a2c98722d5719f004fcf90c9ceff036f60c"
+      },
+      "sim_case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/glm53-a3-w4a8.json",
+      "boundaries_path": null,
+      "segmentation": "auto_structure_guided",
+      "model_declaration": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/glm53-a3-w4a8.json",
+        "sha256": "4671d3c85fc1657556a3fc8b57b20f118275502d6935c25c18189ef62f5f70a3",
+        "basis": "existing_sim_catalog_and_capture_campaign_identity"
+      },
+      "geometry": {
+        "phase": "decode",
+        "tokens_per_sequence": null,
+        "context_tokens": null,
+        "sequences_per_replica": null,
+        "participating_replicas": null
+      },
+      "scenario_evidence": {
+        "client": {
+          "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/dc4k_b1.json",
+          "sha256": "d7ba8714ae90484e52de61fcf3a7a5fbfb6ae6e7dc25f46791576300be2eb275",
+          "input_len": 4096,
+          "concurrency": 1,
+          "token_exact": true
+        },
+        "capture_mode": "profiled_campaign",
+        "prefix_hit_100_percent": "not_verified",
+        "forced_load_balancing": "not_verified",
+        "acceptance_0_8": "not_verified",
+        "dspark": "not_verified"
+      },
+      "unresolved_reasons": [],
+      "extraction_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261029/auto-forward-a3_glm53_dc4k_b1.json",
+      "variant_id": "glm_indexed_owner_and_projection_controls"
+    },
+    {
+      "case_id": "a3_glm53_dc4k_b8",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/dc4k_b8.csv.gz",
+        "size_bytes": 8113958,
+        "sha256": "d9cfa6ae25dd98de14f9eccbaf4a9fbc83a0e1b1b4e25abcd822e0898b0196ad"
+      },
+      "sim_case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/glm53-a3-w4a8.json",
+      "boundaries_path": null,
+      "segmentation": "auto_structure_guided",
+      "model_declaration": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/glm53-a3-w4a8.json",
+        "sha256": "4671d3c85fc1657556a3fc8b57b20f118275502d6935c25c18189ef62f5f70a3",
+        "basis": "existing_sim_catalog_and_capture_campaign_identity"
+      },
+      "geometry": {
+        "phase": "decode",
+        "tokens_per_sequence": null,
+        "context_tokens": null,
+        "sequences_per_replica": null,
+        "participating_replicas": null
+      },
+      "scenario_evidence": {
+        "client": {
+          "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/dc4k_b8.json",
+          "sha256": "b9404a956aa61a516112485f89512daf124e5cbf454dcb90ad9645fd1464dfe2",
+          "input_len": 4096,
+          "concurrency": 8,
+          "token_exact": true
+        },
+        "capture_mode": "profiled_campaign",
+        "prefix_hit_100_percent": "not_verified",
+        "forced_load_balancing": "not_verified",
+        "acceptance_0_8": "not_verified",
+        "dspark": "not_verified"
+      },
+      "unresolved_reasons": [],
+      "extraction_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261029/auto-forward-a3_glm53_dc4k_b8.json",
+      "variant_id": "glm_indexed_owner_and_projection_controls"
+    },
+    {
+      "case_id": "glm53flash-a3-tp16-c16-livepre",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot50_c16_20261030/ranks/tp0/kernel_details.csv.gz",
+        "sha256": "4b584fe1f672fd0ef96e2649d497f007ad2a464c953c3319b00837146e046bdf",
+        "size_bytes": 16687762
+      },
+      "sim_case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new17/glm53flash-a3-tp16-c16-livepre.json",
+      "model_declaration": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new17/glm53flash-a3-tp16-c16-livepre.json",
+        "sha256": "c9b8825860b9d4070c12115ba5713494d8da9e35167fadd594d79ff47cae589a",
+        "size_bytes": 3006,
+        "basis": "source_bound_sim_case_with_audited_model_identity_limits"
+      },
+      "segmentation": "auto_structure_guided",
+      "boundaries_path": null,
+      "geometry": null,
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot50_c16_20261030",
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot50_c16_20261030/benchmark_summary.json",
+          "sha256": "194c717801b220c065be493f55c02b8bc921376ff6967386ab38532445b68064",
+          "size_bytes": 38594
+        },
+        "benchmark_summary_fields": {
+          "label": "glm53f_live-prof-tpot50-c16",
+          "url": "http://127.0.0.1:8000/v1/completions",
+          "model": "glm",
+          "input_len": 4096,
+          "output_len": 96,
+          "concurrency": 16,
+          "num_prompts": 32,
+          "seed": 20261030,
+          "wall_s": 7.300568529870361,
+          "n_ok": 32,
+          "n_failed": 0,
+          "ttft_ms": {
+            "n": 32,
+            "mean": 1184.2067312536528,
+            "median": 1226.3070850167423,
+            "std": 184.79775312707417,
+            "min": 451.62326004356146,
+            "max": 1257.6793897897005,
+            "p50": 1226.3070850167423,
+            "p90": 1243.7718959990889,
+            "p99": 1257.571971770376
+          },
+          "tpot_ms": {
+            "n": 32,
+            "mean": 51.552278933283546,
+            "median": 50.44302718008579,
+            "std": 4.925018166900909,
+            "min": 46.0550360765089,
+            "max": 71.92042843962554,
+            "p50": 50.44302718008579,
+            "p90": 55.15684894518926,
+            "p99": 69.56451534638934
+          },
+          "itl_ms_all_tokens": {
+            "n": 946,
+            "mean": 51.179562950798214,
+            "median": 52.26758518256247,
+            "std": 32.64352075354725,
+            "min": 14.482589904218912,
+            "max": 737.9540503025055,
+            "p50": 52.26758518256247,
+            "p90": 53.92600502818823,
+            "p99": 64.87401460763023
+          },
+          "e2e_ms": {
+            "n": 32,
+            "mean": 2697.372527240077,
+            "median": 2562.305265106261,
+            "std": 495.925348189458,
+            "min": 2123.8616099581122,
+            "max": 3699.077350087464,
+            "p50": 2562.305265106261,
+            "p90": 3443.0130638647825,
+            "p99": 3665.765707856044
+          },
+          "request_throughput_rps": 4.383220275115784,
+          "output_throughput_tok_s": 420.78914641111527,
+          "input_throughput_tok_s": 17953.67024687425,
+          "total_prompt_tokens": 131072,
+          "total_output_tokens": 3072,
+          "observed_prompt_tokens": [
+            4096
+          ],
+          "observed_completion_tokens": [
+            96
+          ],
+          "token_exact": true,
+          "meta": {
+            "case": "glm53f_live",
+            "kind": "profile",
+            "tpot_tag": "50",
+            "concurrency": 16
+          }
+        },
+        "retained_deployment": {
+          "startup": null,
+          "launch_sources": [],
+          "launch_source_is_execution_intent": true
+        },
+        "client": {
+          "concurrency": 16,
+          "input_len": 4096,
+          "token_exact": true
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "n": 32,
+            "mean": 51.552278933283546,
+            "median": 50.44302718008579,
+            "std": 4.925018166900909,
+            "min": 46.0550360765089,
+            "max": 71.92042843962554,
+            "p50": 50.44302718008579,
+            "p90": 55.15684894518926,
+            "p99": 69.56451534638934
+          },
+          "unprofiled_sweep_ms": 46.52440768642235,
+          "body_forward_is_separate_metric": true,
+          "unprofiled_sweep_population": "steady_wave",
+          "unprofiled_sweep_source": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot50_c16_20261030/sweep.json",
+            "sha256": "9de43e2eaec47d8038043f9e0e194b400b6e4883375f77c1d6ea8c99db7a038c",
+            "size_bytes": 3474
+          }
+        },
+        "prefix_cache": {
+          "profiled_metrics": null,
+          "unprofiled_metrics": {
+            "vllm:external_prefix_cache_queries_created": 0.0,
+            "vllm:prefix_cache_hits_created": 0.0,
+            "vllm:external_prefix_cache_queries_total": 0.0,
+            "vllm:prefix_cache_hits_total": 122880.0,
+            "vllm:external_prefix_cache_hits_total": 0.0,
+            "vllm:external_prefix_cache_hits_created": 0.0,
+            "vllm:prefix_cache_queries_total": 131072.0,
+            "vllm:prefix_cache_queries_created": 0.0
+          },
+          "unknown_metrics_are_not_zero": true
+        },
+        "source_population": {
+          "selected_rank": "tp0",
+          "available_rank_directories": [
+            "tp0",
+            "tp1",
+            "tp10",
+            "tp11",
+            "tp12",
+            "tp13",
+            "tp14",
+            "tp15",
+            "tp2",
+            "tp3",
+            "tp4",
+            "tp5",
+            "tp6",
+            "tp7",
+            "tp8",
+            "tp9"
+          ],
+          "all_ranks_are_not_summed": true,
+          "gzip_is_streamed_without_materialization": true
+        },
+        "step_trace": {
+          "source": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot50_c16_20261030/ranks/tp0/step_trace_time.csv",
+            "sha256": "b0127bb624b3ee32adba82bea13bb53101d7284fd119fae6e6de9749154618af",
+            "size_bytes": 294
+          },
+          "rows": [
+            {
+              "Device_id": "0",
+              "Step": "",
+              "Computing": "4820264.319000131",
+              "Communication(Not Overlapped)": "1678450.5879999823",
+              "Overlapped": "13944.66500000027",
+              "Communication": "1692395.2529999826",
+              "Free": "773563.9130010408",
+              "Stage": "7272278.75",
+              "Bubble": "0",
+              "Communication(Not Overlapped and Exclude Receive)": "1678450.5879999823",
+              "Preparing": "587.75"
+            }
+          ],
+          "explicit_nonempty_step_values": 0
+        },
+        "request_geometry_is_not_per_forward_geometry": true,
+        "force_load_balance": {
+          "value": null,
+          "basis": "retained_non_default_startup_args_if_present"
+        },
+        "prefix_and_acceptance": {
+          "configured_values_are_not_measured_rates": true,
+          "unknown_metrics_are_not_zero": true
+        },
+        "tpot_body_scope": "client/profiled/sweep metrics retained separately in source fields; never body_forward_span_ms",
+        "sim_input_audit": {
+          "source": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/high-concurrency-new17-inputs-20261030.json",
+            "sha256": "bf150f5241aefb9b1e78ed92255ba6734849bca2eaa371d323479f870bf38933",
+            "size_bytes": 319450
+          },
+          "case_id": "glm53flash-a3-tp16-c16-livepre",
+          "model_contract": {
+            "catalog_candidate": "glm-5.3-flash",
+            "basis": "same_named_local_structure_reference; exact_checkpoint_config_identity_unverified",
+            "precision": "w8a8_dynamic",
+            "structure_reference": {
+              "path": "/Users/maoxx241/code/sim-rewrite-20261027/mindie_sim/model_configs/glm-5.3-flash.json",
+              "bytes": 5073,
+              "sha256": "903c9653a66bd4ee585843d29094922768fff6a18eec7d8e163c8767766f3954"
+            },
+            "retained_structure_provenance": {
+              "hf": "zai-org/GLM-5.3-Flash",
+              "revision": "46a050bec13002ad29ee795c16e61cf4fa3c4a9c",
+              "served_checkpoint": "/mnt/weight/GLM-5.3-Flash-BF16 (config.json sha256 33e63ec7fe607658be712bd6dd3c16c6549960d8e7f0483d34b939881b55f943)",
+              "scope": "text body only; the served workload is text-only and the vision tower is not priced",
+              "normalisation": "The archived HF config declares fp8 quantization and head_dim 0; the measured checkpoint is the dequantised BF16 release (642,652,070,880 B = BF16, no quantization signature in the serve log), so the fp8 quantization block is dropped and head_dim is set to the 256-wide MLA qk dimension."
+            },
+            "representation_notice": "reference BF16 normalization is not this capture precision; case quant and tensor dtypes are explicit",
+            "layers": 45,
+            "hidden_size": 4096,
+            "attention_counts": {
+              "kda": 34,
+              "mla": 11
+            },
+            "model_coverage": "partial",
+            "unmodeled_features": [
+              "unrecognized_config_field:hc_eps",
+              "unrecognized_config_field:index_kpool",
+              "unrecognized_config_field:index_kpool_always_select_tail",
+              "unrecognized_config_field:index_kpool_compress",
+              "unrecognized_config_field:index_share_for_mtp_iteration",
+              "unrecognized_config_field:indexer_rope_interleave",
+              "unrecognized_config_field:mla_use_nope",
+              "unrecognized_config_field:provenance",
+              "unrecognized_config_field:qk_head_dim",
+              "unrecognized_config_field:swiglu_limit"
+            ]
+          },
+          "case_status": "parsed_body_template; exact_comparison_contract_pending",
+          "unresolved": [
+            "exact_active_context_lengths_not_encoded_in_tensor_shapes",
+            "checkpoint_config_json_not_in_delivered_capture",
+            "capture_tensor_slots_may_include_graph_padding_or_inactive_requests",
+            "manifest_contains_repeated_rank_from_distinct_windows; physical_ranks_counted_once",
+            "force_eplb_not_established; do_not_enable_balanced_routing",
+            "INT8_KV_payload_proven_but_scale_packing_and_sparse_KV_kernel_not_bound",
+            "per_projection_precision_and_fused_KDA_MLA_wrapper_contracts_not_fully_audited"
+          ]
+        }
+      },
+      "unresolved_reasons": [
+        "startup_log_not_located; launch_intent_is_not_runtime_confirmation"
+      ],
+      "extraction_path": "/Users/maoxx241/code/profiler/examples/structure/acceptance-20261030-expanded/auto-forward-glm53flash-a3-tp16-c16-livepre.json",
+      "variant_id": "glm_indexed_owner_and_projection_controls"
+    },
+    {
+      "case_id": "glm53flash-a5-tp8-c1",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+        "size_bytes": 71005746
+      },
+      "sim_case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new17/glm53flash-a5-tp8-c1.json",
+      "model_declaration": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new17/glm53flash-a5-tp8-c1.json",
+        "sha256": "b2cd9f2efa1eb1933cbf08ce1019215a6366a802495379281afa9112ddf0d388",
+        "size_bytes": 2832,
+        "basis": "source_bound_sim_case_with_audited_model_identity_limits"
+      },
+      "segmentation": "auto_structure_guided",
+      "boundaries_path": null,
+      "geometry": null,
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030",
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/benchmark_summary.json",
+          "sha256": "dfc3176d08bfd16091b7dbba4c13452b633298330e2a236122364d799bdc1da3",
+          "size_bytes": 4893
+        },
+        "benchmark_summary_fields": {
+          "model": "GLM-5.3-Flash-w8a8-mxfp8",
+          "weight_path": "/mnt/weight/GLM-5.3-Flash-w8a8-mxfp8",
+          "served_model_name": "glm53f",
+          "campaign": "2026-10-30 A5 high-concurrency steady-state decode",
+          "host_actual": {
+            "name": "rack08os2",
+            "ip": "177.31.22.1",
+            "compute_ip": "197.33.46.1",
+            "dies": 8,
+            "device": "Ascend950DT 9582"
+          },
+          "host_assignment_note": "Assigned rack06os3/4/5 (177.25.23.1/24.1/25.1) were under an active third-party auto-reboot test (graceful reboot every ~9-11 min, driven from 1.2.20.34 with /home/w00878980/auto_reboot/auto_reboot_hccl_test1825.sh). They could not hold a model load. This run used rack08os2 177.31.22.1, an A5 950DT node with 8/8 dies free and 4 weeks of uptime, after the same npu-smi preflight.",
+          "image": "quay.io/ascend/vllm-ascend:v0.30.0rc2-a5",
+          "image_id": "sha256:c3d00a196905159dbf0b97588d34f085086c2708712fa0d1c8fedd807f0e48a4",
+          "topology": "TP8 (tensor-parallel-size 8), one host, 8 dies",
+          "recipe": {
+            "enable_prefix_caching": true,
+            "enable_chunked_prefill": true,
+            "enable_force_eplb": true,
+            "speculative": {
+              "method": "deepseek_mtp (normalized to mtp; GLM-5.3 maps to Glm5NextMTPModel)",
+              "num_speculative_tokens": 3,
+              "rejection_sample_method": "synthetic",
+              "synthetic_acceptance_rates": [
+                0.8,
+                0.64,
+                0.512
+              ]
+            },
+            "profiler": {
+              "profiler": "torch",
+              "torch_profiler_dir": "/tmp/glm53_prof",
+              "torch_profiler_with_stack": false
+            },
+            "max_model_len": 8192,
+            "max_num_seqs": 256,
+            "max_num_batched_tokens": 8192,
+            "gpu_memory_utilization": 0.9,
+            "kv_cache": {
+              "available_gib": 40.33,
+              "tokens": 1463825,
+              "max_concurrency_at_8192": 178.69
+            },
+            "known_deviation": "container-local one-line fix to vllm_ascend/ops/layernorm.py:_quant_description_has_norm_bias: the probe matched k_norm.bias and the vision merger's post_projection_norm.bias, creating language-model RMSNorm bias parameters absent from the checkpoint and aborting MTP weight tracking. The probe now ignores k_norm/visual. No weight or numerical change: the language model has no norm biases."
+          },
+          "tier": {
+            "name": "tpot5ms",
+            "target_tpot_ms": 5.0,
+            "concurrency": 1,
+            "selection": "closest measured cell to 5.0 ms among c=1..128"
+          },
+          "sweep_cell": {
+            "concurrency": 1,
+            "n_ok": 1,
+            "n_fail": 0,
+            "token_exact": true,
+            "ttft_p50_ms": 289.076566696167,
+            "ttft_p99_ms": 289.076566696167,
+            "tpot_true_p50_ms": 7.355036455042223,
+            "tpot_true_p99_ms": 7.355036455042223,
+            "tpot_true_min_ms": 7.355036455042223,
+            "tpot_true_max_ms": 7.355036455042223,
+            "step_from_metrics_ms": 7.341976952375262,
+            "e2e_p50_ms": 2164.6108627319336,
+            "wall_s": 2.1628196239471436,
+            "out_tokens": 256,
+            "out_tok_s": 118.3640083368581,
+            "per_stream_tok_s": 118.3640083368581,
+            "kv_peak_perc": 0.0038602586373287506,
+            "max_running": 1.0,
+            "spec_accept_ratio": 0.6825396825396826,
+            "spec_emitted_per_draft": 0.0,
+            "prefix": {
+              "prefix_cache_hits": 3840.0,
+              "prefix_cache_queries": 4104.0,
+              "prefix_cache_hit_ratio": 0.935672514619883
+            },
+            "errors": [],
+            "cell": "c_c1",
+            "started": "2026-10-29T18:16:04.276439+00:00",
+            "wall_from_start_s": 2.1791741847991943
+          },
+          "tpot_delta_ms_vs_target": 2.355,
+          "profile_window": {
+            "all_first_chunks": true,
+            "ready_wall_s": 0.3175349235534668,
+            "start_profile_epoch": 1793298713.8253443,
+            "stop_profile_epoch": 1793298716.604441,
+            "window_s": 2.7790966033935547,
+            "calls": [
+              {
+                "action": "start_profile",
+                "status_code": 200,
+                "body": "",
+                "wall_s": 0.3149886131286621
+              },
+              {
+                "action": "stop_profile",
+                "status_code": 200,
+                "body": "",
+                "wall_s": 0.9789879322052002
+              }
+            ],
+            "profile_max_tokens": 1792
+          },
+          "profile_cell": {
+            "n_ok": 1,
+            "n_fail": 0,
+            "token_exact": true,
+            "ttft_p50_ms": 317.4397945404053,
+            "tpot_true_p50_ms": 8.534734705717852,
+            "kv_peak_perc": 0.004825323296660855,
+            "prefix": {
+              "prefix_cache_hits": 0.0,
+              "prefix_cache_queries": 0.0,
+              "prefix_cache_hit_ratio": null
+            }
+          },
+          "prefix_cache_protocol": {
+            "shared_prefix_tokens": 4096,
+            "unique_suffix_tokens": 8,
+            "requests_prompt_tokens": 4104,
+            "max_cacheable_tokens": 3840,
+            "reason": "attention block size is 640 tokens (LCM with the mamba page size), so 4096 = 6 x 640 + 256. All six complete shared blocks hit; the 256-token tail block is necessarily recomputed. 3840/4104 = 0.9357 is the maximum attainable prefix hit for this prompt/block size.",
+            "prefill_work_after_warmup": "8 suffix tokens + 256 tail tokens = 264 tokens"
+          },
+          "files": {
+            "kernel_details.csv": "rank0 ASCEND_PROFILER_OUTPUT, offline torch_npu analysis",
+            "op_statistic.csv": "rank0 ASCEND_PROFILER_OUTPUT, offline torch_npu analysis",
+            "step_trace_time.csv": "rank0 ASCEND_PROFILER_OUTPUT; the parser emits one aggregate window row because vLLM emits no step markers",
+            "sweep_cells": "glm53_sweep_all.csv (sibling file, all measured cells)"
+          }
+        },
+        "retained_deployment": {
+          "startup": {
+            "source": {
+              "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/glm53-hc/logs/glm53-serve.log",
+              "sha256": "956d617dc12896029c7ea054a58891fef4d30e098f978aaf8907e445283691aa",
+              "size_bytes": 518456
+            },
+            "evidence_lines": [
+              {
+                "line": 25,
+                "text": "(APIServer pid=96) INFO 10-29 18:06:13 [api_utils.py:286] non-default args: {'model_tag': '/mnt/weight/GLM-5.3-Flash-w8a8-mxfp8', 'host': '0.0.0.0', 'port': 18250, 'model': '/mnt/weight/GLM-5.3-Flash-w8a8-mxfp8', 'trust_remote_code': True, 'dtype': 'bfloat16', 'max_model_len': 8192, 'served_model_name': ['glm53f'], 'model_loader_extra_config': {'enable_multithread_load': True, 'num_threads': 128}, 'distributed_executor_backend': 'mp', 'tensor_parallel_size': 8, 'gpu_memory_utilization': 0.9, 'enable_prefix_caching': True, 'max_num_batched_tokens': 8192, 'max_num_seqs': 256, 'enable_chunked_prefill': True, 'speculative_config': {'method': 'deepseek_mtp', 'num_speculative_tokens': 3, 'rejection_sample_method': 'synthetic', 'synthetic_acceptance_rates': [0.8, 0.64, 0.512]}, 'additional_config': {'enable_force_eplb': True}, 'profiler_config': ProfilerConfig(profiler='torch', torch_profiler_dir='/tmp/glm53_prof', proton_profiler_dir='', proton_context='shadow', proton_data='tree', proton_backend=None, proton_mode=None, proton_hook=None, proton_output_format=None, proton_graph_attribution=False, torch_profiler_with_stack=False, torch_profiler_with_flops=False, torch_profiler_use_gzip=True, torch_profiler_dump_cuda_time_total=True, torch_profiler_record_shapes=False, torch_profiler_with_memory=False, capture_torch_profiler=False, detailed_trace_annotation=False, ignore_frontend=False, delay_iterations=0, max_iterations=0, warmup_iterations=0, active_iterations=5, wait_iterations=0)}"
+              },
+              {
+                "line": 28,
+                "text": "(APIServer pid=96) INFO 10-29 18:06:13 [model.py:692] Resolved architecture: Glm5NextForConditionalGeneration"
+              },
+              {
+                "line": 31,
+                "text": "(APIServer pid=96) INFO 10-29 18:06:15 [model.py:692] Resolved architecture: Glm5NextMTPModel"
+              },
+              {
+                "line": 67,
+                "text": "(EngineCore pid=260) INFO 10-29 18:06:31 [core.py:123] Initializing a V1 LLM engine (v0.30.0) with config: model='/mnt/weight/GLM-5.3-Flash-w8a8-mxfp8', speculative_config=SpeculativeConfig(method='mtp', model='/mnt/weight/GLM-5.3-Flash-w8a8-mxfp8', num_spec_tokens=3), tokenizer='/mnt/weight/GLM-5.3-Flash-w8a8-mxfp8', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=8192, download_dir=None, load_format=auto, tensor_parallel_size=8, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=True, quantization=ascend, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=npu, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, per_request_spec_decode_metrics='none', kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=glm53f, enable_prefix_caching=True, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.VLLM_COMPILE: 3>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'vllm_ascend.compilation.compiler_interface.AscendCompiler', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': ['vllm::unified_attention_with_output', 'vllm::unified_mla_attention_with_output', 'vllm::mamba_mixer2', 'vllm::mamba_mixer', 'vllm::short_conv', 'vllm::qwen4_exp_ple_short_conv', 'vllm::qwen4_exp_qsa_with_output', 'vllm::linear_attention', 'vllm::qwen_gdn_attention_core', 'vllm::qwen_gdn_attention_core_fused_norm_packed', 'vllm::gdn_attention_core_xpu', 'vllm::olmo_hybrid_gdn_full_forward', 'vllm::sparse_attn_indexer', 'vllm::rocm_aiter_sparse_attn_indexer', 'vllm::deepseek_v4_attention', 'vllm::hpc_rope_norm_forward', 'vllm::unified_kv_cache_update', 'vllm::unified_mla_kv_cache_update', 'vllm::mla_forward', 'vllm::dsa_forward'], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [8192], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_AND_PIECEWISE: (2, 1)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 272, 288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 512, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'], gelu_and_mul_sparse=['native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_jit_warmup=True, moe_backend='auto', sparse_indexer_topk_backend='auto', linear_backend='auto', linear_backend_per_quant=None)"
+              },
+              {
+                "line": 1234,
+                "text": "(Worker_TP0 pid=324) INFO 10-29 18:13:06 [acl_graph.py:301] ACL graph replay is active (logged once)."
+              },
+              {
+                "line": 1240,
+                "text": "(APIServer pid=96) INFO 10-29 18:13:15 [loggers.py:315] Engine 000: Avg prompt throughput: 436.8 tokens/s, Avg generation throughput: 3.2 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 46.8%"
+              },
+              {
+                "line": 1242,
+                "text": "(APIServer pid=96) INFO 10-29 18:13:25 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 46.8%"
+              },
+              {
+                "line": 1249,
+                "text": "(APIServer pid=96) INFO 10-29 18:13:35 [loggers.py:315] Engine 000: Avg prompt throughput: 78.4 tokens/s, Avg generation throughput: 3.2 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 69.1%"
+              },
+              {
+                "line": 1257,
+                "text": "(APIServer pid=96) INFO 10-29 18:13:45 [loggers.py:315] Engine 000: Avg prompt throughput: 104.0 tokens/s, Avg generation throughput: 3.2 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 75.6%"
+              },
+              {
+                "line": 1265,
+                "text": "(APIServer pid=96) INFO 10-29 18:13:55 [loggers.py:315] Engine 000: Avg prompt throughput: 347.2 tokens/s, Avg generation throughput: 3.2 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 74.0%"
+              },
+              {
+                "line": 1267,
+                "text": "(APIServer pid=96) INFO 10-29 18:14:05 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 74.0%"
+              },
+              {
+                "line": 1271,
+                "text": "(APIServer pid=96) INFO 10-29 18:14:25 [loggers.py:315] Engine 000: Avg prompt throughput: 26.4 tokens/s, Avg generation throughput: 25.6 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 76.0%"
+              },
+              {
+                "line": 1273,
+                "text": "(APIServer pid=96) INFO 10-29 18:14:35 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 76.0%"
+              },
+              {
+                "line": 1422,
+                "text": "(APIServer pid=96) INFO 10-29 18:16:05 [loggers.py:315] Engine 000: Avg prompt throughput: 52.8 tokens/s, Avg generation throughput: 25.7 tokens/s, Running: 2 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.7%, Prefix cache hit rate: 80.0%"
+              },
+              {
+                "line": 1598,
+                "text": "(APIServer pid=96) INFO 10-29 18:16:15 [loggers.py:315] Engine 000: Avg prompt throughput: 132.0 tokens/s, Avg generation throughput: 74.5 tokens/s, Running: 4 reqs, Waiting: 0 reqs, NPU KV cache usage: 1.2%, Prefix cache hit rate: 83.2%"
+              },
+              {
+                "line": 1667,
+                "text": "(APIServer pid=96) INFO 10-29 18:16:25 [loggers.py:315] Engine 000: Avg prompt throughput: 633.6 tokens/s, Avg generation throughput: 490.7 tokens/s, Running: 16 reqs, Waiting: 0 reqs, NPU KV cache usage: 4.4%, Prefix cache hit rate: 89.3%"
+              },
+              {
+                "line": 1808,
+                "text": "(APIServer pid=96) INFO 10-29 18:16:35 [loggers.py:315] Engine 000: Avg prompt throughput: 1689.5 tokens/s, Avg generation throughput: 1025.7 tokens/s, Running: 63 reqs, Waiting: 1 reqs, NPU KV cache usage: 17.2%, Prefix cache hit rate: 92.3%"
+              },
+              {
+                "line": 2106,
+                "text": "(APIServer pid=96) INFO 10-29 18:16:45 [loggers.py:315] Engine 000: Avg prompt throughput: 4065.2 tokens/s, Avg generation throughput: 1700.5 tokens/s, Running: 128 reqs, Waiting: 0 reqs, NPU KV cache usage: 34.8%, Prefix cache hit rate: 92.9%"
+              },
+              {
+                "line": 2253,
+                "text": "(APIServer pid=96) INFO 10-29 18:16:55 [loggers.py:315] Engine 000: Avg prompt throughput: 158.4 tokens/s, Avg generation throughput: 3210.4 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 92.9%"
+              },
+              {
+                "line": 2255,
+                "text": "(APIServer pid=96) INFO 10-29 18:17:05 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 92.9%"
+              },
+              {
+                "line": 2379,
+                "text": "(APIServer pid=96) INFO 10-29 18:17:25 [loggers.py:315] Engine 000: Avg prompt throughput: 2481.5 tokens/s, Avg generation throughput: 87.3 tokens/s, Running: 96 reqs, Waiting: 0 reqs, NPU KV cache usage: 26.1%, Prefix cache hit rate: 93.1%"
+              },
+              {
+                "line": 2741,
+                "text": "(APIServer pid=96) INFO 10-29 18:17:35 [loggers.py:315] Engine 000: Avg prompt throughput: 2534.2 tokens/s, Avg generation throughput: 2459.1 tokens/s, Running: 112 reqs, Waiting: 0 reqs, NPU KV cache usage: 30.4%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 2850,
+                "text": "(APIServer pid=96) INFO 10-29 18:17:45 [loggers.py:315] Engine 000: Avg prompt throughput: 528.0 tokens/s, Avg generation throughput: 2829.4 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3020,
+                "text": "(APIServer pid=96) INFO 10-29 18:17:55 [loggers.py:315] Engine 000: Avg prompt throughput: 237.6 tokens/s, Avg generation throughput: 169.5 tokens/s, Running: 6 reqs, Waiting: 0 reqs, NPU KV cache usage: 1.7%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3034,
+                "text": "(APIServer pid=96) INFO 10-29 18:18:05 [loggers.py:315] Engine 000: Avg prompt throughput: 52.8 tokens/s, Avg generation throughput: 61.3 tokens/s, Running: 3 reqs, Waiting: 0 reqs, NPU KV cache usage: 1.0%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3075,
+                "text": "(APIServer pid=96) INFO 10-29 18:18:15 [loggers.py:315] Engine 000: Avg prompt throughput: 26.4 tokens/s, Avg generation throughput: 303.8 tokens/s, Running: 3 reqs, Waiting: 0 reqs, NPU KV cache usage: 1.1%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3161,
+                "text": "(APIServer pid=96) INFO 10-29 18:18:25 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 79.8 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3163,
+                "text": "(APIServer pid=96) INFO 10-29 18:18:35 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3174,
+                "text": "(APIServer pid=96) INFO 10-29 18:18:45 [loggers.py:315] Engine 000: Avg prompt throughput: 79.2 tokens/s, Avg generation throughput: 39.6 tokens/s, Running: 3 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.9%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3265,
+                "text": "(APIServer pid=96) INFO 10-29 18:18:55 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 265.5 tokens/s, Running: 3 reqs, Waiting: 0 reqs, NPU KV cache usage: 1.0%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3279,
+                "text": "(APIServer pid=96) INFO 10-29 18:19:05 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 78.9 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3281,
+                "text": "(APIServer pid=96) INFO 10-29 18:19:15 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3293,
+                "text": "(APIServer pid=96) INFO 10-29 18:26:05 [loggers.py:315] Engine 000: Avg prompt throughput: 79.2 tokens/s, Avg generation throughput: 36.5 tokens/s, Running: 3 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.9%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3383,
+                "text": "(APIServer pid=96) INFO 10-29 18:26:15 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 256.1 tokens/s, Running: 3 reqs, Waiting: 0 reqs, NPU KV cache usage: 1.0%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3399,
+                "text": "(APIServer pid=96) INFO 10-29 18:26:25 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 91.4 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3401,
+                "text": "(APIServer pid=96) INFO 10-29 18:26:35 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3595,
+                "text": "(APIServer pid=96) INFO 10-29 18:30:25 [loggers.py:315] Engine 000: Avg prompt throughput: 2534.5 tokens/s, Avg generation throughput: 1932.6 tokens/s, Running: 96 reqs, Waiting: 0 reqs, NPU KV cache usage: 26.1%, Prefix cache hit rate: 93.3%"
+              },
+              {
+                "line": 3708,
+                "text": "(APIServer pid=96) INFO 10-29 18:30:35 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 2982.2 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.3%"
+              },
+              {
+                "line": 3710,
+                "text": "(APIServer pid=96) INFO 10-29 18:30:45 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.3%"
+              },
+              {
+                "line": 3733,
+                "text": "(APIServer pid=96) INFO 10-29 18:31:55 [loggers.py:315] Engine 000: Avg prompt throughput: 26.4 tokens/s, Avg generation throughput: 41.0 tokens/s, Running: 1 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.4%, Prefix cache hit rate: 93.3%"
+              },
+              {
+                "line": 3819,
+                "text": "(APIServer pid=96) INFO 10-29 18:32:05 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 117.9 tokens/s, Running: 1 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.4%, Prefix cache hit rate: 93.3%"
+              },
+              {
+                "line": 3827,
+                "text": "(APIServer pid=96) INFO 10-29 18:32:15 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 20.3 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.3%"
+              },
+              {
+                "line": 3829,
+                "text": "(APIServer pid=96) INFO 10-29 18:32:25 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.3%"
+              }
+            ],
+            "runtime_fields": {
+              "model": "/mnt/weight/GLM-5.3-Flash-w8a8-mxfp8",
+              "tensor_parallel_size": 8,
+              "enable_expert_parallel": null,
+              "enable_force_eplb": true,
+              "num_speculative_tokens": 3,
+              "enforce_eager": null,
+              "enable_prefix_caching": true,
+              "max_num_seqs": 256,
+              "max_num_batched_tokens": 8192,
+              "fusion_ops_gmmswigluquant": null
+            },
+            "engine_config_observed": true,
+            "missing_argument_is_not_false": true
+          },
+          "launch_sources": [
+            {
+              "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/glm53-hc/scripts/serve_glm53_mtp.sh",
+              "sha256": "e035ebbb19c37ac9d37c7305e8aef22d68bee3d8ecaae52032641b7b9b036f5e",
+              "size_bytes": 4784
+            }
+          ],
+          "launch_source_is_execution_intent": true
+        },
+        "client": {
+          "concurrency": 1,
+          "input_len": 4104,
+          "token_exact": null
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "median": 8.534734705717852
+          },
+          "unprofiled_sweep_ms": 7.355036455042223,
+          "body_forward_is_separate_metric": true
+        },
+        "prefix_cache": {
+          "profiled_metrics": {
+            "prefix_cache_hits": 0.0,
+            "prefix_cache_queries": 0.0,
+            "prefix_cache_hit_ratio": null
+          },
+          "unprofiled_metrics": {
+            "prefix_cache_hits": 3840.0,
+            "prefix_cache_queries": 4104.0,
+            "prefix_cache_hit_ratio": 0.935672514619883
+          },
+          "unknown_metrics_are_not_zero": true
+        },
+        "source_population": {
+          "selected_rank": "top_level_export",
+          "available_rank_directories": [],
+          "all_ranks_are_not_summed": true,
+          "gzip_is_streamed_without_materialization": false
+        },
+        "step_trace": {
+          "source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/step_trace_time.csv",
+            "sha256": "eb4b212c35ccdeb48bb9d82f1d59b6a592d11e38624518f00eac5075ecf855f9",
+            "size_bytes": 282
+          },
+          "rows": [
+            {
+              "Device_id": "0",
+              "Step": "",
+              "Computing": "1016513.4609999934",
+              "Communication(Not Overlapped)": "310228.40100000135",
+              "Overlapped": "0.0",
+              "Communication": "310228.40100000135",
+              "Free": "533733.1339994597",
+              "Stage": "1860475.25",
+              "Bubble": "0",
+              "Communication(Not Overlapped and Exclude Receive)": "310228.40100000135",
+              "Preparing": "1132.25"
+            }
+          ],
+          "explicit_nonempty_step_values": 0
+        },
+        "request_geometry_is_not_per_forward_geometry": true,
+        "force_load_balance": {
+          "value": true,
+          "basis": "retained_non_default_startup_args_if_present"
+        },
+        "prefix_and_acceptance": {
+          "configured_values_are_not_measured_rates": true,
+          "unknown_metrics_are_not_zero": true
+        },
+        "tpot_body_scope": "client/profiled/sweep metrics retained separately in source fields; never body_forward_span_ms",
+        "sim_input_audit": {
+          "source": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/high-concurrency-new17-inputs-20261030.json",
+            "sha256": "bf150f5241aefb9b1e78ed92255ba6734849bca2eaa371d323479f870bf38933",
+            "size_bytes": 319450
+          },
+          "case_id": "glm53flash-a5-tp8-c1",
+          "model_contract": {
+            "catalog_candidate": "glm-5.3-flash",
+            "basis": "same_named_local_structure_reference; exact_checkpoint_config_identity_unverified",
+            "precision": "w8a8_mxfp8",
+            "structure_reference": {
+              "path": "/Users/maoxx241/code/sim-rewrite-20261027/mindie_sim/model_configs/glm-5.3-flash.json",
+              "bytes": 5073,
+              "sha256": "903c9653a66bd4ee585843d29094922768fff6a18eec7d8e163c8767766f3954"
+            },
+            "retained_structure_provenance": {
+              "hf": "zai-org/GLM-5.3-Flash",
+              "revision": "46a050bec13002ad29ee795c16e61cf4fa3c4a9c",
+              "served_checkpoint": "/mnt/weight/GLM-5.3-Flash-BF16 (config.json sha256 33e63ec7fe607658be712bd6dd3c16c6549960d8e7f0483d34b939881b55f943)",
+              "scope": "text body only; the served workload is text-only and the vision tower is not priced",
+              "normalisation": "The archived HF config declares fp8 quantization and head_dim 0; the measured checkpoint is the dequantised BF16 release (642,652,070,880 B = BF16, no quantization signature in the serve log), so the fp8 quantization block is dropped and head_dim is set to the 256-wide MLA qk dimension."
+            },
+            "representation_notice": "reference BF16 normalization is not this capture precision; case quant and tensor dtypes are explicit",
+            "layers": 45,
+            "hidden_size": 4096,
+            "attention_counts": {
+              "kda": 34,
+              "mla": 11
+            },
+            "model_coverage": "partial",
+            "unmodeled_features": [
+              "unrecognized_config_field:hc_eps",
+              "unrecognized_config_field:index_kpool",
+              "unrecognized_config_field:index_kpool_always_select_tail",
+              "unrecognized_config_field:index_kpool_compress",
+              "unrecognized_config_field:index_share_for_mtp_iteration",
+              "unrecognized_config_field:indexer_rope_interleave",
+              "unrecognized_config_field:mla_use_nope",
+              "unrecognized_config_field:provenance",
+              "unrecognized_config_field:qk_head_dim",
+              "unrecognized_config_field:swiglu_limit"
+            ]
+          },
+          "case_status": "parsed_body_template; exact_comparison_contract_pending",
+          "unresolved": [
+            "exact_active_context_lengths_not_encoded_in_tensor_shapes",
+            "checkpoint_config_json_not_in_delivered_capture",
+            "capture_tensor_slots_may_include_graph_padding_or_inactive_requests",
+            "per_projection_precision_and_fused_KDA_MLA_wrapper_contracts_not_fully_audited"
+          ]
+        }
+      },
+      "unresolved_reasons": [],
+      "extraction_path": "/Users/maoxx241/code/profiler/examples/structure/acceptance-20261030-expanded/auto-forward-glm53flash-a5-tp8-c1.json",
+      "variant_id": "glm_indexed_owner_and_projection_controls"
+    },
+    {
+      "case_id": "glm53flash-a5-tp8-c3",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot10ms_c3_20261030/kernel_details.csv",
+        "sha256": "7b5fcac6c1e58c05cb232a7ddb4450b761301ba5efc33b4b9f7909b9d59fbbe1",
+        "size_bytes": 58843290
+      },
+      "sim_case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new17/glm53flash-a5-tp8-c3.json",
+      "model_declaration": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new17/glm53flash-a5-tp8-c3.json",
+        "sha256": "619bd71493a5f33896970112f0ae40025a85dfdcbffb6467dd3964fecb354cde",
+        "size_bytes": 2834,
+        "basis": "source_bound_sim_case_with_audited_model_identity_limits"
+      },
+      "segmentation": "auto_structure_guided",
+      "boundaries_path": null,
+      "geometry": null,
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot10ms_c3_20261030",
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot10ms_c3_20261030/benchmark_summary.json",
+          "sha256": "b77177f25e5a90eb5d8c1339546e1afb07db279e5137f1bf52eb6684ff248cc5",
+          "size_bytes": 4905
+        },
+        "benchmark_summary_fields": {
+          "model": "GLM-5.3-Flash-w8a8-mxfp8",
+          "weight_path": "/mnt/weight/GLM-5.3-Flash-w8a8-mxfp8",
+          "served_model_name": "glm53f",
+          "campaign": "2026-10-30 A5 high-concurrency steady-state decode",
+          "host_actual": {
+            "name": "rack08os2",
+            "ip": "177.31.22.1",
+            "compute_ip": "197.33.46.1",
+            "dies": 8,
+            "device": "Ascend950DT 9582"
+          },
+          "host_assignment_note": "Assigned rack06os3/4/5 (177.25.23.1/24.1/25.1) were under an active third-party auto-reboot test (graceful reboot every ~9-11 min, driven from 1.2.20.34 with /home/w00878980/auto_reboot/auto_reboot_hccl_test1825.sh). They could not hold a model load. This run used rack08os2 177.31.22.1, an A5 950DT node with 8/8 dies free and 4 weeks of uptime, after the same npu-smi preflight.",
+          "image": "quay.io/ascend/vllm-ascend:v0.30.0rc2-a5",
+          "image_id": "sha256:c3d00a196905159dbf0b97588d34f085086c2708712fa0d1c8fedd807f0e48a4",
+          "topology": "TP8 (tensor-parallel-size 8), one host, 8 dies",
+          "recipe": {
+            "enable_prefix_caching": true,
+            "enable_chunked_prefill": true,
+            "enable_force_eplb": true,
+            "speculative": {
+              "method": "deepseek_mtp (normalized to mtp; GLM-5.3 maps to Glm5NextMTPModel)",
+              "num_speculative_tokens": 3,
+              "rejection_sample_method": "synthetic",
+              "synthetic_acceptance_rates": [
+                0.8,
+                0.64,
+                0.512
+              ]
+            },
+            "profiler": {
+              "profiler": "torch",
+              "torch_profiler_dir": "/tmp/glm53_prof",
+              "torch_profiler_with_stack": false
+            },
+            "max_model_len": 8192,
+            "max_num_seqs": 256,
+            "max_num_batched_tokens": 8192,
+            "gpu_memory_utilization": 0.9,
+            "kv_cache": {
+              "available_gib": 40.33,
+              "tokens": 1463825,
+              "max_concurrency_at_8192": 178.69
+            },
+            "known_deviation": "container-local one-line fix to vllm_ascend/ops/layernorm.py:_quant_description_has_norm_bias: the probe matched k_norm.bias and the vision merger's post_projection_norm.bias, creating language-model RMSNorm bias parameters absent from the checkpoint and aborting MTP weight tracking. The probe now ignores k_norm/visual. No weight or numerical change: the language model has no norm biases."
+          },
+          "tier": {
+            "name": "tpot10ms",
+            "target_tpot_ms": 10.0,
+            "concurrency": 3,
+            "selection": "closest measured cell to 10.0 ms among c=1..128"
+          },
+          "sweep_cell": {
+            "concurrency": 3,
+            "n_ok": 3,
+            "n_fail": 0,
+            "token_exact": true,
+            "ttft_p50_ms": 1179.9192428588867,
+            "ttft_p99_ms": 1179.9192428588867,
+            "tpot_true_p50_ms": 9.752312828512752,
+            "tpot_true_p99_ms": 9.752312828512752,
+            "tpot_true_min_ms": 9.716575285967659,
+            "tpot_true_max_ms": 10.625214670218673,
+            "step_from_metrics_ms": 10.014889323429088,
+            "e2e_p50_ms": 3889.3489837646484,
+            "wall_s": 3.9543612003326416,
+            "out_tokens": 768,
+            "out_tok_s": 194.21594565903482,
+            "per_stream_tok_s": 64.7386485530116,
+            "kv_peak_perc": 0.009843659525188175,
+            "max_running": 3.0,
+            "spec_accept_ratio": 0.6852589641434262,
+            "spec_emitted_per_draft": 0.0,
+            "prefix": {
+              "prefix_cache_hits": 11520.0,
+              "prefix_cache_queries": 12312.0,
+              "prefix_cache_hit_ratio": 0.935672514619883
+            },
+            "errors": [],
+            "cell": "c_c3",
+            "started": "2026-10-29T18:17:52.235107+00:00",
+            "wall_from_start_s": 3.973921298980713
+          },
+          "tpot_delta_ms_vs_target": -0.248,
+          "profile_window": {
+            "all_first_chunks": true,
+            "ready_wall_s": 0.9158174991607666,
+            "start_profile_epoch": 1793298366.5417955,
+            "stop_profile_epoch": 1793298369.3081088,
+            "window_s": 2.766313314437866,
+            "calls": [
+              {
+                "action": "start_profile",
+                "status_code": 200,
+                "body": "",
+                "wall_s": 0.31163549423217773
+              },
+              {
+                "action": "stop_profile",
+                "status_code": 200,
+                "body": "",
+                "wall_s": 0.9661824703216553
+              }
+            ],
+            "profile_max_tokens": 1280
+          },
+          "profile_cell": {
+            "n_ok": 3,
+            "n_fail": 0,
+            "token_exact": true,
+            "ttft_p50_ms": 603.9843559265137,
+            "tpot_true_p50_ms": 11.438829438401164,
+            "kv_peak_perc": 0.011001737116386745,
+            "prefix": {
+              "prefix_cache_hits": 0.0,
+              "prefix_cache_queries": 0.0,
+              "prefix_cache_hit_ratio": null
+            }
+          },
+          "prefix_cache_protocol": {
+            "shared_prefix_tokens": 4096,
+            "unique_suffix_tokens": 8,
+            "requests_prompt_tokens": 4104,
+            "max_cacheable_tokens": 3840,
+            "reason": "attention block size is 640 tokens (LCM with the mamba page size), so 4096 = 6 x 640 + 256. All six complete shared blocks hit; the 256-token tail block is necessarily recomputed. 3840/4104 = 0.9357 is the maximum attainable prefix hit for this prompt/block size.",
+            "prefill_work_after_warmup": "8 suffix tokens + 256 tail tokens = 264 tokens"
+          },
+          "files": {
+            "kernel_details.csv": "rank0 ASCEND_PROFILER_OUTPUT, offline torch_npu analysis",
+            "op_statistic.csv": "rank0 ASCEND_PROFILER_OUTPUT, offline torch_npu analysis",
+            "step_trace_time.csv": "rank0 ASCEND_PROFILER_OUTPUT; the parser emits one aggregate window row because vLLM emits no step markers",
+            "sweep_cells": "glm53_sweep_all.csv (sibling file, all measured cells)"
+          }
+        },
+        "retained_deployment": {
+          "startup": {
+            "source": {
+              "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/glm53-hc/logs/glm53-serve.log",
+              "sha256": "956d617dc12896029c7ea054a58891fef4d30e098f978aaf8907e445283691aa",
+              "size_bytes": 518456
+            },
+            "evidence_lines": [
+              {
+                "line": 25,
+                "text": "(APIServer pid=96) INFO 10-29 18:06:13 [api_utils.py:286] non-default args: {'model_tag': '/mnt/weight/GLM-5.3-Flash-w8a8-mxfp8', 'host': '0.0.0.0', 'port': 18250, 'model': '/mnt/weight/GLM-5.3-Flash-w8a8-mxfp8', 'trust_remote_code': True, 'dtype': 'bfloat16', 'max_model_len': 8192, 'served_model_name': ['glm53f'], 'model_loader_extra_config': {'enable_multithread_load': True, 'num_threads': 128}, 'distributed_executor_backend': 'mp', 'tensor_parallel_size': 8, 'gpu_memory_utilization': 0.9, 'enable_prefix_caching': True, 'max_num_batched_tokens': 8192, 'max_num_seqs': 256, 'enable_chunked_prefill': True, 'speculative_config': {'method': 'deepseek_mtp', 'num_speculative_tokens': 3, 'rejection_sample_method': 'synthetic', 'synthetic_acceptance_rates': [0.8, 0.64, 0.512]}, 'additional_config': {'enable_force_eplb': True}, 'profiler_config': ProfilerConfig(profiler='torch', torch_profiler_dir='/tmp/glm53_prof', proton_profiler_dir='', proton_context='shadow', proton_data='tree', proton_backend=None, proton_mode=None, proton_hook=None, proton_output_format=None, proton_graph_attribution=False, torch_profiler_with_stack=False, torch_profiler_with_flops=False, torch_profiler_use_gzip=True, torch_profiler_dump_cuda_time_total=True, torch_profiler_record_shapes=False, torch_profiler_with_memory=False, capture_torch_profiler=False, detailed_trace_annotation=False, ignore_frontend=False, delay_iterations=0, max_iterations=0, warmup_iterations=0, active_iterations=5, wait_iterations=0)}"
+              },
+              {
+                "line": 28,
+                "text": "(APIServer pid=96) INFO 10-29 18:06:13 [model.py:692] Resolved architecture: Glm5NextForConditionalGeneration"
+              },
+              {
+                "line": 31,
+                "text": "(APIServer pid=96) INFO 10-29 18:06:15 [model.py:692] Resolved architecture: Glm5NextMTPModel"
+              },
+              {
+                "line": 67,
+                "text": "(EngineCore pid=260) INFO 10-29 18:06:31 [core.py:123] Initializing a V1 LLM engine (v0.30.0) with config: model='/mnt/weight/GLM-5.3-Flash-w8a8-mxfp8', speculative_config=SpeculativeConfig(method='mtp', model='/mnt/weight/GLM-5.3-Flash-w8a8-mxfp8', num_spec_tokens=3), tokenizer='/mnt/weight/GLM-5.3-Flash-w8a8-mxfp8', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=8192, download_dir=None, load_format=auto, tensor_parallel_size=8, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=True, quantization=ascend, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=npu, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, per_request_spec_decode_metrics='none', kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=glm53f, enable_prefix_caching=True, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.VLLM_COMPILE: 3>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'vllm_ascend.compilation.compiler_interface.AscendCompiler', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': ['vllm::unified_attention_with_output', 'vllm::unified_mla_attention_with_output', 'vllm::mamba_mixer2', 'vllm::mamba_mixer', 'vllm::short_conv', 'vllm::qwen4_exp_ple_short_conv', 'vllm::qwen4_exp_qsa_with_output', 'vllm::linear_attention', 'vllm::qwen_gdn_attention_core', 'vllm::qwen_gdn_attention_core_fused_norm_packed', 'vllm::gdn_attention_core_xpu', 'vllm::olmo_hybrid_gdn_full_forward', 'vllm::sparse_attn_indexer', 'vllm::rocm_aiter_sparse_attn_indexer', 'vllm::deepseek_v4_attention', 'vllm::hpc_rope_norm_forward', 'vllm::unified_kv_cache_update', 'vllm::unified_mla_kv_cache_update', 'vllm::mla_forward', 'vllm::dsa_forward'], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [8192], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_AND_PIECEWISE: (2, 1)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 272, 288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 512, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'], gelu_and_mul_sparse=['native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_jit_warmup=True, moe_backend='auto', sparse_indexer_topk_backend='auto', linear_backend='auto', linear_backend_per_quant=None)"
+              },
+              {
+                "line": 1234,
+                "text": "(Worker_TP0 pid=324) INFO 10-29 18:13:06 [acl_graph.py:301] ACL graph replay is active (logged once)."
+              },
+              {
+                "line": 1240,
+                "text": "(APIServer pid=96) INFO 10-29 18:13:15 [loggers.py:315] Engine 000: Avg prompt throughput: 436.8 tokens/s, Avg generation throughput: 3.2 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 46.8%"
+              },
+              {
+                "line": 1242,
+                "text": "(APIServer pid=96) INFO 10-29 18:13:25 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 46.8%"
+              },
+              {
+                "line": 1249,
+                "text": "(APIServer pid=96) INFO 10-29 18:13:35 [loggers.py:315] Engine 000: Avg prompt throughput: 78.4 tokens/s, Avg generation throughput: 3.2 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 69.1%"
+              },
+              {
+                "line": 1257,
+                "text": "(APIServer pid=96) INFO 10-29 18:13:45 [loggers.py:315] Engine 000: Avg prompt throughput: 104.0 tokens/s, Avg generation throughput: 3.2 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 75.6%"
+              },
+              {
+                "line": 1265,
+                "text": "(APIServer pid=96) INFO 10-29 18:13:55 [loggers.py:315] Engine 000: Avg prompt throughput: 347.2 tokens/s, Avg generation throughput: 3.2 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 74.0%"
+              },
+              {
+                "line": 1267,
+                "text": "(APIServer pid=96) INFO 10-29 18:14:05 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 74.0%"
+              },
+              {
+                "line": 1271,
+                "text": "(APIServer pid=96) INFO 10-29 18:14:25 [loggers.py:315] Engine 000: Avg prompt throughput: 26.4 tokens/s, Avg generation throughput: 25.6 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 76.0%"
+              },
+              {
+                "line": 1273,
+                "text": "(APIServer pid=96) INFO 10-29 18:14:35 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 76.0%"
+              },
+              {
+                "line": 1422,
+                "text": "(APIServer pid=96) INFO 10-29 18:16:05 [loggers.py:315] Engine 000: Avg prompt throughput: 52.8 tokens/s, Avg generation throughput: 25.7 tokens/s, Running: 2 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.7%, Prefix cache hit rate: 80.0%"
+              },
+              {
+                "line": 1598,
+                "text": "(APIServer pid=96) INFO 10-29 18:16:15 [loggers.py:315] Engine 000: Avg prompt throughput: 132.0 tokens/s, Avg generation throughput: 74.5 tokens/s, Running: 4 reqs, Waiting: 0 reqs, NPU KV cache usage: 1.2%, Prefix cache hit rate: 83.2%"
+              },
+              {
+                "line": 1667,
+                "text": "(APIServer pid=96) INFO 10-29 18:16:25 [loggers.py:315] Engine 000: Avg prompt throughput: 633.6 tokens/s, Avg generation throughput: 490.7 tokens/s, Running: 16 reqs, Waiting: 0 reqs, NPU KV cache usage: 4.4%, Prefix cache hit rate: 89.3%"
+              },
+              {
+                "line": 1808,
+                "text": "(APIServer pid=96) INFO 10-29 18:16:35 [loggers.py:315] Engine 000: Avg prompt throughput: 1689.5 tokens/s, Avg generation throughput: 1025.7 tokens/s, Running: 63 reqs, Waiting: 1 reqs, NPU KV cache usage: 17.2%, Prefix cache hit rate: 92.3%"
+              },
+              {
+                "line": 2106,
+                "text": "(APIServer pid=96) INFO 10-29 18:16:45 [loggers.py:315] Engine 000: Avg prompt throughput: 4065.2 tokens/s, Avg generation throughput: 1700.5 tokens/s, Running: 128 reqs, Waiting: 0 reqs, NPU KV cache usage: 34.8%, Prefix cache hit rate: 92.9%"
+              },
+              {
+                "line": 2253,
+                "text": "(APIServer pid=96) INFO 10-29 18:16:55 [loggers.py:315] Engine 000: Avg prompt throughput: 158.4 tokens/s, Avg generation throughput: 3210.4 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 92.9%"
+              },
+              {
+                "line": 2255,
+                "text": "(APIServer pid=96) INFO 10-29 18:17:05 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 92.9%"
+              },
+              {
+                "line": 2379,
+                "text": "(APIServer pid=96) INFO 10-29 18:17:25 [loggers.py:315] Engine 000: Avg prompt throughput: 2481.5 tokens/s, Avg generation throughput: 87.3 tokens/s, Running: 96 reqs, Waiting: 0 reqs, NPU KV cache usage: 26.1%, Prefix cache hit rate: 93.1%"
+              },
+              {
+                "line": 2741,
+                "text": "(APIServer pid=96) INFO 10-29 18:17:35 [loggers.py:315] Engine 000: Avg prompt throughput: 2534.2 tokens/s, Avg generation throughput: 2459.1 tokens/s, Running: 112 reqs, Waiting: 0 reqs, NPU KV cache usage: 30.4%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 2850,
+                "text": "(APIServer pid=96) INFO 10-29 18:17:45 [loggers.py:315] Engine 000: Avg prompt throughput: 528.0 tokens/s, Avg generation throughput: 2829.4 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3020,
+                "text": "(APIServer pid=96) INFO 10-29 18:17:55 [loggers.py:315] Engine 000: Avg prompt throughput: 237.6 tokens/s, Avg generation throughput: 169.5 tokens/s, Running: 6 reqs, Waiting: 0 reqs, NPU KV cache usage: 1.7%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3034,
+                "text": "(APIServer pid=96) INFO 10-29 18:18:05 [loggers.py:315] Engine 000: Avg prompt throughput: 52.8 tokens/s, Avg generation throughput: 61.3 tokens/s, Running: 3 reqs, Waiting: 0 reqs, NPU KV cache usage: 1.0%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3075,
+                "text": "(APIServer pid=96) INFO 10-29 18:18:15 [loggers.py:315] Engine 000: Avg prompt throughput: 26.4 tokens/s, Avg generation throughput: 303.8 tokens/s, Running: 3 reqs, Waiting: 0 reqs, NPU KV cache usage: 1.1%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3161,
+                "text": "(APIServer pid=96) INFO 10-29 18:18:25 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 79.8 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3163,
+                "text": "(APIServer pid=96) INFO 10-29 18:18:35 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3174,
+                "text": "(APIServer pid=96) INFO 10-29 18:18:45 [loggers.py:315] Engine 000: Avg prompt throughput: 79.2 tokens/s, Avg generation throughput: 39.6 tokens/s, Running: 3 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.9%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3265,
+                "text": "(APIServer pid=96) INFO 10-29 18:18:55 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 265.5 tokens/s, Running: 3 reqs, Waiting: 0 reqs, NPU KV cache usage: 1.0%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3279,
+                "text": "(APIServer pid=96) INFO 10-29 18:19:05 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 78.9 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3281,
+                "text": "(APIServer pid=96) INFO 10-29 18:19:15 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3293,
+                "text": "(APIServer pid=96) INFO 10-29 18:26:05 [loggers.py:315] Engine 000: Avg prompt throughput: 79.2 tokens/s, Avg generation throughput: 36.5 tokens/s, Running: 3 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.9%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3383,
+                "text": "(APIServer pid=96) INFO 10-29 18:26:15 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 256.1 tokens/s, Running: 3 reqs, Waiting: 0 reqs, NPU KV cache usage: 1.0%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3399,
+                "text": "(APIServer pid=96) INFO 10-29 18:26:25 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 91.4 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3401,
+                "text": "(APIServer pid=96) INFO 10-29 18:26:35 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.2%"
+              },
+              {
+                "line": 3595,
+                "text": "(APIServer pid=96) INFO 10-29 18:30:25 [loggers.py:315] Engine 000: Avg prompt throughput: 2534.5 tokens/s, Avg generation throughput: 1932.6 tokens/s, Running: 96 reqs, Waiting: 0 reqs, NPU KV cache usage: 26.1%, Prefix cache hit rate: 93.3%"
+              },
+              {
+                "line": 3708,
+                "text": "(APIServer pid=96) INFO 10-29 18:30:35 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 2982.2 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.3%"
+              },
+              {
+                "line": 3710,
+                "text": "(APIServer pid=96) INFO 10-29 18:30:45 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.3%"
+              },
+              {
+                "line": 3733,
+                "text": "(APIServer pid=96) INFO 10-29 18:31:55 [loggers.py:315] Engine 000: Avg prompt throughput: 26.4 tokens/s, Avg generation throughput: 41.0 tokens/s, Running: 1 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.4%, Prefix cache hit rate: 93.3%"
+              },
+              {
+                "line": 3819,
+                "text": "(APIServer pid=96) INFO 10-29 18:32:05 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 117.9 tokens/s, Running: 1 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.4%, Prefix cache hit rate: 93.3%"
+              },
+              {
+                "line": 3827,
+                "text": "(APIServer pid=96) INFO 10-29 18:32:15 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 20.3 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.3%"
+              },
+              {
+                "line": 3829,
+                "text": "(APIServer pid=96) INFO 10-29 18:32:25 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.3%"
+              }
+            ],
+            "runtime_fields": {
+              "model": "/mnt/weight/GLM-5.3-Flash-w8a8-mxfp8",
+              "tensor_parallel_size": 8,
+              "enable_expert_parallel": null,
+              "enable_force_eplb": true,
+              "num_speculative_tokens": 3,
+              "enforce_eager": null,
+              "enable_prefix_caching": true,
+              "max_num_seqs": 256,
+              "max_num_batched_tokens": 8192,
+              "fusion_ops_gmmswigluquant": null
+            },
+            "engine_config_observed": true,
+            "missing_argument_is_not_false": true
+          },
+          "launch_sources": [
+            {
+              "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/glm53-hc/scripts/serve_glm53_mtp.sh",
+              "sha256": "e035ebbb19c37ac9d37c7305e8aef22d68bee3d8ecaae52032641b7b9b036f5e",
+              "size_bytes": 4784
+            }
+          ],
+          "launch_source_is_execution_intent": true
+        },
+        "client": {
+          "concurrency": 3,
+          "input_len": 4104,
+          "token_exact": null
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "median": 11.438829438401164
+          },
+          "unprofiled_sweep_ms": 9.752312828512752,
+          "body_forward_is_separate_metric": true
+        },
+        "prefix_cache": {
+          "profiled_metrics": {
+            "prefix_cache_hits": 0.0,
+            "prefix_cache_queries": 0.0,
+            "prefix_cache_hit_ratio": null
+          },
+          "unprofiled_metrics": {
+            "prefix_cache_hits": 11520.0,
+            "prefix_cache_queries": 12312.0,
+            "prefix_cache_hit_ratio": 0.935672514619883
+          },
+          "unknown_metrics_are_not_zero": true
+        },
+        "source_population": {
+          "selected_rank": "top_level_export",
+          "available_rank_directories": [],
+          "all_ranks_are_not_summed": true,
+          "gzip_is_streamed_without_materialization": false
+        },
+        "step_trace": {
+          "source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot10ms_c3_20261030/step_trace_time.csv",
+            "sha256": "4f378c830452202f7944592584414ae01cfd319327e412ef271a82a3a32c3482",
+            "size_bytes": 280
+          },
+          "rows": [
+            {
+              "Device_id": "0",
+              "Step": "",
+              "Computing": "1127358.6559999944",
+              "Communication(Not Overlapped)": "233358.0150000001",
+              "Overlapped": "0.0",
+              "Communication": "233358.0150000001",
+              "Free": "492770.78699953837",
+              "Stage": "1853487.75",
+              "Bubble": "0",
+              "Communication(Not Overlapped and Exclude Receive)": "233358.0150000001",
+              "Preparing": "1091.75"
+            }
+          ],
+          "explicit_nonempty_step_values": 0
+        },
+        "request_geometry_is_not_per_forward_geometry": true,
+        "force_load_balance": {
+          "value": true,
+          "basis": "retained_non_default_startup_args_if_present"
+        },
+        "prefix_and_acceptance": {
+          "configured_values_are_not_measured_rates": true,
+          "unknown_metrics_are_not_zero": true
+        },
+        "tpot_body_scope": "client/profiled/sweep metrics retained separately in source fields; never body_forward_span_ms",
+        "sim_input_audit": {
+          "source": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/high-concurrency-new17-inputs-20261030.json",
+            "sha256": "bf150f5241aefb9b1e78ed92255ba6734849bca2eaa371d323479f870bf38933",
+            "size_bytes": 319450
+          },
+          "case_id": "glm53flash-a5-tp8-c3",
+          "model_contract": {
+            "catalog_candidate": "glm-5.3-flash",
+            "basis": "same_named_local_structure_reference; exact_checkpoint_config_identity_unverified",
+            "precision": "w8a8_mxfp8",
+            "structure_reference": {
+              "path": "/Users/maoxx241/code/sim-rewrite-20261027/mindie_sim/model_configs/glm-5.3-flash.json",
+              "bytes": 5073,
+              "sha256": "903c9653a66bd4ee585843d29094922768fff6a18eec7d8e163c8767766f3954"
+            },
+            "retained_structure_provenance": {
+              "hf": "zai-org/GLM-5.3-Flash",
+              "revision": "46a050bec13002ad29ee795c16e61cf4fa3c4a9c",
+              "served_checkpoint": "/mnt/weight/GLM-5.3-Flash-BF16 (config.json sha256 33e63ec7fe607658be712bd6dd3c16c6549960d8e7f0483d34b939881b55f943)",
+              "scope": "text body only; the served workload is text-only and the vision tower is not priced",
+              "normalisation": "The archived HF config declares fp8 quantization and head_dim 0; the measured checkpoint is the dequantised BF16 release (642,652,070,880 B = BF16, no quantization signature in the serve log), so the fp8 quantization block is dropped and head_dim is set to the 256-wide MLA qk dimension."
+            },
+            "representation_notice": "reference BF16 normalization is not this capture precision; case quant and tensor dtypes are explicit",
+            "layers": 45,
+            "hidden_size": 4096,
+            "attention_counts": {
+              "kda": 34,
+              "mla": 11
+            },
+            "model_coverage": "partial",
+            "unmodeled_features": [
+              "unrecognized_config_field:hc_eps",
+              "unrecognized_config_field:index_kpool",
+              "unrecognized_config_field:index_kpool_always_select_tail",
+              "unrecognized_config_field:index_kpool_compress",
+              "unrecognized_config_field:index_share_for_mtp_iteration",
+              "unrecognized_config_field:indexer_rope_interleave",
+              "unrecognized_config_field:mla_use_nope",
+              "unrecognized_config_field:provenance",
+              "unrecognized_config_field:qk_head_dim",
+              "unrecognized_config_field:swiglu_limit"
+            ]
+          },
+          "case_status": "parsed_body_template; exact_comparison_contract_pending",
+          "unresolved": [
+            "exact_active_context_lengths_not_encoded_in_tensor_shapes",
+            "checkpoint_config_json_not_in_delivered_capture",
+            "capture_tensor_slots_may_include_graph_padding_or_inactive_requests",
+            "per_projection_precision_and_fused_KDA_MLA_wrapper_contracts_not_fully_audited"
+          ]
+        }
+      },
+      "unresolved_reasons": [],
+      "extraction_path": "/Users/maoxx241/code/profiler/examples/structure/acceptance-20261030-expanded/auto-forward-glm53flash-a5-tp8-c3.json",
+      "variant_id": "glm_indexed_owner_and_projection_controls"
+    }
+  ],
+  "baseline_reference": [
+    {
+      "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority/decode-forward-priority-replay.json",
+      "runtime_source_commit": "d9118c6e71ed9c75362c06fc7063be4ab97317ec"
+    },
+    {
+      "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority/decode-forward-second-wave-replay.json",
+      "runtime_source_commit": "d9118c6e71ed9c75362c06fc7063be4ab97317ec"
+    }
+  ],
+  "control_policy": "Same source, extraction, case declaration, captured q/B and representative context. Only the explicitly recorded runtime generation changes."
+}
