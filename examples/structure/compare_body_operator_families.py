@@ -121,23 +121,35 @@ def render(report):
            'Only complete events inside the 287 accepted target-body windows enter this report. '
            'Heads, auxiliary forwards and typed scheduler wrappers are excluded. Exact HCOM summary duplicates are removed.',
            'Mean/P50 are pooled native-call statistics. Sim roles are conditioned on the complete declared topology; no Host layer binding is asserted.',
+           'Two declaration arms reuse the same six captures. Calls summed across arms are not independent observations.',
            'Accuracy is decided per tensor/physical-work cohort: >50 us uses 15% relative error; <=50 us uses 15 us absolute error. '
            'Communication elapsed retains peer wait and is shown only as a declared-program reference, never used to recalibrate bandwidth.','',
-           '| Case | Passed / compared | Reference cohorts | Prediction failed |',
-           '| --- | ---: | ---: | ---: |']
+           '| Case | <=50 us passed / compared | >50 us passed / compared | All passed / compared | Scored / body calls | Prediction failed |',
+           '| --- | ---: | ---: | ---: | ---: | ---: |']
     for case in report['cases']:
-        c=case['comparison_status_counts'];lines.append(f"| {case['case_id']} | {case['passed_cohorts']} / {c.get('compared',0)} | {c.get('reference_only',0)} | {c.get('prediction_failed',0)} |")
+        c=case['comparison_status_counts'];tiers={tier:[0,0] for tier in ('absolute_15us','relative_15pct')}
+        for family in case['families']:
+            for cohort in family['cohorts']:
+                if cohort['status']=='compared':
+                    tiers[cohort['accuracy_tier']][0]+=int(cohort['accuracy_pass']);tiers[cohort['accuracy_tier']][1]+=1
+        small,large=tiers.values()
+        scored=sum(row['scored_event_count'] for row in case['families'])
+        population=sum(row['observed_us']['count'] for row in case['families'])
+        lines.append(f"| {case['case_id']} | {small[0]} / {small[1]} | {large[0]} / {large[1]} | "
+                     f"{case['passed_cohorts']} / {c.get('compared',0)} | {scored} / {population} | {c.get('prediction_failed',0)} |")
     for case in report['cases']:
         lines += ['', '## '+case['case_id'],'',
-          '| Native family / declared role | Calls | Scored / unscored | Real mean us | Real P50 us | Sim us | Diff us | Passed / compared | Evidence / status |',
-          '| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |']
+          '| Native family / declared role | Calls | Scored / unscored | Real mean us | Real P50 us | Sim us | Diff us | Tolerance | Passed / compared | Evidence / status |',
+          '| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: | --- |']
         for row in sorted(case['families'],key=lambda r:-r['observed_us']['mean']*r['observed_us']['count']):
             fmt=lambda v:'—' if v is None else f'{v:.3f}'
             prediction=row['predicted_us'] if row['predicted_us'] is not None else row.get('predicted_reference_us')
+            tolerance='15 us' if row['observed_us']['mean']<=50 else '15%'
+            if row['status']!='compared':tolerance+=' (unscored reference)' if prediction is not None else ' (unmodeled)'
             lines.append(f"| {row['native_operator_type']} / {row['declared_role'].replace('|',' + ')} | {row['observed_us']['count']} | "
                          f"{row['scored_event_count']} / {row['unscored_event_count']} | {fmt(row['observed_us']['mean'])} | "
                          f"{fmt(row['observed_us']['p50'])} | {fmt(prediction)} | {fmt(row['per_call_diff_us'] if row['per_call_diff_us'] is not None else row.get('reference_per_call_diff_us'))} | "
-                         f"{row['passed_cohort_count']} / {row['compared_cohort_count']} | {row['evidence_strength']} / {row['status']} |")
+                         f"{tolerance} | {row['passed_cohort_count']} / {row['compared_cohort_count']} | {row['evidence_strength']} / {row['status']} |")
     return '\n'.join(lines)+'\n'
 
 
