@@ -76,6 +76,25 @@ def test_ep_replicas_keep_envelopes_without_adding_parallel_layer_spans(adapter,
         max(r["span_ms"] for r in result["replica_envelopes_ms"]))
 
 
+def test_body_receipt_retains_actual_parsed_hf_wrapper_quantization(adapter):
+    import mindie_sim
+
+    path = (Path(mindie_sim.__file__).resolve().parents[1] /
+            "examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c1.json")
+    if not path.exists():
+        pytest.skip("Retained four-layer A3 Kimi declaration is required")
+    raw = json.loads(path.read_text())
+    result = adapter.predict_body(raw, tokens=1, context=4096, sequences=1)
+    representation = result["model_representation"]
+    # The inherited HF catalog carries MXFP4, while this actual deployment
+    # explicitly declares W4A8. A byte-pinned JSON alone did not expose the bug.
+    assert representation["quantization"] == raw["model"]["quant"]["name"]
+    assert representation["quant"]["expert_weight_format"] == "int4"
+    assert representation["quant"]["activation_format"] == "int8"
+    assert representation["quant"]["category_overrides"]["kda.q"]["weight_format"] == "int8"
+    assert result["timeline_complete"]
+
+
 def test_forward_comparison_requires_equal_phase_query_context_and_placement(adapter, case):
     result = adapter.predict_body(case, tokens=4, context=1024, sequences=2)
     observed = {

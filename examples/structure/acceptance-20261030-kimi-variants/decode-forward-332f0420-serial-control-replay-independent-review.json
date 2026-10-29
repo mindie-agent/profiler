@@ -1,0 +1,73 @@
+{
+  "schema_version": "mindie-priority-body-independent-review/1",
+  "status": "passed",
+  "checks": 1565,
+  "failures": [],
+  "report_sha256": "892c14a838562ed9dd49ce515a3ff796e9f517ec80e38086accb9909d872e87f",
+  "manifest_sha256": "d1f46ad4251669671017631924eef32619e2e9c12904f7225a52b1f5d24d2d6c",
+  "source_cases": 3,
+  "geometry_groups": 3,
+  "all_forward_count": 154,
+  "compared_forward_count": 154,
+  "compared_cases": 3,
+  "passed_cases": 0,
+  "deferred_geometry_groups": 0,
+  "compared_layers": 279,
+  "passed_layers": 137,
+  "new_workers": 3,
+  "rows": [
+    {
+      "case": "a5_kimi_tp8_e16_bf16_c16_p4k:q1_b16_m16",
+      "forwards": 49,
+      "mean_ms": 36.985292306122446,
+      "predicted_ms": 28.766832892363826,
+      "error": -0.2222088538799559,
+      "passed": false
+    },
+    {
+      "case": "a5_kimi_tp8_e16_bf16_c1_p4k:q1_b1_m1",
+      "forwards": 59,
+      "mean_ms": 30.63685447457627,
+      "predicted_ms": 25.671598412122982,
+      "error": -0.1620680761000991,
+      "passed": false
+    },
+    {
+      "case": "a5_kimi_tp8_e16_bf16_c32_p4k:q1_b32_m32",
+      "forwards": 46,
+      "mean_ms": 40.01872763043478,
+      "predicted_ms": 32.72538539078801,
+      "error": -0.18224822905414123,
+      "passed": false
+    }
+  ],
+  "scope": "Independent receipt/extraction/case/runtime identities, per-geometry model/layer arithmetic, representative replica, and retained deferred denominators. No raw profile scan or prediction.",
+  "control_pair_review": {
+    "checks": 87,
+    "failures": [],
+    "pairs": [
+      {
+        "source_case_id": "a5_kimi_tp8_e16_bf16_c16_p4k",
+        "source_sha256": "c74cb4160daf0d07420b3288c234e6f4a0c07d7ddcc9ffde5053aea131426664",
+        "serial_ms": 28.766832892363826,
+        "window8_ms": 26.77963289236398,
+        "difference_ms": 1.987199999999845
+      },
+      {
+        "source_case_id": "a5_kimi_tp8_e16_bf16_c1_p4k",
+        "source_sha256": "95fe4cc26e249dbd597c62ae1db12710fca8ea758ff16cf1f12e6ed5584d256d",
+        "serial_ms": 25.671598412122982,
+        "window8_ms": 23.68439841212303,
+        "difference_ms": 1.9871999999999517
+      },
+      {
+        "source_case_id": "a5_kimi_tp8_e16_bf16_c32_p4k",
+        "source_sha256": "d734e9ec764b0f1baf35589d4886f6b9e2cd9254c660721f3ad6a86b0602c504",
+        "serial_ms": 32.72538539078801,
+        "window8_ms": 30.738185390787958,
+        "difference_ms": 1.9872000000000547
+      }
+    ],
+    "basis": "Same source, measured body population, geometry, effective BF16 quant and runtime; separate communication scheduling control only."
+  }
+}

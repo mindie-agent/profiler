@@ -30,3 +30,7 @@ PYTHONPATH=/Users/maoxx241/code/sim-rewrite-20261027:/Users/maoxx241/code/profil
 `decode-forward-auto-acceptance.json` 是完整提取回执，`decode-geometry-priority.json` 保留全部几何桶及分母；Markdown 表格仅展示各源优先桶。
 
 `decode-forward-09811dad-replay.json/.md` 保留 17 次实际执行的历史诊断，固定运行时 228 个文件的 SHA。主桶覆盖 1769/1799 个实测主体，其余 14 桶明确延后预测。旧报告中的通过率及低估幅度均因上述输入绑定错误失效，需要修复后的新成本执行才能重新验收。四层结果不能外推完整 93 层模型，本批也不能与旧 FP8 / DP4 采集混为一个 checkpoint。
+
+修复后的正式结果是 `decode-forward-332f0420-window8-replay.json/.md`：17 次新执行使用正确解析的 W4A8 / BF16 和用户指定的有限 peer window=8，每份预测直接保存 `model_representation.quant`。有效结果为 1/17 个主体工况通过、12/1136 层通过；A3 c64 误差为 −7.19%，A3 c32 的 −15.53% 仍严格判失败。所有未通过值继续保留，不能继承失效报告的 5/5 结论。
+
+`decode-forward-332f0420-serial-control-replay.json/.md` 在同一修复运行时保留原 caller，比较 A5 p4k 的 c1/c16/c32 三档。串行控制预测分别为 25.671598/28.766833/32.725385 ms，window8 正式臂分别为 23.684398/26.779633/30.738185 ms，每档减少 1.9872 ms。这个对照可隔离 caller window 的影响；与旧 09811 的直接比较同时包含运行时和量化解析变化。三个原声明的相同字节另保存在 `declarations/serial-control/`，SHA 与原执行 manifest 一致；原执行路径和回执没有被重写。
