@@ -17,6 +17,23 @@ from mindie_sim.prediction.structure import parse_case
 from inspect_glm78_v41_assets import identity, read
 
 
+def source_segmentation_options(metadata):
+    """Reuse the audited source boundary without inventing native tensor shapes."""
+    native = metadata["native_attention"]
+    for pin in (native["dsl"], metadata["startup"]):
+        if identity(Path(pin["path"]))["sha256"] != pin["sha256"]:
+            raise ValueError(f"Source evidence changed: {pin['path']}")
+    return {
+        "source_attention_anchors": [{"op_type": "MqsmlaKernel___call__",
+            "name": "mixed_quant_sparse_flash_mla", "attention": "mla",
+            "evidence": native["dsl"], "binary_identity": native["binary_identity"]}],
+        "source_decode_query": {"tokens_per_sequence": 1,
+            "basis": "source_declared_no_speculation_decode_capture",
+            "evidence": metadata["startup"], "lines": metadata["startup_contract_lines"]},
+        "forward_closure": "mhc_final_norm",
+    }
+
+
 def build(evidence_path, case_dir, output):
     evidence = read(evidence_path)
     rows = []
@@ -31,18 +48,7 @@ def build(evidence_path, case_dir, output):
         if metadata["kernel_source"] != source["source"]:
             raise ValueError(f"Sim case and capture identities differ: {model_path}")
         native = metadata["native_attention"]
-        for pin in (native["dsl"], metadata["startup"]):
-            if identity(Path(pin["path"]))["sha256"] != pin["sha256"]:
-                raise ValueError(f"Source evidence changed: {pin['path']}")
-        options = {
-            "source_attention_anchors": [{"op_type": "MqsmlaKernel___call__",
-                "name": "mixed_quant_sparse_flash_mla", "attention": "mla",
-                "evidence": native["dsl"], "binary_identity": native["binary_identity"]}],
-            "source_decode_query": {"tokens_per_sequence": 1,
-                "basis": "source_declared_no_speculation_decode_capture",
-                "evidence": metadata["startup"], "lines": metadata["startup_contract_lines"]},
-            "forward_closure": "mhc_final_norm",
-        }
+        options = source_segmentation_options(metadata)
         profiled = source["profiled_client"]
         rows.append({"case_id": source["case_id"], "source": source["source"],
             "sim_case_path": str(model_path), "model_declaration": identity(model_path),
