@@ -1,6 +1,7 @@
 # Complete family and physical-cohort replay
 
-The final 2026-10-29 replay reuses **eight complete A3/A5 captures, 668,835
+The 2026-10-29 baseline replay against sim runtime **239f443c** reuses
+**eight complete A3/A5 captures, 668,835
 positive-duration events and 148 native types**. Eleven phase/configuration
 declarations produce fifteen variants. Kimi's four declarations reuse one
 capture; their event totals are not independent hardware evidence. No new NPU
@@ -53,9 +54,9 @@ original records; overlapping retained Kimi source lines are deduplicated.
 
 ## Per-call accuracy policy
 
-The policy refresh reuses the same fifteen saved comparisons. No capture is
-rescanned, no prediction is rerun, and no launch constant is added. All measured
-and predicted values, original relative errors and cumulative gaps are preserved.
+This baseline rescans the captures and recomputes predictions for all fifteen
+variants. The accuracy policy itself never adjusts predictions. It remains the
+same policy introduced in profiler `bc26422` / sim `0b7926e`.
 
 | Observed complete-event mean | Acceptance criterion | Passed / compared cohorts |
 | --- | --- | ---: |
@@ -67,7 +68,8 @@ The 32 reference cohorts remain unscored. A uniform 15% rule would pass 40
 cohorts; the requested small-call tolerance adds 46 passes. These counts span
 declaration variants and do not represent independent hardware trials.
 The versioned policy and unchanged-value checks are recorded in
-[accuracy refresh validation](fusion-cohort-accuracy-validation.json).
+[historical accuracy refresh validation](fusion-cohort-accuracy-validation.json).
+That receipt attests the earlier annotation-only refresh, not this raw replay.
 
 All family tables now expose observed/predicted us per call, signed and absolute
 per-call differences, tier, tolerance and pass status. Family means use scored
@@ -78,10 +80,21 @@ mean is 14.033 -> 8.578 us, but its 67-call slow cohort is
 
 | GLM decode reference family | Calls | Observed us/call | Predicted us/call | Absolute diff us | Tier result |
 | --- | ---: | ---: | ---: | ---: | --- |
-| DynamicQuant | 17,316 | 2.913 | 0.012 | 2.901 | Within launch-floor tolerance |
-| AddRmsNormBias | 11,322 | 3.952 | 0.061 | 3.890 | Within launch-floor tolerance |
-| TransposeBatchMatMul | 5,772 | 14.173 | 1.760 | 12.413 | Within launch-floor tolerance |
-| QuantBatchMatmulV3 | 13,320 | 17.801 | 6.355 | 11.446 | Within launch-floor tolerance |
+| DynamicQuant | 17,316 | 2.913 | 2.500 | 0.413 | Within launch-floor tolerance |
+| AddRmsNormBias | 11,322 | 3.952 | 2.500 | 1.452 | Within launch-floor tolerance |
+| TransposeBatchMatMul | 5,772 | 14.173 | 5.000 | 9.173 | Within launch-floor tolerance |
+| QuantBatchMatmulV3 | 13,320 | 17.801 | 7.868 | 9.933 | Within launch-floor tolerance |
+
+Runtime `239f443c` declares A3 device-completion minima of 2.5 us for vector
+and 5 us for cube work, with `user_reported_experience` provenance. They are
+device-duration parameters, separate from Host launch and from error tolerance.
+The GLM source-selected case has its own explicit hardware list without
+`kernel_invocations`, so those selected predictions do not inherit these minima.
+A5 has no generic minimum from this change. Of the 242 paired comparison and
+reference cohorts, 21 predictions change materially and seven change only at
+floating-point roundoff scale. All fifteen graph IDs change; that does not mean
+all fifteen variants have changed physical predictions. A5 predictions are
+unchanged.
 
 Top Errors prioritizes large failed cohorts by observed activity. Small calls
 outside their absolute allowance are listed separately; within-tolerance calls
@@ -166,25 +179,30 @@ comparison coverage, not a proved improvement over an old score. Norm-bias predi
 MLA/W8 differences also include the newly selected matrix program. GLM sparse
 attention still has -53.63%/-97.81% prefill/decode error, and A5 Qwen3.8 V3
 matrix cohorts have +75.47% error. This is not full-model accuracy acceptance.
+All fifteen declarations report partial model metadata coverage. Quantization
+module exclusions, rotary proxies and untranslated native configuration fields
+remain visible in the independent review; some flags concern metadata rather
+than a demonstrated missing mathematical operation. Individual scored operator
+cohorts do not establish complete model coverage.
 
 ## Verification and reproduction
 
 [Final batch validation](fusion-cohort-validation.json) reports `completed`,
 unchanged runtime hashes, unchanged capture identities, no failed programs,
-and **626.158 seconds** elapsed. Eleven serial raw scans keep
+and **668.622 seconds** elapsed. Eleven serial raw scans keep
 Kimi phase/configuration variants separate. Peak mapping RSS is
-**467,206,144 bytes (445.56 MiB)**;
-peak comparison RSS is **469,614,592 bytes
-(447.86 MiB)**. Both pass the 512 MiB budget.
+**467,484,672 bytes (445.83 MiB)**;
+peak comparison RSS is **469,499,904 bytes
+(447.75 MiB)**. Both pass the 512 MiB budget.
 
 The earlier 549.05 MiB checkpoint mapping attempt failed its budget gate.
 Streaming canonical graph hashing removes the complete JSON/UTF8 temporary
 copies; graph IDs and full mapping content remain identical. The final result
 above is a fresh complete replay after that repair, not the failed receipt.
 
-[Historical full-replay suite verification](cohort-verification.json) records
-that replay's runtime-source identity: profiler **527 passed, 26 skipped (24.83s)**;
-sim **1,444 passed (224.80s)**. Skipped live tests and historical replay do not
+[Full-replay suite verification](cohort-verification.json) records
+this replay's runtime-source identity: profiler **533 passed, 26 skipped (25.09s)**;
+sim **1,657 passed (235.42s)**. Skipped live tests and historical replay do not
 constitute a newly executed hardware workload. All fresh graph checks and tests
 use **CPython 3.13.12** from the sim environment.
 
@@ -200,9 +218,10 @@ captures.
 
 A separate inventory refresh verifies 24 graphs (15 replay variants and nine
 default declarations) in fresh serial workers. Maximum worker RSS is
-441.44 MiB and parent RSS is 57.70 MiB, both within budget. This replaces the
-earlier 629.08 MiB single-process refresh; all graph IDs and coverage results
-remain identical. Inventory refresh does not rerun the raw captures.
+433.44 MiB and parent RSS is 50.75 MiB, both within budget. The earlier
+629.08 MiB single-process refresh was replaced by serial graph workers.
+This inventory uses the current graph IDs. Inventory refresh does not rerun
+the raw captures.
 
 To update only accuracy policy and reporting on saved comparisons:
 
@@ -211,14 +230,20 @@ PYTHONPATH=/path/to/sim-rewrite:/path/to/profiler /path/to/sim-rewrite/.venv/bin
   examples/structure/replay_fusion_cohorts.py --refresh-accuracy --run
 ```
 
-The historical full replay and its source hashes remain separate from this
-policy projection. Current policy tests and refresh resource use are recorded
-under `tiered_accuracy` in `cohort-verification.json`.
-The policy/report update passes profiler **533 tests, 26 skipped (28.67s)** and
-sim **1,459 tests (221.68s)**. Refreshing all fifteen saved variants takes
-0.176 seconds at **44 MiB** peak RSS, with zero raw reads and zero predictions.
-Independent review checks 127,030 identity, arithmetic and grouping conditions;
-all original comparison values agree with the previous committed replay.
+The historical annotation-only refresh and its source hashes remain separate
+from the current full replay. Its prior suite and refresh evidence are retained
+under `tiered_accuracy` in `cohort-verification.json`. The current independent
+review passes 105,015 identity, arithmetic and grouping checks across 320
+runtime source files. The report regression fixture pins thirteen original
+cohorts from `bc26422`; it no longer asserts old predictions against a mutable
+acceptance report.
+
+The [large-call handoff](fusion-cohort-large-call-errors.md) exposes all 109
+failed large-call cohorts and 32 separate references with physical-work and
+prediction boundaries. Communication activity uses raw event sums; the separate
+communication audit also reports interval union. Equal intervals alone do not
+prove that two producer rows are the same event, and neither statistic proves
+communication on the model's critical path.
 
 A pre-existing cross-version routing sensitivity remains separate: for V4 Pro's
 uniform 384-expert/top-6/EP16/1,024-token declaration, `RoutingPolicy.local`

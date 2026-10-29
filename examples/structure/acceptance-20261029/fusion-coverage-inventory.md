@@ -5,7 +5,7 @@ Historical retained captures; no new live collection. Final `.case.json` artifac
 8 unique captures contain 668,835 events and 148 native types. Declaration variants do not enlarge that denominator.
 
 Fresh graph verification: 15 saved replay declarations, CPython 3.13.12, `/Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python`.
-24 serial fresh graph workers; maximum worker RSS 441.44 MiB, parent RSS 57.70 MiB under the 512 MiB process budget.
+24 serial fresh graph workers; maximum worker RSS 433.44 MiB, parent RSS 50.75 MiB under the 512 MiB process budget.
 
 The 59 required model-body types contain 328,927 events: 51 types have declared boundaries, 49 have complete boundaries, 37 have comparable contracts, and 35 match at least one retained original fixture row. These are distinct evidence levels, not a count of bound layer occurrences.
 

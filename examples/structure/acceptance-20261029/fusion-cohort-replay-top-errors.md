@@ -17,7 +17,7 @@ Activity sums count overlapping events separately and are not wall-clock latency
 
 ## a3_glm53_prefill / source_declared_unfused_reference
 
-Graph: `sha256:efab891b052788506e4786bf36254bd71464fd53ba74decdac5bff57be6bdbf8`.
+Graph: `sha256:4dddd06f87d016f2cc6e1dcb1c96ecc6c77a29b701f74a630b08045c10cc87eb`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -71,15 +71,15 @@ Graph: `sha256:efab891b052788506e4786bf36254bd71464fd53ba74decdac5bff57be6bdbf8`
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| MlaPrologV3 | 2b611c379a4b | 21 | reference_only | 1342.506 | 491.634 | -850.872 | - | reference_only | - |
-| MlaPrologV3 | cf8c783edf4a | 57 | reference_only | 1248.166 | 491.634 | -756.532 | - | reference_only | - |
-| GroupedMatmulSwigluQuantV2 | 2a7eba85203a | 75 | reference_only | 1323.133 | 600.368 | -722.765 | - | reference_only | - |
-| LightningIndexer | 377d598098b3 | 21 | reference_only | 1492.464 | 1873.906 | 381.442 | - | reference_only | - |
-| MoeGatingTopK | dc79d7dfecc0 | 75 | reference_only | 101.699 | 11.181 | -90.518 | - | reference_only | - |
+| MlaPrologV3 | b7aba179ae96 | 21 | reference_only | 1342.506 | 491.634 | -850.872 | - | reference_only | - |
+| MlaPrologV3 | 994be2dd3fbd | 57 | reference_only | 1248.166 | 491.634 | -756.532 | - | reference_only | - |
+| GroupedMatmulSwigluQuantV2 | 367442e23032 | 75 | reference_only | 1323.133 | 600.368 | -722.765 | - | reference_only | - |
+| LightningIndexer | d0f2578dbbcc | 21 | reference_only | 1492.464 | 1873.906 | 381.442 | - | reference_only | - |
+| MoeGatingTopK | 5e9b62e9c0e9 | 75 | reference_only | 101.699 | 13.462 | -88.237 | - | reference_only | - |
 
 ## a3_glm53_prefill / selected_native_fusion
 
-Graph: `sha256:7ab3dfe60b5643d82417a46de8b2a548940d11b3f765eada2960b3abbd68f043`.
+Graph: `sha256:72eb43a9073f2955c865832fae20d3d16f546ca9077a8d71a0d9b68b3c644497`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -137,15 +137,15 @@ Graph: `sha256:7ab3dfe60b5643d82417a46de8b2a548940d11b3f765eada2960b3abbd68f043`
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| MlaPrologV3 | efdde47c60fa | 21 | compared | 1342.506 | 451.382 | -891.124 | -66.4% | relative_15pct | false |
-| MlaPrologV3 | c2d216655129 | 57 | compared | 1248.166 | 451.382 | -796.784 | -63.8% | relative_15pct | false |
-| LightningIndexer | b7aeac887bbe | 21 | compared | 1492.464 | 1873.906 | 381.442 | +25.6% | relative_15pct | false |
-| GroupedMatmulSwigluQuantV2 | 384f4293368c | 75 | compared | 1323.133 | 1275.932 | -47.201 | -3.6% | relative_15pct | true |
-| MoeGatingTopK | 06d02ced79c3 | 75 | reference_only | 101.699 | 11.181 | -90.518 | - | reference_only | - |
+| MlaPrologV3 | cbc2ea3f341f | 21 | compared | 1342.506 | 451.382 | -891.124 | -66.4% | relative_15pct | false |
+| MlaPrologV3 | bbf395bf49ac | 57 | compared | 1248.166 | 451.382 | -796.784 | -63.8% | relative_15pct | false |
+| LightningIndexer | 3a331adc28cd | 21 | compared | 1492.464 | 1873.906 | 381.442 | +25.6% | relative_15pct | false |
+| GroupedMatmulSwigluQuantV2 | d814501cbdbe | 75 | compared | 1323.133 | 1275.932 | -47.201 | -3.6% | relative_15pct | true |
+| MoeGatingTopK | be326e6670c2 | 75 | reference_only | 101.699 | 11.181 | -90.518 | - | reference_only | - |
 
 ## a3_glm53_decode / source_declared_unfused_reference
 
-Graph: `sha256:8bd7c0be412291cf2bb53d03506eed1e83b823996b0fd90fd704d69ed66b1126`.
+Graph: `sha256:25d4fcd8db02eb646b75634b0d0207ed6860e0d8d40de7aa7a398c9e3c828bf5`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -156,7 +156,7 @@ Graph: `sha256:8bd7c0be412291cf2bb53d03506eed1e83b823996b0fd90fd704d69ed66b1126`
 
 | Native family | Tier | All events | Scored events | Reference events | Scored observed ms | Predicted ms | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Pass / fail cohorts |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| SparseFlashAttention | relative_15pct | 5772 | 5772 | 0 | 523.698 | 11.471 | 90.731 | 1.987 | -88.743 | -97.8% | 0 / 1 |
+| SparseFlashAttention | relative_15pct | 5772 | 5772 | 0 | 523.698 | 28.860 | 90.731 | 5.000 | -85.731 | -94.5% | 0 / 1 |
 
 ### Small-call errors: absolute per-call difference > 15 us
 
@@ -166,14 +166,14 @@ None.
 
 | Native family | Tier | All events | Scored events | Reference events | Scored observed ms | Predicted ms | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Pass / fail cohorts |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| QuantBatchMatmulV3 | absolute_15us | 18870 | 13320 | 0 | 237.111 | 84.645 | 17.801 | 6.355 | -11.446 | -64.3% | 5 / 0 |
-| TransposeBatchMatMul | absolute_15us | 5772 | 5772 | 0 | 81.808 | 10.160 | 14.173 | 1.760 | -12.413 | -87.6% | 1 / 0 |
-| DynamicQuant | absolute_15us | 17316 | 17316 | 0 | 50.444 | 0.204 | 2.913 | 0.012 | -2.901 | -99.6% | 3 / 0 |
-| AddRmsNormBias | absolute_15us | 11322 | 11322 | 0 | 44.742 | 0.696 | 3.952 | 0.061 | -3.890 | -98.4% | 1 / 0 |
-| LayerNormV3 | absolute_15us | 1554 | 1554 | 0 | 8.257 | 0.003 | 5.313 | 0.002 | -5.311 | -100.0% | 1 / 0 |
-| AddRmsNormDynamicQuant | absolute_15us | 222 | 222 | 0 | 1.055 | 0.013 | 4.751 | 0.056 | -4.695 | -98.8% | 1 / 0 |
-| SwiGlu | absolute_15us | 222 | 222 | 0 | 0.810 | 0.002 | 3.650 | 0.008 | -3.642 | -99.8% | 1 / 0 |
-| RmsNorm | absolute_15us | 74 | 74 | 0 | 0.356 | 0.002 | 4.813 | 0.031 | -4.782 | -99.4% | 1 / 0 |
+| QuantBatchMatmulV3 | absolute_15us | 18870 | 13320 | 0 | 237.111 | 104.801 | 17.801 | 7.868 | -9.933 | -55.8% | 5 / 0 |
+| TransposeBatchMatMul | absolute_15us | 5772 | 5772 | 0 | 81.808 | 28.860 | 14.173 | 5.000 | -9.173 | -64.7% | 1 / 0 |
+| DynamicQuant | absolute_15us | 17316 | 17316 | 0 | 50.444 | 43.290 | 2.913 | 2.500 | -0.413 | -14.2% | 3 / 0 |
+| AddRmsNormBias | absolute_15us | 11322 | 11322 | 0 | 44.742 | 28.305 | 3.952 | 2.500 | -1.452 | -36.7% | 1 / 0 |
+| LayerNormV3 | absolute_15us | 1554 | 1554 | 0 | 8.257 | 3.885 | 5.313 | 2.500 | -2.813 | -52.9% | 1 / 0 |
+| AddRmsNormDynamicQuant | absolute_15us | 222 | 222 | 0 | 1.055 | 0.555 | 4.751 | 2.500 | -2.251 | -47.4% | 1 / 0 |
+| SwiGlu | absolute_15us | 222 | 222 | 0 | 0.810 | 0.555 | 3.650 | 2.500 | -1.150 | -31.5% | 1 / 0 |
+| RmsNorm | absolute_15us | 74 | 74 | 0 | 0.356 | 0.185 | 4.813 | 2.500 | -2.313 | -48.1% | 1 / 0 |
 | MatMulV2 | relative_15pct | 1628 | 74 | 0 | 16.027 | 14.674 | 216.579 | 198.291 | -18.287 | -8.4% | 1 / 0 |
 
 ### Unscored coverage: highest activity families
@@ -195,15 +195,15 @@ None.
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| GroupedMatmulSwigluQuantV2 | ea6f615fafb1 | 5550 | reference_only | 88.039 | 10.572 | -77.466 | - | reference_only | - |
-| MlaPrologV3 | 191176b2fad9 | 1554 | reference_only | 41.291 | 18.338 | -22.953 | - | reference_only | - |
-| MlaPrologV3 | 2ad63c281a71 | 4218 | reference_only | 40.913 | 18.338 | -22.575 | - | reference_only | - |
-| LightningIndexer | e74702e81219 | 1554 | reference_only | 24.905 | 0.909 | -23.996 | - | reference_only | - |
-| MoeGatingTopK | f3fa0d4872c1 | 5550 | reference_only | 4.013 | 0.003 | -4.010 | - | reference_only | - |
+| GroupedMatmulSwigluQuantV2 | 8b6bba21ebdd | 5550 | reference_only | 88.039 | 15.557 | -72.482 | - | reference_only | - |
+| MlaPrologV3 | 593fe3168830 | 1554 | reference_only | 41.291 | 38.014 | -3.277 | - | reference_only | - |
+| MlaPrologV3 | 99389422a75f | 4218 | reference_only | 40.913 | 38.014 | -2.899 | - | reference_only | - |
+| LightningIndexer | e3264570bb65 | 1554 | reference_only | 24.905 | 7.500 | -17.405 | - | reference_only | - |
+| MoeGatingTopK | 3dbe5ac4e208 | 5550 | reference_only | 4.013 | 7.500 | 3.487 | - | reference_only | - |
 
 ## a3_glm53_decode / selected_native_fusion
 
-Graph: `sha256:3bb549c0ce97e1973bfa0d228eb5c79519aa0587c9465530b2b9ab8da2d9f209`.
+Graph: `sha256:bec74ad3878492e4c6d82d721116a78c1d063935c89e4341661115f7cc705ddf`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -258,15 +258,15 @@ Graph: `sha256:3bb549c0ce97e1973bfa0d228eb5c79519aa0587c9465530b2b9ab8da2d9f209`
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| GroupedMatmulSwigluQuantV2 | e41e237309f2 | 5550 | compared | 88.039 | 10.756 | -77.283 | -87.8% | relative_15pct | false |
-| LightningIndexer | 794631f68c84 | 1554 | compared | 24.905 | 0.909 | -23.996 | -96.4% | absolute_15us | false |
-| MlaPrologV3 | da186cb419f7 | 1554 | compared | 41.291 | 18.327 | -22.963 | -55.6% | absolute_15us | false |
-| MlaPrologV3 | 67f03fbdff71 | 4218 | compared | 40.913 | 18.327 | -22.585 | -55.2% | absolute_15us | false |
-| MoeGatingTopK | 546f21216db3 | 5550 | reference_only | 4.013 | 0.003 | -4.010 | - | reference_only | - |
+| GroupedMatmulSwigluQuantV2 | b37bb16a059a | 5550 | compared | 88.039 | 10.756 | -77.283 | -87.8% | relative_15pct | false |
+| LightningIndexer | ad11c85603cd | 1554 | compared | 24.905 | 0.909 | -23.996 | -96.4% | absolute_15us | false |
+| MlaPrologV3 | ceecff047815 | 1554 | compared | 41.291 | 18.327 | -22.963 | -55.6% | absolute_15us | false |
+| MlaPrologV3 | db6d992d1aa4 | 4218 | compared | 40.913 | 18.327 | -22.585 | -55.2% | absolute_15us | false |
+| MoeGatingTopK | de0459d960af | 5550 | reference_only | 4.013 | 0.003 | -4.010 | - | reference_only | - |
 
 ## a3_qwen35 / case_default
 
-Graph: `sha256:e31eb9f5f499d122b1f5f1b8e2d5a81213359afc2331d8a3ed4d00a492c2dd51`.
+Graph: `sha256:f859d7231180dae8bb1f1d46936076f0ddcf526104b25b14df29446e3e13b852`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -290,7 +290,7 @@ Graph: `sha256:e31eb9f5f499d122b1f5f1b8e2d5a81213359afc2331d8a3ed4d00a492c2dd51`
 
 | Native family | Tier | All events | Scored events | Reference events | Scored observed ms | Predicted ms | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Pass / fail cohorts |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| fused_gdn_gating_kernel | absolute_15us | 2010 | 60 | 0 | 1.785 | 0.033 | 29.754 | 0.546 | -29.208 | -98.2% | 0 / 1 |
+| fused_gdn_gating_kernel | absolute_15us | 2010 | 60 | 0 | 1.785 | 0.150 | 29.754 | 2.500 | -27.254 | -91.6% | 0 / 1 |
 
 ### Within tolerance: separate from Top Errors
 
@@ -320,12 +320,12 @@ Graph: `sha256:e31eb9f5f499d122b1f5f1b8e2d5a81213359afc2331d8a3ed4d00a492c2dd51`
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| MoeGatingTopK | e9bae15fd0aa | 82 | compared | 243.864 | 7.944 | -235.920 | -96.7% | relative_15pct | false |
-| GroupedMatmulSwigluQuant | 172c1cc606f0 | 2680 | reference_only | 81.007 | 344.126 | 263.118 | - | reference_only | - |
+| MoeGatingTopK | c5f6456b9a1b | 82 | compared | 243.864 | 7.944 | -235.920 | -96.7% | relative_15pct | false |
+| GroupedMatmulSwigluQuant | 032722efc886 | 2680 | reference_only | 81.007 | 344.126 | 263.118 | - | reference_only | - |
 
 ## a3_qwen36 / case_default
 
-Graph: `sha256:242186ecdc7c3050fee97a32062f0a85612aca7d2c6718d947f72e049dfebad4`.
+Graph: `sha256:c40e2f386ad05b660ba8f2729ec2cfdb136aecec1a74e003accd5d2807b9338e`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -346,7 +346,7 @@ Graph: `sha256:242186ecdc7c3050fee97a32062f0a85612aca7d2c6718d947f72e049dfebad4`
 
 | Native family | Tier | All events | Scored events | Reference events | Scored observed ms | Predicted ms | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Pass / fail cohorts |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| fused_gdn_gating_kernel | absolute_15us | 816 | 96 | 0 | 4.216 | 0.079 | 43.921 | 0.819 | -43.102 | -98.1% | 0 / 1 |
+| fused_gdn_gating_kernel | absolute_15us | 816 | 96 | 0 | 4.216 | 0.240 | 43.921 | 2.500 | -41.421 | -94.3% | 0 / 1 |
 
 ### Within tolerance: separate from Top Errors
 
@@ -379,7 +379,7 @@ Graph: `sha256:242186ecdc7c3050fee97a32062f0a85612aca7d2c6718d947f72e049dfebad4`
 
 ## a3_v4f / case_default
 
-Graph: `sha256:889a2079ea7768a1599aabf21de97eaad21818a6ad862ebe67b6ed8e9a8691da`.
+Graph: `sha256:b70bcc47077cf995e878980d0e5302c2073346aa8ad851a0db22a9befeefabc8`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -428,14 +428,14 @@ Graph: `sha256:889a2079ea7768a1599aabf21de97eaad21818a6ad862ebe67b6ed8e9a8691da`
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| HcPost | 1131dabe1958 | 88 | compared | 418.375 | 251.931 | -166.444 | -39.8% | relative_15pct | false |
-| HcPre | 7285ede614e3 | 88 | reference_only | 431.534 | 926.170 | 494.636 | - | reference_only | - |
-| GroupedMatmulSwigluQuant | d955db45e826 | 44 | reference_only | 588.788 | 5681.584 | 5092.796 | - | reference_only | - |
-| VllmAscendQuantLightningIndexerV2 | 0c7dd0ae8efd | 21 | reference_only | 399.030 | 248.045 | -150.985 | - | reference_only | - |
+| HcPost | 1bcd6bfd65cd | 88 | compared | 418.375 | 251.931 | -166.444 | -39.8% | relative_15pct | false |
+| HcPre | 51f4a19f1b81 | 88 | reference_only | 431.534 | 929.570 | 498.036 | - | reference_only | - |
+| GroupedMatmulSwigluQuant | 7db095f090b3 | 44 | reference_only | 588.788 | 5681.584 | 5092.796 | - | reference_only | - |
+| VllmAscendQuantLightningIndexerV2 | 66d63b70c052 | 21 | reference_only | 399.030 | 248.045 | -150.985 | - | reference_only | - |
 
 ## a3_v4f / selected_native_fusion
 
-Graph: `sha256:6ed31ea0ee0f31aaf0da3b8375c67ae06f78f9cec3fc19f365a3246fb346a70f`.
+Graph: `sha256:2d3c2f06ed3af9832e5c5d7fb9a6c77be4806644c3b8e964ba12cb0901661915`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -485,14 +485,14 @@ Graph: `sha256:6ed31ea0ee0f31aaf0da3b8375c67ae06f78f9cec3fc19f365a3246fb346a70f`
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| HcPre | ed360ba09e04 | 88 | compared | 431.534 | 721.545 | 290.011 | +67.2% | relative_15pct | false |
-| HcPost | 429394f8813d | 88 | compared | 418.375 | 297.336 | -121.038 | -28.9% | relative_15pct | false |
-| GroupedMatmulSwigluQuant | 924f31dfc74b | 44 | reference_only | 588.788 | 5681.584 | 5092.796 | - | reference_only | - |
-| VllmAscendQuantLightningIndexerV2 | e635c8e0bf69 | 21 | reference_only | 399.030 | 248.045 | -150.985 | - | reference_only | - |
+| HcPre | 4f3328e62760 | 88 | compared | 431.534 | 721.545 | 290.011 | +67.2% | relative_15pct | false |
+| HcPost | 945c36e20bd3 | 88 | compared | 418.375 | 297.336 | -121.038 | -28.9% | relative_15pct | false |
+| GroupedMatmulSwigluQuant | efc4c98a4558 | 44 | reference_only | 588.788 | 5681.584 | 5092.796 | - | reference_only | - |
+| VllmAscendQuantLightningIndexerV2 | 67a3a62538dc | 21 | reference_only | 399.030 | 248.045 | -150.985 | - | reference_only | - |
 
 ## a3_v4pro / case_default
 
-Graph: `sha256:8ce87fb19c206cb57a836717055db8e36e11370f5ee7e37ce6ed9b588ce61dc8`.
+Graph: `sha256:fac8bbc1a23ec74d970de659f0ca4300f90382b967544ecfba21ad71af9b7e8d`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -542,14 +542,14 @@ Graph: `sha256:8ce87fb19c206cb57a836717055db8e36e11370f5ee7e37ce6ed9b588ce61dc8`
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| HcPost | 04c396525349 | 496 | compared | 202.098 | 110.169 | -91.930 | -45.5% | relative_15pct | false |
-| GroupedMatmulSwigluQuantV2 | e3ad41c42490 | 248 | reference_only | 395.623 | 805.300 | 409.678 | - | reference_only | - |
-| HcPre | 683c5493fe46 | 496 | reference_only | 191.803 | 451.742 | 259.939 | - | reference_only | - |
-| VllmAscendQuantLightningIndexerV2 | 875041d784ca | 120 | reference_only | 113.425 | 18.539 | -94.886 | - | reference_only | - |
+| HcPost | 078648060a0d | 496 | compared | 202.098 | 110.169 | -91.930 | -45.5% | relative_15pct | false |
+| GroupedMatmulSwigluQuantV2 | fddaaaba4e7c | 248 | reference_only | 395.623 | 805.300 | 409.678 | - | reference_only | - |
+| HcPre | 8d5870162bb0 | 496 | reference_only | 191.803 | 456.342 | 264.539 | - | reference_only | - |
+| VllmAscendQuantLightningIndexerV2 | 561dd19147d3 | 120 | reference_only | 113.425 | 18.539 | -94.886 | - | reference_only | - |
 
 ## a3_v4pro / selected_native_fusion
 
-Graph: `sha256:a58a6da73dd7540a4766c5f7b921649af3b565c218a8fb86812238ace3a5f8b8`.
+Graph: `sha256:d782f05e677f038addedc9e832c2bcadd9a7502f7d7e3c981b66da349ddf2505`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -600,14 +600,14 @@ Graph: `sha256:a58a6da73dd7540a4766c5f7b921649af3b565c218a8fb86812238ace3a5f8b8`
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| HcPost | 2b7f4fbb5d9b | 496 | compared | 202.098 | 129.751 | -72.348 | -35.8% | relative_15pct | false |
-| HcPre | 4840438935f1 | 496 | compared | 191.803 | 316.457 | 124.653 | +65.0% | relative_15pct | false |
-| GroupedMatmulSwigluQuantV2 | 1439616849b6 | 248 | reference_only | 395.623 | 805.300 | 409.678 | - | reference_only | - |
-| VllmAscendQuantLightningIndexerV2 | 4dd29ed3e598 | 120 | reference_only | 113.425 | 18.539 | -94.886 | - | reference_only | - |
+| HcPost | 47567f4eb87f | 496 | compared | 202.098 | 129.751 | -72.348 | -35.8% | relative_15pct | false |
+| HcPre | b56509c134ee | 496 | compared | 191.803 | 316.457 | 124.653 | +65.0% | relative_15pct | false |
+| GroupedMatmulSwigluQuantV2 | d46a22b6fe87 | 248 | reference_only | 395.623 | 805.300 | 409.678 | - | reference_only | - |
+| VllmAscendQuantLightningIndexerV2 | 74a2cff3d36e | 120 | reference_only | 113.425 | 18.539 | -94.886 | - | reference_only | - |
 
 ## a5_kimi_k3 / case_default
 
-Graph: `sha256:4e276b5d271500709658fc62e7aa983fe585376a443511ed22a31db9839faed8`.
+Graph: `sha256:3751de67915b0ca1a97cee3820ca814b75c2ffe3434b6133a2f4a2baef5975d8`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -652,7 +652,7 @@ None.
 
 ## a5_kimi_k3_decode / source_declared_unfused_reference
 
-Graph: `sha256:32ef79bccf2ae9eff3ec6cabfc362542996d9a9635f14dc3b9284398ca8ab9ec`.
+Graph: `sha256:7ca033b0e597b7ace7837f7583652a7601f52e2980e1576d7a89282824d2e05e`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -700,7 +700,7 @@ None.
 
 ## a5_kimi_k3_checkpoint / current_checkpoint_conditional
 
-Graph: `sha256:598acc0a45fb0d2cc2c1577c3fb16f31fb07ba8d093e46fb514c0dfc81a05501`.
+Graph: `sha256:b651ea417c08ee62a26d01c8aeffb6687870478a6cd0fc0f45068eb5475fc7ce`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -746,12 +746,12 @@ None.
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| SituMxQuant | 2506d4b77b15 | 368 | compared | 147.124 | 14.953 | -132.172 | -89.8% | relative_15pct | false |
-| GroupedMatmulSituQuant | a3c7aca518de | 7266 | reference_only | 91.780 | 11336.311 | 11244.530 | - | reference_only | - |
+| SituMxQuant | 856b244c2fce | 368 | compared | 147.124 | 14.953 | -132.172 | -89.8% | relative_15pct | false |
+| GroupedMatmulSituQuant | 45d7e54a6cbc | 7266 | reference_only | 91.780 | 11336.311 | 11244.530 | - | reference_only | - |
 
 ## a5_kimi_k3_decode_checkpoint / current_checkpoint_conditional
 
-Graph: `sha256:4e36212b6422955d69fec949ea7b33d30c449dd9145b97ee57f9ceca8e53fa5c`.
+Graph: `sha256:5726e1b20e58f57a0c00b0b005365d98df9aff14c000962c0cefe034e33b0e4a`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -798,13 +798,13 @@ None.
 
 | Subgraph native family | Cohort | Events | Status | Observed us/call | Predicted us/call | Per-call diff us | Relative error | Tier | Pass |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| SituMxQuant | 68b483bece8d | 6898 | compared | 65.134 | 0.002 | -65.132 | -100.0% | relative_15pct | false |
-| GroupedMatmulSituQuant | 793279dcd26d | 7266 | reference_only | 91.780 | 7.735 | -84.045 | - | reference_only | - |
-| MlaPrologV3 | 828f6ca5e170 | 1798 | reference_only | 22.248 | 17.439 | -4.809 | - | reference_only | - |
+| SituMxQuant | 0c1fe00eaf00 | 6898 | compared | 65.134 | 0.002 | -65.132 | -100.0% | relative_15pct | false |
+| GroupedMatmulSituQuant | 524513dc06ef | 7266 | reference_only | 91.780 | 7.735 | -84.045 | - | reference_only | - |
+| MlaPrologV3 | e79004d413e4 | 1798 | reference_only | 22.248 | 17.439 | -4.809 | - | reference_only | - |
 
 ## a5_qwen38 / case_default
 
-Graph: `sha256:83f53cbcffb2bab2a1dab5381b0adf82fc3d7b116bfaaa70f8b19c7402ea8fda`.
+Graph: `sha256:d0fb1ddca5220335deaaa99e7c43863e88e4c7ccce2574917ee94fe844f550fe`.
 
 | Tier | Compared cohorts | Passed | Failed | Passed events | Failed events |
 | --- | ---: | ---: | ---: | ---: | ---: |

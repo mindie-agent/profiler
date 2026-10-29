@@ -1,4 +1,4 @@
-"""Per-call accuracy accounting over retained full-capture cohort projections."""
+"""Historical reporting math plus invariance when refreshing current artifacts."""
 import importlib
 import json
 from hashlib import sha256
@@ -10,6 +10,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "examples/structure/acceptance-20261029"
+HISTORICAL = ROOT / "tests/fixtures/fusion_reporting/historical-cohorts.json"
 
 
 @pytest.fixture
@@ -19,11 +20,14 @@ def reporting(monkeypatch):
     return importlib.import_module("fusion_cohort_reporting")
 
 
+def _historical(declaration):
+    """Fixed reporting counterexamples must survive improvements to prediction."""
+    return json.loads(HISTORICAL.read_text())["declarations"][declaration]
+
+
 def _inputs(declaration, *kinds):
-    """Retain the original family and cohort records, without another export."""
-    prefix = ARTIFACTS / f"fusion-cohort-{declaration}"
-    mapping = json.loads(prefix.with_suffix(".mapping.json").read_text())
-    comparison = json.loads(prefix.with_suffix(".comparison.json").read_text())
+    original = _historical(declaration)
+    mapping, comparison = original["mapping"], original["comparison"]
     windows = [
         {"operators": [row for row in window["operators"] if row["operator_type"] in kinds]}
         for window in mapping["windows"]
@@ -117,13 +121,13 @@ def test_real_small_passes_stay_out_of_error_sections_while_large_failures_lead(
     table = reporting.family_table(mapping, comparison)
     assert [row["operator_type"] for row in table["families"]] == [
         "SparseFlashAttention", "DynamicQuant"]
-    original_summary = ARTIFACTS / f"fusion-cohort-{declaration}.json"
-    summary = json.loads(original_summary.read_text())
-    (tmp_path / original_summary.name).write_text(json.dumps(summary))
-    (tmp_path / original_summary.with_suffix(".families.json").name).write_text(json.dumps(table))
+    summary_path = tmp_path / f"fusion-cohort-{declaration}.json"
+    summary = _historical(declaration)["summary"]
+    summary_path.write_text(json.dumps(summary))
+    summary_path.with_suffix(".families.json").write_text(json.dumps(table))
     reporting.write_family_overview(
         SimpleNamespace(output_dir=tmp_path, compare_existing=False),
-        [{"capture_key": summary["capture_key"], "reports": [{"report": original_summary.name}]}],
+        [{"capture_key": summary["capture_key"], "reports": [{"report": summary_path.name}]}],
     )
     text = (tmp_path / "fusion-cohort-replay-top-errors.md").read_text()
     large = text.split("### Large-call errors:", 1)[1].split("### Small-call errors:", 1)[0]
@@ -146,7 +150,7 @@ def test_same_real_family_tier_renders_disjoint_pass_and_fail_statistics(reporti
     assert tier["passed_cohort_count"] == 4
     assert tier["failed_cohort_count"] == 1
     before = json.dumps(table, sort_keys=True)
-    summary = json.loads((ARTIFACTS / f"fusion-cohort-{declaration}.json").read_text())
+    summary = _historical(declaration)["summary"]
     text = "\n".join(reporting._variant_markdown(summary, table))
     assert json.dumps(table, sort_keys=True) == before
     errors = text.split("### Large-call errors:", 1)[1].split("### Small-call errors:", 1)[0]

@@ -1,37 +1,40 @@
 {
   "kind": "shared_structure_cohort_maintained_suite_verification",
   "date": "2026-10-29",
-  "runtime_source_identity_sha256": "c4109afb7e1389c296fe3d628cc1290b76c8086548fa15098157fce7b54d2436",
+  "runtime_source_identity_sha256": "dd8834a35bb729963d48934be29149c11f23d28cc33ff62a53a5af87c6f862d1",
   "runtime_source_identity_file": "fusion-cohort-validation.json#runtime_source_identity",
-  "runtime_git_base": "d965c8608f2586c461e8a41283a33946580a7acc",
+  "runtime_git_base": "239f443c25b640d8545416ef115cafd64b26d031",
   "not_new_live_npu_acceptance": true,
   "suites": {
     "profiler": {
       "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/Users/maoxx241/code/sim-rewrite-20261027 /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python -m pytest -q",
       "cwd": "/Users/maoxx241/code/profiler",
-      "passed": 527,
+      "passed": 533,
       "skipped": 26,
-      "seconds": 24.83,
-      "log_path": "/tmp/profiler-cohort-round2-accepted-tests-20261029.log",
-      "log_sha256": "4bea14682f272e198d2614446b8f7424b0862c059ac46992f6ced4c668abcab4"
+      "seconds": 25.09,
+      "log_path": "/tmp/profiler-full-replay-239f443c-tests-20261029.log",
+      "log_sha256": "6169b58b30aea81430ae06918fc6137de36cf8ce210966c58e7391bd93715a99"
     },
     "sim": {
       "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/Users/maoxx241/code/sim-rewrite-20261027 .venv/bin/python -m pytest -q -m 'not live_npu'",
       "cwd": "/Users/maoxx241/code/sim-rewrite-20261027",
-      "passed": 1444,
+      "passed": 1657,
       "skipped": 0,
-      "seconds": 224.8,
-      "log_path": "/tmp/sim-cohort-round2-accepted-tests-20261029.log",
-      "log_sha256": "3438315bd04f3e009fa90c087a4e08a456105361fe39777898269781d415f9ef"
+      "seconds": 235.42,
+      "log_path": "/tmp/sim-integrated-20261029.log",
+      "log_sha256": "4663e4212606b0c705e3e6ac2806c618acbb7e112ddb22081d1902c4c95c5a9a",
+      "provenance": "Executed by coordinating sim thread 01a17dbe; local log verified."
     }
   },
   "full_capture_replay": {
     "status": "completed",
-    "elapsed_seconds": 626.158,
+    "elapsed_seconds": 668.622,
     "memory_budget_passed": true,
-    "mapping_peak_rss_bytes": 467206144,
-    "comparison_peak_rss_bytes": 469614592,
-    "log_path": "/tmp/profiler-cohort-round2-accepted-replay-20261029.log"
+    "mapping_peak_rss_bytes": 467484672,
+    "comparison_peak_rss_bytes": 469499904,
+    "log_path": "/tmp/profiler-full-replay-239f443c-20261029.log",
+    "receipt_sha256": "27c84748367ab934e66106b2b3c4aa55ee85f0a7809869e7300b94a550f1f0b9",
+    "runtime_sources_unchanged": true
   },
   "memory_regression": {
     "initial_checkpoint_mapping_peak_rss_bytes": 575717376,
@@ -47,18 +50,16 @@
     "elapsed_seconds": null,
     "elapsed_status": "not_measured",
     "graph_worker_count": 24,
-    "maximum_graph_worker_rss_bytes": 462880768,
-    "parent_peak_rss_bytes": 60506112,
+    "maximum_graph_worker_rss_bytes": 454492160,
+    "parent_peak_rss_bytes": 53215232,
     "memory_budget_passed": true,
     "execution_details": "fusion-coverage-inventory.json#refresh_execution",
-    "coverage_and_graph_ids_unchanged": true,
     "prior_single_process_peak_rss_bytes": 659636224,
     "corrective_change": "Export each declaration in a fresh subprocess; retain only compact contract and coverage summaries in the parent.",
-    "validation_record_path": "/tmp/fusion-inventory-worker-verification-20261029.json",
-    "validation_record_scope": "Post-run validation record, not the original stdout transcript.",
-    "validation_record_sha256": "634129f699a57fdbad0d74ca266e9296352754c2925f518c4200205bab1519ee"
+    "log_path": "/tmp/profiler-full-replay-239f443c-inventory-20261029.log",
+    "graph_identity_scope": "fresh graph export checked against current replay; old runtime graph identities are different"
   },
-  "sim_runtime_commit": "414f520ea8baac5b4179302b26db933fd57a67d4",
+  "sim_runtime_commit": "239f443c25b640d8545416ef115cafd64b26d031",
   "tiered_accuracy": {
     "sim_commit": "0b7926e668a0962b62089f020ea92b65d36d6d7e",
     "policy": {
@@ -141,5 +142,57 @@
       "checks": 127030
     },
     "scope": "Additive per-call policy and report grouping; historical raw replay and its original suite evidence remain separate."
+  },
+  "historical_full_replay": {
+    "runtime_source_identity_sha256": "c4109afb7e1389c296fe3d628cc1290b76c8086548fa15098157fce7b54d2436",
+    "runtime_git_base": "d965c8608f2586c461e8a41283a33946580a7acc",
+    "suites": {
+      "profiler": {
+        "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/Users/maoxx241/code/sim-rewrite-20261027 /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python -m pytest -q",
+        "cwd": "/Users/maoxx241/code/profiler",
+        "passed": 533,
+        "skipped": 26,
+        "seconds": 25.09,
+        "log_path": "/tmp/profiler-full-replay-239f443c-tests-20261029.log",
+        "log_sha256": "6169b58b30aea81430ae06918fc6137de36cf8ce210966c58e7391bd93715a99"
+      },
+      "sim": {
+        "command": "PYTHONPATH=/Users/maoxx241/code/profiler:/Users/maoxx241/code/sim-rewrite-20261027 .venv/bin/python -m pytest -q -m 'not live_npu'",
+        "cwd": "/Users/maoxx241/code/sim-rewrite-20261027",
+        "passed": 1657,
+        "skipped": 0,
+        "seconds": 235.42,
+        "log_path": "/tmp/sim-integrated-20261029.log",
+        "log_sha256": "4663e4212606b0c705e3e6ac2806c618acbb7e112ddb22081d1902c4c95c5a9a",
+        "provenance": "Executed by coordinating sim thread 01a17dbe; local log verified."
+      }
+    },
+    "full_capture_replay": {
+      "status": "completed",
+      "elapsed_seconds": 668.622,
+      "memory_budget_passed": true,
+      "mapping_peak_rss_bytes": 467484672,
+      "comparison_peak_rss_bytes": 469499904,
+      "log_path": "/tmp/profiler-full-replay-239f443c-20261029.log",
+      "receipt_sha256": "27c84748367ab934e66106b2b3c4aa55ee85f0a7809869e7300b94a550f1f0b9",
+      "runtime_sources_unchanged": true
+    },
+    "sim_runtime_commit": "414f520ea8baac5b4179302b26db933fd57a67d4"
+  },
+  "runtime_source_identity_hash_encoding": "sha256 of sorted compact JSON runtime_source_identity mapping",
+  "current_independent_review": {
+    "receipt": "fusion-cohort-independent-review.json",
+    "status": "passed",
+    "checks": 105015,
+    "runtime_file_count": 320
+  },
+  "runtime_prediction_delta": {
+    "paired_cohorts": 242,
+    "graph_ids_changed": 15,
+    "material_prediction_changes": 21,
+    "roundoff_prediction_changes": 7,
+    "a5_predictions_changed": false,
+    "selected_glm_invocation_minima_present": false,
+    "model_declarations_partial": 15
   }
 }
