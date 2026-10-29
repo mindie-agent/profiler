@@ -1,0 +1,926 @@
+{
+  "schema_version": "mindie-profiler.heterogeneous-sparse-coverage/1",
+  "date": "2026-10-29",
+  "new_live_collection": false,
+  "method": "Refine an existing active tensor-contract candidate set with source-defined optional compressed-index presence and dimensions; then require identical declared physical signature and work within the retained set.",
+  "matching_fields": [
+    "input[4] cmp_sparse_indices explicit undefined absence or INT32 ND rank3 [query_tokens,kv_heads,topk]",
+    "independently declared structure.indexer and indexed_attention_geometry.topk"
+  ],
+  "not_inferred": [
+    "compression_ratio",
+    "context",
+    "phase",
+    "layer",
+    "step",
+    "index_values",
+    "captured_binary_identity"
+  ],
+  "accounting": "Each event enters at most one eligible retained candidate-set cohort. No event is copied into multiple physical buckets. Unknown or unsupported descriptors do not narrow candidates.",
+  "validation": {
+    "tests": 26,
+    "pytest_seconds": 9.44,
+    "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/Users/maoxx241/code/sim-rewrite-20261027:/Users/maoxx241/code/profiler /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python -m pytest -q tests/test_heterogeneous_structure_cohorts.py tests/test_structure_cohorts.py tests/test_structure_subgraphs.py",
+    "python": "3.13.12",
+    "sim_revision": "ea0bae98509ebddbe87aa092941c97de3bee8008",
+    "capture_scans": 2,
+    "peak_rss_bytes": 146128896,
+    "budget_bytes": 536870912
+  },
+  "source_semantics": [
+    {
+      "repository": "vllm-ascend",
+      "revision": "175ef4d49c2072f9233619636f0309f4f88b4e2c",
+      "path": "csrc/torch_binding.cpp",
+      "reading": "git HEAD blob; working tree differs",
+      "sha256": "1bf7a54752fc11b513ca71b059f8f2cf2626e9022d993626bd49c6188083b9ed",
+      "lines": [
+        1099,
+        1127
+      ],
+      "evidence": "Ordered native inputs are q,ori_kv,cmp_kv,ori_sparse_indices,cmp_sparse_indices; this establishes slot4, not captured implementation identity."
+    },
+    {
+      "repository": "vllm-ascend",
+      "revision": "175ef4d49c2072f9233619636f0309f4f88b4e2c",
+      "path": "vllm_ascend/attention/dsa_v1.py",
+      "sha256": "6ede35f753b03cfd125d67b5a626089d2f7f2ef1e116646f0adb4c7f0c7336d7",
+      "lines": [
+        1556,
+        1590
+      ],
+      "evidence": "Source supplies compressed cache for compression and compressed indices for its indexed branch. Mapper compares the declared index interface without deriving compression ratio."
+    },
+    {
+      "repository": "vllm-ascend",
+      "revision": "175ef4d49c2072f9233619636f0309f4f88b4e2c",
+      "path": "vllm_ascend/models/deepseek_v4/compressor.py",
+      "sha256": "37ca695e3b9564d95c60f628dbfee8268264885d774b91ac6caeeb97c2375ce9",
+      "lines": [
+        124,
+        142,
+        144,
+        218
+      ],
+      "evidence": "APE is FP32; norm dtype is explicitly FP32 only for A5, otherwise inherited. Native invocation passes self.norm.weight without a local cast. This version does not establish historical A3 FP32 norm selection."
+    }
+  ],
+  "captures": [
+    {
+      "capture_key": "a3_v4f",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4f-prefill/raw/pre4096.kernel_details.csv",
+        "size_bytes": 1391917,
+        "mtime_ns": 1792795906356307712,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "b56b7439213cc9f76eaae63347393d4add6ae5c985bf28a6a7737f5783c81788"
+      },
+      "graph_id": "sha256:2d3c2f06ed3af9832e5c5d7fb9a6c77be4806644c3b8e964ba12cb0901661915",
+      "graph_matches_formal_baseline": true,
+      "geometry": {
+        "phase": "prefill",
+        "tokens": 4096,
+        "context": 0,
+        "sequences": 1,
+        "scope": "model"
+      },
+      "positive_events": 4064,
+      "elapsed_seconds": 1.4552553750108927,
+      "operators": [
+        {
+          "operator_type": "SparseAttnSharedkv",
+          "event_count": 44,
+          "before_cohort_events": 3,
+          "after_cohort_events": 44,
+          "before_exclusions": {
+            "candidate_physical_work_differs": 41
+          },
+          "after_exclusions": {}
+        },
+        {
+          "operator_type": "Compressor",
+          "event_count": 62,
+          "before_cohort_events": 0,
+          "after_cohort_events": 0,
+          "before_exclusions": {
+            "no_tensor_candidates": 62
+          },
+          "after_exclusions": {
+            "no_tensor_candidates": 62
+          }
+        }
+      ],
+      "groups": [
+        {
+          "cohort_id": "sha256:233cd61830f026a0753dacbf6298b3851294cc4ec39332842d8905c059106da4",
+          "status": "compared",
+          "reason": "same_declared_single_program_boundary",
+          "declared_instance_count": 2,
+          "physical_signature": "sha256:0436735b688212cf4090e21745931cb9849b63d5df515ad02cdfb9ff4744a190",
+          "observed_per_call_us": 489.1633333333333,
+          "predicted_per_call_us": 59.41930666666667,
+          "per_call_diff_us": -429.7440266666666,
+          "abs_error_per_call_us": 429.7440266666666,
+          "accuracy_tier": "relative_15pct",
+          "accuracy_status": "outside_tolerance",
+          "accuracy_pass": false,
+          "event_count": 3,
+          "structural_classification": {
+            "basis": "common_to_all_declared_tensor_candidates",
+            "common": {
+              "block": "attention",
+              "role": "body",
+              "structure": {
+                "attention_kind": "mla",
+                "attention_architecture": "swa_only",
+                "ffn_kind": "moe",
+                "residual_kind": "mhc",
+                "cache_kind": "window_compressed",
+                "compress_ratio": 0,
+                "window": 128,
+                "indexer": false,
+                "owns_topk": false,
+                "index_query_per_layer": false,
+                "topk_owner_layer_id": -1
+              }
+            },
+            "occurrence_binding_implied": false
+          },
+          "candidate_refinements": [
+            {
+              "basis": "observed_optional_index_descriptor",
+              "native_operator_type": "SparseAttnSharedkv",
+              "input_slot": 4,
+              "input_name": "cmp_sparse_indices",
+              "observed_descriptor": [
+                [],
+                null,
+                null
+              ],
+              "compared": [
+                "compressed_index_presence",
+                "index_token_and_head_axes",
+                "index_topk_dimension",
+                "index_dtype_and_format"
+              ],
+              "candidate_count_before": 2,
+              "candidate_count_after": 2,
+              "unknown_declaration_candidates_retained": 0,
+              "occurrence_binding_implied": false,
+              "not_inferred": [
+                "compression_ratio",
+                "context",
+                "phase",
+                "layer",
+                "step",
+                "index_values",
+                "capture_binary_identity"
+              ],
+              "event_count": 3
+            }
+          ],
+          "relative_error": -0.8785286986623418,
+          "comparison_interpretation": "conditional_descriptive_comparison; no_occurrence_or_accuracy_certification"
+        },
+        {
+          "cohort_id": "sha256:a5b2ad0734535b47610e2fe295ac36cf4107eb8d7e5ca63858ed79e27ff78690",
+          "status": "compared",
+          "reason": "same_declared_single_program_boundary",
+          "declared_instance_count": 21,
+          "physical_signature": "sha256:608662075333cfa43999f72c774ce2b99a4d4f82b37cbad3f77beb137e966fa3",
+          "observed_per_call_us": 3738.518619047619,
+          "predicted_per_call_us": 1406.4008533333333,
+          "per_call_diff_us": -2332.1177657142853,
+          "abs_error_per_call_us": 2332.1177657142853,
+          "accuracy_tier": "relative_15pct",
+          "accuracy_status": "outside_tolerance",
+          "accuracy_pass": false,
+          "event_count": 21,
+          "structural_classification": {
+            "basis": "common_to_all_declared_tensor_candidates",
+            "common": {
+              "block": "attention",
+              "role": "body",
+              "structure": {
+                "attention_kind": "mla",
+                "attention_architecture": "dsa_compressed_4",
+                "ffn_kind": "moe",
+                "residual_kind": "mhc",
+                "cache_kind": "window_compressed",
+                "compress_ratio": 4,
+                "window": 128,
+                "indexer": true,
+                "owns_topk": true,
+                "index_query_per_layer": false
+              }
+            },
+            "occurrence_binding_implied": false
+          },
+          "candidate_refinements": [
+            {
+              "basis": "observed_optional_index_descriptor",
+              "native_operator_type": "SparseAttnSharedkv",
+              "input_slot": 4,
+              "input_name": "cmp_sparse_indices",
+              "observed_descriptor": [
+                [
+                  4096,
+                  1,
+                  512
+                ],
+                "int32",
+                "ND"
+              ],
+              "compared": [
+                "compressed_index_presence",
+                "index_token_and_head_axes",
+                "index_topk_dimension",
+                "index_dtype_and_format"
+              ],
+              "candidate_count_before": 41,
+              "candidate_count_after": 21,
+              "unknown_declaration_candidates_retained": 0,
+              "occurrence_binding_implied": false,
+              "not_inferred": [
+                "compression_ratio",
+                "context",
+                "phase",
+                "layer",
+                "step",
+                "index_values",
+                "capture_binary_identity"
+              ],
+              "event_count": 21
+            }
+          ],
+          "relative_error": -0.6238079847542363,
+          "comparison_interpretation": "conditional_descriptive_comparison; no_occurrence_or_accuracy_certification"
+        },
+        {
+          "cohort_id": "sha256:3cca400fca96f05ddb636367b2cdb5bfc36963482b548511bb9b6a22b2779bb4",
+          "status": "compared",
+          "reason": "same_declared_single_program_boundary",
+          "declared_instance_count": 20,
+          "physical_signature": "sha256:c631db84aca6179831f5c09babfcb76d90e743721b69d96506ddb61366794406",
+          "observed_per_call_us": 946.03015,
+          "predicted_per_call_us": 59.869866666666674,
+          "per_call_diff_us": -886.1602833333334,
+          "abs_error_per_call_us": 886.1602833333334,
+          "accuracy_tier": "relative_15pct",
+          "accuracy_status": "outside_tolerance",
+          "accuracy_pass": false,
+          "event_count": 20,
+          "structural_classification": {
+            "basis": "common_to_all_declared_tensor_candidates",
+            "common": {
+              "block": "attention",
+              "role": "body",
+              "structure": {
+                "attention_kind": "mla",
+                "attention_architecture": "dsa_compressed_128",
+                "ffn_kind": "moe",
+                "residual_kind": "mhc",
+                "cache_kind": "window_compressed",
+                "compress_ratio": 128,
+                "window": 128,
+                "indexer": false,
+                "owns_topk": false,
+                "index_query_per_layer": false,
+                "topk_owner_layer_id": -1
+              }
+            },
+            "occurrence_binding_implied": false
+          },
+          "candidate_refinements": [
+            {
+              "basis": "observed_optional_index_descriptor",
+              "native_operator_type": "SparseAttnSharedkv",
+              "input_slot": 4,
+              "input_name": "cmp_sparse_indices",
+              "observed_descriptor": [
+                [],
+                null,
+                null
+              ],
+              "compared": [
+                "compressed_index_presence",
+                "index_token_and_head_axes",
+                "index_topk_dimension",
+                "index_dtype_and_format"
+              ],
+              "candidate_count_before": 41,
+              "candidate_count_after": 20,
+              "unknown_declaration_candidates_retained": 0,
+              "occurrence_binding_implied": false,
+              "not_inferred": [
+                "compression_ratio",
+                "context",
+                "phase",
+                "layer",
+                "step",
+                "index_values",
+                "capture_binary_identity"
+              ],
+              "event_count": 20
+            }
+          ],
+          "relative_error": -0.9367146314875201,
+          "comparison_interpretation": "conditional_descriptive_comparison; no_occurrence_or_accuracy_certification"
+        }
+      ],
+      "real_descriptor_evidence": [
+        {
+          "fixture": "tests/fixtures/fusion_contracts/a3_v4f.csv",
+          "fixture_line": 50,
+          "original_csv_line": 140,
+          "operator_type": "SparseAttnSharedkv",
+          "input_query_or_tokens": [
+            [
+              4096,
+              8,
+              512
+            ],
+            "bf16",
+            "ND"
+          ],
+          "optional_compressed_indices": [
+            [],
+            null,
+            null
+          ],
+          "compressor_ape": null,
+          "compressor_norm_weight": null
+        },
+        {
+          "fixture": "tests/fixtures/fusion_contracts/a3_v4f.csv",
+          "fixture_line": 82,
+          "original_csv_line": 297,
+          "operator_type": "Compressor",
+          "input_query_or_tokens": [
+            [
+              4096,
+              4096
+            ],
+            "bf16",
+            "ND"
+          ],
+          "optional_compressed_indices": null,
+          "compressor_ape": [
+            [
+              4,
+              1024
+            ],
+            "fp32",
+            "ND"
+          ],
+          "compressor_norm_weight": [
+            [
+              512
+            ],
+            "fp32",
+            "ND"
+          ]
+        },
+        {
+          "fixture": "tests/fixtures/fusion_contracts/a3_v4f.csv",
+          "fixture_line": 83,
+          "original_csv_line": 301,
+          "operator_type": "Compressor",
+          "input_query_or_tokens": [
+            [
+              4096,
+              4096
+            ],
+            "bf16",
+            "ND"
+          ],
+          "optional_compressed_indices": null,
+          "compressor_ape": [
+            [
+              4,
+              256
+            ],
+            "fp32",
+            "ND"
+          ],
+          "compressor_norm_weight": [
+            [
+              128
+            ],
+            "fp32",
+            "ND"
+          ]
+        },
+        {
+          "fixture": "tests/fixtures/fusion_contracts/a3_v4f.csv",
+          "fixture_line": 89,
+          "original_csv_line": 319,
+          "operator_type": "SparseAttnSharedkv",
+          "input_query_or_tokens": [
+            [
+              4096,
+              8,
+              512
+            ],
+            "bf16",
+            "ND"
+          ],
+          "optional_compressed_indices": [
+            [
+              4096,
+              1,
+              512
+            ],
+            "int32",
+            "ND"
+          ],
+          "compressor_ape": null,
+          "compressor_norm_weight": null
+        },
+        {
+          "fixture": "tests/fixtures/fusion_contracts/a3_v4f.csv",
+          "fixture_line": 90,
+          "original_csv_line": 397,
+          "operator_type": "Compressor",
+          "input_query_or_tokens": [
+            [
+              4096,
+              4096
+            ],
+            "bf16",
+            "ND"
+          ],
+          "optional_compressed_indices": null,
+          "compressor_ape": [
+            [
+              128,
+              512
+            ],
+            "fp32",
+            "ND"
+          ],
+          "compressor_norm_weight": [
+            [
+              512
+            ],
+            "fp32",
+            "ND"
+          ]
+        },
+        {
+          "fixture": "tests/fixtures/attention_cache_contracts/a3_deepseek_v4f_compressed.csv",
+          "fixture_line": 2,
+          "original_csv_line": 319,
+          "operator_type": "SparseAttnSharedkv",
+          "input_query_or_tokens": [
+            [
+              4096,
+              8,
+              512
+            ],
+            "bf16",
+            "ND"
+          ],
+          "optional_compressed_indices": [
+            [
+              4096,
+              1,
+              512
+            ],
+            "int32",
+            "ND"
+          ],
+          "compressor_ape": null,
+          "compressor_norm_weight": null
+        },
+        {
+          "fixture": "tests/fixtures/attention_cache_contracts/a3_deepseek_v4f_compressed.csv",
+          "fixture_line": 3,
+          "original_csv_line": 401,
+          "operator_type": "SparseAttnSharedkv",
+          "input_query_or_tokens": [
+            [
+              4096,
+              8,
+              512
+            ],
+            "bf16",
+            "ND"
+          ],
+          "optional_compressed_indices": [
+            [],
+            null,
+            null
+          ],
+          "compressor_ape": null,
+          "compressor_norm_weight": null
+        }
+      ],
+      "compressor_gap": {
+        "reason": "declared_norm_weight_precision_mismatch",
+        "event_count": 62,
+        "captured_input_slot": 5,
+        "captured_dtype": "FLOAT/fp32",
+        "declared_dtype": "bf16",
+        "ratio_already_observable": "APE input[4] shape first dimension 4 or128 is preserved in the existing contract; output reserved rows do not establish completed rows.",
+        "resolution": "Requires independent historical runtime/checkpoint norm dtype evidence or an explicitly conditional source selection; no dtype relaxation applied."
+      }
+    },
+    {
+      "capture_key": "a3_v4pro",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4pro-prefill/raw/pre4096.kernel_details.csv",
+        "size_bytes": 8274767,
+        "mtime_ns": 1792801452077404970,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "5ffe5625942e4caf787ce047438576527b8513452d6dd6871b24682a19968abd"
+      },
+      "graph_id": "sha256:d782f05e677f038addedc9e832c2bcadd9a7502f7d7e3c981b66da349ddf2505",
+      "graph_matches_formal_baseline": true,
+      "geometry": {
+        "phase": "prefill",
+        "tokens": 1024,
+        "context": 0,
+        "sequences": 1,
+        "scope": "model"
+      },
+      "positive_events": 24271,
+      "elapsed_seconds": 3.344854124938138,
+      "operators": [
+        {
+          "operator_type": "SparseAttnSharedkv",
+          "event_count": 248,
+          "before_cohort_events": 0,
+          "after_cohort_events": 244,
+          "before_exclusions": {
+            "candidate_physical_work_differs": 244,
+            "no_tensor_candidates": 4
+          },
+          "after_exclusions": {
+            "no_tensor_candidates": 4
+          }
+        },
+        {
+          "operator_type": "Compressor",
+          "event_count": 364,
+          "before_cohort_events": 0,
+          "after_cohort_events": 0,
+          "before_exclusions": {
+            "no_tensor_candidates": 364
+          },
+          "after_exclusions": {
+            "no_tensor_candidates": 364
+          }
+        }
+      ],
+      "groups": [
+        {
+          "cohort_id": "sha256:3b90bd7ed7e214c5a9185750354026f52a181a067aa2523ad92453af189847a7",
+          "status": "compared",
+          "reason": "same_declared_single_program_boundary",
+          "declared_instance_count": 31,
+          "physical_signature": "sha256:63974bdb7cf7fc4ffcb0d4c0b78e1ab4f3a63c2c044c9da61dbe76de8f8bbc13",
+          "observed_per_call_us": 259.85128225806454,
+          "predicted_per_call_us": 14.885546666666666,
+          "per_call_diff_us": -244.96573559139787,
+          "abs_error_per_call_us": 244.96573559139787,
+          "accuracy_tier": "relative_15pct",
+          "accuracy_status": "outside_tolerance",
+          "accuracy_pass": false,
+          "event_count": 124,
+          "structural_classification": {
+            "basis": "common_to_all_declared_tensor_candidates",
+            "common": {
+              "block": "attention",
+              "role": "body",
+              "structure": {
+                "attention_kind": "mla",
+                "attention_architecture": "dsa_compressed_128",
+                "ffn_kind": "moe",
+                "residual_kind": "mhc",
+                "cache_kind": "window_compressed",
+                "compress_ratio": 128,
+                "window": 128,
+                "indexer": false,
+                "owns_topk": false,
+                "index_query_per_layer": false,
+                "topk_owner_layer_id": -1
+              }
+            },
+            "occurrence_binding_implied": false
+          },
+          "candidate_refinements": [
+            {
+              "basis": "observed_optional_index_descriptor",
+              "native_operator_type": "SparseAttnSharedkv",
+              "input_slot": 4,
+              "input_name": "cmp_sparse_indices",
+              "observed_descriptor": [
+                [],
+                null,
+                null
+              ],
+              "compared": [
+                "compressed_index_presence",
+                "index_token_and_head_axes",
+                "index_topk_dimension",
+                "index_dtype_and_format"
+              ],
+              "candidate_count_before": 61,
+              "candidate_count_after": 31,
+              "unknown_declaration_candidates_retained": 0,
+              "occurrence_binding_implied": false,
+              "not_inferred": [
+                "compression_ratio",
+                "context",
+                "phase",
+                "layer",
+                "step",
+                "index_values",
+                "capture_binary_identity"
+              ],
+              "event_count": 124
+            }
+          ],
+          "relative_error": -0.942715130988334,
+          "comparison_interpretation": "conditional_descriptive_comparison; no_occurrence_or_accuracy_certification"
+        },
+        {
+          "cohort_id": "sha256:e72b5fd62205ed793cb28eed73efed46db4a6e1a69104b807a922144a9f676ce",
+          "status": "compared",
+          "reason": "same_declared_single_program_boundary",
+          "declared_instance_count": 30,
+          "physical_signature": "sha256:b2963ccfefc78605144aaa750ad09b7c82e1254f6d52c6d5bfc56a57171ac4ff",
+          "observed_per_call_us": 1180.3460416666667,
+          "predicted_per_call_us": 126.92053333333334,
+          "per_call_diff_us": -1053.4255083333333,
+          "abs_error_per_call_us": 1053.4255083333333,
+          "accuracy_tier": "relative_15pct",
+          "accuracy_status": "outside_tolerance",
+          "accuracy_pass": false,
+          "event_count": 120,
+          "structural_classification": {
+            "basis": "common_to_all_declared_tensor_candidates",
+            "common": {
+              "block": "attention",
+              "role": "body",
+              "structure": {
+                "attention_kind": "mla",
+                "attention_architecture": "dsa_compressed_4",
+                "ffn_kind": "moe",
+                "residual_kind": "mhc",
+                "cache_kind": "window_compressed",
+                "compress_ratio": 4,
+                "window": 128,
+                "indexer": true,
+                "owns_topk": true,
+                "index_query_per_layer": false
+              }
+            },
+            "occurrence_binding_implied": false
+          },
+          "candidate_refinements": [
+            {
+              "basis": "observed_optional_index_descriptor",
+              "native_operator_type": "SparseAttnSharedkv",
+              "input_slot": 4,
+              "input_name": "cmp_sparse_indices",
+              "observed_descriptor": [
+                [
+                  1024,
+                  1,
+                  1024
+                ],
+                "int32",
+                "ND"
+              ],
+              "compared": [
+                "compressed_index_presence",
+                "index_token_and_head_axes",
+                "index_topk_dimension",
+                "index_dtype_and_format"
+              ],
+              "candidate_count_before": 61,
+              "candidate_count_after": 30,
+              "unknown_declaration_candidates_retained": 0,
+              "occurrence_binding_implied": false,
+              "not_inferred": [
+                "compression_ratio",
+                "context",
+                "phase",
+                "layer",
+                "step",
+                "index_values",
+                "capture_binary_identity"
+              ],
+              "event_count": 120
+            }
+          ],
+          "relative_error": -0.8924717592528039,
+          "comparison_interpretation": "conditional_descriptive_comparison; no_occurrence_or_accuracy_certification"
+        }
+      ],
+      "real_descriptor_evidence": [
+        {
+          "fixture": "tests/fixtures/fusion_contracts/a3_v4pro.csv",
+          "fixture_line": 48,
+          "original_csv_line": 137,
+          "operator_type": "Compressor",
+          "input_query_or_tokens": [
+            [
+              1024,
+              7168
+            ],
+            "bf16",
+            "ND"
+          ],
+          "optional_compressed_indices": null,
+          "compressor_ape": [
+            [
+              128,
+              512
+            ],
+            "fp32",
+            "ND"
+          ],
+          "compressor_norm_weight": [
+            [
+              512
+            ],
+            "fp32",
+            "ND"
+          ]
+        },
+        {
+          "fixture": "tests/fixtures/fusion_contracts/a3_v4pro.csv",
+          "fixture_line": 51,
+          "original_csv_line": 141,
+          "operator_type": "SparseAttnSharedkv",
+          "input_query_or_tokens": [
+            [
+              1024,
+              8,
+              512
+            ],
+            "bf16",
+            "ND"
+          ],
+          "optional_compressed_indices": [
+            [],
+            null,
+            null
+          ],
+          "compressor_ape": null,
+          "compressor_norm_weight": null
+        },
+        {
+          "fixture": "tests/fixtures/fusion_contracts/a3_v4pro.csv",
+          "fixture_line": 82,
+          "original_csv_line": 315,
+          "operator_type": "Compressor",
+          "input_query_or_tokens": [
+            [
+              1024,
+              7168
+            ],
+            "bf16",
+            "ND"
+          ],
+          "optional_compressed_indices": null,
+          "compressor_ape": [
+            [
+              4,
+              1024
+            ],
+            "fp32",
+            "ND"
+          ],
+          "compressor_norm_weight": [
+            [
+              512
+            ],
+            "fp32",
+            "ND"
+          ]
+        },
+        {
+          "fixture": "tests/fixtures/fusion_contracts/a3_v4pro.csv",
+          "fixture_line": 83,
+          "original_csv_line": 319,
+          "operator_type": "Compressor",
+          "input_query_or_tokens": [
+            [
+              1024,
+              7168
+            ],
+            "bf16",
+            "ND"
+          ],
+          "optional_compressed_indices": null,
+          "compressor_ape": [
+            [
+              4,
+              256
+            ],
+            "fp32",
+            "ND"
+          ],
+          "compressor_norm_weight": [
+            [
+              128
+            ],
+            "fp32",
+            "ND"
+          ]
+        },
+        {
+          "fixture": "tests/fixtures/fusion_contracts/a3_v4pro.csv",
+          "fixture_line": 88,
+          "original_csv_line": 337,
+          "operator_type": "SparseAttnSharedkv",
+          "input_query_or_tokens": [
+            [
+              1024,
+              8,
+              512
+            ],
+            "bf16",
+            "ND"
+          ],
+          "optional_compressed_indices": [
+            [
+              1024,
+              1,
+              1024
+            ],
+            "int32",
+            "ND"
+          ],
+          "compressor_ape": null,
+          "compressor_norm_weight": null
+        }
+      ],
+      "compressor_gap": {
+        "reason": "declared_norm_weight_precision_mismatch",
+        "event_count": 364,
+        "captured_input_slot": 5,
+        "captured_dtype": "FLOAT/fp32",
+        "declared_dtype": "bf16",
+        "ratio_already_observable": "APE input[4] shape first dimension 4 or128 is preserved in the existing contract; output reserved rows do not establish completed rows.",
+        "resolution": "Requires independent historical runtime/checkpoint norm dtype evidence or an explicitly conditional source selection; no dtype relaxation applied."
+      },
+      "remaining_sparse_gap": {
+        "event_count": 4,
+        "reason": "compressed_cache_absent_but_all_61_declared_body_attention_targets_use_compressed_cache",
+        "representative_original_csv_line": 5983,
+        "descriptor_evidence_source": "body-a3_v4pro.json retained_body_examples (original capture provenance preserved)",
+        "observed_contract": [
+          "sparse_attention_active",
+          "SparseAttnSharedkv",
+          [
+            [
+              [
+                1024,
+                8,
+                512
+              ],
+              "bf16",
+              "ND"
+            ]
+          ],
+          [
+            [
+              [
+                1,
+                512
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [],
+              null,
+              null
+            ]
+          ],
+          [
+            [
+              1024,
+              8,
+              512
+            ],
+            "bf16",
+            "ND"
+          ]
+        ],
+        "layer_or_draft_ownership": "unknown; no occurrence evidence is inferred from count or order"
+      }
+    }
+  ],
+  "limitations": [
+    "Compared is a conditional descriptive comparison under the selected execution declaration, not occurrence or accuracy certification.",
+    "All five resulting sparse-attention comparisons exceed the relative 15 percent accuracy tolerance.",
+    "V4Pro declaration context=0 does not establish actual context for every event in its full multi-chunk capture.",
+    "Original formal full-family reports and raw captures are unchanged."
+  ]
+}

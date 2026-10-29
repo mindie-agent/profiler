@@ -83,6 +83,66 @@ def _event_key(event):
     )
 
 
+def _shared_kv_candidates(row, contract, candidates, targets):
+    """Refine active SharedKV contracts using its optional compressed indices.
+
+    The native ABI names input[4] ``cmp_sparse_indices`` (torch_binding.cpp,
+    npu_sparse_attn_sharedkv_npu); dsa_v1.py supplies it for indexed compressed
+    attention. Its presence and TND shape establish an index interface, not a
+    compression ratio, context value, layer or captured implementation version.
+    """
+    if (row.kind != "SparseAttnSharedkv" or contract is None
+            or contract[0] != "sparse_attention_active" or not candidates):
+        return candidates, None
+    from .native_tensor_abi import native_tensor_contract
+
+    native = native_tensor_contract(row)
+    if native is None or len(native[2]) != 14:
+        return candidates, None
+    inputs = native[2]
+    indices = inputs[4]
+    empty = ((), None, None)
+    if inputs[3] != empty:
+        return candidates, None
+    if indices == empty:
+        present, topk = False, None
+    else:
+        shape, dtype, layout = indices
+        if (len(shape) != 3 or dtype != "int32" or layout != "ND"
+                or shape[:2] != (inputs[0][0][0], inputs[1][0][-2])
+                or shape[2] <= 0 or inputs[2] == empty):
+            return candidates, None
+        present, topk = True, shape[2]
+    kept, unknown = [], 0
+    for key in candidates:
+        target = targets[key]
+        metadata = target.get("operator", {}).get("metadata", {})
+        geometry = metadata.get("indexed_attention_geometry", {})
+        declared_indexed = target.get("structure", {}).get("indexer")
+        declared_topk = geometry.get("topk")
+        if (not isinstance(declared_indexed, bool)
+                or declared_indexed and not isinstance(declared_topk, int)
+                or declared_indexed is False and declared_topk not in (None, 0)):
+            kept.append(key)
+            unknown += 1
+        elif declared_indexed == present and (not present or declared_topk == topk):
+            kept.append(key)
+    return kept, {
+        "basis": "observed_optional_index_descriptor",
+        "native_operator_type": row.kind,
+        "input_slot": 4, "input_name": "cmp_sparse_indices",
+        "observed_descriptor": indices,
+        "compared": ["compressed_index_presence", "index_token_and_head_axes",
+                     "index_topk_dimension", "index_dtype_and_format"],
+        "candidate_count_before": len(candidates),
+        "candidate_count_after": len(kept),
+        "unknown_declaration_candidates_retained": unknown,
+        "occurrence_binding_implied": False,
+        "not_inferred": ["compression_ratio", "context", "phase", "layer", "step",
+                         "index_values", "capture_binary_identity"],
+    }
+
+
 class StructureMapper:
     def __init__(self, structure, *, bindings=None, correlations=None,
                  mapping_limit=200, max_events=100_000, phase=None, module_evidence=None):
@@ -266,9 +326,25 @@ class StructureMapper:
         from .normalized import row_from_event
         from .tensor_contracts import observed_contract
 
-        contract = observed_contract(row_from_event(event, source=observation.source.path))
+        row = row_from_event(event, source=observation.source.path)
+        contract = observed_contract(row)
         key = _freeze(contract) if contract is not None else None
         candidates = self._rank_candidates(self.contracts.get(key, ()), observation.rank_id)
+        candidates, refinement = _shared_kv_candidates(row, contract, candidates, self.targets)
+        explicit = self.explicit.get(event.event_id)
+        if (refinement and explicit and explicit.get("relation", "direct") == "direct"
+                and not set(explicit["_target_ids"]) <= set(candidates)):
+            raise ProfilerUsageError(f"explicit binding index descriptor mismatch for {event.event_id}")
+        result = self._match_evidence(event, observation, source_key, contract, candidates)
+        if (refinement and not candidates and result[0] == "unmapped" and result[3] not in {
+                "module_tensor_contract_mismatch", "host_tensor_contract_mismatch",
+                "module_has_no_declared_scope",
+        }):
+            result = (*result[:3], "declared_index_descriptor_mismatch", result[4], contract)
+        return (*result, refinement)
+
+    def _match_evidence(self, event, observation, source_key, contract, candidates):
+        key = _freeze(contract) if contract is not None else None
         explicit = self.explicit.get(event.event_id)
         if explicit is not None:
             ids = explicit["_target_ids"]
@@ -382,16 +458,23 @@ class StructureMapper:
                     f"structure mapping exceeds {self.max_events} event-window occurrences; "
                     "select fewer ranks/windows or raise --max-mapping-events"
                 )
-            status, ids, candidates, basis, evidence, contract = self._match(event, observation, source_key)
+            status, ids, candidates, basis, evidence, contract, refinement = self._match(
+                event, observation, source_key)
             cohort_reason = cohorts.add(
                 event, interval, status=status, ids=ids, candidates=candidates,
-                basis=basis, contract=contract)
+                basis=basis, contract=contract, refinement=refinement)
             counts[status] += 1
             self.statuses[status] += 1
             reasons[basis] += 1
             self.reasons[basis] += 1
             diagnostic = None if status == "bound" else self._diagnostic(
                 event, observation, contract, candidates)
+            if basis == "declared_index_descriptor_mismatch":
+                diagnostic = {
+                    "category": "declared_structure_mismatch", "reason": basis,
+                    "detail": ("The captured compressed-index interface disagrees with all "
+                               "otherwise compatible declared attention candidates."),
+                }
             if status != "bound" and basis in {
                 "overlapping_module_invocations", "event_crosses_module_boundary",
                 "module_step_mismatch", "conflicting_host_scopes", "conflicting_evidence_scopes",
@@ -519,6 +602,7 @@ class StructureMapper:
                     "candidate_node_ids": candidate_nodes[:64],
                     "candidate_subgraph_ids": candidate_subgraphs[:64],
                     "candidate_count": len(candidates), "basis": basis, "evidence": evidence,
+                    "candidate_refinement": refinement,
                     "implementation_correspondence": correspondence,
                     "structural_classification": classification,
                     "observed_contract": contract,
@@ -610,6 +694,10 @@ class StructureMapper:
                 "cohorts": ("identical declared contract and physical work on one placement; "
                             "measured multiplicity and complete-event duration statistics without "
                             "per-layer allocation; window counts do not establish step counts"),
+                "candidate_refinement": (
+                    "source-defined optional tensor interfaces can narrow candidates; "
+                    "missing or unsupported descriptors do not select a bucket, and "
+                    "compression ratio, context and occurrence are not inferred"),
                 "rank": "physical rank is not a DP replica; only explicit placement filters candidates",
             },
         }

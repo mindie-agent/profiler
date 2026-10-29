@@ -126,7 +126,7 @@ class CohortAccumulator:
         self.eligibility[key] = result
         return result
 
-    def add(self, event, interval, *, status, ids, candidates, basis, contract):
+    def add(self, event, interval, *, status, ids, candidates, basis, contract, refinement=None):
         if not candidates or contract is None:
             self.excluded["no_tensor_candidates"] += 1
             return "no_tensor_candidates"
@@ -155,6 +155,7 @@ class CohortAccumulator:
                 "event_count": 0, "complete_event_count": 0, "clipped_event_count": 0,
                 "activity_sum_ns": 0, "complete_activity_sum_ns": 0,
                 "status_counts": Counter(), "_durations": Counter(), "_intervals": [],
+                "_refinements": {},
                 "occurrence_binding_implied": False,
             }
         group = self.groups[key]
@@ -162,6 +163,10 @@ class CohortAccumulator:
         group["status_counts"][status] += 1
         group["activity_sum_ns"] += interval[1] - interval[0]
         group["_intervals"].append(interval)
+        if refinement is not None:
+            refined = group["_refinements"].setdefault(
+                _canonical(refinement), {**refinement, "event_count": 0})
+            refined["event_count"] += 1
         if event.complete_in(self.observation.window.start_ns, self.observation.window.end_ns):
             duration = event.end_ns - event.start_ns
             group["complete_event_count"] += 1
@@ -177,6 +182,7 @@ class CohortAccumulator:
             intervals = group.pop("_intervals")
             count = group["complete_event_count"]
             group["status_counts"] = dict(group["status_counts"])
+            group["candidate_refinements"] = list(group.pop("_refinements").values())
             group["busy_union_ns"] = sum(end - start for start, end in merge_intervals(intervals))
             group["duration_ns"] = {
                 "mean": group["complete_activity_sum_ns"] / count if count else None,
