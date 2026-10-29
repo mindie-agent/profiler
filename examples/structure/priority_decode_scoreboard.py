@@ -44,6 +44,12 @@ def _runtime_identity(receipt):
             "basis": "recorded_relative_sim_file_hash_map; full_receipt_retains_source_paths"}
 
 
+def _population(row):
+    geometry, source = row.get("geometry") or {}, row.get("source_identity") or {}
+    return (source.get("sha256"), geometry.get("query_rows"),
+            geometry.get("tokens_per_sequence"), geometry.get("sequences_per_replica"))
+
+
 def body_rows(receipt, identity):
     result = []
     for case in receipt["cases"]:
@@ -112,12 +118,29 @@ def operator_rows(receipt, identity):
     return families, cohorts
 
 
-def build(body_paths, operator_paths, reference_paths=(), evidence_paths=()):
+def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), invalidation_paths=()):
     bodies, families, cohorts, references, inputs = [], [], [], [], []
+    invalidations = {}
+    for path in invalidation_paths:
+        receipt, identity = _read(path)
+        inputs.append(identity)
+        for item in receipt["invalidated_body_receipts"]:
+            invalidations[item["sha256"]] = {"receipt": identity, "reason": receipt["reason"],
+                                           "status": receipt["status"]}
     for path in body_paths:
         receipt, identity = _read(path)
         inputs.append(identity)
-        bodies.extend(body_rows(receipt, identity))
+        rows = body_rows(receipt, identity)
+        invalidation = invalidations.get(identity["sha256"])
+        for row in rows:
+            if invalidation:
+                row["prediction_invalidation"] = invalidation
+                row["original_comparison"] = row["comparison"]
+                row["comparison"] = {**row["comparison"], "status": invalidation["status"],
+                                     "passed": None, "predicted_ms": None,
+                                     "per_forward_diff_ms": None, "relative_error": None}
+                row["display_status"] = invalidation["status"]
+        bodies.extend(rows)
     for path in operator_paths:
         receipt, identity = _read(path)
         inputs.append(identity)
@@ -134,7 +157,7 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=()):
                         "runtime_identity": _runtime_identity(receipt),
                         "source_identity": case["source_identity"], "geometry": case["geometry"],
                         "native_operator_type": group["native_operator_type"],
-                        "attention_kind": group["attention_kind"], "block": "attention",
+                        "attention_kind": group["attention_kind"], "block": group.get("block"),
                         "declared_roles": [group["declared_role"]], "layer_ids": group["layer_ids"],
                         "status": group["prediction_status"], "evidence_strength": group["evidence_strength"],
                         "observed_us": group["observed_us"], "predicted_us": None,
@@ -144,6 +167,7 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=()):
                         "reference_residual_ms_per_forward": predicted - observed if predicted is not None else None,
                         "model_program_already_costed": True, "additional_budget_allowed": False,
                         "boundary": group.get("boundary"), "conditions": group.get("conditions"),
+                        "source_correspondence": group.get("source_correspondence"),
                         "physical_program_signatures": group["physical_program_signatures"], "scored": False})
     for path in reference_paths:
         receipt, identity = _read(path)
@@ -164,9 +188,7 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=()):
                     "scored": False})
     current = {}
     for row in bodies:
-        geometry, source = row["geometry"] or {}, row["source_identity"] or {}
-        key = (source.get("sha256"), geometry.get("query_rows"),
-               geometry.get("tokens_per_sequence"), geometry.get("sequences_per_replica"))
+        key = _population(row)
         # CLI receipt order explicitly selects the latest completed arm. A
         # deferred population never erases an earlier completed prediction.
         if key not in current or row["comparison"]["status"] == "compared":
@@ -175,7 +197,20 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=()):
         row["comparison"].get("per_forward_diff_ms") or 0), reverse=True)
     bodies.sort(key=lambda row: abs(row["comparison"].get("per_forward_diff_ms") or 0), reverse=True)
     cohorts.sort(key=lambda row: row["absolute_activity_residual_ms_per_forward"], reverse=True)
+    operator_selection = {}
+    for row in families:
+        # Input order, rather than activity rank, chooses the current program.
+        rank = next(i for i, item in enumerate(inputs) if item == row["receipt"])
+        key = _population(row)
+        if key not in operator_selection or rank >= operator_selection[key][0]:
+            operator_selection[key] = (rank, row["receipt"]["sha256"], row["case_id"])
+    def selected_operator(row):
+        selected = operator_selection[_population(row)]
+        return (row["receipt"]["sha256"], row["case_id"]) == selected[1:]
+    current_families = [row for row in families if selected_operator(row)]
+    current_cohorts = [row for row in cohorts if selected_operator(row)]
     families.sort(key=lambda row: row["measured_activity_ms_per_forward"], reverse=True)
+    current_families.sort(key=lambda row: row["measured_activity_ms_per_forward"], reverse=True)
     evidence = []
     for path in evidence_paths:
         _, identity = _read(path)
@@ -191,7 +226,7 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=()):
         populations[key] = observed
     tiers = {}
     for heavy, label in ((True, "heavy_relative_15pct"), (False, "micro_absolute_15us")):
-        selected = [row for row in cohorts if row["status"] == "compared" and row["heavy_call"] == heavy]
+        selected = [row for row in current_cohorts if row["status"] == "compared" and row["heavy_call"] == heavy]
         tiers[label] = {"compared": len(selected), "passed": sum(row["accuracy_pass"] is True for row in selected)}
     return {"schema_version": "mindie-priority-decode-scoreboard/1",
             "coverage_status": "partial" if (not cohorts or any(row["comparison"]["status"] != "compared" for row in bodies)
@@ -199,12 +234,14 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=()):
             "inputs": inputs, "additional_evidence": evidence,
             "body_comparisons": bodies, "operator_families": families, "operator_cohorts": cohorts,
             "current_body_comparisons": current_rows,
+            "current_operator_families": current_families, "current_operator_cohorts": current_cohorts,
             "current_selection_policy": "last compared input receipt per source and measured geometry; prior arms retained",
             "source_role_references": references,
             "summary": {"body_compared": sum(row["comparison"]["status"] == "compared" for row in bodies),
                         "body_passed": sum(row["comparison"].get("passed") is True for row in bodies),
                         "current_body_compared": sum(row["comparison"]["status"] == "compared" for row in current_rows),
                         "current_body_passed": sum(row["comparison"].get("passed") is True for row in current_rows),
+                        "invalidated_body_prediction_arms": sum("prediction_invalidation" in row for row in bodies),
                         "body_denominator": "prediction_variants; identical observed populations are not additional captures",
                         "unique_source_count": len({key[0] for key in populations}),
                         "unique_source_geometry_populations": len(populations),
@@ -237,7 +274,9 @@ def render(report):
              f"Body: **{summary['body_passed']}/{summary['body_compared']} prediction arms passed**; "
              f"{summary['unique_source_count']} unique sources, {summary['unique_source_geometry_populations']} measured geometry populations, "
              f"{summary['unique_observed_forward_count']} unique complete Forwards (includes deferred populations).", "",
-             "Operator strict accuracy: " + "; ".join(f"{key}: **{value['passed']}/{value['compared']}**"
+             f"Invalidated prediction rows: **{summary['invalidated_body_prediction_arms']}**. Their measured populations remain; "
+             "superseded predictions and layer errors are excluded from accuracy statistics.", "",
+             "Current operator strict accuracy (latest input receipt per source/geometry): " + "; ".join(f"{key}: **{value['passed']}/{value['compared']}**"
                  for key, value in summary["operator_accuracy_by_tier"].items()) + ". Conditional references are excluded.", "",
              "Local replay receipts with explicit comparison coverage. Body errors are measured wall-clock differences; "
              "operator priorities are nonadditive kernel activity residuals per complete Forward.", "",
@@ -267,7 +306,7 @@ def render(report):
         for key, values in groups.items():
             observed = sum(item["observed_ms"]["mean"] for item in values) / len(values)
             p50 = median(item["observed_ms"]["p50"] for item in values)
-            preds = [item.get("predicted_ms") for item in values]
+            preds = [None if row.get("prediction_invalidation") else item.get("predicted_ms") for item in values]
             pred = sum(preds) / len(preds) if all(value is not None for value in preds) else None
             error = (pred / observed - 1) * 100 if pred is not None and observed else None
             p50_error = (pred / p50 - 1) * 100 if pred is not None and p50 else None
@@ -277,7 +316,7 @@ def render(report):
         lines += ["", f"## {'Heavy >50us' if heavy else 'Micro <=50us'} operators — activity residual priority", "",
                   "| Case | Operator / role | Calls | Real / Sim us | Diff us | Absolute ms / Forward | Tier pass |",
                   "|---|---|---:|---:|---:|---:|---|"]
-        selected = [row for row in report["operator_cohorts"] if row["heavy_call"] == heavy]
+        selected = [row for row in report["current_operator_cohorts"] if row["heavy_call"] == heavy]
         for row in selected[:40]:
             lines.append(f"| {row['case_id']} / `{_runtime_tag(row)}` | {row['native_operator_type']} / {row['declared_role']} | "
                          f"{row['observed_calls']} | {row['observed_us']:.3f} / {row['predicted_us']:.3f} | "
@@ -286,7 +325,7 @@ def render(report):
     lines += ["", "## Highest unscored activity — coverage gaps, not zero predictions", "",
               "| Case | Operator / role | Unscored calls | Unscored observed activity ms / Forward | Status |",
               "|---|---|---:|---:|---|"]
-    gaps = sorted((item for item in report["operator_families"] if item.get("unscored_event_count")),
+    gaps = sorted((item for item in report["current_operator_families"] if item.get("unscored_event_count")),
                   key=lambda row: row["unscored_activity_ms_per_forward"], reverse=True)
     for row in gaps[:40]:
         lines.append(f"| {row['case_id']} | {row['native_operator_type']} / {row['declared_role']} | "
@@ -299,10 +338,13 @@ def render(report):
                         key=lambda row: abs(row["reference_residual_ms_per_forward"] or 0), reverse=True)
     for row in references:
         prediction = row["predicted_us"] if row["predicted_us"] is not None else row["predicted_reference_us"]
-        lines.append(f"| {row['case_id']} / `{_runtime_tag(row)}` | {row['native_operator_type']} / {row['attention_kind']} / {row['block']} | "
+        correspondence = row.get("source_correspondence") or {}
+        boundary = correspondence.get("boundary_relation") or row["status"]
+        roles = ' + '.join(row.get('declared_roles') or [])
+        lines.append(f"| {row['case_id']} / `{_runtime_tag(row)}` | {row['native_operator_type']} / {roles} / {row['attention_kind']} / {row['block']} | "
                      f"{_num(row['observed_us']['mean'])} / {_num(prediction)} | "
                      f"{_num(row['observed_activity_ms_per_forward'])} / {_num(row['predicted_service_ms_per_forward'])} | "
-                     f"{_num(row['reference_residual_ms_per_forward'])} | {row['status']} |")
+                     f"{_num(row['reference_residual_ms_per_forward'])} | {boundary} |")
     lines += ["", "## Receipt identities", ""]
     lines += [f"- [{Path(item['path']).name}]({item['path']}), SHA256 `{item['sha256']}`" for item in report["inputs"]]
     if report["additional_evidence"]:
@@ -320,16 +362,17 @@ def main():
     parser.add_argument("--operators", type=Path, action="append", default=[])
     parser.add_argument("--references", type=Path, action="append", default=[])
     parser.add_argument("--evidence", type=Path, action="append", default=[])
+    parser.add_argument("--invalidations", type=Path, action="append", default=[])
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     manifest_identity = None
     if args.input_manifest:
         manifest, manifest_identity = _read(args.input_manifest)
-        for key in ("body", "operators", "references", "evidence"):
+        for key in ("body", "operators", "references", "evidence", "invalidations"):
             paths = [Path(value) for value in manifest.get(key, [])]
             paths = [path if path.is_absolute() else args.input_manifest.parent / path for path in paths]
             setattr(args, key, paths + getattr(args, key))
-    report = build(args.body, args.operators, args.references, args.evidence)
+    report = build(args.body, args.operators, args.references, args.evidence, args.invalidations)
     if manifest_identity:
         report["input_manifest_identity"] = manifest_identity
     args.output.write_text(json.dumps(report, indent=2) + "\n")

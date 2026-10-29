@@ -8,10 +8,11 @@
     1,
     5116
   ],
-  "fixture_sha256": "934ae72bdf830bb2e67e2c9172da9f17e42df4e014d404875921b2a43f076c94",
+  "fixture_sha256": "c6f7daa73fed6c2901fbadfa81ad8120d649810c21cf4492dc5b06216193d816",
   "model_case": {
     "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-new6/a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4.json",
     "sha256": "bf83af4718ce95c3e3428ce7777acd324087dfd69ee97faf73d1bf35d2e322b2"
   },
-  "not_new_live_collection": true
+  "not_new_live_collection": true,
+  "serialization": "Original CSV fields and row order; line endings normalized to LF"
 }

@@ -6,6 +6,26 @@ from pathlib import Path
 import pytest
 
 
+def test_invalid_quantization_receipt_retains_real_population_but_loses_accuracy(monkeypatch):
+    root = Path(__file__).resolve().parents[1]
+    monkeypatch.syspath_prepend(str(root / "examples/structure"))
+    module = importlib.import_module("priority_decode_scoreboard")
+    base = root / "examples/structure/acceptance-20261030-kimi-variants"
+    path = base / "decode-forward-09811dad-replay.json"
+    report = module.build([path], [], invalidation_paths=[base / "prediction-input-binding-invalidation.json"])
+    assert report["summary"]["current_body_compared"] == 0
+    assert report["summary"]["body_passed"] == 0
+    assert report["summary"]["unique_observed_forward_count"] == 1799
+    assert all(row["comparison"]["predicted_ms"] is None for row in report["body_comparisons"])
+    assert sum(row["original_comparison"].get("passed") is True
+               for row in report["body_comparisons"]) == 5
+    corrected = base / "decode-forward-332f0420-window8-replay.json"
+    after = module.build([path, corrected], [], invalidation_paths=[base / "prediction-input-binding-invalidation.json"])
+    assert after["summary"]["unique_observed_forward_count"] == 1799
+    assert after["summary"]["current_body_compared"] == 17
+    assert after["summary"]["current_body_passed"] == 1
+
+
 def test_real_cohort_priority_uses_complete_forward_and_per_call_tier(monkeypatch):
     root = Path(__file__).resolve().parents[1]
     monkeypatch.syspath_prepend(str(root / "examples/structure"))
