@@ -1,0 +1,890 @@
+{
+  "schema_version": "mindie-attnres-boundary-evidence/1",
+  "date": "2026-10-29",
+  "status": "source_boundary_design_and_diagnostic_only",
+  "capture": {
+    "operator_type": "AttnResFwd",
+    "source": "/Volumes/data-tmp/tmp/mindie-body-profiling-kimi-op-summary.csv",
+    "source_sha256": "ab1d44d3613ecb92d71af6d790ab9dfc72be5aabfe92bf4f99d584fbd0f9e648",
+    "source_size_bytes": 110031770,
+    "fixture": "tests/fixtures/kimi_grouped_attnres/a5_kimi_k3.csv",
+    "fixture_sha256": "7b3f0cdf5bf2f318cfbdd3a5df4d95dc2e55092ed7ee2ed161106b534951bd16",
+    "event_count": 14768,
+    "descriptor_count": 4,
+    "activity_sum_us": 245588.31899999958,
+    "count_basis": "Prior full-capture streamed descriptor inventory; this review verified four retained rows and arithmetic without rescanning raw capture.",
+    "descriptor_inventory_sha256": "8f382d5cf4b98a8c544babb78fbcd83b3ffcd5e055a21657517ec20d50ffd5c8"
+  },
+  "source_identity": {
+    "image_id": "sha256:883670fcc91cbd75a7070b00501be0ecd81a266b81366a21bf02139d8e6a33e1",
+    "image_tag": "kimik3-pool-snapshot:20261017-node21",
+    "interface_identity": "Same-name six-input/three-output source interface retained in campaign image.",
+    "capture_binary_loading_proven": false,
+    "per_event_scalar_or_tiling_identity_proven": false,
+    "kernel_acquisition": {
+      "method": "read_only_docker_image_overlay_layers",
+      "job_id": "job-20261029T142103Z-339d3416",
+      "host": "177.25.21.1",
+      "port": 22,
+      "overlay_order_and_whiteouts_checked": true,
+      "current_container_started": false,
+      "device_context_initialized": false,
+      "weight_payload_read": false,
+      "capture_binary_identity_proven": false,
+      "payload_sha256": "2df19fbc7bc9447522fa1b6069ddd240c58c757f25500bf1540e2ab447baec45"
+    },
+    "files": [
+      {
+        "path": "/vllm-workspace/vllm-ascend/vllm_ascend/quantization/methods/w8a8/w8a8_mxfp8.py",
+        "layer_index": 0,
+        "layer_path": "/var/lib/docker/overlay2/d346826fbe7e8ef54acafcc29bc1df087c427db70cdf7f4d72c86bae1f71f459/diff",
+        "sha256": "51ece928e77420a7f6600e2d87c46e9397a5140b6acee324aa75fdb97266d009",
+        "size_bytes": 38308,
+        "overlay_obstacles": [],
+        "local_file": "tests/fixtures/kimi_grouped_attnres/source_image_883670fc/w8a8_mxfp8.py"
+      },
+      {
+        "path": "/vllm-workspace/vllm-ascend/vllm_ascend/models/kimi_k3.py",
+        "layer_index": 0,
+        "layer_path": "/var/lib/docker/overlay2/d346826fbe7e8ef54acafcc29bc1df087c427db70cdf7f4d72c86bae1f71f459/diff",
+        "sha256": "be9adc792774f919f443caf483eb2e04e4453617465381f47a482dd4736ec63f",
+        "size_bytes": 56051,
+        "overlay_obstacles": [],
+        "local_file": "tests/fixtures/kimi_grouped_attnres/source_image_883670fc/kimi_k3.py"
+      },
+      {
+        "path": "/vllm-workspace/vllm-ascend/csrc/attention/attn_res_fwd/op_host/attn_res_fwd_def.cpp",
+        "layer_index": 10,
+        "layer_path": "/var/lib/docker/overlay2/c33bf61cd87cad166e4196cf38510ef20b4da51a9fb812c391ce91c86247d783/diff",
+        "sha256": "8f9c501cc20adbf0860eba3042ac415d3654400284a7257d617fdb3a5a9b1f17",
+        "size_bytes": 1855,
+        "overlay_obstacles": [],
+        "local_file": "tests/fixtures/kimi_grouped_attnres/source_image_883670fc/attn_res_fwd_def.cpp"
+      },
+      {
+        "path": "/vllm-workspace/vllm-ascend/csrc/attention/attn_res_fwd/attn_res_fwd_common.h",
+        "layer_index": 10,
+        "layer_path": "/var/lib/docker/overlay2/c33bf61cd87cad166e4196cf38510ef20b4da51a9fb812c391ce91c86247d783/diff",
+        "sha256": "f8abf2be43c0e0a70a19df4d4d1cdab518dc939fee6612aabcaf1f6e090e53a2",
+        "size_bytes": 3234,
+        "overlay_obstacles": [],
+        "local_file": "tests/fixtures/kimi_grouped_attnres/source_image_883670fc/attn_res_fwd_common.h"
+      },
+      {
+        "path": "/vllm-workspace/vllm-ascend/csrc/attention/attn_res_fwd/attn_res_fwd_torch_adpt.h",
+        "layer_index": 10,
+        "layer_path": "/var/lib/docker/overlay2/c33bf61cd87cad166e4196cf38510ef20b4da51a9fb812c391ce91c86247d783/diff",
+        "sha256": "405a4214a2f87527d49a9f309a5516a6dd35c56ed7b64afe51ab2f568624f750",
+        "size_bytes": 707,
+        "overlay_obstacles": [],
+        "local_file": "tests/fixtures/kimi_grouped_attnres/source_image_883670fc/attn_res_fwd_torch_adpt.h"
+      },
+      {
+        "path": "/vllm-workspace/vllm-ascend/csrc/attention/attn_res_fwd/op_host/attn_res_fwd_tiling.cpp",
+        "layer_index": 10,
+        "layer_path": "/var/lib/docker/overlay2/c33bf61cd87cad166e4196cf38510ef20b4da51a9fb812c391ce91c86247d783/diff",
+        "sha256": "3249e4f252af0c68187b8caa7a00f63592a42c231fefecc28b7b1e7609b60669",
+        "size_bytes": 20562,
+        "overlay_obstacles": [],
+        "local_file": "tests/fixtures/kimi_grouped_attnres/source_image_883670fc/op_host/attn_res_fwd_tiling.cpp"
+      },
+      {
+        "path": "/vllm-workspace/vllm-ascend/csrc/attention/attn_res_fwd/op_host/attn_res_fwd_tiling.h",
+        "layer_index": 10,
+        "layer_path": "/var/lib/docker/overlay2/c33bf61cd87cad166e4196cf38510ef20b4da51a9fb812c391ce91c86247d783/diff",
+        "sha256": "8732c5c693c76e006c066befb4a47110200c13cc6db4e4e3e3548ea3893a7613",
+        "size_bytes": 2767,
+        "overlay_obstacles": [],
+        "local_file": "tests/fixtures/kimi_grouped_attnres/source_image_883670fc/op_host/attn_res_fwd_tiling.h"
+      },
+      {
+        "path": "/vllm-workspace/vllm-ascend/csrc/attention/attn_res_fwd/op_host/op_api/aclnn_attn_res_fwd.cpp",
+        "layer_index": 10,
+        "layer_path": "/var/lib/docker/overlay2/c33bf61cd87cad166e4196cf38510ef20b4da51a9fb812c391ce91c86247d783/diff",
+        "sha256": "f2b05d77302edd941a4b7a2dd240fea5613077ef01db5f3bcf02d13aeb9a5b5e",
+        "size_bytes": 3950,
+        "overlay_obstacles": [],
+        "local_file": "tests/fixtures/kimi_grouped_attnres/source_image_883670fc/op_host/op_api/aclnn_attn_res_fwd.cpp"
+      },
+      {
+        "path": "/vllm-workspace/vllm-ascend/csrc/attention/attn_res_fwd/op_kernel/attn_res_fwd_apt.cpp",
+        "layer_index": 10,
+        "layer_path": "/var/lib/docker/overlay2/c33bf61cd87cad166e4196cf38510ef20b4da51a9fb812c391ce91c86247d783/diff",
+        "sha256": "cd5429e2b329f63b98086537edce167983a830a9d8d549630c5153557486f0b6",
+        "size_bytes": 2629,
+        "overlay_obstacles": [],
+        "local_file": "tests/fixtures/kimi_grouped_attnres/source_image_883670fc/op_kernel/attn_res_fwd_apt.cpp"
+      },
+      {
+        "path": "/vllm-workspace/vllm-ascend/csrc/attention/attn_res_fwd/op_kernel/arch35/attn_res_fwd_regbase_common.h",
+        "layer_index": 10,
+        "layer_path": "/var/lib/docker/overlay2/c33bf61cd87cad166e4196cf38510ef20b4da51a9fb812c391ce91c86247d783/diff",
+        "sha256": "cf5a8ed508f55c2098d1f25c19b41d031dc80c8a175ec020d528e0e7184ba960",
+        "size_bytes": 45221,
+        "overlay_obstacles": [],
+        "local_file": "tests/fixtures/kimi_grouped_attnres/source_image_883670fc/op_kernel/arch35/attn_res_fwd_regbase_common.h"
+      },
+      {
+        "path": "/vllm-workspace/vllm-ascend/csrc/attention/attn_res_fwd/op_kernel/arch35/attn_res_fwd_reload.h",
+        "layer_index": 10,
+        "layer_path": "/var/lib/docker/overlay2/c33bf61cd87cad166e4196cf38510ef20b4da51a9fb812c391ce91c86247d783/diff",
+        "sha256": "e346cd0db6eeedcfffaf911a07f6ddf4e34475c69677f73cb9e279f39641f070",
+        "size_bytes": 21548,
+        "overlay_obstacles": [],
+        "local_file": "tests/fixtures/kimi_grouped_attnres/source_image_883670fc/op_kernel/arch35/attn_res_fwd_reload.h"
+      },
+      {
+        "path": "/vllm-workspace/vllm-ascend/csrc/attention/attn_res_fwd/op_kernel/arch35/attn_res_fwd_resident.h",
+        "layer_index": 10,
+        "layer_path": "/var/lib/docker/overlay2/c33bf61cd87cad166e4196cf38510ef20b4da51a9fb812c391ce91c86247d783/diff",
+        "sha256": "bb5a40a14e3d5637ab9deff26b77e8e3a305500f9c582a3274d7bf0b23840d94",
+        "size_bytes": 20485,
+        "overlay_obstacles": [],
+        "local_file": "tests/fixtures/kimi_grouped_attnres/source_image_883670fc/op_kernel/arch35/attn_res_fwd_resident.h"
+      }
+    ]
+  },
+  "native_interface": {
+    "input_slots": [
+      "prefix_sum",
+      "block_residual",
+      "proj_weight",
+      "norm_weight",
+      "addend",
+      "output_norm"
+    ],
+    "output_slots": [
+      "hidden_states",
+      "prefix_out",
+      "materialized"
+    ],
+    "tensor_dtype": "bf16",
+    "logical_views": {
+      "prefix_sum": [
+        "T",
+        "H"
+      ],
+      "block_residual": [
+        "T",
+        "capacity",
+        "H"
+      ],
+      "proj_weight": [
+        1,
+        "H"
+      ],
+      "norm_weight": [
+        "H"
+      ]
+    },
+    "scalar_attributes": [
+      "norm_eps",
+      "need_backward",
+      "valid_blocks",
+      "block_token_stride",
+      "block_write_idx",
+      "output_norm_eps",
+      "save_materialized",
+      "mix",
+      "fuse_add",
+      "optimize_prefill"
+    ],
+    "optional_fallbacks": {
+      "addend": "prefix_sum when add is disabled",
+      "output_norm": "norm_weight when output normalization is disabled",
+      "prefix_out": "aliases prefix_sum when add is disabled",
+      "materialized": "aliases hidden_states when save_materialized is false"
+    },
+    "format_limit": "Native registration uses ND logical tensors; the capture reports NCL backing storage for the bank. No general format equivalence is asserted."
+  },
+  "descriptors": [
+    {
+      "descriptor_id": "source_line:47",
+      "fixture_csv_line": 2,
+      "source_csv_line": 47,
+      "event_count": 4,
+      "activity_sum_us": 110.62299999999999,
+      "raw_descriptor": {
+        "Input Shapes": "\"58720256;58720256;7168;7168;58720256;7168\"",
+        "Input Data Types": "DT_BF16;DT_BF16;DT_BF16;DT_BF16;DT_BF16;DT_BF16",
+        "Input Formats": "ND;NCL;ND;ND;ND;ND",
+        "Output Shapes": "\"7340032;58720256;7340032\"",
+        "Output Data Types": "DT_BF16;DT_BF16;DT_BF16",
+        "Output Formats": "ND;ND;ND"
+      },
+      "native_tensor_abi": [
+        "native_tensor_abi",
+        "AttnResFwd",
+        [
+          [
+            [
+              58720256
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              58720256
+            ],
+            "bf16",
+            "NCL"
+          ],
+          [
+            [
+              7168
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              7168
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              58720256
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              7168
+            ],
+            "bf16",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              7340032
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              58720256
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              7340032
+            ],
+            "bf16",
+            "ND"
+          ]
+        ]
+      ],
+      "classification": {
+        "kind": "recorded_tensor_extent_only",
+        "parameter_hidden_extent": 7168,
+        "main_output_elements": 7340032,
+        "main_output_rows_if_source_empty_like_view_applies": 1024,
+        "active_prefix_and_bank_view_proven": false,
+        "history_depth": null,
+        "mix": null,
+        "fuse_add": null,
+        "output_norm_enabled": null,
+        "block_write_idx": null,
+        "save_materialized": null,
+        "optimize_prefill": null,
+        "layer": null,
+        "step": null,
+        "phase": null
+      },
+      "contract_available": false,
+      "mapping_status": "unmapped",
+      "diagnostic": {
+        "category": "contract_support_gap",
+        "reason": "active_view_or_stride_unobserved",
+        "detail": "The historical image supplies the matching six-input/three-BF16-output interface, including optional add, output-normalization and bank-write branches. Nonempty fallback tensors do not reveal those scalar flags; flattened backing allocations do not establish active views or history depth.",
+        "operator_type": "AttnResFwd",
+        "required_runtime_evidence": [
+          "invocation_implementation_and_tiling",
+          "active_prefix_shape",
+          "block_residual_strides",
+          "valid_blocks",
+          "mix",
+          "fuse_add",
+          "output_norm_enabled",
+          "block_write_idx",
+          "save_materialized",
+          "optimize_prefill"
+        ],
+        "recorded_slot_counts": {
+          "inputs": 6,
+          "outputs": 3
+        },
+        "source_interface_evidence": {
+          "identity_basis": "retained_capture_image_source",
+          "image_id": "sha256:883670fcc91cbd75a7070b00501be0ecd81a266b81366a21bf02139d8e6a33e1",
+          "definition_sha256": "8f9c501cc20adbf0860eba3042ac415d3654400284a7257d617fdb3a5a9b1f17",
+          "input_count": 6,
+          "output_count": 3,
+          "event_binary_or_dispatch_proven": false,
+          "recorded_slot_count_matches": true
+        }
+      }
+    },
+    {
+      "descriptor_id": "source_line:78",
+      "fixture_csv_line": 3,
+      "source_csv_line": 78,
+      "event_count": 744,
+      "activity_sum_us": 97511.83099999993,
+      "raw_descriptor": {
+        "Input Shapes": "\"7340032;58720256;7168;7168;7340032;7168\"",
+        "Input Data Types": "DT_BF16;DT_BF16;DT_BF16;DT_BF16;DT_BF16;DT_BF16",
+        "Input Formats": "ND;NCL;ND;ND;ND;ND",
+        "Output Shapes": "\"7340032;7340032;7340032\"",
+        "Output Data Types": "DT_BF16;DT_BF16;DT_BF16",
+        "Output Formats": "ND;ND;ND"
+      },
+      "native_tensor_abi": [
+        "native_tensor_abi",
+        "AttnResFwd",
+        [
+          [
+            [
+              7340032
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              58720256
+            ],
+            "bf16",
+            "NCL"
+          ],
+          [
+            [
+              7168
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              7168
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              7340032
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              7168
+            ],
+            "bf16",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              7340032
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              7340032
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              7340032
+            ],
+            "bf16",
+            "ND"
+          ]
+        ]
+      ],
+      "classification": {
+        "kind": "recorded_tensor_extent_only",
+        "parameter_hidden_extent": 7168,
+        "main_output_elements": 7340032,
+        "main_output_rows_if_source_empty_like_view_applies": 1024,
+        "active_prefix_and_bank_view_proven": false,
+        "history_depth": null,
+        "mix": null,
+        "fuse_add": null,
+        "output_norm_enabled": null,
+        "block_write_idx": null,
+        "save_materialized": null,
+        "optimize_prefill": null,
+        "layer": null,
+        "step": null,
+        "phase": null
+      },
+      "contract_available": false,
+      "mapping_status": "unmapped",
+      "diagnostic": {
+        "category": "contract_support_gap",
+        "reason": "active_view_or_stride_unobserved",
+        "detail": "The historical image supplies the matching six-input/three-BF16-output interface, including optional add, output-normalization and bank-write branches. Nonempty fallback tensors do not reveal those scalar flags; flattened backing allocations do not establish active views or history depth.",
+        "operator_type": "AttnResFwd",
+        "required_runtime_evidence": [
+          "invocation_implementation_and_tiling",
+          "active_prefix_shape",
+          "block_residual_strides",
+          "valid_blocks",
+          "mix",
+          "fuse_add",
+          "output_norm_enabled",
+          "block_write_idx",
+          "save_materialized",
+          "optimize_prefill"
+        ],
+        "recorded_slot_counts": {
+          "inputs": 6,
+          "outputs": 3
+        },
+        "source_interface_evidence": {
+          "identity_basis": "retained_capture_image_source",
+          "image_id": "sha256:883670fcc91cbd75a7070b00501be0ecd81a266b81366a21bf02139d8e6a33e1",
+          "definition_sha256": "8f9c501cc20adbf0860eba3042ac415d3654400284a7257d617fdb3a5a9b1f17",
+          "input_count": 6,
+          "output_count": 3,
+          "event_binary_or_dispatch_proven": false,
+          "recorded_slot_count_matches": true
+        }
+      }
+    },
+    {
+      "descriptor_id": "source_line:30505",
+      "fixture_csv_line": 4,
+      "source_csv_line": 30505,
+      "event_count": 75,
+      "activity_sum_us": 310.11399999999986,
+      "raw_descriptor": {
+        "Input Shapes": "\"57344;57344;7168;7168;57344;7168\"",
+        "Input Data Types": "DT_BF16;DT_BF16;DT_BF16;DT_BF16;DT_BF16;DT_BF16",
+        "Input Formats": "ND;NCL;ND;ND;ND;ND",
+        "Output Shapes": "\"7168;57344;7168\"",
+        "Output Data Types": "DT_BF16;DT_BF16;DT_BF16",
+        "Output Formats": "ND;ND;ND"
+      },
+      "native_tensor_abi": [
+        "native_tensor_abi",
+        "AttnResFwd",
+        [
+          [
+            [
+              57344
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              57344
+            ],
+            "bf16",
+            "NCL"
+          ],
+          [
+            [
+              7168
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              7168
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              57344
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              7168
+            ],
+            "bf16",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              7168
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              57344
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              7168
+            ],
+            "bf16",
+            "ND"
+          ]
+        ]
+      ],
+      "classification": {
+        "kind": "recorded_tensor_extent_only",
+        "parameter_hidden_extent": 7168,
+        "main_output_elements": 7168,
+        "main_output_rows_if_source_empty_like_view_applies": 1,
+        "active_prefix_and_bank_view_proven": false,
+        "history_depth": null,
+        "mix": null,
+        "fuse_add": null,
+        "output_norm_enabled": null,
+        "block_write_idx": null,
+        "save_materialized": null,
+        "optimize_prefill": null,
+        "layer": null,
+        "step": null,
+        "phase": null
+      },
+      "contract_available": false,
+      "mapping_status": "unmapped",
+      "diagnostic": {
+        "category": "contract_support_gap",
+        "reason": "active_view_or_stride_unobserved",
+        "detail": "The historical image supplies the matching six-input/three-BF16-output interface, including optional add, output-normalization and bank-write branches. Nonempty fallback tensors do not reveal those scalar flags; flattened backing allocations do not establish active views or history depth.",
+        "operator_type": "AttnResFwd",
+        "required_runtime_evidence": [
+          "invocation_implementation_and_tiling",
+          "active_prefix_shape",
+          "block_residual_strides",
+          "valid_blocks",
+          "mix",
+          "fuse_add",
+          "output_norm_enabled",
+          "block_write_idx",
+          "save_materialized",
+          "optimize_prefill"
+        ],
+        "recorded_slot_counts": {
+          "inputs": 6,
+          "outputs": 3
+        },
+        "source_interface_evidence": {
+          "identity_basis": "retained_capture_image_source",
+          "image_id": "sha256:883670fcc91cbd75a7070b00501be0ecd81a266b81366a21bf02139d8e6a33e1",
+          "definition_sha256": "8f9c501cc20adbf0860eba3042ac415d3654400284a7257d617fdb3a5a9b1f17",
+          "input_count": 6,
+          "output_count": 3,
+          "event_binary_or_dispatch_proven": false,
+          "recorded_slot_count_matches": true
+        }
+      }
+    },
+    {
+      "descriptor_id": "source_line:30520",
+      "fixture_csv_line": 5,
+      "source_csv_line": 30520,
+      "event_count": 13945,
+      "activity_sum_us": 147655.75099999964,
+      "raw_descriptor": {
+        "Input Shapes": "\"7168;57344;7168;7168;7168;7168\"",
+        "Input Data Types": "DT_BF16;DT_BF16;DT_BF16;DT_BF16;DT_BF16;DT_BF16",
+        "Input Formats": "ND;NCL;ND;ND;ND;ND",
+        "Output Shapes": "\"7168;7168;7168\"",
+        "Output Data Types": "DT_BF16;DT_BF16;DT_BF16",
+        "Output Formats": "ND;ND;ND"
+      },
+      "native_tensor_abi": [
+        "native_tensor_abi",
+        "AttnResFwd",
+        [
+          [
+            [
+              7168
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              57344
+            ],
+            "bf16",
+            "NCL"
+          ],
+          [
+            [
+              7168
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              7168
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              7168
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              7168
+            ],
+            "bf16",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              7168
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              7168
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              7168
+            ],
+            "bf16",
+            "ND"
+          ]
+        ]
+      ],
+      "classification": {
+        "kind": "recorded_tensor_extent_only",
+        "parameter_hidden_extent": 7168,
+        "main_output_elements": 7168,
+        "main_output_rows_if_source_empty_like_view_applies": 1,
+        "active_prefix_and_bank_view_proven": false,
+        "history_depth": null,
+        "mix": null,
+        "fuse_add": null,
+        "output_norm_enabled": null,
+        "block_write_idx": null,
+        "save_materialized": null,
+        "optimize_prefill": null,
+        "layer": null,
+        "step": null,
+        "phase": null
+      },
+      "contract_available": false,
+      "mapping_status": "unmapped",
+      "diagnostic": {
+        "category": "contract_support_gap",
+        "reason": "active_view_or_stride_unobserved",
+        "detail": "The historical image supplies the matching six-input/three-BF16-output interface, including optional add, output-normalization and bank-write branches. Nonempty fallback tensors do not reveal those scalar flags; flattened backing allocations do not establish active views or history depth.",
+        "operator_type": "AttnResFwd",
+        "required_runtime_evidence": [
+          "invocation_implementation_and_tiling",
+          "active_prefix_shape",
+          "block_residual_strides",
+          "valid_blocks",
+          "mix",
+          "fuse_add",
+          "output_norm_enabled",
+          "block_write_idx",
+          "save_materialized",
+          "optimize_prefill"
+        ],
+        "recorded_slot_counts": {
+          "inputs": 6,
+          "outputs": 3
+        },
+        "source_interface_evidence": {
+          "identity_basis": "retained_capture_image_source",
+          "image_id": "sha256:883670fcc91cbd75a7070b00501be0ecd81a266b81366a21bf02139d8e6a33e1",
+          "definition_sha256": "8f9c501cc20adbf0860eba3042ac415d3654400284a7257d617fdb3a5a9b1f17",
+          "input_count": 6,
+          "output_count": 3,
+          "event_binary_or_dispatch_proven": false,
+          "recorded_slot_count_matches": true
+        }
+      }
+    }
+  ],
+  "proposed_semantic_interface": {
+    "status": "design_not_implemented",
+    "implementation_selector": "source_selected_attnres_image_883670fc",
+    "name": "attn_res_point",
+    "inputs": [
+      "context",
+      "prefix_id",
+      "addend_id_or_none",
+      "bank_ids",
+      "valid_blocks",
+      "write_slot_or_none",
+      "output_norm_or_none",
+      "mix",
+      "materialize",
+      "tokens_local",
+      "block_token_stride",
+      "optimize_prefill"
+    ],
+    "outputs": [
+      "ops",
+      "hidden_id",
+      "raw_prefix_id",
+      "materialized_id",
+      "updated_bank_ids"
+    ],
+    "source_points": [
+      {
+        "role": "prepare_attention",
+        "members": [
+          "optional_previous_mlp_add_and_bf16_round",
+          "optional_bank_write",
+          "residual_mixture_if_valid_blocks_positive",
+          "input_layernorm"
+        ],
+        "valid_blocks": "ceil(layer_index / block_size)",
+        "write_slot": "layer_index // block_size when layer_index % block_size == 0",
+        "raw_prefix_after_boundary": "clear live prefix before attention result is added"
+      },
+      {
+        "role": "prepare_ffn",
+        "members": [
+          "optional_attention_add_and_bf16_round",
+          "residual_mixture_if_valid_blocks_positive",
+          "post_attention_layernorm"
+        ],
+        "valid_blocks": "ceil(layer_index / block_size) + int(is_block_write_layer)",
+        "addend_condition": "absent on a block-write layer whose prefix was cleared"
+      },
+      {
+        "role": "final_output",
+        "members": [
+          "optional_last_mlp_add_and_bf16_round",
+          "residual_mixture"
+        ],
+        "valid_blocks": "ceil(end_layer / block_size)",
+        "output_norm": null
+      },
+      {
+        "role": "standalone_decoder_add_only",
+        "members": [
+          "last_mlp_add_and_bf16_round"
+        ],
+        "valid_blocks": 0,
+        "mix": false
+      }
+    ],
+    "state_requirements": [
+      "Keep the initial embedding bank write, deferred MLP add and cleared-prefix semantics.",
+      "Preserve raw prefix, bank and optional materialized dependencies and aliases.",
+      "Do not count the old residual.after add in addition to an add absorbed into the next native point.",
+      "Model sequence-parallel local rows and gather/reduce-scatter boundaries explicitly.",
+      "Non-last PP boundary uses its source-defined pending add/transport rather than final-output mixture."
+    ]
+  },
+  "resource_boundary": {
+    "status": "source_derived_requirements_not_yet_a_sim_resource_recipe",
+    "engine": "AIV_ONLY",
+    "user_fp32_workspace_bytes": 0,
+    "system_workspace_reservation_bytes": 16777216,
+    "compute": "BF16 stored tensors; FP32 vector casts, reductions, dot products, softmax and weighted sum; round the optional residual add and mixture to BF16 before subsequent stages.",
+    "parameters": "Projection and residual norm are BF16 storage loaded once per used core and multiplied into FP32 score weights. They are not an FP32 Cube GEMM.",
+    "history_reads": {
+      "resident": "2*T*N*H useful bytes for valid bank rows; rows remain in UB for weighted sum.",
+      "reload": "4*T*N*H useful bytes for valid bank rows, read before and after softmax.",
+      "variables": "T=local active rows,H=hidden,N=valid_blocks; mix=false or N=0 bypasses score/softmax/history reads.",
+      "selection": "CanResidentAllBlocks(N+1,H) uses actual UB capacity and buffer geometry; do not infer from hardware name or captured timing."
+    },
+    "mandatory_or_conditional_io": {
+      "prefix_read": "2*T*H",
+      "addend_read": "2*T*H if fuse_add",
+      "prefix_out_write": "2*T*H if fuse_add; otherwise aliases prefix",
+      "bank_write": "2*T*H if block_write_idx >= 0",
+      "main_output_write": "2*T*H",
+      "materialized_write": "2*T*H if save_materialized",
+      "output_norm_weight_read": "2*T*H normally; 2*H*used_cores when the source prefill-cache tiling applies."
+    },
+    "internal_traffic": "No user FP32-v GM workspace. Prefix, score metadata, mixture, and output-normalization intermediates are local; preserve external prefix/bank/materialized writes.",
+    "unresolved_dispatch": [
+      "actual_loaded_library",
+      "valid_blocks",
+      "mix",
+      "fuse_add",
+      "output_norm_enabled",
+      "block_write_idx",
+      "save_materialized",
+      "optimize_prefill",
+      "tiling_key",
+      "active_view_strides"
+    ]
+  },
+  "sim_gap": {
+    "reviewed_head": "98b714f60ff1cd6fa24b19daf44167daf511cab6",
+    "existing_group": "AttentionResidual.before in mindie_sim/prediction/blocks.py:137 only declares the six-member learned residual mixture.",
+    "existing_state_difference": "Frontend currently appends residual_sources at end-of-block and immediately applies residual.after; image source writes the initial bank at block start, clears prefix and defers MLP addition.",
+    "reusable": [
+      "Existing vector/norm builders and explicit dependencies",
+      "declare_group complete-boundary metadata",
+      "Native fusion complete-group resource transformation"
+    ],
+    "must_add": [
+      "source-selected residual state transitions",
+      "all three main source points including final output",
+      "sequence-parallel local geometry and transport",
+      "AIV resource program with resident/reload and conditional write traffic"
+    ],
+    "default_change_authorized": false
+  },
+  "mapping_boundary": {
+    "current_observed_contract": null,
+    "candidate_contract_available": false,
+    "new_bound_event_count": 0,
+    "future_partial_contract": "Parameter precision and main-output extent may become a candidate domain only after a complete source-defined group exists; it cannot reconstruct missing history/flags.",
+    "physical_bucket_rule": "If the same observable descriptor matches different declared physical work, retain candidate_physical_work_differs. Never choose a subset using timing or expected layer counts.",
+    "occurrence_rule": "No layer, replica, step, phase or source branch is assigned from operator name, duration or four descriptor frequencies.",
+    "whole_invocation_extension": "Requires independently known invocation bounds and multiplicity; raw total counts alone do not establish a complete-invocation multiset."
+  },
+  "verification": {
+    "command": "PYTHONPATH=/Users/maoxx241/code/profiler /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python -m pytest -q tests/test_kimi_grouped_attnres_contracts.py tests/test_body_fusion_contracts.py",
+    "result": "27 passed in 0.14s",
+    "new_collection": false,
+    "raw_capture_rescanned": false,
+    "sim_graph_exported": false,
+    "prediction_run": false
+  }
+}

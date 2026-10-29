@@ -1,0 +1,61 @@
+{
+  "image_id": "sha256:883670fcc91cbd75a7070b00501be0ecd81a266b81366a21bf02139d8e6a33e1",
+  "image_tag": "kimik3-pool-snapshot:20261017-node21",
+  "host": "177.25.21.1",
+  "files": [
+    {
+      "path": "/vllm-workspace/vllm-ascend/vllm_ascend/quantization/methods/w8a8/w8a8_mxfp8.py",
+      "layer_index": 0,
+      "layer_path": "/var/lib/docker/overlay2/d346826fbe7e8ef54acafcc29bc1df087c427db70cdf7f4d72c86bae1f71f459/diff",
+      "sha256": "51ece928e77420a7f6600e2d87c46e9397a5140b6acee324aa75fdb97266d009",
+      "size_bytes": 38308,
+      "overlay_obstacles": [],
+      "local_file": "w8a8_mxfp8.py"
+    },
+    {
+      "path": "/vllm-workspace/vllm-ascend/vllm_ascend/models/kimi_k3.py",
+      "layer_index": 0,
+      "layer_path": "/var/lib/docker/overlay2/d346826fbe7e8ef54acafcc29bc1df087c427db70cdf7f4d72c86bae1f71f459/diff",
+      "sha256": "be9adc792774f919f443caf483eb2e04e4453617465381f47a482dd4736ec63f",
+      "size_bytes": 56051,
+      "overlay_obstacles": [],
+      "local_file": "kimi_k3.py"
+    },
+    {
+      "path": "/vllm-workspace/vllm-ascend/csrc/attention/attn_res_fwd/op_host/attn_res_fwd_def.cpp",
+      "layer_index": 10,
+      "layer_path": "/var/lib/docker/overlay2/c33bf61cd87cad166e4196cf38510ef20b4da51a9fb812c391ce91c86247d783/diff",
+      "sha256": "8f9c501cc20adbf0860eba3042ac415d3654400284a7257d617fdb3a5a9b1f17",
+      "size_bytes": 1855,
+      "overlay_obstacles": [],
+      "local_file": "attn_res_fwd_def.cpp"
+    },
+    {
+      "path": "/vllm-workspace/vllm-ascend/csrc/attention/attn_res_fwd/attn_res_fwd_common.h",
+      "layer_index": 10,
+      "layer_path": "/var/lib/docker/overlay2/c33bf61cd87cad166e4196cf38510ef20b4da51a9fb812c391ce91c86247d783/diff",
+      "sha256": "f8abf2be43c0e0a70a19df4d4d1cdab518dc939fee6612aabcaf1f6e090e53a2",
+      "size_bytes": 3234,
+      "overlay_obstacles": [],
+      "local_file": "attn_res_fwd_common.h"
+    },
+    {
+      "path": "/vllm-workspace/vllm-ascend/csrc/attention/attn_res_fwd/attn_res_fwd_torch_adpt.h",
+      "layer_index": 10,
+      "layer_path": "/var/lib/docker/overlay2/c33bf61cd87cad166e4196cf38510ef20b4da51a9fb812c391ce91c86247d783/diff",
+      "sha256": "405a4214a2f87527d49a9f309a5516a6dd35c56ed7b64afe51ab2f568624f750",
+      "size_bytes": 707,
+      "overlay_obstacles": [],
+      "local_file": "attn_res_fwd_torch_adpt.h"
+    }
+  ],
+  "acquisition": {
+    "method": "read_only_docker_image_overlay_layers",
+    "job_id": "job-20261029T135213Z-08e93389",
+    "current_container_started": false,
+    "device_context_initialized": false,
+    "weight_payload_read": false,
+    "capture_binary_identity_proven": false,
+    "limitation": "Image files match retained campaign image ID; compiled library loading and per-event scalar arguments are not established."
+  }
+}

@@ -34,8 +34,22 @@ _GAPS = {
         "be assigned the entire chunk products/solve/scan/output subgraph."),
     "AttnResFwd": (
         "active_view_or_stride_unobserved",
-        "Recorded residual buffers are flattened backing allocations. Active "
-        "history count, token axes and native view/stride identity are absent."),
+        "The historical image supplies the matching six-input/three-BF16-output "
+        "interface, including optional add, output-normalization and bank-write "
+        "branches. Nonempty fallback tensors do not reveal those scalar flags; "
+        "flattened backing allocations do not establish active views or history depth."),
+}
+_ATTN_RES_RUNTIME_FIELDS = (
+    "invocation_implementation_and_tiling", "active_prefix_shape", "block_residual_strides",
+    "valid_blocks", "mix", "fuse_add", "output_norm_enabled", "block_write_idx",
+    "save_materialized", "optimize_prefill",
+)
+_ATTN_RES_SOURCE_INTERFACE = {
+    "identity_basis": "retained_capture_image_source",
+    "image_id": "sha256:883670fcc91cbd75a7070b00501be0ecd81a266b81366a21bf02139d8e6a33e1",
+    "definition_sha256": "8f9c501cc20adbf0860eba3042ac415d3654400284a7257d617fdb3a5a9b1f17",
+    "input_count": 6, "output_count": 3,
+    "event_binary_or_dispatch_proven": False,
 }
 
 
@@ -230,7 +244,15 @@ def _project(row):
         return quant_fusion_contract(native)
     if row.kind in _GAPS:
         reason, detail = _GAPS[row.kind]
-        return None, _issue(row.kind, reason, detail)
+        issue = _issue(row.kind, reason, detail)
+        if row.kind == "AttnResFwd":
+            issue["required_runtime_evidence"] = list(_ATTN_RES_RUNTIME_FIELDS)
+            issue["recorded_slot_counts"] = {"inputs": len(native[2]), "outputs": len(native[3])}
+            issue["source_interface_evidence"] = {
+                **_ATTN_RES_SOURCE_INTERFACE,
+                "recorded_slot_count_matches": (len(native[2]), len(native[3])) == (6, 3),
+            }
+        return None, issue
     _, _, inputs, outputs = native
     if (len(inputs), len(outputs)) not in _ARITIES[row.kind]:
         return None, _issue(
@@ -314,6 +336,16 @@ def fusion_contract_scope(row):
                              "safe_gate_and_lower_bound"],
             "limitation": "The descriptor match is a parameter-domain candidate; "
                           "it does not reconstruct Q/K/V or state active views.",
+        }
+    if row.kind == "AttnResFwd":
+        return {
+            **scope, "kind": "native_implementation_boundary_only",
+            "compared": [],
+            "not_compared": ["active_tensor_geometry", "native_stage_or_view_identity",
+                             "history_depth", "add_output_norm_and_writeback_work"],
+            "required_runtime_evidence": list(_ATTN_RES_RUNTIME_FIELDS),
+            "source_interface_evidence": dict(_ATTN_RES_SOURCE_INTERFACE),
+            "limitation": _GAPS[row.kind][1],
         }
     return {
         **scope, "kind": "native_implementation_boundary_only",

@@ -1,0 +1,80 @@
+{
+  "image_id": "sha256:883670fcc91cbd75a7070b00501be0ecd81a266b81366a21bf02139d8e6a33e1",
+  "files": [
+    {
+      "path": "/vllm-workspace/vllm-ascend/csrc/attention/attn_res_fwd/op_host/attn_res_fwd_tiling.cpp",
+      "layer_index": 10,
+      "layer_path": "/var/lib/docker/overlay2/c33bf61cd87cad166e4196cf38510ef20b4da51a9fb812c391ce91c86247d783/diff",
+      "sha256": "3249e4f252af0c68187b8caa7a00f63592a42c231fefecc28b7b1e7609b60669",
+      "size_bytes": 20562,
+      "overlay_obstacles": [],
+      "local_file": "op_host/attn_res_fwd_tiling.cpp"
+    },
+    {
+      "path": "/vllm-workspace/vllm-ascend/csrc/attention/attn_res_fwd/op_host/attn_res_fwd_tiling.h",
+      "layer_index": 10,
+      "layer_path": "/var/lib/docker/overlay2/c33bf61cd87cad166e4196cf38510ef20b4da51a9fb812c391ce91c86247d783/diff",
+      "sha256": "8732c5c693c76e006c066befb4a47110200c13cc6db4e4e3e3548ea3893a7613",
+      "size_bytes": 2767,
+      "overlay_obstacles": [],
+      "local_file": "op_host/attn_res_fwd_tiling.h"
+    },
+    {
+      "path": "/vllm-workspace/vllm-ascend/csrc/attention/attn_res_fwd/op_host/op_api/aclnn_attn_res_fwd.cpp",
+      "layer_index": 10,
+      "layer_path": "/var/lib/docker/overlay2/c33bf61cd87cad166e4196cf38510ef20b4da51a9fb812c391ce91c86247d783/diff",
+      "sha256": "f2b05d77302edd941a4b7a2dd240fea5613077ef01db5f3bcf02d13aeb9a5b5e",
+      "size_bytes": 3950,
+      "overlay_obstacles": [],
+      "local_file": "op_host/op_api/aclnn_attn_res_fwd.cpp"
+    },
+    {
+      "path": "/vllm-workspace/vllm-ascend/csrc/attention/attn_res_fwd/op_kernel/attn_res_fwd_apt.cpp",
+      "layer_index": 10,
+      "layer_path": "/var/lib/docker/overlay2/c33bf61cd87cad166e4196cf38510ef20b4da51a9fb812c391ce91c86247d783/diff",
+      "sha256": "cd5429e2b329f63b98086537edce167983a830a9d8d549630c5153557486f0b6",
+      "size_bytes": 2629,
+      "overlay_obstacles": [],
+      "local_file": "op_kernel/attn_res_fwd_apt.cpp"
+    },
+    {
+      "path": "/vllm-workspace/vllm-ascend/csrc/attention/attn_res_fwd/op_kernel/arch35/attn_res_fwd_regbase_common.h",
+      "layer_index": 10,
+      "layer_path": "/var/lib/docker/overlay2/c33bf61cd87cad166e4196cf38510ef20b4da51a9fb812c391ce91c86247d783/diff",
+      "sha256": "cf5a8ed508f55c2098d1f25c19b41d031dc80c8a175ec020d528e0e7184ba960",
+      "size_bytes": 45221,
+      "overlay_obstacles": [],
+      "local_file": "op_kernel/arch35/attn_res_fwd_regbase_common.h"
+    },
+    {
+      "path": "/vllm-workspace/vllm-ascend/csrc/attention/attn_res_fwd/op_kernel/arch35/attn_res_fwd_reload.h",
+      "layer_index": 10,
+      "layer_path": "/var/lib/docker/overlay2/c33bf61cd87cad166e4196cf38510ef20b4da51a9fb812c391ce91c86247d783/diff",
+      "sha256": "e346cd0db6eeedcfffaf911a07f6ddf4e34475c69677f73cb9e279f39641f070",
+      "size_bytes": 21548,
+      "overlay_obstacles": [],
+      "local_file": "op_kernel/arch35/attn_res_fwd_reload.h"
+    },
+    {
+      "path": "/vllm-workspace/vllm-ascend/csrc/attention/attn_res_fwd/op_kernel/arch35/attn_res_fwd_resident.h",
+      "layer_index": 10,
+      "layer_path": "/var/lib/docker/overlay2/c33bf61cd87cad166e4196cf38510ef20b4da51a9fb812c391ce91c86247d783/diff",
+      "sha256": "bb5a40a14e3d5637ab9deff26b77e8e3a305500f9c582a3274d7bf0b23840d94",
+      "size_bytes": 20485,
+      "overlay_obstacles": [],
+      "local_file": "op_kernel/arch35/attn_res_fwd_resident.h"
+    }
+  ],
+  "acquisition": {
+    "method": "read_only_docker_image_overlay_layers",
+    "job_id": "job-20261029T142103Z-339d3416",
+    "host": "177.25.21.1",
+    "port": 22,
+    "overlay_order_and_whiteouts_checked": true,
+    "current_container_started": false,
+    "device_context_initialized": false,
+    "weight_payload_read": false,
+    "capture_binary_identity_proven": false,
+    "payload_sha256": "2df19fbc7bc9447522fa1b6069ddd240c58c757f25500bf1540e2ab447baec45"
+  }
+}
