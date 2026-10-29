@@ -115,6 +115,8 @@ class SourceRoleReferences:
                                   ((tokens, hc, hc), *outputs[2][1:]))
                 if (canonical(active_inputs) != canonical(expected[2])
                         or canonical(active_outputs) != canonical(expected[3])
+                        or tuple(item[0] for item in outputs[:3]) !=
+                           ((*leading, width), (*leading, hc), (*leading, hc, hc))
                         or inputs[4] != ((*leading, hc), 'fp32', 'ND')
                         or outputs[3] != inputs[4]):
                     return None

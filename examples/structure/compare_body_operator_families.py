@@ -175,15 +175,15 @@ def render(report):
                          for group in row.get('conditional_source_role_references', ())]
         if source_groups:
             lines += ['', '### Conditional source-role program references', '',
-                'Each row retains one homogeneous declared physical program set. These references have no native tensor contract and do not enter the strict cohort denominator. Their existing costs must not be added to the body again.', '',
+                'Each row retains one homogeneous declared physical program set. These references lack complete observed-to-declared tensor equality and do not enter the strict cohort denominator. Their existing costs must not be added to the body again.', '',
                 '| Native role / layer subset | Calls | Real mean / P50 us | Sim reference us | Real activity ms/forward | Predicted service ms/forward | Boundary |',
                 '| --- | ---: | ---: | ---: | ---: | ---: | --- |']
             for group in source_groups:
                 layers=', '.join(map(str, group['layer_ids']))
-                lines.append(f"| {group['native_operator_type']} / layers {layers} | {group['observed_us']['count']} | "
+                lines.append(f"| {group['native_operator_type']} / {group['declared_role']} / layers {layers} | {group['observed_us']['count']} | "
                     f"{group['observed_us']['mean']:.3f} / {group['observed_us']['p50']:.3f} | "
                     f"{fmt(group.get('predicted_reference_us'))} | {fmt(group.get('observed_activity_ms_per_forward'))} | "
-                    f"{fmt(group.get('predicted_service_ms_per_forward'))} | {group.get('boundary', group.get('reason'))} |")
+                    f"{fmt(group.get('predicted_service_ms_per_forward'))} | {group['source_correspondence']['boundary_relation']} |")
     return '\n'.join(lines)+'\n'
 
 

@@ -118,8 +118,9 @@ def _hc_pre(inputs, outputs):
     if len(inputs) == 5 and inputs[4] != _EMPTY:
         return None, _issue(
             kind, "precomputed_hyper_connection_mix",
-            "A supplied pre_mix bypasses part of the full HcPre calculation; "
-            "it cannot cover the projection/inverse-RMS/affine subgraph.")
+            "A supplied pre_mix is a separate native boundary whose captured "
+            "resource program is not established. Its presence alone does not "
+            "prove that projection or normalization work is skipped.")
     x, fn, scale, base = inputs[:4]
     if len(x[0]) not in {3, 4} or not _tensor(x, len(x[0]), {"bf16"}):
         return None, _issue(kind, "unsupported_hyper_connection_geometry",

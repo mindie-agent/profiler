@@ -145,3 +145,15 @@ def test_native_multi_program_cost_uses_complete_dp_collective(captured_native_c
     assert all('accuracy_pass' not in row and not row['additional_budget_allowed'] for row in references)
     assert all(row['boundary'] == 'complete_collective_cohort_program_set_reference'
                for row in references if row['declared_role'].startswith('expert_') and 'native' in row['declared_role'])
+
+
+def test_partial_hcpre_does_not_discard_observed_output_leading_axes(captured_reference_groups):
+    helper, replay, case, manifest, config, _, _ = captured_reference_groups
+    from mindie_profiler.normalized import kernel_rows
+    row = next(row for row in kernel_rows(FIXTURE / 'v41_dp8_first_body.csv') if row.kind == 'HcPre')
+    layer = {'layer_id': 0, 'attention': 'mla'}
+    collector = helper.SourceRoleReferences(manifest, config)
+    assert collector.add(row.event, layer, 'attention') == 'attention.hc_pre'
+    changed = row.event.output_shapes.replace('1,5120', '2,5120', 1)
+    assert changed != row.event.output_shapes
+    assert collector.add(replace(row.event, output_shapes=changed), layer, 'attention') is None
