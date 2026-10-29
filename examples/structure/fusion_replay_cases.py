@@ -7,6 +7,7 @@
 [Side-Effect Policy] Reads local case/evidence JSON; creates in-memory declarations.
 """
 from hashlib import sha256
+from copy import deepcopy
 import json
 from pathlib import Path
 
@@ -343,6 +344,73 @@ def _staged_paged_variants(key, values):
     return result
 
 
+def _combined_prefill_variants(key, values):
+    """Compose independent recipes while keeping each storage ABI explicit."""
+    if key not in {"a3_qwen35", "a3_qwen36", "a5_qwen38"}:
+        return []
+    paged = next(value for value in values
+                 if value["variant"] == "paged_body_geometry_conditional"
+                 and value["geometry"]["phase"] == "prefill")
+    originals = [paged]
+    if key == "a5_qwen38":
+        originals.append(values[0])
+    result = []
+    for original in originals:
+        value = deepcopy(original)
+        source = value["declaration_source"]
+        sim = Path(source["case_path"]).parents[2]
+        # These controls declare one portable staged recipe. Only that recipe
+        # is copied; machine, model, storage and other programs stay in the arm.
+        recipe_case = sim / "examples/source-families" / (
+            "paged-fia-a3-prefill-qwen36.json" if key == "a3_qwen36"
+            else "paged-fia-a3-prefill-qwen35.json")
+        recipe = _read(recipe_case)["runtime"]["kernels"]["recipes"]["flash_attention_prefill"]
+        runtime = value["case"].setdefault("runtime", {})
+        kernels = runtime.setdefault("kernels", {})
+        kernels.setdefault("recipes", {})["flash_attention_prefill"] = deepcopy(recipe)
+        storage = "paged" if original is paged else "contiguous"
+        policy = "paged" if original is paged else "auto"
+        runtime.setdefault("attention_policy", {})["kv_storage"] = policy
+        overrides = source.setdefault("runtime_overrides", {})
+        overrides["attention_policy"] = deepcopy(runtime["attention_policy"])
+        overrides["kernels.recipes.flash_attention_prefill"] = deepcopy(recipe)
+        evidence = source.setdefault("source_evidence", {}) or {}
+        source["source_evidence"] = evidence
+        evidence_path = sim / "data/verification/paged-fia-prefill-20261029.json"
+        evidence["staged_prefill"] = {
+            "recipe_case_path": str(recipe_case), "recipe_case_sha256": _hash(recipe_case),
+            "paired_evidence_path": str(evidence_path),
+            "paired_evidence_sha256": _hash(evidence_path),
+            "selection": deepcopy(recipe),
+            "copied_scope": "flash_attention_prefill_recipe_only",
+            "storage": storage, "kv_storage_policy": policy,
+            "basis": "caller_selected_recipe_and_storage; no_measured_duration_input",
+            "capture_dispatch_identity_verified": False,
+            "physical_work_scope": "semantic_contract; prediction_executes_selected_recipe",
+        }
+        if key == "a5_qwen38":
+            steady_path = (sim / "data/verification/matrix-cohort-wave4-20261029"
+                           / "a5_qwen38-steady.case.json")
+            steady = _read(steady_path)["runtime"]["kernels"]["programs"]["matmul"]
+            kernels.setdefault("programs", {})["matmul"] = deepcopy(steady)
+            overrides["kernels.programs.matmul"] = deepcopy(steady)
+            evidence["steady_matrix"] = {
+                "case_path": str(steady_path), "case_sha256": _hash(steady_path),
+                "selection": deepcopy(steady), "copied_scope": "matmul_program_only",
+                "capture_dispatch_identity_verified": False,
+                "attention_internal_matrix_uses_staged_recipe": True,
+            }
+        suffix = f"{key}_{storage}_prefill_" + (
+            "combined" if key == "a5_qwen38" else "staged")
+        value.update(
+            name=suffix + "-selected", declaration_key=suffix,
+            variant="source_combined_prefill_conditional",
+        )
+        source["override_basis"] = "composed_independent_source_recipes"
+        result.append(value)
+    return result
+
+
 def variants(key, old, base):
     values = [_variant(key, old, base)]
     if "glm53" in key or key in {"a3_v4f", "a3_v4pro"}:
@@ -364,4 +432,10 @@ def variants(key, old, base):
 
     values.extend(paged_variants(key, values[0]))
     values.extend(_staged_paged_variants(key, values))
+    values.extend(_combined_prefill_variants(key, values))
+    from replay_scfa_readiness import scfa_variant
+
+    scfa = scfa_variant(key, values[0])
+    if scfa is not None:
+        values.append(scfa)
     return values

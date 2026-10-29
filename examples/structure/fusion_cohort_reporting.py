@@ -400,6 +400,33 @@ def write_full_replay_summary(output_dir, receipt):
             f"{sum(row['reference_event_count'] for row in families):,} | "
             f"{counts['passed_cohort_count']} / {counts['cohort_count']} | "
             f"{sum(row['cohort_status_counts'].get('reference_only', 0) for row in families)} |")
+    combined = [variant for variant in overview["variants"]
+                if variant["variant"] == "source_combined_prefill_conditional"]
+    if combined:
+        lines.extend([
+            "", "## Combined Prefill Recipe Coverage", "",
+            "These rows use the same declarations and cohorts as the complete table. "
+            "Steady matmul applies to standalone projections; staged prefill owns its internal "
+            "QK/PV work. Other body recipes remain selected as declared. "
+            "Paged and contiguous tensor interfaces stay separate, including zero-match arms.", "",
+            "| Declaration | Native family | All capture events | Scored events | "
+            "Passed / compared | Observed us/call | Predicted us/call | Per-call diff us |",
+            "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ])
+        for variant in combined:
+            table = _read(output_dir / variant["file"])
+            for family in table["families"]:
+                if family["operator_type"] not in {
+                        "FusedInferAttentionScore", "QuantBatchMatmulV3", "MatMulV3"}:
+                    continue
+                lines.append(
+                    f"| {variant['declaration_key']} | {family['operator_type']} | "
+                    f"{family['event_count']} | {family['scored_event_count']} | "
+                    f"{family['passed_cohort_count']} / "
+                    f"{family['cohort_status_counts'].get('compared', 0)} | "
+                    f"{_value(family['observed_per_call_us'])} | "
+                    f"{_value(family['predicted_per_call_us'])} | "
+                    f"{_value(family['per_call_diff_us'])} |")
     lines.extend([
         "", "## Coverage And Interpretation", "",
         "Paged attention uses independently declared query and cache-block geometry. "
@@ -414,6 +441,10 @@ def write_full_replay_summary(output_dir, receipt):
         "their missing native state-write/reuse boundary and stay outside accuracy counts. "
         "Kimi single-bank wrappers require their explicit source caller and execution domain. "
         "Missing routing/scalar/dispatch evidence remains visible in the unscored reasons.", "",
+        "Exported physical-work signatures describe semantic operator contracts. "
+        "Predictions execute the selected recipe, whose staged transfer traffic can differ "
+        "from that semantic work. Source selection is conditional and does not prove which "
+        "binary dispatched the captured kernel.", "",
         "All occurrence-level layer/replica/step identities remain unbound. "
         "Activity sums count overlapping events separately and are not model latency. "
         "Per-operator passes do not establish complete model coverage or end-to-end accuracy.", "",
