@@ -39,9 +39,17 @@ def review(path, output):
         check(math.isclose(left, right, rel_tol=1e-11, abs_tol=1e-11), label)
 
     passed = compared = 0
+    failed_attempts = []
     populations = {}
     for case in report["cases"]:
         label = case["case_id"]
+        if case["comparison"]["status"] == "failed":
+            check(case.get("observed") is None and case.get("prediction") is None,
+                  label + ":failed_read_not_measured_or_predicted")
+            check(case["comparison"]["observed_ms"]["count"] == 0, label + ":failed_read_no_calls")
+            check(bool(case.get("error")) and bool(case["comparison"]["reasons"]), label + ":failure_visible")
+            failed_attempts.append({"case_id": label, "error": case["error"]})
+            continue
         identity = case["extraction_identity"]
         if extraction_path != identity["path"]:
             extraction, digest = read(identity["path"])
@@ -80,10 +88,12 @@ def review(path, output):
             check(layer["passed"] is (abs(error) <= .15), label + ":layer_pass")
     check(compared == report["summary"]["compared_cases"], "compared_total")
     check(passed == report["summary"]["passed_cases"], "passed_total")
+    check(len(failed_attempts) == report["summary"]["failed_cases"], "failed_attempt_total")
     check(report["runtime_generation"]["unchanged"], "runtime_generation")
     result = {"schema_version": "mindie-decode-prediction-review/1", "status": "failed" if failures else "passed",
               "report_sha256": report_hash, "checks": checks, "failures": failures,
               "compared": compared, "passed": passed, "unique_source_geometry_populations": len(populations),
+              "input_execution_status": report["status"], "failed_attempts": failed_attempts,
               "unique_forwards": sum(populations.values()),
               "scope": "Independent saved-source population, endpoint, error and unrounded 15% arithmetic; no raw scan or prediction."}
     output.write_text(json.dumps(result, indent=2) + "\n")
