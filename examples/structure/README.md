@@ -268,6 +268,37 @@ only a source program that implements the missing work removes that restriction.
 The retained `mindie-modeling-inputs/1` and legacy `pipeline --durations` exports
 are separate interfaces, not native inputs of rewritten sim.
 
+## Decode body and layer comparisons
+
+`replay_decode_forwards.py` is an optional Sim consumer. A source-pinned manifest
+names the original capture, Sim case and an existing `extraction_path`; the
+driver reuses complete Forward populations without rescanning the capture.
+Automatic structure-guided alignment reports conditional layer ordinals, not
+Host/module occurrence bindings. Every observed query/batch geometry keeps its
+own denominator. `--geometry-limit 1` predicts the largest population per source
+first and retains the other buckets with a visible deferred reason and no score.
+
+```bash
+PYTHONPATH=/path/to/sim-rewrite:/path/to/profiler /path/to/sim-rewrite/.venv/bin/python \
+  examples/structure/replay_decode_forwards.py --manifest cases.json \
+  --prediction-cache-dir /tmp/mindie-body-predictions --prediction-timeout 240 \
+  --geometry-limit 1 --output body-report.json
+```
+
+Body and layer spans use first kernel invocation through final completion;
+internal gaps and real collective waits remain in the span. Layer 0 and full
+body statistics remain separate from explicitly labelled steady-layer samples.
+The compact `scheduled_operator_summary` groups predicted intervals by replica,
+pipeline stage, family, recipe and program and retains the longest ten nodes per
+replica. Those intervals include resource/peer waits and may overlap: their sum
+is not hardware service time or an additive decomposition of body latency.
+
+Reports retain the selected runtime hash, case identity and adapter identity.
+Different checkpoint, SP or runtime declarations are separate comparison arms
+over the same source population; they do not create additional measured samples.
+Client concurrency is distinct from exported execution slots, and a single
+captured rank does not prove symmetric activity across DP peers.
+
 From the profiler checkout, with the matching sim source directory on the import
 path, run the cross-component offline acceptance:
 
