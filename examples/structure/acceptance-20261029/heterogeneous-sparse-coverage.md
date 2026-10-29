@@ -108,3 +108,72 @@ coordinated sim HEAD `ea0bae98509ebddbe87aa092941c97de3bee8008`; its exported
 graph IDs remain equal to that baseline. Validation uses Python 3.13.12.
 Temporary full mapping/comparison files are under `/tmp/P1-a3_v4f-*` and
 `/tmp/P1-a3_v4pro-*`; this directory retains only the compact evidence.
+
+## Additional source-selected SCFA validation
+
+This focused check uses sim `2cdffcecdc4954313836143e7a167dbf8fbef97e`
+and Python 3.13.12. It does not replace the earlier 44/244-event coverage
+results, their graph IDs or their comparison receipt. The appended JSON object
+`source_selected_scfa_validation` records the independent source hashes,
+original case hashes, retained fixture evidence and hardware requirements.
+No raw capture was rescanned and no new device collection was made.
+
+| Capture | All SparseAttnSharedkv events | SCFA-compatible index descriptors | Other existing cohorts | Still unmatched |
+|---|---:|---:|---:|---:|
+| V4Flash | 44 | 21, INT32/ND `[4096,1,512]` | 20 CFA and 3 SWA | 0 |
+| V4Pro | 248 | 120, INT32/ND `[1024,1,1024]` | 124 CFA | 4 |
+
+The 141 compatible events are a subset of the original 292 events. They do
+not establish captured SCFA dispatch or individual layer/step ownership.
+V4Pro's four empty-compressed-cache events retain their original mismatch.
+The selector applies to 21 V4Flash and 30 V4Pro declared attention operators;
+the other 22 and 31 attention operators are unchanged. All unselected
+operators and the selected operators' dependencies and shapes equal baseline.
+
+The explicit `runtime.kernels.lowerings.sharedkv_attention` selection is
+`implementation: vllm_ascend_sharedkv_scfa`, with these source conditions:
+
+```json
+{
+  "owner_schedule": "one_query_per_core",
+  "selected_rows": "valid_prefix",
+  "sinks_dtype": "fp32",
+  "metadata_s2_split": false,
+  "return_softmax_lse": false,
+  "scratch_policy": "offchip"
+}
+```
+
+Only an independently declared compressed-index producer in single-sequence
+contiguous prefill selects this program; SWA/CFA retain their separate paths.
+Index values, owner scheduling, S2 splitting, LSE selection and scratch
+residency are caller declarations, not facts recovered from these captures.
+The source implementation is pinned to vllm-ascend
+`175ef4d49c2072f9233619636f0309f4f88b4e2c`; no captured binary identity is claimed.
+
+The original hardware cannot yet price this program. Both cases lack rates
+for `mte2_aic`, `mte2_aiv`, `mte1` and `fixpipe`. Generic `mte2` does not
+establish those independent services. The source requires 20 AIC owners
+for `cube`, `mte2_aic`, `mte1` and `fixpipe`, and 40 AIV owners for `vector`,
+`mte2_aiv` and `mte3`; original `mte3` defaults to only 20 units. Each
+representative single-operator `graph_costs` call stops with
+`physical_resource_rate_missing`. No synthetic rates or ownership overrides
+were inserted, and no source-program accuracy result was obtained.
+
+An additional contract integration defect was reproduced on the tested
+`2cdffce` revision: `family_sharedkv.py` preserves a native
+`source_boundary="kernel"`, but `structure_native_contracts.attention_contract`
+rejects every nonempty boundary. Consequently all 21/30 selected source
+operators export no tensor contract, although their baseline active contracts
+match the retained real fixtures. Both desired contract-retention regression
+cases fail in 0.93 seconds. The existing scope still excludes index values,
+sinks and dispatch; correcting the entry must preserve that active comparison
+scope and the kernel resource boundary.
+
+The parent reports this entry fixed in `6437916f`. That fix is **pending
+independent revalidation** after the active replay releases the isolated
+runtime; the reproduced defect is historical, not a claim about the fixed
+revision. Hardware-parameter admission remains a separate requirement.
+The two focused checks take 0.218 and 0.217 seconds with peak RSS
+59,506,688 bytes. Temporary reproduction inputs and scripts are recorded in
+the appended JSON object.

@@ -922,5 +922,320 @@
     "All five resulting sparse-attention comparisons exceed the relative 15 percent accuracy tolerance.",
     "V4Pro declaration context=0 does not establish actual context for every event in its full multi-chunk capture.",
     "Original formal full-family reports and raw captures are unchanged."
-  ]
+  ],
+  "source_selected_scfa_validation": {
+    "schema_version": "mindie-profiler.source-selected-scfa-validation/1",
+    "date": "2026-10-29",
+    "status": "historical_contract_blocker_reproduced_fix_available_awaiting_isolated_revalidation",
+    "scope": "Additional focused source-selection validation. Existing captures, coverage, graph IDs, error values and validation receipt above are unchanged.",
+    "new_live_collection": false,
+    "capture_scans": 0,
+    "runtime_revision": "2cdffcecdc4954313836143e7a167dbf8fbef97e",
+    "python": "3.13.12",
+    "selection": {
+      "path": "runtime.kernels.lowerings.sharedkv_attention",
+      "implementation": "vllm_ascend_sharedkv_scfa",
+      "options": {
+        "owner_schedule": "one_query_per_core",
+        "selected_rows": "valid_prefix",
+        "sinks_dtype": "fp32",
+        "metadata_s2_split": false,
+        "return_softmax_lse": false,
+        "scratch_policy": "offchip"
+      }
+    },
+    "source": {
+      "repository": "vllm-ascend",
+      "head": "175ef4d49c2072f9233619636f0309f4f88b4e2c",
+      "relevant_status": "five dispatch/host/SCFA source SHA256s independently match pinned git blobs; no capture binary claim",
+      "capture_binary_identity": "not asserted",
+      "files": [
+        {
+          "path": "csrc/attention/sparse_attn_sharedkv/op_kernel/sparse_attn_sharedkv.cpp",
+          "sha256": "846a1b620d3ea49990624556cc0259f85970fd37eafb7dcc0812be8f1c90e48b",
+          "evidence": "SCFA_TEMPLATE routes to Scfa; all other modes route to Swa"
+        },
+        {
+          "path": "csrc/attention/sparse_attn_sharedkv/op_host/sparse_attn_sharedkv_tiling.cpp",
+          "sha256": "98fb6d201fd7657fe44c4ebe9a2445af377cb4b5db47861f0b52db2a8b8dacf1"
+        },
+        {
+          "path": "csrc/attention/sparse_attn_sharedkv/op_kernel/arch32/sparse_attn_sharedkv_scfa_kernel.h",
+          "sha256": "75b80d62693bdecb37cbd3e204a67e9b86ef2b0cf49ed2c29b4f22bab8a6f367",
+          "evidence": "s2LoopTimes=oriSplitNum+cmpSplitNum"
+        },
+        {
+          "path": "csrc/attention/sparse_attn_sharedkv/op_kernel/arch32/sparse_attn_sharedkv_scfa_block_vector.h",
+          "sha256": "e0580ca8c6f84ac25875532c25412120b06001d692d002af2522f2852f65bcd9",
+          "evidence": "isFirstSInnerLoop skips prior accumulator; isLastS2Loop writes final output"
+        },
+        {
+          "path": "csrc/attention/sparse_attn_sharedkv/op_kernel/arch32/sparse_attn_sharedkv_scfa_block_cube.h",
+          "sha256": "fde8bf4376cda8d56a0dffd36af0ee92b02bb5fb37b1d8850d69a7c60c5ef8c3",
+          "evidence": "Fixpipe writes MM2 FP32 workspace; no SWA atomic path"
+        }
+      ],
+      "missing_named_source": "vllm_ascend/attention/dsa_attn_kv_plan.py was not present"
+    },
+    "source_selection_limits": [
+      "Only single-sequence contiguous prefill with an independently declared compressed-index producer selects SCFA. Unselected SWA/CFA operators and dependencies remain unchanged.",
+      "Descriptor evidence establishes compressed-index presence, INT32 ND shape and top-k dimension; it does not establish captured binary dispatch, index values, layer/step identity, actual phase/context, or compression ratio.",
+      "valid_prefix indices, one_query_per_core ownership, FP32 sinks, no metadata S2 splitting, no softmax LSE output and offchip scratch are explicit caller source conditions.",
+      "The 141 compatible events are a subset of the existing 292 SparseAttnSharedkv events, not additional collection or new occurrence bindings."
+    ],
+    "captures": [
+      {
+        "capture_key": "a3_v4f",
+        "source_identity_ref": "captures[capture_key=a3_v4f].source_identity",
+        "source_case": {
+          "path": "/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/v4f-a3-w8a8-tp8.json",
+          "sha256": "2445cf26fce3d99f00de416dc3c79539183c33d328aecde973f1b1500dc1fce3"
+        },
+        "geometry": {
+          "phase": "prefill",
+          "tokens": 4096,
+          "context": 0,
+          "sequences": 1
+        },
+        "total_sparse_events": 44,
+        "descriptor_compatible_scfa_events": 21,
+        "other_existing_cohort_events": 23,
+        "unmatched_existing_events": 0,
+        "all_declared_attention_operators": 43,
+        "selected_scfa_operators": 21,
+        "untouched_attention_operators": 22,
+        "all_unselected_operators_equal_baseline": true,
+        "selected_dependencies_and_shapes_equal_baseline": true,
+        "selected_tensor_contracts_at_tested_revision": 0,
+        "source_geometry": {
+          "branch": "SCFA",
+          "query": 4096,
+          "context": 0,
+          "window": 128,
+          "cmp_ratio": 4,
+          "topk": 512,
+          "heads": 8,
+          "width": 512,
+          "cp": 1,
+          "pcp": 1,
+          "query_dtype": "bf16",
+          "cache_dtype": "bf16",
+          "sparse_block_size": 1,
+          "output_dtype": "bf16",
+          "query_layout": "TND",
+          "cache_layout": "PA_ND",
+          "kv_heads": 1,
+          "sequences": 1,
+          "views": 1,
+          "owner_schedule": "one_query_per_core",
+          "selected_rows": "valid_prefix",
+          "sinks_dtype": "fp32",
+          "metadata_s2_split": false,
+          "return_softmax_lse": false
+        },
+        "real_fixture": {
+          "path": "/Users/maoxx241/code/profiler/tests/fixtures/fusion_contracts/a3_v4f.csv",
+          "sha256": "192f80bf76fc5a6fa1dab0045f9303026132a6616fa2451590ebbfb9b58005bc",
+          "rows": [
+            {
+              "fixture_line": 89,
+              "kind": "SparseAttnSharedkv",
+              "compressed_index_shape": [
+                4096,
+                1,
+                512
+              ],
+              "compressed_index_dtype": "INT32",
+              "compressed_index_format": "ND"
+            }
+          ]
+        },
+        "original_hardware_execution": {
+          "status": "blocked_by_declared_hardware",
+          "type": "ModelingError",
+          "reason": "physical_resource_rate_missing:mte2_aic"
+        },
+        "elapsed_seconds": 0.21781491697765887,
+        "peak_rss_bytes": 56688640,
+        "baseline_active_contract_matches_real_fixture": true
+      },
+      {
+        "capture_key": "a3_v4pro",
+        "source_identity_ref": "captures[capture_key=a3_v4pro].source_identity",
+        "source_case": {
+          "path": "/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/v4pro-a3-w4a8-tp16.json",
+          "sha256": "10707301e6c3645626661748ad57ca6a340b78eed383259ee92ee0fd1bd642f1"
+        },
+        "geometry": {
+          "phase": "prefill",
+          "tokens": 1024,
+          "context": 0,
+          "sequences": 1
+        },
+        "total_sparse_events": 248,
+        "descriptor_compatible_scfa_events": 120,
+        "other_existing_cohort_events": 124,
+        "unmatched_existing_events": 4,
+        "all_declared_attention_operators": 61,
+        "selected_scfa_operators": 30,
+        "untouched_attention_operators": 31,
+        "all_unselected_operators_equal_baseline": true,
+        "selected_dependencies_and_shapes_equal_baseline": true,
+        "selected_tensor_contracts_at_tested_revision": 0,
+        "source_geometry": {
+          "branch": "SCFA",
+          "query": 1024,
+          "context": 0,
+          "window": 128,
+          "cmp_ratio": 4,
+          "topk": 1024,
+          "heads": 8,
+          "width": 512,
+          "cp": 1,
+          "pcp": 1,
+          "query_dtype": "bf16",
+          "cache_dtype": "bf16",
+          "sparse_block_size": 1,
+          "output_dtype": "bf16",
+          "query_layout": "TND",
+          "cache_layout": "PA_ND",
+          "kv_heads": 1,
+          "sequences": 1,
+          "views": 1,
+          "owner_schedule": "one_query_per_core",
+          "selected_rows": "valid_prefix",
+          "sinks_dtype": "fp32",
+          "metadata_s2_split": false,
+          "return_softmax_lse": false
+        },
+        "real_fixture": {
+          "path": "/Users/maoxx241/code/profiler/tests/fixtures/fusion_contracts/a3_v4pro.csv",
+          "sha256": "8c611860a42954c0d25a6dccc548e7d79caf47782d2525651a6c4049d91f4777",
+          "rows": [
+            {
+              "fixture_line": 88,
+              "kind": "SparseAttnSharedkv",
+              "compressed_index_shape": [
+                1024,
+                1,
+                1024
+              ],
+              "compressed_index_dtype": "INT32",
+              "compressed_index_format": "ND"
+            }
+          ]
+        },
+        "original_hardware_execution": {
+          "status": "blocked_by_declared_hardware",
+          "type": "ModelingError",
+          "reason": "physical_resource_rate_missing:mte2_aiv"
+        },
+        "elapsed_seconds": 0.2166872910456732,
+        "peak_rss_bytes": 59506688,
+        "baseline_active_contract_matches_real_fixture": true
+      }
+    ],
+    "hardware": {
+      "basis": "Unmodified hardware in the two original example cases; both declare the same representative die resources.",
+      "compute_units": 20,
+      "original_rates": {
+        "hbm": 1200000000000.0,
+        "mte2": 2400000000000.0,
+        "mte3": 2400000000000.0,
+        "vector": 8448000000000.0
+      },
+      "original_service_modes": {},
+      "original_resource_units": {
+        "vector": 40
+      },
+      "missing_rate_roles": [
+        "mte2_aic",
+        "mte2_aiv",
+        "mte1",
+        "fixpipe"
+      ],
+      "required_source_roles": {
+        "mte2_aic": {
+          "physical_role": "mte2_aic",
+          "present": false,
+          "actual_units": null,
+          "required_units": 20
+        },
+        "mte2_aiv": {
+          "physical_role": "mte2_aiv",
+          "present": false,
+          "actual_units": null,
+          "required_units": 40
+        },
+        "mte1": {
+          "physical_role": "mte1",
+          "present": false,
+          "actual_units": null,
+          "required_units": 20
+        },
+        "mte3": {
+          "physical_role": "mte3",
+          "present": true,
+          "actual_units": 20,
+          "required_units": 40
+        },
+        "fixpipe": {
+          "physical_role": "fixpipe",
+          "present": false,
+          "actual_units": null,
+          "required_units": 20
+        },
+        "vector": {
+          "physical_role": "vector",
+          "present": true,
+          "actual_units": 40,
+          "required_units": 40
+        },
+        "cube": {
+          "physical_role": "cube",
+          "present": true,
+          "actual_units": 20,
+          "required_units": 20
+        }
+      },
+      "interpretation": "Generic mte2 is not evidence for independently specified AIC/AIV copy services. mte3 is present but its default ownership is 20 units while this source requires 40. No synthetic rate, role alias or ownership override was inserted.",
+      "prediction_status": "blocked_by_missing_independent_hardware_parameters"
+    },
+    "historical_contract_blocker": {
+      "revision": "2cdffcecdc4954313836143e7a167dbf8fbef97e",
+      "declares_kernel_boundary": "mindie_sim/prediction/family_sharedkv.py:72",
+      "rejects_boundary_contract": "mindie_sim/structure_native_contracts.py:125",
+      "dispatch": "mindie_sim/structure_contracts.py:210",
+      "effect": "All 21 V4Flash and 30 V4Pro selected source operators have contract=None. Their corresponding baseline active tensor contracts match the retained real SCFA-compatible fixtures.",
+      "scope": "mindie_sim/structure_contracts.py:143 retains active query/output/cache-head descriptors with index, sink and dispatch exclusions; it does not advertise complete native ABI or occurrence identity.",
+      "reproduced_regressions": 2,
+      "pytest_result": "2 failed in 0.93 seconds; both desired retained active-contract assertions returned None.",
+      "fix_boundary": "A narrow explicit selected-SCFA contract entrance must preserve source_boundary=kernel and active comparison exclusions. Clearing the boundary was a diagnostic only, not a supported fix.",
+      "reported_fix_commit": "6437916f",
+      "reported_fix_status": "Parent reports fix committed; this section has not yet rerun it because the isolated runtime remains pinned for the active replay."
+    },
+    "validation": {
+      "method": "Build baseline and selected ordinary target_operators; compare all untouched operators, dependencies and selected tensor contracts; project real retained fixture rows; run one representative selected operator through graph_costs with original hardware.",
+      "source_program_accuracy_results": 0,
+      "budget_bytes": 536870912,
+      "peak_rss_bytes": 59506688,
+      "focused_elapsed_seconds": 0.43450220802333206,
+      "runtime_source_sha256": {
+        "mindie_sim/prediction/family_sharedkv.py": "e198c4392506a2baef2768cfb898a079cf03be0db77d36f4506ae5ed83c5c71e",
+        "mindie_sim/prediction/sharedkv_attention.py": "9c64573879392a6a706bfafc8fb9577f73fca409d390501cecabe497cce2c4dc",
+        "mindie_sim/structure_native_contracts.py": "0de472e937ba6a8dcaf8a767683299b6b448381670aa0df8a51e30dd28c1fa72",
+        "mindie_sim/structure_contracts.py": "24065136e31272ff6f50b00b0f61dba6df2ab8d81af61635f44f66612d18d873",
+        "mindie_sim/structure.py": "ed5a0bd14c60f98934c08fa90b14ce5f8a7f40fad603c44369fab6ed1f10b05c",
+        "data/verification/sharedkv-attention-coarse-20261029.json": "98187d9db56219f5d7d7724bfd6d967a0c88dc91abe0d34a5b6f696033d71e16"
+      },
+      "temporary_reproducer": "/tmp/audit_scfa_selector.py",
+      "temporary_regression": "/tmp/test_scfa_selected_contract_regression.py",
+      "temporary_summary": "/tmp/scfa-focused-summary.json",
+      "command_prefix": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/tmp/mindie-sim-cohort-wave6-20261029:/Users/maoxx241/code/profiler /Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python"
+    },
+    "revalidation": {
+      "status": "pending_stable_isolated_runtime_update",
+      "accepted_source_accuracy_result": false
+    }
+  }
 }
