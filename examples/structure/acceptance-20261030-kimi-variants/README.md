@@ -1,5 +1,7 @@
 # Kimi：17 份已有采集的 Decode 主体提取
 
+**成本验收已撤销：** `prediction-input-binding-invalidation.json` 记录 Sim `09811dad` 忽略外层量化声明的证据。A5 BF16 与 A3 W4A8 均错误解析为 `mxfp4_routed_only`；该版本的 17 份成本结果和未完成的算子回放都不得计入准确率。原始 JSON 数值与 SHA 保留为失效诊断，1799 个实测主体仍有效。
+
 主体提取只读取本地已有采集，没有启动真机任务。独立成本回放使用 Sim `09811dad` 源码，与提取回执分别保存。
 
 - A5：12 份 TP8 / DP1 / EP8、expert16/top8 BF16 条件声明，93 个主体层；请求并发 1/2/4/8/16/32，实际初始 prompt 为 4104 或 16392 tokens。
@@ -27,4 +29,4 @@ PYTHONPATH=/Users/maoxx241/code/sim-rewrite-20261027:/Users/maoxx241/code/profil
 
 `decode-forward-auto-acceptance.json` 是完整提取回执，`decode-geometry-priority.json` 保留全部几何桶及分母；Markdown 表格仅展示各源优先桶。
 
-`decode-forward-09811dad-replay.json/.md` 独立记录 17 次新成本执行，固定运行时 228 个文件的 SHA。主桶覆盖 1769/1799 个主体，其余 14 桶明确延后预测。A3 四层模型 5/5 个主体工况通过 ±15%；A5 BF16 93 层模型 12 个主体工况仍低估约 23%–30%。四层结果不能外推完整 93 层模型，且本批也不能与旧 FP8 / DP4 的 Kimi 采集混为一个 checkpoint。
+`decode-forward-09811dad-replay.json/.md` 保留 17 次实际执行的历史诊断，固定运行时 228 个文件的 SHA。主桶覆盖 1769/1799 个实测主体，其余 14 桶明确延后预测。旧报告中的通过率及低估幅度均因上述输入绑定错误失效，需要修复后的新成本执行才能重新验收。四层结果不能外推完整 93 层模型，本批也不能与旧 FP8 / DP4 采集混为一个 checkpoint。
