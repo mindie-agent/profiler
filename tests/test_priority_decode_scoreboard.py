@@ -6,6 +6,21 @@ from pathlib import Path
 import pytest
 
 
+def test_failed_extraction_reads_remain_visible_without_adding_zero_populations(monkeypatch):
+    root = Path(__file__).resolve().parents[1]
+    monkeypatch.syspath_prepend(str(root / "examples/structure"))
+    module = importlib.import_module("priority_decode_scoreboard")
+    source = root / "examples/structure/acceptance-20261030-runtime67/decode-forward-v4_kimi-replay.json"
+    if not source.exists():
+        pytest.skip("retained runtime matrix is required for this failure regression")
+    report = module.build([source], [])
+    assert report["summary"]["body_failed_attempts"] == 3
+    assert report["summary"]["unique_source_count"] == 29
+    assert all(row["comparison"]["observed_ms"]["count"] > 0 for row in report["current_body_comparisons"])
+    assert all(row["error"]["message"] == "declared_forward_extraction_missing"
+               for row in report["body_failed_attempts"])
+
+
 def test_invalid_quantization_receipt_retains_real_population_but_loses_accuracy(monkeypatch):
     root = Path(__file__).resolve().parents[1]
     monkeypatch.syspath_prepend(str(root / "examples/structure"))

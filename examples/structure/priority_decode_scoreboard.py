@@ -86,13 +86,14 @@ def body_rows(receipt, identity):
     result = []
     for case in receipt["cases"]:
         comparison = case["comparison"]
-        observed = case.get("observed", {})
+        observed = case.get("observed") or {}
         layers = case.get("per_layer_comparison") or {}
         row = {"model_group": _family(case["case_id"]), "case_id": case["case_id"],
                "variant_id": case.get("variant_id", receipt.get("variant_id")),
                "receipt": identity, "source_identity": case.get("source_identity"),
                "runtime_identity": case.get("runtime_identity"), "geometry": case.get("geometry"),
                "declared_runtime": case.get("declared_runtime"), "comparison": comparison,
+               "error": case.get("error"),
                "display_status": ("prediction_deferred" if "prediction_deferred_by_population_priority"
                                   in comparison.get("reasons", []) else comparison["status"]),
                "body_activity_ms": observed.get("body_activity_ms"),
@@ -222,6 +223,8 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
                     "scored": False})
     current = {}
     for row in bodies:
+        if row["comparison"]["status"] == "failed":
+            continue
         key = _population(row)
         # CLI receipt order explicitly selects the latest completed arm. A
         # deferred population never erases an earlier completed prediction.
@@ -243,6 +246,12 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
         return (row["receipt"]["sha256"], row["case_id"]) == selected[1:]
     current_families = [row for row in families if selected_operator(row)]
     current_cohorts = [row for row in cohorts if selected_operator(row)]
+    operator_runtimes = {
+        _population(row): row["runtime_identity"]["recorded_sim_file_map_sha256"] or "unknown"
+        for row in current_families
+    }
+    current_references = [row for row in references if _population(row) not in operator_selection
+                          or selected_operator(row)]
     families.sort(key=lambda row: row["measured_activity_ms_per_forward"], reverse=True)
     current_families.sort(key=lambda row: row["measured_activity_ms_per_forward"], reverse=True)
     evidence = []
@@ -255,6 +264,8 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
         key = (source.get("sha256"), geometry.get("query_rows"),
                geometry.get("tokens_per_sequence"), geometry.get("sequences_per_replica"))
         observed = row["comparison"]["observed_ms"]
+        if not observed["count"]:
+            continue
         if key in populations and populations[key] != observed:
             raise ValueError("different measured populations share a source/geometry identity")
         populations[key] = observed
@@ -268,14 +279,17 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
             "inputs": inputs, "additional_evidence": evidence,
             "body_comparisons": bodies, "operator_families": families, "operator_cohorts": cohorts,
             "current_body_comparisons": current_rows,
+            "body_failed_attempts": [row for row in bodies if row["comparison"]["status"] == "failed"],
             "current_operator_families": current_families, "current_operator_cohorts": current_cohorts,
             "current_selection_policy": "last compared input receipt per source and measured geometry; prior arms retained",
             "source_role_references": references,
+            "current_source_role_references": current_references,
             "summary": {"body_compared": sum(row["comparison"]["status"] == "compared" for row in bodies),
                         "body_passed": sum(row["comparison"].get("passed") is True for row in bodies),
                         "current_body_compared": sum(row["comparison"]["status"] == "compared" for row in current_rows),
                         "current_body_passed": sum(row["comparison"].get("passed") is True for row in current_rows),
                         "invalidated_body_prediction_arms": sum("prediction_invalidation" in row for row in bodies),
+                        "body_failed_attempts": sum(row["comparison"]["status"] == "failed" for row in bodies),
                         "body_denominator": "prediction_variants; identical observed populations are not additional captures",
                         "unique_source_count": len({key[0] for key in populations}),
                         "unique_source_geometry_populations": len(populations),
@@ -283,6 +297,7 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
                         "operator_status_counts": dict(Counter(row["status"] for row in cohorts)),
                         "operator_accuracy_by_tier": tiers,
                         "current_operator_source_populations": len(operator_selection),
+                        "current_operator_runtime_populations": dict(Counter(operator_runtimes.values())),
                         "current_operator_scored_events": sum(row.get("scored_event_count") or 0 for row in current_families),
                         "current_operator_body_events": sum(row["observed_us"]["count"] for row in current_families),
                         "heavy_cohorts": sum(row["heavy_call"] for row in cohorts)},
@@ -315,6 +330,9 @@ def render(report):
              "superseded predictions and layer errors are excluded from accuracy statistics.", "",
              "Current operator strict accuracy (latest input receipt per source/geometry): " + "; ".join(f"{key}: **{value['passed']}/{value['compared']}**"
                  for key, value in summary["operator_accuracy_by_tier"].items()) + ". Conditional references are excluded.", "",
+             "Operator runtime coverage (recorded Sim file-map hash → source/geometry populations): " + "; ".join(
+                 f"`{digest[:12]}` → {count}" for digest, count in summary["current_operator_runtime_populations"].items())
+                 + ". Scores retain the latest available receipt for each population; this aggregate can contain different runtimes.", "",
              f"Strict event coverage: **{summary['current_operator_scored_events']:,}/{summary['current_operator_body_events']:,}** "
              f"events across {summary['current_operator_source_populations']} measured source/geometry populations. "
              "A high pass rate within this subset does not establish whole-model accuracy.", "",
@@ -333,6 +351,15 @@ def render(report):
                      f"{_num(observed['mean'])} / {_num(observed['p50'])} / {_num(observed['p90'])} | "
                      f"{_num(activity.get('mean'))} | {_num(comp.get('predicted_ms'))} | "
                      f"{_num(comp.get('per_forward_diff_ms'))} | {_num(error * 100 if error is not None else None)}% / {_num(p50_error)}% |")
+    if report["body_failed_attempts"]:
+        lines += ["", "### Failed local replay attempts", "",
+                  "Failed reads remain visible and do not become zero-duration measured populations.", "",
+                  "| Case | Failure | Later source comparison present |", "|---|---|---|"]
+        completed_sources = {row["source_identity"]["sha256"] for row in report["current_body_comparisons"]
+                             if row["comparison"]["status"] == "compared"}
+        for row in report["body_failed_attempts"]:
+            lines.append(f"| {row['case_id']} | {'; '.join(row['comparison']['reasons'])} | "
+                         f"{row['source_identity']['sha256'] in completed_sources} |")
     lines += ["", "## Layer 0 and steady layer groups", "",
               "The steady P50 column is median of per-layer call P50, unless a separately linked receipt supplies exact pooled statistics.", "",
               "| Case | Group | Layers | Real Mean ms | Median layer-call P50 ms | Sim Mean ms | Mean / P50 error |",
@@ -374,7 +401,7 @@ def render(report):
               "Reference differences have distinct evidence and are excluded from strict cohort accuracy counts.", "",
               "| Case | Operator / region | Real / reference us | Real / Sim service ms per Forward | Residual ms | Boundary |",
               "|---|---|---:|---:|---:|---|"]
-    references = sorted(report["source_role_references"],
+    references = sorted(report["current_source_role_references"],
                         key=lambda row: abs(row["reference_residual_ms_per_forward"] or 0), reverse=True)
     for row in references:
         prediction = row["predicted_us"] if row["predicted_us"] is not None else row["predicted_reference_us"]
