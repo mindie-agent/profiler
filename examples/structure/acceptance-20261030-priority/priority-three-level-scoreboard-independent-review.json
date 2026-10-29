@@ -1,27 +1,27 @@
 {
   "schema_version": "mindie-priority-scoreboard-independent-review/2",
   "status": "passed",
-  "checks": 109678,
+  "checks": 114122,
   "failures": [],
-  "report_sha256": "975bf0de0ee63d57009ad59bf61cee28b5fd1d1fd5c29390eeb01d7a0b9dcd6e",
+  "report_sha256": "ecc3d4720be298253f0cfa67c70111e3c47b7ba7ada45cf24787be4c95c3e828",
   "summary": {
-    "body_compared": 211,
-    "body_passed": 53,
+    "body_compared": 233,
+    "body_passed": 57,
     "current_body_compared": 66,
-    "current_body_passed": 18,
+    "current_body_passed": 12,
     "invalidated_body_prediction_arms": 31,
     "body_failed_attempts": 7,
     "latest_body_attempt_count": 66,
-    "latest_body_attempt_completed": 64,
-    "latest_body_attempt_failed": 2,
-    "latest_body_attempt_passed": 17,
+    "latest_body_attempt_completed": 66,
+    "latest_body_attempt_failed": 0,
+    "latest_body_attempt_passed": 12,
     "body_denominator": "prediction_variants; identical observed populations are not additional captures",
     "unique_source_count": 66,
     "unique_source_geometry_populations": 222,
     "unique_observed_forward_count": 5250,
     "operator_status_counts": {
-      "reference_only": 121,
-      "compared": 1726
+      "reference_only": 130,
+      "compared": 1785
     },
     "operator_accuracy_by_tier": {
       "heavy_relative_15pct": {
@@ -36,16 +36,21 @@
     "current_operator_source_populations": 44,
     "current_operator_runtime_populations": {
       "c27d72c215c2c98f804908823d9c4172ab85399134814ec639fbb2f059cbbe05": 5,
-      "20dbf57be438004348b0efba951450222dd5bf9d64537b4fd2b9e2cd5433e438": 39
+      "20dbf57be438004348b0efba951450222dd5bf9d64537b4fd2b9e2cd5433e438": 36,
+      "c465214ba3daed9617524af47232ef47ac662279ae7b8903796f4e154a933e06": 3
     },
     "current_operator_scored_events": 1097929,
     "current_operator_body_events": 6729791,
-    "heavy_cohorts": 93
+    "current_external_native_reference_groups": 36,
+    "current_external_native_reference_calls": 27666,
+    "current_external_native_reference_populations": 9,
+    "current_external_native_reference_forwards": 318,
+    "heavy_cohorts": 95
   },
-  "body_rows": 729,
-  "family_rows": 6452,
-  "cohort_rows": 1847,
-  "reference_rows": 335,
+  "body_rows": 811,
+  "family_rows": 6644,
+  "cohort_rows": 1915,
+  "reference_rows": 371,
   "corrected_kimi_quant_cases_checked": 36,
   "historical_case_resolutions": [
     {
@@ -53,89 +58,173 @@
       "source_commit": "332f0420",
       "recorded_sha256": "9dd36b2295ceda35ab6d4d556b56435e660327c8521eeccfb8ad9926bfbc531f",
       "historical_sha256": "9dd36b2295ceda35ab6d4d556b56435e660327c8521eeccfb8ad9926bfbc531f",
-      "current_path_sha256": "e2c085b21db418851570f09914f6bd60cd51ce37b8ab4cdc32bb3248517e8c8c"
+      "current_path_sha256": "6490ed9e911799775c97de72d97875aad98f6298bfdbbb198c45fcd028371e83"
     },
     {
       "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c16_p4k.json",
       "source_commit": "332f0420",
       "recorded_sha256": "68824365f6f2faeb40a6bdac5740a083b5a0b15b7dd48f753392620bd7100591",
       "historical_sha256": "68824365f6f2faeb40a6bdac5740a083b5a0b15b7dd48f753392620bd7100591",
-      "current_path_sha256": "53bc3a2e5a5dd3a9153edcdf003058ba9f0bcb13e1d439924591dcdd5d756c47"
+      "current_path_sha256": "6a3538b87ba92b2139887b2471e50b39a57dd01889cfbcae41ee78276b1cea08"
     },
     {
       "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c1_p16k.json",
       "source_commit": "332f0420",
       "recorded_sha256": "27c1a25e6d31e036dcdf643dd30442026da83ebd2e033b5c45ed61222c61c99c",
       "historical_sha256": "27c1a25e6d31e036dcdf643dd30442026da83ebd2e033b5c45ed61222c61c99c",
-      "current_path_sha256": "849f75f63a8ef53273ce4c3175dc01b892739d1126ff9312311ec38aeea16b83"
+      "current_path_sha256": "bd615ec00c481742fd1f18a4ed843dcc8c19cc6e5e256c4c2b6901afe9217803"
     },
     {
       "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c1_p4k.json",
       "source_commit": "332f0420",
       "recorded_sha256": "d88ee92304563cd45434b9c95e6f21ccc3c414c0f4f7d4e150827c8ba98ffec4",
       "historical_sha256": "d88ee92304563cd45434b9c95e6f21ccc3c414c0f4f7d4e150827c8ba98ffec4",
-      "current_path_sha256": "0405576ee7a9486660935884050a0b54e29ccdc5dc4a38b8402bcd5fd54c0cde"
+      "current_path_sha256": "e20b2579beff7f83778a0693fb2efc0f1c0b60f6dde67a2a7a54c5845eff4361"
     },
     {
       "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c2_p16k.json",
       "source_commit": "332f0420",
       "recorded_sha256": "47852254011ef711b5e56c9145e0a874c7a14ddebef2238f73e60597557c6c4f",
       "historical_sha256": "47852254011ef711b5e56c9145e0a874c7a14ddebef2238f73e60597557c6c4f",
-      "current_path_sha256": "974be4ce8dadc60efb583dafce0c9ccf2169aa1c6ea6dbe9d966d714a02cac3c"
+      "current_path_sha256": "4dd4359f5a404c0f8b3c738432993d85e37f3278d46892410d1de3c7cc102426"
     },
     {
       "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c2_p4k.json",
       "source_commit": "332f0420",
       "recorded_sha256": "595f0e70113685b9875d3c3e273413d4544eba891109c393bdc47494331f9cd7",
       "historical_sha256": "595f0e70113685b9875d3c3e273413d4544eba891109c393bdc47494331f9cd7",
-      "current_path_sha256": "425fad801af44fbf1b92750f43055f762b71a3fde8f0b17c447d86111b4c9f09"
+      "current_path_sha256": "9d165bcd8828173e28480c41bcf0a63360ae46a6ce9601493f8b4a8fe9038752"
     },
     {
       "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c32_p16k.json",
       "source_commit": "332f0420",
       "recorded_sha256": "e487af18843eef5be083a78e9ed2730816d906f7968f4142f63c116d072cef65",
       "historical_sha256": "e487af18843eef5be083a78e9ed2730816d906f7968f4142f63c116d072cef65",
-      "current_path_sha256": "6254b52e93371657637dd9ba21684558f4ca91e25e11866f22a8a179c7f91c8f"
+      "current_path_sha256": "76068ee333f599596d939356a39baf621712ef434b50e3e21d19a77b9d05f376"
     },
     {
       "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c32_p4k.json",
       "source_commit": "332f0420",
       "recorded_sha256": "f9934b66546d2933affd282db2d16064f1aa25e6fdcb46526eb17d245a235269",
       "historical_sha256": "f9934b66546d2933affd282db2d16064f1aa25e6fdcb46526eb17d245a235269",
-      "current_path_sha256": "3156080674bb7c32ca29acb91b8db0c1d5cfaebd41fc81b867a17f11471aaa40"
+      "current_path_sha256": "d396e0fa7137946ab726c3e565613d318a440c361694ca542dabb3592be9ac0d"
     },
     {
       "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c4_p16k.json",
       "source_commit": "332f0420",
       "recorded_sha256": "969c6d0ae6cd92c2323d45ce72ea199e245b25eab70a074aeb2326fcdf14242c",
       "historical_sha256": "969c6d0ae6cd92c2323d45ce72ea199e245b25eab70a074aeb2326fcdf14242c",
-      "current_path_sha256": "682f206e282c59f7b30bcf63ba76654a7309ebf4f4acd6191295ecc74173ef32"
+      "current_path_sha256": "4650ee894a55fea04295d491aee1689ed946b7b0c727c54ba8a144175d4425aa"
     },
     {
       "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c4_p4k.json",
       "source_commit": "332f0420",
       "recorded_sha256": "137dc22c439b727d2599461f3e939e61a561f482253bf774bd55910f39a17a86",
       "historical_sha256": "137dc22c439b727d2599461f3e939e61a561f482253bf774bd55910f39a17a86",
-      "current_path_sha256": "622bce3c19ce8e9bee18637dd8561d6ed2a0ef21c8e27695681102434c893ebe"
+      "current_path_sha256": "169d9a41a884b04a70ab180c5f828293aa61ece6fb23cd103552005fb353a5bb"
     },
     {
       "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c8_p16k.json",
       "source_commit": "332f0420",
       "recorded_sha256": "bb2ce2375b4ebddb4827cf888339e884291d219fd9c6169f338d1e628a12253a",
       "historical_sha256": "bb2ce2375b4ebddb4827cf888339e884291d219fd9c6169f338d1e628a12253a",
-      "current_path_sha256": "478e56a034803bad3282562b1642a2f6de444471b502c5e19381f09f1f72c4bf"
+      "current_path_sha256": "ac15e2f9b3111f832c0f760640b93ffe967dedc8d33c622f3a4462534bf2615d"
     },
     {
       "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c8_p4k.json",
       "source_commit": "332f0420",
       "recorded_sha256": "2679541a4b8ef64533391c2897ffd9dfd9eff60eef3273a5c721f3e396ebc0f8",
       "historical_sha256": "2679541a4b8ef64533391c2897ffd9dfd9eff60eef3273a5c721f3e396ebc0f8",
-      "current_path_sha256": "120ec23793496bdea7f11043a31fb4ab181e548f3731c545284fdacdf3c2438a"
+      "current_path_sha256": "939c82aa90a8cc6f681528944188270f4c9f1bad0a076d79b41a0ab178796c27"
+    },
+    {
+      "case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c16_p16k.json",
+      "source_commit": "86c1ee8f",
+      "recorded_sha256": "e2c085b21db418851570f09914f6bd60cd51ce37b8ab4cdc32bb3248517e8c8c",
+      "historical_sha256": "e2c085b21db418851570f09914f6bd60cd51ce37b8ab4cdc32bb3248517e8c8c",
+      "current_path_sha256": "6490ed9e911799775c97de72d97875aad98f6298bfdbbb198c45fcd028371e83"
+    },
+    {
+      "case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c16_p4k.json",
+      "source_commit": "86c1ee8f",
+      "recorded_sha256": "53bc3a2e5a5dd3a9153edcdf003058ba9f0bcb13e1d439924591dcdd5d756c47",
+      "historical_sha256": "53bc3a2e5a5dd3a9153edcdf003058ba9f0bcb13e1d439924591dcdd5d756c47",
+      "current_path_sha256": "6a3538b87ba92b2139887b2471e50b39a57dd01889cfbcae41ee78276b1cea08"
+    },
+    {
+      "case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c1_p16k.json",
+      "source_commit": "86c1ee8f",
+      "recorded_sha256": "849f75f63a8ef53273ce4c3175dc01b892739d1126ff9312311ec38aeea16b83",
+      "historical_sha256": "849f75f63a8ef53273ce4c3175dc01b892739d1126ff9312311ec38aeea16b83",
+      "current_path_sha256": "bd615ec00c481742fd1f18a4ed843dcc8c19cc6e5e256c4c2b6901afe9217803"
+    },
+    {
+      "case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c1_p4k.json",
+      "source_commit": "86c1ee8f",
+      "recorded_sha256": "0405576ee7a9486660935884050a0b54e29ccdc5dc4a38b8402bcd5fd54c0cde",
+      "historical_sha256": "0405576ee7a9486660935884050a0b54e29ccdc5dc4a38b8402bcd5fd54c0cde",
+      "current_path_sha256": "e20b2579beff7f83778a0693fb2efc0f1c0b60f6dde67a2a7a54c5845eff4361"
+    },
+    {
+      "case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c2_p16k.json",
+      "source_commit": "86c1ee8f",
+      "recorded_sha256": "974be4ce8dadc60efb583dafce0c9ccf2169aa1c6ea6dbe9d966d714a02cac3c",
+      "historical_sha256": "974be4ce8dadc60efb583dafce0c9ccf2169aa1c6ea6dbe9d966d714a02cac3c",
+      "current_path_sha256": "4dd4359f5a404c0f8b3c738432993d85e37f3278d46892410d1de3c7cc102426"
+    },
+    {
+      "case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c2_p4k.json",
+      "source_commit": "86c1ee8f",
+      "recorded_sha256": "425fad801af44fbf1b92750f43055f762b71a3fde8f0b17c447d86111b4c9f09",
+      "historical_sha256": "425fad801af44fbf1b92750f43055f762b71a3fde8f0b17c447d86111b4c9f09",
+      "current_path_sha256": "9d165bcd8828173e28480c41bcf0a63360ae46a6ce9601493f8b4a8fe9038752"
+    },
+    {
+      "case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c32_p16k.json",
+      "source_commit": "86c1ee8f",
+      "recorded_sha256": "6254b52e93371657637dd9ba21684558f4ca91e25e11866f22a8a179c7f91c8f",
+      "historical_sha256": "6254b52e93371657637dd9ba21684558f4ca91e25e11866f22a8a179c7f91c8f",
+      "current_path_sha256": "76068ee333f599596d939356a39baf621712ef434b50e3e21d19a77b9d05f376"
+    },
+    {
+      "case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c32_p4k.json",
+      "source_commit": "86c1ee8f",
+      "recorded_sha256": "3156080674bb7c32ca29acb91b8db0c1d5cfaebd41fc81b867a17f11471aaa40",
+      "historical_sha256": "3156080674bb7c32ca29acb91b8db0c1d5cfaebd41fc81b867a17f11471aaa40",
+      "current_path_sha256": "d396e0fa7137946ab726c3e565613d318a440c361694ca542dabb3592be9ac0d"
+    },
+    {
+      "case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c4_p16k.json",
+      "source_commit": "86c1ee8f",
+      "recorded_sha256": "682f206e282c59f7b30bcf63ba76654a7309ebf4f4acd6191295ecc74173ef32",
+      "historical_sha256": "682f206e282c59f7b30bcf63ba76654a7309ebf4f4acd6191295ecc74173ef32",
+      "current_path_sha256": "4650ee894a55fea04295d491aee1689ed946b7b0c727c54ba8a144175d4425aa"
+    },
+    {
+      "case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c4_p4k.json",
+      "source_commit": "86c1ee8f",
+      "recorded_sha256": "622bce3c19ce8e9bee18637dd8561d6ed2a0ef21c8e27695681102434c893ebe",
+      "historical_sha256": "622bce3c19ce8e9bee18637dd8561d6ed2a0ef21c8e27695681102434c893ebe",
+      "current_path_sha256": "169d9a41a884b04a70ab180c5f828293aa61ece6fb23cd103552005fb353a5bb"
+    },
+    {
+      "case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c8_p16k.json",
+      "source_commit": "86c1ee8f",
+      "recorded_sha256": "478e56a034803bad3282562b1642a2f6de444471b502c5e19381f09f1f72c4bf",
+      "historical_sha256": "478e56a034803bad3282562b1642a2f6de444471b502c5e19381f09f1f72c4bf",
+      "current_path_sha256": "ac15e2f9b3111f832c0f760640b93ffe967dedc8d33c622f3a4462534bf2615d"
+    },
+    {
+      "case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c8_p4k.json",
+      "source_commit": "86c1ee8f",
+      "recorded_sha256": "120ec23793496bdea7f11043a31fb4ab181e548f3731c545284fdacdf3c2438a",
+      "historical_sha256": "120ec23793496bdea7f11043a31fb4ab181e548f3731c545284fdacdf3c2438a",
+      "current_path_sha256": "939c82aa90a8cc6f681528944188270f4c9f1bad0a076d79b41a0ab178796c27"
     }
   ],
   "execution": {
-    "elapsed_seconds": 6.233565333066508,
-    "peak_rss_bytes": 288931840,
+    "elapsed_seconds": 7.133617207990028,
+    "peak_rss_bytes": 296075264,
     "receipt_read_engine": "ijson top-level metadata and sequential cases; scoreboard bounded JSON"
   },
   "scope": "Independent sequential receipt reconciliation; no raw capture parsing or prediction. Invalidation, effective current Kimi precision, source/geometry deduplication, explicit input order, strict tier arithmetic and unscored source references are checked separately."

@@ -1,0 +1,1339 @@
+{
+  "schema_version": "mindie-body-matrix-default-impact-independent-review/1",
+  "status": "passed",
+  "checks": 612,
+  "parent_inventory_identity": {
+    "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/body-matrix-default-affected-20261030.json",
+    "sha256": "b8502a09e7c5dfdaf6250b7a2b44e4aaf8591de58e8a2c34b7ecab73578f57b3",
+    "size_bytes": 178592
+  },
+  "prior_main_scoreboard_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority/priority-three-level-scoreboard.json",
+    "sha256": "975bf0de0ee63d57009ad59bf61cee28b5fd1d1fd5c29390eeb01d7a0b9dcd6e",
+    "size_bytes": 38167739
+  },
+  "scope": "read-only source/pin/current-cost selection audit; no prediction or raw scan",
+  "summary": {
+    "source_rows": 66,
+    "affected_sources": 22,
+    "affected_unique_inputs": 18,
+    "unchanged_sources": 44,
+    "current_affected_operator_sources": 3,
+    "current_operator_receipts_to_refresh": 2,
+    "affected_sources_without_current_operator_receipt": 19,
+    "direct_cost_changes": {
+      "TiledMatmul(128,128)_cohorts": 27,
+      "TiledMatmul(128,128)_events": 34148,
+      "MappedMatmul via balanced_grouped_down_cohorts": 2,
+      "MappedMatmul via balanced_grouped_down_events": 4956
+    }
+  },
+  "model_change": "Physical cost model selection: ordinary matrices TiledMatmul -> SteadyMatmul, and built-in balanced grouped matrices MappedMatmul -> SteadyMatmul. This is not a pure CPU optimization.",
+  "affected_sources": [
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph",
+      "input_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new9/qwen35-35b-a5-tp4-c64-graph.json",
+        "sha256": "fcd7c235d50ca62a16edfd9c102fcd492379a5eb52db12efa4f3cd34e8d2c1fe",
+        "size_bytes": 3529
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+        "sha256": "5612e7cccfb3878cf27b22b1e89c5d186cd100633a44748973349f1bf03872f3",
+        "size_bytes": 79462851
+      },
+      "geometry": {
+        "query_rows": 256,
+        "sequences_per_replica": 64,
+        "tokens_per_sequence": 4,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "default_changed": true,
+      "old_body_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-qwen-replay.json",
+        "sha256": "9acf1e12895b5559b4d6117fbf4754493c94ca9cbadefcc0db731a628d70bb71"
+      },
+      "current_operator": null
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph",
+      "input_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new9/qwen35-35b-a5-tp4-c128-graph.json",
+        "sha256": "5458702a97018637526c916b6db2ec27e36ca3d73d525b4f48e2b58656318b09",
+        "size_bytes": 3532
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+        "sha256": "bf35b8b21c078d6fc7223918b280158fda5ee7c1f83009c70c98b16f27b08df5",
+        "size_bytes": 88444963
+      },
+      "geometry": {
+        "query_rows": 512,
+        "sequences_per_replica": 128,
+        "tokens_per_sequence": 4,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "default_changed": true,
+      "old_body_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-qwen-replay.json",
+        "sha256": "9acf1e12895b5559b4d6117fbf4754493c94ca9cbadefcc0db731a628d70bb71"
+      },
+      "current_operator": null
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c4-graph",
+      "input_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new9/qwen35-35b-a5-tp4-c4-graph.json",
+        "sha256": "0e0a5575f51d4a58f305475384ef5c34c5546d3fc830e5714c9bad708bf8095c",
+        "size_bytes": 3525
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
+        "sha256": "9b8a87bfd6252204ab077e331ed97976ff9f5256935cb153677ac619dd96aac1",
+        "size_bytes": 70137504
+      },
+      "geometry": {
+        "query_rows": 16,
+        "sequences_per_replica": 4,
+        "tokens_per_sequence": 4,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "default_changed": true,
+      "old_body_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-qwen-replay.json",
+        "sha256": "9acf1e12895b5559b4d6117fbf4754493c94ca9cbadefcc0db731a628d70bb71"
+      },
+      "current_operator": null
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c12",
+      "input_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new9/qwen36-a5-tp2-c12.json",
+        "sha256": "bb70ee96cbef14aa43b22c7acd0688d3be43b396517ec952a83575838302cfc9",
+        "size_bytes": 2984
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030/kernel_details.csv",
+        "sha256": "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+        "size_bytes": 43475364
+      },
+      "geometry": {
+        "query_rows": 48,
+        "sequences_per_replica": 12,
+        "tokens_per_sequence": 4,
+        "context_tokens": 4104,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "default_changed": true,
+      "old_body_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-qwen-replay.json",
+        "sha256": "9acf1e12895b5559b4d6117fbf4754493c94ca9cbadefcc0db731a628d70bb71"
+      },
+      "current_operator": null
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c96",
+      "input_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new9/qwen36-a5-tp2-c96.json",
+        "sha256": "06d1ae9e123d3e6f11addc2257dbb0f90014ab511ca414da7a9fb5d0fd4eea50",
+        "size_bytes": 2985
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot30ms_c96_20261030/kernel_details.csv",
+        "sha256": "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896",
+        "size_bytes": 19928533
+      },
+      "geometry": {
+        "query_rows": 384,
+        "sequences_per_replica": 96,
+        "tokens_per_sequence": 4,
+        "context_tokens": 4104,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "default_changed": true,
+      "old_body_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime67/decode-forward-qwen-replay.json",
+        "sha256": "2cd4f86ccca9d998f7d841d3ee01205160a876e281514aecdcd6f82b90b77fc6"
+      },
+      "current_operator": null
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c1",
+      "input_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new9/qwen36-a5-tp2-c1.json",
+        "sha256": "0ca0c5e9538108bf5d02da8c394709938ff73780409215971f0ed228e2649721",
+        "size_bytes": 2978
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "sha256": "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+        "size_bytes": 65019355
+      },
+      "geometry": {
+        "query_rows": 4,
+        "sequences_per_replica": 1,
+        "tokens_per_sequence": 4,
+        "context_tokens": 4104,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "default_changed": true,
+      "old_body_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-qwen-replay.json",
+        "sha256": "9acf1e12895b5559b4d6117fbf4754493c94ca9cbadefcc0db731a628d70bb71"
+      },
+      "current_operator": null
+    },
+    {
+      "case_id": "qwen35-397b-a3-tp16-c48",
+      "input_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new17/qwen35-397b-a3-tp16-c48.json",
+        "sha256": "c2316dff86e2ea0b0b4453946b32c58869eb8f9f0c6013fd42727dec411fbca9",
+        "size_bytes": 186677
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot30_c48_20261030/kernel_details.csv",
+        "sha256": "9217dce748a95877c9f663ad8a3a4dea8d1a539842f63d352743a7711b867b8f",
+        "size_bytes": 21524017
+      },
+      "geometry": {
+        "query_rows": 256,
+        "sequences_per_replica": 64,
+        "tokens_per_sequence": 4,
+        "context_tokens": 4104,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "default_changed": true,
+      "old_body_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-qwen-replay.json",
+        "sha256": "9acf1e12895b5559b4d6117fbf4754493c94ca9cbadefcc0db731a628d70bb71"
+      },
+      "current_operator": null
+    },
+    {
+      "case_id": "qwen35-397b-a3-tp16-c136",
+      "input_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new17/qwen35-397b-a3-tp16-c136.json",
+        "sha256": "43df26924059ebe0786234a2c68760c3eb8bcb4fee4b3e40d74a86fda28553e8",
+        "size_bytes": 186680
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/kernel_details.csv",
+        "sha256": "5478ef37efc67c6d1c6227608d935a639c2c4285214a26f08a4d42250c12a1d0",
+        "size_bytes": 17680559
+      },
+      "geometry": {
+        "query_rows": 640,
+        "sequences_per_replica": 160,
+        "tokens_per_sequence": 4,
+        "context_tokens": 4104,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "default_changed": true,
+      "old_body_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-qwen-replay.json",
+        "sha256": "9acf1e12895b5559b4d6117fbf4754493c94ca9cbadefcc0db731a628d70bb71"
+      },
+      "current_operator": null
+    },
+    {
+      "case_id": "a3_glm53_dc4k_b2",
+      "input_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/glm53-a3-w4a8.json",
+        "sha256": "4671d3c85fc1657556a3fc8b57b20f118275502d6935c25c18189ef62f5f70a3",
+        "size_bytes": 5494
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/dc4k_b2.csv.gz",
+        "size_bytes": 9011810,
+        "sha256": "b4db9f5b60b4cbd59abed29bafc6112644c6516f2b85f2c83e9ab91ca824268d"
+      },
+      "geometry": {
+        "query_rows": 2,
+        "sequences_per_replica": 2,
+        "tokens_per_sequence": 1,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "default_changed": true,
+      "old_body_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-glm-replay.json",
+        "sha256": "21d2e750181f782ac155886a8f6744046a7331410dfdb88dbfe2e4d2348f2259"
+      },
+      "current_operator": null
+    },
+    {
+      "case_id": "a3_glm53_dc4k_b4",
+      "input_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/glm53-a3-w4a8.json",
+        "sha256": "4671d3c85fc1657556a3fc8b57b20f118275502d6935c25c18189ef62f5f70a3",
+        "size_bytes": 5494
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/dc4k_b4.csv.gz",
+        "size_bytes": 8694082,
+        "sha256": "77a4234a437a810720e291e64796f7f10d952307d44902212f1dde9bca7f96a8"
+      },
+      "geometry": {
+        "query_rows": 4,
+        "sequences_per_replica": 4,
+        "tokens_per_sequence": 1,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "default_changed": true,
+      "old_body_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-glm-replay.json",
+        "sha256": "21d2e750181f782ac155886a8f6744046a7331410dfdb88dbfe2e4d2348f2259"
+      },
+      "current_operator": null
+    },
+    {
+      "case_id": "a3_glm53_dc16k_b1",
+      "input_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/glm53-a3-w4a8.json",
+        "sha256": "4671d3c85fc1657556a3fc8b57b20f118275502d6935c25c18189ef62f5f70a3",
+        "size_bytes": 5494
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/dc16k_b1.csv.gz",
+        "size_bytes": 9252930,
+        "sha256": "9739d9704c6fa6e255052ff154bc432912530f327806443f3e8a8726b71dd196"
+      },
+      "geometry": {
+        "query_rows": 1,
+        "sequences_per_replica": 1,
+        "tokens_per_sequence": 1,
+        "context_tokens": 16384,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "default_changed": true,
+      "old_body_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-glm-replay.json",
+        "sha256": "21d2e750181f782ac155886a8f6744046a7331410dfdb88dbfe2e4d2348f2259"
+      },
+      "current_operator": null
+    },
+    {
+      "case_id": "a3_glm53_dc4k_b1",
+      "input_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/glm53-a3-w4a8.json",
+        "sha256": "4671d3c85fc1657556a3fc8b57b20f118275502d6935c25c18189ef62f5f70a3",
+        "size_bytes": 5494
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/dc4k_b1.csv.gz",
+        "size_bytes": 9236949,
+        "sha256": "ed5e9696949d51c2d1d31ab099a71a2c98722d5719f004fcf90c9ceff036f60c"
+      },
+      "geometry": {
+        "query_rows": 1,
+        "sequences_per_replica": 1,
+        "tokens_per_sequence": 1,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "default_changed": true,
+      "old_body_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-glm-replay.json",
+        "sha256": "21d2e750181f782ac155886a8f6744046a7331410dfdb88dbfe2e4d2348f2259"
+      },
+      "current_operator": null
+    },
+    {
+      "case_id": "a3_glm53_dc4k_b8",
+      "input_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/glm53-a3-w4a8.json",
+        "sha256": "4671d3c85fc1657556a3fc8b57b20f118275502d6935c25c18189ef62f5f70a3",
+        "size_bytes": 5494
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/dc4k_b8.csv.gz",
+        "size_bytes": 8113958,
+        "sha256": "d9cfa6ae25dd98de14f9eccbaf4a9fbc83a0e1b1b4e25abcd822e0898b0196ad"
+      },
+      "geometry": {
+        "query_rows": 8,
+        "sequences_per_replica": 8,
+        "tokens_per_sequence": 1,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "default_changed": true,
+      "old_body_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-glm-replay.json",
+        "sha256": "21d2e750181f782ac155886a8f6744046a7331410dfdb88dbfe2e4d2348f2259"
+      },
+      "current_operator": null
+    },
+    {
+      "case_id": "glm53flash-a3-tp16-c16-livepre",
+      "input_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new17/glm53flash-a3-tp16-c16-livepre.json",
+        "sha256": "c9b8825860b9d4070c12115ba5713494d8da9e35167fadd594d79ff47cae589a",
+        "size_bytes": 3006
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot50_c16_20261030/ranks/tp0/kernel_details.csv.gz",
+        "sha256": "4b584fe1f672fd0ef96e2649d497f007ad2a464c953c3319b00837146e046bdf",
+        "size_bytes": 16687762
+      },
+      "geometry": {
+        "query_rows": 96,
+        "sequences_per_replica": 16,
+        "tokens_per_sequence": 6,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "default_changed": true,
+      "old_body_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-glm-replay.json",
+        "sha256": "21d2e750181f782ac155886a8f6744046a7331410dfdb88dbfe2e4d2348f2259"
+      },
+      "current_operator": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/glm-a3-livepre-86c1ee8f/body-operator-family-scoreboard.json",
+        "sha256": "41034103b55d8f5ca913d5d5ce4072dca92f85f8c28504c40d72529ec0dac18f"
+      }
+    },
+    {
+      "case_id": "glm53flash-a5-tp8-c1",
+      "input_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new17/glm53flash-a5-tp8-c1.json",
+        "sha256": "b2cd9f2efa1eb1933cbf08ce1019215a6366a802495379281afa9112ddf0d388",
+        "size_bytes": 2832
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+        "size_bytes": 71005746
+      },
+      "geometry": {
+        "query_rows": 4,
+        "sequences_per_replica": 1,
+        "tokens_per_sequence": 4,
+        "context_tokens": 4104,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "default_changed": true,
+      "old_body_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-glm-replay.json",
+        "sha256": "21d2e750181f782ac155886a8f6744046a7331410dfdb88dbfe2e4d2348f2259"
+      },
+      "current_operator": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/glm-low-concurrency-86c1ee8f/body-operator-family-scoreboard.json",
+        "sha256": "8e81fcca45b35141d4ea70f2f3b7e573aa5d7846635bbe4f02940d0265a0a25a"
+      }
+    },
+    {
+      "case_id": "glm53flash-a5-tp8-c3",
+      "input_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new17/glm53flash-a5-tp8-c3.json",
+        "sha256": "619bd71493a5f33896970112f0ae40025a85dfdcbffb6467dd3964fecb354cde",
+        "size_bytes": 2834
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot10ms_c3_20261030/kernel_details.csv",
+        "sha256": "7b5fcac6c1e58c05cb232a7ddb4450b761301ba5efc33b4b9f7909b9d59fbbe1",
+        "size_bytes": 58843290
+      },
+      "geometry": {
+        "query_rows": 16,
+        "sequences_per_replica": 4,
+        "tokens_per_sequence": 4,
+        "context_tokens": 4104,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "default_changed": true,
+      "old_body_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-glm-replay.json",
+        "sha256": "21d2e750181f782ac155886a8f6744046a7331410dfdb88dbfe2e4d2348f2259"
+      },
+      "current_operator": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/glm-low-concurrency-86c1ee8f/body-operator-family-scoreboard.json",
+        "sha256": "8e81fcca45b35141d4ea70f2f3b7e573aa5d7846635bbe4f02940d0265a0a25a"
+      }
+    },
+    {
+      "case_id": "glm53flash-a3-tp16-c4-livepre",
+      "input_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new17/glm53flash-a3-tp16-c4-livepre.json",
+        "sha256": "2ea5a162e821c44e50f12bc3710904acc8295f875ea257eb55660cace141116a",
+        "size_bytes": 2909
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot30_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+        "sha256": "35c1ff6c9570a472ca26f1bfa293cd09709a1e4d0f2984b039de9e48d961c1e2",
+        "size_bytes": 11734491
+      },
+      "geometry": {
+        "query_rows": 24,
+        "sequences_per_replica": 4,
+        "tokens_per_sequence": 6,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "default_changed": true,
+      "old_body_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-glm-replay.json",
+        "sha256": "21d2e750181f782ac155886a8f6744046a7331410dfdb88dbfe2e4d2348f2259"
+      },
+      "current_operator": null
+    },
+    {
+      "case_id": "glm53flash-a3-tp16-c2",
+      "input_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new17/glm53flash-a3-tp16-c2.json",
+        "sha256": "6e7eeb90361546bc8791cf31f5c0e0fb48b712609e3cfcdd4586e4c20fd1f2ec",
+        "size_bytes": 2893
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_tpot30_c2_20261030/ranks/tp0/kernel_details.csv.gz",
+        "sha256": "2c0fabc622d035cc8fa829c0ef0c441239643ba3cae5737c37b67e64dbf91d94",
+        "size_bytes": 10413342
+      },
+      "geometry": {
+        "query_rows": 12,
+        "sequences_per_replica": 2,
+        "tokens_per_sequence": 6,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "default_changed": true,
+      "old_body_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-glm-replay.json",
+        "sha256": "21d2e750181f782ac155886a8f6744046a7331410dfdb88dbfe2e4d2348f2259"
+      },
+      "current_operator": null
+    },
+    {
+      "case_id": "glm53flash-a3-tp16-c4",
+      "input_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new17/glm53flash-a3-tp16-c4.json",
+        "sha256": "aef0573da26c63a54c4ee1cd4aae0b2b8351f41a01d82bf7009572398fa1f7a3",
+        "size_bytes": 2893
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_tpot50_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+        "sha256": "439aa03a26db30436e8cccd8695634f443d95be0ae35f61bb587ca313ca32fb4",
+        "size_bytes": 11354607
+      },
+      "geometry": {
+        "query_rows": 24,
+        "sequences_per_replica": 4,
+        "tokens_per_sequence": 6,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "default_changed": true,
+      "old_body_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-glm-replay.json",
+        "sha256": "21d2e750181f782ac155886a8f6744046a7331410dfdb88dbfe2e4d2348f2259"
+      },
+      "current_operator": null
+    },
+    {
+      "case_id": "glm53flash-a5-tp8-c96",
+      "input_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new17/glm53flash-a5-tp8-c96.json",
+        "sha256": "2f49a5ebab8ba1243307349e7c37b538ffd26cdf0714af761e4ebaf1df8292d1",
+        "size_bytes": 2838
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot30ms_c96_20261030/kernel_details.csv",
+        "sha256": "b7e8198893748ef14b12d4bb6c51098f16c86e90a40c56403e7d15b69bcbf89d",
+        "size_bytes": 30453739
+      },
+      "geometry": {
+        "query_rows": 384,
+        "sequences_per_replica": 96,
+        "tokens_per_sequence": 4,
+        "context_tokens": 4104,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "default_changed": true,
+      "old_body_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime67/decode-forward-glm-replay.json",
+        "sha256": "ad9dfb1967f6e3cc6f24cad1825eee8a225f2a350d1335881c8ab0abd33d4c4c"
+      },
+      "current_operator": null
+    },
+    {
+      "case_id": "v4flash-a3-tp8-c4",
+      "input_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new17/v4flash-a3-tp8-c4.json",
+        "sha256": "a20b7c039fda8928c308d45b5cff9bfac94eaa33e272bc1b97b723f718106dde",
+        "size_bytes": 3115
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_flash_w8a8_mtp_high_conc_decode_tpot30_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+        "sha256": "540c7fbc1816b7ecaf68317df8d6dc291441ee389fe59b41e76109f483f1e2cd",
+        "size_bytes": 17267089
+      },
+      "geometry": {
+        "query_rows": 8,
+        "sequences_per_replica": 4,
+        "tokens_per_sequence": 2,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "default_changed": true,
+      "old_body_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-v4_kimi-replay.json",
+        "sha256": "b4d3ba76bffba4df0081fc02660bbbe379003bcee644c5a8872d4e7f179b7540"
+      },
+      "current_operator": null
+    },
+    {
+      "case_id": "v4flash-a3-tp8-c8",
+      "input_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new17/v4flash-a3-tp8-c8.json",
+        "sha256": "ab010289f8281bc5f073653c894b4eb2ff709ebc54d2d5c57897fe6828edb1c8",
+        "size_bytes": 3115
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_flash_w8a8_mtp_high_conc_decode_tpot50_c8_20261030/ranks/tp0/kernel_details.csv.gz",
+        "sha256": "43228298ed603e07a4aacb3b298867aecdff1941db0701f4736edae050718213",
+        "size_bytes": 18753472
+      },
+      "geometry": {
+        "query_rows": 16,
+        "sequences_per_replica": 8,
+        "tokens_per_sequence": 2,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "default_changed": true,
+      "old_body_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-v4_kimi-replay.json",
+        "sha256": "b4d3ba76bffba4df0081fc02660bbbe379003bcee644c5a8872d4e7f179b7540"
+      },
+      "current_operator": null
+    }
+  ],
+  "current_operator_refreshes": [
+    {
+      "case_id": "glm53flash-a3-tp16-c16-livepre",
+      "receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/glm-a3-livepre-86c1ee8f/body-operator-family-scoreboard.json",
+        "sha256": "41034103b55d8f5ca913d5d5ce4072dca92f85f8c28504c40d72529ec0dac18f"
+      },
+      "actual_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators-5935c87b/body-operator-glm53flash-a3-tp16-c16-livepre-q6-b16-new17.actual.json",
+        "sha256": "4e7fd87629b9a5369d9e080cfdec106f6720020d76e66cebc91ee3144a93709e",
+        "size_bytes": 758590
+      },
+      "case_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/new17/glm53flash-a3-tp16-c16-livepre.json",
+        "sha256": "c9b8825860b9d4070c12115ba5713494d8da9e35167fadd594d79ff47cae589a",
+        "size_bytes": 3006
+      },
+      "mapping_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/glm-a3-livepre-86c1ee8f/body-operator-glm53flash-a3-tp16-c16-livepre-q6-b16-86c1ee8f-a3-livepre.mapping.json",
+        "sha256": "6f456cc4cae1249f6c1667e84157a97845c4029d21d2ba376bc6eac1eaa193a4",
+        "size_bytes": 83485
+      },
+      "comparison_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/glm-a3-livepre-86c1ee8f/body-operator-glm53flash-a3-tp16-c16-livepre-q6-b16-86c1ee8f-a3-livepre.comparison.json",
+        "sha256": "e2d08678d6664c0809f9aa9a847f82342f3361ca492bdf4f9ba5c2ad56d6bed8",
+        "size_bytes": 130104
+      },
+      "families": [
+        {
+          "native_operator_type": "MatMulV2",
+          "declared_role": "index_k",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 814,
+          "cohort_ids": [
+            "sha256:6cf6a9c5be1c8bd08b5b01d9f9717ddfa073407b6470eadd337250c2f4da168d"
+          ]
+        },
+        {
+          "native_operator_type": "MatMulV2",
+          "declared_role": "index_q",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 407,
+          "cohort_ids": [
+            "sha256:bb4809e8c4d0b0fff24fa8fc96d5cf5f94a8080136d1e6d22fbfec29e750f5b3"
+          ]
+        },
+        {
+          "native_operator_type": "MatMulV2",
+          "declared_role": "linear_decay_b|linear_gate_b",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 2516,
+          "cohort_ids": [
+            "sha256:e978c1a57f368ede28072825c8b37e80fc9c130e0ed166e36d504596bd18d07f"
+          ]
+        },
+        {
+          "native_operator_type": "MatMulV2",
+          "declared_role": "linear_output",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 1258,
+          "cohort_ids": [
+            "sha256:03aebb2672df4d58aa468d5bf6eea5cbd765cd70a7e30a805274ee951aecb090"
+          ]
+        },
+        {
+          "native_operator_type": "MatMulV2",
+          "declared_role": "linear_qkvbfg_a",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 1258,
+          "cohort_ids": [
+            "sha256:b308f417f63b603234aa283dc36037bcd13b3a069a0937c22552e03ba92b3809"
+          ]
+        },
+        {
+          "native_operator_type": "MatMulV2",
+          "declared_role": "output",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 407,
+          "cohort_ids": [
+            "sha256:f03460bd35022142ea04e45b3c27662ce185c7af9db4c1768803d191d2928480"
+          ]
+        },
+        {
+          "native_operator_type": "MatMulV2",
+          "declared_role": "q_b",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 407,
+          "cohort_ids": [
+            "sha256:a1ebc68740a1c52eed51a779ef58d900e01e68fcd4c3b22bce76574a18d8dfde"
+          ]
+        },
+        {
+          "native_operator_type": "MatMulV2",
+          "declared_role": "qkv_a",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 407,
+          "cohort_ids": [
+            "sha256:fce4b7ea82c0d9be4b22a38c7406804258594afb67e7f5978331a58881cdb80a"
+          ]
+        },
+        {
+          "native_operator_type": "QuantBatchMatmulV3",
+          "declared_role": "down",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 111,
+          "cohort_ids": [
+            "sha256:e0f8116353476f298a4ac68d978ff17ec15ea25ec7e763ed5bb6570c081bdb7b"
+          ]
+        },
+        {
+          "native_operator_type": "QuantBatchMatmulV3",
+          "declared_role": "gate_up",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 111,
+          "cohort_ids": [
+            "sha256:eb515119ad9540f22189679a264c308c4681bfa83f27b18af9d68bea662e8dad"
+          ]
+        },
+        {
+          "native_operator_type": "QuantBatchMatmulV3",
+          "declared_role": "shared.down",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 1554,
+          "cohort_ids": [
+            "sha256:ef99b84e2c560df2b3bdcf5e109089503c9e5574f08e71a040207ffd562a7b42"
+          ]
+        }
+      ],
+      "fresh_full_case_reprice_required": true,
+      "raw_rescan_required": false
+    },
+    {
+      "case_id": "glm53flash-a5-tp8-c3",
+      "receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/glm-low-concurrency-86c1ee8f/body-operator-family-scoreboard.json",
+        "sha256": "8e81fcca45b35141d4ea70f2f3b7e573aa5d7846635bbe4f02940d0265a0a25a"
+      },
+      "actual_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators-5935c87b/body-operator-glm53flash-a5-tp8-c3-new17.actual.json",
+        "sha256": "ea2381de45d8e8d6ae5e31de27bf45ac8f6be359c2924a6e1698a012efa07e10",
+        "size_bytes": 1905191
+      },
+      "case_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/new17/glm53flash-a5-tp8-c3.json",
+        "sha256": "619bd71493a5f33896970112f0ae40025a85dfdcbffb6467dd3964fecb354cde",
+        "size_bytes": 2834
+      },
+      "mapping_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/glm-low-concurrency-86c1ee8f/body-operator-glm53flash-a5-tp8-c3-86c1ee8f-low-concurrency.mapping.json",
+        "sha256": "84aef83cc2cc3682c258293ff5ba7abc7031b1b4503c08cf5bae61d285c05b63",
+        "size_bytes": 80135
+      },
+      "comparison_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/glm-low-concurrency-86c1ee8f/body-operator-glm53flash-a5-tp8-c3-86c1ee8f-low-concurrency.comparison.json",
+        "sha256": "bfeff43e61422893f6ec3cb395554c9a1eb0b13a2b2f1e0d29c74ee9505b76c4",
+        "size_bytes": 127378
+      },
+      "families": [
+        {
+          "native_operator_type": "GroupedMatmul",
+          "declared_role": "expert_down",
+          "old_program_basis": "MappedMatmul via balanced_grouped_down",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 2226,
+          "cohort_ids": [
+            "sha256:728d0ce44da4cfef9eba4c3a1ab3c99383a6f9038e8bd502535f17796e8747bb"
+          ]
+        },
+        {
+          "native_operator_type": "MatMulV3",
+          "declared_role": "index_q",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 583,
+          "cohort_ids": [
+            "sha256:0515633cf4eb20356d46b3e5c4e7d8223d25820279bcf4d1a02da767c78d66c6"
+          ]
+        },
+        {
+          "native_operator_type": "MatMulV3",
+          "declared_role": "linear_output",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 1802,
+          "cohort_ids": [
+            "sha256:c627ce0acba6ec8c48ceca9a4822fc7f7782b37565247a331ae8bee98d52059d"
+          ]
+        },
+        {
+          "native_operator_type": "MatMulV3",
+          "declared_role": "linear_qkvbfg_a",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 1802,
+          "cohort_ids": [
+            "sha256:796c3099de737d40619dd55a7c1b88997fd035cb6ebb98a2a5d4538968cf8f7b"
+          ]
+        },
+        {
+          "native_operator_type": "MatMulV3",
+          "declared_role": "router",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 2226,
+          "cohort_ids": [
+            "sha256:87cce038aa5ca22dd232cda56ae65d124eb81b9ee73f0b6159cb0a1550a73af8"
+          ]
+        },
+        {
+          "native_operator_type": "QuantBatchMatmulV3",
+          "declared_role": "down",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 159,
+          "cohort_ids": [
+            "sha256:10ed3ddf466c78f31069fd3119c7aaa14aa54c9eb9b8391a7da4d65c98bf8ca2"
+          ]
+        },
+        {
+          "native_operator_type": "QuantBatchMatmulV3",
+          "declared_role": "gate_up",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 159,
+          "cohort_ids": [
+            "sha256:fc63e4eb196bfe65898dcd364d2dcda929aaf4960915008654a0ace0c4ea4217"
+          ]
+        },
+        {
+          "native_operator_type": "QuantBatchMatmulV3",
+          "declared_role": "shared.down",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 2226,
+          "cohort_ids": [
+            "sha256:38e9c9f3a33557e5108c8e8e1b33d81db3520544b455826a17065490cf25a57e"
+          ]
+        },
+        {
+          "native_operator_type": "QuantBatchMatmulV3",
+          "declared_role": "shared.gate_up",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 2226,
+          "cohort_ids": [
+            "sha256:1d3528884f9d04f08f1e148a724661e58fc06affc7c76d4d4a9cca8166afcb28"
+          ]
+        }
+      ],
+      "fresh_full_case_reprice_required": true,
+      "raw_rescan_required": false
+    },
+    {
+      "case_id": "glm53flash-a5-tp8-c1",
+      "receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/glm-low-concurrency-86c1ee8f/body-operator-family-scoreboard.json",
+        "sha256": "8e81fcca45b35141d4ea70f2f3b7e573aa5d7846635bbe4f02940d0265a0a25a"
+      },
+      "actual_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators-5935c87b/body-operator-glm53flash-a5-tp8-c1-new17.actual.json",
+        "sha256": "210b9219324bad13c3a6a9a0953e58237da1620770881d2af593214ab7bfed20",
+        "size_bytes": 1950412
+      },
+      "case_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/new17/glm53flash-a5-tp8-c1.json",
+        "sha256": "b2cd9f2efa1eb1933cbf08ce1019215a6366a802495379281afa9112ddf0d388",
+        "size_bytes": 2832
+      },
+      "mapping_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/glm-low-concurrency-86c1ee8f/body-operator-glm53flash-a5-tp8-c1-86c1ee8f-low-concurrency.mapping.json",
+        "sha256": "ed38dfcb3064d8ac292eba2bac3810e8a3319a20efe23ee7841f429c5f6acb6a",
+        "size_bytes": 80041
+      },
+      "comparison_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/glm-low-concurrency-86c1ee8f/body-operator-glm53flash-a5-tp8-c1-86c1ee8f-low-concurrency.comparison.json",
+        "sha256": "44abaf1320aa9551e1fbf2f27157ad884bac55c118de781af3dccf241887c72d",
+        "size_bytes": 127231
+      },
+      "families": [
+        {
+          "native_operator_type": "GroupedMatmul",
+          "declared_role": "expert_down",
+          "old_program_basis": "MappedMatmul via balanced_grouped_down",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 2730,
+          "cohort_ids": [
+            "sha256:29444a1df2964130c44b71598fb47fe5e0d7c1e38a80abec6eea5bc2437597d0"
+          ]
+        },
+        {
+          "native_operator_type": "MatMulV3",
+          "declared_role": "index_q",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 715,
+          "cohort_ids": [
+            "sha256:d25527a9c80ac4a3352071f307a8b817ca7a25e09c512f87cbffa4204b9d2df8"
+          ]
+        },
+        {
+          "native_operator_type": "MatMulV3",
+          "declared_role": "linear_output",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 2210,
+          "cohort_ids": [
+            "sha256:5c08d9eddef09fe96e5bed8f1399120365c591b2b28e5c1d06809176a835f059"
+          ]
+        },
+        {
+          "native_operator_type": "MatMulV3",
+          "declared_role": "linear_qkvbfg_a",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 2210,
+          "cohort_ids": [
+            "sha256:7d1a4e56ae66e98b080850358a51c19a5b29e1a49214506f3aa5421e4b69e823"
+          ]
+        },
+        {
+          "native_operator_type": "MatMulV3",
+          "declared_role": "router",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 2730,
+          "cohort_ids": [
+            "sha256:5127ac095c2ef3d3095cf9abe6bd81def2bb027c5e58670c0c263a0aa00d215f"
+          ]
+        },
+        {
+          "native_operator_type": "QuantBatchMatmulV3",
+          "declared_role": "down",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 195,
+          "cohort_ids": [
+            "sha256:a02cfd97de5e9d05ef297d55c80ea449269537696a767f674a59112d274bfa6d"
+          ]
+        },
+        {
+          "native_operator_type": "QuantBatchMatmulV3",
+          "declared_role": "gate_up",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 195,
+          "cohort_ids": [
+            "sha256:f649d49530ae2e1342f9249628cf92abff73ce8eb75835215695df39ff582283"
+          ]
+        },
+        {
+          "native_operator_type": "QuantBatchMatmulV3",
+          "declared_role": "shared.down",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 2730,
+          "cohort_ids": [
+            "sha256:5abe6587da77c2e89accceccd57686fa1191aba93b7da848269eb4fb5c5e7096"
+          ]
+        },
+        {
+          "native_operator_type": "QuantBatchMatmulV3",
+          "declared_role": "shared.gate_up",
+          "old_program_basis": "TiledMatmul(128,128)",
+          "new_program_basis": "SteadyMatmul",
+          "cost_model_changed": true,
+          "cohort_count": 1,
+          "event_count": 2730,
+          "cohort_ids": [
+            "sha256:2dc4b3661ff8dba3612b3f40ae3c02927016bd10fa9e06ecad147f2f369b3c79"
+          ]
+        }
+      ],
+      "fresh_full_case_reprice_required": true,
+      "raw_rescan_required": false
+    }
+  ],
+  "no_default_change_sources": [
+    "a3_glm53flash_tp16_aclgraph_c16",
+    "a3_glm53flash_tp16_aclgraph_c32",
+    "a3_glm53flash_tp16_aclgraph_c64",
+    "a3_glm53flash_tp16_aclgraph_c8",
+    "a3_glm53_w4a8_tp16_tpot30_c2",
+    "a3_glm53_w4a8_tp16_tpot50_c2",
+    "a3_glm53_w4a8_tp16_tpot88_c8",
+    "a5_glm53flash_tp8_c16_p4k",
+    "a5_glm53flash_tp8_c16_p8k",
+    "a5_glm53flash_tp8_c32_p4k",
+    "a5_glm53flash_tp8_c32_p8k",
+    "a5_glm53flash_tp8_c4_p8k",
+    "a5_glm53flash_tp8_c64_p4k",
+    "a5_glm53flash_tp8_c8_p4k",
+    "a5_v41_fp8_tp1_dp8_ep8_c16_p2k",
+    "a5_v41_fp8_tp1_dp8_ep8_c32_p2k",
+    "a5_v41_fp8_tp1_dp8_ep8_c4_p2k",
+    "a3_kimi4_tp8_w4a8_c1",
+    "a3_kimi4_tp8_w4a8_c16",
+    "a3_kimi4_tp8_w4a8_c32",
+    "a3_kimi4_tp8_w4a8_c4",
+    "a3_kimi4_tp8_w4a8_c64",
+    "a5_kimi_tp8_e16_bf16_c16_p16k",
+    "a5_kimi_tp8_e16_bf16_c16_p4k",
+    "a5_kimi_tp8_e16_bf16_c1_p16k",
+    "a5_kimi_tp8_e16_bf16_c1_p4k",
+    "a5_kimi_tp8_e16_bf16_c2_p16k",
+    "a5_kimi_tp8_e16_bf16_c2_p4k",
+    "a5_kimi_tp8_e16_bf16_c32_p16k",
+    "a5_kimi_tp8_e16_bf16_c32_p4k",
+    "a5_kimi_tp8_e16_bf16_c4_p16k",
+    "a5_kimi_tp8_e16_bf16_c4_p4k",
+    "a5_kimi_tp8_e16_bf16_c8_p16k",
+    "a5_kimi_tp8_e16_bf16_c8_p4k",
+    "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1",
+    "a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8",
+    "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64",
+    "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c16",
+    "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c32",
+    "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4",
+    "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64",
+    "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8",
+    "a5_v41_fp8_tp1_dp8_ep8_c128_p2k",
+    "a5_kimi_k3_p32768_c1"
+  ],
+  "limitations": [
+    "Only current operator receipts require refresh; historical cost generations retain their recorded runtime.",
+    "Nested source/fusion programs and explicit recipes remain higher priority; do not call every grouped/native kernel affected.",
+    "Fresh complete structure/cohort rebinding is required before new costs; any excluded partition stays outside the scoring denominator."
+  ],
+  "historical_input_resolutions": [
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c16_p16k",
+      "historical_revision": "0e2d144f",
+      "retained_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c16_p16k.json",
+        "sha256": "e2c085b21db418851570f09914f6bd60cd51ce37b8ab4cdc32bb3248517e8c8c",
+        "size_bytes": 18510
+      },
+      "current_main_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c16_p16k.json",
+        "sha256": "6490ed9e911799775c97de72d97875aad98f6298bfdbbb198c45fcd028371e83",
+        "size_bytes": 30809
+      },
+      "affected_by_default": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c16_p4k",
+      "historical_revision": "0e2d144f",
+      "retained_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c16_p4k.json",
+        "sha256": "53bc3a2e5a5dd3a9153edcdf003058ba9f0bcb13e1d439924591dcdd5d756c47",
+        "size_bytes": 18999
+      },
+      "current_main_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c16_p4k.json",
+        "sha256": "6a3538b87ba92b2139887b2471e50b39a57dd01889cfbcae41ee78276b1cea08",
+        "size_bytes": 31296
+      },
+      "affected_by_default": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c1_p16k",
+      "historical_revision": "0e2d144f",
+      "retained_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c1_p16k.json",
+        "sha256": "849f75f63a8ef53273ce4c3175dc01b892739d1126ff9312311ec38aeea16b83",
+        "size_bytes": 18506
+      },
+      "current_main_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c1_p16k.json",
+        "sha256": "bd615ec00c481742fd1f18a4ed843dcc8c19cc6e5e256c4c2b6901afe9217803",
+        "size_bytes": 30798
+      },
+      "affected_by_default": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c1_p4k",
+      "historical_revision": "0e2d144f",
+      "retained_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "sha256": "0405576ee7a9486660935884050a0b54e29ccdc5dc4a38b8402bcd5fd54c0cde",
+        "size_bytes": 18995
+      },
+      "current_main_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "sha256": "e20b2579beff7f83778a0693fb2efc0f1c0b60f6dde67a2a7a54c5845eff4361",
+        "size_bytes": 31285
+      },
+      "affected_by_default": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c2_p16k",
+      "historical_revision": "0e2d144f",
+      "retained_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c2_p16k.json",
+        "sha256": "974be4ce8dadc60efb583dafce0c9ccf2169aa1c6ea6dbe9d966d714a02cac3c",
+        "size_bytes": 18507
+      },
+      "current_main_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c2_p16k.json",
+        "sha256": "4dd4359f5a404c0f8b3c738432993d85e37f3278d46892410d1de3c7cc102426",
+        "size_bytes": 30799
+      },
+      "affected_by_default": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c2_p4k",
+      "historical_revision": "0e2d144f",
+      "retained_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c2_p4k.json",
+        "sha256": "425fad801af44fbf1b92750f43055f762b71a3fde8f0b17c447d86111b4c9f09",
+        "size_bytes": 18994
+      },
+      "current_main_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c2_p4k.json",
+        "sha256": "9d165bcd8828173e28480c41bcf0a63360ae46a6ce9601493f8b4a8fe9038752",
+        "size_bytes": 31284
+      },
+      "affected_by_default": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c32_p16k",
+      "historical_revision": "0e2d144f",
+      "retained_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c32_p16k.json",
+        "sha256": "6254b52e93371657637dd9ba21684558f4ca91e25e11866f22a8a179c7f91c8f",
+        "size_bytes": 18510
+      },
+      "current_main_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c32_p16k.json",
+        "sha256": "76068ee333f599596d939356a39baf621712ef434b50e3e21d19a77b9d05f376",
+        "size_bytes": 30809
+      },
+      "affected_by_default": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c32_p4k",
+      "historical_revision": "0e2d144f",
+      "retained_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c32_p4k.json",
+        "sha256": "3156080674bb7c32ca29acb91b8db0c1d5cfaebd41fc81b867a17f11471aaa40",
+        "size_bytes": 18999
+      },
+      "current_main_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c32_p4k.json",
+        "sha256": "d396e0fa7137946ab726c3e565613d318a440c361694ca542dabb3592be9ac0d",
+        "size_bytes": 31296
+      },
+      "affected_by_default": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c4_p16k",
+      "historical_revision": "0e2d144f",
+      "retained_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c4_p16k.json",
+        "sha256": "682f206e282c59f7b30bcf63ba76654a7309ebf4f4acd6191295ecc74173ef32",
+        "size_bytes": 18506
+      },
+      "current_main_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c4_p16k.json",
+        "sha256": "4650ee894a55fea04295d491aee1689ed946b7b0c727c54ba8a144175d4425aa",
+        "size_bytes": 30798
+      },
+      "affected_by_default": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c4_p4k",
+      "historical_revision": "0e2d144f",
+      "retained_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c4_p4k.json",
+        "sha256": "622bce3c19ce8e9bee18637dd8561d6ed2a0ef21c8e27695681102434c893ebe",
+        "size_bytes": 18994
+      },
+      "current_main_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c4_p4k.json",
+        "sha256": "169d9a41a884b04a70ab180c5f828293aa61ece6fb23cd103552005fb353a5bb",
+        "size_bytes": 31284
+      },
+      "affected_by_default": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c8_p16k",
+      "historical_revision": "0e2d144f",
+      "retained_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c8_p16k.json",
+        "sha256": "478e56a034803bad3282562b1642a2f6de444471b502c5e19381f09f1f72c4bf",
+        "size_bytes": 18504
+      },
+      "current_main_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c8_p16k.json",
+        "sha256": "ac15e2f9b3111f832c0f760640b93ffe967dedc8d33c622f3a4462534bf2615d",
+        "size_bytes": 30796
+      },
+      "affected_by_default": false
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c8_p4k",
+      "historical_revision": "0e2d144f",
+      "retained_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c8_p4k.json",
+        "sha256": "120ec23793496bdea7f11043a31fb4ab181e548f3731c545284fdacdf3c2438a",
+        "size_bytes": 18993
+      },
+      "current_main_input": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a5_kimi_tp8_e16_bf16_c8_p4k.json",
+        "sha256": "939c82aa90a8cc6f681528944188270f4c9f1bad0a076d79b41a0ab178796c27",
+        "size_bytes": 31283
+      },
+      "affected_by_default": false
+    }
+  ],
+  "raw_capture_reads": 0,
+  "new_cost_executions": 0,
+  "fixed_checkout_reads": 0,
+  "peak_rss_raw": 95010816
+}

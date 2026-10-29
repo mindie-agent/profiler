@@ -1,0 +1,55 @@
+{
+  "schema_version": "mindie-repriced-body-operator-review/1",
+  "status": "passed",
+  "checks": 1814,
+  "failures": [],
+  "scoreboard_sha256": "3c866c0eea14329da75ba70c09f743980e3374ed3a1a2f68d0699c2ee3d0837b",
+  "script_sha256": "c3cfd24286af5a02131357fa5c5993095d69196da1a357d1adeb6a9de969cde7",
+  "source_count": 2,
+  "counts": {
+    "passed": 37,
+    "compared": 38,
+    "strict_events": 64310,
+    "retained_reference_groups": 0,
+    "excluded_reference_groups": 0,
+    "strict_rebind_exclusions": 0,
+    "forward_count": 118
+  },
+  "accuracy_by_tier": {
+    "absolute_15us": {
+      "compared": 37,
+      "passed": 37
+    },
+    "relative_15pct": {
+      "compared": 1,
+      "passed": 0
+    }
+  },
+  "cases": [
+    {
+      "case_id": "glm53flash-a5-tp8-c1 / body-default-0e2d144f",
+      "passed": 19,
+      "compared": 19,
+      "strict_events": 35425,
+      "retained_reference_groups": 0,
+      "excluded_reference_groups": 0,
+      "reference_worker_status": "completed",
+      "strict_rebind_exclusions": 0,
+      "forward_count": 65
+    },
+    {
+      "case_id": "glm53flash-a5-tp8-c3 / body-default-0e2d144f",
+      "passed": 18,
+      "compared": 19,
+      "strict_events": 28885,
+      "retained_reference_groups": 0,
+      "excluded_reference_groups": 0,
+      "reference_worker_status": "completed",
+      "strict_rebind_exclusions": 0,
+      "forward_count": 53
+    }
+  ],
+  "raw_capture_reads": 0,
+  "prediction_executions": 0,
+  "method": "stdlib identities/histograms, old-to-new observed partition equality and independent tier math"
+}
