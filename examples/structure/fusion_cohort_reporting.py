@@ -238,6 +238,18 @@ def _variant_markdown(summary, table):
     return [*lines, ""]
 
 
+def _family_index(summary, table, identity):
+    return {
+        "capture_key": summary["capture_key"], "variant": summary["variant"],
+        "declaration_key": summary["declaration_key"], "graph_id": summary["graph_id"],
+        "source_identity": summary["source_identity"],
+        "file": identity["file"], "sha256": identity["sha256"],
+        "family_count": len(table["families"]),
+        "event_count": sum(row["event_count"] for row in table["families"]),
+        "accuracy_summary": table["accuracy_summary"],
+    }
+
+
 def write_family_overview(args, captures):
     variants, sections, summaries = [], [], {tier: Counter() for tier in TIERS}
     for capture in captures:
@@ -246,15 +258,8 @@ def write_family_overview(args, captures):
             summary = _read(summary_path)
             family_path = summary_path.with_suffix(".families.json")
             table = _read(family_path)
-            variants.append({
-                "capture_key": capture["capture_key"], "variant": summary["variant"],
-                "declaration_key": summary["declaration_key"], "graph_id": summary["graph_id"],
-                "source_identity": summary["source_identity"],
-                "file": family_path.name, "sha256": _hash(family_path),
-                "family_count": len(table["families"]),
-                "event_count": sum(row["event_count"] for row in table["families"]),
-                "accuracy_summary": table["accuracy_summary"],
-            })
+            variants.append(_family_index(summary, table, {
+                "file": family_path.name, "sha256": _hash(family_path)}))
             for tier, counts in table["accuracy_summary"].items():
                 summaries[tier].update({key: counts[key] for key in (
                     "cohort_count", "passed_cohort_count", "failed_cohort_count",
@@ -275,7 +280,8 @@ def write_family_overview(args, captures):
         "Every native type and full-family aggregate remains in JSON.", "",
         "Large failed cohorts lead Top Errors, sorted by their observed activity; small failures are "
         "separate and sorted by absolute per-call difference. Within-tolerance groups and unscored "
-        "coverage have separate tables. Reference, clipped, failed and unmatched events are not scored.", "",
+        "coverage have separate tables. Reference, clipped, prediction-failed and unmatched events "
+        "are not scored; accuracy-failed cohorts remain in the scored denominator.", "",
         "Activity sums count overlapping events separately and are not wall-clock latency. "
         "Variant totals reuse captures and must not be counted as independent evidence.", "",
         "| Tier | Compared cohorts across variants | Passed | Failed |",
@@ -308,6 +314,8 @@ def write_family_overview(args, captures):
 
 def write_full_replay_summary(output_dir, receipt):
     """Build the global scoreboard from the same completed replay artifacts."""
+    expected_variants = []
+    expected_tiers = {tier: Counter() for tier in TIERS}
     for capture in receipt["captures"]:
         for entry in capture["reports"]:
             path = output_dir / entry["report"]
@@ -315,7 +323,28 @@ def write_full_replay_summary(output_dir, receipt):
                 "file": path.name, "sha256": _hash(path), "size_bytes": path.stat().st_size,
             }:
                 raise ValueError(f"summary_generation_mismatch:{path}")
+            summary = _read(path)
+            identity = summary["artifacts"]["families"]
+            family_path = output_dir / identity["file"]
+            if identity != {
+                "file": family_path.name, "sha256": _hash(family_path),
+                "size_bytes": family_path.stat().st_size,
+            }:
+                raise ValueError(f"artifact_identity_mismatch:{family_path}")
+            table = _read(family_path)
+            if table["graph_id"] != summary["graph_id"]:
+                raise ValueError(f"artifact_graph_mismatch:{family_path}")
+            expected_variants.append(_family_index(summary, table, identity))
+            for tier, counts in table["accuracy_summary"].items():
+                expected_tiers[tier].update({key: counts[key] for key in (
+                    "cohort_count", "passed_cohort_count", "failed_cohort_count",
+                    "scored_event_count", "passed_event_count", "failed_event_count")})
     overview = _read(output_dir / "fusion-cohort-replay-families.json")
+    # Equal cohort counts can describe different captures and pass populations.
+    # Verify the complete generation before replacing the previous scoreboard.
+    if (overview["variants"] != expected_variants
+            or overview["accuracy_summary_across_variants"] != expected_tiers):
+        raise ValueError("overview_generation_mismatch")
     tiers = overview["accuracy_summary_across_variants"]
     total = Counter()
     for counts in tiers.values():
@@ -377,7 +406,9 @@ def write_full_replay_summary(output_dir, receipt):
         "Cache capacity does not establish active context, and query width does not identify "
         "verify or draft execution. Recurrent GDN retains exact state dtype. Sparse-attention "
         "buckets use observed index descriptors and independently declared layer structure; "
-        "no event is duplicated between heterogeneous buckets.", "",
+        "no event is duplicated between heterogeneous buckets within one declaration. "
+        "Across declarations the same captured events can be reused; summed scored-event counts "
+        "are not a unique-event coverage rate.", "",
         "Source-selected shared INT32 quantization separates the accumulator producer from "
         "its dequantization/activation consumer. Compressor normalization references retain "
         "their missing native state-write/reuse boundary and stay outside accuracy counts. "

@@ -263,6 +263,99 @@ def test_fixed_replay_totals_exclude_references_and_reject_mixed_summary_generat
     assert (tmp_path / "cohort-full-family-replay.md").read_text() == full_text
 
 
+@pytest.mark.parametrize("stale_artifact", ["overview", "families"])
+def test_same_count_historical_generations_cannot_replace_current_scoreboard(
+    reporting, tmp_path, stale_artifact,
+):
+    fixture = json.loads(HISTORICAL.read_text())
+
+    def write(name, value):
+        path = tmp_path / name
+        path.write_text(json.dumps(value, separators=(",", ":"), allow_nan=False) + "\n")
+        return {"file": path.name, "sha256": sha256(path.read_bytes()).hexdigest(),
+                "size_bytes": path.stat().st_size}
+
+    def generation(declaration, kind):
+        original = fixture["declarations"][declaration]
+        mapping = {
+            **original["mapping"],
+            "windows": [{
+                **window,
+                "operators": [row for row in window["operators"]
+                              if row["operator_type"] == kind],
+                "cohorts": [row for row in window.get("cohorts", [])
+                            if row["native_operator_type"] == kind],
+            } for window in original["mapping"]["windows"]],
+        }
+        comparison = {
+            **original["comparison"],
+            "windows": [{
+                **window,
+                "cohorts": [row for row in window["cohorts"]
+                            if row["native_operator_type"] == kind],
+            } for window in original["comparison"]["windows"]],
+        }
+        rows = [row for window in comparison["windows"] for row in window["cohorts"]]
+        table = reporting.family_table(mapping, comparison)
+        prefix = "fusion-cohort-" + declaration
+        summary = {
+            **original["summary"],
+            "comparison": {
+                **original["summary"]["comparison"],
+                "status_counts": dict(Counter(row["status"] for row in rows)),
+            },
+            "artifacts": {
+                key: write(prefix + "." + key + ".json", value)
+                for key, value in (
+                    ("case", original["case"]), ("mapping", mapping),
+                    ("comparison", comparison), ("families", table))
+            },
+        }
+        identity = write(prefix + ".json", summary)
+        capture = {
+            "capture_key": summary["capture_key"],
+            "source_identity": summary["source_identity"],
+            "reports": [{"report": identity["file"], "summary_identity": identity}],
+        }
+        receipt = {
+            **fixture["report_receipt"], "captures": [capture],
+            "declaration_variant_count": 1, "distinct_captured_sources": 1,
+            "unique_capture_event_count": summary["positive_event_count"],
+            "comparison_cohort_status_counts": dict(Counter(row["status"] for row in rows)),
+        }
+        reporting.write_family_overview(
+            SimpleNamespace(output_dir=tmp_path, compare_existing=False), [capture])
+        reporting.write_full_replay_summary(tmp_path, receipt)
+        return receipt, summary, table
+
+    # Both projections retain unedited real cohort rows and have three compared
+    # cohorts. The old Kimi generation has one failed large call; the current
+    # GLM DynamicQuant generation passes all three short-call cohorts.
+    old_receipt, old_summary, old_table = generation(
+        "a5_kimi_k3_decode-reference", "MatMulV3")
+    overview_path = tmp_path / "fusion-cohort-replay-families.json"
+    old_overview = overview_path.read_bytes()
+    old_family = (tmp_path / old_summary["artifacts"]["families"]["file"]).read_bytes()
+    current_receipt, current_summary, current_table = generation(
+        "a3_glm53_decode-reference", "DynamicQuant")
+    assert old_receipt["comparison_cohort_status_counts"] == (
+        current_receipt["comparison_cohort_status_counts"]) == {"compared": 3}
+    assert sum(tier["passed_cohort_count"] for tier in old_table["accuracy_summary"].values()) == 2
+    assert sum(tier["passed_cohort_count"] for tier in current_table["accuracy_summary"].values()) == 3
+    output = tmp_path / "cohort-full-family-replay.md"
+    correct_output = output.read_bytes()
+
+    if stale_artifact == "overview":
+        overview_path.write_bytes(old_overview)
+        error = "overview_generation_mismatch"
+    else:
+        (tmp_path / current_summary["artifacts"]["families"]["file"]).write_bytes(old_family)
+        error = "artifact_identity_mismatch"
+    with pytest.raises(ValueError, match=error):
+        reporting.write_full_replay_summary(tmp_path, current_receipt)
+    assert output.read_bytes() == correct_output
+
+
 def test_accuracy_refresh_preserves_real_metrics_and_updates_verified_artifact_hashes(
     reporting, tmp_path, monkeypatch,
 ):
