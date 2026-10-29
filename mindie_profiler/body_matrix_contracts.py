@@ -35,10 +35,12 @@ def _issue(row, reason, detail):
 
 def _dense(row, inputs, outputs):
     expected = 4 if row.kind == "QuantBatchMatmulV3" else 5
-    if len(inputs) != expected or len(outputs) != 1:
+    accumulator = row.kind == "QuantBatchMatmulV3" and len(inputs) == 3
+    if (len(inputs) != expected and not accumulator) or len(outputs) != 1:
         return None, _issue(row, "unsupported_quant_matrix_slots",
-                            "Supported retained interfaces are V3 four inputs and V4 five inputs, "
-                            "each with one output; additional epilogues are not discarded.")
+                            "Supported retained interfaces are V3 four-input dequantized or "
+                            "three-input INT32 accumulator output and V4 five inputs. "
+                            "Each has one output; additional epilogues are not discarded.")
     x, weight, y = inputs[0], inputs[1], outputs[0]
     if (len(x[0]) != 2 or len(y[0]) != 2 or x[0][0] != y[0][0]
             or any(v <= 0 for v in (*x[0], *y[0]))):
@@ -51,10 +53,22 @@ def _dense(row, inputs, outputs):
                             "Only retained ND activation/output and source-defined NZ weight layouts pass.")
     groups = (k + 63) // 64
     if row.kind == "QuantBatchMatmulV3":
-        ws, xs = inputs[2:4]
         if k % 16 or n % 32 or weight[0] != (n // 32, k // 16, 16, 32):
             return None, _issue(row, "inconsistent_quant_matrix_weight_axes",
                                 "V3 non-transposed NZ weight axes are [N/32,K/16,16,32].")
+        if accumulator:
+            # shared_experts.py leaves pertoken_scale=None and requests INT32;
+            # the following dequant/activation kernel owns output rescaling.
+            if (x[1] == weight[1] == "int8" and y[1] == "int32"
+                    and inputs[2][0] == (n,) and inputs[2][1] in {"bf16", "fp32"}
+                    and inputs[2][2] == "ND"):
+                return ("matrix", (m, n, k), "int8", "int8", "int32", (), ""), None
+            return None, _issue(
+                row, "unsupported_quant_matrix_accumulator_boundary",
+                "The three-input branch requires INT8 operands, an N-wide weight-scale "
+                "descriptor and INT32 output. A missing token scale does not imply a "
+                "complete floating-point dequantization.")
+        ws, xs = inputs[2:4]
         if x[1] == weight[1] == "int8":
             valid = (ws[0] == (n,) and ws[1] in {"bf16", "fp32"} and ws[2] == "ND"
                      and xs == ((m,), "fp32", "ND")
@@ -171,7 +185,11 @@ def matrix_contract_diagnostic(row):
 
 def matrix_contract_scope(row):
     grouped = row.kind == "GroupedMatmul"
-    return {
+    slots = _slots(row)
+    accumulator = (row.kind == "QuantBatchMatmulV3" and slots is not None
+                   and len(slots[0]) == 3 and len(slots[1]) == 1
+                   and slots[1][0][1] == "int32")
+    scope = {
         "kind": "grouped_matrix_active_geometry" if grouped else "quantized_matrix_active_geometry",
         "compared": ["logical_M_N_K", "activation_weight_output_precision",
                      "activation_scale_shape_dtype", *(["expert_bank_count"] if grouped else [])],
@@ -194,3 +212,21 @@ def matrix_contract_scope(row):
             "V3 INT8 per-channel/per-token and MX paired-scale interfaces are checked separately."),
         "occurrence_identity": False,
     }
+    if accumulator:
+        scope["output_boundary"] = "integer_accumulator"
+        scope["compared"] = ["logical_M_N_K", "activation_weight_output_precision"]
+        scope["not_compared"].extend(["subsequent_dequantization", "subsequent_activation"])
+        scope["conditions"] = (
+            "The source shared-expert path requests INT32 with pertoken_scale=None. "
+            "Its separate dequantization/activation kernel is outside this boundary; "
+            "the weight-scale descriptor does not establish floating-point output.")
+    if grouped:
+        scope["row_count_basis"] = "recorded_tensor_extent"
+        scope["required_runtime_evidence"] = [
+            "group_list_type", "group_list_values", "active_rows_within_allocated_rows"]
+        if slots is not None and len(slots[0]) >= 8 and slots[0][7][0] == (1,):
+            scope["single_bank_condition"] = (
+                "A single bank remains a grouped interface. Dense equivalence requires "
+                "independent evidence that its group list covers all recorded rows; "
+                "neither bank count nor matching M proves that condition.")
+    return scope

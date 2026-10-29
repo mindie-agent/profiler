@@ -1,0 +1,208 @@
+{
+  "schema_version": "mindie-derived-capture-fixture/1",
+  "source": "/Volumes/data-tmp/tmp/mindie-body-profiling-kimi-op-summary.csv",
+  "source_sha256": "ab1d44d3613ecb92d71af6d790ab9dfc72be5aabfe92bf4f99d584fbd0f9e648",
+  "source_size_bytes": 110031770,
+  "source_identity_basis": "Existing full-replay verified source identity; this pass streamed the same file to select unedited rows and count descriptors.",
+  "fixture": "a5_kimi_k3.csv",
+  "fixture_sha256": "7b3f0cdf5bf2f318cfbdd3a5df4d95dc2e55092ed7ee2ed161106b534951bd16",
+  "derivation": "Original fields retained; CSV serialized with LF. Four AttnRes descriptors and representative single-bank/multi-bank prefill/decode grouped descriptors. No tensor contents or scalar flags captured.",
+  "rows": [
+    {
+      "fixture_csv_line": 2,
+      "source_csv_line": 47,
+      "operator_type": "AttnResFwd",
+      "full_capture_descriptor_event_count": 4
+    },
+    {
+      "fixture_csv_line": 3,
+      "source_csv_line": 78,
+      "operator_type": "AttnResFwd",
+      "full_capture_descriptor_event_count": 744
+    },
+    {
+      "fixture_csv_line": 4,
+      "source_csv_line": 30505,
+      "operator_type": "AttnResFwd",
+      "full_capture_descriptor_event_count": 75
+    },
+    {
+      "fixture_csv_line": 5,
+      "source_csv_line": 30520,
+      "operator_type": "AttnResFwd",
+      "full_capture_descriptor_event_count": 13945
+    },
+    {
+      "fixture_csv_line": 6,
+      "source_csv_line": 53,
+      "operator_type": "GroupedMatmul",
+      "full_capture_descriptor_event_count": 276
+    },
+    {
+      "fixture_csv_line": 7,
+      "source_csv_line": 136,
+      "operator_type": "GroupedMatmul",
+      "full_capture_descriptor_event_count": 368
+    },
+    {
+      "fixture_csv_line": 8,
+      "source_csv_line": 165,
+      "operator_type": "GroupedMatmul",
+      "full_capture_descriptor_event_count": 1
+    },
+    {
+      "fixture_csv_line": 9,
+      "source_csv_line": 174,
+      "operator_type": "GroupedMatmul",
+      "full_capture_descriptor_event_count": 368
+    },
+    {
+      "fixture_csv_line": 10,
+      "source_csv_line": 240,
+      "operator_type": "GroupedMatmul",
+      "full_capture_descriptor_event_count": 1
+    },
+    {
+      "fixture_csv_line": 11,
+      "source_csv_line": 314,
+      "operator_type": "GroupedMatmul",
+      "full_capture_descriptor_event_count": 1
+    },
+    {
+      "fixture_csv_line": 12,
+      "source_csv_line": 389,
+      "operator_type": "GroupedMatmul",
+      "full_capture_descriptor_event_count": 1
+    },
+    {
+      "fixture_csv_line": 13,
+      "source_csv_line": 30512,
+      "operator_type": "GroupedMatmul"
+    },
+    {
+      "fixture_csv_line": 14,
+      "source_csv_line": 30561,
+      "operator_type": "GroupedMatmul"
+    },
+    {
+      "fixture_csv_line": 15,
+      "source_csv_line": 30568,
+      "operator_type": "GroupedMatmul"
+    },
+    {
+      "fixture_csv_line": 16,
+      "source_csv_line": 30574,
+      "operator_type": "GroupedMatmul"
+    }
+  ],
+  "full_capture_types": {
+    "AttnResFwd": {
+      "events": 14768,
+      "activity_us": 245588.31899999923
+    },
+    "GroupedMatmul": {
+      "events": 27248,
+      "activity_us": 813480.7050000047
+    }
+  },
+  "distinct_descriptors": {
+    "AttnResFwd": 4,
+    "GroupedMatmul": 367
+  },
+  "independent_implementation_evidence": [
+    {
+      "path": "/Users/maoxx241/code/vllm-ascend-v41-private/vllm_ascend/ops/fused_moe/shared_experts.py",
+      "sha256": "f1780df8ec2fc290bfeb946e5d48edcb8c1b4aee0f50c1bd9d10291def201e77",
+      "revision": "ae923905948f360f4b7ab06df52d0789a0c9316e",
+      "lines": [
+        305,
+        341
+      ],
+      "verified_domain": "Shared gate-up requests INT32 with pertoken_scale=None; separate dequant/activation owns floating-point rescale. Not a capture-binary identity."
+    },
+    {
+      "archive": "/Volumes/data/temp/codex-session-01a09c11-01b6-7ef2-bf23-6dae53e42dae/work/residual-0921/final2.tar.gz",
+      "archive_sha256": "4e58515e6bdd28c09fb8a8da6dd4fadfa77e0b4254cbc8837c64358513981f3a",
+      "members": [
+        {
+          "member": "csrc/attention/attn_res_fwd/op_host/attn_res_fwd_def.cpp",
+          "sha256": "9ca76a41ae30d44ce913a1995d85fd8a7a62d751c8404124b3764a4ed944dd44",
+          "lines": [
+            18,
+            61
+          ]
+        },
+        {
+          "member": "csrc/attention/attn_res_fwd_fused/op_host/attn_res_fwd_fused_def.cpp",
+          "sha256": "32b87f3ca0d1dd13e52ea5cbcad4717b0a0f37686d84d2385fe57e0c5634c849",
+          "lines": [
+            6,
+            23
+          ]
+        },
+        {
+          "member": "csrc/attention/attn_res_fwd_fused/attn_res_fwd_fused_torch_adpt.h",
+          "sha256": "142d75ff14aab63cf78d516d35c44abc1666c14e7847f44fe84001e256181fd0",
+          "lines": [
+            1,
+            200
+          ]
+        }
+      ],
+      "verified_domain": "Related delivery contains ordinary 4-input AttnResFwd and 6-input AttnResFwdFused, with separate native names. It proves extra fused branches exist but does not identify the captured 6-input AttnResFwd implementation."
+    }
+  ],
+  "declaration_requirements": {
+    "single_bank_dense_wrapper": {
+      "required": [
+        "independent_source_wrapper",
+        "native_kind",
+        "bank_count=1",
+        "group_list_type",
+        "group_list[0] covers all rows"
+      ],
+      "forbidden": "Do not coerce observed grouped_matrix into matrix from E=1 alone."
+    },
+    "routed_grouped_rows": {
+      "required": [
+        "group_list_type",
+        "group_list_values or independently measured active_rows",
+        "allocation row capacity",
+        "routing histogram when weight reuse is scored"
+      ],
+      "forbidden": "Do not substitute allocated rows for effective rows or discard M/E/precision."
+    },
+    "attention_residual_native_boundary": {
+      "required": [
+        "native_implementation_identity",
+        "active_prefix_shape",
+        "block_residual_strides",
+        "valid_blocks",
+        "mix",
+        "fuse_add",
+        "output_norm_enabled",
+        "block_write_idx",
+        "save_materialized"
+      ],
+      "semantic_members": [
+        "optional residual add with BF16 rounding",
+        "history normalization and learned scores",
+        "softmax and mixture",
+        "optional output RMSNorm",
+        "optional bank/prefix/materialized writes"
+      ],
+      "forbidden": "Do not treat bank capacity as active history depth; no layer inference from timing/order."
+    }
+  },
+  "historical_image_source": {
+    "provenance": "source_image_883670fc/provenance.json",
+    "image_id": "sha256:883670fcc91cbd75a7070b00501be0ecd81a266b81366a21bf02139d8e6a33e1",
+    "status": "source_files_verified_from_image_layers",
+    "single_bank_domain": "The image source caller uses a bias-free 2D eager MXFP8 wrapper with group_list=[M]. Sim supports the independently declared latent_projection caller only; split KDA Q/K/V nodes do not establish its fused projection.",
+    "attn_residual_domain": "The same-name six-input/three-output definition and caller are retained. Fallback prefix/norm tensors keep all slots nonempty when optional branches are off; active views and scalar flags remain required.",
+    "limitations": [
+      "Image source identity is not proof of the historical compiled binary or per-event dispatch.",
+      "The conditional current-checkpoint case and explicit eager mode remain caller declarations, not reconstructed event flags."
+    ]
+  }
+}
