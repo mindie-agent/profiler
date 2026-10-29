@@ -1,6 +1,6 @@
 # Kimi：17 份已有采集的 Decode 主体提取
 
-本批只读取本地已有采集，没有启动真机任务或运行 Sim 成本预测。
+主体提取只读取本地已有采集，没有启动真机任务。独立成本回放使用 Sim `09811dad` 源码，与提取回执分别保存。
 
 - A5：12 份 TP8 / DP1 / EP8、expert16/top8 BF16 条件声明，93 个主体层；请求并发 1/2/4/8/16/32，实际初始 prompt 为 4104 或 16392 tokens。
 - A3：5 份 TP8 / DP1 / EP8 W4A8 四层模型，3 KDA + 1 MLA；这是缩小层数的模型，不能冒充完整 93 层耗时。
@@ -25,4 +25,6 @@ PYTHONPATH=/Users/maoxx241/code/sim-rewrite-20261027:/Users/maoxx241/code/profil
   --output examples/structure/acceptance-20261030-kimi-variants
 ```
 
-`decode-forward-auto-acceptance.json` 是完整回执，`decode-geometry-priority.json` 保留全部几何桶及分母；Markdown 表格仅展示各源优先桶。成本对账必须再运行明确版本的 Sim，不能将这些实测值作为预测值。
+`decode-forward-auto-acceptance.json` 是完整提取回执，`decode-geometry-priority.json` 保留全部几何桶及分母；Markdown 表格仅展示各源优先桶。
+
+`decode-forward-09811dad-replay.json/.md` 独立记录 17 次新成本执行，固定运行时 228 个文件的 SHA。主桶覆盖 1769/1799 个主体，其余 14 桶明确延后预测。A3 四层模型 5/5 个主体工况通过 ±15%；A5 BF16 93 层模型 12 个主体工况仍低估约 23%–30%。四层结果不能外推完整 93 层模型，且本批也不能与旧 FP8 / DP4 的 Kimi 采集混为一个 checkpoint。
