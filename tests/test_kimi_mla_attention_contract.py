@@ -64,3 +64,35 @@ def test_real_gqa_compact_seven_slot_contract_still_uses_slot_six():
     assert observed_contract(row)[0] == 'attention_paged_active_qkv'
     dense = list(kernel_rows(FIXTURE / 'a3_qwen35.csv'))[1]
     assert fia_block_table_slot(dense) is None
+
+
+def test_real_a5_full31_mla_uses_table14_and_recovers_b1_b32_geometry():
+    from mindie_profiler.decode_segmentation import _Row, _query_geometry
+    from mindie_profiler.normalized import shapes
+    rows = list(kernel_rows(FIXTURE / 'a5_kimi_mla31.csv'))
+    compact = list(kernel_rows(FIXTURE / 'a3_kimi_four_layer_mla.csv'))[0]
+    for row, batch in zip(rows, (1, 1, 32)):
+        assert len(row.input_shapes) == 31
+        assert fia_block_table_slot(row) == 14
+        assert observed_contract(row)[0] == 'attention_paged_mla_qk_rope'
+        geometry = _query_geometry([_Row(row.event, shapes(row.event.input_shapes),
+                                        shapes(row.event.output_shapes))], batch)
+        assert (geometry['tokens_per_sequence'], geometry['sequences_per_replica']) == (1, batch)
+    assert observed_contract(rows[0]) == observed_contract(compact)
+    assert observed_contract(rows[0]) == observed_contract(rows[1])
+    assert observed_contract(rows[2]) != observed_contract(rows[0])
+
+
+def test_full31_geometry_does_not_require_unrelated_optional_tensor_contracts():
+    row = list(kernel_rows(FIXTURE / 'a5_kimi_mla31.csv'))[-1]
+    unknown_auxiliary = change(row, 'input_formats', 3, 'N/A')
+    assert observed_contract(unknown_auxiliary) is None
+    assert fia_block_table_slot(unknown_auxiliary) == 14
+    for field, index, value in [
+        ('input_shapes', 14, (1, 516)),
+        ('input_shapes', 24, (32, 16, 1, 32)),
+        ('input_shapes', 25, (12828, 128, 1, 64)),
+        ('input_dtypes', 14, 'DT_UNDEFINED'),
+        ('output_shapes', 0, (32, 16, 1, 512)),
+    ]:
+        assert fia_block_table_slot(change(row, field, index, value)) is None

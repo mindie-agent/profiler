@@ -9,7 +9,7 @@
 """
 from __future__ import annotations
 
-from .native_tensor_abi import native_tensor_contract, native_tensor_diagnostic
+from .native_tensor_abi import DTYPES, native_tensor_contract, native_tensor_diagnostic
 from .body_subgraph_contracts import (
     SUBGRAPH_TYPES, subgraph_contract, subgraph_contract_scope,
 )
@@ -89,9 +89,10 @@ def _paged_fia(inputs, outputs):
 def _paged_mla_fia(inputs, outputs):
     # mla_v1's BNSD_NBSD path preserves native axes rather than flattening them
     # into the GQA TND contract. Slot 6 is a rotary cache, never a block table.
-    if len(inputs) != 7:
+    if len(inputs) not in {7, 31}:
         return None
-    query, key, value, lengths, table, rope, key_rope = inputs
+    indices = (0, 1, 2, 3, 4, 5, 6) if len(inputs) == 7 else (0, 1, 2, 6, 14, 24, 25)
+    query, key, value, lengths, table, rope, key_rope = (inputs[index] for index in indices)
     output = outputs[0]
     floating = {"bf16", "fp16"}
     active = (query, key, value, rope, key_rope, output)
@@ -114,15 +115,37 @@ def _paged_mla_fia(inputs, outputs):
 
 
 def fia_block_table_slot(row):
-    """Return the table slot only for a validated captured paged FIA ABI."""
-    native = _native(row)
-    if native is None or row.kind != "FusedInferAttentionScore":
+    """Identify table geometry without demanding unrelated auxiliary metadata.
+
+    This selector does not export a tensor contract. Each required active slot
+    is validated; missing descriptors in unrelated optional slots remain unknown
+    and may still prevent the full native/active comparison contract.
+    """
+    if row.kind != "FusedInferAttentionScore" or not row.input_shapes:
         return None
-    inputs, outputs = native[2:]
-    if _paged_mla_fia(inputs, outputs):
-        return 4
-    if _paged_fia(inputs, outputs):
-        return 6 if len(inputs) == 7 else 14
+    arity = len(row.input_shapes)
+    if arity not in {7, 31}:
+        return None
+    def slot(direction, index):
+        shapes = getattr(row, direction + "_shapes")
+        dtypes = getattr(row, direction + "_dtypes")
+        formats = getattr(row, direction + "_formats")
+        if not shapes or any(index >= len(values) for values in (shapes, dtypes, formats)):
+            return None
+        return (shapes[index], DTYPES.get(dtypes[index], dtypes[index]), formats[index])
+    output = slot("output", 0)
+    if output is None:
+        return None
+    variants = ((4, (0, 1, 2, 3, 4, 5, 6), _paged_mla_fia),
+                (6, (0, 1, 2, 6), _paged_fia)) if arity == 7 else (
+                (14, (0, 1, 2, 6, 14, 24, 25), _paged_mla_fia),
+                (14, (0, 1, 2, 14), _paged_fia))
+    for table_index, required, validate in variants:
+        inputs = [None] * arity
+        for index in required:
+            inputs[index] = slot("input", index)
+        if all(inputs[index] is not None for index in required) and validate(inputs, (output,)):
+            return table_index
     return None
 
 
@@ -271,7 +294,7 @@ def attention_contract_scope(row):
                              "causal_flag", "auxiliary_output", "phase", "context_length",
                              "verify_or_draft_role"],
             "storage_boundary": "BNSD_query_NBSD_output_and_paged_rope_cache",
-            "validated_capture_abi": "seven_inputs; sequence_lengths_slot3; block_table_slot4; rotary_slots5_6",
+            "validated_capture_abi": "compact7:lengths3/table4/rope5_6; full31:lengths6/table14/rope24_25",
         }
     if contract[0] == "kv_cache_store_active":
         return {
