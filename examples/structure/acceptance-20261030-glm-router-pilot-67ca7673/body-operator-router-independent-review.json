@@ -1,0 +1,16 @@
+{
+  "schema_version": "mindie-router-reprice-independent-review/1",
+  "status": "passed",
+  "checks": 124,
+  "failures": [],
+  "report_sha256": "74e28fcf630d941a03b2f4249bb39829af0d71b37071fb69460729b1533dd6e1",
+  "source_forward_count": 31,
+  "strict_event_count": 1302,
+  "observed_us": 19.914667434715824,
+  "predicted_us": 19.74981818181818,
+  "per_call_diff_us": -0.16484925289764263,
+  "fresh_graph_id": "sha256:e7bd433d19e998ceeef1fc47d82899907d3e1b2e2e2298671a75153cd1d911a6",
+  "prior_graph_id": "sha256:7042d495fc5c5d24cf54ccca3484bc51a903c5b7bbcd1d9282b4925f6ee81c4d",
+  "maximum_resident_set_size_bytes": 167673856,
+  "scope": "Independent source/input SHA, actual-window source, unchanged observations/candidate set, freshly exported graph/work, one new worker and tier math. No raw capture parsing or timing prediction."
+}
