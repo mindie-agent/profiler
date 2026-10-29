@@ -1,0 +1,1090 @@
+{
+  "schema_version": "mindie-decode-forward-replay/1",
+  "cases": [
+    {
+      "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c16",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c16_20261030/kernel_details.csv",
+        "sha256": "025313a10fd2b7f9d62ff54933c1acfe4f10158b9f1011006a74c3580964a814",
+        "size_bytes": 63772053
+      },
+      "sim_case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-new6/a3_v41_w8a8_tp4_dp4_ep16_dspark7_c16.json",
+      "model_declaration": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-new6/a3_v41_w8a8_tp4_dp4_ep16_dspark7_c16.json",
+        "sha256": "7b0b1a2c04ffd945957fed1d260905e7400e4e86004be94ebb51ca2e2f267fea",
+        "size_bytes": 141639
+      },
+      "segmentation": "auto_structure_guided",
+      "segmentation_options": {
+        "forward_closure": "mhc_final_norm",
+        "sequence_parallel": {
+          "factor": 4,
+          "source": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a3-highconc-decode/w10/cases/serve_dsv41_flash_w8a8_dspark7.sh",
+            "size_bytes": 3124,
+            "sha256": "548b2b5f31aff1ca886cb1baf9e6c6bb0f15cbd9356b4c7cc324acb23691e717"
+          },
+          "basis": "source declares TP4 and FlashComm1; each occurrence must independently match hidden-shard rows times four to captured SparseFlashMla query rows",
+          "bounded_source_validation": {
+            "path": "/Users/maoxx241/code/profiler/examples/structure/acceptance-20261030-v41-final6/a3-c4-bounded-physical-rows.json",
+            "sha256": "42e9a413458dd0345fb04d8f14fdcba347f6f926b0c42b727519acab3183b60f",
+            "size_bytes": 500849,
+            "source_capture": "a3_v41_c4",
+            "cycles": {
+              "0": {
+                "target": {
+                  "count": 40,
+                  "hidden_rows": [
+                    2
+                  ],
+                  "query_rows": [
+                    8
+                  ],
+                  "block_table_rows": [
+                    1
+                  ]
+                },
+                "auxiliary": {
+                  "count": 3,
+                  "hidden_rows": [
+                    2
+                  ],
+                  "query_rows": [
+                    7
+                  ],
+                  "block_table_rows": [
+                    1
+                  ]
+                }
+              },
+              "1": {
+                "target": {
+                  "count": 40,
+                  "hidden_rows": [
+                    2
+                  ],
+                  "query_rows": [
+                    8
+                  ],
+                  "block_table_rows": [
+                    1
+                  ]
+                },
+                "auxiliary": {
+                  "count": 3,
+                  "hidden_rows": [
+                    4
+                  ],
+                  "query_rows": [
+                    7
+                  ],
+                  "block_table_rows": [
+                    1
+                  ]
+                }
+              }
+            },
+            "basis": "observed order grouped into two 40-target plus 3-auxiliary closures; source module identity is not observed"
+          }
+        }
+      },
+      "boundaries_path": null,
+      "geometry": null,
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c16_20261030",
+        "retained_inventory": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-final6/retained-source-evidence.json",
+          "sha256": "06e87ec000621c8f5adeac51465644ba69f47898e3625d3e8de773474906f6b8",
+          "size_bytes": 312386
+        },
+        "client": {
+          "concurrency": 16,
+          "input_len": 4096,
+          "output_len": 32,
+          "profiled_tpot_median_ms": 59.010974830016494,
+          "body_forward_is_separate_metric": true
+        },
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c16_20261030/benchmark_summary.json",
+          "sha256": "35d5fdbd6dd7486a5b8b7964b61f404d2de97f94f24fa28e450135a1b45c8cbe",
+          "size_bytes": 38622
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "median": 58.61255034464551
+          },
+          "body_forward_is_separate_metric": true
+        },
+        "deployment_evidence": {
+          "launch_source": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a3-highconc-decode/w10/cases/serve_dsv41_flash_w8a8_dspark7.sh",
+            "sha256": "548b2b5f31aff1ca886cb1baf9e6c6bb0f15cbd9356b4c7cc324acb23691e717",
+            "size_bytes": 3124
+          },
+          "resolved_startup": null,
+          "actual_force_eplb": null,
+          "configured": {
+            "checkpoint": "/mnt/weight/DeepSeek-V4.1-Flash-w8a8/",
+            "tp": 4,
+            "dp": 4,
+            "ep": 16,
+            "engram_layer_ids": [],
+            "speculation": {
+              "method": "dspark",
+              "num_speculative_tokens": 7,
+              "enforce_eager": true
+            },
+            "graph_mode": "FULL_DECODE_ONLY",
+            "force_eplb": true,
+            "prefix_caching": true,
+            "enable_fused_mc2": true,
+            "enable_flashcomm1": true,
+            "enable_shared_expert_dp": true,
+            "max_model_len": 65536,
+            "max_num_seqs_per_dp": 32,
+            "max_num_batched_tokens": 4096,
+            "block_size": 128,
+            "gpu_memory_utilization": 0.85,
+            "software_lane": "standing nightly-main-a3 container, installed vLLM 0.31.0 pair; launch comments distinguish incompatible /work 0.32 source tree"
+          },
+          "evidence_strength": "source-specific retained launch; full resolved startup not located"
+        },
+        "prefix_cache": {
+          "configured": true,
+          "measured_token_hit_rate": 0.9688,
+          "is_100_percent": false
+        },
+        "speculation": {
+          "enabled": true,
+          "num_speculative_tokens": 7,
+          "enforce_eager_draft": true,
+          "acceptance_rate": null,
+          "target_verification_probe_rows": 8,
+          "probe_is_observed": false
+        },
+        "graph_native_mode": "FULL_DECODE_ONLY launch intent; exact buckets unresolved, eager physical-row control only",
+        "selected_rank": "dp0_tp0",
+        "selected_rank_alias": {
+          "compressed_source": {
+            "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c16_20261030/ranks/dp0_tp0/kernel_details.csv.gz",
+            "sha256": "2a0e49588fea91f1929d0eef415ddbecf382a3df3816867a26275eb0a76945d4",
+            "size_bytes": 10302042
+          },
+          "uncompressed_sha256": "025313a10fd2b7f9d62ff54933c1acfe4f10158b9f1011006a74c3580964a814",
+          "uncompressed_bytes": 63772053,
+          "same_as_selected_csv": true
+        },
+        "request_geometry_is_not_per_forward_geometry": true,
+        "hidden_shard_rows_and_routed_capacity_are_not_query_rows": true
+      },
+      "unresolved_reasons": [
+        "A3 checkpoint config.json and quant-description not retained: provisional V4.1 architecture and W8A8 role declaration",
+        "DispatchFFNCombine fused MC2 source scheduling and local traffic are decomposed analytically",
+        "flashcomm1 sequence-parallel and shared_expert_dp source placement not yet bound",
+        "DSpark7 draft generation and acceptance are excluded from target body; valid per-sequence target rows and live contexts remain unresolved despite observed padded attention extent",
+        "native graph padding, per-DP active batches, current KV lengths and realized expert routes not observed"
+      ]
+    },
+    {
+      "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c32",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c32_20261030/kernel_details.csv",
+        "sha256": "f03d501c5bb7bc433c2e1b455290d442b6066d30b4e439b96cadc9d9ab958ba2",
+        "size_bytes": 64110552
+      },
+      "sim_case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-new6/a3_v41_w8a8_tp4_dp4_ep16_dspark7_c32.json",
+      "model_declaration": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-new6/a3_v41_w8a8_tp4_dp4_ep16_dspark7_c32.json",
+        "sha256": "9aab7947da83e835def0caee05916041e7afaa081e28e42f5a010296d2091546",
+        "size_bytes": 141639
+      },
+      "segmentation": "auto_structure_guided",
+      "segmentation_options": {
+        "forward_closure": "mhc_final_norm",
+        "sequence_parallel": {
+          "factor": 4,
+          "source": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a3-highconc-decode/w10/cases/serve_dsv41_flash_w8a8_dspark7.sh",
+            "size_bytes": 3124,
+            "sha256": "548b2b5f31aff1ca886cb1baf9e6c6bb0f15cbd9356b4c7cc324acb23691e717"
+          },
+          "basis": "source declares TP4 and FlashComm1; each occurrence must independently match hidden-shard rows times four to captured SparseFlashMla query rows",
+          "bounded_source_validation": {
+            "path": "/Users/maoxx241/code/profiler/examples/structure/acceptance-20261030-v41-final6/a3-c4-bounded-physical-rows.json",
+            "sha256": "42e9a413458dd0345fb04d8f14fdcba347f6f926b0c42b727519acab3183b60f",
+            "size_bytes": 500849,
+            "source_capture": "a3_v41_c4",
+            "cycles": {
+              "0": {
+                "target": {
+                  "count": 40,
+                  "hidden_rows": [
+                    2
+                  ],
+                  "query_rows": [
+                    8
+                  ],
+                  "block_table_rows": [
+                    1
+                  ]
+                },
+                "auxiliary": {
+                  "count": 3,
+                  "hidden_rows": [
+                    2
+                  ],
+                  "query_rows": [
+                    7
+                  ],
+                  "block_table_rows": [
+                    1
+                  ]
+                }
+              },
+              "1": {
+                "target": {
+                  "count": 40,
+                  "hidden_rows": [
+                    2
+                  ],
+                  "query_rows": [
+                    8
+                  ],
+                  "block_table_rows": [
+                    1
+                  ]
+                },
+                "auxiliary": {
+                  "count": 3,
+                  "hidden_rows": [
+                    4
+                  ],
+                  "query_rows": [
+                    7
+                  ],
+                  "block_table_rows": [
+                    1
+                  ]
+                }
+              }
+            },
+            "basis": "observed order grouped into two 40-target plus 3-auxiliary closures; source module identity is not observed"
+          }
+        }
+      },
+      "boundaries_path": null,
+      "geometry": null,
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c32_20261030",
+        "retained_inventory": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-final6/retained-source-evidence.json",
+          "sha256": "06e87ec000621c8f5adeac51465644ba69f47898e3625d3e8de773474906f6b8",
+          "size_bytes": 312386
+        },
+        "client": {
+          "concurrency": 32,
+          "input_len": 4096,
+          "output_len": 32,
+          "profiled_tpot_median_ms": 61.185779981315136,
+          "body_forward_is_separate_metric": true
+        },
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c32_20261030/benchmark_summary.json",
+          "sha256": "c29b9c243cb0d0874491242bbc6243db570f8775b0b27f7542f62f92e5b0fca7",
+          "size_bytes": 66442
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "median": 64.09063166938722
+          },
+          "body_forward_is_separate_metric": true
+        },
+        "deployment_evidence": {
+          "launch_source": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a3-highconc-decode/w10/cases/serve_dsv41_flash_w8a8_dspark7.sh",
+            "sha256": "548b2b5f31aff1ca886cb1baf9e6c6bb0f15cbd9356b4c7cc324acb23691e717",
+            "size_bytes": 3124
+          },
+          "resolved_startup": null,
+          "actual_force_eplb": null,
+          "configured": {
+            "checkpoint": "/mnt/weight/DeepSeek-V4.1-Flash-w8a8/",
+            "tp": 4,
+            "dp": 4,
+            "ep": 16,
+            "engram_layer_ids": [],
+            "speculation": {
+              "method": "dspark",
+              "num_speculative_tokens": 7,
+              "enforce_eager": true
+            },
+            "graph_mode": "FULL_DECODE_ONLY",
+            "force_eplb": true,
+            "prefix_caching": true,
+            "enable_fused_mc2": true,
+            "enable_flashcomm1": true,
+            "enable_shared_expert_dp": true,
+            "max_model_len": 65536,
+            "max_num_seqs_per_dp": 32,
+            "max_num_batched_tokens": 4096,
+            "block_size": 128,
+            "gpu_memory_utilization": 0.85,
+            "software_lane": "standing nightly-main-a3 container, installed vLLM 0.31.0 pair; launch comments distinguish incompatible /work 0.32 source tree"
+          },
+          "evidence_strength": "source-specific retained launch; full resolved startup not located"
+        },
+        "prefix_cache": {
+          "configured": true,
+          "measured_token_hit_rate": 0.9688,
+          "is_100_percent": false
+        },
+        "speculation": {
+          "enabled": true,
+          "num_speculative_tokens": 7,
+          "enforce_eager_draft": true,
+          "acceptance_rate": null,
+          "target_verification_probe_rows": 8,
+          "probe_is_observed": false
+        },
+        "graph_native_mode": "FULL_DECODE_ONLY launch intent; exact buckets unresolved, eager physical-row control only",
+        "selected_rank": "dp0_tp0",
+        "selected_rank_alias": {
+          "compressed_source": {
+            "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c32_20261030/ranks/dp0_tp0/kernel_details.csv.gz",
+            "sha256": "978685b49859afb100df51eb4a5d4a23cea2325eb0c025d80c953423a7de97dd",
+            "size_bytes": 10374867
+          },
+          "uncompressed_sha256": "f03d501c5bb7bc433c2e1b455290d442b6066d30b4e439b96cadc9d9ab958ba2",
+          "uncompressed_bytes": 64110552,
+          "same_as_selected_csv": true
+        },
+        "request_geometry_is_not_per_forward_geometry": true,
+        "hidden_shard_rows_and_routed_capacity_are_not_query_rows": true
+      },
+      "unresolved_reasons": [
+        "A3 checkpoint config.json and quant-description not retained: provisional V4.1 architecture and W8A8 role declaration",
+        "DispatchFFNCombine fused MC2 source scheduling and local traffic are decomposed analytically",
+        "flashcomm1 sequence-parallel and shared_expert_dp source placement not yet bound",
+        "DSpark7 draft generation and acceptance are excluded from target body; valid per-sequence target rows and live contexts remain unresolved despite observed padded attention extent",
+        "native graph padding, per-DP active batches, current KV lengths and realized expert routes not observed"
+      ]
+    },
+    {
+      "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c4_20261030/kernel_details.csv",
+        "sha256": "d8ae782b7726c4681cac0149a0b11ffb8d1c4ad5832c8fac92b5172d80d036b4",
+        "size_bytes": 61131358
+      },
+      "sim_case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-new6/a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4.json",
+      "model_declaration": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-new6/a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4.json",
+        "sha256": "ec1cfe7b1e54eccc305b636d6f733b9be73671a8adedbcae188ad1304f9c67fe",
+        "size_bytes": 141904
+      },
+      "segmentation": "auto_structure_guided",
+      "segmentation_options": {
+        "forward_closure": "mhc_final_norm",
+        "sequence_parallel": {
+          "factor": 4,
+          "source": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a3-highconc-decode/w10/cases/serve_dsv41_flash_w8a8_dspark7.sh",
+            "size_bytes": 3124,
+            "sha256": "548b2b5f31aff1ca886cb1baf9e6c6bb0f15cbd9356b4c7cc324acb23691e717"
+          },
+          "basis": "source declares TP4 and FlashComm1; each occurrence must independently match hidden-shard rows times four to captured SparseFlashMla query rows",
+          "bounded_source_validation": {
+            "path": "/Users/maoxx241/code/profiler/examples/structure/acceptance-20261030-v41-final6/a3-c4-bounded-physical-rows.json",
+            "sha256": "42e9a413458dd0345fb04d8f14fdcba347f6f926b0c42b727519acab3183b60f",
+            "size_bytes": 500849,
+            "source_capture": "a3_v41_c4",
+            "cycles": {
+              "0": {
+                "target": {
+                  "count": 40,
+                  "hidden_rows": [
+                    2
+                  ],
+                  "query_rows": [
+                    8
+                  ],
+                  "block_table_rows": [
+                    1
+                  ]
+                },
+                "auxiliary": {
+                  "count": 3,
+                  "hidden_rows": [
+                    2
+                  ],
+                  "query_rows": [
+                    7
+                  ],
+                  "block_table_rows": [
+                    1
+                  ]
+                }
+              },
+              "1": {
+                "target": {
+                  "count": 40,
+                  "hidden_rows": [
+                    2
+                  ],
+                  "query_rows": [
+                    8
+                  ],
+                  "block_table_rows": [
+                    1
+                  ]
+                },
+                "auxiliary": {
+                  "count": 3,
+                  "hidden_rows": [
+                    4
+                  ],
+                  "query_rows": [
+                    7
+                  ],
+                  "block_table_rows": [
+                    1
+                  ]
+                }
+              }
+            },
+            "basis": "observed order grouped into two 40-target plus 3-auxiliary closures; source module identity is not observed"
+          }
+        }
+      },
+      "boundaries_path": null,
+      "geometry": null,
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c4_20261030",
+        "retained_inventory": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-final6/retained-source-evidence.json",
+          "sha256": "06e87ec000621c8f5adeac51465644ba69f47898e3625d3e8de773474906f6b8",
+          "size_bytes": 312386
+        },
+        "client": {
+          "concurrency": 4,
+          "input_len": 4096,
+          "output_len": 32,
+          "profiled_tpot_median_ms": 54.62265992537141,
+          "body_forward_is_separate_metric": true
+        },
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c4_20261030/benchmark_summary.json",
+          "sha256": "cd853fa4fa0d438e823a94516f516837062ce1bf9a4aa7ca4d8f2d24706c4892",
+          "size_bytes": 10371
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "median": 56.226792692717524
+          },
+          "body_forward_is_separate_metric": true
+        },
+        "deployment_evidence": {
+          "launch_source": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a3-highconc-decode/w10/cases/serve_dsv41_flash_w8a8_dspark7.sh",
+            "sha256": "548b2b5f31aff1ca886cb1baf9e6c6bb0f15cbd9356b4c7cc324acb23691e717",
+            "size_bytes": 3124
+          },
+          "resolved_startup": null,
+          "actual_force_eplb": null,
+          "configured": {
+            "checkpoint": "/mnt/weight/DeepSeek-V4.1-Flash-w8a8/",
+            "tp": 4,
+            "dp": 4,
+            "ep": 16,
+            "engram_layer_ids": [],
+            "speculation": {
+              "method": "dspark",
+              "num_speculative_tokens": 7,
+              "enforce_eager": true
+            },
+            "graph_mode": "FULL_DECODE_ONLY",
+            "force_eplb": true,
+            "prefix_caching": true,
+            "enable_fused_mc2": true,
+            "enable_flashcomm1": true,
+            "enable_shared_expert_dp": true,
+            "max_model_len": 65536,
+            "max_num_seqs_per_dp": 32,
+            "max_num_batched_tokens": 4096,
+            "block_size": 128,
+            "gpu_memory_utilization": 0.85,
+            "software_lane": "standing nightly-main-a3 container, installed vLLM 0.31.0 pair; launch comments distinguish incompatible /work 0.32 source tree"
+          },
+          "evidence_strength": "source-specific retained launch; full resolved startup not located"
+        },
+        "prefix_cache": {
+          "configured": true,
+          "measured_token_hit_rate": 0.9688,
+          "is_100_percent": false
+        },
+        "speculation": {
+          "enabled": true,
+          "num_speculative_tokens": 7,
+          "enforce_eager_draft": true,
+          "acceptance_rate": null,
+          "target_verification_probe_rows": 8,
+          "probe_is_observed": false
+        },
+        "graph_native_mode": "FULL_DECODE_ONLY launch intent; exact buckets unresolved, eager physical-row control only",
+        "selected_rank": "dp0_tp0",
+        "selected_rank_alias": {
+          "compressed_source": {
+            "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c4_20261030/ranks/dp0_tp0/kernel_details.csv.gz",
+            "sha256": "66b74879772d6ff52ae74b5060feaa22ed3c36c70b2fa93584154e1d4c331b82",
+            "size_bytes": 9791871
+          },
+          "uncompressed_sha256": "d8ae782b7726c4681cac0149a0b11ffb8d1c4ad5832c8fac92b5172d80d036b4",
+          "uncompressed_bytes": 61131358,
+          "same_as_selected_csv": true
+        },
+        "request_geometry_is_not_per_forward_geometry": true,
+        "hidden_shard_rows_and_routed_capacity_are_not_query_rows": true
+      },
+      "unresolved_reasons": [
+        "A3 checkpoint config.json and quant-description not retained: provisional V4.1 architecture and W8A8 role declaration",
+        "DispatchFFNCombine fused MC2 source scheduling and local traffic are decomposed analytically",
+        "flashcomm1 sequence-parallel and shared_expert_dp source placement not yet bound",
+        "DSpark7 draft generation and acceptance are excluded from target body; valid per-sequence target rows and live contexts remain unresolved despite observed padded attention extent",
+        "native graph padding, per-DP active batches, current KV lengths and realized expert routes not observed"
+      ]
+    },
+    {
+      "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c64_20261030/kernel_details.csv",
+        "sha256": "a7e6111803a0222b4d1840f219586324f9e3f6f9c2c5ea78d5d0857750e4fd0b",
+        "size_bytes": 64473326
+      },
+      "sim_case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-new6/a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64.json",
+      "model_declaration": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-new6/a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64.json",
+        "sha256": "831d12c3ec717a2b87314dc1915398bb72150b4e19838a33784d62cfce904a3a",
+        "size_bytes": 141638
+      },
+      "segmentation": "auto_structure_guided",
+      "segmentation_options": {
+        "forward_closure": "mhc_final_norm",
+        "sequence_parallel": {
+          "factor": 4,
+          "source": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a3-highconc-decode/w10/cases/serve_dsv41_flash_w8a8_dspark7.sh",
+            "size_bytes": 3124,
+            "sha256": "548b2b5f31aff1ca886cb1baf9e6c6bb0f15cbd9356b4c7cc324acb23691e717"
+          },
+          "basis": "source declares TP4 and FlashComm1; each occurrence must independently match hidden-shard rows times four to captured SparseFlashMla query rows",
+          "bounded_source_validation": {
+            "path": "/Users/maoxx241/code/profiler/examples/structure/acceptance-20261030-v41-final6/a3-c4-bounded-physical-rows.json",
+            "sha256": "42e9a413458dd0345fb04d8f14fdcba347f6f926b0c42b727519acab3183b60f",
+            "size_bytes": 500849,
+            "source_capture": "a3_v41_c4",
+            "cycles": {
+              "0": {
+                "target": {
+                  "count": 40,
+                  "hidden_rows": [
+                    2
+                  ],
+                  "query_rows": [
+                    8
+                  ],
+                  "block_table_rows": [
+                    1
+                  ]
+                },
+                "auxiliary": {
+                  "count": 3,
+                  "hidden_rows": [
+                    2
+                  ],
+                  "query_rows": [
+                    7
+                  ],
+                  "block_table_rows": [
+                    1
+                  ]
+                }
+              },
+              "1": {
+                "target": {
+                  "count": 40,
+                  "hidden_rows": [
+                    2
+                  ],
+                  "query_rows": [
+                    8
+                  ],
+                  "block_table_rows": [
+                    1
+                  ]
+                },
+                "auxiliary": {
+                  "count": 3,
+                  "hidden_rows": [
+                    4
+                  ],
+                  "query_rows": [
+                    7
+                  ],
+                  "block_table_rows": [
+                    1
+                  ]
+                }
+              }
+            },
+            "basis": "observed order grouped into two 40-target plus 3-auxiliary closures; source module identity is not observed"
+          }
+        }
+      },
+      "boundaries_path": null,
+      "geometry": null,
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c64_20261030",
+        "retained_inventory": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-final6/retained-source-evidence.json",
+          "sha256": "06e87ec000621c8f5adeac51465644ba69f47898e3625d3e8de773474906f6b8",
+          "size_bytes": 312386
+        },
+        "client": {
+          "concurrency": 64,
+          "input_len": 4096,
+          "output_len": 32,
+          "profiled_tpot_median_ms": 71.53334002941847,
+          "body_forward_is_separate_metric": true
+        },
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c64_20261030/benchmark_summary.json",
+          "sha256": "2c5adcfc4cac70bb410d975a5ccedbaacdfd354b4f3731223154e441bb24afcd",
+          "size_bytes": 126707
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "median": 81.77578387661808
+          },
+          "body_forward_is_separate_metric": true
+        },
+        "deployment_evidence": {
+          "launch_source": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a3-highconc-decode/w10/cases/serve_dsv41_flash_w8a8_dspark7.sh",
+            "sha256": "548b2b5f31aff1ca886cb1baf9e6c6bb0f15cbd9356b4c7cc324acb23691e717",
+            "size_bytes": 3124
+          },
+          "resolved_startup": null,
+          "actual_force_eplb": null,
+          "configured": {
+            "checkpoint": "/mnt/weight/DeepSeek-V4.1-Flash-w8a8/",
+            "tp": 4,
+            "dp": 4,
+            "ep": 16,
+            "engram_layer_ids": [],
+            "speculation": {
+              "method": "dspark",
+              "num_speculative_tokens": 7,
+              "enforce_eager": true
+            },
+            "graph_mode": "FULL_DECODE_ONLY",
+            "force_eplb": true,
+            "prefix_caching": true,
+            "enable_fused_mc2": true,
+            "enable_flashcomm1": true,
+            "enable_shared_expert_dp": true,
+            "max_model_len": 65536,
+            "max_num_seqs_per_dp": 32,
+            "max_num_batched_tokens": 4096,
+            "block_size": 128,
+            "gpu_memory_utilization": 0.85,
+            "software_lane": "standing nightly-main-a3 container, installed vLLM 0.31.0 pair; launch comments distinguish incompatible /work 0.32 source tree"
+          },
+          "evidence_strength": "source-specific retained launch; full resolved startup not located"
+        },
+        "prefix_cache": {
+          "configured": true,
+          "measured_token_hit_rate": 0.9688,
+          "is_100_percent": false
+        },
+        "speculation": {
+          "enabled": true,
+          "num_speculative_tokens": 7,
+          "enforce_eager_draft": true,
+          "acceptance_rate": null,
+          "target_verification_probe_rows": 8,
+          "probe_is_observed": false
+        },
+        "graph_native_mode": "FULL_DECODE_ONLY launch intent; exact buckets unresolved, eager physical-row control only",
+        "selected_rank": "dp0_tp0",
+        "selected_rank_alias": {
+          "compressed_source": {
+            "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c64_20261030/ranks/dp0_tp0/kernel_details.csv.gz",
+            "sha256": "1657e8fcb5673b75e5af93673b8fb3c4109151ff87fb9b823ab4f8e96c03ad2e",
+            "size_bytes": 10485869
+          },
+          "uncompressed_sha256": "a7e6111803a0222b4d1840f219586324f9e3f6f9c2c5ea78d5d0857750e4fd0b",
+          "uncompressed_bytes": 64473326,
+          "same_as_selected_csv": true
+        },
+        "request_geometry_is_not_per_forward_geometry": true,
+        "hidden_shard_rows_and_routed_capacity_are_not_query_rows": true
+      },
+      "unresolved_reasons": [
+        "A3 checkpoint config.json and quant-description not retained: provisional V4.1 architecture and W8A8 role declaration",
+        "DispatchFFNCombine fused MC2 source scheduling and local traffic are decomposed analytically",
+        "flashcomm1 sequence-parallel and shared_expert_dp source placement not yet bound",
+        "DSpark7 draft generation and acceptance are excluded from target body; valid per-sequence target rows and live contexts remain unresolved despite observed padded attention extent",
+        "native graph padding, per-DP active batches, current KV lengths and realized expert routes not observed"
+      ]
+    },
+    {
+      "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c8_20261030/kernel_details.csv",
+        "sha256": "0a482b50f68f4f71f22a8e0cec5f87867ff53dc2a52dae71c8567900193f1db6",
+        "size_bytes": 62565854
+      },
+      "sim_case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-new6/a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8.json",
+      "model_declaration": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-new6/a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8.json",
+        "sha256": "a690f50901d44f7b92a452532a3b894bc157bf2614813d56ef4ae45fe8cab545",
+        "size_bytes": 141631
+      },
+      "segmentation": "auto_structure_guided",
+      "segmentation_options": {
+        "forward_closure": "mhc_final_norm",
+        "sequence_parallel": {
+          "factor": 4,
+          "source": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a3-highconc-decode/w10/cases/serve_dsv41_flash_w8a8_dspark7.sh",
+            "size_bytes": 3124,
+            "sha256": "548b2b5f31aff1ca886cb1baf9e6c6bb0f15cbd9356b4c7cc324acb23691e717"
+          },
+          "basis": "source declares TP4 and FlashComm1; each occurrence must independently match hidden-shard rows times four to captured SparseFlashMla query rows",
+          "bounded_source_validation": {
+            "path": "/Users/maoxx241/code/profiler/examples/structure/acceptance-20261030-v41-final6/a3-c4-bounded-physical-rows.json",
+            "sha256": "42e9a413458dd0345fb04d8f14fdcba347f6f926b0c42b727519acab3183b60f",
+            "size_bytes": 500849,
+            "source_capture": "a3_v41_c4",
+            "cycles": {
+              "0": {
+                "target": {
+                  "count": 40,
+                  "hidden_rows": [
+                    2
+                  ],
+                  "query_rows": [
+                    8
+                  ],
+                  "block_table_rows": [
+                    1
+                  ]
+                },
+                "auxiliary": {
+                  "count": 3,
+                  "hidden_rows": [
+                    2
+                  ],
+                  "query_rows": [
+                    7
+                  ],
+                  "block_table_rows": [
+                    1
+                  ]
+                }
+              },
+              "1": {
+                "target": {
+                  "count": 40,
+                  "hidden_rows": [
+                    2
+                  ],
+                  "query_rows": [
+                    8
+                  ],
+                  "block_table_rows": [
+                    1
+                  ]
+                },
+                "auxiliary": {
+                  "count": 3,
+                  "hidden_rows": [
+                    4
+                  ],
+                  "query_rows": [
+                    7
+                  ],
+                  "block_table_rows": [
+                    1
+                  ]
+                }
+              }
+            },
+            "basis": "observed order grouped into two 40-target plus 3-auxiliary closures; source module identity is not observed"
+          }
+        }
+      },
+      "boundaries_path": null,
+      "geometry": null,
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c8_20261030",
+        "retained_inventory": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-final6/retained-source-evidence.json",
+          "sha256": "06e87ec000621c8f5adeac51465644ba69f47898e3625d3e8de773474906f6b8",
+          "size_bytes": 312386
+        },
+        "client": {
+          "concurrency": 8,
+          "input_len": 4096,
+          "output_len": 32,
+          "profiled_tpot_median_ms": 56.75985990092158,
+          "body_forward_is_separate_metric": true
+        },
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c8_20261030/benchmark_summary.json",
+          "sha256": "fea3794d0fd55ef621a176174fd911d4acfb7c06887c73626a79fb02223381fb",
+          "size_bytes": 19151
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "median": 57.909681531298276
+          },
+          "body_forward_is_separate_metric": true
+        },
+        "deployment_evidence": {
+          "launch_source": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a3-highconc-decode/w10/cases/serve_dsv41_flash_w8a8_dspark7.sh",
+            "sha256": "548b2b5f31aff1ca886cb1baf9e6c6bb0f15cbd9356b4c7cc324acb23691e717",
+            "size_bytes": 3124
+          },
+          "resolved_startup": null,
+          "actual_force_eplb": null,
+          "configured": {
+            "checkpoint": "/mnt/weight/DeepSeek-V4.1-Flash-w8a8/",
+            "tp": 4,
+            "dp": 4,
+            "ep": 16,
+            "engram_layer_ids": [],
+            "speculation": {
+              "method": "dspark",
+              "num_speculative_tokens": 7,
+              "enforce_eager": true
+            },
+            "graph_mode": "FULL_DECODE_ONLY",
+            "force_eplb": true,
+            "prefix_caching": true,
+            "enable_fused_mc2": true,
+            "enable_flashcomm1": true,
+            "enable_shared_expert_dp": true,
+            "max_model_len": 65536,
+            "max_num_seqs_per_dp": 32,
+            "max_num_batched_tokens": 4096,
+            "block_size": 128,
+            "gpu_memory_utilization": 0.85,
+            "software_lane": "standing nightly-main-a3 container, installed vLLM 0.31.0 pair; launch comments distinguish incompatible /work 0.32 source tree"
+          },
+          "evidence_strength": "source-specific retained launch; full resolved startup not located"
+        },
+        "prefix_cache": {
+          "configured": true,
+          "measured_token_hit_rate": 0.9688,
+          "is_100_percent": false
+        },
+        "speculation": {
+          "enabled": true,
+          "num_speculative_tokens": 7,
+          "enforce_eager_draft": true,
+          "acceptance_rate": null,
+          "target_verification_probe_rows": 8,
+          "probe_is_observed": false
+        },
+        "graph_native_mode": "FULL_DECODE_ONLY launch intent; exact buckets unresolved, eager physical-row control only",
+        "selected_rank": "dp0_tp0",
+        "selected_rank_alias": {
+          "compressed_source": {
+            "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c8_20261030/ranks/dp0_tp0/kernel_details.csv.gz",
+            "sha256": "6bcefc383be9cf4c4db295e9178eceab4da5e25a375742f69c0194ebad2a90b7",
+            "size_bytes": 10084605
+          },
+          "uncompressed_sha256": "0a482b50f68f4f71f22a8e0cec5f87867ff53dc2a52dae71c8567900193f1db6",
+          "uncompressed_bytes": 62565854,
+          "same_as_selected_csv": true
+        },
+        "request_geometry_is_not_per_forward_geometry": true,
+        "hidden_shard_rows_and_routed_capacity_are_not_query_rows": true
+      },
+      "unresolved_reasons": [
+        "A3 checkpoint config.json and quant-description not retained: provisional V4.1 architecture and W8A8 role declaration",
+        "DispatchFFNCombine fused MC2 source scheduling and local traffic are decomposed analytically",
+        "flashcomm1 sequence-parallel and shared_expert_dp source placement not yet bound",
+        "DSpark7 draft generation and acceptance are excluded from target body; valid per-sequence target rows and live contexts remain unresolved despite observed padded attention extent",
+        "native graph padding, per-DP active batches, current KV lengths and realized expert routes not observed"
+      ]
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c128_p2k",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c128_p2k_20261030/kernel_details.csv",
+        "sha256": "9f4378314a899c8389ba107c89a43dd5fa90c329553bd204ae546ffad39a2f41",
+        "size_bytes": 49316349
+      },
+      "sim_case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-new6/a5_v41_fp8_tp1_dp8_ep8_c128_p2k.json",
+      "model_declaration": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-new6/a5_v41_fp8_tp1_dp8_ep8_c128_p2k.json",
+        "sha256": "948b702e9a458482fa629c6acacb16920e6cc91e62d0332e4d462061b2a3c3be",
+        "size_bytes": 146319
+      },
+      "segmentation": "auto_structure_guided",
+      "segmentation_options": {
+        "source_attention_anchors": [
+          {
+            "op_type": "MqsmlaKernel___call__",
+            "name": "mixed_quant_sparse_flash_mla",
+            "attention": "mla",
+            "evidence": {
+              "path": "/Users/maoxx241/code/refs/cannbot-dsl/samples/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+              "bytes": 111124,
+              "sha256": "40b5b14ced15bb7c3d3687ab7387d508a19065eb5353dfb0675348e0de22fa3f",
+              "revision": "4519e5372a8b9306f7d823688c0cb8141ee34fb1",
+              "definition_lines": [
+                897,
+                938
+              ],
+              "layout_lines": [
+                100,
+                118
+              ],
+              "wrapper_lines": [
+                2142,
+                2233
+              ]
+            },
+            "binary_identity": "source symbol matches; r31 binary/source identity not established"
+          }
+        ],
+        "source_decode_query": {
+          "tokens_per_sequence": 1,
+          "basis": "source_declared_no_speculation_decode_capture",
+          "evidence": {
+            "path": "/Volumes/data/mindie-sim-data/a5/dsv41_dp8ep8_sweep_20261030/serve.log",
+            "sha256": "6e621f4bbc3f65caa89b3f5b800fed8ab193bf3ebb73121c1fdd5f09e0990d6f",
+            "size_bytes": 268539
+          },
+          "lines": [
+            23,
+            198
+          ]
+        },
+        "forward_closure": "mhc_final_norm"
+      },
+      "boundaries_path": null,
+      "geometry": null,
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c128_p2k_20261030",
+        "retained_inventory": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-final6/retained-source-evidence.json",
+          "sha256": "06e87ec000621c8f5adeac51465644ba69f47898e3625d3e8de773474906f6b8",
+          "size_bytes": 312386
+        },
+        "client": {
+          "concurrency": 128,
+          "input_len": 2048,
+          "output_len": 512,
+          "profiled_token_tpot_p50_ms": 33.341303551858346,
+          "body_forward_is_separate_metric": true
+        },
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c128_p2k_20261030/benchmark_summary.json",
+          "sha256": "be3e4962c4307e24a971e653d5cf4739b704ca9b4bcefd9810d4cc8559787c36",
+          "size_bytes": 1397697
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "median": 33.341303551858346
+          },
+          "body_forward_is_separate_metric": true
+        },
+        "deployment_evidence": {
+          "launch_source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/dsv41_dp8ep8_sweep_20261030/cfg/hc_serve_dp8.sh",
+            "sha256": "ab844d20c271a3c37fc008bc6756080bd04656133866550cdb98311c8d033e2e",
+            "size_bytes": 3248
+          },
+          "resolved_startup": {
+            "source": {
+              "path": "/Volumes/data/mindie-sim-data/a5/dsv41_dp8ep8_sweep_20261030/serve.log",
+              "sha256": "6e621f4bbc3f65caa89b3f5b800fed8ab193bf3ebb73121c1fdd5f09e0990d6f",
+              "size_bytes": 268539
+            },
+            "facts": [
+              {
+                "line": 23,
+                "values": {
+                  "model": "'/mnt/weight/DeepSeek-V4.1-Flash-1017'",
+                  "data_parallel_size": "8",
+                  "enable_expert_parallel": "True",
+                  "max_model_len": "16384",
+                  "enable_prefix_caching": "False",
+                  "enable_force_eplb": "True",
+                  "quantization": "'deepseek_v4_fp8'"
+                }
+              },
+              {
+                "line": 26,
+                "architecture": "DeepseekV41ForCausalLM"
+              },
+              {
+                "line": 198,
+                "values": {
+                  "model": "'/mnt/weight/DeepSeek-V4.1-Flash-1017'",
+                  "tensor_parallel_size": "1",
+                  "data_parallel_size": "8",
+                  "enable_prefix_caching": "False",
+                  "quantization": "deepseek_v4_fp8"
+                }
+              }
+            ]
+          },
+          "actual_force_eplb": true,
+          "current_capture_engine_config": {
+            "checkpoint": "/mnt/weight/DeepSeek-V4.1-Flash-1017",
+            "image": "9e869e814846 (vllm-ascend v0.30.0-a5-cann9.2.0-r31)",
+            "topology": "TP1/DP8/EP8",
+            "tensor_parallel_size": 1,
+            "data_parallel_size": 8,
+            "enable_expert_parallel": true,
+            "enable_force_eplb": true,
+            "enable_prefix_caching": false,
+            "quantization": "deepseek_v4_fp8",
+            "max_model_len": 16384,
+            "max_num_seqs_per_die": 16,
+            "max_num_batched_tokens": 8192,
+            "gpu_memory_utilization": 0.94,
+            "profiler": "torch (torch_npu text export, Level1, aic PipeUtilization)"
+          }
+        },
+        "prefix_cache": {
+          "enabled": false,
+          "basis": "startup lines23/198"
+        },
+        "speculation": {
+          "enabled": false,
+          "basis": "startup line198 speculative_config=None"
+        },
+        "graph_native_mode": "FULL_AND_PIECEWISE; decode full graph bucket 1/2/4/8/16",
+        "selected_rank": "dp0_pp0_tp0_dcp0_ep0_rank0",
+        "selected_rank_alias": null,
+        "request_geometry_is_not_per_forward_geometry": true,
+        "hidden_shard_rows_and_routed_capacity_are_not_query_rows": true
+      },
+      "unresolved_reasons": [
+        "exact active rows and context on every DP peer",
+        "r31 packaged MQSMLA source/binary identity and tensor ABI",
+        "mixed FP8/FP4 KV resident/traffic ABI is not the current analytic BF16-cache envelope",
+        "Engram gate wkv quantized checkpoint representation is not yet a separate execution role",
+        "host lookup/UVA path and shared host owner supply across replicas"
+      ]
+    }
+  ],
+  "not_new_live_collection": true
+}

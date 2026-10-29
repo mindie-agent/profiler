@@ -1,0 +1,146 @@
+{
+  "schema_version": "mindie-decode-independent-review/1",
+  "status": "passed",
+  "checks": 11551,
+  "failures": [],
+  "cases": 6,
+  "forwards": 457,
+  "positive_events": 1065855,
+  "receipt_sha256": "2a905a6587ca68d88273845822692148c23d3497a5381ae3038ad05c5ea65af2",
+  "reports": [
+    {
+      "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c16",
+      "sha256": "cacf63ed04be88a77074ad70ede7269b9bb3c91208e94589fbd70fb581eda8e0",
+      "forwards": 76,
+      "positive_events": 188270
+    },
+    {
+      "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c32",
+      "sha256": "ba3470bceecfa7fa45d1f075217c14e8f6aef5109c98dfe572656b87d1e04538",
+      "forwards": 77,
+      "positive_events": 189161
+    },
+    {
+      "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4",
+      "sha256": "49e00e3bd8ad27fc3e1d76cbbf0641af7c58ff2c6aeaf62fefac6577db53123c",
+      "forwards": 78,
+      "positive_events": 180982
+    },
+    {
+      "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64",
+      "sha256": "6ae5f3488973ab20ea55e9d7ae8596ac6695716ff4ae6ebd4f30ad06f727d811",
+      "forwards": 76,
+      "positive_events": 189424
+    },
+    {
+      "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8",
+      "sha256": "e697623fb0a5ab77ce3a33d31ddaed1e6c70830abebfe4c947f567a2ca0e4e42",
+      "forwards": 77,
+      "positive_events": 185158
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c128_p2k",
+      "sha256": "b708bd10f7b07a057fecdbad3d407c24d8b489275894c95d0ed458b540c16e18",
+      "forwards": 73,
+      "positive_events": 132860
+    }
+  ],
+  "scope": "Independent saved arithmetic, complete population and per-geometry activity/stream statistics; no raw scan or prediction",
+  "target_auxiliary_scope_review": {
+    "checks": 2637,
+    "failures": [],
+    "cases": [
+      {
+        "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c16",
+        "body_count": 76,
+        "auxiliary_three_layer_count": 80,
+        "large_or_mixed_query_segments": 4,
+        "max_body_ms": 185.130761,
+        "body_samples_dropped": 0,
+        "source_declared_native_limitations": [
+          "A3 checkpoint config.json and quant-description not retained: provisional V4.1 architecture and W8A8 role declaration",
+          "DispatchFFNCombine fused MC2 source scheduling and local traffic are decomposed analytically",
+          "flashcomm1 sequence-parallel and shared_expert_dp source placement not yet bound",
+          "DSpark7 draft generation and acceptance are excluded from target body; valid per-sequence target rows and live contexts remain unresolved despite observed padded attention extent",
+          "native graph padding, per-DP active batches, current KV lengths and realized expert routes not observed"
+        ]
+      },
+      {
+        "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c32",
+        "body_count": 77,
+        "auxiliary_three_layer_count": 80,
+        "large_or_mixed_query_segments": 3,
+        "max_body_ms": 278.665052,
+        "body_samples_dropped": 0,
+        "source_declared_native_limitations": [
+          "A3 checkpoint config.json and quant-description not retained: provisional V4.1 architecture and W8A8 role declaration",
+          "DispatchFFNCombine fused MC2 source scheduling and local traffic are decomposed analytically",
+          "flashcomm1 sequence-parallel and shared_expert_dp source placement not yet bound",
+          "DSpark7 draft generation and acceptance are excluded from target body; valid per-sequence target rows and live contexts remain unresolved despite observed padded attention extent",
+          "native graph padding, per-DP active batches, current KV lengths and realized expert routes not observed"
+        ]
+      },
+      {
+        "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4",
+        "body_count": 78,
+        "auxiliary_three_layer_count": 80,
+        "large_or_mixed_query_segments": 2,
+        "max_body_ms": 208.357817,
+        "body_samples_dropped": 0,
+        "source_declared_native_limitations": [
+          "A3 checkpoint config.json and quant-description not retained: provisional V4.1 architecture and W8A8 role declaration",
+          "DispatchFFNCombine fused MC2 source scheduling and local traffic are decomposed analytically",
+          "flashcomm1 sequence-parallel and shared_expert_dp source placement not yet bound",
+          "DSpark7 draft generation and acceptance are excluded from target body; valid per-sequence target rows and live contexts remain unresolved despite observed padded attention extent",
+          "native graph padding, per-DP active batches, current KV lengths and realized expert routes not observed"
+        ]
+      },
+      {
+        "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64",
+        "body_count": 76,
+        "auxiliary_three_layer_count": 80,
+        "large_or_mixed_query_segments": 4,
+        "max_body_ms": 392.926929,
+        "body_samples_dropped": 0,
+        "source_declared_native_limitations": [
+          "A3 checkpoint config.json and quant-description not retained: provisional V4.1 architecture and W8A8 role declaration",
+          "DispatchFFNCombine fused MC2 source scheduling and local traffic are decomposed analytically",
+          "flashcomm1 sequence-parallel and shared_expert_dp source placement not yet bound",
+          "DSpark7 draft generation and acceptance are excluded from target body; valid per-sequence target rows and live contexts remain unresolved despite observed padded attention extent",
+          "native graph padding, per-DP active batches, current KV lengths and realized expert routes not observed"
+        ]
+      },
+      {
+        "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8",
+        "body_count": 77,
+        "auxiliary_three_layer_count": 80,
+        "large_or_mixed_query_segments": 3,
+        "max_body_ms": 269.28678,
+        "body_samples_dropped": 0,
+        "source_declared_native_limitations": [
+          "A3 checkpoint config.json and quant-description not retained: provisional V4.1 architecture and W8A8 role declaration",
+          "DispatchFFNCombine fused MC2 source scheduling and local traffic are decomposed analytically",
+          "flashcomm1 sequence-parallel and shared_expert_dp source placement not yet bound",
+          "DSpark7 draft generation and acceptance are excluded from target body; valid per-sequence target rows and live contexts remain unresolved despite observed padded attention extent",
+          "native graph padding, per-DP active batches, current KV lengths and realized expert routes not observed"
+        ]
+      },
+      {
+        "case_id": "a5_v41_fp8_tp1_dp8_ep8_c128_p2k",
+        "body_count": 73,
+        "auxiliary_three_layer_count": 0,
+        "large_or_mixed_query_segments": 0,
+        "max_body_ms": 28.648204,
+        "body_samples_dropped": 0,
+        "source_declared_native_limitations": [
+          "exact active rows and context on every DP peer",
+          "r31 packaged MQSMLA source/binary identity and tensor ABI",
+          "mixed FP8/FP4 KV resident/traffic ABI is not the current analytic BF16-cache envelope",
+          "Engram gate wkv quantized checkpoint representation is not yet a separate execution role",
+          "host lookup/UVA path and shared host owner supply across replicas"
+        ]
+      }
+    ],
+    "scope": "Saved source identities, exactly40 target layers, every target interval disjoint from all measured3-anchor auxiliary intervals, source-SP physical/query distinction, and retained large/mixed query exclusions. No raw scan."
+  }
+}
