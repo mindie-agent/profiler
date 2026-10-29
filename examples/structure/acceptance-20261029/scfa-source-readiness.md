@@ -105,6 +105,26 @@ timing. Scalar index response, page-table control,
 invalid-index probes, local initialization, cross-core flag latency, cache
 eviction, inner matrix overlap and local-buffer capacity remain unmodeled.
 
+### V4Pro context sensitivity
+
+Four subsequent single-program probes keep query 1024, the original Case,
+source options and hardware supplies fixed, and independently declare context:
+
+| Declared prior context | Source prediction, us |
+| ---: | ---: |
+| 0 | 835.600 |
+| 1024 | 1813.126 |
+| 2048 | 2908.730 |
+| 3072 | 3762.680 |
+
+These are scenario results, not four new cohorts. They do not replace the
+main context-0 result, allocate any of the 120 observed calls, or contribute
+weighted scores to the campaign. The retained population mean of 1180.346 us
+does not identify an event's context. Each probe used one source program with
+ready external inputs, no host submission and no raw scan; it took
+1.737-3.407 s and peaked at 48,349,184-48,742,400 bytes. The JSON retains
+the source geometry, serviced HBM and artifact hash for each scenario.
+
 ## Exported work and execution work
 
 At this revision, `structure.py` prepares a source recipe when a fusion-group
