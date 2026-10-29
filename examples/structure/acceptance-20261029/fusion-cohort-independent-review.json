@@ -1,6 +1,6 @@
 {
   "schema_version": "mindie-fusion-cohort-independent-review/5",
-  "reviewed_at_utc": "2026-10-29T16:01:56.575453+00:00",
+  "reviewed_at_utc": "2026-10-29T16:08:43.250341+00:00",
   "status": "passed",
   "scope": {
     "entry_point": "current_completed_full_capture_replay_receipt",
@@ -116,8 +116,8 @@
   "large_call_report_validation": {
     "json": {
       "file": "fusion-cohort-large-call-errors.json",
-      "sha256": "9b5fda0e04459289bf2a4579a6b59de516fa010fd95a2068a11a1a2e03ebadd0",
-      "size_bytes": 2220266
+      "sha256": "f9d0b3a08b0fe61549483ef3ca8b4c90f11c327b05138d0b3de7bf76aed7c612",
+      "size_bytes": 1586022
     },
     "markdown": {
       "file": "fusion-cohort-large-call-errors.md",
@@ -236,7 +236,7 @@
   "runtime_and_post_replay_renderer": {
     "verification": {
       "file": "cohort-verification.json",
-      "sha256": "dc1220c25e073c1ed8e1db6d9cb3ebf66dac2d83b2cc8a67814ec749572f3281",
+      "sha256": "4b64146d25b7c84fbde1a8f17f19c62d943589733929d48b16665763f2f48abe",
       "size_bytes": 4212
     },
     "sim_runtime_commit": "6018eaa1c3ac3ef867cc1b7d696fc1642f2c2cf7",
@@ -268,8 +268,8 @@
           "size_bytes": 18122
         },
         "fusion-cohort-large-call-errors.json": {
-          "sha256": "9b5fda0e04459289bf2a4579a6b59de516fa010fd95a2068a11a1a2e03ebadd0",
-          "size_bytes": 2220266
+          "sha256": "f9d0b3a08b0fe61549483ef3ca8b4c90f11c327b05138d0b3de7bf76aed7c612",
+          "size_bytes": 1586022
         },
         "fusion-cohort-replay-families.json": {
           "sha256": "f91a9e6723a030f6b6823d53c0a6ed5d468c5b778def15e26afa7d5b887110a5",
