@@ -4,8 +4,8 @@ Historical retained captures; no new live collection. Receipt-bound summary hash
 
 8 unique captures contain 668,835 events and 148 native types. Declaration variants do not enlarge that denominator.
 
-Fresh graph verification: 32 saved replay declarations, CPython 3.13.12, `/Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python`.
-55 serial fresh graph workers; maximum worker RSS 448.58 MiB, parent RSS 60.14 MiB under the 512 MiB process budget.
+Fresh graph verification: 35 saved replay declarations, CPython 3.13.12, `/Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python`.
+61 serial fresh graph workers; maximum worker RSS 433.03 MiB, parent RSS 60.42 MiB under the 512 MiB process budget.
 
 The 59 required model-body types contain 328,927 events: 53 types have declared boundaries, 51 have complete boundaries, 39 have comparable contracts, and 38 match at least one retained original fixture row. These are distinct evidence levels, not a count of bound layer occurrences.
 
@@ -16,7 +16,7 @@ Default declarations and source-selected variants remain separate. A Transformer
 | `GroupedMatmul` | 35,979 | complete | complete_boundary_declared | comparable_declared_contract | 3/19 |
 | `QuantBatchMatmulV3` | 27,406 | complete | complete_boundary_declared | comparable_declared_contract | 33/33 |
 | `DynamicQuant` | 23,551 | complete | complete_boundary_declared | comparable_declared_contract | 12/12 |
-| `DynamicMxQuant` | 23,459 | complete | complete_boundary_declared | comparable_declared_contract | 3/4 |
+| `DynamicMxQuant` | 23,459 | complete | complete_boundary_declared | comparable_declared_contract | 4/4 |
 | `AddRmsNormBias` | 19,247 | not selected | complete_boundary_declared | comparable_declared_contract | 2/6 |
 | `MoeGatingTopK` | 15,638 | complete | complete_boundary_declared | comparable_declared_contract | 4/6 |
 | `AttnResFwd` | 14,768 | complete | complete_boundary_declared | declared_boundary_without_comparable_contract | 0/4 |
