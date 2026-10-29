@@ -28,3 +28,28 @@ def test_real_cohort_priority_uses_complete_forward_and_per_call_tier(monkeypatc
     assert unscored and all(not row["missing_match_is_missing_cost"] for row in unscored)
     # Large cumulative micro-kernel activity must not be promoted into >50us.
     assert any(row["measured_activity_ms_per_forward"] > 1 and not row["heavy_call"] for row in rows)
+
+
+def test_runtime_controls_replace_current_prediction_without_duplicating_real_forwards(monkeypatch):
+    root = Path(__file__).resolve().parents[1]
+    monkeypatch.syspath_prepend(str(root / "examples/structure"))
+    module = importlib.import_module("priority_decode_scoreboard")
+    base = root / "examples/structure/acceptance-20261030-priority"
+    old = base / "decode-forward-second-wave-replay.json"
+    update = base / "decode-forward-glm-runtime-controls-replay.json"
+    before = module.build([old], [])
+    after = module.build([old, update], [])
+    cases = {row["case_id"]: row for row in after["current_body_comparisons"]}
+    b8 = next(row for key, row in cases.items() if key.startswith("a3_glm53_dc4k_b8")
+              and row["comparison"]["status"] == "compared")
+    assert b8["comparison"]["passed"]
+    assert b8["comparison"]["predicted_ms"] == pytest.approx(44.050191, abs=1e-6)
+    # Runtime controls include three genuinely different GLM45 sources as well
+    # as two repeated GLM78 populations. Only the three new sources add samples.
+    originals = {row["source_identity"]["sha256"] for row in before["body_comparisons"]}
+    new = module.build([update], [])
+    new_populations = [row for row in new["current_body_comparisons"]
+                       if row["source_identity"]["sha256"] not in originals]
+    assert after["summary"]["unique_observed_forward_count"] == (
+        before["summary"]["unique_observed_forward_count"]
+        + sum(row["comparison"]["observed_ms"]["count"] for row in new_populations))

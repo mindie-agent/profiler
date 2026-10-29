@@ -124,6 +124,27 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=()):
         actual, compared = operator_rows(receipt, identity)
         families.extend(actual)
         cohorts.extend(compared)
+        for case in receipt["cases"]:
+            for family in case["families"]:
+                for group in family.get("conditional_source_role_references", ()):
+                    observed = group.get("observed_activity_ms_per_forward")
+                    predicted = group.get("predicted_service_ms_per_forward")
+                    references.append({
+                        "case_id": case["case_id"], "receipt": identity,
+                        "runtime_identity": _runtime_identity(receipt),
+                        "source_identity": case["source_identity"], "geometry": case["geometry"],
+                        "native_operator_type": group["native_operator_type"],
+                        "attention_kind": group["attention_kind"], "block": "attention",
+                        "declared_roles": [group["declared_role"]], "layer_ids": group["layer_ids"],
+                        "status": group["prediction_status"], "evidence_strength": group["evidence_strength"],
+                        "observed_us": group["observed_us"], "predicted_us": None,
+                        "predicted_reference_us": group.get("predicted_reference_us"),
+                        "observed_activity_ms_per_forward": observed,
+                        "predicted_service_ms_per_forward": predicted,
+                        "reference_residual_ms_per_forward": predicted - observed if predicted is not None else None,
+                        "model_program_already_costed": True, "additional_budget_allowed": False,
+                        "boundary": group.get("boundary"), "conditions": group.get("conditions"),
+                        "physical_program_signatures": group["physical_program_signatures"], "scored": False})
     for path in reference_paths:
         receipt, identity = _read(path)
         inputs.append(identity)
@@ -141,6 +162,17 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=()):
                     "predicted_service_ms_per_forward": predicted,
                     "reference_residual_ms_per_forward": predicted - observed if predicted is not None else None,
                     "scored": False})
+    current = {}
+    for row in bodies:
+        geometry, source = row["geometry"] or {}, row["source_identity"] or {}
+        key = (source.get("sha256"), geometry.get("query_rows"),
+               geometry.get("tokens_per_sequence"), geometry.get("sequences_per_replica"))
+        # CLI receipt order explicitly selects the latest completed arm. A
+        # deferred population never erases an earlier completed prediction.
+        if key not in current or row["comparison"]["status"] == "compared":
+            current[key] = row
+    current_rows = sorted(current.values(), key=lambda row: abs(
+        row["comparison"].get("per_forward_diff_ms") or 0), reverse=True)
     bodies.sort(key=lambda row: abs(row["comparison"].get("per_forward_diff_ms") or 0), reverse=True)
     cohorts.sort(key=lambda row: row["absolute_activity_residual_ms_per_forward"], reverse=True)
     families.sort(key=lambda row: row["measured_activity_ms_per_forward"], reverse=True)
@@ -166,9 +198,13 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=()):
                                                 or any(row.get("unscored_event_count") for row in families)) else "compared",
             "inputs": inputs, "additional_evidence": evidence,
             "body_comparisons": bodies, "operator_families": families, "operator_cohorts": cohorts,
+            "current_body_comparisons": current_rows,
+            "current_selection_policy": "last compared input receipt per source and measured geometry; prior arms retained",
             "source_role_references": references,
             "summary": {"body_compared": sum(row["comparison"]["status"] == "compared" for row in bodies),
                         "body_passed": sum(row["comparison"].get("passed") is True for row in bodies),
+                        "current_body_compared": sum(row["comparison"]["status"] == "compared" for row in current_rows),
+                        "current_body_passed": sum(row["comparison"].get("passed") is True for row in current_rows),
                         "body_denominator": "prediction_variants; identical observed populations are not additional captures",
                         "unique_source_count": len({key[0] for key in populations}),
                         "unique_source_geometry_populations": len(populations),
@@ -196,6 +232,8 @@ def render(report):
     summary = report["summary"]
     lines = ["# Priority Decode body, layer and operator scoreboard", "",
              f"Coverage status: **{report['coverage_status']}**. Missing predictions and unmatched roles stay visible.", "",
+             f"Current selected Body arms: **{summary['current_body_passed']}/{summary['current_body_compared']} passed**. "
+             "One latest completed receipt per measured source/geometry, selected in input order; each row retains its own runtime and case.", "",
              f"Body: **{summary['body_passed']}/{summary['body_compared']} prediction arms passed**; "
              f"{summary['unique_source_count']} unique sources, {summary['unique_source_geometry_populations']} measured geometry populations, "
              f"{summary['unique_observed_forward_count']} unique complete Forwards (includes deferred populations).", "",
@@ -204,22 +242,24 @@ def render(report):
              "Local replay receipts with explicit comparison coverage. Body errors are measured wall-clock differences; "
              "operator priorities are nonadditive kernel activity residuals per complete Forward.", "",
              "## Whole Decode Body — sorted by absolute ms error", "",
-             "| Case / variant | Status | Calls | Real Mean / P50 / P90 ms | Activity ms | Sim ms | Diff ms | Error |",
+             "| Case / variant | Status | Calls | Real Mean / P50 / P90 ms | Activity ms | Sim ms | Diff ms | Mean / P50 error |",
              "|---|---|---:|---:|---:|---:|---:|---:|"]
-    for row in report["body_comparisons"]:
+    for row in report["current_body_comparisons"]:
         comp, activity = row["comparison"], row["body_activity_ms"] or {}
         observed = comp["observed_ms"]
         error = comp.get("relative_error")
+        p50_error = ((comp["predicted_ms"] / observed["p50"] - 1) * 100
+                     if comp.get("predicted_ms") is not None and observed["p50"] else None)
         lines.append(f"| {row['case_id']} / {row['variant_id']} / `{_runtime_tag(row)}` | {row['display_status']} | {observed['count']} | "
                      f"{_num(observed['mean'])} / {_num(observed['p50'])} / {_num(observed['p90'])} | "
                      f"{_num(activity.get('mean'))} | {_num(comp.get('predicted_ms'))} | "
-                     f"{_num(comp.get('per_forward_diff_ms'))} | {_num(error * 100 if error is not None else None)}% |")
+                     f"{_num(comp.get('per_forward_diff_ms'))} | {_num(error * 100 if error is not None else None)}% / {_num(p50_error)}% |")
     lines += ["", "## Layer 0 and steady layer groups", "",
               "The steady P50 column is median of per-layer call P50, unless a separately linked receipt supplies exact pooled statistics.", "",
-              "| Case | Group | Layers | Real Mean ms | Median layer-call P50 ms | Sim Mean ms | Mean error |",
+              "| Case | Group | Layers | Real Mean ms | Median layer-call P50 ms | Sim Mean ms | Mean / P50 error |",
               "|---|---|---:|---:|---:|---:|---:|"]
     from statistics import median
-    for row in report["body_comparisons"]:
+    for row in report["current_body_comparisons"]:
         groups = {}
         for layer in row["per_layer"].get("layers", []):
             key = ("Layer 0" if layer["layer_id"] == 0 else "Steady", layer.get("attention_kind"), layer["kind"])
@@ -230,8 +270,9 @@ def render(report):
             preds = [item.get("predicted_ms") for item in values]
             pred = sum(preds) / len(preds) if all(value is not None for value in preds) else None
             error = (pred / observed - 1) * 100 if pred is not None and observed else None
+            p50_error = (pred / p50 - 1) * 100 if pred is not None and p50 else None
             lines.append(f"| {row['case_id']} / {row['variant_id']} | {' / '.join(str(part) for part in key)} | {len(values)} | "
-                         f"{observed:.4f} | {p50:.4f} | {_num(pred, 4)} | {_num(error)}% |")
+                         f"{observed:.4f} | {p50:.4f} | {_num(pred, 4)} | {_num(error)}% / {_num(p50_error)}% |")
     for heavy in (True, False):
         lines += ["", f"## {'Heavy >50us' if heavy else 'Micro <=50us'} operators — activity residual priority", "",
                   "| Case | Operator / role | Calls | Real / Sim us | Diff us | Absolute ms / Forward | Tier pass |",
@@ -273,13 +314,24 @@ def render(report):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--input-manifest", type=Path,
+                        help="Ordered body/operators/references/evidence receipt lists; CLI inputs append")
     parser.add_argument("--body", type=Path, action="append", default=[])
     parser.add_argument("--operators", type=Path, action="append", default=[])
     parser.add_argument("--references", type=Path, action="append", default=[])
     parser.add_argument("--evidence", type=Path, action="append", default=[])
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
+    manifest_identity = None
+    if args.input_manifest:
+        manifest, manifest_identity = _read(args.input_manifest)
+        for key in ("body", "operators", "references", "evidence"):
+            paths = [Path(value) for value in manifest.get(key, [])]
+            paths = [path if path.is_absolute() else args.input_manifest.parent / path for path in paths]
+            setattr(args, key, paths + getattr(args, key))
     report = build(args.body, args.operators, args.references, args.evidence)
+    if manifest_identity:
+        report["input_manifest_identity"] = manifest_identity
     args.output.write_text(json.dumps(report, indent=2) + "\n")
     args.output.with_suffix(".md").write_text(render(report))
     print(json.dumps(report["summary"]))

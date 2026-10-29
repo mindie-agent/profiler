@@ -1,0 +1,534 @@
+{
+  "schema_version": "mindie-forward-outlier-inspection/1",
+  "source_identity": {
+    "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot10ms_c8_20261030/kernel_details.csv",
+    "size_bytes": 96044757,
+    "mtime_ns": 1793303576000000000,
+    "schema_version": "kernel_details_csv_48col",
+    "sha256": "17b7ed9ee87a8449f1c92d04a0e0f2eebd5aecd6edd39e4073d8787976974866"
+  },
+  "forward_id": "auto:37",
+  "body_span_ms": 82.348968,
+  "body_activity_ms": 82.253705,
+  "internal_gap_ms": 0.095263,
+  "positive_events": 1744,
+  "top_tasks": [
+    {
+      "op_type": "MoeDistributeDispatchV3",
+      "name": "MoeDistributeDispatchV3",
+      "duration_ms": 69.562066,
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot10ms_c8_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 66871,
+        "csv_line": 66873,
+        "task_id": "38938",
+        "stream_id": "10",
+        "device_id": "0"
+      },
+      "start_ns": 1793303463618114274,
+      "end_ns": 1793303463687676340,
+      "inputs": [
+        [
+          4100
+        ],
+        [
+          1,
+          5120
+        ],
+        [
+          1,
+          6
+        ],
+        [],
+        [
+          1
+        ],
+        [],
+        [],
+        []
+      ],
+      "outputs": [
+        [
+          48,
+          5120
+        ],
+        [
+          48,
+          160
+        ],
+        [
+          6144
+        ],
+        [
+          48
+        ],
+        [
+          384
+        ],
+        [
+          1
+        ],
+        [
+          48
+        ]
+      ]
+    },
+    {
+      "op_type": "QuantBatchMatmulV3",
+      "name": "aclnnQuantMatmulV5_QuantBatchMatmulV3_QuantBatchMatmulV3",
+      "duration_ms": 0.058456,
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot10ms_c8_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 67450,
+        "csv_line": 67452,
+        "task_id": "39736",
+        "stream_id": "10",
+        "device_id": "0"
+      },
+      "start_ns": 1793303463691958422,
+      "end_ns": 1793303463692016878,
+      "inputs": [
+        [
+          1,
+          6144
+        ],
+        [
+          25600,
+          6144
+        ],
+        [
+          25600,
+          96,
+          2
+        ],
+        [
+          1,
+          96,
+          2
+        ]
+      ],
+      "outputs": [
+        [
+          1,
+          25600
+        ]
+      ]
+    },
+    {
+      "op_type": "QuantBatchMatmulV3",
+      "name": "aclnnQuantMatmulV5_QuantBatchMatmulV3_QuantBatchMatmulV3",
+      "duration_ms": 0.058307,
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot10ms_c8_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 66883,
+        "csv_line": 66885,
+        "task_id": "38955",
+        "stream_id": "10",
+        "device_id": "0"
+      },
+      "start_ns": 1793303463687794391,
+      "end_ns": 1793303463687852698,
+      "inputs": [
+        [
+          1,
+          6144
+        ],
+        [
+          25600,
+          6144
+        ],
+        [
+          25600,
+          96,
+          2
+        ],
+        [
+          1,
+          96,
+          2
+        ]
+      ],
+      "outputs": [
+        [
+          1,
+          25600
+        ]
+      ]
+    },
+    {
+      "op_type": "GroupedMatmul",
+      "name": "aclnnGroupedMatmulWeightNz_GroupedMatmul_GroupedMatmul",
+      "duration_ms": 0.040838,
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot10ms_c8_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 66872,
+        "csv_line": 66874,
+        "task_id": "38940",
+        "stream_id": "10",
+        "device_id": "0"
+      },
+      "start_ns": 1793303463687676411,
+      "end_ns": 1793303463687717249,
+      "inputs": [
+        [
+          48,
+          5120
+        ],
+        [
+          48,
+          160,
+          288,
+          16,
+          32
+        ],
+        [],
+        [],
+        [],
+        [
+          48,
+          4608,
+          80,
+          2
+        ],
+        [],
+        [
+          48
+        ],
+        [
+          48,
+          80,
+          2
+        ]
+      ],
+      "outputs": [
+        [
+          48,
+          4608
+        ]
+      ]
+    },
+    {
+      "op_type": "GroupedMatmul",
+      "name": "aclnnGroupedMatmulWeightNz_GroupedMatmul_GroupedMatmul",
+      "duration_ms": 0.040467,
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot10ms_c8_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 68442,
+        "csv_line": 68444,
+        "task_id": "41123",
+        "stream_id": "10",
+        "device_id": "0"
+      },
+      "start_ns": 1793303463699280783,
+      "end_ns": 1793303463699321250,
+      "inputs": [
+        [
+          48,
+          5120
+        ],
+        [
+          48,
+          160,
+          288,
+          16,
+          32
+        ],
+        [],
+        [],
+        [],
+        [
+          48,
+          4608,
+          80,
+          2
+        ],
+        [],
+        [
+          48
+        ],
+        [
+          48,
+          80,
+          2
+        ]
+      ],
+      "outputs": [
+        [
+          48,
+          4608
+        ]
+      ]
+    },
+    {
+      "op_type": "GroupedMatmul",
+      "name": "aclnnGroupedMatmulWeightNz_GroupedMatmul_GroupedMatmul",
+      "duration_ms": 0.04006,
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot10ms_c8_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 68482,
+        "csv_line": 68484,
+        "task_id": "41178",
+        "stream_id": "10",
+        "device_id": "0"
+      },
+      "start_ns": 1793303463699589992,
+      "end_ns": 1793303463699630052,
+      "inputs": [
+        [
+          48,
+          5120
+        ],
+        [
+          48,
+          160,
+          288,
+          16,
+          32
+        ],
+        [],
+        [],
+        [],
+        [
+          48,
+          4608,
+          80,
+          2
+        ],
+        [],
+        [
+          48
+        ],
+        [
+          48,
+          80,
+          2
+        ]
+      ],
+      "outputs": [
+        [
+          48,
+          4608
+        ]
+      ]
+    },
+    {
+      "op_type": "GroupedMatmul",
+      "name": "aclnnGroupedMatmulWeightNz_GroupedMatmul_GroupedMatmul",
+      "duration_ms": 0.038926,
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot10ms_c8_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 68102,
+        "csv_line": 68104,
+        "task_id": "40647",
+        "stream_id": "10",
+        "device_id": "0"
+      },
+      "start_ns": 1793303463696747294,
+      "end_ns": 1793303463696786220,
+      "inputs": [
+        [
+          48,
+          5120
+        ],
+        [
+          48,
+          160,
+          288,
+          16,
+          32
+        ],
+        [],
+        [],
+        [],
+        [
+          48,
+          4608,
+          80,
+          2
+        ],
+        [],
+        [
+          48
+        ],
+        [
+          48,
+          80,
+          2
+        ]
+      ],
+      "outputs": [
+        [
+          48,
+          4608
+        ]
+      ]
+    },
+    {
+      "op_type": "GroupedMatmul",
+      "name": "aclnnGroupedMatmulWeightNz_GroupedMatmul_GroupedMatmul",
+      "duration_ms": 0.038924,
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot10ms_c8_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 68312,
+        "csv_line": 68314,
+        "task_id": "40940",
+        "stream_id": "10",
+        "device_id": "0"
+      },
+      "start_ns": 1793303463698312739,
+      "end_ns": 1793303463698351663,
+      "inputs": [
+        [
+          48,
+          5120
+        ],
+        [
+          48,
+          160,
+          288,
+          16,
+          32
+        ],
+        [],
+        [],
+        [],
+        [
+          48,
+          4608,
+          80,
+          2
+        ],
+        [],
+        [
+          48
+        ],
+        [
+          48,
+          80,
+          2
+        ]
+      ],
+      "outputs": [
+        [
+          48,
+          4608
+        ]
+      ]
+    },
+    {
+      "op_type": "GroupedMatmul",
+      "name": "aclnnGroupedMatmulWeightNz_GroupedMatmul_GroupedMatmul",
+      "duration_ms": 0.038795,
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot10ms_c8_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 68352,
+        "csv_line": 68354,
+        "task_id": "40995",
+        "stream_id": "10",
+        "device_id": "0"
+      },
+      "start_ns": 1793303463698611810,
+      "end_ns": 1793303463698650605,
+      "inputs": [
+        [
+          48,
+          5120
+        ],
+        [
+          48,
+          160,
+          288,
+          16,
+          32
+        ],
+        [],
+        [],
+        [],
+        [
+          48,
+          4608,
+          80,
+          2
+        ],
+        [],
+        [
+          48
+        ],
+        [
+          48,
+          80,
+          2
+        ]
+      ],
+      "outputs": [
+        [
+          48,
+          4608
+        ]
+      ]
+    },
+    {
+      "op_type": "GroupedMatmul",
+      "name": "aclnnGroupedMatmulWeightNz_GroupedMatmul_GroupedMatmul",
+      "duration_ms": 0.038712,
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot10ms_c8_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 67057,
+        "csv_line": 67059,
+        "task_id": "39197",
+        "stream_id": "10",
+        "device_id": "0"
+      },
+      "start_ns": 1793303463689041118,
+      "end_ns": 1793303463689079830,
+      "inputs": [
+        [
+          48,
+          5120
+        ],
+        [
+          48,
+          160,
+          288,
+          16,
+          32
+        ],
+        [],
+        [],
+        [],
+        [
+          48,
+          4608,
+          80,
+          2
+        ],
+        [],
+        [
+          48
+        ],
+        [
+          48,
+          80,
+          2
+        ]
+      ],
+      "outputs": [
+        [
+          48,
+          4608
+        ]
+      ]
+    }
+  ],
+  "interpretation": "largest measured tasks retained; no exclusion or assignment of peer wait versus kernel work"
+}

@@ -1,35 +1,37 @@
 {
   "schema_version": "mindie-priority-scoreboard-independent-review/1",
   "status": "passed",
-  "checks": 2503,
+  "checks": 6291,
   "failures": [],
-  "report_sha256": "3c5e690db09c39c9dac97fd031cd5899c042acb4e06990a521721a8916144b6f",
+  "report_sha256": "ed1d52a37d92deb161fb51f11cabd2b1fdf84e639ec755ca60f58b239fbb02db",
   "summary": {
-    "body_compared": 24,
-    "body_passed": 6,
+    "body_compared": 40,
+    "body_passed": 11,
+    "current_body_compared": 29,
+    "current_body_passed": 9,
     "body_denominator": "prediction_variants; identical observed populations are not additional captures",
-    "unique_source_count": 23,
-    "unique_source_geometry_populations": 83,
-    "unique_observed_forward_count": 1564,
+    "unique_source_count": 29,
+    "unique_source_geometry_populations": 96,
+    "unique_observed_forward_count": 2098,
     "operator_status_counts": {
-      "reference_only": 4,
-      "compared": 12
+      "reference_only": 13,
+      "compared": 71
     },
     "operator_accuracy_by_tier": {
       "heavy_relative_15pct": {
-        "compared": 1,
+        "compared": 2,
         "passed": 0
       },
       "micro_absolute_15us": {
-        "compared": 11,
-        "passed": 11
+        "compared": 69,
+        "passed": 68
       }
     },
-    "heavy_cohorts": 2
+    "heavy_cohorts": 4
   },
-  "body_rows": 84,
-  "family_rows": 77,
-  "cohort_rows": 16,
+  "body_rows": 119,
+  "family_rows": 269,
+  "cohort_rows": 84,
   "reference_rows": 78,
   "scope": "Receipt/source/runtime identities, exact observed denominator deduplication, body and per-call residual arithmetic, tier rules, and conditional references kept unscored. No raw scan or prediction."
 }

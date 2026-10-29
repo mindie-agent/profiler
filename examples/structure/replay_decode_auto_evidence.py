@@ -63,8 +63,10 @@ def replay(manifest_path, output, *, validation_baseline=None, reuse_extractions
     manifest = _read(manifest_path)
     baseline = _read(validation_baseline) if validation_baseline else None
     import mindie_profiler.decode_segmentation as segmentation
+    import mindie_profiler.body_attention_contracts as attention_contracts
     module = Path(segmentation.__file__)
     module_hash = _hash(module)
+    dependencies = {str(Path(attention_contracts.__file__)): _hash(Path(attention_contracts.__file__))}
     output.mkdir(parents=True, exist_ok=True)
     cases = manifest["cases"]
     # Resolve the five model families before traversing all request coordinates.
@@ -97,7 +99,8 @@ def replay(manifest_path, output, *, validation_baseline=None, reuse_extractions
             observed = _read(cached)
             if (observed["source_identity"] != source.content_identity()
                     or observed["model_structure_identity"]["sha256"] != model_hash
-                    or observed["extraction_runtime"]["sha256"] != module_hash):
+                    or observed["extraction_runtime"]["sha256"] != module_hash
+                    or observed["extraction_runtime"].get("dependencies") != dependencies):
                 raise ValueError(f"precomputed extraction has a different source/model/core: {cached}")
             observed["reused_extraction"] = {"path": str(cached), "sha256": _hash(cached)}
         else:
@@ -111,11 +114,11 @@ def replay(manifest_path, output, *, validation_baseline=None, reuse_extractions
             raise ValueError(f"positive event partition mismatch: {row['case_id']}")
         if path.stat().st_mtime_ns != stat.st_mtime_ns or path.stat().st_size != stat.st_size:
             raise ValueError(f"source changed during replay: {path}")
-        if _hash(module) != module_hash:
+        if _hash(module) != module_hash or any(_hash(Path(path)) != digest for path, digest in dependencies.items()):
             raise ValueError("automatic segmentation source changed during replay")
         observed["case_id"] = row["case_id"]
         observed["model_structure_identity"] = {"path": str(model_path), "sha256": model_hash}
-        observed["extraction_runtime"] = {"path": str(module), "sha256": module_hash}
+        observed["extraction_runtime"] = {"path": str(module), "sha256": module_hash, "dependencies": dependencies}
         observed["positive_event_partition_verified"] = True
         observed["replay_control_elapsed_seconds"] = round(time.monotonic() - case_started, 3)
         if not reused:
@@ -161,13 +164,14 @@ def replay(manifest_path, output, *, validation_baseline=None, reuse_extractions
     receipt = {"schema_version": "mindie-decode-auto-acceptance/1", "status": "completed",
                "not_new_live_collection": True, "basis": "structure_guided_topology_alignment",
                "manifest": {"path": str(manifest_path), "sha256": _hash(manifest_path)},
-               "segmentation_runtime": {"path": str(module), "sha256": module_hash},
+               "segmentation_runtime": {"path": str(module), "sha256": module_hash, "dependencies": dependencies},
                "cases": summaries, "case_count": len(summaries),
                "total_complete_forwards": sum(row["body_forward_span_ms"]["count"] for row in summaries),
                "source_positive_events": sum(row["scan_counts"]["positive_events"] for row in summaries),
                "elapsed_seconds": round(time.monotonic() - started, 3),
                "maximum_resident_set_size_raw": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
-               "runtime_sources_unchanged": _hash(module) == module_hash}
+               "runtime_sources_unchanged": _hash(module) == module_hash and all(
+                   _hash(Path(path)) == digest for path, digest in dependencies.items())}
     receipt["source_scans_in_this_execution"] = sum(not row["reused_extraction"] for row in summaries)
     receipt["reused_source_extractions"] = sum(bool(row["reused_extraction"]) for row in summaries)
     receipt["reused_extraction_elapsed_seconds"] = sum(
