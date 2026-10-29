@@ -1,0 +1,95 @@
+{
+  "schema_version": "mindie-repriced-body-operator-review/1",
+  "status": "passed",
+  "checks": 5297,
+  "failures": [],
+  "scoreboard_sha256": "352ae526a827ec4ab5c9859057fbbc03bf01f655f4eb3f69ff0ddaaba537db7d",
+  "script_sha256": "193ca8a9f07e09239b2a010cef94c0d4f1125c131bdcedcbc21962c05de13564",
+  "source_count": 6,
+  "counts": {
+    "passed": 108,
+    "compared": 108,
+    "strict_events": 444359,
+    "retained_reference_groups": 30,
+    "excluded_reference_groups": 24,
+    "strict_rebind_exclusions": 0,
+    "forward_count": 757
+  },
+  "accuracy_by_tier": {
+    "absolute_15us": {
+      "compared": 108,
+      "passed": 108
+    }
+  },
+  "cases": [
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c16_p2k / runtime67-refs",
+      "passed": 18,
+      "compared": 18,
+      "strict_events": 75723,
+      "retained_reference_groups": 5,
+      "excluded_reference_groups": 4,
+      "reference_worker_status": "completed",
+      "strict_rebind_exclusions": 0,
+      "forward_count": 129
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c32_p2k / runtime67-refs",
+      "passed": 18,
+      "compared": 18,
+      "strict_events": 61635,
+      "retained_reference_groups": 5,
+      "excluded_reference_groups": 4,
+      "reference_worker_status": "completed",
+      "strict_rebind_exclusions": 0,
+      "forward_count": 105
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c4_p2k / runtime67-refs",
+      "passed": 18,
+      "compared": 18,
+      "strict_events": 88637,
+      "retained_reference_groups": 5,
+      "excluded_reference_groups": 4,
+      "reference_worker_status": "completed",
+      "strict_rebind_exclusions": 0,
+      "forward_count": 151
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8 / runtime67-refs",
+      "passed": 18,
+      "compared": 18,
+      "strict_events": 85115,
+      "retained_reference_groups": 5,
+      "excluded_reference_groups": 4,
+      "reference_worker_status": "completed",
+      "strict_rebind_exclusions": 0,
+      "forward_count": 145
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64 / runtime67-refs",
+      "passed": 18,
+      "compared": 18,
+      "strict_events": 44025,
+      "retained_reference_groups": 5,
+      "excluded_reference_groups": 4,
+      "reference_worker_status": "completed",
+      "strict_rebind_exclusions": 0,
+      "forward_count": 75
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1 / runtime67-refs",
+      "passed": 18,
+      "compared": 18,
+      "strict_events": 89224,
+      "retained_reference_groups": 5,
+      "excluded_reference_groups": 4,
+      "reference_worker_status": "completed",
+      "strict_rebind_exclusions": 0,
+      "forward_count": 152
+    }
+  ],
+  "raw_capture_reads": 0,
+  "prediction_executions": 0,
+  "method": "stdlib identities/histograms, old-to-new observed partition equality and independent tier math"
+}
