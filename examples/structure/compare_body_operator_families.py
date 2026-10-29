@@ -25,6 +25,7 @@ from mindie_sim.prediction.operator_analysis import target_graphs
 from mindie_sim.prediction.program import RecipeBook
 from mindie_sim.prediction.structure import parse_case
 from mindie_sim.structure import export_structure
+from body_source_role_references import predict_source_role_references
 
 
 def prediction_runtime_identity():
@@ -34,7 +35,7 @@ def prediction_runtime_identity():
     return result
 
 
-def program_references(case_path, mapping):
+def program_references(case_path, mapping, actual=None):
     case=parse_case(read(case_path)); execution=mapping['declared_execution']
     geometry={key:execution[key] for key in ('phase','tokens','context','sequences','scope')}
     manifest=export_structure(case,**geometry)
@@ -73,6 +74,7 @@ def program_references(case_path, mapping):
             'evidence_strength':'conditional_source_role_program; not_a_tensor_contract_cohort',
             'single_device_program':prediction['single_device_program'],
             'observed_duration_used_for_selection':False}
+    results['_source_role_groups'] = predict_source_role_references(case, manifest, actual or {})
     return results
 
 
@@ -115,6 +117,15 @@ def family_rows(actual,mapping,comparison,references):
                 row['reference_relative_error']=diff/family['observed_us']['mean']
                 row['reference_within_tolerance']=(abs(diff)<=15 if family['observed_us']['mean']<=50
                                                     else abs(row['reference_relative_error'])<=.15)
+        source_groups = [group for group in references.get('_source_role_groups', ())
+                         if group['native_operator_type'] == family['native_operator_type']
+                         and group['declared_role'] == family['declared_role']]
+        if source_groups:
+            if sum(group['observed_us']['count'] for group in source_groups) != family['observed_us']['count']:
+                raise ValueError('source_role_reference_population_differs')
+            row['conditional_source_role_references'] = source_groups
+            row['evidence_strength'] = 'source_reference'
+            row['status'] = 'reference_only'
         results.append(row)
     return results
 
@@ -158,6 +169,19 @@ def render(report):
                          f"{row['scored_event_count']} / {row['unscored_event_count']} | {fmt(row['observed_us']['mean'])} | "
                          f"{fmt(row['observed_us']['p50'])} | {fmt(prediction)} | {fmt(row['per_call_diff_us'] if row['per_call_diff_us'] is not None else row.get('reference_per_call_diff_us'))} | "
                          f"{tolerance} | {row['passed_cohort_count']} / {row['compared_cohort_count']} | {row['evidence_strength']} / {row['status']} |")
+        source_groups = [group for row in case['families']
+                         for group in row.get('conditional_source_role_references', ())]
+        if source_groups:
+            lines += ['', '### Conditional source-role program references', '',
+                'Each row retains one homogeneous declared physical program set. These references have no native tensor contract and do not enter the strict cohort denominator. Their existing costs must not be added to the body again.', '',
+                '| Native role / layer subset | Calls | Real mean / P50 us | Sim reference us | Real activity ms/forward | Predicted service ms/forward | Boundary |',
+                '| --- | ---: | ---: | ---: | ---: | ---: | --- |']
+            for group in source_groups:
+                layers=', '.join(map(str, group['layer_ids']))
+                lines.append(f"| {group['native_operator_type']} / layers {layers} | {group['observed_us']['count']} | "
+                    f"{group['observed_us']['mean']:.3f} / {group['observed_us']['p50']:.3f} | "
+                    f"{fmt(group.get('predicted_reference_us'))} | {fmt(group.get('observed_activity_ms_per_forward'))} | "
+                    f"{fmt(group.get('predicted_service_ms_per_forward'))} | {group.get('boundary', group.get('reason'))} |")
     return '\n'.join(lines)+'\n'
 
 
@@ -187,7 +211,7 @@ def main():
             comparison=read(comparison_path)
         else:
             comparison=_compare_programs(args,prefix,mapping)
-        references=program_references(prefix.with_suffix('.case.json'),mapping)
+        references=program_references(prefix.with_suffix('.case.json'),mapping,actual)
         families=family_rows(actual,mapping,comparison,references)
         cases.append({'case_id':actual['case_id']+' / '+actual['variant'],'source_case_id':actual.get('source_case_id',actual['case_id']),
                       'variant':actual['variant'],'actual_identity':identity(actual_path),

@@ -30,6 +30,7 @@ from mindie_profiler.structure_cohorts import CohortAccumulator
 from mindie_profiler.structure_mapping import StructureMapper, _freeze
 from mindie_sim.prediction.structure import parse_case
 from mindie_sim.structure import export_structure
+from body_source_role_references import SourceRoleReferences
 
 ROOT = Path(__file__).resolve().parents[2]
 BASE = ROOT / 'examples/structure/acceptance-20261030-high-concurrency'
@@ -60,7 +61,8 @@ def runtime_identity():
     import mindie_sim
     sim=Path(mindie_sim.__file__).resolve().parent
     paths=[*sorted(sim.rglob('*.py')), *sorted((sim/'backends/profiles').glob('*.json')),
-           *sorted((ROOT/'mindie_profiler').glob('*.py')),Path(__file__).resolve()]
+           *sorted((ROOT/'mindie_profiler').glob('*.py')),Path(__file__).resolve(),
+           Path(__file__).with_name('body_source_role_references.py')]
     return {str(path):digest(path) for path in paths}
 
 
@@ -174,6 +176,7 @@ class BodyConsumer:
         self.counts, self.statuses, self.reasons = Counter(), Counter(), Counter()
         self.families, self.pooled = {}, defaultdict(Counter)
         self.forward_ids, self.examples = [], []
+        self.source_roles = SourceRoleReferences(manifest, model_config)
 
     def __call__(self, result, segment):
         expected = self.expected[result['forward_id']]
@@ -217,6 +220,9 @@ class BodyConsumer:
             status, ids, candidates, basis, evidence, contract, refinement = self.mapper.match(event, self.observation)
             roles = tuple(sorted({declared_role(self.mapper.targets[key]) for key in candidates}))
             role = '|'.join(roles) or 'unresolved'
+            source_role = self.source_roles.add(event, layer, self.mapper.block) if not roles else None
+            if source_role:
+                role = source_role
             if event.op_type.startswith('hcom_'):
                 role = 'attention_output_communication' if self.mapper.block == 'attention' else 'ffn_down_communication'
             reason = self.accumulator.add(event, (event.start_ns, event.end_ns), status=status,
@@ -334,6 +340,7 @@ def extract_case(entry, case_paths, output):
                 'forward_count':len(consumer.forward_ids),'source_forward_count':len(prior['forwards']),
                 'geometry_group_count':len(geometries),'counts':dict(consumer.counts),
                 'scan_counts':actual['scan_counts'],'families':families,'steady_layer_groups':pooled,
+                'source_role_references':consumer.source_roles.finish(duration_stats),
                 'population_basis':'complete_verified_body_windows; no_heads_or_auxiliary_forwards',
                 'steady_population_basis':'pooled_layer_calls_excluding_layer0',
                 'raw_capture_scans':int(index==0),'shared_source_scan':entry['case_id'],
