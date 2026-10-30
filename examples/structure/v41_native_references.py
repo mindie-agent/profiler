@@ -98,7 +98,7 @@ def select(group, local, execution):
     if len(matches)!=1:
         reason='combined_q_kv_program_cannot_be_split_or_reused' if role in {'q_rotary','kv_rotary'} else 'declared_semantic_program_missing'
         raise ValueError(reason+':'+role)
-    node=matches[0];op=node['operator'];meta=op.get('metadata',{})
+    node=matches[0];op=node['operator'];meta=op.get('metadata',{});source_selected=False
     if role=='grouped_output_a':
         view=meta.get('native_tensor_view',{});seen=details['native_view']
         if any(view.get(key)!=seen[field] for key,field in (('rows','rows'),('batch','heads'),('n','n'),('k','k'))):
@@ -116,8 +116,30 @@ def select(group, local, execution):
             raise ValueError('declared_rotary_active_shape_differs')
         if role in {'compress_rotary','index_rotary'}:
             details['declared_valid_compressed_rows']=shape[0]
+        if role in {'q_rotary','kv_rotary','output_inverse_rotary'}:
+            view=meta.get('native_tensor_view',{})
+            implementation=meta.get('native_implementation',{})
+            if implementation.get('selection')=='v41_partial_rotary':
+                ins,outs=freeze(group['native_abi'])[2:]
+                width=details['observed_rotary_width'];head_width=details['observed_width']
+                inverse=role=='output_inverse_rotary'
+                if (view.get('kind')!='inplace_partial_rotary'
+                        or view.get('native_kind')!='InplacePartialRotaryMul'
+                        or freeze(view.get('shape'))!=ins[0][0]
+                        or freeze(view.get('coefficient_shape'))!=ins[1][0]
+                        or (view.get('dtype'),view.get('coefficient_dtype'),view.get('layout'))
+                            !=(ins[0][1],ins[1][1],ins[0][2])
+                        or freeze(view.get('partial_slice'))!=(head_width-width,head_width)
+                        or view.get('inverse') is not inverse
+                        or view.get('sine_sign')!=('caller_negated' if inverse else 'caller_forward')
+                        or view.get('rotary_mode')!='interleave' or outs[0]!=ins[0]):
+                    raise ValueError('declared_partial_rotary_native_view_differs')
+                source_selected=True
+                details['declared_native_tensor_view']=view
+                details['declared_partial_rotary_work']=meta['partial_rotary_work']
+                source=meta['native_source']
     details.update(boundary_relation='source_role_conditional_existing_semantic_program',
-        native_source_program_selected=False,
+        native_source_program_selected=source_selected,
         limitations=['Native scalar values, slot masks and binary/source identity are not retained.',
             'This prices existing declared work; it is not additional Body budget or strict accuracy.',
             'Compressed output allocation is not proof of a valid compressed write.'])

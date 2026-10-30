@@ -76,3 +76,44 @@ def test_full_native_scale_format_and_whole_layer_region_are_required(evidence):
     assert helper.classify(rotary,manifest['execution'])[0]=='output_inverse_rotary'
     rotary['topology_region']='before_attention_anchor'
     assert helper.classify(rotary,manifest['execution'])[0]=='q_rotary'
+
+
+@pytest.fixture(scope='module')
+def source_rotary_evidence(evidence):
+    helper,data,_=evidence
+    from mindie_sim.prediction.structure import parse_case
+    from mindie_sim.structure import export_structure
+    raw=json.loads(Path(data['case_identity']['path']).read_text())
+    raw['runtime']['kernels'].setdefault('lowerings',{})['v41_rotary']='v41_partial_rotary'
+    manifest=export_structure(parse_case(raw),phase='decode',tokens=1,sequences=1,context=2048,scope='body')
+    return helper,data,manifest
+
+
+def test_source_rotary_accounts_for_three_distinct_real_calls_without_aggregate_reuse(source_rotary_evidence):
+    helper,data,manifest=source_rotary_evidence
+    refs,unresolved,_=helper.prepare_references(data,manifest)
+    assert not unresolved
+    assert sum(row['observed_us']['count'] for row in refs)==data['native_event_count']==33440
+    selected=[r for r in refs if r['declared_role'] in {'q_rotary','kv_rotary','output_inverse_rotary'}]
+    assert {r['declared_role'] for r in selected}=={'q_rotary','kv_rotary','output_inverse_rotary'}
+    assert sum(r['observed_us']['count'] for r in selected)==152*120
+    assert len({node for r in selected for node in r['representative_target_ids']})==3
+    for r in selected:
+        relation=r['source_correspondence'];view=relation['declared_native_tensor_view']
+        assert relation['native_source_program_selected']
+        assert view['inverse']==(r['declared_role']=='output_inverse_rotary')
+        assert relation['declared_partial_rotary_work']['untouched_nope_elements']>0
+        assert r['reference_only'] and not r['additional_budget_allowed']
+
+
+def test_real_inverse_call_rejects_forward_coefficients_or_wrong_partial_slice(source_rotary_evidence):
+    helper,data,manifest=source_rotary_evidence
+    group=next(g for g in data['partitions'] if g['native_operator_type']=='InplacePartialRotaryMul'
+               and g['topology_region']=='after_attention_anchor')
+    layer=int(next(iter(group['layer_counts'])))
+    local=[n for n in manifest['nodes'] if n['replica']==0 and n['layer']==layer]
+    target=next(n for n in local if n['op_id'].endswith('.output_inverse_rotary'))
+    for field,bad in [('inverse',False),('partial_slice',[0,64]),('coefficient_dtype','bf16')]:
+        changed=deepcopy(target);changed['operator']['metadata']['native_tensor_view'][field]=bad
+        with pytest.raises(ValueError,match='declared_partial_rotary_native_view_differs'):
+            helper.select(group,[changed],manifest['execution'])
