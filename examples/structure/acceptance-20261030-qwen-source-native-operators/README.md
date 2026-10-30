@@ -20,3 +20,9 @@ The independent JSON review passed 8,672 checks: accepted source/Body identity, 
 Qwen3.5 TP4 uses 4 key heads / 8 value heads and 2,048-wide convolution; Qwen3.6 TP2 uses 8 / 24 heads and 5,120-wide convolution. State is FP32 and active Q/K/V is BF16. TP2 still has 64 scalar-store owners per device. The gating kernel has no complete native tensor ABI in these captures; any upcoming comparison is a conditional source-program reference. Communication activity includes peer wait and is not a bandwidth calibration target.
 
 `operator-reprice-inputs.json` provides the next fresh-structure/fresh-cost input list. This artifact contains measured populations only; it does not claim an accuracy result.
+
+## Fresh source-complete runtime result
+
+The `runtime30dcea1e/` arm prices fresh structure and programs at Sim `30dcea1e335778b3d6c6f9ba67cce3e84a5adbba`, preserving all 717,482 observed events. Strict cohorts pass 70/75 (micro 67/70; heavy 3/5), while the matching complete-Body predictions pass **0/6**. Six gating, six FIA and six FFN all-reduce references are conditional and stay outside strict accuracy. Three changed MoE-combine references remain explicitly excluded.
+
+See [the per-source residual ledger](runtime30dcea1e/qwen-body-operator-residual-ledger.md) for the largest matched activity differences, unpaired families, total all-reduce activity, and layer0 versus steady communication distributions. Activity residuals are not a causal decomposition of Body wall time; unpaired work is not automatically missing from Sim. No raw sources were rescanned for the new costs or reviews.
