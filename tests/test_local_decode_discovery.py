@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'examples/structure'))
 from decode import capture_metadata, local_capture_directories, prepare_local_capture
 from pipeline import discover_local, identity
+from tests.sim_fixtures import case_path
 
 FIXTURE = ROOT / 'tests/fixtures/pipeline/local_glm128k'
 
@@ -97,3 +98,48 @@ def test_metadata_requires_explicit_prompt_not_native_cache_allocation(tmp_path)
     metadata = capture_metadata(directory)
     assert metadata['context_evidence']['representative_tokens'] is None
     assert metadata['context_evidence']['upper_bound_tokens'] is None
+
+
+def test_real_qwen36_tp2_uses_full_prompt_usage_and_retains_deployment_gaps(tmp_path):
+    fixtures = ROOT / 'tests/fixtures/pipeline/local_a5_metadata'
+    shutil.copyfile(fixtures / 'qwen36-benchmark.json', tmp_path / 'benchmark_summary.json')
+    shutil.copyfile(fixtures / 'qwen36-client-cell.json', tmp_path / 'client_cell.json')
+    metadata = capture_metadata(tmp_path)
+    assert metadata['client'] == {'input_len': 4104, 'concurrency': 1, 'output_tokens': 640}
+    assert metadata['context_evidence']['requested_prefix_tokens'] == 4096
+    assert metadata['context_evidence']['upper_bound_tokens'] == 4744
+    assert metadata['context_evidence']['per_step_context_observed'] is False
+    assert metadata['capture_parameters'] == {'model': '/mnt/weight/Qwen3.6-27B-W8A8',
+        'hardware': 'Ascend950DT_9582', 'tp': 2, 'quant': 'ascend (W8A8)'}
+    assert metadata['parameter_sources']['tp']['field'] == 'tensor_parallel_size'
+    assert metadata['parameter_sources']['hardware']['field'] == 'extra.host_deviation.identical_hardware'
+    # A known TP2 deployment cannot silently bind an explicit TP4 template.
+    wrong = case_path('qwen36-a3-tp4.json')
+    registry = {'cases': [{'id': 'decode:wrong-tp', 'case_id': 'wrong-tp', 'phase': 'decode',
+        'sim_case_path': str(wrong), 'model_case': identity(wrong)}]}
+    candidate = prepare_local_capture(tmp_path, registry, tmp_path, template_case_id='decode:wrong-tp')
+    assert 'capture_template_deployment_mismatch' in candidate['reasons']
+    assert candidate['entry'] is None
+
+
+def test_real_qwen35_usage_does_not_invent_parallelism(tmp_path):
+    source = ROOT / 'tests/fixtures/pipeline/local_a5_metadata/qwen35-benchmark.json'
+    shutil.copyfile(source, tmp_path / 'benchmark_summary.json')
+    metadata = capture_metadata(tmp_path)
+    assert metadata['client'] == {'input_len': 4096, 'concurrency': 4, 'output_tokens': 256}
+    assert metadata['context_evidence']['basis'] == 'retained_request_prompt_usage'
+    assert metadata['context_evidence']['upper_bound_tokens'] == 4352
+    assert metadata['capture_parameters'] == {'model': 'qwen35'}
+
+
+def test_requested_prompt_fallback_is_not_reported_as_observed_usage(tmp_path):
+    source = ROOT / 'tests/fixtures/pipeline/local_a5_metadata/qwen36-client-cell.json'
+    payload = json.loads(source.read_text())
+    # Actual usage fields may be absent when a producer cannot recover tokens.
+    payload.pop('observed_prompt_tokens')
+    for row in payload['per_request']:
+        row.pop('prompt_tokens')
+    (tmp_path / 'benchmark_summary.json').write_text(json.dumps(payload))
+    context = capture_metadata(tmp_path)['context_evidence']
+    assert context['representative_tokens'] == 4104
+    assert context['basis'] == 'requested_prefix_plus_suffix_condition'

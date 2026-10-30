@@ -16,6 +16,7 @@ from hashlib import sha256
 import json
 import fnmatch
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -58,31 +59,58 @@ def _file_identity(path):
     return {"path": str(path.resolve()), "sha256": sha256_file(path), "size_bytes": path.stat().st_size}
 
 
+def _client_token_bounds(summary):
+    """Usage covers the complete prompt; a shared prefix alone does not."""
+    native = summary.get("native", {})
+    records = summary.get("per_request") or summary.get("requests") or []
+    prompts = summary.get("observed_prompt_tokens", [r.get("prompt_tokens") for r in records])
+    outputs = summary.get("observed_completion_tokens", [r.get("completion_tokens") for r in records])
+    prompts = [float(v) for v in prompts if v is not None]
+    outputs = [float(v) for v in outputs if v is not None]
+    inputs = native.get("InputTokens", {})
+    requested = None
+    if summary.get("prefix_len") is not None and summary.get("suffix_len") is not None:
+        requested = summary["prefix_len"] + summary["suffix_len"]
+    lower = (min(prompts) if prompts else inputs.get("Min", summary.get("input_tokens", requested)))
+    upper_prompt = (max(prompts) if prompts else inputs.get("Max", summary.get("input_tokens", requested)))
+    output = (max(outputs) if outputs else native.get("OutputTokens", {}).get("Max",
+              summary.get("output_tokens", summary.get("decode_len", summary.get("output_len")))))
+    lower, upper_prompt, output = [float(v) if v is not None else None for v in (lower, upper_prompt, output)]
+    basis = ("retained_request_prompt_usage" if prompts else "literal_InputTokens_summary" if inputs else
+             "literal_input_tokens" if summary.get("input_tokens") is not None else
+             "requested_prefix_plus_suffix_condition" if requested is not None else "context_not_observed")
+    return lower, upper_prompt, output, basis
+
+
 def capture_metadata(directory):
     """Read bounded producer metadata, never derive active tokens from cache shapes."""
     directory = Path(directory)
     documents, identities = {}, {}
-    for name in ("capture_metadata.json", "benchmark_summary.json", "profile_evidence.json", "manifest.json"):
+    for name in ("capture_metadata.json", "benchmark_summary.json", "profile_evidence.json", "manifest.json", "client_cell.json"):
         path = directory / name
         if path.is_file():
             documents[name] = _read(path)
             identities[name] = _file_identity(path)
     summary = documents.get("benchmark_summary.json", {})
-    native = summary.get("native", {})
-    def numeric(value):
-        return float(value) if value is not None else None
-    inputs = native.get("InputTokens", {})
-    lower = numeric(inputs.get("Min", summary.get("input_tokens")))
-    upper_prompt = numeric(inputs.get("Max", summary.get("input_tokens")))
-    output = numeric(native.get("OutputTokens", {}).get("Max", summary.get("output_tokens")))
+    client_name = "benchmark_summary.json"
+    client = summary
+    if "client_cell.json" in documents:
+        cell = documents["client_cell.json"]
+        if not cell.get("label") or cell.get("label") != summary.get("label"):
+            raise ValueError("client_cell_summary_label_not_linked")
+        client, client_name = cell, "client_cell.json"
+    lower, upper_prompt, output, token_basis = _client_token_bounds(client)
     upper = upper_prompt + output if upper_prompt is not None and output is not None else None
     context = {
-        "basis": "same_run_client_token_bounds" if lower is not None else "context_not_observed",
+        "basis": token_basis,
         "representative_tokens": int(lower) if lower is not None else None,
         "lower_bound_tokens": int(lower) if lower is not None else None,
         "upper_bound_tokens": int(upper) if upper is not None else None,
         "per_step_context_observed": False,
-        "source_identity": identities.get("benchmark_summary.json"),
+        "source_identity": identities.get(client_name),
+        "requested_prefix_tokens": client.get("prefix_len"),
+        "requested_suffix_tokens": client.get("suffix_len"),
+        "client_token_exact": client.get("token_exact"),
         "limitation": "The initial prompt is a conditional representative, not a per-step KV length. "
                       "Token bounds describe the associated client run; cache/table capacities are not active context.",
     }
@@ -92,8 +120,29 @@ def capture_metadata(directory):
     for name, document in documents.items():
         # Producer-declared fields only. Launch argv/log adapters may write this
         # small mapping without importing model weights or inferring from paths.
-        declarations = [document.get("capture_parameters", {}), document.get("source_configuration", {})]
-        for declaration in declarations:
+        declarations = [("capture_parameters", document.get("capture_parameters", {})),
+                        ("source_configuration", document.get("source_configuration", {}))]
+        extra = document.get("extra", {})
+        recipe = extra.get("recipe", {})
+        flat = {"model": document.get("model_path", document.get("model")),
+                "quant": extra.get("quantization", document.get("quantization")),
+                "hardware": document.get("hardware_sku")}
+        flat_paths = {"model": "model_path" if "model_path" in document else "model",
+                      "quant": "extra.quantization" if "quantization" in extra else "quantization",
+                      "hardware": "hardware_sku"}
+        for field, key in (("tp", "tensor_parallel_size"), ("dp", "data_parallel_size"), ("ep", "expert_parallel_size")):
+            flat[field] = document.get(key, recipe.get(key))
+            flat_paths[field] = key if key in document else "extra.recipe." + key
+        hardware_text = extra.get("host_deviation", {}).get("identical_hardware", "")
+        if flat["hardware"] is None and isinstance(hardware_text, str):
+            sku = re.search(r"\b(Ascend[A-Za-z0-9]+_[0-9]+)\b", hardware_text)
+            flat["hardware"] = sku.group(1) if sku else None
+            flat_paths["hardware"] = "extra.host_deviation.identical_hardware"
+        # client_cell.model is often a served alias, not the model_path in its
+        # linked benchmark summary; retain the authoritative deployment fields.
+        if name != "client_cell.json":
+            declarations.append((flat_paths, flat))
+        for field_path, declaration in declarations:
             for field in fields:
                 value = declaration.get(field, declaration.get(field.upper()))
                 if value is None:
@@ -101,13 +150,14 @@ def capture_metadata(directory):
                 if field in parameters and parameters[field] != value:
                     conflicts.append(field)
                 parameters[field] = value
-                parameter_sources[field] = {"identity": identities[name], "field": field}
+                parameter_sources[field] = {"identity": identities[name], "field":
+                    field_path[field] if isinstance(field_path, dict) else field_path + "." + field}
     common = summary.get("common_metrics", {})
     return {"identities": identities, "capture_parameters": parameters,
             "parameter_sources": parameter_sources, "conflicting_parameters": sorted(set(conflicts)),
             "context_evidence": context,
             "client": {"input_len": context["representative_tokens"],
-                       "concurrency": common.get("Max Concurrency", {}).get("total"),
+                       "concurrency": client.get("concurrency", common.get("Max Concurrency", {}).get("total")),
                        "output_tokens": int(output) if output is not None else None},
             "profile_round": summary.get("round")}
 
@@ -158,6 +208,13 @@ def prepare_local_capture(directory, registry, base, *, template_case_id=None):
     declaration = next((d for d in declarations if template and d["case_id"] in {template['id'], template['case_id']}), None)
     if declaration and any(parameters[k] != v for k, v in declaration["match"].items() if k in parameters):
         reasons.append("capture_template_parameter_mismatch")
+    if template:
+        model_case = _read(_path(base, template["sim_case_path"]))
+        placement = _declared_runtime(model_case)
+        declared = {**{k: placement[k] for k in ("tp", "dp", "ep")},
+                    "hardware": model_case.get("machine", {}).get("sku")}
+        if any(parameters[k] != v for k, v in declared.items() if k in parameters and v is not None):
+            reasons.append("capture_template_deployment_mismatch")
     if metadata["context_evidence"]["representative_tokens"] is None:
         reasons.append("initial_context_evidence_missing")
     result = {"capture_directory": str(directory.resolve()), "status": "unresolved" if reasons else "prepared",

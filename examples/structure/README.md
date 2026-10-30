@@ -57,6 +57,10 @@ python examples/structure/pipeline.py \
 
 元数据读取 `capture_metadata.json`、`benchmark_summary.json`、`profile_evidence.json`、`manifest.json`。
 `capture_parameters` 或 `source_configuration` 中的 `model/hardware/tp/dp/ep/quant` 是显式部署声明。
+同时支持生产摘要的 `model_path`、`tensor_parallel_size`、`extra.recipe`、`extra.quantization` 和明确硬件 SKU 字段。
+同 label 的 `client_cell.json` 可提供完整请求 usage；实际 `prompt_tokens` 优先于 prefix 长度。
+例如 4096 prefix 加 8 suffix 的真实 usage 是 4104；usage 缺失时只保留显式请求长度条件，DP/EP 缺失不会补成 1。
+明确的 TP/DP/EP 或 SKU 与模板冲突时拒绝接入，缺字段则仍需明确模板声明。
 未指定 `--template-case-id` 时，清册顶层 `capture_templates` 必须有唯一的完整匹配：
 
 ```json

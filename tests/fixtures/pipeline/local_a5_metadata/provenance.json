@@ -1,0 +1,22 @@
+{
+  "files": [
+    {
+      "fixture": "qwen35-benchmark.json",
+      "source_path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/benchmark_summary.json",
+      "sha256": "9309f9b7e1e7b987fa953eb6b8b801b6148bc83a63fc9c0166b1a0d3066d0929",
+      "transformation": null
+    },
+    {
+      "fixture": "qwen36-benchmark.json",
+      "source_path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot5ms_c1_20261030/benchmark_summary.json",
+      "sha256": "86918f2e4b41b64746774c11f9c42bfa35511d2b35cc6d90dde4298d1dff2411",
+      "transformation": null
+    },
+    {
+      "fixture": "qwen36-client-cell.json",
+      "source_path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot5ms_c1_20261030/client_cell.json",
+      "sha256": "7b2e42e9e515c0d67d173c362d2ecf751ecc2dde46204197f3fb8e8aadd5d4bc",
+      "transformation": null
+    }
+  ]
+}
