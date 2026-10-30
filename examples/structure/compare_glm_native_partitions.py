@@ -23,10 +23,13 @@ from glm_native_references import prepare_references
 from replay_body_operator_families import identity, read, write
 
 
-def runtime_identity():
+def runtime_identity(*, v41_native_roles=False):
     value = prediction_runtime_identity()
-    for name in ("glm_native_references.py", "compare_glm_native_partitions.py"):
+    for name in ("glm_native_references.py", "glm_source_mechanism_references.py", "compare_glm_native_partitions.py"):
         path = Path(__file__).with_name(name).resolve()
+        value[str(path)] = identity(path)["sha256"]
+    if v41_native_roles:
+        path = Path(__file__).with_name("v41_native_references.py").resolve()
         value[str(path)] = identity(path)["sha256"]
     return value
 
@@ -36,13 +39,14 @@ def peak_rss():
     return value if sys.platform == "darwin" else value * 1024
 
 
-def worker(path, runtime_commit):
+def worker(path, runtime_commit, *, case_path=None, source_mechanisms=False, v41_native_roles=False):
     from mindie_sim.prediction.structure import parse_case
     from mindie_sim.structure import export_structure
 
-    started = time.perf_counter(); before = runtime_identity(); pin = identity(path)
+    started = time.perf_counter(); before = runtime_identity(v41_native_roles=v41_native_roles); pin = identity(path)
     partitions = read(path)
-    actual_pin, case_pin = partitions["actual_identity"], partitions["case_identity"]
+    actual_pin, original_case_pin = partitions["actual_identity"], partitions["case_identity"]
+    case_pin = identity(case_path) if case_path else original_case_pin
     if identity(actual_pin["path"])["sha256"] != actual_pin["sha256"]:
         raise ValueError("retained_actual_changed")
     if identity(case_pin["path"])["sha256"] != case_pin["sha256"]:
@@ -53,9 +57,41 @@ def worker(path, runtime_commit):
             or actual["geometry"] != partitions["geometry"]):
         raise ValueError("partition_actual_population_changed")
     case = parse_case(read(case_pin["path"])); geo = partitions["geometry"]
+    declaration_changes = {}
+    if case_path:
+        if identity(original_case_pin["path"])["sha256"] != original_case_pin["sha256"]:
+            raise ValueError("original_source_case_changed")
+        original = parse_case(read(original_case_pin["path"]))
+        original_model, selected_model = original.model.to_dict(), case.model.to_dict()
+        original_metadata = original_model.pop("metadata", None)
+        selected_metadata = selected_model.pop("metadata", None)
+        if (selected_model != original_model or case.machine != original.machine
+                or case.runtime.parallel != original.runtime.parallel):
+            raise ValueError("source_mechanism_arm_changes_model_hardware_or_parallel_declaration")
+        if original_metadata != selected_metadata:
+            declaration_changes["model.metadata"] = {"original": original_metadata, "selected": selected_metadata}
+        if original.runtime.kernels != case.runtime.kernels:
+            declaration_changes["runtime.kernels"] = {"original": original.runtime.kernels, "selected": case.runtime.kernels}
+    selectors = None
+    if source_mechanisms:
+        from glm_source_mechanism_references import SELECTORS
+        selectors = SELECTORS
     manifest = export_structure(case, phase="decode", tokens=geo["tokens_per_sequence"],
         sequences=geo["sequences_per_replica"], context=actual["conditional_context_tokens"], scope="body")
-    refs, unresolved, compact = prepare_references(partitions, manifest)
+    if v41_native_roles:
+        from v41_native_references import prepare_references as prepare_v41
+        refs, unresolved, compact = prepare_v41(partitions, manifest)
+    else:
+        refs, unresolved, compact = prepare_references(partitions, manifest, selectors=selectors)
+    if source_mechanisms and any(g["native_operator_type"] == "KvQuantSparseFlashAttentionVllm" for g in refs):
+        kernels = case.runtime.kernels
+        for node in compact["nodes"]:
+            if node["operator"]["metadata"].get("program_kind") != "indexed_attention":
+                continue
+            binding = kernels.get("recipes", {}).get(node["recipe"], kernels.get("families", {}).get(
+                node["family"], kernels.get("programs", {}).get("indexed_attention", {})))
+            if binding.get("kind") != "indexed_attention_packed_int8":
+                raise ValueError("packed528_reference_requires_explicit_analytic_recipe")
     unique = {}
     for group in refs:
         unique.setdefault(group["program_set_key"], group)
@@ -85,15 +121,18 @@ def worker(path, runtime_commit):
                 "Complete native descriptors are retained; scalar values, routing or sparse lengths remain conditional.",
                 "One native full-batch invocation is compared with the complete selected declared batch program set.",
                 *group["source_correspondence"]["limitations"]]})
-    if (runtime_identity() != before or identity(path) != pin
+    if (runtime_identity(v41_native_roles=v41_native_roles) != before or identity(path) != pin
             or identity(case_pin["path"])["sha256"] != case_pin["sha256"]):
         raise ValueError("reference_runtime_or_input_changed")
     rss = peak_rss()
     if rss > 512 * 1024**2:
         raise MemoryError("native_reference_exceeds_512_mib")
-    return {"schema_version": "mindie-glm-native-reference/1", "status": "partial" if unresolved else "completed",
+    return {"schema_version": "mindie-native-body-reference/1" if v41_native_roles else "mindie-glm-native-reference/1", "status": "partial" if unresolved else "completed",
         "case_id": partitions["source_case_id"], "partition_identity": pin,
         "actual_identity": actual_pin, "case_identity": case_pin,
+        "original_case_identity": original_case_pin,
+        "declaration_variant": "explicit_source_mechanism" if case_path else "original_source_case",
+        "declaration_changes": declaration_changes,
         "source_identity": partitions["source_identity"], "geometry": geo,
         "conditional_context_tokens": compact["execution"]["context"],
         "forward_count": partitions["forward_count"], "native_event_count": partitions["native_event_count"],
@@ -106,7 +145,7 @@ def worker(path, runtime_commit):
 
 
 def render(report):
-    lines = ["# GLM complete-native-bucket conditional references", "",
+    lines = ["# Complete native Body bucket conditional references", "",
         f"Runtime `{report['runtime_source_commit']}`. The full retained native buckets are compared to existing declared program sets; all rows remain reference-only.",
         "No raw capture scan or old cost reuse. Native launch count, fusion elimination, state-slot behavior and sparse valid lengths are not silently replaced by a contract claim.", "",
         "| Case / native / aligned region | Calls/F | Real Mean / P50 us | Sim reference us | Activity / predicted service / residual ms/F | Boundary |",
@@ -131,18 +170,35 @@ def main():
     parser.add_argument("--partition", type=Path, action="append", required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--runtime-source-commit", required=True)
+    parser.add_argument("--case", type=Path,
+                        help="Explicit source-mechanism declaration for one retained source; original identity stays recorded")
+    parser.add_argument("--source-mechanisms", action="store_true",
+                        help="Enable the complete INT8-528/rope0 analytic correspondence")
+    parser.add_argument("--v41-native-roles", action="store_true",
+                        help="Use complete V4.1 output-matrix/rotary/cache ABI and whole-layer role correspondence")
     parser.add_argument("--timeout", type=float, default=180)
     parser.add_argument("--worker", action="store_true")
     args = parser.parse_args(); args.output_dir.mkdir(parents=True, exist_ok=True)
+    if args.source_mechanisms and args.v41_native_roles:
+        parser.error("choose one source correspondence family")
+    if args.case and len(args.partition) != 1:
+        parser.error("an explicit case accepts one retained partition input")
     if args.worker:
-        result = worker(args.partition[0], args.runtime_source_commit)
+        result = worker(args.partition[0], args.runtime_source_commit,
+                        case_path=args.case, source_mechanisms=args.source_mechanisms, v41_native_roles=args.v41_native_roles)
         write(args.output_dir / (result["case_id"] + "-references.json"), result)
         return
-    before = runtime_identity(); started = time.perf_counter(); cases = []
+    before = runtime_identity(v41_native_roles=args.v41_native_roles); started = time.perf_counter(); cases = []
     for path in args.partition:
         case_id = read(path)["source_case_id"]
         command = [sys.executable, str(Path(__file__).resolve()), "--worker", "--partition", str(path.resolve()),
             "--output-dir", str(args.output_dir.resolve()), "--runtime-source-commit", args.runtime_source_commit]
+        if args.case:
+            command.extend(("--case", str(args.case.resolve())))
+        if args.source_mechanisms:
+            command.append("--source-mechanisms")
+        if args.v41_native_roles:
+            command.append("--v41-native-roles")
         try:
             result = subprocess.run(command, capture_output=True, text=True, timeout=args.timeout)
             if result.returncode:
@@ -152,15 +208,16 @@ def main():
             case = {"case_id": case_id, "partition_path": str(path), "status": "failed", "reason": str(error)}
         cases.append(case)
         print(json.dumps({"case": case_id, "status": case["status"]}), flush=True)
-    if before != runtime_identity():
+    if before != runtime_identity(v41_native_roles=args.v41_native_roles):
         raise ValueError("batch_reference_runtime_changed")
-    report = {"schema_version": "mindie-glm-native-reference-batch/1",
+    report = {"schema_version": "mindie-native-body-reference-batch/1" if args.v41_native_roles else "mindie-glm-native-reference-batch/1",
         "status": "completed" if all(c["status"] == "completed" for c in cases) else "partial",
         "runtime_source_commit": args.runtime_source_commit, "runtime_source_identity": before,
         "cases": cases, "elapsed_seconds": time.perf_counter()-started,
         "raw_capture_reads": 0, "strict_compared": 0}
-    write(args.output_dir / "glm-native-reference-scoreboard.json", report)
-    (args.output_dir / "glm-native-reference-scoreboard.md").write_text(render(report))
+    prefix = "v41-native-reference-scoreboard" if args.v41_native_roles else "glm-native-reference-scoreboard"
+    write(args.output_dir / (prefix + ".json"), report)
+    (args.output_dir / (prefix + ".md")).write_text(render(report))
     if any(c["status"] == "failed" for c in cases):
         raise SystemExit(1)
 

@@ -1,0 +1,77 @@
+{
+  "schema_version": "mindie-packed528-evidence-independent-review/1",
+  "status": "passed",
+  "checks": 18,
+  "failures": [],
+  "source_count": 2,
+  "forward_count": 96,
+  "event_count": 1056,
+  "cases": [
+    {
+      "partition_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-mechanisms/a3_glm53flash_tp16_aclgraph_c32-native-partitions.json",
+        "sha256": "216434afa8e2f87ea740bd798ab974d4d0ded517a1ef9806c7644e6c600d9742",
+        "size_bytes": 58093
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_aclgraph_c32_20261030/kernel_details.csv",
+        "size_bytes": 71740577,
+        "mtime_ns": 1793304903000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "407b8083c575a7f568047e618cb0276aad554c9323a6a2cb876bebe486ca7d6c"
+      },
+      "actual_identity": {
+        "path": "examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a3_glm53flash_tp16_aclgraph_c32-matrix-extension.actual.json",
+        "sha256": "e42cc2a8e709372916054a22be58bc203f2098b2d9fda3e8dd505cb295d78271",
+        "size_bytes": 983579
+      },
+      "body_acceptance_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-extension/auto-forward-a3_glm53flash_tp16_aclgraph_c32.json",
+        "sha256": "97a38f5f23229d1c3e70f2c312422f3b47647184883ed8dec0989d06aa7dd9ce",
+        "size_bytes": 2855197
+      },
+      "forwards": 49,
+      "events": 539,
+      "full_histogram_equal_to_actual": true
+    },
+    {
+      "partition_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-mechanisms/a3_glm53flash_tp16_aclgraph_c64-native-partitions.json",
+        "sha256": "81945775be21356bf04ef919443f00f4a6655285c54f96caca3c9ca4057c0c9c",
+        "size_bytes": 58837
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_aclgraph_c64_20261030/kernel_details.csv",
+        "size_bytes": 84149914,
+        "mtime_ns": 1793305114000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "4adc04d61fb3fb913b804f62b5f5268051f93a5cad4548aa7aa0569334dbe020"
+      },
+      "actual_identity": {
+        "path": "examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a3_glm53flash_tp16_aclgraph_c64-matrix-extension.actual.json",
+        "sha256": "1f12974c471d713db6981abf69ba1d0f86cb0ab5fb7cd124dbb762dff5d4c8a8",
+        "size_bytes": 1038911
+      },
+      "body_acceptance_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-extension/auto-forward-a3_glm53flash_tp16_aclgraph_c64.json",
+        "sha256": "11155a624abca22b33b9d20ab92cabd9b97141ecaaa71d793af390eedf3f9148",
+        "size_bytes": 3130726
+      },
+      "forwards": 47,
+      "events": 517,
+      "full_histogram_equal_to_actual": true
+    }
+  ],
+  "verified": [
+    "actual content SHA and population geometry/body identity",
+    "9 input and3 output native slots",
+    "INT8 cache row528, no rope input",
+    "all retained duration histogram buckets equal to saved actual"
+  ],
+  "limitations": [
+    "No binary identity or captured tensor address alias established.",
+    "Index/cache capacities are not active lengths."
+  ],
+  "raw_capture_reads": 0,
+  "cost_executions": 0
+}

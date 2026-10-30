@@ -1,0 +1,84 @@
+{
+  "schema_version": "mindie-v41-native-source-role-evidence/1",
+  "binary_identity": "not established",
+  "sources": [
+    {
+      "path": "/Users/maoxx241/code/refs/cann-recipes-infer/models/deepseek_v4/models/modeling_deepseek.py",
+      "sha256": "ac0f0538fc3be62d296fd879252b5888f542c8ac94559464136eded4f8c33b0d",
+      "size_bytes": 151842,
+      "lines": [
+        [
+          1415,
+          1435
+        ],
+        [
+          1532,
+          1572
+        ]
+      ]
+    },
+    {
+      "path": "/Volumes/data/Archives/Codex/Analysis-Outputs/deepseek-v41-article-20260911/source/vllm_ascend/attention/dsa_v41.py",
+      "sha256": "56d3ce83098babf585289d3e078d1efff0442547f61fb0955a11f0b42bfc6ba3",
+      "size_bytes": 47125,
+      "lines": [
+        [
+          283,
+          305
+        ],
+        [
+          350,
+          383
+        ],
+        [
+          430,
+          452
+        ],
+        [
+          596,
+          611
+        ]
+      ]
+    },
+    {
+      "path": "/Volumes/data/Archives/Codex/Analysis-Outputs/deepseek-v41-article-20260911/source/vllm_ascend/models/deepseek_v41/indexer.py",
+      "sha256": "a126cce8ec070fe66b39c412b68b2bab8651f1e23ec744e06adc9d5ae79956a4",
+      "size_bytes": 9368,
+      "lines": [
+        [
+          93,
+          105
+        ],
+        [
+          133,
+          143
+        ]
+      ]
+    },
+    {
+      "path": "/Users/maoxx241/code/refs/ops-transformer/attention/kv_compress_epilog/torch_extension/kv_compress_epilog.py",
+      "sha256": "d363072add942f17a2343625a542bddf34685b805c075e4f6bfbc9eea46fef98",
+      "size_bytes": 4351,
+      "lines": [
+        [
+          19,
+          27
+        ],
+        [
+          54,
+          61
+        ],
+        [
+          85,
+          108
+        ]
+      ]
+    }
+  ],
+  "correspondences": {
+    "TransposeQuantBatchMatMul": "after attention inverse RoPE, wo_a grouped output projection; not w_uk/input projection",
+    "InplacePartialRotaryMul": "Q, KV, output inverse, index Q/K and compressed KV distinguished by complete layer topology+active ABI+source call order",
+    "KvCompressEpilogV2": "original 544-byte packed FP8/BF16 window rows and 320-byte UINT8-backed compressed rows; slot mask/values remain unknown"
+  },
+  "nonadditive_budget_policy": "References select existing Sim programs and cannot be added as new Body budget."
+}

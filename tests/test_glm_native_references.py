@@ -67,3 +67,21 @@ def test_fp8_scale_layout_is_not_reinterpreted_as_w4a8(evidence):
     group["native_abi"][2][4][2] = "ND"
     _, failures, _ = helper.prepare_references(changed, manifest)
     assert len(failures) == 1 and failures[0]["reason"] == "mx_swiglu_fp8_packed_parameter_abi"
+
+
+def test_explicit_rope0_pipeline_preserves_complete_bf16_batch_population(evidence):
+    helper, partition, _ = evidence
+    from mindie_sim.structure import export_structure
+    raw = json.loads(Path(partition["case_identity"]["path"]).read_text())
+    raw["runtime"]["kernels"].setdefault("programs", {})["indexed_attention"] = {
+        "kind": "indexed_attention_pipeline", "scratch_policy": "offchip",
+        "operand_modes": False, "rope0_analytic": True}
+    manifest = export_structure(raw, phase="decode", tokens=4, sequences=64, context=4104, scope="body")
+    groups, failures, _ = helper.prepare_references(partition, manifest)
+    assert not failures
+    group = next(g for g in groups if g["native_operator_type"] == "SparseFlashMla")
+    assert group["observed_us"]["count"] == 341
+    assert len(group["representative_target_ids"]) == 1
+    assert group["source_correspondence"]["declared_sequence_count"] == 64
+    original = partition["partitions"][group["partition_index"]]
+    assert group["duration_ns_counter"] == original["duration_ns_counter"]

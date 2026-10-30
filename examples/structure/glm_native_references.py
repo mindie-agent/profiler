@@ -142,32 +142,37 @@ def _sparse_mla(native, local, groups, execution):
         raise ValueError("sparse_mla_uncompressed_paged_native_abi")
     targets = [t for t in local if t["family"] == "attention"
                and t["operator"]["metadata"].get("program_kind") == "indexed_attention"]
-    if len(targets) != batch:
+    if not targets:
         raise ValueError("sparse_mla_declared_batch_programs")
     declared = [t["operator"]["metadata"]["indexed_attention_geometry"] for t in targets]
-    if any((v["query"], v["heads"], v["latent"], v["rope"], v["query_dtype"], v["cache_dtype"])
-           != (q, heads, width, 0, "bf16", "bf16") for v in declared):
+    if any((v["heads"], v["latent"], v["rope"], v["query_dtype"], v["cache_dtype"])
+           != (heads, width, 0, "bf16", "bf16") for v in declared):
         raise ValueError("sparse_mla_declared_head_channel_precision")
+    sequences = [tuple(item) for v in declared for item in v.get(
+        "sequences", [(v.get("query"), v.get("context"))])]
+    if sequences != [(q, execution["context"])]*batch:
+        raise ValueError("sparse_mla_declared_batch_programs")
     topks = {v["topk"] for v in declared}
     if len(topks) != 1 or indices[0][2] < next(iter(topks)):
         raise ValueError("sparse_mla_index_capacity_smaller_than_declared_topk")
     return "indexed_attention_batch", targets, {"kind": "existing_declared_indexed_attention_programs"}, {
-        "boundary_relation": "whole_batch_indexed_attention_decomposed_reference",
+        "boundary_relation": "whole_batch_indexed_attention_reference",
         "observed_sparse_index_capacity": indices[0][2], "declared_topk": next(iter(topks)),
         "observed_topk_length_values": None, "observed_sequence_length_values": None,
         "observed_metadata_values": None, "observed_cache_capacity_is_active_context": False,
-        "declared_sequence_program_count": batch,
+        "declared_sequence_count": batch, "declared_sequence_program_count": len(targets),
         "limitations": ["All sequence programs are priced jointly; one sequence is never substituted for one native batch call.",
             "Native sparse index capacity includes slots whose valid count is supplied by an unobserved tensor.",
             "Mask/window scalars, metadata task split, sinks values and active KV lengths are not retained.",
-            "Generic indexed attention is a reference, not the SparseFlashMla native source implementation."]}
+            "Declared indexed attention is a reference, not proof of the captured SparseFlashMla native implementation."]}
 
 
 SELECTORS = {"GroupedMatmulSwigluQuantV2": _mx_swiglu, "RecurrentKda": _kda, "SparseFlashMla": _sparse_mla}
 
 
-def prepare_references(partitions, manifest):
+def prepare_references(partitions, manifest, *, selectors=None):
     """Return homogeneous complete buckets and a small cost manifest."""
+    selectors = SELECTORS if selectors is None else selectors
     replica = min(manifest["execution"]["replicas"])
     by_layer, subgraphs = defaultdict(list), defaultdict(list)
     for node in manifest["nodes"]:
@@ -185,7 +190,7 @@ def prepare_references(partitions, manifest):
             if native[:2] != ("native_tensor_abi", kind) or not layers:
                 raise ValueError("retained_native_identity_or_layers_missing")
             for layer in layers:
-                selection = SELECTORS[kind](native, by_layer[layer], subgraphs[layer], manifest["execution"])
+                selection = selectors[kind](native, by_layer[layer], subgraphs[layer], manifest["execution"])
                 role, targets, source, correspondence = selection
                 physical = canonical([(reference_signature(t), t["physical_work"]) for t in targets])
                 if signature is not None and signature != physical:
