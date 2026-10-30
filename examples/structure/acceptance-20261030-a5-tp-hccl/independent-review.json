@@ -1,0 +1,22 @@
+{
+  "status": "passed",
+  "reviewer": "/root/sim_forward",
+  "review_mode": "independent_read_only_JSON_and_real_fixtures",
+  "summary_sha256": "4ce8706b6dbbd9cabd7c338cb1408618d77e7093637ab517744aced03d68efae",
+  "checks": 21786,
+  "failures": 0,
+  "maximum_resident_set_size_bytes": 90046464,
+  "raw_scans": 0,
+  "cost_predictions": 0,
+  "fixture_tests": 3,
+  "scope": [
+    "Complete saved numeric PMU counter populations and Decimal statistics",
+    "Full collective histograms and source/body denominators",
+    "18 retained exact device/type/start/end duplicate pairs",
+    "Real layer0 Qwen36 c12/c96 GDN-output-to-FFN boundaries",
+    "Separate GLM envelope and controller populations"
+  ],
+  "limits": [
+    "Did not rescan all 49,672 raw duplicate pairs; full population conservation and retained examples verified."
+  ]
+}

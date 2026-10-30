@@ -1,0 +1,17 @@
+{
+  "schema_version": "mindie-hccl-ledger-inputs/1",
+  "actual_paths": [
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen35-35b-a5-tp4-c128-graph-qwen-source-gdn-native.actual.json",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen35-35b-a5-tp4-c4-graph-qwen-source-gdn-native.actual.json",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen35-35b-a5-tp4-c64-graph-qwen-source-gdn-native.actual.json",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen36-a5-tp2-c1-qwen-source-gdn-native.actual.json",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen36-a5-tp2-c12-qwen-source-gdn-native.actual.json",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen36-a5-tp2-c96-qwen-source-gdn-native.actual.json",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c16_p4k-glm-flash-ws9.actual.json",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c32_p4k-glm-flash-ws9.actual.json",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c64_p4k-glm-flash-ws9.actual.json"
+  ],
+  "population": "Existing accepted primary execution geometry for each source; all selected complete Body calls, other geometry populations explicitly excluded.",
+  "no_new_capture": true,
+  "no_cost_predictions": true
+}
