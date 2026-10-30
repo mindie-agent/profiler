@@ -1,0 +1,197 @@
+{
+  "schema_version": "mindie-kimi-source17-independent-review/1",
+  "status": "passed",
+  "checks": 2119,
+  "failures": [],
+  "report_sha256": "ed32f17c2bc93f60df5c5a09a0864a7fb0f58a72a4656eaa67dbcef3450cf9d0",
+  "base_review_sha256": "5ef085f9d459da545a509679ffd2c671c3cb4e6119b4a82b1fdfc9cc5cab0897",
+  "base_review_checks": 10270,
+  "totals": {
+    "current_strict_events": 349095,
+    "selected_forwards": 1769,
+    "all_geometry_forwards": 1799,
+    "new_programs": 153,
+    "logical96_added_strict_events": 63720,
+    "logical96_prior_strict_events": 251026,
+    "logical96_current_strict_events": 314746,
+    "a5_matrix_calls": 443106
+  },
+  "accuracy_by_tier": {
+    "absolute_15us": {
+      "compared": 167,
+      "passed": 167
+    },
+    "relative_15pct": {
+      "compared": 10,
+      "passed": 5
+    }
+  },
+  "cases": [
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c16_p16k",
+      "selected_forwards": 47,
+      "all_geometry_forwards": 47,
+      "strict_events": 31537,
+      "new_physical_programs": 9,
+      "input_sha256": "2464bdd044c9f2927a029ee637b6ca276662669a55f7e0a415730d419fc0d6df",
+      "logical96_added_strict_events": 5452,
+      "matrix_calls": 33699
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c16_p4k",
+      "selected_forwards": 49,
+      "all_geometry_forwards": 49,
+      "strict_events": 32879,
+      "new_physical_programs": 9,
+      "input_sha256": "fcaebc78fba0fbf9d40c9cc927f4301606263c1fcdfb12d7c08443692149673a",
+      "logical96_added_strict_events": 5684,
+      "matrix_calls": 35133
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c1_p16k",
+      "selected_forwards": 59,
+      "all_geometry_forwards": 59,
+      "strict_events": 21830,
+      "new_physical_programs": 6,
+      "input_sha256": "7f9b18fff8b4385467bf14cae8d4ffd9fc7ae5573a26ff660c4d551fa0a92b4c",
+      "logical96_added_strict_events": 5428,
+      "matrix_calls": 42303
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c1_p4k",
+      "selected_forwards": 59,
+      "all_geometry_forwards": 59,
+      "strict_events": 21830,
+      "new_physical_programs": 6,
+      "input_sha256": "8f7a22a45e5ec84df2ea47e768c9d7a6aedf74f2ebbed99f88feb267d3b544da",
+      "logical96_added_strict_events": 5428,
+      "matrix_calls": 42303
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c2_p16k",
+      "selected_forwards": 54,
+      "all_geometry_forwards": 54,
+      "strict_events": 19980,
+      "new_physical_programs": 6,
+      "input_sha256": "5b38dfc0ea82737051902207180fa7cd3b92ce63cd476355b61fa4a7aa398273",
+      "logical96_added_strict_events": 4968,
+      "matrix_calls": 38718
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c2_p4k",
+      "selected_forwards": 55,
+      "all_geometry_forwards": 55,
+      "strict_events": 20350,
+      "new_physical_programs": 6,
+      "input_sha256": "8850ae84715f34665218e31eec19c9173a3acc7f0f4ee08b7b34b47fdfc763f2",
+      "logical96_added_strict_events": 5060,
+      "matrix_calls": 39435
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c32_p16k",
+      "selected_forwards": 41,
+      "all_geometry_forwards": 41,
+      "strict_events": 27511,
+      "new_physical_programs": 9,
+      "input_sha256": "4a7d3bc92f3bff59974fc855c66d8c9943c6df8df055abcadfb0a64aed07f2f0",
+      "logical96_added_strict_events": 4756,
+      "matrix_calls": 29397
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c32_p4k",
+      "selected_forwards": 46,
+      "all_geometry_forwards": 46,
+      "strict_events": 30866,
+      "new_physical_programs": 9,
+      "input_sha256": "ea476b8be5e71bc7ec786dcf46da13b01c7e1f73d54746691e661cb6731f6821",
+      "logical96_added_strict_events": 5336,
+      "matrix_calls": 32982
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c4_p16k",
+      "selected_forwards": 52,
+      "all_geometry_forwards": 52,
+      "strict_events": 19240,
+      "new_physical_programs": 6,
+      "input_sha256": "cd4461382759c1e35c7e980601a68a9db5b662de57822f0b97084e5a086a6987",
+      "logical96_added_strict_events": 4784,
+      "matrix_calls": 37284
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c4_p4k",
+      "selected_forwards": 53,
+      "all_geometry_forwards": 53,
+      "strict_events": 19610,
+      "new_physical_programs": 6,
+      "input_sha256": "a56884c6d41348c57697f7ff64cea593e36f3a888d1eba8a0569937b6242f6f0",
+      "logical96_added_strict_events": 4876,
+      "matrix_calls": 38001
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c8_p16k",
+      "selected_forwards": 51,
+      "all_geometry_forwards": 51,
+      "strict_events": 34221,
+      "new_physical_programs": 9,
+      "input_sha256": "e62125971dfddc73bdaa277644bd868c336ef615c3b8bb7712c4b8da7647a89c",
+      "logical96_added_strict_events": 5916,
+      "matrix_calls": 36567
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c8_p4k",
+      "selected_forwards": 52,
+      "all_geometry_forwards": 52,
+      "strict_events": 34892,
+      "new_physical_programs": 9,
+      "input_sha256": "4f22bfef6e6247f0afb3930dc177e0af247944cb6be71c48bcbd25b138165187",
+      "logical96_added_strict_events": 6032,
+      "matrix_calls": 37284
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c1",
+      "selected_forwards": 254,
+      "all_geometry_forwards": 254,
+      "strict_events": 5588,
+      "new_physical_programs": 9,
+      "input_sha256": "92ac02c25e1905e3185d6b780f3fbec108cd307bbca283d371567973ce0a272a"
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c16",
+      "selected_forwards": 235,
+      "all_geometry_forwards": 238,
+      "strict_events": 8695,
+      "new_physical_programs": 15,
+      "input_sha256": "6e15e39f2c3953b6d3f425a35d0c7ece913e3b7f766d1519b15e63dfc49d2917"
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c32",
+      "selected_forwards": 220,
+      "all_geometry_forwards": 229,
+      "strict_events": 8140,
+      "new_physical_programs": 15,
+      "input_sha256": "824a0c372e6405568e7d9edd821408e6711f50f244575d061e3261602bcdc74a"
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c4",
+      "selected_forwards": 246,
+      "all_geometry_forwards": 253,
+      "strict_events": 4674,
+      "new_physical_programs": 9,
+      "input_sha256": "032f06b99042a124f078949e42cc17a75c01582a3e7feea7574d18cd7bf273b8"
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c64",
+      "selected_forwards": 196,
+      "all_geometry_forwards": 207,
+      "strict_events": 7252,
+      "new_physical_programs": 15,
+      "input_sha256": "f3edbf8756c1af1c6e77e78baaa3b5744344fb261463b39c13b0e4835ef58cc4"
+    }
+  ],
+  "raw_capture_reads": 0,
+  "cost_executions": 0,
+  "sim_imports": 0,
+  "elapsed_seconds": 4.979671707958914,
+  "maximum_resident_set_size_bytes": 246988800,
+  "scope": "Canonical strict cohort repricing, not source-reference accuracy. Pure saved identities, complete native populations, mapping-work-cost receipts and independent tolerance math; native binary/tiling remains outside tensor-contract scope."
+}
