@@ -6,9 +6,10 @@ import sys
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'examples/structure'))
-from prefill import align, anchor, client_measurement, associate_request, validate, request_population, identity, run_case
+from prefill import align, anchor, client_measurement, associate_request, validate, request_population, identity, run_case, _anchor_groups, extract_events
 from mindie_profiler.decode_segmentation import _Row
 from mindie_profiler.events import Event
+from mindie_profiler.normalized import shapes, row_from_event
 
 
 def fixture():
@@ -16,6 +17,76 @@ def fixture():
     rows=[_Row(Event(**r['event']),tuple(tuple(s) for s in r['inputs']) if r['inputs'] is not None else None,
                tuple(tuple(s) for s in r['outputs']) if r['outputs'] is not None else None) for r in value['rows']]
     return value,rows
+
+
+def kimi_fixture(name='kimi-prefill-first-head.json'):
+    value=json.loads((ROOT/'tests/fixtures/prefill'/name).read_text())
+    rows=[]
+    for retained in value['rows']:
+        event=Event(**value['event_defaults'],
+                    **dict(zip(value['event_fields'],retained[:-1])),locator=retained[-1])
+        rows.append(_Row(event,shapes(event.input_shapes),shapes(event.output_shapes)))
+    return value,rows
+
+
+def test_real_kimi_93_layers_keep_all_chunk_stages_and_crosscheck_global_query():
+    value,rows=kimi_fixture();result,error=align(rows,value['model_config'],0)
+    assert error is None
+    assert result['matched_layer_count']==93 and result['query_rows']==8192
+    assert {key:result['body'][key] for key in value['expected_body']}==value['expected_body']
+    kda=[g for g in result['attention_stage_groups'] if g['native_type']=='ChunkKdaFwd']
+    assert len(kda)==69 and sum(g['physical_events'] for g in kda)==276
+    assert all(g['physical_events']==4 for g in kda)
+    assert [l['attention'] for l in result['layers']]==[p['attention'] for p in value['model_config']['layer_plans']]
+    assert rows[-1].inputs[0][0]==1  # Sampled head does not reduce the 8192-token Body.
+    assert result['body']['event_count']==7024
+    assert result['body']['end_ns']<result['head']['start_ns']
+
+
+def test_kda_stages_with_different_dtype_cannot_merge_on_shape_alone():
+    value,rows=kimi_fixture()
+    physical=next(r for r in rows if r.kind=='ChunkKdaFwd')
+    physical.event.input_dtypes=physical.event.input_dtypes.replace('DT_BF16','FLOAT',1)
+    result,error=align(rows,value['model_config'],0)
+    assert result is None and error['reason']=='ordered_prefill_layer_plan_mismatch'
+    assert error['anchor_count']==94
+
+
+def test_kimi_fia_query_must_agree_with_kda_even_when_layer_plan_matches():
+    value,rows=kimi_fixture()
+    index=next(i for i,r in enumerate(rows) if r.kind=='FusedInferAttentionScore')
+    original=rows[index]
+    changed=((4096,*original.inputs[0][1:]),*original.inputs[1:])
+    rows[index]=_Row(original.event,changed,original.outputs)
+    result,error=align(rows,value['model_config'],0)
+    assert result is None and error['reason']=='inconsistent_large_query'
+    assert error['queries']==[4096,8192]
+
+
+def test_real_mla_prefix_and_current_attention_require_explicit_merge_contract():
+    value,rows=kimi_fixture('kimi-mla-prefix-merge.json')
+    groups=_anchor_groups(rows,value['model_config'])
+    assert len(groups)==1 and groups[0]['physical_events']==2
+    assert rows[groups[0]['merge_event']].kind=='AttentionUpdate'
+    without_merge=[row for row in rows if row.kind!='AttentionUpdate']
+    assert len(_anchor_groups(without_merge,value['model_config']))==2
+    changed=deepcopy(rows)
+    second=[r for r in changed if r.kind=='FusedInferAttentionScore'][1]
+    second.event.output_dtypes='FLOAT;FLOAT'
+    assert len(_anchor_groups(changed,value['model_config']))==2
+
+
+def test_unclosed_no_attention_prefix_is_counted_without_unbounded_retention():
+    value,rows=kimi_fixture()
+    # Actual initial device events, before the first attention anchor. A bounded
+    # incomplete fragment must not erase already completed observations or grow.
+    fragment=rows[:44]
+    result=extract_events((row_from_event(r.event) for r in fragment),value['model_config'],max_active_events=20)
+    assert result['status']=='unresolved' and result['forwards']==[]
+    assert result['scan_counts']['positive_events']==44
+    assert result['scan_counts']['unclosed_non_prefill_events']==44
+    assert result['scan_counts']['unclosed_non_prefill_segments']==1
+    assert result['scan_counts']['trailing_events']==0
 
 
 def test_real_64_layer_prefill_excludes_final_norm_logits_and_keeps_internal_communication():

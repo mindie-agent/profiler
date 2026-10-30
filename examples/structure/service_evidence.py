@@ -310,6 +310,8 @@ def evaluate_service_domains(frozen, points):
         prediction = predict_service_domains(frozen, point)
         observed = _population(point)
         row = {'source_sha256': point['source_sha256'], 'population_id': point['population_id'],
+               'requested_domain_id': point['domain_id'],
+               'native_operator_type': point['boundary']['native_operator_type'],
                **prediction, 'observed': observed, 'evidence_identity': point['evidence_identity'],
                'passed': None, 'evaluation_relation': frozen['specification']['evaluation_relation']}
         if prediction['status'] == 'predicted':
@@ -325,6 +327,32 @@ def evaluate_service_domains(frozen, points):
                 'passed': sum(r['passed'] is True for r in rows)},
             'activity_differences_are_additive_body_wall_time': False,
             'heldout_timing_used_to_refit': False}
+
+
+def _runtime_coordinates(domain, targets):
+    """Translate normalized work quantities into Engine resource-role axes.
+
+    OpSpec/primitive inventories name FLOPs and bytes; RegimePolicy receives
+    CostModel's native work (cube/hbm). The amounts and fitted coefficients stay
+    unchanged. Additional resource work would break this equivalence.
+    """
+    aliases = {'work.flops': ('work.cube', 'cube'),
+               'work.hbm_bytes': ('work.hbm', 'hbm')}
+    coordinates = deepcopy(domain['coordinates'])
+    projection = {}
+    for coordinate in coordinates.values():
+        source = coordinate['path']
+        if source not in aliases:
+            continue
+        destination, role = aliases[source]
+        for target in targets:
+            if _matches(domain, target):
+                extra = target['axes'].get('work', {}).get('resource_work', {})
+                if extra.get(role, 0):
+                    raise ValueError('normalized_work_differs_from_engine_resource:' + role)
+        coordinate['path'] = destination
+        projection[source] = destination
+    return coordinates, projection
 
 
 def service_regimes(frozen, targets):
@@ -360,8 +388,9 @@ def service_regimes(frozen, targets):
         if domain['id'] not in selected:
             continue
         coefficients = model['coefficients']
+        coordinates, projection = _runtime_coordinates(domain, targets)
         rule = {'id': 'frozen-' + domain['id'], 'match': deepcopy(domain['match']),
-                'coordinates': deepcopy(domain['coordinates']),
+                'coordinates': coordinates,
                 'domain': {name: {'min': 0} for name in domain['coordinates']},
                 'response': {'fixed_us': coefficients['fixed_us'], 'terms': [
                     {'coordinate': name, 'us_per_unit': value} for name, value in coefficients['terms'].items()]},
@@ -371,6 +400,8 @@ def service_regimes(frozen, targets):
                     'frozen_model_sha256': frozen['sha256'], 'specification_sha256': frozen['specification']['sha256'],
                     'native_boundary': deepcopy(domain['boundary']), 'body_residual_used': False,
                     'heldout_observed_values_used_in_fit': False}}
+        if projection:
+            rule['provenance']['coordinate_projection'] = projection
         if domain.get('execution') is not None:
             rule['execution'] = deepcopy(domain['execution'])
         rules.append(rule)
@@ -391,6 +422,72 @@ def _read_observation_pin(pin, base):
     return json.loads(data)
 
 
+def run_concurrency_exclusion(entry, base):
+    """Leave a whole concurrency group out, including every retained context.
+
+    Each source belongs to exactly one group and is evaluated once. Function
+    classes and native domains are supplied before fitting; fold membership
+    cannot depend on the observed error. This is retrospective validation.
+    """
+    groups = entry['source_groups']
+    membership = {}
+    for group in groups:
+        for source in group['source_sha256']:
+            if source in membership:
+                raise ValueError('source_occurs_in_multiple_concurrency_groups')
+            membership[source] = group['concurrency']
+    pins = {pin['source_sha256']: pin for pin in entry['observations']}
+    if len(pins) != len(entry['observations']) or set(pins) != set(membership):
+        raise ValueError('concurrency_population_pins_do_not_match_split')
+    if len({g['concurrency'] for g in groups}) != len(groups):
+        raise ValueError('same_concurrency_must_be_one_exclusion_group')
+
+    def read_sources(sources):
+        for source in sorted(sources):
+            bundle = _read_observation_pin(pins[source], base)
+            if (bundle['source_sha256'] != source
+                    or bundle['concurrency'] != membership[source]
+                    or any(p['source_sha256'] != source for p in bundle['points'])):
+                raise ValueError('concurrency_observation_source_or_group_mismatch')
+            yield from bundle['points']
+
+    folds, rows = [], []
+    for group in groups:
+        evaluation = set(group['source_sha256'])
+        specification = freeze_service_specification(
+            set(membership) - evaluation, evaluation, entry['domains'],
+            evaluation_relation='retrospective_leave_concurrency_out',
+            minimum_training_sources=entry.get('minimum_training_sources', 3))
+        model = fit_service_domains(specification, read_sources(specification['training_sources']))
+        result = evaluate_service_domains(model, read_sources(evaluation))
+        for row in result['rows']:
+            row['heldout_concurrency'] = group['concurrency']
+        rows.extend(result['rows'])
+        folds.append({'heldout_concurrency': group['concurrency'], 'model': model,
+                      'evaluation_summary': result['summary'],
+                      'training_frozen_before_evaluation_read': True})
+    native_summary = defaultdict(Counter)
+    for row in rows:
+        counts = native_summary[row['native_operator_type']]
+        counts['populations'] += 1
+        counts['predicted'] += row['status'] == 'predicted'
+        counts['passed'] += row['passed'] is True
+        counts['observed_calls'] += row['observed']['count']
+    return {'id': entry['id'], 'status': 'completed',
+        'scope': 'native_per_call_response_function_only',
+        'evaluation_relation': 'retrospective_leave_concurrency_out',
+        'source_groups': groups, 'observations': entry['observations'], 'folds': folds,
+        'population_coverage': entry.get('population_coverage', []),
+        'fitted_domains': sum(m['status'] == 'fitted' for f in folds for m in f['model']['models']),
+        'evaluation': {'rows': rows, 'summary': {'populations': len(rows),
+            'predicted': sum(r['status'] == 'predicted' for r in rows),
+            'passed': sum(r['passed'] is True for r in rows)},
+            'by_native_family': {key: dict(value) for key, value in sorted(native_summary.items())},
+            'activity_differences_are_additive_body_wall_time': False,
+            'heldout_timing_used_to_refit': False},
+        'limits': entry.get('limits', []), 'training_frozen_before_evaluation_read': True}
+
+
 def run_generalization(registry, base):
     """Canonical pipeline API: fit, freeze, then read held-out native responses.
 
@@ -405,6 +502,11 @@ def run_generalization(registry, base):
     for entry in registry.get('generalization', []):
         if entry.get('status') == 'planned':
             experiments.append({'id': entry['id'], 'status': 'planned', 'reason': entry['reason']})
+            continue
+        if 'source_groups' in entry:
+            if not {s for g in entry['source_groups'] for s in g['source_sha256']} <= sources:
+                raise ValueError('generalization_source_missing_from_canonical_registry')
+            experiments.append(run_concurrency_exclusion(entry, base))
             continue
         specification = entry['specification']
         if not set(specification['training_sources'] + specification['evaluation_sources']) <= sources:
@@ -423,6 +525,7 @@ def run_generalization(registry, base):
             'training_observations': entry['training_observations'],
             'evaluation_observations': entry['evaluation_observations'],
             'frozen_model_sha256': frozen_identity, 'model': model, 'evaluation': result,
+            'serving_mode_groups': entry.get('serving_mode_groups', []),
             'fitted_domains': sum(m['status'] == 'fitted' for m in model['models']),
             'limits': entry.get('limits', []), 'training_frozen_before_evaluation_read': True})
     compared = [e for e in experiments if e['status'] == 'completed']

@@ -188,3 +188,26 @@ def test_partial_hcpre_does_not_discard_observed_output_leading_axes(captured_re
     changed = row.event.output_shapes.replace('1,5120', '2,5120', 1)
     assert changed != row.event.output_shapes
     assert collector.add(replace(row.event, output_shapes=changed), layer, 'attention') is None
+
+
+def test_reference_manifest_keeps_complete_identity_and_exact_native_targets(
+        captured_native_component_groups):
+    _, case, full, _, _, groups = captured_native_component_groups
+    from operators import _reference_manifest
+    geometry = {key: full['execution'][key]
+                for key in ('phase', 'tokens', 'context', 'sequences', 'scope')}
+    projected = _reference_manifest(case, geometry, {'source_role_references': groups})
+    assert projected['graph_id'] == full['graph_id']
+    assert projected['execution'] == full['execution']
+    assert len(projected['nodes']) < len(full['nodes'])
+    original = {target['node_id']: target for target in full['nodes']}
+    retained = {target['node_id']: target for target in projected['nodes']}
+    assert all(target == original[key] for key, target in retained.items())
+    required = {key for group in groups for key in group['representative_target_ids']}
+    assert required <= retained.keys()
+    # TP1 has no allreduce; discovery must preserve that absence and still
+    # consider attention candidates from every declared DP peer.
+    assert {key for key, target in retained.items() if target['family'] == 'allreduce'} == {
+        key for key, target in original.items() if target['family'] == 'allreduce'}
+    assert {target['replica'] for target in retained.values()
+            if target['family'] == 'attention'} == set(full['execution']['replicas'])

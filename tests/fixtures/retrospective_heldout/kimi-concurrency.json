@@ -1,0 +1,2369 @@
+{
+  "source_groups": [
+    {
+      "concurrency": 1,
+      "source_sha256": [
+        "cc316ae15600914b4c58c7ef10a0103026a7d5abae1dc733dd3eedcaa0397f8e",
+        "95fe4cc26e249dbd597c62ae1db12710fca8ea758ff16cf1f12e6ed5584d256d"
+      ]
+    },
+    {
+      "concurrency": 2,
+      "source_sha256": [
+        "61a5ff863f23b0ebc55338e6b48de1b8211fa2ed6179ec3304d3e4bcf0852e62",
+        "3c42b0662a8b658cdf071cbac275883d050c883b8f0730035ee074a12f4d307d"
+      ]
+    },
+    {
+      "concurrency": 4,
+      "source_sha256": [
+        "215453044c83a8d780b14de5ffd329404f8c9cdae2a5f6d56001889d85e17b49",
+        "7e0bf0c288bb9df7aa08b19f698030892771a0d6a9990b0d9447c22f973c133e"
+      ]
+    },
+    {
+      "concurrency": 8,
+      "source_sha256": [
+        "705cd2cd4965560f3a1149bcb62d2a053cded55e0aff15aabb374d318011f749",
+        "00fb1678504ab7023ac1a258f05e78f9d793ef009147a985c1174527e3be8b3f"
+      ]
+    },
+    {
+      "concurrency": 16,
+      "source_sha256": [
+        "0bb137f44691457fb0d8a3fbe186d7dffa95945ae273de8ee71f6f384694f851",
+        "c74cb4160daf0d07420b3288c234e6f4a0c07d7ddcc9ffde5053aea131426664"
+      ]
+    },
+    {
+      "concurrency": 32,
+      "source_sha256": [
+        "e0165e2c51d162f7dcfafa75346acbc739f1e30fbea2bd741e7c5b40f5b7437d",
+        "d734e9ec764b0f1baf35589d4886f6b9e2cd9254c660721f3ad6a86b0602c504"
+      ]
+    }
+  ],
+  "domains": [
+    {
+      "id": "a5-moedistributecombinev3-d46c0161570e83",
+      "boundary": {
+        "native_operator_type": "MoeDistributeCombineV3",
+        "source_implementation": "captured_arch35_MC2_unquantized_rows_EP8_TP8",
+        "precision": "typed_ABI_preserved",
+        "layout": "typed_ABI_preserved",
+        "execution_boundary": "one_complete_native_call",
+        "contract": {
+          "precision": "typed_ABI_preserved",
+          "layout": "typed_ABI_preserved",
+          "native_ABI_template": [
+            "native_tensor_abi",
+            "MoeDistributeCombineV3",
+            [
+              [
+                [
+                  4100
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  "16*input_rows",
+                  3584
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  "1*input_rows",
+                  8
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  "2048*input_rows"
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  16
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  "1*input_rows",
+                  8
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [
+                  1
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  "1*input_rows"
+                ],
+                "bool",
+                "ND"
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [
+                  "16*input_rows"
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ]
+            ],
+            [
+              [
+                [
+                  "1*input_rows",
+                  3584
+                ],
+                "bf16",
+                "ND"
+              ]
+            ]
+          ],
+          "tp": 8,
+          "ep": 8
+        }
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "native_signature": "d46c0161570e8358ae3bfed781fb4db2ee2462ed64dc61471f6e6871c6f49d23"
+      },
+      "coordinates": {
+        "input_rows": {
+          "path": "source_input_rows"
+        }
+      }
+    }
+  ],
+  "observations": [
+    {
+      "source_sha256": "0bb137f44691457fb0d8a3fbe186d7dffa95945ae273de8ee71f6f384694f851",
+      "concurrency": 16,
+      "points": [
+        {
+          "source_sha256": "0bb137f44691457fb0d8a3fbe186d7dffa95945ae273de8ee71f6f384694f851",
+          "population_id": "sha256:aff909a3997e7db17de655513ba44df3ad9cc04d618ac9cf2f5a9fc8b2b36947",
+          "domain_id": "a5-moedistributecombinev3-d46c0161570e83",
+          "boundary": {
+            "native_operator_type": "MoeDistributeCombineV3",
+            "source_implementation": "captured_arch35_MC2_unquantized_rows_EP8_TP8",
+            "precision": "typed_ABI_preserved",
+            "layout": "typed_ABI_preserved",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "typed_ABI_preserved",
+              "layout": "typed_ABI_preserved",
+              "native_ABI_template": [
+                "native_tensor_abi",
+                "MoeDistributeCombineV3",
+                [
+                  [
+                    [
+                      4100
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "16*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "2048*input_rows"
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      16
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      1
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows"
+                    ],
+                    "bool",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [
+                      "16*input_rows"
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ]
+                ],
+                [
+                  [
+                    [
+                      "1*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ]
+                ]
+              ],
+              "tp": 8,
+              "ep": 8
+            }
+          },
+          "axes": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "d46c0161570e8358ae3bfed781fb4db2ee2462ed64dc61471f6e6871c6f49d23",
+            "source_input_rows": 2
+          },
+          "observation": {
+            "basis": "complete_native_call_population",
+            "count": 4324,
+            "forward_count": 47,
+            "calls_per_forward": 92,
+            "mean_us": 14.690632978723404,
+            "p50_us": 14.5685
+          },
+          "evidence_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/retained/acceptance-20261030-kimi-native-references-5ec8843a/a5_kimi_tp8_e16_bf16_c16_p16k-references.json",
+            "sha256": "f67ae0d4e454d69999c3f6b269206d7237355edaa7dafcc606b9c58a29f53f06",
+            "size_bytes": 558549
+          }
+        }
+      ]
+    },
+    {
+      "source_sha256": "c74cb4160daf0d07420b3288c234e6f4a0c07d7ddcc9ffde5053aea131426664",
+      "concurrency": 16,
+      "points": [
+        {
+          "source_sha256": "c74cb4160daf0d07420b3288c234e6f4a0c07d7ddcc9ffde5053aea131426664",
+          "population_id": "sha256:77cc9e51e19a413c5ee4e5bfa62d8c0fac9a740cc98b1086564867f1f6d40276",
+          "domain_id": "a5-moedistributecombinev3-d46c0161570e83",
+          "boundary": {
+            "native_operator_type": "MoeDistributeCombineV3",
+            "source_implementation": "captured_arch35_MC2_unquantized_rows_EP8_TP8",
+            "precision": "typed_ABI_preserved",
+            "layout": "typed_ABI_preserved",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "typed_ABI_preserved",
+              "layout": "typed_ABI_preserved",
+              "native_ABI_template": [
+                "native_tensor_abi",
+                "MoeDistributeCombineV3",
+                [
+                  [
+                    [
+                      4100
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "16*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "2048*input_rows"
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      16
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      1
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows"
+                    ],
+                    "bool",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [
+                      "16*input_rows"
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ]
+                ],
+                [
+                  [
+                    [
+                      "1*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ]
+                ]
+              ],
+              "tp": 8,
+              "ep": 8
+            }
+          },
+          "axes": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "d46c0161570e8358ae3bfed781fb4db2ee2462ed64dc61471f6e6871c6f49d23",
+            "source_input_rows": 2
+          },
+          "observation": {
+            "basis": "complete_native_call_population",
+            "count": 4508,
+            "forward_count": 49,
+            "calls_per_forward": 92,
+            "mean_us": 14.725576308784383,
+            "p50_us": 14.598
+          },
+          "evidence_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/retained/acceptance-20261030-kimi-native-references-5ec8843a/a5_kimi_tp8_e16_bf16_c16_p4k-references.json",
+            "sha256": "22223b22c0a3c6453bb8afa9b36029ca6a8bdc5873fc320373d3e7d818607cc4",
+            "size_bytes": 562396
+          }
+        }
+      ]
+    },
+    {
+      "source_sha256": "cc316ae15600914b4c58c7ef10a0103026a7d5abae1dc733dd3eedcaa0397f8e",
+      "concurrency": 1,
+      "points": [
+        {
+          "source_sha256": "cc316ae15600914b4c58c7ef10a0103026a7d5abae1dc733dd3eedcaa0397f8e",
+          "population_id": "sha256:c39b8f9db80fb5432e911d1492183b6618f7deaaaa05549051984459be446c2a",
+          "domain_id": "a5-moedistributecombinev3-d46c0161570e83",
+          "boundary": {
+            "native_operator_type": "MoeDistributeCombineV3",
+            "source_implementation": "captured_arch35_MC2_unquantized_rows_EP8_TP8",
+            "precision": "typed_ABI_preserved",
+            "layout": "typed_ABI_preserved",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "typed_ABI_preserved",
+              "layout": "typed_ABI_preserved",
+              "native_ABI_template": [
+                "native_tensor_abi",
+                "MoeDistributeCombineV3",
+                [
+                  [
+                    [
+                      4100
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "16*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "2048*input_rows"
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      16
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      1
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows"
+                    ],
+                    "bool",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [
+                      "16*input_rows"
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ]
+                ],
+                [
+                  [
+                    [
+                      "1*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ]
+                ]
+              ],
+              "tp": 8,
+              "ep": 8
+            }
+          },
+          "axes": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "d46c0161570e8358ae3bfed781fb4db2ee2462ed64dc61471f6e6871c6f49d23",
+            "source_input_rows": 1
+          },
+          "observation": {
+            "basis": "complete_native_call_population",
+            "count": 5428,
+            "forward_count": 59,
+            "calls_per_forward": 92,
+            "mean_us": 14.549828850405305,
+            "p50_us": 14.394
+          },
+          "evidence_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/retained/acceptance-20261030-kimi-native-references-5ec8843a/a5_kimi_tp8_e16_bf16_c1_p16k-references.json",
+            "sha256": "b3eb4471d7e49cc01b80ca8cb2004d1d679d0f50d8090ae2fb1f40e4cc632e34",
+            "size_bytes": 580906
+          }
+        }
+      ]
+    },
+    {
+      "source_sha256": "95fe4cc26e249dbd597c62ae1db12710fca8ea758ff16cf1f12e6ed5584d256d",
+      "concurrency": 1,
+      "points": [
+        {
+          "source_sha256": "95fe4cc26e249dbd597c62ae1db12710fca8ea758ff16cf1f12e6ed5584d256d",
+          "population_id": "sha256:3f6ee245689c08726568a80f4f7ec7b364cb9040c8f2a22c356ea779c0d5f849",
+          "domain_id": "a5-moedistributecombinev3-d46c0161570e83",
+          "boundary": {
+            "native_operator_type": "MoeDistributeCombineV3",
+            "source_implementation": "captured_arch35_MC2_unquantized_rows_EP8_TP8",
+            "precision": "typed_ABI_preserved",
+            "layout": "typed_ABI_preserved",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "typed_ABI_preserved",
+              "layout": "typed_ABI_preserved",
+              "native_ABI_template": [
+                "native_tensor_abi",
+                "MoeDistributeCombineV3",
+                [
+                  [
+                    [
+                      4100
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "16*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "2048*input_rows"
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      16
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      1
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows"
+                    ],
+                    "bool",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [
+                      "16*input_rows"
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ]
+                ],
+                [
+                  [
+                    [
+                      "1*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ]
+                ]
+              ],
+              "tp": 8,
+              "ep": 8
+            }
+          },
+          "axes": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "d46c0161570e8358ae3bfed781fb4db2ee2462ed64dc61471f6e6871c6f49d23",
+            "source_input_rows": 1
+          },
+          "observation": {
+            "basis": "complete_native_call_population",
+            "count": 5428,
+            "forward_count": 59,
+            "calls_per_forward": 92,
+            "mean_us": 14.543736919675755,
+            "p50_us": 14.416
+          },
+          "evidence_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/retained/acceptance-20261030-kimi-native-references-5ec8843a/a5_kimi_tp8_e16_bf16_c1_p4k-references.json",
+            "sha256": "63ca807521e62776249a19292d6067edbb368685de06a97a9edd6461b8a4cfc5",
+            "size_bytes": 577877
+          }
+        }
+      ]
+    },
+    {
+      "source_sha256": "61a5ff863f23b0ebc55338e6b48de1b8211fa2ed6179ec3304d3e4bcf0852e62",
+      "concurrency": 2,
+      "points": [
+        {
+          "source_sha256": "61a5ff863f23b0ebc55338e6b48de1b8211fa2ed6179ec3304d3e4bcf0852e62",
+          "population_id": "sha256:4c24f243ad864d802afad889856bd2aa708ecdfb943ad7083c5651374d07d4d8",
+          "domain_id": "a5-moedistributecombinev3-d46c0161570e83",
+          "boundary": {
+            "native_operator_type": "MoeDistributeCombineV3",
+            "source_implementation": "captured_arch35_MC2_unquantized_rows_EP8_TP8",
+            "precision": "typed_ABI_preserved",
+            "layout": "typed_ABI_preserved",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "typed_ABI_preserved",
+              "layout": "typed_ABI_preserved",
+              "native_ABI_template": [
+                "native_tensor_abi",
+                "MoeDistributeCombineV3",
+                [
+                  [
+                    [
+                      4100
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "16*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "2048*input_rows"
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      16
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      1
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows"
+                    ],
+                    "bool",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [
+                      "16*input_rows"
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ]
+                ],
+                [
+                  [
+                    [
+                      "1*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ]
+                ]
+              ],
+              "tp": 8,
+              "ep": 8
+            }
+          },
+          "axes": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "d46c0161570e8358ae3bfed781fb4db2ee2462ed64dc61471f6e6871c6f49d23",
+            "source_input_rows": 1
+          },
+          "observation": {
+            "basis": "complete_native_call_population",
+            "count": 4968,
+            "forward_count": 54,
+            "calls_per_forward": 92,
+            "mean_us": 34.585196457326894,
+            "p50_us": 34.645
+          },
+          "evidence_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/retained/acceptance-20261030-kimi-native-references-5ec8843a/a5_kimi_tp8_e16_bf16_c2_p16k-references.json",
+            "sha256": "ca92634bb9dbed9da87825268556fe25f18b6939a9b28e4a3a4349ae6384883b",
+            "size_bytes": 577826
+          }
+        }
+      ]
+    },
+    {
+      "source_sha256": "3c42b0662a8b658cdf071cbac275883d050c883b8f0730035ee074a12f4d307d",
+      "concurrency": 2,
+      "points": [
+        {
+          "source_sha256": "3c42b0662a8b658cdf071cbac275883d050c883b8f0730035ee074a12f4d307d",
+          "population_id": "sha256:5e0f676b9e20acfda159b3fac7f28b176eb49d5227e0a8645faf84a9ff3cfe1b",
+          "domain_id": "a5-moedistributecombinev3-d46c0161570e83",
+          "boundary": {
+            "native_operator_type": "MoeDistributeCombineV3",
+            "source_implementation": "captured_arch35_MC2_unquantized_rows_EP8_TP8",
+            "precision": "typed_ABI_preserved",
+            "layout": "typed_ABI_preserved",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "typed_ABI_preserved",
+              "layout": "typed_ABI_preserved",
+              "native_ABI_template": [
+                "native_tensor_abi",
+                "MoeDistributeCombineV3",
+                [
+                  [
+                    [
+                      4100
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "16*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "2048*input_rows"
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      16
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      1
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows"
+                    ],
+                    "bool",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [
+                      "16*input_rows"
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ]
+                ],
+                [
+                  [
+                    [
+                      "1*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ]
+                ]
+              ],
+              "tp": 8,
+              "ep": 8
+            }
+          },
+          "axes": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "d46c0161570e8358ae3bfed781fb4db2ee2462ed64dc61471f6e6871c6f49d23",
+            "source_input_rows": 1
+          },
+          "observation": {
+            "basis": "complete_native_call_population",
+            "count": 5060,
+            "forward_count": 55,
+            "calls_per_forward": 92,
+            "mean_us": 34.4966185770751,
+            "p50_us": 34.534
+          },
+          "evidence_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/retained/acceptance-20261030-kimi-native-references-5ec8843a/a5_kimi_tp8_e16_bf16_c2_p4k-references.json",
+            "sha256": "3f7d12cb3298045cae8b18a35a79e1146ad161d7804e5d014f90e2766173092b",
+            "size_bytes": 579746
+          }
+        }
+      ]
+    },
+    {
+      "source_sha256": "e0165e2c51d162f7dcfafa75346acbc739f1e30fbea2bd741e7c5b40f5b7437d",
+      "concurrency": 32,
+      "points": [
+        {
+          "source_sha256": "e0165e2c51d162f7dcfafa75346acbc739f1e30fbea2bd741e7c5b40f5b7437d",
+          "population_id": "sha256:1c8e623a22ff38366eb083066e495ba469c75095b741a03adb0fbe82d911f244",
+          "domain_id": "a5-moedistributecombinev3-d46c0161570e83",
+          "boundary": {
+            "native_operator_type": "MoeDistributeCombineV3",
+            "source_implementation": "captured_arch35_MC2_unquantized_rows_EP8_TP8",
+            "precision": "typed_ABI_preserved",
+            "layout": "typed_ABI_preserved",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "typed_ABI_preserved",
+              "layout": "typed_ABI_preserved",
+              "native_ABI_template": [
+                "native_tensor_abi",
+                "MoeDistributeCombineV3",
+                [
+                  [
+                    [
+                      4100
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "16*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "2048*input_rows"
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      16
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      1
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows"
+                    ],
+                    "bool",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [
+                      "16*input_rows"
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ]
+                ],
+                [
+                  [
+                    [
+                      "1*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ]
+                ]
+              ],
+              "tp": 8,
+              "ep": 8
+            }
+          },
+          "axes": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "d46c0161570e8358ae3bfed781fb4db2ee2462ed64dc61471f6e6871c6f49d23",
+            "source_input_rows": 4
+          },
+          "observation": {
+            "basis": "complete_native_call_population",
+            "count": 3772,
+            "forward_count": 41,
+            "calls_per_forward": 92,
+            "mean_us": 14.614950159066808,
+            "p50_us": 14.506
+          },
+          "evidence_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/retained/acceptance-20261030-kimi-native-references-5ec8843a/a5_kimi_tp8_e16_bf16_c32_p16k-references.json",
+            "sha256": "79b5af582fd4b18604a9ac9e2181c0b2e71355a5249c3f35dc8ae232e25f31c8",
+            "size_bytes": 549985
+          }
+        }
+      ]
+    },
+    {
+      "source_sha256": "d734e9ec764b0f1baf35589d4886f6b9e2cd9254c660721f3ad6a86b0602c504",
+      "concurrency": 32,
+      "points": [
+        {
+          "source_sha256": "d734e9ec764b0f1baf35589d4886f6b9e2cd9254c660721f3ad6a86b0602c504",
+          "population_id": "sha256:67fdea78488a22aee06befafba48dcf83339bfab096f77ba938afc1ade50536c",
+          "domain_id": "a5-moedistributecombinev3-d46c0161570e83",
+          "boundary": {
+            "native_operator_type": "MoeDistributeCombineV3",
+            "source_implementation": "captured_arch35_MC2_unquantized_rows_EP8_TP8",
+            "precision": "typed_ABI_preserved",
+            "layout": "typed_ABI_preserved",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "typed_ABI_preserved",
+              "layout": "typed_ABI_preserved",
+              "native_ABI_template": [
+                "native_tensor_abi",
+                "MoeDistributeCombineV3",
+                [
+                  [
+                    [
+                      4100
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "16*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "2048*input_rows"
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      16
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      1
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows"
+                    ],
+                    "bool",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [
+                      "16*input_rows"
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ]
+                ],
+                [
+                  [
+                    [
+                      "1*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ]
+                ]
+              ],
+              "tp": 8,
+              "ep": 8
+            }
+          },
+          "axes": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "d46c0161570e8358ae3bfed781fb4db2ee2462ed64dc61471f6e6871c6f49d23",
+            "source_input_rows": 4
+          },
+          "observation": {
+            "basis": "complete_native_call_population",
+            "count": 4232,
+            "forward_count": 46,
+            "calls_per_forward": 92,
+            "mean_us": 14.58357679584121,
+            "p50_us": 14.442
+          },
+          "evidence_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/retained/acceptance-20261030-kimi-native-references-5ec8843a/a5_kimi_tp8_e16_bf16_c32_p4k-references.json",
+            "sha256": "ee5bd8b5063e0a4d2202cadb6503e73d87090dcab07e7687a1c5e7b3d3f077cd",
+            "size_bytes": 560312
+          }
+        }
+      ]
+    },
+    {
+      "source_sha256": "215453044c83a8d780b14de5ffd329404f8c9cdae2a5f6d56001889d85e17b49",
+      "concurrency": 4,
+      "points": [
+        {
+          "source_sha256": "215453044c83a8d780b14de5ffd329404f8c9cdae2a5f6d56001889d85e17b49",
+          "population_id": "sha256:d2ae4ad76e6304845624ba156648a8eb229c138230a0f1384ad10124ef93c15c",
+          "domain_id": "a5-moedistributecombinev3-d46c0161570e83",
+          "boundary": {
+            "native_operator_type": "MoeDistributeCombineV3",
+            "source_implementation": "captured_arch35_MC2_unquantized_rows_EP8_TP8",
+            "precision": "typed_ABI_preserved",
+            "layout": "typed_ABI_preserved",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "typed_ABI_preserved",
+              "layout": "typed_ABI_preserved",
+              "native_ABI_template": [
+                "native_tensor_abi",
+                "MoeDistributeCombineV3",
+                [
+                  [
+                    [
+                      4100
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "16*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "2048*input_rows"
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      16
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      1
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows"
+                    ],
+                    "bool",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [
+                      "16*input_rows"
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ]
+                ],
+                [
+                  [
+                    [
+                      "1*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ]
+                ]
+              ],
+              "tp": 8,
+              "ep": 8
+            }
+          },
+          "axes": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "d46c0161570e8358ae3bfed781fb4db2ee2462ed64dc61471f6e6871c6f49d23",
+            "source_input_rows": 1
+          },
+          "observation": {
+            "basis": "complete_native_call_population",
+            "count": 4784,
+            "forward_count": 52,
+            "calls_per_forward": 92,
+            "mean_us": 14.33763754180602,
+            "p50_us": 14.266
+          },
+          "evidence_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/retained/acceptance-20261030-kimi-native-references-5ec8843a/a5_kimi_tp8_e16_bf16_c4_p16k-references.json",
+            "sha256": "11c6dab70aa3d97a40ee60a066ca936ed0f2c91a4ebd3915546d7b25b6b66927",
+            "size_bytes": 567078
+          }
+        }
+      ]
+    },
+    {
+      "source_sha256": "7e0bf0c288bb9df7aa08b19f698030892771a0d6a9990b0d9447c22f973c133e",
+      "concurrency": 4,
+      "points": [
+        {
+          "source_sha256": "7e0bf0c288bb9df7aa08b19f698030892771a0d6a9990b0d9447c22f973c133e",
+          "population_id": "sha256:c698b627ba7141a1fceddbe52ba42a655416972b4eb8efe3ac6cd79e637f3e98",
+          "domain_id": "a5-moedistributecombinev3-d46c0161570e83",
+          "boundary": {
+            "native_operator_type": "MoeDistributeCombineV3",
+            "source_implementation": "captured_arch35_MC2_unquantized_rows_EP8_TP8",
+            "precision": "typed_ABI_preserved",
+            "layout": "typed_ABI_preserved",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "typed_ABI_preserved",
+              "layout": "typed_ABI_preserved",
+              "native_ABI_template": [
+                "native_tensor_abi",
+                "MoeDistributeCombineV3",
+                [
+                  [
+                    [
+                      4100
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "16*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "2048*input_rows"
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      16
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      1
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows"
+                    ],
+                    "bool",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [
+                      "16*input_rows"
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ]
+                ],
+                [
+                  [
+                    [
+                      "1*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ]
+                ]
+              ],
+              "tp": 8,
+              "ep": 8
+            }
+          },
+          "axes": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "d46c0161570e8358ae3bfed781fb4db2ee2462ed64dc61471f6e6871c6f49d23",
+            "source_input_rows": 1
+          },
+          "observation": {
+            "basis": "complete_native_call_population",
+            "count": 4876,
+            "forward_count": 53,
+            "calls_per_forward": 92,
+            "mean_us": 14.447793068088597,
+            "p50_us": 14.367
+          },
+          "evidence_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/retained/acceptance-20261030-kimi-native-references-5ec8843a/a5_kimi_tp8_e16_bf16_c4_p4k-references.json",
+            "sha256": "f0c46d87940c433ea8e3db1f116aaf7a33db48dcbd898c3c72ed8ad11d10ff36",
+            "size_bytes": 569177
+          }
+        }
+      ]
+    },
+    {
+      "source_sha256": "705cd2cd4965560f3a1149bcb62d2a053cded55e0aff15aabb374d318011f749",
+      "concurrency": 8,
+      "points": [
+        {
+          "source_sha256": "705cd2cd4965560f3a1149bcb62d2a053cded55e0aff15aabb374d318011f749",
+          "population_id": "sha256:8cf97151ce44cd90dba68e9adb520f7dff8c321b1991518241efdb647c93fd66",
+          "domain_id": "a5-moedistributecombinev3-d46c0161570e83",
+          "boundary": {
+            "native_operator_type": "MoeDistributeCombineV3",
+            "source_implementation": "captured_arch35_MC2_unquantized_rows_EP8_TP8",
+            "precision": "typed_ABI_preserved",
+            "layout": "typed_ABI_preserved",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "typed_ABI_preserved",
+              "layout": "typed_ABI_preserved",
+              "native_ABI_template": [
+                "native_tensor_abi",
+                "MoeDistributeCombineV3",
+                [
+                  [
+                    [
+                      4100
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "16*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "2048*input_rows"
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      16
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      1
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows"
+                    ],
+                    "bool",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [
+                      "16*input_rows"
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ]
+                ],
+                [
+                  [
+                    [
+                      "1*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ]
+                ]
+              ],
+              "tp": 8,
+              "ep": 8
+            }
+          },
+          "axes": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "d46c0161570e8358ae3bfed781fb4db2ee2462ed64dc61471f6e6871c6f49d23",
+            "source_input_rows": 1
+          },
+          "observation": {
+            "basis": "complete_native_call_population",
+            "count": 4692,
+            "forward_count": 51,
+            "calls_per_forward": 92,
+            "mean_us": 14.490969522591646,
+            "p50_us": 14.45
+          },
+          "evidence_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/retained/acceptance-20261030-kimi-native-references-5ec8843a/a5_kimi_tp8_e16_bf16_c8_p16k-references.json",
+            "sha256": "08bda2280cdca2491cf4322b0abfe9bc81bd9ecbd8b3632deee9f34c869bb89d",
+            "size_bytes": 568858
+          }
+        }
+      ]
+    },
+    {
+      "source_sha256": "00fb1678504ab7023ac1a258f05e78f9d793ef009147a985c1174527e3be8b3f",
+      "concurrency": 8,
+      "points": [
+        {
+          "source_sha256": "00fb1678504ab7023ac1a258f05e78f9d793ef009147a985c1174527e3be8b3f",
+          "population_id": "sha256:73c2e585d7be071a4b3905e39bcf0e3a71531c7c6d882495bea9a61b5f761709",
+          "domain_id": "a5-moedistributecombinev3-d46c0161570e83",
+          "boundary": {
+            "native_operator_type": "MoeDistributeCombineV3",
+            "source_implementation": "captured_arch35_MC2_unquantized_rows_EP8_TP8",
+            "precision": "typed_ABI_preserved",
+            "layout": "typed_ABI_preserved",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "typed_ABI_preserved",
+              "layout": "typed_ABI_preserved",
+              "native_ABI_template": [
+                "native_tensor_abi",
+                "MoeDistributeCombineV3",
+                [
+                  [
+                    [
+                      4100
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "16*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "2048*input_rows"
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      16
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      1
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows"
+                    ],
+                    "bool",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [
+                      "16*input_rows"
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ]
+                ],
+                [
+                  [
+                    [
+                      "1*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ]
+                ]
+              ],
+              "tp": 8,
+              "ep": 8
+            }
+          },
+          "axes": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "d46c0161570e8358ae3bfed781fb4db2ee2462ed64dc61471f6e6871c6f49d23",
+            "source_input_rows": 1
+          },
+          "observation": {
+            "basis": "complete_native_call_population",
+            "count": 4784,
+            "forward_count": 52,
+            "calls_per_forward": 92,
+            "mean_us": 14.508292642140468,
+            "p50_us": 14.45
+          },
+          "evidence_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/retained/acceptance-20261030-kimi-native-references-5ec8843a/a5_kimi_tp8_e16_bf16_c8_p4k-references.json",
+            "sha256": "35496c4d52e4d5ec67eb15f630acccd6b871e4cb14c4aa6ec614dd2a6e2b8816",
+            "size_bytes": 570030
+          }
+        }
+      ]
+    }
+  ],
+  "source_evidence": [
+    {
+      "source_sha256": "0bb137f44691457fb0d8a3fbe186d7dffa95945ae273de8ee71f6f384694f851",
+      "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c16_p16k-observations.json",
+      "sha256": "633296dd94594c55df9e886c688ae709c0d503181d882a22dc70bf3515fe9a9b",
+      "size_bytes": 1842677
+    },
+    {
+      "source_sha256": "c74cb4160daf0d07420b3288c234e6f4a0c07d7ddcc9ffde5053aea131426664",
+      "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c16_p4k-observations.json",
+      "sha256": "e3c0c531c11e47ab9119c776548503b55fd15988462428c5c9e3dbf69d06e168",
+      "size_bytes": 1868327
+    },
+    {
+      "source_sha256": "cc316ae15600914b4c58c7ef10a0103026a7d5abae1dc733dd3eedcaa0397f8e",
+      "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c1_p16k-observations.json",
+      "sha256": "c7b5c382c02ce9ff84b819dab7356c5c826f278d9b07a168337bb27ee751c288",
+      "size_bytes": 1611981
+    },
+    {
+      "source_sha256": "95fe4cc26e249dbd597c62ae1db12710fca8ea758ff16cf1f12e6ed5584d256d",
+      "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c1_p4k-observations.json",
+      "sha256": "0cfa80788d5bc22dd3431019d57fb1ea6434db7b41c6a61f6bbdf4fe472b2b2c",
+      "size_bytes": 1609838
+    },
+    {
+      "source_sha256": "61a5ff863f23b0ebc55338e6b48de1b8211fa2ed6179ec3304d3e4bcf0852e62",
+      "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c2_p16k-observations.json",
+      "sha256": "90f70b8024de44744d0237cebffa948f287f989e75d2dcd4f47211dc746c216e",
+      "size_bytes": 1733664
+    },
+    {
+      "source_sha256": "3c42b0662a8b658cdf071cbac275883d050c883b8f0730035ee074a12f4d307d",
+      "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c2_p4k-observations.json",
+      "sha256": "440898a6a22bc4684f92bede5b0dd61a9f086ca267dc4eb6015216eb62aec88d",
+      "size_bytes": 1744055
+    },
+    {
+      "source_sha256": "e0165e2c51d162f7dcfafa75346acbc739f1e30fbea2bd741e7c5b40f5b7437d",
+      "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c32_p16k-observations.json",
+      "sha256": "b099f139652fb8d45cb2c1f60638a4203e9c658e48e56066abd395e3a6bdcbc0",
+      "size_bytes": 1773953
+    },
+    {
+      "source_sha256": "d734e9ec764b0f1baf35589d4886f6b9e2cd9254c660721f3ad6a86b0602c504",
+      "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c32_p4k-observations.json",
+      "sha256": "a20067dc593b55ec8648d0f87f97c6dd6d8a0a7a1ba38ada76b5ff64490ec737",
+      "size_bytes": 1852757
+    },
+    {
+      "source_sha256": "215453044c83a8d780b14de5ffd329404f8c9cdae2a5f6d56001889d85e17b49",
+      "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c4_p16k-observations.json",
+      "sha256": "d3282bf0e8779a46dea926e2edb24b4b137146ef2a7970801850acaf703a579a",
+      "size_bytes": 1677329
+    },
+    {
+      "source_sha256": "7e0bf0c288bb9df7aa08b19f698030892771a0d6a9990b0d9447c22f973c133e",
+      "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c4_p4k-observations.json",
+      "sha256": "5c807c2ed0aec7c91fab6e6dcf80e0436077891f7a16834a6126f5eb39b6bab4",
+      "size_bytes": 1691960
+    },
+    {
+      "source_sha256": "705cd2cd4965560f3a1149bcb62d2a053cded55e0aff15aabb374d318011f749",
+      "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c8_p16k-observations.json",
+      "sha256": "f35c2f24f7b833e5cd195b83cecb8a9d023cbf003b8945c4452c72da233c2f33",
+      "size_bytes": 1907241
+    },
+    {
+      "source_sha256": "00fb1678504ab7023ac1a258f05e78f9d793ef009147a985c1174527e3be8b3f",
+      "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c8_p4k-observations.json",
+      "sha256": "d133199b083139a33709802ffd678770435eed41c8ec76a3b8e2af542965ec49",
+      "size_bytes": 1914542
+    }
+  ]
+}

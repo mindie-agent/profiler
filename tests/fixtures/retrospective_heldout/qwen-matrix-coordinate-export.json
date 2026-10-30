@@ -1,0 +1,1082 @@
+{
+  "frozen_model": {
+    "schema_version": "mindie-frozen-service-models/1",
+    "specification": {
+      "schema_version": "mindie-service-specification/1",
+      "training_sources": [
+        "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+        "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+        "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+      ],
+      "evaluation_sources": [
+        "28644d6d5713e35de51f16b1a20dacd7574ea342c399d8afe049c487d0c8c880",
+        "53a8f0e6b5603dd248d42278d7cbb32243eed2b729f22a6224f2041b9790349f",
+        "5e83432a7c2f3b3804c7f12d489f0c203bf8665a36857d12dad4770d5efc73e3",
+        "65211276673c3f9e9ad9cbc8b2b618dede1c4724d1e343bfadb0c1f6cc3d9bba",
+        "8da79c3777fd59a5cd4dc210169e069862688f0855b8f590732b1c96b2431840",
+        "8f99679e518ef3022c20b12ca17edbb080395a367cd10686f61f5ddf34b8f6f3"
+      ],
+      "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+      "domains": [
+        {
+          "id": "native-matrix-int8",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "dtype": "int8",
+            "layout": "int8_per_channel",
+            "metadata.program_kind": "matmul",
+            "metadata.weight_dtype": "int8",
+            "metadata.input_format": "int8",
+            "metadata.output_format": "bf16",
+            "metadata.matrix_groups": 1,
+            "metadata.dequant_before_compute": false,
+            "metadata.activation_scale_format": "fp32",
+            "metadata.matrix_output_contract": "int32_cast_row_scale_column_scale_output_cast"
+          },
+          "boundary": {
+            "native_operator_type": "QuantBatchMatmulV3",
+            "source_implementation": "ordinary_declared_matrix_program_with_normalized_native_contract",
+            "precision": {
+              "activation": "int8",
+              "weight": "int8",
+              "output": "bf16",
+              "activation_scale": "fp32"
+            },
+            "layout": {
+              "declared_layout": "int8_per_channel",
+              "scope": "normalized_active_matrix_contract; native_strides_and_weight_scale_values_not_retained"
+            },
+            "execution_boundary": "inclusive_whole_native_call_once"
+          },
+          "coordinates": {
+            "giga_flops": {
+              "path": "work.flops",
+              "scale": 1e-09
+            },
+            "mega_hbm_bytes": {
+              "path": "work.hbm_bytes",
+              "scale": 1e-06
+            }
+          }
+        },
+        {
+          "id": "native-matrix-bf16",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "dtype": "bf16",
+            "layout": "bf16",
+            "metadata.program_kind": "matmul",
+            "metadata.weight_dtype": "bf16",
+            "metadata.input_format": "bf16",
+            "metadata.output_format": "bf16",
+            "metadata.matrix_groups": 1,
+            "metadata.dequant_before_compute": false
+          },
+          "boundary": {
+            "native_operator_type": "MatMulV3",
+            "source_implementation": "ordinary_declared_matrix_program_with_normalized_native_contract",
+            "precision": {
+              "activation": "bf16",
+              "weight": "bf16",
+              "output": "bf16",
+              "activation_scale": ""
+            },
+            "layout": {
+              "declared_layout": "bf16",
+              "scope": "normalized_active_matrix_contract; native_strides_and_weight_scale_values_not_retained"
+            },
+            "execution_boundary": "inclusive_whole_native_call_once"
+          },
+          "coordinates": {
+            "giga_flops": {
+              "path": "work.flops",
+              "scale": 1e-09
+            },
+            "mega_hbm_bytes": {
+              "path": "work.hbm_bytes",
+              "scale": 1e-06
+            }
+          }
+        }
+      ],
+      "minimum_training_sources": 3,
+      "function_class": "nonnegative_affine_physical_coordinates",
+      "fit_objective": "equal_source_weight_complete_native_call_mean",
+      "heldout_timing_used_to_select_function": false,
+      "body_residual_used": false,
+      "sha256": "5402fe549cb91fb09eadc935d5ca0d55314c7639a04ac906a0b652fb3aeac7cb"
+    },
+    "models": [
+      {
+        "domain": {
+          "id": "native-matrix-int8",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "dtype": "int8",
+            "layout": "int8_per_channel",
+            "metadata.program_kind": "matmul",
+            "metadata.weight_dtype": "int8",
+            "metadata.input_format": "int8",
+            "metadata.output_format": "bf16",
+            "metadata.matrix_groups": 1,
+            "metadata.dequant_before_compute": false,
+            "metadata.activation_scale_format": "fp32",
+            "metadata.matrix_output_contract": "int32_cast_row_scale_column_scale_output_cast"
+          },
+          "boundary": {
+            "native_operator_type": "QuantBatchMatmulV3",
+            "source_implementation": "ordinary_declared_matrix_program_with_normalized_native_contract",
+            "precision": {
+              "activation": "int8",
+              "weight": "int8",
+              "output": "bf16",
+              "activation_scale": "fp32"
+            },
+            "layout": {
+              "declared_layout": "int8_per_channel",
+              "scope": "normalized_active_matrix_contract; native_strides_and_weight_scale_values_not_retained"
+            },
+            "execution_boundary": "inclusive_whole_native_call_once"
+          },
+          "coordinates": {
+            "giga_flops": {
+              "path": "work.flops",
+              "scale": 1e-09
+            },
+            "mega_hbm_bytes": {
+              "path": "work.hbm_bytes",
+              "scale": 1e-06
+            }
+          }
+        },
+        "status": "fitted",
+        "reason": null,
+        "coefficients": {
+          "fixed_us": 6.351403771901458,
+          "terms": {
+            "giga_flops": 0.9561567935990344,
+            "mega_hbm_bytes": 0.21093632872050297
+          },
+          "training_weighted_sse_us2": 10.817369616571165,
+          "design_rank": 3
+        },
+        "training_sources": [
+          "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+          "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+          "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+        ],
+        "training_coordinate_ranges": {
+          "giga_flops": [
+            0.12582912000000002,
+            68.45104128
+          ],
+          "mega_hbm_bytes": [
+            15.822864,
+            104.605184
+          ]
+        },
+        "training_populations": [
+          {
+            "source_sha256": "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+            "population_id": "sha256:ad4c700a6a94495ff996182e0dfbd0cd0e2eadb8226569f8e8e11ab2ef006128",
+            "coordinates": {
+              "giga_flops": 0.33554432,
+              "mega_hbm_bytes": 42.094608
+            },
+            "mean_us": 15.77690906862745,
+            "p50_us": 15.62,
+            "count": 4080,
+            "forward_count": 85,
+            "calls_per_forward": 48,
+            "evidence_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-qwen36-a5-tp2-c1/body-operator-qwen36-a5-tp2-c1-cases.mapping.json",
+              "sha256": "5d3422a0c415cc627b684141d708a877ecbbe0ff88776436369d3929f9d01aa6",
+              "size_bytes": 85102
+            },
+            "input_sha256": "30a094c6ea08b41c2e1c4abe1358080b3e84f4d8e25ad50b4ae53b8c72f4f550"
+          },
+          {
+            "source_sha256": "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+            "population_id": "sha256:d0c238697ddd4f6a86e3939fb4362dbaa3beae274893779657050f4171ef19db",
+            "coordinates": {
+              "giga_flops": 0.7130316800000001,
+              "mega_hbm_bytes": 89.427984
+            },
+            "mean_us": 28.682413419117644,
+            "p50_us": 28.551,
+            "count": 5440,
+            "forward_count": 85,
+            "calls_per_forward": 64,
+            "evidence_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-qwen36-a5-tp2-c1/body-operator-qwen36-a5-tp2-c1-cases.mapping.json",
+              "sha256": "5d3422a0c415cc627b684141d708a877ecbbe0ff88776436369d3929f9d01aa6",
+              "size_bytes": 85102
+            },
+            "input_sha256": "24ab223ea3e27cc98220322e2649fc0a87a1680d2300e4abb79c12f0167d93e9"
+          },
+          {
+            "source_sha256": "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+            "population_id": "sha256:70a41a450517e35cb380e59acca71d6338d57c64a6802adaf5efe5a9e0b3f435",
+            "coordinates": {
+              "giga_flops": 0.35651584000000003,
+              "mega_hbm_bytes": 44.681232
+            },
+            "mean_us": 17.920933455882356,
+            "p50_us": 17.816,
+            "count": 5440,
+            "forward_count": 85,
+            "calls_per_forward": 64,
+            "evidence_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-qwen36-a5-tp2-c1/body-operator-qwen36-a5-tp2-c1-cases.mapping.json",
+              "sha256": "5d3422a0c415cc627b684141d708a877ecbbe0ff88776436369d3929f9d01aa6",
+              "size_bytes": 85102
+            },
+            "input_sha256": "a69ea016d38b82c8e76c0ebf80cc6339bcfbca726c58c51282ce326697326bf7"
+          },
+          {
+            "source_sha256": "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+            "population_id": "sha256:3d472b5b097f2e2d674ec4c480d8baf6a2eac6bbc88f0ae777e2a4ed6a2cc4ec",
+            "coordinates": {
+              "giga_flops": 0.29360128,
+              "mega_hbm_bytes": 36.835344
+            },
+            "mean_us": 14.57337205882353,
+            "p50_us": 14.5,
+            "count": 1360,
+            "forward_count": 85,
+            "calls_per_forward": 16,
+            "evidence_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-qwen36-a5-tp2-c1/body-operator-qwen36-a5-tp2-c1-cases.mapping.json",
+              "sha256": "5d3422a0c415cc627b684141d708a877ecbbe0ff88776436369d3929f9d01aa6",
+              "size_bytes": 85102
+            },
+            "input_sha256": "5e96542baf4915a297bbd74fe667a238913b567a75bf0eb70639d633fd4bd53b"
+          },
+          {
+            "source_sha256": "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+            "population_id": "sha256:b25f0a94e664e96051502773a73d4a09d0116207419927374340ce24e557c0b7",
+            "coordinates": {
+              "giga_flops": 0.12582912000000002,
+              "mega_hbm_bytes": 15.822864
+            },
+            "mean_us": 8.902524264705882,
+            "p50_us": 8.837,
+            "count": 1360,
+            "forward_count": 85,
+            "calls_per_forward": 16,
+            "evidence_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-qwen36-a5-tp2-c1/body-operator-qwen36-a5-tp2-c1-cases.mapping.json",
+              "sha256": "5d3422a0c415cc627b684141d708a877ecbbe0ff88776436369d3929f9d01aa6",
+              "size_bytes": 85102
+            },
+            "input_sha256": "9a00b74581cfacf3a21a18b65a8d9fd7c4775d1a23dc372cdee3bae655e20822"
+          },
+          {
+            "source_sha256": "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+            "population_id": "sha256:07a993a368488108f5ff9ede997f4019ce56cf315b797d9a9cfe93cc91a0b683",
+            "coordinates": {
+              "giga_flops": 4.0265318400000005,
+              "mega_hbm_bytes": 43.04096
+            },
+            "mean_us": 17.225870833333335,
+            "p50_us": 17.107,
+            "count": 2640,
+            "forward_count": 55,
+            "calls_per_forward": 48,
+            "evidence_identity": {
+              "archive_member": "examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen36-a5-tp2-c12-qwen-source-gdn-native.mapping.json",
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/133ea3c946b49a52d50583c59030c0c36c6a8f332688aae45d6db1f9b627a585.json",
+              "sha256": "133ea3c946b49a52d50583c59030c0c36c6a8f332688aae45d6db1f9b627a585",
+              "size_bytes": 54452
+            },
+            "input_sha256": "f94781fd1cee1f11251d78dff860287cf2343ae0100a5d302797431872a5b8b7"
+          },
+          {
+            "source_sha256": "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+            "population_id": "sha256:e9bf3d4dd6949f8d50b401bdc39d10cd5762c923300016d3b0ffaab3ad66a428",
+            "coordinates": {
+              "giga_flops": 8.55638016,
+              "mega_hbm_bytes": 91.185344
+            },
+            "mean_us": 30.984951136363637,
+            "p50_us": 30.9135,
+            "count": 3520,
+            "forward_count": 55,
+            "calls_per_forward": 64,
+            "evidence_identity": {
+              "archive_member": "examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen36-a5-tp2-c12-qwen-source-gdn-native.mapping.json",
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/133ea3c946b49a52d50583c59030c0c36c6a8f332688aae45d6db1f9b627a585.json",
+              "sha256": "133ea3c946b49a52d50583c59030c0c36c6a8f332688aae45d6db1f9b627a585",
+              "size_bytes": 54452
+            },
+            "input_sha256": "e26905cfa92c39ec07dff8aba372508f4d91d23f5889f8930e4a0a14e1be25f0"
+          },
+          {
+            "source_sha256": "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+            "population_id": "sha256:6807368b53e27c560b5d444820c4e23c49baba2a84653128bdcd8f1f8757ebe0",
+            "coordinates": {
+              "giga_flops": 4.27819008,
+              "mega_hbm_bytes": 45.514944
+            },
+            "mean_us": 20.74185994318182,
+            "p50_us": 20.6805,
+            "count": 3520,
+            "forward_count": 55,
+            "calls_per_forward": 64,
+            "evidence_identity": {
+              "archive_member": "examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen36-a5-tp2-c12-qwen-source-gdn-native.mapping.json",
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/133ea3c946b49a52d50583c59030c0c36c6a8f332688aae45d6db1f9b627a585.json",
+              "sha256": "133ea3c946b49a52d50583c59030c0c36c6a8f332688aae45d6db1f9b627a585",
+              "size_bytes": 54452
+            },
+            "input_sha256": "0001931f54a53c442eace3484d7b14e982df64e895a5ef6c2d9e18ec309d226a"
+          },
+          {
+            "source_sha256": "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+            "population_id": "sha256:f3021e4ac7899a71dd3abe6b3ecfdbe80fca63b949832d5e4840e3267af83287",
+            "coordinates": {
+              "giga_flops": 3.52321536,
+              "mega_hbm_bytes": 37.691584
+            },
+            "mean_us": 16.173389772727273,
+            "p50_us": 16.117,
+            "count": 880,
+            "forward_count": 55,
+            "calls_per_forward": 16,
+            "evidence_identity": {
+              "archive_member": "examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen36-a5-tp2-c12-qwen-source-gdn-native.mapping.json",
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/133ea3c946b49a52d50583c59030c0c36c6a8f332688aae45d6db1f9b627a585.json",
+              "sha256": "133ea3c946b49a52d50583c59030c0c36c6a8f332688aae45d6db1f9b627a585",
+              "size_bytes": 54452
+            },
+            "input_sha256": "40d1cac9d1bd033e9c9b180bb1ee0a67c89e64e4423f7cfeb318bb000c94ec21"
+          },
+          {
+            "source_sha256": "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+            "population_id": "sha256:ff42f286bb340a0d199fc0356268cd7c437cc92b3640b31a577b011e42b832bb",
+            "coordinates": {
+              "giga_flops": 1.5099494400000002,
+              "mega_hbm_bytes": 16.408768
+            },
+            "mean_us": 10.426314772727274,
+            "p50_us": 10.3765,
+            "count": 880,
+            "forward_count": 55,
+            "calls_per_forward": 16,
+            "evidence_identity": {
+              "archive_member": "examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen36-a5-tp2-c12-qwen-source-gdn-native.mapping.json",
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/133ea3c946b49a52d50583c59030c0c36c6a8f332688aae45d6db1f9b627a585.json",
+              "sha256": "133ea3c946b49a52d50583c59030c0c36c6a8f332688aae45d6db1f9b627a585",
+              "size_bytes": 54452
+            },
+            "input_sha256": "ba885a3fc137d069a1e7da699d10068812c9833bc9bd4911ea46cf0267bb03b0"
+          },
+          {
+            "source_sha256": "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896",
+            "population_id": "sha256:5cd52f587899148b89d5b7794139d99ce0a0d67379da7720eddd29f00ebf9139",
+            "coordinates": {
+              "giga_flops": 32.212254720000004,
+              "mega_hbm_bytes": 50.267648
+            },
+            "mean_us": 45.2820234375,
+            "p50_us": 45.08,
+            "count": 1152,
+            "forward_count": 24,
+            "calls_per_forward": 48,
+            "evidence_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-qwen36-a5-tp2-c96/body-operator-qwen36-a5-tp2-c96-cases.mapping.json",
+              "sha256": "a3a81fb215b67ca2563238362a0d159bb9bf5d5cbbe34fe65279ba4c5239f9a8",
+              "size_bytes": 60804
+            },
+            "input_sha256": "dcb3a6bb8227257b8b8130e043d958d1ebd00e3572790097ffec1d9c0c4724fc"
+          },
+          {
+            "source_sha256": "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896",
+            "population_id": "sha256:1bffb74d847157ade7defdd7692ba9a252372d0224fea958cd88232395941095",
+            "coordinates": {
+              "giga_flops": 68.45104128,
+              "mega_hbm_bytes": 104.605184
+            },
+            "mean_us": 92.69184049479168,
+            "p50_us": 92.758,
+            "count": 1536,
+            "forward_count": 24,
+            "calls_per_forward": 64,
+            "evidence_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-qwen36-a5-tp2-c96/body-operator-qwen36-a5-tp2-c96-cases.mapping.json",
+              "sha256": "a3a81fb215b67ca2563238362a0d159bb9bf5d5cbbe34fe65279ba4c5239f9a8",
+              "size_bytes": 60804
+            },
+            "input_sha256": "1fa81c93d9aa25dce0708c27b5225f4f79551cd2d455bee6e7042509256ae41a"
+          },
+          {
+            "source_sha256": "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896",
+            "population_id": "sha256:221d103969a1868787a8882a76a2a0f106e591283fa92ccd2417114d25d62a4a",
+            "coordinates": {
+              "giga_flops": 34.22552064,
+              "mega_hbm_bytes": 51.881471999999995
+            },
+            "mean_us": 53.46873567708334,
+            "p50_us": 53.3685,
+            "count": 1536,
+            "forward_count": 24,
+            "calls_per_forward": 64,
+            "evidence_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-qwen36-a5-tp2-c96/body-operator-qwen36-a5-tp2-c96-cases.mapping.json",
+              "sha256": "a3a81fb215b67ca2563238362a0d159bb9bf5d5cbbe34fe65279ba4c5239f9a8",
+              "size_bytes": 60804
+            },
+            "input_sha256": "dce4c12e87bfd043380a6aef4445f16a64a571c3f070e12ae08492d82ddb48f8"
+          },
+          {
+            "source_sha256": "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896",
+            "population_id": "sha256:8821d489cc4d534625909cf85a7c63fdc59a98a81501d811b18c28c51d0bdf75",
+            "coordinates": {
+              "giga_flops": 28.18572288,
+              "mega_hbm_bytes": 44.230143999999996
+            },
+            "mean_us": 45.34896875,
+            "p50_us": 45.157,
+            "count": 384,
+            "forward_count": 24,
+            "calls_per_forward": 16,
+            "evidence_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-qwen36-a5-tp2-c96/body-operator-qwen36-a5-tp2-c96-cases.mapping.json",
+              "sha256": "a3a81fb215b67ca2563238362a0d159bb9bf5d5cbbe34fe65279ba4c5239f9a8",
+              "size_bytes": 60804
+            },
+            "input_sha256": "b832536f81d98dd428f2f883d022da92246d5fbdeb76f91566e898c1d06a0c82"
+          },
+          {
+            "source_sha256": "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896",
+            "population_id": "sha256:c299398e443287a0ab79ba5cc13b489a8f038c8c7ecb9166982c65f4f41fb8ba",
+            "coordinates": {
+              "giga_flops": 12.079595520000002,
+              "mega_hbm_bytes": 20.882944
+            },
+            "mean_us": 22.172361979166666,
+            "p50_us": 22.023,
+            "count": 384,
+            "forward_count": 24,
+            "calls_per_forward": 16,
+            "evidence_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-qwen36-a5-tp2-c96/body-operator-qwen36-a5-tp2-c96-cases.mapping.json",
+              "sha256": "a3a81fb215b67ca2563238362a0d159bb9bf5d5cbbe34fe65279ba4c5239f9a8",
+              "size_bytes": 60804
+            },
+            "input_sha256": "e44fdd6fb5bbd4cd4fec751230b0ba7419a2d54f9fdb98c2e8eb4a602e85236b"
+          }
+        ]
+      },
+      {
+        "domain": {
+          "id": "native-matrix-bf16",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "dtype": "bf16",
+            "layout": "bf16",
+            "metadata.program_kind": "matmul",
+            "metadata.weight_dtype": "bf16",
+            "metadata.input_format": "bf16",
+            "metadata.output_format": "bf16",
+            "metadata.matrix_groups": 1,
+            "metadata.dequant_before_compute": false
+          },
+          "boundary": {
+            "native_operator_type": "MatMulV3",
+            "source_implementation": "ordinary_declared_matrix_program_with_normalized_native_contract",
+            "precision": {
+              "activation": "bf16",
+              "weight": "bf16",
+              "output": "bf16",
+              "activation_scale": ""
+            },
+            "layout": {
+              "declared_layout": "bf16",
+              "scope": "normalized_active_matrix_contract; native_strides_and_weight_scale_values_not_retained"
+            },
+            "execution_boundary": "inclusive_whole_native_call_once"
+          },
+          "coordinates": {
+            "giga_flops": {
+              "path": "work.flops",
+              "scale": 1e-09
+            },
+            "mega_hbm_bytes": {
+              "path": "work.hbm_bytes",
+              "scale": 1e-06
+            }
+          }
+        },
+        "status": "fitted",
+        "reason": null,
+        "coefficients": {
+          "fixed_us": 6.983604343486468,
+          "terms": {
+            "giga_flops": 1.7627632046361619,
+            "mega_hbm_bytes": 0.37770682509919956
+          },
+          "training_weighted_sse_us2": 4.787870455685543,
+          "design_rank": 3
+        },
+        "training_sources": [
+          "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+          "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+          "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+        ],
+        "training_coordinate_ranges": {
+          "giga_flops": [
+            0.0019660800000000003,
+            12.079595520000002
+          ],
+          "mega_hbm_bytes": [
+            0.532864,
+            37.748736
+          ]
+        },
+        "training_populations": [
+          {
+            "source_sha256": "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+            "population_id": "sha256:05a2f71f5235e23db28a29c76fce7f131256940426c36994739983605ddf43a1",
+            "coordinates": {
+              "giga_flops": 0.0019660800000000003,
+              "mega_hbm_bytes": 0.532864
+            },
+            "mean_us": 6.567839950980392,
+            "p50_us": 6.511,
+            "count": 4080,
+            "forward_count": 85,
+            "calls_per_forward": 48,
+            "evidence_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-qwen36-a5-tp2-c1/body-operator-qwen36-a5-tp2-c1-cases.mapping.json",
+              "sha256": "5d3422a0c415cc627b684141d708a877ecbbe0ff88776436369d3929f9d01aa6",
+              "size_bytes": 85102
+            },
+            "input_sha256": "7f6b7a9f62eedc1467d9570c7733669fcc0b2034ed5b1a0a03a325dd4c2e7dae"
+          },
+          {
+            "source_sha256": "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+            "population_id": "sha256:913c9c3d88b006311802090ba8cb729aa93a747a247ad6d12377131146442ff2",
+            "coordinates": {
+              "giga_flops": 0.12582912000000002,
+              "mega_hbm_bytes": 31.522816
+            },
+            "mean_us": 17.1472,
+            "p50_us": 17.15,
+            "count": 4080,
+            "forward_count": 85,
+            "calls_per_forward": 48,
+            "evidence_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-qwen36-a5-tp2-c1/body-operator-qwen36-a5-tp2-c1-cases.mapping.json",
+              "sha256": "5d3422a0c415cc627b684141d708a877ecbbe0ff88776436369d3929f9d01aa6",
+              "size_bytes": 85102
+            },
+            "input_sha256": "80db164550ed8c7d5adc65feac645a1946cf0b4d4693adc3923b3e25dc06ff24"
+          },
+          {
+            "source_sha256": "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+            "population_id": "sha256:10b017461f79c5c19238e53a0d2e5df8d52b5c95c760168722d3e0ee28d8c7ef",
+            "coordinates": {
+              "giga_flops": 0.023592960000000003,
+              "mega_hbm_bytes": 0.987648
+            },
+            "mean_us": 8.011980681818182,
+            "p50_us": 7.9195,
+            "count": 2640,
+            "forward_count": 55,
+            "calls_per_forward": 48,
+            "evidence_identity": {
+              "archive_member": "examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen36-a5-tp2-c12-qwen-source-gdn-native.mapping.json",
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/133ea3c946b49a52d50583c59030c0c36c6a8f332688aae45d6db1f9b627a585.json",
+              "sha256": "133ea3c946b49a52d50583c59030c0c36c6a8f332688aae45d6db1f9b627a585",
+              "size_bytes": 54452
+            },
+            "input_sha256": "829dacb2a4274fdbdde47a5570d527bfb9c5ed049ac75c7b129e165ce59d64c9"
+          },
+          {
+            "source_sha256": "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+            "population_id": "sha256:80ee740c8ec4a7a39a4c81d20fa159d2a210cbfd83864387f31475e18329f35c",
+            "coordinates": {
+              "giga_flops": 1.5099494400000002,
+              "mega_hbm_bytes": 32.243711999999995
+            },
+            "mean_us": 24.034819318181817,
+            "p50_us": 24.0845,
+            "count": 2640,
+            "forward_count": 55,
+            "calls_per_forward": 48,
+            "evidence_identity": {
+              "archive_member": "examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen36-a5-tp2-c12-qwen-source-gdn-native.mapping.json",
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/133ea3c946b49a52d50583c59030c0c36c6a8f332688aae45d6db1f9b627a585.json",
+              "sha256": "133ea3c946b49a52d50583c59030c0c36c6a8f332688aae45d6db1f9b627a585",
+              "size_bytes": 54452
+            },
+            "input_sha256": "a590faf152a22bcd5465bcb1ae77f73990dac044165f409860993c913927dc4d"
+          },
+          {
+            "source_sha256": "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896",
+            "population_id": "sha256:9732614de8599771444484e1a0a2dbc212285d63af6169759f86aa2bf53308a7",
+            "coordinates": {
+              "giga_flops": 0.18874368000000002,
+              "mega_hbm_bytes": 4.460544
+            },
+            "mean_us": 9.01884375,
+            "p50_us": 8.88,
+            "count": 1152,
+            "forward_count": 24,
+            "calls_per_forward": 48,
+            "evidence_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-qwen36-a5-tp2-c96/body-operator-qwen36-a5-tp2-c96-cases.mapping.json",
+              "sha256": "a3a81fb215b67ca2563238362a0d159bb9bf5d5cbbe34fe65279ba4c5239f9a8",
+              "size_bytes": 60804
+            },
+            "input_sha256": "8980a3308c5d521206dc7404a9ebb8daf9db370c3addd98d2f6a6ecbf9813992"
+          },
+          {
+            "source_sha256": "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896",
+            "population_id": "sha256:ae65f939254df1037027ac74b38f26325795abe1b9a169004b8739a43266eec8",
+            "coordinates": {
+              "giga_flops": 12.079595520000002,
+              "mega_hbm_bytes": 37.748736
+            },
+            "mean_us": 42.2777578125,
+            "p50_us": 42.222,
+            "count": 1152,
+            "forward_count": 24,
+            "calls_per_forward": 48,
+            "evidence_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-qwen36-a5-tp2-c96/body-operator-qwen36-a5-tp2-c96-cases.mapping.json",
+              "sha256": "a3a81fb215b67ca2563238362a0d159bb9bf5d5cbbe34fe65279ba4c5239f9a8",
+              "size_bytes": 60804
+            },
+            "input_sha256": "8d876241dcbfc00567db5ea622fe23fb2a1e5268518f28d69689e05353c8bbb5"
+          }
+        ]
+      }
+    ],
+    "rejected_training_populations": [],
+    "excluded_source_populations": {},
+    "excluded_timing_values_read": 0,
+    "body_residual_used": false,
+    "sha256": "ca169cb6744c4e55845d6c06bf8f6c34f9b4e317f4989aea6508a53de5b29e9b"
+  },
+  "points": [
+    {
+      "domain_id": "native-matrix-int8",
+      "source_sha256": "28644d6d5713e35de51f16b1a20dacd7574ea342c399d8afe049c487d0c8c880",
+      "population_id": "sha256:4511ce4042a855fba7e1c5ea1ee13400fc0023a1fb3b701e19a65617bc613d12",
+      "axes": {
+        "op_id": "s0.l0.linear_qkvz",
+        "family": "gemm",
+        "phase": "decode",
+        "stage": 0,
+        "layer": 0,
+        "requests": [
+          "analysis0:0",
+          "analysis0:1",
+          "analysis0:2",
+          "analysis0:3"
+        ],
+        "semantic_shape": [
+          16,
+          2048,
+          5120
+        ],
+        "local_shape": [
+          16,
+          2048,
+          5120
+        ],
+        "padded_shape": [
+          16,
+          2048,
+          5120
+        ],
+        "launch_shape": [
+          16,
+          2048,
+          5120
+        ],
+        "recipe": "linear_qkvz",
+        "deps": [
+          "s0.l0.linear_qkvz.quantize"
+        ],
+        "dtype": "int8",
+        "layout": "int8_per_channel",
+        "coverage": "decomposed",
+        "notes": [
+          "gemm_formula=2*M*N*K",
+          "weight_bytes_use_declared_packing"
+        ],
+        "metadata": {
+          "semantic_family": "gemm",
+          "weight_format": "int8",
+          "weight_dtype": "int8",
+          "activation_format": "int8",
+          "input_format": "int8",
+          "output_format": "bf16",
+          "compute_format": "int8",
+          "quant_category": "gdn.qkvz",
+          "catalog_category": "gdn.qkvz",
+          "packed_weight_bytes": 10502144.0,
+          "matrix_groups": 1,
+          "weight_representation": "int8_per_channel",
+          "dequant_before_compute": false,
+          "activation_group_size": 5120,
+          "activation_scale_format": "fp32",
+          "activation_scale_shape": [
+            16
+          ],
+          "activation_scale_bytes": 64.0,
+          "activation_scale_in_mte2": true,
+          "dequant": "none",
+          "dequant_traffic": 0.0,
+          "weight_bytes": 10502144.0,
+          "implementation_assumption": "declared_matrix_operand_formats",
+          "matrix_epilogue": {
+            "kind": "row_column_scale",
+            "row_scale_bytes": 64.0,
+            "column_scale_bytes": 16384.0,
+            "operations_per_output": 4
+          },
+          "matrix_output_contract": "int32_cast_row_scale_column_scale_output_cast",
+          "column_metadata_policy": "retains_declared_scale_and_offset_storage_traffic",
+          "program_kind": "matmul",
+          "structure_block": "attention",
+          "structure_role": "body",
+          "activation_producer": "explicit_quantization",
+          "graph_replay_scope": "none"
+        },
+        "flops": 335544320.0,
+        "hbm_bytes": 10649664.0,
+        "mte2_bytes": 10584128.0,
+        "mte3_bytes": 65536.0,
+        "vector_ops": 131072.0,
+        "link_bytes": 0.0,
+        "link_scope": "d2d",
+        "hardware": "Ascend950DT_9582",
+        "work": {
+          "flops": 335544320.0,
+          "hbm_bytes": 10649664.0,
+          "mte2_bytes": 10584128.0,
+          "mte3_bytes": 65536.0,
+          "vector_ops": 131072.0,
+          "link_bytes": 0.0,
+          "matrix_flops": {},
+          "resource_work": {},
+          "launches": 1
+        }
+      },
+      "boundary": {
+        "native_operator_type": "QuantBatchMatmulV3",
+        "source_implementation": "ordinary_declared_matrix_program_with_normalized_native_contract",
+        "precision": {
+          "activation": "int8",
+          "weight": "int8",
+          "output": "bf16",
+          "activation_scale": "fp32"
+        },
+        "layout": {
+          "declared_layout": "int8_per_channel",
+          "scope": "normalized_active_matrix_contract; native_strides_and_weight_scale_values_not_retained"
+        },
+        "execution_boundary": "inclusive_whole_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 3504,
+        "forward_count": 73,
+        "calls_per_forward": 48,
+        "mean_us": 9.202480593607307,
+        "p50_us": 9.1265
+      },
+      "evidence_identity": {
+        "archive_member": "examples/structure/acceptance-20261030-high-concurrency/body-operator-a5_qwen36_highconc_c4-source-gdn-native.mapping.json",
+        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/7020656a87c12ce6bc994096ce1c775ccba0c35ec6a7187c4d64f98463335e1e.json",
+        "sha256": "7020656a87c12ce6bc994096ce1c775ccba0c35ec6a7187c4d64f98463335e1e",
+        "size_bytes": 52386
+      },
+      "contract": [
+        "matrix",
+        [
+          16,
+          2048,
+          5120
+        ],
+        "int8",
+        "int8",
+        "bf16",
+        [
+          16
+        ],
+        "fp32"
+      ],
+      "case_id": "a5_qwen36_highconc_c4"
+    },
+    {
+      "domain_id": "native-matrix-bf16",
+      "source_sha256": "28644d6d5713e35de51f16b1a20dacd7574ea342c399d8afe049c487d0c8c880",
+      "population_id": "sha256:4d0f6d18478f22b344d5401d7b3fe5b2b47a44a7f70b5d2c06c4d569c58c719e",
+      "axes": {
+        "op_id": "s0.l0.linear_beta_alpha",
+        "family": "gemm",
+        "phase": "decode",
+        "stage": 0,
+        "layer": 0,
+        "requests": [
+          "analysis0:0",
+          "analysis0:1",
+          "analysis0:2",
+          "analysis0:3"
+        ],
+        "semantic_shape": [
+          16,
+          12,
+          5120
+        ],
+        "local_shape": [
+          16,
+          12,
+          5120
+        ],
+        "padded_shape": [
+          16,
+          16,
+          5120
+        ],
+        "launch_shape": [
+          16,
+          12,
+          5120
+        ],
+        "recipe": "linear_beta_alpha",
+        "deps": [
+          "s0.l0.norm1"
+        ],
+        "dtype": "bf16",
+        "layout": "bf16",
+        "coverage": "decomposed",
+        "notes": [
+          "gemm_formula=2*M*N*K",
+          "weight_bytes_use_declared_packing"
+        ],
+        "metadata": {
+          "semantic_family": "gemm",
+          "weight_format": "bf16",
+          "weight_dtype": "bf16",
+          "activation_format": "bf16",
+          "input_format": "bf16",
+          "output_format": "bf16",
+          "compute_format": "bf16",
+          "quant_category": "gdn.beta_alpha",
+          "catalog_category": "gdn.beta_alpha",
+          "packed_weight_bytes": 122880.0,
+          "matrix_groups": 1,
+          "weight_representation": "bf16",
+          "dequant_before_compute": false,
+          "program_kind": "matmul",
+          "structure_block": "attention",
+          "structure_role": "body",
+          "graph_replay_scope": "none"
+        },
+        "flops": 1966080.0,
+        "hbm_bytes": 287104.0,
+        "mte2_bytes": 286720.0,
+        "mte3_bytes": 384.0,
+        "vector_ops": 0.0,
+        "link_bytes": 0.0,
+        "link_scope": "d2d",
+        "hardware": "Ascend950DT_9582",
+        "work": {
+          "flops": 1966080.0,
+          "hbm_bytes": 287104.0,
+          "mte2_bytes": 286720.0,
+          "mte3_bytes": 384.0,
+          "vector_ops": 0.0,
+          "link_bytes": 0.0,
+          "matrix_flops": {},
+          "resource_work": {},
+          "launches": 1
+        }
+      },
+      "boundary": {
+        "native_operator_type": "MatMulV3",
+        "source_implementation": "ordinary_declared_matrix_program_with_normalized_native_contract",
+        "precision": {
+          "activation": "bf16",
+          "weight": "bf16",
+          "output": "bf16",
+          "activation_scale": ""
+        },
+        "layout": {
+          "declared_layout": "bf16",
+          "scope": "normalized_active_matrix_contract; native_strides_and_weight_scale_values_not_retained"
+        },
+        "execution_boundary": "inclusive_whole_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 3504,
+        "forward_count": 73,
+        "calls_per_forward": 48,
+        "mean_us": 6.553435787671233,
+        "p50_us": 6.537
+      },
+      "evidence_identity": {
+        "archive_member": "examples/structure/acceptance-20261030-high-concurrency/body-operator-a5_qwen36_highconc_c4-source-gdn-native.mapping.json",
+        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/7020656a87c12ce6bc994096ce1c775ccba0c35ec6a7187c4d64f98463335e1e.json",
+        "sha256": "7020656a87c12ce6bc994096ce1c775ccba0c35ec6a7187c4d64f98463335e1e",
+        "size_bytes": 52386
+      },
+      "contract": [
+        "matrix",
+        [
+          16,
+          12,
+          5120
+        ],
+        "bf16",
+        "bf16",
+        "bf16",
+        [],
+        ""
+      ],
+      "case_id": "a5_qwen36_highconc_c4"
+    }
+  ],
+  "case": {
+    "name": "qwen36-a5-tp8-c4-body-input",
+    "machine": {
+      "backend": "ascend",
+      "sku": "Ascend950DT_9582",
+      "num_devices": 8,
+      "ranks_per_node": 8
+    },
+    "model": {
+      "catalog_key": "qwen3.6-27b",
+      "quantization": "w8a8_dynamic",
+      "quant": {
+        "name": "W8A8_DYNAMIC",
+        "weight_format": "int8",
+        "native_format": "bf16",
+        "activation_format": "int8",
+        "expert_weight_format": "int8",
+        "weight_block": [
+          1,
+          1
+        ],
+        "expert_block": 1,
+        "scale_format": "fp32",
+        "scale_bytes": 4.0,
+        "kv_dtype": "bf16",
+        "index_dtype": "bf16",
+        "index_scale_dtype": "none",
+        "exclusions": [
+          "mtp",
+          "norm",
+          "lm_head",
+          "embedding",
+          "vision",
+          "projector",
+          "conv_weight_f32",
+          "conv_weight_bf16"
+        ],
+        "engram_table_mode": "device_bf16",
+        "activation_group_size": 0,
+        "activation_scale_format": "",
+        "activation_scale_pack": 1,
+        "category_overrides": {
+          "gdn.beta_alpha": {
+            "activation_format": "bf16",
+            "weight_format": "bf16"
+          },
+          "gdn.o": {
+            "activation_format": "bf16",
+            "weight_format": "bf16"
+          }
+        },
+        "source": {
+          "activation_scheme": "dynamic",
+          "checkpoint": "Qwen3.5-35B-A3B-w8a8-mtp",
+          "quant_method": "w8a8_dynamic",
+          "weight_scale": "per_channel_fp32"
+        },
+        "notes": [
+          "measured A5 recipe: W8A8 int8 dynamic (per-channel fp32 weight scale, per-token int8 activations)",
+          "body attention + routed expert projections are int8; MTP, norms, embedding, LM head, conv and vision stay BF16/FP32"
+        ]
+      }
+    },
+    "runtime": {
+      "tp": 8,
+      "dp": 1,
+      "ep": 1,
+      "pp": 1,
+      "graph_mode": "none",
+      "metadata": {
+        "input_boundary": "device-body analysis only; workload placeholder is not a replay of the concurrent server",
+        "geometry_policy": "supply actual query rows and sequence count from profiler; capture padding must be stated separately",
+        "capture_summary": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot5ms_near_c4_20261030/benchmark_summary.json",
+        "capture_client": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot5ms_near_c4_20261030/client_cell.json",
+        "source_image": "quay.io/ascend/vllm-ascend:v0.30.0rc2-a5 (c3d00a196905)",
+        "source_model_path": "/mnt/weight/Qwen3.6-27B-W8A8",
+        "mtp_policy": "metadata proves 3 proposed tokens per draft event; actual target query geometry awaits tensor extraction",
+        "calibration": {
+          "origin": "observed",
+          "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+          "frozen_model_sha256": "ca169cb6744c4e55845d6c06bf8f6c34f9b4e317f4989aea6508a53de5b29e9b",
+          "target_timing_used_to_fit": false
+        },
+        "source_mechanism_transfer": {
+          "implementation": "vllm_ascend_gdn_decode",
+          "recurrent_implementation": "arch35_fp32",
+          "frozen_training_case": {
+            "path": "examples/structure/cases/decode-qwen36-a5-tp2-c1.json",
+            "sha256": "264c22db0ed0410fa0c622503f5e8c24abe0f287a5502ab068ae9a4d320fca2f",
+            "size_bytes": 30043
+          },
+          "is_parameter_generalization": false,
+          "native_contract_validation": "all retained recurrent cohort targets; kernel binary identity not captured"
+        }
+      },
+      "kernels": {
+        "lowerings": {
+          "gdn_decode": {
+            "implementation": "vllm_ascend_gdn_decode",
+            "options": {
+              "gating_beta_store": {
+                "bytes_per_element": 2,
+                "resource": "scalar_store_issue",
+                "queue": {
+                  "outstanding": 8,
+                  "granule_bytes": 128,
+                  "response_ms": 9.125e-05,
+                  "row_control_ms": 7e-06
+                }
+              },
+              "recurrent_implementation": "arch35_fp32",
+              "cache_index_row_stride": 4
+            }
+          }
+        }
+      }
+    },
+    "workload": {
+      "requests": [
+        {
+          "id": "analysis-placeholder",
+          "prompt_tokens": 4104,
+          "output_tokens": 1280
+        }
+      ]
+    }
+  },
+  "case_source": {
+    "path": "examples/structure/cases/decode-a5_qwen36_highconc_c4.json",
+    "sha256": "55c6b5fac867cb830041b5acdbb5127859daf22645f5e9ca8b8e210a447e0de9"
+  },
+  "observation_source": {
+    "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/matrix-heldout-observations.json",
+    "sha256": "4774aab6981f587cc6f6d8b64e19a2c3114a1602506678f88fafb8b3ee2335ea"
+  }
+}

@@ -146,3 +146,46 @@ def test_canonical_registry_runs_source_excluded_native_validation(retained, tmp
     assert experiment['evaluation'] == evaluate_service_domains(model, retained['evaluation_points'])
     assert result['summary']['predicted'] == 4
     assert result['new_Sim_predictions'] == 0
+
+
+def test_kimi_whole_concurrency_exclusion_preserves_real_mc2_discontinuity(tmp_path):
+    retained = json.loads((ROOT / 'tests/fixtures/retrospective_heldout/kimi-concurrency.json').read_text())
+    pins = []
+    for bundle in retained['observations']:
+        path = tmp_path / (bundle['source_sha256'] + '.json')
+        path.write_text(json.dumps(bundle))
+        pins.append({'source_sha256': bundle['source_sha256'], 'path': str(path),
+                     'sha256': sha256(path.read_bytes()).hexdigest()})
+    entry = {'id': 'kimi-a5-retrospective-concurrency-exclusion',
+             'domains': retained['domains'], 'source_groups': retained['source_groups'],
+             'observations': pins}
+    registry = {'cases': [{'source': {'sha256': p['source_sha256']}} for p in pins],
+                'generalization': [entry]}
+    result = run_generalization(registry, tmp_path)['experiments'][0]
+    assert len(result['folds']) == 6
+    assert len(result['evaluation']['rows']) == 12
+    for fold in result['folds']:
+        spec = fold['model']['specification']
+        expected = next(g['source_sha256'] for g in retained['source_groups']
+                        if g['concurrency'] == fold['heldout_concurrency'])
+        assert set(spec['evaluation_sources']) == set(expected)
+        assert len(expected) == 2  # p4k and p16k leave training together.
+        assert not set(expected) & set(spec['training_sources'])
+    fold = next(f for f in result['folds'] if f['heldout_concurrency'] == 2)
+    evaluated = [r for r in result['evaluation']['rows'] if r['heldout_concurrency'] == 2]
+    assert [r['predicted_us'] for r in evaluated] == pytest.approx([14.512982165622185] * 2)
+    assert all(r['passed'] is False and r['observed']['mean_us'] > 34 for r in evaluated)
+    # The highest concurrency has only two distinct input-row sizes left in
+    # training. This API retains the unresolved domain instead of inventing a fit.
+    assert all(r['status'] == 'unresolved' for r in result['evaluation']['rows']
+               if r['heldout_concurrency'] == 32)
+    for pin in pins:
+        if pin['source_sha256'] not in fold['model']['specification']['evaluation_sources']:
+            continue
+        path = Path(pin['path']); bundle = json.loads(path.read_text())
+        for point in bundle['points']:
+            point['observation']['mean_us'] *= 10
+        path.write_text(json.dumps(bundle)); pin['sha256'] = sha256(path.read_bytes()).hexdigest()
+    changed = run_generalization(registry, tmp_path)['experiments'][0]
+    changed_fold = next(f for f in changed['folds'] if f['heldout_concurrency'] == 2)
+    assert changed_fold['model']['sha256'] == fold['model']['sha256']

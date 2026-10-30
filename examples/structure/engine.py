@@ -247,21 +247,32 @@ def client_observation(entry, base):
     for name in ('ttft_ms', 'itl_ms', 'steady_itl_ms', 'tpot_ms', 'prefill_ms', 'decode_ttft_ms', 'e2e_ms'):
         values = {stat: payload[name + '_' + stat] for stat in ('mean', 'p50', 'p90', 'max')
                   if name + '_' + stat in payload}
+        if not values and isinstance(payload.get(name),dict):values=payload[name]
         if values: metrics[name] = values
+    records=payload.get('per_request') or payload.get('requests') or []
+    request_stats=request_summary(records,seconds=bool(records and 'e2e_s' in records[0])) if records else None
+    n_errors=payload.get('n_errors',payload.get('n_failed'))
+    producer_status=payload.get('status')
+    if producer_status is None and n_errors is not None:
+        producer_status='failed' if n_errors else 'completed'
     evidence = {
-        'benchmark_summary_identity': pin, 'producer_status': payload.get('status'),
-        'client_concurrency': config.get('concurrency'), 'request_configuration': config,
-        'n_requests': payload.get('n_requests'), 'n_errors': payload.get('n_errors'),
+        'benchmark_summary_identity': pin, 'producer_status': producer_status,
+        'producer_status_basis':'literal status or retained failure count',
+        'client_concurrency': config.get('concurrency',payload.get('concurrency')),
+        'request_configuration': config or {k:payload[k] for k in ('input_len','output_len','concurrency','num_prompts') if k in payload},
+        'n_requests': payload.get('n_requests',len(records) if records else None), 'n_errors': n_errors,
         'errors': payload.get('errors', []), 'metrics': metrics,
         'metric_boundaries': {'ttft_ms': 'client request to first streamed response',
             'itl_ms': 'streamed event cadence; not assumed one token per event',
-            'tpot_ms': 'producer completion-token interval; retained request aggregates',
+            'tpot_ms': 'literal producer TPOT; denominator audited against retained requests when available',
             'prefill_ms': 'prefiller HTTP request; not device Prefill Body',
             'decode_ttft_ms': 'decoder HTTP first response; separate PD endpoint',
             'e2e_ms': 'whole client request'},
         'reported_aggregate_tpot_ms': metrics.get('tpot_ms'),
-        'raw_request_records_available': bool(payload.get('requests')),
-        'output_tok_s': payload.get('output_tok_s'), 'completion_tokens': payload.get('completion_tokens'),
+        'raw_request_records_available': bool(records),
+        'request_population':request_stats,
+        'output_tok_s': payload.get('output_tok_s',payload.get('output_throughput_tok_s')),
+        'completion_tokens': payload.get('completion_tokens',payload.get('total_output_tokens')),
         'wall_s': payload.get('wall_s'),
         'retained_counters': {k: v for k, v in payload.items() if k in {
             'decode_s_sum', 'decode_events_sum', 'token_gaps_sum', 'prefix_cache_queries_delta',

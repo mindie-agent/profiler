@@ -31,7 +31,7 @@ def identity(path):
     return {'path':str(path),'sha256':h.hexdigest(),'size_bytes':path.stat().st_size}
 
 
-def anchor(row):
+def anchor(row, config=None):
     if not row.inputs: return None
     shape=row.inputs[0]
     if row.kind in {'ChunkFwdH','ChunkGatedDeltaRuleFwd'}:
@@ -40,13 +40,90 @@ def anchor(row):
     if row.kind=='SparseAttnSharedkv' and shape and shape[0]>16: return 'mla'
     if row.kind=='FusedInferAttentionScore':
         q=shape[2] if len(shape)==4 else shape[0] if len(shape)==3 else None
-        return 'gqa' if q is not None and q>16 else None
+        kinds={p['attention'] for p in (config or {}).get('layer_plans',[])}
+        kind='mla' if 'mla' in kinds and 'gqa' not in kinds else 'gqa'
+        return kind if q is not None and q>16 else None
     return None
+
+
+def _attention_query_rows(row):
+    shape=row.inputs[0]
+    if row.kind=='ChunkKdaFwd' and len(shape)==4:
+        return shape[0]*shape[1]  # BSND, independently cross-checked with FIA TND.
+    if row.kind=='FusedInferAttentionScore':
+        return shape[0]*shape[2] if len(shape)==4 else shape[0] if len(shape)==3 else None
+    return None
+
+
+def _anchor_groups(rows, config):
+    """One logical attention per input-norm interval; keep all physical events.
+
+    The captured ChunkKdaFwd implementation exports successive device stages
+    under the same complete native ABI. Only adjacent stages with that ABI and
+    the same preceding norm are grouped; equal shapes across layers do not join.
+    """
+    groups=[]; norm=None
+    for index,row in enumerate(rows):
+        if _norm(row,config['hidden_size']):norm=index
+        kind=anchor(row,config)
+        if kind is None:continue
+        event=row.event
+        abi=tuple(getattr(event,key).strip('"') for key in (
+            'input_shapes','input_dtypes','input_formats',
+            'output_shapes','output_dtypes','output_formats'))
+        complete=all(value and value not in {'N/A','NULL'} for value in abi)
+        previous=groups[-1] if groups else None
+        same=(row.kind=='ChunkKdaFwd' and complete and previous is not None
+              and previous['native_type']==row.kind and previous['last']+1==index
+              and previous['norm']==norm and previous['abi']==abi
+              and previous['implementation']==(event.name,event.core,event.stream_id))
+        if same:
+            previous['last']=index;previous['physical_events']+=1
+        else:
+            groups.append({'first':index,'last':index,'kind':kind,'norm':norm,
+                           'abi':abi,'native_type':row.kind,'physical_events':1,
+                           'implementation':(event.name,event.core,event.stream_id)})
+    # A later MLA chunk attends to the current chunk and the retained prefix,
+    # then AttentionUpdate merges both attention/LSE outputs. Its two FIA calls
+    # have distinct KV contracts; their explicit merge is the grouping evidence.
+    merged=[]; cursor=0
+    while cursor<len(groups):
+        group=groups[cursor]
+        if cursor+1<len(groups):
+            other=groups[cursor+1]
+            left,right=rows[group['first']],rows[other['first']]
+            pair=(group['kind']==other['kind']=='mla'
+                  and group['native_type']==other['native_type']=='FusedInferAttentionScore'
+                  and group['norm']==other['norm']
+                  and left.outputs==right.outputs and len(left.outputs or ())==2
+                  and len(left.outputs[0])==3 and left.outputs[1]==(*left.outputs[0][:2],1)
+                  and left.inputs[0]==right.inputs[0]
+                  and all(value and value not in {'N/A','NULL'} for value in group['abi']+other['abi'])
+                  and left.event.output_dtypes==right.event.output_dtypes
+                  and left.event.output_formats==right.event.output_formats
+                  and left.event.input_dtypes.split(';')[0]==right.event.input_dtypes.split(';')[0]
+                  and left.event.input_formats.split(';')[0]==right.event.input_formats.split(';')[0])
+            if pair:
+                tokens,heads,width=left.outputs[0];flat=tokens*heads
+                stop=next((i for i in range(other['last']+1,len(rows))
+                           if _norm(rows[i],config['hidden_size'])),len(rows))
+                update=next((i for i in range(other['last']+1,stop)
+                    if rows[i].kind=='AttentionUpdate'
+                    and rows[i].inputs==((flat,),(flat,),(flat,width),(flat,width))
+                    and rows[i].outputs==((flat,width),(flat,))),None)
+                if update is not None:
+                    group={**group,'last':other['last'],'physical_events':2,
+                           'merge_event':update,'other_abi':other['abi'],
+                           'basis':'same_input_norm_two_fia_outputs_and_attention_update_contract'}
+                    cursor+=1
+        merged.append(group);cursor+=1
+    return merged
 
 
 def align(rows, config, ordinal):
     hidden=config['hidden_size']; plans=config['layer_plans']
-    anchors=[(i,anchor(r)) for i,r in enumerate(rows) if anchor(r)]
+    groups=_anchor_groups(rows,config)
+    anchors=[(g['first'],g['kind']) for g in groups]
     actual=[kind for _,kind in anchors]
     expected=[p['attention'] for p in plans]
     if actual!=expected:
@@ -58,7 +135,17 @@ def align(rows, config, ordinal):
         choices=[i for i in norms if prev<i<index]
         if not choices:return None,{'reason':'input_norm_missing','layer':len(starts)}
         inputs.append(choices[-1]);starts.append(_norm_start(rows,choices[-1],hidden));prev=index
-    queries={prod(rows[i].inputs[0][:-1]) for i in inputs}
+    queries=set()
+    for layer,(norm,(index,_)) in enumerate(zip(inputs,anchors)):
+        row=rows[norm]
+        native_query=_attention_query_rows(rows[index])
+        # AttnRes flattened buffers include history and SP-local storage. They
+        # do not encode a global token axis, and the sampled LMHead can be M=1.
+        query=(native_query if row.kind=='AttnResFwd'
+               else prod(row.inputs[0][:-1]))
+        if query is None or (native_query is not None and query!=native_query):
+            return None,{'reason':'attention_norm_query_mismatch','layer':layer}
+        queries.add(query)
     if len(queries)!=1 or next(iter(queries))<=16:
         return None,{'reason':'inconsistent_large_query','queries':sorted(queries)}
     query=next(iter(queries))
@@ -94,12 +181,22 @@ def align(rows, config, ordinal):
     return {'forward_id':f'prefill:{ordinal}','phase':'prefill','query_rows':query,
             'basis':'structure_guided_complete_prefill_topology_and_vocab_head',
             'body':body,'layers':compact_layers,'head':_scope(rows[-1:],'lm_head',f'head:{ordinal}'),
-            'matched_layer_count':len(layers),'body_includes_mtp':False},None
+            'matched_layer_count':len(layers),'body_includes_mtp':False,
+            'attention_stage_groups':[{'layer_id':i,'native_type':g['native_type'],
+                'physical_events':g['physical_events'],
+                'first_csv_line':rows[g['first']].event.locator.get('csv_line'),
+                'last_csv_line':rows[g['last']].event.locator.get('csv_line'),
+                'native_abi_sha256':[sha256(json.dumps(abi,separators=(',',':')).encode()).hexdigest()
+                                     for abi in [g['abi']]+([g['other_abi']] if 'other_abi' in g else [])],
+                'merge_csv_line':rows[g['merge_event']].event.locator.get('csv_line') if 'merge_event' in g else None,
+                'basis':g.get('basis', 'same_norm_interval_adjacent_complete_native_abi' if g['physical_events']>1
+                        else 'single_native_attention_event')} for i,g in enumerate(groups)]},None
 
 
 def extract_events(events, config, *, max_active_events=25000):
     """Align a chronological Event/shape stream; no I/O or cost computation."""
     active=[]; forwards=[]; anomalies=[]; counts=Counter(); previous=None
+    has_prefill=False; discard_non_prefill=False
     for normalized in events:
         event=normalized.event
         if event.duration_ns<=0:continue
@@ -107,8 +204,21 @@ def extract_events(events, config, *, max_active_events=25000):
             raise ValueError('source_not_chronological')
         previous=event.start_ns
         row=_Row(event,normalized.input_shapes,normalized.output_shapes)
-        active.append(row);counts['positive_events']+=1
-        if len(active)>max_active_events:raise ValueError('unclosed_prefill_segment_exceeds_bound')
+        counts['positive_events']+=1
+        if discard_non_prefill:
+            if anchor(row,config) is not None:
+                raise ValueError('unclosed_prefill_segment_exceeds_bound')
+            counts['unclosed_non_prefill_events']+=1
+            if _head(row,config):discard_non_prefill=False
+            continue
+        active.append(row)
+        has_prefill=has_prefill or anchor(row,config) is not None
+        if len(active)>max_active_events:
+            if has_prefill:raise ValueError('unclosed_prefill_segment_exceeds_bound')
+            counts['unclosed_non_prefill_events']+=len(active)
+            counts['unclosed_non_prefill_segments']+=1
+            active=[];discard_non_prefill=True
+            continue
         if not _head(row,config):continue
         result,error=align(active,config,len(forwards))
         if result:
@@ -116,7 +226,7 @@ def extract_events(events, config, *, max_active_events=25000):
         else:
             counts[error['reason']]+=1
             if len(anomalies)<20:anomalies.append(error)
-        active=[]
+        active=[];has_prefill=False
     counts['trailing_events']=len(active)
     return {'schema_version':'mindie-prefill-body-observation/1',
             'status':'measured' if forwards else 'unresolved','forwards':forwards,

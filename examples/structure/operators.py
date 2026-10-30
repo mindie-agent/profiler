@@ -368,16 +368,47 @@ from mindie_sim.prediction.program import RecipeBook
 from mindie_sim.prediction.body_defaults import effective_body_declaration
 from references import predict_source_role_references, communication_calibration_evidence
 
+def _reference_manifest(case, geometry, actual):
+    """Retain reference targets while Sim hashes the complete declared cohort.
+
+    Target discovery uses the existing expanded frontend, without serializing
+    every layer's native program metadata. The selected-target API independently
+    validates every DP peer and retains the original full structure identity.
+    """
+    from mindie_sim.structure_selection import select_structure_targets
+
+    effective, _ = effective_body_declaration(
+        case, geometry['phase'], tokens=geometry['tokens'], scope=geometry['scope'])
+    book = RecipeBook.from_mapping(effective.runtime.kernels)
+    graphs = target_graphs(effective, **geometry)
+    wanted = {key for group in (actual or {}).get('source_role_references', ())
+              for key in group['representative_target_ids']}
+    for replica, ops in graphs.items():
+        wanted.update(f'rank:{replica}/{op.op_id}' for op in book.expand(ops)
+                      if op.family == 'allreduce'
+                      or op.family in {'gdn_gating', 'attention'} and op.layer >= 0)
+    del graphs, ops, book, effective
+    selected = select_structure_targets(case, wanted, **geometry)
+    missing = wanted - selected['targets'].keys()
+    if missing:
+        raise ValueError('source_reference_targets_missing_from_structure:' + ','.join(sorted(missing)))
+    return {'graph_id': selected['graph_id'], 'execution': selected['execution'],
+            'nodes': list(selected['targets'].values())}
+
+
 def program_references(case_path, mapping, actual=None):
     case=parse_case(read(case_path)); execution=mapping['declared_execution']
     geometry={key:execution[key] for key in ('phase','tokens','context','sequences','scope')}
-    manifest=export_structure(case,**geometry)
+    manifest=_reference_manifest(case,geometry,actual)
     if manifest['graph_id']!=mapping['graph_id']:
         raise ValueError('communication_reference_structure_changed')
     case,_=effective_body_declaration(case,geometry['phase'],tokens=geometry['tokens'],scope=geometry['scope'])
     book=RecipeBook.from_mapping(case.runtime.kernels)
     graphs=target_graphs(case,**geometry)
-    by_id={f'rank:{replica}/{op.op_id}':op for replica,ops in graphs.items() for op in book.expand(ops)}
+    needed={target['node_id'] for target in manifest['nodes']}
+    by_id={f'rank:{replica}/{op.op_id}':op for replica,ops in graphs.items() for op in book.expand(ops)
+           if f'rank:{replica}/{op.op_id}' in needed}
+    del graphs
     results={}
     for block,role in [('attention','attention_output_communication'),('ffn','ffn_down_communication')]:
         selected=[node for node in manifest['nodes'] if node['family']=='allreduce' and node.get('block')==block]
@@ -410,7 +441,7 @@ def program_references(case_path, mapping, actual=None):
             'observed_duration_used_for_selection':False}
     # The source-reference pass builds its own graph. Keeping this full-model
     # graph alive doubles DP-expanded working state without changing any cost.
-    del graphs, by_id, book
+    del by_id, book
     results['_source_role_groups'] = predict_source_role_references(case, manifest, actual or {})
     return results
 

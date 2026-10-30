@@ -147,6 +147,26 @@ def test_real_client_aggregate_preserves_ttft_and_distinct_event_token_denominat
     assert result['execution']['prediction_executions'] == 0
 
 
+def test_real_kimi_nested_client_retains_chunk_tpot_and_recomputes_token_denominator():
+    from engine import run_case
+
+    entry,captured=client_case('kimi-profile-p32k-o64.json')
+    result=run_case(entry,CLIENT_FIXTURES)
+    evidence=result['observed']['serving_evidence']
+    assert evidence['metrics']['ttft_ms']==captured['ttft_ms']
+    assert evidence['metrics']['tpot_ms']==captured['tpot_ms']
+    assert evidence['request_population']['reported_request_metric_denominators']=={'text_chunk':1}
+    assert evidence['request_population']['recomputed_per_request_tpot_ms']['mean']==pytest.approx(
+        (captured['per_request'][0]['e2e_ms']-captured['per_request'][0]['ttft_ms'])/63)
+    assert evidence['request_population']['actual_completion_tokens']==64
+    assert evidence['raw_request_records_available'] is True
+    assert evidence['n_requests']==1 and evidence['n_errors']==0
+    assert evidence['output_tok_s']==captured['output_throughput_tok_s']
+    assert result['observed']['observed_target_forwards'] is None
+    assert result['comparison']['status']=='observed_only'
+    assert result['execution']['prediction_executions']==0
+
+
 def test_real_one_token_prefill_retains_null_tpot_without_fake_decode_or_body():
     from engine import run_case
 
