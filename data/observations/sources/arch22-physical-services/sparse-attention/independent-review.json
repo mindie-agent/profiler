@@ -1,0 +1,65 @@
+{
+  "schema_version": "mindie-sfa-pmu-independent-review/1",
+  "status": "passed",
+  "checks": 1396,
+  "failures": [],
+  "sources": [
+    {
+      "identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/sparse-attention/a3_glm53_w4a8_tp16_tpot30_c2-sfa-pmu.json",
+        "sha256": "134b2b2d9e121e4b86f80a753ac89e50aa2913b8454cd63e1153d6e214263dda",
+        "size_bytes": 2397345
+      },
+      "case_id": "a3_glm53_w4a8_tp16_tpot30_c2",
+      "forward_count": 44,
+      "event_count": 3432,
+      "paired_complete_counts": {
+        "aic": 3432,
+        "aiv": 3432,
+        "core_envelopes": 3432
+      }
+    },
+    {
+      "identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/sparse-attention/a3_glm53_w4a8_tp16_tpot50_c2-sfa-pmu.json",
+        "sha256": "6b1d1c0567caa81123ebea8a47b35d35f1d5c0707c5d643f4e8252713fc10de7",
+        "size_bytes": 2401760
+      },
+      "case_id": "a3_glm53_w4a8_tp16_tpot50_c2",
+      "forward_count": 44,
+      "event_count": 3432,
+      "paired_complete_counts": {
+        "aic": 3430,
+        "aiv": 3430,
+        "core_envelopes": 3430
+      }
+    },
+    {
+      "identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/sparse-attention/a3_glm53_w4a8_tp16_tpot88_c8-sfa-pmu.json",
+        "sha256": "da3aef1c19e7e612b9b144c489b7f36bea2797173537c982aa67eebb4e2c68ff",
+        "size_bytes": 3059223
+      },
+      "case_id": "a3_glm53_w4a8_tp16_tpot88_c8",
+      "forward_count": 49,
+      "event_count": 3822,
+      "paired_complete_counts": {
+        "aic": 3809,
+        "aiv": 3809,
+        "core_envelopes": 3809
+      }
+    }
+  ],
+  "scope": [
+    "Retained source/Body/native identities and complete ABI timing/Forward populations checked without raw reads.",
+    "Every scalar numeric histogram and signed paired diagnostic histogram independently recomputed.",
+    "Per-call joint maximum cannot be recovered from marginal PMU counters; paired counters checked for arithmetic/population and retained examples, with producer pairing code inspected.",
+    "Missing PMU stays missing; instruction-cache columns are not tensor-data L2 or HBM evidence."
+  ],
+  "execution": {
+    "elapsed_seconds": 0.2641949999378994,
+    "peak_rss_bytes": 85196800,
+    "raw_reads": 0,
+    "cost_predictions": 0
+  }
+}
