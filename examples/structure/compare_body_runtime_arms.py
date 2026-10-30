@@ -28,12 +28,21 @@ def population(row):
 
 
 def compare(before_paths, after_paths):
-    previous, inputs, rows = {}, [], []
+    previous, inputs, rows, unlocated = {}, [], [], []
     for path in before_paths:
         report, identity = read(path)
         inputs.append({"arm": "before", **identity})
         for row in report["cases"]:
-            previous[population(row)] = (row, identity)
+            if "geometry" not in row and row["comparison"]["status"] == "failed":
+                unlocated.append({"receipt": identity, "case_id": row["case_id"],
+                                  "source_identity": row["source_identity"],
+                                  "comparison": row["comparison"], "error": row.get("error"),
+                                  "reason": "prior_failure_before_forward_geometry_extraction"})
+                continue
+            # The join needs scalar statistics and provenance, not prior
+            # prediction timelines or repeated per-layer populations.
+            previous[population(row)] = ({key: row.get(key) for key in (
+                "comparison", "extraction_identity", "runtime_identity")}, identity)
     for path in after_paths:
         report, identity = read(path)
         inputs.append({"arm": "after", **identity})
@@ -56,6 +65,7 @@ def compare(before_paths, after_paths):
                                                  if before["predicted_ms"] is not None else None)})
     return {"schema_version": "mindie-body-runtime-arm-comparison/1", "inputs": inputs,
             "raw_capture_reads": 0, "prediction_executions": 0, "cases": rows,
+            "prior_failures_without_geometry": unlocated,
             "summary": {"compared_after": len(rows),
                         "passed_before": sum(row["before"]["passed"] is True for row in rows),
                         "passed_after": sum(row["after"]["passed"] is True for row in rows),
@@ -80,7 +90,8 @@ def render(report):
                      f"{number(before['predicted_ms'])} | {number(after['predicted_ms'])} | "
                      f"{number(row['prediction_delta_ms'])} | {number(before['relative_error'], 100, '%')} | "
                      f"{number(after['relative_error'], 100, '%')} |")
-    lines += ["", *report["limitations"], ""]
+    lines += ["", f"Prior failures before geometry extraction retained separately: {len(report.get('prior_failures_without_geometry', []))}.",
+              "", *report["limitations"], ""]
     return "\n".join(lines)
 
 

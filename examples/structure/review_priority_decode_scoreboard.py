@@ -90,7 +90,11 @@ def canonical(value):
 def review(path):
     started = time.monotonic()
     initial_sha = digest(path)
-    report = read(path)
+    # Cumulative scoreboard arrays can exceed the single-receipt JSON limit.
+    # Decode their fields incrementally without also retaining the full text;
+    # linked capture receipts are still consumed one case at a time below.
+    with Path(path).open("rb") as stream:
+        report = dict(ijson.kvitems(stream, "", use_float=True))
     checks, failures = 0, []
 
     def check(condition, message):
@@ -451,7 +455,7 @@ def review(path):
         "reference_rows": sum(reference.values()), "corrected_kimi_quant_cases_checked": corrected_quant_cases,
         "historical_case_resolutions": historical_case_resolutions,
         "execution": {"elapsed_seconds": time.monotonic() - started, "peak_rss_bytes": peak_bytes,
-                      "receipt_read_engine": "ijson top-level metadata and sequential cases; scoreboard bounded JSON"},
+            "receipt_read_engine": "ijson top-level fields and sequential receipt cases"},
         "scope": "Independent sequential receipt reconciliation; no raw capture parsing or prediction. "
                  "Invalidation, effective current Kimi precision, source/geometry deduplication, explicit input order, "
                  "strict tier arithmetic and unscored source references are checked separately."}
