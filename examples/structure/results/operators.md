@@ -1,6 +1,6 @@
 # Current profiling validation
 
-One canonical case registry and one recorded Sim package. Selected costs are freshly replayed; unchanged cases retain verified evidence from this same Sim package. Calibration and held-out labels remain distinct; device Body latency is not client TPOT.
+One canonical case registry and one recorded Sim package. All costs are fresh in this run. Calibration and held-out labels remain distinct; device Body latency is not client TPOT.
 
 
 | Case | Tier | Passed / compared cohorts | Scored events |

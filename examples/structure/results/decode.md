@@ -176,21 +176,21 @@ One canonical case registry and one recorded Sim package. Selected costs are fre
 | a3-qwen35-tp4-decode-c12-p126000 | decode | 97 | 36.173 / 36.158 / 36.304 | 33.374 | -7.74% | PASS |
 | a3-qwen35-tp4-decode-c16-p126000 | decode | 87 | 40.651 / 40.639 / 40.884 | 39.465 | -2.92% | PASS |
 | a3-qwen35-tp4-decode-c2-p126000 | decode | 156 | 19.585 / 19.593 / 19.734 | 11.986 | -38.80% | FAIL |
-| a3-qwen35-tp4-decode-c24-p126000 | decode | 57 | 63.494 / 63.631 / 63.779 | 72.377 | +13.99% | PASS |
-| a3-qwen35-tp4-decode-c32-p126000 | decode | 55 | 65.343 / 65.297 / 65.724 | 74.494 | +14.01% | PASS |
+| a3-qwen35-tp4-decode-c24-p126000 | decode | 57 | 63.494 / 63.631 / 63.779 | 53.303 | -16.05% | FAIL |
+| a3-qwen35-tp4-decode-c32-p126000 | decode | 55 | 65.343 / 65.297 / 65.724 | 55.420 | -15.19% | FAIL |
 | a3-qwen35-tp4-decode-c4-p126000 | decode | 138 | 22.871 / 22.871 / 23.010 | 16.948 | -25.90% | FAIL |
-| a3-qwen35-tp4-decode-c48-p126000 | decode | 42 | 86.442 / 86.447 / 86.585 | 103.874 | +20.17% | FAIL |
+| a3-qwen35-tp4-decode-c48-p126000 | decode | 42 | 86.442 / 86.447 / 86.585 | 75.262 | -12.93% | PASS |
 | a3-qwen35-tp4-decode-c6-p126000 | decode | 121 | 27.566 / 27.525 / 27.659 | 22.308 | -19.08% | FAIL |
-| a3-qwen35-tp4-decode-c64-p126000 | decode | 34 | 107.680 / 107.516 / 108.525 | 132.670 | +23.21% | FAIL |
+| a3-qwen35-tp4-decode-c64-p126000 | decode | 34 | 107.680 / 107.516 / 108.525 | 94.521 | -12.22% | PASS |
 | a3-qwen35-tp4-decode-c8-p126000 | decode | 111 | 31.009 / 30.990 / 31.159 | 27.248 | -12.13% | PASS |
 | a3-qwen35-tp4-decode-c12-p24512 | decode | 47 | 27.914 / 27.905 / 28.026 | 20.804 | -25.47% | FAIL |
 | a3-qwen35-tp4-decode-c12-p64512 | decode | 45 | 30.548 / 30.507 / 30.812 | 25.769 | -15.64% | FAIL |
 | a3-qwen35-tp4-decode-c12-p8512 | decode | 43 | 27.435 / 27.433 / 27.570 | 19.490 | -28.96% | FAIL |
 | a3-qwen35-tp4-decode-c12-p96512 | decode | 58 | 33.166 / 33.160 / 33.280 | 29.772 | -10.23% | FAIL |
-| a3-qwen35-tp4-decode-c24-p24512 | decode | 66 | 35.550 / 35.558 / 35.723 | 30.551 | -14.06% | FAIL |
-| a3-qwen35-tp4-decode-c24-p64512 | decode | 63 | 44.868 / 44.851 / 45.016 | 47.036 | +4.83% | PASS |
-| a3-qwen35-tp4-decode-c24-p8512 | decode | 57 | 31.676 / 31.677 / 31.775 | 23.958 | -24.37% | FAIL |
-| a3-qwen35-tp4-decode-c24-p96512 | decode | 52 | 54.896 / 55.004 / 55.143 | 60.224 | +9.71% | PASS |
+| a3-qwen35-tp4-decode-c24-p24512 | decode | 66 | 35.550 / 35.558 / 35.723 | 26.891 | -24.36% | FAIL |
+| a3-qwen35-tp4-decode-c24-p64512 | decode | 63 | 44.868 / 44.851 / 45.016 | 37.301 | -16.87% | FAIL |
+| a3-qwen35-tp4-decode-c24-p8512 | decode | 57 | 31.676 / 31.677 / 31.775 | 22.727 | -28.25% | FAIL |
+| a3-qwen35-tp4-decode-c24-p96512 | decode | 52 | 54.896 / 55.004 / 55.143 | 45.628 | -16.88% | FAIL |
 | a3-qwen35-tp4-decode-c2-p24512 | decode | 16 | 16.697 / 16.657 / 16.860 | 8.519 | -48.98% | FAIL |
 | a3-qwen35-tp4-decode-c2-p64512 | decode | 7 | 17.136 / 17.138 / 17.270 | 8.949 | -47.77% | FAIL |
 | a3-qwen35-tp4-decode-c2-p8512 | decode | 7 | 16.319 / 16.333 / 16.372 | 8.310 | -49.07% | FAIL |
@@ -200,19 +200,19 @@ One canonical case registry and one recorded Sim package. Selected costs are fre
 | a3-qwen35-tp4-decode-c6-p8512 | decode | 21 | 22.846 / 22.849 / 22.926 | 15.086 | -33.97% | FAIL |
 | a3-qwen35-tp4-decode-c6-p96512 | decode | 42 | 26.149 / 25.837 / 26.090 | 20.559 | -21.38% | FAIL |
 | a3-qwen36-tp2-decode-c1-p126000 | decode | 118 | 27.505 / 27.460 / 27.662 | 23.052 | -16.19% | FAIL |
-| a3-qwen36-tp2-decode-c12-p126000 | decode | 40 | 92.965 / 92.683 / 93.492 | 116.247 | +25.04% | FAIL |
-| a3-qwen36-tp2-decode-c16-p126000 | decode | 39 | 96.424 / 96.221 / 97.153 | 120.346 | +24.81% | FAIL |
+| a3-qwen36-tp2-decode-c12-p126000 | decode | 40 | 92.965 / 92.683 / 93.492 | 86.649 | -6.79% | PASS |
+| a3-qwen36-tp2-decode-c16-p126000 | decode | 39 | 96.424 / 96.221 / 97.153 | 90.747 | -5.89% | PASS |
 | a3-qwen36-tp2-decode-c2-p126000 | decode | 107 | 32.035 / 32.023 / 32.214 | 28.674 | -10.49% | PASS |
-| a3-qwen36-tp2-decode-c24-p126000 | decode | 29 | 132.699 / 132.704 / 132.775 | 171.996 | +29.61% | FAIL |
+| a3-qwen36-tp2-decode-c24-p126000 | decode | 29 | 132.699 / 132.704 / 132.775 | 127.597 | -3.84% | PASS |
 | a3-qwen36-tp2-decode-c4-p126000 | decode | 88 | 40.819 / 40.826 / 41.229 | 39.172 | -4.03% | PASS |
 | a3-qwen36-tp2-decode-c6-p126000 | decode | 74 | 50.103 / 50.017 / 50.304 | 49.717 | -0.77% | PASS |
 | a3-qwen36-tp2-decode-c8-p126000 | decode | 66 | 56.360 / 56.274 / 56.741 | 60.306 | +7.00% | PASS |
-| a3-qwen36-tp2-decode-c12-p24512 | decode | 63 | 45.843 / 45.864 / 46.024 | 47.357 | +3.30% | PASS |
-| a3-qwen36-tp2-decode-c12-p64512 | decode | 46 | 63.620 / 63.439 / 64.028 | 74.511 | +17.12% | FAIL |
-| a3-qwen36-tp2-decode-c12-p8512 | decode | 68 | 39.923 / 39.905 / 40.004 | 36.498 | -8.58% | PASS |
-| a3-qwen36-tp2-decode-c24-p24512 | decode | 49 | 60.836 / 60.802 / 60.974 | 68.660 | +12.86% | PASS |
-| a3-qwen36-tp2-decode-c24-p64512 | decode | 34 | 87.080 / 87.073 / 87.154 | 109.392 | +25.62% | FAIL |
-| a3-qwen36-tp2-decode-c24-p8512 | decode | 56 | 52.156 / 52.152 / 52.263 | 52.372 | +0.41% | PASS |
+| a3-qwen36-tp2-decode-c12-p24512 | decode | 63 | 45.843 / 45.864 / 46.024 | 41.583 | -9.29% | PASS |
+| a3-qwen36-tp2-decode-c12-p64512 | decode | 46 | 63.620 / 63.439 / 64.028 | 59.345 | -6.72% | PASS |
+| a3-qwen36-tp2-decode-c12-p8512 | decode | 68 | 39.923 / 39.905 / 40.004 | 34.478 | -13.64% | PASS |
+| a3-qwen36-tp2-decode-c24-p24512 | decode | 49 | 60.836 / 60.802 / 60.974 | 59.998 | -1.38% | PASS |
+| a3-qwen36-tp2-decode-c24-p64512 | decode | 34 | 87.080 / 87.073 / 87.154 | 86.641 | -0.50% | PASS |
+| a3-qwen36-tp2-decode-c24-p8512 | decode | 56 | 52.156 / 52.152 / 52.263 | 49.340 | -5.40% | PASS |
 | a3-qwen36-tp2-decode-c2-p24512 | decode | 58 | 26.724 / 26.694 / 26.806 | 21.700 | -18.80% | FAIL |
 | a3-qwen36-tp2-decode-c2-p64512 | decode | 58 | 28.868 / 28.845 / 28.903 | 24.493 | -15.16% | FAIL |
 | a3-qwen36-tp2-decode-c2-p8512 | decode | 45 | 25.809 / 25.747 / 25.801 | 20.650 | -19.99% | FAIL |
@@ -225,13 +225,13 @@ One canonical case registry and one recorded Sim package. Selected costs are fre
 | a3-qwen36-tp4-decode-c12-p126000 | decode | 83 | 44.267 / 44.229 / 44.445 | 45.589 | +2.98% | PASS |
 | a3-qwen36-tp4-decode-c16-p126000 | decode | 72 | 51.997 / 51.884 / 52.229 | 56.444 | +8.55% | PASS |
 | a3-qwen36-tp4-decode-c2-p126000 | decode | 128 | 21.879 / 21.733 / 21.892 | 18.258 | -16.55% | FAIL |
-| a3-qwen36-tp4-decode-c24-p126000 | decode | 42 | 89.034 / 88.904 / 89.802 | 112.897 | +26.80% | FAIL |
+| a3-qwen36-tp4-decode-c24-p126000 | decode | 42 | 89.034 / 88.904 / 89.802 | 83.299 | -6.44% | PASS |
 | a3-qwen36-tp4-decode-c4-p126000 | decode | 121 | 34.324 / 26.842 / 63.003 | 24.013 | -30.04% | FAIL |
 | a3-qwen36-tp4-decode-c6-p126000 | decode | 105 | 32.038 / 31.950 / 32.050 | 29.052 | -9.32% | PASS |
 | a3-qwen36-tp4-decode-c8-p126000 | decode | 97 | 36.585 / 36.585 / 36.725 | 34.777 | -4.94% | PASS |
 | a3-qwen38-tp2-decode-c1-p126000 | decode | 119 | 27.543 / 27.497 / 27.703 | 23.052 | -16.30% | FAIL |
-| a3-qwen38-tp2-decode-c12-p126000 | decode | 40 | 93.228 / 93.357 / 93.478 | 116.247 | +24.69% | FAIL |
-| a3-qwen38-tp2-decode-c16-p126000 | decode | 39 | 96.251 / 96.054 / 96.900 | 120.346 | +25.03% | FAIL |
+| a3-qwen38-tp2-decode-c12-p126000 | decode | 40 | 93.228 / 93.357 / 93.478 | 86.649 | -7.06% | PASS |
+| a3-qwen38-tp2-decode-c16-p126000 | decode | 39 | 96.251 / 96.054 / 96.900 | 90.747 | -5.72% | PASS |
 | a3-qwen38-tp2-decode-c2-p126000 | decode | 107 | 32.136 / 32.139 / 32.349 | 28.674 | -10.77% | PASS |
 | a3-qwen38-tp2-decode-c4-p126000 | decode | 90 | 40.524 / 40.550 / 40.876 | 39.172 | -3.33% | PASS |
 | a3-qwen38-tp2-decode-c6-p126000 | decode | 74 | 50.273 / 50.197 / 50.502 | 49.717 | -1.11% | PASS |
@@ -240,49 +240,49 @@ One canonical case registry and one recorded Sim package. Selected costs are fre
 | a3-qwen38-tp4-decode-c12-p126000 | decode | 84 | 44.305 / 44.261 / 44.463 | 45.589 | +2.90% | PASS |
 | a3-qwen38-tp4-decode-c16-p126000 | decode | 73 | 51.793 / 51.612 / 52.084 | 56.444 | +8.98% | PASS |
 | a3-qwen38-tp4-decode-c2-p126000 | decode | 137 | 21.825 / 21.761 / 21.870 | 18.258 | -16.35% | FAIL |
-| a3-qwen38-tp4-decode-c24-p126000 | decode | 43 | 88.988 / 88.982 / 89.108 | 112.897 | +26.87% | FAIL |
-| a3-qwen38-tp4-decode-c32-p126000 | decode | 41 | 93.356 / 93.203 / 93.861 | 117.648 | +26.02% | FAIL |
+| a3-qwen38-tp4-decode-c24-p126000 | decode | 43 | 88.988 / 88.982 / 89.108 | 83.299 | -6.39% | PASS |
+| a3-qwen38-tp4-decode-c32-p126000 | decode | 41 | 93.356 / 93.203 / 93.861 | 88.049 | -5.68% | PASS |
 | a3-qwen38-tp4-decode-c4-p126000 | decode | 124 | 26.807 / 26.771 / 26.837 | 24.013 | -10.42% | PASS |
 | a3-qwen38-tp4-decode-c6-p126000 | decode | 108 | 31.992 / 31.979 / 32.091 | 29.052 | -9.19% | PASS |
 | a3-qwen38-tp4-decode-c8-p126000 | decode | 98 | 36.460 / 36.463 / 36.611 | 34.777 | -4.62% | PASS |
 | a3-qwen38-tp4-decode-c12-p24512 | decode | 56 | 30.908 / 30.898 / 30.968 | 24.882 | -19.50% | FAIL |
 | a3-qwen38-tp4-decode-c12-p64512 | decode | 68 | 35.845 / 35.986 / 36.161 | 33.065 | -7.76% | FAIL |
 | a3-qwen38-tp4-decode-c12-p96512 | decode | 65 | 39.782 / 39.852 / 40.095 | 39.653 | -0.33% | PASS |
-| a3-qwen38-tp4-decode-c24-p24512 | decode | 65 | 43.632 / 43.656 / 43.714 | 44.007 | +0.86% | PASS |
-| a3-qwen38-tp4-decode-c24-p64512 | decode | 49 | 60.117 / 60.324 / 60.463 | 71.161 | +18.37% | FAIL |
-| a3-qwen38-tp4-decode-c24-p96512 | decode | 40 | 75.162 / 75.093 / 75.331 | 92.883 | +23.58% | FAIL |
+| a3-qwen38-tp4-decode-c24-p24512 | decode | 65 | 43.632 / 43.656 / 43.714 | 38.233 | -12.37% | PASS |
+| a3-qwen38-tp4-decode-c24-p64512 | decode | 49 | 60.117 / 60.324 / 60.463 | 55.995 | -6.86% | PASS |
+| a3-qwen38-tp4-decode-c24-p96512 | decode | 40 | 75.162 / 75.093 / 75.331 | 70.205 | -6.60% | PASS |
 | a3-qwen38-tp4-decode-c2-p24512 | decode | 11 | 19.404 / 19.244 / 20.150 | 14.759 | -23.94% | FAIL |
 | a3-qwen38-tp4-decode-c2-p64512 | decode | 20 | 20.210 / 20.021 / 20.180 | 16.161 | -20.03% | FAIL |
 | a3-qwen38-tp4-decode-c2-p96512 | decode | 24 | 20.989 / 20.830 / 21.239 | 17.291 | -17.62% | FAIL |
 | a3-qwen38-tp4-decode-c6-p24512 | decode | 38 | 24.761 / 24.752 / 24.829 | 18.769 | -24.20% | FAIL |
 | a3-qwen38-tp4-decode-c6-p64512 | decode | 40 | 27.237 / 27.135 / 27.365 | 22.786 | -16.34% | FAIL |
 | a3-qwen38-tp4-decode-c6-p96512 | decode | 42 | 29.560 / 29.308 / 29.565 | 26.174 | -11.45% | FAIL |
-| a5-qwen36-tp2-decode-c1-p126000 | decode | 54 | 27.332 / 27.209 / 27.445 | 22.800 | -16.58% | FAIL |
-| a5-qwen36-tp2-decode-c12-p126000 | decode | 38 | 39.512 / 39.500 / 39.595 | — | — | failed |
-| a5-qwen36-tp2-decode-c16-p126000 | decode | 35 | 43.048 / 43.038 / 43.179 | — | — | failed |
+| a5-qwen36-tp2-decode-c1-p126000 | decode | 54 | 27.332 / 27.209 / 27.445 | 23.713 | -13.24% | PASS |
+| a5-qwen36-tp2-decode-c12-p126000 | decode | 38 | 39.512 / 39.500 / 39.595 | 29.107 | -26.34% | FAIL |
+| a5-qwen36-tp2-decode-c16-p126000 | decode | 35 | 43.048 / 43.038 / 43.179 | 32.215 | -25.16% | FAIL |
 | a5-qwen36-tp2-decode-c2-p126000 | decode | 52 | 28.841 / 28.804 / 28.991 | 23.274 | -19.30% | FAIL |
-| a5-qwen36-tp2-decode-c24-p126000 | decode | 25 | 63.879 / 63.873 / 63.963 | — | — | failed |
-| a5-qwen36-tp2-decode-c4-p126000 | decode | 48 | 31.689 / 31.648 / 31.862 | 24.497 | -22.70% | FAIL |
+| a5-qwen36-tp2-decode-c24-p126000 | decode | 25 | 63.879 / 63.873 / 63.963 | 60.286 | -5.62% | PASS |
+| a5-qwen36-tp2-decode-c4-p126000 | decode | 48 | 31.689 / 31.648 / 31.862 | 25.626 | -19.13% | FAIL |
 | a5-qwen36-tp2-decode-c6-p126000 | decode | 43 | 34.972 / 34.963 / 35.029 | 25.720 | -26.46% | FAIL |
 | a5-qwen36-tp2-decode-c8-p126000 | decode | 41 | 35.597 / 35.582 / 35.641 | 26.668 | -25.08% | FAIL |
-| a5-qwen38-tp2-decode-c1-p126000 | decode | 53 | 28.447 / 28.429 / 28.570 | 23.333 | -17.98% | FAIL |
+| a5-qwen38-tp2-decode-c1-p126000 | decode | 53 | 28.447 / 28.429 / 28.570 | 24.245 | -14.77% | PASS |
 | a5-qwen38-tp2-decode-c12-p126000 | decode | 37 | 40.788 / 40.789 / 40.880 | 29.762 | -27.03% | FAIL |
 | a5-qwen38-tp2-decode-c16-p126000 | decode | 34 | 44.535 / 44.520 / 44.705 | 32.920 | -26.08% | FAIL |
 | a5-qwen38-tp2-decode-c2-p126000 | decode | 51 | 30.056 / 30.048 / 30.111 | 23.806 | -20.79% | FAIL |
-| a5-qwen38-tp2-decode-c24-p126000 | decode | 24 | 64.457 / 64.427 / 64.559 | — | — | failed |
-| a5-qwen38-tp2-decode-c4-p126000 | decode | 47 | 32.711 / 32.699 / 32.777 | 25.053 | -23.41% | FAIL |
+| a5-qwen38-tp2-decode-c24-p126000 | decode | 24 | 64.457 / 64.427 / 64.559 | 61.090 | -5.22% | PASS |
+| a5-qwen38-tp2-decode-c4-p126000 | decode | 47 | 32.711 / 32.699 / 32.777 | 26.182 | -19.96% | FAIL |
 | a5-qwen38-tp2-decode-c6-p126000 | decode | 42 | 36.091 / 36.084 / 36.136 | 26.301 | -27.13% | FAIL |
 | a5-qwen38-tp2-decode-c8-p126000 | decode | 40 | 37.428 / 37.420 / 37.480 | 27.274 | -27.13% | FAIL |
-| a5-qwen36-tp4-decode-c1-p126000 | decode | 58 | 25.585 / 25.621 / 25.711 | 21.591 | -15.61% | FAIL |
+| a5-qwen36-tp4-decode-c1-p126000 | decode | 58 | 25.585 / 25.621 / 25.711 | 21.070 | -17.65% | FAIL |
 | a5-qwen36-tp4-decode-c2-p126000 | decode | 54 | 27.536 / 27.580 / 27.663 | 21.839 | -20.69% | FAIL |
-| a5-qwen36-tp4-decode-c4-p126000 | decode | 52 | 28.964 / 28.988 / 29.039 | 22.442 | -22.52% | FAIL |
+| a5-qwen36-tp4-decode-c4-p126000 | decode | 52 | 28.964 / 28.988 / 29.039 | 24.187 | -16.49% | FAIL |
 | a5-qwen36-tp4-decode-c6-p126000 | decode | 49 | 30.604 / 30.612 / 30.773 | 23.267 | -23.97% | FAIL |
-| a5-qwen36-tp4-decode-c8-p126000 | decode | 48 | 31.660 / 31.718 / 31.765 | 23.870 | -24.60% | FAIL |
-| a5-qwen38-tp4-decode-c1-p126000 | decode | 56 | 25.808 / 25.757 / 26.012 | 21.829 | -15.42% | FAIL |
+| a5-qwen36-tp4-decode-c8-p126000 | decode | 48 | 31.660 / 31.718 / 31.765 | 25.924 | -18.12% | FAIL |
+| a5-qwen38-tp4-decode-c1-p126000 | decode | 56 | 25.808 / 25.757 / 26.012 | 21.309 | -17.43% | FAIL |
 | a5-qwen38-tp4-decode-c2-p126000 | decode | 53 | 28.147 / 28.200 / 28.244 | 22.076 | -21.57% | FAIL |
-| a5-qwen38-tp4-decode-c4-p126000 | decode | 52 | 29.240 / 29.178 / 29.387 | 22.690 | -22.40% | FAIL |
+| a5-qwen38-tp4-decode-c4-p126000 | decode | 52 | 29.240 / 29.178 / 29.387 | 24.434 | -16.43% | FAIL |
 | a5-qwen38-tp4-decode-c6-p126000 | decode | 49 | 30.974 / 30.930 / 31.177 | 23.525 | -24.05% | FAIL |
-| a5-qwen38-tp4-decode-c8-p126000 | decode | 47 | 31.871 / 31.845 / 32.020 | 24.139 | -24.26% | FAIL |
+| a5-qwen38-tp4-decode-c8-p126000 | decode | 47 | 31.871 / 31.845 / 32.020 | 26.193 | -17.82% | FAIL |
 | a3-v41-tp4dp4-decode-c4-p8512 | decode | 28 | 35.585 / 36.156 / 36.274 | 32.194 | -9.53% | PASS |
 
 | Case | Body validation basis | Target native timings used in rules |
@@ -299,6 +299,95 @@ One canonical case registry and one recorded Sim package. Selected costs are fre
 | a5_glm53flash_heldout_c24_p12k | frozen_native_functions_from_prior_capture_training | False |
 | a5_glm53flash_heldout_c48_p4k | frozen_native_functions_from_prior_capture_training | False |
 | a3_glm53flash_static_on_c10_p131201 | operator_calibrated_not_pristine_holdout | True |
+| a3-qwen36-tp4-longctx-p-126976-c1 | frozen_native_service_transfer | False |
+| a3-qwen36-tp4-longctx-p-126976-c4 | frozen_native_service_transfer | False |
+| a3-qwen36-tp4-longctx-p-65536-c1 | frozen_native_service_transfer | False |
+| a3-qwen36-tp4-longctx-p-65536-c4 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c1-p126000 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c12-p126000 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c16-p126000 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c2-p126000 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c24-p126000 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c32-p126000 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c4-p126000 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c48-p126000 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c6-p126000 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c64-p126000 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c8-p126000 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c12-p24512 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c12-p64512 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c12-p8512 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c12-p96512 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c24-p24512 | target_native_calibrated | True |
+| a3-qwen35-tp4-decode-c24-p64512 | target_native_calibrated | True |
+| a3-qwen35-tp4-decode-c24-p8512 | target_native_calibrated | True |
+| a3-qwen35-tp4-decode-c24-p96512 | target_native_calibrated | True |
+| a3-qwen35-tp4-decode-c2-p24512 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c2-p64512 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c2-p8512 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c2-p96512 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c6-p24512 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c6-p64512 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c6-p8512 | frozen_native_service_transfer | False |
+| a3-qwen35-tp4-decode-c6-p96512 | frozen_native_service_transfer | False |
+| a3-qwen36-tp2-decode-c1-p126000 | frozen_native_service_transfer | False |
+| a3-qwen36-tp2-decode-c12-p126000 | frozen_native_service_transfer | False |
+| a3-qwen36-tp2-decode-c16-p126000 | frozen_native_service_transfer | False |
+| a3-qwen36-tp2-decode-c2-p126000 | frozen_native_service_transfer | False |
+| a3-qwen36-tp2-decode-c24-p126000 | frozen_native_service_transfer | False |
+| a3-qwen36-tp2-decode-c4-p126000 | frozen_native_service_transfer | False |
+| a3-qwen36-tp2-decode-c6-p126000 | frozen_native_service_transfer | False |
+| a3-qwen36-tp2-decode-c8-p126000 | frozen_native_service_transfer | False |
+| a3-qwen36-tp2-decode-c12-p24512 | target_native_calibrated | True |
+| a3-qwen36-tp2-decode-c12-p64512 | target_native_calibrated | True |
+| a3-qwen36-tp2-decode-c12-p8512 | target_native_calibrated | True |
+| a3-qwen36-tp2-decode-c24-p24512 | target_native_calibrated | True |
+| a3-qwen36-tp2-decode-c24-p64512 | target_native_calibrated | True |
+| a3-qwen36-tp2-decode-c24-p8512 | target_native_calibrated | True |
+| a3-qwen36-tp2-decode-c2-p24512 | frozen_native_service_transfer | False |
+| a3-qwen36-tp2-decode-c2-p64512 | frozen_native_service_transfer | False |
+| a3-qwen36-tp2-decode-c2-p8512 | frozen_native_service_transfer | False |
+| a3-qwen36-tp2-decode-c2-p96512 | frozen_native_service_transfer | False |
+| a3-qwen36-tp2-decode-c6-p24512 | frozen_native_service_transfer | False |
+| a3-qwen36-tp2-decode-c6-p64512 | frozen_native_service_transfer | False |
+| a3-qwen36-tp2-decode-c6-p8512 | frozen_native_service_transfer | False |
+| a3-qwen36-tp2-decode-c6-p96512 | frozen_native_service_transfer | False |
+| a3-qwen36-tp4-decode-c1-p126000 | frozen_native_service_transfer | False |
+| a3-qwen36-tp4-decode-c12-p126000 | frozen_native_service_transfer | False |
+| a3-qwen36-tp4-decode-c16-p126000 | frozen_native_service_transfer | False |
+| a3-qwen36-tp4-decode-c2-p126000 | frozen_native_service_transfer | False |
+| a3-qwen36-tp4-decode-c24-p126000 | frozen_native_service_transfer | False |
+| a3-qwen36-tp4-decode-c4-p126000 | frozen_native_service_transfer | False |
+| a3-qwen36-tp4-decode-c6-p126000 | frozen_native_service_transfer | False |
+| a3-qwen36-tp4-decode-c8-p126000 | frozen_native_service_transfer | False |
+| a3-qwen38-tp2-decode-c1-p126000 | frozen_native_service_transfer | False |
+| a3-qwen38-tp2-decode-c12-p126000 | frozen_native_service_transfer | False |
+| a3-qwen38-tp2-decode-c16-p126000 | frozen_native_service_transfer | False |
+| a3-qwen38-tp2-decode-c2-p126000 | frozen_native_service_transfer | False |
+| a3-qwen38-tp2-decode-c4-p126000 | frozen_native_service_transfer | False |
+| a3-qwen38-tp2-decode-c6-p126000 | frozen_native_service_transfer | False |
+| a3-qwen38-tp2-decode-c8-p126000 | frozen_native_service_transfer | False |
+| a3-qwen38-tp4-decode-c1-p126000 | frozen_native_service_transfer | False |
+| a3-qwen38-tp4-decode-c12-p126000 | frozen_native_service_transfer | False |
+| a3-qwen38-tp4-decode-c16-p126000 | frozen_native_service_transfer | False |
+| a3-qwen38-tp4-decode-c2-p126000 | frozen_native_service_transfer | False |
+| a3-qwen38-tp4-decode-c24-p126000 | frozen_native_service_transfer | False |
+| a3-qwen38-tp4-decode-c32-p126000 | frozen_native_service_transfer | False |
+| a3-qwen38-tp4-decode-c4-p126000 | frozen_native_service_transfer | False |
+| a3-qwen38-tp4-decode-c6-p126000 | frozen_native_service_transfer | False |
+| a3-qwen38-tp4-decode-c8-p126000 | frozen_native_service_transfer | False |
+| a3-qwen38-tp4-decode-c12-p24512 | frozen_native_service_transfer | False |
+| a3-qwen38-tp4-decode-c12-p64512 | frozen_native_service_transfer | False |
+| a3-qwen38-tp4-decode-c12-p96512 | frozen_native_service_transfer | False |
+| a3-qwen38-tp4-decode-c24-p24512 | frozen_native_service_transfer | False |
+| a3-qwen38-tp4-decode-c24-p64512 | frozen_native_service_transfer | False |
+| a3-qwen38-tp4-decode-c24-p96512 | frozen_native_service_transfer | False |
+| a3-qwen38-tp4-decode-c2-p24512 | frozen_native_service_transfer | False |
+| a3-qwen38-tp4-decode-c2-p64512 | frozen_native_service_transfer | False |
+| a3-qwen38-tp4-decode-c2-p96512 | frozen_native_service_transfer | False |
+| a3-qwen38-tp4-decode-c6-p24512 | frozen_native_service_transfer | False |
+| a3-qwen38-tp4-decode-c6-p64512 | frozen_native_service_transfer | False |
+| a3-qwen38-tp4-decode-c6-p96512 | frozen_native_service_transfer | False |
 
 A Body pass with target-calibrated native rules is calibration evidence, not zero-shot generalization. Frozen native-family transfer scores remain separately reported in generalization.md.
 
@@ -675,25 +764,25 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 
 a3-qwen35-tp4-decode-c12-p96512: scored 72 / 72 calls; all-population pass: False.
 Context: retained_request_prompt_usage; representative 96512, bounds 96512–97024 tokens. The initial prompt is a conditional representative, not a per-step KV length. Token bounds describe the associated client run; cache/table capacities are not active context.
-| a3-qwen35-tp4-decode-c24-p24512 | 24 | 4 | 24512 | 66 | 35.550 / 35.558 / 35.723 | 30.551 | -14.06% | PASS |
-| a3-qwen35-tp4-decode-c24-p24512 | 24 | 4 | 24512 | 4 | 35.286 / 35.290 / 35.309 | 30.551 | -13.42% | PASS |
+| a3-qwen35-tp4-decode-c24-p24512 | 24 | 4 | 24512 | 66 | 35.550 / 35.558 / 35.723 | 26.891 | -24.36% | FAIL |
+| a3-qwen35-tp4-decode-c24-p24512 | 24 | 4 | 24512 | 4 | 35.286 / 35.290 / 35.309 | 26.891 | -23.79% | FAIL |
 | a3-qwen35-tp4-decode-c24-p24512 | 16 | 4 | 24512 | 2 | 29.030 / 29.030 / 29.088 | 22.779 | -21.53% | FAIL |
-| a3-qwen35-tp4-decode-c24-p24512 | 24 | 4 | 24512 | 1 | 35.290 / 35.290 / 35.290 | 30.551 | -13.43% | PASS |
-| a3-qwen35-tp4-decode-c24-p24512 | 24 | 4 | 24512 | 1 | 35.251 / 35.251 / 35.251 | 30.551 | -13.33% | PASS |
-| a3-qwen35-tp4-decode-c24-p24512 | 24 | 4 | 24512 | 1 | 32.578 / 32.578 / 32.578 | 30.551 | -6.22% | PASS |
-| a3-qwen35-tp4-decode-c24-p24512 | 24 | 4 | 24512 | 1 | 32.499 / 32.499 / 32.499 | 30.551 | -6.00% | PASS |
+| a3-qwen35-tp4-decode-c24-p24512 | 24 | 4 | 24512 | 1 | 35.290 / 35.290 / 35.290 | 26.891 | -23.80% | FAIL |
+| a3-qwen35-tp4-decode-c24-p24512 | 24 | 4 | 24512 | 1 | 35.251 / 35.251 / 35.251 | 26.891 | -23.72% | FAIL |
+| a3-qwen35-tp4-decode-c24-p24512 | 24 | 4 | 24512 | 1 | 32.578 / 32.578 / 32.578 | 26.891 | -17.46% | FAIL |
+| a3-qwen35-tp4-decode-c24-p24512 | 24 | 4 | 24512 | 1 | 32.499 / 32.499 / 32.499 | 26.891 | -17.26% | FAIL |
 
 a3-qwen35-tp4-decode-c24-p24512: scored 76 / 76 calls; all-population pass: False.
 Context: retained_request_prompt_usage; representative 24512, bounds 24512–25024 tokens. The initial prompt is a conditional representative, not a per-step KV length. Token bounds describe the associated client run; cache/table capacities are not active context.
-| a3-qwen35-tp4-decode-c24-p8512 | 24 | 4 | 8512 | 57 | 31.676 / 31.677 / 31.775 | 23.958 | -24.37% | FAIL |
-| a3-qwen35-tp4-decode-c24-p8512 | 24 | 4 | 8512 | 5 | 31.676 / 31.674 / 31.785 | 23.958 | -24.37% | FAIL |
+| a3-qwen35-tp4-decode-c24-p8512 | 24 | 4 | 8512 | 57 | 31.676 / 31.677 / 31.775 | 22.727 | -28.25% | FAIL |
+| a3-qwen35-tp4-decode-c24-p8512 | 24 | 4 | 8512 | 5 | 31.676 / 31.674 / 31.785 | 22.727 | -28.25% | FAIL |
 | a3-qwen35-tp4-decode-c24-p8512 | 1 | 4 | 8512 | 4 | 16.276 / 16.290 / 16.309 | 8.310 | -48.94% | FAIL |
 | a3-qwen35-tp4-decode-c24-p8512 | 8 | 4 | 8512 | 3 | 24.803 / 24.876 / 24.914 | 17.599 | -29.04% | FAIL |
-| a3-qwen35-tp4-decode-c24-p8512 | 24 | 4 | 8512 | 2 | 31.743 / 31.743 / 31.762 | 23.958 | -24.53% | FAIL |
+| a3-qwen35-tp4-decode-c24-p8512 | 24 | 4 | 8512 | 2 | 31.743 / 31.743 / 31.762 | 22.727 | -28.40% | FAIL |
 | a3-qwen35-tp4-decode-c24-p8512 | 6 | 4 | 8512 | 2 | 23.229 / 23.229 / 23.757 | 15.086 | -35.05% | FAIL |
 | a3-qwen35-tp4-decode-c24-p8512 | 4 | 4 | 8512 | 2 | 19.631 / 19.631 / 19.754 | 12.078 | -38.47% | FAIL |
-| a3-qwen35-tp4-decode-c24-p8512 | 24 | 4 | 8512 | 1 | 30.205 / 30.205 / 30.205 | 23.958 | -20.68% | FAIL |
-| a3-qwen35-tp4-decode-c24-p8512 | 24 | 4 | 8512 | 1 | 30.045 / 30.045 / 30.045 | 23.958 | -20.26% | FAIL |
+| a3-qwen35-tp4-decode-c24-p8512 | 24 | 4 | 8512 | 1 | 30.205 / 30.205 / 30.205 | 22.727 | -24.76% | FAIL |
+| a3-qwen35-tp4-decode-c24-p8512 | 24 | 4 | 8512 | 1 | 30.045 / 30.045 / 30.045 | 22.727 | -24.36% | FAIL |
 | a3-qwen35-tp4-decode-c24-p8512 | 16 | 4 | 8512 | 1 | 27.966 / 27.966 / 27.966 | 20.410 | -27.02% | FAIL |
 | a3-qwen35-tp4-decode-c24-p8512 | 12 | 4 | 8512 | 1 | 27.150 / 27.150 / 27.150 | 19.490 | -28.21% | FAIL |
 | a3-qwen35-tp4-decode-c24-p8512 | 12 | 4 | 8512 | 1 | 26.616 / 26.616 / 26.616 | 19.490 | -26.77% | FAIL |
@@ -1504,23 +1593,23 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3-qwen35-tp4-decode-c2-p126000 | 2 / 4 | gqa | 10 | 0.615 / 0.615 | 0.457 / 0.457 | -25.77% / -25.81% |
 | a3-qwen35-tp4-decode-c2-p126000 | 2 / 4 | moe_layer | 40 | 0.489 / 0.447 | 0.300 / 0.247 | -38.72% / -44.62% |
 | a3-qwen35-tp4-decode-c24-p126000 | 24 / 4 | gdn | 30 | 0.744 / 0.740 | 0.550 / 0.550 | -26.00% / -25.63% |
-| a3-qwen35-tp4-decode-c24-p126000 | 24 / 4 | gqa | 10 | 4.115 / 4.114 | 5.586 / 5.586 | +35.75% / +35.80% |
-| a3-qwen35-tp4-decode-c24-p126000 | 24 / 4 | moe_layer | 40 | 1.587 / 0.745 | 1.809 / 0.550 | +14.04% / -26.14% |
+| a3-qwen35-tp4-decode-c24-p126000 | 24 / 4 | gqa | 10 | 4.115 / 4.114 | 3.679 / 3.679 | -10.60% / -10.57% |
+| a3-qwen35-tp4-decode-c24-p126000 | 24 / 4 | moe_layer | 40 | 1.587 / 0.745 | 1.333 / 0.550 | -16.02% / -26.14% |
 | a3-qwen35-tp4-decode-c32-p126000 | 32 / 4 | gdn | 30 | 0.794 / 0.790 | 0.614 / 0.614 | -22.64% / -22.29% |
-| a3-qwen35-tp4-decode-c32-p126000 | 32 / 4 | gqa | 10 | 4.151 / 4.146 | 5.608 / 5.608 | +35.10% / +35.27% |
-| a3-qwen35-tp4-decode-c32-p126000 | 32 / 4 | moe_layer | 40 | 1.633 / 0.798 | 1.862 / 0.614 | +14.05% / -23.07% |
+| a3-qwen35-tp4-decode-c32-p126000 | 32 / 4 | gqa | 10 | 4.151 / 4.146 | 3.700 / 3.700 | -10.85% / -10.74% |
+| a3-qwen35-tp4-decode-c32-p126000 | 32 / 4 | moe_layer | 40 | 1.633 / 0.798 | 1.385 / 0.614 | -15.15% / -23.07% |
 | a3-qwen35-tp4-decode-c4-p126000 | 4 / 4 | gdn | 30 | 0.481 / 0.482 | 0.307 / 0.307 | -36.13% / -36.34% |
 | a3-qwen35-tp4-decode-c4-p126000 | 4 / 4 | gqa | 10 | 0.842 / 0.843 | 0.774 / 0.774 | -8.14% / -8.21% |
 | a3-qwen35-tp4-decode-c4-p126000 | 4 / 4 | moe_layer | 40 | 0.571 / 0.484 | 0.424 / 0.307 | -25.81% / -36.59% |
 | a3-qwen35-tp4-decode-c48-p126000 | 48 / 4 | gdn | 30 | 0.909 / 0.906 | 0.717 / 0.717 | -21.12% / -20.80% |
-| a3-qwen35-tp4-decode-c48-p126000 | 48 / 4 | gqa | 10 | 5.914 / 5.908 | 8.236 / 8.236 | +39.26% / +39.39% |
-| a3-qwen35-tp4-decode-c48-p126000 | 48 / 4 | moe_layer | 40 | 2.160 / 0.913 | 2.597 / 0.717 | +20.20% / -21.45% |
+| a3-qwen35-tp4-decode-c48-p126000 | 48 / 4 | gqa | 10 | 5.914 / 5.908 | 5.375 / 5.375 | -9.12% / -9.03% |
+| a3-qwen35-tp4-decode-c48-p126000 | 48 / 4 | moe_layer | 40 | 2.160 / 0.913 | 1.882 / 0.717 | -12.91% / -21.45% |
 | a3-qwen35-tp4-decode-c6-p126000 | 6 / 4 | gdn | 30 | 0.558 / 0.555 | 0.382 / 0.382 | -31.65% / -31.28% |
 | a3-qwen35-tp4-decode-c6-p126000 | 6 / 4 | gqa | 10 | 1.079 / 1.075 | 1.086 / 1.086 | +0.65% / +0.98% |
 | a3-qwen35-tp4-decode-c6-p126000 | 6 / 4 | moe_layer | 40 | 0.688 / 0.558 | 0.558 / 0.382 | -19.00% / -31.62% |
 | a3-qwen35-tp4-decode-c64-p126000 | 64 / 4 | gdn | 30 | 1.011 / 1.007 | 0.804 / 0.804 | -20.48% / -20.18% |
-| a3-qwen35-tp4-decode-c64-p126000 | 64 / 4 | gqa | 10 | 7.732 / 7.732 | 10.855 / 10.855 | +40.39% / +40.39% |
-| a3-qwen35-tp4-decode-c64-p126000 | 64 / 4 | moe_layer | 40 | 2.691 / 1.011 | 3.317 / 0.804 | +23.24% / -20.51% |
+| a3-qwen35-tp4-decode-c64-p126000 | 64 / 4 | gqa | 10 | 7.732 / 7.732 | 7.040 / 7.040 | -8.95% / -8.95% |
+| a3-qwen35-tp4-decode-c64-p126000 | 64 / 4 | moe_layer | 40 | 2.691 / 1.011 | 2.363 / 0.804 | -12.20% / -20.51% |
 | a3-qwen35-tp4-decode-c8-p126000 | 8 / 4 | gdn | 30 | 0.601 / 0.600 | 0.440 / 0.440 | -26.79% / -26.67% |
 | a3-qwen35-tp4-decode-c8-p126000 | 8 / 4 | gqa | 10 | 1.294 / 1.292 | 1.404 / 1.404 | +8.50% / +8.67% |
 | a3-qwen35-tp4-decode-c8-p126000 | 8 / 4 | moe_layer | 40 | 0.775 / 0.603 | 0.681 / 0.440 | -12.05% / -26.94% |
@@ -1645,35 +1734,35 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3-qwen35-tp4-decode-c12-p96512 | 3 / 4 | gqa | 10 | 0.655 / 0.658 | 0.524 / 0.524 | -20.04% / -20.45% |
 | a3-qwen35-tp4-decode-c12-p96512 | 3 / 4 | moe_layer | 40 | 0.516 / 0.474 | 0.338 / 0.277 | -34.36% / -41.68% |
 | a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | gdn | 30 | 0.752 / 0.747 | 0.550 / 0.550 | -26.84% / -26.34% |
-| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | gqa | 10 | 1.295 / 1.295 | 1.404 / 1.404 | +8.39% / +8.43% |
-| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | moe_layer | 40 | 0.888 / 0.755 | 0.764 / 0.550 | -14.00% / -27.08% |
+| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | gqa | 10 | 1.295 / 1.295 | 1.038 / 1.038 | -19.87% / -19.85% |
+| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | moe_layer | 40 | 0.888 / 0.755 | 0.672 / 0.550 | -24.30% / -27.08% |
 | a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | gdn | 30 | 0.745 / 0.742 | 0.550 / 0.550 | -26.07% / -25.83% |
-| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | gqa | 10 | 1.292 / 1.291 | 1.404 / 1.404 | +8.62% / +8.71% |
-| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | moe_layer | 40 | 0.881 / 0.749 | 0.764 / 0.550 | -13.35% / -26.50% |
+| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | gqa | 10 | 1.292 / 1.291 | 1.038 / 1.038 | -19.70% / -19.64% |
+| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | moe_layer | 40 | 0.881 / 0.749 | 0.672 / 0.550 | -23.73% / -26.50% |
 | a3-qwen35-tp4-decode-c24-p24512 | 16 / 4 | gdn | 30 | 0.680 / 0.676 | 0.498 / 0.498 | -26.83% / -26.36% |
 | a3-qwen35-tp4-decode-c24-p24512 | 16 / 4 | gqa | 10 | 0.860 / 0.859 | 0.785 / 0.785 | -8.69% / -8.56% |
 | a3-qwen35-tp4-decode-c24-p24512 | 16 / 4 | moe_layer | 40 | 0.725 / 0.682 | 0.569 / 0.498 | -21.46% / -27.02% |
 | a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | gdn | 30 | 0.747 / 0.742 | 0.550 / 0.550 | -26.27% / -25.83% |
-| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | gqa | 10 | 1.287 / 1.290 | 1.404 / 1.404 | +9.08% / +8.83% |
-| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | moe_layer | 40 | 0.882 / 0.748 | 0.764 / 0.550 | -13.37% / -26.45% |
+| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | gqa | 10 | 1.287 / 1.290 | 1.038 / 1.038 | -19.36% / -19.55% |
+| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | moe_layer | 40 | 0.882 / 0.748 | 0.672 / 0.550 | -23.75% / -26.45% |
 | a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | gdn | 30 | 0.745 / 0.743 | 0.550 / 0.550 | -26.14% / -25.87% |
-| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | gqa | 10 | 1.286 / 1.290 | 1.404 / 1.404 | +9.11% / +8.84% |
-| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | moe_layer | 40 | 0.881 / 0.747 | 0.764 / 0.550 | -13.27% / -26.34% |
+| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | gqa | 10 | 1.286 / 1.290 | 1.038 / 1.038 | -19.34% / -19.54% |
+| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | moe_layer | 40 | 0.881 / 0.747 | 0.672 / 0.550 | -23.66% / -26.34% |
 | a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | gdn | 30 | 0.728 / 0.728 | 0.550 / 0.550 | -24.34% / -24.41% |
-| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | gqa | 10 | 1.072 / 1.071 | 1.404 / 1.404 | +30.88% / +31.07% |
-| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | moe_layer | 40 | 0.814 / 0.731 | 0.764 / 0.550 | -6.14% / -24.75% |
+| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | gqa | 10 | 1.072 / 1.071 | 1.038 / 1.038 | -3.25% / -3.10% |
+| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | moe_layer | 40 | 0.814 / 0.731 | 0.672 / 0.550 | -17.39% / -24.75% |
 | a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | gdn | 30 | 0.731 / 0.726 | 0.550 / 0.550 | -24.67% / -24.19% |
-| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | gqa | 10 | 1.055 / 1.057 | 1.404 / 1.404 | +33.05% / +32.80% |
-| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | moe_layer | 40 | 0.812 / 0.732 | 0.764 / 0.550 | -5.91% / -24.85% |
+| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | gqa | 10 | 1.055 / 1.057 | 1.038 / 1.038 | -1.64% / -1.83% |
+| a3-qwen35-tp4-decode-c24-p24512 | 24 / 4 | moe_layer | 40 | 0.812 / 0.732 | 0.672 / 0.550 | -17.19% / -24.85% |
 | a3-qwen35-tp4-decode-c24-p64512 | 24 / 4 | gdn | 30 | 0.748 / 0.745 | 0.550 / 0.550 | -26.38% / -26.08% |
-| a3-qwen35-tp4-decode-c24-p64512 | 24 / 4 | gqa | 10 | 2.241 / 2.240 | 3.052 / 3.052 | +36.20% / +36.25% |
-| a3-qwen35-tp4-decode-c24-p64512 | 24 / 4 | moe_layer | 40 | 1.121 / 0.753 | 1.176 / 0.550 | +4.89% / -26.88% |
+| a3-qwen35-tp4-decode-c24-p64512 | 24 / 4 | gqa | 10 | 2.241 / 2.240 | 2.079 / 2.079 | -7.24% / -7.21% |
+| a3-qwen35-tp4-decode-c24-p64512 | 24 / 4 | moe_layer | 40 | 1.121 / 0.753 | 0.933 / 0.550 | -16.82% / -26.88% |
 | a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | gdn | 30 | 0.748 / 0.745 | 0.550 / 0.550 | -26.36% / -26.12% |
-| a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | gqa | 10 | 0.922 / 0.919 | 0.744 / 0.744 | -19.29% / -19.03% |
-| a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | moe_layer | 40 | 0.791 / 0.754 | 0.599 / 0.550 | -24.30% / -26.96% |
+| a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | gqa | 10 | 0.922 / 0.919 | 0.621 / 0.621 | -32.64% / -32.42% |
+| a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | moe_layer | 40 | 0.791 / 0.754 | 0.568 / 0.550 | -28.19% / -26.96% |
 | a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | gdn | 30 | 0.746 / 0.746 | 0.550 / 0.550 | -26.21% / -26.18% |
-| a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | gqa | 10 | 0.927 / 0.925 | 0.744 / 0.744 | -19.69% / -19.53% |
-| a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | moe_layer | 40 | 0.791 / 0.752 | 0.599 / 0.550 | -24.30% / -26.79% |
+| a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | gqa | 10 | 0.927 / 0.925 | 0.621 / 0.621 | -32.97% / -32.84% |
+| a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | moe_layer | 40 | 0.791 / 0.752 | 0.568 / 0.550 | -28.19% / -26.79% |
 | a3-qwen35-tp4-decode-c24-p8512 | 1 / 4 | gdn | 30 | 0.405 / 0.406 | 0.218 / 0.218 | -46.14% / -46.23% |
 | a3-qwen35-tp4-decode-c24-p8512 | 1 / 4 | gqa | 10 | 0.409 / 0.410 | 0.176 / 0.176 | -56.94% / -57.05% |
 | a3-qwen35-tp4-decode-c24-p8512 | 1 / 4 | moe_layer | 40 | 0.406 / 0.407 | 0.208 / 0.218 | -48.86% / -46.30% |
@@ -1681,8 +1770,8 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3-qwen35-tp4-decode-c24-p8512 | 8 / 4 | gqa | 10 | 0.645 / 0.643 | 0.439 / 0.439 | -31.92% / -31.72% |
 | a3-qwen35-tp4-decode-c24-p8512 | 8 / 4 | moe_layer | 40 | 0.619 / 0.612 | 0.440 / 0.440 | -28.97% / -28.07% |
 | a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | gdn | 30 | 0.748 / 0.746 | 0.550 / 0.550 | -26.39% / -26.16% |
-| a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | gqa | 10 | 0.928 / 0.923 | 0.744 / 0.744 | -19.80% / -19.35% |
-| a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | moe_layer | 40 | 0.793 / 0.752 | 0.599 / 0.550 | -24.46% / -26.80% |
+| a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | gqa | 10 | 0.928 / 0.923 | 0.621 / 0.621 | -33.06% / -32.68% |
+| a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | moe_layer | 40 | 0.793 / 0.752 | 0.568 / 0.550 | -28.34% / -26.80% |
 | a3-qwen35-tp4-decode-c24-p8512 | 6 / 4 | gdn | 30 | 0.576 / 0.561 | 0.382 / 0.382 | -33.77% / -31.91% |
 | a3-qwen35-tp4-decode-c24-p8512 | 6 / 4 | gqa | 10 | 0.592 / 0.590 | 0.364 / 0.364 | -38.55% / -38.42% |
 | a3-qwen35-tp4-decode-c24-p8512 | 6 / 4 | moe_layer | 40 | 0.580 / 0.566 | 0.377 / 0.382 | -34.99% / -32.55% |
@@ -1690,11 +1779,11 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3-qwen35-tp4-decode-c24-p8512 | 4 / 4 | gqa | 10 | 0.503 / 0.503 | 0.287 / 0.287 | -42.96% / -42.96% |
 | a3-qwen35-tp4-decode-c24-p8512 | 4 / 4 | moe_layer | 40 | 0.490 / 0.485 | 0.302 / 0.307 | -38.39% / -36.66% |
 | a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | gdn | 30 | 0.727 / 0.725 | 0.550 / 0.550 | -24.26% / -24.05% |
-| a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | gqa | 10 | 0.838 / 0.838 | 0.744 / 0.744 | -11.14% / -11.20% |
-| a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | moe_layer | 40 | 0.754 / 0.730 | 0.599 / 0.550 | -20.62% / -24.59% |
+| a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | gqa | 10 | 0.838 / 0.838 | 0.621 / 0.621 | -25.84% / -25.89% |
+| a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | moe_layer | 40 | 0.754 / 0.730 | 0.568 / 0.550 | -24.69% / -24.59% |
 | a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | gdn | 30 | 0.725 / 0.725 | 0.550 / 0.550 | -24.05% / -24.07% |
-| a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | gqa | 10 | 0.828 / 0.824 | 0.744 / 0.744 | -10.06% / -9.68% |
-| a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | moe_layer | 40 | 0.751 / 0.729 | 0.599 / 0.550 | -20.20% / -24.50% |
+| a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | gqa | 10 | 0.828 / 0.824 | 0.621 / 0.621 | -24.94% / -24.62% |
+| a3-qwen35-tp4-decode-c24-p8512 | 24 / 4 | moe_layer | 40 | 0.751 / 0.729 | 0.568 / 0.550 | -24.30% / -24.50% |
 | a3-qwen35-tp4-decode-c24-p8512 | 16 / 4 | gdn | 30 | 0.674 / 0.674 | 0.498 / 0.498 | -26.18% / -26.16% |
 | a3-qwen35-tp4-decode-c24-p8512 | 16 / 4 | gqa | 10 | 0.772 / 0.773 | 0.548 / 0.548 | -28.98% / -29.05% |
 | a3-qwen35-tp4-decode-c24-p8512 | 16 / 4 | moe_layer | 40 | 0.699 / 0.680 | 0.510 / 0.498 | -26.95% / -26.84% |
@@ -1708,8 +1797,8 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3-qwen35-tp4-decode-c24-p8512 | 12 / 4 | gqa | 10 | 0.745 / 0.745 | 0.542 / 0.542 | -27.32% / -27.27% |
 | a3-qwen35-tp4-decode-c24-p8512 | 12 / 4 | moe_layer | 40 | 0.662 / 0.637 | 0.487 / 0.469 | -26.39% / -26.32% |
 | a3-qwen35-tp4-decode-c24-p96512 | 24 / 4 | gdn | 30 | 0.746 / 0.743 | 0.550 / 0.550 | -26.20% / -25.88% |
-| a3-qwen35-tp4-decode-c24-p96512 | 24 / 4 | gqa | 10 | 3.249 / 3.255 | 4.371 / 4.371 | +34.53% / +34.28% |
-| a3-qwen35-tp4-decode-c24-p96512 | 24 / 4 | moe_layer | 40 | 1.372 / 0.748 | 1.506 / 0.550 | +9.76% / -26.42% |
+| a3-qwen35-tp4-decode-c24-p96512 | 24 / 4 | gqa | 10 | 3.249 / 3.255 | 2.911 / 2.911 | -10.39% / -10.56% |
+| a3-qwen35-tp4-decode-c24-p96512 | 24 / 4 | moe_layer | 40 | 1.372 / 0.748 | 1.141 / 0.550 | -16.84% / -26.42% |
 | a3-qwen35-tp4-decode-c2-p24512 | 1 / 4 | gdn | 30 | 0.413 / 0.408 | 0.218 / 0.218 | -47.13% / -46.47% |
 | a3-qwen35-tp4-decode-c2-p24512 | 1 / 4 | gqa | 10 | 0.428 / 0.429 | 0.197 / 0.197 | -54.01% / -54.09% |
 | a3-qwen35-tp4-decode-c2-p24512 | 1 / 4 | moe_layer | 40 | 0.417 / 0.410 | 0.213 / 0.218 | -48.90% / -46.73% |
@@ -1795,17 +1884,17 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3-qwen36-tp2-decode-c1-p126000 | 1 / 4 | gqa | 16 | 0.607 / 0.606 | 0.510 / 0.510 | -15.94% / -15.85% |
 | a3-qwen36-tp2-decode-c1-p126000 | 1 / 4 | dense_layer | 64 | 0.429 / 0.371 | 0.360 / 0.310 | -16.04% / -16.41% |
 | a3-qwen36-tp2-decode-c12-p126000 | 12 / 4 | gdn | 48 | 0.600 / 0.600 | 0.538 / 0.538 | -10.37% / -10.25% |
-| a3-qwen36-tp2-decode-c12-p126000 | 12 / 4 | gqa | 16 | 4.006 / 4.006 | 5.651 / 5.651 | +41.05% / +41.07% |
-| a3-qwen36-tp2-decode-c12-p126000 | 12 / 4 | dense_layer | 64 | 1.452 / 0.603 | 1.816 / 0.538 | +25.10% / -10.70% |
+| a3-qwen36-tp2-decode-c12-p126000 | 12 / 4 | gqa | 16 | 4.006 / 4.006 | 3.801 / 3.801 | -5.12% / -5.11% |
+| a3-qwen36-tp2-decode-c12-p126000 | 12 / 4 | dense_layer | 64 | 1.452 / 0.603 | 1.354 / 0.538 | -6.75% / -10.70% |
 | a3-qwen36-tp2-decode-c16-p126000 | 16 / 4 | gdn | 48 | 0.666 / 0.666 | 0.615 / 0.615 | -7.77% / -7.65% |
-| a3-qwen36-tp2-decode-c16-p126000 | 16 / 4 | gqa | 16 | 4.025 / 4.023 | 5.678 / 5.678 | +41.07% / +41.14% |
-| a3-qwen36-tp2-decode-c16-p126000 | 16 / 4 | dense_layer | 64 | 1.506 / 0.669 | 1.880 / 0.615 | +24.87% / -8.13% |
+| a3-qwen36-tp2-decode-c16-p126000 | 16 / 4 | gqa | 16 | 4.025 / 4.023 | 3.828 / 3.828 | -4.89% / -4.84% |
+| a3-qwen36-tp2-decode-c16-p126000 | 16 / 4 | dense_layer | 64 | 1.506 / 0.669 | 1.418 / 0.615 | -5.84% / -8.13% |
 | a3-qwen36-tp2-decode-c2-p126000 | 2 / 4 | gdn | 48 | 0.408 / 0.405 | 0.335 / 0.335 | -17.72% / -17.23% |
 | a3-qwen36-tp2-decode-c2-p126000 | 2 / 4 | gqa | 16 | 0.775 / 0.775 | 0.786 / 0.786 | +1.37% / +1.36% |
 | a3-qwen36-tp2-decode-c2-p126000 | 2 / 4 | dense_layer | 64 | 0.500 / 0.408 | 0.448 / 0.335 | -10.31% / -17.74% |
 | a3-qwen36-tp2-decode-c24-p126000 | 24 / 4 | gdn | 48 | 0.796 / 0.795 | 0.781 / 0.781 | -1.86% / -1.74% |
-| a3-qwen36-tp2-decode-c24-p126000 | 24 / 4 | gqa | 16 | 5.902 / 5.902 | 8.406 / 8.406 | +42.41% / +42.42% |
-| a3-qwen36-tp2-decode-c24-p126000 | 24 / 4 | dense_layer | 64 | 2.073 / 0.797 | 2.687 / 0.781 | +29.66% / -1.94% |
+| a3-qwen36-tp2-decode-c24-p126000 | 24 / 4 | gqa | 16 | 5.902 / 5.902 | 5.631 / 5.631 | -4.60% / -4.60% |
+| a3-qwen36-tp2-decode-c24-p126000 | 24 / 4 | dense_layer | 64 | 2.073 / 0.797 | 1.994 / 0.781 | -3.81% / -1.94% |
 | a3-qwen36-tp2-decode-c4-p126000 | 4 / 4 | gdn | 48 | 0.459 / 0.461 | 0.373 / 0.373 | -18.87% / -19.13% |
 | a3-qwen36-tp2-decode-c4-p126000 | 4 / 4 | gqa | 16 | 1.171 / 1.170 | 1.331 / 1.331 | +13.66% / +13.70% |
 | a3-qwen36-tp2-decode-c4-p126000 | 4 / 4 | dense_layer | 64 | 0.637 / 0.464 | 0.612 / 0.373 | -3.93% / -19.68% |
@@ -1816,23 +1905,23 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3-qwen36-tp2-decode-c8-p126000 | 8 / 4 | gqa | 16 | 1.959 / 1.960 | 2.421 / 2.421 | +23.60% / +23.53% |
 | a3-qwen36-tp2-decode-c8-p126000 | 8 / 4 | dense_layer | 64 | 0.880 / 0.522 | 0.942 / 0.449 | +7.08% / -13.95% |
 | a3-qwen36-tp2-decode-c12-p24512 | 12 / 4 | gdn | 48 | 0.602 / 0.601 | 0.538 / 0.538 | -10.62% / -10.53% |
-| a3-qwen36-tp2-decode-c12-p24512 | 12 / 4 | gqa | 16 | 1.056 / 1.056 | 1.345 / 1.345 | +27.37% / +27.39% |
-| a3-qwen36-tp2-decode-c12-p24512 | 12 / 4 | dense_layer | 64 | 0.716 / 0.603 | 0.740 / 0.538 | +3.40% / -10.72% |
+| a3-qwen36-tp2-decode-c12-p24512 | 12 / 4 | gqa | 16 | 1.056 / 1.056 | 0.985 / 0.985 | -6.80% / -6.78% |
+| a3-qwen36-tp2-decode-c12-p24512 | 12 / 4 | dense_layer | 64 | 0.716 / 0.603 | 0.650 / 0.538 | -9.21% / -10.72% |
 | a3-qwen36-tp2-decode-c12-p64512 | 12 / 4 | gdn | 48 | 0.601 / 0.600 | 0.538 / 0.538 | -10.50% / -10.27% |
-| a3-qwen36-tp2-decode-c12-p64512 | 12 / 4 | gqa | 16 | 2.170 / 2.170 | 3.043 / 3.043 | +40.22% / +40.23% |
-| a3-qwen36-tp2-decode-c12-p64512 | 12 / 4 | dense_layer | 64 | 0.993 / 0.604 | 1.164 / 0.538 | +17.20% / -10.88% |
+| a3-qwen36-tp2-decode-c12-p64512 | 12 / 4 | gqa | 16 | 2.170 / 2.170 | 2.095 / 2.095 | -3.46% / -3.46% |
+| a3-qwen36-tp2-decode-c12-p64512 | 12 / 4 | dense_layer | 64 | 0.993 / 0.604 | 0.927 / 0.538 | -6.65% / -10.88% |
 | a3-qwen36-tp2-decode-c12-p8512 | 12 / 4 | gdn | 48 | 0.602 / 0.601 | 0.538 / 0.538 | -10.58% / -10.43% |
-| a3-qwen36-tp2-decode-c12-p8512 | 12 / 4 | gqa | 16 | 0.687 / 0.686 | 0.667 / 0.667 | -2.93% / -2.83% |
-| a3-qwen36-tp2-decode-c12-p8512 | 12 / 4 | dense_layer | 64 | 0.623 / 0.603 | 0.570 / 0.538 | -8.48% / -10.71% |
+| a3-qwen36-tp2-decode-c12-p8512 | 12 / 4 | gqa | 16 | 0.687 / 0.686 | 0.540 / 0.540 | -21.32% / -21.23% |
+| a3-qwen36-tp2-decode-c12-p8512 | 12 / 4 | dense_layer | 64 | 0.623 / 0.603 | 0.539 / 0.538 | -13.54% / -10.71% |
 | a3-qwen36-tp2-decode-c24-p24512 | 24 / 4 | gdn | 48 | 0.797 / 0.797 | 0.781 / 0.781 | -1.91% / -1.92% |
-| a3-qwen36-tp2-decode-c24-p24512 | 24 / 4 | gqa | 16 | 1.410 / 1.407 | 1.947 / 1.947 | +38.11% / +38.41% |
-| a3-qwen36-tp2-decode-c24-p24512 | 24 / 4 | dense_layer | 64 | 0.950 / 0.798 | 1.073 / 0.781 | +12.94% / -2.03% |
+| a3-qwen36-tp2-decode-c24-p24512 | 24 / 4 | gqa | 16 | 1.410 / 1.407 | 1.406 / 1.406 | -0.29% / -0.08% |
+| a3-qwen36-tp2-decode-c24-p24512 | 24 / 4 | dense_layer | 64 | 0.950 / 0.798 | 0.937 / 0.781 | -1.31% / -2.03% |
 | a3-qwen36-tp2-decode-c24-p64512 | 24 / 4 | gdn | 48 | 0.796 / 0.796 | 0.781 / 0.781 | -1.83% / -1.80% |
-| a3-qwen36-tp2-decode-c24-p64512 | 24 / 4 | gqa | 16 | 3.052 / 3.053 | 4.493 / 4.493 | +47.21% / +47.19% |
-| a3-qwen36-tp2-decode-c24-p64512 | 24 / 4 | dense_layer | 64 | 1.360 / 0.797 | 1.709 / 0.781 | +25.68% / -1.97% |
+| a3-qwen36-tp2-decode-c24-p64512 | 24 / 4 | gqa | 16 | 3.052 / 3.053 | 3.071 / 3.071 | +0.62% / +0.60% |
+| a3-qwen36-tp2-decode-c24-p64512 | 24 / 4 | dense_layer | 64 | 1.360 / 0.797 | 1.354 / 0.781 | -0.45% / -1.97% |
 | a3-qwen36-tp2-decode-c24-p8512 | 24 / 4 | gdn | 48 | 0.796 / 0.796 | 0.781 / 0.781 | -1.90% / -1.85% |
-| a3-qwen36-tp2-decode-c24-p8512 | 24 / 4 | gqa | 16 | 0.868 / 0.868 | 0.929 / 0.929 | +7.09% / +7.08% |
-| a3-qwen36-tp2-decode-c24-p8512 | 24 / 4 | dense_layer | 64 | 0.814 / 0.798 | 0.818 / 0.781 | +0.50% / -2.05% |
+| a3-qwen36-tp2-decode-c24-p8512 | 24 / 4 | gqa | 16 | 0.868 / 0.868 | 0.740 / 0.740 | -14.75% / -14.76% |
+| a3-qwen36-tp2-decode-c24-p8512 | 24 / 4 | dense_layer | 64 | 0.814 / 0.798 | 0.771 / 0.781 | -5.32% / -2.05% |
 | a3-qwen36-tp2-decode-c2-p24512 | 2 / 4 | gdn | 48 | 0.410 / 0.409 | 0.335 / 0.335 | -18.26% / -18.00% |
 | a3-qwen36-tp2-decode-c2-p24512 | 2 / 4 | gqa | 16 | 0.436 / 0.436 | 0.350 / 0.350 | -19.79% / -19.65% |
 | a3-qwen36-tp2-decode-c2-p24512 | 2 / 4 | dense_layer | 64 | 0.417 / 0.412 | 0.339 / 0.335 | -18.66% / -18.59% |
@@ -1906,8 +1995,8 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3-qwen36-tp4-decode-c2-p126000 | 2 / 4 | gqa | 16 | 0.482 / 0.474 | 0.453 / 0.453 | -6.01% / -4.47% |
 | a3-qwen36-tp4-decode-c2-p126000 | 2 / 4 | dense_layer | 64 | 0.341 / 0.295 | 0.285 / 0.229 | -16.35% / -22.22% |
 | a3-qwen36-tp4-decode-c24-p126000 | 24 / 4 | gdn | 48 | 0.551 / 0.550 | 0.481 / 0.481 | -12.72% / -12.68% |
-| a3-qwen36-tp4-decode-c24-p126000 | 24 / 4 | gqa | 16 | 3.910 / 3.910 | 5.614 / 5.614 | +43.59% / +43.60% |
-| a3-qwen36-tp4-decode-c24-p126000 | 24 / 4 | dense_layer | 64 | 1.390 / 0.553 | 1.764 / 0.481 | +26.86% / -13.08% |
+| a3-qwen36-tp4-decode-c24-p126000 | 24 / 4 | gqa | 16 | 3.910 / 3.910 | 3.764 / 3.764 | -3.72% / -3.72% |
+| a3-qwen36-tp4-decode-c24-p126000 | 24 / 4 | dense_layer | 64 | 1.390 / 0.553 | 1.302 / 0.481 | -6.40% / -13.08% |
 | a3-qwen36-tp4-decode-c4-p126000 | 4 / 4 | gdn | 48 | 0.646 / 0.332 | 0.257 / 0.257 | -60.26% / -22.60% |
 | a3-qwen36-tp4-decode-c4-p126000 | 4 / 4 | gqa | 16 | 0.682 / 0.675 | 0.731 / 0.731 | +7.19% / +8.35% |
 | a3-qwen36-tp4-decode-c4-p126000 | 4 / 4 | dense_layer | 64 | 0.655 / 0.336 | 0.375 / 0.257 | -42.70% / -23.74% |
@@ -1921,11 +2010,11 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3-qwen38-tp2-decode-c1-p126000 | 1 / 4 | gqa | 16 | 0.611 / 0.607 | 0.510 / 0.510 | -16.49% / -16.07% |
 | a3-qwen38-tp2-decode-c1-p126000 | 1 / 4 | dense_layer | 64 | 0.430 / 0.371 | 0.360 / 0.310 | -16.15% / -16.40% |
 | a3-qwen38-tp2-decode-c12-p126000 | 12 / 4 | gdn | 48 | 0.600 / 0.599 | 0.538 / 0.538 | -10.26% / -10.20% |
-| a3-qwen38-tp2-decode-c12-p126000 | 12 / 4 | gqa | 16 | 4.025 / 4.010 | 5.651 / 5.651 | +40.40% / +40.94% |
-| a3-qwen38-tp2-decode-c12-p126000 | 12 / 4 | dense_layer | 64 | 1.456 / 0.601 | 1.816 / 0.538 | +24.75% / -10.48% |
+| a3-qwen38-tp2-decode-c12-p126000 | 12 / 4 | gqa | 16 | 4.025 / 4.010 | 3.801 / 3.801 | -5.56% / -5.20% |
+| a3-qwen38-tp2-decode-c12-p126000 | 12 / 4 | dense_layer | 64 | 1.456 / 0.601 | 1.354 / 0.538 | -7.01% / -10.48% |
 | a3-qwen38-tp2-decode-c16-p126000 | 16 / 4 | gdn | 48 | 0.661 / 0.661 | 0.615 / 0.615 | -7.02% / -7.05% |
-| a3-qwen38-tp2-decode-c16-p126000 | 16 / 4 | gqa | 16 | 4.030 / 4.029 | 5.678 / 5.678 | +40.89% / +40.93% |
-| a3-qwen38-tp2-decode-c16-p126000 | 16 / 4 | dense_layer | 64 | 1.503 / 0.663 | 1.880 / 0.615 | +25.09% / -7.32% |
+| a3-qwen38-tp2-decode-c16-p126000 | 16 / 4 | gqa | 16 | 4.030 / 4.029 | 3.828 / 3.828 | -5.01% / -4.99% |
+| a3-qwen38-tp2-decode-c16-p126000 | 16 / 4 | dense_layer | 64 | 1.503 / 0.663 | 1.418 / 0.615 | -5.68% / -7.32% |
 | a3-qwen38-tp2-decode-c2-p126000 | 2 / 4 | gdn | 48 | 0.408 / 0.407 | 0.335 / 0.335 | -17.80% / -17.65% |
 | a3-qwen38-tp2-decode-c2-p126000 | 2 / 4 | gqa | 16 | 0.780 / 0.778 | 0.786 / 0.786 | +0.77% / +1.03% |
 | a3-qwen38-tp2-decode-c2-p126000 | 2 / 4 | dense_layer | 64 | 0.501 / 0.410 | 0.448 / 0.335 | -10.57% / -18.17% |
@@ -1951,11 +2040,11 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3-qwen38-tp4-decode-c2-p126000 | 2 / 4 | gqa | 16 | 0.476 / 0.475 | 0.453 / 0.453 | -4.87% / -4.52% |
 | a3-qwen38-tp4-decode-c2-p126000 | 2 / 4 | dense_layer | 64 | 0.340 / 0.296 | 0.285 / 0.229 | -16.13% / -22.49% |
 | a3-qwen38-tp4-decode-c24-p126000 | 24 / 4 | gdn | 48 | 0.554 / 0.553 | 0.481 / 0.481 | -13.17% / -13.09% |
-| a3-qwen38-tp4-decode-c24-p126000 | 24 / 4 | gqa | 16 | 3.899 / 3.896 | 5.614 / 5.614 | +44.01% / +44.11% |
-| a3-qwen38-tp4-decode-c24-p126000 | 24 / 4 | dense_layer | 64 | 1.390 / 0.555 | 1.764 / 0.481 | +26.93% / -13.36% |
+| a3-qwen38-tp4-decode-c24-p126000 | 24 / 4 | gqa | 16 | 3.899 / 3.896 | 3.764 / 3.764 | -3.44% / -3.37% |
+| a3-qwen38-tp4-decode-c24-p126000 | 24 / 4 | dense_layer | 64 | 1.390 / 0.555 | 1.302 / 0.481 | -6.35% / -13.36% |
 | a3-qwen38-tp4-decode-c32-p126000 | 32 / 4 | gdn | 48 | 0.623 / 0.623 | 0.568 / 0.568 | -8.91% / -8.86% |
-| a3-qwen38-tp4-decode-c32-p126000 | 32 / 4 | gqa | 16 | 3.962 / 3.964 | 5.650 / 5.650 | +42.59% / +42.55% |
-| a3-qwen38-tp4-decode-c32-p126000 | 32 / 4 | dense_layer | 64 | 1.458 / 0.624 | 1.838 / 0.568 | +26.08% / -9.02% |
+| a3-qwen38-tp4-decode-c32-p126000 | 32 / 4 | gqa | 16 | 3.962 / 3.964 | 3.800 / 3.800 | -4.10% / -4.13% |
+| a3-qwen38-tp4-decode-c32-p126000 | 32 / 4 | dense_layer | 64 | 1.458 / 0.624 | 1.376 / 0.568 | -5.64% / -9.02% |
 | a3-qwen38-tp4-decode-c4-p126000 | 4 / 4 | gdn | 48 | 0.332 / 0.331 | 0.257 / 0.257 | -22.79% / -22.37% |
 | a3-qwen38-tp4-decode-c4-p126000 | 4 / 4 | gqa | 16 | 0.676 / 0.675 | 0.731 / 0.731 | +8.18% / +8.35% |
 | a3-qwen38-tp4-decode-c4-p126000 | 4 / 4 | dense_layer | 64 | 0.418 / 0.335 | 0.375 / 0.257 | -10.28% / -23.29% |
@@ -2017,14 +2106,14 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3-qwen38-tp4-decode-c12-p96512 | 12 / 4 | gqa | 16 | 1.098 / 1.100 | 1.457 / 1.457 | +32.64% / +32.48% |
 | a3-qwen38-tp4-decode-c12-p96512 | 12 / 4 | dense_layer | 64 | 0.593 / 0.427 | 0.620 / 0.340 | +4.55% / -20.28% |
 | a3-qwen38-tp4-decode-c24-p24512 | 24 / 4 | gdn | 48 | 0.556 / 0.555 | 0.481 / 0.481 | -13.61% / -13.45% |
-| a3-qwen38-tp4-decode-c24-p24512 | 24 / 4 | gqa | 16 | 1.055 / 1.056 | 1.309 / 1.309 | +24.00% / +23.94% |
-| a3-qwen38-tp4-decode-c24-p24512 | 24 / 4 | dense_layer | 64 | 0.681 / 0.557 | 0.688 / 0.481 | +0.96% / -13.68% |
+| a3-qwen38-tp4-decode-c24-p24512 | 24 / 4 | gqa | 16 | 1.055 / 1.056 | 0.948 / 0.948 | -10.19% / -10.24% |
+| a3-qwen38-tp4-decode-c24-p24512 | 24 / 4 | dense_layer | 64 | 0.681 / 0.557 | 0.597 / 0.481 | -12.29% / -13.68% |
 | a3-qwen38-tp4-decode-c24-p64512 | 24 / 4 | gdn | 48 | 0.556 / 0.555 | 0.481 / 0.481 | -13.50% / -13.48% |
-| a3-qwen38-tp4-decode-c24-p64512 | 24 / 4 | gqa | 16 | 2.088 / 2.087 | 3.006 / 3.006 | +43.98% / +44.02% |
-| a3-qwen38-tp4-decode-c24-p64512 | 24 / 4 | dense_layer | 64 | 0.939 / 0.556 | 1.112 / 0.481 | +18.46% / -13.58% |
+| a3-qwen38-tp4-decode-c24-p64512 | 24 / 4 | gqa | 16 | 2.088 / 2.087 | 2.058 / 2.058 | -1.43% / -1.40% |
+| a3-qwen38-tp4-decode-c24-p64512 | 24 / 4 | dense_layer | 64 | 0.939 / 0.556 | 0.875 / 0.481 | -6.79% / -13.58% |
 | a3-qwen38-tp4-decode-c24-p96512 | 24 / 4 | gdn | 48 | 0.555 / 0.554 | 0.481 / 0.481 | -13.34% / -13.30% |
-| a3-qwen38-tp4-decode-c24-p96512 | 24 / 4 | gqa | 16 | 3.031 / 3.033 | 4.363 / 4.363 | +43.95% / +43.85% |
-| a3-qwen38-tp4-decode-c24-p96512 | 24 / 4 | dense_layer | 64 | 1.174 / 0.556 | 1.451 / 0.481 | +23.65% / -13.50% |
+| a3-qwen38-tp4-decode-c24-p96512 | 24 / 4 | gqa | 16 | 3.031 / 3.033 | 2.946 / 2.946 | -2.81% / -2.87% |
+| a3-qwen38-tp4-decode-c24-p96512 | 24 / 4 | dense_layer | 64 | 1.174 / 0.556 | 1.097 / 0.481 | -6.54% / -13.50% |
 | a3-qwen38-tp4-decode-c2-p24512 | 2 / 4 | gdn | 48 | 0.294 / 0.292 | 0.229 / 0.229 | -22.05% / -21.48% |
 | a3-qwen38-tp4-decode-c2-p24512 | 2 / 4 | gqa | 16 | 0.327 / 0.321 | 0.234 / 0.234 | -28.37% / -27.00% |
 | a3-qwen38-tp4-decode-c2-p24512 | 2 / 4 | dense_layer | 64 | 0.302 / 0.295 | 0.231 / 0.229 | -23.76% / -22.18% |
@@ -2094,24 +2183,33 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3-qwen38-tp4-decode-c6-p96512 | 4 / 4 | gdn | 48 | 0.336 / 0.334 | 0.257 / 0.257 | -23.73% / -23.20% |
 | a3-qwen38-tp4-decode-c6-p96512 | 4 / 4 | gqa | 16 | 0.584 / 0.585 | 0.605 / 0.605 | +3.64% / +3.53% |
 | a3-qwen38-tp4-decode-c6-p96512 | 4 / 4 | dense_layer | 64 | 0.398 / 0.337 | 0.344 / 0.257 | -13.69% / -23.79% |
-| a5-qwen36-tp2-decode-c1-p126000 | 1 / 4 | gdn | 48 | 0.198 / 0.193 | 0.121 / 0.121 | -38.99% / -37.59% |
-| a5-qwen36-tp2-decode-c1-p126000 | 1 / 4 | gqa | 16 | 1.112 / 1.111 | 1.063 / 1.063 | -4.39% / -4.36% |
-| a5-qwen36-tp2-decode-c1-p126000 | 1 / 4 | dense_layer | 64 | 0.426 / 0.197 | 0.356 / 0.121 | -16.44% / -38.64% |
+| a5-qwen36-tp2-decode-c1-p126000 | 1 / 4 | gdn | 48 | 0.198 / 0.193 | 0.135 / 0.135 | -31.79% / -30.22% |
+| a5-qwen36-tp2-decode-c1-p126000 | 1 / 4 | gqa | 16 | 1.112 / 1.111 | 1.077 / 1.077 | -3.11% / -3.08% |
+| a5-qwen36-tp2-decode-c1-p126000 | 1 / 4 | dense_layer | 64 | 0.426 / 0.197 | 0.371 / 0.135 | -13.09% / -31.40% |
+| a5-qwen36-tp2-decode-c12-p126000 | 12 / 4 | gdn | 48 | 0.404 / 0.404 | 0.244 / 0.244 | -39.63% / -39.61% |
+| a5-qwen36-tp2-decode-c12-p126000 | 12 / 4 | gqa | 16 | 1.254 / 1.253 | 1.087 / 1.087 | -13.29% / -13.28% |
+| a5-qwen36-tp2-decode-c12-p126000 | 12 / 4 | dense_layer | 64 | 0.617 / 0.406 | 0.455 / 0.244 | -26.25% / -39.84% |
+| a5-qwen36-tp2-decode-c16-p126000 | 16 / 4 | gdn | 48 | 0.466 / 0.466 | 0.288 / 0.288 | -38.27% / -38.22% |
+| a5-qwen36-tp2-decode-c16-p126000 | 16 / 4 | gqa | 16 | 1.290 / 1.290 | 1.151 / 1.151 | -10.78% / -10.80% |
+| a5-qwen36-tp2-decode-c16-p126000 | 16 / 4 | dense_layer | 64 | 0.672 / 0.467 | 0.503 / 0.288 | -25.07% / -38.38% |
 | a5-qwen36-tp2-decode-c2-p126000 | 2 / 4 | gdn | 48 | 0.221 / 0.217 | 0.130 / 0.130 | -41.04% / -40.11% |
 | a5-qwen36-tp2-decode-c2-p126000 | 2 / 4 | gqa | 16 | 1.138 / 1.138 | 1.065 / 1.065 | -6.45% / -6.44% |
 | a5-qwen36-tp2-decode-c2-p126000 | 2 / 4 | dense_layer | 64 | 0.450 / 0.221 | 0.364 / 0.130 | -19.17% / -41.11% |
-| a5-qwen36-tp2-decode-c4-p126000 | 4 / 4 | gdn | 48 | 0.261 / 0.258 | 0.154 / 0.154 | -40.96% / -40.38% |
-| a5-qwen36-tp2-decode-c4-p126000 | 4 / 4 | gqa | 16 | 1.195 / 1.195 | 1.069 / 1.069 | -10.53% / -10.55% |
-| a5-qwen36-tp2-decode-c4-p126000 | 4 / 4 | dense_layer | 64 | 0.494 / 0.261 | 0.383 / 0.154 | -22.57% / -41.02% |
+| a5-qwen36-tp2-decode-c24-p126000 | 24 / 4 | gdn | 48 | 0.556 / 0.559 | 0.488 / 0.488 | -12.30% / -12.62% |
+| a5-qwen36-tp2-decode-c24-p126000 | 24 / 4 | gqa | 16 | 2.320 / 2.320 | 2.304 / 2.304 | -0.70% / -0.69% |
+| a5-qwen36-tp2-decode-c24-p126000 | 24 / 4 | dense_layer | 64 | 0.997 / 0.560 | 0.942 / 0.488 | -5.55% / -12.81% |
+| a5-qwen36-tp2-decode-c4-p126000 | 4 / 4 | gdn | 48 | 0.261 / 0.258 | 0.172 / 0.172 | -34.20% / -33.56% |
+| a5-qwen36-tp2-decode-c4-p126000 | 4 / 4 | gqa | 16 | 1.195 / 1.195 | 1.087 / 1.087 | -9.05% / -9.08% |
+| a5-qwen36-tp2-decode-c4-p126000 | 4 / 4 | dense_layer | 64 | 0.494 / 0.261 | 0.400 / 0.172 | -19.00% / -34.27% |
 | a5-qwen36-tp2-decode-c6-p126000 | 6 / 4 | gdn | 48 | 0.298 / 0.297 | 0.178 / 0.178 | -40.36% / -40.17% |
 | a5-qwen36-tp2-decode-c6-p126000 | 6 / 4 | gqa | 16 | 1.287 / 1.288 | 1.074 / 1.074 | -16.60% / -16.62% |
 | a5-qwen36-tp2-decode-c6-p126000 | 6 / 4 | dense_layer | 64 | 0.546 / 0.299 | 0.402 / 0.178 | -26.35% / -40.51% |
 | a5-qwen36-tp2-decode-c8-p126000 | 8 / 4 | gdn | 48 | 0.336 / 0.336 | 0.196 / 0.196 | -41.60% / -41.57% |
 | a5-qwen36-tp2-decode-c8-p126000 | 8 / 4 | gqa | 16 | 1.214 / 1.213 | 1.078 / 1.078 | -11.18% / -11.17% |
 | a5-qwen36-tp2-decode-c8-p126000 | 8 / 4 | dense_layer | 64 | 0.555 / 0.337 | 0.417 / 0.196 | -24.98% / -41.73% |
-| a5-qwen38-tp2-decode-c1-p126000 | 1 / 4 | gdn | 48 | 0.219 / 0.218 | 0.131 / 0.131 | -40.18% / -39.81% |
-| a5-qwen38-tp2-decode-c1-p126000 | 1 / 4 | gqa | 16 | 1.117 / 1.117 | 1.065 / 1.065 | -4.67% / -4.69% |
-| a5-qwen38-tp2-decode-c1-p126000 | 1 / 4 | dense_layer | 64 | 0.444 / 0.218 | 0.365 / 0.131 | -17.83% / -39.95% |
+| a5-qwen38-tp2-decode-c1-p126000 | 1 / 4 | gdn | 48 | 0.219 / 0.218 | 0.145 / 0.145 | -33.68% / -33.27% |
+| a5-qwen38-tp2-decode-c1-p126000 | 1 / 4 | gqa | 16 | 1.117 / 1.117 | 1.079 / 1.079 | -3.39% / -3.41% |
+| a5-qwen38-tp2-decode-c1-p126000 | 1 / 4 | dense_layer | 64 | 0.444 / 0.218 | 0.379 / 0.145 | -14.62% / -33.43% |
 | a5-qwen38-tp2-decode-c12-p126000 | 12 / 4 | gdn | 48 | 0.430 / 0.432 | 0.257 / 0.257 | -40.11% / -40.48% |
 | a5-qwen38-tp2-decode-c12-p126000 | 12 / 4 | gqa | 16 | 1.257 / 1.257 | 1.088 / 1.088 | -13.44% / -13.43% |
 | a5-qwen38-tp2-decode-c12-p126000 | 12 / 4 | dense_layer | 64 | 0.637 / 0.434 | 0.465 / 0.257 | -26.95% / -40.64% |
@@ -2121,45 +2219,48 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a5-qwen38-tp2-decode-c2-p126000 | 2 / 4 | gdn | 48 | 0.243 / 0.242 | 0.141 / 0.141 | -42.17% / -41.88% |
 | a5-qwen38-tp2-decode-c2-p126000 | 2 / 4 | gqa | 16 | 1.146 / 1.146 | 1.066 / 1.066 | -6.99% / -6.97% |
 | a5-qwen38-tp2-decode-c2-p126000 | 2 / 4 | dense_layer | 64 | 0.469 / 0.242 | 0.372 / 0.141 | -20.67% / -42.03% |
-| a5-qwen38-tp2-decode-c4-p126000 | 4 / 4 | gdn | 48 | 0.283 / 0.282 | 0.165 / 0.165 | -41.66% / -41.56% |
-| a5-qwen38-tp2-decode-c4-p126000 | 4 / 4 | gqa | 16 | 1.193 / 1.192 | 1.071 / 1.071 | -10.22% / -10.21% |
-| a5-qwen38-tp2-decode-c4-p126000 | 4 / 4 | dense_layer | 64 | 0.510 / 0.283 | 0.391 / 0.165 | -23.29% / -41.72% |
+| a5-qwen38-tp2-decode-c24-p126000 | 24 / 4 | gdn | 48 | 0.571 / 0.575 | 0.505 / 0.505 | -11.67% / -12.21% |
+| a5-qwen38-tp2-decode-c24-p126000 | 24 / 4 | gqa | 16 | 2.312 / 2.312 | 2.304 / 2.304 | -0.32% / -0.34% |
+| a5-qwen38-tp2-decode-c24-p126000 | 24 / 4 | dense_layer | 64 | 1.006 / 0.576 | 0.955 / 0.505 | -5.15% / -12.45% |
+| a5-qwen38-tp2-decode-c4-p126000 | 4 / 4 | gdn | 48 | 0.283 / 0.282 | 0.183 / 0.183 | -35.43% / -35.33% |
+| a5-qwen38-tp2-decode-c4-p126000 | 4 / 4 | gqa | 16 | 1.193 / 1.192 | 1.088 / 1.088 | -8.74% / -8.73% |
+| a5-qwen38-tp2-decode-c4-p126000 | 4 / 4 | dense_layer | 64 | 0.510 / 0.283 | 0.409 / 0.183 | -19.84% / -35.50% |
 | a5-qwen38-tp2-decode-c6-p126000 | 6 / 4 | gdn | 48 | 0.321 / 0.321 | 0.190 / 0.190 | -40.94% / -40.90% |
 | a5-qwen38-tp2-decode-c6-p126000 | 6 / 4 | gqa | 16 | 1.289 / 1.289 | 1.075 / 1.075 | -16.61% / -16.59% |
 | a5-qwen38-tp2-decode-c6-p126000 | 6 / 4 | dense_layer | 64 | 0.563 / 0.322 | 0.411 / 0.190 | -27.02% / -41.06% |
 | a5-qwen38-tp2-decode-c8-p126000 | 8 / 4 | gdn | 48 | 0.359 / 0.361 | 0.208 / 0.208 | -41.94% / -42.25% |
 | a5-qwen38-tp2-decode-c8-p126000 | 8 / 4 | gqa | 16 | 1.259 / 1.259 | 1.079 / 1.079 | -14.29% / -14.28% |
 | a5-qwen38-tp2-decode-c8-p126000 | 8 / 4 | dense_layer | 64 | 0.584 / 0.362 | 0.426 / 0.208 | -27.03% / -42.48% |
-| a5-qwen36-tp4-decode-c1-p126000 | 1 / 4 | gdn | 48 | 0.166 / 0.160 | 0.100 / 0.100 | -39.65% / -37.39% |
-| a5-qwen36-tp4-decode-c1-p126000 | 1 / 4 | gqa | 16 | 1.099 / 1.099 | 1.050 / 1.050 | -4.50% / -4.51% |
-| a5-qwen36-tp4-decode-c1-p126000 | 1 / 4 | dense_layer | 64 | 0.399 / 0.164 | 0.337 / 0.100 | -15.44% / -38.94% |
+| a5-qwen36-tp4-decode-c1-p126000 | 1 / 4 | gdn | 48 | 0.166 / 0.160 | 0.092 / 0.092 | -44.57% / -42.49% |
+| a5-qwen36-tp4-decode-c1-p126000 | 1 / 4 | gqa | 16 | 1.099 / 1.099 | 1.042 / 1.042 | -5.24% / -5.25% |
+| a5-qwen36-tp4-decode-c1-p126000 | 1 / 4 | dense_layer | 64 | 0.399 / 0.164 | 0.329 / 0.092 | -17.48% / -43.91% |
 | a5-qwen36-tp4-decode-c2-p126000 | 2 / 4 | gdn | 48 | 0.197 / 0.191 | 0.105 / 0.105 | -46.78% / -45.34% |
 | a5-qwen36-tp4-decode-c2-p126000 | 2 / 4 | gqa | 16 | 1.128 / 1.128 | 1.051 / 1.051 | -6.83% / -6.83% |
 | a5-qwen36-tp4-decode-c2-p126000 | 2 / 4 | dense_layer | 64 | 0.429 / 0.195 | 0.341 / 0.105 | -20.55% / -46.44% |
-| a5-qwen36-tp4-decode-c4-p126000 | 4 / 4 | gdn | 48 | 0.217 / 0.211 | 0.116 / 0.116 | -46.51% / -44.93% |
-| a5-qwen36-tp4-decode-c4-p126000 | 4 / 4 | gqa | 16 | 1.155 / 1.155 | 1.054 / 1.054 | -8.77% / -8.75% |
-| a5-qwen36-tp4-decode-c4-p126000 | 4 / 4 | dense_layer | 64 | 0.452 / 0.215 | 0.351 / 0.116 | -22.39% / -45.92% |
+| a5-qwen36-tp4-decode-c4-p126000 | 4 / 4 | gdn | 48 | 0.217 / 0.211 | 0.143 / 0.143 | -33.97% / -32.02% |
+| a5-qwen36-tp4-decode-c4-p126000 | 4 / 4 | gqa | 16 | 1.155 / 1.155 | 1.081 / 1.081 | -6.41% / -6.39% |
+| a5-qwen36-tp4-decode-c4-p126000 | 4 / 4 | dense_layer | 64 | 0.452 / 0.215 | 0.378 / 0.143 | -16.35% / -33.24% |
 | a5-qwen36-tp4-decode-c6-p126000 | 6 / 4 | gdn | 48 | 0.236 / 0.232 | 0.132 / 0.132 | -43.79% / -42.82% |
 | a5-qwen36-tp4-decode-c6-p126000 | 6 / 4 | gqa | 16 | 1.203 / 1.203 | 1.057 / 1.057 | -12.14% / -12.12% |
 | a5-qwen36-tp4-decode-c6-p126000 | 6 / 4 | dense_layer | 64 | 0.477 / 0.235 | 0.364 / 0.132 | -23.85% / -43.54% |
-| a5-qwen36-tp4-decode-c8-p126000 | 8 / 4 | gdn | 48 | 0.255 / 0.250 | 0.144 / 0.144 | -43.51% / -42.35% |
-| a5-qwen36-tp4-decode-c8-p126000 | 8 / 4 | gqa | 16 | 1.211 / 1.211 | 1.060 / 1.060 | -12.46% / -12.48% |
-| a5-qwen36-tp4-decode-c8-p126000 | 8 / 4 | dense_layer | 64 | 0.494 / 0.253 | 0.373 / 0.144 | -24.48% / -43.16% |
-| a5-qwen38-tp4-decode-c1-p126000 | 1 / 4 | gdn | 48 | 0.172 / 0.168 | 0.105 / 0.105 | -39.13% / -37.83% |
-| a5-qwen38-tp4-decode-c1-p126000 | 1 / 4 | gqa | 16 | 1.095 / 1.095 | 1.051 / 1.051 | -4.00% / -4.02% |
-| a5-qwen38-tp4-decode-c1-p126000 | 1 / 4 | dense_layer | 64 | 0.402 / 0.173 | 0.341 / 0.105 | -15.24% / -39.57% |
+| a5-qwen36-tp4-decode-c8-p126000 | 8 / 4 | gdn | 48 | 0.255 / 0.250 | 0.176 / 0.176 | -30.92% / -29.50% |
+| a5-qwen36-tp4-decode-c8-p126000 | 8 / 4 | gqa | 16 | 1.211 / 1.211 | 1.092 / 1.092 | -9.81% / -9.83% |
+| a5-qwen36-tp4-decode-c8-p126000 | 8 / 4 | dense_layer | 64 | 0.494 / 0.253 | 0.405 / 0.176 | -17.98% / -30.50% |
+| a5-qwen38-tp4-decode-c1-p126000 | 1 / 4 | gdn | 48 | 0.172 / 0.168 | 0.096 / 0.096 | -43.86% / -42.67% |
+| a5-qwen38-tp4-decode-c1-p126000 | 1 / 4 | gqa | 16 | 1.095 / 1.095 | 1.043 / 1.043 | -4.75% / -4.77% |
+| a5-qwen38-tp4-decode-c1-p126000 | 1 / 4 | dense_layer | 64 | 0.402 / 0.173 | 0.333 / 0.096 | -17.27% / -44.27% |
 | a5-qwen38-tp4-decode-c2-p126000 | 2 / 4 | gdn | 48 | 0.210 / 0.203 | 0.109 / 0.109 | -47.86% / -46.29% |
 | a5-qwen38-tp4-decode-c2-p126000 | 2 / 4 | gqa | 16 | 1.127 / 1.127 | 1.052 / 1.052 | -6.69% / -6.69% |
 | a5-qwen38-tp4-decode-c2-p126000 | 2 / 4 | dense_layer | 64 | 0.439 / 0.208 | 0.345 / 0.109 | -21.43% / -47.40% |
-| a5-qwen38-tp4-decode-c4-p126000 | 4 / 4 | gdn | 48 | 0.226 / 0.223 | 0.121 / 0.121 | -46.32% / -45.72% |
-| a5-qwen38-tp4-decode-c4-p126000 | 4 / 4 | gqa | 16 | 1.147 / 1.148 | 1.055 / 1.055 | -8.09% / -8.10% |
-| a5-qwen38-tp4-decode-c4-p126000 | 4 / 4 | dense_layer | 64 | 0.456 / 0.225 | 0.355 / 0.121 | -22.27% / -46.18% |
+| a5-qwen38-tp4-decode-c4-p126000 | 4 / 4 | gdn | 48 | 0.226 / 0.223 | 0.148 / 0.148 | -34.25% / -33.51% |
+| a5-qwen38-tp4-decode-c4-p126000 | 4 / 4 | gqa | 16 | 1.147 / 1.148 | 1.082 / 1.082 | -5.71% / -5.72% |
+| a5-qwen38-tp4-decode-c4-p126000 | 4 / 4 | dense_layer | 64 | 0.456 / 0.225 | 0.382 / 0.148 | -16.30% / -34.08% |
 | a5-qwen38-tp4-decode-c6-p126000 | 6 / 4 | gdn | 48 | 0.245 / 0.244 | 0.138 / 0.138 | -43.82% / -43.61% |
 | a5-qwen38-tp4-decode-c6-p126000 | 6 / 4 | gqa | 16 | 1.198 / 1.198 | 1.057 / 1.057 | -11.73% / -11.73% |
 | a5-qwen38-tp4-decode-c6-p126000 | 6 / 4 | dense_layer | 64 | 0.483 / 0.245 | 0.368 / 0.138 | -23.93% / -43.84% |
-| a5-qwen38-tp4-decode-c8-p126000 | 8 / 4 | gdn | 48 | 0.261 / 0.260 | 0.149 / 0.149 | -42.71% / -42.49% |
-| a5-qwen38-tp4-decode-c8-p126000 | 8 / 4 | gqa | 16 | 1.206 / 1.206 | 1.060 / 1.060 | -12.09% / -12.09% |
-| a5-qwen38-tp4-decode-c8-p126000 | 8 / 4 | dense_layer | 64 | 0.497 / 0.261 | 0.377 / 0.149 | -24.14% / -42.74% |
+| a5-qwen38-tp4-decode-c8-p126000 | 8 / 4 | gdn | 48 | 0.261 / 0.260 | 0.182 / 0.182 | -30.41% / -30.14% |
+| a5-qwen38-tp4-decode-c8-p126000 | 8 / 4 | gqa | 16 | 1.206 / 1.206 | 1.092 / 1.092 | -9.43% / -9.43% |
+| a5-qwen38-tp4-decode-c8-p126000 | 8 / 4 | dense_layer | 64 | 0.497 / 0.261 | 0.409 / 0.182 | -17.69% / -30.44% |
 | a3-v41-tp4dp4-decode-c4-p8512 | 1 / 8 | mla | 40 | 0.888 / 0.823 | 0.805 / 0.789 | -9.41% / -4.18% |
 | a3-v41-tp4dp4-decode-c4-p8512 | 1 / 8 | moe_layer | 40 | 0.888 / 0.823 | 0.805 / 0.789 | -9.41% / -4.18% |
 | a3-v41-tp4dp4-decode-c4-p8512 | 2 / 8 | mla | 40 | 1.201 / 1.130 | 1.258 / 1.240 | +4.78% / +9.74% |
@@ -2167,6 +2268,6 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 
 Layer-group statistics summarize complete layer spans, not isolated attention or FFN kernel time. Group P50 is across layer means; steady-layer P50 remains the median of per-layer call P50 values in JSON. Full layer membership, extrema, stream details and alignment assumptions remain in the SHA256-pinned evidence.
 
-Summary: {"compared": 276, "passed": 135, "requested_sources": 280, "sources": 280, "status_counts": {"compared": 276, "failed": 4}}
+Summary: {"compared": 280, "passed": 149, "requested_sources": 280, "sources": 280, "status_counts": {"compared": 280}}
 
 Full per-layer, operator and prediction details retain their individual SHA256 evidence pointers. Missing evidence and failed predictions remain visible and never count as a pass.
