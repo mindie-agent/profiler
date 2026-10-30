@@ -271,6 +271,19 @@ class SourceRoleReferences:
         return sorted(result, key=lambda group: group['group_id'])
 
 
+def _reference_graphs(graphs, book, groups):
+    """Keep selected expanded programs on every peer after full graph validation.
+
+    Complete graph construction resolves dispatch/combine traffic first. The
+    reference boundary then treats outside predecessors as ready, so unrelated
+    model layers need not remain live while these programs are priced.
+    """
+    local_ids = {key.split('/', 1)[1] for group in groups
+                 for key in group['representative_target_ids']}
+    return {replica: tuple(op for op in book.expand(ops) if op.op_id in local_ids)
+            for replica, ops in graphs.items()}
+
+
 def predict_source_role_references(case, manifest, actual):
     """Price each independent declared program set; never fabricate native ABI."""
     from mindie_sim.prediction.graph_analysis import graph_costs
@@ -285,9 +298,9 @@ def predict_source_role_references(case, manifest, actual):
     geometry = {key: execution[key] for key in ('phase', 'tokens', 'context', 'sequences', 'scope')}
     case, _ = effective_body_declaration(case, geometry['phase'], tokens=geometry['tokens'], scope=geometry['scope'])
     book = RecipeBook.from_mapping(case.runtime.kernels)
-    graphs = target_graphs(case, **geometry)
+    graphs = _reference_graphs(target_graphs(case, **geometry), book, groups)
     by_id = {f'rank:{replica}/{op.op_id}': op
-             for replica, ops in graphs.items() for op in book.expand(ops)}
+             for replica, ops in graphs.items() for op in ops}
     targets = {target['node_id']: target for target in manifest['nodes']}
     result = []
     for group in groups:
@@ -318,7 +331,7 @@ def predict_source_role_references(case, manifest, actual):
             local = {op.op_id for op in ops}
             joint = case.runtime.parallel.ep_spans_dp and any(
                 dict(op.metadata).get('group_axis') == 'ep' for op in ops)
-            selected_graphs = ({rank: tuple(op for op in book.expand(values) if op.op_id in local)
+            selected_graphs = ({rank: tuple(op for op in values if op.op_id in local)
                                 for rank, values in graphs.items()} if joint else {replica: ops})
             # target_graphs has already validated/transposed the full dispatch
             # ledger. Keep that concrete traffic while cutting the predecessor

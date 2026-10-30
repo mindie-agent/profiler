@@ -147,6 +147,38 @@ def test_native_multi_program_cost_uses_complete_dp_collective(captured_native_c
                for row in references if row['declared_role'].startswith('expert_') and 'native' in row['declared_role'])
 
 
+def test_compact_reference_graph_preserves_full_graph_cost_and_all_dp_peers(
+        captured_native_component_groups, monkeypatch):
+    helper, case, manifest, mapping, families, groups = captured_native_component_groups
+    from mindie_sim.prediction.operator_analysis import target_graphs
+    from mindie_sim.prediction.program import RecipeBook
+    roles = {'expert_dispatch_native', 'expert_combine_native', 'attention.hc_pre', 'expert_up'}
+    selected = []
+    for group in groups:
+        if group['declared_role'] in roles:
+            selected.append(group)
+            roles.remove(group['declared_role'])
+    actual = {'forward_count': 1, 'source_role_references': selected}
+    execution = manifest['execution']
+    geometry = {key: execution[key] for key in ('phase', 'tokens', 'context', 'sequences', 'scope')}
+    book = RecipeBook.from_mapping(case.runtime.kernels)
+    full = target_graphs(case, **geometry)
+    compact = helper._reference_graphs(full, book, selected)
+    ids = {key.split('/', 1)[1] for group in selected for key in group['representative_target_ids']}
+    assert compact.keys() == full.keys() and len(compact) == 8
+    for replica in full:
+        expected = tuple(op for op in book.expand(full[replica]) if op.op_id in ids)
+        assert compact[replica] == expected
+        assert len(compact[replica]) < len(full[replica]) // 10
+    optimized = helper.predict_source_role_references(case, manifest, actual)
+    # The control keeps every real expanded layer, as before the memory change.
+    # It uses the same source graphs and cost engine, with no fabricated payloads.
+    monkeypatch.setattr(helper, '_reference_graphs', lambda graphs, book, groups: {
+        replica: book.expand(ops) for replica, ops in graphs.items()})
+    control = helper.predict_source_role_references(case, manifest, actual)
+    assert optimized == control
+
+
 def test_partial_hcpre_does_not_discard_observed_output_leading_axes(captured_reference_groups):
     helper, replay, case, manifest, config, _, _ = captured_reference_groups
     from mindie_profiler.normalized import kernel_rows
