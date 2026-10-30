@@ -1,0 +1,128 @@
+{
+  "schema_version": "mindie-glm-join-reduce-independent-review/1",
+  "status": "passed",
+  "checks": 4507,
+  "failures": [],
+  "report_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-glm-join-reduce-replay.json",
+    "sha256": "25e6ecbf8c40f7162f4a7f4e549e412629d9142e8e1e3a070a881e4db543879f",
+    "size_bytes": 4829430
+  },
+  "manifest_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-glm-join-reduce-cases.json",
+    "sha256": "b1c411c0bf01c377ddc2ad437aff0478cc44fe68257849f262a268d230146f7e"
+  },
+  "reference_old_arm_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-glm-source-composed-controller-replay.json",
+    "sha256": "d236fd879df04ef2c3c2c38f4afb3cb09229dbd06273093c92f4167b939eeb75",
+    "size_bytes": 4836942
+  },
+  "cases": [
+    {
+      "case_id": "glm53flash-a5-tp8-c3",
+      "forward_count": 53,
+      "observed_mean_ms": 21.067548924528303,
+      "predicted_ms": 11.802592174048186,
+      "relative_error": -0.43977383338093073,
+      "passed": false,
+      "removed_expert_reduction_ms": 1.2550079999999912
+    },
+    {
+      "case_id": "glm53flash-a5-tp8-c96",
+      "forward_count": 27,
+      "observed_mean_ms": 57.58967944444444,
+      "predicted_ms": 59.36799329624246,
+      "relative_error": 0.030879037163482042,
+      "passed": true,
+      "removed_expert_reduction_ms": 5.776991999999906
+    },
+    {
+      "case_id": "glm53flash-a5-tp8-c1",
+      "forward_count": 65,
+      "observed_mean_ms": 15.683328046153846,
+      "predicted_ms": 6.829678260126068,
+      "relative_error": -0.5645262128020738,
+      "passed": false,
+      "removed_expert_reduction_ms": 1.1075520000000052
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c16_p4k",
+      "forward_count": 30,
+      "observed_mean_ms": 33.0309177,
+      "predicted_ms": 20.134554432251807,
+      "relative_error": -0.39043309013930894,
+      "passed": false,
+      "removed_expert_reduction_ms": 1.8448320000000034
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c16_p8k",
+      "forward_count": 32,
+      "observed_mean_ms": 33.616091374999996,
+      "predicted_ms": 20.321987392251803,
+      "relative_error": -0.39546846283964193,
+      "passed": false,
+      "removed_expert_reduction_ms": 1.8448320000000038
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c32_p4k",
+      "forward_count": 31,
+      "observed_mean_ms": 37.66896412903226,
+      "predicted_ms": 25.111276935108098,
+      "relative_error": -0.3333695917654845,
+      "passed": false,
+      "removed_expert_reduction_ms": 2.631264000000015
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c32_p8k",
+      "forward_count": 35,
+      "observed_mean_ms": 38.71318854285714,
+      "predicted_ms": 25.490508250941406,
+      "relative_error": -0.34155492713491337,
+      "passed": false,
+      "removed_expert_reduction_ms": 2.631264000000015
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c4_p8k",
+      "forward_count": 11,
+      "observed_mean_ms": 21.41824609090909,
+      "predicted_ms": 10.680894859139103,
+      "relative_error": -0.5013179504145964,
+      "passed": false,
+      "removed_expert_reduction_ms": 1.2550079999999924
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c64_p4k",
+      "forward_count": 31,
+      "observed_mean_ms": 46.528232967741936,
+      "predicted_ms": 34.519034640733004,
+      "relative_error": -0.2581056180520528,
+      "passed": false,
+      "removed_expert_reduction_ms": 4.204128000000017
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c8_p4k",
+      "forward_count": 30,
+      "observed_mean_ms": 28.833324133333335,
+      "predicted_ms": 16.619275959641854,
+      "relative_error": -0.423608742343072,
+      "passed": false,
+      "removed_expert_reduction_ms": 1.451615999999996
+    }
+  ],
+  "compared_condition_arms": 10,
+  "passed_condition_arms": 1,
+  "compared_forwards": 345,
+  "total_geometry_groups": 35,
+  "maximum_prediction_rss_bytes": 130023424,
+  "peak_review_rss_bytes": 68255744,
+  "new_predictions_in_report": 10,
+  "review_new_predictions": 0,
+  "raw_capture_reads": 0,
+  "scope": [
+    "New explicit case bytes equal f57540a8 committed blobs, executed by unchanged 40e package.",
+    "Original source, all measured Body/layer populations, geometry, precision and parallelism are identical to preceding source-composed arms.",
+    "Only declaration change is tp_join_reduce and its source metadata. All retained scheduled program group counts and elapsed distributions remain equal; exactly 42 expert_tensor_reduce operations removed, while 90 TP HCCL programs remain.",
+    "Observed accuracy failures are distinct from execution success; original alternative arms and prior reviews remain immutable.",
+    "No raw read or physical cost recalculation; saved complete timelines and arithmetic independently reconciled."
+  ]
+}
