@@ -44,6 +44,19 @@ def test_real_router_rebind_keeps_exact_observations_and_uses_new_work(reprice, 
     assert plan["mode"] == "identical_declaration_new_cost"
 
 
+def test_real_failed_worker_receipt_is_visible_before_the_next_program(reprice, capsys):
+    import json
+    directory = ROOT / "examples/structure/acceptance-20261030-v41-composed-operators-ec58ce79/a5_v41_fp8_tp1_dp8_ep8_c32_p2k"
+    report = reprice.read(next(directory.glob("*.comparison.json")))
+    receipt = report["program_receipts"][0]
+    reprice.print_program_progress("retained-c32-pilot", 1, len(report["program_receipts"]), receipt)
+    progress = json.loads(capsys.readouterr().out)
+    for key in ("reason", "returncode", "stderr", "elapsed_seconds", "timeout_seconds"):
+        assert progress[key] == receipt[key]
+    assert "comparison_worker_exceeds_512_mib" in progress["stderr"]
+    assert progress["status"] == "failed" and progress["program"] == 1
+
+
 def router_declaration(retained, changed_indices):
     from mindie_sim.prediction.operator_analysis import target_graphs
     from mindie_sim.prediction.structure import parse_case

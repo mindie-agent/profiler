@@ -255,7 +255,9 @@ def worker(args):
                   "frozen_native_rebindings": rebindings}
     result.update(maximum_resident_set_size_bytes=_rss(), elapsed_seconds=time.perf_counter() - started)
     if result["maximum_resident_set_size_bytes"] > MAX_RSS:
-        raise RuntimeError("comparison_worker_exceeds_512_mib")
+        raise RuntimeError("comparison_worker_exceeds_512_mib:"
+                           f"actual_peak_rss_bytes={result['maximum_resident_set_size_bytes']};"
+                           f"limit_bytes={MAX_RSS}")
     write(args.worker_output, result)
 
 
@@ -287,6 +289,16 @@ def run_worker(args, *, kind, actual_path, mapping_path, case_path, output, key=
     return result, receipt
 
 
+def print_program_progress(case, index, total, receipt):
+    """Expose the existing failure receipt immediately in the retained run log."""
+    progress = {"case": case, "program": index, "programs": total, "status": receipt["status"]}
+    if receipt["status"] == "failed":
+        progress.update({key: receipt[key] for key in (
+            "reason", "returncode", "stderr", "elapsed_seconds", "timeout_seconds",
+            "maximum_resident_set_size_bytes") if key in receipt})
+    print(json.dumps(progress), flush=True)
+
+
 def compare_programs(args, prefix, actual_path, mapping_path, case_path, mapping):
     keys = list(dict.fromkeys(_program_key(row) for window in mapping["windows"] for row in window["cohorts"]))
     by_cohort, receipts, base = {}, [], None
@@ -304,8 +316,7 @@ def compare_programs(args, prefix, actual_path, mapping_path, case_path, mapping
             base = base or {k: v for k, v in result.items() if k not in {"windows", "status_counts"}}
             for wi, window in enumerate(result["windows"]):
                 by_cohort.update(((wi, row["cohort_id"]), row) for row in window["cohorts"])
-        print(json.dumps({"case": prefix.name, "program": index + 1, "programs": len(keys),
-                          "status": receipt["status"]}), flush=True)
+        print_program_progress(prefix.name, index + 1, len(keys), receipt)
     windows = [{**{k: v for k, v in window.items() if k != "cohorts"},
                 "cohorts": [by_cohort[wi, row["cohort_id"]] for row in window["cohorts"]]}
                for wi, window in enumerate(mapping["windows"])]
