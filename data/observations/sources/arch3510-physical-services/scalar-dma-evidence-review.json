@@ -1,0 +1,64 @@
+{
+  "schema_version": "mindie-scalar-dma-evidence-review/1",
+  "status": "passed",
+  "checks": 9423,
+  "failures": [],
+  "cases": [
+    {
+      "case_id": "a5_glm53flash_tp8_c8_p4k",
+      "forwards": 30,
+      "partitions": 14,
+      "native_events": 11370
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c4_p8k",
+      "forwards": 11,
+      "partitions": 14,
+      "native_events": 4169
+    },
+    {
+      "case_id": "glm53flash-a5-tp8-c1",
+      "forwards": 65,
+      "partitions": 14,
+      "native_events": 24635
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c4-graph",
+      "forwards": 84,
+      "partitions": 9,
+      "native_events": 26880
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph",
+      "forwards": 79,
+      "partitions": 9,
+      "native_events": 25280
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph",
+      "forwards": 76,
+      "partitions": 9,
+      "native_events": 24320
+    }
+  ],
+  "receipt_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-extraction-receipt.json",
+    "sha256": "376015f1b271bfd427cf109f3b7465fc4d985d4ac8a745322d72c6eed545c00a",
+    "size_bytes": 12778
+  },
+  "summary_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-physical-constraints.json",
+    "sha256": "2d3ca3bafaf08cd89be467694dfe2672b98ba32286778a1461c08a5edb3afbb1",
+    "size_bytes": 645051
+  },
+  "reviewer_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/review_scalar_dma_services.py",
+    "sha256": "34e10b9af4da367917d4c0dbd8d76659f651ca56e0380d8eda785d7d17b97b47",
+    "size_bytes": 6984
+  },
+  "execution": {
+    "raw_scans": 0,
+    "cost_calls": 0,
+    "peak_rss_bytes": 126746624
+  }
+}

@@ -1,0 +1,1003 @@
+{
+  "source_pins": [
+    {
+      "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c128-graph.json",
+      "sha256": "83746ffe66721a9f2073fce437098d9414fbfb2642c73fb4e53d2a0da575e538"
+    },
+    {
+      "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+      "sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b"
+    }
+  ],
+  "dsq_complete_population": {
+    "event_count": 3040,
+    "fields": {
+      "Duration(us)": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": {
+          "count": 3040,
+          "mean": 56.56007269736842,
+          "p50": 56.8445,
+          "p90": 58.386,
+          "min": 51.67,
+          "max": 61.123
+        }
+      },
+      "Wait Time(us)": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 1242,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.05300921052631579,
+          "p50": 0.026,
+          "p90": 0.156,
+          "min": 0.0,
+          "max": 0.267
+        }
+      },
+      "Block Num": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": {
+          "count": 3040,
+          "mean": 64.0,
+          "p50": 64.0,
+          "p90": 64.0,
+          "min": 64.0,
+          "max": 64.0
+        }
+      },
+      "Mix Block Num": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 3040,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p90": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "aicore_time(us)": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 3040,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p90": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "aic_total_cycles": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 3040,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p90": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "aic_mac_time(us)": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 3040,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p90": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "aic_mac_ratio": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 3040,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p90": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "aic_scalar_time(us)": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 3040,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p90": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "aic_scalar_ratio": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 3040,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p90": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "aic_mte1_time(us)": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 3040,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p90": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "aic_mte1_ratio": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 3040,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p90": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "aic_mte2_time(us)": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 3040,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p90": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "aic_mte2_ratio": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 3040,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p90": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "aic_mte3_time(us)": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 3040,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p90": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "aic_mte3_ratio": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 3040,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p90": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "aic_fixpipe_time(us)": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 3040,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p90": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "aic_fixpipe_ratio": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 3040,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p90": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "aic_icache_miss_rate": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 3040,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p90": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "aiv_time(us)": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": {
+          "count": 3040,
+          "mean": 56.287055921052634,
+          "p50": 56.57,
+          "p90": 58.11,
+          "min": 51.42,
+          "max": 60.83
+        }
+      },
+      "aiv_total_cycles": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": {
+          "count": 3040,
+          "mean": 1949059.8506578947,
+          "p50": 1954765.0,
+          "p90": 2011666.0,
+          "min": 1788113.0,
+          "max": 2099674.0
+        }
+      },
+      "aiv_vec_time(us)": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": {
+          "count": 3040,
+          "mean": 15.23718322368421,
+          "p50": 15.2485,
+          "p90": 15.454,
+          "min": 14.451,
+          "max": 15.815
+        }
+      },
+      "aiv_vec_ratio": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.2708763157894737,
+          "p50": 0.27,
+          "p90": 0.281,
+          "min": 0.251,
+          "max": 0.293
+        }
+      },
+      "aiv_scalar_time(us)": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": {
+          "count": 3040,
+          "mean": 27.897209868421054,
+          "p50": 27.881,
+          "p90": 28.647,
+          "min": 25.87,
+          "max": 30.533
+        }
+      },
+      "aiv_scalar_ratio": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.49584736842105265,
+          "p50": 0.495,
+          "p90": 0.511,
+          "min": 0.46,
+          "max": 0.548
+        }
+      },
+      "aiv_mte2_time(us)": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": {
+          "count": 3040,
+          "mean": 17.674530263157894,
+          "p50": 17.715,
+          "p90": 18.817,
+          "min": 15.151,
+          "max": 21.315
+        }
+      },
+      "aiv_mte2_ratio": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.31383026315789475,
+          "p50": 0.313,
+          "p90": 0.325,
+          "min": 0.286,
+          "max": 0.35
+        }
+      },
+      "aiv_mte3_time(us)": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": {
+          "count": 3040,
+          "mean": 21.655001315789473,
+          "p50": 22.001,
+          "p90": 22.706,
+          "min": 18.078,
+          "max": 23.905
+        }
+      },
+      "aiv_mte3_ratio": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.3845453947368421,
+          "p50": 0.387,
+          "p90": 0.398,
+          "min": 0.345,
+          "max": 0.415
+        }
+      },
+      "aiv_icache_miss_rate": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.015000328947368422,
+          "p50": 0.015,
+          "p90": 0.015,
+          "min": 0.015,
+          "max": 0.016
+        }
+      },
+      "cube_utilization(%)": {
+        "column_present": true,
+        "present_count": 3040,
+        "non_na_count": 3040,
+        "missing_or_na_count": 0,
+        "numeric_count": 3040,
+        "invalid_numeric_count": 0,
+        "zero_count": 3040,
+        "statistics": {
+          "count": 3040,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p90": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      }
+    }
+  },
+  "metadata_complete_population": {
+    "event_count": 715,
+    "fields": {
+      "Duration(us)": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 715,
+        "missing_or_na_count": 0,
+        "numeric_count": 715,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": {
+          "count": 715,
+          "mean": 34.98046293706294,
+          "p50": 31.811,
+          "p90": 40.669,
+          "min": 29.031,
+          "max": 70.018
+        }
+      },
+      "Wait Time(us)": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 715,
+        "missing_or_na_count": 0,
+        "numeric_count": 715,
+        "invalid_numeric_count": 0,
+        "zero_count": 17,
+        "statistics": {
+          "count": 715,
+          "mean": 0.43075944055944054,
+          "p50": 0.445,
+          "p90": 0.603,
+          "min": 0.0,
+          "max": 0.727
+        }
+      },
+      "Block Num": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 715,
+        "missing_or_na_count": 0,
+        "numeric_count": 715,
+        "invalid_numeric_count": 0,
+        "zero_count": 715,
+        "statistics": {
+          "count": 715,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p90": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "Mix Block Num": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 715,
+        "missing_or_na_count": 0,
+        "numeric_count": 715,
+        "invalid_numeric_count": 0,
+        "zero_count": 715,
+        "statistics": {
+          "count": 715,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p90": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "aicore_time(us)": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aic_total_cycles": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aic_mac_time(us)": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aic_mac_ratio": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aic_scalar_time(us)": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aic_scalar_ratio": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aic_mte1_time(us)": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aic_mte1_ratio": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aic_mte2_time(us)": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aic_mte2_ratio": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aic_mte3_time(us)": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aic_mte3_ratio": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aic_fixpipe_time(us)": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aic_fixpipe_ratio": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aic_icache_miss_rate": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aiv_time(us)": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aiv_total_cycles": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aiv_vec_time(us)": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aiv_vec_ratio": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aiv_scalar_time(us)": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aiv_scalar_ratio": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aiv_mte2_time(us)": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aiv_mte2_ratio": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aiv_mte3_time(us)": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aiv_mte3_ratio": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "aiv_icache_miss_rate": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      },
+      "cube_utilization(%)": {
+        "column_present": true,
+        "present_count": 715,
+        "non_na_count": 0,
+        "missing_or_na_count": 715,
+        "numeric_count": 0,
+        "invalid_numeric_count": 0,
+        "zero_count": 0,
+        "statistics": null
+      }
+    }
+  },
+  "raw_real_examples": {
+    "metadata": {
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 286,
+        "csv_line": 288,
+        "task_id": "690118",
+        "stream_id": "438",
+        "device_id": "0"
+      },
+      "event_id": "event:d3e21e9d4bf86f161d0a32c8",
+      "forward_id": "auto:0",
+      "layer_id": null,
+      "start_ns": 1793298713840780206,
+      "end_ns": 1793298713840827984,
+      "duration_ns": 47778,
+      "raw_fields": {
+        "Task ID": "690118",
+        "Accelerator Core": "AI_CPU",
+        "OP State": "N/A",
+        "Block Num": "0",
+        "Mix Block Num": "0",
+        "Device_id": "0",
+        "Stream ID": "438",
+        "Model ID": "4294967295",
+        "Context ID": "N/A",
+        "Duration(us)": "47.778",
+        "Wait Time(us)": "0.650000",
+        "aicore_time(us)": "N/A",
+        "aic_total_cycles": "N/A",
+        "aic_mac_time(us)": "N/A",
+        "aic_mac_ratio": "N/A",
+        "aic_scalar_time(us)": "N/A",
+        "aic_scalar_ratio": "N/A",
+        "aic_mte1_time(us)": "N/A",
+        "aic_mte1_ratio": "N/A",
+        "aic_mte2_time(us)": "N/A",
+        "aic_mte2_ratio": "N/A",
+        "aic_mte3_time(us)": "N/A",
+        "aic_mte3_ratio": "N/A",
+        "aic_fixpipe_time(us)": "N/A",
+        "aic_fixpipe_ratio": "N/A",
+        "aic_icache_miss_rate": "N/A",
+        "aiv_time(us)": "N/A",
+        "aiv_total_cycles": "N/A",
+        "aiv_vec_time(us)": "N/A",
+        "aiv_vec_ratio": "N/A",
+        "aiv_scalar_time(us)": "N/A",
+        "aiv_scalar_ratio": "N/A",
+        "aiv_mte2_time(us)": "N/A",
+        "aiv_mte2_ratio": "N/A",
+        "aiv_mte3_time(us)": "N/A",
+        "aiv_mte3_ratio": "N/A",
+        "aiv_icache_miss_rate": "N/A",
+        "cube_utilization(%)": "N/A"
+      }
+    },
+    "slice": {
+      "locator": {
+        "source": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "table": "kernel_details.csv",
+        "row_index": 116,
+        "csv_line": 118,
+        "task_id": "689909",
+        "stream_id": "438",
+        "device_id": "0"
+      },
+      "event_id": "event:323608f9612ff7195b9838bb",
+      "forward_id": "auto:0",
+      "layer_id": null,
+      "start_ns": 1793298713839796309,
+      "end_ns": 1793298713839799804,
+      "duration_ns": 3495,
+      "raw_fields": {
+        "Task ID": "689909",
+        "Accelerator Core": "AI_VECTOR_CORE",
+        "OP State": "static",
+        "Block Num": "24",
+        "Mix Block Num": "0",
+        "Device_id": "0",
+        "Stream ID": "438",
+        "Model ID": "95",
+        "Context ID": "N/A",
+        "Duration(us)": "3.495",
+        "Wait Time(us)": "0.000000",
+        "aicore_time(us)": "0.0",
+        "aic_total_cycles": "0",
+        "aic_mac_time(us)": "0.0",
+        "aic_mac_ratio": "0.0",
+        "aic_scalar_time(us)": "0.0",
+        "aic_scalar_ratio": "0.0",
+        "aic_mte1_time(us)": "0.0",
+        "aic_mte1_ratio": "0.0",
+        "aic_mte2_time(us)": "0.0",
+        "aic_mte2_ratio": "0.0",
+        "aic_mte3_time(us)": "0.0",
+        "aic_mte3_ratio": "0.0",
+        "aic_fixpipe_time(us)": "0.0",
+        "aic_fixpipe_ratio": "0.0",
+        "aic_icache_miss_rate": "0.0",
+        "aiv_time(us)": "3.21",
+        "aiv_total_cycles": "103942",
+        "aiv_vec_time(us)": "0.0",
+        "aiv_vec_ratio": "0.0",
+        "aiv_scalar_time(us)": "0.98",
+        "aiv_scalar_ratio": "0.305",
+        "aiv_mte2_time(us)": "0.643",
+        "aiv_mte2_ratio": "0.2",
+        "aiv_mte3_time(us)": "0.226",
+        "aiv_mte3_ratio": "0.071",
+        "aiv_icache_miss_rate": "0.111",
+        "cube_utilization(%)": "0.000"
+      }
+    }
+  }
+}

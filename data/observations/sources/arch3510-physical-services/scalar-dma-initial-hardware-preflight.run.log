@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/collect_scalar_dma_pmu.py", line 210, in <module>
+    collect(args.actual, args.output)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/collect_scalar_dma_pmu.py", line 77, in collect
+    raise ValueError('retained_case_identity_changed')
+ValueError: retained_case_identity_changed

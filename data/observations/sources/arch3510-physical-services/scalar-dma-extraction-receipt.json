@@ -1,0 +1,294 @@
+{
+  "schema_version": "mindie-scalar-dma-native-pmu-batch/1",
+  "status": "completed",
+  "cases": [
+    {
+      "case_id": "a5_glm53flash_tp8_c8_p4k",
+      "output_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
+        "size_bytes": 3852442
+      },
+      "actual_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c8_p4k-glm-flash-ws9.actual.json",
+        "sha256": "a63d10abf5d769e60539b4a18e80d60d815cf5a5ba8bc4a4eb119df52c1168dd",
+        "size_bytes": 1547179
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+        "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+        "size_bytes": 41993164
+      },
+      "forward_count": 30,
+      "native_counts": {
+        "CausalConv1d": 1020,
+        "DequantSwigluQuant": 0,
+        "MoeInitRoutingV3": 1260,
+        "Slice": 6720,
+        "SparseFlashMlaMetadata": 330,
+        "_copy_conv_state_kernel": 2040
+      },
+      "execution": {
+        "elapsed_seconds": 3.2694503751117736,
+        "peak_rss_bytes": 69107712,
+        "source_passes": 1,
+        "prediction_calls": 0,
+        "scanned": {
+          "decoded_rows": 96679,
+          "selected_body_events": 80203,
+          "paired_convolutions": 1020
+        }
+      },
+      "executed_extractor_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/collect_scalar_dma_pmu.py",
+        "sha256": "59c4d3f31637a4c954382ea57038defa44ab5ad9df34d6fd6c71640a9defd9d4",
+        "size_bytes": 11136
+      },
+      "reused_completed_extraction": false
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c4_p8k",
+      "output_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
+        "size_bytes": 2210414
+      },
+      "actual_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c4_p8k-glm-flash-ws9.actual.json",
+        "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+        "size_bytes": 791398
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
+        "sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
+        "size_bytes": 25256665
+      },
+      "forward_count": 11,
+      "native_counts": {
+        "CausalConv1d": 374,
+        "DequantSwigluQuant": 0,
+        "MoeInitRoutingV3": 462,
+        "Slice": 2464,
+        "SparseFlashMlaMetadata": 121,
+        "_copy_conv_state_kernel": 748
+      },
+      "execution": {
+        "elapsed_seconds": 1.1740420840214938,
+        "peak_rss_bytes": 52576256,
+        "source_passes": 1,
+        "prediction_calls": 0,
+        "scanned": {
+          "decoded_rows": 35202,
+          "selected_body_events": 29411,
+          "paired_convolutions": 374
+        }
+      },
+      "executed_extractor_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/collect_scalar_dma_pmu.py",
+        "sha256": "59c4d3f31637a4c954382ea57038defa44ab5ad9df34d6fd6c71640a9defd9d4",
+        "size_bytes": 11136
+      },
+      "reused_completed_extraction": false
+    },
+    {
+      "case_id": "glm53flash-a5-tp8-c1",
+      "output_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
+        "size_bytes": 4605077
+      },
+      "actual_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators-5935c87b/body-operator-glm53flash-a5-tp8-c1-new17.actual.json",
+        "sha256": "210b9219324bad13c3a6a9a0953e58237da1620770881d2af593214ab7bfed20",
+        "size_bytes": 1950412
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+        "size_bytes": 71005746
+      },
+      "forward_count": 65,
+      "native_counts": {
+        "CausalConv1d": 2210,
+        "DequantSwigluQuant": 0,
+        "MoeInitRoutingV3": 2730,
+        "Slice": 14560,
+        "SparseFlashMlaMetadata": 715,
+        "_copy_conv_state_kernel": 4420
+      },
+      "execution": {
+        "elapsed_seconds": 6.981741000083275,
+        "peak_rss_bytes": 76120064,
+        "source_passes": 1,
+        "prediction_calls": 0,
+        "scanned": {
+          "decoded_rows": 209696,
+          "selected_body_events": 173810,
+          "paired_convolutions": 2210
+        }
+      },
+      "executed_extractor_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/collect_scalar_dma_pmu.py",
+        "sha256": "ac9a61c173933a46e793bb6ea4b489f4bf3484ff7bbf5d652cff0e15e1df8726",
+        "size_bytes": 10874
+      },
+      "reused_completed_extraction": true
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c4-graph",
+      "output_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c4-graph.json",
+        "sha256": "c5ce1f1d0026b78901e56e663f72051894f1e3edc8aeb8fbd59fa073e8706b47",
+        "size_bytes": 4150913
+      },
+      "actual_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen35-35b-a5-tp4-c4-graph-qwen-source-gdn-native.actual.json",
+        "sha256": "056a4486c8991068b5e7ac9d0319f0cbce45101dfcfb444a6a79824c01d8caa2",
+        "size_bytes": 1624229
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
+        "sha256": "9b8a87bfd6252204ab077e331ed97976ff9f5256935cb153677ac619dd96aac1",
+        "size_bytes": 70137504
+      },
+      "forward_count": 84,
+      "native_counts": {
+        "CausalConv1d": 2520,
+        "DequantSwigluQuant": 3360,
+        "MoeInitRoutingV3": 0,
+        "Slice": 21000,
+        "SparseFlashMlaMetadata": 0,
+        "_copy_conv_state_kernel": 0
+      },
+      "execution": {
+        "elapsed_seconds": 6.501214833930135,
+        "peak_rss_bytes": 74022912,
+        "source_passes": 1,
+        "prediction_calls": 0,
+        "scanned": {
+          "decoded_rows": 194453,
+          "selected_body_events": 152124
+        }
+      },
+      "executed_extractor_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/collect_scalar_dma_pmu.py",
+        "sha256": "59c4d3f31637a4c954382ea57038defa44ab5ad9df34d6fd6c71640a9defd9d4",
+        "size_bytes": 11136
+      },
+      "reused_completed_extraction": false
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph",
+      "output_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c64-graph.json",
+        "sha256": "62628fe2b6131de823d8c4db989212244ada4be250d155d3d16c7bc84b93cc29",
+        "size_bytes": 5295052
+      },
+      "actual_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen35-35b-a5-tp4-c64-graph-qwen-source-gdn-native.actual.json",
+        "sha256": "0c2f0f395dd7ef7fce894ad962e2d63664b9934593208e520c32e33040cf026d",
+        "size_bytes": 1962653
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+        "sha256": "5612e7cccfb3878cf27b22b1e89c5d186cd100633a44748973349f1bf03872f3",
+        "size_bytes": 79462851
+      },
+      "forward_count": 79,
+      "native_counts": {
+        "CausalConv1d": 2370,
+        "DequantSwigluQuant": 3160,
+        "MoeInitRoutingV3": 0,
+        "Slice": 19750,
+        "SparseFlashMlaMetadata": 0,
+        "_copy_conv_state_kernel": 0
+      },
+      "execution": {
+        "elapsed_seconds": 6.712650959030725,
+        "peak_rss_bytes": 81494016,
+        "source_passes": 1,
+        "prediction_calls": 0,
+        "scanned": {
+          "decoded_rows": 197197,
+          "selected_body_events": 147809
+        }
+      },
+      "executed_extractor_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/collect_scalar_dma_pmu.py",
+        "sha256": "59c4d3f31637a4c954382ea57038defa44ab5ad9df34d6fd6c71640a9defd9d4",
+        "size_bytes": 11136
+      },
+      "reused_completed_extraction": false
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph",
+      "output_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c128-graph.json",
+        "sha256": "83746ffe66721a9f2073fce437098d9414fbfb2642c73fb4e53d2a0da575e538",
+        "size_bytes": 4939272
+      },
+      "actual_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen35-35b-a5-tp4-c128-graph-qwen-source-gdn-native.actual.json",
+        "sha256": "ef292dde38e51165719dec69db29e870d197b8d5f5b0cb1bb590134c7b82e862",
+        "size_bytes": 1925080
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+        "sha256": "bf35b8b21c078d6fc7223918b280158fda5ee7c1f83009c70c98b16f27b08df5",
+        "size_bytes": 88444963
+      },
+      "forward_count": 76,
+      "native_counts": {
+        "CausalConv1d": 2280,
+        "DequantSwigluQuant": 3040,
+        "MoeInitRoutingV3": 0,
+        "Slice": 19000,
+        "SparseFlashMlaMetadata": 0,
+        "_copy_conv_state_kernel": 0
+      },
+      "execution": {
+        "elapsed_seconds": 6.980880917049944,
+        "peak_rss_bytes": 88834048,
+        "source_passes": 1,
+        "prediction_calls": 0,
+        "scanned": {
+          "decoded_rows": 209698,
+          "selected_body_events": 154356
+        }
+      },
+      "executed_extractor_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/collect_scalar_dma_pmu.py",
+        "sha256": "59c4d3f31637a4c954382ea57038defa44ab5ad9df34d6fd6c71640a9defd9d4",
+        "size_bytes": 11136
+      },
+      "reused_completed_extraction": false
+    }
+  ],
+  "extractor_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/collect_scalar_dma_pmu.py",
+    "sha256": "59c4d3f31637a4c954382ea57038defa44ab5ad9df34d6fd6c71640a9defd9d4",
+    "size_bytes": 11136
+  },
+  "batch_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/collect_scalar_dma_batch.py",
+    "sha256": "07b929c7514e7916c8c04df92e60285bb3fb37b708d2afce03a8406d467c0ca0",
+    "size_bytes": 4435
+  },
+  "new_source_passes": 5,
+  "retained_source_passes": 1,
+  "new_predictions": 0,
+  "new_device_collections": 0,
+  "forward_count": 345,
+  "peak_rss_bytes": 88834048,
+  "preflight_attempt": {
+    "case_id": "a5_glm53flash_tp8_c8_p4k",
+    "status": "failed_before_csv_scan",
+    "reason": "Historical mutable checkout case bytes differ; hardware SKU now has a separate pinned same-source service-case declaration.",
+    "log_identity": {
+      "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-initial-hardware-preflight.run.log",
+      "sha256": "777d21c0410473554fc24e23fc1784ad889dd4f534e90ceccef872b99043223a",
+      "size_bytes": 465
+    },
+    "failed_source_passes": 0
+  }
+}
