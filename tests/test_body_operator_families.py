@@ -1,5 +1,6 @@
 """Actual retained ABI/topology examples for complete-body operator reporting."""
 from collections import Counter
+from copy import deepcopy
 from dataclasses import replace
 import importlib
 import json
@@ -86,6 +87,65 @@ def test_real_fusion_cohort_roles_do_not_encode_the_layer_occurrence(replay):
     assert len(set(identifiers))==2
     roles={replay.declared_role({'subgraph_id':identifier}) for identifier in identifiers}
     assert roles=={'shared.situ_quant'}
+
+
+@pytest.fixture
+def retained_rebinding():
+    return json.loads((FIXTURE/'glm_retained_rebinding.json').read_text())
+
+
+def test_retained_real_cohorts_rebind_without_changing_observation(replay, retained_rebinding):
+    old = retained_rebinding['mapping']
+    snapshot = deepcopy(old)
+    rebound = replay.rebind_retained_mapping(old, retained_rebinding['structure'])
+    assert old == snapshot
+    assert rebound['graph_id'] != old['graph_id']
+    before = old['windows'][0]['cohorts']
+    after = rebound['windows'][0]['cohorts']
+    assert len(after) == len(before) == 3
+    for previous, current in zip(before, after):
+        for key in ('target_ids', 'event_count', 'complete_event_count', 'clipped_event_count',
+                    'duration_ns', 'activity_sum_ns', 'complete_activity_sum_ns', 'busy_union_ns',
+                    'candidate_refinements', 'multiplicity', 'contract'):
+            assert current[key] == previous[key]
+        assert current['retained_cohort_id'] == previous['cohort_id']
+        assert current['cohort_id'] != previous['cohort_id']
+    assert all(row['status'] == 'rebound' for row in rebound['retained_population_rebinding']['cohorts'])
+
+
+@pytest.mark.parametrize('change,reason', [
+    ('contract', 'retained_contract_role_candidate_set_changed'),
+    ('missing', 'retained_target_missing'),
+    ('internal', 'retained_target_now_internal_to_native_fusion'),
+    ('work', 'candidate_physical_work_differs'),
+    ('layer', 'retained_layer_identity_changed'),
+])
+def test_retained_real_population_is_excluded_whole_on_one_changed_layer(
+        replay, retained_rebinding, change, reason):
+    from mindie_sim.structure_index import index_digest
+    mapping, structure = retained_rebinding['mapping'], retained_rebinding['structure']
+    cohort = next(row for row in mapping['windows'][0]['cohorts']
+                  if mapping['conditional_role_by_cohort_id'][row['cohort_id']] == ['norm1'])
+    target = next(row for row in structure['nodes'] if row['node_id'] == cohort['target_ids'][0])
+    if change == 'missing':
+        structure['nodes'].remove(target)
+    elif change == 'contract':
+        target['contract'] = None
+    elif change == 'internal':
+        target['event_matchable'] = False
+    elif change == 'work':
+        target['physical_work']['hbm_bytes'] += 1
+    else:
+        target['layer'] += 1
+    structure['index_id'] = index_digest(structure)
+    result = replay.rebind_retained_mapping(mapping, structure)
+    excluded = result['windows'][0]['retained_excluded_cohorts']
+    assert len(excluded) == 1
+    assert excluded[0]['cohort_id'] == cohort['cohort_id']
+    assert excluded[0]['rebind_exclusion_reason'] == reason
+    assert excluded[0]['event_count'] == cohort['event_count']
+    assert excluded[0]['duration_ns'] == cohort['duration_ns']
+    assert len(result['windows'][0]['cohorts']) == 2
 
 
 @pytest.mark.parametrize('fixture,expected_spans', [

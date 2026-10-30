@@ -41,7 +41,7 @@ def archive_report(report, root):
         temporary.unlink(missing_ok=True)
 def operator_case(row, base, directory, timeout):
     from types import SimpleNamespace
-    from operators import extract_case
+    from operators import extract_case, geometry_key, prepare_retained_case
     from cohorts import _compare_programs
     from operators import family_rows, program_references
     extraction = Path(row['extraction_path'])
@@ -50,10 +50,65 @@ def operator_case(row, base, directory, timeout):
     if not case.is_absolute(): case = base / case
     directory = directory / row['id'].replace(':', '-')
     directory.mkdir(parents=True, exist_ok=True)
+    extraction_pin = row['extraction_identity']
+    pinned_path = Path(extraction_pin['path'])
+    if not pinned_path.is_absolute(): pinned_path = base / pinned_path
+    observed_identity = identity(extraction)
+    if (pinned_path.resolve() != extraction.resolve()
+            or any(observed_identity[key] != extraction_pin[key] for key in ('sha256', 'size_bytes'))):
+        raise ValueError('operator_body_extraction_changed_from_registry')
     entry = {'case_id': row['case_id'], 'source_identity': row['source'],
-             'report_path': str(extraction), 'report_sha256': identity(extraction)['sha256']}
-    populations = extract_case(entry, [case], directory, geometry_limit=row.get('geometry_limit', 1),
-                               context_tokens=row.get('geometry', {}).get('context_tokens'))
+             'report_path': str(extraction), 'report_sha256': extraction_pin['sha256']}
+    prior = read(extraction)
+    counts = {geometry_key(group['geometry']): group['body_forward_span_ms']['count']
+              for group in prior['geometry_groups']}
+    retained = row.get('operator_population_evidence')
+    if retained:
+        # Observations are pinned independently of costs. Revalidate complete
+        # contracts and topology against today's declaration before costing.
+        required = sorted(counts, key=lambda key: (-counts[key], key))
+        limit = row.get('geometry_limit', 1)
+        if limit is not None:
+            required = required[:limit]
+        available = {}
+        for pin in retained:
+            path = Path(pin['path'])
+            if not path.is_absolute(): path = base / path
+            actual_identity = identity(path)
+            if any(actual_identity[key] != pin[key] for key in ('sha256', 'size_bytes')):
+                raise ValueError('retained_operator_population_changed')
+            mapping_path = path.with_name(path.name.removesuffix('.actual.json') + '.mapping.json')
+            mapping_identity = identity(mapping_path)
+            if any(mapping_identity[key] != pin['mapping_identity'][key] for key in ('sha256', 'size_bytes')):
+                raise ValueError('retained_operator_mapping_changed')
+            actual = read(path); key = geometry_key(actual['geometry'])
+            if key in available:
+                raise ValueError('duplicate_retained_operator_geometry')
+            available[key] = (path, pin)
+        if not set(required) <= available.keys():
+            raise ValueError('retained_operator_geometry_coverage_incomplete')
+        context = row.get('geometry', {}).get('context_tokens')
+        if context is None:
+            context = read(case)['workload']['requests'][0]['prompt_tokens']
+        generation = _sim_identity()['package_sha256'][:12]
+        declaration = identity(case)['sha256'][:12]
+        populations = []
+        for key in required:
+            actual_path, pin = available[key]
+            if read(actual_path)['conditional_context_tokens'] != context:
+                raise ValueError('retained_operator_context_changed')
+            prefix = directory / f'body-operator-q{key[0]}-b{key[1]}-{declaration}-{generation}'
+            retained_body = pin.get('retained_body_identity')
+            if retained_body:
+                current = identity(retained_body['path'])
+                if any(current[k] != retained_body[k] for k in ('sha256', 'size_bytes')):
+                    raise ValueError('retained_operator_body_evidence_changed')
+            prepare_retained_case(entry, case, actual_path, prefix,
+                                  retained_body_path=retained_body['path'] if retained_body else None)
+            populations.append({'extraction_identity': identity(prefix.with_suffix('.actual.json'))})
+    else:
+        populations = extract_case(entry, [case], directory, geometry_limit=row.get('geometry_limit', 1),
+                                  context_tokens=row.get('geometry', {}).get('context_tokens'))
     result = []
     for population in populations:
         actual_path = Path(population['extraction_identity']['path'])
@@ -63,7 +118,14 @@ def operator_case(row, base, directory, timeout):
         references = program_references(prefix.with_suffix('.case.json'), mapping, actual)
         result.append({'geometry': actual['geometry'], 'forward_count': actual['forward_count'],
                        'families': family_rows(actual, mapping, comparison, references),
-                       'comparison_status_counts': comparison['status_counts']})
+                       'comparison_status_counts': comparison['status_counts'],
+                       'native_population_evidence': identity(actual_path),
+                       'mapping_evidence': identity(prefix.with_suffix('.mapping.json')),
+                       'retained_rebinding': mapping.get('retained_population_rebinding'),
+                       'source_reference_exclusions': [
+                           {key: group[key] for key in ('native_operator_type', 'declared_role',
+                               'observed_us', 'rebind_exclusion_reason') if key in group}
+                           for group in actual.get('retained_excluded_source_role_references', ())]})
     cohorts = [c for p in result for f in p['families'] for c in f.get('cohorts', [])]
     scored = [c for c in cohorts if c['status'] == 'compared']
     tiers = {}
@@ -76,6 +138,10 @@ def operator_case(row, base, directory, timeout):
         bucket['passed'] += cohort.get('accuracy_pass') is True
         bucket['events'] += observed['event_count']
     return {'status': 'completed', 'populations': result,
+            'population_coverage': {'observed_populations': len(counts), 'compared_populations': len(result),
+                'observed_calls': sum(counts.values()), 'covered_calls': sum(p['forward_count'] for p in result),
+                'complete': len(result) == len(counts),
+                'scoring_scope': 'all_populations' if row.get('geometry_limit', 1) is None else 'primary_population'},
             'comparison': {'status': 'operator_compared', 'compared': len(scored),
                            'passed_cohorts': sum(c.get('accuracy_pass') is True for c in scored),
                            'tiers': tiers}}
@@ -175,6 +241,8 @@ def entry_hash(row, *, scope=None):
     declaration = dict(row)
     if scope in {'body', 'operators'}:
         declaration.pop('engine', None)
+    if scope == 'body':
+        declaration.pop('operator_population_evidence', None)
     return sha256(json.dumps(declaration, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
 
 

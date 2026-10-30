@@ -287,6 +287,197 @@ def geometry_key(geometry):
     return tuple(geometry.get(key) for key in ('tokens_per_sequence','sequences_per_replica','query_rows'))
 
 
+def rebind_retained_mapping(mapping, structure):
+    """Revalidate complete retained cohorts against the current declaration.
+
+    Observations and their conditional layer/role evidence are immutable. A new
+    implementation may change physical work, but cannot change the native
+    contract, candidate population or inclusive boundary under the old samples.
+    Unmapped family examples are deliberately outside this operation.
+    """
+    from types import SimpleNamespace
+    from mindie_profiler.structure_subgraphs import StructureTargets
+    from mindie_sim.structure_index import index_digest
+
+    if structure.get('schema_version') != 'mindie-model-structure-index/1':
+        raise ValueError('retained_rebinding_requires_complete_structure_index')
+    if index_digest(structure) != structure.get('index_id'):
+        raise ValueError('structure_index_identity_mismatch')
+    execution = structure['execution']
+    for key in ('phase', 'tokens', 'context', 'sequences', 'scope', 'replica_axis', 'replicas'):
+        if mapping['declared_execution'].get(key) != execution.get(key):
+            raise ValueError('retained_execution_geometry_changed:' + key)
+    targets = StructureTargets({row['node_id']: row for row in structure['nodes']},
+                               structure.get('subgraphs', ()))
+    contracts = defaultdict(set)
+    for key, target in targets.all.items():
+        if target.get('contract') is not None and target.get('event_matchable', True):
+            contracts[_freeze(target['contract']), declared_role(target)].add(key)
+    windows, roles, receipts = [], {}, []
+    for window in mapping['windows']:
+        observation = SimpleNamespace(rank_id=window['rank_id'],
+                                      source=SimpleNamespace(rank_id=window['rank_id']))
+        accumulator = CohortAccumulator(structure['graph_id'], targets, observation,
+                                        execution=execution)
+        retained, excluded = [], []
+        for old in window['cohorts']:
+            ids = set(old['target_ids'])
+            old_roles = set(mapping['conditional_role_by_cohort_id'][old['cohort_id']])
+            refinements = old.get('candidate_refinements', ())
+            reason = None
+            if (not old.get('contract') or not old_roles or not refinements
+                    or sum(item['event_count'] for item in refinements) != old['event_count']
+                    or any(item.get('basis') != 'whole_body_topology_conditioned_role'
+                           or set(item.get('declared_roles', ())) != old_roles for item in refinements)):
+                reason = 'retained_complete_contract_or_topology_evidence_missing'
+            elif not ids <= targets.all.keys():
+                reason = 'retained_target_missing'
+            elif any(targets.all[key].get('event_matchable') is False for key in ids):
+                reason = 'retained_target_now_internal_to_native_fusion'
+            else:
+                candidates = set().union(*(contracts[_freeze(old['contract']), role] for role in old_roles))
+                replicas = old['placement']['replica_candidates']
+                candidates = {key for key in candidates if targets.all[key].get('replica') in replicas
+                              and targets.all[key].get('stage') == old['stage']
+                              and targets.all[key].get('phase') == old['phase']}
+                if candidates != ids:
+                    reason = 'retained_contract_role_candidate_set_changed'
+                elif any((match := re.search(r'(?:^|[/:])s\d+\.l(\d+)\.', key)) is None
+                         or targets.all[key].get('layer') != int(match[1]) for key in ids):
+                    reason = 'retained_layer_identity_changed'
+                elif any(role_block(targets.all[key]) not in {None, item['block']}
+                         for key in ids for item in refinements):
+                    reason = 'retained_role_block_changed'
+            declaration = None
+            if reason is None:
+                declaration, reason = accumulator._cohort(ids)
+            if reason is None:
+                for key in ('target_kind', 'declared_candidate_instance_count', 'declared_instance_count',
+                            'declared_layer_count', 'contract_scope', 'structural_classification'):
+                    if _freeze(declaration.get(key)) != _freeze(old.get(key)):
+                        reason = 'retained_boundary_or_population_changed:' + key
+                        break
+                if _freeze((old.get('resource_boundary') or {}).get('native')) != _freeze(
+                        (declaration.get('resource_boundary') or {}).get('native')):
+                    reason = 'retained_native_fusion_boundary_changed'
+            receipt = {'retained_cohort_id': old['cohort_id'],
+                       'native_operator_type': old['native_operator_type'],
+                       'event_count': old['event_count'], 'reason': reason,
+                       'status': 'excluded' if reason else 'rebound'}
+            if reason:
+                excluded.append({**old, 'rebind_exclusion_reason': reason})
+            else:
+                key = (old['native_operator_type'], old['device_id'], tuple(sorted(ids)))
+                encoded = json.dumps((structure['graph_id'], window['rank_id'], key),
+                                     sort_keys=True, separators=(',', ':'), allow_nan=False)
+                cohort_id = 'sha256:' + sha256(encoded.encode()).hexdigest()
+                retained.append({**old, **declaration, 'cohort_id': cohort_id,
+                                 'retained_cohort_id': old['cohort_id']})
+                roles[cohort_id] = sorted(old_roles)
+                receipt.update(cohort_id=cohort_id,
+                               physical_work_changed=_freeze(old['physical_work_per_instance']) !=
+                                                     _freeze(declaration['physical_work_per_instance']))
+            receipts.append(receipt)
+        windows.append({**window, 'cohorts': retained, 'retained_excluded_cohorts': excluded})
+    return {**mapping, 'graph_id': structure['graph_id'], 'declared_execution': execution,
+            'windows': windows, 'conditional_role_by_cohort_id': roles,
+            'cohort_event_window_count': sum(row['event_count'] for window in windows for row in window['cohorts']),
+            'retained_population_rebinding': {
+                'original_graph_id': mapping['graph_id'], 'current_index_id': structure['index_id'],
+                'raw_capture_reads': 0, 'observation_values_changed': False,
+                'unknown_families_promoted_from_examples': False, 'cohorts': receipts}}
+
+
+def prepare_retained_case(entry, case_path, actual_path, prefix, *, retained_body_path=None):
+    """Prepare current costing inputs from a pinned complete native population.
+
+    The caller selects a retained actual/mapping pair, rather than looking for a
+    result with a favourable error. Original artifacts remain immutable. Source
+    references whose declared work changed require separate full-ABI reselection;
+    their retained histograms stay visible as exclusions.
+    """
+    from mindie_sim.structure_index import export_structure_index
+
+    actual_path, case_path, prefix = map(Path, (actual_path, case_path, prefix))
+    mapping_path = actual_path.with_name(actual_path.name.removesuffix('.actual.json') + '.mapping.json')
+    if prefix.with_suffix('.actual.json').resolve() == actual_path.resolve():
+        raise ValueError('retained_operator_inputs_must_not_be_overwritten')
+    runtime_before = runtime_identity()
+    pins = {'actual': identity(actual_path), 'mapping': identity(mapping_path),
+            'current_case': identity(case_path)}
+    actual, mapping, case_json = read(actual_path), read(mapping_path), read(case_path)
+    if actual['source_identity']['sha256'] != entry['source_identity']['sha256']:
+        raise ValueError('retained_operator_source_changed')
+    if any(window['source_identity']['sha256'] != actual['source_identity']['sha256']
+           for window in mapping['windows']):
+        raise ValueError('retained_operator_mapping_source_changed')
+    prior_path = Path(entry['report_path'])
+    if digest(prior_path) != entry['report_sha256']:
+        raise ValueError('retained_operator_body_acceptance_changed')
+    prior = read(prior_path)
+    if prior['source_identity']['sha256'] != actual['source_identity']['sha256']:
+        raise ValueError('retained_operator_body_source_changed')
+    pins['current_body_acceptance'] = identity(prior_path)
+    equivalence = None
+    if actual['body_acceptance_identity']['sha256'] != entry['report_sha256']:
+        if (retained_body_path is None
+                or digest(retained_body_path) != actual['body_acceptance_identity']['sha256']):
+            raise ValueError('retained_operator_body_acceptance_changed')
+        previous = read(retained_body_path)
+        fields = ('model_declaration', 'segmentation_options', 'forwards', 'geometry_groups', 'per_layer_ms')
+        if (previous['source_identity']['sha256'] != prior['source_identity']['sha256']
+                or any(previous.get(key) != prior.get(key) for key in fields)):
+            raise ValueError('retained_operator_body_population_or_layer_boundary_changed')
+        pins['retained_body_acceptance'] = identity(retained_body_path)
+        equivalence = {'basis': 'exact_retained_body_and_layer_population_equality',
+                       'compared_fields': list(fields), 'forward_count': len(prior['forwards'])}
+    expected = [row for row in prior['forwards']
+                if geometry_key(row['geometry']) == geometry_key(actual['geometry'])]
+    if len(expected) != actual['forward_count']:
+        raise ValueError('retained_operator_geometry_population_changed')
+    execution = mapping['declared_execution']
+    geometry = {key: execution[key] for key in ('phase', 'tokens', 'context', 'sequences', 'scope')}
+    if ((geometry['tokens'], geometry['sequences'], geometry['tokens'] * geometry['sequences'])
+            != geometry_key(actual['geometry'])
+            or geometry['context'] != actual['conditional_context_tokens']):
+        raise ValueError('retained_operator_execution_geometry_mismatch')
+    index = export_structure_index(case_json, **geometry)
+    rebound = rebind_retained_mapping(mapping, index)
+    targets = {row['node_id']: row for row in index['nodes']}
+    kept, excluded = [], []
+    for group in actual.get('source_role_references', ()):
+        ids = group['representative_target_ids']
+        selected = [targets[key] for key in ids if key in targets]
+        if len(selected) != len(ids):
+            reason = 'retained_source_program_missing'
+        elif ([row['physical_signature'] for row in selected] != group['physical_program_signatures']
+              or [row['physical_work'] for row in selected] != group['physical_work_per_program']):
+            reason = 'retained_source_program_changed_requires_full_native_reselection'
+        else:
+            # A representative alone does not verify that all retained layers
+            # still share the same program. Keep whole-group reuse conservative.
+            reason = None if mapping['graph_id'] == index['graph_id'] else 'retained_source_group_requires_all_layer_revalidation'
+        if reason:
+            excluded.append({**group, 'rebind_exclusion_reason': reason})
+        else:
+            kept.append(group)
+    del index, targets
+    if runtime_identity() != runtime_before or any(identity(pin['path']) != pin for pin in pins.values()):
+        raise ValueError('retained_operator_inputs_changed_during_rebinding')
+    provenance = {'inputs': pins, 'runtime_source_identity': runtime_before,
+                  'raw_capture_reads': 0, 'new_cost_calls': 0,
+                  'population_basis': 'same_pinned_complete_body_geometry_population',
+                  'body_acceptance_equivalence': equivalence}
+    rebound['retained_population_rebinding'].update(provenance)
+    current_actual = {**actual, 'source_role_references': kept,
+                      'retained_excluded_source_role_references': excluded,
+                      'retained_population_reuse': provenance}
+    write(prefix.with_suffix('.case.json'), case_json)
+    write(prefix.with_suffix('.actual.json'), current_actual)
+    write(prefix.with_suffix('.mapping.json'), rebound)
+    return current_actual, rebound
+
+
 def segmentation_config(model_config, prior):
     """Keep the source boundary declaration used to accept the retained bodies."""
     config = dict(model_config)

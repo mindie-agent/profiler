@@ -146,6 +146,24 @@ def test_client_evidence_registration_does_not_invalidate_body_cost(tmp_path):
                 retained_cards(previous, [changed], set(), runtime, scope)
 
 
+def test_retained_native_population_registration_changes_operator_inputs_only(tmp_path):
+    sample = samples()[0]
+    pointer = archive_report(sample['result'], tmp_path)
+    runtime = {'package_sha256': 'retained-runtime', 'version': '0.8.0'}
+    updated = deepcopy(sample['row'])
+    # The evidence pointer can be registered without changing the already
+    # verified Body declaration; it must invalidate an operator comparison.
+    updated['operator_population_evidence'] = [pointer]
+    for scope in ('body', 'operators'):
+        card = project(sample['row'], sample['result'], pointer, scope=scope)
+        previous = {'scope': scope, 'runtime': runtime, 'cases': [card]}
+        if scope == 'body':
+            assert retained_cards(previous, [updated], set(), runtime, scope) == [card]
+        else:
+            with pytest.raises(ValueError, match='changed_case_requires_replay'):
+                retained_cards(previous, [updated], set(), runtime, scope)
+
+
 def test_real_glm128k_primary_pass_does_not_cover_other_five_populations():
     rows = json.loads((ROOT / 'tests/fixtures/pipeline/glm128k_populations.json').read_text())['rows']
     limited = decode_populations(rows, require_all=False)
@@ -172,6 +190,21 @@ def test_failed_minority_population_cannot_be_replaced_by_primary_pass():
     assert full['geometry_comparisons'][-1]['comparison']['reasons'] == ['body_prediction_timeout']
 
 
+def test_operator_reuse_checks_declared_body_pin_before_equivalent_boundaries(tmp_path):
+    from pipeline import operator_case
+    extraction = tmp_path / 'mixed-body.json'
+    extraction.write_bytes((ROOT / 'tests/fixtures/pipeline/mixed_decode_populations.json').read_bytes())
+    prior = json.loads(extraction.read_text())
+    row = {'id': 'decode:v4flash-a3-tp8-c4', 'case_id': 'v4flash-a3-tp8-c4',
+           'source': prior['source_identity'], 'extraction_path': str(extraction),
+           'extraction_identity': identity(extraction), 'sim_case_path': 'retained-model.json'}
+    # The topology remains byte-for-byte equivalent after JSON decoding, but
+    # the consumed artifact is no longer the one declared in the registry.
+    extraction.write_bytes(extraction.read_bytes() + b'\n')
+    with pytest.raises(ValueError, match='operator_body_extraction_changed_from_registry'):
+        operator_case(row, tmp_path, tmp_path / 'operators', 90)
+
+
 @pytest.mark.parametrize('all_populations', [False, True])
 def test_operator_entry_preserves_real_mixed_population_selection(tmp_path, monkeypatch, all_populations):
     import operators
@@ -180,6 +213,7 @@ def test_operator_entry_preserves_real_mixed_population_selection(tmp_path, monk
     prior = json.loads(extraction.read_text())
     row = {'id': 'decode:v4flash-a3-tp8-c4', 'case_id': 'v4flash-a3-tp8-c4',
            'source': prior['source_identity'], 'extraction_path': str(extraction),
+           'extraction_identity': identity(extraction),
            'sim_case_path': 'retained-model.json', 'geometry': {'context_tokens': 4096}}
     if all_populations:
         row['geometry_limit'] = None

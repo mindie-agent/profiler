@@ -81,6 +81,12 @@ python examples/structure/pipeline.py \
 `population_coverage` 明示覆盖调用数，`source_all_populations_passed` 仅在全部桶均已评分且全部通过时为真。
 全桶模式的源级状态采用这个结果，主桶数值仍保留供查看。
 
+已提取的完整原生算子人口可通过清册的 `operator_population_evidence` 复用，条目固定 actual 与 mapping 的路径、SHA256 和大小。
+管线逐个验证源码合同、候选层集合、角色及融合边界，再用当前 Sim 重新计算物理成本，不重扫原始 CSV，也不复用旧预测。
+合同或边界发生变化的 cohort 明确排除；未映射族的少量示例不能代替完整人口。
+若 Body 提取文件只改变了外围记账，可附旧 `retained_body_identity`；必须验证完整 Forward、层边界和几何逐项相等后才能复用。
+算子人口证据的登记不会使已核验的 Body 成本失效，算子比较本身仍需重新执行。
+
 ## 数据边界
 
 - `cases/*.json` 保存模型、部署、源码程序与物理服务参数；清册保存采集、模型、提取结果和校准证据的内容身份。
