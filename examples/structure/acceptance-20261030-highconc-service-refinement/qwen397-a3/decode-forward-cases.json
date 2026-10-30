@@ -1,0 +1,863 @@
+{
+  "schema_version": "mindie-decode-forward-replay/1",
+  "variant_id": "q397-highconc-native-21c30821",
+  "not_new_live_collection": true,
+  "basis": "fresh runtime prediction using unchanged retained source populations",
+  "runtime_plan": {
+    "checkout": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029",
+    "source_commit": "40e4300ea7ccc1123759f6201cc2d69e3aa77ad6"
+  },
+  "cases": [
+    {
+      "case_id": "qwen35-397b-a3-tp16-c48",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot30_c48_20261030/kernel_details.csv",
+        "sha256": "9217dce748a95877c9f663ad8a3a4dea8d1a539842f63d352743a7711b867b8f",
+        "size_bytes": 21524017
+      },
+      "sim_case_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen397-a3/cases/qwen35-397b-a3-tp16-c48-native-service.json",
+      "model_declaration": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen397-a3/cases/qwen35-397b-a3-tp16-c48-native-service.json",
+        "sha256": "c8ed8f4c89c87f05b1d6c78624cd43f68a8abfaca44cffcb444e814adacd6114",
+        "size_bytes": 533613
+      },
+      "segmentation": "auto_structure_guided",
+      "boundaries_path": null,
+      "geometry": {
+        "context_tokens": 4104
+      },
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot30_c48_20261030",
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot30_c48_20261030/benchmark_summary.json",
+          "sha256": "9b93b60716848501ea9b547224afab0b8c534c8338a3c9974aeb10782a622933",
+          "size_bytes": 1289
+        },
+        "benchmark_summary_fields": {
+          "date": 1793299709.535546,
+          "endpoint_type": "openai",
+          "backend": "openai",
+          "label": "qwen397-tp16_c48",
+          "model_id": "qwen397",
+          "num_prompts": 48,
+          "max_concurrency": 48,
+          "duration": 12.062377280090004,
+          "completed": 48,
+          "failed": 0,
+          "total_input_tokens": 196992,
+          "total_output_tokens": 12288,
+          "request_throughput": 3.979315095642726,
+          "output_throughput": 1018.7046644845378,
+          "total_token_throughput": 17349.813817002287,
+          "mean_ttft_ms": 1538.431844577038,
+          "median_ttft_ms": 1428.2792201265693,
+          "std_ttft_ms": 226.7003875806601,
+          "p99_ttft_ms": 1813.2196199148893,
+          "mean_tpot_ms": 39.26437546734956,
+          "median_tpot_ms": 39.36796791652151,
+          "std_tpot_ms": 1.2891463372243643,
+          "p99_tpot_ms": 43.52828147362338,
+          "mean_itl_ms": 114.0338731885131,
+          "mean_e2el_ms": 11476.258508511819,
+          "median_e2el_ms": 11513.352419948205,
+          "p99_e2el_ms": 12049.753480125219,
+          "mean_step_ms": 114.10321240085591,
+          "median_step_ms": 114.77889467249913,
+          "mean_tokens_per_step": 2.9091360749625657,
+          "tpot_trimmed_ms": 32.713429876156155,
+          "tpot_p50_from_itl_ms": 31.7354870158185,
+          "prefix_len": 4096,
+          "suffix_len": 8,
+          "output_len": 256,
+          "token_exact": true,
+          "meta": {
+            "tag": "qwen397-tp16",
+            "cell": "qwen397-tp16_c48",
+            "concurrency": 48,
+            "window_s": 2.0,
+            "profiled": true
+          }
+        },
+        "retained_deployment": {
+          "startup": {
+            "source": {
+              "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a3-highconc-decode/evidence/logs/serve-qwen397-16.log",
+              "sha256": "d923bf45c984baadd2a2bc92f60d5ca2279e637d862ef985da6d033c66886168",
+              "size_bytes": 476324
+            },
+            "evidence_lines": [
+              {
+                "line": 25,
+                "text": "(APIServer pid=77) INFO 10-29 18:29:34 [api_utils.py:286] non-default args: {'model_tag': '/mnt/weight/Qwen3.5-397B-A17B-w8a8-mtp', 'host': '0.0.0.0', 'port': 18260, 'model': '/mnt/weight/Qwen3.5-397B-A17B-w8a8-mtp', 'trust_remote_code': True, 'max_model_len': 8192, 'quantization': 'ascend', 'served_model_name': ['qwen397'], 'distributed_executor_backend': 'mp', 'tensor_parallel_size': 16, 'gpu_memory_utilization': 0.9, 'enable_prefix_caching': True, 'max_num_batched_tokens': 8192, 'max_num_seqs': 384, 'speculative_config': {'method': 'qwen3_5_mtp', 'num_speculative_tokens': 3, 'rejection_sample_method': 'synthetic', 'synthetic_acceptance_rates': [0.8, 0.64, 0.512]}, 'compilation_config': {'mode': None, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'vllm_ascend.compilation.compiler_interface.AscendCompiler', 'custom_ops': [], 'ir_enable_torch_wrap': None, 'splitting_ops': None, 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': None, 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': [16, 32, 64, 128, 256, 512, 640, 768, 896, 1024, 1152, 1280, 1408, 1536], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': None, 'pass_config': {}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': None, 'static_all_moe_layers': []}, 'additional_config': {'enable_cpu_binding': True}, 'profiler_config': ProfilerConfig(profiler='torch', torch_profiler_dir='/work/prof', proton_profiler_dir='', proton_context='shadow', proton_data='tree', proton_backend=None, proton_mode=None, proton_hook=None, proton_output_format=None, proton_graph_attribution=False, torch_profiler_with_stack=False, torch_profiler_with_flops=False, torch_profiler_use_gzip=False, torch_profiler_dump_cuda_time_total=True, torch_profiler_record_shapes=False, torch_profiler_with_memory=False, capture_torch_profiler=False, detailed_trace_annotation=False, ignore_frontend=False, delay_iterations=0, max_iterations=0, warmup_iterations=0, active_iterations=5, wait_iterations=0)}"
+              },
+              {
+                "line": 26,
+                "text": "(APIServer pid=77) INFO 10-29 18:29:59 [model.py:692] Resolved architecture: Qwen3_5MoeForConditionalGeneration"
+              },
+              {
+                "line": 29,
+                "text": "(APIServer pid=77) INFO 10-29 18:30:16 [model.py:692] Resolved architecture: Qwen3_5MoeMTP"
+              },
+              {
+                "line": 65,
+                "text": "(EngineCore pid=223) INFO 10-29 18:30:44 [core.py:123] Initializing a V1 LLM engine (v0.30.0) with config: model='/mnt/weight/Qwen3.5-397B-A17B-w8a8-mtp', speculative_config=SpeculativeConfig(method='mtp', model='/mnt/weight/Qwen3.5-397B-A17B-w8a8-mtp', num_spec_tokens=3), tokenizer='/mnt/weight/Qwen3.5-397B-A17B-w8a8-mtp', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=8192, download_dir=None, load_format=auto, tensor_parallel_size=16, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=True, quantization=ascend, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=npu, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, per_request_spec_decode_metrics='none', kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=qwen397, enable_prefix_caching=True, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.VLLM_COMPILE: 3>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'vllm_ascend.compilation.compiler_interface.AscendCompiler', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [8192], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [16, 32, 64, 128, 256, 512, 640, 768, 896, 1024, 1152, 1280, 1408, 1536], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 1536, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'], gelu_and_mul_sparse=['native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_jit_warmup=True, moe_backend='auto', sparse_indexer_topk_backend='auto', linear_backend='auto', linear_backend_per_quant=None)"
+              },
+              {
+                "line": 2026,
+                "text": "(Worker_TP0 pid=239) INFO 10-29 18:45:06 [acl_graph.py:301] ACL graph replay is active (logged once)."
+              },
+              {
+                "line": 2033,
+                "text": "(APIServer pid=77) INFO 10-29 18:45:14 [loggers.py:315] Engine 000: Avg prompt throughput: 899.9 tokens/s, Avg generation throughput: 3.5 tokens/s, Running: 4 reqs, Waiting: 0 reqs, NPU KV cache usage: 1.4%, Prefix cache hit rate: 62.4%"
+              },
+              {
+                "line": 2048,
+                "text": "(APIServer pid=77) INFO 10-29 18:45:24 [loggers.py:315] Engine 000: Avg prompt throughput: 648.0 tokens/s, Avg generation throughput: 308.5 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 74.9%"
+              },
+              {
+                "line": 2102,
+                "text": "(APIServer pid=77) INFO 10-29 18:45:34 [loggers.py:315] Engine 000: Avg prompt throughput: 2087.5 tokens/s, Avg generation throughput: 567.6 tokens/s, Running: 32 reqs, Waiting: 0 reqs, NPU KV cache usage: 9.2%, Prefix cache hit rate: 86.4%"
+              },
+              {
+                "line": 2171,
+                "text": "(APIServer pid=77) INFO 10-29 18:45:44 [loggers.py:315] Engine 000: Avg prompt throughput: 2099.9 tokens/s, Avg generation throughput: 989.6 tokens/s, Running: 64 reqs, Waiting: 0 reqs, NPU KV cache usage: 18.1%, Prefix cache hit rate: 89.2%"
+              },
+              {
+                "line": 2304,
+                "text": "(APIServer pid=77) INFO 10-29 18:45:54 [loggers.py:315] Engine 000: Avg prompt throughput: 2047.0 tokens/s, Avg generation throughput: 1332.2 tokens/s, Running: 92 reqs, Waiting: 36 reqs, NPU KV cache usage: 26.0%, Prefix cache hit rate: 90.6%"
+              },
+              {
+                "line": 2306,
+                "text": "(APIServer pid=77) INFO 10-29 18:46:04 [loggers.py:315] Engine 000: Avg prompt throughput: 1741.2 tokens/s, Avg generation throughput: 2636.0 tokens/s, Running: 128 reqs, Waiting: 0 reqs, NPU KV cache usage: 38.8%, Prefix cache hit rate: 91.0%"
+              },
+              {
+                "line": 2471,
+                "text": "(APIServer pid=77) INFO 10-29 18:46:14 [loggers.py:315] Engine 000: Avg prompt throughput: 4633.9 tokens/s, Avg generation throughput: 1240.0 tokens/s, Running: 160 reqs, Waiting: 0 reqs, NPU KV cache usage: 45.0%, Prefix cache hit rate: 91.8%"
+              },
+              {
+                "line": 2473,
+                "text": "(APIServer pid=77) INFO 10-29 18:46:24 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 3335.6 tokens/s, Running: 106 reqs, Waiting: 0 reqs, NPU KV cache usage: 32.2%, Prefix cache hit rate: 91.8%"
+              },
+              {
+                "line": 2670,
+                "text": "(APIServer pid=77) INFO 10-29 18:46:34 [loggers.py:315] Engine 000: Avg prompt throughput: 5476.8 tokens/s, Avg generation throughput: 1022.5 tokens/s, Running: 192 reqs, Waiting: 0 reqs, NPU KV cache usage: 54.0%, Prefix cache hit rate: 92.2%"
+              },
+              {
+                "line": 2672,
+                "text": "(APIServer pid=77) INFO 10-29 18:46:44 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 3539.4 tokens/s, Running: 188 reqs, Waiting: 0 reqs, NPU KV cache usage: 56.9%, Prefix cache hit rate: 92.2%"
+              },
+              {
+                "line": 2901,
+                "text": "(APIServer pid=77) INFO 10-29 18:46:54 [loggers.py:315] Engine 000: Avg prompt throughput: 6323.6 tokens/s, Avg generation throughput: 898.8 tokens/s, Running: 224 reqs, Waiting: 0 reqs, NPU KV cache usage: 62.9%, Prefix cache hit rate: 92.5%"
+              },
+              {
+                "line": 2903,
+                "text": "(APIServer pid=77) INFO 10-29 18:47:04 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 3713.5 tokens/s, Running: 224 reqs, Waiting: 0 reqs, NPU KV cache usage: 67.7%, Prefix cache hit rate: 92.5%"
+              },
+              {
+                "line": 2907,
+                "text": "(APIServer pid=77) INFO 10-29 18:47:14 [loggers.py:315] Engine 000: Avg prompt throughput: 26.4 tokens/s, Avg generation throughput: 1620.5 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 92.5%"
+              },
+              {
+                "line": 2959,
+                "text": "(APIServer pid=77) INFO 10-29 18:47:24 [loggers.py:315] Engine 000: Avg prompt throughput: 1677.4 tokens/s, Avg generation throughput: 1167.2 tokens/s, Running: 42 reqs, Waiting: 0 reqs, NPU KV cache usage: 12.9%, Prefix cache hit rate: 92.4%"
+              },
+              {
+                "line": 3020,
+                "text": "(APIServer pid=77) INFO 10-29 18:47:34 [loggers.py:315] Engine 000: Avg prompt throughput: 1888.8 tokens/s, Avg generation throughput: 1192.8 tokens/s, Running: 56 reqs, Waiting: 0 reqs, NPU KV cache usage: 17.1%, Prefix cache hit rate: 92.4%"
+              },
+              {
+                "line": 3161,
+                "text": "(APIServer pid=77) INFO 10-29 18:47:44 [loggers.py:315] Engine 000: Avg prompt throughput: 4000.3 tokens/s, Avg generation throughput: 1290.7 tokens/s, Running: 136 reqs, Waiting: 0 reqs, NPU KV cache usage: 38.3%, Prefix cache hit rate: 92.9%"
+              },
+              {
+                "line": 3165,
+                "text": "(APIServer pid=77) INFO 10-29 18:47:54 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 2497.7 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 92.9%"
+              },
+              {
+                "line": 3312,
+                "text": "(APIServer pid=77) INFO 10-29 18:48:04 [loggers.py:315] Engine 000: Avg prompt throughput: 4211.9 tokens/s, Avg generation throughput: 1647.4 tokens/s, Running: 144 reqs, Waiting: 0 reqs, NPU KV cache usage: 44.7%, Prefix cache hit rate: 92.9%"
+              },
+              {
+                "line": 3315,
+                "text": "(APIServer pid=77) INFO 10-29 18:48:14 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 2040.3 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 92.9%"
+              },
+              {
+                "line": 3317,
+                "text": "(APIServer pid=77) INFO 10-29 18:48:24 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 92.9%"
+              },
+              {
+                "line": 3440,
+                "text": "(APIServer pid=77) INFO 10-29 18:48:34 [loggers.py:315] Engine 000: Avg prompt throughput: 1677.7 tokens/s, Avg generation throughput: 370.7 tokens/s, Running: 48 reqs, Waiting: 0 reqs, NPU KV cache usage: 13.7%, Prefix cache hit rate: 92.9%"
+              },
+              {
+                "line": 3672,
+                "text": "(APIServer pid=77) INFO 10-29 18:48:44 [loggers.py:315] Engine 000: Avg prompt throughput: 871.1 tokens/s, Avg generation throughput: 865.0 tokens/s, Running: 62 reqs, Waiting: 74 reqs, NPU KV cache usage: 17.6%, Prefix cache hit rate: 92.9%"
+              },
+              {
+                "line": 3790,
+                "text": "(APIServer pid=77) INFO 10-29 18:48:54 [loggers.py:315] Engine 000: Avg prompt throughput: 2745.4 tokens/s, Avg generation throughput: 1785.7 tokens/s, Running: 136 reqs, Waiting: 0 reqs, NPU KV cache usage: 42.8%, Prefix cache hit rate: 92.9%"
+              },
+              {
+                "line": 3887,
+                "text": "(APIServer pid=77) INFO 10-29 18:49:04 [loggers.py:315] Engine 000: Avg prompt throughput: 897.5 tokens/s, Avg generation throughput: 1697.5 tokens/s, Running: 63 reqs, Waiting: 1 reqs, NPU KV cache usage: 17.9%, Prefix cache hit rate: 93.0%"
+              },
+              {
+                "line": 3990,
+                "text": "(APIServer pid=77) INFO 10-29 18:49:14 [loggers.py:315] Engine 000: Avg prompt throughput: 818.3 tokens/s, Avg generation throughput: 1615.3 tokens/s, Running: 27 reqs, Waiting: 0 reqs, NPU KV cache usage: 8.4%, Prefix cache hit rate: 93.0%"
+              },
+              {
+                "line": 4244,
+                "text": "(APIServer pid=77) INFO 10-29 18:49:24 [loggers.py:315] Engine 000: Avg prompt throughput: 3405.3 tokens/s, Avg generation throughput: 951.0 tokens/s, Running: 128 reqs, Waiting: 0 reqs, NPU KV cache usage: 36.0%, Prefix cache hit rate: 93.0%"
+              },
+              {
+                "line": 4264,
+                "text": "(APIServer pid=77) INFO 10-29 18:49:34 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 2345.8 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.0%"
+              },
+              {
+                "line": 4266,
+                "text": "(APIServer pid=77) INFO 10-29 18:49:44 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.0%"
+              }
+            ],
+            "runtime_fields": {
+              "model": "/mnt/weight/Qwen3.5-397B-A17B-w8a8-mtp",
+              "tensor_parallel_size": 16,
+              "enable_expert_parallel": null,
+              "enable_force_eplb": null,
+              "num_speculative_tokens": 3,
+              "enforce_eager": null,
+              "enable_prefix_caching": true,
+              "max_num_seqs": 384,
+              "max_num_batched_tokens": 8192,
+              "fusion_ops_gmmswigluquant": null
+            },
+            "engine_config_observed": true,
+            "missing_argument_is_not_false": true
+          },
+          "launch_sources": [
+            {
+              "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a3-highconc-decode/cfg/serve.sh",
+              "sha256": "deb7a427d6326f618d5f21d89bf9518db10bb56605d5465c92f3eb56061062e1",
+              "size_bytes": 3605
+            }
+          ],
+          "launch_source_is_execution_intent": true
+        },
+        "client": {
+          "concurrency": 48,
+          "input_len": 4104,
+          "token_exact": true
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "median": 39.36796791652151,
+            "mean": 39.26437546734956
+          },
+          "unprofiled_sweep_ms": null,
+          "body_forward_is_separate_metric": true,
+          "profiled_trimmed_itl_ms": 32.713429876156155
+        },
+        "prefix_cache": {
+          "profiled_metrics": null,
+          "unprofiled_metrics": null,
+          "unknown_metrics_are_not_zero": true
+        },
+        "source_population": {
+          "selected_rank": "top_level_export",
+          "available_rank_directories": [],
+          "all_ranks_are_not_summed": true,
+          "gzip_is_streamed_without_materialization": false
+        },
+        "step_trace": {
+          "source": {
+            "path": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot30_c48_20261030/step_trace_time.csv",
+            "sha256": "e90fd10d237d75e61e26f00e4297b4493bac2336abd575e91356a97f6d936ec5",
+            "size_bytes": 278
+          },
+          "rows": [
+            {
+              "Device_id": "0",
+              "Step": "",
+              "Computing": "1633039.4200000141",
+              "Communication(Not Overlapped)": "368154.4199999999",
+              "Overlapped": "0.0",
+              "Communication": "368154.4199999999",
+              "Free": "193276.5599998995",
+              "Stage": "2194470.25",
+              "Bubble": "0",
+              "Communication(Not Overlapped and Exclude Receive)": "368154.4199999999",
+              "Preparing": "1864.0"
+            }
+          ],
+          "explicit_nonempty_step_values": 0
+        },
+        "request_geometry_is_not_per_forward_geometry": true,
+        "force_load_balance": {
+          "value": null,
+          "basis": "retained_non_default_startup_args_if_present"
+        },
+        "prefix_and_acceptance": {
+          "configured_values_are_not_measured_rates": true,
+          "unknown_metrics_are_not_zero": true
+        },
+        "tpot_body_scope": "client/profiled/sweep metrics retained separately in source fields; never body_forward_span_ms",
+        "sim_input_audit": {
+          "source": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/high-concurrency-new17-inputs-20261030.json",
+            "sha256": "bf150f5241aefb9b1e78ed92255ba6734849bca2eaa371d323479f870bf38933",
+            "size_bytes": 319450
+          },
+          "case_id": "qwen35-397b-a3-tp16-c48",
+          "model_contract": {
+            "catalog_candidate": null,
+            "basis": "official_HF_structure_conditional_on_unverified_capture_checkpoint_mapping",
+            "precision": "w8a8_dynamic",
+            "layers": 60,
+            "hidden_size": 4096,
+            "attention_counts": {
+              "gdn": 45,
+              "gqa": 15
+            },
+            "model_coverage": "partial",
+            "unmodeled_features": [
+              "unrecognized_config_field:full_attention_interval",
+              "unrecognized_config_field:mamba_ssm_dtype",
+              "unrecognized_config_field:mtp_use_dedicated_embeddings",
+              "unrecognized_config_field:rope_parameters",
+              "unrecognized_config_field:vision_end_token_id",
+              "unrecognized_config_field:vision_start_token_id"
+            ]
+          },
+          "case_status": "parsed_body_template; exact_comparison_contract_pending",
+          "unresolved": [
+            "exact_active_context_lengths_not_encoded_in_tensor_shapes",
+            "checkpoint_config_json_not_in_delivered_capture",
+            "capture_tensor_slots_may_include_graph_padding_or_inactive_requests",
+            "force_eplb_not_established; do_not_enable_balanced_routing",
+            "per_projection_precision_and_fused_KDA_MLA_wrapper_contracts_not_fully_audited"
+          ]
+        }
+      },
+      "unresolved_reasons": [],
+      "extraction_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen35-397b-a3-tp16-c48.json",
+      "variant_id": "q397-highconc-native-21c30821",
+      "previous_case_sha256": null,
+      "sim_case_sha256": "c2316dff86e2ea0b0b4453946b32c58869eb8f9f0c6013fd42727dec411fbca9",
+      "baseline_reference": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority/decode-forward-qwen397-join-replay.json",
+        "sha256": "2ec24d3aaa8ffc0cbfcd97ab8a75c45e5844ef3ccbc0c574be83258d59da53d3",
+        "case_id": "qwen35-397b-a3-tp16-c48:q4_b64_m256"
+      },
+      "replay_input_pins": {
+        "case": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen397-a3/cases/qwen35-397b-a3-tp16-c48-native-service.json",
+          "sha256": "c8ed8f4c89c87f05b1d6c78624cd43f68a8abfaca44cffcb444e814adacd6114",
+          "size_bytes": 533613
+        },
+        "extraction": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen35-397b-a3-tp16-c48.json",
+          "sha256": "ff5d4f63d71c3886ef5acb596b16e8e64f36c07f826583764103c021dc679032",
+          "size_bytes": 1084627,
+          "reused_existing_extraction": true
+        },
+        "primary_geometry": {
+          "query_rows": 256,
+          "sequences_per_replica": 64,
+          "tokens_per_sequence": 4,
+          "context_tokens": 4104,
+          "batch_basis": "captured_paged_attention_block_table_rows",
+          "context_basis": "not_observed_from_cache_capacity",
+          "phase": "decode"
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot30_c48_20261030/kernel_details.csv",
+          "size_bytes": 21524017,
+          "mtime_ns": 1793299561000000000,
+          "schema_version": "kernel_details_csv_46col",
+          "sha256": "9217dce748a95877c9f663ad8a3a4dea8d1a539842f63d352743a7711b867b8f"
+        }
+      },
+      "prior_source_case_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new17/qwen35-397b-a3-tp16-c48.json",
+        "sha256": "c2316dff86e2ea0b0b4453946b32c58869eb8f9f0c6013fd42727dec411fbca9",
+        "source_unchanged": true
+      },
+      "runtime_refresh": {
+        "prior_input_manifest": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime5ec8843a/decode-forward-remaining-cases.json",
+          "sha256": "625db64a94082bff56ce198d36b274cfb28390d0e9a380f578cc15b06050e88a",
+          "size_bytes": 203024
+        },
+        "prior_case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/new17/qwen35-397b-a3-tp16-c48.json",
+          "sha256": "c2316dff86e2ea0b0b4453946b32c58869eb8f9f0c6013fd42727dec411fbca9",
+          "size_bytes": 186677
+        },
+        "case_bytes_changed": false,
+        "explicit_case_override": false,
+        "retained_extraction_bytes_unchanged": false,
+        "observation_refresh_basis": "explicit_controller_generation_map; source and prediction geometry unchanged"
+      },
+      "observation_generation_refresh": {
+        "map_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/extraction-generation-map.json",
+          "sha256": "96a26d8474f41f7fd43cb6124d51bb2b9b95a3b6174203a760e7d63afbda0c49"
+        },
+        "previous_extraction_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-expanded/auto-forward-qwen35-397b-a3-tp16-c48.json",
+          "sha256": "d334f470482cf8478418779cdecb3bf4e13103d13d9f374137fee919ec22a5ec",
+          "size_bytes": 1621130,
+          "reused_existing_extraction": true
+        },
+        "body_operator_population_reusable": true,
+        "per_layer_span_changed": false,
+        "model_or_cost_inputs_changed": false
+      },
+      "calibration_origin": "observed",
+      "calibration_evidence": {
+        "evaluation_relation": "in_sample",
+        "baseline_case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/new17/qwen35-397b-a3-tp16-c48.json",
+          "sha256": "c2316dff86e2ea0b0b4453946b32c58869eb8f9f0c6013fd42727dec411fbca9",
+          "size_bytes": 186677
+        },
+        "native_population_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen397-a3/native-partitions/qwen35-397b-a3-tp16-c48-native-partitions.json",
+          "sha256": "642bf843352608d299a03232afe91ed2fc4ce7631034b6690aadd829dcabbf92",
+          "size_bytes": 1607311
+        },
+        "body_residual_used": false,
+        "full_capture_native_ABI": true,
+        "source_routing_and_transport_conditions_remain": true
+      }
+    },
+    {
+      "case_id": "qwen35-397b-a3-tp16-c136",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/kernel_details.csv",
+        "sha256": "5478ef37efc67c6d1c6227608d935a639c2c4285214a26f08a4d42250c12a1d0",
+        "size_bytes": 17680559
+      },
+      "sim_case_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen397-a3/cases/qwen35-397b-a3-tp16-c136-native-service.json",
+      "model_declaration": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen397-a3/cases/qwen35-397b-a3-tp16-c136-native-service.json",
+        "sha256": "2b920a8a6f567659adaa018cc9b5f3c20d586b3d65b8144596347ba58540c861",
+        "size_bytes": 470759
+      },
+      "segmentation": "auto_structure_guided",
+      "boundaries_path": null,
+      "geometry": {
+        "context_tokens": 4104
+      },
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030",
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/benchmark_summary.json",
+          "sha256": "c9ffef5eb5d5381d4b70f0123d0b21af2caa755d13598c5e4e7064ca0398467f",
+          "size_bytes": 1292
+        },
+        "benchmark_summary_fields": {
+          "date": 1793299723.3035016,
+          "endpoint_type": "openai",
+          "backend": "openai",
+          "label": "qwen397-tp16_c136",
+          "model_id": "qwen397",
+          "num_prompts": 136,
+          "max_concurrency": 136,
+          "duration": 18.22346753999591,
+          "completed": 136,
+          "failed": 0,
+          "total_input_tokens": 558144,
+          "total_output_tokens": 34816,
+          "request_throughput": 7.462904614696097,
+          "output_throughput": 1910.5035813622007,
+          "total_token_throughput": 32538.264120074982,
+          "mean_ttft_ms": 2351.5866731074366,
+          "median_ttft_ms": 2570.3075050842017,
+          "std_ttft_ms": 886.0796738254904,
+          "p99_ttft_ms": 3684.9908400326967,
+          "mean_tpot_ms": 59.413752347601026,
+          "median_tpot_ms": 59.08250416573755,
+          "std_tpot_ms": 3.4830744777128526,
+          "p99_tpot_ms": 66.465755052693,
+          "mean_itl_ms": 174.06037180099617,
+          "mean_e2el_ms": 17387.59661326185,
+          "median_e2el_ms": 17418.305849889293,
+          "p99_e2el_ms": 18177.55280993879,
+          "mean_step_ms": 174.1761309998135,
+          "median_step_ms": 174.40150108424027,
+          "mean_tokens_per_step": 2.935649745984778,
+          "tpot_trimmed_ms": 53.14281521634212,
+          "tpot_p50_from_itl_ms": 49.19001834806681,
+          "prefix_len": 4096,
+          "suffix_len": 8,
+          "output_len": 256,
+          "token_exact": true,
+          "meta": {
+            "tag": "qwen397-tp16",
+            "cell": "qwen397-tp16_c136",
+            "concurrency": 136,
+            "window_s": 2.5,
+            "profiled": true
+          }
+        },
+        "retained_deployment": {
+          "startup": {
+            "source": {
+              "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a3-highconc-decode/evidence/logs/serve-qwen397-16.log",
+              "sha256": "d923bf45c984baadd2a2bc92f60d5ca2279e637d862ef985da6d033c66886168",
+              "size_bytes": 476324
+            },
+            "evidence_lines": [
+              {
+                "line": 25,
+                "text": "(APIServer pid=77) INFO 10-29 18:29:34 [api_utils.py:286] non-default args: {'model_tag': '/mnt/weight/Qwen3.5-397B-A17B-w8a8-mtp', 'host': '0.0.0.0', 'port': 18260, 'model': '/mnt/weight/Qwen3.5-397B-A17B-w8a8-mtp', 'trust_remote_code': True, 'max_model_len': 8192, 'quantization': 'ascend', 'served_model_name': ['qwen397'], 'distributed_executor_backend': 'mp', 'tensor_parallel_size': 16, 'gpu_memory_utilization': 0.9, 'enable_prefix_caching': True, 'max_num_batched_tokens': 8192, 'max_num_seqs': 384, 'speculative_config': {'method': 'qwen3_5_mtp', 'num_speculative_tokens': 3, 'rejection_sample_method': 'synthetic', 'synthetic_acceptance_rates': [0.8, 0.64, 0.512]}, 'compilation_config': {'mode': None, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'vllm_ascend.compilation.compiler_interface.AscendCompiler', 'custom_ops': [], 'ir_enable_torch_wrap': None, 'splitting_ops': None, 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': None, 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': [16, 32, 64, 128, 256, 512, 640, 768, 896, 1024, 1152, 1280, 1408, 1536], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': None, 'pass_config': {}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': None, 'static_all_moe_layers': []}, 'additional_config': {'enable_cpu_binding': True}, 'profiler_config': ProfilerConfig(profiler='torch', torch_profiler_dir='/work/prof', proton_profiler_dir='', proton_context='shadow', proton_data='tree', proton_backend=None, proton_mode=None, proton_hook=None, proton_output_format=None, proton_graph_attribution=False, torch_profiler_with_stack=False, torch_profiler_with_flops=False, torch_profiler_use_gzip=False, torch_profiler_dump_cuda_time_total=True, torch_profiler_record_shapes=False, torch_profiler_with_memory=False, capture_torch_profiler=False, detailed_trace_annotation=False, ignore_frontend=False, delay_iterations=0, max_iterations=0, warmup_iterations=0, active_iterations=5, wait_iterations=0)}"
+              },
+              {
+                "line": 26,
+                "text": "(APIServer pid=77) INFO 10-29 18:29:59 [model.py:692] Resolved architecture: Qwen3_5MoeForConditionalGeneration"
+              },
+              {
+                "line": 29,
+                "text": "(APIServer pid=77) INFO 10-29 18:30:16 [model.py:692] Resolved architecture: Qwen3_5MoeMTP"
+              },
+              {
+                "line": 65,
+                "text": "(EngineCore pid=223) INFO 10-29 18:30:44 [core.py:123] Initializing a V1 LLM engine (v0.30.0) with config: model='/mnt/weight/Qwen3.5-397B-A17B-w8a8-mtp', speculative_config=SpeculativeConfig(method='mtp', model='/mnt/weight/Qwen3.5-397B-A17B-w8a8-mtp', num_spec_tokens=3), tokenizer='/mnt/weight/Qwen3.5-397B-A17B-w8a8-mtp', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=8192, download_dir=None, load_format=auto, tensor_parallel_size=16, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=True, quantization=ascend, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=npu, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, per_request_spec_decode_metrics='none', kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=qwen397, enable_prefix_caching=True, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.VLLM_COMPILE: 3>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'vllm_ascend.compilation.compiler_interface.AscendCompiler', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [8192], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [16, 32, 64, 128, 256, 512, 640, 768, 896, 1024, 1152, 1280, 1408, 1536], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 1536, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'], gelu_and_mul_sparse=['native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_jit_warmup=True, moe_backend='auto', sparse_indexer_topk_backend='auto', linear_backend='auto', linear_backend_per_quant=None)"
+              },
+              {
+                "line": 2026,
+                "text": "(Worker_TP0 pid=239) INFO 10-29 18:45:06 [acl_graph.py:301] ACL graph replay is active (logged once)."
+              },
+              {
+                "line": 2033,
+                "text": "(APIServer pid=77) INFO 10-29 18:45:14 [loggers.py:315] Engine 000: Avg prompt throughput: 899.9 tokens/s, Avg generation throughput: 3.5 tokens/s, Running: 4 reqs, Waiting: 0 reqs, NPU KV cache usage: 1.4%, Prefix cache hit rate: 62.4%"
+              },
+              {
+                "line": 2048,
+                "text": "(APIServer pid=77) INFO 10-29 18:45:24 [loggers.py:315] Engine 000: Avg prompt throughput: 648.0 tokens/s, Avg generation throughput: 308.5 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 74.9%"
+              },
+              {
+                "line": 2102,
+                "text": "(APIServer pid=77) INFO 10-29 18:45:34 [loggers.py:315] Engine 000: Avg prompt throughput: 2087.5 tokens/s, Avg generation throughput: 567.6 tokens/s, Running: 32 reqs, Waiting: 0 reqs, NPU KV cache usage: 9.2%, Prefix cache hit rate: 86.4%"
+              },
+              {
+                "line": 2171,
+                "text": "(APIServer pid=77) INFO 10-29 18:45:44 [loggers.py:315] Engine 000: Avg prompt throughput: 2099.9 tokens/s, Avg generation throughput: 989.6 tokens/s, Running: 64 reqs, Waiting: 0 reqs, NPU KV cache usage: 18.1%, Prefix cache hit rate: 89.2%"
+              },
+              {
+                "line": 2304,
+                "text": "(APIServer pid=77) INFO 10-29 18:45:54 [loggers.py:315] Engine 000: Avg prompt throughput: 2047.0 tokens/s, Avg generation throughput: 1332.2 tokens/s, Running: 92 reqs, Waiting: 36 reqs, NPU KV cache usage: 26.0%, Prefix cache hit rate: 90.6%"
+              },
+              {
+                "line": 2306,
+                "text": "(APIServer pid=77) INFO 10-29 18:46:04 [loggers.py:315] Engine 000: Avg prompt throughput: 1741.2 tokens/s, Avg generation throughput: 2636.0 tokens/s, Running: 128 reqs, Waiting: 0 reqs, NPU KV cache usage: 38.8%, Prefix cache hit rate: 91.0%"
+              },
+              {
+                "line": 2471,
+                "text": "(APIServer pid=77) INFO 10-29 18:46:14 [loggers.py:315] Engine 000: Avg prompt throughput: 4633.9 tokens/s, Avg generation throughput: 1240.0 tokens/s, Running: 160 reqs, Waiting: 0 reqs, NPU KV cache usage: 45.0%, Prefix cache hit rate: 91.8%"
+              },
+              {
+                "line": 2473,
+                "text": "(APIServer pid=77) INFO 10-29 18:46:24 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 3335.6 tokens/s, Running: 106 reqs, Waiting: 0 reqs, NPU KV cache usage: 32.2%, Prefix cache hit rate: 91.8%"
+              },
+              {
+                "line": 2670,
+                "text": "(APIServer pid=77) INFO 10-29 18:46:34 [loggers.py:315] Engine 000: Avg prompt throughput: 5476.8 tokens/s, Avg generation throughput: 1022.5 tokens/s, Running: 192 reqs, Waiting: 0 reqs, NPU KV cache usage: 54.0%, Prefix cache hit rate: 92.2%"
+              },
+              {
+                "line": 2672,
+                "text": "(APIServer pid=77) INFO 10-29 18:46:44 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 3539.4 tokens/s, Running: 188 reqs, Waiting: 0 reqs, NPU KV cache usage: 56.9%, Prefix cache hit rate: 92.2%"
+              },
+              {
+                "line": 2901,
+                "text": "(APIServer pid=77) INFO 10-29 18:46:54 [loggers.py:315] Engine 000: Avg prompt throughput: 6323.6 tokens/s, Avg generation throughput: 898.8 tokens/s, Running: 224 reqs, Waiting: 0 reqs, NPU KV cache usage: 62.9%, Prefix cache hit rate: 92.5%"
+              },
+              {
+                "line": 2903,
+                "text": "(APIServer pid=77) INFO 10-29 18:47:04 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 3713.5 tokens/s, Running: 224 reqs, Waiting: 0 reqs, NPU KV cache usage: 67.7%, Prefix cache hit rate: 92.5%"
+              },
+              {
+                "line": 2907,
+                "text": "(APIServer pid=77) INFO 10-29 18:47:14 [loggers.py:315] Engine 000: Avg prompt throughput: 26.4 tokens/s, Avg generation throughput: 1620.5 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 92.5%"
+              },
+              {
+                "line": 2959,
+                "text": "(APIServer pid=77) INFO 10-29 18:47:24 [loggers.py:315] Engine 000: Avg prompt throughput: 1677.4 tokens/s, Avg generation throughput: 1167.2 tokens/s, Running: 42 reqs, Waiting: 0 reqs, NPU KV cache usage: 12.9%, Prefix cache hit rate: 92.4%"
+              },
+              {
+                "line": 3020,
+                "text": "(APIServer pid=77) INFO 10-29 18:47:34 [loggers.py:315] Engine 000: Avg prompt throughput: 1888.8 tokens/s, Avg generation throughput: 1192.8 tokens/s, Running: 56 reqs, Waiting: 0 reqs, NPU KV cache usage: 17.1%, Prefix cache hit rate: 92.4%"
+              },
+              {
+                "line": 3161,
+                "text": "(APIServer pid=77) INFO 10-29 18:47:44 [loggers.py:315] Engine 000: Avg prompt throughput: 4000.3 tokens/s, Avg generation throughput: 1290.7 tokens/s, Running: 136 reqs, Waiting: 0 reqs, NPU KV cache usage: 38.3%, Prefix cache hit rate: 92.9%"
+              },
+              {
+                "line": 3165,
+                "text": "(APIServer pid=77) INFO 10-29 18:47:54 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 2497.7 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 92.9%"
+              },
+              {
+                "line": 3312,
+                "text": "(APIServer pid=77) INFO 10-29 18:48:04 [loggers.py:315] Engine 000: Avg prompt throughput: 4211.9 tokens/s, Avg generation throughput: 1647.4 tokens/s, Running: 144 reqs, Waiting: 0 reqs, NPU KV cache usage: 44.7%, Prefix cache hit rate: 92.9%"
+              },
+              {
+                "line": 3315,
+                "text": "(APIServer pid=77) INFO 10-29 18:48:14 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 2040.3 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 92.9%"
+              },
+              {
+                "line": 3317,
+                "text": "(APIServer pid=77) INFO 10-29 18:48:24 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 92.9%"
+              },
+              {
+                "line": 3440,
+                "text": "(APIServer pid=77) INFO 10-29 18:48:34 [loggers.py:315] Engine 000: Avg prompt throughput: 1677.7 tokens/s, Avg generation throughput: 370.7 tokens/s, Running: 48 reqs, Waiting: 0 reqs, NPU KV cache usage: 13.7%, Prefix cache hit rate: 92.9%"
+              },
+              {
+                "line": 3672,
+                "text": "(APIServer pid=77) INFO 10-29 18:48:44 [loggers.py:315] Engine 000: Avg prompt throughput: 871.1 tokens/s, Avg generation throughput: 865.0 tokens/s, Running: 62 reqs, Waiting: 74 reqs, NPU KV cache usage: 17.6%, Prefix cache hit rate: 92.9%"
+              },
+              {
+                "line": 3790,
+                "text": "(APIServer pid=77) INFO 10-29 18:48:54 [loggers.py:315] Engine 000: Avg prompt throughput: 2745.4 tokens/s, Avg generation throughput: 1785.7 tokens/s, Running: 136 reqs, Waiting: 0 reqs, NPU KV cache usage: 42.8%, Prefix cache hit rate: 92.9%"
+              },
+              {
+                "line": 3887,
+                "text": "(APIServer pid=77) INFO 10-29 18:49:04 [loggers.py:315] Engine 000: Avg prompt throughput: 897.5 tokens/s, Avg generation throughput: 1697.5 tokens/s, Running: 63 reqs, Waiting: 1 reqs, NPU KV cache usage: 17.9%, Prefix cache hit rate: 93.0%"
+              },
+              {
+                "line": 3990,
+                "text": "(APIServer pid=77) INFO 10-29 18:49:14 [loggers.py:315] Engine 000: Avg prompt throughput: 818.3 tokens/s, Avg generation throughput: 1615.3 tokens/s, Running: 27 reqs, Waiting: 0 reqs, NPU KV cache usage: 8.4%, Prefix cache hit rate: 93.0%"
+              },
+              {
+                "line": 4244,
+                "text": "(APIServer pid=77) INFO 10-29 18:49:24 [loggers.py:315] Engine 000: Avg prompt throughput: 3405.3 tokens/s, Avg generation throughput: 951.0 tokens/s, Running: 128 reqs, Waiting: 0 reqs, NPU KV cache usage: 36.0%, Prefix cache hit rate: 93.0%"
+              },
+              {
+                "line": 4264,
+                "text": "(APIServer pid=77) INFO 10-29 18:49:34 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 2345.8 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.0%"
+              },
+              {
+                "line": 4266,
+                "text": "(APIServer pid=77) INFO 10-29 18:49:44 [loggers.py:315] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.0%"
+              }
+            ],
+            "runtime_fields": {
+              "model": "/mnt/weight/Qwen3.5-397B-A17B-w8a8-mtp",
+              "tensor_parallel_size": 16,
+              "enable_expert_parallel": null,
+              "enable_force_eplb": null,
+              "num_speculative_tokens": 3,
+              "enforce_eager": null,
+              "enable_prefix_caching": true,
+              "max_num_seqs": 384,
+              "max_num_batched_tokens": 8192,
+              "fusion_ops_gmmswigluquant": null
+            },
+            "engine_config_observed": true,
+            "missing_argument_is_not_false": true
+          },
+          "launch_sources": [
+            {
+              "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a3-highconc-decode/cfg/serve.sh",
+              "sha256": "deb7a427d6326f618d5f21d89bf9518db10bb56605d5465c92f3eb56061062e1",
+              "size_bytes": 3605
+            }
+          ],
+          "launch_source_is_execution_intent": true
+        },
+        "client": {
+          "concurrency": 136,
+          "input_len": 4104,
+          "token_exact": true
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "median": 59.08250416573755,
+            "mean": 59.413752347601026
+          },
+          "unprofiled_sweep_ms": null,
+          "body_forward_is_separate_metric": true,
+          "profiled_trimmed_itl_ms": 53.14281521634212
+        },
+        "prefix_cache": {
+          "profiled_metrics": null,
+          "unprofiled_metrics": null,
+          "unknown_metrics_are_not_zero": true
+        },
+        "source_population": {
+          "selected_rank": "top_level_export",
+          "available_rank_directories": [],
+          "all_ranks_are_not_summed": true,
+          "gzip_is_streamed_without_materialization": false
+        },
+        "step_trace": {
+          "source": {
+            "path": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/step_trace_time.csv",
+            "sha256": "c1f80e5ec36ba5962f4c02a66ac779fc23646ac8b67218abdea2a7acb7cae88c",
+            "size_bytes": 282
+          },
+          "rows": [
+            {
+              "Device_id": "0",
+              "Step": "",
+              "Computing": "1932152.5799999752",
+              "Communication(Not Overlapped)": "586467.5600000018",
+              "Overlapped": "0.0",
+              "Communication": "586467.5600000018",
+              "Free": "204176.11999991196",
+              "Stage": "2722796.25",
+              "Bubble": "0",
+              "Communication(Not Overlapped and Exclude Receive)": "586467.5600000018",
+              "Preparing": "-56845.25"
+            }
+          ],
+          "explicit_nonempty_step_values": 0
+        },
+        "request_geometry_is_not_per_forward_geometry": true,
+        "force_load_balance": {
+          "value": null,
+          "basis": "retained_non_default_startup_args_if_present"
+        },
+        "prefix_and_acceptance": {
+          "configured_values_are_not_measured_rates": true,
+          "unknown_metrics_are_not_zero": true
+        },
+        "tpot_body_scope": "client/profiled/sweep metrics retained separately in source fields; never body_forward_span_ms",
+        "sim_input_audit": {
+          "source": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/high-concurrency-new17-inputs-20261030.json",
+            "sha256": "bf150f5241aefb9b1e78ed92255ba6734849bca2eaa371d323479f870bf38933",
+            "size_bytes": 319450
+          },
+          "case_id": "qwen35-397b-a3-tp16-c136",
+          "model_contract": {
+            "catalog_candidate": null,
+            "basis": "official_HF_structure_conditional_on_unverified_capture_checkpoint_mapping",
+            "precision": "w8a8_dynamic",
+            "layers": 60,
+            "hidden_size": 4096,
+            "attention_counts": {
+              "gdn": 45,
+              "gqa": 15
+            },
+            "model_coverage": "partial",
+            "unmodeled_features": [
+              "unrecognized_config_field:full_attention_interval",
+              "unrecognized_config_field:mamba_ssm_dtype",
+              "unrecognized_config_field:mtp_use_dedicated_embeddings",
+              "unrecognized_config_field:rope_parameters",
+              "unrecognized_config_field:vision_end_token_id",
+              "unrecognized_config_field:vision_start_token_id"
+            ]
+          },
+          "case_status": "parsed_body_template; exact_comparison_contract_pending",
+          "unresolved": [
+            "exact_active_context_lengths_not_encoded_in_tensor_shapes",
+            "checkpoint_config_json_not_in_delivered_capture",
+            "capture_tensor_slots_may_include_graph_padding_or_inactive_requests",
+            "force_eplb_not_established; do_not_enable_balanced_routing",
+            "per_projection_precision_and_fused_KDA_MLA_wrapper_contracts_not_fully_audited"
+          ]
+        }
+      },
+      "unresolved_reasons": [],
+      "extraction_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen35-397b-a3-tp16-c136.json",
+      "variant_id": "q397-highconc-native-21c30821",
+      "previous_case_sha256": null,
+      "sim_case_sha256": "43df26924059ebe0786234a2c68760c3eb8bcb4fee4b3e40d74a86fda28553e8",
+      "baseline_reference": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority/decode-forward-qwen397-join-replay.json",
+        "sha256": "2ec24d3aaa8ffc0cbfcd97ab8a75c45e5844ef3ccbc0c574be83258d59da53d3",
+        "case_id": "qwen35-397b-a3-tp16-c136:q4_b160_m640"
+      },
+      "replay_input_pins": {
+        "case": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen397-a3/cases/qwen35-397b-a3-tp16-c136-native-service.json",
+          "sha256": "2b920a8a6f567659adaa018cc9b5f3c20d586b3d65b8144596347ba58540c861",
+          "size_bytes": 470759
+        },
+        "extraction": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen35-397b-a3-tp16-c136.json",
+          "sha256": "dd1e3f38fb1c77268fe1322f3aeff019fc682df63a829c8385d297778552f2dd",
+          "size_bytes": 1049346,
+          "reused_existing_extraction": true
+        },
+        "primary_geometry": {
+          "query_rows": 640,
+          "sequences_per_replica": 160,
+          "tokens_per_sequence": 4,
+          "context_tokens": 4104,
+          "batch_basis": "captured_paged_attention_block_table_rows",
+          "context_basis": "not_observed_from_cache_capacity",
+          "phase": "decode"
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/kernel_details.csv",
+          "size_bytes": 17680559,
+          "mtime_ns": 1793299567000000000,
+          "schema_version": "kernel_details_csv_46col",
+          "sha256": "5478ef37efc67c6d1c6227608d935a639c2c4285214a26f08a4d42250c12a1d0"
+        }
+      },
+      "prior_source_case_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new17/qwen35-397b-a3-tp16-c136.json",
+        "sha256": "43df26924059ebe0786234a2c68760c3eb8bcb4fee4b3e40d74a86fda28553e8",
+        "source_unchanged": true
+      },
+      "runtime_refresh": {
+        "prior_input_manifest": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime5ec8843a/decode-forward-remaining-cases.json",
+          "sha256": "625db64a94082bff56ce198d36b274cfb28390d0e9a380f578cc15b06050e88a",
+          "size_bytes": 203024
+        },
+        "prior_case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/new17/qwen35-397b-a3-tp16-c136.json",
+          "sha256": "43df26924059ebe0786234a2c68760c3eb8bcb4fee4b3e40d74a86fda28553e8",
+          "size_bytes": 186680
+        },
+        "case_bytes_changed": false,
+        "explicit_case_override": false,
+        "retained_extraction_bytes_unchanged": false,
+        "observation_refresh_basis": "explicit_controller_generation_map; source and prediction geometry unchanged"
+      },
+      "observation_generation_refresh": {
+        "map_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/extraction-generation-map.json",
+          "sha256": "96a26d8474f41f7fd43cb6124d51bb2b9b95a3b6174203a760e7d63afbda0c49"
+        },
+        "previous_extraction_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-expanded/auto-forward-qwen35-397b-a3-tp16-c136.json",
+          "sha256": "6494094f99353a1432520e220b118dda9fcc5ce7a76758b67ed2625a780de4b1",
+          "size_bytes": 1574521,
+          "reused_existing_extraction": true
+        },
+        "body_operator_population_reusable": true,
+        "per_layer_span_changed": false,
+        "model_or_cost_inputs_changed": false
+      },
+      "calibration_origin": "observed",
+      "calibration_evidence": {
+        "evaluation_relation": "in_sample",
+        "baseline_case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/new17/qwen35-397b-a3-tp16-c136.json",
+          "sha256": "43df26924059ebe0786234a2c68760c3eb8bcb4fee4b3e40d74a86fda28553e8",
+          "size_bytes": 186680
+        },
+        "native_population_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen397-a3/native-partitions/qwen35-397b-a3-tp16-c136-native-partitions.json",
+          "sha256": "13f50690585172c55666b8fc5cf20028123b25088142a2717d7f62615c3c4bfa",
+          "size_bytes": 1483173
+        },
+        "body_residual_used": false,
+        "full_capture_native_ABI": true,
+        "source_routing_and_transport_conditions_remain": true
+      }
+    }
+  ],
+  "observation_generation_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/extraction-generation-map.json",
+    "sha256": "96a26d8474f41f7fd43cb6124d51bb2b9b95a3b6174203a760e7d63afbda0c49"
+  },
+  "runtime_source_commit": "21c30821d87a757bace8cf6b2fffea2536db643e"
+}

@@ -1,0 +1,427 @@
+{
+  "schema_version": "mindie-replay-format-projection/1",
+  "original_report_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/decode-forward-replay.json",
+    "sha256": "3c939801f51042767c2b9d580189fed37bc8c1bbcc8edfbdf2891cd516b97404"
+  },
+  "original_size_bytes": 111279804,
+  "changed_fields": [
+    "calibration_evidence.prior_evidence",
+    "calibration_evidence.declared_service_regimes"
+  ],
+  "observations_predictions_parameters_unchanged": true,
+  "new_cost_predictions": 0,
+  "new_raw_scans": 0,
+  "projected_report_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/decode-forward-replay.compact.json",
+    "sha256": "b56ef473484bf73ef81448192097c44d003b923c59f42571905bf071dc5206d3"
+  },
+  "projected_size_bytes": 12636263,
+  "verified_references": [
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b128_m512",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c128-graph-shared-bf16.json",
+        "sha256": "a09d8c5f470c3b149e08d353194264fc2d2b6143f0413f8f7b921bd282a68602"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "f5b2d7c67874a9042df2ad9665b568d21820230b57e54531c73897489bdd876c"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b124_m496",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c128-graph-shared-bf16.json",
+        "sha256": "a09d8c5f470c3b149e08d353194264fc2d2b6143f0413f8f7b921bd282a68602"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "f5b2d7c67874a9042df2ad9665b568d21820230b57e54531c73897489bdd876c"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b6_m24",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c128-graph-shared-bf16.json",
+        "sha256": "a09d8c5f470c3b149e08d353194264fc2d2b6143f0413f8f7b921bd282a68602"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "f5b2d7c67874a9042df2ad9665b568d21820230b57e54531c73897489bdd876c"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b2_m8",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c128-graph-shared-bf16.json",
+        "sha256": "a09d8c5f470c3b149e08d353194264fc2d2b6143f0413f8f7b921bd282a68602"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "f5b2d7c67874a9042df2ad9665b568d21820230b57e54531c73897489bdd876c"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b1_m4",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c128-graph-shared-bf16.json",
+        "sha256": "a09d8c5f470c3b149e08d353194264fc2d2b6143f0413f8f7b921bd282a68602"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "f5b2d7c67874a9042df2ad9665b568d21820230b57e54531c73897489bdd876c"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b120_m480",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c128-graph-shared-bf16.json",
+        "sha256": "a09d8c5f470c3b149e08d353194264fc2d2b6143f0413f8f7b921bd282a68602"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "f5b2d7c67874a9042df2ad9665b568d21820230b57e54531c73897489bdd876c"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b116_m464",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c128-graph-shared-bf16.json",
+        "sha256": "a09d8c5f470c3b149e08d353194264fc2d2b6143f0413f8f7b921bd282a68602"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "f5b2d7c67874a9042df2ad9665b568d21820230b57e54531c73897489bdd876c"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b108_m432",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c128-graph-shared-bf16.json",
+        "sha256": "a09d8c5f470c3b149e08d353194264fc2d2b6143f0413f8f7b921bd282a68602"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "f5b2d7c67874a9042df2ad9665b568d21820230b57e54531c73897489bdd876c"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b96_m384",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c128-graph-shared-bf16.json",
+        "sha256": "a09d8c5f470c3b149e08d353194264fc2d2b6143f0413f8f7b921bd282a68602"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "f5b2d7c67874a9042df2ad9665b568d21820230b57e54531c73897489bdd876c"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b84_m336",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c128-graph-shared-bf16.json",
+        "sha256": "a09d8c5f470c3b149e08d353194264fc2d2b6143f0413f8f7b921bd282a68602"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "f5b2d7c67874a9042df2ad9665b568d21820230b57e54531c73897489bdd876c"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b72_m288",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c128-graph-shared-bf16.json",
+        "sha256": "a09d8c5f470c3b149e08d353194264fc2d2b6143f0413f8f7b921bd282a68602"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "f5b2d7c67874a9042df2ad9665b568d21820230b57e54531c73897489bdd876c"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b58_m232",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c128-graph-shared-bf16.json",
+        "sha256": "a09d8c5f470c3b149e08d353194264fc2d2b6143f0413f8f7b921bd282a68602"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "f5b2d7c67874a9042df2ad9665b568d21820230b57e54531c73897489bdd876c"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b50_m200",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c128-graph-shared-bf16.json",
+        "sha256": "a09d8c5f470c3b149e08d353194264fc2d2b6143f0413f8f7b921bd282a68602"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "f5b2d7c67874a9042df2ad9665b568d21820230b57e54531c73897489bdd876c"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b42_m168",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c128-graph-shared-bf16.json",
+        "sha256": "a09d8c5f470c3b149e08d353194264fc2d2b6143f0413f8f7b921bd282a68602"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "f5b2d7c67874a9042df2ad9665b568d21820230b57e54531c73897489bdd876c"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b38_m152",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c128-graph-shared-bf16.json",
+        "sha256": "a09d8c5f470c3b149e08d353194264fc2d2b6143f0413f8f7b921bd282a68602"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "f5b2d7c67874a9042df2ad9665b568d21820230b57e54531c73897489bdd876c"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b28_m112",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c128-graph-shared-bf16.json",
+        "sha256": "a09d8c5f470c3b149e08d353194264fc2d2b6143f0413f8f7b921bd282a68602"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "f5b2d7c67874a9042df2ad9665b568d21820230b57e54531c73897489bdd876c"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b18_m72",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c128-graph-shared-bf16.json",
+        "sha256": "a09d8c5f470c3b149e08d353194264fc2d2b6143f0413f8f7b921bd282a68602"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "f5b2d7c67874a9042df2ad9665b568d21820230b57e54531c73897489bdd876c"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b12_m48",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c128-graph-shared-bf16.json",
+        "sha256": "a09d8c5f470c3b149e08d353194264fc2d2b6143f0413f8f7b921bd282a68602"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "f5b2d7c67874a9042df2ad9665b568d21820230b57e54531c73897489bdd876c"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b10_m40",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c128-graph-shared-bf16.json",
+        "sha256": "a09d8c5f470c3b149e08d353194264fc2d2b6143f0413f8f7b921bd282a68602"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "f5b2d7c67874a9042df2ad9665b568d21820230b57e54531c73897489bdd876c"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b8_m32",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c128-graph-shared-bf16.json",
+        "sha256": "a09d8c5f470c3b149e08d353194264fc2d2b6143f0413f8f7b921bd282a68602"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "f5b2d7c67874a9042df2ad9665b568d21820230b57e54531c73897489bdd876c"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b4_m16",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c128-graph-shared-bf16.json",
+        "sha256": "a09d8c5f470c3b149e08d353194264fc2d2b6143f0413f8f7b921bd282a68602"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "f5b2d7c67874a9042df2ad9665b568d21820230b57e54531c73897489bdd876c"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c4-graph:q4_b4_m16",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c4-graph-shared-bf16.json",
+        "sha256": "ca86e73e41131e6d49b755178dbd26fa5f13faa7881b82eb25c97ef94034c86e"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "67faf665686d0e625a5949e9c28006fd360ff52042207ed8e5a456be1665f990"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c4-graph:q4_b1_m4",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c4-graph-shared-bf16.json",
+        "sha256": "ca86e73e41131e6d49b755178dbd26fa5f13faa7881b82eb25c97ef94034c86e"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "67faf665686d0e625a5949e9c28006fd360ff52042207ed8e5a456be1665f990"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c4-graph:q4_b2_m8",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c4-graph-shared-bf16.json",
+        "sha256": "ca86e73e41131e6d49b755178dbd26fa5f13faa7881b82eb25c97ef94034c86e"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "67faf665686d0e625a5949e9c28006fd360ff52042207ed8e5a456be1665f990"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph:q4_b64_m256",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c64-graph-shared-bf16.json",
+        "sha256": "6b2d6b150d11e3f17f0f800e248307b461d3b4c278a7840fab609f873790bed7"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "bb9756c367c446c1cebe27a7f0e7ef888605e710f8496fddffa3cd5a052cce95"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph:q4_b1_m4",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c64-graph-shared-bf16.json",
+        "sha256": "6b2d6b150d11e3f17f0f800e248307b461d3b4c278a7840fab609f873790bed7"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "bb9756c367c446c1cebe27a7f0e7ef888605e710f8496fddffa3cd5a052cce95"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph:q4_b60_m240",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c64-graph-shared-bf16.json",
+        "sha256": "6b2d6b150d11e3f17f0f800e248307b461d3b4c278a7840fab609f873790bed7"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "bb9756c367c446c1cebe27a7f0e7ef888605e710f8496fddffa3cd5a052cce95"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph:q4_b56_m224",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c64-graph-shared-bf16.json",
+        "sha256": "6b2d6b150d11e3f17f0f800e248307b461d3b4c278a7840fab609f873790bed7"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "bb9756c367c446c1cebe27a7f0e7ef888605e710f8496fddffa3cd5a052cce95"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph:q4_b52_m208",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c64-graph-shared-bf16.json",
+        "sha256": "6b2d6b150d11e3f17f0f800e248307b461d3b4c278a7840fab609f873790bed7"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "bb9756c367c446c1cebe27a7f0e7ef888605e710f8496fddffa3cd5a052cce95"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph:q4_b48_m192",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c64-graph-shared-bf16.json",
+        "sha256": "6b2d6b150d11e3f17f0f800e248307b461d3b4c278a7840fab609f873790bed7"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "bb9756c367c446c1cebe27a7f0e7ef888605e710f8496fddffa3cd5a052cce95"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph:q4_b44_m176",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c64-graph-shared-bf16.json",
+        "sha256": "6b2d6b150d11e3f17f0f800e248307b461d3b4c278a7840fab609f873790bed7"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "bb9756c367c446c1cebe27a7f0e7ef888605e710f8496fddffa3cd5a052cce95"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph:q4_b40_m160",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c64-graph-shared-bf16.json",
+        "sha256": "6b2d6b150d11e3f17f0f800e248307b461d3b4c278a7840fab609f873790bed7"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "bb9756c367c446c1cebe27a7f0e7ef888605e710f8496fddffa3cd5a052cce95"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph:q4_b34_m136",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c64-graph-shared-bf16.json",
+        "sha256": "6b2d6b150d11e3f17f0f800e248307b461d3b4c278a7840fab609f873790bed7"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "bb9756c367c446c1cebe27a7f0e7ef888605e710f8496fddffa3cd5a052cce95"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph:q4_b26_m104",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c64-graph-shared-bf16.json",
+        "sha256": "6b2d6b150d11e3f17f0f800e248307b461d3b4c278a7840fab609f873790bed7"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "bb9756c367c446c1cebe27a7f0e7ef888605e710f8496fddffa3cd5a052cce95"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph:q4_b18_m72",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c64-graph-shared-bf16.json",
+        "sha256": "6b2d6b150d11e3f17f0f800e248307b461d3b4c278a7840fab609f873790bed7"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "bb9756c367c446c1cebe27a7f0e7ef888605e710f8496fddffa3cd5a052cce95"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph:q4_b12_m48",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c64-graph-shared-bf16.json",
+        "sha256": "6b2d6b150d11e3f17f0f800e248307b461d3b4c278a7840fab609f873790bed7"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "bb9756c367c446c1cebe27a7f0e7ef888605e710f8496fddffa3cd5a052cce95"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph:q4_b10_m40",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c64-graph-shared-bf16.json",
+        "sha256": "6b2d6b150d11e3f17f0f800e248307b461d3b4c278a7840fab609f873790bed7"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "bb9756c367c446c1cebe27a7f0e7ef888605e710f8496fddffa3cd5a052cce95"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph:q4_b8_m32",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c64-graph-shared-bf16.json",
+        "sha256": "6b2d6b150d11e3f17f0f800e248307b461d3b4c278a7840fab609f873790bed7"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "bb9756c367c446c1cebe27a7f0e7ef888605e710f8496fddffa3cd5a052cce95"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph:q4_b4_m16",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c64-graph-shared-bf16.json",
+        "sha256": "6b2d6b150d11e3f17f0f800e248307b461d3b4c278a7840fab609f873790bed7"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "bb9756c367c446c1cebe27a7f0e7ef888605e710f8496fddffa3cd5a052cce95"
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph:q4_b2_m8",
+      "field": "declared_service_regimes",
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/cases/qwen35-35b-a5-tp4-c64-graph-shared-bf16.json",
+        "sha256": "6b2d6b150d11e3f17f0f800e248307b461d3b4c278a7840fab609f873790bed7"
+      },
+      "json_pointer": "/runtime/kernels/service_regimes",
+      "content_sha256": "bb9756c367c446c1cebe27a7f0e7ef888605e710f8496fddffa3cd5a052cce95"
+    }
+  ],
+  "case_rows": 40,
+  "producer_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/compact_qwen35_highconc_replay.py",
+    "sha256": "2749e637eca59833c950a14de32f3afe303a3add78a64297eb81337ed135321f"
+  }
+}

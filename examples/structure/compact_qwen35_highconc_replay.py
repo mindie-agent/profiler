@@ -7,6 +7,7 @@
 [Side-Effect Policy] Write a separate projection and receipt; preserve original.
 """
 from hashlib import sha256
+import argparse
 import json
 from pathlib import Path
 import ijson
@@ -78,4 +79,7 @@ def compact(source, target):
 
 
 if __name__ == '__main__':
-    compact(BASE / 'decode-forward-replay.json', BASE / 'decode-forward-replay.compact.json')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--directory', type=Path, default=BASE)
+    args = parser.parse_args()
+    compact(args.directory / 'decode-forward-replay.json', args.directory / 'decode-forward-replay.compact.json')

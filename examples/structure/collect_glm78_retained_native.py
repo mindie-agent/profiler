@@ -24,7 +24,7 @@ from replay_body_operator_families import duration_stats
 from build_qwen_a3_service_cases import ROOT, OUT, read, write, identity
 
 
-def extract(row):
+def extract(row, *, output_dir=None):
     started=time.perf_counter()
     body_pin=identity(row['extraction_path']);prior=read(body_pin['path'])
     source=row['source'];source_path=Path(source['path']);stat=source_path.stat()
@@ -102,7 +102,8 @@ def extract(row):
         'execution':{**counts,'raw_targeted_scans':1,'source_hash_reads':1,
                      'elapsed_seconds':time.perf_counter()-started,'maximum_resident_set_size_bytes':rss},
         'scope':'Complete native ABI and elapsed histograms inside selected retained Body windows. Native tasks may overlap; sums are activity, not additive Body wall time.'}
-    target=OUT/'glm78-native'/f"{row['case_id']}-native-partitions.json";write(target,output)
+    destination = Path(output_dir) if output_dir is not None else OUT/'glm78-native'
+    target=destination/f"{row['case_id']}-native-partitions.json";write(target,output)
     print(json.dumps({'case_id':row['case_id'],'forward_count':len(expected),'partitions':len(partitions),
                       'events':output['native_event_count'],'execution':output['execution']}),flush=True)
 
