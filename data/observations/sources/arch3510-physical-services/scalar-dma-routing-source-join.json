@@ -1,0 +1,4984 @@
+{
+  "schema_version": "mindie-routing-source-operation-pmu-join/1",
+  "status": "completed",
+  "source_commit": "c2b21f2023d096392ec7a4b7406df88d8611849a",
+  "source_modules": {
+    "mindie_sim/prediction/moe_init_instructions.py": {
+      "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/moe_init_instructions.py",
+      "sha256": "1af37a4aa403a398f9fe284a7b03aaa185f5dd53954ff790784b77d05b10b26c",
+      "size_bytes": 2601
+    },
+    "mindie_sim/prediction/moe_init_mxfp8.py": {
+      "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/moe_init_mxfp8.py",
+      "sha256": "b7c002ce52c15b84fa6a03aebbe3a493aa1a4ddd1e38ff3fcbc8685e7de4f8c9",
+      "size_bytes": 15141
+    },
+    "mindie_sim/prediction/instructions.py": {
+      "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/instructions.py",
+      "sha256": "a380390f78963f479e1556eefc6f9b7f1090e0aa7fd8df6f34f4dd3d983592ce",
+      "size_bytes": 6165
+    }
+  },
+  "source_provenance": {
+    "repository": "https://gitcode.com/cann/ops-transformer",
+    "revision": "a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
+    "root": "moe/moe_init_routing_v3/",
+    "sha256": {
+      "op_kernel/arch35/moe_v3_gather_mxfp8_quant.h": "34b49b8e82da39bfe59dc4e80c46fc3eea96f93ae16ade54b913c0cfea5df813",
+      "op_kernel/arch35/moe_v3_sort_one_core_arch35.h": "920534d82fd33eb308a4b3493e978b598e5bfba1da51f6700794a12197e94709",
+      "op_kernel/arch35/moe_v3_expert_tokens_count_arch35.h": "d0dfd8f977596357f37fddd1ea871789657b128e9c0d4bda03badbbd99ce7077",
+      "op_kernel/arch35/moe_v3_row_idx_gather_arch35.h": "cfc375ee5bb0a5f9ddb845ba349ea09e3ed64ada80c3e947e6ff3fc25ce6d353",
+      "op_host/moe_init_routing_v3_tiling_arch35.cpp": "1507153599d4ccae0cc056dc5b1e4f4849c02cf97893736f3d6913a43b52385d"
+    },
+    "capture_binary_identity": "not_established"
+  },
+  "prior_scalar_dma_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-physical-constraints.json",
+    "sha256": "2d3ca3bafaf08cd89be467694dfe2672b98ba32286778a1461c08a5edb3afbb1",
+    "size_bytes": 645051
+  },
+  "producer_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/join_routing_source_inventory.py",
+    "sha256": "7598ad8c78733394827e3b4faa2d1d9e5c54e20bcdda242a47a3e63bd4b0795e",
+    "size_bytes": 11276
+  },
+  "delta_from_prior": [
+    "explicit whole-sort macro boundary and unobserved VBitSort/merge ISA counts",
+    "per-owner SIMT count/inverse loads and stores",
+    "atomic-copy versus cache-RMW distinction",
+    "owner0 SetValue and PIPE_V source barrier",
+    "same-domain exact feature rank"
+  ],
+  "unchanged_prior_evidence": {
+    "copy_joint_fits": 6,
+    "copy_fit_identity": {
+      "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-physical-constraints.json",
+      "sha256": "2d3ca3bafaf08cd89be467694dfe2672b98ba32286778a1461c08a5edb3afbb1",
+      "size_bytes": 645051
+    }
+  },
+  "records": [
+    {
+      "case_id": "glm53flash-a5-tp8-c1",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+        "size_bytes": 71005746
+      },
+      "partition_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
+        "size_bytes": 4605077
+      },
+      "partition_index": 12,
+      "native_abi": [
+        "native_tensor_abi",
+        "MoeInitRoutingV3",
+        [
+          [
+            [
+              4,
+              4096
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              4,
+              8
+            ],
+            "int32",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              32,
+              4096
+            ],
+            "fp8_e4m3",
+            "ND"
+          ],
+          [
+            [
+              32
+            ],
+            "int32",
+            "ND"
+          ],
+          [
+            [
+              288
+            ],
+            "int64",
+            "ND"
+          ],
+          [
+            [
+              32,
+              128
+            ],
+            "fp8_e8m0",
+            "ND"
+          ]
+        ]
+      ],
+      "hardware": "Ascend950DT_9582",
+      "block_num": 64,
+      "forward_count": 65,
+      "calls": 2730,
+      "calls_per_forward": 42.0,
+      "native_mean_p50_us": {
+        "mean": 20.795851648351647,
+        "p50": 20.692
+      },
+      "pmu_fields": {
+        "Duration(us)": {
+          "column_present": true,
+          "present_count": 2730,
+          "non_na_count": 2730,
+          "missing_or_na_count": 0,
+          "numeric_count": 2730,
+          "invalid_numeric_count": 0,
+          "zero_count": 0,
+          "statistics": {
+            "count": 2730,
+            "mean": 20.795851648351647,
+            "p50": 20.692,
+            "p90": 21.701,
+            "min": 19.211,
+            "max": 23.341
+          }
+        },
+        "Wait Time(us)": {
+          "column_present": true,
+          "present_count": 2730,
+          "non_na_count": 2730,
+          "missing_or_na_count": 0,
+          "numeric_count": 2730,
+          "invalid_numeric_count": 0,
+          "zero_count": 651,
+          "statistics": {
+            "count": 2730,
+            "mean": 0.08512087912087912,
+            "p50": 0.074,
+            "p90": 0.2,
+            "min": 0.0,
+            "max": 0.313
+          }
+        },
+        "aicore_time(us)": {
+          "column_present": true,
+          "present_count": 2730,
+          "non_na_count": 2730,
+          "missing_or_na_count": 0,
+          "numeric_count": 2730,
+          "invalid_numeric_count": 0,
+          "zero_count": 2730,
+          "statistics": {
+            "count": 2730,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p90": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "aic_mac_time(us)": {
+          "column_present": true,
+          "present_count": 2730,
+          "non_na_count": 2730,
+          "missing_or_na_count": 0,
+          "numeric_count": 2730,
+          "invalid_numeric_count": 0,
+          "zero_count": 2730,
+          "statistics": {
+            "count": 2730,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p90": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "aic_scalar_time(us)": {
+          "column_present": true,
+          "present_count": 2730,
+          "non_na_count": 2730,
+          "missing_or_na_count": 0,
+          "numeric_count": 2730,
+          "invalid_numeric_count": 0,
+          "zero_count": 2730,
+          "statistics": {
+            "count": 2730,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p90": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "aic_mte1_time(us)": {
+          "column_present": true,
+          "present_count": 2730,
+          "non_na_count": 2730,
+          "missing_or_na_count": 0,
+          "numeric_count": 2730,
+          "invalid_numeric_count": 0,
+          "zero_count": 2730,
+          "statistics": {
+            "count": 2730,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p90": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "aic_mte2_time(us)": {
+          "column_present": true,
+          "present_count": 2730,
+          "non_na_count": 2730,
+          "missing_or_na_count": 0,
+          "numeric_count": 2730,
+          "invalid_numeric_count": 0,
+          "zero_count": 2730,
+          "statistics": {
+            "count": 2730,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p90": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "aic_mte3_time(us)": {
+          "column_present": true,
+          "present_count": 2730,
+          "non_na_count": 2730,
+          "missing_or_na_count": 0,
+          "numeric_count": 2730,
+          "invalid_numeric_count": 0,
+          "zero_count": 2730,
+          "statistics": {
+            "count": 2730,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p90": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "aic_fixpipe_time(us)": {
+          "column_present": true,
+          "present_count": 2730,
+          "non_na_count": 2730,
+          "missing_or_na_count": 0,
+          "numeric_count": 2730,
+          "invalid_numeric_count": 0,
+          "zero_count": 2730,
+          "statistics": {
+            "count": 2730,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p90": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "aiv_time(us)": {
+          "column_present": true,
+          "present_count": 2730,
+          "non_na_count": 2730,
+          "missing_or_na_count": 0,
+          "numeric_count": 2730,
+          "invalid_numeric_count": 0,
+          "zero_count": 0,
+          "statistics": {
+            "count": 2730,
+            "mean": 20.522824175824177,
+            "p50": 20.43,
+            "p90": 21.43,
+            "min": 18.9,
+            "max": 23.1
+          }
+        },
+        "aiv_vec_time(us)": {
+          "column_present": true,
+          "present_count": 2730,
+          "non_na_count": 2730,
+          "missing_or_na_count": 0,
+          "numeric_count": 2730,
+          "invalid_numeric_count": 0,
+          "zero_count": 0,
+          "statistics": {
+            "count": 2730,
+            "mean": 1.4997062271062271,
+            "p50": 1.4635,
+            "p90": 1.606,
+            "min": 1.358,
+            "max": 2.111
+          }
+        },
+        "aiv_scalar_time(us)": {
+          "column_present": true,
+          "present_count": 2730,
+          "non_na_count": 2730,
+          "missing_or_na_count": 0,
+          "numeric_count": 2730,
+          "invalid_numeric_count": 0,
+          "zero_count": 0,
+          "statistics": {
+            "count": 2730,
+            "mean": 3.896550915750916,
+            "p50": 3.877,
+            "p90": 4.148,
+            "min": 3.2,
+            "max": 4.903
+          }
+        },
+        "aiv_mte2_time(us)": {
+          "column_present": true,
+          "present_count": 2730,
+          "non_na_count": 2730,
+          "missing_or_na_count": 0,
+          "numeric_count": 2730,
+          "invalid_numeric_count": 0,
+          "zero_count": 0,
+          "statistics": {
+            "count": 2730,
+            "mean": 1.0398315018315019,
+            "p50": 1.033,
+            "p90": 1.198,
+            "min": 0.703,
+            "max": 1.479
+          }
+        },
+        "aiv_mte3_time(us)": {
+          "column_present": true,
+          "present_count": 2730,
+          "non_na_count": 2730,
+          "missing_or_na_count": 0,
+          "numeric_count": 2730,
+          "invalid_numeric_count": 0,
+          "zero_count": 0,
+          "statistics": {
+            "count": 2730,
+            "mean": 1.012689010989011,
+            "p50": 1.021,
+            "p90": 1.094,
+            "min": 0.809,
+            "max": 1.157
+          }
+        }
+      },
+      "signed_boundary_diagnostics": {
+        "complete_numeric_mean_us": {
+          "Duration(us)": 20.795851648351647,
+          "aiv_time(us)": 20.522824175824177,
+          "aiv_vec_time(us)": 1.4997062271062271,
+          "aiv_scalar_time(us)": 3.896550915750916,
+          "aiv_mte2_time(us)": 1.0398315018315019,
+          "aiv_mte3_time(us)": 1.012689010989011
+        },
+        "signed_aiv_minus_pipe_sum_us": 13.07404652014652,
+        "signed_aiv_minus_max_pipe_us": 16.626273260073262,
+        "signed_duration_minus_aiv_us": 0.2730274725274704,
+        "interpretation": "Signed boundary diagnostics only; neither remainder is classified as synchronization or launch."
+      },
+      "conditional_source_geometry": {
+        "tokens": 4,
+        "width": 4096,
+        "topk": 8,
+        "experts": 288,
+        "assignments": 32,
+        "per_owner_rows": 1,
+        "active_owners": 32,
+        "source_branch": "onecore_sort_GATHER_count_mode_full_range_useGatherCopy",
+        "capture_binary_or_scalar_args_verified": false
+      },
+      "source_operation_export": {
+        "sort": {
+          "concat": {
+            "counts": {
+              "source_concat32_blocks": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_concat32_blocks": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          "sort": {
+            "counts": {
+              "source_sort32_blocks": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_sort32_blocks": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          "extract": {
+            "counts": {
+              "source_extract32_blocks": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_extract32_blocks": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          }
+        },
+        "count_by_owner": [
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          }
+        ],
+        "inverse_by_owner": [
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 1,
+              "source_simt_gm_store32": 1
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          }
+        ],
+        "sort_domain": "one whole Concat/Sort<float,true>/Extract macro; input_blocks32 is normalization only",
+        "sort_limitation": "cross-size merge cost is not established by a constant per-input-block rate",
+        "simt_domain": "full-range dropless GATHER; logical INT32 thread accesses, not warp instructions or cache transactions",
+        "source_launch_threads": 2048,
+        "atomic_count": {
+          "mechanism": "SetAtomicAdd<int32_t>; one DataCopyPad per active owner",
+          "payload_bytes_per_owner": 1152,
+          "shared_target": "all owners address the same expertCountTempGm array",
+          "unpriced": "128-byte transaction count/alignment and shared-line RMW serialization not inferred"
+        },
+        "excluded": [
+          "SDK Sort merge expansion",
+          "compiled SIMT warp/branch/address instructions",
+          "data-dependent expert-boundary UB accesses",
+          "SIMT cache/coalescing policy"
+        ]
+      },
+      "count_features": {
+        "intercept": 1,
+        "concat_blocks32": 1,
+        "sort_blocks32": 1,
+        "extract_blocks32": 1,
+        "count_gm_load32_all_owners": 64,
+        "inverse_gm_load32_all_owners": 32,
+        "inverse_gm_store32_all_owners": 32,
+        "atomic_copy_calls_all_owners": 32,
+        "atomic_payload_int32_all_owners": 9216,
+        "owner0_ub_getvalue": 288,
+        "owner0_scalar_add": 288,
+        "owner0_ub_setvalue": 1,
+        "owner0_pipe_v_barrier": 1
+      },
+      "source_sort_api_macros_per_call": {
+        "Concat": 1,
+        "Sort<float,true>": 1,
+        "Extract": 1
+      },
+      "compiled_sort_opcodes_per_call": {
+        "VBitSort32": null,
+        "VMrgSort4V2": null
+      },
+      "source_atomic_boundary": {
+        "DataCopyPad_calls": 32,
+        "INT32_payload_elements": 9216,
+        "shared_target_arrays": 1,
+        "atomic_cache_RMW_transactions": null
+      },
+      "owner0_scalar_boundary": {
+        "GetValue_INT32": 288,
+        "SetValue_INT32": 1,
+        "source_adds": 288,
+        "PIPE_V_source_barriers": 1,
+        "loop_branch_address_ISA_counts": null
+      },
+      "not_a_per_core_observed_pmu": true,
+      "response_use": "whole-call same-domain in-sample joint response; no opcode-level rate"
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c4_p8k",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
+        "sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
+        "size_bytes": 25256665
+      },
+      "partition_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
+        "size_bytes": 2210414
+      },
+      "partition_index": 12,
+      "native_abi": [
+        "native_tensor_abi",
+        "MoeInitRoutingV3",
+        [
+          [
+            [
+              16,
+              4096
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              16,
+              8
+            ],
+            "int32",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              128,
+              4096
+            ],
+            "fp8_e4m3",
+            "ND"
+          ],
+          [
+            [
+              128
+            ],
+            "int32",
+            "ND"
+          ],
+          [
+            [
+              288
+            ],
+            "int64",
+            "ND"
+          ],
+          [
+            [
+              128,
+              128
+            ],
+            "fp8_e8m0",
+            "ND"
+          ]
+        ]
+      ],
+      "hardware": "Ascend950DT_9582",
+      "block_num": 64,
+      "forward_count": 11,
+      "calls": 462,
+      "calls_per_forward": 42.0,
+      "native_mean_p50_us": {
+        "mean": 21.8208658008658,
+        "p50": 21.5375
+      },
+      "pmu_fields": {
+        "Duration(us)": {
+          "column_present": true,
+          "present_count": 462,
+          "non_na_count": 462,
+          "missing_or_na_count": 0,
+          "numeric_count": 462,
+          "invalid_numeric_count": 0,
+          "zero_count": 0,
+          "statistics": {
+            "count": 462,
+            "mean": 21.8208658008658,
+            "p50": 21.5375,
+            "p90": 23.437,
+            "min": 19.925,
+            "max": 25.549
+          }
+        },
+        "Wait Time(us)": {
+          "column_present": true,
+          "present_count": 462,
+          "non_na_count": 462,
+          "missing_or_na_count": 0,
+          "numeric_count": 462,
+          "invalid_numeric_count": 0,
+          "zero_count": 131,
+          "statistics": {
+            "count": 462,
+            "mean": 0.08211471861471861,
+            "p50": 0.065,
+            "p90": 0.209,
+            "min": 0.0,
+            "max": 0.31
+          }
+        },
+        "aicore_time(us)": {
+          "column_present": true,
+          "present_count": 462,
+          "non_na_count": 462,
+          "missing_or_na_count": 0,
+          "numeric_count": 462,
+          "invalid_numeric_count": 0,
+          "zero_count": 462,
+          "statistics": {
+            "count": 462,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p90": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "aic_mac_time(us)": {
+          "column_present": true,
+          "present_count": 462,
+          "non_na_count": 462,
+          "missing_or_na_count": 0,
+          "numeric_count": 462,
+          "invalid_numeric_count": 0,
+          "zero_count": 462,
+          "statistics": {
+            "count": 462,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p90": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "aic_scalar_time(us)": {
+          "column_present": true,
+          "present_count": 462,
+          "non_na_count": 462,
+          "missing_or_na_count": 0,
+          "numeric_count": 462,
+          "invalid_numeric_count": 0,
+          "zero_count": 462,
+          "statistics": {
+            "count": 462,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p90": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "aic_mte1_time(us)": {
+          "column_present": true,
+          "present_count": 462,
+          "non_na_count": 462,
+          "missing_or_na_count": 0,
+          "numeric_count": 462,
+          "invalid_numeric_count": 0,
+          "zero_count": 462,
+          "statistics": {
+            "count": 462,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p90": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "aic_mte2_time(us)": {
+          "column_present": true,
+          "present_count": 462,
+          "non_na_count": 462,
+          "missing_or_na_count": 0,
+          "numeric_count": 462,
+          "invalid_numeric_count": 0,
+          "zero_count": 462,
+          "statistics": {
+            "count": 462,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p90": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "aic_mte3_time(us)": {
+          "column_present": true,
+          "present_count": 462,
+          "non_na_count": 462,
+          "missing_or_na_count": 0,
+          "numeric_count": 462,
+          "invalid_numeric_count": 0,
+          "zero_count": 462,
+          "statistics": {
+            "count": 462,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p90": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "aic_fixpipe_time(us)": {
+          "column_present": true,
+          "present_count": 462,
+          "non_na_count": 462,
+          "missing_or_na_count": 0,
+          "numeric_count": 462,
+          "invalid_numeric_count": 0,
+          "zero_count": 462,
+          "statistics": {
+            "count": 462,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p90": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "aiv_time(us)": {
+          "column_present": true,
+          "present_count": 462,
+          "non_na_count": 462,
+          "missing_or_na_count": 0,
+          "numeric_count": 462,
+          "invalid_numeric_count": 0,
+          "zero_count": 0,
+          "statistics": {
+            "count": 462,
+            "mean": 21.549069264069264,
+            "p50": 21.27,
+            "p90": 23.15,
+            "min": 19.61,
+            "max": 25.08
+          }
+        },
+        "aiv_vec_time(us)": {
+          "column_present": true,
+          "present_count": 462,
+          "non_na_count": 462,
+          "missing_or_na_count": 0,
+          "numeric_count": 462,
+          "invalid_numeric_count": 0,
+          "zero_count": 0,
+          "statistics": {
+            "count": 462,
+            "mean": 3.0694025974025974,
+            "p50": 3.0355,
+            "p90": 3.447,
+            "min": 2.653,
+            "max": 4.044
+          }
+        },
+        "aiv_scalar_time(us)": {
+          "column_present": true,
+          "present_count": 462,
+          "non_na_count": 462,
+          "missing_or_na_count": 0,
+          "numeric_count": 462,
+          "invalid_numeric_count": 0,
+          "zero_count": 0,
+          "statistics": {
+            "count": 462,
+            "mean": 4.423272727272727,
+            "p50": 4.4085,
+            "p90": 4.675,
+            "min": 3.844,
+            "max": 5.229
+          }
+        },
+        "aiv_mte2_time(us)": {
+          "column_present": true,
+          "present_count": 462,
+          "non_na_count": 462,
+          "missing_or_na_count": 0,
+          "numeric_count": 462,
+          "invalid_numeric_count": 0,
+          "zero_count": 0,
+          "statistics": {
+            "count": 462,
+            "mean": 1.0833939393939394,
+            "p50": 1.067,
+            "p90": 1.237,
+            "min": 0.869,
+            "max": 1.436
+          }
+        },
+        "aiv_mte3_time(us)": {
+          "column_present": true,
+          "present_count": 462,
+          "non_na_count": 462,
+          "missing_or_na_count": 0,
+          "numeric_count": 462,
+          "invalid_numeric_count": 0,
+          "zero_count": 0,
+          "statistics": {
+            "count": 462,
+            "mean": 0.8919523809523809,
+            "p50": 0.881,
+            "p90": 0.982,
+            "min": 0.737,
+            "max": 1.218
+          }
+        }
+      },
+      "signed_boundary_diagnostics": {
+        "complete_numeric_mean_us": {
+          "Duration(us)": 21.8208658008658,
+          "aiv_time(us)": 21.549069264069264,
+          "aiv_vec_time(us)": 3.0694025974025974,
+          "aiv_scalar_time(us)": 4.423272727272727,
+          "aiv_mte2_time(us)": 1.0833939393939394,
+          "aiv_mte3_time(us)": 0.8919523809523809
+        },
+        "signed_aiv_minus_pipe_sum_us": 12.081047619047618,
+        "signed_aiv_minus_max_pipe_us": 17.125796536796535,
+        "signed_duration_minus_aiv_us": 0.27179653679653626,
+        "interpretation": "Signed boundary diagnostics only; neither remainder is classified as synchronization or launch."
+      },
+      "conditional_source_geometry": {
+        "tokens": 16,
+        "width": 4096,
+        "topk": 8,
+        "experts": 288,
+        "assignments": 128,
+        "per_owner_rows": 2,
+        "active_owners": 64,
+        "source_branch": "onecore_sort_GATHER_count_mode_full_range_useGatherCopy",
+        "capture_binary_or_scalar_args_verified": false
+      },
+      "source_operation_export": {
+        "sort": {
+          "concat": {
+            "counts": {
+              "source_concat32_blocks": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_concat32_blocks": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          "sort": {
+            "counts": {
+              "source_sort32_blocks": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_sort32_blocks": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          "extract": {
+            "counts": {
+              "source_extract32_blocks": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_extract32_blocks": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          }
+        },
+        "count_by_owner": [
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 6
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 6
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          }
+        ],
+        "inverse_by_owner": [
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 2,
+              "source_simt_gm_store32": 2
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          }
+        ],
+        "sort_domain": "one whole Concat/Sort<float,true>/Extract macro; input_blocks32 is normalization only",
+        "sort_limitation": "cross-size merge cost is not established by a constant per-input-block rate",
+        "simt_domain": "full-range dropless GATHER; logical INT32 thread accesses, not warp instructions or cache transactions",
+        "source_launch_threads": 2048,
+        "atomic_count": {
+          "mechanism": "SetAtomicAdd<int32_t>; one DataCopyPad per active owner",
+          "payload_bytes_per_owner": 1152,
+          "shared_target": "all owners address the same expertCountTempGm array",
+          "unpriced": "128-byte transaction count/alignment and shared-line RMW serialization not inferred"
+        },
+        "excluded": [
+          "SDK Sort merge expansion",
+          "compiled SIMT warp/branch/address instructions",
+          "data-dependent expert-boundary UB accesses",
+          "SIMT cache/coalescing policy"
+        ]
+      },
+      "count_features": {
+        "intercept": 1,
+        "concat_blocks32": 4,
+        "sort_blocks32": 4,
+        "extract_blocks32": 4,
+        "count_gm_load32_all_owners": 384,
+        "inverse_gm_load32_all_owners": 128,
+        "inverse_gm_store32_all_owners": 128,
+        "atomic_copy_calls_all_owners": 64,
+        "atomic_payload_int32_all_owners": 18432,
+        "owner0_ub_getvalue": 288,
+        "owner0_scalar_add": 288,
+        "owner0_ub_setvalue": 1,
+        "owner0_pipe_v_barrier": 1
+      },
+      "source_sort_api_macros_per_call": {
+        "Concat": 1,
+        "Sort<float,true>": 1,
+        "Extract": 1
+      },
+      "compiled_sort_opcodes_per_call": {
+        "VBitSort32": null,
+        "VMrgSort4V2": null
+      },
+      "source_atomic_boundary": {
+        "DataCopyPad_calls": 64,
+        "INT32_payload_elements": 18432,
+        "shared_target_arrays": 1,
+        "atomic_cache_RMW_transactions": null
+      },
+      "owner0_scalar_boundary": {
+        "GetValue_INT32": 288,
+        "SetValue_INT32": 1,
+        "source_adds": 288,
+        "PIPE_V_source_barriers": 1,
+        "loop_branch_address_ISA_counts": null
+      },
+      "not_a_per_core_observed_pmu": true,
+      "response_use": "whole-call same-domain in-sample joint response; no opcode-level rate"
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c8_p4k",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+        "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+        "size_bytes": 41993164
+      },
+      "partition_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
+        "size_bytes": 3852442
+      },
+      "partition_index": 12,
+      "native_abi": [
+        "native_tensor_abi",
+        "MoeInitRoutingV3",
+        [
+          [
+            [
+              32,
+              4096
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              32,
+              8
+            ],
+            "int32",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              256,
+              4096
+            ],
+            "fp8_e4m3",
+            "ND"
+          ],
+          [
+            [
+              256
+            ],
+            "int32",
+            "ND"
+          ],
+          [
+            [
+              288
+            ],
+            "int64",
+            "ND"
+          ],
+          [
+            [
+              256,
+              128
+            ],
+            "fp8_e8m0",
+            "ND"
+          ]
+        ]
+      ],
+      "hardware": "Ascend950DT_9582",
+      "block_num": 64,
+      "forward_count": 30,
+      "calls": 1260,
+      "calls_per_forward": 42.0,
+      "native_mean_p50_us": {
+        "mean": 21.64116031746032,
+        "p50": 21.509
+      },
+      "pmu_fields": {
+        "Duration(us)": {
+          "column_present": true,
+          "present_count": 1260,
+          "non_na_count": 1260,
+          "missing_or_na_count": 0,
+          "numeric_count": 1260,
+          "invalid_numeric_count": 0,
+          "zero_count": 0,
+          "statistics": {
+            "count": 1260,
+            "mean": 21.64116031746032,
+            "p50": 21.509,
+            "p90": 22.975,
+            "min": 19.22,
+            "max": 25.138
+          }
+        },
+        "Wait Time(us)": {
+          "column_present": true,
+          "present_count": 1260,
+          "non_na_count": 1260,
+          "missing_or_na_count": 0,
+          "numeric_count": 1260,
+          "invalid_numeric_count": 0,
+          "zero_count": 338,
+          "statistics": {
+            "count": 1260,
+            "mean": 0.08727142857142857,
+            "p50": 0.07,
+            "p90": 0.217,
+            "min": 0.0,
+            "max": 0.312
+          }
+        },
+        "aicore_time(us)": {
+          "column_present": true,
+          "present_count": 1260,
+          "non_na_count": 1260,
+          "missing_or_na_count": 0,
+          "numeric_count": 1260,
+          "invalid_numeric_count": 0,
+          "zero_count": 1260,
+          "statistics": {
+            "count": 1260,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p90": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "aic_mac_time(us)": {
+          "column_present": true,
+          "present_count": 1260,
+          "non_na_count": 1260,
+          "missing_or_na_count": 0,
+          "numeric_count": 1260,
+          "invalid_numeric_count": 0,
+          "zero_count": 1260,
+          "statistics": {
+            "count": 1260,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p90": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "aic_scalar_time(us)": {
+          "column_present": true,
+          "present_count": 1260,
+          "non_na_count": 1260,
+          "missing_or_na_count": 0,
+          "numeric_count": 1260,
+          "invalid_numeric_count": 0,
+          "zero_count": 1260,
+          "statistics": {
+            "count": 1260,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p90": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "aic_mte1_time(us)": {
+          "column_present": true,
+          "present_count": 1260,
+          "non_na_count": 1260,
+          "missing_or_na_count": 0,
+          "numeric_count": 1260,
+          "invalid_numeric_count": 0,
+          "zero_count": 1260,
+          "statistics": {
+            "count": 1260,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p90": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "aic_mte2_time(us)": {
+          "column_present": true,
+          "present_count": 1260,
+          "non_na_count": 1260,
+          "missing_or_na_count": 0,
+          "numeric_count": 1260,
+          "invalid_numeric_count": 0,
+          "zero_count": 1260,
+          "statistics": {
+            "count": 1260,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p90": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "aic_mte3_time(us)": {
+          "column_present": true,
+          "present_count": 1260,
+          "non_na_count": 1260,
+          "missing_or_na_count": 0,
+          "numeric_count": 1260,
+          "invalid_numeric_count": 0,
+          "zero_count": 1260,
+          "statistics": {
+            "count": 1260,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p90": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "aic_fixpipe_time(us)": {
+          "column_present": true,
+          "present_count": 1260,
+          "non_na_count": 1260,
+          "missing_or_na_count": 0,
+          "numeric_count": 1260,
+          "invalid_numeric_count": 0,
+          "zero_count": 1260,
+          "statistics": {
+            "count": 1260,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p90": 0.0,
+            "min": 0.0,
+            "max": 0.0
+          }
+        },
+        "aiv_time(us)": {
+          "column_present": true,
+          "present_count": 1260,
+          "non_na_count": 1260,
+          "missing_or_na_count": 0,
+          "numeric_count": 1260,
+          "invalid_numeric_count": 0,
+          "zero_count": 0,
+          "statistics": {
+            "count": 1260,
+            "mean": 21.368166666666667,
+            "p50": 21.23,
+            "p90": 22.7,
+            "min": 18.97,
+            "max": 24.86
+          }
+        },
+        "aiv_vec_time(us)": {
+          "column_present": true,
+          "present_count": 1260,
+          "non_na_count": 1260,
+          "missing_or_na_count": 0,
+          "numeric_count": 1260,
+          "invalid_numeric_count": 0,
+          "zero_count": 0,
+          "statistics": {
+            "count": 1260,
+            "mean": 3.4117087301587303,
+            "p50": 3.408,
+            "p90": 3.793,
+            "min": 2.751,
+            "max": 4.186
+          }
+        },
+        "aiv_scalar_time(us)": {
+          "column_present": true,
+          "present_count": 1260,
+          "non_na_count": 1260,
+          "missing_or_na_count": 0,
+          "numeric_count": 1260,
+          "invalid_numeric_count": 0,
+          "zero_count": 0,
+          "statistics": {
+            "count": 1260,
+            "mean": 4.521860317460318,
+            "p50": 4.499,
+            "p90": 4.81,
+            "min": 3.896,
+            "max": 5.411
+          }
+        },
+        "aiv_mte2_time(us)": {
+          "column_present": true,
+          "present_count": 1260,
+          "non_na_count": 1260,
+          "missing_or_na_count": 0,
+          "numeric_count": 1260,
+          "invalid_numeric_count": 0,
+          "zero_count": 0,
+          "statistics": {
+            "count": 1260,
+            "mean": 1.0922642857142857,
+            "p50": 1.082,
+            "p90": 1.249,
+            "min": 0.784,
+            "max": 1.64
+          }
+        },
+        "aiv_mte3_time(us)": {
+          "column_present": true,
+          "present_count": 1260,
+          "non_na_count": 1260,
+          "missing_or_na_count": 0,
+          "numeric_count": 1260,
+          "invalid_numeric_count": 0,
+          "zero_count": 0,
+          "statistics": {
+            "count": 1260,
+            "mean": 0.6429579365079365,
+            "p50": 0.635,
+            "p90": 0.698,
+            "min": 0.556,
+            "max": 0.834
+          }
+        }
+      },
+      "signed_boundary_diagnostics": {
+        "complete_numeric_mean_us": {
+          "Duration(us)": 21.64116031746032,
+          "aiv_time(us)": 21.368166666666667,
+          "aiv_vec_time(us)": 3.4117087301587303,
+          "aiv_scalar_time(us)": 4.521860317460318,
+          "aiv_mte2_time(us)": 1.0922642857142857,
+          "aiv_mte3_time(us)": 0.6429579365079365
+        },
+        "signed_aiv_minus_pipe_sum_us": 11.699375396825397,
+        "signed_aiv_minus_max_pipe_us": 16.84630634920635,
+        "signed_duration_minus_aiv_us": 0.27299365079365145,
+        "interpretation": "Signed boundary diagnostics only; neither remainder is classified as synchronization or launch."
+      },
+      "conditional_source_geometry": {
+        "tokens": 32,
+        "width": 4096,
+        "topk": 8,
+        "experts": 288,
+        "assignments": 256,
+        "per_owner_rows": 4,
+        "active_owners": 64,
+        "source_branch": "onecore_sort_GATHER_count_mode_full_range_useGatherCopy",
+        "capture_binary_or_scalar_args_verified": false
+      },
+      "source_operation_export": {
+        "sort": {
+          "concat": {
+            "counts": {
+              "source_concat32_blocks": 8
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_concat32_blocks": 8
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          "sort": {
+            "counts": {
+              "source_sort32_blocks": 8
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_sort32_blocks": 8
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          "extract": {
+            "counts": {
+              "source_extract32_blocks": 8
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_extract32_blocks": 8
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          }
+        },
+        "count_by_owner": [
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 14
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 14
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          }
+        ],
+        "inverse_by_owner": [
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          },
+          {
+            "counts": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "priced_service_work": {},
+            "unpriced_service_work": {
+              "source_simt_gm_load32": 4,
+              "source_simt_gm_store32": 4
+            },
+            "boundary": "declared_operation_counts_not_universal_isa_latency"
+          }
+        ],
+        "sort_domain": "one whole Concat/Sort<float,true>/Extract macro; input_blocks32 is normalization only",
+        "sort_limitation": "cross-size merge cost is not established by a constant per-input-block rate",
+        "simt_domain": "full-range dropless GATHER; logical INT32 thread accesses, not warp instructions or cache transactions",
+        "source_launch_threads": 2048,
+        "atomic_count": {
+          "mechanism": "SetAtomicAdd<int32_t>; one DataCopyPad per active owner",
+          "payload_bytes_per_owner": 1152,
+          "shared_target": "all owners address the same expertCountTempGm array",
+          "unpriced": "128-byte transaction count/alignment and shared-line RMW serialization not inferred"
+        },
+        "excluded": [
+          "SDK Sort merge expansion",
+          "compiled SIMT warp/branch/address instructions",
+          "data-dependent expert-boundary UB accesses",
+          "SIMT cache/coalescing policy"
+        ]
+      },
+      "count_features": {
+        "intercept": 1,
+        "concat_blocks32": 8,
+        "sort_blocks32": 8,
+        "extract_blocks32": 8,
+        "count_gm_load32_all_owners": 896,
+        "inverse_gm_load32_all_owners": 256,
+        "inverse_gm_store32_all_owners": 256,
+        "atomic_copy_calls_all_owners": 64,
+        "atomic_payload_int32_all_owners": 18432,
+        "owner0_ub_getvalue": 288,
+        "owner0_scalar_add": 288,
+        "owner0_ub_setvalue": 1,
+        "owner0_pipe_v_barrier": 1
+      },
+      "source_sort_api_macros_per_call": {
+        "Concat": 1,
+        "Sort<float,true>": 1,
+        "Extract": 1
+      },
+      "compiled_sort_opcodes_per_call": {
+        "VBitSort32": null,
+        "VMrgSort4V2": null
+      },
+      "source_atomic_boundary": {
+        "DataCopyPad_calls": 64,
+        "INT32_payload_elements": 18432,
+        "shared_target_arrays": 1,
+        "atomic_cache_RMW_transactions": null
+      },
+      "owner0_scalar_boundary": {
+        "GetValue_INT32": 288,
+        "SetValue_INT32": 1,
+        "source_adds": 288,
+        "PIPE_V_source_barriers": 1,
+        "loop_branch_address_ISA_counts": null
+      },
+      "not_a_per_core_observed_pmu": true,
+      "response_use": "whole-call same-domain in-sample joint response; no opcode-level rate"
+    }
+  ],
+  "design": {
+    "sample_count": 3,
+    "feature_names": [
+      "intercept",
+      "concat_blocks32",
+      "sort_blocks32",
+      "extract_blocks32",
+      "count_gm_load32_all_owners",
+      "inverse_gm_load32_all_owners",
+      "inverse_gm_store32_all_owners",
+      "atomic_copy_calls_all_owners",
+      "atomic_payload_int32_all_owners",
+      "owner0_ub_getvalue",
+      "owner0_scalar_add",
+      "owner0_ub_setvalue",
+      "owner0_pipe_v_barrier"
+    ],
+    "feature_matrix": [
+      [
+        1,
+        1,
+        1,
+        1,
+        64,
+        32,
+        32,
+        32,
+        9216,
+        288,
+        288,
+        1,
+        1
+      ],
+      [
+        1,
+        4,
+        4,
+        4,
+        384,
+        128,
+        128,
+        64,
+        18432,
+        288,
+        288,
+        1,
+        1
+      ],
+      [
+        1,
+        8,
+        8,
+        8,
+        896,
+        256,
+        256,
+        64,
+        18432,
+        288,
+        288,
+        1,
+        1
+      ]
+    ],
+    "exact_rank": 3,
+    "nullity": 10,
+    "remaining_fit_degrees_of_freedom": 0,
+    "basis": [
+      "1",
+      "assignments",
+      "active_owners"
+    ],
+    "dependencies": [
+      "concat=sort=extract=assignments/32 in these three aligned domains",
+      "count_loads=4*assignments-2*active_owners",
+      "inverse_loads=inverse_stores=assignments",
+      "atomic_payload=288*active_owners",
+      "GetValue=ScalarAdd=288*intercept",
+      "SetValue=PIPE_V=intercept"
+    ],
+    "interpretation": "Rank is geometric identifiability only, not an additive latency model. Three-point saturation leaves no validation degree of freedom; PMU owner aggregation and stage overlap remain unobserved."
+  },
+  "usable_constraints": {
+    "whole_native_response": "Three fully populated Mean/P50 points, each physical ABI and Block domain retained",
+    "macro_scalar_simt_prices": "Only joint response constraints; no independent positive opcode prices inferred",
+    "bounds": "Without an additive stage and owner mapping, a native elapsed or pipe-time ratio is not an upper/lower bound on one opcode latency",
+    "needed_contrasts": [
+      "vary expert count E at fixed assignments,width,Block and source branch",
+      "vary active owner split at fixed assignments and retain owner-specific PMU",
+      "record compiled sort expansion or a standalone sort macro at multiple sizes",
+      "retain SIMT warp/cache/atomic transactions and compare constant bytes with changed descriptor counts"
+    ]
+  },
+  "new_raw_scans": 0,
+  "new_costs": 0,
+  "parameter_changes": [],
+  "body_residual_used": false
+}

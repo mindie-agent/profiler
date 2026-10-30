@@ -1,0 +1,18 @@
+{
+  "schema_version": "mindie-routing-source-join-review/1",
+  "status": "passed",
+  "checks": 97,
+  "failures": [],
+  "report_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-routing-source-join.json",
+    "sha256": "06ee6d7ece7437622510ce2d59fab246af32cee43b6c51b734e7aa73bfddbcc3",
+    "size_bytes": 159667
+  },
+  "records": 3,
+  "native_calls": 4452,
+  "rank_basis_determinant": -4096,
+  "rank_proof": "Every column is a linear combination of 1, assignments, active owners; their 3x3 determinant is nonzero.",
+  "scope": "Saved population and native histogram/PMU projection; explicit source-count identities and absent opcode/RMW counts. No new raw/cost.",
+  "raw_scans": 0,
+  "new_costs": 0
+}
