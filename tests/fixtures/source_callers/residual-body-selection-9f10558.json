@@ -1,0 +1,1596 @@
+{
+  "source_scoreboard_identity": {
+    "git_commit": "9f105588a72d8cba10e74f19c828e142fe968eca",
+    "repository": "/Volumes/data/code/mindie-release-20261014/profiler",
+    "path": "examples/structure/acceptance-20261030-priority/priority-three-level-scoreboard.json",
+    "sha256": "bdc93c3577aeaf12f03b4a921c3e17b8be01c5d83d9f68921c6c9080e18caa72",
+    "size_bytes": 56046452
+  },
+  "projection": "Only the exact fields consumed by choose_cases from all 66 compared current primary Body rows; no new measurements or changed values.",
+  "rows": [
+    {
+      "case_id": "glm53flash-a3-tp16-c16-livepre:q6_b16_m96",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot50_c16_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 16687762,
+        "mtime_ns": 1793295236000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "4b584fe1f672fd0ef96e2649d497f007ad2a464c953c3319b00837146e046bdf"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 37,
+          "mean": 41.06908110810811,
+          "p50": 40.940238,
+          "p90": 41.282305,
+          "min": 40.426567,
+          "max": 46.243184
+        },
+        "predicted_ms": 63.85140682459306,
+        "relative_error": 0.5547318104467434,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot50_c2:q6_b2_m12",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+        "size_bytes": 68070780,
+        "mtime_ns": 1793302496541966032,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "1f91ecac9a99c7ab0687fb1175db3ceefa39c6d31cca0bc4e4a4edb859a9ad13"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 44,
+          "mean": 57.817111568181815,
+          "p50": 57.597031,
+          "p90": 59.091621,
+          "min": 56.314125,
+          "max": 61.739433
+        },
+        "predicted_ms": 36.98736773859689,
+        "relative_error": -0.3602695337870882,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot30_c2:q6_b2_m12",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+        "size_bytes": 61482469,
+        "mtime_ns": 1793302496483652627,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "5c13263d015f971a90b790b1c94aba384b402a1e15ed6417dc6794b0c3b40ab5"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 44,
+          "mean": 57.639269772727275,
+          "p50": 57.56154,
+          "p90": 58.994579,
+          "min": 56.158442,
+          "max": 59.463088
+        },
+        "predicted_ms": 36.98736773859689,
+        "relative_error": -0.3582956917317174,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "qwen35-397b-a3-tp16-c136:q4_b160_m640",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot50_c136_20261030/kernel_details.csv",
+        "size_bytes": 17680559,
+        "mtime_ns": 1793299567000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "5478ef37efc67c6d1c6227608d935a639c2c4285214a26f08a4d42250c12a1d0"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 18,
+          "mean": 119.05435,
+          "p50": 119.13096999999999,
+          "p90": 119.48628,
+          "min": 118.3355,
+          "max": 119.67278
+        },
+        "predicted_ms": 102.86620476616388,
+        "relative_error": -0.13597273206595242,
+        "passed": true
+      }
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot88_c8:q6_b8_m48",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot88_c8_20261030/kernel_details.csv",
+        "size_bytes": 75781277,
+        "mtime_ns": 1793302496606117183,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "59f5666d6709695fad7e1f8502a656de699a200932199f2344c44aaa07662ee8"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 49,
+          "mean": 69.55629785714285,
+          "p50": 69.488848,
+          "p90": 69.830375,
+          "min": 69.123061,
+          "max": 70.623391
+        },
+        "predicted_ms": 55.52892938678908,
+        "relative_error": -0.20166927945422958,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b128_m512",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+        "size_bytes": 88444963,
+        "mtime_ns": 1793299565000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "bf35b8b21c078d6fc7223918b280158fda5ee7c1f83009c70c98b16f27b08df5"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 76,
+          "mean": 28.584773552631578,
+          "p50": 28.5706575,
+          "p90": 28.703784,
+          "min": 28.450656,
+          "max": 28.85065
+        },
+        "predicted_ms": 14.844834306187522,
+        "relative_error": -0.4806733634305501,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c16_p8k:q4_b16_m64",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c16_p8k_20261030/kernel_details.csv",
+        "size_bytes": 46633620,
+        "mtime_ns": 1793303669000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "0562978c83fd2dd6ddb5f51a053dcdc7693e307ef8bcf6b90ee70e2a7c2b5a78"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 32,
+          "mean": 33.616091374999996,
+          "p50": 33.62586,
+          "p90": 33.709694,
+          "min": 33.517443,
+          "max": 33.747635
+        },
+        "predicted_ms": 20.321987392251803,
+        "relative_error": -0.39546846283964193,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c32_p8k:q4_b32_m128",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p8k_20261030/kernel_details.csv",
+        "size_bytes": 40308679,
+        "mtime_ns": 1793303683000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "1a9184ace6c33136182c6947fce23e27e238795d5d526532ab000065ad8d5e45"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 35,
+          "mean": 38.71318854285714,
+          "p50": 38.72185,
+          "p90": 38.759233,
+          "min": 38.568107,
+          "max": 38.937622
+        },
+        "predicted_ms": 25.490508250941406,
+        "relative_error": -0.34155492713491337,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c16_p4k:q4_b16_m64",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c16_p4k_20261030/kernel_details.csv",
+        "size_bytes": 47658417,
+        "mtime_ns": 1793303619000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "bd9aaa075053ec7b4520a8a45238e810192b9b83f96d9833792be3ce9a46ca34"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 30,
+          "mean": 33.0309177,
+          "p50": 33.0264815,
+          "p90": 33.164019,
+          "min": 32.883158,
+          "max": 33.193867
+        },
+        "predicted_ms": 20.134554432251807,
+        "relative_error": -0.39043309013930894,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c32_p4k:q4_b32_m128",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+        "size_bytes": 41401175,
+        "mtime_ns": 1793303631000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 31,
+          "mean": 37.66896412903226,
+          "p50": 37.665316,
+          "p90": 37.76115,
+          "min": 37.569747,
+          "max": 37.797992
+        },
+        "predicted_ms": 25.111276935108098,
+        "relative_error": -0.3333695917654845,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c8_p4k:q4_b8_m32",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+        "size_bytes": 41993164,
+        "mtime_ns": 1793303606000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 30,
+          "mean": 28.833324133333335,
+          "p50": 28.828410499999997,
+          "p90": 28.884507,
+          "min": 28.606826,
+          "max": 28.91941
+        },
+        "predicted_ms": 16.619275959641854,
+        "relative_error": -0.423608742343072,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c64_p4k:q4_b64_m256",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c64_p4k_20261030/kernel_details.csv",
+        "size_bytes": 34995055,
+        "mtime_ns": 1793303645000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "1d33448e6faeeedf5175035f4c324b74220bbc179d2cec85657162970576095a"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 31,
+          "mean": 46.528232967741936,
+          "p50": 46.498735,
+          "p90": 46.644535,
+          "min": 46.405041,
+          "max": 46.821126
+        },
+        "predicted_ms": 34.519034640733004,
+        "relative_error": -0.2581056180520528,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c32_p4k:q1_b32_m32",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+        "size_bytes": 83732721,
+        "mtime_ns": 1793304365000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "d734e9ec764b0f1baf35589d4886f6b9e2cd9254c660721f3ad6a86b0602c504"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 46,
+          "mean": 40.01872763043478,
+          "p50": 40.017751,
+          "p90": 40.043741,
+          "min": 39.986677,
+          "max": 40.057115
+        },
+        "predicted_ms": 28.543760096088047,
+        "relative_error": -0.28673993936828385,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c16_p4k:q1_b16_m16",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c16_p4k_20261030/kernel_details.csv",
+        "size_bytes": 88893922,
+        "mtime_ns": 1793304346000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "c74cb4160daf0d07420b3288c234e6f4a0c07d7ddcc9ffde5053aea131426664"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 49,
+          "mean": 36.985292306122446,
+          "p50": 36.952793,
+          "p90": 36.968819,
+          "min": 36.921841,
+          "max": 38.586878
+        },
+        "predicted_ms": 25.61608874967501,
+        "relative_error": -0.3073979640973503,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c16_p16k:q1_b16_m16",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c16_p16k_20261030/kernel_details.csv",
+        "size_bytes": 85273567,
+        "mtime_ns": 1793305138000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "0bb137f44691457fb0d8a3fbe186d7dffa95945ae273de8ee71f6f384694f851"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 47,
+          "mean": 39.24738604255319,
+          "p50": 39.244948,
+          "p90": 39.26292,
+          "min": 39.210652,
+          "max": 39.369144
+        },
+        "predicted_ms": 28.20944713222796,
+        "relative_error": -0.28124010343918354,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph:q4_b64_m256",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+        "size_bytes": 79462851,
+        "mtime_ns": 1793299528000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "5612e7cccfb3878cf27b22b1e89c5d186cd100633a44748973349f1bf03872f3"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 79,
+          "mean": 21.95684469620253,
+          "p50": 22.000889,
+          "p90": 22.067637,
+          "min": 21.680619,
+          "max": 22.118773
+        },
+        "predicted_ms": 10.941656985517318,
+        "relative_error": -0.5016744374290859,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c32_p16k:q1_b32_m32",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p16k_20261030/kernel_details.csv",
+        "size_bytes": 74642919,
+        "mtime_ns": 1793305149000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "e0165e2c51d162f7dcfafa75346acbc739f1e30fbea2bd741e7c5b40f5b7437d"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 41,
+          "mean": 44.66619290243902,
+          "p50": 44.645272,
+          "p90": 44.661803,
+          "min": 44.607823,
+          "max": 45.58843
+        },
+        "predicted_ms": 33.73051372517995,
+        "relative_error": -0.24483123513895733,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c4_p8k:q4_b4_m16",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
+        "size_bytes": 25256665,
+        "mtime_ns": 1793303657000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 11,
+          "mean": 21.41824609090909,
+          "p50": 21.408145,
+          "p90": 21.432068,
+          "min": 21.246225,
+          "max": 21.839515
+        },
+        "predicted_ms": 10.680894859139103,
+        "relative_error": -0.5013179504145964,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c8_p4k:q1_b8_m8",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+        "size_bytes": 94064897,
+        "mtime_ns": 1793304321000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "00fb1678504ab7023ac1a258f05e78f9d793ef009147a985c1174527e3be8b3f"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 52,
+          "mean": 34.81921332692308,
+          "p50": 34.79111,
+          "p90": 34.808453,
+          "min": 34.764297,
+          "max": 36.278757
+        },
+        "predicted_ms": 24.198060787377603,
+        "relative_error": -0.3050371195874473,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c8_p16k:q1_b8_m8",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c8_p16k_20261030/kernel_details.csv",
+        "size_bytes": 92257150,
+        "mtime_ns": 1793305126000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "705cd2cd4965560f3a1149bcb62d2a053cded55e0aff15aabb374d318011f749"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 51,
+          "mean": 35.964417431372546,
+          "p50": 35.962094,
+          "p90": 35.978788,
+          "min": 35.933269,
+          "max": 36.117961
+        },
+        "predicted_ms": 25.45871631028875,
+        "relative_error": -0.2921137577476632,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c4_p4k:q1_b4_m4",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c4_p4k_20261030/kernel_details.csv",
+        "size_bytes": 99591450,
+        "mtime_ns": 1793304308000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "7e0bf0c288bb9df7aa08b19f698030892771a0d6a9990b0d9447c22f973c133e"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 53,
+          "mean": 34.19370916981132,
+          "p50": 34.177425,
+          "p90": 34.19419,
+          "min": 34.154841,
+          "max": 35.028676
+        },
+        "predicted_ms": 23.752987374426773,
+        "relative_error": -0.30534042807506745,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c4_p16k:q1_b4_m4",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c4_p16k_20261030/kernel_details.csv",
+        "size_bytes": 97721387,
+        "mtime_ns": 1793304558000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "215453044c83a8d780b14de5ffd329404f8c9cdae2a5f6d56001889d85e17b49"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 52,
+          "mean": 34.816498326923075,
+          "p50": 34.793753,
+          "p90": 34.812948,
+          "min": 34.776447,
+          "max": 35.845448
+        },
+        "predicted_ms": 24.38430571395633,
+        "relative_error": -0.2996335965498198,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c2_p16k:q1_b2_m2",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c2_p16k_20261030/kernel_details.csv",
+        "size_bytes": 101430417,
+        "mtime_ns": 1793304547000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "61a5ff863f23b0ebc55338e6b48de1b8211fa2ed6179ec3304d3e4bcf0852e62"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 54,
+          "mean": 33.875752685185184,
+          "p50": 33.8579965,
+          "p90": 33.873078,
+          "min": 33.828032,
+          "max": 34.818002
+        },
+        "predicted_ms": 23.835844769696514,
+        "relative_error": -0.2963744601866633,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c2_p4k:q1_b2_m2",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c2_p4k_20261030/kernel_details.csv",
+        "size_bytes": 103300812,
+        "mtime_ns": 1793304286000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "3c42b0662a8b658cdf071cbac275883d050c883b8f0730035ee074a12f4d307d"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 55,
+          "mean": 33.54763016363636,
+          "p50": 33.515767,
+          "p90": 33.532651,
+          "min": 33.479871,
+          "max": 35.311278
+        },
+        "predicted_ms": 23.515499265690234,
+        "relative_error": -0.29904141809755497,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c96:q4_b96_m384",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot30ms_c96_20261030/kernel_details.csv",
+        "size_bytes": 19928533,
+        "mtime_ns": 1793298564000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 24,
+          "mean": 63.853365000000004,
+          "p50": 63.561524,
+          "p90": 65.419347,
+          "min": 63.524057,
+          "max": 65.601291
+        },
+        "predicted_ms": 53.94710891329023,
+        "relative_error": -0.1551407053756646,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "glm53flash-a5-tp8-c3:q4_b4_m16",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot10ms_c3_20261030/kernel_details.csv",
+        "size_bytes": 58843290,
+        "mtime_ns": 1793298708000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "7b5fcac6c1e58c05cb232a7ddb4450b761301ba5efc33b4b9f7909b9d59fbbe1"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 53,
+          "mean": 21.067548924528303,
+          "p50": 21.05718,
+          "p90": 21.170037,
+          "min": 20.882993,
+          "max": 21.361573
+        },
+        "predicted_ms": 11.802592174048186,
+        "relative_error": -0.43977383338093073,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "glm53flash-a5-tp8-c1:q4_b1_m4",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "size_bytes": 71005746,
+        "mtime_ns": 1793298838000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 65,
+          "mean": 15.683328046153846,
+          "p50": 15.670472,
+          "p90": 15.738329,
+          "min": 15.494044,
+          "max": 17.258429
+        },
+        "predicted_ms": 6.829678260126068,
+        "relative_error": -0.5645262128020738,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c128_p2k:q1_b16_m16",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c128_p2k_20261030/kernel_details.csv",
+        "size_bytes": 49316349,
+        "mtime_ns": 1793305202000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "9f4378314a899c8389ba107c89a43dd5fa90c329553bd204ae546ffad39a2f41"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 73,
+          "mean": 27.28597294520548,
+          "p50": 27.26582,
+          "p90": 27.29026,
+          "min": 27.228026,
+          "max": 28.648204
+        },
+        "predicted_ms": 19.244759050667035,
+        "relative_error": -0.2947013804743729,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "qwen35-397b-a3-tp16-c48:q4_b64_m256",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-397B-A17B-w8a8-mtp_high_conc_decode_tpot30_c48_20261030/kernel_details.csv",
+        "size_bytes": 21524017,
+        "mtime_ns": 1793299561000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "9217dce748a95877c9f663ad8a3a4dea8d1a539842f63d352743a7711b867b8f"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 23,
+          "mean": 76.08900782608696,
+          "p50": 76.13232,
+          "p90": 76.63216,
+          "min": 74.8232,
+          "max": 76.72992
+        },
+        "predicted_ms": 68.30454870893139,
+        "relative_error": -0.10230727590702896,
+        "passed": true
+      }
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64:q1_b8_m8",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
+        "size_bytes": 50179338,
+        "mtime_ns": 1793303665000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "085c8c00a0560d14a3ca4beb9b965efc04b6be1f40b47734cd47102af4363282"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 75,
+          "mean": 26.328226106666666,
+          "p50": 26.305803,
+          "p90": 26.335546,
+          "min": 26.264927,
+          "max": 27.876925
+        },
+        "predicted_ms": 18.932524024861003,
+        "relative_error": -0.28090392614536874,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c1_p16k:q1_b1_m1",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p16k_20261030/kernel_details.csv",
+        "size_bytes": 102198993,
+        "mtime_ns": 1793304534000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "cc316ae15600914b4c58c7ef10a0103026a7d5abae1dc733dd3eedcaa0397f8e"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 59,
+          "mean": 30.823435050847458,
+          "p50": 30.822007,
+          "p90": 30.838985,
+          "min": 30.788124,
+          "max": 30.913849
+        },
+        "predicted_ms": 23.553349960888955,
+        "relative_error": -0.235862261229662,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c1_p4k:q1_b1_m1",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
+        "size_bytes": 102190664,
+        "mtime_ns": 1793304273000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "95fe4cc26e249dbd597c62ae1db12710fca8ea758ff16cf1f12e6ed5584d256d"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 59,
+          "mean": 30.63685447457627,
+          "p50": 30.614967,
+          "p90": 30.632466,
+          "min": 30.590459,
+          "max": 31.877413
+        },
+        "predicted_ms": 23.391263934778856,
+        "relative_error": -0.2364991662512255,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "glm53flash-a3-tp16-c4-livepre:q6_b4_m24",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot30_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 11734491,
+        "mtime_ns": 1793295009000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "35c1ff6c9570a472ca26f1bfa293cd09709a1e4d0f2984b039de9e48d961c1e2"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 46,
+          "mean": 29.76155106521739,
+          "p50": 29.6638125,
+          "p90": 30.04604,
+          "min": 29.209304,
+          "max": 34.108581
+        },
+        "predicted_ms": 36.251358697948945,
+        "relative_error": 0.2180601279318488,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c32_p2k:q1_b4_m4",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c32_p2k_20261030/kernel_details.csv",
+        "size_bytes": 70173237,
+        "mtime_ns": 1793305117000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "e20b27b78f65b08fac9e034b6c5a31b550f4795a1dd5dbcf514172031640d94e"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 105,
+          "mean": 18.62455658095238,
+          "p50": 18.615864,
+          "p90": 18.640311,
+          "min": 18.588418,
+          "max": 19.334582
+        },
+        "predicted_ms": 12.36084511861599,
+        "relative_error": -0.3363146625859745,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c4-graph:q4_b4_m16",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
+        "size_bytes": 70137504,
+        "mtime_ns": 1793299592000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "9b8a87bfd6252204ab077e331ed97976ff9f5256935cb153677ac619dd96aac1"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 84,
+          "mean": 11.551366761904761,
+          "p50": 11.481642,
+          "p90": 11.817997,
+          "min": 10.98308,
+          "max": 12.018012
+        },
+        "predicted_ms": 5.367694354662898,
+        "relative_error": -0.5353195457038893,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "v4flash-a3-tp8-c4:q2_b4_m8",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_flash_w8a8_mtp_high_conc_decode_tpot30_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 17267089,
+        "mtime_ns": 1793299475000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "540c7fbc1816b7ecaf68317df8d6dc291441ee389fe59b41e76109f483f1e2cd"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 104,
+          "mean": 32.485961,
+          "p50": 32.416312000000005,
+          "p90": 32.734306,
+          "min": 32.133418,
+          "max": 33.819264
+        },
+        "predicted_ms": 26.525127983034135,
+        "relative_error": -0.1834895084977128,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8:q1_b1_m1",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot10ms_c8_20261030/kernel_details.csv",
+        "size_bytes": 96044757,
+        "mtime_ns": 1793303576000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "17b7ed9ee87a8449f1c92d04a0e0f2eebd5aecd6edd39e4073d8787976974866"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 145,
+          "mean": 13.291562179310345,
+          "p50": 12.802981,
+          "p90": 12.816588,
+          "min": 12.776996,
+          "max": 82.348968
+        },
+        "predicted_ms": 7.430227510823243,
+        "relative_error": -0.44098162348522585,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c16_p2k:q1_b2_m2",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c16_p2k_20261030/kernel_details.csv",
+        "size_bytes": 86067988,
+        "mtime_ns": 1793305018000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "8294b03bbf47e43f172941354c4517fea55a7b57656ea209938f688f518f8832"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 129,
+          "mean": 14.929338178294573,
+          "p50": 14.914454,
+          "p90": 14.928722,
+          "min": 14.882047,
+          "max": 16.839107
+        },
+        "predicted_ms": 9.078382135950548,
+        "relative_error": -0.3919099408472505,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c4_p2k:q1_b1_m1",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c4_p2k_20261030/kernel_details.csv",
+        "size_bytes": 100369788,
+        "mtime_ns": 1793304900000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "cf36aecc0160029872eeaf55cf397261d121cf7d7e591d6043751488a367b964"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 151,
+          "mean": 13.23880344370861,
+          "p50": 13.208635,
+          "p90": 13.227353,
+          "min": 13.187765,
+          "max": 16.036565
+        },
+        "predicted_ms": 7.430227510823243,
+        "relative_error": -0.43875384641696896,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1:q1_b1_m1",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "size_bytes": 101041319,
+        "mtime_ns": 1793303454000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "323f2e48f662c7b255b6d2ae69d3ba1ea3045578d375be54c503876ff3f45861"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 152,
+          "mean": 13.134611046052632,
+          "p50": 13.129264500000001,
+          "p90": 13.145059,
+          "min": 13.098679,
+          "max": 13.848067
+        },
+        "predicted_ms": 7.430227510823243,
+        "relative_error": -0.43430167176086554,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a3_glm53_dc4k_b2:q1_b2_m2",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/dc4k_b2.csv.gz",
+        "size_bytes": 9011810,
+        "mtime_ns": 1792775835540259000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "b4db9f5b60b4cbd59abed29bafc6112644c6516f2b85f2c83e9ab91ca824268d"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 70,
+          "mean": 40.969877585714286,
+          "p50": 40.934811999999994,
+          "p90": 41.04634,
+          "min": 40.824184,
+          "max": 42.099899
+        },
+        "predicted_ms": 35.4825012836368,
+        "relative_error": -0.13393684886163462,
+        "passed": true
+      }
+    },
+    {
+      "case_id": "a3_glm53_dc16k_b1:q1_b1_m1",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/dc16k_b1.csv.gz",
+        "size_bytes": 9252930,
+        "mtime_ns": 1792775831656803000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "9739d9704c6fa6e255052ff154bc432912530f327806443f3e8a8726b71dd196"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 74,
+          "mean": 39.112085283783784,
+          "p50": 39.104879,
+          "p90": 39.195917,
+          "min": 38.976281,
+          "max": 39.365553
+        },
+        "predicted_ms": 33.63689957909224,
+        "relative_error": -0.13998705681288764,
+        "passed": true
+      }
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c12:q4_b12_m48",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030/kernel_details.csv",
+        "size_bytes": 43475364,
+        "mtime_ns": 1793298518000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 55,
+          "mean": 24.225773927272726,
+          "p50": 24.052762,
+          "p90": 24.71075,
+          "min": 23.960163,
+          "max": 25.60899
+        },
+        "predicted_ms": 18.84987063742427,
+        "relative_error": -0.22190842306987799,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a3_glm53_dc4k_b1:q1_b1_m1",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/dc4k_b1.csv.gz",
+        "size_bytes": 9236949,
+        "mtime_ns": 1792775834549057000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "ed5e9696949d51c2d1d31ab099a71a2c98722d5719f004fcf90c9ceff036f60c"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 74,
+          "mean": 38.954827013513516,
+          "p50": 38.942772000000005,
+          "p90": 39.03604,
+          "min": 38.830984,
+          "max": 39.096419
+        },
+        "predicted_ms": 33.63689957909224,
+        "relative_error": -0.1365152368043241,
+        "passed": true
+      }
+    },
+    {
+      "case_id": "a3_glm53_dc4k_b4:q1_b4_m4",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/dc4k_b4.csv.gz",
+        "size_bytes": 8694082,
+        "mtime_ns": 1792775836498011000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "77a4234a437a810720e291e64796f7f10d952307d44902212f1dde9bca7f96a8"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 67,
+          "mean": 43.437733955223884,
+          "p50": 43.436892,
+          "p90": 43.597669,
+          "min": 43.04074,
+          "max": 43.725907
+        },
+        "predicted_ms": 38.63078883303179,
+        "relative_error": -0.11066288879496226,
+        "passed": true
+      }
+    },
+    {
+      "case_id": "a3_glm53flash_tp16_aclgraph_c8:q6_b8_m48",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_aclgraph_c8_20261030/kernel_details.csv",
+        "size_bytes": 66877878,
+        "mtime_ns": 1793304586000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "6ab121f907ff2819bbde5f136d6055ad30fdc88241b0c52860417f897be2851b"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 47,
+          "mean": 46.85920044680851,
+          "p50": 46.817395,
+          "p90": 47.174542,
+          "min": 46.257964,
+          "max": 47.821456
+        },
+        "predicted_ms": 42.0555652739323,
+        "relative_error": -0.10251210279033629,
+        "passed": true
+      }
+    },
+    {
+      "case_id": "glm53flash-a3-tp16-c2:q6_b2_m12",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_tpot30_c2_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 10413342,
+        "mtime_ns": 1793299656000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "2c0fabc622d035cc8fa829c0ef0c441239643ba3cae5737c37b67e64dbf91d94"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 46,
+          "mean": 34.11845960869565,
+          "p50": 33.910318000000004,
+          "p90": 35.073041,
+          "min": 33.107222,
+          "max": 39.875957
+        },
+        "predicted_ms": 29.433954762673448,
+        "relative_error": -0.1373011824023931,
+        "passed": true
+      }
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c1:q4_b1_m4",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "size_bytes": 65019355,
+        "mtime_ns": 1793298450000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 85,
+          "mean": 12.31828434117647,
+          "p50": 12.279117,
+          "p90": 12.362065,
+          "min": 12.221209,
+          "max": 13.673987
+        },
+        "predicted_ms": 7.726465558589153,
+        "relative_error": -0.37276447396478685,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a3_glm53flash_tp16_aclgraph_c16:q6_b16_m96",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_aclgraph_c16_20261030/kernel_details.csv",
+        "size_bytes": 69997934,
+        "mtime_ns": 1793304740000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "3b4fd9da81f680ce411b2b343e8f619d9825d618bc39155882312dc323c4e9fd"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 50,
+          "mean": 53.89338886,
+          "p50": 53.870786499999994,
+          "p90": 54.02092,
+          "min": 53.479969,
+          "max": 54.733913
+        },
+        "predicted_ms": 49.63744863711882,
+        "relative_error": -0.07896961599384528,
+        "passed": true
+      }
+    },
+    {
+      "case_id": "v4flash-a3-tp8-c8:q2_b8_m16",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_flash_w8a8_mtp_high_conc_decode_tpot50_c8_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 18753472,
+        "mtime_ns": 1793299492000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "43228298ed603e07a4aacb3b298867aecdff1941db0701f4736edae050718213"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 104,
+          "mean": 37.763130634615386,
+          "p50": 37.868163,
+          "p90": 38.081839,
+          "min": 34.254356,
+          "max": 38.632448
+        },
+        "predicted_ms": 33.555657130236796,
+        "relative_error": -0.11141749726972665,
+        "passed": true
+      }
+    },
+    {
+      "case_id": "a5_kimi_k3_p32768_c1:q1_b1_m1",
+      "source_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-body-profiling-kimi-op-summary.csv",
+        "size_bytes": 110031770,
+        "mtime_ns": 1793244535675263741,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "ab1d44d3613ecb92d71af6d790ab9dfc72be5aabfe92bf4f99d584fbd0f9e648"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 63,
+          "mean": 32.55549347619048,
+          "p50": 32.533125,
+          "p90": 32.673798,
+          "min": 32.454646,
+          "max": 32.907208
+        },
+        "predicted_ms": 28.560581581623204,
+        "relative_error": -0.12271083826417684,
+        "passed": true
+      }
+    },
+    {
+      "case_id": "a3_glm53flash_tp16_aclgraph_c32:q6_b32_m192",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_aclgraph_c32_20261030/kernel_details.csv",
+        "size_bytes": 71740577,
+        "mtime_ns": 1793304903000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "407b8083c575a7f568047e618cb0276aad554c9323a6a2cb876bebe486ca7d6c"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 49,
+          "mean": 69.3606062244898,
+          "p50": 69.418407,
+          "p90": 69.527669,
+          "min": 67.919477,
+          "max": 71.378566
+        },
+        "predicted_ms": 65.39967255605414,
+        "relative_error": -0.057106387675099846,
+        "passed": true
+      }
+    },
+    {
+      "case_id": "glm53flash-a3-tp16-c4:q6_b4_m24",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_tpot50_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 11354607,
+        "mtime_ns": 1793299677000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "439aa03a26db30436e8cccd8695634f443d95be0ae35f61bb587ca313ca32fb4"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 46,
+          "mean": 39.841312630434786,
+          "p50": 39.7983055,
+          "p90": 40.056941,
+          "min": 39.610551,
+          "max": 40.601511
+        },
+        "predicted_ms": 36.251358697948945,
+        "relative_error": -0.09010631667149126,
+        "passed": true
+      }
+    },
+    {
+      "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8:q8_b4_m32",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c8_20261030/kernel_details.csv",
+        "size_bytes": 62565854,
+        "mtime_ns": 1793305383000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "0a482b50f68f4f71f22a8e0cec5f87867ff53dc2a52dae71c8567900193f1db6"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 29,
+          "mean": 48.58186248275862,
+          "p50": 48.411553,
+          "p90": 48.662328,
+          "min": 48.196157,
+          "max": 52.464972
+        },
+        "predicted_ms": 51.67250623500309,
+        "relative_error": 0.06361723479295008,
+        "passed": true
+      }
+    },
+    {
+      "case_id": "a3_glm53_dc4k_b8:q1_b8_m8",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/dc4k_b8.csv.gz",
+        "size_bytes": 8113958,
+        "mtime_ns": 1792775837405072000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "d9cfa6ae25dd98de14f9eccbaf4a9fbc83a0e1b1b4e25abcd822e0898b0196ad"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 61,
+          "mean": 47.11327503278689,
+          "p50": 47.148578,
+          "p90": 47.401813,
+          "min": 46.442472,
+          "max": 47.557809
+        },
+        "predicted_ms": 44.12452526199945,
+        "relative_error": -0.06343752941623176,
+        "passed": true
+      }
+    },
+    {
+      "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4:q8_b2_m16",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c4_20261030/kernel_details.csv",
+        "size_bytes": 61131358,
+        "mtime_ns": 1793305250000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "d8ae782b7726c4681cac0149a0b11ffb8d1c4ad5832c8fac92b5172d80d036b4"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 48,
+          "mean": 47.65399995833334,
+          "p50": 47.4251025,
+          "p90": 47.666347,
+          "min": 46.763406,
+          "max": 63.335995
+        },
+        "predicted_ms": 50.269555956289196,
+        "relative_error": 0.05488638939528249,
+        "passed": true
+      }
+    },
+    {
+      "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c16:q8_b5_m40",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c16_20261030/kernel_details.csv",
+        "size_bytes": 63772053,
+        "mtime_ns": 1793305520000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "025313a10fd2b7f9d62ff54933c1acfe4f10158b9f1011006a74c3580964a814"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 32,
+          "mean": 49.98473921875,
+          "p50": 49.802195,
+          "p90": 50.230116,
+          "min": 49.739066,
+          "max": 53.802985
+        },
+        "predicted_ms": 52.474282647087286,
+        "relative_error": 0.04980607015757764,
+        "passed": true
+      }
+    },
+    {
+      "case_id": "glm53flash-a5-tp8-c96:q4_b96_m384",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot30ms_c96_20261030/kernel_details.csv",
+        "size_bytes": 30453739,
+        "mtime_ns": 1793298698000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "b7e8198893748ef14b12d4bb6c51098f16c86e90a40c56403e7d15b69bcbf89d"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 27,
+          "mean": 57.58967944444444,
+          "p50": 57.572611,
+          "p90": 57.734379,
+          "min": 57.438995,
+          "max": 57.755382
+        },
+        "predicted_ms": 59.36799329624246,
+        "relative_error": 0.030879037163482042,
+        "passed": true
+      }
+    },
+    {
+      "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64:q8_b17_m136",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c64_20261030/kernel_details.csv",
+        "size_bytes": 64473326,
+        "mtime_ns": 1793305807000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "a7e6111803a0222b4d1840f219586324f9e3f6f9c2c5ea78d5d0857750e4fd0b"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 21,
+          "mean": 61.81124885714286,
+          "p50": 61.628568,
+          "p90": 62.041601,
+          "min": 61.463432,
+          "max": 64.112279
+        },
+        "predicted_ms": 63.54057290603777,
+        "relative_error": 0.02797749731431078,
+        "passed": true
+      }
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c32:q1_b32_m32",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c32_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 4803119,
+        "mtime_ns": 1793303771000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "c7deb048fabcf5650aeb014c411b0eda709758e8dd4227119f7de5316a1c294e"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 220,
+          "mean": 6.7137816818181815,
+          "p50": 6.6647870000000005,
+          "p90": 6.922921,
+          "min": 6.497851,
+          "max": 8.187096
+        },
+        "predicted_ms": 5.348629770027064,
+        "relative_error": -0.20333576164505485,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c64:q1_b64_m64",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c64_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 5642669,
+        "mtime_ns": 1793303771000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "2137943b502a105b3c044dd1cd88635cf88fe19786e86fdf84d75c059d347fa2"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 196,
+          "mean": 9.615403801020408,
+          "p50": 9.549548999999999,
+          "p90": 9.774245,
+          "min": 9.484191,
+          "max": 11.01722
+        },
+        "predicted_ms": 8.308756862180758,
+        "relative_error": -0.1358910104951584,
+        "passed": true
+      }
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c16:q1_b16_m16",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c16_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 4324200,
+        "mtime_ns": 1793303771000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "9fdc461cb0f4061ae156e87301b1b586dc68d2f12bbf925df52d0ebbb1c71991"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 235,
+          "mean": 4.807080004255319,
+          "p50": 4.779005,
+          "p90": 4.99208,
+          "min": 4.54517,
+          "max": 6.352814
+        },
+        "predicted_ms": 3.5221754153165548,
+        "relative_error": -0.26729419685159017,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c32:q8_b9_m72",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c32_20261030/kernel_details.csv",
+        "size_bytes": 64110552,
+        "mtime_ns": 1793305659000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "f03d501c5bb7bc433c2e1b455290d442b6066d30b4e439b96cadc9d9ab958ba2"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 22,
+          "mean": 54.967136272727274,
+          "p50": 54.880342999999996,
+          "p90": 55.046901,
+          "min": 54.472511,
+          "max": 58.06112
+        },
+        "predicted_ms": 55.97206669542462,
+        "relative_error": 0.018282386364667856,
+        "passed": true
+      }
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c4:q1_b4_m4",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 4218000,
+        "mtime_ns": 1793303770000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "c51c0c5b4ec2b0eef777237b726fe20f82a94b866b21c0b3a2844d8aca56d857"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 246,
+          "mean": 3.4763527032520325,
+          "p50": 3.437971,
+          "p90": 3.655687,
+          "min": 3.196796,
+          "max": 4.537409
+        },
+        "predicted_ms": 2.5722224840232615,
+        "relative_error": -0.26008011741241965,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c1:q1_b1_m1",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c1_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 3766618,
+        "mtime_ns": 1793303770000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "1b0e4fcb7c3d80fefa5a1484937508502b0da346ea5657ed48e6bc0b893587c3"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 254,
+          "mean": 3.180249913385827,
+          "p50": 3.127828,
+          "p90": 3.431912,
+          "min": 2.848903,
+          "max": 4.822624
+        },
+        "predicted_ms": 2.5281907544778077,
+        "relative_error": -0.20503393653544974,
+        "passed": false
+      }
+    },
+    {
+      "case_id": "a3_glm53flash_tp16_aclgraph_c64:q6_b64_m384",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_aclgraph_c64_20261030/kernel_details.csv",
+        "size_bytes": 84149914,
+        "mtime_ns": 1793305114000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "4adc04d61fb3fb913b804f62b5f5268051f93a5cad4548aa7aa0569334dbe020"
+      },
+      "comparison": {
+        "status": "compared",
+        "observed_ms": {
+          "count": 47,
+          "mean": 97.37510555319149,
+          "p50": 97.486768,
+          "p90": 97.895096,
+          "min": 93.816054,
+          "max": 98.053059
+        },
+        "predicted_ms": 97.85827192326418,
+        "relative_error": 0.004961908563054277,
+        "passed": true
+      }
+    }
+  ]
+}
