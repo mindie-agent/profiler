@@ -1,0 +1,82 @@
+{
+  "schema_version": "mindie-glm-source-reprice-inputs/1",
+  "source_inputs_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-accepted-26/operator-reprice-inputs.json",
+    "sha256": "f86f6f4e2f5518df4eda1692f729181ecf38e996209a47ecba1b75eb36f15268",
+    "size_bytes": 29466
+  },
+  "cases": [
+    {
+      "case_id": "a3_glm53flash_tp16_aclgraph_c32",
+      "status": "ready_for_fresh_runtime_reprice",
+      "actual_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a3_glm53flash_tp16_aclgraph_c32-matrix-extension.actual.json",
+        "sha256": "e42cc2a8e709372916054a22be58bc203f2098b2d9fda3e8dd505cb295d78271",
+        "size_bytes": 983579
+      },
+      "mapping_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-mechanisms/full-family-a3-c32/body-operator-a3_glm53flash_tp16_aclgraph_c32-source-full-18c423c7.mapping.json",
+        "sha256": "71069bec4951db2746c1ef94e660720aa4c9329900adc7430cd5c06bef7105d7",
+        "size_bytes": 84154
+      },
+      "prior_comparison_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-mechanisms/body-operator-family-scoreboard.json",
+        "sha256": "27c4cdc094278b98648cefd177e55251a7692787391a9aa2ff211bd71f8d8a4c",
+        "size_bytes": 957613
+      },
+      "selected_case_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/glm-source-accepted-26/a3_glm53flash_tp16_aclgraph_c32.json",
+        "sha256": "c3ddf35014a61d5ee62a7f33a0bcdccbf5615dddded618d4986f06f9b60ef60a",
+        "size_bytes": 8875
+      },
+      "geometry": {
+        "query_rows": 192,
+        "sequences_per_replica": 32,
+        "tokens_per_sequence": 6,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "forward_count": 49,
+      "conditional_operator_context_tokens": 4096,
+      "conditional_body_context_tokens": 4096,
+      "context_policy": "Retain each campaign's declared context; no silent operator/body equivalence."
+    },
+    {
+      "case_id": "a3_glm53flash_tp16_aclgraph_c64",
+      "status": "ready_for_fresh_runtime_reprice",
+      "actual_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a3_glm53flash_tp16_aclgraph_c64-matrix-extension.actual.json",
+        "sha256": "1f12974c471d713db6981abf69ba1d0f86cb0ab5fb7cd124dbb762dff5d4c8a8",
+        "size_bytes": 1038911
+      },
+      "mapping_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-mechanisms/full-family-a3-c64/body-operator-a3_glm53flash_tp16_aclgraph_c64-source-full-18c423c7.mapping.json",
+        "sha256": "a76d7e193dd5a98ac9fb655eedbfeb41dd89b63286df7b574439940efb4783fb",
+        "size_bytes": 84184
+      },
+      "prior_comparison_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-mechanisms/body-operator-family-scoreboard.json",
+        "sha256": "27c4cdc094278b98648cefd177e55251a7692787391a9aa2ff211bd71f8d8a4c",
+        "size_bytes": 957613
+      },
+      "selected_case_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/glm-source-accepted-26/a3_glm53flash_tp16_aclgraph_c64.json",
+        "sha256": "fc49a6b322dc697039151b47ef1cef2dbe7154f89287f70e5d5f19653667a4ab",
+        "size_bytes": 8877
+      },
+      "geometry": {
+        "query_rows": 384,
+        "sequences_per_replica": 64,
+        "tokens_per_sequence": 6,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "forward_count": 47,
+      "conditional_operator_context_tokens": 4096,
+      "conditional_body_context_tokens": 4096,
+      "context_policy": "Retain each campaign's declared context; no silent operator/body equivalence."
+    }
+  ]
+}
