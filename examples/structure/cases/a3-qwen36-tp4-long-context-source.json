@@ -393,6 +393,58 @@
           "sha256": "8f5593cde8f57859a0c9f3b0f0fb99d47f936c2e669e137ad87dc50c5501ec0e",
           "size_bytes": 4825
         }
+      },
+      "gqa_decode_source_mapping": {
+        "basis": "explicit FAI source-host ownership with analytical staged GQA device execution",
+        "sim_source_commit": "21422237b4748fa6ca80d78b070e7b429aef4a66",
+        "host_source": {
+          "revision": "a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
+          "path": "attention/fused_infer_attention_score/op_host/flash_attention_infer_tiling.h"
+        },
+        "native_evidence": {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/qwen36_27b_tp4_128k_20261030-source-metadata.json",
+          "sha256": "c8e493d00f061851c18cb7bdb01fda20a8d0cfeeec42ab4d923221115ce31f36",
+          "size_bytes": 120963
+        },
+        "native_evidence_scope": "two bounded complete target bodies from this deployment; full geometry populations retained separately",
+        "observed_tensor_domain": {
+          "native_operator": "FusedInferAttentionScore",
+          "native_api": "aclnnFusedInferAttentionScoreV3",
+          "query_tokens_per_sequence": 4,
+          "head_dim": 256,
+          "query_dtype": "bf16",
+          "kv_dtype": "bf16",
+          "native_kv_page_tokens": 128
+        },
+        "observed_launch_grid": {
+          "accelerator_core": "MIX_AIC",
+          "block_dim": 20,
+          "mix_block_dim": 40
+        },
+        "mapping_policy": "fai_host explicitly selects the source flash-decode or regular query/head ownership branch; target_cores is the declared launch-grid budget",
+        "captured_binary_dispatch_proven": false,
+        "captured_active_owner_count": null,
+        "captured_kv_splits": null,
+        "unobserved_dispatch_fields": [
+          "API input_layout scalar",
+          "binary tiling key",
+          "per-owner work and occupancy",
+          "native query/key tiles and pipeline slots"
+        ],
+        "context_policy": "Use each source declared context condition and measured B/q; page/table capacity is not an actual sequence length",
+        "rates_or_durations_used_to_select_parameters": false
+      }
+    },
+    "kernels": {
+      "recipes": {
+        "flash_attention_decode": {
+          "kind": "staged_gqa_decode",
+          "target_cores": 20,
+          "query_tile": 64,
+          "key_tile": 128,
+          "slots": 2,
+          "kv_mapping": "fai_host"
+        }
       }
     }
   },

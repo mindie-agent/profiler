@@ -42,7 +42,12 @@
         "gdn_decode": {
           "implementation": "vllm_ascend_gdn_decode",
           "options": {
-            "recurrent_implementation": "arch35_fp32"
+            "recurrent_implementation": "arch35_fp32",
+            "gating_beta_store": {
+              "bytes_per_element": 2,
+              "resource": "scalar_store_issue",
+              "from_hardware": true
+            }
           }
         }
       }
@@ -102,7 +107,13 @@
         "compiled GDN binary identity",
         "hardware SKU"
       ],
-      "hardware_profile_basis": "retained Ascend950DT_9582 analytic declaration; delivered deployment lacks measured SKU"
+      "hardware_profile_basis": "retained Ascend950DT_9582 analytic declaration; delivered deployment lacks measured SKU",
+      "gating_beta_store_binding": {
+        "basis": "Source-compatible BF16 beta scalar-store path; captured binary identity is not established.",
+        "parameters": "Reference the declared Ascend950DT_9582 hardware queue and issue service; no copied per-batch response.",
+        "source": "mindie_sim.prediction.gdn_decode; docs/operators/body-source-defaults.md",
+        "target_timing_used_for_parameters": false
+      }
     }
   },
   "workload": {

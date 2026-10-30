@@ -591,15 +591,18 @@
           "id": "-glm5-next-lightning-indexer-score-kernel-observed-second",
           "match": {
             "hardware": "Ascend950DT_9582",
-            "recipe": "index_scores",
-            "dtype": "bf16",
+            "recipe": "index_pool_scores",
+            "dtype": "fp32",
             "local_shape.0": 16,
-            "local_shape.1": 32,
-            "local_shape.2": 128
+            "local_shape.1": 128,
+            "metadata.pool_size": 4,
+            "metadata.score_mode": "linear_weighted_query",
+            "metadata.native_source.revision": "8c30e4f491f73cba737a1dacc522894e437cdf3d"
           },
           "coordinates": {
             "hbm_bytes": {
-              "path": "work.hbm"
+              "path": "metadata.causal_token_pairs",
+              "scale": 260
             }
           },
           "domain": {
@@ -621,7 +624,56 @@
             "calibration_origin": "observed",
             "evaluation_relation": "in_sample",
             "response_boundary": "inclusive_native_call_once",
-            "native_operator_type": "_glm5_next_lightning_indexer_score_kernel"
+            "native_operator_type": "_glm5_next_lightning_indexer_score_kernel",
+            "coordinate_migration": {
+              "basis": "algebraic_transport_of_existing_operator_response; zero_refit",
+              "old_feature": "uncompressed_causal_pairs * (128 BF16 bytes + 4 score bytes)",
+              "new_feature": "causal_token_pairs * 260; geometry_proxy_not_native_HBM_traffic",
+              "original_rule": {
+                "id": "-glm5-next-lightning-indexer-score-kernel-observed-second",
+                "match": {
+                  "hardware": "Ascend950DT_9582",
+                  "recipe": "index_scores",
+                  "dtype": "bf16",
+                  "local_shape.0": 16,
+                  "local_shape.1": 32,
+                  "local_shape.2": 128
+                },
+                "coordinates": {
+                  "hbm_bytes": {
+                    "path": "work.hbm"
+                  }
+                },
+                "domain": {
+                  "hbm_bytes": {
+                    "min": 34122400.0,
+                    "max": 34122400.0
+                  }
+                },
+                "response": {
+                  "fixed_us": 48.09739669421488
+                },
+                "provenance": {
+                  "evidence_identity": {
+                    "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/22ca199bf3d6ce54598d5d791bb46b46f65fb0e6e5687f9f15c4d0ae29b06467.json",
+                    "sha256": "22ca199bf3d6ce54598d5d791bb46b46f65fb0e6e5687f9f15c4d0ae29b06467",
+                    "size_bytes": 87842
+                  },
+                  "json_pointer": "/runtime/kernels/service_regimes/8/provenance",
+                  "calibration_origin": "observed",
+                  "evaluation_relation": "in_sample",
+                  "response_boundary": "inclusive_native_call_once",
+                  "native_operator_type": "_glm5_next_lightning_indexer_score_kernel"
+                }
+              },
+              "source": {
+                "revision": "8c30e4f491f73cba737a1dacc522894e437cdf3d",
+                "path": "vllm_ascend/ops/triton/glm5_next_lightning_indexer.py",
+                "lines": "37-114,174-212"
+              },
+              "boundary": "FP32 qbar plus BF16 pooled-cache matvec; topk and query weighting remain separate",
+              "native_binary_identity": "not_established; existing_native_name_and_tensor_ABI_binding_retained"
+            }
           }
         },
         {
@@ -1335,6 +1387,15 @@
           "size_bytes": 87842
         },
         "json_pointer": "/runtime/metadata/calibration_evidence"
+      },
+      "pooled_score_coordinate_migration": {
+        "original_case": {
+          "path": "/Users/maoxx241/code/profiler/examples/structure/cases/decode-a5_glm53flash_tp8_c4_p8k.json",
+          "sha256": "a75b3f8c9eaf93bff434878027bb11da5145a44274a0bdc9db437172257a4a86",
+          "size_bytes": 50408
+        },
+        "new_fitted_parameters": 0,
+        "report": "data/observations/a5-pooled-score-migration-20261030/validation.json"
       }
     },
     "tensor_layouts": {

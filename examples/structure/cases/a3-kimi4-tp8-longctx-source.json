@@ -386,7 +386,33 @@
     "backend": "ascend",
     "sku": "Ascend910_9362",
     "num_devices": 8,
-    "ranks_per_node": 8
+    "ranks_per_node": 8,
+    "rates": {
+      "l2": 3630000000000
+    },
+    "buffers": {
+      "l2": 176160768
+    },
+    "resource_units": {
+      "l2": 1
+    },
+    "buffer_units": {
+      "l2": 1
+    },
+    "service_modes": {
+      "mte2_aic_cached": {
+        "resource": "mte2_aic",
+        "rate": 3630000000000
+      },
+      "l2_read": {
+        "resource": "l2",
+        "rate": 3630000000000
+      },
+      "l2_write": {
+        "resource": "l2",
+        "rate": 2838000000000
+      }
+    }
   },
   "runtime": {
     "tp": 8,
@@ -421,6 +447,13 @@
           "options": {
             "use_beta_sigmoid": false
           }
+        },
+        "kda_input_projection": "vllm_ascend_kda_mixed_projection",
+        "paged_mla_attention": {
+          "implementation": "ascend_paged_mla_decode_arch22",
+          "options": {
+            "retained_kv_rows": 512
+          }
         }
       }
     },
@@ -451,7 +484,23 @@
         "removed_historical_point_rule_count": 6,
         "reason": "old c1/c4 overlapping exact matchers differ; no source/context/concurrency point selection"
       },
-      "removed_historical_transport_assumption": "direct_peer_collective max_inflight_per_rank=8 was not established by this source; use untuned analytical default"
+      "removed_historical_transport_assumption": "direct_peer_collective max_inflight_per_rank=8 was not established by this source; use untuned analytical default",
+      "source_mechanism_bindings": {
+        "basis": "Retained INT8 QKV/BF16 BFG projection and q1 BF16 latent512/rope64 paged MLA ABI; source-compatible, captured binary identity not established.",
+        "kda_input_projection_source_commit": "8cb47fd5951e016c25c6d176c7bdd2a437a8321a",
+        "paged_mla_source_commit": "0c21374b16da715b8532e8e6bf65a5ea6fc172c8",
+        "dispatch": "Source geometry-derived arch22 SplitCore; no observed timing or captured host endpoints supplied.",
+        "head_padding": "Generic quantized prolog retains its original precision; BF16-only prepared-head caller is not selected.",
+        "target_timing_used_for_parameters": false,
+        "retained_kv_source_commit": "297906443615291557064fc8f02c4f3bae5c84b1",
+        "retained_kv_scope": "Declared bounded 512-row QK-to-PV reuse of the same KV through L2; not observed cache hits, extra active KV rows, cross-request sharing or cross-forward warmth. No latency fit.",
+        "l2_platform_mapping": {
+          "source_commit": "ee3a4d5e",
+          "source": "data/verification/kimi-mla-cache-domain-20261030.producer.py:25-41; docs/operators/paged-mla-arch22.md",
+          "basis": "Explicit platform mapping: read 110 and write 86 bytes/cycle × 20 AIC owners × 1.65 GHz; 168 MiB shared L2 per physical die. Not a timing fit, measured cache-hit rate or SKU default.",
+          "resource_sharing": "Cached MTE2 uses the original mte2_aic pipe; L2 read/write share one l2 resource. Other rates, buffers and modes remain unchanged."
+        }
+      }
     },
     "graph_capture_mode": "full",
     "graph_capture_keys": [
