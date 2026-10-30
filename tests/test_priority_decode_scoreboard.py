@@ -22,6 +22,49 @@ def test_failed_extraction_reads_remain_visible_without_adding_zero_populations(
                for row in report["body_failed_attempts"])
 
 
+def test_focus_build_preserves_real_population_and_explicit_in_sample_accuracy(monkeypatch, tmp_path):
+    root = Path(__file__).resolve().parents[1]
+    monkeypatch.syspath_prepend(str(root / "examples/structure"))
+    module = importlib.import_module("priority_decode_scoreboard")
+    source = root / "examples/structure/acceptance-20261030-a3-v4-caller-cc245da6/decode-forward-a3-v4-caller-replay.json"
+    retained = json.loads(source.read_text())
+    fixture = json.loads((root / "tests/fixtures/source_callers/high-concurrency-focus.json").read_text())
+    focus = {"cases": [row for row in fixture["focus_spec"]["cases"]
+                        if row["source_case_id"].startswith("v4flash-a3-tp8-")]}
+    focus_path = tmp_path / "focus.json"
+    focus_path.write_text(json.dumps(focus))
+    before = module.build([source], [], focus_spec_path=focus_path)
+    expected = {row["case_id"]: row["comparison"] for row in before["current_body_comparisons"]}
+    c4 = next(case for case in retained["cases"] if case["case_id"].startswith("v4flash-a3-tp8-c4:"))
+    # This is an explicit metadata-only projection of a real successful result,
+    # not a claim that the historical cost used a fitted rate. Timings, native
+    # boundary and measured source bytes remain exactly the recorded values.
+    c4["calibration_origin"] = "observed"
+    c4["calibration_evidence"] = {"evaluation_relation": "in_sample",
+        "fit_source_identity": c4["source_identity"], "evaluation_source_identity": c4["source_identity"]}
+    c8 = next(case for case in retained["cases"] if case["case_id"].startswith("v4flash-a3-tp8-c8:"))
+    c8["variant_id"] = "observed_in_sample_name_without_metadata"
+    annotated = tmp_path / "declared-calibration.json"
+    annotated.write_text(json.dumps(retained))
+    after = module.build([source, annotated], [], focus_spec_path=focus_path)
+    for key in ("unique_source_count", "unique_observed_forward_count", "current_body_compared", "current_body_passed"):
+        assert after["summary"][key] == before["summary"][key]
+    assert {row["case_id"]: row["comparison"] for row in after["current_body_comparisons"]} == expected
+    assert after["priority_focus"]["summary"]["distinct_source_count"] == 2
+    assert after["priority_focus"]["summary"]["observed_forward_count"] == before["priority_focus"]["summary"]["observed_forward_count"]
+    rows = {row["source_case_id"]: row for row in after["priority_focus"]["sources"]}
+    calibrated = rows["v4flash-a3-tp8-c4"]
+    assert calibrated["body_accuracy_status"] == "PASS"
+    assert calibrated["calibration"]["origin"] == "observed"
+    assert calibrated["calibration"]["evaluation_relation"] == "in_sample"
+    assert calibrated["selected_receipt"]["path"] == str(annotated.resolve())
+    assert calibrated["latest_execution_status"] == "COMPLETED"
+    assert rows["v4flash-a3-tp8-c8"]["calibration"]["origin"] == "not_declared"
+    assert rows["v4flash-a3-tp8-c8"]["calibration"]["evaluation_relation"] == "not_declared"
+    assert not calibrated["contract_boundary"]["body_pass_implies_native_contract_closure"]
+    assert "in_sample" in module.render(after)
+
+
 def test_invalid_quantization_receipt_retains_real_population_but_loses_accuracy(monkeypatch):
     root = Path(__file__).resolve().parents[1]
     monkeypatch.syspath_prepend(str(root / "examples/structure"))
