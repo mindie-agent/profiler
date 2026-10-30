@@ -1,0 +1,1308 @@
+{
+  "source_artifact": {
+    "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/heldout-prepared/glm-helper-transfer-functions.json",
+    "sha256": "b232df3d442c9ef18d9e9d940327f92d30e2f40578bb19836ed325b450119f12"
+  },
+  "domain": {
+    "id": "glm-helper-recurrentkda-observed",
+    "match": {
+      "hardware": "Ascend950DT_9582",
+      "recipe": "vllm_ascend_recurrent_kda_arch35",
+      "metadata.native_kind": "RecurrentKda",
+      "metadata.heads": 8,
+      "metadata.dk": 128,
+      "metadata.dv": 128,
+      "metadata.state_dtype": "fp32",
+      "metadata.kda_recurrent_params.state_selection.index_row_stride": 4
+    },
+    "coordinates": {
+      "batch": {
+        "path": "metadata.sequence_tokens",
+        "reduce": "len"
+      }
+    },
+    "boundary": {
+      "native_operator_type": "RecurrentKda",
+      "source_implementation": "vllm_ascend_recurrent_kda_arch35",
+      "precision": {
+        "metadata.state_dtype": "fp32"
+      },
+      "layout": "declared_source_layout",
+      "execution_boundary": "inclusive_native_call_once"
+    }
+  },
+  "points": [
+    {
+      "domain_id": "glm-helper-recurrentkda-observed",
+      "source_sha256": "7b5fcac6c1e58c05cb232a7ddb4450b761301ba5efc33b4b9f7909b9d59fbbe1",
+      "population_id": "RecurrentKda",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "vllm_ascend_recurrent_kda_arch35",
+        "dtype": "bf16",
+        "layout": "TND",
+        "family": "recurrent_scan",
+        "phase": "decode",
+        "local_shape": [
+          16,
+          8,
+          128,
+          128
+        ],
+        "semantic_shape": [
+          16,
+          8,
+          128,
+          128
+        ],
+        "padded_shape": [
+          16,
+          8,
+          128,
+          128
+        ],
+        "launch_shape": [
+          16,
+          8,
+          128,
+          128
+        ],
+        "metadata": {
+          "heads": 8,
+          "dk": 128,
+          "dv": 128,
+          "native_kind": "RecurrentKda",
+          "state_dtype": "fp32",
+          "sequence_tokens": [
+            4,
+            4,
+            4,
+            4
+          ],
+          "kda_recurrent_params": {
+            "lengths": [
+              4,
+              4,
+              4,
+              4
+            ],
+            "heads": 8,
+            "key_heads": 8,
+            "dk": 128,
+            "dv": 128,
+            "dtype": "bf16",
+            "state_dtype": "fp32",
+            "gate_dtype": "bf16",
+            "beta_dtype": "bf16",
+            "use_qk_l2norm": true,
+            "use_gate_in_kernel": true,
+            "use_beta_sigmoid": true,
+            "safe_gate": true,
+            "allow_neg_eigval": false,
+            "has_a_log": true,
+            "has_dt_bias": true,
+            "has_initial_state": true,
+            "state_v_first": true,
+            "has_state_indices": true,
+            "has_accepted_tokens": true,
+            "metadata_dtype": "int32",
+            "state_selection": {
+              "kind": "symbolic_valid_selection",
+              "index_layout": "speculative",
+              "index_row_stride": 4,
+              "validity": {
+                "prefix": true,
+                "state_indices": true,
+                "accepted_tokens": true,
+                "independent_sequences": true
+              }
+            }
+          }
+        }
+      },
+      "boundary": {
+        "native_operator_type": "RecurrentKda",
+        "source_implementation": "vllm_ascend_recurrent_kda_arch35",
+        "precision": {
+          "metadata.state_dtype": "fp32"
+        },
+        "layout": "declared_source_layout",
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 1802,
+        "forward_count": 53,
+        "calls_per_forward": 34.0,
+        "mean_us": 14.05267591564928
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/e3af8111902617bc4aa1bb4d24a043f9cf4fefb1ffcb4861e29ee4a68f81f691.json",
+        "sha256": "e3af8111902617bc4aa1bb4d24a043f9cf4fefb1ffcb4861e29ee4a68f81f691",
+        "size_bytes": 79706
+      }
+    },
+    {
+      "domain_id": "glm-helper-recurrentkda-observed",
+      "source_sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+      "population_id": "RecurrentKda",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "vllm_ascend_recurrent_kda_arch35",
+        "dtype": "bf16",
+        "layout": "TND",
+        "family": "recurrent_scan",
+        "phase": "decode",
+        "local_shape": [
+          4,
+          8,
+          128,
+          128
+        ],
+        "semantic_shape": [
+          4,
+          8,
+          128,
+          128
+        ],
+        "padded_shape": [
+          4,
+          8,
+          128,
+          128
+        ],
+        "launch_shape": [
+          4,
+          8,
+          128,
+          128
+        ],
+        "metadata": {
+          "heads": 8,
+          "dk": 128,
+          "dv": 128,
+          "native_kind": "RecurrentKda",
+          "state_dtype": "fp32",
+          "sequence_tokens": [
+            4
+          ],
+          "kda_recurrent_params": {
+            "lengths": [
+              4
+            ],
+            "heads": 8,
+            "key_heads": 8,
+            "dk": 128,
+            "dv": 128,
+            "dtype": "bf16",
+            "state_dtype": "fp32",
+            "gate_dtype": "bf16",
+            "beta_dtype": "bf16",
+            "use_qk_l2norm": true,
+            "use_gate_in_kernel": true,
+            "use_beta_sigmoid": true,
+            "safe_gate": true,
+            "allow_neg_eigval": false,
+            "has_a_log": true,
+            "has_dt_bias": true,
+            "has_initial_state": true,
+            "state_v_first": true,
+            "has_state_indices": true,
+            "has_accepted_tokens": true,
+            "metadata_dtype": "int32",
+            "state_selection": {
+              "kind": "symbolic_valid_selection",
+              "index_layout": "speculative",
+              "index_row_stride": 4,
+              "validity": {
+                "prefix": true,
+                "state_indices": true,
+                "accepted_tokens": true,
+                "independent_sequences": true
+              }
+            }
+          }
+        }
+      },
+      "boundary": {
+        "native_operator_type": "RecurrentKda",
+        "source_implementation": "vllm_ascend_recurrent_kda_arch35",
+        "precision": {
+          "metadata.state_dtype": "fp32"
+        },
+        "layout": "declared_source_layout",
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 2210,
+        "forward_count": 65,
+        "calls_per_forward": 34.0,
+        "mean_us": 13.00360180995475
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/97dde34d8c8d42c3b7c4a42b80387bf614359c8cc3c52afd982fde9b741e98df.json",
+        "sha256": "97dde34d8c8d42c3b7c4a42b80387bf614359c8cc3c52afd982fde9b741e98df",
+        "size_bytes": 85296
+      }
+    },
+    {
+      "domain_id": "glm-helper-recurrentkda-observed",
+      "source_sha256": "bd9aaa075053ec7b4520a8a45238e810192b9b83f96d9833792be3ce9a46ca34",
+      "population_id": "RecurrentKda",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "vllm_ascend_recurrent_kda_arch35",
+        "dtype": "bf16",
+        "layout": "TND",
+        "family": "recurrent_scan",
+        "phase": "decode",
+        "local_shape": [
+          64,
+          8,
+          128,
+          128
+        ],
+        "semantic_shape": [
+          64,
+          8,
+          128,
+          128
+        ],
+        "padded_shape": [
+          64,
+          8,
+          128,
+          128
+        ],
+        "launch_shape": [
+          64,
+          8,
+          128,
+          128
+        ],
+        "metadata": {
+          "heads": 8,
+          "dk": 128,
+          "dv": 128,
+          "native_kind": "RecurrentKda",
+          "state_dtype": "fp32",
+          "sequence_tokens": [
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4
+          ],
+          "kda_recurrent_params": {
+            "lengths": [
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4
+            ],
+            "heads": 8,
+            "key_heads": 8,
+            "dk": 128,
+            "dv": 128,
+            "dtype": "bf16",
+            "state_dtype": "fp32",
+            "gate_dtype": "bf16",
+            "beta_dtype": "bf16",
+            "use_qk_l2norm": true,
+            "use_gate_in_kernel": true,
+            "use_beta_sigmoid": true,
+            "safe_gate": true,
+            "allow_neg_eigval": false,
+            "has_a_log": true,
+            "has_dt_bias": true,
+            "has_initial_state": true,
+            "state_v_first": true,
+            "has_state_indices": true,
+            "has_accepted_tokens": true,
+            "metadata_dtype": "int32",
+            "state_selection": {
+              "kind": "symbolic_valid_selection",
+              "index_layout": "speculative",
+              "index_row_stride": 4,
+              "validity": {
+                "prefix": true,
+                "state_indices": true,
+                "accepted_tokens": true,
+                "independent_sequences": true
+              }
+            }
+          }
+        }
+      },
+      "boundary": {
+        "native_operator_type": "RecurrentKda",
+        "source_implementation": "vllm_ascend_recurrent_kda_arch35",
+        "precision": {
+          "metadata.state_dtype": "fp32"
+        },
+        "layout": "declared_source_layout",
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 1020,
+        "forward_count": 30,
+        "calls_per_forward": 34.0,
+        "mean_us": 25.355354901960787
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/ba9f122c0740225322108ecc218d0933e0bf6315b62ecdd493edf70cbd92445a.json",
+        "sha256": "ba9f122c0740225322108ecc218d0933e0bf6315b62ecdd493edf70cbd92445a",
+        "size_bytes": 82470
+      }
+    },
+    {
+      "domain_id": "glm-helper-recurrentkda-observed",
+      "source_sha256": "0562978c83fd2dd6ddb5f51a053dcdc7693e307ef8bcf6b90ee70e2a7c2b5a78",
+      "population_id": "RecurrentKda",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "vllm_ascend_recurrent_kda_arch35",
+        "dtype": "bf16",
+        "layout": "TND",
+        "family": "recurrent_scan",
+        "phase": "decode",
+        "local_shape": [
+          64,
+          8,
+          128,
+          128
+        ],
+        "semantic_shape": [
+          64,
+          8,
+          128,
+          128
+        ],
+        "padded_shape": [
+          64,
+          8,
+          128,
+          128
+        ],
+        "launch_shape": [
+          64,
+          8,
+          128,
+          128
+        ],
+        "metadata": {
+          "heads": 8,
+          "dk": 128,
+          "dv": 128,
+          "native_kind": "RecurrentKda",
+          "state_dtype": "fp32",
+          "sequence_tokens": [
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4
+          ],
+          "kda_recurrent_params": {
+            "lengths": [
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4
+            ],
+            "heads": 8,
+            "key_heads": 8,
+            "dk": 128,
+            "dv": 128,
+            "dtype": "bf16",
+            "state_dtype": "fp32",
+            "gate_dtype": "bf16",
+            "beta_dtype": "bf16",
+            "use_qk_l2norm": true,
+            "use_gate_in_kernel": true,
+            "use_beta_sigmoid": true,
+            "safe_gate": true,
+            "allow_neg_eigval": false,
+            "has_a_log": true,
+            "has_dt_bias": true,
+            "has_initial_state": true,
+            "state_v_first": true,
+            "has_state_indices": true,
+            "has_accepted_tokens": true,
+            "metadata_dtype": "int32",
+            "state_selection": {
+              "kind": "symbolic_valid_selection",
+              "index_layout": "speculative",
+              "index_row_stride": 4,
+              "validity": {
+                "prefix": true,
+                "state_indices": true,
+                "accepted_tokens": true,
+                "independent_sequences": true
+              }
+            }
+          }
+        }
+      },
+      "boundary": {
+        "native_operator_type": "RecurrentKda",
+        "source_implementation": "vllm_ascend_recurrent_kda_arch35",
+        "precision": {
+          "metadata.state_dtype": "fp32"
+        },
+        "layout": "declared_source_layout",
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 1088,
+        "forward_count": 32,
+        "calls_per_forward": 34.0,
+        "mean_us": 25.508517463235293
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/b6abf834ddb19bd1b0f77a64e01d511e43161b9724302365d0da8210a4ee12de.json",
+        "sha256": "b6abf834ddb19bd1b0f77a64e01d511e43161b9724302365d0da8210a4ee12de",
+        "size_bytes": 82452
+      }
+    },
+    {
+      "domain_id": "glm-helper-recurrentkda-observed",
+      "source_sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+      "population_id": "RecurrentKda",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "vllm_ascend_recurrent_kda_arch35",
+        "dtype": "bf16",
+        "layout": "TND",
+        "family": "recurrent_scan",
+        "phase": "decode",
+        "local_shape": [
+          128,
+          8,
+          128,
+          128
+        ],
+        "semantic_shape": [
+          128,
+          8,
+          128,
+          128
+        ],
+        "padded_shape": [
+          128,
+          8,
+          128,
+          128
+        ],
+        "launch_shape": [
+          128,
+          8,
+          128,
+          128
+        ],
+        "metadata": {
+          "heads": 8,
+          "dk": 128,
+          "dv": 128,
+          "native_kind": "RecurrentKda",
+          "state_dtype": "fp32",
+          "sequence_tokens": [
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4
+          ],
+          "kda_recurrent_params": {
+            "lengths": [
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4
+            ],
+            "heads": 8,
+            "key_heads": 8,
+            "dk": 128,
+            "dv": 128,
+            "dtype": "bf16",
+            "state_dtype": "fp32",
+            "gate_dtype": "bf16",
+            "beta_dtype": "bf16",
+            "use_qk_l2norm": true,
+            "use_gate_in_kernel": true,
+            "use_beta_sigmoid": true,
+            "safe_gate": true,
+            "allow_neg_eigval": false,
+            "has_a_log": true,
+            "has_dt_bias": true,
+            "has_initial_state": true,
+            "state_v_first": true,
+            "has_state_indices": true,
+            "has_accepted_tokens": true,
+            "metadata_dtype": "int32",
+            "state_selection": {
+              "kind": "symbolic_valid_selection",
+              "index_layout": "speculative",
+              "index_row_stride": 4,
+              "validity": {
+                "prefix": true,
+                "state_indices": true,
+                "accepted_tokens": true,
+                "independent_sequences": true
+              }
+            }
+          }
+        }
+      },
+      "boundary": {
+        "native_operator_type": "RecurrentKda",
+        "source_implementation": "vllm_ascend_recurrent_kda_arch35",
+        "precision": {
+          "metadata.state_dtype": "fp32"
+        },
+        "layout": "declared_source_layout",
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 1054,
+        "forward_count": 31,
+        "calls_per_forward": 34.0,
+        "mean_us": 43.98692789373814
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/fed6ee3dc08080557aacfe823e1249a13d1d2c27173b99e8863a2e1475354354.json",
+        "sha256": "fed6ee3dc08080557aacfe823e1249a13d1d2c27173b99e8863a2e1475354354",
+        "size_bytes": 82565
+      }
+    },
+    {
+      "domain_id": "glm-helper-recurrentkda-observed",
+      "source_sha256": "1a9184ace6c33136182c6947fce23e27e238795d5d526532ab000065ad8d5e45",
+      "population_id": "RecurrentKda",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "vllm_ascend_recurrent_kda_arch35",
+        "dtype": "bf16",
+        "layout": "TND",
+        "family": "recurrent_scan",
+        "phase": "decode",
+        "local_shape": [
+          128,
+          8,
+          128,
+          128
+        ],
+        "semantic_shape": [
+          128,
+          8,
+          128,
+          128
+        ],
+        "padded_shape": [
+          128,
+          8,
+          128,
+          128
+        ],
+        "launch_shape": [
+          128,
+          8,
+          128,
+          128
+        ],
+        "metadata": {
+          "heads": 8,
+          "dk": 128,
+          "dv": 128,
+          "native_kind": "RecurrentKda",
+          "state_dtype": "fp32",
+          "sequence_tokens": [
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4
+          ],
+          "kda_recurrent_params": {
+            "lengths": [
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4
+            ],
+            "heads": 8,
+            "key_heads": 8,
+            "dk": 128,
+            "dv": 128,
+            "dtype": "bf16",
+            "state_dtype": "fp32",
+            "gate_dtype": "bf16",
+            "beta_dtype": "bf16",
+            "use_qk_l2norm": true,
+            "use_gate_in_kernel": true,
+            "use_beta_sigmoid": true,
+            "safe_gate": true,
+            "allow_neg_eigval": false,
+            "has_a_log": true,
+            "has_dt_bias": true,
+            "has_initial_state": true,
+            "state_v_first": true,
+            "has_state_indices": true,
+            "has_accepted_tokens": true,
+            "metadata_dtype": "int32",
+            "state_selection": {
+              "kind": "symbolic_valid_selection",
+              "index_layout": "speculative",
+              "index_row_stride": 4,
+              "validity": {
+                "prefix": true,
+                "state_indices": true,
+                "accepted_tokens": true,
+                "independent_sequences": true
+              }
+            }
+          }
+        }
+      },
+      "boundary": {
+        "native_operator_type": "RecurrentKda",
+        "source_implementation": "vllm_ascend_recurrent_kda_arch35",
+        "precision": {
+          "metadata.state_dtype": "fp32"
+        },
+        "layout": "declared_source_layout",
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 1190,
+        "forward_count": 35,
+        "calls_per_forward": 34.0,
+        "mean_us": 44.02473277310924
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/2156547df0e3d56a55fba5d183f095513b9058ce50ad08bf72d094c82b2b343c.json",
+        "sha256": "2156547df0e3d56a55fba5d183f095513b9058ce50ad08bf72d094c82b2b343c",
+        "size_bytes": 82572
+      }
+    },
+    {
+      "domain_id": "glm-helper-recurrentkda-observed",
+      "source_sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
+      "population_id": "RecurrentKda",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "vllm_ascend_recurrent_kda_arch35",
+        "dtype": "bf16",
+        "layout": "TND",
+        "family": "recurrent_scan",
+        "phase": "decode",
+        "local_shape": [
+          16,
+          8,
+          128,
+          128
+        ],
+        "semantic_shape": [
+          16,
+          8,
+          128,
+          128
+        ],
+        "padded_shape": [
+          16,
+          8,
+          128,
+          128
+        ],
+        "launch_shape": [
+          16,
+          8,
+          128,
+          128
+        ],
+        "metadata": {
+          "heads": 8,
+          "dk": 128,
+          "dv": 128,
+          "native_kind": "RecurrentKda",
+          "state_dtype": "fp32",
+          "sequence_tokens": [
+            4,
+            4,
+            4,
+            4
+          ],
+          "kda_recurrent_params": {
+            "lengths": [
+              4,
+              4,
+              4,
+              4
+            ],
+            "heads": 8,
+            "key_heads": 8,
+            "dk": 128,
+            "dv": 128,
+            "dtype": "bf16",
+            "state_dtype": "fp32",
+            "gate_dtype": "bf16",
+            "beta_dtype": "bf16",
+            "use_qk_l2norm": true,
+            "use_gate_in_kernel": true,
+            "use_beta_sigmoid": true,
+            "safe_gate": true,
+            "allow_neg_eigval": false,
+            "has_a_log": true,
+            "has_dt_bias": true,
+            "has_initial_state": true,
+            "state_v_first": true,
+            "has_state_indices": true,
+            "has_accepted_tokens": true,
+            "metadata_dtype": "int32",
+            "state_selection": {
+              "kind": "symbolic_valid_selection",
+              "index_layout": "speculative",
+              "index_row_stride": 4,
+              "validity": {
+                "prefix": true,
+                "state_indices": true,
+                "accepted_tokens": true,
+                "independent_sequences": true
+              }
+            }
+          }
+        }
+      },
+      "boundary": {
+        "native_operator_type": "RecurrentKda",
+        "source_implementation": "vllm_ascend_recurrent_kda_arch35",
+        "precision": {
+          "metadata.state_dtype": "fp32"
+        },
+        "layout": "declared_source_layout",
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 374,
+        "forward_count": 11,
+        "calls_per_forward": 34.0,
+        "mean_us": 14.29047860962567
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/22ca199bf3d6ce54598d5d791bb46b46f65fb0e6e5687f9f15c4d0ae29b06467.json",
+        "sha256": "22ca199bf3d6ce54598d5d791bb46b46f65fb0e6e5687f9f15c4d0ae29b06467",
+        "size_bytes": 87842
+      }
+    },
+    {
+      "domain_id": "glm-helper-recurrentkda-observed",
+      "source_sha256": "1d33448e6faeeedf5175035f4c324b74220bbc179d2cec85657162970576095a",
+      "population_id": "RecurrentKda",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "vllm_ascend_recurrent_kda_arch35",
+        "dtype": "bf16",
+        "layout": "TND",
+        "family": "recurrent_scan",
+        "phase": "decode",
+        "local_shape": [
+          256,
+          8,
+          128,
+          128
+        ],
+        "semantic_shape": [
+          256,
+          8,
+          128,
+          128
+        ],
+        "padded_shape": [
+          256,
+          8,
+          128,
+          128
+        ],
+        "launch_shape": [
+          256,
+          8,
+          128,
+          128
+        ],
+        "metadata": {
+          "heads": 8,
+          "dk": 128,
+          "dv": 128,
+          "native_kind": "RecurrentKda",
+          "state_dtype": "fp32",
+          "sequence_tokens": [
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4
+          ],
+          "kda_recurrent_params": {
+            "lengths": [
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4
+            ],
+            "heads": 8,
+            "key_heads": 8,
+            "dk": 128,
+            "dv": 128,
+            "dtype": "bf16",
+            "state_dtype": "fp32",
+            "gate_dtype": "bf16",
+            "beta_dtype": "bf16",
+            "use_qk_l2norm": true,
+            "use_gate_in_kernel": true,
+            "use_beta_sigmoid": true,
+            "safe_gate": true,
+            "allow_neg_eigval": false,
+            "has_a_log": true,
+            "has_dt_bias": true,
+            "has_initial_state": true,
+            "state_v_first": true,
+            "has_state_indices": true,
+            "has_accepted_tokens": true,
+            "metadata_dtype": "int32",
+            "state_selection": {
+              "kind": "symbolic_valid_selection",
+              "index_layout": "speculative",
+              "index_row_stride": 4,
+              "validity": {
+                "prefix": true,
+                "state_indices": true,
+                "accepted_tokens": true,
+                "independent_sequences": true
+              }
+            }
+          }
+        }
+      },
+      "boundary": {
+        "native_operator_type": "RecurrentKda",
+        "source_implementation": "vllm_ascend_recurrent_kda_arch35",
+        "precision": {
+          "metadata.state_dtype": "fp32"
+        },
+        "layout": "declared_source_layout",
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 1054,
+        "forward_count": 31,
+        "calls_per_forward": 34.0,
+        "mean_us": 78.33827134724858
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/de85546e65cf4353b9bc21277945cf04d3a4eb69b1c8bfd18d07375da473d676.json",
+        "sha256": "de85546e65cf4353b9bc21277945cf04d3a4eb69b1c8bfd18d07375da473d676",
+        "size_bytes": 82550
+      }
+    },
+    {
+      "domain_id": "glm-helper-recurrentkda-observed",
+      "source_sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+      "population_id": "RecurrentKda",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "vllm_ascend_recurrent_kda_arch35",
+        "dtype": "bf16",
+        "layout": "TND",
+        "family": "recurrent_scan",
+        "phase": "decode",
+        "local_shape": [
+          32,
+          8,
+          128,
+          128
+        ],
+        "semantic_shape": [
+          32,
+          8,
+          128,
+          128
+        ],
+        "padded_shape": [
+          32,
+          8,
+          128,
+          128
+        ],
+        "launch_shape": [
+          32,
+          8,
+          128,
+          128
+        ],
+        "metadata": {
+          "heads": 8,
+          "dk": 128,
+          "dv": 128,
+          "native_kind": "RecurrentKda",
+          "state_dtype": "fp32",
+          "sequence_tokens": [
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4
+          ],
+          "kda_recurrent_params": {
+            "lengths": [
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4
+            ],
+            "heads": 8,
+            "key_heads": 8,
+            "dk": 128,
+            "dv": 128,
+            "dtype": "bf16",
+            "state_dtype": "fp32",
+            "gate_dtype": "bf16",
+            "beta_dtype": "bf16",
+            "use_qk_l2norm": true,
+            "use_gate_in_kernel": true,
+            "use_beta_sigmoid": true,
+            "safe_gate": true,
+            "allow_neg_eigval": false,
+            "has_a_log": true,
+            "has_dt_bias": true,
+            "has_initial_state": true,
+            "state_v_first": true,
+            "has_state_indices": true,
+            "has_accepted_tokens": true,
+            "metadata_dtype": "int32",
+            "state_selection": {
+              "kind": "symbolic_valid_selection",
+              "index_layout": "speculative",
+              "index_row_stride": 4,
+              "validity": {
+                "prefix": true,
+                "state_indices": true,
+                "accepted_tokens": true,
+                "independent_sequences": true
+              }
+            }
+          }
+        }
+      },
+      "boundary": {
+        "native_operator_type": "RecurrentKda",
+        "source_implementation": "vllm_ascend_recurrent_kda_arch35",
+        "precision": {
+          "metadata.state_dtype": "fp32"
+        },
+        "layout": "declared_source_layout",
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 1020,
+        "forward_count": 30,
+        "calls_per_forward": 34.0,
+        "mean_us": 16.45474705882353
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/646f2f28125ffa1a4a6192666ca4a5326c2b0cac396d2250b21720922b9a062d.json",
+        "sha256": "646f2f28125ffa1a4a6192666ca4a5326c2b0cac396d2250b21720922b9a062d",
+        "size_bytes": 87912
+      }
+    }
+  ]
+}

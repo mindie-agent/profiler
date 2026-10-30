@@ -61,7 +61,9 @@ def freeze_service_specification(training_sources, evaluation_sources, domains, 
     """Freeze source membership and physical function classes without reading timing.
 
     A domain has a fixed ``match``, a typed native ``boundary``, and named Sim
-    ``coordinates`` (path/reduce/scale). Only declared coordinates vary; this
+    ``coordinates`` (path/reduce/scale). Optional ``guard_coordinates`` and
+    ``guard_bounds`` constrain physical ABI without adding fit coefficients.
+    Only declared coordinates vary; this
     function never drops differing precision, source, layout or rank selectors.
     Local M/N/K or their product can therefore vary across TP, while a collective
     keeps its own rank/topology/algorithm domain. Population multiplicity is not
@@ -86,7 +88,16 @@ def freeze_service_specification(training_sources, evaluation_sources, domains, 
         forbidden = {'op_id', 'node_id', 'case_id', 'model_name', 'model_id', 'layer_id'}
         if forbidden & set(domain['match']):
             raise ValueError('service_domain_requires_physical_not_case_identity')
-        for coordinate in domain['coordinates'].values():
+        guards = domain.get('guard_coordinates', {})
+        bounds = domain.get('guard_bounds', {})
+        if set(guards) != set(bounds) or set(guards) & set(domain['coordinates']):
+            raise ValueError('physical_guards_require_separate_named_bounds')
+        for bound in bounds.values():
+            if (not bound or set(bound) - {'min', 'max'}
+                    or any(not math.isfinite(v) or v < 0 for v in bound.values())
+                    or bound.get('min', 0) > bound.get('max', math.inf)):
+                raise ValueError('physical_guard_bounds_invalid')
+        for coordinate in [*domain['coordinates'].values(), *guards.values()]:
             if coordinate['path'].split('.')[0] in forbidden | {'body', 'observed', 'timing'}:
                 raise ValueError('service_coordinate_must_be_physical')
     result = {'schema_version': 'mindie-service-specification/1',
@@ -137,6 +148,8 @@ def _admit(domain, point):
         if any(_digest(_lookup(point['axes'], path)) != _digest(value)
                for path, value in domain['match'].items()):
             return None, 'physical_domain_differs'
+        if not _guards_match(domain, point['axes']):
+            return None, 'physical_guard_differs'
         return {name: _coordinate(point['axes'], declaration)
                 for name, declaration in domain['coordinates'].items()}, None
     except (KeyError, IndexError):
@@ -146,9 +159,18 @@ def _admit(domain, point):
 def _matches(domain, target):
     try:
         return all(_digest(_lookup(target['axes'], path)) == _digest(value)
-                   for path, value in domain['match'].items())
+                   for path, value in domain['match'].items()) and _guards_match(domain, target['axes'])
     except (KeyError, IndexError):
         return False
+
+
+def _guards_match(domain, axes):
+    for name, coordinate in domain.get('guard_coordinates', {}).items():
+        value = _coordinate(axes, coordinate)
+        bounds = domain['guard_bounds'][name]
+        if not bounds.get('min', 0) <= value <= bounds.get('max', math.inf):
+            return False
+    return True
 
 
 def _population(point):
@@ -338,7 +360,7 @@ def _runtime_coordinates(domain, targets):
     """
     aliases = {'work.flops': ('work.cube', 'cube'),
                'work.hbm_bytes': ('work.hbm', 'hbm')}
-    coordinates = deepcopy(domain['coordinates'])
+    coordinates = deepcopy({**domain['coordinates'], **domain.get('guard_coordinates', {})})
     projection = {}
     for coordinate in coordinates.values():
         source = coordinate['path']
@@ -391,7 +413,8 @@ def service_regimes(frozen, targets):
         coordinates, projection = _runtime_coordinates(domain, targets)
         rule = {'id': 'frozen-' + domain['id'], 'match': deepcopy(domain['match']),
                 'coordinates': coordinates,
-                'domain': {name: {'min': 0} for name in domain['coordinates']},
+                'domain': {**{name: {'min': 0} for name in domain['coordinates']},
+                           **deepcopy(domain.get('guard_bounds', {}))},
                 'response': {'fixed_us': coefficients['fixed_us'], 'terms': [
                     {'coordinate': name, 'us_per_unit': value} for name, value in coefficients['terms'].items()]},
                 'provenance': {'calibration_origin': 'observed',

@@ -179,6 +179,69 @@ def test_client_only_native_generalization_keeps_gap_without_fabricated_scores(t
     assert 'device_capture_missing' in output.with_suffix('.md').read_text()
 
 
+def test_real_kda_abi_guards_do_not_become_constant_fit_columns():
+    from types import SimpleNamespace
+    from mindie_sim.prediction.service_regimes import RegimePolicy
+
+    retained = json.loads((ROOT/'tests/fixtures/retrospective_heldout/glm-kda-guard-populations.json').read_text())
+    points = retained['points']
+    train, evaluation = points[:-1], points[-1:]
+    domain = deepcopy(retained['domain'])
+    original_spec = freeze_service_specification(
+        [p['source_sha256'] for p in train], [p['source_sha256'] for p in evaluation],
+        [domain], evaluation_relation='retrospective_source_exclusion')
+    baseline = fit_service_domains(original_spec, train)
+    domain['guard_coordinates'] = {
+        'query_min': {'path': 'metadata.sequence_tokens', 'reduce': 'min'},
+        'query_max': {'path': 'metadata.sequence_tokens', 'reduce': 'max'}}
+    domain['guard_bounds'] = {name: {'min': 4, 'max': 4} for name in domain['guard_coordinates']}
+    domain['match'].update({'dtype': 'bf16', 'layout': 'TND',
+        'metadata.kda_recurrent_params.gate_dtype': 'bf16',
+        'metadata.kda_recurrent_params.use_beta_sigmoid': True})
+    spec = freeze_service_specification(original_spec['training_sources'], original_spec['evaluation_sources'],
+        [domain], evaluation_relation=original_spec['evaluation_relation'])
+    guarded = fit_service_domains(spec, train)
+    assert guarded['models'][0]['status'] == 'fitted'
+    assert guarded['models'][0]['coefficients'] == baseline['models'][0]['coefficients']
+    assert evaluate_service_domains(guarded, evaluation)['rows'][0]['predicted_us'] == pytest.approx(
+        predict_service_domains(baseline, evaluation[0])['predicted_us'])
+    excluded = deepcopy(train[0])
+    excluded['axes']['metadata']['sequence_tokens'] = [1] * len(excluded['axes']['metadata']['sequence_tokens'])
+    del excluded['observation']  # ABI exclusion occurs before accessing timing.
+    checked = fit_service_domains(spec, [excluded, *train[1:]])
+    assert checked['rejected_training_populations'][0]['reason'] == 'physical_guard_differs'
+    mismatches = []
+    for mutation in ('q1', 'mixed_q5', 'dtype', 'sigmoid'):
+        point = deepcopy(evaluation[0])
+        if mutation == 'q1': point['axes']['metadata']['sequence_tokens'] = [1] * len(point['axes']['metadata']['sequence_tokens'])
+        elif mutation == 'mixed_q5': point['axes']['metadata']['sequence_tokens'][0] = 5
+        elif mutation == 'dtype': point['axes']['dtype'] = 'fp16'
+        else: point['axes']['metadata']['kda_recurrent_params']['use_beta_sigmoid'] = False
+        assert predict_service_domains(guarded, point)['status'] == 'unresolved'
+        assert evaluate_service_domains(guarded, [point])['summary']['predicted'] == 0
+        mismatches.append(point)
+    exported = service_regimes(guarded, [*evaluation, *mismatches])
+    assert exported['excluded_ambiguous_domains'] == []
+    rule, = exported['rules']
+    assert rule['domain']['query_min'] == rule['domain']['query_max'] == {'min': 4, 'max': 4}
+    assert [term['coordinate'] for term in rule['response']['terms']] == ['batch']
+    policy = RegimePolicy([rule])
+    # Exercise the installed Engine selector with real retained physical axes;
+    # no operator program, simulation or synthetic latency is executed.
+    for point in [*evaluation, *mismatches]:
+        axes = point['axes']
+        context = SimpleNamespace(service_boundary='device_kernel',
+            op=SimpleNamespace(**{k: axes[k] for k in ('recipe','family','phase','local_shape',
+                'semantic_shape','padded_shape','launch_shape','metadata')}),
+            service_identity={'hardware': {'key': axes['hardware']}, 'dtype': axes['dtype'], 'layout': axes['layout']},
+            native_work={}, resource_units={}, core_count=48)
+        result = policy.resolve(context, lambda *args, **kwargs: None)
+        if point is evaluation[0]:
+            assert result.duration_ms * 1000 == pytest.approx(predict_service_domains(guarded, point)['predicted_us'])
+        else:
+            assert result is None
+
+
 def test_kimi_whole_concurrency_exclusion_preserves_real_mc2_discontinuity(tmp_path):
     retained = json.loads((ROOT / 'tests/fixtures/retrospective_heldout/kimi-concurrency.json').read_text())
     pins = []
