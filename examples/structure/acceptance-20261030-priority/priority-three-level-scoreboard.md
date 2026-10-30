@@ -2,11 +2,11 @@
 
 Coverage status: **partial**. Missing predictions and unmatched roles stay visible.
 
-Current selected Body arms: **63/66 passed**. One latest completed receipt per measured source/geometry, selected in input order; each row retains its own runtime and case.
+Current selected Body arms: **62/66 passed**. One latest completed receipt per measured source/geometry, selected in input order; each row retains its own runtime and case.
 
-Latest attempted Body arms: **66/66 completed**, **0 failed**, **63 passed**. An earlier completed prediction remains available above when the newest attempt fails; it is not a successful new replay.
+Latest attempted Body arms: **66/66 completed**, **0 failed**, **62 passed**. An earlier completed prediction remains available above when the newest attempt fails; it is not a successful new replay.
 
-Body: **216/672 prediction arms passed**; 66 unique sources, 222 measured geometry populations, 5250 unique complete Forwards (includes deferred populations).
+Body: **216/675 prediction arms passed**; 66 unique sources, 222 measured geometry populations, 5250 unique complete Forwards (includes deferred populations).
 
 Invalidated prediction rows: **31**. Their measured populations remain; superseded predictions and layer errors are excluded from accuracy statistics.
 
@@ -56,10 +56,10 @@ Delta = Sim − Real；“到 15% 带”是统计验收超额，不是待补物�
 | Case / variant | Status | Calls | Real Mean / P50 / P90 ms | Activity ms | Sim ms | Diff ms | Mean / P50 error |
 |---|---|---:|---:|---:|---:|---:|---:|
 | qwen35-397b-a3-tp16-c136:q4_b160_m640 / body-runtime40e4300e-remaining-controller-corrected / `ab51c56356b3` | compared | 18 | 119.054 / 119.131 / 119.486 | 118.048 | 102.866 | -16.188 | -13.597% / -13.653% |
-| a3_glm53_w4a8_tp16_tpot50_c2:q6_b2_m12 / glm78-M12-complete-native-service-672a595f / `c347250c5f5e` | compared | 44 | 57.817 / 57.597 / 59.092 | 55.203 | 42.454 | -15.363 | -26.571% / -26.291% |
-| a3_glm53_w4a8_tp16_tpot30_c2:q6_b2_m12 / glm78-M12-complete-native-service-672a595f / `c347250c5f5e` | compared | 44 | 57.639 / 57.562 / 58.995 | 55.027 | 42.447 | -15.192 | -26.357% / -26.258% |
+| a3_glm53_w4a8_tp16_tpot88_c8:q6_b8_m48 / glm78-caller-complete-service-c2b21f20 / `903e549b4711` | compared | 49 | 69.556 / 69.489 / 69.830 | 66.970 | 82.080 | 12.523 | 18.004% / 18.119% |
 | glm53flash-a3-tp16-c16-livepre:q6_b16_m96 / livepre-a3-native-fusion-a961c114 / `870f734246fc` | compared | 37 | 41.069 / 40.940 / 41.282 | 39.691 | 50.830 | 9.761 | 23.768% / 24.158% |
-| a3_glm53_w4a8_tp16_tpot88_c8:q6_b8_m48 / glm78-packed-D656-captured-grid-672a595f / `c347250c5f5e` | compared | 49 | 69.556 / 69.489 / 69.830 | 66.970 | 77.592 | 8.036 | 11.553% / 11.661% |
+| a3_glm53_w4a8_tp16_tpot50_c2:q6_b2_m12 / glm78-caller-complete-service-c2b21f20 / `903e549b4711` | compared | 44 | 57.817 / 57.597 / 59.092 | 55.203 | 48.769 | -9.049 | -15.650% / -15.328% |
+| a3_glm53_w4a8_tp16_tpot30_c2:q6_b2_m12 / glm78-caller-complete-service-c2b21f20 / `903e549b4711` | compared | 44 | 57.639 / 57.562 / 58.995 | 55.027 | 48.757 | -8.882 | -15.410% / -15.295% |
 | qwen35-397b-a3-tp16-c48:q4_b64_m256 / body-runtime40e4300e-remaining-controller-corrected / `ab51c56356b3` | compared | 23 | 76.089 / 76.132 / 76.632 | 75.005 | 68.305 | -7.784 | -10.231% / -10.282% |
 | a3_glm53_dc4k_b2:q1_b2_m2 / body-runtime40e4300e-glm-controller-corrected / `ab51c56356b3` | compared | 70 | 40.970 / 40.935 / 41.046 | 39.247 | 35.483 | -5.487 | -13.394% / -13.319% |
 | a3_glm53_dc16k_b1:q1_b1_m1 / body-runtime40e4300e-glm-controller-corrected / `ab51c56356b3` | compared | 74 | 39.112 / 39.105 / 39.196 | 37.273 | 33.637 | -5.475 | -13.999% / -13.983% |
@@ -314,19 +314,19 @@ The steady P50 column is median of per-layer call P50, unless a separately linke
 | qwen35-397b-a3-tp16-c136:q4_b160_m640 / body-runtime40e4300e-remaining-controller-corrected | Layer 0 / gdn / moe_layer | 1 | 2.0473 | 1.9983 | 1.6636 | -18.740% / -16.748% |
 | qwen35-397b-a3-tp16-c136:q4_b160_m640 / body-runtime40e4300e-remaining-controller-corrected | Steady / gdn / moe_layer | 44 | 1.9572 | 1.9352 | 1.6636 | -15.001% / -14.033% |
 | qwen35-397b-a3-tp16-c136:q4_b160_m640 / body-runtime40e4300e-remaining-controller-corrected | Steady / gqa / moe_layer | 15 | 2.0544 | 2.0314 | 1.8669 | -9.125% / -8.096% |
-| a3_glm53_w4a8_tp16_tpot50_c2:q6_b2_m12 / glm78-M12-complete-native-service-672a595f | Layer 0 / mla / dense_layer | 1 | 0.6279 | 0.5491 | 0.4507 | -28.229% / -17.920% |
-| a3_glm53_w4a8_tp16_tpot50_c2:q6_b2_m12 / glm78-M12-complete-native-service-672a595f | Steady / mla / dense_layer | 2 | 0.5676 | 0.5344 | 0.4507 | -20.599% / -15.669% |
-| a3_glm53_w4a8_tp16_tpot50_c2:q6_b2_m12 / glm78-M12-complete-native-service-672a595f | Steady / mla / moe_layer | 75 | 0.7473 | 0.7151 | 0.5480 | -26.669% / -23.362% |
-| a3_glm53_w4a8_tp16_tpot30_c2:q6_b2_m12 / glm78-M12-complete-native-service-672a595f | Layer 0 / mla / dense_layer | 1 | 0.5858 | 0.5425 | 0.4506 | -23.071% / -16.940% |
-| a3_glm53_w4a8_tp16_tpot30_c2:q6_b2_m12 / glm78-M12-complete-native-service-672a595f | Steady / mla / dense_layer | 2 | 0.5667 | 0.5291 | 0.4506 | -20.488% / -14.833% |
-| a3_glm53_w4a8_tp16_tpot30_c2:q6_b2_m12 / glm78-M12-complete-native-service-672a595f | Steady / mla / moe_layer | 75 | 0.7455 | 0.7151 | 0.5479 | -26.506% / -23.371% |
+| a3_glm53_w4a8_tp16_tpot88_c8:q6_b8_m48 / glm78-caller-complete-service-c2b21f20 | Layer 0 / mla / dense_layer | 1 | 0.6710 | 0.6210 | 0.7974 | 18.840% / 28.398% |
+| a3_glm53_w4a8_tp16_tpot88_c8:q6_b8_m48 / glm78-caller-complete-service-c2b21f20 | Steady / mla / dense_layer | 2 | 0.6345 | 0.6104 | 0.8000 | 26.082% / 31.059% |
+| a3_glm53_w4a8_tp16_tpot88_c8:q6_b8_m48 / glm78-caller-complete-service-c2b21f20 | Steady / mla / moe_layer | 75 | 0.9015 | 0.8670 | 1.0624 | 17.852% / 22.547% |
 | glm53flash-a3-tp16-c16-livepre:q6_b16_m96 / livepre-a3-native-fusion-a961c114 | Layer 0 / kda / dense_layer | 1 | 1.0092 | 0.8498 | 0.3747 | -62.878% / -55.911% |
 | glm53flash-a3-tp16-c16-livepre:q6_b16_m96 / livepre-a3-native-fusion-a961c114 | Steady / kda / dense_layer | 2 | 0.4246 | 0.4245 | 0.3747 | -11.765% / -11.739% |
 | glm53flash-a3-tp16-c16-livepre:q6_b16_m96 / livepre-a3-native-fusion-a961c114 | Steady / mla / moe_layer | 11 | 1.3710 | 1.3767 | 1.7846 | 30.166% / 29.630% |
 | glm53flash-a3-tp16-c16-livepre:q6_b16_m96 / livepre-a3-native-fusion-a961c114 | Steady / kda / moe_layer | 31 | 0.7767 | 0.7741 | 0.9702 | 24.910% / 25.331% |
-| a3_glm53_w4a8_tp16_tpot88_c8:q6_b8_m48 / glm78-packed-D656-captured-grid-672a595f | Layer 0 / mla / dense_layer | 1 | 0.6710 | 0.6210 | 0.7507 | 11.876% / 20.873% |
-| a3_glm53_w4a8_tp16_tpot88_c8:q6_b8_m48 / glm78-packed-D656-captured-grid-672a595f | Steady / mla / dense_layer | 2 | 0.6345 | 0.6104 | 0.7507 | 18.302% / 22.972% |
-| a3_glm53_w4a8_tp16_tpot88_c8:q6_b8_m48 / glm78-packed-D656-captured-grid-672a595f | Steady / mla / moe_layer | 75 | 0.9015 | 0.8670 | 1.0045 | 11.430% / 15.869% |
+| a3_glm53_w4a8_tp16_tpot50_c2:q6_b2_m12 / glm78-caller-complete-service-c2b21f20 | Layer 0 / mla / dense_layer | 1 | 0.6279 | 0.5491 | 0.4554 | -27.472% / -17.054% |
+| a3_glm53_w4a8_tp16_tpot50_c2:q6_b2_m12 / glm78-caller-complete-service-c2b21f20 | Steady / mla / dense_layer | 2 | 0.5676 | 0.5344 | 0.4536 | -20.080% / -15.118% |
+| a3_glm53_w4a8_tp16_tpot50_c2:q6_b2_m12 / glm78-caller-complete-service-c2b21f20 | Steady / mla / moe_layer | 75 | 0.7473 | 0.7151 | 0.6321 | -15.422% / -11.609% |
+| a3_glm53_w4a8_tp16_tpot30_c2:q6_b2_m12 / glm78-caller-complete-service-c2b21f20 | Layer 0 / mla / dense_layer | 1 | 0.5858 | 0.5425 | 0.4553 | -22.265% / -16.069% |
+| a3_glm53_w4a8_tp16_tpot30_c2:q6_b2_m12 / glm78-caller-complete-service-c2b21f20 | Steady / mla / dense_layer | 2 | 0.5667 | 0.5291 | 0.4536 | -19.967% / -14.275% |
+| a3_glm53_w4a8_tp16_tpot30_c2:q6_b2_m12 / glm78-caller-complete-service-c2b21f20 | Steady / mla / moe_layer | 75 | 0.7455 | 0.7151 | 0.6319 | -15.240% / -11.625% |
 | qwen35-397b-a3-tp16-c48:q4_b64_m256 / body-runtime40e4300e-remaining-controller-corrected | Layer 0 / gdn / moe_layer | 1 | 1.3503 | 1.2865 | 1.1044 | -18.212% / -14.153% |
 | qwen35-397b-a3-tp16-c48:q4_b64_m256 / body-runtime40e4300e-remaining-controller-corrected | Steady / gdn / moe_layer | 44 | 1.2329 | 1.2077 | 1.1044 | -10.421% / -8.553% |
 | qwen35-397b-a3-tp16-c48:q4_b64_m256 / body-runtime40e4300e-remaining-controller-corrected | Steady / gqa / moe_layer | 15 | 1.3614 | 1.3469 | 1.2404 | -8.891% / -7.908% |
@@ -1604,6 +1604,7 @@ External references are selected independently by measured source/geometry, oper
 - [decode-forward-glm78-native-service-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/decode-forward-glm78-native-service-replay.json), SHA256 `ca8b547de25e36cacef766e8528fe81af22be863a478ec75e5b0f1936210a489`
 - [decode-forward-c4-gdn-helpers-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen35-complete-observed-service/decode-forward-c4-gdn-helpers-replay.json), SHA256 `a8eb0e4b6ec628af0aa48c6bb49b5f65bf529da03cb5eb10c7663c82ca1ef52c`
 - [decode-forward-service-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/metadata-pass/decode-forward-service-replay.json), SHA256 `4726afd58be0493055e37685f1014fe22e7575eed70f03f2ba23fe9014591bf0`
+- [decode-forward-glm78-caller-complete-service-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/decode-forward-glm78-caller-complete-service-replay.json), SHA256 `866830c9506c68a185884293ac7bcc5e0482ce065abf43cf8bd4046712f1f7fc`
 - [body-operator-family-scoreboard.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators/body-operator-family-scoreboard.json), SHA256 `7126d4a275a5f005537517386747e366322a7bed7365763e21cb3a66319b13fc`
 - [body-operator-family-scoreboard.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators-5935c87b/body-operator-family-scoreboard.json), SHA256 `4f475bce99de8a8908c8fa745ea1ab9cabb8c570ef3b3ec5ef7c9d5d7f29265e`
 - [body-operator-family-scoreboard.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-family-scoreboard.json), SHA256 `53e528b2254c3ca55b4eb9e1afa5fc4e46f89ed6ccbee3059639dbbaed10175d`
@@ -1740,6 +1741,8 @@ Additional coverage/source evidence (not silently promoted into body or operator
 - [complete-service-cross-review.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen35-complete-observed-service/complete-service-cross-review.json), SHA256 `cd4b2582074c63a8ab0872cd581031023d889a01c9562cba7c673237e2f54695`
 - [body-independent-review.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/metadata-pass/body-independent-review.json), SHA256 `145689410bc4256ee119c5fc6dca95f088c214c4d9713401ffffd0eada856753`
 - [service-regime-review.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/metadata-pass/service-regime-review.json), SHA256 `bf4f225999a534831bf740b72de27a9a3e5f45793d400096341dd20724769f99`
+- [glm78-caller-complete-service-independent-review.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-caller-complete-service-independent-review.json), SHA256 `67887a67dfa7584d0e8f3dd0065423d274813d97d4f86406e68c9d09589ed009`
+- [glm78-caller-complete-service-body-independent-review.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-caller-complete-service-body-independent-review.json), SHA256 `f92176c817d757c8799f2bfb76d81d006df5455dcb5ff88191182caa1309f483`
 
 - Rows retain their own source/runtime/geometry; independently produced receipts are not merged into a synthetic run.
 - Per-forward kernel activity residual ranks work to investigate; overlap prevents interpreting its sum as body wall-clock error.

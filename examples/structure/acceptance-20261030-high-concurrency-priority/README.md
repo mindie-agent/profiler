@@ -6,20 +6,25 @@ selected complete Forwards; neither table adds captures to the main denominator.
 Execution completion, Body accuracy and native contract coverage are separate.
 
 The current focus has 13/13 Body PASS, including all six A5 priority cases.
-The main board has 63/66 PASS over 5,250 distinct observed Forwards, with all
+The main board has 62/66 PASS over 5,250 distinct observed Forwards, with all
 66 latest predictions completed. Kimi low-concurrency c1/c2/c4/c8 now contributes
 eight new PASS results. A subsequent replay uses the source force-EPLB policy
 to close the declared expert-routing work discrepancy while retaining all eight
 PASS results. Captured group-list values remain unobserved. Qwen3.5 TP4
 c4/c64/c128 now pass at -14.66%/-14.28%/-13.56%. A3 GLM
-c4-livepre and GLM78 c8 also pass after their native source declarations.
+c4-livepre also passes after its native source declaration. GLM78 c8's earlier
+PASS is superseded by the latest complete caller replay (+18.00%, FAIL).
 
 GLM uses the corrected HC native implementation consistently across all nine
 A5 cases. Complete matrix, norm/quant and native HC response populations, then
 eleven layer-ordered AICPU sparse-attention metadata calls, bring all nine to
 PASS. The earlier 3/9 source-corrected result and the preceding 6/9 result whose
 decomposed HC work compensated for missing costs stay inspectable. Remaining
-failures are two A3 GLM78 c2 sources and A3 GLM Flash c16-livepre.
+failures are the three A3 GLM78 sources and A3 GLM Flash c16-livepre. GLM78's
+complete local padding, AllGather, router precision and consumer-scoped norm
+declaration brings the two c2 cases to -15.41%/-15.65%. Native MC2 still needs
+to replace generic pack/transport/quant boundaries; complete-body accuracy
+does not override this recorded source mismatch.
 
 `source-inventory.json` records selection identities, benchmark scenarios and the
 state before this replay. Its old predictions are not inputs to the focus table.

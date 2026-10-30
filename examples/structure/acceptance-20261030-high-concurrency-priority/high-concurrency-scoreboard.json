@@ -207134,8 +207134,8 @@
   "inputs": {
     "scoreboard": {
       "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority/priority-three-level-scoreboard.json",
-      "sha256": "611aea3d8028e0126c9fd7a7fa3924734499d4d5c792c693bcb7f2d1855d1a11",
-      "size_bytes": 83944742
+      "sha256": "f7df9a01200bf6aff5805d2d74e52cd6b9587efe6d4acdb6145760be12c34adc",
+      "size_bytes": 85192545
     },
     "focus_spec": {
       "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency-priority/source-inventory.json",
@@ -207146,6 +207146,6 @@
   "execution": {
     "new_costs": 0,
     "raw_scans": 0,
-    "maximum_resident_set_size_bytes": 91471872
+    "maximum_resident_set_size_bytes": 93454336
   }
 }

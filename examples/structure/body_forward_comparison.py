@@ -138,13 +138,18 @@ def compare_pooled_layers(steady, pooled):
 def _scheduled_operators(timeline):
     """Keep compact scheduler diagnostics without retaining full node history."""
     grouped, replicas = defaultdict(list), defaultdict(list)
+    source_fields = ("fusion_role", "native_kind", "native_implementation", "physical_source_program")
     for row in timeline:
         if row["family"] == "barrier":
             continue
-        grouped[row["replica"], row["stage"], row["family"], row["recipe"], row["program"]].append(row)
+        source = {key: row[key] for key in source_fields if row.get(key) is not None}
+        signature = (row["replica"], row["stage"], row["family"], row["recipe"], row["program"],
+                     json.dumps(source, sort_keys=True))
+        grouped[signature].append(row)
         replicas[row["replica"]].append(row)
     groups = []
-    for (replica, stage, family, recipe, program), rows in sorted(grouped.items()):
+    for signature, rows in sorted(grouped.items()):
+        replica, stage, family, recipe, program, source = signature
         intervals = sorted((row["ready_ms"], row["complete_ms"]) for row in rows)
         union, start, end = 0.0, *intervals[0]
         for left, right in intervals[1:]:
@@ -155,10 +160,11 @@ def _scheduled_operators(timeline):
                 end = max(end, right)
         durations = [row["complete_ms"] - row["ready_ms"] for row in rows]
         groups.append({"replica": replica, "stage": stage, "family": family, "recipe": recipe, "program": program,
+                       **json.loads(source),
                        "scheduled_elapsed_ms": _stats(durations), "sum_elapsed_ms": sum(durations),
                        "scheduled_interval_union_ms": union + end - start})
     keys = ("id", "op_id", "replica", "family", "recipe", "program", "stage", "layer",
-            "ready_ms", "complete_ms", "elapsed_ms", "source_boundary")
+            "ready_ms", "complete_ms", "elapsed_ms", "source_boundary", "fusion_group_key", *source_fields)
     return {
         "metric_boundary": "scheduled_operator_ready_to_completion_including_resource_wait",
         "additive_to_body": False, "additive_across_replicas": False,

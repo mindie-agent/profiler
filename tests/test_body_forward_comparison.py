@@ -76,6 +76,31 @@ def test_ep_replicas_keep_envelopes_without_adding_parallel_layer_spans(adapter,
         max(r["span_ms"] for r in result["replica_envelopes_ms"]))
 
 
+def test_real_livepre_native_roles_do_not_collapse_into_one_fusion_bucket(adapter):
+    from collections import Counter
+    from mindie_sim import predict
+
+    path = (Path(__file__).resolve().parents[1] /
+            "examples/structure/acceptance-20261030-livepre-native/cases/"
+            "glm53flash-a3-tp16-c4-livepre-native.json")
+    raw = json.loads(path.read_text())
+    result = predict(raw, scope="body", phase="decode", tokens=6,
+                     sequences=4, context=4096, event_limit=0)
+    summary = adapter._scheduled_operators(result["timeline"])
+    native = [row for row in result["timeline"] if row.get("fusion_role")]
+    counts = Counter(row["fusion_role"] for row in native)
+    assert counts == {"hc_pre": 90, "hc_post": 90, "grouped_gate_up_activation_quant": 42}
+    groups = [row for row in summary["groups"] if row.get("fusion_role")]
+    assert len(groups) == 3
+    assert sum(row["scheduled_elapsed_ms"]["count"] for row in groups) == len(native)
+    for group in groups:
+        members = [row for row in native if row["fusion_role"] == group["fusion_role"]]
+        assert group["scheduled_elapsed_ms"]["count"] == counts[group["fusion_role"]]
+        assert group["physical_source_program"] == members[0]["physical_source_program"]
+        assert group["sum_elapsed_ms"] == pytest.approx(sum(row["elapsed_ms"] for row in members))
+    assert sum(row["scheduled_elapsed_ms"]["count"] for row in summary["groups"]) == result["operator_occurrences"]
+
+
 def test_observable_response_selection_survives_body_projection(adapter, case):
     from mindie_sim import predict
 
