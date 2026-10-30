@@ -60,6 +60,9 @@ def review(directory):
         for rule in newrules:
             prov = rule['provenance']; label = name + ':' + rule['id']
             parts = [p for p in native['partitions'] if p['native_operator_type'] == prov['native_operator_type']]
+            if 'native_partition_indices' in prov:
+                parts = [native['partitions'][i] for i in prov['native_partition_indices']]
+                check(all(p['native_operator_type'] == prov['native_operator_type'] for p in parts), label + ':native_partition_members')
             if 'native_type_ordinal_in_region' in prov:
                 parts = [p for p in parts if p['topology_region'] == prov['topology_region'] and
                          p['native_type_ordinal_in_region'] == prov['native_type_ordinal_in_region']]
@@ -87,10 +90,15 @@ def review(directory):
         if 'removed_shared_quantizers' in item:
             old_rules = old['runtime']['kernels']['service_regimes']; rules = case['runtime']['kernels']['service_regimes']
             check(rules[:len(old_rules)] == old_rules, name + ':prior_rules_unchanged')
-            check(len(item['removed_shared_quantizers']) == 80, name + ':only_shared_conversions_removed')
+            shared_calls = next(r['provenance']['expected_rule_hits'] for r in newrules if r['match']['recipe'] == 'dense_gate_up')
+            check(len(item['removed_shared_quantizers']) == 2 * shared_calls and all('.shared.' in i and i.endswith('.quantize') for i in item['removed_shared_quantizers']), name + ':only_shared_conversions_removed')
             changed = case['model']['quant']['category_overrides']['shared_expert']
             check(changed == {'weight_format': 'bf16', 'activation_format': 'bf16'}, name + ':observed_shared_dtype')
-            check([r['provenance']['native_type_ordinal_in_region'] for r in newrules] == [1, 2, 3], name + ':router_up_down_disjoint')
+            if all('native_type_ordinal_in_region' in r['provenance'] for r in newrules):
+                check([r['provenance']['native_type_ordinal_in_region'] for r in newrules] == [1, 2, 3], name + ':router_up_down_disjoint')
+            else:
+                indices = [i for r in newrules for i in r['provenance']['native_partition_indices']]
+                check(len(indices) == len(set(indices)), name + ':new_native_partitions_disjoint')
         else:
             ledger = read(directory.parent.parent / 'acceptance-20261030-hccl-66' / (name + '-capture-hccl.json'))
             bucket = next(g for g in ledger['body_geometry_groups'] if all(g['geometry'][k] == item['geometry'][k] for k in ['query_rows','tokens_per_sequence','sequences_per_replica']))
