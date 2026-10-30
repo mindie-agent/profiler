@@ -249,19 +249,27 @@ def client_observation(entry, base):
                   if name + '_' + stat in payload}
         if not values and isinstance(payload.get(name),dict):values=payload[name]
         if values: metrics[name] = values
+    if 'itl_ms' not in metrics and isinstance(payload.get('itl_ms_all_tokens'),dict):
+        metrics['itl_ms']=payload['itl_ms_all_tokens']
     records=payload.get('per_request') or payload.get('requests') or []
     request_stats=request_summary(records,seconds=bool(records and 'e2e_s' in records[0])) if records else None
     n_errors=payload.get('n_errors',payload.get('n_failed'))
     producer_status=payload.get('status')
     if producer_status is None and n_errors is not None:
         producer_status='failed' if n_errors else 'completed'
+    errors=payload.get('errors')
+    if errors is None:
+        errors=[{key:record[key] for key in ('slot','status','error') if key in record}
+                for record in records if record.get('ok') is False]
     evidence = {
         'benchmark_summary_identity': pin, 'producer_status': producer_status,
         'producer_status_basis':'literal status or retained failure count',
         'client_concurrency': config.get('concurrency',payload.get('concurrency')),
         'request_configuration': config or {k:payload[k] for k in ('input_len','output_len','concurrency','num_prompts') if k in payload},
         'n_requests': payload.get('n_requests',len(records) if records else None), 'n_errors': n_errors,
-        'errors': payload.get('errors', []), 'metrics': metrics,
+        'errors': errors, 'metrics': metrics,
+        'metric_source_fields':{'itl_ms':'itl_ms_all_tokens' if 'itl_ms_all_tokens' in payload
+                                and 'itl_ms' not in payload else 'itl_ms'},
         'metric_boundaries': {'ttft_ms': 'client request to first streamed response',
             'itl_ms': 'streamed event cadence; not assumed one token per event',
             'tpot_ms': 'literal producer TPOT; denominator audited against retained requests when available',

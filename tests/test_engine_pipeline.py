@@ -155,6 +155,8 @@ def test_real_kimi_nested_client_retains_chunk_tpot_and_recomputes_token_denomin
     evidence=result['observed']['serving_evidence']
     assert evidence['metrics']['ttft_ms']==captured['ttft_ms']
     assert evidence['metrics']['tpot_ms']==captured['tpot_ms']
+    assert evidence['metrics']['itl_ms']==captured['itl_ms_all_tokens']
+    assert evidence['metric_source_fields']['itl_ms']=='itl_ms_all_tokens'
     assert evidence['request_population']['reported_request_metric_denominators']=={'text_chunk':1}
     assert evidence['request_population']['recomputed_per_request_tpot_ms']['mean']==pytest.approx(
         (captured['per_request'][0]['e2e_ms']-captured['per_request'][0]['ttft_ms'])/63)
@@ -165,6 +167,21 @@ def test_real_kimi_nested_client_retains_chunk_tpot_and_recomputes_token_denomin
     assert result['observed']['observed_target_forwards'] is None
     assert result['comparison']['status']=='observed_only'
     assert result['execution']['prediction_executions']==0
+
+
+def test_real_kimi_client_http_failures_are_not_hidden_by_missing_top_level_status():
+    from engine import run_case
+
+    entry,captured=client_case('kimi-p64k-c1-failed.json')
+    result=run_case(entry,CLIENT_FIXTURES)
+    evidence=result['observed']['serving_evidence']
+    assert 'status' not in captured
+    assert result['status']=='failed' and result['comparison']['reason']=='producer_failed'
+    assert evidence['n_requests']==evidence['n_errors']==4
+    assert result['error']==[{key:record[key] for key in ('slot','status','error')}
+                            for record in captured['per_request']]
+    assert all(error['status']==400 for error in result['error'])
+    assert result['prediction'] is None and result['execution']['prediction_executions']==0
 
 
 def test_real_one_token_prefill_retains_null_tpot_without_fake_decode_or_body():
