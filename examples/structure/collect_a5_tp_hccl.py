@@ -36,9 +36,12 @@ def geometry_key(value):
 
 
 def relevant(event):
-    return event.op_type.startswith('hcom_') or event.core == 'COMMUNICATION' or (
+    text = (event.name + event.op_type).lower()
+    return event.op_type.startswith('hcom_') or event.core in {'COMMUNICATION', 'SDMA'} or any(
+        word in text for word in ('sdma', 'notify', 'ccu', 'moedistributedispatch',
+                                   'moedistributecombine', 'dispatchffncombine')) or (
         'aicpu' in event.core.lower().replace('_', '') and
-        any(word in (event.name + event.op_type).lower() for word in ('hccl', 'hcom', 'reduce', 'gather')))
+        any(word in text for word in ('hccl', 'hcom', 'reduce', 'gather', 'alltoall')))
 
 
 def category(event):
@@ -47,6 +50,8 @@ def category(event):
         return 'collective_device_task' if concrete else 'collective_envelope_only'
     if 'aicpu' in event.core.lower().replace('_', ''):
         return 'unlinked_aicpu_wrapper'
+    if any(word in event.op_type.lower() for word in ('moedistributedispatch', 'moedistributecombine', 'dispatchffncombine')):
+        return 'native_fused_communication_program'
     return 'unlinked_device_communication_task'
 
 
@@ -145,12 +150,27 @@ class HcclLedger:
         self.groups, self.counts, self.totals = {}, Counter(), defaultdict(Counter)
         self.summary_pairs, self.per_forward = [], []
 
+    @classmethod
+    def retained_windows(cls, config, schema, expected):
+        """Use pre-exported Sim topology only; no physical-resource graph or cost."""
+        self = cls.__new__(cls)
+        self.actual, self.body, self.case = None, None, None
+        self.schema, self.config, self.expected = schema, _model(config), expected
+        self.declarations = {}
+        self.groups, self.counts, self.totals = {}, Counter(), defaultdict(Counter)
+        self.summary_pairs, self.per_forward = [], []
+        return self
+
     def close(self, window, rows, raw):
         aligned, failure = _align(rows, self.config, window['forward_id'])
         if failure or any(aligned[k] != window[k] for k in
                 ('start_ns', 'end_ns', 'head_start_ns', 'head_end_ns', 'query_rows', 'device_id')):
             raise ValueError(f'accepted_body_topology_changed:{window["forward_id"]}:{failure}')
         events = [row.event for row in rows]
+        self.consume(window, aligned, events, raw)
+
+    def consume(self, window, aligned, events, raw):
+        rows = [_Row(event, shapes(event.input_shapes), shapes(event.output_shapes)) for event in events]
         layers = [stage for stage in aligned['stages'] if stage['layer_id'] is not None]
         starts = [layer['start_ns'] for layer in layers]
         ffns = {}
@@ -211,10 +231,10 @@ class HcclLedger:
 
     def finish(self):
         saved = defaultdict(Counter)
-        for family in self.actual['families']:
+        for family in self.actual['families'] if self.actual is not None else []:
             if family['native_operator_type'].startswith('hcom_'):
                 saved[family['native_operator_type']].update({int(ns):n for ns,n in family['duration_ns_counter']})
-        if dict(saved) != dict(self.totals):
+        if self.actual is not None and dict(saved) != dict(self.totals):
             raise ValueError('collective_histograms_differ_from_prior_complete_family_population')
         groups = []
         for group in self.groups.values():
