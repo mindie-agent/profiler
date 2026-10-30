@@ -341,14 +341,19 @@ def run(manifest_path, *, output, archive_root, phase=None, scope='body', case_i
             and (not r.get('supported_scopes') or scope in r['supported_scopes'])
             and (scope != 'engine' or r.get('engine'))]
     rows = [r for r in eligible if not case_ids or r['id'] in case_ids or r['case_id'] in case_ids]
-    if not rows or len({r['id'] for r in rows}) != len(rows): raise ValueError('empty_or_duplicate_case_selection')
+    if not rows or len({r['id'] for r in eligible}) != len(eligible): raise ValueError('empty_or_duplicate_case_selection')
     generation = _sim_identity(); started = time.monotonic(); cards = []
     if update:
-        cards = retained_cards(read(output), eligible, {r['id'] for r in rows}, generation, scope)
+        previous = read(output)
+        if not case_ids:
+            prior = {r['id']: r for r in previous['cases']}
+            rows = [r for r in rows if prior.get(r['id'], {}).get('entry_sha256') != entry_hash(r)]
+        cards = retained_cards(previous, eligible, {r['id'] for r in rows}, generation, scope)
     retained_count = len(cards)
     report = {'schema_version': 'mindie-current-validation/1', 'registry': identity(manifest_path),
               'runtime': generation, 'workers': workers, 'scope': scope, 'cases': cards, 'status': 'running', 'summary': {},
               'replayed_sources': len(rows), 'retained_unchanged_sources': retained_count}
+    report['summary'] = summarize(cards, len(rows) + retained_count)
     for row, result in execute_rows(rows, manifest_path.parent, scope, archive_root, timeout, generation, workers):
         if identity(manifest_path) != report['registry']: raise ValueError('case_registry_changed_during_run')
         evidence = archive_report(result, archive_root)

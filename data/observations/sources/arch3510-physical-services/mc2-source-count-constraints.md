@@ -52,4 +52,4 @@ Source UB totals rise in all eight comparisons while the maximum single-owner UB
 
 The copied source-operation details preserve historical field names such as `scalar_source_id_reads_unpriced` verbatim. Those names are provenance, not a statement that the current runtime does not charge the operation: the current `primitive_services` owner inventory is exported separately, and this report executes no cost model.
 
-Qwen35 response parameters are outside this four-domain matrix. Their complete-population and typed-chain check remains recorded in `examples/structure/acceptance-20261030-qwen35-complete-observed-service/complete-service-cross-review.json` (421 checks, zero failures); FIA/GDN source-symbol applicability remains explicit and strict cohort counts were not changed.
+Qwen35 response parameters are outside this four-domain matrix. Current declarations and complete-population evidence are linked from `examples/structure/cases.json`; current operator scores are maintained in `examples/structure/results/operators.json`. FIA/GDN source-symbol applicability remains explicit and is separate from strict cohort admission.

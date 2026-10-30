@@ -69,9 +69,9 @@ this evidence with those distinctions preserved.
 
 ## Integration
 
-Wave 0 numerical results are maintained in the
-[ordered three-level scoreboard](../../../examples/structure/acceptance-20261030-priority/priority-three-level-scoreboard.md).
-Each replacement follows source/case identity and declared input order, including
+Current numerical results are maintained in the
+[canonical validation results](../../../examples/structure/results/decode.md).
+Each replacement follows source/case identity and one immutable Sim package, including
 regressions. Source and runtime hashes remain in the replay receipts. Body,
 layer and operator tolerances remain separate, and a new Body result does not
 silently recost old operator receipts.
