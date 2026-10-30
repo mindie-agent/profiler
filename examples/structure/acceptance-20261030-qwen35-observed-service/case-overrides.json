@@ -1,0 +1,53 @@
+{
+  "qwen35-35b-a5-tp4-c4-graph": {
+    "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-hccl-service-conditional/qwen35-c4-grouped-dsq-mc2-hccl-service.json",
+    "sha256": "022892f9038f0793f185c853ce2b4a7465afcf009a7058bc4919132af600e839",
+    "calibration_evidence": {
+      "evaluation_relation": "in_sample",
+      "parameter_assignment": "Source-authored operator service regimes are consumed unchanged. No parameter assignment or Body residual fitting by this replay.",
+      "case_source_commit": "3a98c2df",
+      "source_rule_provenance": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-hccl-service-conditional/qwen35-c4-grouped-dsq-mc2-hccl-service.json",
+        "sha256": "022892f9038f0793f185c853ce2b4a7465afcf009a7058bc4919132af600e839",
+        "json_path": "runtime.kernels.service_regimes[].provenance"
+      },
+      "historical_holdout_established": false,
+      "c128_usage": "Grouped/DSQ assignment uses c64; HCCL assignment uses c4 and c128, with c64 excluded only from those HCCL coefficients. Per-rule provenance is authoritative. No entire arm is a blind holdout.",
+      "population_relation": "mixed_rule_assignment_and_previously_observed_validation"
+    }
+  },
+  "qwen35-35b-a5-tp4-c64-graph": {
+    "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-hccl-service-conditional/qwen35-c64-grouped-dsq-mc2-hccl-service.json",
+    "sha256": "d199af14e511797baa1f0d8900b7939dcac77da7ff5da3a8afbbb5109fd4decd",
+    "calibration_evidence": {
+      "evaluation_relation": "in_sample",
+      "parameter_assignment": "Source-authored operator service regimes are consumed unchanged. No parameter assignment or Body residual fitting by this replay.",
+      "case_source_commit": "3a98c2df",
+      "source_rule_provenance": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-hccl-service-conditional/qwen35-c64-grouped-dsq-mc2-hccl-service.json",
+        "sha256": "d199af14e511797baa1f0d8900b7939dcac77da7ff5da3a8afbbb5109fd4decd",
+        "json_path": "runtime.kernels.service_regimes[].provenance"
+      },
+      "historical_holdout_established": false,
+      "c128_usage": "Grouped/DSQ assignment uses c64; HCCL assignment uses c4 and c128, with c64 excluded only from those HCCL coefficients. Per-rule provenance is authoritative. No entire arm is a blind holdout.",
+      "population_relation": "mixed_rule_assignment_and_previously_observed_validation"
+    }
+  },
+  "qwen35-35b-a5-tp4-c128-graph": {
+    "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-hccl-service-conditional/qwen35-c128-grouped-dsq-mc2-hccl-service.json",
+    "sha256": "97a4bba3434211309906f0ed39573d97a78ef3834698db19b451800024750917",
+    "calibration_evidence": {
+      "evaluation_relation": "in_sample",
+      "parameter_assignment": "Source-authored operator service regimes are consumed unchanged. No parameter assignment or Body residual fitting by this replay.",
+      "case_source_commit": "3a98c2df",
+      "source_rule_provenance": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-hccl-service-conditional/qwen35-c128-grouped-dsq-mc2-hccl-service.json",
+        "sha256": "97a4bba3434211309906f0ed39573d97a78ef3834698db19b451800024750917",
+        "json_path": "runtime.kernels.service_regimes[].provenance"
+      },
+      "historical_holdout_established": false,
+      "c128_usage": "Grouped/DSQ assignment uses c64; HCCL assignment uses c4 and c128, with c64 excluded only from those HCCL coefficients. Per-rule provenance is authoritative. No entire arm is a blind holdout.",
+      "population_relation": "mixed_rule_assignment_and_previously_observed_validation"
+    }
+  }
+}

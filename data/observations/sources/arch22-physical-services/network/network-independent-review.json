@@ -1,0 +1,22 @@
+{
+  "schema_version": "mindie-arch22-network-independent-review/1",
+  "status": "passed",
+  "checks": 9625,
+  "failures": [],
+  "report_identity": {
+    "path": "/Users/maoxx241/code/profiler/data/observations/sources/arch22-physical-services/network/retained-a3-network-observations.json",
+    "sha256": "64c02f5096bb8cbf483b8606bdb09ff2aa2a347d05fc6f9e32d53a6b88fc9dbe"
+  },
+  "unprofiled_rank_payload_points": 96,
+  "profiled_envelopes": 42,
+  "retained_zero_duration_phase_events": 264,
+  "whole_model_source_count": 25,
+  "observations": [
+    "Retained successful topology commands, run/rank payload/repetition arithmetic and all curve statistics were independently checked.",
+    "Profiled phases retain zero values and overlap; phase union is not a sum and no switch RTT is fabricated.",
+    "Whole-model TP8/16 envelope populations retain original payload/algorithm unknowns; lower-rank phase patterns are not extrapolated."
+  ],
+  "raw_csv_reads": 0,
+  "new_predictions": 0,
+  "peak_rss_bytes": 194084864
+}

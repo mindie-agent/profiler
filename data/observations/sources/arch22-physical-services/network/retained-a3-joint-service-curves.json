@@ -1,0 +1,2991 @@
+{
+  "schema_version": "mindie-joint-network-service-curves/1",
+  "producer_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/fit_arch22_network_services.py",
+    "sha256": "ed49ff7932e196fc2d0adbb89449178e7deae3d6b28223d3553e0c42efa39c4d",
+    "size_bytes": 5568
+  },
+  "observation_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/network/retained-a3-network-observations.json",
+    "sha256": "64c02f5096bb8cbf483b8606bdb09ff2aa2a347d05fc6f9e32d53a6b88fc9dbe",
+    "size_bytes": 1702924
+  },
+  "curves": [
+    {
+      "run_id": "a3-comm-r2-sio-c1",
+      "rank": 0,
+      "collective": "all_reduce",
+      "dtype": "bfloat16",
+      "dtype_basis": "retained_parent.ranks[rank].protocol.dtype",
+      "world_size": 2,
+      "topology": {
+        "devices": [
+          4,
+          5
+        ],
+        "world_size": 2,
+        "observed_pairs": [
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 5,
+            "link_label": "SIO"
+          },
+          {
+            "source_phy_id": 5,
+            "destination_phy_id": 4,
+            "link_label": "SIO"
+          }
+        ],
+        "basis": "captured_successful_npu_smi_topology",
+        "forwarding_hop_count": null,
+        "topology_levels_of_selected_collective": null,
+        "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
+      },
+      "parent_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c1/a3-comm-r2-sio-c1.parent.json",
+        "sha256": "04862bffafb549fe08cc6696c3fa081d006694101877479a5cb09dee3e608100",
+        "size_bytes": 865545
+      },
+      "point_count": 5,
+      "sample_count": 125,
+      "payload_domain_bytes": {
+        "min": 1048576,
+        "max": 134217728
+      },
+      "point_protocols": [
+        {
+          "payload_bytes": 1048576,
+          "repetitions_per_batch": 32
+        },
+        {
+          "payload_bytes": 4194304,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 16777216,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 67108864,
+          "repetitions_per_batch": 8
+        },
+        {
+          "payload_bytes": 134217728,
+          "repetitions_per_batch": 4
+        }
+      ],
+      "mean_fit": {
+        "statistic": "mean",
+        "joint_fixed_us": 62.11304737358449,
+        "us_per_byte": 8.685383490117034e-06,
+        "effective_payload_bandwidth_gb_s": 115.13596390278964,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 27.885493410992666,
+        "max_abs_relative_residual": 0.3361326884070276,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 107.28097438812256,
+            "predicted_us": 71.22033205211746,
+            "residual_us": -36.0606423360051,
+            "relative_residual": -0.3361326884070276
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 109.90759938955307,
+            "predicted_us": 98.54218608771633,
+            "residual_us": -11.365413301836739,
+            "relative_residual": -0.1034088030760596
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 169.10459995269775,
+            "predicted_us": 207.82960223011185,
+            "residual_us": 38.72500227741409,
+            "relative_residual": 0.22900028910062953
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 619.1696953773499,
+            "predicted_us": 644.979266799694,
+            "residual_us": 25.809571422344106,
+            "relative_residual": 0.04168416447871315
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1244.9540042877197,
+            "predicted_us": 1227.8454862258034,
+            "residual_us": -17.108518061916357,
+            "relative_residual": -0.013742289275742947
+          }
+        ]
+      },
+      "p50_fit": {
+        "statistic": "p50",
+        "joint_fixed_us": 60.37946424268824,
+        "us_per_byte": 8.68744483616184e-06,
+        "effective_payload_bandwidth_gb_s": 115.10864458528239,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 26.760358172584006,
+        "max_abs_relative_residual": 0.32577176491619886,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 103.06437313556671,
+            "predicted_us": 69.48891039921148,
+            "residual_us": -33.575462736355234,
+            "relative_residual": -0.32577176491619886
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 109.094999730587,
+            "predicted_us": 96.81724886878119,
+            "residual_us": -12.277750861805814,
+            "relative_residual": -0.11254182952588154
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 168.93750429153442,
+            "predicted_us": 206.13060274706004,
+            "residual_us": 37.193098455525615,
+            "relative_residual": 0.2201589197822036
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 618.0574893951416,
+            "predicted_us": 643.3840182601755,
+            "residual_us": 25.32652886503388,
+            "relative_residual": 0.04097762635288116
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1243.054986000061,
+            "predicted_us": 1226.3885722776627,
+            "residual_us": -16.666413722398374,
+            "relative_residual": -0.01340762388639627
+          }
+        ]
+      },
+      "model": "elapsed_us = joint_fixed_us + payload_bytes * us_per_byte",
+      "weighting": "equal weight per observed payload point; no best-run or best-rank selection",
+      "evaluation_relation": "in_sample",
+      "cross_rank_or_topology_extrapolation_supported": false,
+      "mechanism_identification": "joint collective response; intercept is not uniquely notify or switch-hop RTT",
+      "scope": "unprofiled device-event batch elapsed divided by repetitions",
+      "applicability": "Same run protocol, rank, world size, dtype and captured topology; inspect residuals within the payload domain."
+    },
+    {
+      "run_id": "a3-comm-r2-sio-c1",
+      "rank": 0,
+      "collective": "p2p",
+      "dtype": "bfloat16",
+      "dtype_basis": "retained_parent.ranks[rank].protocol.dtype",
+      "world_size": 2,
+      "topology": {
+        "devices": [
+          4,
+          5
+        ],
+        "world_size": 2,
+        "observed_pairs": [
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 5,
+            "link_label": "SIO"
+          },
+          {
+            "source_phy_id": 5,
+            "destination_phy_id": 4,
+            "link_label": "SIO"
+          }
+        ],
+        "basis": "captured_successful_npu_smi_topology",
+        "forwarding_hop_count": null,
+        "topology_levels_of_selected_collective": null,
+        "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
+      },
+      "parent_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c1/a3-comm-r2-sio-c1.parent.json",
+        "sha256": "04862bffafb549fe08cc6696c3fa081d006694101877479a5cb09dee3e608100",
+        "size_bytes": 865545
+      },
+      "point_count": 5,
+      "sample_count": 125,
+      "payload_domain_bytes": {
+        "min": 1048576,
+        "max": 134217728
+      },
+      "point_protocols": [
+        {
+          "payload_bytes": 1048576,
+          "repetitions_per_batch": 32
+        },
+        {
+          "payload_bytes": 4194304,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 16777216,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 67108864,
+          "repetitions_per_batch": 8
+        },
+        {
+          "payload_bytes": 134217728,
+          "repetitions_per_batch": 4
+        }
+      ],
+      "mean_fit": {
+        "statistic": "mean",
+        "joint_fixed_us": 62.92266084103136,
+        "us_per_byte": 6.341538031005306e-06,
+        "effective_payload_bandwidth_gb_s": 157.690452238993,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 30.982902004591732,
+        "max_abs_relative_residual": 0.38017845682822404,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 111.76537483930588,
+            "predicted_us": 69.57224542343079,
+            "residual_us": -42.19312941587509,
+            "relative_residual": -0.3775152141397957
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 99.73645031452179,
+            "predicted_us": 89.52099917062904,
+            "residual_us": -10.21545114389275,
+            "relative_residual": -0.10242445075674966
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 122.67689973115921,
+            "predicted_us": 169.31601415942208,
+            "residual_us": 46.63911442826287,
+            "relative_residual": 0.38017845682822404
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 466.59509658813477,
+            "predicted_us": 488.49607411459425,
+            "residual_us": 21.900977526459485,
+            "relative_residual": 0.046937864728123335
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 930.2009987831116,
+            "predicted_us": 914.0694873881571,
+            "residual_us": -16.131511394954487,
+            "relative_residual": -0.017341963098360114
+          }
+        ]
+      },
+      "p50_fit": {
+        "statistic": "p50",
+        "joint_fixed_us": 58.995869704505935,
+        "us_per_byte": 6.378981542361992e-06,
+        "effective_payload_bandwidth_gb_s": 156.76483673124451,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 28.3638551168231,
+        "max_abs_relative_residual": 0.35333855021561034,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 100.93499720096588,
+            "predicted_us": 65.6847166542697,
+            "residual_us": -35.250280546696175,
+            "relative_residual": -0.349237445130269
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 99.89625215530396,
+            "predicted_us": 85.751257503561,
+            "residual_us": -14.144994651742948,
+            "relative_residual": -0.1415968501976671
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 122.67249822616577,
+            "predicted_us": 166.01742090072622,
+            "residual_us": 43.34492267456045,
+            "relative_residual": 0.35333855021561034
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 465.5799865722656,
+            "predicted_us": 487.0820744893871,
+            "residual_us": 21.502087917121457,
+            "relative_residual": 0.04618344545998654
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 930.620014667511,
+            "predicted_us": 915.1682792742682,
+            "residual_us": -15.451735393242757,
+            "relative_residual": -0.01660369984495047
+          }
+        ]
+      },
+      "model": "elapsed_us = joint_fixed_us + payload_bytes * us_per_byte",
+      "weighting": "equal weight per observed payload point; no best-run or best-rank selection",
+      "evaluation_relation": "in_sample",
+      "cross_rank_or_topology_extrapolation_supported": false,
+      "mechanism_identification": "joint collective response; intercept is not uniquely notify or switch-hop RTT",
+      "scope": "unprofiled device-event batch elapsed divided by repetitions",
+      "applicability": "Same run protocol, rank, world size, dtype and captured topology; inspect residuals within the payload domain."
+    },
+    {
+      "run_id": "a3-comm-r2-sio-c1",
+      "rank": 1,
+      "collective": "all_reduce",
+      "dtype": "bfloat16",
+      "dtype_basis": "retained_parent.ranks[rank].protocol.dtype",
+      "world_size": 2,
+      "topology": {
+        "devices": [
+          4,
+          5
+        ],
+        "world_size": 2,
+        "observed_pairs": [
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 5,
+            "link_label": "SIO"
+          },
+          {
+            "source_phy_id": 5,
+            "destination_phy_id": 4,
+            "link_label": "SIO"
+          }
+        ],
+        "basis": "captured_successful_npu_smi_topology",
+        "forwarding_hop_count": null,
+        "topology_levels_of_selected_collective": null,
+        "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
+      },
+      "parent_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c1/a3-comm-r2-sio-c1.parent.json",
+        "sha256": "04862bffafb549fe08cc6696c3fa081d006694101877479a5cb09dee3e608100",
+        "size_bytes": 865545
+      },
+      "point_count": 5,
+      "sample_count": 125,
+      "payload_domain_bytes": {
+        "min": 1048576,
+        "max": 134217728
+      },
+      "point_protocols": [
+        {
+          "payload_bytes": 1048576,
+          "repetitions_per_batch": 32
+        },
+        {
+          "payload_bytes": 4194304,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 16777216,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 67108864,
+          "repetitions_per_batch": 8
+        },
+        {
+          "payload_bytes": 134217728,
+          "repetitions_per_batch": 4
+        }
+      ],
+      "mean_fit": {
+        "statistic": "mean",
+        "joint_fixed_us": 61.3142779518177,
+        "us_per_byte": 8.771430961485022e-06,
+        "effective_payload_bandwidth_gb_s": 114.00648359326513,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 28.134991280403067,
+        "max_abs_relative_residual": 0.3353198961612349,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 106.08379811048508,
+            "predicted_us": 70.51178994368782,
+            "residual_us": -35.57200816679726,
+            "relative_residual": -0.3353198961612349
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 110.8583003282547,
+            "predicted_us": 98.10432591929818,
+            "residual_us": -12.753974408956523,
+            "relative_residual": -0.11504753700166459
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 168.52504968643188,
+            "predicted_us": 208.4744698217396,
+            "residual_us": 39.94942013530772,
+            "relative_residual": 0.23705330578237516
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 624.5675015449524,
+            "predicted_us": 649.9550454315054,
+            "residual_us": 25.387543886552976,
+            "relative_residual": 0.04064819867148617
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1255.6067943572998,
+            "predicted_us": 1238.595812911193,
+            "residual_us": -17.010981446106825,
+            "relative_residual": -0.01354801640334713
+          }
+        ]
+      },
+      "p50_fit": {
+        "statistic": "p50",
+        "joint_fixed_us": 60.16976129641557,
+        "us_per_byte": 8.766742948818796e-06,
+        "effective_payload_bandwidth_gb_s": 114.06744851971928,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 27.33624134558398,
+        "max_abs_relative_residual": 0.3275297933533109,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 103.14562171697617,
+            "predicted_us": 69.36235755071618,
+            "residual_us": -33.78326416625998,
+            "relative_residual": -0.3275297933533109
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 110.36749929189682,
+            "predicted_us": 96.94014631361804,
+            "residual_us": -13.427352978278776,
+            "relative_residual": -0.12166038973816462
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 168.34375262260437,
+            "predicted_us": 207.25130136522546,
+            "residual_us": 38.90754874262109,
+            "relative_residual": 0.23111964736728097
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 623.5299706459045,
+            "predicted_us": 648.4959215716551,
+            "residual_us": 24.965950925750576,
+            "relative_residual": 0.04003969672843266
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1253.4849643707275,
+            "predicted_us": 1236.8220818468947,
+            "residual_us": -16.662882523832877,
+            "relative_residual": -0.01329324483137928
+          }
+        ]
+      },
+      "model": "elapsed_us = joint_fixed_us + payload_bytes * us_per_byte",
+      "weighting": "equal weight per observed payload point; no best-run or best-rank selection",
+      "evaluation_relation": "in_sample",
+      "cross_rank_or_topology_extrapolation_supported": false,
+      "mechanism_identification": "joint collective response; intercept is not uniquely notify or switch-hop RTT",
+      "scope": "unprofiled device-event batch elapsed divided by repetitions",
+      "applicability": "Same run protocol, rank, world size, dtype and captured topology; inspect residuals within the payload domain."
+    },
+    {
+      "run_id": "a3-comm-r2-sio-c1",
+      "rank": 1,
+      "collective": "p2p",
+      "dtype": "bfloat16",
+      "dtype_basis": "retained_parent.ranks[rank].protocol.dtype",
+      "world_size": 2,
+      "topology": {
+        "devices": [
+          4,
+          5
+        ],
+        "world_size": 2,
+        "observed_pairs": [
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 5,
+            "link_label": "SIO"
+          },
+          {
+            "source_phy_id": 5,
+            "destination_phy_id": 4,
+            "link_label": "SIO"
+          }
+        ],
+        "basis": "captured_successful_npu_smi_topology",
+        "forwarding_hop_count": null,
+        "topology_levels_of_selected_collective": null,
+        "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
+      },
+      "parent_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c1/a3-comm-r2-sio-c1.parent.json",
+        "sha256": "04862bffafb549fe08cc6696c3fa081d006694101877479a5cb09dee3e608100",
+        "size_bytes": 865545
+      },
+      "point_count": 5,
+      "sample_count": 125,
+      "payload_domain_bytes": {
+        "min": 1048576,
+        "max": 134217728
+      },
+      "point_protocols": [
+        {
+          "payload_bytes": 1048576,
+          "repetitions_per_batch": 32
+        },
+        {
+          "payload_bytes": 4194304,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 16777216,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 67108864,
+          "repetitions_per_batch": 8
+        },
+        {
+          "payload_bytes": 134217728,
+          "repetitions_per_batch": 4
+        }
+      ],
+      "mean_fit": {
+        "statistic": "mean",
+        "joint_fixed_us": 60.21498765767586,
+        "us_per_byte": 6.478155243502559e-06,
+        "effective_payload_bandwidth_gb_s": 154.36493298041555,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 31.47714504683362,
+        "max_abs_relative_residual": 0.38607585105633757,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 109.14675027132034,
+            "predicted_us": 67.0078257702868,
+            "residual_us": -42.13892450103354,
+            "relative_residual": -0.38607585105633757
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 98.79480063915253,
+            "predicted_us": 87.38634010811961,
+            "residual_us": -11.408460531032915,
+            "relative_residual": -0.11547632524410123
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 122.02279984951019,
+            "predicted_us": 168.9003974594509,
+            "residual_us": 46.87759760994069,
+            "relative_residual": 0.38417080797813585
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 471.2691020965576,
+            "predicted_us": 494.95662686477596,
+            "residual_us": 23.68752476821834,
+            "relative_residual": 0.05026326712877749
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 946.7160034179688,
+            "predicted_us": 929.6982660718761,
+            "residual_us": -17.017737346092645,
+            "relative_residual": -0.017975546293347522
+          }
+        ]
+      },
+      "p50_fit": {
+        "statistic": "p50",
+        "joint_fixed_us": 55.85045388441898,
+        "us_per_byte": 6.4966442778354525e-06,
+        "effective_payload_bandwidth_gb_s": 153.92562024854766,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 30.122150304393305,
+        "max_abs_relative_residual": 0.3675706677007533,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 99.08249974250793,
+            "predicted_us": 62.66267915469457,
+            "residual_us": -36.41982058781336,
+            "relative_residual": -0.3675706677007533
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 98.93374890089035,
+            "predicted_us": 83.09935496552133,
+            "residual_us": -15.834393935369022,
+            "relative_residual": -0.16005047934887784
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 121.9249963760376,
+            "predicted_us": 164.84605820882837,
+            "residual_us": 42.92106183279077,
+            "relative_residual": 0.35202840359670673
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 463.9950096607208,
+            "predicted_us": 491.8328711820566,
+            "residual_us": 27.837861521335753,
+            "relative_residual": 0.05999603646964036
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 946.3199973106384,
+            "predicted_us": 927.8152884796941,
+            "residual_us": -18.50470883094431,
+            "relative_residual": -0.019554388455842786
+          }
+        ]
+      },
+      "model": "elapsed_us = joint_fixed_us + payload_bytes * us_per_byte",
+      "weighting": "equal weight per observed payload point; no best-run or best-rank selection",
+      "evaluation_relation": "in_sample",
+      "cross_rank_or_topology_extrapolation_supported": false,
+      "mechanism_identification": "joint collective response; intercept is not uniquely notify or switch-hop RTT",
+      "scope": "unprofiled device-event batch elapsed divided by repetitions",
+      "applicability": "Same run protocol, rank, world size, dtype and captured topology; inspect residuals within the payload domain."
+    },
+    {
+      "run_id": "a3-comm-r2-sio-c2",
+      "rank": 0,
+      "collective": "all_reduce",
+      "dtype": "bfloat16",
+      "dtype_basis": "retained_parent.ranks[rank].protocol.dtype",
+      "world_size": 2,
+      "topology": {
+        "devices": [
+          4,
+          5
+        ],
+        "world_size": 2,
+        "observed_pairs": [
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 5,
+            "link_label": "SIO"
+          },
+          {
+            "source_phy_id": 5,
+            "destination_phy_id": 4,
+            "link_label": "SIO"
+          }
+        ],
+        "basis": "captured_successful_npu_smi_topology",
+        "forwarding_hop_count": null,
+        "topology_levels_of_selected_collective": null,
+        "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
+      },
+      "parent_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c2/a3-comm-r2-sio-c2.parent.json",
+        "sha256": "4e14aacf929fff1abaa22e14c7aab227e6b3cb606741496ab81c8ec2e8c0fa9f",
+        "size_bytes": 878615
+      },
+      "point_count": 5,
+      "sample_count": 125,
+      "payload_domain_bytes": {
+        "min": 1048576,
+        "max": 134217728
+      },
+      "point_protocols": [
+        {
+          "payload_bytes": 1048576,
+          "repetitions_per_batch": 32
+        },
+        {
+          "payload_bytes": 4194304,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 16777216,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 67108864,
+          "repetitions_per_batch": 8
+        },
+        {
+          "payload_bytes": 134217728,
+          "repetitions_per_batch": 4
+        }
+      ],
+      "mean_fit": {
+        "statistic": "mean",
+        "joint_fixed_us": 87.37783485646526,
+        "us_per_byte": 8.670493111299936e-06,
+        "effective_payload_bandwidth_gb_s": 115.33369407753021,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 33.77398397876195,
+        "max_abs_relative_residual": 0.345129284069547,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 141.17015182971954,
+            "predicted_us": 96.46950584113969,
+            "residual_us": -44.70064598857985,
+            "relative_residual": -0.3166437480530452
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 132.59294867515564,
+            "predicted_us": 123.74451879516303,
+            "residual_us": -8.848429879992608,
+            "relative_residual": -0.06673378915247374
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 173.10200095176697,
+            "predicted_us": 232.84457061125633,
+            "residual_us": 59.74256965948936,
+            "relative_residual": 0.345129284069547
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 667.9475975036621,
+            "predicted_us": 669.2447778756296,
+            "residual_us": 1.2971803719674426,
+            "relative_residual": 0.0019420391312363616
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1258.6023950576782,
+            "predicted_us": 1251.111720894794,
+            "residual_us": -7.490674162884261,
+            "relative_residual": -0.0059515810491851395
+          }
+        ]
+      },
+      "p50_fit": {
+        "statistic": "p50",
+        "joint_fixed_us": 80.75322353533261,
+        "us_per_byte": 8.603245274605717e-06,
+        "effective_payload_bandwidth_gb_s": 116.23520753868424,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 36.978320951677844,
+        "max_abs_relative_residual": 0.34632880464873383,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 137.33874261379242,
+            "predicted_us": 89.77438005239758,
+            "residual_us": -47.564362561394844,
+            "relative_residual": -0.34632880464873383
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 132.59124755859375,
+            "predicted_us": 116.83784960359247,
+            "residual_us": -15.753397955001276,
+            "relative_residual": -0.11881174847562737
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 172.25000262260437,
+            "predicted_us": 225.09172780837204,
+            "residual_us": 52.84172518576767,
+            "relative_residual": 0.30677343617545616
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 625.6725192070007,
+            "predicted_us": 658.1072406274903,
+            "residual_us": 32.43472142048961,
+            "relative_residual": 0.051839773083846685
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1257.4199438095093,
+            "predicted_us": 1235.461257719648,
+            "residual_us": -21.958686089861203,
+            "relative_residual": -0.01746328758181981
+          }
+        ]
+      },
+      "model": "elapsed_us = joint_fixed_us + payload_bytes * us_per_byte",
+      "weighting": "equal weight per observed payload point; no best-run or best-rank selection",
+      "evaluation_relation": "in_sample",
+      "cross_rank_or_topology_extrapolation_supported": false,
+      "mechanism_identification": "joint collective response; intercept is not uniquely notify or switch-hop RTT",
+      "scope": "unprofiled device-event batch elapsed divided by repetitions",
+      "applicability": "Same run protocol, rank, world size, dtype and captured topology; inspect residuals within the payload domain."
+    },
+    {
+      "run_id": "a3-comm-r2-sio-c2",
+      "rank": 0,
+      "collective": "p2p",
+      "dtype": "bfloat16",
+      "dtype_basis": "retained_parent.ranks[rank].protocol.dtype",
+      "world_size": 2,
+      "topology": {
+        "devices": [
+          4,
+          5
+        ],
+        "world_size": 2,
+        "observed_pairs": [
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 5,
+            "link_label": "SIO"
+          },
+          {
+            "source_phy_id": 5,
+            "destination_phy_id": 4,
+            "link_label": "SIO"
+          }
+        ],
+        "basis": "captured_successful_npu_smi_topology",
+        "forwarding_hop_count": null,
+        "topology_levels_of_selected_collective": null,
+        "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
+      },
+      "parent_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c2/a3-comm-r2-sio-c2.parent.json",
+        "sha256": "4e14aacf929fff1abaa22e14c7aab227e6b3cb606741496ab81c8ec2e8c0fa9f",
+        "size_bytes": 878615
+      },
+      "point_count": 5,
+      "sample_count": 125,
+      "payload_domain_bytes": {
+        "min": 1048576,
+        "max": 134217728
+      },
+      "point_protocols": [
+        {
+          "payload_bytes": 1048576,
+          "repetitions_per_batch": 32
+        },
+        {
+          "payload_bytes": 4194304,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 16777216,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 67108864,
+          "repetitions_per_batch": 8
+        },
+        {
+          "payload_bytes": 134217728,
+          "repetitions_per_batch": 4
+        }
+      ],
+      "mean_fit": {
+        "statistic": "mean",
+        "joint_fixed_us": 88.51204888142519,
+        "us_per_byte": 6.105793146076716e-06,
+        "effective_payload_bandwidth_gb_s": 163.77888606372966,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 38.05849283106086,
+        "max_abs_relative_residual": 0.4334168519881503,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 135.44772386550903,
+            "predicted_us": 94.91443703536572,
+            "residual_us": -40.53328683014331,
+            "relative_residual": -0.2992541009429607
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 141.35615199804306,
+            "predicted_us": 114.12160149718734,
+            "residual_us": -27.23455050085572,
+            "relative_residual": -0.19266618478149256
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 133.21334898471832,
+            "predicted_us": 190.9502593444738,
+            "residual_us": 57.736910359755484,
+            "relative_residual": 0.4334168519881503
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 466.10430121421814,
+            "predicted_us": 498.26489073361967,
+            "residual_us": 32.160589519401526,
+            "relative_residual": 0.06899869714916185
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 930.1473951339722,
+            "predicted_us": 908.0177325858142,
+            "residual_us": -22.129662548157967,
+            "relative_residual": -0.023791565362574096
+          }
+        ]
+      },
+      "p50_fit": {
+        "statistic": "p50",
+        "joint_fixed_us": 85.82135186255636,
+        "us_per_byte": 6.1210898116045225e-06,
+        "effective_payload_bandwidth_gb_s": 163.36960096618316,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 36.65605661443898,
+        "max_abs_relative_residual": 0.4128603795271013,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 134.70062613487244,
+            "predicted_us": 92.23977973284939,
+            "residual_us": -42.46084640202305,
+            "relative_residual": -0.3152238235292837
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 133.6050033569336,
+            "predicted_us": 111.49506334372845,
+            "residual_us": -22.109940013205147,
+            "relative_residual": -0.16548736542550846
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 133.42875242233276,
+            "predicted_us": 188.51619778724472,
+            "residual_us": 55.08744536491196,
+            "relative_residual": 0.4128603795271013
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 465.9075140953064,
+            "predicted_us": 496.6007355613099,
+            "residual_us": 30.69322146600348,
+            "relative_residual": 0.06587835683569776
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 928.5899996757507,
+            "predicted_us": 907.3801192600633,
+            "residual_us": -21.209880415687394,
+            "relative_residual": -0.022840952867351105
+          }
+        ]
+      },
+      "model": "elapsed_us = joint_fixed_us + payload_bytes * us_per_byte",
+      "weighting": "equal weight per observed payload point; no best-run or best-rank selection",
+      "evaluation_relation": "in_sample",
+      "cross_rank_or_topology_extrapolation_supported": false,
+      "mechanism_identification": "joint collective response; intercept is not uniquely notify or switch-hop RTT",
+      "scope": "unprofiled device-event batch elapsed divided by repetitions",
+      "applicability": "Same run protocol, rank, world size, dtype and captured topology; inspect residuals within the payload domain."
+    },
+    {
+      "run_id": "a3-comm-r2-sio-c2",
+      "rank": 1,
+      "collective": "all_reduce",
+      "dtype": "bfloat16",
+      "dtype_basis": "retained_parent.ranks[rank].protocol.dtype",
+      "world_size": 2,
+      "topology": {
+        "devices": [
+          4,
+          5
+        ],
+        "world_size": 2,
+        "observed_pairs": [
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 5,
+            "link_label": "SIO"
+          },
+          {
+            "source_phy_id": 5,
+            "destination_phy_id": 4,
+            "link_label": "SIO"
+          }
+        ],
+        "basis": "captured_successful_npu_smi_topology",
+        "forwarding_hop_count": null,
+        "topology_levels_of_selected_collective": null,
+        "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
+      },
+      "parent_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c2/a3-comm-r2-sio-c2.parent.json",
+        "sha256": "4e14aacf929fff1abaa22e14c7aab227e6b3cb606741496ab81c8ec2e8c0fa9f",
+        "size_bytes": 878615
+      },
+      "point_count": 5,
+      "sample_count": 125,
+      "payload_domain_bytes": {
+        "min": 1048576,
+        "max": 134217728
+      },
+      "point_protocols": [
+        {
+          "payload_bytes": 1048576,
+          "repetitions_per_batch": 32
+        },
+        {
+          "payload_bytes": 4194304,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 16777216,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 67108864,
+          "repetitions_per_batch": 8
+        },
+        {
+          "payload_bytes": 134217728,
+          "repetitions_per_batch": 4
+        }
+      ],
+      "mean_fit": {
+        "statistic": "mean",
+        "joint_fixed_us": 86.3672302052745,
+        "us_per_byte": 8.628076974500119e-06,
+        "effective_payload_bandwidth_gb_s": 115.90068134017042,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 34.70034450786917,
+        "max_abs_relative_residual": 0.3517606304608327,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 140.62692523002625,
+            "predicted_us": 95.41442464688794,
+            "residual_us": -45.21250058313831,
+            "relative_residual": -0.32150671366229
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 135.10440051555634,
+            "predicted_us": 122.55600797172823,
+            "residual_us": -12.5483925438281,
+            "relative_residual": -0.09287922892180878
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 170.97874879837036,
+            "predicted_us": 231.12234127108948,
+            "residual_us": 60.14359247271912,
+            "relative_residual": 0.3517606304608327
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 656.6078948974609,
+            "predicted_us": 665.3876744685344,
+            "residual_us": 8.779779571073504,
+            "relative_residual": 0.013371419441194243
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1255.5705976486206,
+            "predicted_us": 1244.4081187317943,
+            "residual_us": -11.16247891682633,
+            "relative_residual": -0.008890363423395664
+          }
+        ]
+      },
+      "p50_fit": {
+        "statistic": "p50",
+        "joint_fixed_us": 82.87286218371867,
+        "us_per_byte": 8.537058738572145e-06,
+        "effective_payload_bandwidth_gb_s": 117.13636167006784,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 40.72524550371653,
+        "max_abs_relative_residual": 0.3633321486277893,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 144.22687888145447,
+            "predicted_us": 91.82461708757569,
+            "residual_us": -52.40226179387878,
+            "relative_residual": -0.3633321486277893
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 135.44625043869019,
+            "predicted_us": 118.67988179914677,
+            "residual_us": -16.766368639543415,
+            "relative_residual": -0.12378614088791418
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 170.25500535964966,
+            "predicted_us": 226.10094064543108,
+            "residual_us": 55.84593528578142,
+            "relative_residual": 0.32801347113297186
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 617.044985294342,
+            "predicted_us": 655.7851760305683,
+            "residual_us": 38.74019073622628,
+            "relative_residual": 0.06278341394792553
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1254.1149854660034,
+            "predicted_us": 1228.6974898774179,
+            "residual_us": -25.417495588585552,
+            "relative_residual": -0.020267276831191783
+          }
+        ]
+      },
+      "model": "elapsed_us = joint_fixed_us + payload_bytes * us_per_byte",
+      "weighting": "equal weight per observed payload point; no best-run or best-rank selection",
+      "evaluation_relation": "in_sample",
+      "cross_rank_or_topology_extrapolation_supported": false,
+      "mechanism_identification": "joint collective response; intercept is not uniquely notify or switch-hop RTT",
+      "scope": "unprofiled device-event batch elapsed divided by repetitions",
+      "applicability": "Same run protocol, rank, world size, dtype and captured topology; inspect residuals within the payload domain."
+    },
+    {
+      "run_id": "a3-comm-r2-sio-c2",
+      "rank": 1,
+      "collective": "p2p",
+      "dtype": "bfloat16",
+      "dtype_basis": "retained_parent.ranks[rank].protocol.dtype",
+      "world_size": 2,
+      "topology": {
+        "devices": [
+          4,
+          5
+        ],
+        "world_size": 2,
+        "observed_pairs": [
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 5,
+            "link_label": "SIO"
+          },
+          {
+            "source_phy_id": 5,
+            "destination_phy_id": 4,
+            "link_label": "SIO"
+          }
+        ],
+        "basis": "captured_successful_npu_smi_topology",
+        "forwarding_hop_count": null,
+        "topology_levels_of_selected_collective": null,
+        "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
+      },
+      "parent_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c2/a3-comm-r2-sio-c2.parent.json",
+        "sha256": "4e14aacf929fff1abaa22e14c7aab227e6b3cb606741496ab81c8ec2e8c0fa9f",
+        "size_bytes": 878615
+      },
+      "point_count": 5,
+      "sample_count": 125,
+      "payload_domain_bytes": {
+        "min": 1048576,
+        "max": 134217728
+      },
+      "point_protocols": [
+        {
+          "payload_bytes": 1048576,
+          "repetitions_per_batch": 32
+        },
+        {
+          "payload_bytes": 4194304,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 16777216,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 67108864,
+          "repetitions_per_batch": 8
+        },
+        {
+          "payload_bytes": 134217728,
+          "repetitions_per_batch": 4
+        }
+      ],
+      "mean_fit": {
+        "statistic": "mean",
+        "joint_fixed_us": 94.8562409978071,
+        "us_per_byte": 6.006610634590724e-06,
+        "effective_payload_bandwidth_gb_s": 166.4832400224553,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 40.09829329253706,
+        "max_abs_relative_residual": 0.44621555833304005,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 143.7461495399475,
+            "predicted_us": 101.15462875058371,
+            "residual_us": -42.5915207893638,
+            "relative_residual": -0.2962967768227244
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 148.80625188350677,
+            "predicted_us": 120.04979200891351,
+            "residual_us": -28.75645987459326,
+            "relative_residual": -0.19324765935980504
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 135.2705991268158,
+            "predicted_us": 195.63044504223274,
+            "residual_us": 60.35984591541694,
+            "relative_residual": 0.44621555833304005
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 463.34959745407104,
+            "predicted_us": 497.9530571755097,
+            "residual_us": 34.60345972143864,
+            "relative_residual": 0.07468110453008148
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 924.6651983261108,
+            "predicted_us": 901.0498733532122,
+            "residual_us": -23.615324972898634,
+            "relative_residual": -0.025539324953127496
+          }
+        ]
+      },
+      "p50_fit": {
+        "statistic": "p50",
+        "joint_fixed_us": 91.62004531109625,
+        "us_per_byte": 6.024643299268216e-06,
+        "effective_payload_bandwidth_gb_s": 165.98493061347966,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 39.65866068093069,
+        "max_abs_relative_residual": 0.45368457052766686,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 143.34186911582947,
+            "predicted_us": 97.93734168326972,
+            "residual_us": -45.404527432559746,
+            "relative_residual": -0.31675690928705524
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 141.53499901294708,
+            "predicted_us": 116.88923079979013,
+            "residual_us": -24.645768213156956,
+            "relative_residual": -0.17413197007831582
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 132.55749642848969,
+            "predicted_us": 192.69678726587176,
+            "residual_us": 60.13929083738208,
+            "relative_residual": 0.45368457052766686
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 463.3199870586395,
+            "predicted_us": 495.92701313019825,
+            "residual_us": 32.60702607155872,
+            "relative_residual": 0.07037690361376936
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 922.9300022125244,
+            "predicted_us": 900.2339809493003,
+            "residual_us": -22.69602126322411,
+            "relative_residual": -0.024591270420091793
+          }
+        ]
+      },
+      "model": "elapsed_us = joint_fixed_us + payload_bytes * us_per_byte",
+      "weighting": "equal weight per observed payload point; no best-run or best-rank selection",
+      "evaluation_relation": "in_sample",
+      "cross_rank_or_topology_extrapolation_supported": false,
+      "mechanism_identification": "joint collective response; intercept is not uniquely notify or switch-hop RTT",
+      "scope": "unprofiled device-event batch elapsed divided by repetitions",
+      "applicability": "Same run protocol, rank, world size, dtype and captured topology; inspect residuals within the payload domain."
+    },
+    {
+      "run_id": "a3-comm-r2-hccssw-c1",
+      "rank": 0,
+      "collective": "all_reduce",
+      "dtype": "bfloat16",
+      "dtype_basis": "retained_parent.ranks[rank].protocol.dtype",
+      "world_size": 2,
+      "topology": {
+        "devices": [
+          4,
+          6
+        ],
+        "world_size": 2,
+        "observed_pairs": [
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 6,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 6,
+            "destination_phy_id": 4,
+            "link_label": "HCCS_SW"
+          }
+        ],
+        "basis": "captured_successful_npu_smi_topology",
+        "forwarding_hop_count": null,
+        "topology_levels_of_selected_collective": null,
+        "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
+      },
+      "parent_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-hccssw-c1/a3-comm-r2-hccssw-c1.parent.json",
+        "sha256": "f7444c424169d806719fe6ba21660cd71f0c6ca14301d4af993260730844d8a7",
+        "size_bytes": 880504
+      },
+      "point_count": 5,
+      "sample_count": 125,
+      "payload_domain_bytes": {
+        "min": 1048576,
+        "max": 134217728
+      },
+      "point_protocols": [
+        {
+          "payload_bytes": 1048576,
+          "repetitions_per_batch": 32
+        },
+        {
+          "payload_bytes": 4194304,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 16777216,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 67108864,
+          "repetitions_per_batch": 8
+        },
+        {
+          "payload_bytes": 134217728,
+          "repetitions_per_batch": 4
+        }
+      ],
+      "mean_fit": {
+        "statistic": "mean",
+        "joint_fixed_us": 81.38315045294758,
+        "us_per_byte": 9.537875570485396e-06,
+        "effective_payload_bandwidth_gb_s": 104.84515053797337,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 18.461023424587225,
+        "max_abs_relative_residual": 0.2291190075211188,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 118.5453251004219,
+            "predicted_us": 91.38433786714486,
+            "residual_us": -27.16098723327704,
+            "relative_residual": -0.2291190075211188
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 124.0563502907753,
+            "predicted_us": 121.38790010973676,
+            "residual_us": -2.668450181038537,
+            "relative_residual": -0.021509984573816365
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 215.76640129089355,
+            "predicted_us": 241.4021490801043,
+            "residual_us": 25.63574778921074,
+            "relative_residual": 0.11881251036230123
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 707.2539973258972,
+            "predicted_us": 721.4591449615745,
+            "residual_us": 14.205147635677235,
+            "relative_residual": 0.020084930858484284
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1371.546597480774,
+            "predicted_us": 1361.5351394702013,
+            "residual_us": -10.011458010572596,
+            "relative_residual": -0.0072993932754172874
+          }
+        ]
+      },
+      "p50_fit": {
+        "statistic": "p50",
+        "joint_fixed_us": 73.80712595870659,
+        "us_per_byte": 9.570401726174204e-06,
+        "effective_payload_bandwidth_gb_s": 104.48882174560012,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 25.903270620405397,
+        "max_abs_relative_residual": 0.2890681052158195,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 117.93312430381775,
+            "predicted_us": 83.84241951913144,
+            "residual_us": -34.09070478468631,
+            "relative_residual": -0.2890681052158195
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 124.26750361919403,
+            "predicted_us": 113.94830020040595,
+            "residual_us": -10.319203418788078,
+            "relative_residual": -0.0830402407568297
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 194.28250193595886,
+            "predicted_us": 234.37182292550406,
+            "residual_us": 40.0893209895452,
+            "relative_residual": 0.2063455050767249
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 698.5800266265869,
+            "predicted_us": 716.0659138258965,
+            "residual_us": 17.48588719930956,
+            "relative_residual": 0.02503061429303699
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1371.4900016784668,
+            "predicted_us": 1358.3247016930864,
+            "residual_us": -13.165299985380443,
+            "relative_residual": -0.009599267927049016
+          }
+        ]
+      },
+      "model": "elapsed_us = joint_fixed_us + payload_bytes * us_per_byte",
+      "weighting": "equal weight per observed payload point; no best-run or best-rank selection",
+      "evaluation_relation": "in_sample",
+      "cross_rank_or_topology_extrapolation_supported": false,
+      "mechanism_identification": "joint collective response; intercept is not uniquely notify or switch-hop RTT",
+      "scope": "unprofiled device-event batch elapsed divided by repetitions",
+      "applicability": "Same run protocol, rank, world size, dtype and captured topology; inspect residuals within the payload domain."
+    },
+    {
+      "run_id": "a3-comm-r2-hccssw-c1",
+      "rank": 0,
+      "collective": "p2p",
+      "dtype": "bfloat16",
+      "dtype_basis": "retained_parent.ranks[rank].protocol.dtype",
+      "world_size": 2,
+      "topology": {
+        "devices": [
+          4,
+          6
+        ],
+        "world_size": 2,
+        "observed_pairs": [
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 6,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 6,
+            "destination_phy_id": 4,
+            "link_label": "HCCS_SW"
+          }
+        ],
+        "basis": "captured_successful_npu_smi_topology",
+        "forwarding_hop_count": null,
+        "topology_levels_of_selected_collective": null,
+        "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
+      },
+      "parent_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-hccssw-c1/a3-comm-r2-hccssw-c1.parent.json",
+        "sha256": "f7444c424169d806719fe6ba21660cd71f0c6ca14301d4af993260730844d8a7",
+        "size_bytes": 880504
+      },
+      "point_count": 5,
+      "sample_count": 125,
+      "payload_domain_bytes": {
+        "min": 1048576,
+        "max": 134217728
+      },
+      "point_protocols": [
+        {
+          "payload_bytes": 1048576,
+          "repetitions_per_batch": 32
+        },
+        {
+          "payload_bytes": 4194304,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 16777216,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 67108864,
+          "repetitions_per_batch": 8
+        },
+        {
+          "payload_bytes": 134217728,
+          "repetitions_per_batch": 4
+        }
+      ],
+      "mean_fit": {
+        "statistic": "mean",
+        "joint_fixed_us": 74.4835799562681,
+        "us_per_byte": 7.764655031400505e-06,
+        "effective_payload_bandwidth_gb_s": 128.78872222345606,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 34.251913838446576,
+        "max_abs_relative_residual": 0.34989804903659705,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 124.54747438430786,
+            "predicted_us": 82.62541087047391,
+            "residual_us": -41.92206351383395,
+            "relative_residual": -0.33659505117283894
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 125.03395080566406,
+            "predicted_us": 107.05090361309136,
+            "residual_us": -17.9830471925727,
+            "relative_residual": -0.1438253136583929
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 151.68025076389313,
+            "predicted_us": 204.75287458356115,
+            "residual_us": 53.072623819668024,
+            "relative_residual": 0.34989804903659705
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 570.4066014289856,
+            "predicted_us": 595.5607584654404,
+            "residual_us": 25.154157036454762,
+            "relative_residual": 0.04409864292145005
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1134.9596071243286,
+            "predicted_us": 1116.6379369746126,
+            "residual_us": -18.321670149716056,
+            "relative_residual": -0.016143015165216323
+          }
+        ]
+      },
+      "p50_fit": {
+        "statistic": "p50",
+        "joint_fixed_us": 74.34419699661885,
+        "us_per_byte": 7.754811776828686e-06,
+        "effective_payload_bandwidth_gb_s": 128.95219494404645,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 34.212077930789874,
+        "max_abs_relative_residual": 0.3503297127382061,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 124.47500228881836,
+            "predicted_us": 82.47570651031876,
+            "residual_us": -41.9992957784996,
+            "relative_residual": -0.3374114883006708
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 124.66874718666077,
+            "predicted_us": 106.87023505141852,
+            "residual_us": -17.798512135242248,
+            "relative_residual": -0.14276643133818745
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 151.40624344348907,
+            "predicted_us": 204.4483492158175,
+            "residual_us": 53.042105772328426,
+            "relative_residual": 0.3503297127382061
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 569.7575211524963,
+            "predicted_us": 594.7608058734135,
+            "residual_us": 25.003284720917122,
+            "relative_residual": 0.043884080144025006
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1133.424997329712,
+            "predicted_us": 1115.177414750208,
+            "residual_us": -18.24758257950384,
+            "relative_residual": -0.016099506030389454
+          }
+        ]
+      },
+      "model": "elapsed_us = joint_fixed_us + payload_bytes * us_per_byte",
+      "weighting": "equal weight per observed payload point; no best-run or best-rank selection",
+      "evaluation_relation": "in_sample",
+      "cross_rank_or_topology_extrapolation_supported": false,
+      "mechanism_identification": "joint collective response; intercept is not uniquely notify or switch-hop RTT",
+      "scope": "unprofiled device-event batch elapsed divided by repetitions",
+      "applicability": "Same run protocol, rank, world size, dtype and captured topology; inspect residuals within the payload domain."
+    },
+    {
+      "run_id": "a3-comm-r2-hccssw-c1",
+      "rank": 1,
+      "collective": "all_reduce",
+      "dtype": "bfloat16",
+      "dtype_basis": "retained_parent.ranks[rank].protocol.dtype",
+      "world_size": 2,
+      "topology": {
+        "devices": [
+          4,
+          6
+        ],
+        "world_size": 2,
+        "observed_pairs": [
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 6,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 6,
+            "destination_phy_id": 4,
+            "link_label": "HCCS_SW"
+          }
+        ],
+        "basis": "captured_successful_npu_smi_topology",
+        "forwarding_hop_count": null,
+        "topology_levels_of_selected_collective": null,
+        "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
+      },
+      "parent_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-hccssw-c1/a3-comm-r2-hccssw-c1.parent.json",
+        "sha256": "f7444c424169d806719fe6ba21660cd71f0c6ca14301d4af993260730844d8a7",
+        "size_bytes": 880504
+      },
+      "point_count": 5,
+      "sample_count": 125,
+      "payload_domain_bytes": {
+        "min": 1048576,
+        "max": 134217728
+      },
+      "point_protocols": [
+        {
+          "payload_bytes": 1048576,
+          "repetitions_per_batch": 32
+        },
+        {
+          "payload_bytes": 4194304,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 16777216,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 67108864,
+          "repetitions_per_batch": 8
+        },
+        {
+          "payload_bytes": 134217728,
+          "repetitions_per_batch": 4
+        }
+      ],
+      "mean_fit": {
+        "statistic": "mean",
+        "joint_fixed_us": 82.95989229369798,
+        "us_per_byte": 9.48170197734135e-06,
+        "effective_payload_bandwidth_gb_s": 105.46629733667267,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 20.75342457668515,
+        "max_abs_relative_residual": 0.24772154654702605,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 123.49440157413483,
+            "predicted_us": 92.90217742629066,
+            "residual_us": -30.592224147844163,
+            "relative_residual": -0.24772154654702605
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 125.71179986000061,
+            "predicted_us": 122.72903282406871,
+            "residual_us": -2.9827670359319,
+            "relative_residual": -0.023727025142060376
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 212.67170071601868,
+            "predicted_us": 242.0364544151809,
+            "residual_us": 29.364753699162236,
+            "relative_residual": 0.1380755107534175
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 704.1689038276672,
+            "predicted_us": 719.2661407796297,
+            "residual_us": 15.097236951962486,
+            "relative_residual": 0.021439795012103025
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1366.4593887329102,
+            "predicted_us": 1355.5723892655615,
+            "residual_us": -10.886999467348687,
+            "relative_residual": -0.007967305546814685
+          }
+        ]
+      },
+      "p50_fit": {
+        "statistic": "p50",
+        "joint_fixed_us": 75.88766048821788,
+        "us_per_byte": 9.507631143689378e-06,
+        "effective_payload_bandwidth_gb_s": 105.17867015315827,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 26.96883221852321,
+        "max_abs_relative_residual": 0.29571179641243217,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 121.90625071525574,
+            "predicted_us": 85.85713432234311,
+            "residual_us": -36.04911639291262,
+            "relative_residual": -0.29571179641243217
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 125.69500505924225,
+            "predicted_us": 115.7655558247188,
+            "residual_us": -9.929449234523446,
+            "relative_residual": -0.07899637085692879
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 193.69250535964966,
+            "predicted_us": 235.3992418342216,
+            "residual_us": 41.706736474571954,
+            "relative_residual": 0.21532447214274275
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 696.1475014686584,
+            "predicted_us": 713.9339858722328,
+            "residual_us": 17.786484403574377,
+            "relative_residual": 0.02554987896394123
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1365.494966506958,
+            "predicted_us": 1351.9803112562477,
+            "residual_us": -13.514655250710348,
+            "relative_residual": -0.00989725746502157
+          }
+        ]
+      },
+      "model": "elapsed_us = joint_fixed_us + payload_bytes * us_per_byte",
+      "weighting": "equal weight per observed payload point; no best-run or best-rank selection",
+      "evaluation_relation": "in_sample",
+      "cross_rank_or_topology_extrapolation_supported": false,
+      "mechanism_identification": "joint collective response; intercept is not uniquely notify or switch-hop RTT",
+      "scope": "unprofiled device-event batch elapsed divided by repetitions",
+      "applicability": "Same run protocol, rank, world size, dtype and captured topology; inspect residuals within the payload domain."
+    },
+    {
+      "run_id": "a3-comm-r2-hccssw-c1",
+      "rank": 1,
+      "collective": "p2p",
+      "dtype": "bfloat16",
+      "dtype_basis": "retained_parent.ranks[rank].protocol.dtype",
+      "world_size": 2,
+      "topology": {
+        "devices": [
+          4,
+          6
+        ],
+        "world_size": 2,
+        "observed_pairs": [
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 6,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 6,
+            "destination_phy_id": 4,
+            "link_label": "HCCS_SW"
+          }
+        ],
+        "basis": "captured_successful_npu_smi_topology",
+        "forwarding_hop_count": null,
+        "topology_levels_of_selected_collective": null,
+        "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
+      },
+      "parent_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-hccssw-c1/a3-comm-r2-hccssw-c1.parent.json",
+        "sha256": "f7444c424169d806719fe6ba21660cd71f0c6ca14301d4af993260730844d8a7",
+        "size_bytes": 880504
+      },
+      "point_count": 5,
+      "sample_count": 125,
+      "payload_domain_bytes": {
+        "min": 1048576,
+        "max": 134217728
+      },
+      "point_protocols": [
+        {
+          "payload_bytes": 1048576,
+          "repetitions_per_batch": 32
+        },
+        {
+          "payload_bytes": 4194304,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 16777216,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 67108864,
+          "repetitions_per_batch": 8
+        },
+        {
+          "payload_bytes": 134217728,
+          "repetitions_per_batch": 4
+        }
+      ],
+      "mean_fit": {
+        "statistic": "mean",
+        "joint_fixed_us": 77.20046995171816,
+        "us_per_byte": 7.688162654287439e-06,
+        "effective_payload_bandwidth_gb_s": 130.07008891029804,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 35.99653098808235,
+        "max_abs_relative_residual": 0.3744429309027204,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 130.04142463207245,
+            "predicted_us": 85.26209279510027,
+            "residual_us": -44.779331836972176,
+            "relative_residual": -0.344346672328966
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 127.4058485031128,
+            "predicted_us": 109.44696132524658,
+            "residual_us": -17.958887177866217,
+            "relative_residual": -0.1409581066243395
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 150.01454830169678,
+            "predicted_us": 206.18643544583185,
+            "residual_us": 56.17188714413507,
+            "relative_residual": 0.3744429309027204
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 567.7908039093018,
+            "predicted_us": 593.144331928173,
+            "residual_us": 25.353528018871202,
+            "relative_residual": 0.04465293880124399
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1127.8753900527954,
+            "predicted_us": 1109.0881939046276,
+            "residual_us": -18.787196148167823,
+            "relative_residual": -0.016657155847055405
+          }
+        ]
+      },
+      "p50_fit": {
+        "statistic": "p50",
+        "joint_fixed_us": 76.91307914570206,
+        "us_per_byte": 7.682796181371993e-06,
+        "effective_payload_bandwidth_gb_s": 130.16094354092576,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 36.026308394744014,
+        "max_abs_relative_residual": 0.3730212056970412,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 130.06499409675598,
+            "predicted_us": 84.96907483438038,
+            "residual_us": -45.0959192623756,
+            "relative_residual": -0.34671834320638595
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 126.72500312328339,
+            "predicted_us": 109.13706190041533,
+            "residual_us": -17.587941222868054,
+            "relative_residual": -0.13878824848603688
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 149.89499747753143,
+            "predicted_us": 205.80901016455516,
+            "residual_us": 55.91401268702373,
+            "relative_residual": 0.3730212056970412
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 566.7824745178223,
+            "predicted_us": 592.4968032211145,
+            "residual_us": 25.714328703292267,
+            "relative_residual": 0.0453689552154346
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1127.0250082015991,
+            "predicted_us": 1108.080527296527,
+            "residual_us": -18.94448090507217,
+            "relative_residual": -0.01680928175258689
+          }
+        ]
+      },
+      "model": "elapsed_us = joint_fixed_us + payload_bytes * us_per_byte",
+      "weighting": "equal weight per observed payload point; no best-run or best-rank selection",
+      "evaluation_relation": "in_sample",
+      "cross_rank_or_topology_extrapolation_supported": false,
+      "mechanism_identification": "joint collective response; intercept is not uniquely notify or switch-hop RTT",
+      "scope": "unprofiled device-event batch elapsed divided by repetitions",
+      "applicability": "Same run protocol, rank, world size, dtype and captured topology; inspect residuals within the payload domain."
+    },
+    {
+      "run_id": "a3-comm-r4-pkg2pkg3-c1",
+      "rank": 0,
+      "collective": "all_reduce",
+      "dtype": "bfloat16",
+      "dtype_basis": "retained_parent.ranks[rank].protocol.dtype",
+      "world_size": 4,
+      "topology": {
+        "devices": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "world_size": 4,
+        "observed_pairs": [
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 5,
+            "link_label": "SIO"
+          },
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 6,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 7,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 5,
+            "destination_phy_id": 4,
+            "link_label": "SIO"
+          },
+          {
+            "source_phy_id": 5,
+            "destination_phy_id": 6,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 5,
+            "destination_phy_id": 7,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 6,
+            "destination_phy_id": 4,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 6,
+            "destination_phy_id": 5,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 6,
+            "destination_phy_id": 7,
+            "link_label": "SIO"
+          },
+          {
+            "source_phy_id": 7,
+            "destination_phy_id": 4,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 7,
+            "destination_phy_id": 5,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 7,
+            "destination_phy_id": 6,
+            "link_label": "SIO"
+          }
+        ],
+        "basis": "captured_successful_npu_smi_topology",
+        "forwarding_hop_count": null,
+        "topology_levels_of_selected_collective": null,
+        "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
+      },
+      "parent_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r4-pkg2pkg3-c1/a3-comm-r4-pkg2pkg3-c1.parent.json",
+        "sha256": "401a9924682572ded8d1f213663099da0d13ab34c80f95f63e7304a06dff8d77",
+        "size_bytes": 603627
+      },
+      "point_count": 5,
+      "sample_count": 125,
+      "payload_domain_bytes": {
+        "min": 1048576,
+        "max": 134217728
+      },
+      "point_protocols": [
+        {
+          "payload_bytes": 1048576,
+          "repetitions_per_batch": 32
+        },
+        {
+          "payload_bytes": 4194304,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 16777216,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 67108864,
+          "repetitions_per_batch": 8
+        },
+        {
+          "payload_bytes": 134217728,
+          "repetitions_per_batch": 4
+        }
+      ],
+      "mean_fit": {
+        "statistic": "mean",
+        "joint_fixed_us": 108.65392866071528,
+        "us_per_byte": 7.24766820528928e-06,
+        "effective_payload_bandwidth_gb_s": 137.9754110805196,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 19.74986608906803,
+        "max_abs_relative_residual": 0.18435008838026368,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 115.65937519073486,
+            "predicted_us": 116.2536595967447,
+            "residual_us": 0.5942844060098338,
+            "relative_residual": 0.005138229434749952
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 170.48104882240295,
+            "predicted_us": 139.05285240483292,
+            "residual_us": -31.428196417570035,
+            "relative_residual": -0.18435008838026368
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 203.87600183486938,
+            "predicted_us": 230.2496236371859,
+            "residual_us": 26.373621802316507,
+            "relative_residual": 0.12936108990246908
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 581.4776992797852,
+            "predicted_us": 595.0367085665977,
+            "residual_us": 13.559009286812511,
+            "relative_residual": 0.023318193120057007
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1090.5182075500488,
+            "predicted_us": 1081.41948847248,
+            "residual_us": -9.09871907756883,
+            "relative_residual": -0.008343482038699723
+          }
+        ]
+      },
+      "p50_fit": {
+        "statistic": "p50",
+        "joint_fixed_us": 106.71467160794197,
+        "us_per_byte": 7.25146634570491e-06,
+        "effective_payload_bandwidth_gb_s": 137.9031429405042,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 19.932006675869918,
+        "max_abs_relative_residual": 0.18863669847184805,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 113.45062404870987,
+            "predicted_us": 114.31838518285583,
+            "residual_us": 0.8677611341459652,
+            "relative_residual": 0.007648800008128509
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 169.01125013828278,
+            "predicted_us": 137.12952590759744,
+            "residual_us": -31.881724230685336,
+            "relative_residual": -0.18863669847184805
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 201.08750462532043,
+            "predicted_us": 228.37408880656392,
+            "residual_us": 27.286584181243484,
+            "relative_residual": 0.13569507579342455
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 581.0549855232239,
+            "predicted_us": 593.3523404024297,
+            "residual_us": 12.297354879205841,
+            "relative_residual": 0.021163840231286146
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1088.5599851608276,
+            "predicted_us": 1079.9900091969175,
+            "residual_us": -8.56997596391011,
+            "relative_residual": -0.007872764092687001
+          }
+        ]
+      },
+      "model": "elapsed_us = joint_fixed_us + payload_bytes * us_per_byte",
+      "weighting": "equal weight per observed payload point; no best-run or best-rank selection",
+      "evaluation_relation": "in_sample",
+      "cross_rank_or_topology_extrapolation_supported": false,
+      "mechanism_identification": "joint collective response; intercept is not uniquely notify or switch-hop RTT",
+      "scope": "unprofiled device-event batch elapsed divided by repetitions",
+      "applicability": "Same run protocol, rank, world size, dtype and captured topology; inspect residuals within the payload domain."
+    },
+    {
+      "run_id": "a3-comm-r4-pkg2pkg3-c1",
+      "rank": 1,
+      "collective": "all_reduce",
+      "dtype": "bfloat16",
+      "dtype_basis": "retained_parent.ranks[rank].protocol.dtype",
+      "world_size": 4,
+      "topology": {
+        "devices": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "world_size": 4,
+        "observed_pairs": [
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 5,
+            "link_label": "SIO"
+          },
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 6,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 7,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 5,
+            "destination_phy_id": 4,
+            "link_label": "SIO"
+          },
+          {
+            "source_phy_id": 5,
+            "destination_phy_id": 6,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 5,
+            "destination_phy_id": 7,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 6,
+            "destination_phy_id": 4,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 6,
+            "destination_phy_id": 5,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 6,
+            "destination_phy_id": 7,
+            "link_label": "SIO"
+          },
+          {
+            "source_phy_id": 7,
+            "destination_phy_id": 4,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 7,
+            "destination_phy_id": 5,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 7,
+            "destination_phy_id": 6,
+            "link_label": "SIO"
+          }
+        ],
+        "basis": "captured_successful_npu_smi_topology",
+        "forwarding_hop_count": null,
+        "topology_levels_of_selected_collective": null,
+        "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
+      },
+      "parent_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r4-pkg2pkg3-c1/a3-comm-r4-pkg2pkg3-c1.parent.json",
+        "sha256": "401a9924682572ded8d1f213663099da0d13ab34c80f95f63e7304a06dff8d77",
+        "size_bytes": 603627
+      },
+      "point_count": 5,
+      "sample_count": 125,
+      "payload_domain_bytes": {
+        "min": 1048576,
+        "max": 134217728
+      },
+      "point_protocols": [
+        {
+          "payload_bytes": 1048576,
+          "repetitions_per_batch": 32
+        },
+        {
+          "payload_bytes": 4194304,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 16777216,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 67108864,
+          "repetitions_per_batch": 8
+        },
+        {
+          "payload_bytes": 134217728,
+          "repetitions_per_batch": 4
+        }
+      ],
+      "mean_fit": {
+        "statistic": "mean",
+        "joint_fixed_us": 109.38974324403802,
+        "us_per_byte": 7.30234514505542e-06,
+        "effective_payload_bandwidth_gb_s": 136.94230827710496,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 20.68236359072111,
+        "max_abs_relative_residual": 0.1884348374707897,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 117.24129974842072,
+            "predicted_us": 117.04680710685965,
+            "residual_us": -0.1944926415610695,
+            "relative_residual": -0.0016589089508425303
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 172.52835035324097,
+            "predicted_us": 140.01799869532454,
+            "residual_us": -32.51035165791643,
+            "relative_residual": -0.1884348374707897
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 203.5907506942749,
+            "predicted_us": 231.90276504918413,
+            "residual_us": 28.312014354909223,
+            "relative_residual": 0.1390633624482498
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 585.6131029129028,
+            "predicted_us": 599.4418304646224,
+            "residual_us": 13.828727551719567,
+            "relative_residual": 0.023614102011949578
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1098.9298152923584,
+            "predicted_us": 1089.493917685207,
+            "residual_us": -9.435897607151446,
+            "relative_residual": -0.008586442442314768
+          }
+        ]
+      },
+      "p50_fit": {
+        "statistic": "p50",
+        "joint_fixed_us": 107.96751273579446,
+        "us_per_byte": 7.313067250201154e-06,
+        "effective_payload_bandwidth_gb_s": 136.74152934563728,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 20.692995832673702,
+        "max_abs_relative_residual": 0.19470415727443946,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 113.84062469005585,
+            "predicted_us": 115.63581954074138,
+            "residual_us": 1.795194850685533,
+            "relative_residual": 0.01576936928774897
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 172.1612513065338,
+            "predicted_us": 138.64073995558215,
+            "residual_us": -33.520511350951665,
+            "relative_residual": -0.19470415727443946
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 203.25499773025513,
+            "predicted_us": 230.66042161494528,
+            "residual_us": 27.40542388469015,
+            "relative_residual": 0.13483271846068257
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 585.3149890899658,
+            "predicted_us": 598.7391482523976,
+            "residual_us": 13.424159162431806,
+            "relative_residual": 0.022934931468786335
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1098.615050315857,
+            "predicted_us": 1089.510783769001,
+            "residual_us": -9.104266546856024,
+            "relative_residual": -0.008287039708984922
+          }
+        ]
+      },
+      "model": "elapsed_us = joint_fixed_us + payload_bytes * us_per_byte",
+      "weighting": "equal weight per observed payload point; no best-run or best-rank selection",
+      "evaluation_relation": "in_sample",
+      "cross_rank_or_topology_extrapolation_supported": false,
+      "mechanism_identification": "joint collective response; intercept is not uniquely notify or switch-hop RTT",
+      "scope": "unprofiled device-event batch elapsed divided by repetitions",
+      "applicability": "Same run protocol, rank, world size, dtype and captured topology; inspect residuals within the payload domain."
+    },
+    {
+      "run_id": "a3-comm-r4-pkg2pkg3-c1",
+      "rank": 2,
+      "collective": "all_reduce",
+      "dtype": "bfloat16",
+      "dtype_basis": "retained_parent.ranks[rank].protocol.dtype",
+      "world_size": 4,
+      "topology": {
+        "devices": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "world_size": 4,
+        "observed_pairs": [
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 5,
+            "link_label": "SIO"
+          },
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 6,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 7,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 5,
+            "destination_phy_id": 4,
+            "link_label": "SIO"
+          },
+          {
+            "source_phy_id": 5,
+            "destination_phy_id": 6,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 5,
+            "destination_phy_id": 7,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 6,
+            "destination_phy_id": 4,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 6,
+            "destination_phy_id": 5,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 6,
+            "destination_phy_id": 7,
+            "link_label": "SIO"
+          },
+          {
+            "source_phy_id": 7,
+            "destination_phy_id": 4,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 7,
+            "destination_phy_id": 5,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 7,
+            "destination_phy_id": 6,
+            "link_label": "SIO"
+          }
+        ],
+        "basis": "captured_successful_npu_smi_topology",
+        "forwarding_hop_count": null,
+        "topology_levels_of_selected_collective": null,
+        "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
+      },
+      "parent_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r4-pkg2pkg3-c1/a3-comm-r4-pkg2pkg3-c1.parent.json",
+        "sha256": "401a9924682572ded8d1f213663099da0d13ab34c80f95f63e7304a06dff8d77",
+        "size_bytes": 603627
+      },
+      "point_count": 5,
+      "sample_count": 125,
+      "payload_domain_bytes": {
+        "min": 1048576,
+        "max": 134217728
+      },
+      "point_protocols": [
+        {
+          "payload_bytes": 1048576,
+          "repetitions_per_batch": 32
+        },
+        {
+          "payload_bytes": 4194304,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 16777216,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 67108864,
+          "repetitions_per_batch": 8
+        },
+        {
+          "payload_bytes": 134217728,
+          "repetitions_per_batch": 4
+        }
+      ],
+      "mean_fit": {
+        "statistic": "mean",
+        "joint_fixed_us": 109.04733630506723,
+        "us_per_byte": 7.268601688267167e-06,
+        "effective_payload_bandwidth_gb_s": 137.57804360282668,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 20.65873186197998,
+        "max_abs_relative_residual": 0.18503100348404844,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 118.3416000008583,
+            "predicted_us": 116.66901758894366,
+            "residual_us": -1.6725824119146466,
+            "relative_residual": -0.014133511900316642
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 171.2139505147934,
+            "predicted_us": 139.53406144057297,
+            "residual_us": -31.679889074220426,
+            "relative_residual": -0.18503100348404844
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 201.96345031261444,
+            "predicted_us": 230.99423684709018,
+            "residual_us": 29.030786534475737,
+            "relative_residual": 0.14374277370256694
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 582.9399991035461,
+            "predicted_us": 596.8349384731589,
+            "residual_us": 13.894939369612757,
+            "relative_residual": 0.02383596835176971
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1094.195795059204,
+            "predicted_us": 1084.6225406412507,
+            "residual_us": -9.573254417953422,
+            "relative_residual": -0.008749123750229182
+          }
+        ]
+      },
+      "p50_fit": {
+        "statistic": "p50",
+        "joint_fixed_us": 107.69593220042589,
+        "us_per_byte": 7.269658580311652e-06,
+        "effective_payload_bandwidth_gb_s": 137.5580419565082,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 20.670446280481414,
+        "max_abs_relative_residual": 0.19158109070035023,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 115.0362491607666,
+            "predicted_us": 115.31872171593476,
+            "residual_us": 0.2824725551681553,
+            "relative_residual": 0.002455509087169405
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 170.9350049495697,
+            "predicted_us": 138.18709026246137,
+            "residual_us": -32.747914687108334,
+            "relative_residual": -0.19158109070035023
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 201.2924998998642,
+            "predicted_us": 229.6605644485678,
+            "residual_us": 28.368064548703614,
+            "relative_residual": 0.14092956549705393
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 582.3100209236145,
+            "predicted_us": 595.5544611929936,
+            "residual_us": 13.244440269379083,
+            "relative_residual": 0.022744654554238686
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1092.560052871704,
+            "predicted_us": 1083.4129901855613,
+            "residual_us": -9.147062686142817,
+            "relative_residual": -0.0083721372222062
+          }
+        ]
+      },
+      "model": "elapsed_us = joint_fixed_us + payload_bytes * us_per_byte",
+      "weighting": "equal weight per observed payload point; no best-run or best-rank selection",
+      "evaluation_relation": "in_sample",
+      "cross_rank_or_topology_extrapolation_supported": false,
+      "mechanism_identification": "joint collective response; intercept is not uniquely notify or switch-hop RTT",
+      "scope": "unprofiled device-event batch elapsed divided by repetitions",
+      "applicability": "Same run protocol, rank, world size, dtype and captured topology; inspect residuals within the payload domain."
+    },
+    {
+      "run_id": "a3-comm-r4-pkg2pkg3-c1",
+      "rank": 3,
+      "collective": "all_reduce",
+      "dtype": "bfloat16",
+      "dtype_basis": "retained_parent.ranks[rank].protocol.dtype",
+      "world_size": 4,
+      "topology": {
+        "devices": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "world_size": 4,
+        "observed_pairs": [
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 5,
+            "link_label": "SIO"
+          },
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 6,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 4,
+            "destination_phy_id": 7,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 5,
+            "destination_phy_id": 4,
+            "link_label": "SIO"
+          },
+          {
+            "source_phy_id": 5,
+            "destination_phy_id": 6,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 5,
+            "destination_phy_id": 7,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 6,
+            "destination_phy_id": 4,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 6,
+            "destination_phy_id": 5,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 6,
+            "destination_phy_id": 7,
+            "link_label": "SIO"
+          },
+          {
+            "source_phy_id": 7,
+            "destination_phy_id": 4,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 7,
+            "destination_phy_id": 5,
+            "link_label": "HCCS_SW"
+          },
+          {
+            "source_phy_id": 7,
+            "destination_phy_id": 6,
+            "link_label": "SIO"
+          }
+        ],
+        "basis": "captured_successful_npu_smi_topology",
+        "forwarding_hop_count": null,
+        "topology_levels_of_selected_collective": null,
+        "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
+      },
+      "parent_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r4-pkg2pkg3-c1/a3-comm-r4-pkg2pkg3-c1.parent.json",
+        "sha256": "401a9924682572ded8d1f213663099da0d13ab34c80f95f63e7304a06dff8d77",
+        "size_bytes": 603627
+      },
+      "point_count": 5,
+      "sample_count": 125,
+      "payload_domain_bytes": {
+        "min": 1048576,
+        "max": 134217728
+      },
+      "point_protocols": [
+        {
+          "payload_bytes": 1048576,
+          "repetitions_per_batch": 32
+        },
+        {
+          "payload_bytes": 4194304,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 16777216,
+          "repetitions_per_batch": 16
+        },
+        {
+          "payload_bytes": 67108864,
+          "repetitions_per_batch": 8
+        },
+        {
+          "payload_bytes": 134217728,
+          "repetitions_per_batch": 4
+        }
+      ],
+      "mean_fit": {
+        "statistic": "mean",
+        "joint_fixed_us": 110.61636827675335,
+        "us_per_byte": 7.234970932930772e-06,
+        "effective_payload_bandwidth_gb_s": 138.21755598884153,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 20.751908068579457,
+        "max_abs_relative_residual": 0.1775450414615941,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 122.26909905672073,
+            "predicted_us": 118.20278515772216,
+            "residual_us": -4.0663138989985725,
+            "relative_residual": -0.03325708564444563
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 171.3918000459671,
+            "predicted_us": 140.96203580062863,
+            "residual_us": -30.429764245338475,
+            "relative_residual": -0.1775450414615941
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 201.81234896183014,
+            "predicted_us": 231.9990383722544,
+            "residual_us": 30.186689410424265,
+            "relative_residual": 0.149578009302759
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 581.9469952583313,
+            "predicted_us": 596.1470486587576,
+            "residual_us": 14.200053400426327,
+            "relative_residual": 0.02440093946034172
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1091.5683937072754,
+            "predicted_us": 1081.677729040762,
+            "residual_us": -9.89066466651343,
+            "relative_residual": -0.009060966517106528
+          }
+        ]
+      },
+      "p50_fit": {
+        "statistic": "p50",
+        "joint_fixed_us": 109.19598202061036,
+        "us_per_byte": 7.233801645154214e-06,
+        "effective_payload_bandwidth_gb_s": 138.23989778180896,
+        "intercept_is_signed_unclamped": true,
+        "positive_service_over_observed_domain": true,
+        "rmse_us": 20.336540234753024,
+        "max_abs_relative_residual": 0.1827171353282071,
+        "residuals": [
+          {
+            "payload_bytes": 1048576,
+            "observed_us": 118.42687427997589,
+            "predicted_us": 116.78117281447959,
+            "residual_us": -1.6457014654963018,
+            "relative_residual": -0.013896351444737554
+          },
+          {
+            "payload_bytes": 4194304,
+            "observed_us": 170.7324981689453,
+            "predicted_us": 139.53674519608725,
+            "residual_us": -31.19575297285806,
+            "relative_residual": -0.1827171353282071
+          },
+          {
+            "payload_bytes": 16777216,
+            "observed_us": 201.34374499320984,
+            "predicted_us": 230.55903472251796,
+            "residual_us": 29.215289729308125,
+            "relative_residual": 0.145101551231668
+          },
+          {
+            "payload_bytes": 67108864,
+            "observed_us": 582.0674896240234,
+            "predicted_us": 594.6481928282408,
+            "residual_us": 12.580703204217343,
+            "relative_residual": 0.021613822157192875
+          },
+          {
+            "payload_bytes": 134217728,
+            "observed_us": 1089.0549421310425,
+            "predicted_us": 1080.1004036358713,
+            "residual_us": -8.954538495171164,
+            "relative_residual": -0.008222301877303884
+          }
+        ]
+      },
+      "model": "elapsed_us = joint_fixed_us + payload_bytes * us_per_byte",
+      "weighting": "equal weight per observed payload point; no best-run or best-rank selection",
+      "evaluation_relation": "in_sample",
+      "cross_rank_or_topology_extrapolation_supported": false,
+      "mechanism_identification": "joint collective response; intercept is not uniquely notify or switch-hop RTT",
+      "scope": "unprofiled device-event batch elapsed divided by repetitions",
+      "applicability": "Same run protocol, rank, world size, dtype and captured topology; inspect residuals within the payload domain."
+    }
+  ],
+  "excluded_controls": [
+    {
+      "run_id": "a3-comm-r2-sio-c1",
+      "rank": 0,
+      "collective": "all_reduce_single",
+      "reason": "fewer_than_three_distinct_payloads",
+      "point_count": 1
+    },
+    {
+      "run_id": "a3-comm-r2-sio-c1",
+      "rank": 0,
+      "collective": "p2p_single",
+      "reason": "fewer_than_three_distinct_payloads",
+      "point_count": 1
+    },
+    {
+      "run_id": "a3-comm-r2-sio-c1",
+      "rank": 1,
+      "collective": "all_reduce_single",
+      "reason": "fewer_than_three_distinct_payloads",
+      "point_count": 1
+    },
+    {
+      "run_id": "a3-comm-r2-sio-c1",
+      "rank": 1,
+      "collective": "p2p_single",
+      "reason": "fewer_than_three_distinct_payloads",
+      "point_count": 1
+    },
+    {
+      "run_id": "a3-comm-r2-sio-c2",
+      "rank": 0,
+      "collective": "all_reduce_single",
+      "reason": "fewer_than_three_distinct_payloads",
+      "point_count": 1
+    },
+    {
+      "run_id": "a3-comm-r2-sio-c2",
+      "rank": 0,
+      "collective": "p2p_single",
+      "reason": "fewer_than_three_distinct_payloads",
+      "point_count": 1
+    },
+    {
+      "run_id": "a3-comm-r2-sio-c2",
+      "rank": 1,
+      "collective": "all_reduce_single",
+      "reason": "fewer_than_three_distinct_payloads",
+      "point_count": 1
+    },
+    {
+      "run_id": "a3-comm-r2-sio-c2",
+      "rank": 1,
+      "collective": "p2p_single",
+      "reason": "fewer_than_three_distinct_payloads",
+      "point_count": 1
+    },
+    {
+      "run_id": "a3-comm-r2-hccssw-c1",
+      "rank": 0,
+      "collective": "all_reduce_single",
+      "reason": "fewer_than_three_distinct_payloads",
+      "point_count": 1
+    },
+    {
+      "run_id": "a3-comm-r2-hccssw-c1",
+      "rank": 0,
+      "collective": "p2p_single",
+      "reason": "fewer_than_three_distinct_payloads",
+      "point_count": 1
+    },
+    {
+      "run_id": "a3-comm-r2-hccssw-c1",
+      "rank": 1,
+      "collective": "all_reduce_single",
+      "reason": "fewer_than_three_distinct_payloads",
+      "point_count": 1
+    },
+    {
+      "run_id": "a3-comm-r2-hccssw-c1",
+      "rank": 1,
+      "collective": "p2p_single",
+      "reason": "fewer_than_three_distinct_payloads",
+      "point_count": 1
+    },
+    {
+      "run_id": "a3-comm-r4-pkg2pkg3-c1",
+      "rank": 0,
+      "collective": "all_reduce_single",
+      "reason": "fewer_than_three_distinct_payloads",
+      "point_count": 1
+    },
+    {
+      "run_id": "a3-comm-r4-pkg2pkg3-c1",
+      "rank": 1,
+      "collective": "all_reduce_single",
+      "reason": "fewer_than_three_distinct_payloads",
+      "point_count": 1
+    },
+    {
+      "run_id": "a3-comm-r4-pkg2pkg3-c1",
+      "rank": 2,
+      "collective": "all_reduce_single",
+      "reason": "fewer_than_three_distinct_payloads",
+      "point_count": 1
+    },
+    {
+      "run_id": "a3-comm-r4-pkg2pkg3-c1",
+      "rank": 3,
+      "collective": "all_reduce_single",
+      "reason": "fewer_than_three_distinct_payloads",
+      "point_count": 1
+    }
+  ],
+  "identifiability": {
+    "effective_joint_service_fitted": true,
+    "pure_link_rate_identified": false,
+    "per_switch_hop_identified": false,
+    "notify_unit_latency_identified": false,
+    "extrapolation_to_world_size_8_or_16": false
+  },
+  "execution": {
+    "elapsed_seconds": 0.02162395801860839,
+    "peak_rss_bytes": 27656192,
+    "raw_capture_reads": 0,
+    "new_cost_predictions": 0,
+    "new_device_collections": 0
+  }
+}

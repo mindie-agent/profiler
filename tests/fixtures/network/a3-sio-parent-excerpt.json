@@ -1,0 +1,507 @@
+{
+  "devices": [
+    4,
+    5
+  ],
+  "world_size": 2,
+  "metadata_before": {
+    "npu_smi_topo": {
+      "command": [
+        "npu-smi",
+        "info",
+        "-t",
+        "topo"
+      ],
+      "exit_code": 0,
+      "stdout": "\t   Phy-ID0    Phy-ID1    Phy-ID2    Phy-ID3    Phy-ID4    Phy-ID5    Phy-ID6    Phy-ID7    Phy-ID8    Phy-ID9    Phy-ID10   Phy-ID11   Phy-ID12   Phy-ID13   Phy-ID14   Phy-ID15   \nPhy-ID0    X          SIO        HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    \nPhy-ID1    SIO        X          HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    \nPhy-ID2    HCCS_SW    HCCS_SW    X          SIO        HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    \nPhy-ID3    HCCS_SW    HCCS_SW    SIO        X          HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    \nPhy-ID4    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    X          SIO        HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    \nPhy-ID5    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    SIO        X          HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    \nPhy-ID6    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    X          SIO        HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    \nPhy-ID7    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    SIO        X          HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    \nPhy-ID8    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    X          SIO        HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    \nPhy-ID9    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    SIO        X          HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    \nPhy-ID10   HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    X          SIO        HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    \nPhy-ID11   HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    SIO        X          HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    \nPhy-ID12   HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    X          SIO        HCCS_SW    HCCS_SW    \nPhy-ID13   HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    SIO        X          HCCS_SW    HCCS_SW    \nPhy-ID14   HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    X          SIO        \nPhy-ID15   HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    HCCS_SW    SIO        X          \n\nLegend:\n\n  X    = Self\n  SYS  = Path traversing PCIe and NUMA nodes. Nodes are connected through SMP, such as QPI, UPI.\n  PHB  = Path traversing PCIe and the PCIe host bridge of a CPU.\n  PIX  = Path traversing a single PCIe switch\n  PXB  = Path traversing multipul PCIe switches\n  HCCS = Connection traversing HCCS.\n  SIO  = Path traversing the SIO bus\n  HCCS_SW = Connection traversing HCCS through a switch\n  NA   = Unknown relationship.\n",
+      "stderr": "",
+      "wall_s": 0.624
+    }
+  },
+  "conditions": [
+    {
+      "case_id": "a3-comm-r2-sio-c1_all_reduce_1MiB_r32",
+      "collective": "all_reduce",
+      "payload_bytes": 1048576,
+      "payload_mib": 1,
+      "repetitions_per_batch": 32,
+      "status": "completed",
+      "ranks": {
+        "0": {
+          "samples": [
+            {
+              "batch_ms": 4.213500022888184,
+              "per_op_ms": 0.13167187571525574,
+              "gbs_payload_per_rank": 7.963553297194429,
+              "gbps_payload_per_rank": 63.70842637755543,
+              "host_wall_ms": 4.44508,
+              "gbps_bus_ring_equivalent": 31.854213188777717
+            },
+            {
+              "batch_ms": 3.3466598987579346,
+              "per_op_ms": 0.10458312183618546,
+              "gbs_payload_per_rank": 10.026244977104861,
+              "gbps_payload_per_rank": 80.20995981683889,
+              "host_wall_ms": 3.5137,
+              "gbps_bus_ring_equivalent": 40.104979908419445
+            },
+            {
+              "batch_ms": 3.2704598903656006,
+              "per_op_ms": 0.10220187157392502,
+              "gbs_payload_per_rank": 10.259851251760496,
+              "gbps_payload_per_rank": 82.07881001408397,
+              "host_wall_ms": 3.38025,
+              "gbps_bus_ring_equivalent": 41.039405007041985
+            },
+            {
+              "batch_ms": 3.267199993133545,
+              "per_op_ms": 0.10209999978542328,
+              "gbs_payload_per_rank": 10.270088170457608,
+              "gbps_payload_per_rank": 82.16070536366087,
+              "host_wall_ms": 3.38041,
+              "gbps_bus_ring_equivalent": 41.08035268183043
+            },
+            {
+              "batch_ms": 3.2980599403381348,
+              "per_op_ms": 0.10306437313556671,
+              "gbs_payload_per_rank": 10.17399095437902,
+              "gbps_payload_per_rank": 81.39192763503216,
+              "host_wall_ms": 3.45413,
+              "gbps_bus_ring_equivalent": 40.69596381751608
+            },
+            {
+              "batch_ms": 3.2515599727630615,
+              "per_op_ms": 0.10161124914884567,
+              "gbs_payload_per_rank": 10.319487347941063,
+              "gbps_payload_per_rank": 82.5558987835285,
+              "host_wall_ms": 3.4014,
+              "gbps_bus_ring_equivalent": 41.27794939176425
+            },
+            {
+              "batch_ms": 3.2158799171447754,
+              "per_op_ms": 0.10049624741077423,
+              "gbs_payload_per_rank": 10.433981636289255,
+              "gbps_payload_per_rank": 83.47185309031404,
+              "host_wall_ms": 3.38213,
+              "gbps_bus_ring_equivalent": 41.73592654515702
+            },
+            {
+              "batch_ms": 3.2111399173736572,
+              "per_op_ms": 0.10034812241792679,
+              "gbs_payload_per_rank": 10.449383354009582,
+              "gbps_payload_per_rank": 83.59506683207665,
+              "host_wall_ms": 3.34223,
+              "gbps_bus_ring_equivalent": 41.79753341603833
+            },
+            {
+              "batch_ms": 3.219520092010498,
+              "per_op_ms": 0.10061000287532806,
+              "gbs_payload_per_rank": 10.422184375636624,
+              "gbps_payload_per_rank": 83.37747500509299,
+              "host_wall_ms": 3.37151,
+              "gbps_bus_ring_equivalent": 41.688737502546495
+            },
+            {
+              "batch_ms": 3.214479923248291,
+              "per_op_ms": 0.1004524976015091,
+              "gbs_payload_per_rank": 10.438525920576486,
+              "gbps_payload_per_rank": 83.50820736461189,
+              "host_wall_ms": 3.3995,
+              "gbps_bus_ring_equivalent": 41.754103682305946
+            },
+            {
+              "batch_ms": 3.1793200969696045,
+              "per_op_ms": 0.09935375303030014,
+              "gbs_payload_per_rank": 10.55396467690771,
+              "gbps_payload_per_rank": 84.43171741526167,
+              "host_wall_ms": 3.32963,
+              "gbps_bus_ring_equivalent": 42.21585870763084
+            },
+            {
+              "batch_ms": 3.1359400749206543,
+              "per_op_ms": 0.09799812734127045,
+              "gbs_payload_per_rank": 10.6999595650274,
+              "gbps_payload_per_rank": 85.5996765202192,
+              "host_wall_ms": 3.31077,
+              "gbps_bus_ring_equivalent": 42.7998382601096
+            },
+            {
+              "batch_ms": 3.020319938659668,
+              "per_op_ms": 0.09438499808311462,
+              "gbs_payload_per_rank": 11.109562126352252,
+              "gbps_payload_per_rank": 88.87649701081801,
+              "host_wall_ms": 3.20708,
+              "gbps_bus_ring_equivalent": 44.43824850540901
+            },
+            {
+              "batch_ms": 3.0315001010894775,
+              "per_op_ms": 0.09473437815904617,
+              "gbs_payload_per_rank": 11.068590097668485,
+              "gbps_payload_per_rank": 88.54872078134788,
+              "host_wall_ms": 3.21562,
+              "gbps_bus_ring_equivalent": 44.27436039067394
+            },
+            {
+              "batch_ms": 2.947360038757324,
+              "per_op_ms": 0.09210500121116638,
+              "gbs_payload_per_rank": 11.384571806214531,
+              "gbps_payload_per_rank": 91.07657444971625,
+              "host_wall_ms": 3.14507,
+              "gbps_bus_ring_equivalent": 45.538287224858124
+            },
+            {
+              "batch_ms": 5.329579830169678,
+              "per_op_ms": 0.16654936969280243,
+              "gbs_payload_per_rank": 6.295886930908722,
+              "gbps_payload_per_rank": 50.367095447269776,
+              "host_wall_ms": 5.58575,
+              "gbps_bus_ring_equivalent": 25.183547723634888
+            },
+            {
+              "batch_ms": 3.4644999504089355,
+              "per_op_ms": 0.10826562345027924,
+              "gbs_payload_per_rank": 9.685216475768566,
+              "gbps_payload_per_rank": 77.48173180614853,
+              "host_wall_ms": 3.65038,
+              "gbps_bus_ring_equivalent": 38.740865903074265
+            },
+            {
+              "batch_ms": 3.665519952774048,
+              "per_op_ms": 0.114547498524189,
+              "gbs_payload_per_rank": 9.154071573012764,
+              "gbps_payload_per_rank": 73.23257258410212,
+              "host_wall_ms": 3.96496,
+              "gbps_bus_ring_equivalent": 36.61628629205106
+            },
+            {
+              "batch_ms": 3.616219997406006,
+              "per_op_ms": 0.11300687491893768,
+              "gbs_payload_per_rank": 9.278869102009649,
+              "gbps_payload_per_rank": 74.23095281607719,
+              "host_wall_ms": 3.80202,
+              "gbps_bus_ring_equivalent": 37.115476408038596
+            },
+            {
+              "batch_ms": 3.545680046081543,
+              "per_op_ms": 0.11080250144004822,
+              "gbs_payload_per_rank": 9.463468661556814,
+              "gbps_payload_per_rank": 75.70774929245451,
+              "host_wall_ms": 3.80904,
+              "gbps_bus_ring_equivalent": 37.853874646227254
+            },
+            {
+              "batch_ms": 3.5194599628448486,
+              "per_op_ms": 0.10998312383890152,
+              "gbs_payload_per_rank": 9.533971789489344,
+              "gbps_payload_per_rank": 76.27177431591475,
+              "host_wall_ms": 3.70047,
+              "gbps_bus_ring_equivalent": 38.13588715795738
+            },
+            {
+              "batch_ms": 3.51419997215271,
+              "per_op_ms": 0.10981874912977219,
+              "gbs_payload_per_rank": 9.548242065304384,
+              "gbps_payload_per_rank": 76.38593652243507,
+              "host_wall_ms": 3.77753,
+              "gbps_bus_ring_equivalent": 38.19296826121754
+            },
+            {
+              "batch_ms": 3.497499942779541,
+              "per_op_ms": 0.10929687321186066,
+              "gbs_payload_per_rank": 9.593833466465634,
+              "gbps_payload_per_rank": 76.75066773172507,
+              "host_wall_ms": 3.69103,
+              "gbps_bus_ring_equivalent": 38.37533386586254
+            },
+            {
+              "batch_ms": 3.457900047302246,
+              "per_op_ms": 0.10805937647819519,
+              "gbs_payload_per_rank": 9.703702114287022,
+              "gbps_payload_per_rank": 77.62961691429618,
+              "host_wall_ms": 3.65659,
+              "gbps_bus_ring_equivalent": 38.81480845714809
+            },
+            {
+              "batch_ms": 3.391319990158081,
+              "per_op_ms": 0.10597874969244003,
+              "gbs_payload_per_rank": 9.89420995287322,
+              "gbps_payload_per_rank": 79.15367962298576,
+              "host_wall_ms": 3.56066,
+              "gbps_bus_ring_equivalent": 39.57683981149288
+            }
+          ],
+          "per_op_ms_summary": {
+            "n": 25,
+            "median": 0.10306437313556671,
+            "mean": 0.10728097438812256,
+            "min": 0.09210500121116638,
+            "p10": 0.09473437815904617,
+            "p90": 0.114547498524189,
+            "max": 0.16654936969280243,
+            "stdev": 0.014754718668295282,
+            "cv_pct": 13.753341403216064
+          },
+          "gbps_payload_per_rank_summary": {
+            "n": 25,
+            "median": 81.39192763503216,
+            "mean": 79.2721317405427,
+            "min": 50.367095447269776,
+            "p10": 73.23257258410212,
+            "p90": 88.54872078134788,
+            "max": 91.07657444971625,
+            "stdev": 8.341003479467235,
+            "cv_pct": 10.521987104834393
+          },
+          "overlap_ms_summary": null,
+          "active_span_ms_summary": null,
+          "collective_duration_ms_summary": null,
+          "transfer_duration_ms_summary": null,
+          "correctness": {
+            "expected": 3.0,
+            "observed": 3.0
+          },
+          "receive_checksum": null,
+          "status": "completed",
+          "error": null
+        },
+        "1": {
+          "samples": [
+            {
+              "batch_ms": 4.174379825592041,
+              "per_op_ms": 0.13044936954975128,
+              "gbs_payload_per_rank": 8.038183730739227,
+              "gbps_payload_per_rank": 64.30546984591382,
+              "host_wall_ms": 4.41248,
+              "gbps_bus_ring_equivalent": 32.15273492295691
+            },
+            {
+              "batch_ms": 3.3557798862457275,
+              "per_op_ms": 0.10486812144517899,
+              "gbs_payload_per_rank": 9.998996697467831,
+              "gbps_payload_per_rank": 79.99197357974265,
+              "host_wall_ms": 3.52926,
+              "gbps_bus_ring_equivalent": 39.995986789871324
+            },
+            {
+              "batch_ms": 3.273099899291992,
+              "per_op_ms": 0.10228437185287476,
+              "gbs_payload_per_rank": 10.251575885984474,
+              "gbps_payload_per_rank": 82.0126070878758,
+              "host_wall_ms": 3.40604,
+              "gbps_bus_ring_equivalent": 41.0063035439379
+            },
+            {
+              "batch_ms": 3.282219886779785,
+              "per_op_ms": 0.10256937146186829,
+              "gbs_payload_per_rank": 10.223090821901193,
+              "gbps_payload_per_rank": 81.78472657520955,
+              "host_wall_ms": 3.43459,
+              "gbps_bus_ring_equivalent": 40.89236328760477
+            },
+            {
+              "batch_ms": 3.30787992477417,
+              "per_op_ms": 0.10337124764919281,
+              "gbs_payload_per_rank": 10.143787792506034,
+              "gbps_payload_per_rank": 81.15030234004827,
+              "host_wall_ms": 3.45834,
+              "gbps_bus_ring_equivalent": 40.575151170024135
+            },
+            {
+              "batch_ms": 3.2529399394989014,
+              "per_op_ms": 0.10165437310934067,
+              "gbs_payload_per_rank": 10.315109600569166,
+              "gbps_payload_per_rank": 82.52087680455332,
+              "host_wall_ms": 3.39484,
+              "gbps_bus_ring_equivalent": 41.26043840227666
+            },
+            {
+              "batch_ms": 3.2099599838256836,
+              "per_op_ms": 0.10031124949455261,
+              "gbs_payload_per_rank": 10.453224391915713,
+              "gbps_payload_per_rank": 83.6257951353257,
+              "host_wall_ms": 3.38474,
+              "gbps_bus_ring_equivalent": 41.81289756766285
+            },
+            {
+              "batch_ms": 3.2319400310516357,
+              "per_op_ms": 0.10099812597036362,
+              "gbs_payload_per_rank": 10.382133231934313,
+              "gbps_payload_per_rank": 83.0570658554745,
+              "host_wall_ms": 3.37227,
+              "gbps_bus_ring_equivalent": 41.52853292773725
+            },
+            {
+              "batch_ms": 3.2253201007843018,
+              "per_op_ms": 0.10079125314950943,
+              "gbs_payload_per_rank": 10.403442434082919,
+              "gbps_payload_per_rank": 83.22753947266335,
+              "host_wall_ms": 3.38964,
+              "gbps_bus_ring_equivalent": 41.613769736331676
+            },
+            {
+              "batch_ms": 3.2113399505615234,
+              "per_op_ms": 0.10035437345504761,
+              "gbs_payload_per_rank": 10.448732465752432,
+              "gbps_payload_per_rank": 83.58985972601945,
+              "host_wall_ms": 3.4067,
+              "gbps_bus_ring_equivalent": 41.79492986300973
+            },
+            {
+              "batch_ms": 3.1937599182128906,
+              "per_op_ms": 0.09980499744415283,
+              "gbs_payload_per_rank": 10.50624745105318,
+              "gbps_payload_per_rank": 84.04997960842545,
+              "host_wall_ms": 3.348,
+              "gbps_bus_ring_equivalent": 42.02498980421272
+            },
+            {
+              "batch_ms": 3.147059917449951,
+              "per_op_ms": 0.09834562242031097,
+              "gbs_payload_per_rank": 10.662152256442898,
+              "gbps_payload_per_rank": 85.29721805154318,
+              "host_wall_ms": 3.32117,
+              "gbps_bus_ring_equivalent": 42.64860902577159
+            },
+            {
+              "batch_ms": 2.985879898071289,
+              "per_op_ms": 0.09330874681472778,
+              "gbs_payload_per_rank": 11.237703171408295,
+              "gbps_payload_per_rank": 89.90162537126636,
+              "host_wall_ms": 3.18358,
+              "gbps_bus_ring_equivalent": 44.95081268563318
+            },
+            {
+              "batch_ms": 2.961899995803833,
+              "per_op_ms": 0.09255937486886978,
+              "gbs_payload_per_rank": 11.32868498178097,
+              "gbps_payload_per_rank": 90.62947985424776,
+              "host_wall_ms": 3.07676,
+              "gbps_bus_ring_equivalent": 45.31473992712388
+            },
+            {
+              "batch_ms": 2.939879894256592,
+              "per_op_ms": 0.0918712466955185,
+              "gbs_payload_per_rank": 11.413538378065242,
+              "gbps_payload_per_rank": 91.30830702452194,
+              "host_wall_ms": 3.08128,
+              "gbps_bus_ring_equivalent": 45.65415351226097
+            },
+            {
+              "batch_ms": 5.162499904632568,
+              "per_op_ms": 0.16132812201976776,
+              "gbs_payload_per_rank": 6.499647965105033,
+              "gbps_payload_per_rank": 51.99718372084026,
+              "host_wall_ms": 5.28722,
+              "gbps_bus_ring_equivalent": 25.99859186042013
+            },
+            {
+              "batch_ms": 3.3661599159240723,
+              "per_op_ms": 0.10519249737262726,
+              "gbs_payload_per_rank": 9.968163378473568,
+              "gbps_payload_per_rank": 79.74530702778854,
+              "host_wall_ms": 3.4842,
+              "gbps_bus_ring_equivalent": 39.87265351389427
+            },
+            {
+              "batch_ms": 3.6150801181793213,
+              "per_op_ms": 0.11297125369310379,
+              "gbs_payload_per_rank": 9.28179484356744,
+              "gbps_payload_per_rank": 74.25435874853952,
+              "host_wall_ms": 3.72504,
+              "gbps_bus_ring_equivalent": 37.12717937426976
+            },
+            {
+              "batch_ms": 3.4920599460601807,
+              "per_op_ms": 0.10912687331438065,
+              "gbs_payload_per_rank": 9.608778920836354,
+              "gbps_payload_per_rank": 76.87023136669083,
+              "host_wall_ms": 3.60379,
+              "gbps_bus_ring_equivalent": 38.435115683345416
+            },
+            {
+              "batch_ms": 3.490799903869629,
+              "per_op_ms": 0.1090874969959259,
+              "gbs_payload_per_rank": 9.612247314091011,
+              "gbps_payload_per_rank": 76.89797851272809,
+              "host_wall_ms": 3.59247,
+              "gbps_bus_ring_equivalent": 38.448989256364044
+            },
+            {
+              "batch_ms": 3.4229400157928467,
+              "per_op_ms": 0.10696687549352646,
+              "gbs_payload_per_rank": 9.802810404268177,
+              "gbps_payload_per_rank": 78.42248323414542,
+              "host_wall_ms": 3.54473,
+              "gbps_bus_ring_equivalent": 39.21124161707271
+            },
+            {
+              "batch_ms": 3.456899881362915,
+              "per_op_ms": 0.1080281212925911,
+              "gbs_payload_per_rank": 9.706509633357056,
+              "gbps_payload_per_rank": 77.65207706685645,
+              "host_wall_ms": 3.55819,
+              "gbps_bus_ring_equivalent": 38.826038533428225
+            },
+            {
+              "batch_ms": 3.418139934539795,
+              "per_op_ms": 0.10681687295436859,
+              "gbs_payload_per_rank": 9.816576454620087,
+              "gbps_payload_per_rank": 78.5326116369607,
+              "host_wall_ms": 3.53127,
+              "gbps_bus_ring_equivalent": 39.26630581848035
+            },
+            {
+              "batch_ms": 3.3884599208831787,
+              "per_op_ms": 0.10588937252759933,
+              "gbs_payload_per_rank": 9.902561276644605,
+              "gbps_payload_per_rank": 79.22049021315684,
+              "host_wall_ms": 3.51748,
+              "gbps_bus_ring_equivalent": 39.61024510657842
+            },
+            {
+              "batch_ms": 3.3006598949432373,
+              "per_op_ms": 0.10314562171697617,
+              "gbs_payload_per_rank": 10.16597682524241,
+              "gbps_payload_per_rank": 81.32781460193928,
+              "host_wall_ms": 3.40661,
+              "gbps_bus_ring_equivalent": 40.66390730096964
+            }
+          ],
+          "per_op_ms_summary": {
+            "n": 25,
+            "median": 0.10314562171697617,
+            "mean": 0.10608379811048507,
+            "min": 0.0918712466955185,
+            "p10": 0.09330874681472778,
+            "p90": 0.11297125369310379,
+            "max": 0.16132812201976776,
+            "stdev": 0.013766771749580783,
+            "cv_pct": 12.977261367699946
+          },
+          "gbps_payload_per_rank_summary": {
+            "n": 25,
+            "median": 81.32781460193928,
+            "mean": 80.05493449849908,
+            "min": 51.99718372084026,
+            "p10": 74.25435874853952,
+            "p90": 89.90162537126636,
+            "max": 91.30830702452194,
+            "stdev": 8.00910890220327,
+            "cv_pct": 10.004516214242146
+          },
+          "overlap_ms_summary": null,
+          "active_span_ms_summary": null,
+          "collective_duration_ms_summary": null,
+          "transfer_duration_ms_summary": null,
+          "correctness": {
+            "expected": 3.0,
+            "observed": 3.0
+          },
+          "receive_checksum": null,
+          "status": "completed",
+          "error": null
+        }
+      }
+    }
+  ]
+}

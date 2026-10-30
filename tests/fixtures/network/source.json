@@ -1,0 +1,12 @@
+{
+  "trace": {
+    "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c1/profile-a3-comm-r2-sio-c1-rank0/PROF_000001_20261021051811531_PNFRMQCNLFLBBBCB/mindstudio_profiler_output/msprof_20261021051818.json",
+    "sha256": "176edfd24fe225dec3061cdd4b8a8eed741032728836a6c4aa060f528e6a9a69",
+    "selection": "Original process metadata and second communication envelope plus intersecting hardware events"
+  },
+  "parent": {
+    "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c1/a3-comm-r2-sio-c1.parent.json",
+    "sha256": "04862bffafb549fe08cc6696c3fa081d006694101877479a5cb09dee3e608100",
+    "selection": "Original devices/world_size/npu-smi topology and first full condition"
+  }
+}

@@ -1,0 +1,1522 @@
+[
+  {
+    "name": "process_name",
+    "pid": 98271684,
+    "tid": 0,
+    "ph": "M",
+    "args": {
+      "name": "AI Core Freq"
+    }
+  },
+  {
+    "name": "process_labels",
+    "pid": 98271684,
+    "tid": 0,
+    "ph": "M",
+    "args": {
+      "labels": "NPU 4"
+    }
+  },
+  {
+    "name": "process_sort_index",
+    "pid": 98271684,
+    "tid": 0,
+    "ph": "M",
+    "args": {
+      "sort_index": 14
+    }
+  },
+  {
+    "name": "process_name",
+    "pid": 98272164,
+    "tid": 0,
+    "ph": "M",
+    "args": {
+      "name": "Overlap Analysis"
+    }
+  },
+  {
+    "name": "process_labels",
+    "pid": 98272164,
+    "tid": 0,
+    "ph": "M",
+    "args": {
+      "labels": "NPU 4"
+    }
+  },
+  {
+    "name": "process_sort_index",
+    "pid": 98272164,
+    "tid": 0,
+    "ph": "M",
+    "args": {
+      "sort_index": 29
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98272164,
+    "tid": 0,
+    "ph": "M",
+    "args": {
+      "name": "Communication"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98272164,
+    "tid": 0,
+    "ph": "M",
+    "args": {
+      "sort_index": 0
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98272164,
+    "tid": 1,
+    "ph": "M",
+    "args": {
+      "name": "Communication(Not Overlapped)"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98272164,
+    "tid": 1,
+    "ph": "M",
+    "args": {
+      "sort_index": 1
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98272164,
+    "tid": 2,
+    "ph": "M",
+    "args": {
+      "name": "Computing"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98272164,
+    "tid": 2,
+    "ph": "M",
+    "args": {
+      "sort_index": 2
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98272164,
+    "tid": 3,
+    "ph": "M",
+    "args": {
+      "name": "Free"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98272164,
+    "tid": 3,
+    "ph": "M",
+    "args": {
+      "sort_index": 3
+    }
+  },
+  {
+    "name": "allreduceAicpuKernel",
+    "pid": 98271652,
+    "tid": 12,
+    "ts": "1792531093767117.690",
+    "dur": 1785.56,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "AI_CPU",
+      "Physic Stream Id": 12,
+      "Task Id": 1,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 1627
+    }
+  },
+  {
+    "name": "NOTIFY_WAIT",
+    "pid": 98271652,
+    "tid": 10,
+    "ts": "1792531093768036.270",
+    "dur": 1483.22,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_WAIT",
+      "Physic Stream Id": 10,
+      "Task Id": 3,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 1682
+    }
+  },
+  {
+    "name": "EVENT_WAIT",
+    "pid": 98271652,
+    "tid": 47,
+    "ts": "1792531093768711.710",
+    "dur": 971.54,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "EVENT_WAIT",
+      "Physic Stream Id": 47,
+      "Task Id": 6,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 1702
+    }
+  },
+  {
+    "name": "NOTIFY_RECORD",
+    "pid": 98271652,
+    "tid": 45,
+    "ts": "1792531093768712.670",
+    "dur": 0.1,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_RECORD",
+      "Physic Stream Id": 45,
+      "Task Id": 6,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 1668
+    }
+  },
+  {
+    "name": "NOTIFY_WAIT",
+    "pid": 98271652,
+    "tid": 45,
+    "ts": "1792531093768712.830",
+    "dur": 969.18,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_WAIT",
+      "Physic Stream Id": 45,
+      "Task Id": 7,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 1668
+    }
+  },
+  {
+    "name": "NOTIFY_WAIT",
+    "pid": 98271652,
+    "tid": 12,
+    "ts": "1792531093768903.270",
+    "dur": 0.02,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_WAIT",
+      "Physic Stream Id": 12,
+      "Task Id": 2,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 1682
+    }
+  },
+  {
+    "name": "allreduceAicpuKernel",
+    "pid": 98271652,
+    "tid": 12,
+    "ts": "1792531093768903.310",
+    "dur": 891.36,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "AI_CPU",
+      "Physic Stream Id": 12,
+      "Task Id": 3,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 1682
+    }
+  },
+  {
+    "name": "NOTIFY_RECORD_SQE",
+    "pid": 98271652,
+    "tid": 91,
+    "ts": "1792531093769518.470",
+    "dur": 0.02,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_RECORD_SQE",
+      "Physic Stream Id": 91,
+      "Task Id": 1,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_WAIT_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769622.930",
+    "dur": 0.02,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_WAIT_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 34,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "SDMA_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769623.030",
+    "dur": 0.6,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "SDMA_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 35,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_RECORD_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769623.650",
+    "dur": 0.0,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_RECORD_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 36,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "SDMA_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769623.690",
+    "dur": 6.18,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "SDMA_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 37,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_WAIT_SQE",
+    "pid": 98271652,
+    "tid": 50,
+    "ts": "1792531093769626.070",
+    "dur": 0.02,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_WAIT_SQE",
+      "Physic Stream Id": 50,
+      "Task Id": 12,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "SDMA_SQE",
+    "pid": 98271652,
+    "tid": 50,
+    "ts": "1792531093769626.210",
+    "dur": 3.74,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "SDMA_SQE",
+      "Physic Stream Id": 50,
+      "Task Id": 13,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_WAIT_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769629.890",
+    "dur": 0.64,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_WAIT_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 38,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_RECORD_SQE",
+    "pid": 98271652,
+    "tid": 50,
+    "ts": "1792531093769629.970",
+    "dur": 0.02,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_RECORD_SQE",
+      "Physic Stream Id": 50,
+      "Task Id": 14,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_WAIT_SQE",
+    "pid": 98271652,
+    "tid": 50,
+    "ts": "1792531093769630.010",
+    "dur": 1.1,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_WAIT_SQE",
+      "Physic Stream Id": 50,
+      "Task Id": 15,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_RECORD_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769630.630",
+    "dur": 0.0,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_RECORD_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 39,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "WRITE_VALUE_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769630.650",
+    "dur": 0.34,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "WRITE_VALUE_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 40,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_WAIT_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769631.010",
+    "dur": 0.02,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_WAIT_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 41,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "WRITE_VALUE_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769631.050",
+    "dur": 0.34,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "WRITE_VALUE_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 42,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_RECORD_SQE",
+    "pid": 98271652,
+    "tid": 50,
+    "ts": "1792531093769631.130",
+    "dur": 0.02,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_RECORD_SQE",
+      "Physic Stream Id": 50,
+      "Task Id": 16,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_WAIT_SQE",
+    "pid": 98271652,
+    "tid": 50,
+    "ts": "1792531093769631.210",
+    "dur": 2.48,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_WAIT_SQE",
+      "Physic Stream Id": 50,
+      "Task Id": 17,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_WAIT_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769631.410",
+    "dur": 0.68,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_WAIT_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 43,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_WAIT_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769632.190",
+    "dur": 0.02,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_WAIT_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 44,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_RECORD_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769632.230",
+    "dur": 0.0,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_RECORD_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 45,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "SDMA_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769632.270",
+    "dur": 14.38,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "SDMA_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 46,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_RECORD_SQE",
+    "pid": 98271652,
+    "tid": 50,
+    "ts": "1792531093769633.710",
+    "dur": 0.02,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_RECORD_SQE",
+      "Physic Stream Id": 50,
+      "Task Id": 18,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_WAIT_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769646.670",
+    "dur": 0.02,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_WAIT_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 47,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "WRITE_VALUE_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769646.710",
+    "dur": 0.34,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "WRITE_VALUE_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 48,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_WAIT_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769647.070",
+    "dur": 0.02,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_WAIT_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 49,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "WRITE_VALUE_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769647.110",
+    "dur": 0.32,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "WRITE_VALUE_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 50,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_WAIT_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769647.470",
+    "dur": 0.0,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_WAIT_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 51,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "SDMA_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769658.170",
+    "dur": 3.72,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "SDMA_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 52,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_WAIT_SQE",
+    "pid": 98271652,
+    "tid": 50,
+    "ts": "1792531093769659.590",
+    "dur": 2.8,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_WAIT_SQE",
+      "Physic Stream Id": 50,
+      "Task Id": 19,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_RECORD_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769661.910",
+    "dur": 0.0,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_RECORD_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 53,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "WRITE_VALUE_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769661.950",
+    "dur": 0.32,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "WRITE_VALUE_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 54,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_WAIT_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769662.290",
+    "dur": 0.02,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_WAIT_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 55,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "WRITE_VALUE_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769662.330",
+    "dur": 0.34,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "WRITE_VALUE_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 56,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_RECORD_SQE",
+    "pid": 98271652,
+    "tid": 50,
+    "ts": "1792531093769662.410",
+    "dur": 0.02,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_RECORD_SQE",
+      "Physic Stream Id": 50,
+      "Task Id": 20,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_WAIT_SQE",
+    "pid": 98271652,
+    "tid": 50,
+    "ts": "1792531093769662.490",
+    "dur": 3.08,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_WAIT_SQE",
+      "Physic Stream Id": 50,
+      "Task Id": 21,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_WAIT_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769662.690",
+    "dur": 0.7,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_WAIT_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 57,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_WAIT_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769663.410",
+    "dur": 0.02,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_WAIT_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 58,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_RECORD_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769663.490",
+    "dur": 0.02,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_RECORD_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 59,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "SDMA_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769663.530",
+    "dur": 14.38,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "SDMA_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 60,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "SDMA_SQE",
+    "pid": 98271652,
+    "tid": 50,
+    "ts": "1792531093769665.810",
+    "dur": 12.48,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "SDMA_SQE",
+      "Physic Stream Id": 50,
+      "Task Id": 22,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_WAIT_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769677.950",
+    "dur": 0.84,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_WAIT_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 61,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_RECORD_SQE",
+    "pid": 98271652,
+    "tid": 50,
+    "ts": "1792531093769678.310",
+    "dur": 0.02,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_RECORD_SQE",
+      "Physic Stream Id": 50,
+      "Task Id": 23,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "WRITE_VALUE_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769678.890",
+    "dur": 0.32,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "WRITE_VALUE_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 62,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_WAIT_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769679.230",
+    "dur": 0.02,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_WAIT_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 63,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "WRITE_VALUE_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769679.270",
+    "dur": 0.34,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "WRITE_VALUE_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 64,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_WAIT_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769679.630",
+    "dur": 0.7,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_WAIT_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 65,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "SDMA_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769680.370",
+    "dur": 0.62,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "SDMA_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 66,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "NOTIFY_RECORD_SQE",
+    "pid": 98271652,
+    "tid": 90,
+    "ts": "1792531093769681.010",
+    "dur": 0.02,
+    "ph": "X",
+    "args": {
+      "Model Id": 4294967295,
+      "Task Type": "NOTIFY_RECORD_SQE",
+      "Physic Stream Id": 90,
+      "Task Id": 67,
+      "Batch Id": 0,
+      "Subtask Id": 4294967295,
+      "connection_id": 18446744073709551615
+    }
+  },
+  {
+    "name": "process_name",
+    "pid": 98271652,
+    "tid": 0,
+    "ph": "M",
+    "args": {
+      "name": "Ascend Hardware"
+    }
+  },
+  {
+    "name": "process_labels",
+    "pid": 98271652,
+    "tid": 0,
+    "ph": "M",
+    "args": {
+      "labels": "NPU 4"
+    }
+  },
+  {
+    "name": "process_sort_index",
+    "pid": 98271652,
+    "tid": 0,
+    "ph": "M",
+    "args": {
+      "sort_index": 13
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98271652,
+    "tid": 10,
+    "ph": "M",
+    "args": {
+      "name": "Stream 10"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98271652,
+    "tid": 10,
+    "ph": "M",
+    "args": {
+      "sort_index": 10
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98271652,
+    "tid": 11,
+    "ph": "M",
+    "args": {
+      "name": "Stream 11"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98271652,
+    "tid": 11,
+    "ph": "M",
+    "args": {
+      "sort_index": 11
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98271652,
+    "tid": 12,
+    "ph": "M",
+    "args": {
+      "name": "Stream 12"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98271652,
+    "tid": 12,
+    "ph": "M",
+    "args": {
+      "sort_index": 12
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98271652,
+    "tid": 45,
+    "ph": "M",
+    "args": {
+      "name": "Stream 45"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98271652,
+    "tid": 45,
+    "ph": "M",
+    "args": {
+      "sort_index": 45
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98271652,
+    "tid": 47,
+    "ph": "M",
+    "args": {
+      "name": "Stream 47"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98271652,
+    "tid": 47,
+    "ph": "M",
+    "args": {
+      "sort_index": 47
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98271652,
+    "tid": 49,
+    "ph": "M",
+    "args": {
+      "name": "Stream 49"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98271652,
+    "tid": 49,
+    "ph": "M",
+    "args": {
+      "sort_index": 49
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98271652,
+    "tid": 50,
+    "ph": "M",
+    "args": {
+      "name": "Stream 50"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98271652,
+    "tid": 50,
+    "ph": "M",
+    "args": {
+      "sort_index": 50
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98271652,
+    "tid": 90,
+    "ph": "M",
+    "args": {
+      "name": "Stream 90"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98271652,
+    "tid": 90,
+    "ph": "M",
+    "args": {
+      "sort_index": 90
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98271652,
+    "tid": 91,
+    "ph": "M",
+    "args": {
+      "name": "Stream 91"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98271652,
+    "tid": 91,
+    "ph": "M",
+    "args": {
+      "sort_index": 91
+    }
+  },
+  {
+    "name": "process_name",
+    "pid": 98271716,
+    "tid": 0,
+    "ph": "M",
+    "args": {
+      "name": "Communication"
+    }
+  },
+  {
+    "name": "process_labels",
+    "pid": 98271716,
+    "tid": 0,
+    "ph": "M",
+    "args": {
+      "labels": "NPU 4"
+    }
+  },
+  {
+    "name": "process_sort_index",
+    "pid": 98271716,
+    "tid": 0,
+    "ph": "M",
+    "args": {
+      "sort_index": 15
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98271716,
+    "tid": 0,
+    "ph": "M",
+    "args": {
+      "name": "Group group_name_1 Communication"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98271716,
+    "tid": 0,
+    "ph": "M",
+    "args": {
+      "sort_index": 0
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98271716,
+    "tid": 1,
+    "ph": "M",
+    "args": {
+      "name": "Plane 0"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98271716,
+    "tid": 1,
+    "ph": "M",
+    "args": {
+      "sort_index": 1
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98271716,
+    "tid": 2,
+    "ph": "M",
+    "args": {
+      "name": "Plane 1"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98271716,
+    "tid": 2,
+    "ph": "M",
+    "args": {
+      "sort_index": 2
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98271716,
+    "tid": 3,
+    "ph": "M",
+    "args": {
+      "name": "Plane 2"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98271716,
+    "tid": 3,
+    "ph": "M",
+    "args": {
+      "sort_index": 3
+    }
+  },
+  {
+    "name": "hcom_allReduce__909_1_1",
+    "pid": 98271716,
+    "tid": 0,
+    "ts": "1792531093768712.670",
+    "dur": 969.34,
+    "ph": "X",
+    "args": {
+      "connection_id": 1668,
+      "model id": 4294967295,
+      "data_type": "BFP16",
+      "alg_type": "RING-RING-NHR",
+      "count": 2097152,
+      "relay": "no",
+      "retry": "no"
+    }
+  },
+  {
+    "name": "process_name",
+    "pid": 98271487,
+    "tid": 0,
+    "ph": "M",
+    "args": {
+      "name": "CANN"
+    }
+  },
+  {
+    "name": "process_labels",
+    "pid": 98271487,
+    "tid": 0,
+    "ph": "M",
+    "args": {
+      "labels": "CPU"
+    }
+  },
+  {
+    "name": "process_sort_index",
+    "pid": 98271487,
+    "tid": 0,
+    "ph": "M",
+    "args": {
+      "sort_index": 7
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98271487,
+    "tid": 95968,
+    "ph": "M",
+    "args": {
+      "name": "Thread 95968"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98271487,
+    "tid": 95968,
+    "ph": "M",
+    "args": {
+      "sort_index": 95968
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98271487,
+    "tid": 96164,
+    "ph": "M",
+    "args": {
+      "name": "Thread 96164"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98271487,
+    "tid": 96164,
+    "ph": "M",
+    "args": {
+      "sort_index": 96164
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98271487,
+    "tid": 96168,
+    "ph": "M",
+    "args": {
+      "name": "Thread 96168"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98271487,
+    "tid": 96168,
+    "ph": "M",
+    "args": {
+      "sort_index": 96168
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98271487,
+    "tid": 96183,
+    "ph": "M",
+    "args": {
+      "name": "Thread 96183"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98271487,
+    "tid": 96183,
+    "ph": "M",
+    "args": {
+      "sort_index": 96183
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98271487,
+    "tid": 96209,
+    "ph": "M",
+    "args": {
+      "name": "Thread 96209"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98271487,
+    "tid": 96209,
+    "ph": "M",
+    "args": {
+      "sort_index": 96209
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98271487,
+    "tid": 96210,
+    "ph": "M",
+    "args": {
+      "name": "Thread 96210"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98271487,
+    "tid": 96210,
+    "ph": "M",
+    "args": {
+      "sort_index": 96210
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98271487,
+    "tid": 96214,
+    "ph": "M",
+    "args": {
+      "name": "Thread 96214"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98271487,
+    "tid": 96214,
+    "ph": "M",
+    "args": {
+      "sort_index": 96214
+    }
+  },
+  {
+    "name": "thread_name",
+    "pid": 98271487,
+    "tid": 96215,
+    "ph": "M",
+    "args": {
+      "name": "Thread 96215"
+    }
+  },
+  {
+    "name": "thread_sort_index",
+    "pid": 98271487,
+    "tid": 96215,
+    "ph": "M",
+    "args": {
+      "sort_index": 96215
+    }
+  }
+]

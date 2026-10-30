@@ -1,0 +1,899 @@
+{
+  "schema_version": "mindie-qwen35-observed-service-inputs/1",
+  "status": "ready_for_declared_runtime",
+  "prior_manifest_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen35-mc2-tp-bf71bd7d/decode-forward-qwen35-mc2-tp-cases.json",
+    "size_bytes": 58912,
+    "sha256": "403fd992365c6ec1cf9945697fa517cb60f1c282752b02776218ea22ef3cf252"
+  },
+  "native_receipt_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen35-source-complete/native-partitions/native-partition-receipt.json",
+    "size_bytes": 8383,
+    "sha256": "49447396badfbad2acabfb70599b7a4883ed5d5aba74bd4764b08f01c94cd0f4"
+  },
+  "cases": [
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+        "sha256": "5612e7cccfb3878cf27b22b1e89c5d186cd100633a44748973349f1bf03872f3",
+        "size_bytes": 79462851
+      },
+      "controller_corrected_extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen35-35b-a5-tp4-c64-graph.json",
+        "size_bytes": 2127035,
+        "sha256": "b1b09ba9be230b0c30d8d62c1539aa340e1eda4125bac54cf24731ceab2a42e4"
+      },
+      "retained_native_partition_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen35-source-complete/native-partitions/qwen35-35b-a5-tp4-c64-graph-native-partitions.json",
+        "sha256": "2bf42e176e7e6e7a138f92000f68f4b66b612aae5183202b85cecbdcecc8e5ad",
+        "size_bytes": 222670
+      },
+      "original_native_body_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-expanded/auto-forward-qwen35-35b-a5-tp4-c64-graph.json",
+        "sha256": "1e4b2377fc30d82e8c07bc870d223d6f9543d8f766217bc2b50fbe5f2adfda3f",
+        "size_bytes": 3552771
+      },
+      "same_norm_and_head_occurrences": true,
+      "source_forward_count": 96,
+      "main_forward_count": 79,
+      "geometry": {
+        "query_rows": 256,
+        "sequences_per_replica": 64,
+        "tokens_per_sequence": 4,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "conditional_context_tokens": 4096,
+      "native_family_counts": {
+        "GroupedMatmul": 6320,
+        "DequantSwigluQuant": 3160,
+        "MoeDistributeDispatchV3": 3160,
+        "MoeGatingTopK": 3160,
+        "TensorMove": 4740
+      },
+      "native_abi_groups": [
+        {
+          "native_operator_type": "GroupedMatmul",
+          "native_abi_sha256": "f6353d8785ca42e6cffac5983d0892f1bcb9ec096995cd2903a5bfce980c856e",
+          "declared_roles": [],
+          "event_count": 2370,
+          "input_dtypes": [
+            "int8",
+            "int8",
+            "int32",
+            "UINT64",
+            "fp32",
+            "fp16",
+            "fp16",
+            "int64"
+          ],
+          "output_dtypes": [
+            "int32"
+          ]
+        },
+        {
+          "native_operator_type": "DequantSwigluQuant",
+          "native_abi_sha256": "01751109089feeee630b13df358af823fda84adbfdafa0ea80924cc51bbd4f8a",
+          "declared_roles": [],
+          "event_count": 2370,
+          "input_dtypes": [
+            "int32",
+            "fp32",
+            "fp32",
+            null,
+            null,
+            null,
+            "int64"
+          ],
+          "output_dtypes": [
+            "int8",
+            "fp32"
+          ]
+        },
+        {
+          "native_operator_type": "GroupedMatmul",
+          "native_abi_sha256": "0a9e4d147d35ec4d1be6dd89f12ba7b62f7efeb2de62df9cb9ac7120d077de6f",
+          "declared_roles": [],
+          "event_count": 2370,
+          "input_dtypes": [
+            "int8",
+            "int8",
+            "int32",
+            "bf16",
+            "fp32",
+            "fp16",
+            "fp16",
+            "int64",
+            "fp32"
+          ],
+          "output_dtypes": [
+            "bf16"
+          ]
+        },
+        {
+          "native_operator_type": "MoeDistributeDispatchV3",
+          "native_abi_sha256": "cb5c575f04b0441bd2099371bca3b114aed00cbbdeb798a7acc3faa939db4a17",
+          "declared_roles": [],
+          "event_count": 2370,
+          "input_dtypes": [
+            "int32",
+            "bf16",
+            "int32",
+            null,
+            "bool",
+            null,
+            null,
+            null
+          ],
+          "output_dtypes": [
+            "int8",
+            "fp32",
+            "int32",
+            "int64",
+            "int32",
+            "int32",
+            "fp32"
+          ]
+        },
+        {
+          "native_operator_type": "GroupedMatmul",
+          "native_abi_sha256": "f6353d8785ca42e6cffac5983d0892f1bcb9ec096995cd2903a5bfce980c856e",
+          "declared_roles": [],
+          "event_count": 790,
+          "input_dtypes": [
+            "int8",
+            "int8",
+            "int32",
+            "UINT64",
+            "fp32",
+            "fp16",
+            "fp16",
+            "int64"
+          ],
+          "output_dtypes": [
+            "int32"
+          ]
+        },
+        {
+          "native_operator_type": "DequantSwigluQuant",
+          "native_abi_sha256": "01751109089feeee630b13df358af823fda84adbfdafa0ea80924cc51bbd4f8a",
+          "declared_roles": [],
+          "event_count": 790,
+          "input_dtypes": [
+            "int32",
+            "fp32",
+            "fp32",
+            null,
+            null,
+            null,
+            "int64"
+          ],
+          "output_dtypes": [
+            "int8",
+            "fp32"
+          ]
+        },
+        {
+          "native_operator_type": "GroupedMatmul",
+          "native_abi_sha256": "0a9e4d147d35ec4d1be6dd89f12ba7b62f7efeb2de62df9cb9ac7120d077de6f",
+          "declared_roles": [],
+          "event_count": 790,
+          "input_dtypes": [
+            "int8",
+            "int8",
+            "int32",
+            "bf16",
+            "fp32",
+            "fp16",
+            "fp16",
+            "int64",
+            "fp32"
+          ],
+          "output_dtypes": [
+            "bf16"
+          ]
+        },
+        {
+          "native_operator_type": "MoeDistributeDispatchV3",
+          "native_abi_sha256": "cb5c575f04b0441bd2099371bca3b114aed00cbbdeb798a7acc3faa939db4a17",
+          "declared_roles": [],
+          "event_count": 790,
+          "input_dtypes": [
+            "int32",
+            "bf16",
+            "int32",
+            null,
+            "bool",
+            null,
+            null,
+            null
+          ],
+          "output_dtypes": [
+            "int8",
+            "fp32",
+            "int32",
+            "int64",
+            "int32",
+            "int32",
+            "fp32"
+          ]
+        },
+        {
+          "native_operator_type": "MoeGatingTopK",
+          "native_abi_sha256": "d4eb4cd6b0079ffa1471d4155e5a2c1add7ed0ba5359896a88d4b77951a07a99",
+          "declared_roles": [],
+          "event_count": 2370,
+          "input_dtypes": [
+            "bf16"
+          ],
+          "output_dtypes": [
+            "bf16",
+            "int32",
+            "fp32"
+          ]
+        },
+        {
+          "native_operator_type": "TensorMove",
+          "native_abi_sha256": "cdd6a8016bebb0293bcb704748fcccc18838bbed79100c8084f1558089b1d2c3",
+          "declared_roles": [],
+          "event_count": 2370,
+          "input_dtypes": [
+            "bf16"
+          ],
+          "output_dtypes": [
+            "bf16"
+          ]
+        },
+        {
+          "native_operator_type": "TensorMove",
+          "native_abi_sha256": "d14db2a423ef9f3b6a91feeba62cde63c80452822d207a8845a36ceaa7ec79ce",
+          "declared_roles": [],
+          "event_count": 2370,
+          "input_dtypes": [
+            "bf16"
+          ],
+          "output_dtypes": [
+            "bf16"
+          ]
+        },
+        {
+          "native_operator_type": "MoeGatingTopK",
+          "native_abi_sha256": "d4eb4cd6b0079ffa1471d4155e5a2c1add7ed0ba5359896a88d4b77951a07a99",
+          "declared_roles": [],
+          "event_count": 790,
+          "input_dtypes": [
+            "bf16"
+          ],
+          "output_dtypes": [
+            "bf16",
+            "int32",
+            "fp32"
+          ]
+        }
+      ],
+      "parameter_fit_performed_here": false,
+      "source_case_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-hccl-service-conditional/qwen35-c64-grouped-dsq-mc2-hccl-service.json",
+        "size_bytes": 45573,
+        "sha256": "d199af14e511797baa1f0d8900b7939dcac77da7ff5da3a8afbbb5109fd4decd"
+      },
+      "service_rule_count": 9
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+        "sha256": "bf35b8b21c078d6fc7223918b280158fda5ee7c1f83009c70c98b16f27b08df5",
+        "size_bytes": 88444963
+      },
+      "controller_corrected_extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen35-35b-a5-tp4-c128-graph.json",
+        "size_bytes": 2396220,
+        "sha256": "c735f6f862fd6a7b730b79498051db24a96f2134f8744662cbc5eb89ab77e613"
+      },
+      "retained_native_partition_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen35-source-complete/native-partitions/qwen35-35b-a5-tp4-c128-graph-native-partitions.json",
+        "sha256": "5c81a3d7f8dd87da2e1c3329576528be16568f323a85fe4e861a2fb7d3a775cb",
+        "size_bytes": 288215
+      },
+      "original_native_body_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-expanded/auto-forward-qwen35-35b-a5-tp4-c128-graph.json",
+        "sha256": "c1ca06ada60530c17cc7df146d7a2768d3712bb938c948148605fcd3435c6288",
+        "size_bytes": 4111917
+      },
+      "same_norm_and_head_occurrences": true,
+      "source_forward_count": 99,
+      "main_forward_count": 76,
+      "geometry": {
+        "query_rows": 512,
+        "sequences_per_replica": 128,
+        "tokens_per_sequence": 4,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "conditional_context_tokens": 4096,
+      "native_family_counts": {
+        "GroupedMatmul": 6080,
+        "DequantSwigluQuant": 3040,
+        "MoeDistributeDispatchV3": 3040,
+        "MoeGatingTopK": 3040,
+        "TensorMove": 16720
+      },
+      "native_abi_groups": [
+        {
+          "native_operator_type": "GroupedMatmul",
+          "native_abi_sha256": "9170427c9586f737943cbe1bc5b97253ebafecbba16565485699e76796afbf44",
+          "declared_roles": [],
+          "event_count": 2280,
+          "input_dtypes": [
+            "int8",
+            "int8",
+            "int32",
+            "UINT64",
+            "fp32",
+            "fp16",
+            "fp16",
+            "int64"
+          ],
+          "output_dtypes": [
+            "int32"
+          ]
+        },
+        {
+          "native_operator_type": "DequantSwigluQuant",
+          "native_abi_sha256": "ea5aeff0f45028367559c20ba95560b77b0cf86ab5b7e470633b02a6251948c2",
+          "declared_roles": [],
+          "event_count": 2280,
+          "input_dtypes": [
+            "int32",
+            "fp32",
+            "fp32",
+            null,
+            null,
+            null,
+            "int64"
+          ],
+          "output_dtypes": [
+            "int8",
+            "fp32"
+          ]
+        },
+        {
+          "native_operator_type": "GroupedMatmul",
+          "native_abi_sha256": "10ec5ae835bd91afb770b0f17a3bef0b09026eb4787d2d5ebb165ed8bf651098",
+          "declared_roles": [],
+          "event_count": 2280,
+          "input_dtypes": [
+            "int8",
+            "int8",
+            "int32",
+            "bf16",
+            "fp32",
+            "fp16",
+            "fp16",
+            "int64",
+            "fp32"
+          ],
+          "output_dtypes": [
+            "bf16"
+          ]
+        },
+        {
+          "native_operator_type": "MoeDistributeDispatchV3",
+          "native_abi_sha256": "6484cf72956110cb1bd1f276bf5b5d68740073f5245b42fe7c2e07e39c40d3a1",
+          "declared_roles": [],
+          "event_count": 2280,
+          "input_dtypes": [
+            "int32",
+            "bf16",
+            "int32",
+            null,
+            "bool",
+            null,
+            null,
+            null
+          ],
+          "output_dtypes": [
+            "int8",
+            "fp32",
+            "int32",
+            "int64",
+            "int32",
+            "int32",
+            "fp32"
+          ]
+        },
+        {
+          "native_operator_type": "GroupedMatmul",
+          "native_abi_sha256": "9170427c9586f737943cbe1bc5b97253ebafecbba16565485699e76796afbf44",
+          "declared_roles": [],
+          "event_count": 760,
+          "input_dtypes": [
+            "int8",
+            "int8",
+            "int32",
+            "UINT64",
+            "fp32",
+            "fp16",
+            "fp16",
+            "int64"
+          ],
+          "output_dtypes": [
+            "int32"
+          ]
+        },
+        {
+          "native_operator_type": "DequantSwigluQuant",
+          "native_abi_sha256": "ea5aeff0f45028367559c20ba95560b77b0cf86ab5b7e470633b02a6251948c2",
+          "declared_roles": [],
+          "event_count": 760,
+          "input_dtypes": [
+            "int32",
+            "fp32",
+            "fp32",
+            null,
+            null,
+            null,
+            "int64"
+          ],
+          "output_dtypes": [
+            "int8",
+            "fp32"
+          ]
+        },
+        {
+          "native_operator_type": "MoeDistributeDispatchV3",
+          "native_abi_sha256": "6484cf72956110cb1bd1f276bf5b5d68740073f5245b42fe7c2e07e39c40d3a1",
+          "declared_roles": [],
+          "event_count": 760,
+          "input_dtypes": [
+            "int32",
+            "bf16",
+            "int32",
+            null,
+            "bool",
+            null,
+            null,
+            null
+          ],
+          "output_dtypes": [
+            "int8",
+            "fp32",
+            "int32",
+            "int64",
+            "int32",
+            "int32",
+            "fp32"
+          ]
+        },
+        {
+          "native_operator_type": "GroupedMatmul",
+          "native_abi_sha256": "10ec5ae835bd91afb770b0f17a3bef0b09026eb4787d2d5ebb165ed8bf651098",
+          "declared_roles": [],
+          "event_count": 760,
+          "input_dtypes": [
+            "int8",
+            "int8",
+            "int32",
+            "bf16",
+            "fp32",
+            "fp16",
+            "fp16",
+            "int64",
+            "fp32"
+          ],
+          "output_dtypes": [
+            "bf16"
+          ]
+        },
+        {
+          "native_operator_type": "MoeGatingTopK",
+          "native_abi_sha256": "f7093c88ec1a81ee4102dcd80b831af99eea0c8cf3b3f60558872ac74b589279",
+          "declared_roles": [],
+          "event_count": 2280,
+          "input_dtypes": [
+            "bf16"
+          ],
+          "output_dtypes": [
+            "bf16",
+            "int32",
+            "fp32"
+          ]
+        },
+        {
+          "native_operator_type": "TensorMove",
+          "native_abi_sha256": "b6681ccb2260a8a15a126cd96e855a54e4b61fff8714e55b01e4f3b997812e74",
+          "declared_roles": [],
+          "event_count": 2280,
+          "input_dtypes": [
+            "bf16"
+          ],
+          "output_dtypes": [
+            "bf16"
+          ]
+        },
+        {
+          "native_operator_type": "TensorMove",
+          "native_abi_sha256": "4b0f50536ecb3d9d4ec1f90028bc3ea17f05ebd90d4bf97cea6c30606084a286",
+          "declared_roles": [],
+          "event_count": 2280,
+          "input_dtypes": [
+            "bf16"
+          ],
+          "output_dtypes": [
+            "bf16"
+          ]
+        },
+        {
+          "native_operator_type": "TensorMove",
+          "native_abi_sha256": "968aeae5b6ed4b9ec99209f1ab0f4afd41ca2ebd58a886f1ac7b99f56bd7a98f",
+          "declared_roles": [],
+          "event_count": 2280,
+          "input_dtypes": [
+            "bf16"
+          ],
+          "output_dtypes": [
+            "bf16"
+          ]
+        },
+        {
+          "native_operator_type": "TensorMove",
+          "native_abi_sha256": "4b0f50536ecb3d9d4ec1f90028bc3ea17f05ebd90d4bf97cea6c30606084a286",
+          "declared_roles": [],
+          "event_count": 2280,
+          "input_dtypes": [
+            "bf16"
+          ],
+          "output_dtypes": [
+            "bf16"
+          ]
+        },
+        {
+          "native_operator_type": "TensorMove",
+          "native_abi_sha256": "4b0f50536ecb3d9d4ec1f90028bc3ea17f05ebd90d4bf97cea6c30606084a286",
+          "declared_roles": [],
+          "event_count": 2280,
+          "input_dtypes": [
+            "bf16"
+          ],
+          "output_dtypes": [
+            "bf16"
+          ]
+        },
+        {
+          "native_operator_type": "TensorMove",
+          "native_abi_sha256": "4b0f50536ecb3d9d4ec1f90028bc3ea17f05ebd90d4bf97cea6c30606084a286",
+          "declared_roles": [],
+          "event_count": 2280,
+          "input_dtypes": [
+            "bf16"
+          ],
+          "output_dtypes": [
+            "bf16"
+          ]
+        },
+        {
+          "native_operator_type": "MoeGatingTopK",
+          "native_abi_sha256": "f7093c88ec1a81ee4102dcd80b831af99eea0c8cf3b3f60558872ac74b589279",
+          "declared_roles": [],
+          "event_count": 760,
+          "input_dtypes": [
+            "bf16"
+          ],
+          "output_dtypes": [
+            "bf16",
+            "int32",
+            "fp32"
+          ]
+        },
+        {
+          "native_operator_type": "TensorMove",
+          "native_abi_sha256": "4b0f50536ecb3d9d4ec1f90028bc3ea17f05ebd90d4bf97cea6c30606084a286",
+          "declared_roles": [],
+          "event_count": 760,
+          "input_dtypes": [
+            "bf16"
+          ],
+          "output_dtypes": [
+            "bf16"
+          ]
+        },
+        {
+          "native_operator_type": "TensorMove",
+          "native_abi_sha256": "4b0f50536ecb3d9d4ec1f90028bc3ea17f05ebd90d4bf97cea6c30606084a286",
+          "declared_roles": [],
+          "event_count": 760,
+          "input_dtypes": [
+            "bf16"
+          ],
+          "output_dtypes": [
+            "bf16"
+          ]
+        },
+        {
+          "native_operator_type": "TensorMove",
+          "native_abi_sha256": "4b0f50536ecb3d9d4ec1f90028bc3ea17f05ebd90d4bf97cea6c30606084a286",
+          "declared_roles": [],
+          "event_count": 760,
+          "input_dtypes": [
+            "bf16"
+          ],
+          "output_dtypes": [
+            "bf16"
+          ]
+        },
+        {
+          "native_operator_type": "TensorMove",
+          "native_abi_sha256": "4b0f50536ecb3d9d4ec1f90028bc3ea17f05ebd90d4bf97cea6c30606084a286",
+          "declared_roles": [],
+          "event_count": 760,
+          "input_dtypes": [
+            "bf16"
+          ],
+          "output_dtypes": [
+            "bf16"
+          ]
+        }
+      ],
+      "parameter_fit_performed_here": false,
+      "source_case_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-hccl-service-conditional/qwen35-c128-grouped-dsq-mc2-hccl-service.json",
+        "size_bytes": 45624,
+        "sha256": "97a4bba3434211309906f0ed39573d97a78ef3834698db19b451800024750917"
+      },
+      "service_rule_count": 9
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c4-graph",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
+        "sha256": "9b8a87bfd6252204ab077e331ed97976ff9f5256935cb153677ac619dd96aac1",
+        "size_bytes": 70137504
+      },
+      "controller_corrected_extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen35-35b-a5-tp4-c4-graph.json",
+        "size_bytes": 1436503,
+        "sha256": "8d3809e747bf6d404c893339d6d2c2dafb62cd89025e950dc876edf8fe8ac8b3"
+      },
+      "retained_native_partition_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen35-source-complete/native-partitions/qwen35-35b-a5-tp4-c4-graph-native-partitions.json",
+        "sha256": "ddf070d17aa18784eb3020acd44270a86a2b40afc712c0374fb385f2e3b7b998",
+        "size_bytes": 181724
+      },
+      "original_native_body_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-expanded/auto-forward-qwen35-35b-a5-tp4-c4-graph.json",
+        "sha256": "8c158cae5304a1e5267a7845d2130cea453e16eaef1b5e2be28132af36e7e1a1",
+        "size_bytes": 2110162
+      },
+      "same_norm_and_head_occurrences": true,
+      "source_forward_count": 91,
+      "main_forward_count": 84,
+      "geometry": {
+        "query_rows": 16,
+        "sequences_per_replica": 4,
+        "tokens_per_sequence": 4,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "conditional_context_tokens": 4096,
+      "native_family_counts": {
+        "GroupedMatmul": 6720,
+        "MoeDistributeDispatchV3": 3360,
+        "DequantSwigluQuant": 3360,
+        "MoeGatingTopK": 3360
+      },
+      "native_abi_groups": [
+        {
+          "native_operator_type": "GroupedMatmul",
+          "native_abi_sha256": "44ce34f8ec80422af236f78716ed69743f63f7ba6d965998531d5d2d7c4f9cfc",
+          "declared_roles": [],
+          "event_count": 2520,
+          "input_dtypes": [
+            "int8",
+            "int8",
+            "int32",
+            "UINT64",
+            "fp32",
+            "fp16",
+            "fp16",
+            "int64"
+          ],
+          "output_dtypes": [
+            "int32"
+          ]
+        },
+        {
+          "native_operator_type": "GroupedMatmul",
+          "native_abi_sha256": "50632029a12cb061429b9fb5e3db9e8fd28aa753f6bb198114669271b41305d8",
+          "declared_roles": [],
+          "event_count": 2520,
+          "input_dtypes": [
+            "int8",
+            "int8",
+            "int32",
+            "bf16",
+            "fp32",
+            "fp16",
+            "fp16",
+            "int64",
+            "fp32"
+          ],
+          "output_dtypes": [
+            "bf16"
+          ]
+        },
+        {
+          "native_operator_type": "MoeDistributeDispatchV3",
+          "native_abi_sha256": "e75a3b0488f3b55b55245302c48b36a78690c2fef833a6e36040f13d24211b63",
+          "declared_roles": [],
+          "event_count": 2520,
+          "input_dtypes": [
+            "int32",
+            "bf16",
+            "int32",
+            null,
+            "bool",
+            null,
+            null,
+            null
+          ],
+          "output_dtypes": [
+            "int8",
+            "fp32",
+            "int32",
+            "int64",
+            "int32",
+            "int32",
+            "fp32"
+          ]
+        },
+        {
+          "native_operator_type": "GroupedMatmul",
+          "native_abi_sha256": "44ce34f8ec80422af236f78716ed69743f63f7ba6d965998531d5d2d7c4f9cfc",
+          "declared_roles": [],
+          "event_count": 840,
+          "input_dtypes": [
+            "int8",
+            "int8",
+            "int32",
+            "UINT64",
+            "fp32",
+            "fp16",
+            "fp16",
+            "int64"
+          ],
+          "output_dtypes": [
+            "int32"
+          ]
+        },
+        {
+          "native_operator_type": "GroupedMatmul",
+          "native_abi_sha256": "50632029a12cb061429b9fb5e3db9e8fd28aa753f6bb198114669271b41305d8",
+          "declared_roles": [],
+          "event_count": 840,
+          "input_dtypes": [
+            "int8",
+            "int8",
+            "int32",
+            "bf16",
+            "fp32",
+            "fp16",
+            "fp16",
+            "int64",
+            "fp32"
+          ],
+          "output_dtypes": [
+            "bf16"
+          ]
+        },
+        {
+          "native_operator_type": "DequantSwigluQuant",
+          "native_abi_sha256": "255fe97bf00e3d13fa838d72314b45ce6b43ae9dc0e5a32197dd0e881ea63615",
+          "declared_roles": [],
+          "event_count": 2520,
+          "input_dtypes": [
+            "int32",
+            "fp32",
+            "fp32",
+            null,
+            null,
+            null,
+            "int64"
+          ],
+          "output_dtypes": [
+            "int8",
+            "fp32"
+          ]
+        },
+        {
+          "native_operator_type": "MoeDistributeDispatchV3",
+          "native_abi_sha256": "e75a3b0488f3b55b55245302c48b36a78690c2fef833a6e36040f13d24211b63",
+          "declared_roles": [],
+          "event_count": 840,
+          "input_dtypes": [
+            "int32",
+            "bf16",
+            "int32",
+            null,
+            "bool",
+            null,
+            null,
+            null
+          ],
+          "output_dtypes": [
+            "int8",
+            "fp32",
+            "int32",
+            "int64",
+            "int32",
+            "int32",
+            "fp32"
+          ]
+        },
+        {
+          "native_operator_type": "MoeGatingTopK",
+          "native_abi_sha256": "17cbf524416844d2b81223d93d29c72f3da9edd7de829dfb3494ce0e8d97ed1b",
+          "declared_roles": [],
+          "event_count": 2520,
+          "input_dtypes": [
+            "bf16"
+          ],
+          "output_dtypes": [
+            "bf16",
+            "int32",
+            "fp32"
+          ]
+        },
+        {
+          "native_operator_type": "DequantSwigluQuant",
+          "native_abi_sha256": "255fe97bf00e3d13fa838d72314b45ce6b43ae9dc0e5a32197dd0e881ea63615",
+          "declared_roles": [],
+          "event_count": 840,
+          "input_dtypes": [
+            "int32",
+            "fp32",
+            "fp32",
+            null,
+            null,
+            null,
+            "int64"
+          ],
+          "output_dtypes": [
+            "int8",
+            "fp32"
+          ]
+        },
+        {
+          "native_operator_type": "MoeGatingTopK",
+          "native_abi_sha256": "17cbf524416844d2b81223d93d29c72f3da9edd7de829dfb3494ce0e8d97ed1b",
+          "declared_roles": [],
+          "event_count": 840,
+          "input_dtypes": [
+            "bf16"
+          ],
+          "output_dtypes": [
+            "bf16",
+            "int32",
+            "fp32"
+          ]
+        }
+      ],
+      "parameter_fit_performed_here": false,
+      "source_case_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-hccl-service-conditional/qwen35-c4-grouped-dsq-mc2-hccl-service.json",
+        "size_bytes": 45582,
+        "sha256": "022892f9038f0793f185c853ce2b4a7465afcf009a7058bc4919132af600e839"
+      },
+      "service_rule_count": 9
+    }
+  ],
+  "raw_event_reads": 0,
+  "new_predictions": 0,
+  "parameter_fits": 0,
+  "main_forwards": 239,
+  "all_source_forwards": 286
+}

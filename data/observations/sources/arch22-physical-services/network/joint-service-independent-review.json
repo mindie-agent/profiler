@@ -1,0 +1,21 @@
+{
+  "schema_version": "mindie-joint-network-service-independent-review/1",
+  "status": "passed",
+  "checks": 1137,
+  "failures": [],
+  "report_identity": {
+    "path": "/Users/maoxx241/code/profiler/data/observations/sources/arch22-physical-services/network/retained-a3-joint-service-curves.json",
+    "sha256": "449c9849d29fac50b219826a3c147136e4f3320f7c005fa6641949b77caa7950"
+  },
+  "curves": 16,
+  "distinct_payload_points": 80,
+  "unfitted_controls": 16,
+  "observations": [
+    "All16 domains retain independent run/rank/collective/topology/BF16 source evidence.",
+    "Mean and P50 signed OLS parameters, perpoint residuals, domain and sample counts independently recomputed.",
+    "The 16 one-payload controls remain unfitted; no extrapolation to TP8/16 or pure-link/switch-hop interpretation."
+  ],
+  "raw_csv_reads": 0,
+  "new_predictions": 0,
+  "peak_rss_bytes": 32718848
+}
