@@ -1,0 +1,176 @@
+{
+  "schema_version": "mindie-qwen35-mc2-tp-structure-review/1",
+  "status": "passed",
+  "checks": 3322,
+  "failures": [],
+  "producer_report_identity": {
+    "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/qwen35-mc2-tp-source-complete-20261030.json",
+    "sha256": "545ea652a93893e79e8caacc79edd8cf4f6a1d02f8bf980c339a28427354c764",
+    "size_bytes": 25958
+  },
+  "replay_manifest_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen35-mc2-tp-bf71bd7d/decode-forward-qwen35-mc2-tp-cases.json",
+    "sha256": "403fd992365c6ec1cf9945697fa517cb60f1c282752b02776218ea22ef3cf252",
+    "size_bytes": 58912
+  },
+  "runtime_source_commit": "bf71bd7d8d0c676165886c84baa22e97d0f1a68f",
+  "case_source_commit": "91aeb533af614b75516897ea87335a69d7f7fab9",
+  "producer_package_identity": {
+    "sha256": "0c36081a75ff95a6b1a0478e6b52bbba740df8116592823e1469b3fa8c596782",
+    "files": 274
+  },
+  "cases": [
+    {
+      "concurrency": 4,
+      "case_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-mc2-tp-source-complete-conditional/qwen35-35b-a5-tp4-c4-mc2-tp-source-complete.json",
+        "sha256": "4719f9dc5264146421dbd19ea4412f9a58dc2b3952e557b775edee689ea18e12",
+        "size_bytes": 11144
+      },
+      "parent_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-hccl-conditional/qwen35-35b-a5-tp4-c4-hccl-source.json",
+        "sha256": "d19f955d1965736f9d2dd79d72f37d62554844db6d0473f620caba71580130e8",
+        "size_bytes": 9334
+      },
+      "actual_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen35-35b-a5-tp4-c4-graph-qwen-source-gdn-native.actual.json",
+        "sha256": "056a4486c8991068b5e7ac9d0319f0cbce45101dfcfb444a6a79824c01d8caa2",
+        "size_bytes": 1624229
+      },
+      "geometry": {
+        "query_rows": 16,
+        "sequences_per_replica": 4,
+        "tokens_per_sequence": 4,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "forward_count": 84,
+      "declared_calls": {
+        "allreduce": 80,
+        "allgather": 40,
+        "dispatch": 40,
+        "combine": 40,
+        "tensor_move": 0
+      },
+      "observed_ffn_tensor_move_calls_per_forward": 0.0,
+      "observed_attention_tensor_move_calls_per_forward": 0.0,
+      "typed_receiver_rows": 32,
+      "source_local_rows": 4,
+      "router_shared_rows": 16,
+      "grouped_work": {
+        "flops": 8053063680,
+        "vector_ops": 10485760.0,
+        "hbm_bytes": 4061271040.0,
+        "mte2_bytes": 4050785280.0,
+        "mte3_bytes": 10485760.0
+      },
+      "producer_body_ms": 4.705845817953044
+    },
+    {
+      "concurrency": 64,
+      "case_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-mc2-tp-source-complete-conditional/qwen35-35b-a5-tp4-c64-mc2-tp-source-complete.json",
+        "sha256": "382c56151b85d5d23011fdaf7be8ea481b2a29bc8be318c5dc95e0ba33352870",
+        "size_bytes": 11154
+      },
+      "parent_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-hccl-conditional/qwen35-35b-a5-tp4-c64-hccl-source.json",
+        "sha256": "0b4a86084b5180d26355c2904dad181b175ee78c081f124742f4904e91b8cb4c",
+        "size_bytes": 9343
+      },
+      "actual_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen35-35b-a5-tp4-c64-graph-qwen-source-gdn-native.actual.json",
+        "sha256": "0c2f0f395dd7ef7fce894ad962e2d63664b9934593208e520c32e33040cf026d",
+        "size_bytes": 1962653
+      },
+      "geometry": {
+        "query_rows": 256,
+        "sequences_per_replica": 64,
+        "tokens_per_sequence": 4,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "forward_count": 79,
+      "declared_calls": {
+        "allreduce": 80,
+        "allgather": 40,
+        "dispatch": 40,
+        "combine": 40,
+        "tensor_move": 0
+      },
+      "observed_ffn_tensor_move_calls_per_forward": 0.0,
+      "observed_attention_tensor_move_calls_per_forward": 60.0,
+      "typed_receiver_rows": 512,
+      "source_local_rows": 64,
+      "router_shared_rows": 256,
+      "grouped_work": {
+        "flops": 128849018880,
+        "vector_ops": 167772160.0,
+        "hbm_bytes": 8315289600.0,
+        "mte2_bytes": 8147517440.0,
+        "mte3_bytes": 167772160.0
+      },
+      "producer_body_ms": 11.723497970527035
+    },
+    {
+      "concurrency": 128,
+      "case_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-mc2-tp-source-complete-conditional/qwen35-35b-a5-tp4-c128-mc2-tp-source-complete.json",
+        "sha256": "b583405cc0070811ef14c77ab73a7eea01be424a99ce0872c37c0d5024e2c38b",
+        "size_bytes": 11184
+      },
+      "parent_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-hccl-conditional/qwen35-35b-a5-tp4-c128-hccl-source.json",
+        "sha256": "7c3bf6cc78256040eae42fa3b14241fc6a6f72eefccd3364e252c2e275f99bbe",
+        "size_bytes": 9350
+      },
+      "actual_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen35-35b-a5-tp4-c128-graph-qwen-source-gdn-native.actual.json",
+        "sha256": "ef292dde38e51165719dec69db29e870d197b8d5f5b0cb1bb590134c7b82e862",
+        "size_bytes": 1925080
+      },
+      "geometry": {
+        "query_rows": 512,
+        "sequences_per_replica": 128,
+        "tokens_per_sequence": 4,
+        "context_tokens": null,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity"
+      },
+      "forward_count": 76,
+      "declared_calls": {
+        "allreduce": 80,
+        "allgather": 40,
+        "dispatch": 40,
+        "combine": 40,
+        "tensor_move": 160
+      },
+      "observed_ffn_tensor_move_calls_per_forward": 160.0,
+      "observed_attention_tensor_move_calls_per_forward": 60.0,
+      "typed_receiver_rows": 1024,
+      "source_local_rows": 128,
+      "router_shared_rows": 512,
+      "grouped_work": {
+        "flops": 257698037760,
+        "vector_ops": 335544320.0,
+        "hbm_bytes": 8535572480.0,
+        "mte2_bytes": 8200028160.0,
+        "mte3_bytes": 335544320.0
+      },
+      "producer_body_ms": 16.621713176650335
+    }
+  ],
+  "raw_capture_reads": 0,
+  "new_cost_executions": 0,
+  "metadata_target_graph_exports": 6,
+  "maximum_review_rss_bytes": 78708736,
+  "scope": [
+    "All 120 layers independently generated through the public Sim frontend; complete caller invocation count and typed producer/consumer dependencies verified.",
+    "Full-M router/shared and local-M/TP TopK/MC2 are caller views, not added sequence-parallel computation.",
+    "Transport owns up INT8+FP32 scale production; fused activation owns down INT8+FP32 scale production; shared branch quantization remains explicit.",
+    "Only complete retained selected-Body populations are checked. At c128 the 160 new FFN TensorMove calls are separate from 60 existing attention TensorMove calls.",
+    "Source mechanisms, peer window, direction and captured binary identity remain conditional. No new cost or raw parsing and no rate fitting."
+  ]
+}
