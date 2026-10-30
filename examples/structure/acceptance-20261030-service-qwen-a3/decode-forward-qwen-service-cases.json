@@ -1,0 +1,2102 @@
+{
+  "schema_version": "mindie-decode-forward-replay/1",
+  "variant_id": "observable-native-service-2f48346b",
+  "baseline_reference": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-qwen-hccl-controller-cases.json",
+    "sha256": "4ca5e66c6999e7fe4b2caa555b3fdc1c894e9bdcb53d82d16ca263817bf41149",
+    "size_bytes": 85361
+  },
+  "not_new_live_collection": true,
+  "parameter_policy": "per-native complete-population mean; no Body fitting or per-layer identifiers",
+  "runtime_source_commit": "2f48346b",
+  "cases": [
+    {
+      "case_id": "qwen36-a5-tp2-c96",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot30ms_c96_20261030/kernel_details.csv",
+        "sha256": "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896",
+        "size_bytes": 19928533
+      },
+      "sim_case_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/cases/qwen36-a5-tp2-c96-observable-service.json",
+      "model_declaration": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/cases/qwen36-a5-tp2-c96-observable-service.json",
+        "sha256": "1171a36592cd50c1cc5e63fd2421f142c26b3a32d270b81303228f28634aba5a",
+        "size_bytes": 16116
+      },
+      "segmentation": "auto_structure_guided",
+      "boundaries_path": null,
+      "geometry": {
+        "context_tokens": 4104
+      },
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot30ms_c96_20261030",
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot30ms_c96_20261030/benchmark_summary.json",
+          "sha256": "4c6b385ee81cb72cb8c6a09f2bc7b75c0519b6808518f223bbfc5d3ab8e98fcf",
+          "size_bytes": 26690
+        },
+        "benchmark_summary_fields": {
+          "task": "high-concurrency 100%-APC steady-state decode profile",
+          "host": "177.25.21.1",
+          "model_path": "/mnt/weight/Qwen3.6-27B-W8A8",
+          "tensor_parallel_size": 2,
+          "image": "quay.io/ascend/vllm-ascend:v0.30.0rc2-a5",
+          "label": "qwen36tp2_tpot30ms_c96",
+          "served_model_name": "qwen36tp2",
+          "tpot_tier": "tpot30ms",
+          "concurrency": 96,
+          "prefix_len": 4096,
+          "decode_len": 384,
+          "tpot_measured_ms": 31.824432297650745,
+          "tpot_measured_mean_ms": 31.633698508757007,
+          "tpot_measured_p90_ms": 35.238864138377735,
+          "tpot_engine_ms": 30.608581207228397,
+          "tpot_client_ms": {
+            "n": 96,
+            "mean": 31.633698508757007,
+            "median": 31.824432297650745,
+            "std": 2.682852750908453,
+            "min": 27.165205535247427,
+            "max": 36.71362793733822,
+            "p10": 28.282799464751328,
+            "p90": 35.238864138377735
+          },
+          "step_time_ms": 93.0438846564829,
+          "step_time_engine_ms": 90.45739125000789,
+          "step_time_client_ms": {
+            "n": 96,
+            "mean": 93.00144075048411,
+            "median": 93.0438846564829,
+            "std": 8.797244642606413,
+            "min": 78.98292916082924,
+            "max": 115.25671721311915,
+            "p10": 82.51354723878609,
+            "p90": 104.05535804921203
+          },
+          "mtp_acceptance_rate": 0.6517650462962963,
+          "unprofiled_sweep": {
+            "sweep_label": "qwen36tp2_tp2sweep_c96",
+            "tpot_sweep_unprofiled_ms": 30.201530078428572,
+            "step_sweep_unprofiled_ms": 89.6656611293614,
+            "ttft_sweep_unprofiled_ms": 2988.3575400017435,
+            "tokens_per_step_sweep": 2.942528735632184,
+            "profiling_overhead_tpot_pct": 5.37,
+            "profiling_overhead_step_pct": 3.77
+          },
+          "prefix_sha256": "9dbc8ffea16ca044863955efe41f1dd0e766719447d4aac31720a2c790d22a62",
+          "suffix_len": 8,
+          "tokens_per_step": 2.955295138888889,
+          "ttft_ms": {
+            "n": 96,
+            "mean": 2990.831599374966,
+            "median": 2986.196679999921,
+            "std": 1128.5564769233567,
+            "min": 229.01885000101174,
+            "max": 4486.789630002022,
+            "p10": 1648.5816900021746,
+            "p90": 4337.746599998354
+          },
+          "e2e_ms": {
+            "n": 96,
+            "mean": 15106.538128228902,
+            "median": 15163.652884999465,
+            "std": 303.69915387162774,
+            "min": 14290.338350001548,
+            "max": 15684.828109999216,
+            "p10": 14697.984554999493,
+            "p90": 15448.25582500016
+          },
+          "wall_s": 15.70276320999983,
+          "n_ok": 96,
+          "n_failed": 0,
+          "token_exact": true,
+          "output_throughput_tok_s": 2347.6122964475626,
+          "prefix_cache_hit_rate": 0.8732943469785575,
+          "cell_metrics": {
+            "vllm:prefix_cache_queries_total": 393984.0,
+            "vllm:prefix_cache_hits_total": 344064.0,
+            "vllm:prompt_tokens_total": 393984.0,
+            "vllm:prompt_tokens_cached_total": 344064.0,
+            "vllm:generation_tokens_total": 36864.0,
+            "vllm:request_success_total": 96.0,
+            "vllm:num_preemptions_total": 0.0,
+            "vllm:spec_decode_num_drafts_total": 12454.0,
+            "vllm:spec_decode_num_draft_tokens_total": 37362.0,
+            "vllm:spec_decode_num_accepted_tokens_total": 24440.0,
+            "prefix_cache_hit_rate": 0.8732943469785575,
+            "acceptance_rate": 0.6541405706332637,
+            "tokens_per_step": 2.960012847277983
+          },
+          "profile_window": {
+            "requested": true,
+            "t_start_profile_req": 6.5077,
+            "start_status": 200,
+            "start_body": "",
+            "stop_status": 200,
+            "stop_body": "",
+            "t_stop_profile_done": 9.3878,
+            "engine_window_s": 1.8075,
+            "metrics_interval_s": 2.171,
+            "inflight_at_start": 96,
+            "inflight_at_stop": 96,
+            "window_valid": true,
+            "max_ttft_ms": 4486.789630002022,
+            "min_e2e_ms": 14290.338350001548
+          },
+          "engine_window": {
+            "profiler_window_s": 1.8075,
+            "metrics_interval_s": 2.171,
+            "steps_in_window": 24.0,
+            "d_drafts": 2304.0,
+            "d_draft_tokens": 6912.0,
+            "d_accepted_tokens": 4505.0,
+            "d_generation_tokens": 6809.0,
+            "note": "vllm:spec_decode_num_drafts_total is per-request; engine steps = d_drafts / concurrency, and the interval is the timestamped /metrics fetch span (metrics_interval_s), not the sleep window."
+          },
+          "kernel_stats": {
+            "available": true,
+            "csv": "/out/tiers/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot30ms_c96_20261030/prof/rank0/kernel_details.csv",
+            "n_kernel_rows": 57504,
+            "total_device_time_us": 2203448.342,
+            "duration_us": {
+              "min": 0.924,
+              "median": 6.804,
+              "mean": 38.318
+            },
+            "top_operators_by_device_time": [
+              {
+                "op_type": "hcom_allReduce_",
+                "count": 6624,
+                "total_us": 871884.33,
+                "pct_of_device_time": 39.569,
+                "avg_us": 131.625
+              },
+              {
+                "op_type": "RecurrentGatedDeltaRule",
+                "count": 1152,
+                "total_us": 319409.823,
+                "pct_of_device_time": 14.496,
+                "avg_us": 277.265
+              },
+              {
+                "op_type": "QuantBatchMatmulV3",
+                "count": 5280,
+                "total_us": 317946.787,
+                "pct_of_device_time": 14.43,
+                "avg_us": 60.217
+              },
+              {
+                "op_type": "fused_gdn_gating_kernel",
+                "count": 1152,
+                "total_us": 138299.137,
+                "pct_of_device_time": 6.276,
+                "avg_us": 120.051
+              },
+              {
+                "op_type": "MatMulV3",
+                "count": 2472,
+                "total_us": 127935.303,
+                "pct_of_device_time": 5.806,
+                "avg_us": 51.754
+              },
+              {
+                "op_type": "FusedInferAttentionScore",
+                "count": 456,
+                "total_us": 115513.784,
+                "pct_of_device_time": 5.242,
+                "avg_us": 253.32
+              },
+              {
+                "op_type": "CausalConv1d",
+                "count": 1152,
+                "total_us": 41924.495,
+                "pct_of_device_time": 1.903,
+                "avg_us": 36.393
+              },
+              {
+                "op_type": "Slice",
+                "count": 9696,
+                "total_us": 38024.878,
+                "pct_of_device_time": 1.726,
+                "avg_us": 3.922
+              },
+              {
+                "op_type": "DynamicQuantV2",
+                "count": 3360,
+                "total_us": 26078.623,
+                "pct_of_device_time": 1.184,
+                "avg_us": 7.761
+              },
+              {
+                "op_type": "AddRmsNormDynamicQuant",
+                "count": 1920,
+                "total_us": 24775.497,
+                "pct_of_device_time": 1.124,
+                "avg_us": 12.904
+              },
+              {
+                "op_type": "hcom_allGather_AicpuKernel",
+                "count": 168,
+                "total_us": 21097.702,
+                "pct_of_device_time": 0.957,
+                "avg_us": 125.582
+              },
+              {
+                "op_type": "SwiGlu",
+                "count": 1608,
+                "total_us": 17785.24,
+                "pct_of_device_time": 0.807,
+                "avg_us": 11.06
+              },
+              {
+                "op_type": "TensorMove",
+                "count": 2496,
+                "total_us": 15837.547,
+                "pct_of_device_time": 0.719,
+                "avg_us": 6.345
+              },
+              {
+                "op_type": "Add",
+                "count": 4776,
+                "total_us": 12307.617,
+                "pct_of_device_time": 0.559,
+                "avg_us": 2.577
+              },
+              {
+                "op_type": "_layer_norm_fwd_1pass_kernel_npu",
+                "count": 1152,
+                "total_us": 11127.038,
+                "pct_of_device_time": 0.505,
+                "avg_us": 9.659
+              }
+            ],
+            "by_accelerator_core": {
+              "AI_VECTOR_CORE": {
+                "count": 37632,
+                "total_us": 659776.774,
+                "pct_of_device_time": 29.943,
+                "avg_us": 17.532
+              },
+              "MIX_AIV": {
+                "count": 4680,
+                "total_us": 75332.494,
+                "pct_of_device_time": 3.419,
+                "avg_us": 16.097
+              },
+              "COMMUNICATION": {
+                "count": 6792,
+                "total_us": 892982.032,
+                "pct_of_device_time": 40.527,
+                "avg_us": 131.476
+              },
+              "MIX_AIC": {
+                "count": 6888,
+                "total_us": 443850.279,
+                "pct_of_device_time": 20.143,
+                "avg_us": 64.438
+              },
+              "AI_CORE": {
+                "count": 1320,
+                "total_us": 117545.595,
+                "pct_of_device_time": 5.335,
+                "avg_us": 89.05
+              },
+              "AI_CPU": {
+                "count": 192,
+                "total_us": 13961.168,
+                "pct_of_device_time": 0.634,
+                "avg_us": 72.714
+              }
+            },
+            "by_kernel_name_top": [
+              {
+                "kernel": "AivKernel",
+                "count": 3312,
+                "total_us": 435942.165,
+                "pct_of_device_time": 19.785,
+                "avg_us": 131.625
+              },
+              {
+                "kernel": "aclnnRecurrentGatedDeltaRule_RecurrentGatedDeltaRule_RecurrentGatedDeltaRule",
+                "count": 1152,
+                "total_us": 319409.823,
+                "pct_of_device_time": 14.496,
+                "avg_us": 277.265
+              },
+              {
+                "kernel": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "count": 5280,
+                "total_us": 317946.787,
+                "pct_of_device_time": 14.43,
+                "avg_us": 60.217
+              },
+              {
+                "kernel": "fused_gdn_gating_kernel",
+                "count": 1152,
+                "total_us": 138299.137,
+                "pct_of_device_time": 6.276,
+                "avg_us": 120.051
+              },
+              {
+                "kernel": "aclnnMatmul_MatMulV3Common_MatMulV3",
+                "count": 2472,
+                "total_us": 127935.303,
+                "pct_of_device_time": 5.806,
+                "avg_us": 51.754
+              },
+              {
+                "kernel": "FusedInferAttentionScore",
+                "count": 456,
+                "total_us": 115513.784,
+                "pct_of_device_time": 5.242,
+                "avg_us": 253.32
+              },
+              {
+                "kernel": "CausalConv1d",
+                "count": 1152,
+                "total_us": 41924.495,
+                "pct_of_device_time": 1.903,
+                "avg_us": 36.393
+              },
+              {
+                "kernel": "aclnnInplaceCopy_SliceAiCore_Slice",
+                "count": 8088,
+                "total_us": 30495.716,
+                "pct_of_device_time": 1.384,
+                "avg_us": 3.77
+              },
+              {
+                "kernel": "aclnnDynamicQuantV2_DynamicQuantV2_DynamicQuantV2",
+                "count": 3360,
+                "total_us": 26078.623,
+                "pct_of_device_time": 1.184,
+                "avg_us": 7.761
+              },
+              {
+                "kernel": "aclnnAddRmsNormDynamicQuantV2_AddRmsNormDynamicQuantAiCore_AddRmsNormDynamicQuant",
+                "count": 1920,
+                "total_us": 24775.497,
+                "pct_of_device_time": 1.124,
+                "avg_us": 12.904
+              },
+              {
+                "kernel": "SwiGlu",
+                "count": 1608,
+                "total_us": 17785.24,
+                "pct_of_device_time": 0.807,
+                "avg_us": 11.06
+              },
+              {
+                "kernel": "aclnnInplaceCopy_TensorMoveAiCore_TensorMove",
+                "count": 2496,
+                "total_us": 15837.547,
+                "pct_of_device_time": 0.719,
+                "avg_us": 6.345
+              },
+              {
+                "kernel": "aclnnAdds_AddAiCore_Add",
+                "count": 4536,
+                "total_us": 11689.496,
+                "pct_of_device_time": 0.531,
+                "avg_us": 2.577
+              },
+              {
+                "kernel": "_layer_norm_fwd_1pass_kernel_npu",
+                "count": 1152,
+                "total_us": 11127.038,
+                "pct_of_device_time": 0.505,
+                "avg_us": 9.659
+              },
+              {
+                "kernel": "aclnnAddRmsNorm_AddRmsNorm_AddRmsNorm",
+                "count": 1296,
+                "total_us": 11035.484,
+                "pct_of_device_time": 0.501,
+                "avg_us": 8.515
+              }
+            ]
+          },
+          "step_trace_time": {
+            "available": true,
+            "csv": "/out/tiers/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot30ms_c96_20261030/prof/rank0/step_trace_time.csv",
+            "n_steps": 1,
+            "stage_us": {
+              "median": 1928124.75,
+              "mean": 1928124.75,
+              "max": 1928124.75
+            },
+            "computing_us": {
+              "median": 1299655.22,
+              "mean": 1299655.22
+            },
+            "rows": [
+              {
+                "Device_id": "0",
+                "Step": "",
+                "Computing": "1299655.2200000114",
+                "Communication(Not Overlapped)": "457039.8669999991",
+                "Overlapped": "0.0",
+                "Communication": "457039.8669999991",
+                "Free": "171429.85299988964",
+                "Stage": "1928124.75",
+                "Bubble": "0",
+                "Communication(Not Overlapped and Exclude Receive)": "457039.8669999991",
+                "Preparing": "1552.0"
+              }
+            ]
+          },
+          "extra": {
+            "weights": "/mnt/weight/Qwen3.6-27B-W8A8",
+            "quantization": "ascend (W8A8)",
+            "recipe": {
+              "tensor_parallel_size": 2,
+              "enable_prefix_caching": true,
+              "speculative_config": {
+                "method": "qwen3_5_mtp",
+                "num_speculative_tokens": 3,
+                "rejection_sample_method": "synthetic",
+                "synthetic_acceptance_rates": [
+                  0.8,
+                  0.64,
+                  0.512
+                ]
+              },
+              "profiler": "torch (vllm-ascend TorchNPUProfilerWrapper: Level1 + AiCMetrics.PipeUtilization + ExportType.Text)",
+              "max_model_len": 131072,
+              "max_num_seqs": 160,
+              "max_num_batched_tokens": 16384,
+              "gpu_memory_utilization": 0.9
+            },
+            "host_deviation": {
+              "requested_host": "177.25.22.1 (rack06os2)",
+              "actual_host": "177.25.21.1 (rack06os1)",
+              "reason": "rack06os2 rebooted mid-task and refused SSH on port 22 for ~10 min; rack06os1 was verified idle (8/8 dies, no running processes) and is the same Ascend950DT rack peer with the same image, so the TP2 measurement ran there.",
+              "identical_hardware": "Ascend950DT_9582, 98304 MB HBM per die, 32 cube / 64 vector cores"
+            },
+            "comparison_baseline": "Task 1C: same checkpoint at TP8 gave TPOT 6.38 ms @c=4, 10.14 ms @c=40, 14.02 ms @c=128, with hcom_allReduce_ at 64.1% of device time at c=4"
+          },
+          "client_json": "/out/cells/qwen36tp2_tpot30ms_c96.json",
+          "prof_dir": "/out/tiers/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot30ms_c96_20261030/prof/rank0",
+          "assembly": {
+            "ranks_seen": [
+              "rank0",
+              "rank1"
+            ],
+            "rank_dirs_kept": [
+              "rank0",
+              "rank1"
+            ],
+            "missing_rank_csvs": [],
+            "tier_kernel_details_source": "prof/rank0/kernel_details.csv (copied verbatim)",
+            "profdir": "/out/prof/qwen36tp2",
+            "tier_dir": "qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot30ms_c96_20261030"
+          }
+        },
+        "retained_deployment": {
+          "startup": null,
+          "launch_sources": [
+            {
+              "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot30ms_c96_20261030/cfg/serve_t6c_qwen36_tp2.sh",
+              "sha256": "09e2be65229cb2329b66e470a41de9e5fc57d7cc578f6f6f957bb8086e331830",
+              "size_bytes": 2121
+            }
+          ],
+          "launch_source_is_execution_intent": true
+        },
+        "client": {
+          "concurrency": 96,
+          "input_len": 4104,
+          "token_exact": true
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "n": 96,
+            "mean": 31.633698508757007,
+            "median": 31.824432297650745,
+            "std": 2.682852750908453,
+            "min": 27.165205535247427,
+            "max": 36.71362793733822,
+            "p10": 28.282799464751328,
+            "p90": 35.238864138377735
+          },
+          "unprofiled_sweep_ms": 30.201530078428572,
+          "body_forward_is_separate_metric": true,
+          "profiled_engine_window_estimate_ms": 30.608581207228397
+        },
+        "prefix_cache": {
+          "profiled_metrics": {
+            "hit_rate": 0.8732943469785575,
+            "basis": "benchmark_summary.cell_metrics"
+          },
+          "unprofiled_metrics": null,
+          "unknown_metrics_are_not_zero": true
+        },
+        "source_population": {
+          "selected_rank": "top_level_export",
+          "available_rank_directories": [],
+          "all_ranks_are_not_summed": true,
+          "gzip_is_streamed_without_materialization": false
+        },
+        "step_trace": {
+          "source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot30ms_c96_20261030/step_trace_time.csv",
+            "sha256": "537ca0e1f5258b9e835c4a8ee9b8a80d1107a71ccc27aa0f8c390e17944528ad",
+            "size_bytes": 279
+          },
+          "rows": [
+            {
+              "Device_id": "0",
+              "Step": "",
+              "Computing": "1299655.2200000114",
+              "Communication(Not Overlapped)": "457039.8669999991",
+              "Overlapped": "0.0",
+              "Communication": "457039.8669999991",
+              "Free": "171429.85299988964",
+              "Stage": "1928124.75",
+              "Bubble": "0",
+              "Communication(Not Overlapped and Exclude Receive)": "457039.8669999991",
+              "Preparing": "1552.0"
+            }
+          ],
+          "explicit_nonempty_step_values": 0
+        },
+        "request_geometry_is_not_per_forward_geometry": true,
+        "force_load_balance": {
+          "value": null,
+          "basis": "retained_non_default_startup_args_if_present"
+        },
+        "prefix_and_acceptance": {
+          "configured_values_are_not_measured_rates": true,
+          "unknown_metrics_are_not_zero": true
+        },
+        "tpot_body_scope": "client/profiled/sweep metrics retained separately in source fields; never body_forward_span_ms",
+        "sim_input_audit": {
+          "source": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/high-concurrency-new9-inputs-20261030.json",
+            "sha256": "795d155b42d02d4d7eefac01bd5446ec440beaabca2965db289c808a3f435335",
+            "size_bytes": 171786
+          },
+          "case_id": "qwen36-a5-tp2-c96",
+          "model_contract": {
+            "catalog_candidate": "qwen3.6-27b",
+            "basis": "same_named_local_structure_reference; exact_checkpoint_config_identity_unverified",
+            "precision": "w8a8_dynamic",
+            "layers": 64,
+            "hidden_size": 5120,
+            "attention_counts": {
+              "gdn": 48,
+              "gqa": 16
+            },
+            "model_coverage": "partial",
+            "unmodeled_features": [
+              "native_partial_rotary_dimensions_unresolved:retained_plan_proxy",
+              "unrecognized_config_field:full_attention_interval",
+              "unrecognized_config_field:language_model_only",
+              "unrecognized_config_field:mamba_ssm_dtype",
+              "unrecognized_config_field:mtp_use_dedicated_embeddings",
+              "unrecognized_config_field:output_gate_type",
+              "unrecognized_config_field:rope_parameters",
+              "unrecognized_config_field:vision_end_token_id",
+              "unrecognized_config_field:vision_start_token_id"
+            ]
+          },
+          "case_status": "parsed_body_template; exact_comparison_contract_pending",
+          "unresolved": [
+            "exact_active_context_lengths_not_encoded_in_tensor_shapes",
+            "checkpoint_config_json_not_in_delivered_capture",
+            "capture_tensor_slots_may_include_graph_padding_or_inactive_requests",
+            "per_projection_precision_and_fused_KDA_MLA_wrapper_contracts_not_fully_audited"
+          ]
+        }
+      },
+      "unresolved_reasons": [
+        "startup_log_not_located; launch_intent_is_not_runtime_confirmation"
+      ],
+      "extraction_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen36-a5-tp2-c96.json",
+      "variant_id": "observable-native-service-2f48346b",
+      "baseline_reference": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority/decode-forward-second-wave-replay.json",
+        "sha256": "574bd3ac3b05bded807b10c34d91933c170bb66fbe88eeb301b4b93ef92111c6",
+        "case_id": "qwen36-a5-tp2-c96:q4_b96_m384"
+      },
+      "replay_input_pins": {
+        "case": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/cases/qwen36-a5-tp2-c96-observable-service.json",
+          "sha256": "1171a36592cd50c1cc5e63fd2421f142c26b3a32d270b81303228f28634aba5a",
+          "size_bytes": 16116
+        },
+        "extraction": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen36-a5-tp2-c96.json",
+          "sha256": "c91e1f10c12ca49a17a50d55e1d33efdd22a9a9cfc7db62130fef2a2918891db",
+          "size_bytes": 1197881,
+          "reused_existing_extraction": true
+        },
+        "primary_geometry": {
+          "query_rows": 384,
+          "sequences_per_replica": 96,
+          "tokens_per_sequence": 4,
+          "context_tokens": 4104,
+          "batch_basis": "captured_paged_attention_block_table_rows",
+          "context_basis": "not_observed_from_cache_capacity",
+          "phase": "decode"
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot30ms_c96_20261030/kernel_details.csv",
+          "size_bytes": 19928533,
+          "mtime_ns": 1793298564000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+        }
+      },
+      "prior_source_case_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new9/qwen36-a5-tp2-c96.json",
+        "sha256": "06d1ae9e123d3e6f11addc2257dbb0f90014ab511ca414da7a9fb5d0fd4eea50",
+        "source_unchanged": true
+      },
+      "runtime_refresh": {
+        "prior_input_manifest": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-qwen-cases.json",
+          "sha256": "d5caa7434493aa1f8f28dc5f7f073f6b22ba7f2942aaac2ab7e185cad288d301",
+          "size_bytes": 133483
+        },
+        "prior_case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen-source-gdn-native/qwen36-a5-tp2-c96-source-gdn-native.json",
+          "sha256": "88c3fd09101c83d663fc67038b43510ffc002b3b23610af66c9f11180884a89e",
+          "size_bytes": 6789
+        },
+        "case_bytes_changed": true,
+        "explicit_case_override": true,
+        "retained_extraction_bytes_unchanged": false,
+        "observation_refresh_basis": "explicit_controller_generation_map; source and prediction geometry unchanged"
+      },
+      "observation_generation_refresh": {
+        "map_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/extraction-generation-map.json",
+          "sha256": "96a26d8474f41f7fd43cb6124d51bb2b9b95a3b6174203a760e7d63afbda0c49"
+        },
+        "previous_extraction_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-expanded/auto-forward-qwen36-a5-tp2-c96.json",
+          "sha256": "963d6dae9d6f6638886b3e3354cb1b2d5c328fc3d49c06de72bea4f78a5b5e79",
+          "size_bytes": 1816541,
+          "reused_existing_extraction": true
+        },
+        "body_operator_population_reusable": true,
+        "per_layer_span_changed": false,
+        "model_or_cost_inputs_changed": false
+      },
+      "baseline_case_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/hccl-source-complete/qwen36-a5-tp2-c96-hccl-source.json",
+        "sha256": "43e0d6e78a313b8436249b9a6a3d74fcb43a8ad6219ffad033fd576b6295bf96",
+        "size_bytes": 7631
+      },
+      "calibration_origin": "in_sample",
+      "calibration_evidence": {
+        "source": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-calibration-policy/glm-qwen-observed-service-inputs.json",
+          "sha256": "f2d212a2cb3c2951a64f5c8a00a44aa251d7056be0c859f810a586e4aba45215",
+          "size_bytes": 177974
+        },
+        "response_boundary": "inclusive_whole_native_call",
+        "parameter_statistic": "whole_population_arithmetic_mean_us",
+        "model_body_residual_used": false,
+        "contract_admission_changed": false,
+        "limitations": [
+          "completion lower bounds preserve larger analytic work costs",
+          "HCOM elapsed includes protocol/peer wait and is not pure-link identification"
+        ]
+      }
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c12",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030/kernel_details.csv",
+        "sha256": "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+        "size_bytes": 43475364
+      },
+      "sim_case_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/cases/qwen36-a5-tp2-c12-observable-service.json",
+      "model_declaration": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/cases/qwen36-a5-tp2-c12-observable-service.json",
+        "sha256": "5bef82264e750035385493784f7f44c9fced32f01d840c507685cebb6d41c539",
+        "size_bytes": 16099
+      },
+      "segmentation": "auto_structure_guided",
+      "boundaries_path": null,
+      "geometry": {
+        "context_tokens": 4104
+      },
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030",
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030/benchmark_summary.json",
+          "sha256": "de690311a3b66ff28d61d89b164dbae28f1b5d9ac3f993f806051a8a71d55ce4",
+          "size_bytes": 26765
+        },
+        "benchmark_summary_fields": {
+          "task": "high-concurrency 100%-APC steady-state decode profile",
+          "host": "177.25.21.1",
+          "model_path": "/mnt/weight/Qwen3.6-27B-W8A8",
+          "tensor_parallel_size": 2,
+          "image": "quay.io/ascend/vllm-ascend:v0.30.0rc2-a5",
+          "label": "qwen36tp2_tpot10ms_c12",
+          "served_model_name": "qwen36tp2",
+          "tpot_tier": "tpot10ms",
+          "concurrency": 12,
+          "prefix_len": 4096,
+          "decode_len": 512,
+          "tpot_measured_ms": 12.657176741687518,
+          "tpot_measured_mean_ms": 12.7378262573392,
+          "tpot_measured_p90_ms": 13.222981540118944,
+          "tpot_engine_ms": 13.606739968603867,
+          "tpot_client_ms": {
+            "n": 12,
+            "mean": 12.7378262573392,
+            "median": 12.657176741687518,
+            "std": 0.4698604894226931,
+            "min": 12.214703346378958,
+            "max": 13.998591154594491,
+            "p10": 12.231754998045934,
+            "p90": 13.222981540118944
+          },
+          "step_time_ms": 36.57873613373302,
+          "step_time_engine_ms": 39.397697090912104,
+          "step_time_client_ms": {
+            "n": 12,
+            "mean": 36.96746058546111,
+            "median": 36.57873613373302,
+            "std": 1.1389800431896298,
+            "min": 35.925670546443584,
+            "max": 39.74044488887658,
+            "p10": 36.335983634841355,
+            "p90": 38.92890813455211
+          },
+          "mtp_acceptance_rate": 0.6318181818181818,
+          "unprofiled_sweep": {
+            "sweep_label": "qwen36tp2_tp2pass2_c12",
+            "tpot_sweep_unprofiled_ms": 10.182462450978289,
+            "step_sweep_unprofiled_ms": 29.70821534480997,
+            "ttft_sweep_unprofiled_ms": 904.7906399991916,
+            "tokens_per_step_sweep": 2.9258098223615465,
+            "profiling_overhead_tpot_pct": 24.3,
+            "profiling_overhead_step_pct": 23.13
+          },
+          "prefix_sha256": "9dbc8ffea16ca044863955efe41f1dd0e766719447d4aac31720a2c790d22a62",
+          "suffix_len": 8,
+          "tokens_per_step": 2.8954545454545455,
+          "ttft_ms": {
+            "n": 12,
+            "mean": 812.4598891666514,
+            "median": 907.7351300002192,
+            "std": 219.93819313749853,
+            "min": 227.28669000207447,
+            "max": 913.8199600020016,
+            "p10": 479.2107850007597,
+            "p90": 913.1077839978389
+          },
+          "e2e_ms": {
+            "n": 12,
+            "mean": 7321.489106666983,
+            "median": 7361.343585000213,
+            "std": 106.71240491934584,
+            "min": 7148.087729998224,
+            "max": 7481.620279999333,
+            "p10": 7158.584613000858,
+            "p90": 7431.2711260008655
+          },
+          "wall_s": 7.489699040001142,
+          "n_ok": 12,
+          "n_failed": 0,
+          "token_exact": true,
+          "output_throughput_tok_s": 820.3266869851507,
+          "prefix_cache_hit_rate": 0.8732943469785575,
+          "cell_metrics": {
+            "vllm:prefix_cache_queries_total": 49248.0,
+            "vllm:prefix_cache_hits_total": 43008.0,
+            "vllm:prompt_tokens_total": 49248.0,
+            "vllm:prompt_tokens_cached_total": 43008.0,
+            "vllm:generation_tokens_total": 6144.0,
+            "vllm:request_success_total": 12.0,
+            "vllm:num_preemptions_total": 0.0,
+            "vllm:spec_decode_num_drafts_total": 2105.0,
+            "vllm:spec_decode_num_draft_tokens_total": 6315.0,
+            "vllm:spec_decode_num_accepted_tokens_total": 4045.0,
+            "prefix_cache_hit_rate": 0.8732943469785575,
+            "acceptance_rate": 0.6405384006334125,
+            "tokens_per_step": 2.918764845605701
+          },
+          "profile_window": {
+            "requested": true,
+            "t_start_profile_req": 2.0076,
+            "start_status": 200,
+            "start_body": "",
+            "stop_status": 200,
+            "stop_body": "",
+            "t_stop_profile_done": 4.773,
+            "engine_window_s": 1.8067,
+            "metrics_interval_s": 2.1669,
+            "inflight_at_start": 12,
+            "inflight_at_stop": 12,
+            "window_valid": true,
+            "max_ttft_ms": 913.8199600020016,
+            "min_e2e_ms": 7148.087729998224
+          },
+          "engine_window": {
+            "profiler_window_s": 1.8067,
+            "metrics_interval_s": 2.1669,
+            "steps_in_window": 55.0,
+            "d_drafts": 660.0,
+            "d_draft_tokens": 1980.0,
+            "d_accepted_tokens": 1251.0,
+            "d_generation_tokens": 1911.0,
+            "note": "vllm:spec_decode_num_drafts_total is per-request; engine steps = d_drafts / concurrency, and the interval is the timestamped /metrics fetch span (metrics_interval_s), not the sleep window."
+          },
+          "kernel_stats": {
+            "available": true,
+            "csv": "/out/tiers/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030/prof/rank0/kernel_details.csv",
+            "n_kernel_rows": 126280,
+            "total_device_time_us": 1890248.622,
+            "duration_us": {
+              "min": 0.875,
+              "median": 5.605,
+              "mean": 14.969
+            },
+            "top_operators_by_device_time": [
+              {
+                "op_type": "hcom_allReduce_",
+                "count": 15180,
+                "total_us": 672831.452,
+                "pct_of_device_time": 35.595,
+                "avg_us": 44.324
+              },
+              {
+                "op_type": "QuantBatchMatmulV3",
+                "count": 12100,
+                "total_us": 263754.1,
+                "pct_of_device_time": 13.953,
+                "avg_us": 21.798
+              },
+              {
+                "op_type": "fused_gdn_gating_kernel",
+                "count": 2640,
+                "total_us": 220401.689,
+                "pct_of_device_time": 11.66,
+                "avg_us": 83.485
+              },
+              {
+                "op_type": "MatMulV3",
+                "count": 5665,
+                "total_us": 174949.165,
+                "pct_of_device_time": 9.255,
+                "avg_us": 30.882
+              },
+              {
+                "op_type": "RecurrentGatedDeltaRule",
+                "count": 2640,
+                "total_us": 88971.252,
+                "pct_of_device_time": 4.707,
+                "avg_us": 33.701
+              },
+              {
+                "op_type": "Slice",
+                "count": 22220,
+                "total_us": 68369.189,
+                "pct_of_device_time": 3.617,
+                "avg_us": 3.077
+              },
+              {
+                "op_type": "FusedInferAttentionScore",
+                "count": 1045,
+                "total_us": 59812.93,
+                "pct_of_device_time": 3.164,
+                "avg_us": 57.237
+              },
+              {
+                "op_type": "DynamicQuantV2",
+                "count": 7700,
+                "total_us": 46320.254,
+                "pct_of_device_time": 2.45,
+                "avg_us": 6.016
+              },
+              {
+                "op_type": "AddRmsNormDynamicQuant",
+                "count": 4400,
+                "total_us": 37064.524,
+                "pct_of_device_time": 1.961,
+                "avg_us": 8.424
+              },
+              {
+                "op_type": "CausalConv1d",
+                "count": 2640,
+                "total_us": 33675.62,
+                "pct_of_device_time": 1.782,
+                "avg_us": 12.756
+              },
+              {
+                "op_type": "SwiGlu",
+                "count": 3685,
+                "total_us": 23769.212,
+                "pct_of_device_time": 1.257,
+                "avg_us": 6.45
+              },
+              {
+                "op_type": "Add",
+                "count": 10945,
+                "total_us": 23422.494,
+                "pct_of_device_time": 1.239,
+                "avg_us": 2.14
+              },
+              {
+                "op_type": "AddRmsNorm",
+                "count": 2970,
+                "total_us": 18436.174,
+                "pct_of_device_time": 0.975,
+                "avg_us": 6.207
+              },
+              {
+                "op_type": "ConcatD",
+                "count": 2805,
+                "total_us": 15071.712,
+                "pct_of_device_time": 0.797,
+                "avg_us": 5.373
+              },
+              {
+                "op_type": "hcom_allGather_AicpuKernel",
+                "count": 220,
+                "total_us": 14909.451,
+                "pct_of_device_time": 0.789,
+                "avg_us": 67.77
+              }
+            ],
+            "by_accelerator_core": {
+              "AI_VECTOR_CORE": {
+                "count": 80740,
+                "total_us": 593492.483,
+                "pct_of_device_time": 31.398,
+                "avg_us": 7.351
+              },
+              "MIX_AIV": {
+                "count": 10725,
+                "total_us": 83226.943,
+                "pct_of_device_time": 4.403,
+                "avg_us": 7.76
+              },
+              "COMMUNICATION": {
+                "count": 15730,
+                "total_us": 694873.171,
+                "pct_of_device_time": 36.761,
+                "avg_us": 44.175
+              },
+              "MIX_AIC": {
+                "count": 15950,
+                "total_us": 350712.075,
+                "pct_of_device_time": 18.554,
+                "avg_us": 21.988
+              },
+              "AI_CORE": {
+                "count": 2860,
+                "total_us": 147804.12,
+                "pct_of_device_time": 7.819,
+                "avg_us": 51.68
+              },
+              "AI_CPU": {
+                "count": 275,
+                "total_us": 20139.83,
+                "pct_of_device_time": 1.065,
+                "avg_us": 73.236
+              }
+            },
+            "by_kernel_name_top": [
+              {
+                "kernel": "AivKernel",
+                "count": 7755,
+                "total_us": 339981.86,
+                "pct_of_device_time": 17.986,
+                "avg_us": 43.84
+              },
+              {
+                "kernel": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "count": 12100,
+                "total_us": 263754.1,
+                "pct_of_device_time": 13.953,
+                "avg_us": 21.798
+              },
+              {
+                "kernel": "fused_gdn_gating_kernel",
+                "count": 2640,
+                "total_us": 220401.689,
+                "pct_of_device_time": 11.66,
+                "avg_us": 83.485
+              },
+              {
+                "kernel": "aclnnMatmul_MatMulV3Common_MatMulV3",
+                "count": 5665,
+                "total_us": 174949.165,
+                "pct_of_device_time": 9.255,
+                "avg_us": 30.882
+              },
+              {
+                "kernel": "aclnnRecurrentGatedDeltaRule_RecurrentGatedDeltaRule_RecurrentGatedDeltaRule",
+                "count": 2640,
+                "total_us": 88971.252,
+                "pct_of_device_time": 4.707,
+                "avg_us": 33.701
+              },
+              {
+                "kernel": "FusedInferAttentionScore",
+                "count": 1045,
+                "total_us": 59812.93,
+                "pct_of_device_time": 3.164,
+                "avg_us": 57.237
+              },
+              {
+                "kernel": "aclnnInplaceCopy_SliceAiCore_Slice",
+                "count": 18535,
+                "total_us": 56045.068,
+                "pct_of_device_time": 2.965,
+                "avg_us": 3.024
+              },
+              {
+                "kernel": "aclnnDynamicQuantV2_DynamicQuantV2_DynamicQuantV2",
+                "count": 7700,
+                "total_us": 46320.254,
+                "pct_of_device_time": 2.45,
+                "avg_us": 6.016
+              },
+              {
+                "kernel": "aclnnAddRmsNormDynamicQuantV2_AddRmsNormDynamicQuantAiCore_AddRmsNormDynamicQuant",
+                "count": 4400,
+                "total_us": 37064.524,
+                "pct_of_device_time": 1.961,
+                "avg_us": 8.424
+              },
+              {
+                "kernel": "CausalConv1d",
+                "count": 2640,
+                "total_us": 33675.62,
+                "pct_of_device_time": 1.782,
+                "avg_us": 12.756
+              },
+              {
+                "kernel": "SwiGlu",
+                "count": 3685,
+                "total_us": 23769.212,
+                "pct_of_device_time": 1.257,
+                "avg_us": 6.45
+              },
+              {
+                "kernel": "aclnnAdds_AddAiCore_Add",
+                "count": 10395,
+                "total_us": 22113.814,
+                "pct_of_device_time": 1.17,
+                "avg_us": 2.127
+              },
+              {
+                "kernel": "aclnnAddRmsNorm_AddRmsNorm_AddRmsNorm",
+                "count": 2970,
+                "total_us": 18436.174,
+                "pct_of_device_time": 0.975,
+                "avg_us": 6.207
+              },
+              {
+                "kernel": "aclnnCat_ConcatD_ConcatD",
+                "count": 2805,
+                "total_us": 15071.712,
+                "pct_of_device_time": 0.797,
+                "avg_us": 5.373
+              },
+              {
+                "kernel": "l2norm_fwd_kernel2",
+                "count": 5280,
+                "total_us": 12907.717,
+                "pct_of_device_time": 0.683,
+                "avg_us": 2.445
+              }
+            ]
+          },
+          "step_trace_time": {
+            "available": true,
+            "csv": "/out/tiers/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030/prof/rank0/step_trace_time.csv",
+            "n_steps": 1,
+            "stage_us": {
+              "median": 1868583.25,
+              "mean": 1868583.25,
+              "max": 1868583.25
+            },
+            "computing_us": {
+              "median": 1182001.283,
+              "mean": 1182001.283
+            },
+            "rows": [
+              {
+                "Device_id": "0",
+                "Step": "",
+                "Computing": "1182001.2829999952",
+                "Communication(Not Overlapped)": "354891.3110000007",
+                "Overlapped": "0.0",
+                "Communication": "354891.3110000007",
+                "Free": "331690.79599974485",
+                "Stage": "1868583.25",
+                "Bubble": "0",
+                "Communication(Not Overlapped and Exclude Receive)": "354891.3110000007",
+                "Preparing": "856.75"
+              }
+            ]
+          },
+          "extra": {
+            "weights": "/mnt/weight/Qwen3.6-27B-W8A8",
+            "quantization": "ascend (W8A8)",
+            "recipe": {
+              "tensor_parallel_size": 2,
+              "enable_prefix_caching": true,
+              "speculative_config": {
+                "method": "qwen3_5_mtp",
+                "num_speculative_tokens": 3,
+                "rejection_sample_method": "synthetic",
+                "synthetic_acceptance_rates": [
+                  0.8,
+                  0.64,
+                  0.512
+                ]
+              },
+              "profiler": "torch (vllm-ascend TorchNPUProfilerWrapper: Level1 + AiCMetrics.PipeUtilization + ExportType.Text)",
+              "max_model_len": 131072,
+              "max_num_seqs": 160,
+              "max_num_batched_tokens": 16384,
+              "gpu_memory_utilization": 0.9
+            },
+            "host_deviation": {
+              "requested_host": "177.25.22.1 (rack06os2)",
+              "actual_host": "177.25.21.1 (rack06os1)",
+              "reason": "rack06os2 rebooted mid-task and refused SSH on port 22 for ~10 min; rack06os1 was verified idle (8/8 dies, no running processes) and is the same Ascend950DT rack peer with the same image, so the TP2 measurement ran there.",
+              "identical_hardware": "Ascend950DT_9582, 98304 MB HBM per die, 32 cube / 64 vector cores"
+            },
+            "comparison_baseline": "Task 1C: same checkpoint at TP8 gave TPOT 6.38 ms @c=4, 10.14 ms @c=40, 14.02 ms @c=128, with hcom_allReduce_ at 64.1% of device time at c=4"
+          },
+          "client_json": "/out/cells/qwen36tp2_tpot10ms_c12.json",
+          "prof_dir": "/out/tiers/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030/prof/rank0",
+          "assembly": {
+            "ranks_seen": [
+              "rank0",
+              "rank1"
+            ],
+            "rank_dirs_kept": [
+              "rank0",
+              "rank1"
+            ],
+            "missing_rank_csvs": [],
+            "tier_kernel_details_source": "prof/rank0/kernel_details.csv (copied verbatim)",
+            "profdir": "/out/prof/qwen36tp2",
+            "tier_dir": "qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030"
+          }
+        },
+        "retained_deployment": {
+          "startup": null,
+          "launch_sources": [
+            {
+              "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030/cfg/serve_t6c_qwen36_tp2.sh",
+              "sha256": "09e2be65229cb2329b66e470a41de9e5fc57d7cc578f6f6f957bb8086e331830",
+              "size_bytes": 2121
+            }
+          ],
+          "launch_source_is_execution_intent": true
+        },
+        "client": {
+          "concurrency": 12,
+          "input_len": 4104,
+          "token_exact": true
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "n": 12,
+            "mean": 12.7378262573392,
+            "median": 12.657176741687518,
+            "std": 0.4698604894226931,
+            "min": 12.214703346378958,
+            "max": 13.998591154594491,
+            "p10": 12.231754998045934,
+            "p90": 13.222981540118944
+          },
+          "unprofiled_sweep_ms": 10.182462450978289,
+          "body_forward_is_separate_metric": true,
+          "profiled_engine_window_estimate_ms": 13.606739968603867
+        },
+        "prefix_cache": {
+          "profiled_metrics": {
+            "hit_rate": 0.8732943469785575,
+            "basis": "benchmark_summary.cell_metrics"
+          },
+          "unprofiled_metrics": null,
+          "unknown_metrics_are_not_zero": true
+        },
+        "source_population": {
+          "selected_rank": "top_level_export",
+          "available_rank_directories": [],
+          "all_ranks_are_not_summed": true,
+          "gzip_is_streamed_without_materialization": false
+        },
+        "step_trace": {
+          "source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030/step_trace_time.csv",
+            "sha256": "817c2343b5b8fc7d44c3f6a5115384211cb8340c99ce57f6ad26cfd3f8555bdd",
+            "size_bytes": 279
+          },
+          "rows": [
+            {
+              "Device_id": "0",
+              "Step": "",
+              "Computing": "1182001.2829999952",
+              "Communication(Not Overlapped)": "354891.3110000007",
+              "Overlapped": "0.0",
+              "Communication": "354891.3110000007",
+              "Free": "331690.79599974485",
+              "Stage": "1868583.25",
+              "Bubble": "0",
+              "Communication(Not Overlapped and Exclude Receive)": "354891.3110000007",
+              "Preparing": "856.75"
+            }
+          ],
+          "explicit_nonempty_step_values": 0
+        },
+        "request_geometry_is_not_per_forward_geometry": true,
+        "force_load_balance": {
+          "value": null,
+          "basis": "retained_non_default_startup_args_if_present"
+        },
+        "prefix_and_acceptance": {
+          "configured_values_are_not_measured_rates": true,
+          "unknown_metrics_are_not_zero": true
+        },
+        "tpot_body_scope": "client/profiled/sweep metrics retained separately in source fields; never body_forward_span_ms",
+        "sim_input_audit": {
+          "source": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/high-concurrency-new9-inputs-20261030.json",
+            "sha256": "795d155b42d02d4d7eefac01bd5446ec440beaabca2965db289c808a3f435335",
+            "size_bytes": 171786
+          },
+          "case_id": "qwen36-a5-tp2-c12",
+          "model_contract": {
+            "catalog_candidate": "qwen3.6-27b",
+            "basis": "same_named_local_structure_reference; exact_checkpoint_config_identity_unverified",
+            "precision": "w8a8_dynamic",
+            "layers": 64,
+            "hidden_size": 5120,
+            "attention_counts": {
+              "gdn": 48,
+              "gqa": 16
+            },
+            "model_coverage": "partial",
+            "unmodeled_features": [
+              "native_partial_rotary_dimensions_unresolved:retained_plan_proxy",
+              "unrecognized_config_field:full_attention_interval",
+              "unrecognized_config_field:language_model_only",
+              "unrecognized_config_field:mamba_ssm_dtype",
+              "unrecognized_config_field:mtp_use_dedicated_embeddings",
+              "unrecognized_config_field:output_gate_type",
+              "unrecognized_config_field:rope_parameters",
+              "unrecognized_config_field:vision_end_token_id",
+              "unrecognized_config_field:vision_start_token_id"
+            ]
+          },
+          "case_status": "parsed_body_template; exact_comparison_contract_pending",
+          "unresolved": [
+            "exact_active_context_lengths_not_encoded_in_tensor_shapes",
+            "checkpoint_config_json_not_in_delivered_capture",
+            "capture_tensor_slots_may_include_graph_padding_or_inactive_requests",
+            "per_projection_precision_and_fused_KDA_MLA_wrapper_contracts_not_fully_audited"
+          ]
+        }
+      },
+      "unresolved_reasons": [
+        "startup_log_not_located; launch_intent_is_not_runtime_confirmation"
+      ],
+      "extraction_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen36-a5-tp2-c12.json",
+      "variant_id": "observable-native-service-2f48346b",
+      "baseline_reference": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority/decode-forward-second-wave-replay.json",
+        "sha256": "574bd3ac3b05bded807b10c34d91933c170bb66fbe88eeb301b4b93ef92111c6",
+        "case_id": "qwen36-a5-tp2-c12:q4_b12_m48"
+      },
+      "replay_input_pins": {
+        "case": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/cases/qwen36-a5-tp2-c12-observable-service.json",
+          "sha256": "5bef82264e750035385493784f7f44c9fced32f01d840c507685cebb6d41c539",
+          "size_bytes": 16099
+        },
+        "extraction": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen36-a5-tp2-c12.json",
+          "sha256": "cb5fe8dd50fda431e2f28cd27eb9a1cf0796f85b6e7adbed0a070fcd43f84d29",
+          "size_bytes": 1498703,
+          "reused_existing_extraction": true
+        },
+        "primary_geometry": {
+          "query_rows": 48,
+          "sequences_per_replica": 12,
+          "tokens_per_sequence": 4,
+          "context_tokens": 4104,
+          "batch_basis": "captured_paged_attention_block_table_rows",
+          "context_basis": "not_observed_from_cache_capacity",
+          "phase": "decode"
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030/kernel_details.csv",
+          "size_bytes": 43475364,
+          "mtime_ns": 1793298518000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841"
+        }
+      },
+      "prior_source_case_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new9/qwen36-a5-tp2-c12.json",
+        "sha256": "bb70ee96cbef14aa43b22c7acd0688d3be43b396517ec952a83575838302cfc9",
+        "source_unchanged": true
+      },
+      "runtime_refresh": {
+        "prior_input_manifest": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-qwen-cases.json",
+          "sha256": "d5caa7434493aa1f8f28dc5f7f073f6b22ba7f2942aaac2ab7e185cad288d301",
+          "size_bytes": 133483
+        },
+        "prior_case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen-source-gdn-native/qwen36-a5-tp2-c12-source-gdn-native.json",
+          "sha256": "5a7613f0d1948735dd5e1f5d313efebd47ae454b2c791001fe5e40eaf5ccdf2c",
+          "size_bytes": 6787
+        },
+        "case_bytes_changed": true,
+        "explicit_case_override": true,
+        "retained_extraction_bytes_unchanged": false,
+        "observation_refresh_basis": "explicit_controller_generation_map; source and prediction geometry unchanged"
+      },
+      "observation_generation_refresh": {
+        "map_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/extraction-generation-map.json",
+          "sha256": "96a26d8474f41f7fd43cb6124d51bb2b9b95a3b6174203a760e7d63afbda0c49"
+        },
+        "previous_extraction_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-expanded/auto-forward-qwen36-a5-tp2-c12.json",
+          "sha256": "dc5eb494c0e16b3ca584fd6d408ad772fbd27125beb0b264a751b9c0856cc39a",
+          "size_bytes": 2207695,
+          "reused_existing_extraction": true
+        },
+        "body_operator_population_reusable": true,
+        "per_layer_span_changed": false,
+        "model_or_cost_inputs_changed": false
+      },
+      "baseline_case_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/hccl-source-complete/qwen36-a5-tp2-c12-hccl-source.json",
+        "sha256": "8fe53347f047664947173853eda9becdf7fb7b93e30d4040bba834db53bd4334",
+        "size_bytes": 7628
+      },
+      "calibration_origin": "in_sample",
+      "calibration_evidence": {
+        "source": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-calibration-policy/glm-qwen-observed-service-inputs.json",
+          "sha256": "f2d212a2cb3c2951a64f5c8a00a44aa251d7056be0c859f810a586e4aba45215",
+          "size_bytes": 177974
+        },
+        "response_boundary": "inclusive_whole_native_call",
+        "parameter_statistic": "whole_population_arithmetic_mean_us",
+        "model_body_residual_used": false,
+        "contract_admission_changed": false,
+        "limitations": [
+          "completion lower bounds preserve larger analytic work costs",
+          "HCOM elapsed includes protocol/peer wait and is not pure-link identification"
+        ]
+      }
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c1",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "sha256": "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+        "size_bytes": 65019355
+      },
+      "sim_case_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/cases/qwen36-a5-tp2-c1-observable-service.json",
+      "model_declaration": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/cases/qwen36-a5-tp2-c1-observable-service.json",
+        "sha256": "ea21ed79f54d1e32a28f1ee7abe3d2a4f4808449ef79edf485713a1f4be6564a",
+        "size_bytes": 16081
+      },
+      "segmentation": "auto_structure_guided",
+      "boundaries_path": null,
+      "geometry": {
+        "context_tokens": 4104
+      },
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot5ms_c1_20261030",
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot5ms_c1_20261030/benchmark_summary.json",
+          "sha256": "86918f2e4b41b64746774c11f9c42bfa35511d2b35cc6d90dde4298d1dff2411",
+          "size_bytes": 26923
+        },
+        "benchmark_summary_fields": {
+          "task": "high-concurrency 100%-APC steady-state decode profile",
+          "host": "177.25.21.1",
+          "model_path": "/mnt/weight/Qwen3.6-27B-W8A8",
+          "tensor_parallel_size": 2,
+          "image": "quay.io/ascend/vllm-ascend:v0.30.0rc2-a5",
+          "label": "qwen36tp2_tpot5ms_c1",
+          "served_model_name": "qwen36tp2",
+          "tpot_tier": "tpot5ms",
+          "concurrency": 1,
+          "prefix_len": 4096,
+          "decode_len": 640,
+          "tpot_measured_ms": 8.043379514866745,
+          "tpot_measured_mean_ms": 8.043379514866745,
+          "tpot_measured_p90_ms": 8.043379514866745,
+          "tpot_engine_ms": 8.239878136888164,
+          "tpot_client_ms": {
+            "n": 1,
+            "mean": 8.043379514866745,
+            "median": 8.043379514866745,
+            "std": 0.0,
+            "min": 8.043379514866745,
+            "max": 8.043379514866745,
+            "p10": 8.043379514866745,
+            "p90": 8.043379514866745
+          },
+          "step_time_ms": 23.685343364054606,
+          "step_time_engine_ms": 25.198697093041712,
+          "step_time_client_ms": {
+            "n": 1,
+            "mean": 23.685343364054606,
+            "median": 23.685343364054606,
+            "std": 0.0,
+            "min": 23.685343364054606,
+            "max": 23.685343364054606,
+            "p10": 23.685343364054606,
+            "p90": 23.685343364054606
+          },
+          "mtp_acceptance_rate": 0.686046511627907,
+          "unprofiled_sweep": {
+            "sweep_label": "qwen36tp2_tp2sweep_c1",
+            "tpot_sweep_unprofiled_ms": 5.939812313719064,
+            "step_sweep_unprofiled_ms": 18.031573095218587,
+            "ttft_sweep_unprofiled_ms": 205.37850999971852,
+            "tokens_per_step_sweep": 3.0476190476190474,
+            "profiling_overhead_tpot_pct": 35.41,
+            "profiling_overhead_step_pct": 31.35
+          },
+          "prefix_sha256": "9dbc8ffea16ca044863955efe41f1dd0e766719447d4aac31720a2c790d22a62",
+          "suffix_len": 8,
+          "tokens_per_step": 3.058139534883721,
+          "ttft_ms": {
+            "n": 1,
+            "mean": 207.82171999962884,
+            "median": 207.82171999962884,
+            "std": 0.0,
+            "min": 207.82171999962884,
+            "max": 207.82171999962884,
+            "p10": 207.82171999962884,
+            "p90": 207.82171999962884
+          },
+          "e2e_ms": {
+            "n": 1,
+            "mean": 5347.541229999479,
+            "median": 5347.541229999479,
+            "std": 0.0,
+            "min": 5347.541229999479,
+            "max": 5347.541229999479,
+            "p10": 5347.541229999479,
+            "p90": 5347.541229999479
+          },
+          "wall_s": 5.347943919998215,
+          "n_ok": 1,
+          "n_failed": 0,
+          "token_exact": true,
+          "output_throughput_tok_s": 119.67215991304067,
+          "prefix_cache_hit_rate": 0.8732943469785575,
+          "cell_metrics": {
+            "vllm:prefix_cache_queries_total": 4104.0,
+            "vllm:prefix_cache_hits_total": 3584.0,
+            "vllm:prompt_tokens_total": 4104.0,
+            "vllm:prompt_tokens_cached_total": 3584.0,
+            "vllm:generation_tokens_total": 640.0,
+            "vllm:request_success_total": 1.0,
+            "vllm:num_preemptions_total": 0.0,
+            "vllm:spec_decode_num_drafts_total": 216.0,
+            "vllm:spec_decode_num_draft_tokens_total": 648.0,
+            "vllm:spec_decode_num_accepted_tokens_total": 423.0,
+            "prefix_cache_hit_rate": 0.8732943469785575,
+            "acceptance_rate": 0.6527777777777778,
+            "tokens_per_step": 2.962962962962963
+          },
+          "profile_window": {
+            "requested": true,
+            "t_start_profile_req": 1.8068,
+            "start_status": 200,
+            "start_body": "",
+            "stop_status": 200,
+            "stop_body": "",
+            "t_stop_profile_done": 4.573,
+            "engine_window_s": 1.8065,
+            "metrics_interval_s": 2.1671,
+            "inflight_at_start": 1,
+            "inflight_at_stop": 1,
+            "window_valid": true,
+            "max_ttft_ms": 207.82171999962884,
+            "min_e2e_ms": 5347.541229999479
+          },
+          "engine_window": {
+            "profiler_window_s": 1.8065,
+            "metrics_interval_s": 2.1671,
+            "steps_in_window": 86.0,
+            "d_drafts": 86.0,
+            "d_draft_tokens": 258.0,
+            "d_accepted_tokens": 177.0,
+            "d_generation_tokens": 263.0,
+            "note": "vllm:spec_decode_num_drafts_total is per-request; engine steps = d_drafts / concurrency, and the interval is the timestamped /metrics fetch span (metrics_interval_s), not the sleep window."
+          },
+          "kernel_stats": {
+            "available": true,
+            "csv": "/out/tiers/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot5ms_c1_20261030/prof/rank0/kernel_details.csv",
+            "n_kernel_rows": 190401,
+            "total_device_time_us": 1415699.072,
+            "duration_us": {
+              "min": 0.794,
+              "median": 3.202,
+              "mean": 7.435
+            },
+            "top_operators_by_device_time": [
+              {
+                "op_type": "QuantBatchMatmulV3",
+                "count": 18700,
+                "total_us": 367563.516,
+                "pct_of_device_time": 25.963,
+                "avg_us": 19.656
+              },
+              {
+                "op_type": "hcom_allReduce_",
+                "count": 23460,
+                "total_us": 261449.182,
+                "pct_of_device_time": 18.468,
+                "avg_us": 11.144
+              },
+              {
+                "op_type": "MatMulV3",
+                "count": 8755,
+                "total_us": 230730.992,
+                "pct_of_device_time": 16.298,
+                "avg_us": 26.354
+              },
+              {
+                "op_type": "FusedInferAttentionScore",
+                "count": 1615,
+                "total_us": 75800.15,
+                "pct_of_device_time": 5.354,
+                "avg_us": 46.935
+              },
+              {
+                "op_type": "Slice",
+                "count": 30260,
+                "total_us": 70476.846,
+                "pct_of_device_time": 4.978,
+                "avg_us": 2.329
+              },
+              {
+                "op_type": "fused_gdn_gating_kernel",
+                "count": 4080,
+                "total_us": 59211.261,
+                "pct_of_device_time": 4.182,
+                "avg_us": 14.513
+              },
+              {
+                "op_type": "RecurrentGatedDeltaRule",
+                "count": 4080,
+                "total_us": 38234.805,
+                "pct_of_device_time": 2.701,
+                "avg_us": 9.371
+              },
+              {
+                "op_type": "DynamicQuantV2",
+                "count": 11900,
+                "total_us": 34144.544,
+                "pct_of_device_time": 2.412,
+                "avg_us": 2.869
+              },
+              {
+                "op_type": "Add",
+                "count": 16915,
+                "total_us": 33618.911,
+                "pct_of_device_time": 2.375,
+                "avg_us": 1.988
+              },
+              {
+                "op_type": "CausalConv1d",
+                "count": 4080,
+                "total_us": 28592.373,
+                "pct_of_device_time": 2.02,
+                "avg_us": 7.008
+              },
+              {
+                "op_type": "AddRmsNormDynamicQuant",
+                "count": 6800,
+                "total_us": 27528.889,
+                "pct_of_device_time": 1.945,
+                "avg_us": 4.048
+              },
+              {
+                "op_type": "SwiGlu",
+                "count": 5695,
+                "total_us": 18604.239,
+                "pct_of_device_time": 1.314,
+                "avg_us": 3.267
+              },
+              {
+                "op_type": "hcom_allGather_",
+                "count": 1020,
+                "total_us": 14927.216,
+                "pct_of_device_time": 1.054,
+                "avg_us": 14.635
+              },
+              {
+                "op_type": "l2norm_fwd_kernel2",
+                "count": 8160,
+                "total_us": 14855.023,
+                "pct_of_device_time": 1.049,
+                "avg_us": 1.82
+              },
+              {
+                "op_type": "AddRmsNorm",
+                "count": 4590,
+                "total_us": 14316.821,
+                "pct_of_device_time": 1.011,
+                "avg_us": 3.119
+              }
+            ],
+            "by_accelerator_core": {
+              "AI_VECTOR_CORE": {
+                "count": 120021,
+                "total_us": 383223.804,
+                "pct_of_device_time": 27.07,
+                "avg_us": 3.193
+              },
+              "MIX_AIV": {
+                "count": 16575,
+                "total_us": 65583.89,
+                "pct_of_device_time": 4.633,
+                "avg_us": 3.957
+              },
+              "COMMUNICATION": {
+                "count": 24565,
+                "total_us": 278879.154,
+                "pct_of_device_time": 19.699,
+                "avg_us": 11.353
+              },
+              "MIX_AIC": {
+                "count": 24650,
+                "total_us": 476764.63,
+                "pct_of_device_time": 33.677,
+                "avg_us": 19.341
+              },
+              "AI_CORE": {
+                "count": 4420,
+                "total_us": 197330.028,
+                "pct_of_device_time": 13.939,
+                "avg_us": 44.645
+              },
+              "AI_CPU": {
+                "count": 170,
+                "total_us": 13917.566,
+                "pct_of_device_time": 0.983,
+                "avg_us": 81.868
+              }
+            },
+            "by_kernel_name_top": [
+              {
+                "kernel": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "count": 18700,
+                "total_us": 367563.516,
+                "pct_of_device_time": 25.963,
+                "avg_us": 19.656
+              },
+              {
+                "kernel": "aclnnMatmul_MatMulV3Common_MatMulV3",
+                "count": 8755,
+                "total_us": 230730.992,
+                "pct_of_device_time": 16.298,
+                "avg_us": 26.354
+              },
+              {
+                "kernel": "AivKernel",
+                "count": 12240,
+                "total_us": 138188.199,
+                "pct_of_device_time": 9.761,
+                "avg_us": 11.29
+              },
+              {
+                "kernel": "FusedInferAttentionScore",
+                "count": 1615,
+                "total_us": 75800.15,
+                "pct_of_device_time": 5.354,
+                "avg_us": 46.935
+              },
+              {
+                "kernel": "fused_gdn_gating_kernel",
+                "count": 4080,
+                "total_us": 59211.261,
+                "pct_of_device_time": 4.182,
+                "avg_us": 14.513
+              },
+              {
+                "kernel": "aclnnInplaceCopy_SliceAiCore_Slice",
+                "count": 24565,
+                "total_us": 52748.164,
+                "pct_of_device_time": 3.726,
+                "avg_us": 2.147
+              },
+              {
+                "kernel": "aclnnRecurrentGatedDeltaRule_RecurrentGatedDeltaRule_RecurrentGatedDeltaRule",
+                "count": 4080,
+                "total_us": 38234.805,
+                "pct_of_device_time": 2.701,
+                "avg_us": 9.371
+              },
+              {
+                "kernel": "aclnnDynamicQuantV2_DynamicQuantV2_DynamicQuantV2",
+                "count": 11900,
+                "total_us": 34144.544,
+                "pct_of_device_time": 2.412,
+                "avg_us": 2.869
+              },
+              {
+                "kernel": "aclnnAdds_AddAiCore_Add",
+                "count": 16065,
+                "total_us": 32020.987,
+                "pct_of_device_time": 2.262,
+                "avg_us": 1.993
+              },
+              {
+                "kernel": "CausalConv1d",
+                "count": 4080,
+                "total_us": 28592.373,
+                "pct_of_device_time": 2.02,
+                "avg_us": 7.008
+              },
+              {
+                "kernel": "aclnnAddRmsNormDynamicQuantV2_AddRmsNormDynamicQuantAiCore_AddRmsNormDynamicQuant",
+                "count": 6800,
+                "total_us": 27528.889,
+                "pct_of_device_time": 1.945,
+                "avg_us": 4.048
+              },
+              {
+                "kernel": "SwiGlu",
+                "count": 5695,
+                "total_us": 18604.239,
+                "pct_of_device_time": 1.314,
+                "avg_us": 3.267
+              },
+              {
+                "kernel": "l2norm_fwd_kernel2",
+                "count": 8160,
+                "total_us": 14855.023,
+                "pct_of_device_time": 1.049,
+                "avg_us": 1.82
+              },
+              {
+                "kernel": "aclnnContiguous_SliceAiCore_Slice",
+                "count": 4080,
+                "total_us": 14348.475,
+                "pct_of_device_time": 1.014,
+                "avg_us": 3.517
+              },
+              {
+                "kernel": "aclnnAddRmsNorm_AddRmsNorm_AddRmsNorm",
+                "count": 4590,
+                "total_us": 14316.821,
+                "pct_of_device_time": 1.011,
+                "avg_us": 3.119
+              }
+            ]
+          },
+          "step_trace_time": {
+            "available": true,
+            "csv": "/out/tiers/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot5ms_c1_20261030/prof/rank0/step_trace_time.csv",
+            "n_steps": 1,
+            "stage_us": {
+              "median": 1834628.25,
+              "mean": 1834628.25,
+              "max": 1834628.25
+            },
+            "computing_us": {
+              "median": 1130562.994,
+              "mean": 1130562.994
+            },
+            "rows": [
+              {
+                "Device_id": "0",
+                "Step": "",
+                "Computing": "1130562.9939999836",
+                "Communication(Not Overlapped)": "140664.1569999998",
+                "Overlapped": "26.797999999980675",
+                "Communication": "140690.95499999978",
+                "Free": "563400.9319996274",
+                "Stage": "1834628.25",
+                "Bubble": "0",
+                "Communication(Not Overlapped and Exclude Receive)": "140664.1569999998",
+                "Preparing": "771.75"
+              }
+            ]
+          },
+          "extra": {
+            "weights": "/mnt/weight/Qwen3.6-27B-W8A8",
+            "quantization": "ascend (W8A8)",
+            "recipe": {
+              "tensor_parallel_size": 2,
+              "enable_prefix_caching": true,
+              "speculative_config": {
+                "method": "qwen3_5_mtp",
+                "num_speculative_tokens": 3,
+                "rejection_sample_method": "synthetic",
+                "synthetic_acceptance_rates": [
+                  0.8,
+                  0.64,
+                  0.512
+                ]
+              },
+              "profiler": "torch (vllm-ascend TorchNPUProfilerWrapper: Level1 + AiCMetrics.PipeUtilization + ExportType.Text)",
+              "max_model_len": 131072,
+              "max_num_seqs": 160,
+              "max_num_batched_tokens": 16384,
+              "gpu_memory_utilization": 0.9
+            },
+            "host_deviation": {
+              "requested_host": "177.25.22.1 (rack06os2)",
+              "actual_host": "177.25.21.1 (rack06os1)",
+              "reason": "rack06os2 rebooted mid-task and refused SSH on port 22 for ~10 min; rack06os1 was verified idle (8/8 dies, no running processes) and is the same Ascend950DT rack peer with the same image, so the TP2 measurement ran there.",
+              "identical_hardware": "Ascend950DT_9582, 98304 MB HBM per die, 32 cube / 64 vector cores"
+            },
+            "comparison_baseline": "Task 1C: same checkpoint at TP8 gave TPOT 6.38 ms @c=4, 10.14 ms @c=40, 14.02 ms @c=128, with hcom_allReduce_ at 64.1% of device time at c=4"
+          },
+          "client_json": "/out/cells/qwen36tp2_tpot5ms_c1.json",
+          "prof_dir": "/out/tiers/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot5ms_c1_20261030/prof/rank0",
+          "assembly": {
+            "ranks_seen": [
+              "rank0",
+              "rank1"
+            ],
+            "rank_dirs_kept": [
+              "rank0",
+              "rank1"
+            ],
+            "missing_rank_csvs": [],
+            "tier_kernel_details_source": "prof/rank0/kernel_details.csv (copied verbatim)",
+            "profdir": "/out/prof/qwen36tp2",
+            "tier_dir": "qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot5ms_c1_20261030"
+          }
+        },
+        "retained_deployment": {
+          "startup": null,
+          "launch_sources": [
+            {
+              "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot5ms_c1_20261030/cfg/serve_t6c_qwen36_tp2.sh",
+              "sha256": "09e2be65229cb2329b66e470a41de9e5fc57d7cc578f6f6f957bb8086e331830",
+              "size_bytes": 2121
+            }
+          ],
+          "launch_source_is_execution_intent": true
+        },
+        "client": {
+          "concurrency": 1,
+          "input_len": 4104,
+          "token_exact": true
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "n": 1,
+            "mean": 8.043379514866745,
+            "median": 8.043379514866745,
+            "std": 0.0,
+            "min": 8.043379514866745,
+            "max": 8.043379514866745,
+            "p10": 8.043379514866745,
+            "p90": 8.043379514866745
+          },
+          "unprofiled_sweep_ms": 5.939812313719064,
+          "body_forward_is_separate_metric": true,
+          "profiled_engine_window_estimate_ms": 8.239878136888164
+        },
+        "prefix_cache": {
+          "profiled_metrics": {
+            "hit_rate": 0.8732943469785575,
+            "basis": "benchmark_summary.cell_metrics"
+          },
+          "unprofiled_metrics": null,
+          "unknown_metrics_are_not_zero": true
+        },
+        "source_population": {
+          "selected_rank": "top_level_export",
+          "available_rank_directories": [],
+          "all_ranks_are_not_summed": true,
+          "gzip_is_streamed_without_materialization": false
+        },
+        "step_trace": {
+          "source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot5ms_c1_20261030/step_trace_time.csv",
+            "sha256": "453f45ff1b60d953cb8836568e5bf7268010ee3819a51645bbaaf29b867cf9e1",
+            "size_bytes": 294
+          },
+          "rows": [
+            {
+              "Device_id": "0",
+              "Step": "",
+              "Computing": "1130562.9939999836",
+              "Communication(Not Overlapped)": "140664.1569999998",
+              "Overlapped": "26.797999999980675",
+              "Communication": "140690.95499999978",
+              "Free": "563400.9319996274",
+              "Stage": "1834628.25",
+              "Bubble": "0",
+              "Communication(Not Overlapped and Exclude Receive)": "140664.1569999998",
+              "Preparing": "771.75"
+            }
+          ],
+          "explicit_nonempty_step_values": 0
+        },
+        "request_geometry_is_not_per_forward_geometry": true,
+        "force_load_balance": {
+          "value": null,
+          "basis": "retained_non_default_startup_args_if_present"
+        },
+        "prefix_and_acceptance": {
+          "configured_values_are_not_measured_rates": true,
+          "unknown_metrics_are_not_zero": true
+        },
+        "tpot_body_scope": "client/profiled/sweep metrics retained separately in source fields; never body_forward_span_ms",
+        "sim_input_audit": {
+          "source": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/high-concurrency-new9-inputs-20261030.json",
+            "sha256": "795d155b42d02d4d7eefac01bd5446ec440beaabca2965db289c808a3f435335",
+            "size_bytes": 171786
+          },
+          "case_id": "qwen36-a5-tp2-c1",
+          "model_contract": {
+            "catalog_candidate": "qwen3.6-27b",
+            "basis": "same_named_local_structure_reference; exact_checkpoint_config_identity_unverified",
+            "precision": "w8a8_dynamic",
+            "layers": 64,
+            "hidden_size": 5120,
+            "attention_counts": {
+              "gdn": 48,
+              "gqa": 16
+            },
+            "model_coverage": "partial",
+            "unmodeled_features": [
+              "native_partial_rotary_dimensions_unresolved:retained_plan_proxy",
+              "unrecognized_config_field:full_attention_interval",
+              "unrecognized_config_field:language_model_only",
+              "unrecognized_config_field:mamba_ssm_dtype",
+              "unrecognized_config_field:mtp_use_dedicated_embeddings",
+              "unrecognized_config_field:output_gate_type",
+              "unrecognized_config_field:rope_parameters",
+              "unrecognized_config_field:vision_end_token_id",
+              "unrecognized_config_field:vision_start_token_id"
+            ]
+          },
+          "case_status": "parsed_body_template; exact_comparison_contract_pending",
+          "unresolved": [
+            "exact_active_context_lengths_not_encoded_in_tensor_shapes",
+            "checkpoint_config_json_not_in_delivered_capture",
+            "capture_tensor_slots_may_include_graph_padding_or_inactive_requests",
+            "per_projection_precision_and_fused_KDA_MLA_wrapper_contracts_not_fully_audited"
+          ]
+        }
+      },
+      "unresolved_reasons": [
+        "startup_log_not_located; launch_intent_is_not_runtime_confirmation"
+      ],
+      "extraction_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen36-a5-tp2-c1.json",
+      "variant_id": "observable-native-service-2f48346b",
+      "baseline_reference": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority/decode-forward-second-wave-replay.json",
+        "sha256": "574bd3ac3b05bded807b10c34d91933c170bb66fbe88eeb301b4b93ef92111c6",
+        "case_id": "qwen36-a5-tp2-c1:q4_b1_m4"
+      },
+      "replay_input_pins": {
+        "case": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/cases/qwen36-a5-tp2-c1-observable-service.json",
+          "sha256": "ea21ed79f54d1e32a28f1ee7abe3d2a4f4808449ef79edf485713a1f4be6564a",
+          "size_bytes": 16081
+        },
+        "extraction": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen36-a5-tp2-c1.json",
+          "sha256": "a070062a2eee46da8b027b9f7f4c7e6f5d217e858343af5c93f87106ae34185e",
+          "size_bytes": 1645815,
+          "reused_existing_extraction": true
+        },
+        "primary_geometry": {
+          "query_rows": 4,
+          "sequences_per_replica": 1,
+          "tokens_per_sequence": 4,
+          "context_tokens": 4104,
+          "batch_basis": "captured_paged_attention_block_table_rows",
+          "context_basis": "not_observed_from_cache_capacity",
+          "phase": "decode"
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+          "size_bytes": 65019355,
+          "mtime_ns": 1793298450000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d"
+        }
+      },
+      "prior_source_case_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new9/qwen36-a5-tp2-c1.json",
+        "sha256": "0ca0c5e9538108bf5d02da8c394709938ff73780409215971f0ed228e2649721",
+        "source_unchanged": true
+      },
+      "runtime_refresh": {
+        "prior_input_manifest": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-qwen-cases.json",
+          "sha256": "d5caa7434493aa1f8f28dc5f7f073f6b22ba7f2942aaac2ab7e185cad288d301",
+          "size_bytes": 133483
+        },
+        "prior_case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen-source-gdn-native/qwen36-a5-tp2-c1-source-gdn-native.json",
+          "sha256": "3903255d1afbb090889ba5d0cfcf310badfb5221b16619e997b638b6b0dda206",
+          "size_bytes": 6778
+        },
+        "case_bytes_changed": true,
+        "explicit_case_override": true,
+        "retained_extraction_bytes_unchanged": false,
+        "observation_refresh_basis": "explicit_controller_generation_map; source and prediction geometry unchanged"
+      },
+      "observation_generation_refresh": {
+        "map_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/extraction-generation-map.json",
+          "sha256": "96a26d8474f41f7fd43cb6124d51bb2b9b95a3b6174203a760e7d63afbda0c49"
+        },
+        "previous_extraction_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-expanded/auto-forward-qwen36-a5-tp2-c1.json",
+          "sha256": "b57c8e353712643b2d0735d42df9b53545f9389578b8baf8935a86c12ecdb3ca",
+          "size_bytes": 2401116,
+          "reused_existing_extraction": true
+        },
+        "body_operator_population_reusable": true,
+        "per_layer_span_changed": false,
+        "model_or_cost_inputs_changed": false
+      },
+      "baseline_case_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/hccl-source-complete/qwen36-a5-tp2-c1-hccl-source.json",
+        "sha256": "f987b5a779f3a94571eeba837cd73101cebe10216ac0944878a16272adcc2044",
+        "size_bytes": 7618
+      },
+      "calibration_origin": "in_sample",
+      "calibration_evidence": {
+        "source": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-calibration-policy/glm-qwen-observed-service-inputs.json",
+          "sha256": "f2d212a2cb3c2951a64f5c8a00a44aa251d7056be0c859f810a586e4aba45215",
+          "size_bytes": 177974
+        },
+        "response_boundary": "inclusive_whole_native_call",
+        "parameter_statistic": "whole_population_arithmetic_mean_us",
+        "model_body_residual_used": false,
+        "contract_admission_changed": false,
+        "limitations": [
+          "completion lower bounds preserve larger analytic work costs",
+          "HCOM elapsed includes protocol/peer wait and is not pure-link identification"
+        ]
+      }
+    }
+  ]
+}

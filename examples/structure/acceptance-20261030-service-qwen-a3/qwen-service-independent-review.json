@@ -1,0 +1,75 @@
+{
+  "schema_version": "mindie-observed-service-review/1",
+  "status": "passed",
+  "report_sha256": "3132121ac9201221b1525eb9fcea1d4bc87092e3e5719500d683230c35f10917",
+  "checks": 117,
+  "failures": [],
+  "matched_rules": [
+    {
+      "case_id": "qwen36-a5-tp2-c96",
+      "rule_id": "causalconv1d-physical-384",
+      "matched_calls_per_forward": 48.0,
+      "missed_calls_per_forward": 0,
+      "observed_call_count": 1152
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c96",
+      "rule_id": "recurrentgateddeltarule-physical-384",
+      "matched_calls_per_forward": 48.0,
+      "missed_calls_per_forward": 0,
+      "observed_call_count": 1152
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c96",
+      "rule_id": "hcom_allreduce_-physical-384",
+      "matched_calls_per_forward": 128.0,
+      "missed_calls_per_forward": 0,
+      "observed_call_count": 3072
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c12",
+      "rule_id": "causalconv1d-physical-48",
+      "matched_calls_per_forward": 48.0,
+      "missed_calls_per_forward": 0,
+      "observed_call_count": 2640
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c12",
+      "rule_id": "recurrentgateddeltarule-physical-48",
+      "matched_calls_per_forward": 48.0,
+      "missed_calls_per_forward": 0,
+      "observed_call_count": 2640
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c12",
+      "rule_id": "hcom_allreduce_-physical-48",
+      "matched_calls_per_forward": 128.0,
+      "missed_calls_per_forward": 0,
+      "observed_call_count": 7040
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c1",
+      "rule_id": "causalconv1d-physical-4",
+      "matched_calls_per_forward": 48.0,
+      "missed_calls_per_forward": 0,
+      "observed_call_count": 4080
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c1",
+      "rule_id": "recurrentgateddeltarule-physical-4",
+      "matched_calls_per_forward": 48.0,
+      "missed_calls_per_forward": 0,
+      "observed_call_count": 4080
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c1",
+      "rule_id": "hcom_allreduce_-physical-4",
+      "matched_calls_per_forward": 128.0,
+      "missed_calls_per_forward": 0,
+      "observed_call_count": 10880
+    }
+  ],
+  "raw_capture_reads": 0,
+  "new_predictions": 0,
+  "maximum_resident_set_size_bytes": 68403200
+}
