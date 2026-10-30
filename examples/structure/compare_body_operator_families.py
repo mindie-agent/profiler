@@ -3,7 +3,8 @@
 [Role] Reuse Sim cohort and program costing for body-only operator scoreboards.
 [Invariants] No observed duration selects a recipe. Accuracy decisions precede
   aggregation; missing/fused-partial boundaries do not become zero predictions.
-  Communication elapsed includes peer wait and is a conditional reference only.
+  Incomplete collective evidence stays a reference. Its observed elapsed service
+  may calibrate the same boundary without claiming a pure link rate.
 [Timeouts & Locks] Serial physical programs, each with a bounded process budget.
 [Side-Effect Policy] Local metadata/prediction only; no raw captures or devices.
 """
@@ -26,7 +27,8 @@ from mindie_sim.prediction.program import RecipeBook
 from mindie_sim.prediction.structure import parse_case
 from mindie_sim.structure import export_structure
 from mindie_sim.prediction.body_defaults import effective_body_declaration
-from body_source_role_references import predict_source_role_references
+from body_source_role_references import (predict_source_role_references,
+                                         communication_calibration_evidence)
 
 
 def prediction_runtime_identity():
@@ -54,11 +56,11 @@ def program_references(case_path, mapping, actual=None):
             results[role]={'status':'unresolved','reason':'communication_program_not_homogeneous'}
             continue
         prediction=_predict(case,selected[0],'node',by_id,book)
-        results[role]={'status':'reference_only','reason':'captured_communication_elapsed_includes_unmeasured_peer_wait',
+        results[role]={'status':'reference_only','reason':'native_collective_contract_and_captured_program_boundary_unverified',
                       'per_call_ms':prediction['per_call_ms'],'representative_target_id':selected[0]['node_id'],
                       'target_count':len(selected),'boundary':prediction['boundary'],
                       'evidence_strength':'conditional_topology_region_to_declared_collective',
-                      'communication_bandwidth_calibration_allowed':False}
+                      **communication_calibration_evidence()}
     for native,family in [('fused_gdn_gating_kernel','gdn_gating'),('FusedInferAttentionScore','attention')]:
         selected=[node for node in manifest['nodes'] if node['family']==family and node.get('layer',-1)>=0]
         signatures={node['physical_signature'] for node in selected}
@@ -147,7 +149,7 @@ def render(report):
            'Mean/P50 are pooled native-call statistics. Sim roles are conditioned on the complete declared topology; no Host layer binding is asserted.',
            'Declaration arms may reuse captures. Calls summed across arms are not independent observations.',
            'Accuracy is decided per tensor/physical-work cohort: >50 us uses 15% relative error; <=50 us uses 15 us absolute error. '
-           'Communication elapsed retains peer wait and is shown only as a declared-program reference, never used to recalibrate bandwidth.','',
+           'Collective references retain unseparated peer wait. Their same-boundary service may be calibrated; this does not identify pure link bandwidth or complete missing native contracts.','',
            '| Case | <=50 us passed / compared | >50 us passed / compared | All passed / compared | Scored / body calls | Prediction failed |',
            '| --- | ---: | ---: | ---: | ---: | ---: |']
     for case in report['cases']:

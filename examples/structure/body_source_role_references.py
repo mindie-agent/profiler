@@ -3,7 +3,8 @@
 [Role] Retain whole-body-aligned native calls by declared physical program group.
 [Invariants] A source anchor is not a tensor contract or Host binding. Different
   physical groups are never averaged together. Existing program costs are not
-  additional body work; peer waiting and elapsed kernel time do not fit rates.
+  additional body work. Observed elapsed service may calibrate the same boundary;
+  unseparated peer wait does not identify a pure transport rate.
 [Timeouts & Locks] Bounded layer/program metadata and integer duration histograms.
 [Side-Effect Policy] Pure local metadata/costing; no capture reads or devices.
 """
@@ -21,6 +22,27 @@ from mindie_profiler.tensor_contracts import observed_contract
 
 def canonical(value):
     return json.dumps(value, sort_keys=True, separators=(',', ':'), allow_nan=False)
+
+
+def communication_calibration_evidence():
+    """Separate observable service calibration from pure-link identification.
+
+    This metadata never changes cohort admission, candidate selection or cost.
+    The old bandwidth field refers only to a link rate with wait removed.
+    """
+    return {
+        'communication_bandwidth_calibration_allowed': False,
+        'communication_bandwidth_calibration_scope': 'pure_link_rate_from_elapsed_without_peer_wait_separation',
+        'pure_link_rate_identifiable': False,
+        'observed_service_calibration': {
+            'allowed': True,
+            'boundary': 'same_observed_collective_or_native_program_service',
+            'parameter_scopes': ['per_call', 'per_group', 'payload_or_low_M_regime'],
+            'peer_wait_separation_established': False,
+            'strict_admission_effect': 'none; tensor_work_and_boundary_evidence_remain_required',
+            'evaluation_reporting': 'same_fit_capture_is_in_sample; holdout_requires_separate_evidence',
+        },
+    }
 
 
 def reference_signature(target):
@@ -81,7 +103,7 @@ def routed_ffn_reference(native, local):
         'declared_valid_routed_rows': upper[1][1],
         'native_fusion_cost_established': False,
         'excluded_semantic_roles': ['router', 'topk', 'route_normalize', 'shared.*', 'join', 'hc_*', 'norm*'],
-        'communication_bandwidth_calibration_allowed': False,
+        **communication_calibration_evidence(),
         'limitations': ['Native fused MC2 routing, quantization, matrix scheduling and launch elimination are not modeled by this decomposed reference.',
                        'Storage capacity and active-mask/group-count values do not establish active or routed rows.',
                        'The complete declared DP cohort supplies peer context; its rank costs are not added into a single-card elapsed time.']})
@@ -225,8 +247,8 @@ class SourceRoleReferences:
                     'observed_valid_routed_rows': None,
                     'limitations': ['Native atomic implementation and active peer/routing counts remain unproven.',
                                     'Declared generic transport may differ from native destination-window protocol.',
-                                    'Elapsed native communication includes peer wait; bandwidth fitting is forbidden.'],
-                    'communication_bandwidth_calibration_allowed': False})
+                                    'Elapsed native communication may include peer wait; same-boundary service may be calibrated but a pure link rate is not identified.'],
+                    **communication_calibration_evidence()})
         return None
 
     def add(self, event, layer, block):
