@@ -1,0 +1,112 @@
+{
+  "source_identity": {
+    "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c32_20261030/ranks/tp0/kernel_details.csv.gz",
+    "sha256": "c7deb048fabcf5650aeb014c411b0eda709758e8dd4227119f7de5316a1c294e",
+    "size_bytes": 4803119
+  },
+  "accepted_body_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c32.json",
+    "sha256": "2170a9f270b4efca5773cb41b27b9d849ffc75bc054bdd1f6808afd4fcc6be74",
+    "size_bytes": 743150
+  },
+  "accepted_forward_id": "auto:1",
+  "source_lines": [
+    9521,
+    9700
+  ],
+  "source_rows_unchanged": true,
+  "old_body_forward_span_ms": {
+    "count": 1,
+    "mean": 6.646987,
+    "p50": 6.646987,
+    "p90": 6.646987,
+    "min": 6.646987,
+    "max": 6.646987
+  },
+  "old_body_activity_ms": {
+    "count": 1,
+    "mean": 6.55203,
+    "p50": 6.55203,
+    "p90": 6.55203,
+    "min": 6.55203,
+    "max": 6.55203
+  },
+  "old_layer_stats": [
+    {
+      "layer_id": 0,
+      "stats": {
+        "count": 1,
+        "mean": 0.775824,
+        "p50": 0.775824,
+        "p90": 0.775824,
+        "min": 0.775824,
+        "max": 0.775824
+      },
+      "activity_ms_stats": {
+        "count": 1,
+        "mean": 0.772984,
+        "p50": 0.772984,
+        "p90": 0.772984,
+        "min": 0.772984,
+        "max": 0.772984
+      }
+    },
+    {
+      "layer_id": 1,
+      "stats": {
+        "count": 1,
+        "mean": 1.911462,
+        "p50": 1.911462,
+        "p90": 1.911462,
+        "min": 1.911462,
+        "max": 1.911462
+      },
+      "activity_ms_stats": {
+        "count": 1,
+        "mean": 1.902162,
+        "p50": 1.902162,
+        "p90": 1.902162,
+        "min": 1.902162,
+        "max": 1.902162
+      }
+    },
+    {
+      "layer_id": 2,
+      "stats": {
+        "count": 1,
+        "mean": 1.790304,
+        "p50": 1.790304,
+        "p90": 1.790304,
+        "min": 1.790304,
+        "max": 1.790304
+      },
+      "activity_ms_stats": {
+        "count": 1,
+        "mean": 1.762105,
+        "p50": 1.762105,
+        "p90": 1.762105,
+        "min": 1.762105,
+        "max": 1.762105
+      }
+    },
+    {
+      "layer_id": 3,
+      "stats": {
+        "count": 1,
+        "mean": 2.168697,
+        "p50": 2.168697,
+        "p90": 2.168697,
+        "min": 2.168697,
+        "max": 2.168697
+      },
+      "activity_ms_stats": {
+        "count": 1,
+        "mean": 2.114779,
+        "p50": 2.114779,
+        "p90": 2.114779,
+        "min": 2.114779,
+        "max": 2.114779
+      }
+    }
+  ]
+}

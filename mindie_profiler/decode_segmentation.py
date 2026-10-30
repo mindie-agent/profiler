@@ -41,6 +41,7 @@ _ANCHORS = {"RecurrentGatedDeltaRule": "gdn", "FusedInferAttentionScore": "gqa",
 _PREFILL_ANCHORS = {"ChunkGatedDeltaRuleFwd", "ChunkKdaFwd", "ChunkFwdH"}
 _TAIL_NAMES = {"allreduceAicpuKernel", "allgatherAicpuKernel", "reducescatterAicpuKernel",
                "HcclLaunchAicpuKernel"}
+_CONTROLLER_NAMES = frozenset(name.replace("_", "").casefold() for name in _TAIL_NAMES)
 
 
 @dataclass(slots=True)
@@ -170,10 +171,19 @@ def _fused_ffn(row):
             and row.outputs == (x, (up[0],)))
 
 
+def is_aicpu_controller(event):
+    """Recognize supported control tasks by type and exporter spelling aliases.
+
+    HCOM envelopes may end in AicpuKernel while their core is COMMUNICATION.
+    Neither that suffix nor elapsed duration makes them scheduler tasks.
+    """
+    typed = any(value.replace("_", "").casefold() == "aicpu"
+                for value in (event.core, event.task_type))
+    return typed and event.op_type.replace("_", "").casefold() in _CONTROLLER_NAMES
+
+
 def _scheduler(row):
-    typed = any("aicpu" in value.lower().replace("_", "")
-                for value in (row.event.core, row.event.task_type))
-    return typed and row.kind in _TAIL_NAMES
+    return is_aicpu_controller(row.event)
 
 
 def _norm_start(rows, index, hidden):

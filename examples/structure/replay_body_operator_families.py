@@ -22,7 +22,7 @@ import subprocess
 import sys
 import time
 
-from mindie_profiler.decode_segmentation import auto_segment_decode_forwards, _norm, _norm_start, _anchor, _Row, _TAIL_NAMES
+from mindie_profiler.decode_segmentation import auto_segment_decode_forwards, _norm, _norm_start, _anchor, _Row, is_aicpu_controller
 from mindie_profiler.events import Observation, QueryStats, SourceRef, Window
 from mindie_profiler.normalized import kernel_rows, shapes, row_from_event
 from mindie_profiler.native_tensor_abi import native_tensor_contract
@@ -204,8 +204,7 @@ class BodyConsumer:
             if not result['start_ns'] <= event.start_ns < result['end_ns']:
                 self.counts['outside_body_events'] += 1
                 continue
-            typed = any('aicpu' in item.lower().replace('_', '') for item in (event.core, event.task_type))
-            if typed and event.op_type in _TAIL_NAMES:
+            if is_aicpu_controller(event):
                 self.counts['scheduler_wrapper_events'] += 1
             elif event.end_ns > result['end_ns']:
                 self.counts['crossing_body_endpoint_events'] += 1

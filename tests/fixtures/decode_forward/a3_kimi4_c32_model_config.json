@@ -1,0 +1,1123 @@
+{
+  "name": "kimi-k3-4layer-w4a8-conditional",
+  "layers": 4,
+  "hidden_size": 7168,
+  "num_heads": 96,
+  "head_dim": 74,
+  "intermediate_size": 33792,
+  "vocab_size": 163840,
+  "attention": "mla",
+  "ffn": "moe",
+  "num_kv_heads": 96,
+  "activation_dtype": "bf16",
+  "weight_dtype": "int8",
+  "kv_dtype": "bf16",
+  "compute_dtype": "bf16",
+  "norm_eps": 1e-05,
+  "quantization": "W4A8_DYNAMIC",
+  "num_experts": 896,
+  "top_k": 16,
+  "moe_intermediate_size": 3072,
+  "num_shared_experts": 2,
+  "expert_routing": [],
+  "expert_routing_source": "declared",
+  "mla": {
+    "q_lora_rank": 1536,
+    "kv_lora_rank": 512,
+    "qk_nope_head_dim": 128,
+    "qk_rope_head_dim": 64,
+    "v_head_dim": 128,
+    "o_lora_rank": 0,
+    "o_groups": 0,
+    "index_topk": 0,
+    "index_head_dim": 0,
+    "index_n_heads": 0,
+    "compress_ratio": 0,
+    "sliding_window": 0
+  },
+  "tie_word_embeddings": false,
+  "layer_plans": [
+    {
+      "index": 0,
+      "attention": "kda",
+      "ffn": "dense",
+      "compress_ratio": 0,
+      "indexer": false,
+      "window": 0,
+      "num_heads": 0,
+      "num_kv_heads": 0,
+      "head_dim": 0,
+      "q_lora_rank": 0,
+      "kv_lora_rank": 0,
+      "qk_nope_head_dim": 0,
+      "qk_rope_head_dim": 0,
+      "v_head_dim": 0,
+      "intermediate_size": 33792,
+      "num_experts": 0,
+      "top_k": 0,
+      "moe_intermediate_size": 0,
+      "num_shared_experts": 0,
+      "linear_heads": 96,
+      "linear_head_dim": 128,
+      "conv_kernel": 4,
+      "state_bytes": 6512640.0,
+      "mtp": false,
+      "architecture": "kda",
+      "indexer_type": "none",
+      "candidate_filter": false,
+      "o_lora_rank": 0,
+      "o_groups": 0,
+      "mla_variant": "none",
+      "mla_output_gate": false,
+      "q_output_gate": false,
+      "noncausal_attention": false,
+      "expert_latent_size": 0,
+      "expert_latent_norm_position": "post",
+      "router_input_size": 7168,
+      "router_mode": "sigmoid",
+      "router_dtype": "",
+      "router_output_dtype": "",
+      "router_precast_weight_copy": false,
+      "router_norm_topk": false,
+      "router_groups": 0,
+      "router_group_topk": 0,
+      "shared_intermediate_size": 0,
+      "shared_expert_gate": false,
+      "linear_key_heads": 96,
+      "linear_key_head_dim": 128,
+      "linear_value_heads": 96,
+      "packed_input_projection": false,
+      "gate_rank": 0,
+      "projection_dtype": "",
+      "conv_width": 36864,
+      "recurrent_state_elements": 1572864,
+      "recurrent_state_dtype": "fp32",
+      "conv_state_elements": 110592,
+      "conv_state_dtype": "bf16",
+      "kv_cache_elements": 0,
+      "kv_owner_layer_id": 0,
+      "owns_long_kv": false,
+      "index_k_owner_layer_id": -1,
+      "owns_index_k": false,
+      "topk_owner_layer_id": -1,
+      "owns_topk": false,
+      "owns_candidate_blocks": false,
+      "candidate_source_layer_id": -1,
+      "index_source_layer_id": -1,
+      "index_source_status": "exact",
+      "engram": false,
+      "hyper_connections": false,
+      "hc_mult": 0,
+      "hc_sinkhorn_iters": 0,
+      "residual_block_size": 12,
+      "native_layer_id": 1,
+      "scope": "body",
+      "cache_kind": "dense",
+      "compressor_kind": "none",
+      "compressor_width": 1,
+      "compressor_state_rows": 0,
+      "compressor_norm_dtype": "bf16",
+      "index_input": "hidden",
+      "index_query_per_layer": false,
+      "index_heads": 0,
+      "index_dim": 0,
+      "index_topk": 0,
+      "candidate_block_size": 8,
+      "candidate_topk_blocks": 2048,
+      "qk_norm": false,
+      "ffn_activation": "situ",
+      "activation_situ_beta": 4.0,
+      "activation_situ_linear_beta": 25.0
+    },
+    {
+      "index": 1,
+      "attention": "kda",
+      "ffn": "moe",
+      "compress_ratio": 0,
+      "indexer": false,
+      "window": 0,
+      "num_heads": 0,
+      "num_kv_heads": 0,
+      "head_dim": 0,
+      "q_lora_rank": 0,
+      "kv_lora_rank": 0,
+      "qk_nope_head_dim": 0,
+      "qk_rope_head_dim": 0,
+      "v_head_dim": 0,
+      "intermediate_size": 0,
+      "num_experts": 896,
+      "top_k": 16,
+      "moe_intermediate_size": 3072,
+      "num_shared_experts": 2,
+      "linear_heads": 96,
+      "linear_head_dim": 128,
+      "conv_kernel": 4,
+      "state_bytes": 6512640.0,
+      "mtp": false,
+      "architecture": "kda",
+      "indexer_type": "none",
+      "candidate_filter": false,
+      "o_lora_rank": 0,
+      "o_groups": 0,
+      "mla_variant": "none",
+      "mla_output_gate": false,
+      "q_output_gate": false,
+      "noncausal_attention": false,
+      "expert_latent_size": 3584,
+      "expert_latent_norm_position": "post",
+      "router_input_size": 7168,
+      "router_mode": "sigmoid",
+      "router_dtype": "",
+      "router_output_dtype": "",
+      "router_precast_weight_copy": false,
+      "router_norm_topk": false,
+      "router_groups": 0,
+      "router_group_topk": 0,
+      "shared_intermediate_size": 6144,
+      "shared_expert_gate": false,
+      "linear_key_heads": 96,
+      "linear_key_head_dim": 128,
+      "linear_value_heads": 96,
+      "packed_input_projection": false,
+      "gate_rank": 0,
+      "projection_dtype": "",
+      "conv_width": 36864,
+      "recurrent_state_elements": 1572864,
+      "recurrent_state_dtype": "fp32",
+      "conv_state_elements": 110592,
+      "conv_state_dtype": "bf16",
+      "kv_cache_elements": 0,
+      "kv_owner_layer_id": 1,
+      "owns_long_kv": false,
+      "index_k_owner_layer_id": -1,
+      "owns_index_k": false,
+      "topk_owner_layer_id": -1,
+      "owns_topk": false,
+      "owns_candidate_blocks": false,
+      "candidate_source_layer_id": -1,
+      "index_source_layer_id": -1,
+      "index_source_status": "exact",
+      "engram": false,
+      "hyper_connections": false,
+      "hc_mult": 0,
+      "hc_sinkhorn_iters": 0,
+      "residual_block_size": 12,
+      "native_layer_id": 2,
+      "scope": "body",
+      "cache_kind": "dense",
+      "compressor_kind": "none",
+      "compressor_width": 1,
+      "compressor_state_rows": 0,
+      "compressor_norm_dtype": "bf16",
+      "index_input": "hidden",
+      "index_query_per_layer": false,
+      "index_heads": 0,
+      "index_dim": 0,
+      "index_topk": 0,
+      "candidate_block_size": 8,
+      "candidate_topk_blocks": 2048,
+      "qk_norm": false,
+      "ffn_activation": "situ",
+      "activation_situ_beta": 4.0,
+      "activation_situ_linear_beta": 25.0
+    },
+    {
+      "index": 2,
+      "attention": "kda",
+      "ffn": "moe",
+      "compress_ratio": 0,
+      "indexer": false,
+      "window": 0,
+      "num_heads": 0,
+      "num_kv_heads": 0,
+      "head_dim": 0,
+      "q_lora_rank": 0,
+      "kv_lora_rank": 0,
+      "qk_nope_head_dim": 0,
+      "qk_rope_head_dim": 0,
+      "v_head_dim": 0,
+      "intermediate_size": 0,
+      "num_experts": 896,
+      "top_k": 16,
+      "moe_intermediate_size": 3072,
+      "num_shared_experts": 2,
+      "linear_heads": 96,
+      "linear_head_dim": 128,
+      "conv_kernel": 4,
+      "state_bytes": 6512640.0,
+      "mtp": false,
+      "architecture": "kda",
+      "indexer_type": "none",
+      "candidate_filter": false,
+      "o_lora_rank": 0,
+      "o_groups": 0,
+      "mla_variant": "none",
+      "mla_output_gate": false,
+      "q_output_gate": false,
+      "noncausal_attention": false,
+      "expert_latent_size": 3584,
+      "expert_latent_norm_position": "post",
+      "router_input_size": 7168,
+      "router_mode": "sigmoid",
+      "router_dtype": "",
+      "router_output_dtype": "",
+      "router_precast_weight_copy": false,
+      "router_norm_topk": false,
+      "router_groups": 0,
+      "router_group_topk": 0,
+      "shared_intermediate_size": 6144,
+      "shared_expert_gate": false,
+      "linear_key_heads": 96,
+      "linear_key_head_dim": 128,
+      "linear_value_heads": 96,
+      "packed_input_projection": false,
+      "gate_rank": 0,
+      "projection_dtype": "",
+      "conv_width": 36864,
+      "recurrent_state_elements": 1572864,
+      "recurrent_state_dtype": "fp32",
+      "conv_state_elements": 110592,
+      "conv_state_dtype": "bf16",
+      "kv_cache_elements": 0,
+      "kv_owner_layer_id": 2,
+      "owns_long_kv": false,
+      "index_k_owner_layer_id": -1,
+      "owns_index_k": false,
+      "topk_owner_layer_id": -1,
+      "owns_topk": false,
+      "owns_candidate_blocks": false,
+      "candidate_source_layer_id": -1,
+      "index_source_layer_id": -1,
+      "index_source_status": "exact",
+      "engram": false,
+      "hyper_connections": false,
+      "hc_mult": 0,
+      "hc_sinkhorn_iters": 0,
+      "residual_block_size": 12,
+      "native_layer_id": 3,
+      "scope": "body",
+      "cache_kind": "dense",
+      "compressor_kind": "none",
+      "compressor_width": 1,
+      "compressor_state_rows": 0,
+      "compressor_norm_dtype": "bf16",
+      "index_input": "hidden",
+      "index_query_per_layer": false,
+      "index_heads": 0,
+      "index_dim": 0,
+      "index_topk": 0,
+      "candidate_block_size": 8,
+      "candidate_topk_blocks": 2048,
+      "qk_norm": false,
+      "ffn_activation": "situ",
+      "activation_situ_beta": 4.0,
+      "activation_situ_linear_beta": 25.0
+    },
+    {
+      "index": 3,
+      "attention": "mla",
+      "ffn": "moe",
+      "compress_ratio": 0,
+      "indexer": false,
+      "window": 0,
+      "num_heads": 96,
+      "num_kv_heads": 96,
+      "head_dim": 192,
+      "q_lora_rank": 1536,
+      "kv_lora_rank": 512,
+      "qk_nope_head_dim": 128,
+      "qk_rope_head_dim": 64,
+      "v_head_dim": 128,
+      "intermediate_size": 0,
+      "num_experts": 896,
+      "top_k": 16,
+      "moe_intermediate_size": 3072,
+      "num_shared_experts": 2,
+      "linear_heads": 0,
+      "linear_head_dim": 0,
+      "conv_kernel": 0,
+      "state_bytes": 0.0,
+      "mtp": false,
+      "architecture": "mla",
+      "indexer_type": "none",
+      "candidate_filter": false,
+      "o_lora_rank": 0,
+      "o_groups": 0,
+      "mla_variant": "latent_mla",
+      "mla_output_gate": true,
+      "q_output_gate": false,
+      "noncausal_attention": false,
+      "expert_latent_size": 3584,
+      "expert_latent_norm_position": "post",
+      "router_input_size": 7168,
+      "router_mode": "sigmoid",
+      "router_dtype": "",
+      "router_output_dtype": "",
+      "router_precast_weight_copy": false,
+      "router_norm_topk": false,
+      "router_groups": 0,
+      "router_group_topk": 0,
+      "shared_intermediate_size": 6144,
+      "shared_expert_gate": false,
+      "linear_key_heads": 0,
+      "linear_key_head_dim": 0,
+      "linear_value_heads": 0,
+      "packed_input_projection": false,
+      "gate_rank": 0,
+      "projection_dtype": "",
+      "conv_width": 0,
+      "recurrent_state_elements": 0,
+      "recurrent_state_dtype": "fp32",
+      "conv_state_elements": 0,
+      "conv_state_dtype": "bf16",
+      "kv_cache_elements": 576,
+      "kv_owner_layer_id": 3,
+      "owns_long_kv": false,
+      "index_k_owner_layer_id": -1,
+      "owns_index_k": false,
+      "topk_owner_layer_id": -1,
+      "owns_topk": false,
+      "owns_candidate_blocks": false,
+      "candidate_source_layer_id": -1,
+      "index_source_layer_id": -1,
+      "index_source_status": "exact",
+      "engram": false,
+      "hyper_connections": false,
+      "hc_mult": 0,
+      "hc_sinkhorn_iters": 0,
+      "residual_block_size": 12,
+      "native_layer_id": 4,
+      "scope": "body",
+      "cache_kind": "dense",
+      "compressor_kind": "none",
+      "compressor_width": 1,
+      "compressor_state_rows": 0,
+      "compressor_norm_dtype": "bf16",
+      "index_input": "hidden",
+      "index_query_per_layer": false,
+      "index_heads": 0,
+      "index_dim": 0,
+      "index_topk": 0,
+      "candidate_block_size": 8,
+      "candidate_topk_blocks": 2048,
+      "qk_norm": false,
+      "ffn_activation": "situ",
+      "activation_situ_beta": 4.0,
+      "activation_situ_linear_beta": 25.0
+    }
+  ],
+  "state_bytes_per_request": 19537920.0,
+  "catalog_facts": {
+    "architectures": [
+      "KimiK3ForConditionalGeneration"
+    ],
+    "attention_types": {
+      "kda": 3,
+      "mla": 1
+    },
+    "auxiliary": {
+      "mtp": null,
+      "dspark": {
+        "kind": "dspark",
+        "layers": 5,
+        "hidden_size": 7168,
+        "intermediate_size": 14336,
+        "attention_kind": "gqa",
+        "num_heads": 64,
+        "num_kv_heads": 16,
+        "head_dim": 64,
+        "q_width": 4096,
+        "kv_width": 1024,
+        "q_lora_rank": 0,
+        "kv_lora_rank": 0,
+        "qk_nope_head_dim": 0,
+        "qk_rope_head_dim": 0,
+        "v_head_dim": 0,
+        "o_lora_rank": 0,
+        "o_groups": 0,
+        "num_experts": 0,
+        "top_k": 0,
+        "expert_intermediate_size": 0,
+        "num_shared_experts": 0,
+        "target_layer_ids": [
+          7,
+          23,
+          51,
+          67,
+          83
+        ],
+        "block_size": 7,
+        "markov_rank": 256,
+        "confidence_enabled": true,
+        "confidence_executes": false,
+        "confidence_input_width": 7424,
+        "target_shared_embedding": true,
+        "target_shared_lm_head": true,
+        "base_logits": true,
+        "markov_replicated": true,
+        "noncausal_query_block": true,
+        "pp_capability": [
+          1
+        ],
+        "input_width": 35840,
+        "proposal_tokens": 7,
+        "vocab_size": 163840,
+        "activation_dtype": "bf16",
+        "source": {
+          "kind": "external_kimi_k3_dspark"
+        },
+        "notes": [
+          "external five-layer dense draft; selected via explicit draft mode"
+        ]
+      },
+      "external_draft_key": "kimi-k3-dspark",
+      "standalone_draft": false,
+      "include_vision_weights": true,
+      "notes": [
+        "native K3 num_nextn_predict_layers=0 does not remove selected external DSpark"
+      ]
+    },
+    "body_layers": 4,
+    "cache_row_bytes_by_layer": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        1152
+      ]
+    ],
+    "candidate_block_size": 0,
+    "candidate_source_layer_id": -1,
+    "candidate_topk_blocks": 0,
+    "compress_ratios": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "dense_layers": 1,
+    "dspark_block_size": 0,
+    "dspark_layers": 5,
+    "dspark_markov_rank": 0,
+    "dspark_n_routed_experts": 0,
+    "dspark_num_experts_per_tok": 0,
+    "dspark_target_layer_ids": [],
+    "engram_layer_ids": [],
+    "engram_runtime_row_bytes": 0,
+    "engram_source_row_bytes": 0,
+    "engram_storage_mode": "",
+    "engram_tables": 0,
+    "external_shared_parameters": 0,
+    "external_shared_weight_bytes": 0.0,
+    "ffn_types": {
+      "dense": 1,
+      "moe": 3
+    },
+    "gdn_layers": 0,
+    "gqa_layers": 0,
+    "hc_mult": 0,
+    "hc_sinkhorn_iters": 0,
+    "hyper_connections": false,
+    "index_head_dim": 0,
+    "index_n_heads": 0,
+    "index_source_layer_ids": [],
+    "index_topk": 0,
+    "indexer_full_layers": 0,
+    "indexer_layers": 0,
+    "indexer_shared_layers": 0,
+    "indexer_types": [],
+    "kda_layers": 3,
+    "kv_source_layer_ids": [],
+    "latent_moe_layers": 3,
+    "layer_types": [],
+    "linear_layers": 3,
+    "mla_layers": 1,
+    "mlp_layer_types": [],
+    "model_type": "kimi_linear",
+    "moe_layers": 3,
+    "mtp_layers": 0,
+    "native_one_based_attention": true,
+    "norm_eps": 1e-05,
+    "normalization": {},
+    "num_hash_layers": 0,
+    "num_nextn_predict_layers": 0,
+    "o_groups": 0,
+    "o_lora_rank": 0,
+    "optional_draft_weight_bytes": 4498606080.0,
+    "parameter_count_body": 94441272480.0,
+    "parameter_count_optional_draft": 2249303040.0,
+    "profile": "kimi",
+    "quantization": {
+      "name": "mxfp4_routed_only",
+      "weight_format": "bf16",
+      "native_format": "bf16",
+      "activation_format": "bf16",
+      "expert_weight_format": "mxfp4",
+      "weight_block": [
+        0,
+        0
+      ],
+      "expert_block": 32,
+      "scale_format": "fp8_e8m0",
+      "scale_bytes": 1.0,
+      "kv_dtype": "bf16",
+      "index_dtype": "bf16",
+      "index_scale_dtype": "none",
+      "exclusions": [
+        "attn",
+        "mla",
+        "kda",
+        "shared_expert",
+        "dense_mlp",
+        "router",
+        "lm_head",
+        "embedding",
+        "norm",
+        "mhc",
+        "vision",
+        "projector",
+        "conv_weight_f32"
+      ],
+      "engram_table_mode": "device_bf16",
+      "activation_group_size": 0,
+      "activation_scale_format": "",
+      "activation_scale_pack": 1,
+      "category_overrides": {},
+      "source": {
+        "format": "mxfp4-pack-quantized",
+        "quant_method": "compressed-tensors"
+      },
+      "notes": [
+        "MXFP4 group32 applies to routed expert matrices only; attention/shared/dense/LM-head/vision stay BF16"
+      ]
+    },
+    "resident_weight_bytes_body": 58480496256.0,
+    "residual_block_size": 12,
+    "sliding_window": 0,
+    "source_scope": "structural_config_no_latency_labels",
+    "state_bytes_per_request": 19537920.0,
+    "state_bytes_per_request_unsharded": 19537920.0,
+    "vision": {
+      "kind": "kimi_k3",
+      "layers": 27,
+      "hidden_size": 1024,
+      "intermediate_size": 4096,
+      "num_heads": 12,
+      "head_dim": 128,
+      "query_width": 1536,
+      "qkv_width": 4608,
+      "qkv_packed_rows": 4608,
+      "patch_size": 14,
+      "in_channels": 3,
+      "temporal_patch": 1,
+      "merge_area": 4,
+      "downsample_ratio": 1,
+      "out_hidden_size": 7168,
+      "aligner_hidden_size": 4096,
+      "aligner_input_width": 4096,
+      "patch_input_width": 588,
+      "pos_embed_tokens": 4096,
+      "deepstack": false,
+      "gated_mlp": false,
+      "activation": "gelu",
+      "norm_type": "rmsnorm",
+      "norm_eps": 1e-06,
+      "bias": false,
+      "image_token_id": 163605,
+      "video_token_id": 0,
+      "source": {
+        "vision_config": "kimi_k3_vision"
+      }
+    },
+    "vision_config": {
+      "_attn_implementation": "flash_attention_2",
+      "activation_func": "gelu_pytorch_tanh",
+      "attn_bias": false,
+      "init_pos_emb_height": 64,
+      "init_pos_emb_time": 4,
+      "init_pos_emb_width": 64,
+      "linear_bias": false,
+      "merge_kernel_size": [
+        2,
+        2
+      ],
+      "merge_type": "sd2_tpool",
+      "mlp_type": "mlp2",
+      "mm_hidden_size": 1024,
+      "mm_projector_type": "patchmergerv2",
+      "norm_type": "rmsnorm",
+      "patch_embed_proj_bias": false,
+      "patch_size": 14,
+      "pos_emb_interpolation_mode": "bilinear",
+      "pos_emb_type": "divided_fixed",
+      "projector_hidden_act": "gelu",
+      "projector_ln_eps": 1e-05,
+      "qkv_hidden_size": 1536,
+      "text_hidden_size": 7168,
+      "vt_hidden_size": 1024,
+      "vt_intermediate_size": 4096,
+      "vt_num_attention_heads": 12,
+      "vt_num_hidden_layers": 27
+    },
+    "vision_present": true
+  },
+  "metadata": {
+    "catalog_assumption_source": {
+      "path": "/Users/maoxx241/code/sim-glm-projection-contracts-20261030/mindie_sim/model_configs/kimi-k3.json",
+      "bytes": 6991,
+      "sha256": "ceb15bb6babc95c3afc948f0887a732b69e8ac126dae36ef7b6aeb1effb2b46f"
+    },
+    "checkpoint_contract": "conditional_source_and_tensor_declaration",
+    "declared_quantization": {},
+    "degraded_submodules": [
+      "native_projection_packing",
+      "native_moe_dispatch"
+    ],
+    "field_evidence": {
+      "hidden_size": {
+        "value": 7168,
+        "basis": "router/input projection tensors"
+      },
+      "routed_expert_hidden_size": {
+        "value": 3584,
+        "basis": "latent projection and grouped matrix K/N"
+      },
+      "moe_intermediate_size": {
+        "value": 3072,
+        "basis": "grouped gate/up N6144 and down K3072"
+      },
+      "intermediate_size": {
+        "value": 33792,
+        "basis": "first dense layer N8448=2*33792/TP8, down K4224"
+      },
+      "num_shared_experts": {
+        "value": 2,
+        "basis": "MoE shared N1536=2*(2*3072)/TP8, down K768"
+      },
+      "linear_attn_config.num_heads": {
+        "value": 96,
+        "basis": "RecurrentKda local heads12 at TP8"
+      },
+      "linear_attn_config.head_dim": {
+        "value": 128,
+        "basis": "RecurrentKda native dimension"
+      },
+      "q_lora_rank": {
+        "value": 1536,
+        "basis": "q_a/q_b matrix operands"
+      },
+      "kv_lora_rank": {
+        "value": 512,
+        "basis": "FIA cache/head operands"
+      },
+      "qk_nope_head_dim": {
+        "value": 128,
+        "basis": "absorbed Q projection operands"
+      },
+      "qk_rope_head_dim": {
+        "value": 64,
+        "basis": "FIA RoPE operands"
+      },
+      "first_k_dense_replace": {
+        "value": 1,
+        "basis": "first dense FFN precedes router/grouped FFNs"
+      },
+      "num_hidden_layers": {
+        "value": 4,
+        "basis": "independent four-layer checkpoint launch declaration"
+      },
+      "attention_schedule": {
+        "value": [
+          "kda",
+          "kda",
+          "kda",
+          "mla"
+        ],
+        "basis": "bounded native capture first target cycle"
+      },
+      "num_experts": {
+        "value": 896,
+        "basis": "router N896; grouped weight bank112 at EP8"
+      },
+      "num_experts_per_token": {
+        "value": 16,
+        "basis": "MoeDistributeDispatchV2 top-k input [1,16]"
+      },
+      "num_attention_heads": {
+        "value": 96,
+        "basis": "q_b N2304=12*(128+64); native FIA separately pads local12 to16"
+      },
+      "quant": {
+        "value": "W4A8 experts, W8A8 QKV/dense/shared/latent; BF16 BFG/output/router",
+        "basis": "bounded native tensor contracts; source category overrides are explicit"
+      }
+    },
+    "inheritance_note": "Values are explicit structural assumptions unless field_evidence independently confirms them; layer counts are this checkpoint, not a truncated accuracy surrogate.",
+    "model_coverage": "partial",
+    "name": "kimi-k3-4layer-w4a8-conditional",
+    "retained_catalog_assumptions": {
+      "attn_res_block_size": 12,
+      "hidden_act": "situ",
+      "activation_situ_beta": 4,
+      "activation_situ_linear_beta": 25,
+      "latent_moe_use_norm": true,
+      "rms_norm_eps": 1e-05,
+      "v_head_dim": 128,
+      "vocab_size": 163840,
+      "moe_router_activation_func": "sigmoid",
+      "routed_scaling_factor": 1,
+      "mla_use_output_gate": true,
+      "linear_attn_config": {
+        "full_attn_layers": [
+          4
+        ],
+        "gate_lower_bound": -5,
+        "head_dim": 128,
+        "kda_layers": [
+          1,
+          2,
+          3
+        ],
+        "num_heads": 96,
+        "short_conv_kernel_size": 4,
+        "use_full_rank_gate": true
+      },
+      "num_shared_experts": 2,
+      "first_k_dense_replace": 1
+    },
+    "source_model_type": "kimi_linear",
+    "unconsumed_config_fields": {},
+    "unmodeled_features": [
+      "KDA offline-composed BF16 BFG projection is represented as separate low-rank analytical projections",
+      "FIA physical query-head padding from12 to16 is not declared as additional logical heads",
+      "native MoeDistributeDispatchV2/CombineV2 protocol uses analytic collective decomposition"
+    ],
+    "unrecognized_config_fields": {
+      "add_cross_attention": false,
+      "bad_words_ids": null,
+      "begin_suppress_tokens": null,
+      "chunk_size_feed_forward": 0,
+      "cross_attention_hidden_size": null,
+      "decoder_start_token_id": null,
+      "diversity_penalty": 0,
+      "do_sample": false,
+      "early_stopping": false,
+      "encoder_no_repeat_ngram_size": 0,
+      "exponential_decay_length_penalty": null,
+      "finetuning_task": null,
+      "forced_bos_token_id": null,
+      "forced_eos_token_id": null,
+      "id2label": {
+        "0": "LABEL_0",
+        "1": "LABEL_1"
+      },
+      "ignore_index": -100,
+      "image_placeholder": "<|kimi_image_placeholder|>",
+      "is_decoder": false,
+      "is_encoder_decoder": false,
+      "label2id": {
+        "LABEL_0": 0,
+        "LABEL_1": 1
+      },
+      "length_penalty": 1,
+      "max_length": 20,
+      "min_length": 0,
+      "mla_use_nope": true,
+      "moe_renormalize": true,
+      "moe_router_activation_func": "sigmoid",
+      "no_repeat_ngram_size": 0,
+      "num_beam_groups": 1,
+      "num_beams": 1,
+      "num_expert_group": 1,
+      "num_return_sequences": 1,
+      "output_scores": false,
+      "prefix": null,
+      "problem_type": null,
+      "pruned_heads": {},
+      "remove_invalid_values": false,
+      "repetition_penalty": 1,
+      "return_dict_in_generate": false,
+      "sep_token_id": null,
+      "suppress_tokens": null,
+      "task_specific_params": null,
+      "temperature": 1,
+      "tf_legacy_loss": false,
+      "tie_encoder_decoder": false,
+      "tokenizer_class": null,
+      "top_p": 1,
+      "typical_p": 1,
+      "use_bfloat16": false,
+      "use_grouped_topk": true
+    }
+  },
+  "quant": {
+    "name": "W4A8_DYNAMIC",
+    "weight_format": "int8",
+    "activation_format": "int8",
+    "expert_weight_format": "int4",
+    "weight_block": [
+      1,
+      1
+    ],
+    "expert_block": 1,
+    "scale_format": "fp32",
+    "scale_bytes": 4.0,
+    "kv_dtype": "bf16",
+    "index_dtype": "bf16",
+    "index_scale_dtype": "none",
+    "exclusions": [
+      "conv_weight_bf16",
+      "conv_weight_f32",
+      "embedding",
+      "lm_head",
+      "mtp",
+      "norm",
+      "projector",
+      "router",
+      "vision"
+    ],
+    "engram_table_mode": "device_bf16",
+    "source": [
+      [
+        "basis",
+        "sampled operand dtypes plus distinct checkpoint launch declaration"
+      ],
+      [
+        "checkpoint_config_bytes",
+        "not_delivered"
+      ],
+      [
+        "kind",
+        "conditional_capture_representation"
+      ]
+    ],
+    "notes": [
+      "No old checkpoint calibration or FP8 source binding is inherited."
+    ],
+    "activation_group_size": 0,
+    "activation_scale_format": "",
+    "activation_scale_pack": 1,
+    "category_overrides": [
+      [
+        "kda",
+        [
+          [
+            "activation_format",
+            "bf16"
+          ],
+          [
+            "weight_format",
+            "bf16"
+          ]
+        ]
+      ],
+      [
+        "kda.k",
+        [
+          [
+            "activation_format",
+            "int8"
+          ],
+          [
+            "weight_format",
+            "int8"
+          ]
+        ]
+      ],
+      [
+        "kda.q",
+        [
+          [
+            "activation_format",
+            "int8"
+          ],
+          [
+            "weight_format",
+            "int8"
+          ]
+        ]
+      ],
+      [
+        "kda.v",
+        [
+          [
+            "activation_format",
+            "int8"
+          ],
+          [
+            "weight_format",
+            "int8"
+          ]
+        ]
+      ],
+      [
+        "mla",
+        [
+          [
+            "activation_format",
+            "bf16"
+          ],
+          [
+            "weight_format",
+            "bf16"
+          ]
+        ]
+      ],
+      [
+        "mla.kv_a",
+        [
+          [
+            "activation_format",
+            "int8"
+          ],
+          [
+            "weight_format",
+            "int8"
+          ]
+        ]
+      ],
+      [
+        "mla.q_a",
+        [
+          [
+            "activation_format",
+            "int8"
+          ],
+          [
+            "weight_format",
+            "int8"
+          ]
+        ]
+      ],
+      [
+        "mla.q_b",
+        [
+          [
+            "activation_format",
+            "int8"
+          ],
+          [
+            "weight_format",
+            "int8"
+          ]
+        ]
+      ]
+    ],
+    "native_format": "bf16"
+  },
+  "vision": {
+    "kind": "kimi_k3",
+    "layers": 27,
+    "hidden_size": 1024,
+    "intermediate_size": 4096,
+    "num_heads": 12,
+    "qkv_width": 4608,
+    "patch_size": 14,
+    "in_channels": 3,
+    "temporal_patch": 1,
+    "merge_area": 4,
+    "downsample_ratio": 1,
+    "out_hidden_size": 7168,
+    "aligner_hidden_size": 4096,
+    "pos_embed_tokens": 4096,
+    "deepstack": false,
+    "gated_mlp": false,
+    "activation": "gelu",
+    "norm_type": "rmsnorm",
+    "norm_eps": 1e-06,
+    "bias": false,
+    "image_token_id": 163605,
+    "video_token_id": 0,
+    "source": [
+      [
+        "vision_config",
+        "kimi_k3_vision"
+      ]
+    ]
+  },
+  "engram": null,
+  "auxiliary": {
+    "mtp": null,
+    "dspark": {
+      "kind": "dspark",
+      "layers": 5,
+      "hidden_size": 7168,
+      "intermediate_size": 14336,
+      "num_heads": 64,
+      "num_kv_heads": 16,
+      "head_dim": 64,
+      "q_width": 4096,
+      "kv_width": 1024,
+      "attention_kind": "gqa",
+      "mla_variant": "latent_mla",
+      "kv_cache_elements": 0,
+      "input_mode": "concat",
+      "weight_category": "",
+      "qk_norm": false,
+      "q_output_gate": false,
+      "q_lora_rank": 0,
+      "kv_lora_rank": 0,
+      "qk_nope_head_dim": 0,
+      "qk_rope_head_dim": 0,
+      "v_head_dim": 0,
+      "o_lora_rank": 0,
+      "o_groups": 0,
+      "num_experts": 0,
+      "top_k": 0,
+      "expert_intermediate_size": 0,
+      "num_shared_experts": 0,
+      "target_layer_ids": [
+        7,
+        23,
+        51,
+        67,
+        83
+      ],
+      "block_size": 7,
+      "markov_rank": 256,
+      "confidence_enabled": true,
+      "confidence_executes": false,
+      "confidence_input_width": 7424,
+      "target_shared_embedding": true,
+      "target_shared_lm_head": true,
+      "base_logits": true,
+      "markov_replicated": true,
+      "noncausal_query_block": true,
+      "pp_capability": [
+        1
+      ],
+      "vocab_size": 163840,
+      "mhc_mult": 0,
+      "mhc_sinkhorn_iters": 0,
+      "activation_dtype": "bf16",
+      "input_projection_category": "dspark_input",
+      "source": [
+        [
+          "kind",
+          "external_kimi_k3_dspark"
+        ]
+      ],
+      "notes": [
+        "external five-layer dense draft; selected via explicit draft mode"
+      ]
+    },
+    "external_draft_key": "kimi-k3-dspark",
+    "standalone_draft": false,
+    "include_vision_weights": true,
+    "notes": [
+      "native K3 num_nextn_predict_layers=0 does not remove selected external DSpark"
+    ]
+  },
+  "body_layers": 4,
+  "tp": 8
+}
