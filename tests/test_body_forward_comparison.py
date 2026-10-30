@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 import pytest
+from tests.sim_fixtures import case_path
 
 
 @pytest.fixture(scope="module")
@@ -20,9 +21,7 @@ def adapter():
 @pytest.fixture(scope="module")
 def case():
     sim = pytest.importorskip("mindie_sim")
-    path = Path(sim.__file__).resolve().parents[1] / "examples/quickstart.json"
-    if not path.exists():
-        pytest.skip("Sim source example is required for this cross-repository contract test")
+    path = case_path('quickstart.json')
     return json.loads(path.read_text())
 
 
@@ -121,10 +120,7 @@ def test_observable_response_selection_survives_body_projection(adapter, case):
 def test_body_receipt_retains_actual_parsed_hf_wrapper_quantization(adapter):
     import mindie_sim
 
-    path = (Path(mindie_sim.__file__).resolve().parents[1] /
-            "examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c1.json")
-    if not path.exists():
-        pytest.skip("Retained four-layer A3 Kimi declaration is required")
+    path = case_path('a3_kimi4_tp8_w4a8_c1.json')
     raw = json.loads(path.read_text())
     result = adapter.predict_body(raw, tokens=1, context=4096, sequences=1)
     representation = result["model_representation"]

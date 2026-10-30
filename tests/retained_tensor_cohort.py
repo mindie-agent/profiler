@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
+from tests.sim_fixtures import case_path
 
 from mindie_profiler.events import Observation, QueryStats, SourceRef, Window
 from mindie_profiler.structure_cohorts import CohortAccumulator
@@ -14,11 +15,7 @@ FIXTURE = Path(__file__).parent / 'fixtures/pipeline/tensor_move_cohort.json'
 
 def retained_case():
     sim = pytest.importorskip('mindie_sim')
-    path = (Path(sim.__file__).resolve().parents[1] /
-            'examples/cases/high-concurrency-20261030/qwen35-mc2-tp-source-complete-conditional/'
-            'qwen35-35b-a5-tp4-c128-mc2-tp-source-complete.json')
-    if not path.is_file():
-        pytest.skip('companion source-bound Qwen35 declaration is required')
+    path = case_path('qwen35-35b-a5-tp4-c128-mc2-tp-source-complete.json')
     return json.loads(path.read_text())
 
 

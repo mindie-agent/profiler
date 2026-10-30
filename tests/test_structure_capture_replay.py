@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 
 import pytest
+from tests.sim_fixtures import case_path
 
 from mindie_profiler.analyze import analyze_profile
 
@@ -11,9 +12,7 @@ FIXTURES = Path(__file__).parent / 'fixtures'
 
 def replay(capture, case_name):
     structure = pytest.importorskip('mindie_sim.structure')
-    path = Path(structure.__file__).resolve().parents[1] / 'examples/cases' / f'{case_name}.json'
-    if not path.exists():
-        pytest.skip('companion independent model declarations are required')
+    path = case_path(f'{case_name}.json')
     original = path.read_bytes()
     case = json.loads(original)
     case['runtime'].setdefault('kernels', {})['lowerings'] = {'mla_prolog': 'vllm_ascend_mla_prolog_v3'}

@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
+from tests.sim_fixtures import case_path
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / 'tests/fixtures/decode_forward'
@@ -23,9 +24,7 @@ def captured_reference_groups():
     sys.path.insert(0, str(ROOT / 'examples/structure'))
     helper = importlib.import_module('references')
     replay = importlib.import_module('operators')
-    path = Path(sim.__file__).resolve().parents[1] / 'examples/cases/high-concurrency-20261030/v41-dp8/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1.json'
-    if not path.exists():
-        pytest.skip('source-bound V4.1 case requires companion Sim source checkout')
+    path = case_path('a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1.json')
     case = parse_case(json.loads(path.read_text()))
     config = json.loads((FIXTURE / 'v41_dp8_model_config.json').read_text())
     manifest = export_structure(case, phase='decode', tokens=1, sequences=1, context=2048, scope='body')

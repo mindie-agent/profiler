@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 import pytest
+from tests.sim_fixtures import case_path
 
 from mindie_profiler.sources_db import sha256_file
 
@@ -108,10 +109,8 @@ def test_reused_capture_retains_explicit_calibration_without_inferring_fit(
     from mindie_profiler.events import SourceRef
 
     source = ROOT / "tests/fixtures/decode_forward/qwen36_a3_verify.csv"
-    case_path = Path(sim.__file__).resolve().parents[1] / "examples/cases/qwen36-a3-tp4.json"
-    if not case_path.is_file():
-        pytest.skip("companion source model declaration is required")
-    case = json.loads(case_path.read_text())
+    model_path = case_path('qwen36-a3-tp4.json')
+    case = json.loads(model_path.read_text())
     config = replay._model_config(case)
     reference = SourceRef("rank_0", 0, "csv", str(source), source.name,
                           sha256_file(source), source.stat().st_size, "retained", "fixture")
@@ -120,7 +119,7 @@ def test_reused_capture_retains_explicit_calibration_without_inferring_fit(
     extraction.write_text(json.dumps(observed))
     identity = observed["source_identity"]
     row = {"case_id": "retained-qwen36-forward", "source": identity,
-           "sim_case_path": str(case_path), "extraction_path": str(extraction),
+           "sim_case_path": str(model_path), "extraction_path": str(extraction),
            "geometry": {"context_tokens": 4096}}
     if relation is not None:
         row['calibration'] = {'origin': 'explicit_manifest', 'evaluation_relation': relation,
@@ -147,9 +146,7 @@ def test_reused_capture_retains_explicit_calibration_without_inferring_fit(
 
 def test_prediction_worker_has_bounded_receipt_and_reuses_completed_geometry(replay, monkeypatch, tmp_path):
     sim = pytest.importorskip("mindie_sim.prediction.body")
-    path = Path(sim.__file__).resolve().parents[2] / "examples/quickstart.json"
-    if not path.is_file():
-        pytest.skip("Sim source example is required for the worker contract")
+    path = case_path('quickstart.json')
     geometry = {"phase": "decode", "tokens_per_sequence": 1,
                 "context_tokens": 16, "sequences_per_replica": 1}
     cache = {}

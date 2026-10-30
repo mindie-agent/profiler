@@ -6,18 +6,15 @@ import json
 from pathlib import Path
 
 import pytest
+from tests.sim_fixtures import case_path
 
 
 def test_qwen96_twoshot_keeps_normalized_layer_plan_without_physical_b1_graph(monkeypatch):
     sim = pytest.importorskip("mindie_sim")
-    case_path = (Path(sim.__file__).resolve().parents[1] /
-                 "examples/cases/high-concurrency-20261030/qwen-source-gdn-native/"
-                 "qwen36-a5-tp2-c96-source-gdn-native.json")
-    if not case_path.is_file():
-        pytest.skip("requires the source-pinned high-concurrency Sim case")
+    model_path = case_path('qwen36-a5-tp2-c96-source-gdn-native.json')
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "examples/structure"))
     replay = importlib.import_module("decode")
-    original = json.loads(case_path.read_text())
+    original = json.loads(model_path.read_text())
     source = deepcopy(original)
     # This is the committed HCCL source alternative: its physical invocation
     # is B96/q4. The former metadata-only B1/q1 lowering rejects this template.

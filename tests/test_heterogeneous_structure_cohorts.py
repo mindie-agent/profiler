@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 
 import pytest
+from tests.sim_fixtures import case_path
 
 from mindie_profiler.events import Observation, ProfilerUsageError, QueryStats, SourceRef, Window
 from mindie_profiler.normalized import kernel_rows
@@ -23,9 +24,8 @@ FIXTURES = Path(__file__).parent / "fixtures"
 @pytest.fixture(scope="module", params=["v4f", "v4pro"])
 def declared(request):
     structure = pytest.importorskip("mindie_sim.structure")
-    root = Path(structure.__file__).resolve().parents[1]
     filename = {"v4f": "v4f-a3-w8a8-tp8.json", "v4pro": "v4pro-a3-w4a8-tp16.json"}
-    case = json.loads((root / "examples/cases" / filename[request.param]).read_text())
+    case = json.loads(case_path(filename[request.param]).read_text())
     tokens = 4096 if request.param == "v4f" else 1024
     return request.param, case, structure.export_structure(case, phase="prefill", tokens=tokens)
 

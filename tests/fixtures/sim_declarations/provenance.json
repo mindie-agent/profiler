@@ -1,0 +1,124 @@
+{
+  "role": "Test-only source declarations and retained hardware fields; not a production case registry.",
+  "source_commit": "439779a7e2ead9fd149d9202e45f9c2ccda73c49",
+  "files": [
+    {
+      "fixture": "quickstart.json",
+      "source_repository": "mindie-agent/sim",
+      "source_path": "examples/quickstart.json",
+      "sha256": "c9ab91b363396a382d1bde9124a91939b801bfe6c31630f3825ce00a58c3b76a",
+      "size_bytes": 1579
+    },
+    {
+      "fixture": "glm53-a3-w4a8.json",
+      "source_repository": "mindie-agent/sim",
+      "source_path": "examples/cases/glm53-a3-w4a8.json",
+      "sha256": "6a6c117f9cfa3a53f2c5294daa3e4c365b59934ab56f1f0f31ad4d30385c1014",
+      "size_bytes": 5276
+    },
+    {
+      "fixture": "v4f-a3-w8a8-tp8.json",
+      "source_repository": "mindie-agent/sim",
+      "source_path": "examples/cases/v4f-a3-w8a8-tp8.json",
+      "sha256": "450a3961201d60b97eb58050f75c34fd9dda54d77949ef4fb6c64331f2b36614",
+      "size_bytes": 6110
+    },
+    {
+      "fixture": "v4pro-a3-w4a8-tp16.json",
+      "source_repository": "mindie-agent/sim",
+      "source_path": "examples/cases/v4pro-a3-w4a8-tp16.json",
+      "sha256": "b8a125b411b37e330b5c6883f62c317b91142b96077b85f422fbef433895a0b6",
+      "size_bytes": 9576
+    },
+    {
+      "fixture": "qwen35-a3-tp4.json",
+      "source_repository": "mindie-agent/sim",
+      "source_path": "examples/cases/qwen35-a3-tp4.json",
+      "sha256": "656daf83994dbc343e88bed66bbc38efec6995507f8c71ffe7a03bec77a0457a",
+      "size_bytes": 4648
+    },
+    {
+      "fixture": "qwen36-a3-tp4.json",
+      "source_repository": "mindie-agent/sim",
+      "source_path": "examples/cases/qwen36-a3-tp4.json",
+      "sha256": "e1c8e9d7d5e2be4d4f7475875a605808917a34ce0849931696a4b2fe7bc45297",
+      "size_bytes": 4509
+    },
+    {
+      "fixture": "qwen38-a5.json",
+      "source_repository": "mindie-agent/sim",
+      "source_path": "examples/cases/qwen38-a5.json",
+      "sha256": "96545182e1e6fa7b11215860c192bd139ba8f500b9d7d0cc0e1b4031e65af5b0",
+      "size_bytes": 17371
+    },
+    {
+      "fixture": "kimi-k3-a5.json",
+      "source_repository": "mindie-agent/sim",
+      "source_path": "examples/cases/kimi-k3-a5.json",
+      "sha256": "d14e6ae3f109baac48e6b044b3e1ebcbc9eabf9c94cba2aa07ff64be2d02f63c",
+      "size_bytes": 5242
+    },
+    {
+      "fixture": "qwen35-35b-a5-tp4-c128-mc2-tp-source-complete.json",
+      "source_repository": "mindie-agent/sim",
+      "source_path": "examples/cases/high-concurrency-20261030/qwen35-mc2-tp-source-complete-conditional/qwen35-35b-a5-tp4-c128-mc2-tp-source-complete.json",
+      "sha256": "b583405cc0070811ef14c77ab73a7eea01be424a99ce0872c37c0d5024e2c38b",
+      "size_bytes": 11184
+    },
+    {
+      "fixture": "a3_kimi4_tp8_w4a8_c1.json",
+      "source_repository": "mindie-agent/sim",
+      "source_path": "examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c1.json",
+      "sha256": "dcd4bd3bd9fcb01e99fbd4e0bf80ea365551e5c44f630e0a3d06fd4f1975ddc8",
+      "size_bytes": 16700
+    },
+    {
+      "fixture": "qwen36-a5-tp2-c96-source-gdn-native.json",
+      "source_repository": "mindie-agent/sim",
+      "source_path": "examples/cases/high-concurrency-20261030/qwen-source-gdn-native/qwen36-a5-tp2-c96-source-gdn-native.json",
+      "sha256": "88c3fd09101c83d663fc67038b43510ffc002b3b23610af66c9f11180884a89e",
+      "size_bytes": 6789
+    },
+    {
+      "fixture": "a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4.json",
+      "source_repository": "mindie-agent/sim",
+      "source_path": "examples/cases/high-concurrency-20261030/v41-new6/a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4.json",
+      "sha256": "ec1cfe7b1e54eccc305b636d6f733b9be73671a8adedbcae188ad1304f9c67fe",
+      "size_bytes": 141904
+    },
+    {
+      "fixture": "qwen36-a5-tp8-c4.json",
+      "source_repository": "mindie-agent/sim",
+      "source_path": "examples/cases/high-concurrency-20261030/source-gdn/qwen36-a5-tp8-c4.json",
+      "sha256": "0940bea1599638b93d8337fbbc07acfce5e3790cae7c767c5859eb59fd3983a1",
+      "size_bytes": 4333
+    },
+    {
+      "fixture": "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1.json",
+      "source_repository": "mindie-agent/sim",
+      "source_path": "examples/cases/high-concurrency-20261030/v41-dp8/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1.json",
+      "sha256": "fb4bda10d8076d9f5ee87effddf518e95429d998e5439dc98196df1e01383f3f",
+      "size_bytes": 12753
+    },
+    {
+      "fixture": "operator-kernels.csv",
+      "source_repository": "mindie-agent/sim",
+      "source_path": "tests/fixtures/observations/operator-kernels.csv",
+      "sha256": "5faa4d8f9ea4b00e6298c48872a1e854173c87b9fe0b05f9909c588d2c570e0b",
+      "size_bytes": 15393,
+      "source_sha256": "7a7f1c7db8cc25cc454c9c6d881d2f8d6b359cc76442ef4fe1946e162118115e",
+      "source_size_bytes": 15432,
+      "transformation": "CRLF to LF only; CSV field values and row order unchanged"
+    },
+    {
+      "fixture": "operator-kernels.provenance.json",
+      "source_repository": "mindie-agent/sim",
+      "source_path": "tests/fixtures/observations/operator-kernels.provenance.json",
+      "sha256": "fb4eb4af7b334364ed3bd5bbcdbfdd0d0deef33869b09009fc600d1ab3df59af",
+      "size_bytes": 1099,
+      "source_sha256": "374e2255a6907838d1a83e7a5941caec1a8a43e3c9d714e05d8a2655f9cf9aff",
+      "source_size_bytes": 922,
+      "transformation": "Retain original source identities and document LF-normalized local fixture hash"
+    }
+  ]
+}

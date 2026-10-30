@@ -7,6 +7,7 @@ from pathlib import Path
 import sys
 
 import pytest
+from tests.sim_fixtures import case_path
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / 'tests/fixtures/native_body_contracts/v41_a3_dispatch_ffn_combine.csv'
@@ -21,9 +22,7 @@ def mc2_reference():
     sys.path.insert(0, str(ROOT / 'examples/structure'))
     helper = importlib.import_module('references')
     replay = importlib.import_module('operators')
-    path = Path(sim.__file__).resolve().parents[1] / 'examples/cases/high-concurrency-20261030/v41-new6/a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4.json'
-    if not path.exists():
-        pytest.skip('requires the source-bound A3 V4.1 declaration')
+    path = case_path('a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4.json')
     case = parse_case(json.loads(path.read_text()))
     assert case.runtime.parallel.tp == case.runtime.parallel.dp == 4
     assert case.model.quant.expert_weight_format == 'int8'

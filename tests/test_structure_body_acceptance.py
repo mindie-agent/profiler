@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 
 import pytest
+from tests.sim_fixtures import case_path
 
 from mindie_profiler.analyze import analyze_profile
 from mindie_profiler.events import ProfilerUsageError
@@ -21,9 +22,7 @@ FIXTURES = Path(__file__).parent / "fixtures"
 
 def declaration(name, tokens, **kwargs):
     structure = pytest.importorskip("mindie_sim.structure")
-    case = Path(structure.__file__).resolve().parents[1] / "examples/cases" / f"{name}.json"
-    if not case.exists():
-        pytest.skip("the sim source checkout's declared cases are required")
+    case = case_path(f'{name}.json')
     return structure.export_structure(
         json.loads(case.read_text()), phase="prefill", tokens=tokens, scope="model", **kwargs)
 

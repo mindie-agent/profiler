@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 
 import pytest
+from tests.sim_fixtures import case_path
 
 from mindie_profiler.analyze import analyze_profile
 
@@ -17,10 +18,8 @@ from mindie_profiler.analyze import analyze_profile
 @pytest.fixture(scope="module")
 def real_capture():
     structure = pytest.importorskip("mindie_sim.structure")
-    fixture_dir = Path(structure.__file__).resolve().parents[1] / "tests/fixtures/observations"
+    fixture_dir = case_path('operator-kernels.csv').parent
     capture = fixture_dir / "operator-kernels.csv"
-    if not capture.exists():
-        pytest.skip("requires the sim source checkout's provenance-backed A5 slice")
     provenance = json.loads((fixture_dir / "operator-kernels.provenance.json").read_text())
     assert sha256(capture.read_bytes()).hexdigest() == provenance["fixture_sha256"]
     return structure, capture, provenance

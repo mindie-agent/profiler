@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 
 import pytest
+from tests.sim_fixtures import case_path
 
 from mindie_profiler.events import Observation, ProfilerUsageError, QueryStats, SourceRef, Window
 from mindie_profiler.normalized import kernel_rows
@@ -20,7 +21,7 @@ CAPTURE = Path(__file__).parent / "fixtures/attention_cache_contracts/a3_glm53.c
 @pytest.fixture(scope="module")
 def declared():
     structure = pytest.importorskip("mindie_sim.structure")
-    case = Path(structure.__file__).resolve().parents[1] / "examples/cases/glm53-a3-w4a8.json"
+    case = case_path('glm53-a3-w4a8.json')
     config = json.loads(case.read_text())
     config["runtime"].setdefault("kernels", {}).setdefault("lowerings", {}).update(
         mla_prolog="vllm_ascend_mla_prolog_v3")

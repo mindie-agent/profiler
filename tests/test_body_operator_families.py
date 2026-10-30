@@ -7,6 +7,7 @@ from pathlib import Path
 from statistics import median
 
 import pytest
+from tests.sim_fixtures import case_path
 
 ROOT=Path(__file__).resolve().parents[1]
 FIXTURE=ROOT/'tests/fixtures/decode_forward'
@@ -61,9 +62,7 @@ def test_qwen_repeated_qkv_tensor_contract_is_refined_by_whole_layer_topology(re
     import mindie_sim
     from mindie_profiler.events import Observation,QueryStats,SourceRef,Window
     from mindie_profiler.tensor_contracts import observed_contract
-    case=Path(mindie_sim.__file__).resolve().parents[1]/'examples/cases/high-concurrency-20261030/source-gdn/qwen36-a5-tp8-c4.json'
-    if not case.exists():
-        pytest.skip('case declarations require companion Sim source checkout')
+    case=case_path('qwen36-a5-tp8-c4.json')
     from mindie_sim.structure import export_structure
     manifest=export_structure(replay.read(case),phase='decode',tokens=4,sequences=4,context=4104,scope='body')
     mapper=replay.RoleMapper(manifest,mapping_limit=0,phase='decode')
