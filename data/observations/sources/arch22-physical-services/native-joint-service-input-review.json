@@ -1,0 +1,21 @@
+{
+  "schema_version": "mindie-native-joint-service-input-review/1",
+  "status": "passed",
+  "checks": 226,
+  "failures": [],
+  "report_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/native-joint-service-inputs.json",
+    "sha256": "d9dfbab2a371f073ec5e4ce4f06419efdb1c575843ece3254c7ec05ac8713e18",
+    "size_bytes": 2166772
+  },
+  "reviewer_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/review_native_joint_service_inputs.py",
+    "sha256": "c9b976b1860bb73798c7301a75ea82f5c5a48946bd40398167ac46fd4069920d",
+    "size_bytes": 5004
+  },
+  "source_count": 5,
+  "primary_forwards": 220,
+  "native_calls": 33511,
+  "new_raw_scans": 0,
+  "new_costs": 0
+}

@@ -1,0 +1,31 @@
+{
+  "status": "passed",
+  "checks": 914,
+  "failures": [],
+  "failure_count": 0,
+  "input_identities": [
+    {
+      "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/grouped-source-constraints.json",
+      "sha256": "06920d40a62d503eefb7e9b044b69e43371e1eae2f8e05ac038aee69a8d2924c"
+    },
+    {
+      "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/grouped-source-constraints.json",
+      "sha256": "1d52dc718536c5ea0fac974a9456943ad52725115e348a352cb41f8db509d390"
+    }
+  ],
+  "records": 18,
+  "calls": 39670,
+  "scope": [
+    "Whole histogram and typed ABI/layer/Forward identity replay from retained partitions.",
+    "PMU field denominators and missing-subset separation.",
+    "A3 conditional balanced routed-M and source tile/owner arithmetic; not DMA descriptor reconstruction.",
+    "A5 INT32 excludes BF16 dequant; BF16 scale dtype retained."
+  ],
+  "raw_reads": 0,
+  "new_predictions": 0,
+  "sim_imports": 0,
+  "execution": {
+    "elapsed_seconds": 0.17392312502488494,
+    "maximum_resident_set_size_bytes": 65519616
+  }
+}
