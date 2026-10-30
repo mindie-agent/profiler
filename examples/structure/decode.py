@@ -99,6 +99,7 @@ def capture_metadata(directory):
         if not cell.get("label") or cell.get("label") != summary.get("label"):
             raise ValueError("client_cell_summary_label_not_linked")
         client, client_name = cell, "client_cell.json"
+    client_metrics = client.get("summary", {})
     lower, upper_prompt, output, token_basis = _client_token_bounds(client)
     upper = upper_prompt + output if upper_prompt is not None and output is not None else None
     context = {
@@ -110,7 +111,7 @@ def capture_metadata(directory):
         "source_identity": identities.get(client_name),
         "requested_prefix_tokens": client.get("prefix_len"),
         "requested_suffix_tokens": client.get("suffix_len"),
-        "client_token_exact": client.get("token_exact"),
+        "client_token_exact": client.get("token_exact", client_metrics.get("token_exact")),
         "limitation": "The initial prompt is a conditional representative, not a per-step KV length. "
                       "Token bounds describe the associated client run; cache/table capacities are not active context.",
     }
@@ -157,7 +158,8 @@ def capture_metadata(directory):
             "parameter_sources": parameter_sources, "conflicting_parameters": sorted(set(conflicts)),
             "context_evidence": context,
             "client": {"input_len": context["representative_tokens"],
-                       "concurrency": client.get("concurrency", common.get("Max Concurrency", {}).get("total")),
+                       "concurrency": client.get("concurrency", client_metrics.get("concurrency",
+                           common.get("Max Concurrency", {}).get("total"))),
                        "output_tokens": int(output) if output is not None else None},
             "profile_round": summary.get("round")}
 
@@ -424,7 +426,7 @@ def compact_observation(observed):
     return result
 
 
-def _automatic_scenarios(row, observed):
+def _automatic_scenarios(row, observed, case=None):
     """Keep captured q/batch separate from the declared representative context."""
     evidence = row.get("scenario_evidence", {})
     context = (row.get("geometry") or {}).get("context_tokens")
@@ -440,6 +442,16 @@ def _automatic_scenarios(row, observed):
     for group in observed.get("geometry_groups", []):
         geometry = dict(group["geometry"])
         geometry.update(phase="decode", context_tokens=context)
+        speculation = (case or {}).get("runtime", {}).get("metadata", {}).get("speculation", {})
+        output_rows = geometry.get("output_query_rows")
+        # With explicitly disabled speculation and q=1, the unpadded logits
+        # rows identify valid requests. Body tensors still describe graph M.
+        if (speculation.get("enabled") is False and geometry.get("tokens_per_sequence") == 1
+                and output_rows and output_rows < geometry.get("query_rows", 0)):
+            geometry.update(physical_query_rows=geometry["query_rows"],
+                physical_sequences_per_replica=geometry["sequences_per_replica"],
+                query_rows=output_rows, sequences_per_replica=output_rows,
+                batch_basis="unpadded_lm_head_rows_with_source_explicit_no_speculation")
         geometry_key = tuple(geometry.get(field) for field in (
             "tokens_per_sequence", "context_tokens", "sequences_per_replica"))
         scenarios.append({"geometry": geometry, "geometry_resolved": all(value is not None for value in geometry_key), "observed": {
@@ -456,6 +468,8 @@ def _automatic_scenarios(row, observed):
         "batch_evidence": {
             "execution_sequences_per_replica": geometry.get("sequences_per_replica"),
             "execution_query_rows": geometry.get("query_rows"),
+            "physical_query_rows": geometry.get("physical_query_rows", geometry.get("query_rows")),
+            "output_query_rows": output_rows,
             "client_concurrency": evidence.get("client", {}).get("concurrency"),
             "basis": geometry.get("batch_basis"),
             "interpretation": "Tensor-export execution batch may include graph padding; client concurrency is a request-level condition, not substituted for the captured execution batch.",
@@ -571,7 +585,7 @@ def replay_case(row, base, *, max_events=5_000_000, timeout_s=30,
             max_events=max_events)
     result["observed"] = observed
     if automatic:
-        scenarios = _automatic_scenarios(row, observed)
+        scenarios = _automatic_scenarios(row, observed, case)
         if scenarios:
             _compare_scenarios(result, scenarios, case_path, prediction_cache,
                                prediction_timeout_s=prediction_timeout_s, run_predictions=run_predictions,

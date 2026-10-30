@@ -132,6 +132,16 @@ def test_real_qwen35_usage_does_not_invent_parallelism(tmp_path):
     assert metadata['capture_parameters'] == {'model': 'qwen35'}
 
 
+def test_real_kimi_nested_client_metrics_remain_separate_from_device_batch(tmp_path):
+    source = ROOT / 'tests/fixtures/engine_boundaries/client_only/kimi-tp8-sweep-c2-p4k.json'
+    shutil.copyfile(source, tmp_path / 'benchmark_summary.json')
+    metadata = capture_metadata(tmp_path)
+    assert metadata['client'] == {'input_len': 4096, 'concurrency': 2, 'output_tokens': 128}
+    assert metadata['context_evidence']['client_token_exact'] is True
+    assert metadata['context_evidence']['upper_bound_tokens'] == 4224
+    assert metadata['capture_parameters'] == {}
+
+
 def test_requested_prompt_fallback_is_not_reported_as_observed_usage(tmp_path):
     source = ROOT / 'tests/fixtures/pipeline/local_a5_metadata/qwen36-client-cell.json'
     payload = json.loads(source.read_text())

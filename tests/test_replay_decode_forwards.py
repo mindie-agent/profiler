@@ -185,3 +185,28 @@ def test_real_forward_activity_preserves_stream_union_and_layer_populations(repl
     assert len(projected['per_layer_ms']) == 64
     for layer in projected['per_layer_ms']:
         assert layer['activity_ms_stats']['mean'] + layer['internal_gap_ms_stats']['mean'] == pytest.approx(layer['stats']['mean'])
+
+
+@pytest.mark.parametrize('valid,physical', [(6, 8), (12, 16)])
+def test_real_unpadded_head_keeps_valid_requests_and_physical_graph_rows(replay, valid, physical):
+    from mindie_profiler.decode_segmentation import auto_segment_decode_forwards
+    from mindie_profiler.normalized import kernel_rows
+
+    fixture = ROOT / 'tests/fixtures/decode_forward'
+    observed = auto_segment_decode_forwards(
+        kernel_rows(fixture / f'kimi4_tp8_head_unpad_c{valid}.csv'),
+        json.loads((fixture / 'kimi4_tp8_model_config.json').read_text()))
+    declaration = {'geometry': {'context_tokens': 126000}}
+    case = {'runtime': {'metadata': {'speculation': {'enabled': False}}}}
+    scenario, = replay._automatic_scenarios(declaration, observed, case)
+    assert scenario['geometry']['sequences_per_replica'] == valid
+    assert scenario['geometry']['query_rows'] == valid
+    assert scenario['geometry']['physical_query_rows'] == physical
+    assert scenario['geometry']['output_query_rows'] == valid
+    assert observed['geometry_groups'][0]['geometry']['query_rows'] == physical
+    # Speculative logits may select only some requests: a missing or enabled
+    # speculation declaration cannot turn output rows into valid batch proof.
+    for model in ({}, {'runtime': {'metadata': {'speculation': {'enabled': True}}}}):
+        uncertain, = replay._automatic_scenarios(declaration, observed, model)
+        assert uncertain['geometry']['sequences_per_replica'] == physical
+        assert 'physical_query_rows' not in uncertain['geometry']

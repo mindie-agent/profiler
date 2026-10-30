@@ -306,6 +306,12 @@ def compare_body_forward(predicted, observed):
         elif left != right:
             if not (automatic and field == "participating_replicas"):
                 reasons.append(f"geometry_differs:{field}")
+    physical_rows = (observed.get("geometry") or {}).get("physical_query_rows")
+    if physical_rows is not None:
+        padded = predicted["geometry"].get("padded_query_tokens_by_replica", {})
+        if not padded or any(rows != physical_rows for rows in padded.values()):
+            reasons.append("geometry_differs:physical_query_rows")
+        assumptions.append("Valid q=1 requests follow unpadded LMHead rows with source-confirmed speculation disabled; Body tensors retain the separately checked graph padding. State-index and per-request KV values remain unobserved.")
     stats = observed.get("body_forward_span_ms", {})
     count, mean = stats.get("count", 0), stats.get("mean")
     if not count or not isinstance(mean, (int, float)) or not math.isfinite(mean) or mean <= 0:
