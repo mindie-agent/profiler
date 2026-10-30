@@ -136,3 +136,34 @@ declared mechanism, including the slightly worse c8 result; no best-error
 selection is used. Reproduce the evidence with
 `collect_glm78_retained_native.py --case-id CASE`, then build with
 `build_glm78_grouped_service_cases.py` and replay its matching manifest.
+
+## Qwen complete-cohort response arm
+
+The subsequent `decode-forward-qwen-cohort-service-replay.json` uses the
+retained complete active-contract cohorts for seven matrix domains, two
+separately identified Slice domains, SwiGlu and cache store. All candidate
+contracts are rechecked against the current declared operators. The physical
+rule selects precisely that candidate population, without using a layer or
+operator ID. Parameters are the original full-population means; unchanged
+prior rules remain in place.
+
+This corrects the earlier omission of the independently retained
+`Slice → convolution_input_contiguous` cohort, 48 calls/Forward. The remaining
+mixed Slice population is still unassigned. Source names alone neither create
+this mapping nor distinguish individual layers.
+
+| Case | Real mean ms | Sim ms | Error | 15% |
+|---|---:|---:|---:|---|
+| c12 | 24.225774 | 21.480134 | -11.334% | PASS |
+| c1 | 12.318284 | 10.718852 | -12.984% | PASS |
+
+All 18 physical rules match their expected invocations exactly once. Two new
+workers reused all 140 measured Forwards without parsing raw captures, with
+peak RSS 87,851,008 bytes. The standard Body review passed 532 checks and the
+separate producer histogram/parameter/hit review passed 276. These remain
+in-sample service observations; the complete active contract does not prove
+the native tiling ABI. Existing rank and context assumptions remain explicit.
+Reproduce with `build_qwen_cohort_service_cases.py`, followed by the matching
+cohort manifest and output on runtime `3b72ea2d`. Earlier failed receipts are
+retained. No parameter was assigned from the Body residual or chosen to land
+at the 15% threshold.

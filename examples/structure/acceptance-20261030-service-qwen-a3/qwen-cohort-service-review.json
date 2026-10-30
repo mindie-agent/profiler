@@ -1,0 +1,167 @@
+{
+  "schema_version": "mindie-observed-service-review/1",
+  "status": "passed",
+  "report_sha256": "3c8fea1383251b36d294dfb34ae9b0bc496dc593aae495ee7384e898ad734b61",
+  "checks": 276,
+  "failures": [],
+  "matched_new_rules": [
+    {
+      "case_id": "qwen36-a5-tp2-c12",
+      "rule_id": "linear_qkvz-complete-cohort-response",
+      "observed_calls": 2640,
+      "matched_calls_per_forward": 48.0,
+      "missed_calls_per_forward": 0
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c12",
+      "rule_id": "linear_beta_alpha-complete-cohort-response",
+      "observed_calls": 2640,
+      "matched_calls_per_forward": 48.0,
+      "missed_calls_per_forward": 0
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c12",
+      "rule_id": "convolution_input_contiguous-complete-cohort-response",
+      "observed_calls": 2640,
+      "matched_calls_per_forward": 48.0,
+      "missed_calls_per_forward": 0
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c12",
+      "rule_id": "v_flat-complete-cohort-response",
+      "observed_calls": 2640,
+      "matched_calls_per_forward": 48.0,
+      "missed_calls_per_forward": 0
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c12",
+      "rule_id": "linear_output-complete-cohort-response",
+      "observed_calls": 2640,
+      "matched_calls_per_forward": 48.0,
+      "missed_calls_per_forward": 0
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c12",
+      "rule_id": "dense_gate_up-complete-cohort-response",
+      "observed_calls": 3520,
+      "matched_calls_per_forward": 64.0,
+      "missed_calls_per_forward": 0
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c12",
+      "rule_id": "swiglu-complete-cohort-response",
+      "observed_calls": 3520,
+      "matched_calls_per_forward": 64.0,
+      "missed_calls_per_forward": 0
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c12",
+      "rule_id": "dense_down-complete-cohort-response",
+      "observed_calls": 3520,
+      "matched_calls_per_forward": 64.0,
+      "missed_calls_per_forward": 0
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c12",
+      "rule_id": "qkv_projection-complete-cohort-response",
+      "observed_calls": 880,
+      "matched_calls_per_forward": 16.0,
+      "missed_calls_per_forward": 0
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c12",
+      "rule_id": "kv_store-complete-cohort-response",
+      "observed_calls": 880,
+      "matched_calls_per_forward": 16.0,
+      "missed_calls_per_forward": 0
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c12",
+      "rule_id": "attention_output-complete-cohort-response",
+      "observed_calls": 880,
+      "matched_calls_per_forward": 16.0,
+      "missed_calls_per_forward": 0
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c1",
+      "rule_id": "linear_qkvz-complete-cohort-response",
+      "observed_calls": 4080,
+      "matched_calls_per_forward": 48.0,
+      "missed_calls_per_forward": 0
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c1",
+      "rule_id": "linear_beta_alpha-complete-cohort-response",
+      "observed_calls": 4080,
+      "matched_calls_per_forward": 48.0,
+      "missed_calls_per_forward": 0
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c1",
+      "rule_id": "convolution_input_contiguous-complete-cohort-response",
+      "observed_calls": 4080,
+      "matched_calls_per_forward": 48.0,
+      "missed_calls_per_forward": 0
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c1",
+      "rule_id": "v_flat-complete-cohort-response",
+      "observed_calls": 4080,
+      "matched_calls_per_forward": 48.0,
+      "missed_calls_per_forward": 0
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c1",
+      "rule_id": "linear_output-complete-cohort-response",
+      "observed_calls": 4080,
+      "matched_calls_per_forward": 48.0,
+      "missed_calls_per_forward": 0
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c1",
+      "rule_id": "dense_gate_up-complete-cohort-response",
+      "observed_calls": 5440,
+      "matched_calls_per_forward": 64.0,
+      "missed_calls_per_forward": 0
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c1",
+      "rule_id": "swiglu-complete-cohort-response",
+      "observed_calls": 5440,
+      "matched_calls_per_forward": 64.0,
+      "missed_calls_per_forward": 0
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c1",
+      "rule_id": "dense_down-complete-cohort-response",
+      "observed_calls": 5440,
+      "matched_calls_per_forward": 64.0,
+      "missed_calls_per_forward": 0
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c1",
+      "rule_id": "qkv_projection-complete-cohort-response",
+      "observed_calls": 1360,
+      "matched_calls_per_forward": 16.0,
+      "missed_calls_per_forward": 0
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c1",
+      "rule_id": "kv_store-complete-cohort-response",
+      "observed_calls": 1360,
+      "matched_calls_per_forward": 16.0,
+      "missed_calls_per_forward": 0
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c1",
+      "rule_id": "attention_output-complete-cohort-response",
+      "observed_calls": 1360,
+      "matched_calls_per_forward": 16.0,
+      "missed_calls_per_forward": 0
+    }
+  ],
+  "raw_capture_reads": 0,
+  "new_predictions": 0,
+  "review_scope": "Producer mathematical check independent of generator; standard Body audit is separate.",
+  "maximum_resident_set_size_bytes": 59457536
+}
