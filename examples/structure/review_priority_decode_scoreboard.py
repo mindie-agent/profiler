@@ -108,6 +108,52 @@ def retained_observation_evidence(group):
             "evidence_strength": evidence}
 
 
+def review_priority_focus(report, check):
+    """Reconcile the projection with current receipts, never inventory predictions."""
+    focus = report.get("priority_focus")
+    if not focus:
+        return
+    pin = focus["specification_identity"]
+    check(digest(pin["path"]) == pin["sha256"], "Focus specification SHA")
+    spec = read(pin["path"])
+    key = lambda row: (row["case_id"], row["source_identity"]["sha256"])
+    current = {key(row): row for row in report["current_body_comparisons"]}
+    latest = {key(row): row for row in report.get("latest_body_attempts", [])}
+    wanted = {key(row): row for row in spec["cases"]}
+    check(len(focus["sources"]) == len(wanted) == len(spec["cases"]), "Focus exact population count")
+    check({key(row) for row in focus["sources"]} == set(wanted), "Focus exact case/source set")
+    def execution(row):
+        if row is None: return "NOT_AVAILABLE"
+        if row.get("error") or row.get("prediction_failure") or row.get("display_status") == "prediction_failed": return "EXEC_FAILED"
+        return {"compared": "COMPLETED", "failed": "EXEC_FAILED"}.get((row.get("comparison") or {}).get("status"), "EXEC_FAILED" if row.get("status") == "failed" else "NOT_SCORED")
+    for shown in focus["sources"]:
+        label = "Focus " + shown["case_id"]; selected = current.get(key(shown)); attempt = latest.get(key(shown)); declared = wanted[key(shown)]
+        comparison = (selected or {}).get("comparison") or {}; observed = comparison.get("observed_ms") or {}; done = execution(selected) == "COMPLETED"
+        predicted = comparison.get("predicted_ms") if done else None
+        delta = predicted - observed["mean"] if predicted is not None and observed.get("mean") is not None else None
+        error = delta / observed["mean"] if delta is not None else None
+        expected = {"observed_body_ms": observed, "observed_forward_count": comparison.get("observed_forward_count"), "predicted_body_ms": predicted,
+            "relative_error": comparison.get("relative_error") if done else None, "signed_body_delta_ms": delta,
+            "absolute_ms_outside_15pct_band": max(abs(delta) - .15 * observed["mean"], 0) if delta is not None else None,
+            "body_accuracy_status": ("PASS" if abs(error) <= .15 else "FAIL") if error is not None else None,
+            "selected_execution_status": execution(selected), "latest_execution_status": execution(attempt),
+            "source_identity": (selected or declared)["source_identity"], "geometry": (selected or {}).get("geometry"),
+            "selected_receipt": (selected or {}).get("receipt"), "selected_runtime_identity": (selected or {}).get("runtime_identity"),
+            "latest_receipt": (attempt or {}).get("receipt"), "latest_runtime_identity": (attempt or {}).get("runtime_identity"),
+            "latest_error": (attempt or {}).get("error") or (attempt or {}).get("prediction_failure"),
+            "selected_is_latest_attempt": attempt is not None and selected is not None and attempt.get("receipt") == selected.get("receipt")}
+        for field, value in expected.items(): check(shown[field] == value, label + " " + field)
+        if error is not None: check(math.isclose(comparison["relative_error"], error, rel_tol=1e-11, abs_tol=1e-10) and comparison["passed"] == (abs(error) <= .15), label + " recomputed accuracy")
+        evidence = (selected or {}).get("calibration_evidence") or {}
+        if not isinstance(evidence, dict): evidence = {"declared_metadata": evidence}
+        for field, value in {"origin": (selected or {}).get("calibration_origin") or evidence.get("origin") or "not_declared", "evaluation_relation": evidence.get("evaluation_relation") or "not_declared", "evidence": evidence, "metadata_identity": (selected or {}).get("calibration_metadata_identity")}.items(): check(shown["calibration"][field] == value, label + " calibration " + field)
+        check(not shown["contract_boundary"]["body_pass_implies_native_contract_closure"] and shown["contract_boundary"]["parameter_origin_is_not_a_contract_admission_gate"], label + " independent evidence axes")
+        check(shown["priority_six"] == bool(declared.get("priority_six")) and shown["source_arm_families"] == declared.get("source_arm_families", []), label + " explicit focus selection")
+    rows = focus["sources"]
+    expected_summary = {"distinct_source_count": len({key(row)[1] for row in rows}), "selected_population_count": len(rows), "observed_forward_count": sum(row["observed_forward_count"] or 0 for row in rows), "accepted_source_arm_count": sum(bool(row["source_arm_families"]) for row in rows), "priority_a5_count": sum(row["priority_six"] for row in rows), "body_pass_count": sum(row["body_accuracy_status"] == "PASS" for row in rows), "body_fail_count": sum(row["body_accuracy_status"] == "FAIL" for row in rows), "latest_execution_failed_count": sum(row["latest_execution_status"] == "EXEC_FAILED" for row in rows)}
+    check(focus["summary"] == expected_summary, "Focus counts do not alter or duplicate populations")
+
+
 def review(path):
     started = time.monotonic()
     initial_sha = digest(path)
@@ -490,6 +536,7 @@ def review(path):
     current_runtime_populations={key:next(iter(values)) if len(values)==1 else "mixed_native_family_runtimes"
                                  for key,values in runtime_sets.items()}
     summary = report["summary"]
+    review_priority_focus(report, check)
     if "latest_body_attempts" in report:
         check(Counter(canonical(row) for row in report["latest_body_attempts"]) ==
               Counter(canonical(row) for row in latest_attempts.values()), "Latest attempts retain failed cost workers")
