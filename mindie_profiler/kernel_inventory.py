@@ -158,7 +158,8 @@ def _context(path: Path, rules: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def _capture(path: Path, member: str, context: Mapping[str, Any]) -> str:
-    source = member or str(path)
+    # Preserve capture cells when Windows paths and archive members meet.
+    source = (member or str(path)).replace("\\", "/")
     cell = re.search(r"(?:^|/)(?:prof_)?(p\d+[_-]c\d+[^/]*|r\d+_rank\d+)(?:/|$)", source)
     if cell:
         return str(context.get("capture_group") or path.parent) + "/" + cell.group(1)

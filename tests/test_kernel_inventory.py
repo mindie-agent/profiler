@@ -2,12 +2,12 @@
 import csv
 import io
 import json
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import shutil
 import sqlite3
 import tarfile
 
-from mindie_profiler.kernel_inventory import build_inventory, csv_rows, _event
+from mindie_profiler.kernel_inventory import build_inventory, csv_rows, _event, _capture
 
 FIXTURES = Path(__file__).parent / "fixtures" / "kernel_inventory"
 
@@ -92,6 +92,16 @@ def test_profile_cell_paths_keep_equal_helper_shapes_in_separate_capture_conditi
     ]}, tmp_path / "inventory")
     assert result["calls"] == 64
     assert result["duplicate_rows"] == 0
+
+
+def test_windows_capture_cells_keep_real_occurrences_separate_from_archive_copies():
+    with (FIXTURES / "a3_kernel_details.csv").open() as stream:
+        row = next(csv_rows(stream))
+    paths = [PureWindowsPath("C:/captures/raw") / cell / "kernel_details.csv"
+             for cell in ("prof_p4096_c1", "prof_p16384_c1")]
+    captures = [_capture(path, "", _context()) for path in paths]
+    assert _event(row, _context(), captures[0])[0] != _event(row, _context(), captures[1])[0]
+    assert captures[0] == _capture(paths[0], "raw/prof_p4096_c1/kernel_details.csv", _context())
 
 
 def test_retained_pp4_task_time_export_keeps_observations_and_missing_signatures(tmp_path):
