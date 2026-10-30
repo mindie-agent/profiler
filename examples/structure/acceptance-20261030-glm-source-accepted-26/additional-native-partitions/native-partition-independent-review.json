@@ -1,0 +1,161 @@
+{
+  "schema_version": "mindie-independent-native-evidence-review/1",
+  "status": "passed",
+  "receipt_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-accepted-26/additional-native-partitions/native-partition-receipt.json",
+    "sha256": "85fe5352af4c249683c4156ac2146448ff30990d2f5b7aa34222a8116a76b234",
+    "size_bytes": 16621
+  },
+  "checks": 474,
+  "failures": [],
+  "sources": 9,
+  "selected_forwards": 395,
+  "native_events": 13430,
+  "cases": [
+    {
+      "case_id": "a3_glm53flash_tp16_aclgraph_c16",
+      "partition_identity": {
+        "path": "examples/structure/acceptance-20261030-glm-source-accepted-26/additional-native-partitions/a3_glm53flash_tp16_aclgraph_c16-native-partitions.json",
+        "sha256": "2496c47c921ecda88e55eb96f363d7b9c69e2251af7bed9dc6f2163d25b29f88",
+        "size_bytes": 61280
+      },
+      "actual_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a3_glm53flash_tp16_aclgraph_c16-matrix-extension.actual.json",
+        "sha256": "9b466f10e4f2dfc09f796c44968280afd127e0695f6a597c19132fc211b39076",
+        "size_bytes": 972917
+      },
+      "forwards": 50,
+      "events": 1700
+    },
+    {
+      "case_id": "a3_glm53flash_tp16_aclgraph_c32",
+      "partition_identity": {
+        "path": "examples/structure/acceptance-20261030-glm-source-accepted-26/additional-native-partitions/a3_glm53flash_tp16_aclgraph_c32-native-partitions.json",
+        "sha256": "2fafa43c4caa2fe7468a286284714186311799b951464244f788e5cd149b7ae4",
+        "size_bytes": 62150
+      },
+      "actual_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a3_glm53flash_tp16_aclgraph_c32-matrix-extension.actual.json",
+        "sha256": "e42cc2a8e709372916054a22be58bc203f2098b2d9fda3e8dd505cb295d78271",
+        "size_bytes": 983579
+      },
+      "forwards": 49,
+      "events": 1666
+    },
+    {
+      "case_id": "a3_glm53flash_tp16_aclgraph_c64",
+      "partition_identity": {
+        "path": "examples/structure/acceptance-20261030-glm-source-accepted-26/additional-native-partitions/a3_glm53flash_tp16_aclgraph_c64-native-partitions.json",
+        "sha256": "462eda8ddee73da0ba99d095d0b21cfbc8710474284fc10e0323499a7a0a7593",
+        "size_bytes": 61664
+      },
+      "actual_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a3_glm53flash_tp16_aclgraph_c64-matrix-extension.actual.json",
+        "sha256": "1f12974c471d713db6981abf69ba1d0f86cb0ab5fb7cd124dbb762dff5d4c8a8",
+        "size_bytes": 1038911
+      },
+      "forwards": 47,
+      "events": 1598
+    },
+    {
+      "case_id": "a3_glm53flash_tp16_aclgraph_c8",
+      "partition_identity": {
+        "path": "examples/structure/acceptance-20261030-glm-source-accepted-26/additional-native-partitions/a3_glm53flash_tp16_aclgraph_c8-native-partitions.json",
+        "sha256": "1649358f915bb6cdb0cdaea9c36835edad2b959c2875777b26147993c3937c18",
+        "size_bytes": 58158
+      },
+      "actual_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a3_glm53flash_tp16_aclgraph_c8-matrix-extension.actual.json",
+        "sha256": "5e40834ef34d129ee0d72c1b5a12b055e89d298c39d06ed653891a55535a54af",
+        "size_bytes": 918014
+      },
+      "forwards": 47,
+      "events": 1598
+    },
+    {
+      "case_id": "glm53flash-a3-tp16-c16-livepre",
+      "partition_identity": {
+        "path": "examples/structure/acceptance-20261030-glm-source-accepted-26/additional-native-partitions/glm53flash-a3-tp16-c16-livepre-native-partitions.json",
+        "sha256": "7e41b9f917613486c2935777f8ae9313684178f7c2b3313d2b1b5631492cef40",
+        "size_bytes": 58731
+      },
+      "actual_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators-5935c87b/body-operator-glm53flash-a3-tp16-c16-livepre-q6-b16-new17.actual.json",
+        "sha256": "4e7fd87629b9a5369d9e080cfdec106f6720020d76e66cebc91ee3144a93709e",
+        "size_bytes": 758590
+      },
+      "forwards": 37,
+      "events": 1258
+    },
+    {
+      "case_id": "glm53flash-a3-tp16-c2",
+      "partition_identity": {
+        "path": "examples/structure/acceptance-20261030-glm-source-accepted-26/additional-native-partitions/glm53flash-a3-tp16-c2-native-partitions.json",
+        "sha256": "3e2db68606333fad4fbc856ea70ff4f4d64db6a2328f325f8bfe66fa114c6e0c",
+        "size_bytes": 58378
+      },
+      "actual_identity": {
+        "path": "examples/structure/acceptance-20261030-glm-source-accepted-26/retained-four-actual/body-operator-glm53flash-a3-tp16-c2-new17.actual.json",
+        "sha256": "8f53ba2ccb395d7e6a6f60b50fda1d27599a4657a33ddb2badc8d25c315ccd26",
+        "size_bytes": 844214
+      },
+      "forwards": 46,
+      "events": 1564
+    },
+    {
+      "case_id": "glm53flash-a3-tp16-c4-livepre",
+      "partition_identity": {
+        "path": "examples/structure/acceptance-20261030-glm-source-accepted-26/additional-native-partitions/glm53flash-a3-tp16-c4-livepre-native-partitions.json",
+        "sha256": "191777d652cc2be238e80c74d13c1e34016ac7c153121c8ee9366d09a2a473e8",
+        "size_bytes": 58369
+      },
+      "actual_identity": {
+        "path": "examples/structure/acceptance-20261030-glm-source-accepted-26/retained-four-actual/body-operator-glm53flash-a3-tp16-c4-livepre-new17.actual.json",
+        "sha256": "b347d2263e84d1fbffe1b190141357b4d97c4083d640ea0b51df7b32fcfc17b6",
+        "size_bytes": 831617
+      },
+      "forwards": 46,
+      "events": 1564
+    },
+    {
+      "case_id": "glm53flash-a3-tp16-c4",
+      "partition_identity": {
+        "path": "examples/structure/acceptance-20261030-glm-source-accepted-26/additional-native-partitions/glm53flash-a3-tp16-c4-native-partitions.json",
+        "sha256": "3637b8da113bfc0c385c252af019af82eb4c3ddb6f495b1b795dd3fe2be32223",
+        "size_bytes": 58527
+      },
+      "actual_identity": {
+        "path": "examples/structure/acceptance-20261030-glm-source-accepted-26/retained-four-actual/body-operator-glm53flash-a3-tp16-c4-new17.actual.json",
+        "sha256": "76f3979373fd1dde17819f514e39ef2cc53d2f8d4dd4f7de6e0cd1ce11a22357",
+        "size_bytes": 881502
+      },
+      "forwards": 46,
+      "events": 1564
+    },
+    {
+      "case_id": "glm53flash-a5-tp8-c96",
+      "partition_identity": {
+        "path": "examples/structure/acceptance-20261030-glm-source-accepted-26/additional-native-partitions/glm53flash-a5-tp8-c96-native-partitions.json",
+        "sha256": "5b5471ba2e7bdecb0ff5bacd677eb10dd57bc53f26fb81aa62372024fc746dd3",
+        "size_bytes": 63345
+      },
+      "actual_identity": {
+        "path": "examples/structure/acceptance-20261030-glm-source-accepted-26/retained-four-actual/a5-c96/body-operator-glm53flash-a5-tp8-c96-new17.actual.json",
+        "sha256": "4019f52a98695f908f9db60a37782a4d6468fe2fd81fa24de66387ef4ab0b889",
+        "size_bytes": 1572919
+      },
+      "forwards": 27,
+      "events": 918
+    }
+  ],
+  "raw_capture_reads": 0,
+  "prediction_executions": 0,
+  "observations": [
+    "Full 11-input/3-output accepted-token branch is retained; state-index and accepted scalar values are not inferred.",
+    "34 KDA layer calls per selected full45-layer Forward, without adding unselected geometry populations.",
+    "Complete duration histogram exactly equals each prior actual; timing did not select roles or candidates.",
+    "Initial literal case-path comparison identified c16-livepre moved from main to fixed checkout; identical SHA/bytes and current fixed file contents independently verify the relocation. No evidence or numeric outputs were changed."
+  ],
+  "elapsed_seconds": 0.2449751659296453,
+  "maximum_resident_set_size_bytes": 86507520
+}

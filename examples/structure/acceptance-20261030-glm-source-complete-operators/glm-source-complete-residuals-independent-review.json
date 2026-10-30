@@ -1,0 +1,21 @@
+{
+  "schema_version": "mindie-glm-residual-independent-review/1",
+  "status": "passed",
+  "checks": 5330,
+  "failures": [],
+  "report_sha256": "e4e9d69e415a8192f09df5b18c131f2c9b192f512720284e33ef2b05e4316f3e",
+  "totals": {
+    "direct": 358,
+    "subgraph_reference": 54,
+    "native_reference": 45,
+    "strict_calls": 376073,
+    "strict_passed": 337
+  },
+  "source_count": 18,
+  "forward_count": 713,
+  "method": "Exact per-cohort and per-native joins with source/context/case/geometry; original P50 preserved; independent signed per-forward arithmetic and absolute Top3 ranks; native/subgraph references do not overlap",
+  "raw_capture_reads": 0,
+  "cost_executions": 0,
+  "elapsed_seconds": 0.004218457965180278,
+  "maximum_resident_set_size_bytes": 49233920
+}
