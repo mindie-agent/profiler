@@ -1,16 +1,16 @@
 {
   "schema_version": "mindie-priority-scoreboard-independent-review/2",
   "status": "passed",
-  "checks": 182618,
+  "checks": 189649,
   "failures": [],
-  "report_sha256": "0e37739f326482039261974d05b5c8a542dc0a52b31114979eb1ed5af150e657",
+  "report_sha256": "7c0218330ff7e5b7050a9ce8f828b0f79e3da013360806bad6c09e893cc4649c",
   "summary": {
-    "body_compared": 374,
-    "body_passed": 94,
+    "body_compared": 447,
+    "body_passed": 116,
     "current_body_compared": 66,
     "current_body_passed": 22,
     "invalidated_body_prediction_arms": 31,
-    "body_failed_attempts": 19,
+    "body_failed_attempts": 20,
     "latest_body_attempt_count": 66,
     "latest_body_attempt_completed": 66,
     "latest_body_attempt_failed": 0,
@@ -42,16 +42,16 @@
     },
     "current_operator_scored_events": 1481542,
     "current_operator_body_events": 7799454,
-    "current_external_native_reference_groups": 539,
-    "current_external_native_reference_calls": 568978,
+    "current_external_native_reference_groups": 630,
+    "current_external_native_reference_calls": 934178,
     "current_external_native_reference_populations": 37,
     "current_external_native_reference_forwards": 2161,
     "heavy_cohorts": 157
   },
-  "body_rows": 1234,
+  "body_rows": 1464,
   "family_rows": 10244,
   "cohort_rows": 2985,
-  "reference_rows": 1535,
+  "reference_rows": 2088,
   "corrected_kimi_quant_cases_checked": 36,
   "historical_case_resolutions": [
     {
@@ -140,8 +140,8 @@
     }
   ],
   "execution": {
-    "elapsed_seconds": 11.299739166977815,
-    "peak_rss_bytes": 352403456,
+    "elapsed_seconds": 12.537895250017755,
+    "peak_rss_bytes": 385581056,
     "receipt_read_engine": "ijson top-level fields and sequential receipt cases"
   },
   "scope": "Independent sequential receipt reconciliation; no raw capture parsing or prediction. Invalidation, effective current Kimi precision, source/geometry deduplication, explicit input order, strict tier arithmetic and unscored source references are checked separately."

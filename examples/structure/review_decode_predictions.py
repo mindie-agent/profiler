@@ -44,11 +44,18 @@ def review(path, output):
     for case in report["cases"]:
         label = case["case_id"]
         if case["comparison"]["status"] == "failed":
-            check(case.get("prediction") is None, label + ":failed_attempt_has_no_prediction")
+            # Post-execution resource checks may reject a completed diagnostic
+            # result. Keep that evidence, but never count it as an accepted cost.
+            check(all(case["comparison"].get(field) is None for field in (
+                "predicted_ms", "per_forward_diff_ms", "relative_error", "passed")),
+                label + ":failed_attempt_is_not_scored")
+            check(case.get("per_layer_comparison") is None,
+                  label + ":failed_attempt_has_no_layer_scores")
             failure = case.get("error") or case.get("prediction_execution")
             check(bool(failure) and bool(case["comparison"]["reasons"]), label + ":failure_visible")
             failed_attempts.append({"case_id": label, "failure": failure,
-                                    "observed_calls_retained": case["comparison"]["observed_ms"]["count"]})
+                                    "observed_calls_retained": case["comparison"]["observed_ms"]["count"],
+                                    "diagnostic_prediction_retained": case.get("prediction") is not None})
             if case.get("observed") is None:
                 check(case["comparison"]["observed_ms"]["count"] == 0, label + ":failed_read_no_calls")
                 continue

@@ -28,7 +28,7 @@ def population(row):
 
 
 def compare(before_paths, after_paths):
-    previous, inputs, rows, unlocated = {}, [], [], []
+    previous, inputs, rows, unlocated, unlocated_after = {}, [], [], [], []
     for path in before_paths:
         report, identity = read(path)
         inputs.append({"arm": "before", **identity})
@@ -47,7 +47,12 @@ def compare(before_paths, after_paths):
         report, identity = read(path)
         inputs.append({"arm": "after", **identity})
         for row in report["cases"]:
-            if row["comparison"]["status"] != "compared":
+            if row["comparison"]["status"] not in {"compared", "failed"}:
+                continue
+            if "geometry" not in row and row["comparison"]["status"] == "failed":
+                unlocated_after.append({"receipt": identity, "case_id": row["case_id"],
+                                        "source_identity": row["source_identity"],
+                                        "comparison": row["comparison"], "error": row.get("error")})
                 continue
             prior, prior_identity = previous[population(row)]
             before, after = prior["comparison"], row["comparison"]
@@ -62,14 +67,21 @@ def compare(before_paths, after_paths):
                          "after_runtime": row.get("runtime_identity"),
                          "observed_ms": after["observed_ms"], "before": before, "after": after,
                          "prediction_delta_ms": (after["predicted_ms"] - before["predicted_ms"]
-                                                 if before["predicted_ms"] is not None else None)})
+                                                 if before["predicted_ms"] is not None
+                                                 and after["predicted_ms"] is not None else None)})
     return {"schema_version": "mindie-body-runtime-arm-comparison/1", "inputs": inputs,
             "raw_capture_reads": 0, "prediction_executions": 0, "cases": rows,
             "prior_failures_without_geometry": unlocated,
-            "summary": {"compared_after": len(rows),
+            "after_failures_without_geometry": unlocated_after,
+            "summary": {"attempted_after": len(rows) + len(unlocated_after),
+                        "compared_after": sum(row["after"]["status"] == "compared" for row in rows),
+                        "failed_after": len(unlocated_after) + sum(row["after"]["status"] == "failed" for row in rows),
                         "passed_before": sum(row["before"]["passed"] is True for row in rows),
                         "passed_after": sum(row["after"]["passed"] is True for row in rows),
                         "failed_before": sum(row["before"]["status"] == "failed" for row in rows),
+                        "became_failed": [row["case_id"] for row in rows
+                                          if row["before"]["status"] != "failed"
+                                          and row["after"]["status"] == "failed"],
                         "lost_pass": [row["case_id"] for row in rows if row["before"]["passed"] is True
                                       and row["after"]["passed"] is False],
                         "gained_pass": [row["case_id"] for row in rows if row["before"]["passed"] is False
@@ -90,7 +102,8 @@ def render(report):
                      f"{number(before['predicted_ms'])} | {number(after['predicted_ms'])} | "
                      f"{number(row['prediction_delta_ms'])} | {number(before['relative_error'], 100, '%')} | "
                      f"{number(after['relative_error'], 100, '%')} |")
-    lines += ["", f"Prior failures before geometry extraction retained separately: {len(report.get('prior_failures_without_geometry', []))}.",
+    lines += ["", f"Prior/current failures before geometry extraction retained separately: "
+              f"{len(report.get('prior_failures_without_geometry', []))}/{len(report.get('after_failures_without_geometry', []))}.",
               "", *report["limitations"], ""]
     return "\n".join(lines)
 
