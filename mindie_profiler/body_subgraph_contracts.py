@@ -59,8 +59,14 @@ def _lightning(inputs, outputs):
 
 def _mla(inputs, outputs):
     kind = "MlaPrologV3"
-    required = [(f"input[{i}].shape", inputs[i]) for i in (*range(7), 9, 10)]
-    required += [(f"output[{i}].shape", outputs[i]) for i in range(4)]
+    # The source's tile-128 packed cache stores 512 INT8 latent bytes, 64
+    # BF16 rotary values and four FP32 scales in one 656-byte row. Its second
+    # cache descriptor is explicitly empty, not missing floating cache data.
+    packed = _tensor(inputs[9], 4, {"int8"})
+    required = [(f"input[{i}].shape", inputs[i]) for i in (*range(7), 9)]
+    required += [(f"output[{i}].shape", outputs[i]) for i in range(3)]
+    if not packed:
+        required += [("input[10].shape", inputs[10]), ("output[3].shape", outputs[3])]
     missing = [name for name, slot in required if not slot[0]]
     if missing:
         return None, _issue(kind, "missing_active_tensor_shapes",
@@ -75,13 +81,13 @@ def _mla(inputs, outputs):
                        for slot in (dq, uq, dkv))
             or not _tensor(uk, 3, _FLOAT)
             or not all(_tensor(slot, 1, _FLOAT) for slot in (gamma_q, gamma_kv))
-            or not all(_tensor(slot, 4, _FLOAT) for slot in (cache, rope_cache))
+            or (not packed and not all(_tensor(slot, 4, _FLOAT) for slot in (cache, rope_cache)))
             or not _tensor(query, len(token[0]) + 1, _FLOAT)
             or not _tensor(rope, len(token[0]) + 1, _FLOAT)):
         return None, _issue(
             kind, "unsupported_mla_active_geometry",
             "The verified MLA projection requires logical NZ matrix descriptors, "
-            "ND parameters, floating paged caches and complete token/Q axes.")
+            "ND parameters, floating or packed INT8 paged caches and complete token/Q axes.")
     leading = token[0][:-1]
     tokens, hidden = math.prod(leading), token[0][-1]
     heads, nope, latent = uk[0]
@@ -92,17 +98,30 @@ def _mla(inputs, outputs):
             or gamma_kv[0] != (latent,)
             or query[0] != (*leading, heads, latent)
             or rope[0] != (*leading, heads, rope_width)
-            or cache[0][2:] != (1, latent) or rope_cache[0][2:] != (1, rope_width)
             or outputs[2:4] != (cache, rope_cache)
-            or len({slot[1] for slot in (uk, gamma_q, gamma_kv, query, rope,
-                                         cache, rope_cache)}) != 1):
+            or len({slot[1] for slot in (uk, gamma_q, gamma_kv, query, rope)}) != 1):
         return None, _issue(
             kind, "inconsistent_mla_active_parameters",
             "MLA projection, RMS, absorption, output and cache dimensions do not agree.")
+    if packed:
+        if (latent != 512 or rope_width != 64 or cache[0][2:] != (1, 656)
+                or rope_cache != ((), "bf16", "ND")
+                or any(slot[1] != "int8" for slot in (token, dq, uq, dkv))
+                or query[1] != "bf16"):
+            return None, _issue(kind, "unsupported_mla_packed_cache",
+                                "The retained packed ABI requires 512 INT8 latent bytes, "
+                                "64 BF16 rotary values, four FP32 scales and an empty second cache.")
+        cache_heads = (((1, 656), "int8", "ND"), _EMPTY)
+    else:
+        if (cache[0][2:] != (1, latent) or rope_cache[0][2:] != (1, rope_width)
+                or cache[1] != rope_cache[1] or cache[1] != query[1]):
+            return None, _issue(kind, "inconsistent_mla_active_parameters",
+                                "Floating cache dimensions and precision must match their query outputs.")
+        cache_heads = tuple((slot[0][2:], slot[1], slot[2]) for slot in (cache, rope_cache))
     query_norm = outputs[5]
     if query_norm[0]:
         if (query_norm[0] not in {(tokens, gamma_q[0][0]), (*leading, gamma_q[0][0])}
-                or not _tensor(query_norm, len(query_norm[0]), _ACTIVATION)):
+                or not _tensor(query_norm, len(query_norm[0]), {"int8"} if packed else _ACTIVATION)):
             return None, _issue(kind, "unsupported_mla_query_norm",
                                 "The recorded optional query-norm output must retain its row/rank axes.")
         query_norm = ((tokens, gamma_q[0][0]), query_norm[1], query_norm[2])
@@ -115,7 +134,6 @@ def _mla(inputs, outputs):
                                 ("output[5].shape",))
         query_norm = _EMPTY
     parameters = tuple((slot[0], slot[1]) for slot in inputs[1:7])
-    cache_heads = tuple((slot[0][2:], slot[1], slot[2]) for slot in (cache, rope_cache))
     output_slots = (((tokens, heads, latent), query[1], query[2]),
                     ((tokens, heads, rope_width), rope[1], rope[2]), query_norm)
     return ("mla_prolog_active", kind, ((tokens, hidden), token[1], token[2]),
