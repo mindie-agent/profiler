@@ -167,3 +167,37 @@ Reproduce with `build_qwen_cohort_service_cases.py`, followed by the matching
 cohort manifest and output on runtime `3b72ea2d`. Earlier failed receipts are
 retained. No parameter was assigned from the Body residual or chosen to land
 at the 15% threshold.
+
+## GLM78 D656 source program arm
+
+`decode-forward-glm78-packed-source-replay.json` uses runtime `a961c114`
+and the new explicit packed representation: 512 INT8 latent bytes, 64 BF16
+rotary values and four FP32 scales, for 656 bytes per cache row. The existing
+Sim expansion/fusion produces 78 complete prolog calls (57 ordinary and 21
+quantized-query-output variants) and 78 whole-batch sparse attention calls.
+The prior four AR/grouped service rules are preserved unchanged; **no new
+prolog or sparse-attention empirical response is added** in this arm.
+
+| Case | Real mean ms | Sim ms | Error | Body 15% | Layer pass |
+|---|---:|---:|---:|---|---:|
+| tpot88 c8 | 69.556298 | 77.592182 | +11.553% | PASS | 77/78 |
+| tpot30 c2 | 57.639270 | 42.003352 | −27.127% | FAIL | 0/78 |
+| tpot50 c2 | 57.817112 | 42.005543 | −27.348% | FAIL | 0/78 |
+
+c8's captured and declared prolog have M48. The two c2 captures have M12,
+while the unchanged graph-mode declaration produces M16 prolog work. That
+active-contract discrepancy remains explicit in the cases, preflight and
+comparison assumptions; it is not counted as an exact native binding or
+hidden by assigning an M12 response to M16 work. Sparse attention retains
+all B sequences in one call. Captured binary identity and per-step valid
+context lengths remain unestablished; context4096 is the preserved input
+condition. The raw captured populations are unchanged.
+
+Three fresh workers took 5.61/4.82/4.85 seconds, at most 113,852,416 bytes RSS.
+All four prior rules hit 78/78/75/75 calls. The standard Body/layer review
+passed 999 checks, and the separate preserved-input/whole-call boundary
+review passed 90 checks. All 162 complete forwards and ten geometries remain,
+including seven deferred groups. Reproduce with
+`build_glm78_packed_source_cases.py`, then replay the matching packed-source
+manifest with `--geometry-limit 1` on the pinned runtime. No CSV reread or
+new device work is required.

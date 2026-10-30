@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "checks": 90,
+  "failures": [],
+  "report_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/decode-forward-glm78-packed-source-replay.json",
+    "sha256": "9e5fdeca2000b1ca35ed8d5e634b28398eb9f22dd82c8f3de0e07a78acbd1812"
+  },
+  "raw_reads": 0,
+  "cost_predictions": 0,
+  "scope": "Independent preserved-input/rule/population checks. Standard review separately checks all Body/layer numeric arithmetic."
+}
