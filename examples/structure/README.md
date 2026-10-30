@@ -91,6 +91,7 @@ python examples/structure/pipeline.py \
 
 - `cases/*.json` 保存模型、部署、源码程序与物理服务参数；清册保存采集、模型、提取结果和校准证据的内容身份。
 - Decode 从完整拓扑、张量几何及 head 边界自动识别 Body。完整层的活动并集、内部间隙、层 0 与稳态层分别报告；不是把所有 kernel 耗时相加。
+- 无设备 Task/Stream 绑定的通信摘要若跨越同次 Forward 的 Head，只在实际 hidden 生产者与后继 consumer 链完整时，以 consumer 开始时间给出条件结束上界。原摘要区间和定位信息仍保留，真实设备任务不裁剪；该上界不作为实测通信服务时间参与严格算子计分。
 - Prefill 对实际完整 chunk 逐一预测，累加其 Body。query 总量与声明不一致时不把局部片段冒充完整请求。
 - 算子严格 cohort 需要相同张量契约和物理工作量；源码条件参考单列。单次 >50 us 使用 15% 相对容差，<=50 us 使用 15 us 绝对容差。
 - Engine 使用完整请求记录与实际 completion-token 数。设备 target cycle、客户端 token TPOT、文本 chunk 间隔、TTFT 和吞吐各自保留分母。缺失的外围区间不直接命名为 Host gap。

@@ -1,0 +1,684 @@
+{
+  "source_identity": {
+    "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp4_128k_20261030/prof/decode_128k_in126k_out3k_c4/kernel_details.csv",
+    "sha256": "31b8e79032731f22620688c493cbcf6fbb828963e9a049a5a236788be631a062",
+    "size_bytes": 98251697,
+    "sha_basis": "existing accepted extraction pin; no full-file rehash in this bounded probe"
+  },
+  "bounded_export_identity": {
+    "path": "/tmp/a3-qwen36-tp4-c4-bounded-cross-head-events.json",
+    "sha256": "c063adcd1d58d7fa961ed5f2157f01237d675b8054201ec0ea0558abe3d1de6d"
+  },
+  "source_forward_id": "auto:98",
+  "source_layer_ids": [
+    60,
+    61,
+    62,
+    63
+  ],
+  "scope": "unchanged complete four-layer suffix plus final norm/head; not a new four-layer model capture",
+  "selection": {
+    "first_source_byte": 80537896,
+    "last_source_byte": 80579041,
+    "csv_records": 125
+  },
+  "fixture_sha256": "d54ddb998984872198722e5df42d0554cd2b957c3df32e8acb56fe919bc7e873",
+  "record_locations": [
+    {
+      "fixture_csv_line": 2,
+      "source_byte_start": 80537896,
+      "source_byte_end_exclusive": 80538187
+    },
+    {
+      "fixture_csv_line": 3,
+      "source_byte_start": 80538187,
+      "source_byte_end_exclusive": 80538561
+    },
+    {
+      "fixture_csv_line": 4,
+      "source_byte_start": 80538561,
+      "source_byte_end_exclusive": 80538886
+    },
+    {
+      "fixture_csv_line": 5,
+      "source_byte_start": 80538886,
+      "source_byte_end_exclusive": 80539305
+    },
+    {
+      "fixture_csv_line": 6,
+      "source_byte_start": 80539305,
+      "source_byte_end_exclusive": 80539619
+    },
+    {
+      "fixture_csv_line": 7,
+      "source_byte_start": 80539619,
+      "source_byte_end_exclusive": 80539934
+    },
+    {
+      "fixture_csv_line": 8,
+      "source_byte_start": 80539934,
+      "source_byte_end_exclusive": 80540246
+    },
+    {
+      "fixture_csv_line": 9,
+      "source_byte_start": 80540246,
+      "source_byte_end_exclusive": 80540560
+    },
+    {
+      "fixture_csv_line": 10,
+      "source_byte_start": 80540560,
+      "source_byte_end_exclusive": 80540868
+    },
+    {
+      "fixture_csv_line": 11,
+      "source_byte_start": 80540868,
+      "source_byte_end_exclusive": 80541186
+    },
+    {
+      "fixture_csv_line": 12,
+      "source_byte_start": 80541186,
+      "source_byte_end_exclusive": 80541651
+    },
+    {
+      "fixture_csv_line": 13,
+      "source_byte_start": 80541651,
+      "source_byte_end_exclusive": 80541970
+    },
+    {
+      "fixture_csv_line": 14,
+      "source_byte_start": 80541970,
+      "source_byte_end_exclusive": 80542288
+    },
+    {
+      "fixture_csv_line": 15,
+      "source_byte_start": 80542288,
+      "source_byte_end_exclusive": 80542607
+    },
+    {
+      "fixture_csv_line": 16,
+      "source_byte_start": 80542607,
+      "source_byte_end_exclusive": 80542927
+    },
+    {
+      "fixture_csv_line": 17,
+      "source_byte_start": 80542927,
+      "source_byte_end_exclusive": 80543215
+    },
+    {
+      "fixture_csv_line": 18,
+      "source_byte_start": 80543215,
+      "source_byte_end_exclusive": 80543487
+    },
+    {
+      "fixture_csv_line": 19,
+      "source_byte_start": 80543487,
+      "source_byte_end_exclusive": 80543760
+    },
+    {
+      "fixture_csv_line": 20,
+      "source_byte_start": 80543760,
+      "source_byte_end_exclusive": 80544284
+    },
+    {
+      "fixture_csv_line": 21,
+      "source_byte_start": 80544284,
+      "source_byte_end_exclusive": 80544610
+    },
+    {
+      "fixture_csv_line": 22,
+      "source_byte_start": 80544610,
+      "source_byte_end_exclusive": 80544913
+    },
+    {
+      "fixture_csv_line": 23,
+      "source_byte_start": 80544913,
+      "source_byte_end_exclusive": 80545234
+    },
+    {
+      "fixture_csv_line": 24,
+      "source_byte_start": 80545234,
+      "source_byte_end_exclusive": 80545488
+    },
+    {
+      "fixture_csv_line": 25,
+      "source_byte_start": 80545488,
+      "source_byte_end_exclusive": 80545776
+    },
+    {
+      "fixture_csv_line": 26,
+      "source_byte_start": 80545776,
+      "source_byte_end_exclusive": 80546148
+    },
+    {
+      "fixture_csv_line": 27,
+      "source_byte_start": 80546148,
+      "source_byte_end_exclusive": 80546471
+    },
+    {
+      "fixture_csv_line": 28,
+      "source_byte_start": 80546471,
+      "source_byte_end_exclusive": 80546893
+    },
+    {
+      "fixture_csv_line": 29,
+      "source_byte_start": 80546893,
+      "source_byte_end_exclusive": 80547164
+    },
+    {
+      "fixture_csv_line": 30,
+      "source_byte_start": 80547164,
+      "source_byte_end_exclusive": 80547489
+    },
+    {
+      "fixture_csv_line": 31,
+      "source_byte_start": 80547489,
+      "source_byte_end_exclusive": 80547906
+    },
+    {
+      "fixture_csv_line": 32,
+      "source_byte_start": 80547906,
+      "source_byte_end_exclusive": 80548160
+    },
+    {
+      "fixture_csv_line": 33,
+      "source_byte_start": 80548160,
+      "source_byte_end_exclusive": 80548449
+    },
+    {
+      "fixture_csv_line": 34,
+      "source_byte_start": 80548449,
+      "source_byte_end_exclusive": 80548824
+    },
+    {
+      "fixture_csv_line": 35,
+      "source_byte_start": 80548824,
+      "source_byte_end_exclusive": 80549149
+    },
+    {
+      "fixture_csv_line": 36,
+      "source_byte_start": 80549149,
+      "source_byte_end_exclusive": 80549569
+    },
+    {
+      "fixture_csv_line": 37,
+      "source_byte_start": 80549569,
+      "source_byte_end_exclusive": 80549884
+    },
+    {
+      "fixture_csv_line": 38,
+      "source_byte_start": 80549884,
+      "source_byte_end_exclusive": 80550199
+    },
+    {
+      "fixture_csv_line": 39,
+      "source_byte_start": 80550199,
+      "source_byte_end_exclusive": 80550514
+    },
+    {
+      "fixture_csv_line": 40,
+      "source_byte_start": 80550514,
+      "source_byte_end_exclusive": 80550828
+    },
+    {
+      "fixture_csv_line": 41,
+      "source_byte_start": 80550828,
+      "source_byte_end_exclusive": 80551135
+    },
+    {
+      "fixture_csv_line": 42,
+      "source_byte_start": 80551135,
+      "source_byte_end_exclusive": 80551452
+    },
+    {
+      "fixture_csv_line": 43,
+      "source_byte_start": 80551452,
+      "source_byte_end_exclusive": 80551915
+    },
+    {
+      "fixture_csv_line": 44,
+      "source_byte_start": 80551915,
+      "source_byte_end_exclusive": 80552233
+    },
+    {
+      "fixture_csv_line": 45,
+      "source_byte_start": 80552233,
+      "source_byte_end_exclusive": 80552551
+    },
+    {
+      "fixture_csv_line": 46,
+      "source_byte_start": 80552551,
+      "source_byte_end_exclusive": 80552870
+    },
+    {
+      "fixture_csv_line": 47,
+      "source_byte_start": 80552870,
+      "source_byte_end_exclusive": 80553191
+    },
+    {
+      "fixture_csv_line": 48,
+      "source_byte_start": 80553191,
+      "source_byte_end_exclusive": 80553479
+    },
+    {
+      "fixture_csv_line": 49,
+      "source_byte_start": 80553479,
+      "source_byte_end_exclusive": 80553752
+    },
+    {
+      "fixture_csv_line": 50,
+      "source_byte_start": 80553752,
+      "source_byte_end_exclusive": 80554025
+    },
+    {
+      "fixture_csv_line": 51,
+      "source_byte_start": 80554025,
+      "source_byte_end_exclusive": 80554549
+    },
+    {
+      "fixture_csv_line": 52,
+      "source_byte_start": 80554549,
+      "source_byte_end_exclusive": 80554874
+    },
+    {
+      "fixture_csv_line": 53,
+      "source_byte_start": 80554874,
+      "source_byte_end_exclusive": 80555177
+    },
+    {
+      "fixture_csv_line": 54,
+      "source_byte_start": 80555177,
+      "source_byte_end_exclusive": 80555498
+    },
+    {
+      "fixture_csv_line": 55,
+      "source_byte_start": 80555498,
+      "source_byte_end_exclusive": 80555755
+    },
+    {
+      "fixture_csv_line": 56,
+      "source_byte_start": 80555755,
+      "source_byte_end_exclusive": 80556046
+    },
+    {
+      "fixture_csv_line": 57,
+      "source_byte_start": 80556046,
+      "source_byte_end_exclusive": 80556421
+    },
+    {
+      "fixture_csv_line": 58,
+      "source_byte_start": 80556421,
+      "source_byte_end_exclusive": 80556746
+    },
+    {
+      "fixture_csv_line": 59,
+      "source_byte_start": 80556746,
+      "source_byte_end_exclusive": 80557169
+    },
+    {
+      "fixture_csv_line": 60,
+      "source_byte_start": 80557169,
+      "source_byte_end_exclusive": 80557441
+    },
+    {
+      "fixture_csv_line": 61,
+      "source_byte_start": 80557441,
+      "source_byte_end_exclusive": 80557764
+    },
+    {
+      "fixture_csv_line": 62,
+      "source_byte_start": 80557764,
+      "source_byte_end_exclusive": 80558181
+    },
+    {
+      "fixture_csv_line": 63,
+      "source_byte_start": 80558181,
+      "source_byte_end_exclusive": 80558438
+    },
+    {
+      "fixture_csv_line": 64,
+      "source_byte_start": 80558438,
+      "source_byte_end_exclusive": 80558728
+    },
+    {
+      "fixture_csv_line": 65,
+      "source_byte_start": 80558728,
+      "source_byte_end_exclusive": 80559103
+    },
+    {
+      "fixture_csv_line": 66,
+      "source_byte_start": 80559103,
+      "source_byte_end_exclusive": 80559426
+    },
+    {
+      "fixture_csv_line": 67,
+      "source_byte_start": 80559426,
+      "source_byte_end_exclusive": 80559846
+    },
+    {
+      "fixture_csv_line": 68,
+      "source_byte_start": 80559846,
+      "source_byte_end_exclusive": 80560160
+    },
+    {
+      "fixture_csv_line": 69,
+      "source_byte_start": 80560160,
+      "source_byte_end_exclusive": 80560473
+    },
+    {
+      "fixture_csv_line": 70,
+      "source_byte_start": 80560473,
+      "source_byte_end_exclusive": 80560787
+    },
+    {
+      "fixture_csv_line": 71,
+      "source_byte_start": 80560787,
+      "source_byte_end_exclusive": 80561099
+    },
+    {
+      "fixture_csv_line": 72,
+      "source_byte_start": 80561099,
+      "source_byte_end_exclusive": 80561407
+    },
+    {
+      "fixture_csv_line": 73,
+      "source_byte_start": 80561407,
+      "source_byte_end_exclusive": 80561725
+    },
+    {
+      "fixture_csv_line": 74,
+      "source_byte_start": 80561725,
+      "source_byte_end_exclusive": 80562190
+    },
+    {
+      "fixture_csv_line": 75,
+      "source_byte_start": 80562190,
+      "source_byte_end_exclusive": 80562507
+    },
+    {
+      "fixture_csv_line": 76,
+      "source_byte_start": 80562507,
+      "source_byte_end_exclusive": 80562823
+    },
+    {
+      "fixture_csv_line": 77,
+      "source_byte_start": 80562823,
+      "source_byte_end_exclusive": 80563143
+    },
+    {
+      "fixture_csv_line": 78,
+      "source_byte_start": 80563143,
+      "source_byte_end_exclusive": 80563463
+    },
+    {
+      "fixture_csv_line": 79,
+      "source_byte_start": 80563463,
+      "source_byte_end_exclusive": 80563751
+    },
+    {
+      "fixture_csv_line": 80,
+      "source_byte_start": 80563751,
+      "source_byte_end_exclusive": 80564018
+    },
+    {
+      "fixture_csv_line": 81,
+      "source_byte_start": 80564018,
+      "source_byte_end_exclusive": 80564290
+    },
+    {
+      "fixture_csv_line": 82,
+      "source_byte_start": 80564290,
+      "source_byte_end_exclusive": 80564815
+    },
+    {
+      "fixture_csv_line": 83,
+      "source_byte_start": 80564815,
+      "source_byte_end_exclusive": 80565140
+    },
+    {
+      "fixture_csv_line": 84,
+      "source_byte_start": 80565140,
+      "source_byte_end_exclusive": 80565442
+    },
+    {
+      "fixture_csv_line": 85,
+      "source_byte_start": 80565442,
+      "source_byte_end_exclusive": 80565763
+    },
+    {
+      "fixture_csv_line": 86,
+      "source_byte_start": 80565763,
+      "source_byte_end_exclusive": 80566020
+    },
+    {
+      "fixture_csv_line": 87,
+      "source_byte_start": 80566020,
+      "source_byte_end_exclusive": 80566309
+    },
+    {
+      "fixture_csv_line": 88,
+      "source_byte_start": 80566309,
+      "source_byte_end_exclusive": 80566685
+    },
+    {
+      "fixture_csv_line": 89,
+      "source_byte_start": 80566685,
+      "source_byte_end_exclusive": 80567007
+    },
+    {
+      "fixture_csv_line": 90,
+      "source_byte_start": 80567007,
+      "source_byte_end_exclusive": 80567429
+    },
+    {
+      "fixture_csv_line": 91,
+      "source_byte_start": 80567429,
+      "source_byte_end_exclusive": 80567702
+    },
+    {
+      "fixture_csv_line": 92,
+      "source_byte_start": 80567702,
+      "source_byte_end_exclusive": 80568026
+    },
+    {
+      "fixture_csv_line": 93,
+      "source_byte_start": 80568026,
+      "source_byte_end_exclusive": 80568442
+    },
+    {
+      "fixture_csv_line": 94,
+      "source_byte_start": 80568442,
+      "source_byte_end_exclusive": 80568699
+    },
+    {
+      "fixture_csv_line": 95,
+      "source_byte_start": 80568699,
+      "source_byte_end_exclusive": 80568989
+    },
+    {
+      "fixture_csv_line": 96,
+      "source_byte_start": 80568989,
+      "source_byte_end_exclusive": 80569364
+    },
+    {
+      "fixture_csv_line": 97,
+      "source_byte_start": 80569364,
+      "source_byte_end_exclusive": 80569688
+    },
+    {
+      "fixture_csv_line": 98,
+      "source_byte_start": 80569688,
+      "source_byte_end_exclusive": 80570109
+    },
+    {
+      "fixture_csv_line": 99,
+      "source_byte_start": 80570109,
+      "source_byte_end_exclusive": 80570413
+    },
+    {
+      "fixture_csv_line": 100,
+      "source_byte_start": 80570413,
+      "source_byte_end_exclusive": 80570707
+    },
+    {
+      "fixture_csv_line": 101,
+      "source_byte_start": 80570707,
+      "source_byte_end_exclusive": 80571012
+    },
+    {
+      "fixture_csv_line": 102,
+      "source_byte_start": 80571012,
+      "source_byte_end_exclusive": 80571345
+    },
+    {
+      "fixture_csv_line": 103,
+      "source_byte_start": 80571345,
+      "source_byte_end_exclusive": 80571633
+    },
+    {
+      "fixture_csv_line": 104,
+      "source_byte_start": 80571633,
+      "source_byte_end_exclusive": 80571921
+    },
+    {
+      "fixture_csv_line": 105,
+      "source_byte_start": 80571921,
+      "source_byte_end_exclusive": 80572220
+    },
+    {
+      "fixture_csv_line": 106,
+      "source_byte_start": 80572220,
+      "source_byte_end_exclusive": 80572685
+    },
+    {
+      "fixture_csv_line": 107,
+      "source_byte_start": 80572685,
+      "source_byte_end_exclusive": 80573212
+    },
+    {
+      "fixture_csv_line": 108,
+      "source_byte_start": 80573212,
+      "source_byte_end_exclusive": 80573512
+    },
+    {
+      "fixture_csv_line": 109,
+      "source_byte_start": 80573512,
+      "source_byte_end_exclusive": 80573816
+    },
+    {
+      "fixture_csv_line": 110,
+      "source_byte_start": 80573816,
+      "source_byte_end_exclusive": 80574140
+    },
+    {
+      "fixture_csv_line": 111,
+      "source_byte_start": 80574140,
+      "source_byte_end_exclusive": 80574555
+    },
+    {
+      "fixture_csv_line": 112,
+      "source_byte_start": 80574555,
+      "source_byte_end_exclusive": 80574809
+    },
+    {
+      "fixture_csv_line": 113,
+      "source_byte_start": 80574809,
+      "source_byte_end_exclusive": 80575099
+    },
+    {
+      "fixture_csv_line": 114,
+      "source_byte_start": 80575099,
+      "source_byte_end_exclusive": 80575475
+    },
+    {
+      "fixture_csv_line": 115,
+      "source_byte_start": 80575475,
+      "source_byte_end_exclusive": 80575800
+    },
+    {
+      "fixture_csv_line": 116,
+      "source_byte_start": 80575800,
+      "source_byte_end_exclusive": 80576221
+    },
+    {
+      "fixture_csv_line": 117,
+      "source_byte_start": 80576221,
+      "source_byte_end_exclusive": 80576493
+    },
+    {
+      "fixture_csv_line": 118,
+      "source_byte_start": 80576493,
+      "source_byte_end_exclusive": 80576818
+    },
+    {
+      "fixture_csv_line": 119,
+      "source_byte_start": 80576818,
+      "source_byte_end_exclusive": 80577234
+    },
+    {
+      "fixture_csv_line": 120,
+      "source_byte_start": 80577234,
+      "source_byte_end_exclusive": 80577488
+    },
+    {
+      "fixture_csv_line": 121,
+      "source_byte_start": 80577488,
+      "source_byte_end_exclusive": 80577779
+    },
+    {
+      "fixture_csv_line": 122,
+      "source_byte_start": 80577779,
+      "source_byte_end_exclusive": 80578153
+    },
+    {
+      "fixture_csv_line": 123,
+      "source_byte_start": 80578153,
+      "source_byte_end_exclusive": 80578453
+    },
+    {
+      "fixture_csv_line": 124,
+      "source_byte_start": 80578453,
+      "source_byte_end_exclusive": 80578706
+    },
+    {
+      "fixture_csv_line": 125,
+      "source_byte_start": 80578706,
+      "source_byte_end_exclusive": 80579041
+    },
+    {
+      "fixture_csv_line": 126,
+      "source_byte_start": 80579041,
+      "source_byte_end_exclusive": 80579384
+    }
+  ],
+  "cross_head_envelopes": [
+    {
+      "fixture_csv_line": 55,
+      "source_byte_start": 80555498,
+      "raw_start_ns": 1793355579015586501,
+      "raw_end_ns": 1793355579066834770,
+      "raw_duration_ns": 51248269
+    },
+    {
+      "fixture_csv_line": 63,
+      "source_byte_start": 80558181,
+      "raw_start_ns": 1793355579015707026,
+      "raw_end_ns": 1793355579066949735,
+      "raw_duration_ns": 51242709
+    },
+    {
+      "fixture_csv_line": 86,
+      "source_byte_start": 80565763,
+      "raw_start_ns": 1793355579015918854,
+      "raw_end_ns": 1793355579067160183,
+      "raw_duration_ns": 51241329
+    },
+    {
+      "fixture_csv_line": 94,
+      "source_byte_start": 80568442,
+      "raw_start_ns": 1793355579016031619,
+      "raw_end_ns": 1793355579067273748,
+      "raw_duration_ns": 51242129
+    }
+  ],
+  "transformation": "Select retained raw CSV records, retain all field strings, LF record delimiters. No timestamp, duration, descriptor, task or stream edits."
+}

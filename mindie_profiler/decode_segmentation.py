@@ -21,6 +21,7 @@ from .events import ProfilerUsageError
 from .forward_spans import _statistics
 from .normalized import shapes, row_from_event
 from .body_attention_contracts import fia_block_table_slot
+from .communication_bounds import padded_hidden_consumer
 
 _MATRICES = {"MatMul", "MatMulV2", "MatMulV3", "QuantBatchMatmulV3",
              "QuantBatchMatmulV4", "TransposeBatchMatMul", "BatchMatMulV2"}
@@ -186,6 +187,81 @@ def _scheduler(row):
     return is_aicpu_controller(row.event)
 
 
+def _communication_bounds(rows, hidden, norm_indices, head, *, tp=1):
+    """Bound unlinked summaries only after a complete vocabulary-head closure.
+
+    A summary crossing the head cannot establish this body's completion. A
+    matching hidden producer and residual norm on one concrete compute stream
+    provide a conditional consumption upper bound, not a transport timestamp.
+    """
+    if head is None:
+        return {}
+    missing = {"", "N/A", "NA", "None"}
+    compute_cores = {"AI_CORE", "AI_VECTOR_CORE", "MIX_AIC", "MIX_AIV"}
+    bounds = {}
+    norm_cursor = 0
+    previous = None
+    previous_index = None
+    for index, row in enumerate(rows):
+        while norm_cursor < len(norm_indices) and norm_indices[norm_cursor] <= index:
+            norm_cursor += 1
+        event = row.event
+        summary = (event.core == "COMMUNICATION"
+                   and event.task_id in missing and event.stream_id in missing
+                   and event.block_dim == 0 and event.mix_block_dim in (None, 0)
+                   and not event.pmu and not row.inputs and not row.outputs
+                   and all(value.strip().strip('"') in missing | {"NULL"} for value in (
+                       event.input_shapes, event.output_shapes, event.input_dtypes,
+                       event.output_dtypes, event.input_formats, event.output_formats)))
+        if summary and event.start_ns < head.event.start_ns < event.end_ns:
+            consumer = rows[norm_indices[norm_cursor]] if norm_cursor < len(norm_indices) else None
+            producer = previous
+            chain = None
+            if (producer is not None and consumer is not None
+                    and row.kind.replace("_", "").casefold() == "hcomreducescatter"):
+                chain = padded_hidden_consumer(
+                    rows, previous_index, norm_indices[norm_cursor], hidden, tp, _MATRICES)
+            direct_hidden = (producer is not None
+                             and (producer.kind in _MATRICES or _fused_ffn(producer)
+                                  or producer.kind.startswith("GroupedMatmul")
+                                  or any(part in producer.kind for part in
+                                         ("Unpermute", "FinalizeRouting", "DistributeCombine")))
+                             and producer.outputs and len(producer.outputs[0]) >= 2
+                             and producer.outputs[0][-1] == hidden
+                             and consumer is not None and consumer.inputs
+                             and producer.outputs[0] in consumer.inputs)
+            if (producer is not None and consumer is not None
+                    and (direct_hidden or chain is not None)
+                    and producer.event.device_id == consumer.event.device_id == event.device_id
+                    and producer.event.rank_id == consumer.event.rank_id == event.rank_id
+                    and producer.event.stream_id == consumer.event.stream_id
+                    and consumer.event.core in compute_cores
+                    and consumer.event.task_id not in missing
+                    and producer.event.end_ns <= event.start_ns < consumer.event.start_ns):
+                bounds[id(event)] = {
+                    "basis": "conditional_structural_consumer_start_upper_bound",
+                    "raw_start_ns": event.start_ns, "raw_end_ns": event.end_ns,
+                    "raw_duration_ns": event.end_ns - event.start_ns,
+                    "effective_end_ns": consumer.event.start_ns,
+                    "unassigned_summary_suffix_ns": event.end_ns - consumer.event.start_ns,
+                    "envelope_locator": event.locator,
+                    "producer_locator": producer.event.locator,
+                    "consumer_locator": consumer.event.locator,
+                    "forward_head_start_ns": head.event.start_ns,
+                    "forward_head_locator": head.event.locator,
+                    "physical_transport_completion_observed": False,
+                }
+                if chain is not None:
+                    bounds[id(event)]["tensor_chain_evidence"] = chain
+        # Missing task/stream records cannot replace the concrete producer.
+        # A parameter-only Add after a summary is not its hidden consumer.
+        if (event.core in compute_cores
+                and event.task_id not in missing and event.stream_id not in missing):
+            previous = row
+            previous_index = index
+    return bounds
+
+
 def _norm_start(rows, index, hidden):
     # Gemma's 1 + gamma preparation is actual work of the following norm.
     if index and _parameter_only(rows[index - 1], hidden):
@@ -248,12 +324,17 @@ def _body_end(rows, final_norm, last_anchor, plan, query_rows, hidden):
     return posts[-1] + 1 if posts else None
 
 
-def _scope(rows, kind, identity, *, layer=None, plan=None, successor=None):
+def _scope(rows, kind, identity, *, layer=None, plan=None, successor=None,
+           communication_bounds=None):
+    bounds = communication_bounds or {}
+    def completion(row):
+        return bounds.get(id(row.event), {}).get("effective_end_ns", row.event.end_ns)
+
     ordinary = [row for row in rows if not _scheduler(row)]
     if not ordinary:
         return None
     first = min(row.event.start_ns for row in ordinary)
-    last = max(row.event.end_ns for row in ordinary)
+    last = max(completion(row) for row in ordinary)
     tails = [row for row in rows if _scheduler(row) and successor is not None
              and row.event.end_ns > successor.event.start_ns]
     retained_scheduler = [row for row in rows if _scheduler(row) and row not in tails]
@@ -262,18 +343,18 @@ def _scope(rows, kind, identity, *, layer=None, plan=None, successor=None):
         last = max(last, max(row.event.end_ns for row in retained_scheduler))
     retained = ordinary + retained_scheduler
     first_endpoint = min(retained, key=lambda row: row.event.start_ns)
-    last_endpoint = max(retained, key=lambda row: row.event.end_ns)
+    last_endpoint = max(retained, key=completion)
     last_started = max(retained, key=lambda row: row.event.start_ns)
     # A scheduler task must actually cross the successor's input boundary before
     # its suffix can be removed. AICPU completions inside the layer remain real
     # measured work; HCCL device task completions are never shortened.
     excluded = sum(max(0, row.event.end_ns - max(last, row.event.start_ns)) for row in tails)
-    intervals = [(row.event.start_ns, row.event.end_ns) for row in ordinary]
+    intervals = [(row.event.start_ns, completion(row)) for row in ordinary]
     activity_ns = union_length(intervals)
     per_stream = defaultdict(list)
     for row in ordinary:
-        per_stream[row.event.stream_id].append((row.event.start_ns, row.event.end_ns))
-    return {"scope_id": identity, "kind": kind, "layer_id": layer,
+        per_stream[row.event.stream_id].append((row.event.start_ns, completion(row)))
+    result = {"scope_id": identity, "kind": kind, "layer_id": layer,
             "rank_id": ordinary[0].event.rank_id, "device_id": ordinary[0].event.device_id,
             "replica": None, "stage": None, "status": "measured",
             "start_ns": first, "end_ns": last, "span_ms": (last - first) / 1e6,
@@ -295,6 +376,15 @@ def _scope(rows, kind, identity, *, layer=None, plan=None, successor=None):
                          "last_started_locator": last_started.event.locator,
                          "successor_boundary_start_ns": successor.event.start_ns if successor else None,
                          "successor_locator": successor.event.locator if successor else None}}
+    evidence = [bounds[id(row.event)] for row in ordinary if id(row.event) in bounds]
+    if evidence:
+        result["communication_envelope_bounds"] = evidence
+        result["activity_basis"] = "same_device_union_with_structurally_bounded_communication_summaries"
+        if id(last_endpoint.event) in bounds:
+            result["span_end_basis"] = "structural_consumer_start_upper_bound"
+            result["evidence"]["last_effective_end_ns"] = completion(last_endpoint)
+            result["evidence"]["last_raw_end_ns"] = last_endpoint.event.end_ns
+    return result
 
 
 def _align(rows, config, ordinal, *, terminal_norm=False):
@@ -386,6 +476,8 @@ def _align(rows, config, ordinal, *, terminal_norm=False):
     if body_end is None:
         return None, {"reason": "final_mhc_residual_output_unresolved"}
     final_successor = body_end if body_end < final_norm else final_norms[-1]
+    communication_bounds = _communication_bounds(
+        rows, hidden, norm_indices, None if terminal_norm else rows[-1], tp=config["tp"])
     layers = []
     for layer, (start, end, (anchor_index, _), plan) in enumerate(zip(
             starts, [*starts[1:], body_end], anchors, plans)):
@@ -414,8 +506,9 @@ def _align(rows, config, ordinal, *, terminal_norm=False):
                                else input_norms[layer + 1])
         layers.append(_scope(chunk, "moe_layer" if plan["ffn"] == "moe" else "dense_layer",
                              f"layer:{plan['index']}", layer=plan["index"], plan=plan,
-                             successor=rows[successor_index]))
-    body = _scope(rows[starts[0]:body_end], "target_body", "body", successor=rows[final_successor])
+                             successor=rows[successor_index], communication_bounds=communication_bounds))
+    body = _scope(rows[starts[0]:body_end], "target_body", "body", successor=rows[final_successor],
+                  communication_bounds=communication_bounds)
     head_preparation = (_scope(rows[body_end:final_norm], "output_head_preparation", "head_preparation",
                                successor=rows[final_norm]) if body_end < final_norm else None)
     final = _scope(rows[final_norm:] if terminal_norm else rows[final_norm:-1],
@@ -441,6 +534,8 @@ def _align(rows, config, ordinal, *, terminal_norm=False):
         "head_start_ns": head["start_ns"] if head else None,
         "head_end_ns": head["end_ns"] if head else None,
         "query_rows": query_rows, "stages": [item for item in stages if item is not None],
+        **({"communication_envelope_bounds": body["communication_envelope_bounds"]}
+           if body.get("communication_envelope_bounds") else {}),
         "confidence": {"level": "conditional_structural_alignment",
                        "matched_layers": len(layers), "declared_layers": len(plans),
                        "ordered_attention_plan_matches": True,
@@ -555,6 +650,13 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
         if result:
             result["closed_segment_event_count"] = len(active[key])
             counts["complete_body_segment_events"] += len(active[key])
+            if result.get("communication_envelope_bounds"):
+                counts["structurally_bounded_communication_envelopes"] += len(result["communication_envelope_bounds"])
+                counts["forwards_with_bounded_communication_envelopes"] += 1
+                counts["bounded_communication_raw_duration_ns"] += sum(
+                    value["raw_duration_ns"] for value in result["communication_envelope_bounds"])
+                counts["bounded_communication_unassigned_suffix_ns"] += sum(
+                    value["unassigned_summary_suffix_ns"] for value in result["communication_envelope_bounds"])
             if on_forward is not None:
                 on_forward(result, tuple(row.event for row in active[key]))
             accumulate_stages(result)
@@ -629,11 +731,21 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
                              "stage_span_ms": groups(group["stages"])}
                             for group in geometry_groups.values()],
         "scan_counts": dict(counts), "anomaly_counts": dict(reasons), "anomalies": anomalies,
+        "communication_envelope_accounting": {
+            "basis": "structural_consumer_upper_bound",
+            "affected_forwards": counts["forwards_with_bounded_communication_envelopes"],
+            "affected_events": counts["structurally_bounded_communication_envelopes"],
+            "raw_envelope_total_ns": counts["bounded_communication_raw_duration_ns"],
+            "unassigned_summary_suffix_total_ns": counts["bounded_communication_unassigned_suffix_ns"],
+            "physical_transport_completion_observed": False,
+            "additive_body_time_cause": False,
+        },
         "limitations": ["Layer identity is inferred from complete declared topology, not observed Host scopes.",
                         "Decode phase uses recurrent/paged-query evidence or an explicit source declaration; no server-phase marker is asserted.",
                         "AICPU scheduler suffixes beyond real device completion are excluded conditionally.",
                         "Internal device communication and gaps remain; stage spans are not additive.",
                         "Activity is the same-device union excluding typed AICPU scheduling wrappers; real HCOM is retained.",
+                        "Unbound summaries crossing the vocabulary head may use structural hidden-consumer upper bounds; original intervals remain in forward evidence.",
                         "Internal uncovered gaps are not attributed to Host; per-stream activity cannot be summed across streams.",
                         "Cache tensor capacity does not reveal active context or prefix-cache hit rate."],
     }

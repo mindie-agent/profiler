@@ -614,6 +614,8 @@ def replay_case(row, base, *, max_events=5_000_000, timeout_s=30,
             events, boundaries, source=source, clock_domain=row.get("clock_domain", "unix_wall_ns"),
             max_events=max_events)
     result["observed"] = observed
+    if observed.get("communication_envelope_accounting", {}).get("affected_events"):
+        result["communication_envelope_accounting"] = observed["communication_envelope_accounting"]
     if automatic:
         scenarios = _automatic_scenarios(row, observed, case)
         if scenarios:

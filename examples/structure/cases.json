@@ -39744,11 +39744,12 @@
         "communication_point_parameters_transferred": 0,
         "abi_probe_scope": "bounded_examples_only_not_complete_native_histogram"
       },
-      "extraction_path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/5c087f2c33ae5cf4d39e43991c795d3daa691a2f88e8e21d1499cadf70d7ffbb.json",
+      "extraction_path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/301edf6e83bf36dcb2fe349671f1a13776a35c64518c23c00468d77ae4bc1c1b.json",
       "extraction_identity": {
-        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/5c087f2c33ae5cf4d39e43991c795d3daa691a2f88e8e21d1499cadf70d7ffbb.json",
-        "sha256": "5c087f2c33ae5cf4d39e43991c795d3daa691a2f88e8e21d1499cadf70d7ffbb",
-        "size_bytes": 507038
+        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/301edf6e83bf36dcb2fe349671f1a13776a35c64518c23c00468d77ae4bc1c1b.json",
+        "sha256": "301edf6e83bf36dcb2fe349671f1a13776a35c64518c23c00468d77ae4bc1c1b",
+        "size_bytes": 560428,
+        "format": "full_scoreboard_json"
       },
       "forward_metadata": {
         "body_count": 177,
@@ -39761,7 +39762,8 @@
               "tokens_per_sequence": 1,
               "context_tokens": null,
               "batch_basis": "captured_paged_attention_block_table_rows",
-              "context_basis": "not_observed_from_cache_capacity"
+              "context_basis": "not_observed_from_cache_capacity",
+              "output_query_rows": 24
             },
             "forward_count": 177
           }
@@ -51390,11 +51392,11 @@
           "size_bytes": 13998
         }
       },
-      "extraction_path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/284fd66009df795f3895c938c22e0ede656eab4d9018e199eb1566ba896668b1.json",
+      "extraction_path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/7d81a89d8fa6b89bdb72cb91a49167650b61b7930d6bb58635a6ca415be9d00a.json",
       "extraction_identity": {
-        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/284fd66009df795f3895c938c22e0ede656eab4d9018e199eb1566ba896668b1.json",
-        "sha256": "284fd66009df795f3895c938c22e0ede656eab4d9018e199eb1566ba896668b1",
-        "size_bytes": 1692949,
+        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/7d81a89d8fa6b89bdb72cb91a49167650b61b7930d6bb58635a6ca415be9d00a.json",
+        "sha256": "7d81a89d8fa6b89bdb72cb91a49167650b61b7930d6bb58635a6ca415be9d00a",
+        "size_bytes": 1836262,
         "format": "full_scoreboard_json"
       },
       "forward_metadata": {

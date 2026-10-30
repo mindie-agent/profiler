@@ -152,7 +152,7 @@ One canonical case registry and one recorded Sim package. Selected costs are fre
 | a3-kimi4-tp16-128k-decode-c12-p8k | decode | 173 | 4.379 / 4.203 / 4.614 | 2.940 | -32.86% | FAIL |
 | a3-kimi4-tp16-128k-decode-c24-p16k | decode | 175 | 5.260 / 5.124 / 5.362 | 4.280 | -18.62% | FAIL |
 | a3-kimi4-tp16-128k-decode-c24-p32k | decode | 186 | 5.661 / 5.606 / 5.932 | 4.918 | -13.12% | PASS |
-| a3-kimi4-tp16-128k-decode-c24-p4k | decode | 177 | 8.082 / 5.032 / 12.608 | 3.800 | -52.98% | FAIL |
+| a3-kimi4-tp16-128k-decode-c24-p4k | decode | 177 | 4.841 / 4.788 / 5.056 | 3.800 | -21.49% | FAIL |
 | a3-kimi4-tp16-128k-decode-c24-p8k | decode | 179 | 4.939 / 4.913 / 5.134 | 3.965 | -19.72% | FAIL |
 | a3-kimi4-tp16-128k-decode-c2-p4k | decode | 186 | 4.055 / 3.989 / 4.321 | 2.756 | -32.03% | FAIL |
 | a3-kimi4-tp16-128k-decode-c48-p4k | decode | 172 | 6.201 / 6.157 / 6.393 | 4.879 | -21.32% | FAIL |
@@ -226,7 +226,7 @@ One canonical case registry and one recorded Sim package. Selected costs are fre
 | a3-qwen36-tp4-decode-c16-p126000 | decode | 72 | 51.997 / 51.884 / 52.229 | 56.444 | +8.55% | PASS |
 | a3-qwen36-tp4-decode-c2-p126000 | decode | 128 | 21.879 / 21.733 / 21.892 | 18.258 | -16.55% | FAIL |
 | a3-qwen36-tp4-decode-c24-p126000 | decode | 42 | 89.034 / 88.904 / 89.802 | 83.299 | -6.44% | PASS |
-| a3-qwen36-tp4-decode-c4-p126000 | decode | 121 | 34.324 / 26.842 / 63.003 | 24.013 | -30.04% | FAIL |
+| a3-qwen36-tp4-decode-c4-p126000 | decode | 121 | 26.965 / 26.819 / 26.895 | 24.013 | -10.95% | PASS |
 | a3-qwen36-tp4-decode-c6-p126000 | decode | 105 | 32.038 / 31.950 / 32.050 | 29.052 | -9.32% | PASS |
 | a3-qwen36-tp4-decode-c8-p126000 | decode | 97 | 36.585 / 36.585 / 36.725 | 34.777 | -4.94% | PASS |
 | a3-qwen38-tp2-decode-c1-p126000 | decode | 119 | 27.543 / 27.497 / 27.703 | 23.052 | -16.30% | FAIL |
@@ -284,6 +284,10 @@ One canonical case registry and one recorded Sim package. Selected costs are fre
 | a5-qwen38-tp4-decode-c6-p126000 | decode | 49 | 30.974 / 30.930 / 31.177 | 23.525 | -24.05% | FAIL |
 | a5-qwen38-tp4-decode-c8-p126000 | decode | 47 | 31.871 / 31.845 / 32.020 | 26.193 | -17.82% | FAIL |
 | a3-v41-tp4dp4-decode-c4-p8512 | decode | 28 | 35.585 / 36.156 / 36.274 | 32.194 | -9.53% | PASS |
+
+Communication summaries without device-task bindings can extend beyond a dependent Head. For verified hidden-state consumer chains, structural consumer start provides a conditional completion upper bound. Original summary intervals remain in the evidence; these bounds are not measured transport service times.
+- a3-kimi4-tp16-128k-decode-c24-p4k: {"additive_body_time_cause": false, "affected_events": 78, "affected_forwards": 78, "basis": "structural_consumer_upper_bound", "physical_transport_completion_observed": false, "raw_envelope_total_ns": 646243092, "unassigned_summary_suffix_total_ns": 643576396}
+- a3-qwen36-tp4-decode-c4-p126000: {"additive_body_time_cause": false, "affected_events": 96, "affected_forwards": 24, "basis": "structural_consumer_upper_bound", "physical_transport_completion_observed": false, "raw_envelope_total_ns": 3628147413, "unassigned_summary_suffix_total_ns": 3626517451}
 
 | Case | Body validation basis | Target native timings used in rules |
 |---|---|---|
@@ -1517,9 +1521,9 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3-kimi4-tp16-128k-decode-c24-p32k | 24 / 1 | dense_layer | 1 | 0.934 / 0.934 | 0.376 / 0.376 | -59.74% / -59.74% |
 | a3-kimi4-tp16-128k-decode-c24-p32k | 24 / 1 | moe_layer | 3 | 1.575 / 1.361 | 1.500 / 1.064 | -4.79% / -21.86% |
 | a3-kimi4-tp16-128k-decode-c24-p4k | 24 / 1 | kda | 3 | 1.141 / 1.111 | 0.835 / 1.064 | -26.89% / -4.25% |
-| a3-kimi4-tp16-128k-decode-c24-p4k | 24 / 1 | mla | 1 | 4.657 / 4.657 | 1.255 / 1.255 | -73.06% / -73.06% |
+| a3-kimi4-tp16-128k-decode-c24-p4k | 24 / 1 | mla | 1 | 1.416 / 1.416 | 1.255 / 1.255 | -11.38% / -11.38% |
 | a3-kimi4-tp16-128k-decode-c24-p4k | 24 / 1 | dense_layer | 1 | 0.961 / 0.961 | 0.376 / 0.376 | -60.85% / -60.85% |
-| a3-kimi4-tp16-128k-decode-c24-p4k | 24 / 1 | moe_layer | 3 | 2.374 / 1.352 | 1.127 / 1.064 | -52.50% / -21.35% |
+| a3-kimi4-tp16-128k-decode-c24-p4k | 24 / 1 | moe_layer | 3 | 1.293 / 1.352 | 1.127 / 1.064 | -12.81% / -21.35% |
 | a3-kimi4-tp16-128k-decode-c24-p8k | 24 / 1 | kda | 3 | 1.137 / 1.123 | 0.835 / 1.064 | -26.63% / -5.26% |
 | a3-kimi4-tp16-128k-decode-c24-p8k | 24 / 1 | mla | 1 | 1.526 / 1.526 | 1.419 / 1.419 | -7.01% / -7.01% |
 | a3-kimi4-tp16-128k-decode-c24-p8k | 24 / 1 | dense_layer | 1 | 0.946 / 0.946 | 0.376 / 0.376 | -60.25% / -60.25% |
@@ -1997,9 +2001,9 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3-qwen36-tp4-decode-c24-p126000 | 24 / 4 | gdn | 48 | 0.551 / 0.550 | 0.481 / 0.481 | -12.72% / -12.68% |
 | a3-qwen36-tp4-decode-c24-p126000 | 24 / 4 | gqa | 16 | 3.910 / 3.910 | 3.764 / 3.764 | -3.72% / -3.72% |
 | a3-qwen36-tp4-decode-c24-p126000 | 24 / 4 | dense_layer | 64 | 1.390 / 0.553 | 1.302 / 0.481 | -6.40% / -13.08% |
-| a3-qwen36-tp4-decode-c4-p126000 | 4 / 4 | gdn | 48 | 0.646 / 0.332 | 0.257 / 0.257 | -60.26% / -22.60% |
+| a3-qwen36-tp4-decode-c4-p126000 | 4 / 4 | gdn | 48 | 0.334 / 0.331 | 0.257 / 0.257 | -23.07% / -22.42% |
 | a3-qwen36-tp4-decode-c4-p126000 | 4 / 4 | gqa | 16 | 0.682 / 0.675 | 0.731 / 0.731 | +7.19% / +8.35% |
-| a3-qwen36-tp4-decode-c4-p126000 | 4 / 4 | dense_layer | 64 | 0.655 / 0.336 | 0.375 / 0.257 | -42.70% / -23.74% |
+| a3-qwen36-tp4-decode-c4-p126000 | 4 / 4 | dense_layer | 64 | 0.421 / 0.336 | 0.375 / 0.257 | -10.81% / -23.54% |
 | a3-qwen36-tp4-decode-c6-p126000 | 6 / 4 | gdn | 48 | 0.364 / 0.362 | 0.272 / 0.272 | -25.32% / -24.95% |
 | a3-qwen36-tp4-decode-c6-p126000 | 6 / 4 | gqa | 16 | 0.907 / 0.902 | 1.000 / 1.000 | +10.24% / +10.85% |
 | a3-qwen36-tp4-decode-c6-p126000 | 6 / 4 | dense_layer | 64 | 0.500 / 0.366 | 0.454 / 0.272 | -9.20% / -25.74% |
@@ -2268,6 +2272,6 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 
 Layer-group statistics summarize complete layer spans, not isolated attention or FFN kernel time. Group P50 is across layer means; steady-layer P50 remains the median of per-layer call P50 values in JSON. Full layer membership, extrema, stream details and alignment assumptions remain in the SHA256-pinned evidence.
 
-Summary: {"compared": 280, "passed": 149, "requested_sources": 280, "sources": 280, "status_counts": {"compared": 280}}
+Summary: {"compared": 280, "passed": 150, "requested_sources": 280, "sources": 280, "status_counts": {"compared": 280}}
 
 Full per-layer, operator and prediction details retain their individual SHA256 evidence pointers. Missing evidence and failed predictions remain visible and never count as a pass.

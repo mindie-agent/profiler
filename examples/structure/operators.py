@@ -175,8 +175,42 @@ class BodyConsumer:
         self.observation, self.expected, self.config = observation, expected, model_config
         self.counts, self.statuses, self.reasons = Counter(), Counter(), Counter()
         self.families, self.pooled = {}, defaultdict(Counter)
+        self.communication_envelopes = {}
         self.forward_ids, self.examples = [], []
         self.source_roles = SourceRoleReferences(manifest, model_config)
+
+    def _retain_communication_envelope(self, event, proof, layer, block):
+        # Raw elapsed and conditional consumption bounds are separate populations
+        # from physical cohorts. Only fixed-size moments and two proofs survive.
+        key = event.op_type, layer['attention'], block, proof['basis']
+        group = self.communication_envelopes.setdefault(key, {
+            'native_operator_type': event.op_type, 'attention_kind': layer['attention'],
+            'block': block, 'basis': proof['basis'], 'event_count': 0,
+            'raw_duration_ns': {}, 'bounded_upper_duration_ns': {},
+            'layer_counts': Counter(), 'examples': []})
+        group['event_count'] += 1
+        group['layer_counts'][layer['layer_id']] += 1
+        for name, duration in [('raw_duration_ns', proof['raw_duration_ns']),
+                               ('bounded_upper_duration_ns', proof['effective_end_ns'] - event.start_ns)]:
+            stats = group[name]
+            stats['sum'] = stats.get('sum', 0) + duration
+            stats['min'] = min(stats.get('min', duration), duration)
+            stats['max'] = max(stats.get('max', duration), duration)
+        if len(group['examples']) < 2:
+            group['examples'].append({**proof, 'event_id': event.event_id,
+                                      'layer_id': layer['layer_id']})
+        self.counts['communication_envelope_events'] += 1
+
+    def communication_envelope_summary(self):
+        groups = []
+        for group in self.communication_envelopes.values():
+            groups.append({**group, **{name: {**group[name], 'count': group['event_count'],
+                'mean': group[name]['sum'] / group['event_count']}
+                for name in ('raw_duration_ns', 'bounded_upper_duration_ns')}})
+        return {'event_count': self.counts['communication_envelope_events'], 'groups': groups,
+                'strict_eligible_event_count': 0, 'physical_transport_completion_observed': False,
+                'population_basis': 'original_summary_records_with_conditional_consumer_upper_bounds',
+                'duration_basis': 'integer_ns_moments; no_quantile_or_transport_service_inference'}
 
     def __call__(self, result, segment):
         expected = self.expected[result['forward_id']]
@@ -200,12 +234,19 @@ class BodyConsumer:
                             if row.event.start_ns>anchor and _norm(row,self.config['hidden_size']))
             ffns[layer['layer_id']]=candidates[_norm_start(candidates,norm_index,self.config['hidden_size'])].event.start_ns
         selected = []
+        envelopes = {(proof['raw_start_ns'], proof['raw_end_ns'], _freeze(proof['envelope_locator'])): proof
+                     for proof in result.get('communication_envelope_bounds', ())}
         for event in segment:
             if not result['start_ns'] <= event.start_ns < result['end_ns']:
                 self.counts['outside_body_events'] += 1
                 continue
             if is_aicpu_controller(event):
                 self.counts['scheduler_wrapper_events'] += 1
+            elif (proof := envelopes.get((event.start_ns, event.end_ns, _freeze(event.locator)))) is not None:
+                layer = layers[bisect_right(starts, event.start_ns)-1]
+                block = 'attention' if event.start_ns < ffns[layer['layer_id']] else 'ffn'
+                self._retain_communication_envelope(event, proof, layer, block)
+                self.counts['crossing_body_endpoint_events'] += int(event.end_ns > result['end_ns'])
             elif event.end_ns > result['end_ns']:
                 self.counts['crossing_body_endpoint_events'] += 1
             else:
@@ -257,6 +298,7 @@ class BodyConsumer:
         mapping = {'schema_version': 'mindie-profile-structure-mapping/1', 'graph_id': manifest['graph_id'],
             'declared_execution': manifest['execution'], 'structure_source': manifest.get('source'),
             'observed_phase': 'decode', 'event_window_count': self.counts['selected_body_events'],
+            'communication_envelope_event_count': self.counts['communication_envelope_events'],
             'status_counts': dict(self.statuses), 'windows': [window],
             'cohort_event_window_count': sum(row['event_count'] for row in cohorts),
             'cohort_status': 'aggregated', 'conditional_role_by_cohort_id': role_ids}
@@ -550,6 +592,7 @@ def extract_case(entry, case_paths, output, *, context_tokens=None, geometry_lim
                 'forward_count':len(consumer.forward_ids),'source_forward_count':len(prior['forwards']),
                 'geometry_group_count':len(geometries),'counts':dict(consumer.counts),
                 'scan_counts':actual['scan_counts'],'families':families,'steady_layer_groups':pooled,
+                'communication_envelopes':consumer.communication_envelope_summary(),
                 'source_role_references':consumer.source_roles.finish(duration_stats),
                 'population_basis':'complete_verified_body_windows; no_heads_or_auxiliary_forwards',
                 'steady_population_basis':'pooled_layer_calls_excluding_layer0',

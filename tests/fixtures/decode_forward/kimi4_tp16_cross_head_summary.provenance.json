@@ -1,0 +1,1002 @@
+{
+  "source_identity": {
+    "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/kimi_k3_w4a8_4layer_tp16_128k_decode_20261030/prof/decode_c24_p4k/kernel_details.csv",
+    "sha256": "0e3ffbdaa496b730037a8379bf609f8d3abef631cfcaa6a5ec37e220b691d62b",
+    "size_bytes": 16262648,
+    "sha_basis": "accepted extraction pin; no full source rehash in bounded probe"
+  },
+  "bounded_export_identity": {
+    "path": "/tmp/a3-kimi4-tp16-c24-bounded-cross-head-events.json",
+    "sha256": "a4c5d4f4d416eb5f70d4a6e9b23358bf339b3849862d7feee7d67a2769ac670e"
+  },
+  "source_model_identity": {
+    "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/kimi-tp16-128k-source-model.json",
+    "sha256": "cf186758ea3995042fc3e8bc81e953dd08abd4e4c669ab356cc1bff7eaf61e27"
+  },
+  "source_forward_id": "auto:148",
+  "source_layer_ids": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "scope": "unchanged complete four-layer body and vocabulary head; actual TP16 source declaration",
+  "selection": {
+    "first_source_byte": 13650650,
+    "last_source_byte_exclusive": 13715541,
+    "csv_records": 192
+  },
+  "fixture_sha256": "23370fb7da50f7048c716cd1b715445091c8ec29f21548b77a89824c3f2d3841",
+  "record_locations": [
+    {
+      "fixture_csv_line": 2,
+      "source_byte_start": 13650650,
+      "source_byte_end_exclusive": 13651070
+    },
+    {
+      "fixture_csv_line": 3,
+      "source_byte_start": 13651070,
+      "source_byte_end_exclusive": 13651321
+    },
+    {
+      "fixture_csv_line": 4,
+      "source_byte_start": 13651321,
+      "source_byte_end_exclusive": 13651643
+    },
+    {
+      "fixture_csv_line": 5,
+      "source_byte_start": 13651643,
+      "source_byte_end_exclusive": 13651895
+    },
+    {
+      "fixture_csv_line": 6,
+      "source_byte_start": 13651895,
+      "source_byte_end_exclusive": 13652206
+    },
+    {
+      "fixture_csv_line": 7,
+      "source_byte_start": 13652206,
+      "source_byte_end_exclusive": 13652527
+    },
+    {
+      "fixture_csv_line": 8,
+      "source_byte_start": 13652527,
+      "source_byte_end_exclusive": 13652807
+    },
+    {
+      "fixture_csv_line": 9,
+      "source_byte_start": 13652807,
+      "source_byte_end_exclusive": 13653093
+    },
+    {
+      "fixture_csv_line": 10,
+      "source_byte_start": 13653093,
+      "source_byte_end_exclusive": 13653512
+    },
+    {
+      "fixture_csv_line": 11,
+      "source_byte_start": 13653512,
+      "source_byte_end_exclusive": 13653987
+    },
+    {
+      "fixture_csv_line": 12,
+      "source_byte_start": 13653987,
+      "source_byte_end_exclusive": 13654331
+    },
+    {
+      "fixture_csv_line": 13,
+      "source_byte_start": 13654331,
+      "source_byte_end_exclusive": 13654826
+    },
+    {
+      "fixture_csv_line": 14,
+      "source_byte_start": 13654826,
+      "source_byte_end_exclusive": 13655143
+    },
+    {
+      "fixture_csv_line": 15,
+      "source_byte_start": 13655143,
+      "source_byte_end_exclusive": 13655434
+    },
+    {
+      "fixture_csv_line": 16,
+      "source_byte_start": 13655434,
+      "source_byte_end_exclusive": 13655753
+    },
+    {
+      "fixture_csv_line": 17,
+      "source_byte_start": 13655753,
+      "source_byte_end_exclusive": 13656029
+    },
+    {
+      "fixture_csv_line": 18,
+      "source_byte_start": 13656029,
+      "source_byte_end_exclusive": 13656345
+    },
+    {
+      "fixture_csv_line": 19,
+      "source_byte_start": 13656345,
+      "source_byte_end_exclusive": 13656603
+    },
+    {
+      "fixture_csv_line": 20,
+      "source_byte_start": 13656603,
+      "source_byte_end_exclusive": 13657020
+    },
+    {
+      "fixture_csv_line": 21,
+      "source_byte_start": 13657020,
+      "source_byte_end_exclusive": 13657271
+    },
+    {
+      "fixture_csv_line": 22,
+      "source_byte_start": 13657271,
+      "source_byte_end_exclusive": 13657514
+    },
+    {
+      "fixture_csv_line": 23,
+      "source_byte_start": 13657514,
+      "source_byte_end_exclusive": 13657767
+    },
+    {
+      "fixture_csv_line": 24,
+      "source_byte_start": 13657767,
+      "source_byte_end_exclusive": 13658091
+    },
+    {
+      "fixture_csv_line": 25,
+      "source_byte_start": 13658091,
+      "source_byte_end_exclusive": 13658510
+    },
+    {
+      "fixture_csv_line": 26,
+      "source_byte_start": 13658510,
+      "source_byte_end_exclusive": 13658827
+    },
+    {
+      "fixture_csv_line": 27,
+      "source_byte_start": 13658827,
+      "source_byte_end_exclusive": 13659120
+    },
+    {
+      "fixture_csv_line": 28,
+      "source_byte_start": 13659120,
+      "source_byte_end_exclusive": 13659438
+    },
+    {
+      "fixture_csv_line": 29,
+      "source_byte_start": 13659438,
+      "source_byte_end_exclusive": 13659730
+    },
+    {
+      "fixture_csv_line": 30,
+      "source_byte_start": 13659730,
+      "source_byte_end_exclusive": 13660030
+    },
+    {
+      "fixture_csv_line": 31,
+      "source_byte_start": 13660030,
+      "source_byte_end_exclusive": 13660308
+    },
+    {
+      "fixture_csv_line": 32,
+      "source_byte_start": 13660308,
+      "source_byte_end_exclusive": 13660599
+    },
+    {
+      "fixture_csv_line": 33,
+      "source_byte_start": 13660599,
+      "source_byte_end_exclusive": 13660894
+    },
+    {
+      "fixture_csv_line": 34,
+      "source_byte_start": 13660894,
+      "source_byte_end_exclusive": 13661191
+    },
+    {
+      "fixture_csv_line": 35,
+      "source_byte_start": 13661191,
+      "source_byte_end_exclusive": 13661494
+    },
+    {
+      "fixture_csv_line": 36,
+      "source_byte_start": 13661494,
+      "source_byte_end_exclusive": 13661772
+    },
+    {
+      "fixture_csv_line": 37,
+      "source_byte_start": 13661772,
+      "source_byte_end_exclusive": 13662059
+    },
+    {
+      "fixture_csv_line": 38,
+      "source_byte_start": 13662059,
+      "source_byte_end_exclusive": 13662353
+    },
+    {
+      "fixture_csv_line": 39,
+      "source_byte_start": 13662353,
+      "source_byte_end_exclusive": 13662645
+    },
+    {
+      "fixture_csv_line": 40,
+      "source_byte_start": 13662645,
+      "source_byte_end_exclusive": 13662968
+    },
+    {
+      "fixture_csv_line": 41,
+      "source_byte_start": 13662968,
+      "source_byte_end_exclusive": 13663386
+    },
+    {
+      "fixture_csv_line": 42,
+      "source_byte_start": 13663386,
+      "source_byte_end_exclusive": 13663645
+    },
+    {
+      "fixture_csv_line": 43,
+      "source_byte_start": 13663645,
+      "source_byte_end_exclusive": 13663888
+    },
+    {
+      "fixture_csv_line": 44,
+      "source_byte_start": 13663888,
+      "source_byte_end_exclusive": 13664141
+    },
+    {
+      "fixture_csv_line": 45,
+      "source_byte_start": 13664141,
+      "source_byte_end_exclusive": 13664559
+    },
+    {
+      "fixture_csv_line": 46,
+      "source_byte_start": 13664559,
+      "source_byte_end_exclusive": 13664810
+    },
+    {
+      "fixture_csv_line": 47,
+      "source_byte_start": 13664810,
+      "source_byte_end_exclusive": 13665053
+    },
+    {
+      "fixture_csv_line": 48,
+      "source_byte_start": 13665053,
+      "source_byte_end_exclusive": 13665306
+    },
+    {
+      "fixture_csv_line": 49,
+      "source_byte_start": 13665306,
+      "source_byte_end_exclusive": 13665549
+    },
+    {
+      "fixture_csv_line": 50,
+      "source_byte_start": 13665549,
+      "source_byte_end_exclusive": 13665871
+    },
+    {
+      "fixture_csv_line": 51,
+      "source_byte_start": 13665871,
+      "source_byte_end_exclusive": 13666184
+    },
+    {
+      "fixture_csv_line": 52,
+      "source_byte_start": 13666184,
+      "source_byte_end_exclusive": 13666508
+    },
+    {
+      "fixture_csv_line": 53,
+      "source_byte_start": 13666508,
+      "source_byte_end_exclusive": 13666791
+    },
+    {
+      "fixture_csv_line": 54,
+      "source_byte_start": 13666791,
+      "source_byte_end_exclusive": 13667078
+    },
+    {
+      "fixture_csv_line": 55,
+      "source_byte_start": 13667078,
+      "source_byte_end_exclusive": 13667493
+    },
+    {
+      "fixture_csv_line": 56,
+      "source_byte_start": 13667493,
+      "source_byte_end_exclusive": 13667968
+    },
+    {
+      "fixture_csv_line": 57,
+      "source_byte_start": 13667968,
+      "source_byte_end_exclusive": 13668221
+    },
+    {
+      "fixture_csv_line": 58,
+      "source_byte_start": 13668221,
+      "source_byte_end_exclusive": 13668566
+    },
+    {
+      "fixture_csv_line": 59,
+      "source_byte_start": 13668566,
+      "source_byte_end_exclusive": 13669059
+    },
+    {
+      "fixture_csv_line": 60,
+      "source_byte_start": 13669059,
+      "source_byte_end_exclusive": 13669377
+    },
+    {
+      "fixture_csv_line": 61,
+      "source_byte_start": 13669377,
+      "source_byte_end_exclusive": 13669668
+    },
+    {
+      "fixture_csv_line": 62,
+      "source_byte_start": 13669668,
+      "source_byte_end_exclusive": 13669987
+    },
+    {
+      "fixture_csv_line": 63,
+      "source_byte_start": 13669987,
+      "source_byte_end_exclusive": 13670262
+    },
+    {
+      "fixture_csv_line": 64,
+      "source_byte_start": 13670262,
+      "source_byte_end_exclusive": 13670579
+    },
+    {
+      "fixture_csv_line": 65,
+      "source_byte_start": 13670579,
+      "source_byte_end_exclusive": 13670837
+    },
+    {
+      "fixture_csv_line": 66,
+      "source_byte_start": 13670837,
+      "source_byte_end_exclusive": 13671254
+    },
+    {
+      "fixture_csv_line": 67,
+      "source_byte_start": 13671254,
+      "source_byte_end_exclusive": 13671567
+    },
+    {
+      "fixture_csv_line": 68,
+      "source_byte_start": 13671567,
+      "source_byte_end_exclusive": 13671884
+    },
+    {
+      "fixture_csv_line": 69,
+      "source_byte_start": 13671884,
+      "source_byte_end_exclusive": 13672303
+    },
+    {
+      "fixture_csv_line": 70,
+      "source_byte_start": 13672303,
+      "source_byte_end_exclusive": 13672546
+    },
+    {
+      "fixture_csv_line": 71,
+      "source_byte_start": 13672546,
+      "source_byte_end_exclusive": 13672859
+    },
+    {
+      "fixture_csv_line": 72,
+      "source_byte_start": 13672859,
+      "source_byte_end_exclusive": 13673329
+    },
+    {
+      "fixture_csv_line": 73,
+      "source_byte_start": 13673329,
+      "source_byte_end_exclusive": 13673823
+    },
+    {
+      "fixture_csv_line": 74,
+      "source_byte_start": 13673823,
+      "source_byte_end_exclusive": 13674076
+    },
+    {
+      "fixture_csv_line": 75,
+      "source_byte_start": 13674076,
+      "source_byte_end_exclusive": 13674484
+    },
+    {
+      "fixture_csv_line": 76,
+      "source_byte_start": 13674484,
+      "source_byte_end_exclusive": 13674970
+    },
+    {
+      "fixture_csv_line": 77,
+      "source_byte_start": 13674970,
+      "source_byte_end_exclusive": 13675213
+    },
+    {
+      "fixture_csv_line": 78,
+      "source_byte_start": 13675213,
+      "source_byte_end_exclusive": 13675786
+    },
+    {
+      "fixture_csv_line": 79,
+      "source_byte_start": 13675786,
+      "source_byte_end_exclusive": 13676036
+    },
+    {
+      "fixture_csv_line": 80,
+      "source_byte_start": 13676036,
+      "source_byte_end_exclusive": 13676359
+    },
+    {
+      "fixture_csv_line": 81,
+      "source_byte_start": 13676359,
+      "source_byte_end_exclusive": 13676734
+    },
+    {
+      "fixture_csv_line": 82,
+      "source_byte_start": 13676734,
+      "source_byte_end_exclusive": 13676987
+    },
+    {
+      "fixture_csv_line": 83,
+      "source_byte_start": 13676987,
+      "source_byte_end_exclusive": 13677383
+    },
+    {
+      "fixture_csv_line": 84,
+      "source_byte_start": 13677383,
+      "source_byte_end_exclusive": 13677798
+    },
+    {
+      "fixture_csv_line": 85,
+      "source_byte_start": 13677798,
+      "source_byte_end_exclusive": 13678074
+    },
+    {
+      "fixture_csv_line": 86,
+      "source_byte_start": 13678074,
+      "source_byte_end_exclusive": 13678389
+    },
+    {
+      "fixture_csv_line": 87,
+      "source_byte_start": 13678389,
+      "source_byte_end_exclusive": 13678647
+    },
+    {
+      "fixture_csv_line": 88,
+      "source_byte_start": 13678647,
+      "source_byte_end_exclusive": 13678945
+    },
+    {
+      "fixture_csv_line": 89,
+      "source_byte_start": 13678945,
+      "source_byte_end_exclusive": 13679262
+    },
+    {
+      "fixture_csv_line": 90,
+      "source_byte_start": 13679262,
+      "source_byte_end_exclusive": 13679678
+    },
+    {
+      "fixture_csv_line": 91,
+      "source_byte_start": 13679678,
+      "source_byte_end_exclusive": 13680034
+    },
+    {
+      "fixture_csv_line": 92,
+      "source_byte_start": 13680034,
+      "source_byte_end_exclusive": 13680452
+    },
+    {
+      "fixture_csv_line": 93,
+      "source_byte_start": 13680452,
+      "source_byte_end_exclusive": 13680702
+    },
+    {
+      "fixture_csv_line": 94,
+      "source_byte_start": 13680702,
+      "source_byte_end_exclusive": 13681026
+    },
+    {
+      "fixture_csv_line": 95,
+      "source_byte_start": 13681026,
+      "source_byte_end_exclusive": 13681337
+    },
+    {
+      "fixture_csv_line": 96,
+      "source_byte_start": 13681337,
+      "source_byte_end_exclusive": 13681661
+    },
+    {
+      "fixture_csv_line": 97,
+      "source_byte_start": 13681661,
+      "source_byte_end_exclusive": 13681904
+    },
+    {
+      "fixture_csv_line": 98,
+      "source_byte_start": 13681904,
+      "source_byte_end_exclusive": 13682187
+    },
+    {
+      "fixture_csv_line": 99,
+      "source_byte_start": 13682187,
+      "source_byte_end_exclusive": 13682473
+    },
+    {
+      "fixture_csv_line": 100,
+      "source_byte_start": 13682473,
+      "source_byte_end_exclusive": 13682893
+    },
+    {
+      "fixture_csv_line": 101,
+      "source_byte_start": 13682893,
+      "source_byte_end_exclusive": 13683368
+    },
+    {
+      "fixture_csv_line": 102,
+      "source_byte_start": 13683368,
+      "source_byte_end_exclusive": 13683712
+    },
+    {
+      "fixture_csv_line": 103,
+      "source_byte_start": 13683712,
+      "source_byte_end_exclusive": 13684206
+    },
+    {
+      "fixture_csv_line": 104,
+      "source_byte_start": 13684206,
+      "source_byte_end_exclusive": 13684524
+    },
+    {
+      "fixture_csv_line": 105,
+      "source_byte_start": 13684524,
+      "source_byte_end_exclusive": 13684816
+    },
+    {
+      "fixture_csv_line": 106,
+      "source_byte_start": 13684816,
+      "source_byte_end_exclusive": 13685133
+    },
+    {
+      "fixture_csv_line": 107,
+      "source_byte_start": 13685133,
+      "source_byte_end_exclusive": 13685409
+    },
+    {
+      "fixture_csv_line": 108,
+      "source_byte_start": 13685409,
+      "source_byte_end_exclusive": 13685724
+    },
+    {
+      "fixture_csv_line": 109,
+      "source_byte_start": 13685724,
+      "source_byte_end_exclusive": 13685983
+    },
+    {
+      "fixture_csv_line": 110,
+      "source_byte_start": 13685983,
+      "source_byte_end_exclusive": 13686236
+    },
+    {
+      "fixture_csv_line": 111,
+      "source_byte_start": 13686236,
+      "source_byte_end_exclusive": 13686653
+    },
+    {
+      "fixture_csv_line": 112,
+      "source_byte_start": 13686653,
+      "source_byte_end_exclusive": 13686966
+    },
+    {
+      "fixture_csv_line": 113,
+      "source_byte_start": 13686966,
+      "source_byte_end_exclusive": 13687285
+    },
+    {
+      "fixture_csv_line": 114,
+      "source_byte_start": 13687285,
+      "source_byte_end_exclusive": 13687704
+    },
+    {
+      "fixture_csv_line": 115,
+      "source_byte_start": 13687704,
+      "source_byte_end_exclusive": 13688019
+    },
+    {
+      "fixture_csv_line": 116,
+      "source_byte_start": 13688019,
+      "source_byte_end_exclusive": 13688494
+    },
+    {
+      "fixture_csv_line": 117,
+      "source_byte_start": 13688494,
+      "source_byte_end_exclusive": 13688990
+    },
+    {
+      "fixture_csv_line": 118,
+      "source_byte_start": 13688990,
+      "source_byte_end_exclusive": 13689233
+    },
+    {
+      "fixture_csv_line": 119,
+      "source_byte_start": 13689233,
+      "source_byte_end_exclusive": 13689645
+    },
+    {
+      "fixture_csv_line": 120,
+      "source_byte_start": 13689645,
+      "source_byte_end_exclusive": 13690134
+    },
+    {
+      "fixture_csv_line": 121,
+      "source_byte_start": 13690134,
+      "source_byte_end_exclusive": 13690711
+    },
+    {
+      "fixture_csv_line": 122,
+      "source_byte_start": 13690711,
+      "source_byte_end_exclusive": 13690962
+    },
+    {
+      "fixture_csv_line": 123,
+      "source_byte_start": 13690962,
+      "source_byte_end_exclusive": 13691287
+    },
+    {
+      "fixture_csv_line": 124,
+      "source_byte_start": 13691287,
+      "source_byte_end_exclusive": 13691664
+    },
+    {
+      "fixture_csv_line": 125,
+      "source_byte_start": 13691664,
+      "source_byte_end_exclusive": 13692062
+    },
+    {
+      "fixture_csv_line": 126,
+      "source_byte_start": 13692062,
+      "source_byte_end_exclusive": 13692475
+    },
+    {
+      "fixture_csv_line": 127,
+      "source_byte_start": 13692475,
+      "source_byte_end_exclusive": 13692752
+    },
+    {
+      "fixture_csv_line": 128,
+      "source_byte_start": 13692752,
+      "source_byte_end_exclusive": 13693069
+    },
+    {
+      "fixture_csv_line": 129,
+      "source_byte_start": 13693069,
+      "source_byte_end_exclusive": 13693328
+    },
+    {
+      "fixture_csv_line": 130,
+      "source_byte_start": 13693328,
+      "source_byte_end_exclusive": 13693625
+    },
+    {
+      "fixture_csv_line": 131,
+      "source_byte_start": 13693625,
+      "source_byte_end_exclusive": 13693945
+    },
+    {
+      "fixture_csv_line": 132,
+      "source_byte_start": 13693945,
+      "source_byte_end_exclusive": 13694364
+    },
+    {
+      "fixture_csv_line": 133,
+      "source_byte_start": 13694364,
+      "source_byte_end_exclusive": 13694719
+    },
+    {
+      "fixture_csv_line": 134,
+      "source_byte_start": 13694719,
+      "source_byte_end_exclusive": 13695133
+    },
+    {
+      "fixture_csv_line": 135,
+      "source_byte_start": 13695133,
+      "source_byte_end_exclusive": 13695384
+    },
+    {
+      "fixture_csv_line": 136,
+      "source_byte_start": 13695384,
+      "source_byte_end_exclusive": 13695691
+    },
+    {
+      "fixture_csv_line": 137,
+      "source_byte_start": 13695691,
+      "source_byte_end_exclusive": 13696010
+    },
+    {
+      "fixture_csv_line": 138,
+      "source_byte_start": 13696010,
+      "source_byte_end_exclusive": 13696333
+    },
+    {
+      "fixture_csv_line": 139,
+      "source_byte_start": 13696333,
+      "source_byte_end_exclusive": 13696752
+    },
+    {
+      "fixture_csv_line": 140,
+      "source_byte_start": 13696752,
+      "source_byte_end_exclusive": 13697070
+    },
+    {
+      "fixture_csv_line": 141,
+      "source_byte_start": 13697070,
+      "source_byte_end_exclusive": 13697375
+    },
+    {
+      "fixture_csv_line": 142,
+      "source_byte_start": 13697375,
+      "source_byte_end_exclusive": 13697692
+    },
+    {
+      "fixture_csv_line": 143,
+      "source_byte_start": 13697692,
+      "source_byte_end_exclusive": 13698015
+    },
+    {
+      "fixture_csv_line": 144,
+      "source_byte_start": 13698015,
+      "source_byte_end_exclusive": 13698427
+    },
+    {
+      "fixture_csv_line": 145,
+      "source_byte_start": 13698427,
+      "source_byte_end_exclusive": 13698765
+    },
+    {
+      "fixture_csv_line": 146,
+      "source_byte_start": 13698765,
+      "source_byte_end_exclusive": 13699103
+    },
+    {
+      "fixture_csv_line": 147,
+      "source_byte_start": 13699103,
+      "source_byte_end_exclusive": 13699421
+    },
+    {
+      "fixture_csv_line": 148,
+      "source_byte_start": 13699421,
+      "source_byte_end_exclusive": 13699727
+    },
+    {
+      "fixture_csv_line": 149,
+      "source_byte_start": 13699727,
+      "source_byte_end_exclusive": 13700043
+    },
+    {
+      "fixture_csv_line": 150,
+      "source_byte_start": 13700043,
+      "source_byte_end_exclusive": 13700537
+    },
+    {
+      "fixture_csv_line": 151,
+      "source_byte_start": 13700537,
+      "source_byte_end_exclusive": 13700865
+    },
+    {
+      "fixture_csv_line": 152,
+      "source_byte_start": 13700865,
+      "source_byte_end_exclusive": 13701190
+    },
+    {
+      "fixture_csv_line": 153,
+      "source_byte_start": 13701190,
+      "source_byte_end_exclusive": 13701467
+    },
+    {
+      "fixture_csv_line": 154,
+      "source_byte_start": 13701467,
+      "source_byte_end_exclusive": 13701792
+    },
+    {
+      "fixture_csv_line": 155,
+      "source_byte_start": 13701792,
+      "source_byte_end_exclusive": 13702069
+    },
+    {
+      "fixture_csv_line": 156,
+      "source_byte_start": 13702069,
+      "source_byte_end_exclusive": 13702396
+    },
+    {
+      "fixture_csv_line": 157,
+      "source_byte_start": 13702396,
+      "source_byte_end_exclusive": 13702947
+    },
+    {
+      "fixture_csv_line": 158,
+      "source_byte_start": 13702947,
+      "source_byte_end_exclusive": 13703315
+    },
+    {
+      "fixture_csv_line": 159,
+      "source_byte_start": 13703315,
+      "source_byte_end_exclusive": 13703611
+    },
+    {
+      "fixture_csv_line": 160,
+      "source_byte_start": 13703611,
+      "source_byte_end_exclusive": 13703918
+    },
+    {
+      "fixture_csv_line": 161,
+      "source_byte_start": 13703918,
+      "source_byte_end_exclusive": 13704236
+    },
+    {
+      "fixture_csv_line": 162,
+      "source_byte_start": 13704236,
+      "source_byte_end_exclusive": 13704512
+    },
+    {
+      "fixture_csv_line": 163,
+      "source_byte_start": 13704512,
+      "source_byte_end_exclusive": 13704829
+    },
+    {
+      "fixture_csv_line": 164,
+      "source_byte_start": 13704829,
+      "source_byte_end_exclusive": 13705090
+    },
+    {
+      "fixture_csv_line": 165,
+      "source_byte_start": 13705090,
+      "source_byte_end_exclusive": 13705510
+    },
+    {
+      "fixture_csv_line": 166,
+      "source_byte_start": 13705510,
+      "source_byte_end_exclusive": 13705823
+    },
+    {
+      "fixture_csv_line": 167,
+      "source_byte_start": 13705823,
+      "source_byte_end_exclusive": 13706143
+    },
+    {
+      "fixture_csv_line": 168,
+      "source_byte_start": 13706143,
+      "source_byte_end_exclusive": 13706563
+    },
+    {
+      "fixture_csv_line": 169,
+      "source_byte_start": 13706563,
+      "source_byte_end_exclusive": 13706878
+    },
+    {
+      "fixture_csv_line": 170,
+      "source_byte_start": 13706878,
+      "source_byte_end_exclusive": 13707353
+    },
+    {
+      "fixture_csv_line": 171,
+      "source_byte_start": 13707353,
+      "source_byte_end_exclusive": 13707848
+    },
+    {
+      "fixture_csv_line": 172,
+      "source_byte_start": 13707848,
+      "source_byte_end_exclusive": 13708260
+    },
+    {
+      "fixture_csv_line": 173,
+      "source_byte_start": 13708260,
+      "source_byte_end_exclusive": 13708747
+    },
+    {
+      "fixture_csv_line": 174,
+      "source_byte_start": 13708747,
+      "source_byte_end_exclusive": 13709323
+    },
+    {
+      "fixture_csv_line": 175,
+      "source_byte_start": 13709323,
+      "source_byte_end_exclusive": 13709574
+    },
+    {
+      "fixture_csv_line": 176,
+      "source_byte_start": 13709574,
+      "source_byte_end_exclusive": 13709898
+    },
+    {
+      "fixture_csv_line": 177,
+      "source_byte_start": 13709898,
+      "source_byte_end_exclusive": 13710274
+    },
+    {
+      "fixture_csv_line": 178,
+      "source_byte_start": 13710274,
+      "source_byte_end_exclusive": 13710671
+    },
+    {
+      "fixture_csv_line": 179,
+      "source_byte_start": 13710671,
+      "source_byte_end_exclusive": 13711087
+    },
+    {
+      "fixture_csv_line": 180,
+      "source_byte_start": 13711087,
+      "source_byte_end_exclusive": 13711363
+    },
+    {
+      "fixture_csv_line": 181,
+      "source_byte_start": 13711363,
+      "source_byte_end_exclusive": 13711679
+    },
+    {
+      "fixture_csv_line": 182,
+      "source_byte_start": 13711679,
+      "source_byte_end_exclusive": 13711938
+    },
+    {
+      "fixture_csv_line": 183,
+      "source_byte_start": 13711938,
+      "source_byte_end_exclusive": 13712237
+    },
+    {
+      "fixture_csv_line": 184,
+      "source_byte_start": 13712237,
+      "source_byte_end_exclusive": 13712555
+    },
+    {
+      "fixture_csv_line": 185,
+      "source_byte_start": 13712555,
+      "source_byte_end_exclusive": 13712973
+    },
+    {
+      "fixture_csv_line": 186,
+      "source_byte_start": 13712973,
+      "source_byte_end_exclusive": 13713326
+    },
+    {
+      "fixture_csv_line": 187,
+      "source_byte_start": 13713326,
+      "source_byte_end_exclusive": 13713744
+    },
+    {
+      "fixture_csv_line": 188,
+      "source_byte_start": 13713744,
+      "source_byte_end_exclusive": 13713995
+    },
+    {
+      "fixture_csv_line": 189,
+      "source_byte_start": 13713995,
+      "source_byte_end_exclusive": 13714296
+    },
+    {
+      "fixture_csv_line": 190,
+      "source_byte_start": 13714296,
+      "source_byte_end_exclusive": 13714549
+    },
+    {
+      "fixture_csv_line": 191,
+      "source_byte_start": 13714549,
+      "source_byte_end_exclusive": 13714887
+    },
+    {
+      "fixture_csv_line": 192,
+      "source_byte_start": 13714887,
+      "source_byte_end_exclusive": 13715199
+    },
+    {
+      "fixture_csv_line": 193,
+      "source_byte_start": 13715199,
+      "source_byte_end_exclusive": 13715541
+    }
+  ],
+  "original_cross_head_envelopes": [
+    {
+      "byte_start": 13704829,
+      "byte_end_exclusive": 13705090,
+      "start_ns": 1793353592705231897,
+      "end_ns": 1793353592714981511,
+      "duration_ns": 9749614
+    }
+  ],
+  "transformation": "Retained raw CSV records copied verbatim from bounded export with LF record delimiters; no cell or timing edits."
+}

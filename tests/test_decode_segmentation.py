@@ -10,10 +10,195 @@ from pathlib import Path
 
 import pytest
 
-from mindie_profiler.decode_segmentation import _Row, _scope, auto_segment_decode_forwards
+from mindie_profiler.decode_segmentation import (
+    _Row, _communication_bounds, _norm, _scope, auto_segment_decode_forwards,
+)
 from mindie_profiler.normalized import kernel_rows, shapes
 
 FIXTURE = Path(__file__).parent / "fixtures/decode_forward"
+
+
+@pytest.fixture
+def cross_head_suffix():
+    events = [row.event for row in kernel_rows(FIXTURE / "qwen36_a3_cross_head_summary.csv")]
+    config = json.loads((FIXTURE / "model_config.json").read_text())
+    # The retained records are the complete real layers 60--63 of auto:98.
+    # Exercise that ordered suffix without manufacturing the preceding layers.
+    config["layer_plans"] = config["layer_plans"][60:64]
+    config["layers"] = config["body_layers"] = 4
+    rows = [_Row(event, shapes(event.input_shapes), shapes(event.output_shapes)) for event in events]
+    norms = [i for i, row in enumerate(rows) if _norm(row, config["hidden_size"])]
+    return events, config, rows, norms
+
+
+def test_real_cross_head_summaries_use_hidden_consumer_bound_without_changing_events(cross_head_suffix):
+    events, config, rows, norms = cross_head_suffix
+    original = deepcopy(events)
+    bounds = _communication_bounds(rows, config["hidden_size"], norms, rows[-1])
+    assert len(bounds) == 4
+    assert [value["raw_duration_ns"] for value in bounds.values()] == [
+        51_248_269, 51_242_709, 51_241_329, 51_242_129]
+    assert [value["effective_end_ns"] - value["raw_start_ns"] for value in bounds.values()] == [
+        14_901, 14_661, 17_781, 17_181]
+    by_line = {event.locator["csv_line"]: event for event in events}
+    for proof in bounds.values():
+        consumer = by_line[proof["consumer_locator"]["csv_line"]]
+        assert consumer.op_type == "AddRmsNormBias"
+        gamma = by_line[consumer.locator["csv_line"] - 1]
+        assert gamma.op_type == "Add" and shapes(gamma.input_shapes)[0] == (5120,)
+        assert proof["effective_end_ns"] > gamma.end_ns
+        assert not proof["physical_transport_completion_observed"]
+    seen = []
+    report = auto_segment_decode_forwards(events, config,
+        on_forward=lambda result, raw: seen.append((result, raw)))
+    body = report["forwards"][0]
+    assert body["body_forward_span_ms"] == pytest.approx(1.676807)
+    layers = {stage["layer_id"]: stage for stage in body["stages"] if stage["layer_id"] is not None}
+    assert [layers[i]["span_ms"] for i in (60, 61, 62, 63)] == pytest.approx([
+        .340373, .333074, .329234, .677647])
+    assert layers[61]["span_end_basis"] == layers[62]["span_end_basis"] == "structural_consumer_start_upper_bound"
+    assert layers[60]["span_end_basis"] == layers[63]["span_end_basis"] == "last_retained_device_event_end"
+    assert body["end_ns"] < body["head_start_ns"]
+    assert body["communication_envelope_bounds"] == list(bounds.values())
+    for stage in body["stages"]:
+        assert stage["device_activity_union_ms"] + stage["internal_uncovered_gap_ms"] == pytest.approx(stage["span_ms"])
+        for proof in stage.get("communication_envelope_bounds", []):
+            assert proof in body["communication_envelope_bounds"]
+    assert report["scan_counts"]["structurally_bounded_communication_envelopes"] == 4
+    accounting = report["communication_envelope_accounting"]
+    assert accounting["affected_events"] == 4 and accounting["affected_forwards"] == 1
+    assert accounting["raw_envelope_total_ns"] == sum(value["raw_duration_ns"] for value in bounds.values())
+    assert accounting["unassigned_summary_suffix_total_ns"] == sum(
+        value["unassigned_summary_suffix_ns"] for value in bounds.values())
+    assert not accounting["additive_body_time_cause"]
+    assert events == original and list(seen[0][1]) == original
+    # The old raw envelope remains reproducible when no complete head proof
+    # was supplied; no schema/name-only event filter has been introduced.
+    unbounded = _scope(rows, "target_body", "raw_without_head_proof")
+    assert unbounded["end_ns"] == max(event.end_ns for event in events)
+
+
+def test_cross_head_evidence_survives_bounded_stage_detail_retention(cross_head_suffix):
+    events, config, _, _ = cross_head_suffix
+    report = auto_segment_decode_forwards(events, config, max_detailed_forwards=0, max_samples_per_layer=0)
+    forward = report["forwards"][0]
+    assert forward["stages"] == []
+    assert len(forward["communication_envelope_bounds"]) == 4
+    assert report["body_activity_ms"]["mean"] + report["body_internal_gap_ms"]["mean"] == pytest.approx(1.676807)
+
+
+def test_real_summary_between_final_norm_and_head_is_not_reinterpreted(cross_head_suffix):
+    _, config, rows, norms = cross_head_suffix
+    head = rows[-1]
+    changed = [_Row(replace(row.event, end_ns=head.event.start_ns - 1), row.inputs, row.outputs)
+               if row.event.core == "COMMUNICATION" and row.event.end_ns > head.event.start_ns else row
+               for row in rows]
+    assert rows[norms[-1]].event.start_ns < head.event.start_ns - 1
+    assert _communication_bounds(changed, config["hidden_size"], norms, head) == {}
+    assert _communication_bounds(rows, config["hidden_size"], norms, None) == {}
+
+
+@pytest.mark.parametrize("evidence", ["device_task", "stream", "pmu", "tensor_descriptor", "block_grid",
+                                      "different_consumer_stream", "wrong_hidden_shape"])
+def test_unbound_summary_correction_requires_the_real_structural_chain(cross_head_suffix, evidence):
+    _, config, rows, norms = cross_head_suffix
+    baseline = _communication_bounds(rows, config["hidden_size"], norms, rows[-1])
+    first = next(row for row in rows if id(row.event) in baseline)
+    proof = baseline[id(first.event)]
+    consumer = next(row for row in rows if row.event.locator == proof["consumer_locator"])
+    producer = next(row for row in rows if row.event.locator == proof["producer_locator"])
+    if evidence == "device_task":
+        replacement = _Row(replace(first.event, core="AI_VECTOR_CORE", task_id=producer.event.task_id,
+                                  stream_id=producer.event.stream_id), first.inputs, first.outputs)
+        target = first
+    elif evidence == "stream":
+        target = first
+        replacement = _Row(replace(first.event, stream_id=producer.event.stream_id), first.inputs, first.outputs)
+    elif evidence == "pmu":
+        target = first
+        replacement = _Row(replace(first.event, pmu=producer.event.pmu), first.inputs, first.outputs)
+        assert replacement.event.pmu
+    elif evidence in {"tensor_descriptor", "block_grid"}:
+        target = first
+        change = {"input_dtypes": "DT_BF16"} if evidence == "tensor_descriptor" else {"block_dim": 20}
+        replacement = _Row(replace(first.event, **change), first.inputs, first.outputs)
+    elif evidence == "different_consumer_stream":
+        target = consumer
+        replacement = _Row(replace(consumer.event, stream_id=rows[-1].event.stream_id), consumer.inputs, consumer.outputs)
+        assert replacement.event.stream_id != producer.event.stream_id
+    else:
+        target = producer
+        replacement = _Row(producer.event, producer.inputs, ((16, 4352),))
+    changed = [replacement if row is target else row for row in rows]
+    bounded = _communication_bounds(changed, config["hidden_size"], norms, rows[-1])
+    assert len(bounded) == 3
+    assert all(value["envelope_locator"] != first.event.locator for value in bounded.values())
+
+
+@pytest.fixture
+def kimi_cross_head():
+    events = [row.event for row in kernel_rows(FIXTURE / "kimi4_tp16_cross_head_summary.csv")]
+    config = json.loads((FIXTURE / "kimi4_tp8_model_config.json").read_text())
+    # The independent source model pin in the fixture provenance declares
+    # this same four-layer architecture at TP16, not the earlier TP8 capture.
+    config.update(name="kimi-k3-4layer-w4a8-tp16-source", tp=16)
+    rows = [_Row(event, shapes(event.input_shapes), shapes(event.output_shapes)) for event in events]
+    norms = [i for i, row in enumerate(rows) if _norm(row, config["hidden_size"])]
+    return events, config, rows, norms
+
+
+def test_real_padded_tp16_reduce_scatter_bounds_only_its_summary(kimi_cross_head):
+    events, config, rows, norms = kimi_cross_head
+    original = deepcopy(events)
+    bounds = _communication_bounds(rows, config["hidden_size"], norms, rows[-1], tp=16)
+    assert len(bounds) == 1
+    proof = next(iter(bounds.values()))
+    assert proof["raw_duration_ns"] == 9_749_614
+    assert proof["effective_end_ns"] - proof["raw_start_ns"] == 38_780
+    assert proof["tensor_chain_evidence"]["declared_tp"] == 16
+    assert proof["tensor_chain_evidence"]["projection_output_shape"] == [24, 7168]
+    assert proof["tensor_chain_evidence"]["padded_hidden_shape"] == [32, 7168]
+    assert proof["tensor_chain_evidence"]["consumer_flat_hidden_shape"] == [14336]
+    assert proof["tensor_chain_evidence"]["local_hidden_rows"] == 2
+    controllers = [event for event in events if event.op_type == "reduce_scatterAicpuKernel"]
+    assert len(controllers) == 8
+    assert all(event.end_ns < rows[-1].event.start_ns and id(event) not in bounds for event in controllers)
+    report = auto_segment_decode_forwards(events, config)
+    forward = report["forwards"][0]
+    assert forward["body_forward_span_ms"] == pytest.approx(5.271545)
+    assert forward["body_activity_ms"] == pytest.approx(5.131242)
+    assert forward["body_internal_gap_ms"] == pytest.approx(.140303)
+    assert forward["end_ns"] < forward["head_start_ns"]
+    layers = [stage for stage in forward["stages"] if stage["layer_id"] is not None]
+    assert [stage["span_ms"] for stage in layers] == pytest.approx([1.071841, 1.700794, 1.090382, 1.407568])
+    assert len(layers[-1]["communication_envelope_bounds"]) == 1
+    assert all(not stage.get("communication_envelope_bounds") for stage in layers[:-1])
+    assert report["communication_envelope_accounting"]["unassigned_summary_suffix_total_ns"] == 9_710_834
+    assert events == original
+    assert _scope(rows[:-1], "target_body", "original_raw_envelopes")["span_ms"] == pytest.approx(14.090541)
+
+
+@pytest.mark.parametrize("missing_link", ["declared_tp", "padding_input", "consumer_dtype", "following_local_rows"])
+def test_padded_consumer_requires_complete_tp_tensor_chain(kimi_cross_head, missing_link):
+    _, config, rows, norms = kimi_cross_head
+    proof = next(iter(_communication_bounds(rows, config["hidden_size"], norms, rows[-1], tp=16).values()))
+    changed, tp = list(rows), 16
+    if missing_link == "declared_tp":
+        tp = 8
+    else:
+        key = {"padding_input": "padding_locator", "following_local_rows": "following_hidden_matrix_locator"}
+        locator = (proof["consumer_locator"] if missing_link == "consumer_dtype"
+                   else proof["tensor_chain_evidence"][key[missing_link]])
+        index = next(i for i, row in enumerate(rows) if row.event.locator == locator)
+        row = rows[index]
+        if missing_link == "consumer_dtype":
+            changed[index] = _Row(replace(row.event, input_dtypes="DT_FLOAT16;" * 5 + "DT_FLOAT16"),
+                                  row.inputs, row.outputs)
+        elif missing_link == "padding_input":
+            changed[index] = _Row(row.event, ((23, 7168), *row.inputs[1:]), row.outputs)
+        else:
+            changed[index] = _Row(row.event, ((3, 7168), *row.inputs[1:]), row.outputs)
+    assert _communication_bounds(changed, config["hidden_size"], norms, rows[-1], tp=tp) == {}
 
 
 @pytest.fixture

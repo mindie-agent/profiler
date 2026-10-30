@@ -218,6 +218,9 @@ def project(row, result, evidence, *, scope=None):
     for field in ('geometry_comparisons', 'population_coverage', 'source_all_populations_passed', 'context_evidence'):
         if field in result:
             card[field] = result[field]
+    accounting = result.get('communication_envelope_accounting', observed.get('communication_envelope_accounting', {}))
+    if accounting.get('affected_events'):
+        card['communication_envelope_accounting'] = accounting
     if row['phase'] == 'prefill':
         card['client'] = result.get('client')
         card['ttft_prediction_ms'] = result.get('ttft_prediction_ms')
@@ -305,6 +308,13 @@ def render(report):
         lines.append(f"| {row['case_id']} | {row['phase']} | {c.get('observed_forward_count', real.get('count', '—'))} | "
                      + ' / '.join(number(real.get(k)) for k in ('mean', 'p50', 'p90'))
                      + f" | {number(c.get('predicted_ms'))} | {'—' if error is None else f'{error:+.2%}'} | {status} |")
+    bounded = [r for r in report['cases'] if r.get('communication_envelope_accounting')]
+    if bounded and report.get('scope', 'body') == 'body':
+        lines += ['', 'Communication summaries without device-task bindings can extend beyond a dependent Head. '
+                  'For verified hidden-state consumer chains, structural consumer start provides a conditional completion upper bound. '
+                  'Original summary intervals remain in the evidence; these bounds are not measured transport service times.']
+        for row in bounded:
+            lines.append(f"- {row['case_id']}: " + json.dumps(row['communication_envelope_accounting'], sort_keys=True))
     labelled = [r for r in report['cases'] if r.get('calibration', {}).get('body_validation')]
     if labelled and report.get('scope', 'body') == 'body':
         lines += ['', '| Case | Body validation basis | Target native timings used in rules |',

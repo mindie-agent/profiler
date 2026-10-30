@@ -35,6 +35,64 @@ def test_real_duplicate_hcom_summary_is_not_a_second_call(replay):
     assert replay.deduplicate_communication(duplicates)==(duplicates,[])
 
 
+def test_cross_head_summary_population_is_retained_outside_physical_cohorts(replay):
+    from mindie_profiler.decode_segmentation import auto_segment_decode_forwards
+    from mindie_profiler.events import Observation, QueryStats, SourceRef, Window
+    from mindie_sim.structure import export_structure
+
+    path = FIXTURE / 'qwen36_a3_cross_head_summary.csv'
+    rows = list(replay.kernel_rows(path, rank_id='rank_0'))
+    original = deepcopy([row.event for row in rows])
+    config = json.loads((FIXTURE / 'model_config.json').read_text())
+    # Real complete layers 60--63, not a claimed new four-layer model capture.
+    config['layer_plans'] = config['layer_plans'][60:64]
+    config['layers'] = config['body_layers'] = 4
+    captured = []
+    auto_segment_decode_forwards(rows, config,
+        on_forward=lambda forward, events: captured.append((forward, events)))
+    forward, events = captured[0]
+    manifest = export_structure(replay.read(case_path('qwen36-a3-tp4.json')),
+        phase='decode', tokens=4, sequences=4, context=126000, scope='body')
+    source = SourceRef('rank_0', 0, 'csv', str(path), path.name, replay.digest(path),
+                       path.stat().st_size, 'fixture', 'retained_four_layer_suffix')
+    observation = Observation('rank_0', 0, Window(forward['start_ns'], forward['end_ns']),
+                              None, [], source, QueryStats('rank_0', 'fixture'))
+    expected = {forward['forward_id']: forward}
+    consumer = replay.BodyConsumer(manifest, observation, expected, config)
+    consumer(forward, events)
+    mapping, families, pooled = consumer.finish(manifest)
+    envelopes = consumer.communication_envelope_summary()
+    assert envelopes['event_count'] == mapping['communication_envelope_event_count'] == 4
+    assert consumer.counts['crossing_body_endpoint_events'] == 4
+    assert envelopes['strict_eligible_event_count'] == 0
+    assert envelopes['physical_transport_completion_observed'] is False
+    groups = envelopes['groups']
+    assert sum(group['event_count'] for group in groups) == 4
+    assert sum(group['raw_duration_ns']['sum'] for group in groups) == sum([
+        51_248_269, 51_242_709, 51_241_329, 51_242_129])
+    assert sum(group['bounded_upper_duration_ns']['sum'] for group in groups) == sum([
+        14_901, 14_661, 17_781, 17_181])
+    proofs = forward['communication_envelope_bounds']
+    for group in groups:
+        assert len(group['examples']) <= 2
+        for name in ('raw_duration_ns', 'bounded_upper_duration_ns'):
+            assert group[name]['mean'] == group[name]['sum'] / group['event_count']
+        for example in group['examples']:
+            assert {key: example[key] for key in proofs[0]} in proofs
+    # Dropping only these conditional records is a control for the prior
+    # strict population; ordinary in-body HCOM records remain untouched.
+    locators = [proof['envelope_locator'] for proof in proofs]
+    control = replay.BodyConsumer(manifest, observation, expected, config)
+    control(forward, [event for event in events if event.locator not in locators])
+    prior_mapping, prior_families, prior_pooled = control.finish(manifest)
+    assert mapping['windows'] == prior_mapping['windows']
+    assert families == prior_families and pooled == prior_pooled
+    assert consumer.source_roles.groups == control.source_roles.groups
+    assert sum(row['observed_us']['count'] for row in families
+               if row['native_operator_type'].startswith('hcom_')) == 4
+    assert [row.event for row in rows] == original
+
+
 def test_active_conv_projection_preserves_history_but_omits_pool_capacity(replay):
     from mindie_profiler.tensor_contracts import observed_contract
     row=next(row for row in replay.kernel_rows(FIXTURE/'qwen38_a5_hccl_launch_layer.csv') if row.kind=='CausalConv1d')
