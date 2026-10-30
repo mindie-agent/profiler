@@ -5,13 +5,24 @@ priority A5 cases. The overlapping selections contain 13 sources and 877
 selected complete Forwards; neither table adds captures to the main denominator.
 Execution completion, Body accuracy and native contract coverage are separate.
 
+The current focus has 10/13 Body PASS, including all six A5 priority cases.
+The main board has 52/66 PASS over 5,250 distinct observed Forwards, with all
+66 latest predictions completed. Kimi low-concurrency c1/c2/c4/c8 now contributes
+eight new PASS results; its separately recorded expert-routing work discrepancy
+is being checked against the new source force-EPLB policy. The three pending
+focus cases are Qwen3.5 TP4 c4/c64/c128.
+
+GLM uses the corrected HC native implementation consistently across all nine
+A5 cases. Its 3/9 PASS result supersedes the earlier 6/9 result whose decomposed
+HC work compensated for other missing costs. Historical arms stay inspectable.
+
 `source-inventory.json` records selection identities, benchmark scenarios and the
 state before this replay. Its old predictions are not inputs to the focus table.
 `high-concurrency-scoreboard.json` reads current selected Body rows from the main
 scoreboard, joined by exact case and source SHA. Latest failed attempts remain
 visible even when an earlier completed prediction is retained.
 
-The four MC2 cases were freshly predicted using `cc245da6`, whose runtime tree is
+The initial four MC2 baseline cases were predicted using `cc245da6`, whose runtime tree is
 identical to `8eda7e91` / `ab37ffe5`. Their retained measurements were reused;
 no new capture parsing or device work ran. Qwen3.6 c96 and GLM c64 retained their
 existing results because their selected physical programs were unchanged.
@@ -28,7 +39,7 @@ The MC2 prefix update changed these Body predictions by less than 0.3 us each.
 The largest worker used 449.94 MiB. The independent receipt review checked
 3,880 identities and arithmetic invariants without failures.
 
-The main board remains 23/66 Body PASS. A3 V4Flash c4/c8 are PASS at
+The cc245da6 baseline main board had 23/66 Body PASS before observable-response arms. A3 V4Flash c4/c8 are PASS at
 -14.92%/-8.09%. Qwen3.6 TP2 c96 is still -15.514%, 0.328251 ms outside the
 15% band; this distance is not a physical service budget to add to the model.
 
@@ -40,8 +51,12 @@ unreported data independence is `not_declared`, not invented held-out evidence.
 Validation: 830 tests passed, 26 optional tests skipped. The full-suite controller
 review initially exceeded the RSS gate while retaining two full comparison
 graphs; the test now keeps a compact baseline projection and streams JSON.
-The unchanged 512 MiB gate passes. The final main-board independent review
-passed 204,114 checks with 369.5 MiB peak RSS.
+The unchanged 512 MiB gate passes. The current main-board independent review
+passed 206,311 checks with 357.7 MiB peak RSS. Sharing identical immutable
+receipt metadata reduced review memory from 465.3 MiB without dropping fields.
+The 25 affected scoreboard tests
+also pass, including concurrent readers seeing a complete prior JSON while the
+new report is published atomically.
 
 Rebuild the current focus table after any affected-case replay is added to the
 ordered main manifest:

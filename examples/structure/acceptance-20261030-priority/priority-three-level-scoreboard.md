@@ -2,11 +2,11 @@
 
 Coverage status: **partial**. Missing predictions and unmatched roles stay visible.
 
-Current selected Body arms: **23/66 passed**. One latest completed receipt per measured source/geometry, selected in input order; each row retains its own runtime and case.
+Current selected Body arms: **52/66 passed**. One latest completed receipt per measured source/geometry, selected in input order; each row retains its own runtime and case.
 
-Latest attempted Body arms: **66/66 completed**, **0 failed**, **23 passed**. An earlier completed prediction remains available above when the newest attempt fails; it is not a successful new replay.
+Latest attempted Body arms: **66/66 completed**, **0 failed**, **52 passed**. An earlier completed prediction remains available above when the newest attempt fails; it is not a successful new replay.
 
-Body: **143/555 prediction arms passed**; 66 unique sources, 222 measured geometry populations, 5250 unique complete Forwards (includes deferred populations).
+Body: **180/618 prediction arms passed**; 66 unique sources, 222 measured geometry populations, 5250 unique complete Forwards (includes deferred populations).
 
 Invalidated prediction rows: **31**. Their measured populations remain; superseded predictions and layer errors are excluded from accuracy statistics.
 
@@ -28,12 +28,12 @@ Observed small-payload / low-M effective rates and per-call / per-group service 
 
 | Case / source family | 当前保留结果 | 最近执行 | Body error | calibration / evaluation | 契约边界 | 当前 runtime / receipt |
 |---|---|---|---:|---|---|---|
-| qwen36-a5-tp2-c96 / qwen36_tp2_hccl | Body FAIL | COMPLETED | -15.51% | not_declared / not_declared | Body 不证明 native strict 闭合 | `ab51c56356b3` / [ba463c3f20c6](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-qwen-hccl-controller-replay.json) |
+| qwen36-a5-tp2-c96 / qwen36_tp2_hccl | Body PASS | COMPLETED | -1.59% | in_sample / in_sample | Body 不证明 native strict 闭合 | `e71d76a0e8fb` / [3132121ac920](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/decode-forward-qwen-service-replay.json) |
 | qwen35-35b-a5-tp4-c128-graph / qwen35_mc2_tp | Body FAIL | COMPLETED | -41.85% | not_declared / not_declared | Body 不证明 native strict 闭合 | `db3e8eafccff` / [2f99d9fa09b6](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen35-mc2-tp-bf71bd7d/decode-forward-qwen35-mc2-tp-replay.json) |
 | qwen35-35b-a5-tp4-c4-graph / qwen35_mc2_tp | Body FAIL | COMPLETED | -59.26% | not_declared / not_declared | Body 不证明 native strict 闭合 | `db3e8eafccff` / [2f99d9fa09b6](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen35-mc2-tp-bf71bd7d/decode-forward-qwen35-mc2-tp-replay.json) |
 | qwen35-35b-a5-tp4-c64-graph / qwen35_mc2_tp | Body FAIL | COMPLETED | -46.61% | not_declared / not_declared | Body 不证明 native strict 闭合 | `db3e8eafccff` / [2f99d9fa09b6](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen35-mc2-tp-bf71bd7d/decode-forward-qwen35-mc2-tp-replay.json) |
-| qwen36-a5-tp2-c12 / qwen36_tp2_hccl | Body FAIL | COMPLETED | -22.19% | not_declared / not_declared | Body 不证明 native strict 闭合 | `ab51c56356b3` / [ba463c3f20c6](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-qwen-hccl-controller-replay.json) |
-| qwen36-a5-tp2-c1 / qwen36_tp2_hccl | Body FAIL | COMPLETED | -37.28% | not_declared / not_declared | Body 不证明 native strict 闭合 | `ab51c56356b3` / [ba463c3f20c6](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-qwen-hccl-controller-replay.json) |
+| qwen36-a5-tp2-c12 / qwen36_tp2_hccl | Body PASS | COMPLETED | -11.33% | observed / in_sample | Body 不证明 native strict 闭合 | `57520ed725bf` / [3c8fea138325](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/decode-forward-qwen-cohort-service-replay.json) |
+| qwen36-a5-tp2-c1 / qwen36_tp2_hccl | Body PASS | COMPLETED | -12.98% | observed / in_sample | Body 不证明 native strict 闭合 | `57520ed725bf` / [3c8fea138325](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/decode-forward-qwen-cohort-service-replay.json) |
 | v4flash-a3-tp8-c4 / v4_a3_caller_bf16 | Body PASS | COMPLETED | -14.92% | not_declared / not_declared | Body 不证明 native strict 闭合 | `1c7fc78cb8be` / [c29b9ee49edb](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-a3-v4-caller-cc245da6/decode-forward-a3-v4-caller-replay.json) |
 | v4flash-a3-tp8-c8 / v4_a3_caller_bf16 | Body PASS | COMPLETED | -8.09% | not_declared / not_declared | Body 不证明 native strict 闭合 | `1c7fc78cb8be` / [c29b9ee49edb](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-a3-v4-caller-cc245da6/decode-forward-a3-v4-caller-replay.json) |
 
@@ -41,86 +41,101 @@ Observed small-payload / low-M effective rates and per-call / per-group service 
 
 | Case | Real Mean / P50 / P90 ms | Sim ms / error | Delta / 到 15% 带 ms | 客户端 TPOT Mean / P50 / P90 ms | 场景目标 / 文件名标签 | 最近执行 runtime / receipt |
 |---|---:|---:|---:|---|---|---|
-| qwen36-a5-tp2-c96 (Body FAIL; latest COMPLETED) | 63.853 / 63.562 / 65.419 | 53.947 / -15.51% | -9.906 / 0.328 | 31.634 / 31.824 / 35.239 | tpot30ms / tpot30ms（仅标签） | `ab51c56356b3` / [ba463c3f20c6](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-qwen-hccl-controller-replay.json) |
-| a5_kimi_tp8_e16_bf16_c32_p4k (Body FAIL; latest COMPLETED) | 40.019 / 40.018 / 40.044 | 28.544 / -28.67% | -11.475 / 5.472 | — / 69.663 / — | 未声明 / 无（仅标签） | `1c7fc78cb8be` / [e0bda7ee4900](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency-priority/decode-forward-highconc-mc2-replay.json) |
-| a5_kimi_tp8_e16_bf16_c32_p16k (Body FAIL; latest COMPLETED) | 44.666 / 44.645 / 44.662 | 33.731 / -24.48% | -10.936 / 4.236 | — / 164.741 / — | 未声明 / 无（仅标签） | `1c7fc78cb8be` / [e0bda7ee4900](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency-priority/decode-forward-highconc-mc2-replay.json) |
-| a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64 (Body FAIL; latest COMPLETED) | 26.328 / 26.306 / 26.336 | 18.933 / -28.09% | -7.396 / 3.446 | 29.265 / 28.943 / 30.069 | 未声明 / tpot30ms（仅标签） | `1c7fc78cb8be` / [e0bda7ee4900](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency-priority/decode-forward-highconc-mc2-replay.json) |
-| a5_v41_fp8_tp1_dp8_ep8_c128_p2k (Body FAIL; latest COMPLETED) | 27.286 / 27.266 / 27.290 | 19.245 / -29.47% | -8.041 / 3.948 | — / 33.341 / — | 未声明 / 无（仅标签） | `1c7fc78cb8be` / [e0bda7ee4900](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency-priority/decode-forward-highconc-mc2-replay.json) |
-| a5_glm53flash_tp8_c64_p4k (Body FAIL; latest COMPLETED) | 46.528 / 46.499 / 46.645 | 34.519 / -25.81% | -12.009 / 5.030 | — / 29.828 / — | 未声明 / 无（仅标签） | `ab51c56356b3` / [25e6ecbf8c40](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-glm-join-reduce-replay.json) |
+| qwen36-a5-tp2-c96 (Body PASS; latest COMPLETED) | 63.853 / 63.562 / 65.419 | 62.838 / -1.59% | -1.015 / 0.000 | 31.634 / 31.824 / 35.239 | tpot30ms / tpot30ms（仅标签） | `e71d76a0e8fb` / [3132121ac920](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/decode-forward-qwen-service-replay.json) |
+| a5_kimi_tp8_e16_bf16_c32_p4k (Body PASS; latest COMPLETED) | 40.019 / 40.018 / 40.044 | 36.969 / -7.62% | -3.050 / 0.000 | — / 69.663 / — | 未声明 / 无（仅标签） | `57520ed725bf` / [bf57fac3d529](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-composed-service/decode-forward-composed-replay.json) |
+| a5_kimi_tp8_e16_bf16_c32_p16k (Body PASS; latest COMPLETED) | 44.666 / 44.645 / 44.662 | 42.156 / -5.62% | -2.511 / 0.000 | — / 164.741 / — | 未声明 / 无（仅标签） | `57520ed725bf` / [bf57fac3d529](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-composed-service/decode-forward-composed-replay.json) |
+| a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64 (Body PASS; latest COMPLETED) | 26.328 / 26.306 / 26.336 | 24.812 / -5.76% | -1.517 / 0.000 | 29.265 / 28.943 / 30.069 | 未声明 / tpot30ms（仅标签） | `e71d76a0e8fb` / [50e8c2d4b89e](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-kimi-v41/decode-forward-route-validated-replay.json) |
+| a5_v41_fp8_tp1_dp8_ep8_c128_p2k (Body PASS; latest COMPLETED) | 27.286 / 27.266 / 27.290 | 25.540 / -6.40% | -1.746 / 0.000 | — / 33.341 / — | 未声明 / 无（仅标签） | `e71d76a0e8fb` / [50e8c2d4b89e](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-kimi-v41/decode-forward-route-validated-replay.json) |
+| a5_glm53flash_tp8_c64_p4k (Body PASS; latest COMPLETED) | 46.528 / 46.499 / 46.645 | 44.976 / -3.34% | -1.552 / 0.000 | — / 29.828 / — | 未声明 / 无（仅标签） | `57520ed725bf` / [fcc18231e292](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/third-pass-remaining-six/decode-forward-service-replay.json) |
 
 Delta = Sim − Real；“到 15% 带”是统计验收超额，不是待补物理服务预算。客户端 TPOT、场景目标和 Body Forward 是不同指标。最新执行失败时，旧的成功结果可以保留，但不能冒称最新执行已完成。
 
+
+## Declared routing work awaiting source correction
+
+These timing comparisons remain in the accuracy table. Their observed response parameters are admissible; the separately identified routing work mismatch remains open. Captured group-list values are not established.
+
+| Case | Declared rank-0 expert rows | Source-compatible rows |
+|---|---|---|
+| a5_kimi_tp8_e16_bf16_c1_p16k:q1_b1_m1 | [4, 4] | [1, 0] |
+| a5_kimi_tp8_e16_bf16_c1_p4k:q1_b1_m1 | [4, 4] | [1, 0] |
+| a5_kimi_tp8_e16_bf16_c8_p16k:q1_b8_m8 | [4, 4] | [5, 3] |
+| a5_kimi_tp8_e16_bf16_c8_p4k:q1_b8_m8 | [4, 4] | [5, 3] |
+| a5_kimi_tp8_e16_bf16_c2_p16k:q1_b2_m2 | [4, 4] | [2, 0] |
+| a5_kimi_tp8_e16_bf16_c2_p4k:q1_b2_m2 | [4, 4] | [2, 0] |
+| a5_kimi_tp8_e16_bf16_c4_p4k:q1_b4_m4 | [4, 4] | [3, 1] |
+| a5_kimi_tp8_e16_bf16_c4_p16k:q1_b4_m4 | [4, 4] | [3, 1] |
 
 ## Whole Decode Body — sorted by absolute ms error
 
 | Case / variant | Status | Calls | Real Mean / P50 / P90 ms | Activity ms | Sim ms | Diff ms | Mean / P50 error |
 |---|---|---:|---:|---:|---:|---:|---:|
 | glm53flash-a3-tp16-c16-livepre:q6_b16_m96 / body-runtime40e4300e-glm-controller-corrected / `ab51c56356b3` | compared | 37 | 41.069 / 40.940 / 41.282 | 39.691 | 63.851 | 22.782 | 55.473% / 55.962% |
-| a3_glm53_w4a8_tp16_tpot50_c2:q6_b2_m12 / body-runtime40e4300e-glm-controller-corrected / `ab51c56356b3` | compared | 44 | 57.817 / 57.597 / 59.092 | 55.203 | 36.987 | -20.830 | -36.027% / -35.783% |
-| a3_glm53_w4a8_tp16_tpot30_c2:q6_b2_m12 / body-runtime40e4300e-glm-controller-corrected / `ab51c56356b3` | compared | 44 | 57.639 / 57.562 / 58.995 | 55.027 | 36.987 | -20.652 | -35.830% / -35.743% |
+| a3_glm53_w4a8_tp16_tpot50_c2:q6_b2_m12 / glm78-grouped-observable-service-3b72ea2d / `57520ed725bf` | compared | 44 | 57.817 / 57.597 / 59.092 | 55.203 | 37.655 | -20.162 | -34.872% / -34.623% |
+| a3_glm53_w4a8_tp16_tpot30_c2:q6_b2_m12 / glm78-grouped-observable-service-3b72ea2d / `57520ed725bf` | compared | 44 | 57.639 / 57.562 / 58.995 | 55.027 | 37.653 | -19.986 | -34.675% / -34.587% |
 | qwen35-397b-a3-tp16-c136:q4_b160_m640 / body-runtime40e4300e-remaining-controller-corrected / `ab51c56356b3` | compared | 18 | 119.054 / 119.131 / 119.486 | 118.048 | 102.866 | -16.188 | -13.597% / -13.653% |
-| a3_glm53_w4a8_tp16_tpot88_c8:q6_b8_m48 / body-runtime40e4300e-glm-controller-corrected / `ab51c56356b3` | compared | 49 | 69.556 / 69.489 / 69.830 | 66.970 | 55.529 | -14.027 | -20.167% / -20.089% |
-| a5_glm53flash_tp8_c16_p8k:q4_b16_m64 / body-runtime40e4300e-glm-join-reduce / `ab51c56356b3` | compared | 32 | 33.616 / 33.626 / 33.710 | 33.358 | 20.322 | -13.294 | -39.547% / -39.564% |
-| a5_glm53flash_tp8_c32_p8k:q4_b32_m128 / body-runtime40e4300e-glm-join-reduce / `ab51c56356b3` | compared | 35 | 38.713 / 38.722 / 38.759 | 38.458 | 25.491 | -13.223 | -34.155% / -34.170% |
-| a5_glm53flash_tp8_c16_p4k:q4_b16_m64 / body-runtime40e4300e-glm-join-reduce / `ab51c56356b3` | compared | 30 | 33.031 / 33.026 / 33.164 | 32.773 | 20.135 | -12.896 | -39.043% / -39.035% |
-| a5_glm53flash_tp8_c32_p4k:q4_b32_m128 / body-runtime40e4300e-glm-join-reduce / `ab51c56356b3` | compared | 31 | 37.669 / 37.665 / 37.761 | 37.413 | 25.111 | -12.558 | -33.337% / -33.331% |
-| a5_glm53flash_tp8_c8_p4k:q4_b8_m32 / body-runtime40e4300e-glm-join-reduce / `ab51c56356b3` | compared | 30 | 28.833 / 28.828 / 28.885 | 28.568 | 16.619 | -12.214 | -42.361% / -42.351% |
-| a5_glm53flash_tp8_c64_p4k:q4_b64_m256 / body-runtime40e4300e-glm-join-reduce / `ab51c56356b3` | compared | 31 | 46.528 / 46.499 / 46.645 | 46.293 | 34.519 | -12.009 | -25.811% / -25.763% |
+| a3_glm53_w4a8_tp16_tpot88_c8:q6_b8_m48 / glm78-grouped-observable-service-3b72ea2d / `57520ed725bf` | compared | 49 | 69.556 / 69.489 / 69.830 | 66.970 | 55.153 | -14.404 | -20.708% / -20.631% |
 | qwen35-35b-a5-tp4-c128-graph:q4_b128_m512 / body-qwen35-mc2-tp-source-bf71bd7d / `db3e8eafccff` | compared | 76 | 28.585 / 28.571 / 28.704 | 28.300 | 16.622 | -11.963 | -41.851% / -41.822% |
-| a5_kimi_tp8_e16_bf16_c32_p4k:q1_b32_m32 / body-highconc-mc2-prefix-cc245da6 / `1c7fc78cb8be` | compared | 46 | 40.019 / 40.018 / 40.044 | 39.323 | 28.544 | -11.475 | -28.674% / -28.672% |
-| a5_kimi_tp8_e16_bf16_c16_p4k:q1_b16_m16 / body-runtime40e4300e-kimi-controller-corrected / `ab51c56356b3` | compared | 49 | 36.985 / 36.953 / 36.969 | 36.305 | 25.616 | -11.369 | -30.740% / -30.679% |
-| a5_kimi_tp8_e16_bf16_c16_p16k:q1_b16_m16 / body-runtime40e4300e-kimi-controller-corrected / `ab51c56356b3` | compared | 47 | 39.247 / 39.245 / 39.263 | 38.567 | 28.209 | -11.038 | -28.124% / -28.120% |
-| a5_kimi_tp8_e16_bf16_c32_p16k:q1_b32_m32 / body-highconc-mc2-prefix-cc245da6 / `1c7fc78cb8be` | compared | 41 | 44.666 / 44.645 / 44.662 | 43.971 | 33.731 | -10.936 | -24.483% / -24.447% |
-| a5_glm53flash_tp8_c4_p8k:q4_b4_m16 / body-runtime40e4300e-glm-join-reduce / `ab51c56356b3` | compared | 11 | 21.418 / 21.408 / 21.432 | 21.147 | 10.681 | -10.737 | -50.132% / -50.108% |
-| a5_kimi_tp8_e16_bf16_c8_p4k:q1_b8_m8 / body-runtime40e4300e-kimi-controller-corrected / `ab51c56356b3` | compared | 52 | 34.819 / 34.791 / 34.808 | 34.142 | 24.198 | -10.621 | -30.504% / -30.448% |
-| a5_kimi_tp8_e16_bf16_c8_p16k:q1_b8_m8 / body-runtime40e4300e-kimi-controller-corrected / `ab51c56356b3` | compared | 51 | 35.964 / 35.962 / 35.979 | 35.282 | 25.459 | -10.506 | -29.211% / -29.207% |
-| a5_kimi_tp8_e16_bf16_c4_p4k:q1_b4_m4 / body-runtime40e4300e-kimi-controller-corrected / `ab51c56356b3` | compared | 53 | 34.194 / 34.177 / 34.194 | 33.491 | 23.753 | -10.441 | -30.534% / -30.501% |
-| a5_kimi_tp8_e16_bf16_c4_p16k:q1_b4_m4 / body-runtime40e4300e-kimi-controller-corrected / `ab51c56356b3` | compared | 52 | 34.816 / 34.794 / 34.813 | 34.115 | 24.384 | -10.432 | -29.963% / -29.918% |
 | qwen35-35b-a5-tp4-c64-graph:q4_b64_m256 / body-qwen35-mc2-tp-source-bf71bd7d / `db3e8eafccff` | compared | 79 | 21.957 / 22.001 / 22.068 | 21.571 | 11.723 | -10.233 | -46.607% / -46.714% |
-| a5_kimi_tp8_e16_bf16_c2_p16k:q1_b2_m2 / body-runtime40e4300e-kimi-controller-corrected / `ab51c56356b3` | compared | 54 | 33.876 / 33.858 / 33.873 | 33.190 | 23.836 | -10.040 | -29.637% / -29.601% |
-| a5_kimi_tp8_e16_bf16_c2_p4k:q1_b2_m2 / body-runtime40e4300e-kimi-controller-corrected / `ab51c56356b3` | compared | 55 | 33.548 / 33.516 / 33.533 | 32.857 | 23.515 | -10.032 | -29.904% / -29.838% |
-| qwen36-a5-tp2-c96:q4_b96_m384 / body-runtime40e4300e-qwen-hccl-controller-corrected / `ab51c56356b3` | compared | 24 | 63.853 / 63.562 / 65.419 | 63.565 | 53.947 | -9.906 | -15.514% / -15.126% |
-| glm53flash-a5-tp8-c3:q4_b4_m16 / body-runtime40e4300e-glm-join-reduce / `ab51c56356b3` | compared | 53 | 21.068 / 21.057 / 21.170 | 20.805 | 11.803 | -9.265 | -43.977% / -43.950% |
-| glm53flash-a5-tp8-c1:q4_b1_m4 / body-runtime40e4300e-glm-join-reduce / `ab51c56356b3` | compared | 65 | 15.683 / 15.670 / 15.738 | 15.421 | 6.830 | -8.854 | -56.453% / -56.417% |
-| a5_v41_fp8_tp1_dp8_ep8_c128_p2k:q1_b16_m16 / body-highconc-mc2-prefix-cc245da6 / `1c7fc78cb8be` | compared | 73 | 27.286 / 27.266 / 27.290 | 27.188 | 19.245 | -8.041 | -29.469% / -29.417% |
 | qwen35-397b-a3-tp16-c48:q4_b64_m256 / body-runtime40e4300e-remaining-controller-corrected / `ab51c56356b3` | compared | 23 | 76.089 / 76.132 / 76.632 | 75.005 | 68.305 | -7.784 | -10.231% / -10.282% |
-| a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64:q1_b8_m8 / body-highconc-mc2-prefix-cc245da6 / `1c7fc78cb8be` | compared | 75 | 26.328 / 26.306 / 26.336 | 26.229 | 18.933 | -7.396 | -28.090% / -28.029% |
-| a5_kimi_tp8_e16_bf16_c1_p16k:q1_b1_m1 / body-runtime40e4300e-kimi-controller-corrected / `ab51c56356b3` | compared | 59 | 30.823 / 30.822 / 30.839 | 30.184 | 23.553 | -7.270 | -23.586% / -23.583% |
-| a5_kimi_tp8_e16_bf16_c1_p4k:q1_b1_m1 / body-runtime40e4300e-kimi-controller-corrected / `ab51c56356b3` | compared | 59 | 30.637 / 30.615 / 30.632 | 29.997 | 23.391 | -7.246 | -23.650% / -23.595% |
+| glm53flash-a3-tp16-c4-livepre:q6_b4_m24 / a3-observable-service-2f48346b / `e71d76a0e8fb` | compared | 46 | 29.762 / 29.664 / 30.046 | 28.242 | 37.342 | 7.581 | 25.472% / 25.885% |
 | qwen35-35b-a5-tp4-c4-graph:q4_b4_m16 / body-qwen35-mc2-tp-source-bf71bd7d / `db3e8eafccff` | compared | 84 | 11.551 / 11.482 / 11.818 | 11.135 | 4.706 | -6.846 | -59.262% / -59.014% |
-| glm53flash-a3-tp16-c4-livepre:q6_b4_m24 / body-runtime40e4300e-glm-controller-corrected / `ab51c56356b3` | compared | 46 | 29.762 / 29.664 / 30.046 | 28.242 | 36.251 | 6.490 | 21.806% / 22.207% |
-| a5_v41_fp8_tp1_dp8_ep8_c32_p2k:q1_b4_m4 / body-runtime40e4300e-v41-controller-corrected / `ab51c56356b3` | compared | 105 | 18.625 / 18.616 / 18.640 | 18.526 | 12.361 | -6.264 | -33.631% / -33.600% |
-| a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8:q1_b1_m1 / body-runtime40e4300e-v41-controller-corrected / `ab51c56356b3` | compared | 145 | 13.292 / 12.803 / 12.817 | 13.196 | 7.430 | -5.861 | -44.098% / -41.965% |
-| a5_v41_fp8_tp1_dp8_ep8_c16_p2k:q1_b2_m2 / body-runtime40e4300e-v41-controller-corrected / `ab51c56356b3` | compared | 129 | 14.929 / 14.914 / 14.929 | 14.832 | 9.078 | -5.851 | -39.191% / -39.130% |
-| a5_v41_fp8_tp1_dp8_ep8_c4_p2k:q1_b1_m1 / body-runtime40e4300e-v41-controller-corrected / `ab51c56356b3` | compared | 151 | 13.239 / 13.209 / 13.227 | 13.143 | 7.430 | -5.809 | -43.875% / -43.747% |
-| a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1:q1_b1_m1 / body-runtime40e4300e-v41-controller-corrected / `ab51c56356b3` | compared | 152 | 13.135 / 13.129 / 13.145 | 13.039 | 7.430 | -5.704 | -43.430% / -43.407% |
 | a3_glm53_dc4k_b2:q1_b2_m2 / body-runtime40e4300e-glm-controller-corrected / `ab51c56356b3` | compared | 70 | 40.970 / 40.935 / 41.046 | 39.247 | 35.483 | -5.487 | -13.394% / -13.319% |
 | a3_glm53_dc16k_b1:q1_b1_m1 / body-runtime40e4300e-glm-controller-corrected / `ab51c56356b3` | compared | 74 | 39.112 / 39.105 / 39.196 | 37.273 | 33.637 | -5.475 | -13.999% / -13.983% |
-| qwen36-a5-tp2-c12:q4_b12_m48 / body-runtime40e4300e-qwen-hccl-controller-corrected / `ab51c56356b3` | compared | 55 | 24.226 / 24.053 / 24.711 | 23.858 | 18.850 | -5.376 | -22.191% / -21.631% |
+| a5_glm53flash_tp8_c8_p4k:q4_b8_m32 / observed-service-hc-atomic-3b72ea2d / `57520ed725bf` | compared | 30 | 28.833 / 28.828 / 28.885 | 28.568 | 23.473 | -5.360 | -18.590% / -18.576% |
 | a3_glm53_dc4k_b1:q1_b1_m1 / body-runtime40e4300e-glm-controller-corrected / `ab51c56356b3` | compared | 74 | 38.955 / 38.943 / 39.036 | 37.243 | 33.637 | -5.318 | -13.652% / -13.625% |
+| a5_glm53flash_tp8_c16_p4k:q4_b16_m64 / observed-service-hc-atomic-3b72ea2d / `57520ed725bf` | compared | 30 | 33.031 / 33.026 / 33.164 | 32.773 | 27.798 | -5.233 | -15.842% / -15.830% |
+| a5_glm53flash_tp8_c16_p8k:q4_b16_m64 / observed-service-hc-atomic-3b72ea2d / `57520ed725bf` | compared | 32 | 33.616 / 33.626 / 33.710 | 33.358 | 28.388 | -5.228 | -15.551% / -15.576% |
+| a5_glm53flash_tp8_c4_p8k:q4_b4_m16 / observed-service-hc-atomic-3b72ea2d / `57520ed725bf` | compared | 11 | 21.418 / 21.408 / 21.432 | 21.147 | 16.381 | -5.037 | -23.517% / -23.481% |
 | v4flash-a3-tp8-c4:q2_b4_m8 / body-a3-v4-caller-bf16-cc245da6 / `1c7fc78cb8be` | compared | 104 | 32.486 / 32.416 / 32.734 | 30.611 | 27.638 | -4.848 | -14.923% / -14.740% |
 | a3_glm53_dc4k_b4:q1_b4_m4 / body-runtime40e4300e-glm-controller-corrected / `ab51c56356b3` | compared | 67 | 43.438 / 43.437 / 43.598 | 41.692 | 38.631 | -4.807 | -11.066% / -11.065% |
 | a3_glm53flash_tp16_aclgraph_c8:q6_b8_m48 / body-runtime40e4300e-glm-controller-corrected / `ab51c56356b3` | compared | 47 | 46.859 / 46.817 / 47.175 | 45.372 | 42.056 | -4.804 | -10.251% / -10.171% |
 | glm53flash-a3-tp16-c2:q6_b2_m12 / body-runtime40e4300e-glm-controller-corrected / `ab51c56356b3` | compared | 46 | 34.118 / 33.910 / 35.073 | 32.625 | 29.434 | -4.685 | -13.730% / -13.201% |
-| qwen36-a5-tp2-c1:q4_b1_m4 / body-runtime40e4300e-qwen-hccl-controller-corrected / `ab51c56356b3` | compared | 85 | 12.318 / 12.279 / 12.362 | 11.956 | 7.726 | -4.592 | -37.276% / -37.076% |
 | a3_glm53flash_tp16_aclgraph_c16:q6_b16_m96 / body-runtime40e4300e-glm-controller-corrected / `ab51c56356b3` | compared | 50 | 53.893 / 53.871 / 54.021 | 52.393 | 49.637 | -4.256 | -7.897% / -7.858% |
+| a5_glm53flash_tp8_c32_p8k:q4_b32_m128 / observed-service-hc-atomic-3b72ea2d / `57520ed725bf` | compared | 35 | 38.713 / 38.722 / 38.759 | 38.458 | 34.534 | -4.179 | -10.795% / -10.815% |
+| a5_glm53flash_tp8_c32_p4k:q4_b32_m128 / observed-service-hc-atomic-3b72ea2d / `57520ed725bf` | compared | 31 | 37.669 / 37.665 / 37.761 | 37.413 | 33.491 | -4.178 | -11.091% / -11.083% |
+| glm53flash-a5-tp8-c3:q4_b4_m16 / observed-service-hc-atomic-3b72ea2d / `57520ed725bf` | compared | 53 | 21.068 / 21.057 / 21.170 | 20.805 | 16.914 | -4.153 | -19.715% / -19.675% |
 | a5_kimi_k3_p32768_c1:q1_b1_m1 / body-runtime40e4300e-remaining-controller-corrected / `ab51c56356b3` | compared | 63 | 32.555 / 32.533 / 32.674 | 31.766 | 28.561 | -3.995 | -12.271% / -12.211% |
 | a3_glm53flash_tp16_aclgraph_c32:q6_b32_m192 / body-runtime40e4300e-glm-controller-corrected / `ab51c56356b3` | compared | 49 | 69.361 / 69.418 / 69.528 | 67.823 | 65.400 | -3.961 | -5.711% / -5.789% |
+| glm53flash-a5-tp8-c1:q4_b1_m4 / observed-service-hc-atomic-3b72ea2d / `57520ed725bf` | compared | 65 | 15.683 / 15.670 / 15.738 | 15.421 | 11.953 | -3.730 | -23.783% / -23.721% |
 | glm53flash-a3-tp16-c4:q6_b4_m24 / body-runtime40e4300e-glm-controller-corrected / `ab51c56356b3` | compared | 46 | 39.841 / 39.798 / 40.057 | 38.324 | 36.251 | -3.590 | -9.011% / -8.912% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8:q8_b4_m32 / body-runtime40e4300e-remaining-controller-corrected / `ab51c56356b3` | compared | 29 | 48.582 / 48.412 / 48.662 | 47.795 | 51.673 | 3.091 | 6.362% / 6.736% |
 | v4flash-a3-tp8-c8:q2_b8_m16 / body-a3-v4-caller-bf16-cc245da6 / `1c7fc78cb8be` | compared | 104 | 37.763 / 37.868 / 38.082 | 36.154 | 34.707 | -3.056 | -8.093% / -8.348% |
+| a5_kimi_tp8_e16_bf16_c32_p4k:q1_b32_m32 / composed-source-service-3b72ea2d / `57520ed725bf` | compared | 46 | 40.019 / 40.018 / 40.044 | 39.323 | 36.969 | -3.050 | -7.621% / -7.619% |
 | a3_glm53_dc4k_b8:q1_b8_m8 / body-runtime40e4300e-glm-controller-corrected / `ab51c56356b3` | compared | 61 | 47.113 / 47.149 / 47.402 | 45.335 | 44.125 | -2.989 | -6.344% / -6.414% |
+| qwen36-a5-tp2-c12:q4_b12_m48 / observable-complete-cohort-service-3b72ea2d / `57520ed725bf` | compared | 55 | 24.226 / 24.053 / 24.711 | 23.858 | 21.480 | -2.746 | -11.334% / -10.696% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4:q8_b2_m16 / body-runtime40e4300e-remaining-controller-corrected / `ab51c56356b3` | compared | 48 | 47.654 / 47.425 / 47.666 | 46.858 | 50.270 | 2.616 | 5.489% / 5.998% |
+| a5_kimi_tp8_e16_bf16_c32_p16k:q1_b32_m32 / composed-source-service-3b72ea2d / `57520ed725bf` | compared | 41 | 44.666 / 44.645 / 44.662 | 43.971 | 42.156 | -2.511 | -5.621% / -5.577% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c16:q8_b5_m40 / body-runtime40e4300e-remaining-controller-corrected / `ab51c56356b3` | compared | 32 | 49.985 / 49.802 / 50.230 | 49.236 | 52.474 | 2.490 | 4.981% / 5.365% |
 | glm53flash-a5-tp8-c96:q4_b96_m384 / body-runtime40e4300e-glm-join-reduce / `ab51c56356b3` | compared | 27 | 57.590 / 57.573 / 57.734 | 57.355 | 59.368 | 1.778 | 3.088% / 3.118% |
+| a5_v41_fp8_tp1_dp8_ep8_c128_p2k:q1_b16_m16 / observable-service-2f48346b / `e71d76a0e8fb` | compared | 73 | 27.286 / 27.266 / 27.290 | 27.188 | 25.540 | -1.746 | -6.400% / -6.330% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64:q8_b17_m136 / body-runtime40e4300e-remaining-controller-corrected / `ab51c56356b3` | compared | 21 | 61.811 / 61.629 / 62.042 | 61.047 | 63.541 | 1.729 | 2.798% / 3.102% |
-| a3_kimi4_tp8_w4a8_c32:q1_b32_m32 / body-runtime40e4300e-remaining-controller-corrected / `ab51c56356b3` | compared | 220 | 6.714 / 6.665 / 6.923 | 6.584 | 5.349 | -1.365 | -20.334% / -19.748% |
+| a5_kimi_tp8_e16_bf16_c1_p16k:q1_b1_m1 / observable-service-low-m-known-route-gap-3b72ea2d / `57520ed725bf` | compared | 59 | 30.823 / 30.822 / 30.839 | 30.184 | 32.550 | 1.726 | 5.600% / 5.605% |
+| a5_kimi_tp8_e16_bf16_c1_p4k:q1_b1_m1 / observable-service-low-m-known-route-gap-3b72ea2d / `57520ed725bf` | compared | 59 | 30.637 / 30.615 / 30.632 | 29.997 | 32.359 | 1.722 | 5.622% / 5.698% |
+| a5_kimi_tp8_e16_bf16_c8_p16k:q1_b8_m8 / observable-service-low-m-known-route-gap-3b72ea2d / `57520ed725bf` | compared | 51 | 35.964 / 35.962 / 35.979 | 35.282 | 37.585 | 1.621 | 4.507% / 4.514% |
+| a5_kimi_tp8_e16_bf16_c8_p4k:q1_b8_m8 / observable-service-low-m-known-route-gap-3b72ea2d / `57520ed725bf` | compared | 52 | 34.819 / 34.791 / 34.808 | 34.142 | 36.421 | 1.602 | 4.601% / 4.686% |
+| qwen36-a5-tp2-c1:q4_b1_m4 / observable-complete-cohort-service-3b72ea2d / `57520ed725bf` | compared | 85 | 12.318 / 12.279 / 12.362 | 11.956 | 10.719 | -1.599 | -12.984% / -12.707% |
+| a5_glm53flash_tp8_c64_p4k:q4_b64_m256 / observed-service-hc-atomic-3b72ea2d / `57520ed725bf` | compared | 31 | 46.528 / 46.499 / 46.645 | 46.293 | 44.976 | -1.552 | -3.336% / -3.275% |
+| a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64:q1_b8_m8 / observable-service-2f48346b / `e71d76a0e8fb` | compared | 75 | 26.328 / 26.306 / 26.336 | 26.229 | 24.812 | -1.517 | -5.761% / -5.680% |
+| a5_kimi_tp8_e16_bf16_c16_p16k:q1_b16_m16 / observable-service-2f48346b / `e71d76a0e8fb` | compared | 47 | 39.247 / 39.245 / 39.263 | 38.567 | 40.764 | 1.516 | 3.864% / 3.870% |
+| a5_kimi_tp8_e16_bf16_c16_p4k:q1_b16_m16 / observable-service-2f48346b / `e71d76a0e8fb` | compared | 49 | 36.985 / 36.953 / 36.969 | 36.305 | 38.388 | 1.403 | 3.792% / 3.884% |
 | a3_kimi4_tp8_w4a8_c64:q1_b64_m64 / body-runtime40e4300e-remaining-controller-corrected / `ab51c56356b3` | compared | 196 | 9.615 / 9.550 / 9.774 | 9.483 | 8.309 | -1.307 | -13.589% / -12.993% |
-| a3_kimi4_tp8_w4a8_c16:q1_b16_m16 / body-runtime40e4300e-remaining-controller-corrected / `ab51c56356b3` | compared | 235 | 4.807 / 4.779 / 4.992 | 4.678 | 3.522 | -1.285 | -26.729% / -26.299% |
+| a5_v41_fp8_tp1_dp8_ep8_c32_p2k:q1_b4_m4 / observable-service-2f48346b / `e71d76a0e8fb` | compared | 105 | 18.625 / 18.616 / 18.640 | 18.526 | 17.361 | -1.263 | -6.783% / -6.740% |
+| a5_v41_fp8_tp1_dp8_ep8_c16_p2k:q1_b2_m2 / observable-service-2f48346b / `e71d76a0e8fb` | compared | 129 | 14.929 / 14.914 / 14.929 | 14.832 | 13.749 | -1.181 | -7.908% / -7.816% |
+| a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8:q1_b1_m1 / observable-service-2f48346b / `e71d76a0e8fb` | compared | 145 | 13.292 / 12.803 / 12.817 | 13.196 | 12.155 | -1.137 | -8.551% / -5.061% |
+| qwen36-a5-tp2-c96:q4_b96_m384 / observable-native-service-2f48346b / `e71d76a0e8fb` | compared | 24 | 63.853 / 63.562 / 65.419 | 63.565 | 62.838 | -1.015 | -1.590% / -1.138% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c32:q8_b9_m72 / body-runtime40e4300e-remaining-controller-corrected / `ab51c56356b3` | compared | 22 | 54.967 / 54.880 / 55.047 | 54.224 | 55.972 | 1.005 | 1.828% / 1.989% |
-| a3_kimi4_tp8_w4a8_c4:q1_b4_m4 / body-runtime40e4300e-remaining-controller-corrected / `ab51c56356b3` | compared | 246 | 3.476 / 3.438 / 3.656 | 3.333 | 2.572 | -0.904 | -26.008% / -25.182% |
-| a3_kimi4_tp8_w4a8_c1:q1_b1_m1 / body-runtime40e4300e-remaining-controller-corrected / `ab51c56356b3` | compared | 254 | 3.180 / 3.128 / 3.432 | 3.035 | 2.528 | -0.652 | -20.503% / -19.171% |
+| a5_kimi_tp8_e16_bf16_c2_p16k:q1_b2_m2 / observable-service-low-m-known-route-gap-3b72ea2d / `57520ed725bf` | compared | 54 | 33.876 / 33.858 / 33.873 | 33.190 | 34.768 | 0.892 | 2.634% / 2.688% |
+| a5_kimi_tp8_e16_bf16_c2_p4k:q1_b2_m2 / observable-service-low-m-known-route-gap-3b72ea2d / `57520ed725bf` | compared | 55 | 33.548 / 33.516 / 33.533 | 32.857 | 34.418 | 0.871 | 2.595% / 2.693% |
+| a3_kimi4_tp8_w4a8_c32:q1_b32_m32 / a3-observable-service-2f48346b / `e71d76a0e8fb` | compared | 220 | 6.714 / 6.665 / 6.923 | 6.584 | 5.972 | -0.742 | -11.047% / -10.393% |
+| a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1:q1_b1_m1 / observable-service-2f48346b / `e71d76a0e8fb` | compared | 152 | 13.135 / 13.129 / 13.145 | 13.039 | 12.436 | -0.699 | -5.318% / -5.280% |
+| a5_v41_fp8_tp1_dp8_ep8_c4_p2k:q1_b1_m1 / observable-service-2f48346b / `e71d76a0e8fb` | compared | 151 | 13.239 / 13.209 / 13.227 | 13.143 | 12.550 | -0.689 | -5.207% / -4.990% |
+| a3_kimi4_tp8_w4a8_c16:q1_b16_m16 / a3-observable-service-2f48346b / `e71d76a0e8fb` | compared | 235 | 4.807 / 4.779 / 4.992 | 4.678 | 4.174 | -0.633 | -13.172% / -12.662% |
 | a3_glm53flash_tp16_aclgraph_c64:q6_b64_m384 / body-runtime40e4300e-glm-controller-corrected / `ab51c56356b3` | compared | 47 | 97.375 / 97.487 / 97.895 | 95.785 | 97.858 | 0.483 | 0.496% / 0.381% |
+| a3_kimi4_tp8_w4a8_c4:q1_b4_m4 / a3-observable-service-2f48346b / `e71d76a0e8fb` | compared | 246 | 3.476 / 3.438 / 3.656 | 3.333 | 3.196 | -0.280 | -8.069% / -7.042% |
+| a5_kimi_tp8_e16_bf16_c4_p4k:q1_b4_m4 / observable-service-low-m-known-route-gap-3b72ea2d / `57520ed725bf` | compared | 53 | 34.194 / 34.177 / 34.194 | 33.491 | 34.462 | 0.268 | 0.784% / 0.832% |
+| a5_kimi_tp8_e16_bf16_c4_p16k:q1_b4_m4 / observable-service-low-m-known-route-gap-3b72ea2d / `57520ed725bf` | compared | 52 | 34.816 / 34.794 / 34.813 | 34.115 | 35.074 | 0.258 | 0.741% / 0.807% |
+| a3_kimi4_tp8_w4a8_c1:q1_b1_m1 / a3-observable-service-2f48346b / `e71d76a0e8fb` | compared | 254 | 3.180 / 3.128 / 3.432 | 3.035 | 3.238 | 0.058 | 1.816% / 3.522% |
 | glm53flash-a3-tp16-c4-livepre:q6_b3_m18 / None / `unknown` | prediction_deferred | 11 | 28.126 / 28.052 / 28.206 | 26.591 | — | — | —% / —% |
 | glm53flash-a3-tp16-c4-livepre:q6_b1_m6 / None / `unknown` | prediction_deferred | 10 | 23.447 / 23.179 / 23.585 | 21.956 | — | — | —% / —% |
 | glm53flash-a3-tp16-c4-livepre:q6_b2_m12 / None / `unknown` | prediction_deferred | 6 | 26.154 / 25.840 / 27.873 | 24.653 | — | — | —% / —% |
@@ -315,135 +330,59 @@ The steady P50 column is median of per-layer call P50, unless a separately linke
 | glm53flash-a3-tp16-c16-livepre:q6_b16_m96 / body-runtime40e4300e-glm-controller-corrected | Steady / kda / dense_layer | 2 | 0.4246 | 0.4245 | 0.6598 | 55.394% / 55.440% |
 | glm53flash-a3-tp16-c16-livepre:q6_b16_m96 / body-runtime40e4300e-glm-controller-corrected | Steady / mla / moe_layer | 11 | 1.3710 | 1.3767 | 2.0743 | 51.293% / 50.669% |
 | glm53flash-a3-tp16-c16-livepre:q6_b16_m96 / body-runtime40e4300e-glm-controller-corrected | Steady / kda / moe_layer | 31 | 0.7767 | 0.7741 | 1.2598 | 62.202% / 62.750% |
-| a3_glm53_w4a8_tp16_tpot50_c2:q6_b2_m12 / body-runtime40e4300e-glm-controller-corrected | Layer 0 / mla / dense_layer | 1 | 0.6279 | 0.5491 | 0.3579 | -43.007% / -34.821% |
-| a3_glm53_w4a8_tp16_tpot50_c2:q6_b2_m12 / body-runtime40e4300e-glm-controller-corrected | Steady / mla / dense_layer | 2 | 0.5676 | 0.5344 | 0.3579 | -36.948% / -33.033% |
-| a3_glm53_w4a8_tp16_tpot50_c2:q6_b2_m12 / body-runtime40e4300e-glm-controller-corrected | Steady / mla / moe_layer | 75 | 0.7473 | 0.7151 | 0.4788 | -35.926% / -33.037% |
-| a3_glm53_w4a8_tp16_tpot30_c2:q6_b2_m12 / body-runtime40e4300e-glm-controller-corrected | Layer 0 / mla / dense_layer | 1 | 0.5858 | 0.5425 | 0.3579 | -38.903% / -34.034% |
-| a3_glm53_w4a8_tp16_tpot30_c2:q6_b2_m12 / body-runtime40e4300e-glm-controller-corrected | Steady / mla / dense_layer | 2 | 0.5667 | 0.5291 | 0.3579 | -36.851% / -32.360% |
-| a3_glm53_w4a8_tp16_tpot30_c2:q6_b2_m12 / body-runtime40e4300e-glm-controller-corrected | Steady / mla / moe_layer | 75 | 0.7455 | 0.7151 | 0.4788 | -35.772% / -33.033% |
+| a3_glm53_w4a8_tp16_tpot50_c2:q6_b2_m12 / glm78-grouped-observable-service-3b72ea2d | Layer 0 / mla / dense_layer | 1 | 0.6279 | 0.5491 | 0.3579 | -43.007% / -34.821% |
+| a3_glm53_w4a8_tp16_tpot50_c2:q6_b2_m12 / glm78-grouped-observable-service-3b72ea2d | Steady / mla / dense_layer | 2 | 0.5676 | 0.5344 | 0.3579 | -36.948% / -33.033% |
+| a3_glm53_w4a8_tp16_tpot50_c2:q6_b2_m12 / glm78-grouped-observable-service-3b72ea2d | Steady / mla / moe_layer | 75 | 0.7473 | 0.7151 | 0.4878 | -34.734% / -31.792% |
+| a3_glm53_w4a8_tp16_tpot30_c2:q6_b2_m12 / glm78-grouped-observable-service-3b72ea2d | Layer 0 / mla / dense_layer | 1 | 0.5858 | 0.5425 | 0.3579 | -38.903% / -34.034% |
+| a3_glm53_w4a8_tp16_tpot30_c2:q6_b2_m12 / glm78-grouped-observable-service-3b72ea2d | Steady / mla / dense_layer | 2 | 0.5667 | 0.5291 | 0.3579 | -36.851% / -32.360% |
+| a3_glm53_w4a8_tp16_tpot30_c2:q6_b2_m12 / glm78-grouped-observable-service-3b72ea2d | Steady / mla / moe_layer | 75 | 0.7455 | 0.7151 | 0.4877 | -34.582% / -31.792% |
 | qwen35-397b-a3-tp16-c136:q4_b160_m640 / body-runtime40e4300e-remaining-controller-corrected | Layer 0 / gdn / moe_layer | 1 | 2.0473 | 1.9983 | 1.6636 | -18.740% / -16.748% |
 | qwen35-397b-a3-tp16-c136:q4_b160_m640 / body-runtime40e4300e-remaining-controller-corrected | Steady / gdn / moe_layer | 44 | 1.9572 | 1.9352 | 1.6636 | -15.001% / -14.033% |
 | qwen35-397b-a3-tp16-c136:q4_b160_m640 / body-runtime40e4300e-remaining-controller-corrected | Steady / gqa / moe_layer | 15 | 2.0544 | 2.0314 | 1.8669 | -9.125% / -8.096% |
-| a3_glm53_w4a8_tp16_tpot88_c8:q6_b8_m48 / body-runtime40e4300e-glm-controller-corrected | Layer 0 / mla / dense_layer | 1 | 0.6710 | 0.6210 | 0.4630 | -31.000% / -25.451% |
-| a3_glm53_w4a8_tp16_tpot88_c8:q6_b8_m48 / body-runtime40e4300e-glm-controller-corrected | Steady / mla / dense_layer | 2 | 0.6345 | 0.6104 | 0.4630 | -27.037% / -24.156% |
-| a3_glm53_w4a8_tp16_tpot88_c8:q6_b8_m48 / body-runtime40e4300e-glm-controller-corrected | Steady / mla / moe_layer | 75 | 0.9015 | 0.8670 | 0.7219 | -19.926% / -16.736% |
-| a5_glm53flash_tp8_c16_p8k:q4_b16_m64 / body-runtime40e4300e-glm-join-reduce | Layer 0 / kda / dense_layer | 1 | 0.3876 | 0.4019 | 0.1343 | -65.347% / -66.580% |
-| a5_glm53flash_tp8_c16_p8k:q4_b16_m64 / body-runtime40e4300e-glm-join-reduce | Steady / kda / dense_layer | 2 | 0.2980 | 0.2974 | 0.1343 | -54.929% / -54.832% |
-| a5_glm53flash_tp8_c16_p8k:q4_b16_m64 / body-runtime40e4300e-glm-join-reduce | Steady / mla / moe_layer | 11 | 1.0591 | 1.0543 | 0.6241 | -41.069% / -40.803% |
-| a5_glm53flash_tp8_c16_p8k:q4_b16_m64 / body-runtime40e4300e-glm-join-reduce | Steady / kda / moe_layer | 31 | 0.6768 | 0.6768 | 0.4211 | -37.785% / -37.784% |
-| a5_glm53flash_tp8_c32_p8k:q4_b32_m128 / body-runtime40e4300e-glm-join-reduce | Layer 0 / kda / dense_layer | 1 | 0.4891 | 0.4818 | 0.1920 | -60.735% / -60.141% |
-| a5_glm53flash_tp8_c32_p8k:q4_b32_m128 / body-runtime40e4300e-glm-join-reduce | Steady / kda / dense_layer | 2 | 0.3535 | 0.3535 | 0.1920 | -45.680% / -45.669% |
-| a5_glm53flash_tp8_c32_p8k:q4_b32_m128 / body-runtime40e4300e-glm-join-reduce | Steady / mla / moe_layer | 11 | 1.2946 | 1.2899 | 0.8774 | -32.222% / -31.977% |
-| a5_glm53flash_tp8_c32_p8k:q4_b32_m128 / body-runtime40e4300e-glm-join-reduce | Steady / kda / moe_layer | 31 | 0.7508 | 0.7507 | 0.4923 | -34.427% / -34.418% |
-| a5_glm53flash_tp8_c16_p4k:q4_b16_m64 / body-runtime40e4300e-glm-join-reduce | Layer 0 / kda / dense_layer | 1 | 0.3980 | 0.3937 | 0.1343 | -66.247% / -65.881% |
-| a5_glm53flash_tp8_c16_p4k:q4_b16_m64 / body-runtime40e4300e-glm-join-reduce | Steady / kda / dense_layer | 2 | 0.2982 | 0.2982 | 0.1343 | -54.960% / -54.954% |
-| a5_glm53flash_tp8_c16_p4k:q4_b16_m64 / body-runtime40e4300e-glm-join-reduce | Steady / mla / moe_layer | 11 | 1.0018 | 0.9978 | 0.6071 | -39.400% / -39.156% |
-| a5_glm53flash_tp8_c16_p4k:q4_b16_m64 / body-runtime40e4300e-glm-join-reduce | Steady / kda / moe_layer | 31 | 0.6779 | 0.6772 | 0.4211 | -37.887% / -37.819% |
-| a5_glm53flash_tp8_c32_p4k:q4_b32_m128 / body-runtime40e4300e-glm-join-reduce | Layer 0 / kda / dense_layer | 1 | 0.4873 | 0.4626 | 0.1920 | -60.592% / -58.489% |
-| a5_glm53flash_tp8_c32_p4k:q4_b32_m128 / body-runtime40e4300e-glm-join-reduce | Steady / kda / dense_layer | 2 | 0.3528 | 0.3529 | 0.1920 | -45.570% / -45.578% |
-| a5_glm53flash_tp8_c32_p4k:q4_b32_m128 / body-runtime40e4300e-glm-join-reduce | Steady / mla / moe_layer | 11 | 1.1973 | 1.1925 | 0.8430 | -29.594% / -29.309% |
-| a5_glm53flash_tp8_c32_p4k:q4_b32_m128 / body-runtime40e4300e-glm-join-reduce | Steady / kda / moe_layer | 31 | 0.7518 | 0.7522 | 0.4923 | -34.509% / -34.547% |
-| a5_glm53flash_tp8_c8_p4k:q4_b8_m32 / body-runtime40e4300e-glm-join-reduce | Layer 0 / kda / dense_layer | 1 | 0.4973 | 0.4989 | 0.1085 | -78.175% / -78.244% |
-| a5_glm53flash_tp8_c8_p4k:q4_b8_m32 / body-runtime40e4300e-glm-join-reduce | Steady / kda / dense_layer | 2 | 0.2536 | 0.2520 | 0.1085 | -57.206% / -56.935% |
-| a5_glm53flash_tp8_c8_p4k:q4_b8_m32 / body-runtime40e4300e-glm-join-reduce | Steady / mla / moe_layer | 11 | 0.8678 | 0.8641 | 0.4646 | -46.457% / -46.225% |
-| a5_glm53flash_tp8_c8_p4k:q4_b8_m32 / body-runtime40e4300e-glm-join-reduce | Steady / kda / moe_layer | 31 | 0.5897 | 0.5893 | 0.3607 | -38.833% / -38.789% |
-| a5_glm53flash_tp8_c64_p4k:q4_b64_m256 / body-runtime40e4300e-glm-join-reduce | Layer 0 / kda / dense_layer | 1 | 0.5510 | 0.5299 | 0.3116 | -43.443% / -41.191% |
-| a5_glm53flash_tp8_c64_p4k:q4_b64_m256 / body-runtime40e4300e-glm-join-reduce | Steady / kda / dense_layer | 2 | 0.4693 | 0.4691 | 0.3116 | -33.598% / -33.567% |
-| a5_glm53flash_tp8_c64_p4k:q4_b64_m256 / body-runtime40e4300e-glm-join-reduce | Steady / mla / moe_layer | 11 | 1.5929 | 1.5839 | 1.2803 | -19.626% / -19.169% |
-| a5_glm53flash_tp8_c64_p4k:q4_b64_m256 / body-runtime40e4300e-glm-join-reduce | Steady / kda / moe_layer | 31 | 0.8876 | 0.8877 | 0.6291 | -29.128% / -29.138% |
+| a3_glm53_w4a8_tp16_tpot88_c8:q6_b8_m48 / glm78-grouped-observable-service-3b72ea2d | Layer 0 / mla / dense_layer | 1 | 0.6710 | 0.6210 | 0.4630 | -31.000% / -25.451% |
+| a3_glm53_w4a8_tp16_tpot88_c8:q6_b8_m48 / glm78-grouped-observable-service-3b72ea2d | Steady / mla / dense_layer | 2 | 0.6345 | 0.6104 | 0.4630 | -27.037% / -24.156% |
+| a3_glm53_w4a8_tp16_tpot88_c8:q6_b8_m48 / glm78-grouped-observable-service-3b72ea2d | Steady / mla / moe_layer | 75 | 0.9015 | 0.8670 | 0.7168 | -20.482% / -17.314% |
 | qwen35-35b-a5-tp4-c128-graph:q4_b128_m512 / body-qwen35-mc2-tp-source-bf71bd7d | Layer 0 / gdn / moe_layer | 1 | 0.7544 | 0.7238 | 0.4292 | -43.110% / -40.700% |
 | qwen35-35b-a5-tp4-c128-graph:q4_b128_m512 / body-qwen35-mc2-tp-source-bf71bd7d | Steady / gdn / moe_layer | 29 | 0.7199 | 0.7199 | 0.4292 | -40.378% / -40.383% |
 | qwen35-35b-a5-tp4-c128-graph:q4_b128_m512 / body-qwen35-mc2-tp-source-bf71bd7d | Steady / gqa / moe_layer | 10 | 0.6953 | 0.6941 | 0.3746 | -46.129% / -46.035% |
-| a5_kimi_tp8_e16_bf16_c32_p4k:q1_b32_m32 / body-highconc-mc2-prefix-cc245da6 | Layer 0 / kda / dense_layer | 1 | 0.3379 | 0.3376 | 0.2534 | -25.019% / -24.941% |
-| a5_kimi_tp8_e16_bf16_c32_p4k:q1_b32_m32 / body-highconc-mc2-prefix-cc245da6 | Steady / kda / moe_layer | 68 | 0.4141 | 0.4140 | 0.3005 | -27.430% / -27.413% |
-| a5_kimi_tp8_e16_bf16_c32_p4k:q1_b32_m32 / body-highconc-mc2-prefix-cc245da6 | Steady / mla / moe_layer | 24 | 0.4799 | 0.4722 | 0.3267 | -31.924% / -30.822% |
-| a5_kimi_tp8_e16_bf16_c16_p4k:q1_b16_m16 / body-runtime40e4300e-kimi-controller-corrected | Layer 0 / kda / dense_layer | 1 | 0.3353 | 0.3023 | 0.2261 | -32.584% / -25.213% |
-| a5_kimi_tp8_e16_bf16_c16_p4k:q1_b16_m16 / body-runtime40e4300e-kimi-controller-corrected | Steady / kda / moe_layer | 68 | 0.3857 | 0.3855 | 0.2751 | -28.678% / -28.639% |
-| a5_kimi_tp8_e16_bf16_c16_p4k:q1_b16_m16 / body-runtime40e4300e-kimi-controller-corrected | Steady / mla / moe_layer | 24 | 0.4340 | 0.4269 | 0.2779 | -35.979% / -34.906% |
-| a5_kimi_tp8_e16_bf16_c16_p16k:q1_b16_m16 / body-runtime40e4300e-kimi-controller-corrected | Layer 0 / kda / dense_layer | 1 | 0.3047 | 0.3023 | 0.2261 | -25.808% / -25.213% |
-| a5_kimi_tp8_e16_bf16_c16_p16k:q1_b16_m16 / body-runtime40e4300e-kimi-controller-corrected | Steady / kda / moe_layer | 68 | 0.3858 | 0.3856 | 0.2751 | -28.693% / -28.651% |
-| a5_kimi_tp8_e16_bf16_c16_p16k:q1_b16_m16 / body-runtime40e4300e-kimi-controller-corrected | Steady / mla / moe_layer | 24 | 0.5293 | 0.5223 | 0.3859 | -27.092% / -26.116% |
-| a5_kimi_tp8_e16_bf16_c32_p16k:q1_b32_m32 / body-highconc-mc2-prefix-cc245da6 | Layer 0 / kda / dense_layer | 1 | 0.3620 | 0.3384 | 0.2534 | -30.009% / -25.120% |
-| a5_kimi_tp8_e16_bf16_c32_p16k:q1_b32_m32 / body-highconc-mc2-prefix-cc245da6 | Steady / kda / moe_layer | 68 | 0.4145 | 0.4142 | 0.3005 | -27.490% / -27.441% |
-| a5_kimi_tp8_e16_bf16_c32_p16k:q1_b32_m32 / body-highconc-mc2-prefix-cc245da6 | Steady / mla / moe_layer | 24 | 0.6715 | 0.6644 | 0.5428 | -19.171% / -18.301% |
-| a5_glm53flash_tp8_c4_p8k:q4_b4_m16 / body-runtime40e4300e-glm-join-reduce | Layer 0 / kda / dense_layer | 1 | 0.3235 | 0.2805 | 0.0989 | -69.436% / -64.754% |
-| a5_glm53flash_tp8_c4_p8k:q4_b4_m16 / body-runtime40e4300e-glm-join-reduce | Steady / kda / dense_layer | 2 | 0.2349 | 0.2350 | 0.0989 | -57.919% / -57.928% |
-| a5_glm53flash_tp8_c4_p8k:q4_b4_m16 / body-runtime40e4300e-glm-join-reduce | Steady / mla / moe_layer | 11 | 0.6731 | 0.6714 | 0.2948 | -56.211% / -56.095% |
-| a5_glm53flash_tp8_c4_p8k:q4_b4_m16 / body-runtime40e4300e-glm-join-reduce | Steady / kda / moe_layer | 31 | 0.4264 | 0.4251 | 0.2304 | -45.974% / -45.804% |
-| a5_kimi_tp8_e16_bf16_c8_p4k:q1_b8_m8 / body-runtime40e4300e-kimi-controller-corrected | Layer 0 / kda / dense_layer | 1 | 0.3102 | 0.2816 | 0.2134 | -31.205% / -24.217% |
-| a5_kimi_tp8_e16_bf16_c8_p4k:q1_b8_m8 / body-runtime40e4300e-kimi-controller-corrected | Steady / kda / moe_layer | 68 | 0.3652 | 0.3648 | 0.2632 | -27.931% / -27.841% |
-| a5_kimi_tp8_e16_bf16_c8_p4k:q1_b8_m8 / body-runtime40e4300e-kimi-controller-corrected | Steady / mla / moe_layer | 24 | 0.4029 | 0.3960 | 0.2530 | -37.203% / -36.105% |
-| a5_kimi_tp8_e16_bf16_c8_p16k:q1_b8_m8 / body-runtime40e4300e-kimi-controller-corrected | Layer 0 / kda / dense_layer | 1 | 0.2840 | 0.2810 | 0.2134 | -24.873% / -24.076% |
-| a5_kimi_tp8_e16_bf16_c8_p16k:q1_b8_m8 / body-runtime40e4300e-kimi-controller-corrected | Steady / kda / moe_layer | 68 | 0.3653 | 0.3650 | 0.2632 | -27.934% / -27.876% |
-| a5_kimi_tp8_e16_bf16_c8_p16k:q1_b8_m8 / body-runtime40e4300e-kimi-controller-corrected | Steady / mla / moe_layer | 24 | 0.4517 | 0.4454 | 0.3055 | -32.353% / -31.408% |
-| a5_kimi_tp8_e16_bf16_c4_p4k:q1_b4_m4 / body-runtime40e4300e-kimi-controller-corrected | Layer 0 / kda / dense_layer | 1 | 0.2930 | 0.2771 | 0.2095 | -28.497% / -24.393% |
-| a5_kimi_tp8_e16_bf16_c4_p4k:q1_b4_m4 / body-runtime40e4300e-kimi-controller-corrected | Steady / kda / moe_layer | 68 | 0.3596 | 0.3596 | 0.2594 | -27.880% / -27.864% |
-| a5_kimi_tp8_e16_bf16_c4_p4k:q1_b4_m4 / body-runtime40e4300e-kimi-controller-corrected | Steady / mla / moe_layer | 24 | 0.3935 | 0.3863 | 0.2455 | -37.599% / -36.448% |
-| a5_kimi_tp8_e16_bf16_c4_p16k:q1_b4_m4 / body-runtime40e4300e-kimi-controller-corrected | Layer 0 / kda / dense_layer | 1 | 0.2974 | 0.2770 | 0.2095 | -29.553% / -24.363% |
-| a5_kimi_tp8_e16_bf16_c4_p16k:q1_b4_m4 / body-runtime40e4300e-kimi-controller-corrected | Steady / kda / moe_layer | 68 | 0.3596 | 0.3592 | 0.2594 | -27.878% / -27.801% |
-| a5_kimi_tp8_e16_bf16_c4_p16k:q1_b4_m4 / body-runtime40e4300e-kimi-controller-corrected | Steady / mla / moe_layer | 24 | 0.4192 | 0.4125 | 0.2718 | -35.164% / -34.099% |
 | qwen35-35b-a5-tp4-c64-graph:q4_b64_m256 / body-qwen35-mc2-tp-source-bf71bd7d | Layer 0 / gdn / moe_layer | 1 | 0.7737 | 0.8216 | 0.3076 | -60.242% / -62.562% |
 | qwen35-35b-a5-tp4-c64-graph:q4_b64_m256 / body-qwen35-mc2-tp-source-bf71bd7d | Steady / gdn / moe_layer | 29 | 0.5470 | 0.5467 | 0.3076 | -43.765% / -43.738% |
 | qwen35-35b-a5-tp4-c64-graph:q4_b64_m256 / body-qwen35-mc2-tp-source-bf71bd7d | Steady / gqa / moe_layer | 10 | 0.5320 | 0.5323 | 0.2496 | -53.087% / -53.113% |
-| a5_kimi_tp8_e16_bf16_c2_p16k:q1_b2_m2 / body-runtime40e4300e-kimi-controller-corrected | Layer 0 / kda / dense_layer | 1 | 0.2876 | 0.2698 | 0.2080 | -27.680% / -22.918% |
-| a5_kimi_tp8_e16_bf16_c2_p16k:q1_b2_m2 / body-runtime40e4300e-kimi-controller-corrected | Steady / kda / moe_layer | 68 | 0.3531 | 0.3529 | 0.2578 | -26.988% / -26.945% |
-| a5_kimi_tp8_e16_bf16_c2_p16k:q1_b2_m2 / body-runtime40e4300e-kimi-controller-corrected | Steady / mla / moe_layer | 24 | 0.3989 | 0.3918 | 0.2534 | -36.469% / -35.310% |
-| a5_kimi_tp8_e16_bf16_c2_p4k:q1_b2_m2 / body-runtime40e4300e-kimi-controller-corrected | Layer 0 / kda / dense_layer | 1 | 0.3027 | 0.2698 | 0.2080 | -31.287% / -22.932% |
-| a5_kimi_tp8_e16_bf16_c2_p4k:q1_b2_m2 / body-runtime40e4300e-kimi-controller-corrected | Steady / kda / moe_layer | 68 | 0.3533 | 0.3531 | 0.2578 | -27.033% / -26.996% |
-| a5_kimi_tp8_e16_bf16_c2_p4k:q1_b2_m2 / body-runtime40e4300e-kimi-controller-corrected | Steady / mla / moe_layer | 24 | 0.3840 | 0.3767 | 0.2401 | -37.475% / -36.270% |
-| qwen36-a5-tp2-c96:q4_b96_m384 / body-runtime40e4300e-qwen-hccl-controller-corrected | Layer 0 / gdn / dense_layer | 1 | 1.3691 | 1.0682 | 0.8941 | -34.694% / -16.295% |
-| qwen36-a5-tp2-c96:q4_b96_m384 / body-runtime40e4300e-qwen-hccl-controller-corrected | Steady / gdn / dense_layer | 47 | 1.0584 | 1.0584 | 0.8941 | -15.526% / -15.524% |
-| qwen36-a5-tp2-c96:q4_b96_m384 / body-runtime40e4300e-qwen-hccl-controller-corrected | Steady / gqa / dense_layer | 16 | 0.7931 | 0.7928 | 0.6894 | -13.080% / -13.036% |
-| glm53flash-a5-tp8-c3:q4_b4_m16 / body-runtime40e4300e-glm-join-reduce | Layer 0 / kda / dense_layer | 1 | 0.4650 | 0.4745 | 0.1081 | -76.746% / -77.210% |
-| glm53flash-a5-tp8-c3:q4_b4_m16 / body-runtime40e4300e-glm-join-reduce | Steady / kda / dense_layer | 2 | 0.2383 | 0.2328 | 0.1081 | -54.625% / -53.554% |
-| glm53flash-a5-tp8-c3:q4_b4_m16 / body-runtime40e4300e-glm-join-reduce | Steady / mla / moe_layer | 11 | 0.6392 | 0.6337 | 0.3177 | -50.301% / -49.871% |
-| glm53flash-a5-tp8-c3:q4_b4_m16 / body-runtime40e4300e-glm-join-reduce | Steady / kda / moe_layer | 31 | 0.4224 | 0.4216 | 0.2575 | -39.027% / -38.918% |
-| glm53flash-a5-tp8-c1:q4_b1_m4 / body-runtime40e4300e-glm-join-reduce | Layer 0 / kda / dense_layer | 1 | 0.4222 | 0.4383 | 0.0877 | -79.219% / -79.980% |
-| glm53flash-a5-tp8-c1:q4_b1_m4 / body-runtime40e4300e-glm-join-reduce | Steady / kda / dense_layer | 2 | 0.2487 | 0.2314 | 0.0877 | -64.718% / -62.082% |
-| glm53flash-a5-tp8-c1:q4_b1_m4 / body-runtime40e4300e-glm-join-reduce | Steady / mla / moe_layer | 11 | 0.4952 | 0.4903 | 0.1937 | -60.878% / -60.488% |
-| glm53flash-a5-tp8-c1:q4_b1_m4 / body-runtime40e4300e-glm-join-reduce | Steady / kda / moe_layer | 31 | 0.3005 | 0.2985 | 0.1431 | -52.388% / -52.071% |
-| a5_v41_fp8_tp1_dp8_ep8_c128_p2k:q1_b16_m16 / body-highconc-mc2-prefix-cc245da6 | Layer 0 / mla / moe_layer | 1 | 0.8025 | 0.7842 | 0.4572 | -43.029% / -41.699% |
-| a5_v41_fp8_tp1_dp8_ep8_c128_p2k:q1_b16_m16 / body-highconc-mc2-prefix-cc245da6 | Steady / mla / moe_layer | 39 | 0.6790 | 0.6545 | 0.4817 | -29.056% / -26.399% |
 | qwen35-397b-a3-tp16-c48:q4_b64_m256 / body-runtime40e4300e-remaining-controller-corrected | Layer 0 / gdn / moe_layer | 1 | 1.3503 | 1.2865 | 1.1044 | -18.212% / -14.153% |
 | qwen35-397b-a3-tp16-c48:q4_b64_m256 / body-runtime40e4300e-remaining-controller-corrected | Steady / gdn / moe_layer | 44 | 1.2329 | 1.2077 | 1.1044 | -10.421% / -8.553% |
 | qwen35-397b-a3-tp16-c48:q4_b64_m256 / body-runtime40e4300e-remaining-controller-corrected | Steady / gqa / moe_layer | 15 | 1.3614 | 1.3469 | 1.2404 | -8.891% / -7.908% |
-| a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64:q1_b8_m8 / body-highconc-mc2-prefix-cc245da6 | Layer 0 / mla / moe_layer | 1 | 0.7498 | 0.7292 | 0.4502 | -39.962% / -38.261% |
-| a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64:q1_b8_m8 / body-highconc-mc2-prefix-cc245da6 | Steady / mla / moe_layer | 39 | 0.6558 | 0.6334 | 0.4739 | -27.735% / -25.177% |
-| a5_kimi_tp8_e16_bf16_c1_p16k:q1_b1_m1 / body-runtime40e4300e-kimi-controller-corrected | Layer 0 / kda / dense_layer | 1 | 0.2595 | 0.2581 | 0.2073 | -20.103% / -19.685% |
-| a5_kimi_tp8_e16_bf16_c1_p16k:q1_b1_m1 / body-runtime40e4300e-kimi-controller-corrected | Steady / kda / moe_layer | 68 | 0.3208 | 0.3208 | 0.2572 | -19.832% / -19.834% |
-| a5_kimi_tp8_e16_bf16_c1_p16k:q1_b1_m1 / body-runtime40e4300e-kimi-controller-corrected | Steady / mla / moe_layer | 24 | 0.3644 | 0.3577 | 0.2435 | -33.190% / -31.937% |
-| a5_kimi_tp8_e16_bf16_c1_p4k:q1_b1_m1 / body-runtime40e4300e-kimi-controller-corrected | Layer 0 / kda / dense_layer | 1 | 0.2772 | 0.2578 | 0.2073 | -25.212% / -19.583% |
-| a5_kimi_tp8_e16_bf16_c1_p4k:q1_b1_m1 / body-runtime40e4300e-kimi-controller-corrected | Steady / kda / moe_layer | 68 | 0.3209 | 0.3210 | 0.2572 | -19.857% / -19.885% |
-| a5_kimi_tp8_e16_bf16_c1_p4k:q1_b1_m1 / body-runtime40e4300e-kimi-controller-corrected | Steady / mla / moe_layer | 24 | 0.3556 | 0.3487 | 0.2367 | -33.436% / -32.110% |
+| glm53flash-a3-tp16-c4-livepre:q6_b4_m24 / a3-observable-service-2f48346b | Layer 0 / kda / dense_layer | 1 | 0.8292 | 0.7249 | 0.4293 | -48.226% / -40.772% |
+| glm53flash-a3-tp16-c4-livepre:q6_b4_m24 / a3-observable-service-2f48346b | Steady / kda / dense_layer | 2 | 0.2964 | 0.2961 | 0.4293 | 44.850% / 44.984% |
+| glm53flash-a3-tp16-c4-livepre:q6_b4_m24 / a3-observable-service-2f48346b | Steady / mla / moe_layer | 11 | 0.9295 | 0.9276 | 1.0160 | 9.304% / 9.530% |
+| glm53flash-a3-tp16-c4-livepre:q6_b4_m24 / a3-observable-service-2f48346b | Steady / kda / moe_layer | 31 | 0.5827 | 0.5821 | 0.8025 | 37.728% / 37.863% |
 | qwen35-35b-a5-tp4-c4-graph:q4_b4_m16 / body-qwen35-mc2-tp-source-bf71bd7d | Layer 0 / gdn / moe_layer | 1 | 0.3868 | 0.2973 | 0.1181 | -69.456% / -60.269% |
 | qwen35-35b-a5-tp4-c4-graph:q4_b4_m16 / body-qwen35-mc2-tp-source-bf71bd7d | Steady / gdn / moe_layer | 29 | 0.2819 | 0.2827 | 0.1181 | -58.095% / -58.216% |
 | qwen35-35b-a5-tp4-c4-graph:q4_b4_m16 / body-qwen35-mc2-tp-source-bf71bd7d | Steady / gqa / moe_layer | 10 | 0.2989 | 0.2992 | 0.1162 | -61.122% / -61.162% |
-| glm53flash-a3-tp16-c4-livepre:q6_b4_m24 / body-runtime40e4300e-glm-controller-corrected | Layer 0 / kda / dense_layer | 1 | 0.8292 | 0.7249 | 0.3972 | -52.096% / -45.199% |
-| glm53flash-a3-tp16-c4-livepre:q6_b4_m24 / body-runtime40e4300e-glm-controller-corrected | Steady / kda / dense_layer | 2 | 0.2964 | 0.2961 | 0.3972 | 34.024% / 34.149% |
-| glm53flash-a3-tp16-c4-livepre:q6_b4_m24 / body-runtime40e4300e-glm-controller-corrected | Steady / mla / moe_layer | 11 | 0.9295 | 0.9276 | 1.0160 | 9.304% / 9.530% |
-| glm53flash-a3-tp16-c4-livepre:q6_b4_m24 / body-runtime40e4300e-glm-controller-corrected | Steady / kda / moe_layer | 31 | 0.5827 | 0.5821 | 0.7704 | 32.222% / 32.351% |
-| a5_v41_fp8_tp1_dp8_ep8_c32_p2k:q1_b4_m4 / body-runtime40e4300e-v41-controller-corrected | Layer 0 / mla / moe_layer | 1 | 0.5279 | 0.5209 | 0.2862 | -45.781% / -45.046% |
-| a5_v41_fp8_tp1_dp8_ep8_c32_p2k:q1_b4_m4 / body-runtime40e4300e-v41-controller-corrected | Steady / mla / moe_layer | 39 | 0.4640 | 0.4441 | 0.3096 | -33.268% / -30.278% |
-| a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8:q1_b1_m1 / body-runtime40e4300e-v41-controller-corrected | Layer 0 / mla / moe_layer | 1 | 0.8501 | 0.3611 | 0.1632 | -80.804% / -54.804% |
-| a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8:q1_b1_m1 / body-runtime40e4300e-v41-controller-corrected | Steady / mla / moe_layer | 39 | 0.3189 | 0.3014 | 0.1863 | -41.579% / -38.171% |
-| a5_v41_fp8_tp1_dp8_ep8_c16_p2k:q1_b2_m2 / body-runtime40e4300e-v41-controller-corrected | Layer 0 / mla / moe_layer | 1 | 0.4353 | 0.4201 | 0.2043 | -53.057% / -51.363% |
-| a5_v41_fp8_tp1_dp8_ep8_c16_p2k:q1_b2_m2 / body-runtime40e4300e-v41-controller-corrected | Steady / mla / moe_layer | 39 | 0.3716 | 0.3526 | 0.2275 | -38.764% / -35.472% |
-| a5_v41_fp8_tp1_dp8_ep8_c4_p2k:q1_b1_m1 / body-runtime40e4300e-v41-controller-corrected | Layer 0 / mla / moe_layer | 1 | 0.8470 | 0.8162 | 0.1632 | -80.734% / -80.007% |
-| a5_v41_fp8_tp1_dp8_ep8_c4_p2k:q1_b1_m1 / body-runtime40e4300e-v41-controller-corrected | Steady / mla / moe_layer | 39 | 0.3177 | 0.3003 | 0.1863 | -41.345% / -37.950% |
-| a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1:q1_b1_m1 / body-runtime40e4300e-v41-controller-corrected | Layer 0 / mla / moe_layer | 1 | 0.8189 | 0.8103 | 0.1632 | -80.072% / -79.860% |
-| a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1:q1_b1_m1 / body-runtime40e4300e-v41-controller-corrected | Steady / mla / moe_layer | 39 | 0.3157 | 0.2984 | 0.1863 | -40.982% / -37.547% |
 | a3_glm53_dc4k_b2:q1_b2_m2 / body-runtime40e4300e-glm-controller-corrected | Layer 0 / mla / dense_layer | 1 | 0.4105 | 0.3960 | 0.3553 | -13.446% / -10.263% |
 | a3_glm53_dc4k_b2:q1_b2_m2 / body-runtime40e4300e-glm-controller-corrected | Steady / mla / dense_layer | 2 | 0.3997 | 0.3865 | 0.3553 | -11.099% / -8.071% |
 | a3_glm53_dc4k_b2:q1_b2_m2 / body-runtime40e4300e-glm-controller-corrected | Steady / mla / moe_layer | 75 | 0.5293 | 0.5092 | 0.4589 | -13.300% / -9.874% |
 | a3_glm53_dc16k_b1:q1_b1_m1 / body-runtime40e4300e-glm-controller-corrected | Layer 0 / mla / dense_layer | 1 | 0.4020 | 0.3967 | 0.3538 | -11.986% / -10.799% |
 | a3_glm53_dc16k_b1:q1_b1_m1 / body-runtime40e4300e-glm-controller-corrected | Steady / mla / dense_layer | 2 | 0.3934 | 0.3879 | 0.3538 | -10.055% / -8.784% |
 | a3_glm53_dc16k_b1:q1_b1_m1 / body-runtime40e4300e-glm-controller-corrected | Steady / mla / moe_layer | 75 | 0.5045 | 0.4834 | 0.4343 | -13.904% / -10.159% |
-| qwen36-a5-tp2-c12:q4_b12_m48 / body-runtime40e4300e-qwen-hccl-controller-corrected | Layer 0 / gdn / dense_layer | 1 | 0.6168 | 0.3931 | 0.3206 | -48.032% / -18.454% |
-| qwen36-a5-tp2-c12:q4_b12_m48 / body-runtime40e4300e-qwen-hccl-controller-corrected | Steady / gdn / dense_layer | 47 | 0.4044 | 0.4033 | 0.3206 | -20.734% / -20.517% |
-| qwen36-a5-tp2-c12:q4_b12_m48 / body-runtime40e4300e-qwen-hccl-controller-corrected | Steady / gqa / dense_layer | 16 | 0.2846 | 0.2843 | 0.2165 | -23.942% / -23.856% |
+| a5_glm53flash_tp8_c8_p4k:q4_b8_m32 / observed-service-hc-atomic-3b72ea2d | Layer 0 / kda / dense_layer | 1 | 0.4973 | 0.4989 | 0.1663 | -66.551% / -66.656% |
+| a5_glm53flash_tp8_c8_p4k:q4_b8_m32 / observed-service-hc-atomic-3b72ea2d | Steady / kda / dense_layer | 2 | 0.2536 | 0.2520 | 0.1663 | -34.414% / -33.998% |
+| a5_glm53flash_tp8_c8_p4k:q4_b8_m32 / observed-service-hc-atomic-3b72ea2d | Steady / mla / moe_layer | 11 | 0.8678 | 0.8641 | 0.6424 | -25.973% / -25.653% |
+| a5_glm53flash_tp8_c8_p4k:q4_b8_m32 / observed-service-hc-atomic-3b72ea2d | Steady / kda / moe_layer | 31 | 0.5897 | 0.5893 | 0.5132 | -12.987% / -12.924% |
 | a3_glm53_dc4k_b1:q1_b1_m1 / body-runtime40e4300e-glm-controller-corrected | Layer 0 / mla / dense_layer | 1 | 0.3943 | 0.3854 | 0.3538 | -10.249% / -8.177% |
 | a3_glm53_dc4k_b1:q1_b1_m1 / body-runtime40e4300e-glm-controller-corrected | Steady / mla / dense_layer | 2 | 0.3841 | 0.3775 | 0.3538 | -7.886% / -6.257% |
 | a3_glm53_dc4k_b1:q1_b1_m1 / body-runtime40e4300e-glm-controller-corrected | Steady / mla / moe_layer | 75 | 0.5031 | 0.4848 | 0.4343 | -13.663% / -10.409% |
+| a5_glm53flash_tp8_c16_p4k:q4_b16_m64 / observed-service-hc-atomic-3b72ea2d | Layer 0 / kda / dense_layer | 1 | 0.3980 | 0.3937 | 0.2017 | -49.316% / -48.766% |
+| a5_glm53flash_tp8_c16_p4k:q4_b16_m64 / observed-service-hc-atomic-3b72ea2d | Steady / kda / dense_layer | 2 | 0.2982 | 0.2982 | 0.2017 | -32.366% / -32.357% |
+| a5_glm53flash_tp8_c16_p4k:q4_b16_m64 / observed-service-hc-atomic-3b72ea2d | Steady / mla / moe_layer | 11 | 1.0018 | 0.9978 | 0.7903 | -21.111% / -20.794% |
+| a5_glm53flash_tp8_c16_p4k:q4_b16_m64 / observed-service-hc-atomic-3b72ea2d | Steady / kda / moe_layer | 31 | 0.6779 | 0.6772 | 0.5968 | -11.972% / -11.876% |
+| a5_glm53flash_tp8_c16_p8k:q4_b16_m64 / observed-service-hc-atomic-3b72ea2d | Layer 0 / kda / dense_layer | 1 | 0.3876 | 0.4019 | 0.2015 | -48.024% / -49.874% |
+| a5_glm53flash_tp8_c16_p8k:q4_b16_m64 / observed-service-hc-atomic-3b72ea2d | Steady / kda / dense_layer | 2 | 0.2980 | 0.2974 | 0.2015 | -32.397% / -32.252% |
+| a5_glm53flash_tp8_c16_p8k:q4_b16_m64 / observed-service-hc-atomic-3b72ea2d | Steady / mla / moe_layer | 11 | 1.0591 | 1.0543 | 0.8456 | -20.158% / -19.797% |
+| a5_glm53flash_tp8_c16_p8k:q4_b16_m64 / observed-service-hc-atomic-3b72ea2d | Steady / kda / moe_layer | 31 | 0.6768 | 0.6768 | 0.5962 | -11.911% / -11.910% |
+| a5_glm53flash_tp8_c4_p8k:q4_b4_m16 / observed-service-hc-atomic-3b72ea2d | Layer 0 / kda / dense_layer | 1 | 0.3235 | 0.2805 | 0.1431 | -55.767% / -48.991% |
+| a5_glm53flash_tp8_c4_p8k:q4_b4_m16 / observed-service-hc-atomic-3b72ea2d | Steady / kda / dense_layer | 2 | 0.2349 | 0.2350 | 0.1431 | -39.099% / -39.112% |
+| a5_glm53flash_tp8_c4_p8k:q4_b4_m16 / observed-service-hc-atomic-3b72ea2d | Steady / mla / moe_layer | 11 | 0.6731 | 0.6714 | 0.4459 | -33.762% / -33.586% |
+| a5_glm53flash_tp8_c4_p8k:q4_b4_m16 / observed-service-hc-atomic-3b72ea2d | Steady / kda / moe_layer | 31 | 0.4264 | 0.4251 | 0.3564 | -16.430% / -16.168% |
 | v4flash-a3-tp8-c4:q2_b4_m8 / body-a3-v4-caller-bf16-cc245da6 | Layer 0 / mla / moe_layer | 1 | 0.7568 | 0.7178 | 0.5582 | -26.240% / -22.230% |
 | v4flash-a3-tp8-c4:q2_b4_m8 / body-a3-v4-caller-bf16-cc245da6 | Steady / mla / moe_layer | 42 | 0.7543 | 0.7537 | 0.6448 | -14.519% / -14.452% |
 | a3_glm53_dc4k_b4:q1_b4_m4 / body-runtime40e4300e-glm-controller-corrected | Layer 0 / mla / dense_layer | 1 | 0.4118 | 0.4071 | 0.3583 | -12.995% / -11.999% |
@@ -457,13 +396,22 @@ The steady P50 column is median of per-layer call P50, unless a separately linke
 | glm53flash-a3-tp16-c2:q6_b2_m12 / body-runtime40e4300e-glm-controller-corrected | Steady / kda / dense_layer | 2 | 0.5965 | 0.5414 | 0.3616 | -39.377% / -33.206% |
 | glm53flash-a3-tp16-c2:q6_b2_m12 / body-runtime40e4300e-glm-controller-corrected | Steady / mla / moe_layer | 11 | 0.9546 | 0.9395 | 0.7838 | -17.897% / -16.575% |
 | glm53flash-a3-tp16-c2:q6_b2_m12 / body-runtime40e4300e-glm-controller-corrected | Steady / kda / moe_layer | 31 | 0.7032 | 0.6643 | 0.6364 | -9.506% / -4.205% |
-| qwen36-a5-tp2-c1:q4_b1_m4 / body-runtime40e4300e-qwen-hccl-controller-corrected | Layer 0 / gdn / dense_layer | 1 | 0.2400 | 0.1984 | 0.1216 | -49.334% / -38.719% |
-| qwen36-a5-tp2-c1:q4_b1_m4 / body-runtime40e4300e-qwen-hccl-controller-corrected | Steady / gdn / dense_layer | 47 | 0.1919 | 0.1915 | 0.1216 | -36.641% / -36.506% |
-| qwen36-a5-tp2-c1:q4_b1_m4 / body-runtime40e4300e-qwen-hccl-controller-corrected | Steady / gqa / dense_layer | 16 | 0.1880 | 0.1876 | 0.1182 | -37.138% / -36.995% |
 | a3_glm53flash_tp16_aclgraph_c16:q6_b16_m96 / body-runtime40e4300e-glm-controller-corrected | Layer 0 / kda / dense_layer | 1 | 0.6895 | 0.6689 | 0.4380 | -36.479% / -34.517% |
 | a3_glm53flash_tp16_aclgraph_c16:q6_b16_m96 / body-runtime40e4300e-glm-controller-corrected | Steady / kda / dense_layer | 2 | 0.6561 | 0.6366 | 0.4380 | -33.241% / -31.193% |
 | a3_glm53flash_tp16_aclgraph_c16:q6_b16_m96 / body-runtime40e4300e-glm-controller-corrected | Steady / mla / moe_layer | 11 | 1.6861 | 1.6864 | 1.7462 | 3.566% / 3.548% |
 | a3_glm53flash_tp16_aclgraph_c16:q6_b16_m96 / body-runtime40e4300e-glm-controller-corrected | Steady / kda / moe_layer | 31 | 1.0740 | 1.0740 | 0.9392 | -12.549% / -12.551% |
+| a5_glm53flash_tp8_c32_p8k:q4_b32_m128 / observed-service-hc-atomic-3b72ea2d | Layer 0 / kda / dense_layer | 1 | 0.4891 | 0.4818 | 0.2484 | -49.203% / -48.435% |
+| a5_glm53flash_tp8_c32_p8k:q4_b32_m128 / observed-service-hc-atomic-3b72ea2d | Steady / kda / dense_layer | 2 | 0.3535 | 0.3535 | 0.2484 | -29.728% / -29.714% |
+| a5_glm53flash_tp8_c32_p8k:q4_b32_m128 / observed-service-hc-atomic-3b72ea2d | Steady / mla / moe_layer | 11 | 1.2946 | 1.2899 | 1.1551 | -10.775% / -10.453% |
+| a5_glm53flash_tp8_c32_p8k:q4_b32_m128 / observed-service-hc-atomic-3b72ea2d | Steady / kda / moe_layer | 31 | 0.7508 | 0.7507 | 0.6801 | -9.421% / -9.408% |
+| a5_glm53flash_tp8_c32_p4k:q4_b32_m128 / observed-service-hc-atomic-3b72ea2d | Layer 0 / kda / dense_layer | 1 | 0.4873 | 0.4626 | 0.2494 | -48.831% / -46.100% |
+| a5_glm53flash_tp8_c32_p4k:q4_b32_m128 / observed-service-hc-atomic-3b72ea2d | Steady / kda / dense_layer | 2 | 0.3528 | 0.3529 | 0.2494 | -29.325% / -29.335% |
+| a5_glm53flash_tp8_c32_p4k:q4_b32_m128 / observed-service-hc-atomic-3b72ea2d | Steady / mla / moe_layer | 11 | 1.1973 | 1.1925 | 1.0576 | -11.668% / -11.311% |
+| a5_glm53flash_tp8_c32_p4k:q4_b32_m128 / observed-service-hc-atomic-3b72ea2d | Steady / kda / moe_layer | 31 | 0.7518 | 0.7522 | 0.6809 | -9.421% / -9.473% |
+| glm53flash-a5-tp8-c3:q4_b4_m16 / observed-service-hc-atomic-3b72ea2d | Layer 0 / kda / dense_layer | 1 | 0.4650 | 0.4745 | 0.1456 | -68.697% / -69.322% |
+| glm53flash-a5-tp8-c3:q4_b4_m16 / observed-service-hc-atomic-3b72ea2d | Steady / kda / dense_layer | 2 | 0.2383 | 0.2328 | 0.1456 | -38.919% / -37.476% |
+| glm53flash-a5-tp8-c3:q4_b4_m16 / observed-service-hc-atomic-3b72ea2d | Steady / mla / moe_layer | 11 | 0.6392 | 0.6337 | 0.4383 | -31.434% / -30.840% |
+| glm53flash-a5-tp8-c3:q4_b4_m16 / observed-service-hc-atomic-3b72ea2d | Steady / kda / moe_layer | 31 | 0.4224 | 0.4216 | 0.3760 | -10.978% / -10.819% |
 | a5_kimi_k3_p32768_c1:q1_b1_m1 / body-runtime40e4300e-remaining-controller-corrected | Layer 0 / kda / dense_layer | 1 | 0.2579 | 0.2383 | 0.1824 | -29.281% / -23.457% |
 | a5_kimi_k3_p32768_c1:q1_b1_m1 / body-runtime40e4300e-remaining-controller-corrected | Steady / kda / moe_layer | 68 | 0.3397 | 0.3385 | 0.3113 | -8.338% / -8.021% |
 | a5_kimi_k3_p32768_c1:q1_b1_m1 / body-runtime40e4300e-remaining-controller-corrected | Steady / mla / moe_layer | 24 | 0.3832 | 0.3747 | 0.2997 | -21.798% / -20.010% |
@@ -471,6 +419,10 @@ The steady P50 column is median of per-layer call P50, unless a separately linke
 | a3_glm53flash_tp16_aclgraph_c32:q6_b32_m192 / body-runtime40e4300e-glm-controller-corrected | Steady / kda / dense_layer | 2 | 0.8762 | 0.8787 | 0.5962 | -31.956% / -32.148% |
 | a3_glm53flash_tp16_aclgraph_c32:q6_b32_m192 / body-runtime40e4300e-glm-controller-corrected | Steady / mla / moe_layer | 11 | 2.3319 | 2.3310 | 2.6499 | 13.640% / 13.684% |
 | a3_glm53flash_tp16_aclgraph_c32:q6_b32_m192 / body-runtime40e4300e-glm-controller-corrected | Steady / kda / moe_layer | 31 | 1.3210 | 1.3204 | 1.1117 | -15.849% / -15.810% |
+| glm53flash-a5-tp8-c1:q4_b1_m4 / observed-service-hc-atomic-3b72ea2d | Layer 0 / kda / dense_layer | 1 | 0.4222 | 0.4383 | 0.1333 | -68.440% / -69.595% |
+| glm53flash-a5-tp8-c1:q4_b1_m4 / observed-service-hc-atomic-3b72ea2d | Steady / kda / dense_layer | 2 | 0.2487 | 0.2314 | 0.1333 | -46.416% / -42.412% |
+| glm53flash-a5-tp8-c1:q4_b1_m4 / observed-service-hc-atomic-3b72ea2d | Steady / mla / moe_layer | 11 | 0.4952 | 0.4903 | 0.3154 | -36.298% / -35.662% |
+| glm53flash-a5-tp8-c1:q4_b1_m4 / observed-service-hc-atomic-3b72ea2d | Steady / kda / moe_layer | 31 | 0.3005 | 0.2985 | 0.2608 | -13.226% / -12.650% |
 | glm53flash-a3-tp16-c4:q6_b4_m24 / body-runtime40e4300e-glm-controller-corrected | Layer 0 / kda / dense_layer | 1 | 0.6141 | 0.5825 | 0.3972 | -35.310% / -31.800% |
 | glm53flash-a3-tp16-c4:q6_b4_m24 / body-runtime40e4300e-glm-controller-corrected | Steady / kda / dense_layer | 2 | 0.6160 | 0.5541 | 0.3972 | -35.515% / -28.303% |
 | glm53flash-a3-tp16-c4:q6_b4_m24 / body-runtime40e4300e-glm-controller-corrected | Steady / mla / moe_layer | 11 | 1.1665 | 1.1644 | 1.0160 | -12.906% / -12.748% |
@@ -479,40 +431,103 @@ The steady P50 column is median of per-layer call P50, unless a separately linke
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8:q8_b4_m32 / body-runtime40e4300e-remaining-controller-corrected | Steady / mla / moe_layer | 39 | 1.2089 | 1.1586 | 1.2923 | 6.896% / 11.537% |
 | v4flash-a3-tp8-c8:q2_b8_m16 / body-a3-v4-caller-bf16-cc245da6 | Layer 0 / mla / moe_layer | 1 | 0.8072 | 0.7668 | 0.7179 | -11.069% / -6.375% |
 | v4flash-a3-tp8-c8:q2_b8_m16 / body-a3-v4-caller-bf16-cc245da6 | Steady / mla / moe_layer | 42 | 0.8787 | 0.8831 | 0.8093 | -7.905% / -8.361% |
+| a5_kimi_tp8_e16_bf16_c32_p4k:q1_b32_m32 / composed-source-service-3b72ea2d | Layer 0 / kda / dense_layer | 1 | 0.3379 | 0.3376 | 0.2520 | -25.432% / -25.354% |
+| a5_kimi_tp8_e16_bf16_c32_p4k:q1_b32_m32 / composed-source-service-3b72ea2d | Steady / kda / moe_layer | 68 | 0.4141 | 0.4140 | 0.3922 | -5.306% / -5.284% |
+| a5_kimi_tp8_e16_bf16_c32_p4k:q1_b32_m32 / composed-source-service-3b72ea2d | Steady / mla / moe_layer | 24 | 0.4799 | 0.4722 | 0.4183 | -12.830% / -11.420% |
 | a3_glm53_dc4k_b8:q1_b8_m8 / body-runtime40e4300e-glm-controller-corrected | Layer 0 / mla / dense_layer | 1 | 0.4244 | 0.4227 | 0.3663 | -13.700% / -13.347% |
 | a3_glm53_dc4k_b8:q1_b8_m8 / body-runtime40e4300e-glm-controller-corrected | Steady / mla / dense_layer | 2 | 0.4119 | 0.4111 | 0.3663 | -11.071% / -10.914% |
 | a3_glm53_dc4k_b8:q1_b8_m8 / body-runtime40e4300e-glm-controller-corrected | Steady / mla / moe_layer | 75 | 0.6105 | 0.5863 | 0.5737 | -6.039% / -2.158% |
+| qwen36-a5-tp2-c12:q4_b12_m48 / observable-complete-cohort-service-3b72ea2d | Layer 0 / gdn / dense_layer | 1 | 0.6168 | 0.3931 | 0.3702 | -39.986% / -5.830% |
+| qwen36-a5-tp2-c12:q4_b12_m48 / observable-complete-cohort-service-3b72ea2d | Steady / gdn / dense_layer | 47 | 0.4044 | 0.4033 | 0.3702 | -8.463% / -8.212% |
+| qwen36-a5-tp2-c12:q4_b12_m48 / observable-complete-cohort-service-3b72ea2d | Steady / gqa / dense_layer | 16 | 0.2846 | 0.2843 | 0.2320 | -18.489% / -18.397% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4:q8_b2_m16 / body-runtime40e4300e-remaining-controller-corrected | Layer 0 / mla / moe_layer | 1 | 1.9159 | 1.6565 | 1.2401 | -35.275% / -25.139% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4:q8_b2_m16 / body-runtime40e4300e-remaining-controller-corrected | Steady / mla / moe_layer | 39 | 1.1716 | 1.1273 | 1.2572 | 7.308% / 11.519% |
+| a5_kimi_tp8_e16_bf16_c32_p16k:q1_b32_m32 / composed-source-service-3b72ea2d | Layer 0 / kda / dense_layer | 1 | 0.3620 | 0.3384 | 0.2520 | -30.394% / -25.532% |
+| a5_kimi_tp8_e16_bf16_c32_p16k:q1_b32_m32 / composed-source-service-3b72ea2d | Steady / kda / moe_layer | 68 | 0.4145 | 0.4142 | 0.3922 | -5.385% / -5.321% |
+| a5_kimi_tp8_e16_bf16_c32_p16k:q1_b32_m32 / composed-source-service-3b72ea2d | Steady / mla / moe_layer | 24 | 0.6715 | 0.6644 | 0.6344 | -5.527% / -4.511% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c16:q8_b5_m40 / body-runtime40e4300e-remaining-controller-corrected | Layer 0 / mla / moe_layer | 1 | 1.3818 | 1.1790 | 1.2914 | -6.539% / 9.534% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c16:q8_b5_m40 / body-runtime40e4300e-remaining-controller-corrected | Steady / mla / moe_layer | 39 | 1.2450 | 1.1856 | 1.3124 | 5.410% / 10.691% |
 | glm53flash-a5-tp8-c96:q4_b96_m384 / body-runtime40e4300e-glm-join-reduce | Layer 0 / kda / dense_layer | 1 | 0.6036 | 0.5889 | 0.6693 | 10.886% / 13.660% |
 | glm53flash-a5-tp8-c96:q4_b96_m384 / body-runtime40e4300e-glm-join-reduce | Steady / kda / dense_layer | 2 | 0.5724 | 0.5723 | 0.6693 | 16.939% / 16.965% |
 | glm53flash-a5-tp8-c96:q4_b96_m384 / body-runtime40e4300e-glm-join-reduce | Steady / mla / moe_layer | 11 | 2.2334 | 2.2329 | 2.0824 | -6.761% / -6.738% |
 | glm53flash-a5-tp8-c96:q4_b96_m384 / body-runtime40e4300e-glm-join-reduce | Steady / kda / moe_layer | 31 | 1.0088 | 1.0088 | 1.1114 | 10.170% / 10.172% |
+| a5_v41_fp8_tp1_dp8_ep8_c128_p2k:q1_b16_m16 / observable-service-2f48346b | Layer 0 / mla / moe_layer | 1 | 0.8025 | 0.7842 | 0.6101 | -23.977% / -22.201% |
+| a5_v41_fp8_tp1_dp8_ep8_c128_p2k:q1_b16_m16 / observable-service-2f48346b | Steady / mla / moe_layer | 39 | 0.6790 | 0.6545 | 0.6392 | -5.864% / -2.338% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64:q8_b17_m136 / body-runtime40e4300e-remaining-controller-corrected | Layer 0 / mla / moe_layer | 1 | 1.6165 | 1.4210 | 1.5525 | -3.956% / 9.255% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64:q8_b17_m136 / body-runtime40e4300e-remaining-controller-corrected | Steady / mla / moe_layer | 39 | 1.5422 | 1.4608 | 1.5894 | 3.061% / 8.805% |
-| a3_kimi4_tp8_w4a8_c32:q1_b32_m32 / body-runtime40e4300e-remaining-controller-corrected | Layer 0 / kda / dense_layer | 1 | 0.8383 | 0.7939 | 0.5126 | -38.846% / -35.432% |
-| a3_kimi4_tp8_w4a8_c32:q1_b32_m32 / body-runtime40e4300e-remaining-controller-corrected | Steady / kda / moe_layer | 2 | 1.8510 | 1.8377 | 1.5899 | -14.105% / -13.481% |
-| a3_kimi4_tp8_w4a8_c32:q1_b32_m32 / body-runtime40e4300e-remaining-controller-corrected | Steady / mla / moe_layer | 1 | 2.1726 | 2.1723 | 1.6366 | -24.673% / -24.664% |
+| a5_kimi_tp8_e16_bf16_c1_p16k:q1_b1_m1 / observable-service-low-m-known-route-gap-3b72ea2d | Layer 0 / kda / dense_layer | 1 | 0.2595 | 0.2581 | 0.2529 | -2.545% / -2.034% |
+| a5_kimi_tp8_e16_bf16_c1_p16k:q1_b1_m1 / observable-service-low-m-known-route-gap-3b72ea2d | Steady / kda / moe_layer | 68 | 0.3208 | 0.3208 | 0.3532 | 10.095% / 10.091% |
+| a5_kimi_tp8_e16_bf16_c1_p16k:q1_b1_m1 / observable-service-low-m-known-route-gap-3b72ea2d | Steady / mla / moe_layer | 24 | 0.3644 | 0.3577 | 0.3444 | -5.495% / -3.723% |
+| a5_kimi_tp8_e16_bf16_c1_p4k:q1_b1_m1 / observable-service-low-m-known-route-gap-3b72ea2d | Layer 0 / kda / dense_layer | 1 | 0.2772 | 0.2578 | 0.2525 | -8.909% / -2.052% |
+| a5_kimi_tp8_e16_bf16_c1_p4k:q1_b1_m1 / observable-service-low-m-known-route-gap-3b72ea2d | Steady / kda / moe_layer | 68 | 0.3209 | 0.3210 | 0.3533 | 10.100% / 10.062% |
+| a5_kimi_tp8_e16_bf16_c1_p4k:q1_b1_m1 / observable-service-low-m-known-route-gap-3b72ea2d | Steady / mla / moe_layer | 24 | 0.3556 | 0.3487 | 0.3361 | -5.485% / -3.603% |
+| a5_kimi_tp8_e16_bf16_c8_p16k:q1_b8_m8 / observable-service-low-m-known-route-gap-3b72ea2d | Layer 0 / kda / dense_layer | 1 | 0.2840 | 0.2810 | 0.2682 | -5.585% / -4.583% |
+| a5_kimi_tp8_e16_bf16_c8_p16k:q1_b8_m8 / observable-service-low-m-known-route-gap-3b72ea2d | Steady / kda / moe_layer | 68 | 0.3653 | 0.3650 | 0.3948 | 8.084% / 8.170% |
+| a5_kimi_tp8_e16_bf16_c8_p16k:q1_b8_m8 / observable-service-low-m-known-route-gap-3b72ea2d | Steady / mla / moe_layer | 24 | 0.4517 | 0.4454 | 0.4358 | -3.516% / -2.168% |
+| a5_kimi_tp8_e16_bf16_c8_p4k:q1_b8_m8 / observable-service-low-m-known-route-gap-3b72ea2d | Layer 0 / kda / dense_layer | 1 | 0.3102 | 0.2816 | 0.2684 | -13.466% / -4.676% |
+| a5_kimi_tp8_e16_bf16_c8_p4k:q1_b8_m8 / observable-service-low-m-known-route-gap-3b72ea2d | Steady / kda / moe_layer | 68 | 0.3652 | 0.3648 | 0.3946 | 8.047% / 8.181% |
+| a5_kimi_tp8_e16_bf16_c8_p4k:q1_b8_m8 / observable-service-low-m-known-route-gap-3b72ea2d | Steady / mla / moe_layer | 24 | 0.4029 | 0.3960 | 0.3877 | -3.772% / -2.090% |
+| qwen36-a5-tp2-c1:q4_b1_m4 / observable-complete-cohort-service-3b72ea2d | Layer 0 / gdn / dense_layer | 1 | 0.2400 | 0.1984 | 0.1750 | -27.058% / -11.775% |
+| qwen36-a5-tp2-c1:q4_b1_m4 / observable-complete-cohort-service-3b72ea2d | Steady / gdn / dense_layer | 47 | 0.1919 | 0.1915 | 0.1750 | -8.784% / -8.589% |
+| qwen36-a5-tp2-c1:q4_b1_m4 / observable-complete-cohort-service-3b72ea2d | Steady / gqa / dense_layer | 16 | 0.1880 | 0.1876 | 0.1448 | -22.955% / -22.780% |
+| a5_glm53flash_tp8_c64_p4k:q4_b64_m256 / observed-service-hc-atomic-3b72ea2d | Layer 0 / kda / dense_layer | 1 | 0.5510 | 0.5299 | 0.3672 | -33.362% / -30.708% |
+| a5_glm53flash_tp8_c64_p4k:q4_b64_m256 / observed-service-hc-atomic-3b72ea2d | Steady / kda / dense_layer | 2 | 0.4693 | 0.4691 | 0.3672 | -21.762% / -21.725% |
+| a5_glm53flash_tp8_c64_p4k:q4_b64_m256 / observed-service-hc-atomic-3b72ea2d | Steady / mla / moe_layer | 11 | 1.5929 | 1.5839 | 1.5723 | -1.293% / -0.732% |
+| a5_glm53flash_tp8_c64_p4k:q4_b64_m256 / observed-service-hc-atomic-3b72ea2d | Steady / kda / moe_layer | 31 | 0.8876 | 0.8877 | 0.8574 | -3.404% / -3.418% |
+| a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64:q1_b8_m8 / observable-service-2f48346b | Layer 0 / mla / moe_layer | 1 | 0.7498 | 0.7292 | 0.5905 | -21.246% / -19.015% |
+| a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64:q1_b8_m8 / observable-service-2f48346b | Steady / mla / moe_layer | 39 | 0.6558 | 0.6334 | 0.6211 | -5.297% / -1.945% |
+| a5_kimi_tp8_e16_bf16_c16_p16k:q1_b16_m16 / observable-service-2f48346b | Layer 0 / kda / dense_layer | 1 | 0.3047 | 0.3023 | 0.2877 | -5.578% / -4.820% |
+| a5_kimi_tp8_e16_bf16_c16_p16k:q1_b16_m16 / observable-service-2f48346b | Steady / kda / moe_layer | 68 | 0.3858 | 0.3856 | 0.4144 | 7.405% / 7.468% |
+| a5_kimi_tp8_e16_bf16_c16_p16k:q1_b16_m16 / observable-service-2f48346b | Steady / mla / moe_layer | 24 | 0.5293 | 0.5223 | 0.5119 | -3.303% / -2.009% |
+| a5_kimi_tp8_e16_bf16_c16_p4k:q1_b16_m16 / observable-service-2f48346b | Layer 0 / kda / dense_layer | 1 | 0.3353 | 0.3023 | 0.2872 | -14.353% / -4.989% |
+| a5_kimi_tp8_e16_bf16_c16_p4k:q1_b16_m16 / observable-service-2f48346b | Steady / kda / moe_layer | 68 | 0.3857 | 0.3855 | 0.4141 | 7.338% / 7.397% |
+| a5_kimi_tp8_e16_bf16_c16_p4k:q1_b16_m16 / observable-service-2f48346b | Steady / mla / moe_layer | 24 | 0.4340 | 0.4269 | 0.4138 | -4.651% / -3.053% |
 | a3_kimi4_tp8_w4a8_c64:q1_b64_m64 / body-runtime40e4300e-remaining-controller-corrected | Layer 0 / kda / dense_layer | 1 | 0.8626 | 0.8212 | 0.6391 | -25.906% / -22.172% |
 | a3_kimi4_tp8_w4a8_c64:q1_b64_m64 / body-runtime40e4300e-remaining-controller-corrected | Steady / kda / moe_layer | 2 | 2.7714 | 2.7569 | 2.5053 | -9.601% / -9.125% |
 | a3_kimi4_tp8_w4a8_c64:q1_b64_m64 / body-runtime40e4300e-remaining-controller-corrected | Steady / mla / moe_layer | 1 | 3.2092 | 3.2089 | 2.6374 | -17.819% / -17.812% |
-| a3_kimi4_tp8_w4a8_c16:q1_b16_m16 / body-runtime40e4300e-remaining-controller-corrected | Layer 0 / kda / dense_layer | 1 | 0.8493 | 0.8207 | 0.4496 | -47.059% / -45.213% |
-| a3_kimi4_tp8_w4a8_c16:q1_b16_m16 / body-runtime40e4300e-remaining-controller-corrected | Steady / kda / moe_layer | 2 | 1.2517 | 1.2363 | 1.0166 | -18.783% / -17.773% |
-| a3_kimi4_tp8_w4a8_c16:q1_b16_m16 / body-runtime40e4300e-remaining-controller-corrected | Steady / mla / moe_layer | 1 | 1.4535 | 1.4525 | 1.0208 | -29.769% / -29.719% |
+| a5_v41_fp8_tp1_dp8_ep8_c32_p2k:q1_b4_m4 / observable-service-2f48346b | Layer 0 / mla / moe_layer | 1 | 0.5279 | 0.5209 | 0.4048 | -23.327% / -22.288% |
+| a5_v41_fp8_tp1_dp8_ep8_c32_p2k:q1_b4_m4 / observable-service-2f48346b | Steady / mla / moe_layer | 39 | 0.4640 | 0.4441 | 0.4348 | -6.288% / -2.089% |
+| a5_v41_fp8_tp1_dp8_ep8_c16_p2k:q1_b2_m2 / observable-service-2f48346b | Layer 0 / mla / moe_layer | 1 | 0.4353 | 0.4201 | 0.3139 | -27.885% / -25.282% |
+| a5_v41_fp8_tp1_dp8_ep8_c16_p2k:q1_b2_m2 / observable-service-2f48346b | Steady / mla / moe_layer | 39 | 0.3716 | 0.3526 | 0.3445 | -7.292% / -2.308% |
+| a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8:q1_b1_m1 / observable-service-2f48346b | Layer 0 / mla / moe_layer | 1 | 0.8501 | 0.3611 | 0.2749 | -67.666% / -23.870% |
+| a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8:q1_b1_m1 / observable-service-2f48346b | Steady / mla / moe_layer | 39 | 0.3189 | 0.3014 | 0.3046 | -4.493% / 1.079% |
+| qwen36-a5-tp2-c96:q4_b96_m384 / observable-native-service-2f48346b | Layer 0 / gdn / dense_layer | 1 | 1.3691 | 1.0682 | 1.0459 | -23.605% / -2.081% |
+| qwen36-a5-tp2-c96:q4_b96_m384 / observable-native-service-2f48346b | Steady / gdn / dense_layer | 47 | 1.0584 | 1.0584 | 1.0459 | -1.182% / -1.179% |
+| qwen36-a5-tp2-c96:q4_b96_m384 / observable-native-service-2f48346b | Steady / gqa / dense_layer | 16 | 0.7931 | 0.7928 | 0.7896 | -0.444% / -0.394% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c32:q8_b9_m72 / body-runtime40e4300e-remaining-controller-corrected | Layer 0 / mla / moe_layer | 1 | 1.6657 | 1.5640 | 1.3737 | -17.533% / -12.170% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c32:q8_b9_m72 / body-runtime40e4300e-remaining-controller-corrected | Steady / mla / moe_layer | 39 | 1.3655 | 1.3070 | 1.4000 | 2.524% / 7.115% |
-| a3_kimi4_tp8_w4a8_c4:q1_b4_m4 / body-runtime40e4300e-remaining-controller-corrected | Layer 0 / kda / dense_layer | 1 | 0.7987 | 0.7786 | 0.4117 | -48.455% / -47.121% |
-| a3_kimi4_tp8_w4a8_c4:q1_b4_m4 / body-runtime40e4300e-remaining-controller-corrected | Steady / kda / moe_layer | 2 | 0.8543 | 0.8377 | 0.7237 | -15.283% / -13.613% |
-| a3_kimi4_tp8_w4a8_c4:q1_b4_m4 / body-runtime40e4300e-remaining-controller-corrected | Steady / mla / moe_layer | 1 | 0.9683 | 0.9617 | 0.6926 | -28.472% / -27.976% |
-| a3_kimi4_tp8_w4a8_c1:q1_b1_m1 / body-runtime40e4300e-remaining-controller-corrected | Layer 0 / kda / dense_layer | 1 | 0.8426 | 0.8147 | 0.4028 | -52.196% / -50.562% |
-| a3_kimi4_tp8_w4a8_c1:q1_b1_m1 / body-runtime40e4300e-remaining-controller-corrected | Steady / kda / moe_layer | 2 | 0.7505 | 0.7145 | 0.7148 | -4.758% / 0.045% |
-| a3_kimi4_tp8_w4a8_c1:q1_b1_m1 / body-runtime40e4300e-remaining-controller-corrected | Steady / mla / moe_layer | 1 | 0.8359 | 0.7994 | 0.6753 | -19.211% / -15.520% |
+| a5_kimi_tp8_e16_bf16_c2_p16k:q1_b2_m2 / observable-service-low-m-known-route-gap-3b72ea2d | Layer 0 / kda / dense_layer | 1 | 0.2876 | 0.2698 | 0.2556 | -11.127% / -5.275% |
+| a5_kimi_tp8_e16_bf16_c2_p16k:q1_b2_m2 / observable-service-low-m-known-route-gap-3b72ea2d | Steady / kda / moe_layer | 68 | 0.3531 | 0.3529 | 0.3751 | 6.222% / 6.284% |
+| a5_kimi_tp8_e16_bf16_c2_p16k:q1_b2_m2 / observable-service-low-m-known-route-gap-3b72ea2d | Steady / mla / moe_layer | 24 | 0.3989 | 0.3918 | 0.3747 | -6.068% / -4.354% |
+| a5_kimi_tp8_e16_bf16_c2_p4k:q1_b2_m2 / observable-service-low-m-known-route-gap-3b72ea2d | Layer 0 / kda / dense_layer | 1 | 0.3027 | 0.2698 | 0.2556 | -15.532% / -5.261% |
+| a5_kimi_tp8_e16_bf16_c2_p4k:q1_b2_m2 / observable-service-low-m-known-route-gap-3b72ea2d | Steady / kda / moe_layer | 68 | 0.3533 | 0.3531 | 0.3751 | 6.170% / 6.224% |
+| a5_kimi_tp8_e16_bf16_c2_p4k:q1_b2_m2 / observable-service-low-m-known-route-gap-3b72ea2d | Steady / mla / moe_layer | 24 | 0.3840 | 0.3767 | 0.3600 | -6.251% / -4.443% |
+| a3_kimi4_tp8_w4a8_c32:q1_b32_m32 / a3-observable-service-2f48346b | Layer 0 / kda / dense_layer | 1 | 0.8383 | 0.7939 | 0.6754 | -19.424% / -14.925% |
+| a3_kimi4_tp8_w4a8_c32:q1_b32_m32 / a3-observable-service-2f48346b | Steady / kda / moe_layer | 2 | 1.8510 | 1.8377 | 1.7528 | -5.310% / -4.622% |
+| a3_kimi4_tp8_w4a8_c32:q1_b32_m32 / a3-observable-service-2f48346b | Steady / mla / moe_layer | 1 | 2.1726 | 2.1723 | 1.7308 | -20.334% / -20.324% |
+| a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1:q1_b1_m1 / observable-service-2f48346b | Layer 0 / mla / moe_layer | 1 | 0.8189 | 0.8103 | 0.2878 | -64.853% / -64.480% |
+| a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1:q1_b1_m1 / observable-service-2f48346b | Steady / mla / moe_layer | 39 | 0.3157 | 0.2984 | 0.3115 | -1.340% / 4.403% |
+| a5_v41_fp8_tp1_dp8_ep8_c4_p2k:q1_b1_m1 / observable-service-2f48346b | Layer 0 / mla / moe_layer | 1 | 0.8470 | 0.8162 | 0.2904 | -65.715% / -64.421% |
+| a5_v41_fp8_tp1_dp8_ep8_c4_p2k:q1_b1_m1 / observable-service-2f48346b | Steady / mla / moe_layer | 39 | 0.3177 | 0.3003 | 0.3143 | -1.052% / 4.674% |
+| a3_kimi4_tp8_w4a8_c16:q1_b16_m16 / a3-observable-service-2f48346b | Layer 0 / kda / dense_layer | 1 | 0.8493 | 0.8207 | 0.6116 | -27.987% / -25.476% |
+| a3_kimi4_tp8_w4a8_c16:q1_b16_m16 / a3-observable-service-2f48346b | Steady / kda / moe_layer | 2 | 1.2517 | 1.2363 | 1.1786 | -5.843% / -4.672% |
+| a3_kimi4_tp8_w4a8_c16:q1_b16_m16 / a3-observable-service-2f48346b | Steady / mla / moe_layer | 1 | 1.4535 | 1.4525 | 1.1343 | -21.958% / -21.902% |
 | a3_glm53flash_tp16_aclgraph_c64:q6_b64_m384 / body-runtime40e4300e-glm-controller-corrected | Layer 0 / kda / dense_layer | 1 | 1.3232 | 1.3221 | 0.9062 | -31.518% / -31.459% |
 | a3_glm53flash_tp16_aclgraph_c64:q6_b64_m384 / body-runtime40e4300e-glm-controller-corrected | Steady / kda / dense_layer | 2 | 1.2997 | 1.3012 | 0.9062 | -30.275% / -30.359% |
 | a3_glm53flash_tp16_aclgraph_c64:q6_b64_m384 / body-runtime40e4300e-glm-controller-corrected | Steady / mla / moe_layer | 11 | 3.5285 | 3.5319 | 4.4828 | 27.045% / 26.923% |
 | a3_glm53flash_tp16_aclgraph_c64:q6_b64_m384 / body-runtime40e4300e-glm-controller-corrected | Steady / kda / moe_layer | 31 | 1.7609 | 1.7632 | 1.4784 | -16.045% / -16.155% |
+| a3_kimi4_tp8_w4a8_c4:q1_b4_m4 / a3-observable-service-2f48346b | Layer 0 / kda / dense_layer | 1 | 0.7987 | 0.7786 | 0.5645 | -29.323% / -27.494% |
+| a3_kimi4_tp8_w4a8_c4:q1_b4_m4 / a3-observable-service-2f48346b | Steady / kda / moe_layer | 2 | 0.8543 | 0.8377 | 0.8765 | 2.605% / 4.628% |
+| a3_kimi4_tp8_w4a8_c4:q1_b4_m4 / a3-observable-service-2f48346b | Steady / mla / moe_layer | 1 | 0.9683 | 0.9617 | 0.8071 | -16.645% / -16.067% |
+| a5_kimi_tp8_e16_bf16_c4_p4k:q1_b4_m4 / observable-service-low-m-known-route-gap-3b72ea2d | Layer 0 / kda / dense_layer | 1 | 0.2930 | 0.2771 | 0.2603 | -11.179% / -6.080% |
+| a5_kimi_tp8_e16_bf16_c4_p4k:q1_b4_m4 / observable-service-low-m-known-route-gap-3b72ea2d | Steady / kda / moe_layer | 68 | 0.3596 | 0.3596 | 0.3747 | 4.195% / 4.218% |
+| a5_kimi_tp8_e16_bf16_c4_p4k:q1_b4_m4 / observable-service-low-m-known-route-gap-3b72ea2d | Steady / mla / moe_layer | 24 | 0.3935 | 0.3863 | 0.3628 | -7.798% / -6.097% |
+| a5_kimi_tp8_e16_bf16_c4_p16k:q1_b4_m4 / observable-service-low-m-known-route-gap-3b72ea2d | Layer 0 / kda / dense_layer | 1 | 0.2974 | 0.2770 | 0.2608 | -12.308% / -5.847% |
+| a5_kimi_tp8_e16_bf16_c4_p16k:q1_b4_m4 / observable-service-low-m-known-route-gap-3b72ea2d | Steady / kda / moe_layer | 68 | 0.3596 | 0.3592 | 0.3749 | 4.259% / 4.371% |
+| a5_kimi_tp8_e16_bf16_c4_p16k:q1_b4_m4 / observable-service-low-m-known-route-gap-3b72ea2d | Steady / mla / moe_layer | 24 | 0.4192 | 0.4125 | 0.3877 | -7.536% / -6.017% |
+| a3_kimi4_tp8_w4a8_c1:q1_b1_m1 / a3-observable-service-2f48346b | Layer 0 / kda / dense_layer | 1 | 0.8426 | 0.8147 | 0.5700 | -32.350% / -30.038% |
+| a3_kimi4_tp8_w4a8_c1:q1_b1_m1 / a3-observable-service-2f48346b | Steady / kda / moe_layer | 2 | 0.7505 | 0.7145 | 0.8820 | 17.522% / 23.449% |
+| a3_kimi4_tp8_w4a8_c1:q1_b1_m1 / a3-observable-service-2f48346b | Steady / mla / moe_layer | 1 | 0.8359 | 0.7994 | 0.8206 | -1.835% / 2.650% |
 
 ## Heavy >50us operators — activity residual priority
 
@@ -1580,6 +1595,18 @@ External references are selected independently by measured source/geometry, oper
 - [decode-forward-qwen35-mc2-tp-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen35-mc2-tp-bf71bd7d/decode-forward-qwen35-mc2-tp-replay.json), SHA256 `2f99d9fa09b6ddf357883d8deeb13fbf3b813b41f985282ec611c39a7b794569`
 - [decode-forward-a3-v4-caller-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-a3-v4-caller-cc245da6/decode-forward-a3-v4-caller-replay.json), SHA256 `c29b9ee49edbc7751553a82032579ed857785ade59740221daacc4dff2979405`
 - [decode-forward-highconc-mc2-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency-priority/decode-forward-highconc-mc2-replay.json), SHA256 `e0bda7ee49008ec9802731849a22c1e3ecd57601d4612c63fe15382ae3c11a2f`
+- [decode-forward-service-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/decode-forward-service-replay.json), SHA256 `f33bb64aa05ba5ca5ad8ede5f7a70f1caa2d8fa672f3d7b95070948a637cd261`
+- [decode-forward-qwen-service-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/decode-forward-qwen-service-replay.json), SHA256 `3132121ac9201221b1525eb9fcea1d4bc87092e3e5719500d683230c35f10917`
+- [decode-forward-service-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/second-pass/decode-forward-service-replay.json), SHA256 `432cb0ee3810c9a49f8736b2d47ed2774a4344a46aea0d2994e668a6792e8e78`
+- [decode-forward-a3-service-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/decode-forward-a3-service-replay.json), SHA256 `db2313aa3a2b79e1c5721516b37c2d2c11943e8a5b163b8d2c21240b96605b52`
+- [decode-forward-route-validated-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-kimi-v41/decode-forward-route-validated-replay.json), SHA256 `50e8c2d4b89e72321f947cbd41ef02a9f479996063d1c74ae50e616574319d62`
+- [decode-forward-composed-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-composed-service/decode-forward-composed-replay.json), SHA256 `bf57fac3d529c928a32771134225e92279c97987abb26ec5925cea3526857fe0`
+- [decode-forward-qwen-gating-service-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/decode-forward-qwen-gating-service-replay.json), SHA256 `ebdf8b4c71374b3d723a5c40ecb2e04b3d98c1aa014991a91b95d850be8b1ddc`
+- [decode-forward-glm78-grouped-service-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/decode-forward-glm78-grouped-service-replay.json), SHA256 `8bfeb22c17072ac9902ca95a6d2acf5712657f7c902eecea5e3178bb965e8f08`
+- [decode-forward-service-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/third-pass/decode-forward-service-replay.json), SHA256 `858cffb8ed0187d3ecee57c2569d629166de7dff9cda9e928c583d0248e1ef16`
+- [decode-forward-service-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/third-pass-remaining-six/decode-forward-service-replay.json), SHA256 `fcc18231e292c8e30d6dc61cfabb800431e3dd7a2fa516acfb4d2f9dce074f09`
+- [decode-forward-qwen-cohort-service-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/decode-forward-qwen-cohort-service-replay.json), SHA256 `3c8fea1383251b36d294dfb34ae9b0bc496dc593aae495ee7384e898ad734b61`
+- [decode-forward-low-m-3b72ea2d-replay.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-kimi-v41/decode-forward-low-m-3b72ea2d-replay.json), SHA256 `6d8c4461faa8a6edfab921d4c770b82e2531c6fffc9d569e78a0dffc0cb40a5a`
 - [body-operator-family-scoreboard.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators/body-operator-family-scoreboard.json), SHA256 `7126d4a275a5f005537517386747e366322a7bed7365763e21cb3a66319b13fc`
 - [body-operator-family-scoreboard.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators-5935c87b/body-operator-family-scoreboard.json), SHA256 `4f475bce99de8a8908c8fa745ea1ab9cabb8c570ef3b3ec5ef7c9d5d7f29265e`
 - [body-operator-family-scoreboard.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-operators-09811dad/body-operator-family-scoreboard.json), SHA256 `53e528b2254c3ca55b4eb9e1afa5fc4e46f89ed6ccbee3059639dbbaed10175d`
@@ -1695,6 +1722,10 @@ Additional coverage/source evidence (not silently promoted into body or operator
 - [runtime-change-review.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency-priority/runtime-change-review.json), SHA256 `22a031193f25872217493e5b7cfd58506f627c79d18fc89a06beb704e30c0fd4`
 - [body-arithmetic-independent-review.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency-priority/body-arithmetic-independent-review.json), SHA256 `79f54d63d15d9e808deb4671a6f2f15f3fa8b7acbf4142cf8b1ae6c0bdd00264`
 - [highconc-replay-independent-review.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency-priority/highconc-replay-independent-review.json), SHA256 `66591d09432399790b2127be127d7ca24f5005122ce089d4abaec4c3082b54fa`
+- [body-independent-review.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/body-independent-review.json), SHA256 `9ebe66ff4952bf0bcac4010cb917672826723f12811a172578801e282108c6c6`
+- [service-regime-review.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/service-regime-review.json), SHA256 `2b503f7bdc73535226a7815ffc9c97b9f3936f0af8d78d2023b27e8e19f774e3`
+- [body-independent-review.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-kimi-v41/body-independent-review.json), SHA256 `73ed44756c4d975fef070fc596576ff6c703787e63e0ae75a93cf79c2b114e9b`
+- [body-independent-review.json](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-composed-service/body-independent-review.json), SHA256 `06aadf1e9e2a93c92d64133ce732fe15a30f489f6d7a6d61032e1fcbc22cecb8`
 
 - Rows retain their own source/runtime/geometry; independently produced receipts are not merged into a synthetic run.
 - Per-forward kernel activity residual ranks work to investigate; overlap prevents interpreting its sum as body wall-clock error.

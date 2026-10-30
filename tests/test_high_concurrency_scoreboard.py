@@ -21,6 +21,27 @@ def by_source(view, source_id):
     return next(row for row in view['sources'] if row['source_case_id'] == source_id)
 
 
+def test_retained_service_receipts_keep_explicit_in_sample_labels(real_focus):
+    helper, data = real_focus
+    board = importlib.import_module('priority_decode_scoreboard')
+    receipts = [
+        ROOT / 'examples/structure/acceptance-20261030-service-glm/decode-forward-service-replay.json',
+        ROOT / 'examples/structure/acceptance-20261030-service-qwen-a3/decode-forward-qwen-service-replay.json']
+    current = {(row['case_id'], row['source_identity']['sha256']): row for row in data['current']}
+    for path in receipts:
+        receipt, identity = board._read(path)
+        for row in board.body_rows(receipt, identity):
+            key = (row['case_id'], row['source_identity']['sha256'])
+            if key in current: current[key] = row
+    view = helper.build_focus(current.values(), data['focus_spec'], current.values())
+    for name in ('qwen36-a5-tp2-c96', 'a5_glm53flash_tp8_c64_p4k'):
+        row = by_source(view, name)
+        assert row['body_accuracy_status'] == 'PASS'
+        assert row['calibration']['evaluation_relation'] == 'in_sample'
+    assert view['summary']['distinct_source_count'] == 13
+    assert view['summary']['observed_forward_count'] == 877
+
+
 def test_real_body_accuracy_and_overlapping_sections_preserve_one_population(real_focus):
     helper, data = real_focus
     view = helper.build_focus(data['current'], data['focus_spec'], data['current'])

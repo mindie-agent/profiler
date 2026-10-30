@@ -7,6 +7,31 @@ from pathlib import Path
 import pytest
 
 
+def test_scoreboard_readers_keep_complete_prior_report_during_publish(monkeypatch, tmp_path):
+    root = Path(__file__).resolve().parents[1]
+    monkeypatch.syspath_prepend(str(root / 'examples/structure'))
+    module = importlib.import_module('priority_decode_scoreboard')
+    old = root / 'examples/structure/acceptance-20261030-a3-v4-caller-cc245da6/decode-forward-a3-v4-caller-replay.json'
+    new = root / 'examples/structure/acceptance-20261030-service-qwen-a3/decode-forward-qwen-service-replay.json'
+    before, after = module.build([old], []), module.build([old, new], [])
+    destination = tmp_path / 'current.json'
+    destination.write_text(json.dumps(before))
+    dump = json.dump
+
+    def streamed(value, stream, **kwargs):
+        stream.write('{')
+        stream.flush()
+        assert json.loads(destination.read_text()) == before
+        stream.seek(0)
+        stream.truncate()
+        return dump(value, stream, **kwargs)
+
+    monkeypatch.setattr(module.json, 'dump', streamed)
+    module.publish(after, destination)
+    assert json.loads(destination.read_text()) == after
+    assert before['summary']['unique_source_count'] < after['summary']['unique_source_count']
+
+
 def test_failed_extraction_reads_remain_visible_without_adding_zero_populations(monkeypatch):
     root = Path(__file__).resolve().parents[1]
     monkeypatch.syspath_prepend(str(root / "examples/structure"))

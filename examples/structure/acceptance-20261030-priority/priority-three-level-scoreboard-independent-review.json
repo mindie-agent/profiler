@@ -1,20 +1,20 @@
 {
   "schema_version": "mindie-priority-scoreboard-independent-review/2",
   "status": "passed",
-  "checks": 204114,
+  "checks": 206311,
   "failures": [],
-  "report_sha256": "da00afa6a44dbe72401ab50dd2f90912b08114b0a0079f61b7b364662f3cf861",
+  "report_sha256": "0229bcf21d2b0db9d837e77dcd6ba06f6ed1bdefe6e97b713575a27588584622",
   "summary": {
-    "body_compared": 555,
-    "body_passed": 143,
+    "body_compared": 618,
+    "body_passed": 180,
     "current_body_compared": 66,
-    "current_body_passed": 23,
+    "current_body_passed": 52,
     "invalidated_body_prediction_arms": 31,
     "body_failed_attempts": 20,
     "latest_body_attempt_count": 66,
     "latest_body_attempt_completed": 66,
     "latest_body_attempt_failed": 0,
-    "latest_body_attempt_passed": 23,
+    "latest_body_attempt_passed": 52,
     "body_denominator": "prediction_variants; identical observed populations are not additional captures",
     "unique_source_count": 66,
     "unique_source_geometry_populations": 222,
@@ -55,7 +55,7 @@
     "current_external_native_reference_forwards": 2784,
     "heavy_cohorts": 159
   },
-  "body_rows": 1844,
+  "body_rows": 2002,
   "family_rows": 10791,
   "cohort_rows": 3137,
   "reference_rows": 2180,
@@ -147,8 +147,8 @@
     }
   ],
   "execution": {
-    "elapsed_seconds": 16.175064541981556,
-    "peak_rss_bytes": 387416064,
+    "elapsed_seconds": 16.81228195899166,
+    "peak_rss_bytes": 375095296,
     "receipt_read_engine": "ijson top-level fields and sequential receipt cases"
   },
   "scope": "Independent sequential receipt reconciliation; no raw capture parsing or prediction. Invalidation, effective current Kimi precision, source/geometry deduplication, explicit input order, strict tier arithmetic and unscored source references are checked separately."

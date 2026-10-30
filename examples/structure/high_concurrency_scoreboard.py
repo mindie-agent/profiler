@@ -48,9 +48,15 @@ def _calibration(row):
     evidence = row.get('calibration_evidence') or {}
     if not isinstance(evidence, dict):
         evidence = {'declared_metadata': evidence}
+    origin = row.get('calibration_origin') or evidence.get('origin') or 'not_declared'
+    relation = evidence.get('evaluation_relation') or evidence.get('evaluation_role')
+    # Early observable-service receipts used the origin field for this explicit
+    # evaluation label. Preserve those receipts instead of inferring from rates.
+    if relation is None and origin in {'in_sample', 'heldout'}:
+        relation = origin
     return {
-        'origin': row.get('calibration_origin') or evidence.get('origin') or 'not_declared',
-        'evaluation_relation': evidence.get('evaluation_relation') or 'not_declared',
+        'origin': origin,
+        'evaluation_relation': relation or 'not_declared',
         'evidence': evidence,
         'metadata_identity': row.get('calibration_metadata_identity'),
         'observed_parameter_does_not_change_contract_admission': True,

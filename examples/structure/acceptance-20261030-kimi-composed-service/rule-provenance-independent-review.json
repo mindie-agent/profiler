@@ -1,0 +1,40 @@
+{
+  "schema_version": "mindie-kimi-composed-service-rule-review/1",
+  "report_sha256": "bf57fac3d529c928a32771134225e92279c97987abb26ec5925cea3526857fe0",
+  "checks": 163,
+  "failures": [],
+  "status": "passed",
+  "cases": [
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c32_p16k",
+      "forwards": 41,
+      "real_ms": 44.66619290243902,
+      "sim_ms": 42.155614107346615,
+      "relative_error": -0.056207584124666136,
+      "rule_count": 9
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c32_p4k",
+      "forwards": 46,
+      "real_ms": 40.01872763043478,
+      "sim_ms": 36.96886047825613,
+      "relative_error": -0.07621099751955092,
+      "rule_count": 9
+    }
+  ],
+  "evidence_identities": {
+    "/Users/maoxx241/code/profiler/examples/structure/acceptance-20261030-kimi-logical96-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c32_p4k-logical96-full-matrix.actual.json": "96932e700f5e798136ca3f582b594dd8f89ce9bf74a60be08c5fd33c8d549ad3",
+    "/Users/maoxx241/code/profiler/examples/structure/acceptance-20261030-kimi-paged-fia-pmu/a5_kimi_tp8_e16_bf16_c1_p4k-native-partitions.json": "50c6c8388bac9a3972765895da05042510b16a0708cd58e0ad7ffbbd5685842b",
+    "/Users/maoxx241/code/profiler/examples/structure/acceptance-20261030-kimi-paged-fia-pmu/a5_kimi_tp8_e16_bf16_c32_p4k-native-partitions.json": "adeb23fb54c0c006f289f7ffcf59988f2e6649f62da0d4eb7196a6331b3bb1d6",
+    "/Users/maoxx241/code/profiler/examples/structure/acceptance-20261030-kimi-logical96-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c32_p4k-logical96-full-matrix.mapping.json": "8d241605f39a28c80c3de0efe4fc7bed71134e0d15d83ba7c74de37bc45b8d31"
+  },
+  "notes": [
+    "All nine rules retain physical selectors and original observation-based parameters; no Body residual input.",
+    "p4k is a calibration source for HCCL/matrix/grouped/dispatch; p16k reuses identical parameters. Historical split remains unassigned, so this review does not relabel it as preregistered held-out validation.",
+    "HCCL actual algorithm/peer time remains unobserved; inclusive service does not identify pure link bandwidth.",
+    "Grouped active rows [16,16] are source-declared and its domain deliberately excludes the newly identified low-concurrency routing issue."
+  ],
+  "raw_reads": 0,
+  "new_predictions": 0,
+  "peak_rss_bytes": 102662144
+}

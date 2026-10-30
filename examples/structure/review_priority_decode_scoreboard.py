@@ -87,6 +87,32 @@ def canonical(value):
     return json.dumps(value, sort_keys=True, separators=(",", ":"))
 
 
+def read_scoreboard(path):
+    """Share repeated immutable evidence while retaining every reported value."""
+    fields = {"calibration_evidence", "calibration_metadata_identity", "declared_runtime",
+              "runtime_identity", "source_identity", "receipt", "case_identity"}
+    evidence = {}
+
+    def intern(value):
+        if isinstance(value, list):
+            for item in value:
+                intern(item)
+        elif isinstance(value, dict):
+            for key, item in value.items():
+                if key in fields and isinstance(item, dict):
+                    signature = hashlib.sha256(canonical(item).encode()).digest()
+                    value[key] = evidence.setdefault(signature, item)
+                elif isinstance(item, (dict, list)):
+                    intern(item)
+
+    report = {}
+    with Path(path).open("rb") as stream:
+        for key, value in ijson.kvitems(stream, "", use_float=True):
+            intern(value)
+            report[key] = value
+    return report
+
+
 def retained_observation_evidence(group):
     """Derive evidence from the original receipt, independently of the importer."""
     observed_abi = group.get("native_abi")
@@ -146,7 +172,10 @@ def review_priority_focus(report, check):
         if error is not None: check(math.isclose(comparison["relative_error"], error, rel_tol=1e-11, abs_tol=1e-10) and comparison["passed"] == (abs(error) <= .15), label + " recomputed accuracy")
         evidence = (selected or {}).get("calibration_evidence") or {}
         if not isinstance(evidence, dict): evidence = {"declared_metadata": evidence}
-        for field, value in {"origin": (selected or {}).get("calibration_origin") or evidence.get("origin") or "not_declared", "evaluation_relation": evidence.get("evaluation_relation") or "not_declared", "evidence": evidence, "metadata_identity": (selected or {}).get("calibration_metadata_identity")}.items(): check(shown["calibration"][field] == value, label + " calibration " + field)
+        origin = (selected or {}).get("calibration_origin") or evidence.get("origin") or "not_declared"
+        relation = evidence.get("evaluation_relation") or evidence.get("evaluation_role")
+        if relation is None and origin in {"in_sample", "heldout"}: relation = origin
+        for field, value in {"origin": origin, "evaluation_relation": relation or "not_declared", "evidence": evidence, "metadata_identity": (selected or {}).get("calibration_metadata_identity")}.items(): check(shown["calibration"][field] == value, label + " calibration " + field)
         check(not shown["contract_boundary"]["body_pass_implies_native_contract_closure"] and shown["contract_boundary"]["parameter_origin_is_not_a_contract_admission_gate"], label + " independent evidence axes")
         check(shown["priority_six"] == bool(declared.get("priority_six")) and shown["source_arm_families"] == declared.get("source_arm_families", []), label + " explicit focus selection")
     rows = focus["sources"]
@@ -160,8 +189,7 @@ def review(path):
     # Cumulative scoreboard arrays can exceed the single-receipt JSON limit.
     # Decode their fields incrementally without also retaining the full text;
     # linked capture receipts are still consumed one case at a time below.
-    with Path(path).open("rb") as stream:
-        report = dict(ijson.kvitems(stream, "", use_float=True))
+    report = read_scoreboard(path)
     checks, failures = 0, []
 
     def check(condition, message):
@@ -439,6 +467,12 @@ def review(path):
     observed_current = {population(row): row for row in report["current_body_comparisons"]}
     check(len(observed_current) == len(report["current_body_comparisons"]), "Current body populations unique")
     check(observed_current == current_body, "Current bodies selected in input order, not by error")
+    if "current_body_known_work_gaps" in report:
+        gaps = [{"case_id": row["case_id"], "receipt": row["receipt"], "evidence": gap}
+                for row in current_body.values()
+                if (gap := (row.get("calibration_evidence") or {}).get("known_routing_work_gap"))]
+        check(Counter(canonical(row) for row in report["current_body_known_work_gaps"]) ==
+              Counter(canonical(row) for row in gaps), "Known routing work gaps remain visible independently of timing pass")
     expected_current_families = [row for row in family.values()
         if current_operator[population(row)] == (row["receipt"]["path"], row["case_id"])]
     expected_current_cohorts = [row for row in cohort.values()

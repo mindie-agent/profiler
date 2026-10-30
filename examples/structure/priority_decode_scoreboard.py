@@ -13,9 +13,11 @@ import argparse
 from collections import Counter
 import hashlib
 import json
+import os
 from pathlib import Path
 import resource
 import sys
+import tempfile
 import time
 
 
@@ -475,6 +477,10 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
             "body_comparisons": history, "operator_families": families, "operator_cohorts": cohorts,
             "body_history_layer_storage": "source receipt field and content hash; current layer tables are expanded below",
             "current_body_comparisons": current_rows,
+            "current_body_known_work_gaps": [
+                {"case_id": row["case_id"], "receipt": row["receipt"], "evidence": gap}
+                for row in current_rows
+                if (gap := (row.get("calibration_evidence") or {}).get("known_routing_work_gap"))],
             "priority_focus": focus,
             "calibration_policy": {
                 "observable_regime_parameters_admitted": True,
@@ -570,6 +576,16 @@ def render(report):
     if report.get("priority_focus"):
         from high_concurrency_scoreboard import render_focus
         lines += render_focus(report["priority_focus"]) + [""]
+    if report.get("current_body_known_work_gaps"):
+        lines += ["## Declared routing work awaiting source correction", "",
+                  "These timing comparisons remain in the accuracy table. Their observed response parameters are admissible; "
+                  "the separately identified routing work mismatch remains open. Captured group-list values are not established.", "",
+                  "| Case | Declared rank-0 expert rows | Source-compatible rows |",
+                  "|---|---|---|"]
+        for item in report["current_body_known_work_gaps"]:
+            gap = item["evidence"]
+            lines.append(f"| {item['case_id']} | {gap.get('declared_rank0_expert_rows')} | {gap.get('source_compatible_rank0_expert_rows')} |")
+        lines.append("")
     lines += ["## Whole Decode Body — sorted by absolute ms error", "",
              "| Case / variant | Status | Calls | Real Mean / P50 / P90 ms | Activity ms | Sim ms | Diff ms | Mean / P50 error |",
              "|---|---|---:|---:|---:|---:|---:|---:|"]
@@ -698,13 +714,24 @@ def main():
         "receipt_read_strategy": "stream_native_operator_cases; bounded_body_receipts",
         "raw_capture_scans": 0, "prediction_executions": 0,
     }
-    with args.output.open("w") as stream:
-        # The linked source receipts keep readable detail. Avoid multiplying
-        # their whitespace across the cumulative machine-readable scoreboard.
-        json.dump(report, stream, separators=(",", ":"))
-        stream.write("\n")
-    args.output.with_suffix(".md").write_text(render(report))
+    publish(report, args.output)
     print(json.dumps(report["summary"]))
+
+
+def publish(report, destination):
+    """Keep readers on the last complete artifact while the next one streams."""
+    writers = ((destination, lambda stream: json.dump(report, stream, separators=(",", ":"))),
+               (destination.with_suffix(".md"), lambda stream: stream.write(render(report).rstrip("\n"))))
+    for path, write in writers:
+        fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as stream:
+                write(stream)
+                stream.write("\n")
+            os.replace(temporary, path)
+        except BaseException:
+            Path(temporary).unlink(missing_ok=True)
+            raise
 
 
 if __name__ == "__main__":
