@@ -33,9 +33,10 @@ def selected_geometry(value):
     return tuple(value[k] for k in ("tokens_per_sequence", "sequences_per_replica", "query_rows"))
 
 
-def extract(actual_path, case_dir, output, native_types=("MatMulV3",), case_path=None):
+def extract(actual_path, case_dir, output, native_types=("MatMulV3",), case_path=None, retain_pmu=False):
     started = time.perf_counter(); runtime_before = runtime_identity()
     extractor_before = identity(Path(__file__).resolve())
+    pmu_helper_before = identity(Path(__file__).with_name('targeted_native_pmu.py')) if retain_pmu else None
     actual = read(actual_path); actual_pin = identity(actual_path)
     body_pin = actual["body_acceptance_identity"]
     if identity(body_pin["path"]) != body_pin:
@@ -64,6 +65,11 @@ def extract(actual_path, case_dir, output, native_types=("MatMulV3",), case_path
     legacy_matrix = native_types == ("MatMulV3",)
     partitions, totals, buffer, counts = {}, {kind:Counter() for kind in native_types}, [], Counter()
     cursor = 0
+    pmu_buffer = {}
+    if retain_pmu:
+        from mindie_profiler.sources_csv import probe_csv
+        from targeted_native_pmu import NativePmu, scan_rows
+        schema = probe_csv(path)
 
     def close(window, rows):
         aligned, failure = _align(rows, config, cursor)
@@ -104,22 +110,29 @@ def extract(actual_path, case_dir, output, native_types=("MatMulV3",), case_path
             group["layer_counts"][layer["layer_id"]] += 1
             group["forward_counts"][window["forward_id"]] += 1
             totals[event.op_type][event.duration_ns] += 1
+            if retain_pmu:
+                if 'raw_pmu' not in group: group['raw_pmu'] = NativePmu(schema.header)
+                group['raw_pmu'].add(pmu_buffer[event.locator['csv_line']], event,
+                    forward_id=window['forward_id'], layer_id=layer['layer_id'])
             if len(group["examples"]) < 2:
                 group["examples"].append({"locator": event.locator, "layer_id": layer["layer_id"],
                     "forward_id": window["forward_id"], "start_ns": event.start_ns, "end_ns": event.end_ns})
 
     previous_start = None
-    for kernel in kernel_rows(path, rank_id="rank_0", rank_index=0, max_rows=5_000_000, timeout_s=180):
+    stream = (scan_rows(path, schema, native_types) if retain_pmu else
+        ((kernel, None) for kernel in kernel_rows(path, rank_id="rank_0", rank_index=0, max_rows=5_000_000, timeout_s=180)))
+    for kernel, raw in stream:
         event = kernel.event; counts["parsed_kernel_rows"] += 1
         if previous_start is not None and event.start_ns < previous_start:
             raise ValueError("targeted_window_pass_requires_chronological_events")
         previous_start = event.start_ns
         while cursor < len(expected) and event.start_ns > expected[cursor]["head_start_ns"]:
-            close(expected[cursor], buffer); buffer = []; cursor += 1
+            close(expected[cursor], buffer); buffer = []; pmu_buffer.clear(); cursor += 1
         if cursor == len(expected):
             break
         if expected[cursor]["start_ns"] <= event.start_ns <= expected[cursor]["head_start_ns"]:
             buffer.append(_Row(event, shapes(event.input_shapes), shapes(event.output_shapes)))
+            if raw is not None: pmu_buffer[event.locator['csv_line']] = raw
             if len(buffer) > 100_000:
                 raise MemoryError("body_buffer_limit_exceeded")
     if cursor < len(expected):
@@ -139,11 +152,14 @@ def extract(actual_path, case_dir, output, native_types=("MatMulV3",), case_path
             "layer_counts": dict(group["layer_counts"]), "forward_counts": dict(group["forward_counts"]),
             "observed_us": duration_stats(hist, 1000),
             "observed_activity_ms_per_forward": sum(ns*n for ns,n in hist.items()) / 1e6 / len(expected)})
+        if retain_pmu: result_groups[-1]['raw_pmu'] = group['raw_pmu'].result()
         if legacy_matrix:
             result_groups[-1]["matrix_ordinal_in_region"] = group["native_type_ordinal_in_region"]
     if (runtime_identity() != runtime_before or identity(case_path) != case_pin
             or identity(Path(__file__).resolve()) != extractor_before):
         raise ValueError("targeted_pass_runtime_or_case_changed")
+    if retain_pmu and identity(Path(__file__).with_name('targeted_native_pmu.py')) != pmu_helper_before:
+        raise ValueError('targeted_pmu_helper_changed')
     if (path.stat().st_size,path.stat().st_mtime_ns) != (stat_before.st_size,stat_before.st_mtime_ns):
         raise ValueError("source_changed_during_targeted_pass")
     rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * (1 if sys.platform == "darwin" else 1024)
@@ -153,6 +169,7 @@ def extract(actual_path, case_dir, output, native_types=("MatMulV3",), case_path
         "source_identity": source, "actual_identity": actual_pin, "body_acceptance_identity": body_pin,
         "case_identity": case_pin, "runtime_source_identity": runtime_before,
         "extractor_identity": extractor_before,
+        **({'pmu_helper_identity': pmu_helper_before} if retain_pmu else {}),
         "geometry": geo, "forward_count": len(expected), "selected_native_types": native_types,
         "native_event_count": total_count,
         "native_family_counts": {kind:sum(hist.values()) for kind,hist in totals.items()},
@@ -177,6 +194,7 @@ def main():
     parser.add_argument("--case-dir", type=Path)
     parser.add_argument("--case", type=Path, help="Explicit declaration for a single retained actual")
     parser.add_argument("--native-type", action="append", help="Selected family; defaults to MatMulV3")
+    parser.add_argument("--retain-pmu", action="store_true", help="Retain raw PMU field availability, complete counters and bounded call locators in the same pass")
     parser.add_argument("--summarize", action="store_true")
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args(); args.output_dir.mkdir(parents=True,exist_ok=True)
@@ -219,7 +237,7 @@ def main():
     if args.case and len(args.actual) != 1:
         parser.error("explicit case accepts one actual")
     for path in args.actual:
-        extract(path,args.case_dir,args.output_dir,args.native_type or ("MatMulV3",),args.case)
+        extract(path,args.case_dir,args.output_dir,args.native_type or ("MatMulV3",),args.case,args.retain_pmu)
 
 
 if __name__ == "__main__":
