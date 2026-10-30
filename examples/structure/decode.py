@@ -14,6 +14,8 @@ from copy import deepcopy
 from dataclasses import replace
 from hashlib import sha256
 import json
+import fnmatch
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -37,6 +39,158 @@ def _read(path):
 def _path(base, value):
     path = Path(value)
     return path.resolve() if path.is_absolute() else (base / path).resolve()
+
+
+def local_capture_directories(root, pattern):
+    """Discover existing capture directories; their names are never model inputs."""
+    root = Path(root).resolve()
+    if not root.is_dir():
+        raise ValueError(f"local_capture_root_missing:{root}")
+    for parent, directories, _ in os.walk(root):
+        directories.sort()
+        path = Path(parent)
+        if fnmatch.fnmatch(path.name, pattern):
+            yield path
+            directories[:] = []
+
+
+def _file_identity(path):
+    return {"path": str(path.resolve()), "sha256": sha256_file(path), "size_bytes": path.stat().st_size}
+
+
+def capture_metadata(directory):
+    """Read bounded producer metadata, never derive active tokens from cache shapes."""
+    directory = Path(directory)
+    documents, identities = {}, {}
+    for name in ("capture_metadata.json", "benchmark_summary.json", "profile_evidence.json", "manifest.json"):
+        path = directory / name
+        if path.is_file():
+            documents[name] = _read(path)
+            identities[name] = _file_identity(path)
+    summary = documents.get("benchmark_summary.json", {})
+    native = summary.get("native", {})
+    def numeric(value):
+        return float(value) if value is not None else None
+    inputs = native.get("InputTokens", {})
+    lower = numeric(inputs.get("Min", summary.get("input_tokens")))
+    upper_prompt = numeric(inputs.get("Max", summary.get("input_tokens")))
+    output = numeric(native.get("OutputTokens", {}).get("Max", summary.get("output_tokens")))
+    upper = upper_prompt + output if upper_prompt is not None and output is not None else None
+    context = {
+        "basis": "same_run_client_token_bounds" if lower is not None else "context_not_observed",
+        "representative_tokens": int(lower) if lower is not None else None,
+        "lower_bound_tokens": int(lower) if lower is not None else None,
+        "upper_bound_tokens": int(upper) if upper is not None else None,
+        "per_step_context_observed": False,
+        "source_identity": identities.get("benchmark_summary.json"),
+        "limitation": "The initial prompt is a conditional representative, not a per-step KV length. "
+                      "Token bounds describe the associated client run; cache/table capacities are not active context.",
+    }
+    fields = ("model", "hardware", "tp", "dp", "ep", "quant")
+    parameters, parameter_sources = {}, {}
+    conflicts = []
+    for name, document in documents.items():
+        # Producer-declared fields only. Launch argv/log adapters may write this
+        # small mapping without importing model weights or inferring from paths.
+        declarations = [document.get("capture_parameters", {}), document.get("source_configuration", {})]
+        for declaration in declarations:
+            for field in fields:
+                value = declaration.get(field, declaration.get(field.upper()))
+                if value is None:
+                    continue
+                if field in parameters and parameters[field] != value:
+                    conflicts.append(field)
+                parameters[field] = value
+                parameter_sources[field] = {"identity": identities[name], "field": field}
+    common = summary.get("common_metrics", {})
+    return {"identities": identities, "capture_parameters": parameters,
+            "parameter_sources": parameter_sources, "conflicting_parameters": sorted(set(conflicts)),
+            "context_evidence": context,
+            "client": {"input_len": context["representative_tokens"],
+                       "concurrency": common.get("Max Concurrency", {}).get("total"),
+                       "output_tokens": int(output) if output is not None else None},
+            "profile_round": summary.get("round")}
+
+
+def _capture_source(directory):
+    for name in ("kernel_details.csv", "kernel_details.csv.gz"):
+        path = directory / name
+        if path.is_file():
+            return path, None
+    candidates = []
+    for parent, children, files in os.walk(directory):
+        path = Path(parent)
+        if len(path.relative_to(directory).parts) >= 4:
+            children[:] = []
+        for name in files:
+            if name in {"kernel_details.csv", "kernel_details.csv.gz"}:
+                candidates.append(path / name)
+    rank_zero = [p for p in candidates if any(part in {"tp0", "rank0", "rank_0"} for part in p.relative_to(directory).parts)]
+    selected = rank_zero if rank_zero else candidates
+    if len(selected) == 1:
+        return selected[0], None
+    return None, "device_capture_missing" if not selected else "representative_rank_capture_ambiguous"
+
+
+def prepare_local_capture(directory, registry, base, *, template_case_id=None):
+    """Prepare one registry entry using explicit/exact declarations, never scores."""
+    directory = Path(directory)
+    metadata = capture_metadata(directory)
+    source, source_reason = _capture_source(directory)
+    reasons = ([source_reason] if source_reason else [])
+    if metadata["conflicting_parameters"]:
+        reasons.append("conflicting_capture_parameter_evidence")
+    parameters = metadata["capture_parameters"]
+    declarations = registry.get("capture_templates", [])
+    if template_case_id:
+        ids = [template_case_id]
+        selection = "explicit_template_case_id"
+    else:
+        required = {"model", "hardware", "tp", "dp", "ep", "quant"}
+        ids = [item["case_id"] for item in declarations if required <= parameters.keys()
+               and required <= item["match"].keys()
+               and all(parameters.get(k) == v for k, v in item["match"].items())]
+        selection = "exact_capture_parameter_declaration"
+    templates = [r for r in registry["cases"] if r["id"] in ids or r["case_id"] in ids]
+    if len(templates) != 1:
+        reasons.append("explicit_or_unique_exact_capture_template_required")
+    template = templates[0] if len(templates) == 1 else None
+    declaration = next((d for d in declarations if template and d["case_id"] in {template['id'], template['case_id']}), None)
+    if declaration and any(parameters[k] != v for k, v in declaration["match"].items() if k in parameters):
+        reasons.append("capture_template_parameter_mismatch")
+    if metadata["context_evidence"]["representative_tokens"] is None:
+        reasons.append("initial_context_evidence_missing")
+    result = {"capture_directory": str(directory.resolve()), "status": "unresolved" if reasons else "prepared",
+              "reasons": reasons, "metadata": metadata, "entry": None}
+    if reasons:
+        return result
+    identity = _file_identity(source)
+    if any(r.get("source", {}).get("sha256") == identity["sha256"] and r["phase"] == "decode" for r in registry["cases"]):
+        result.update(status="already_registered", reasons=["same_capture_content_already_registered"])
+        return result
+    case_path = _path(base, template["sim_case_path"])
+    expected = template["model_case"]
+    model_identity = _file_identity(case_path)
+    if any(model_identity[k] != expected[k] for k in ("sha256", "size_bytes")):
+        raise ValueError("capture_template_model_declaration_changed")
+    case_id = "local_" + identity["sha256"][:16]
+    inherited = {k: deepcopy(template[k]) for k in ("segmentation_options",) if k in template}
+    entry = {**inherited, "id": "decode:" + case_id, "case_id": case_id, "phase": "decode",
+             "source": {**identity, "kind": "csv"}, "model_case": model_identity,
+             "sim_case_path": str(case_path), "supported_scopes": ["body"], "geometry_limit": None,
+             "geometry": {"phase": "decode", "context_tokens": metadata["context_evidence"]["representative_tokens"]},
+             "context_evidence": metadata["context_evidence"],
+             "scenario_evidence": {"client": metadata["client"], "capture_metadata": metadata["identities"],
+                                   "capture_parameters": parameters},
+             "calibration": {"origin": "unchanged_explicit_template_parameters", "evaluation_relation": "not_declared",
+                             "evidence_refs": [model_identity]},
+             "template_selection": {"basis": selection, "template_id": template["id"],
+                 "template_model_identity": model_identity,
+                 "observed_parameters": parameters,
+                 "unobserved_parameters": [k for k in ("model", "hardware", "tp", "dp", "ep", "quant") if k not in parameters],
+                 "missing_parameters_are_not_confirmed_capture_facts": True}}
+    result['entry'] = entry
+    return result
 
 
 def _empty_comparison(reasons):
@@ -218,6 +372,10 @@ def _automatic_scenarios(row, observed):
     evidence = row.get("scenario_evidence", {})
     context = (row.get("geometry") or {}).get("context_tokens")
     context_basis = "explicit_case_geometry"
+    context_evidence = row.get("context_evidence")
+    if context_evidence:
+        context = context_evidence.get("representative_tokens", context_evidence.get("initial_prompt_tokens"))
+        context_basis = context_evidence.get("basis", context_evidence.get("initial_prompt_basis", "not_declared"))
     if context is None:
         context = evidence.get("client", {}).get("input_len", evidence.get("request_input_len"))
         context_basis = "client_prompt_tokens_as_representative_initial_context"
@@ -237,6 +395,7 @@ def _automatic_scenarios(row, observed):
             "body_activity_ms", "body_internal_gap_ms", "per_stream_activity_ms")},
         "activity_interpretation": "Union of non-scheduler event intervals, including real HCOM protocol wait; this is not PMU-confirmed useful hardware busy time.",
         "geometry": geometry,
+        "context_evidence": context_evidence,
         "batch_evidence": {
             "execution_sequences_per_replica": geometry.get("sequences_per_replica"),
             "execution_query_rows": geometry.get("query_rows"),

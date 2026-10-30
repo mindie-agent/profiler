@@ -1,0 +1,11 @@
+{
+  "source": {
+    "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/glm5_3_flash_w8a8_static_kernel_on_c10_p128k_20261030/kernel_details.csv",
+    "sha256": "334c098253958b7ad6c428b0d9ebf7cb883fcd02ba5ce868dcd3a4ea18a68365"
+  },
+  "selection": "Header and first actual CSV record; metadata intake only, not a complete Forward fixture.",
+  "metadata": {
+    "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/glm5_3_flash_w8a8_static_kernel_on_c10_p128k_20261030/benchmark_summary.json",
+    "sha256": "c4fc9e6d479cba5acf2a12b4e8a28bb17fe9e2feaf2cad4db9e385f595b400ed"
+  }
+}

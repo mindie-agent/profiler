@@ -37,6 +37,43 @@ python examples/structure/pipeline.py --scope generalization \
 清册中的本地采集路径需可读；迁移数据时更新路径并保留、核验内容 SHA256。
 清册、模型和 Sim 包在一次运行内不可变。结果逐源写入，失败保留原始原因并使入口返回非零。
 
+## 本地长上下文采集增量接入
+
+已有采集可通过同一个入口发现和提取，不启动设备或远程任务：
+
+```bash
+python examples/structure/pipeline.py \
+  --discover-local /path/to/local-captures \
+  --capture-pattern '*_128k_decode_*' \
+  --template-case-id decode:existing-source-id \
+  --output /path/to/external-evidence/local-capture-intake.json \
+  --archive-root /path/to/external-evidence --update
+```
+
+此模式只流式提取设备证据；`--update` 将完整 Decode 来源追加到唯一 `cases.json`，不执行 Sim 预测。
+省略 `--update` 时只返回候选与提取结果。随后使用正常 `--phase decode --update` 回放新增来源。
+没有设备 CSV、只有 Prefill、模板不明确和上下文证据缺失分别报告；不会把 API 统计或目录名称变成 Body。
+已登记的相同源内容不再提取，多 rank 目录优先唯一 `tp0` / `rank0`，有歧义时保留缺口。
+
+元数据读取 `capture_metadata.json`、`benchmark_summary.json`、`profile_evidence.json`、`manifest.json`。
+`capture_parameters` 或 `source_configuration` 中的 `model/hardware/tp/dp/ep/quant` 是显式部署声明。
+未指定 `--template-case-id` 时，清册顶层 `capture_templates` 必须有唯一的完整匹配：
+
+```json
+{"capture_templates": [{"case_id": "decode:existing-source-id", "match": {
+  "model": "declared-model", "hardware": "declared-sku", "tp": 16, "dp": 1,
+  "ep": 16, "quant": "declared-quantization"
+}}]}
+```
+
+显式模板选择保留未观测的部署字段，不声称捕获已经证明这些条件。选择过程不读取历史通过率。
+请求 prompt/output 形成条件范围与初始代表值；没有逐步序列长度时不把 128K 目录名、KV 缓存或页表容量当实际上下文。
+
+新增来源的 `geometry_limit: null` 比较所有实际 B/q 桶。旧清册行默认仍只预测最大人口桶。
+结果中的 `geometry_comparisons` 分别保存每桶调用数、Mean/P50/P90、预测与误差；不混算不同 B 的单层分布。
+`population_coverage` 明示覆盖调用数，`source_all_populations_passed` 仅在全部桶均已评分且全部通过时为真。
+全桶模式的源级状态采用这个结果，主桶数值仍保留供查看。
+
 ## 数据边界
 
 - `cases/*.json` 保存模型、部署、源码程序与物理服务参数；清册保存采集、模型、提取结果和校准证据的内容身份。

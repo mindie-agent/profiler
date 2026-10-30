@@ -1,0 +1,225 @@
+{
+  "source_report": {
+    "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/09626b548690b9fdcb484cb51660128932bf02820afec4f1e9cbf48d3acd098e.json",
+    "sha256": "09626b548690b9fdcb484cb51660128932bf02820afec4f1e9cbf48d3acd098e",
+    "size_bytes": 475940,
+    "format": "full_scoreboard_json"
+  },
+  "source_identity": {
+    "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/glm5_3_flash_w8a8_static_kernel_on_c10_p128k_20261030/kernel_details.csv",
+    "sha256": "334c098253958b7ad6c428b0d9ebf7cb883fcd02ba5ce868dcd3a4ea18a68365",
+    "size_bytes": 86903800,
+    "kind": "csv"
+  },
+  "rows": [
+    {
+      "case_id": "a3_glm53flash_static_on_c10_p131201:q6_b1_m6",
+      "status": "compared",
+      "geometry": {
+        "query_rows": 6,
+        "sequences_per_replica": 1,
+        "tokens_per_sequence": 6,
+        "context_tokens": 131201,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "comparison": {
+        "status": "compared",
+        "metric_boundary": "target_body_device_graph",
+        "reasons": [],
+        "observed_forward_count": 68,
+        "observed_ms": {
+          "count": 68,
+          "mean": 22.603161617647057,
+          "p50": 22.3481165,
+          "p90": 23.552311,
+          "min": 21.179023,
+          "max": 27.121242
+        },
+        "predicted_ms": 23.704275212040372,
+        "relative_error": 0.048715025491550615,
+        "per_forward_diff_ms": 1.1011135943933148,
+        "passed": true,
+        "tolerance": {
+          "kind": "relative",
+          "limit": 0.15,
+          "scope": "whole_body_forward_not_single_kernel_launch"
+        },
+        "comparison_scope": {},
+        "comparison_basis": "conditional_single_rank_topology_alignment",
+        "assumptions": [
+          "Context basis: explicit_case_geometry; active KV increments during this capture are not established.",
+          "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+          "Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage."
+        ],
+        "endpoints": {
+          "observed": "first_retained_device_event_start_to_last_retained_device_event_end",
+          "predicted": "first_kernel_invocation_ready_to_body_complete_including_startup",
+          "input_ready_to_first_kernel_ms": 0,
+          "kernel_startup_included": true
+        }
+      }
+    },
+    {
+      "case_id": "a3_glm53flash_static_on_c10_p131201:q6_b4_m24",
+      "status": "unresolved",
+      "geometry": {
+        "query_rows": 24,
+        "sequences_per_replica": 4,
+        "tokens_per_sequence": 6,
+        "context_tokens": 131201,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "comparison": {
+        "status": "unresolved",
+        "reasons": [
+          "prediction_deferred_by_population_priority"
+        ],
+        "observed_forward_count": 13,
+        "observed_ms": {
+          "count": 13,
+          "mean": 28.250681384615383,
+          "p50": 27.984799,
+          "p90": 28.307606,
+          "min": 27.622852,
+          "max": 32.199863
+        },
+        "predicted_ms": null,
+        "relative_error": null,
+        "per_forward_diff_ms": null,
+        "passed": null
+      }
+    },
+    {
+      "case_id": "a3_glm53flash_static_on_c10_p131201:q6_b8_m48",
+      "status": "unresolved",
+      "geometry": {
+        "query_rows": 48,
+        "sequences_per_replica": 8,
+        "tokens_per_sequence": 6,
+        "context_tokens": 131201,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "comparison": {
+        "status": "unresolved",
+        "reasons": [
+          "prediction_deferred_by_population_priority"
+        ],
+        "observed_forward_count": 12,
+        "observed_ms": {
+          "count": 12,
+          "mean": 31.580006,
+          "p50": 31.5199705,
+          "p90": 31.997659,
+          "min": 30.278285,
+          "max": 35.380127
+        },
+        "predicted_ms": null,
+        "relative_error": null,
+        "per_forward_diff_ms": null,
+        "passed": null
+      }
+    },
+    {
+      "case_id": "a3_glm53flash_static_on_c10_p131201:q6_b2_m12",
+      "status": "unresolved",
+      "geometry": {
+        "query_rows": 12,
+        "sequences_per_replica": 2,
+        "tokens_per_sequence": 6,
+        "context_tokens": 131201,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "comparison": {
+        "status": "unresolved",
+        "reasons": [
+          "prediction_deferred_by_population_priority"
+        ],
+        "observed_forward_count": 3,
+        "observed_ms": {
+          "count": 3,
+          "mean": 25.713127333333333,
+          "p50": 24.343587,
+          "p90": 28.811116,
+          "min": 23.984679,
+          "max": 28.811116
+        },
+        "predicted_ms": null,
+        "relative_error": null,
+        "per_forward_diff_ms": null,
+        "passed": null
+      }
+    },
+    {
+      "case_id": "a3_glm53flash_static_on_c10_p131201:q6_b3_m18",
+      "status": "unresolved",
+      "geometry": {
+        "query_rows": 18,
+        "sequences_per_replica": 3,
+        "tokens_per_sequence": 6,
+        "context_tokens": 131201,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "comparison": {
+        "status": "unresolved",
+        "reasons": [
+          "prediction_deferred_by_population_priority"
+        ],
+        "observed_forward_count": 1,
+        "observed_ms": {
+          "count": 1,
+          "mean": 31.414768,
+          "p50": 31.414768,
+          "p90": 31.414768,
+          "min": 31.414768,
+          "max": 31.414768
+        },
+        "predicted_ms": null,
+        "relative_error": null,
+        "per_forward_diff_ms": null,
+        "passed": null
+      }
+    },
+    {
+      "case_id": "a3_glm53flash_static_on_c10_p131201:q6_b7_m42",
+      "status": "unresolved",
+      "geometry": {
+        "query_rows": 42,
+        "sequences_per_replica": 7,
+        "tokens_per_sequence": 6,
+        "context_tokens": 131201,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "comparison": {
+        "status": "unresolved",
+        "reasons": [
+          "prediction_deferred_by_population_priority"
+        ],
+        "observed_forward_count": 1,
+        "observed_ms": {
+          "count": 1,
+          "mean": 35.747814,
+          "p50": 35.747814,
+          "p90": 35.747814,
+          "min": 35.747814,
+          "max": 35.747814
+        },
+        "predicted_ms": null,
+        "relative_error": null,
+        "per_forward_diff_ms": null,
+        "passed": null
+      }
+    }
+  ]
+}

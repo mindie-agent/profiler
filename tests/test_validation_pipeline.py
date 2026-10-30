@@ -8,7 +8,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'examples/structure'))
-from pipeline import archive_report, execute, identity, project, retained_cards
+from pipeline import archive_report, decode_populations, execute, identity, project, retained_cards
 from engine import geometry_key, observed_case
 
 FIXTURE = ROOT / 'tests/fixtures/prefill/pipeline_projection.json'
@@ -144,3 +144,29 @@ def test_client_evidence_registration_does_not_invalidate_body_cost(tmp_path):
             changed['model_case']['sha256'] = 'different-physical-model'
             with pytest.raises(ValueError, match='changed_case_requires_replay'):
                 retained_cards(previous, [changed], set(), runtime, scope)
+
+
+def test_real_glm128k_primary_pass_does_not_cover_other_five_populations():
+    rows = json.loads((ROOT / 'tests/fixtures/pipeline/glm128k_populations.json').read_text())['rows']
+    limited = decode_populations(rows, require_all=False)
+    assert limited['comparison']['passed'] is True
+    full = decode_populations(rows, require_all=True)
+    assert full['comparison']['primary_population_passed'] is True
+    assert full['comparison']['status'] == 'unresolved'
+    assert full['source_all_populations_passed'] is None
+    assert full['comparison']['passed'] is None
+    assert full['population_coverage']['observed_calls'] == 98
+    assert full['population_coverage']['covered_calls'] == 68
+    assert {p['geometry']['sequences_per_replica']: p['forward_count']
+            for p in full['geometry_comparisons']} == {1: 68, 4: 13, 3: 1, 2: 3, 8: 12, 7: 1}
+    assert full['comparison']['observed_ms']['p50'] == rows[0]['comparison']['observed_ms']['p50']
+
+
+def test_failed_minority_population_cannot_be_replaced_by_primary_pass():
+    rows = json.loads((ROOT / 'tests/fixtures/pipeline/glm128k_populations.json').read_text())['rows']
+    # Replay outcome perturbation: no captured durations or geometry change.
+    rows[-1]['comparison'].update(status='failed', passed=None, reasons=['body_prediction_timeout'])
+    full = decode_populations(rows, require_all=True)
+    assert full['comparison']['status'] == 'failed'
+    assert full['comparison']['passed'] is not True
+    assert full['geometry_comparisons'][-1]['comparison']['reasons'] == ['body_prediction_timeout']

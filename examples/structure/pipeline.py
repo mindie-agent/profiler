@@ -111,6 +111,9 @@ def project(row, result, evidence, *, scope=None):
             'stage_span_ms': observed.get('stage_span_ms'),
             'per_layer': {k: v for k, v in layers.items() if k != 'layers'},
             'calibration': row.get('calibration', {}), 'evidence': evidence}
+    for field in ('geometry_comparisons', 'population_coverage', 'source_all_populations_passed', 'context_evidence'):
+        if field in result:
+            card[field] = result[field]
     if row['phase'] == 'prefill':
         card['client'] = result.get('client')
         card['ttft_prediction_ms'] = result.get('ttft_prediction_ms')
@@ -165,6 +168,21 @@ def retained_cards(previous, rows, selected_ids, generation, scope):
 
 def render(report):
     def number(value): return '—' if value is None else f'{value:.3f}'
+    if report.get('scope') == 'discovery':
+        lines = ['# Local Decode capture intake', '',
+            'Existing local captures only. Directory names select candidates; metadata supplies context and model declarations. '
+            'No device tasks or Sim predictions are launched.', '',
+            '| Capture | Status | Complete Forward calls | Context representative / bounds | Evidence gaps |',
+            '|---|---|---:|---|---|']
+        for candidate in report['cases']:
+            context = candidate.get('metadata', {}).get('context_evidence', {})
+            lines.append(f"| {candidate['capture_directory']} | {candidate['status']} | {candidate.get('forward_count', '—')} | "
+                         f"{context.get('representative_tokens')} / {context.get('lower_bound_tokens')}–{context.get('upper_bound_tokens')} | "
+                         + ', '.join(candidate.get('reasons', [])) + ' |')
+        lines += ['', 'Token bounds are client-run conditions, not measured per-step KV lengths. '
+                  'Exact template selection uses declared model, hardware, TP/DP/EP and quantization; explicit templates preserve missing capture fields. ',
+                  'Summary: ' + json.dumps(report['summary'], sort_keys=True), '']
+        return '\n'.join(lines)
     lines = ['# Current profiling validation', '',
              'One canonical case registry and one recorded Sim package. '
              + ('Frozen native service functions are evaluated separately from Sim Body prediction. ' if report.get('scope') == 'generalization' else
@@ -181,6 +199,29 @@ def render(report):
         lines.append(f"| {row['case_id']} | {row['phase']} | {c.get('observed_forward_count', real.get('count', '—'))} | "
                      + ' / '.join(number(real.get(k)) for k in ('mean', 'p50', 'p90'))
                      + f" | {number(c.get('predicted_ms'))} | {'—' if error is None else f'{error:+.2%}'} | {status} |")
+    multi = [r for r in report['cases'] if len(r.get('geometry_comparisons', [])) > 1]
+    if multi and report.get('scope', 'body') == 'body':
+        lines += ['', 'The source headline retains its largest population. Each execution geometry is scored separately; '
+                  'an all-population source pass requires complete scored coverage and every population to pass.', '',
+                  '| Case | B | q | Context | Calls | Real mean / P50 / P90 ms | Sim ms | Error | Status |',
+                  '|---|---:|---:|---:|---:|---:|---:|---:|---|']
+        for row in multi:
+            for population in row['geometry_comparisons']:
+                g = population['geometry']; c = population['comparison']; real = c.get('observed_ms') or {}
+                error = c.get('relative_error')
+                status = ('PASS' if c.get('passed') else 'FAIL') if c['status'] == 'compared' else c['status']
+                lines.append(f"| {row['case_id']} | {g.get('sequences_per_replica')} | {g.get('tokens_per_sequence')} | {g.get('context_tokens')} | {population['forward_count']} | "
+                    + ' / '.join(number(real.get(k)) for k in ('mean', 'p50', 'p90'))
+                    + f" | {number(c.get('predicted_ms'))} | {'—' if error is None else f'{error:+.2%}'} | {status} |")
+            coverage = row['population_coverage']
+            lines += ['', f"{row['case_id']}: scored {coverage['covered_calls']} / {coverage['observed_calls']} calls; "
+                      f"all-population pass: {row['source_all_populations_passed']}."]
+            context = row.get('context_evidence')
+            if context:
+                lines.append(f"Context: {context.get('basis')}; representative {context.get('representative_tokens')}, "
+                             f"bounds {context.get('lower_bound_tokens')}–{context.get('upper_bound_tokens')} tokens. "
+                             + context.get('limitation', ''))
+                lines[-1] = lines[-1].rstrip()
     if report.get('scope') == 'engine':
         from engine import geometry_key
         lines += ['', '| Case | Complete target cycles | Cycle mean / P50 ms | Client token TPOT P50 ms | Serving status |',
@@ -284,6 +325,40 @@ def summarize(cards, requested_sources):
     return result
 
 
+def decode_populations(rows, *, require_all):
+    """Keep one source headline without dropping smaller or failed populations."""
+    rows = sorted(rows, key=lambda r: -r['comparison'].get('observed_forward_count', 0))
+    result = dict(rows[0])
+    result['comparison'] = dict(result['comparison'])
+    result['other_geometry_populations'] = rows[1:]
+    populations = []
+    for item in rows:
+        comparison = item['comparison']
+        populations.append({'geometry': item.get('geometry'),
+            'forward_count': comparison.get('observed_forward_count', 0),
+            'comparison': comparison,
+            'per_layer': {k: v for k, v in (item.get('per_layer_comparison') or {}).items() if k != 'layers'}})
+    scored = [p for p in populations if p['comparison']['status'] == 'compared']
+    complete = len(scored) == len(populations)
+    passed = (all(p['comparison']['passed'] is True for p in scored) if complete else
+              False if any(p['comparison'].get('passed') is False for p in scored) else None)
+    result.update(geometry_comparisons=populations, source_all_populations_passed=passed,
+        population_coverage={'observed_populations': len(populations), 'compared_populations': len(scored),
+            'observed_calls': sum(p['forward_count'] for p in populations),
+            'covered_calls': sum(p['forward_count'] for p in scored), 'complete': complete,
+            'scoring_scope': 'all_populations' if require_all else 'primary_population'})
+    context = (result.get('observed') or {}).get('context_evidence')
+    if context:
+        result['context_evidence'] = context
+    if require_all:
+        result['comparison']['primary_population_passed'] = result['comparison'].get('passed')
+        result['comparison']['passed'] = passed
+        if not complete:
+            result['status'] = result['comparison']['status'] = (
+                'failed' if any(p['comparison']['status'] == 'failed' for p in populations) else 'unresolved')
+    return result
+
+
 def execute(row, base, scope, archive_root, timeout, generation):
     try:
         case_path = None
@@ -309,10 +384,10 @@ def execute(row, base, scope, archive_root, timeout, generation):
             from prefill import run_case
             result = run_case(row, base, prediction_timeout_s=timeout)
         else:
+            limit = row.get('geometry_limit', 1)
             decoded = replay_manifest({'schema_version': 'mindie-decode-forward-replay/1', 'cases': [row]},
-                base=base, prediction_timeout_s=timeout, geometry_limit=1)
-            result = next((r for r in decoded['cases'] if r['comparison']['status'] != 'unresolved'), decoded['cases'][0])
-            result['other_geometry_populations'] = [r for r in decoded['cases'] if r is not result]
+                base=base, prediction_timeout_s=timeout, geometry_limit=limit)
+            result = decode_populations(decoded['cases'], require_all=limit is None)
         if _sim_identity() != generation: raise ValueError('sim_package_changed_during_run')
         if case_path and identity(case_path) != before: raise ValueError('model_declaration_changed_during_run')
     except (OSError, ValueError, RuntimeError) as error:
@@ -412,6 +487,67 @@ def run(manifest_path, *, output, archive_root, phase=None, scope='body', case_i
     return report
 
 
+def discover_local(manifest_path, roots, *, patterns, output, archive_root, template_case_id=None, update=False):
+    """Extract newly discovered local captures into the single canonical registry."""
+    from decode import local_capture_directories, prepare_local_capture, replay_case
+    manifest_path = Path(manifest_path)
+    registry = read(manifest_path)
+    if registry['schema_version'] != 'mindie-cases/1':
+        raise ValueError('unknown_case_registry')
+    before = identity(manifest_path)
+    report = {'schema_version': 'mindie-local-capture-discovery/1', 'scope': 'discovery',
+              'status': 'running', 'registry': before, 'cases': [], 'summary': {},
+              'new_device_collection': False, 'new_Sim_predictions': 0}
+    seen = set(); added = []
+    for root in roots:
+        for pattern in patterns:
+            for directory in local_capture_directories(root, pattern):
+                if directory in seen:
+                    continue
+                seen.add(directory)
+                try:
+                    candidate = prepare_local_capture(directory, registry, manifest_path.parent, template_case_id=template_case_id)
+                    if candidate['status'] == 'prepared':
+                        entry = candidate['entry']
+                        extraction = replay_case(entry, manifest_path.parent, run_predictions=False)
+                        observed = extraction.get('observed')
+                        if not observed:
+                            candidate.update(status=extraction['status'], reasons=extraction['comparison']['reasons'])
+                        elif not observed['body_forward_span_ms']['count']:
+                            candidate.update(status='unresolved', reasons=['complete_decode_topology_not_found'])
+                        else:
+                            pointer = archive_report(observed, archive_root)
+                            entry.update(extraction_path=pointer['path'], extraction_identity=pointer,
+                                forward_metadata={'body_count': observed['body_forward_span_ms']['count'],
+                                    'geometry_groups': [{'geometry': g['geometry'], 'forward_count': g['forward_count']}
+                                                        for g in observed['geometry_groups']]})
+                            candidate.update(status='registered' if update else 'extracted',
+                                             forward_count=observed['body_forward_span_ms']['count'])
+                            if update:
+                                registry['cases'].append(entry)
+                                added.append(entry['id'])
+                    report['cases'].append(candidate)
+                except (OSError, ValueError, RuntimeError) as error:
+                    report['cases'].append({'capture_directory': str(directory), 'status': 'failed',
+                        'reasons': [str(error)], 'error': {'type': type(error).__name__, 'message': str(error)}})
+    if identity(manifest_path) != before:
+        raise ValueError('case_registry_changed_during_discovery')
+    if added:
+        fd, name = tempfile.mkstemp(prefix='.cases-', suffix='.json', dir=manifest_path.parent)
+        try:
+            with os.fdopen(fd, 'w') as stream:
+                json.dump(registry, stream, indent=2, ensure_ascii=False)
+                stream.write('\n')
+            os.replace(name, manifest_path)
+        finally:
+            Path(name).unlink(missing_ok=True)
+    counts = Counter(c['status'] for c in report['cases'])
+    report.update(status='failed' if counts['failed'] else 'completed', registry=identity(manifest_path),
+                  summary={'captures': len(seen), 'status_counts': dict(counts), 'registered_ids': added})
+    publish(report, output)
+    return report
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--cases', type=Path, default=Path(__file__).with_name('cases.json'))
@@ -423,7 +559,14 @@ def main():
     parser.add_argument('--prediction-timeout', type=float, default=90)
     parser.add_argument('--workers', type=int, default=1)
     parser.add_argument('--update', action='store_true', help='Replay selected cases while retaining unchanged cases from this exact Sim package')
+    parser.add_argument('--discover-local', type=Path, action='append', default=[], help='Find and extract existing local captures; --update appends complete Decode entries to --cases, without model prediction')
+    parser.add_argument('--capture-pattern', action='append', default=[], help='Capture directory glob (default: *_128k_decode_*)')
+    parser.add_argument('--template-case-id', help='Explicit registered model declaration for discovered captures; otherwise require an exact capture_templates match')
     args = parser.parse_args()
+    if args.discover_local:
+        result = discover_local(args.cases, args.discover_local, patterns=args.capture_pattern or ['*_128k_decode_*'],
+            output=args.output, archive_root=args.archive_root, template_case_id=args.template_case_id, update=args.update)
+        return int(result['status'] == 'failed')
     result = run(args.cases, output=args.output, archive_root=args.archive_root, phase=args.phase,
                  scope=args.scope, case_ids=args.case_id, timeout=args.prediction_timeout, workers=args.workers, update=args.update)
     return int(result['status'] == 'failed')
