@@ -287,6 +287,17 @@ def geometry_key(geometry):
     return tuple(geometry.get(key) for key in ('tokens_per_sequence','sequences_per_replica','query_rows'))
 
 
+def segmentation_config(model_config, prior):
+    """Keep the source boundary declaration used to accept the retained bodies."""
+    config = dict(model_config)
+    declaration = prior.get('model_declaration', {})
+    for key in ('source_attention_anchors', 'source_decode_query', 'forward_closure', 'sequence_parallel'):
+        if key in declaration:
+            config[key] = declaration[key]
+    config.update(prior.get('segmentation_options', {}))
+    return config
+
+
 def extract_case(entry, case_paths, output, *, context_tokens=None, geometry_limit=None):
     started=time.perf_counter(); runtime_before=runtime_identity()
     prior=read(entry['report_path'])
@@ -294,8 +305,11 @@ def extract_case(entry, case_paths, output, *, context_tokens=None, geometry_lim
     source_identity=entry['source_identity']; path=Path(source_identity['path'])
     before=(path.stat().st_size,path.stat().st_mtime_ns)
     if digest(path)!=source_identity['sha256']:raise ValueError('capture_sha256_changed')
+    if prior['source_identity']['sha256'] != source_identity['sha256']:
+        raise ValueError('body_acceptance_source_identity_changed')
+    schema_version = source_identity.get('schema_version') or prior['source_identity']['schema_version']
     source=SourceRef('rank_0',0,'csv',str(path),path.name,source_identity['sha256'],before[0],
-                    source_identity['schema_version'],'retained_full_capture',mtime_ns=before[1])
+                    schema_version,'retained_full_capture',mtime_ns=before[1])
     geometries={};expected_by_geometry=defaultdict(dict)
     for forward in prior['forwards']:
         key=geometry_key(forward['geometry'])
@@ -309,8 +323,7 @@ def extract_case(entry, case_paths, output, *, context_tokens=None, geometry_lim
         case_json=read(case_path);case=parse_case(case_json)
         context=(context_tokens if context_tokens is not None
                  else case_json['workload']['requests'][0]['prompt_tokens'])
-        config=case.model.to_dict();config.update(tp=case.runtime.parallel.tp)
-        config.update(prior.get('segmentation_options', {}))
+        config=segmentation_config({**case.model.to_dict(), 'tp':case.runtime.parallel.tp}, prior)
         for key,geometry in geometries.items():
             manifest=export_structure(case,phase='decode',tokens=geometry['tokens_per_sequence'],
                                   sequences=geometry['sequences_per_replica'],context=context,scope='body')

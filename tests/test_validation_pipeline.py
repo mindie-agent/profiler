@@ -170,3 +170,32 @@ def test_failed_minority_population_cannot_be_replaced_by_primary_pass():
     assert full['comparison']['status'] == 'failed'
     assert full['comparison']['passed'] is not True
     assert full['geometry_comparisons'][-1]['comparison']['reasons'] == ['body_prediction_timeout']
+
+
+@pytest.mark.parametrize('all_populations', [False, True])
+def test_operator_entry_preserves_real_mixed_population_selection(tmp_path, monkeypatch, all_populations):
+    import operators
+    from pipeline import operator_case
+    extraction = ROOT / 'tests/fixtures/pipeline/mixed_decode_populations.json'
+    prior = json.loads(extraction.read_text())
+    row = {'id': 'decode:v4flash-a3-tp8-c4', 'case_id': 'v4flash-a3-tp8-c4',
+           'source': prior['source_identity'], 'extraction_path': str(extraction),
+           'sim_case_path': 'retained-model.json', 'geometry': {'context_tokens': 4096}}
+    if all_populations:
+        row['geometry_limit'] = None
+    class ExtractionBoundary(Exception):
+        pass
+    def verify_entry(entry, case_paths, output, *, geometry_limit, context_tokens):
+        assert identity(entry['report_path'])['sha256'] == entry['report_sha256']
+        assert entry['source_identity'] == prior['source_identity']
+        assert context_tokens == 4096
+        assert geometry_limit is (None if all_populations else 1)
+        # The real retained minority has four complete calls. The entry must
+        # forward the caller's selection policy before any scan or prediction.
+        counts = sorted((g['body_forward_span_ms']['count'] for g in prior['geometry_groups']), reverse=True)
+        assert counts == [104, 4]
+        assert sum(counts if geometry_limit is None else counts[:geometry_limit]) == (108 if all_populations else 104)
+        raise ExtractionBoundary
+    monkeypatch.setattr(operators, 'extract_case', verify_entry)
+    with pytest.raises(ExtractionBoundary):
+        operator_case(row, tmp_path, tmp_path / 'operators', 90)

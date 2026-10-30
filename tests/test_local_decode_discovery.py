@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import shutil
 import sys
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'examples/structure'))
@@ -78,12 +79,15 @@ def test_no_template_is_selected_from_case_name_or_past_accuracy(tmp_path):
     assert prepare_local_capture(directory, value, path.parent)['entry'] is None
 
 
-def test_real_prefill_record_does_not_become_a_complete_decode_capture(tmp_path):
+@pytest.mark.parametrize('direct_model', [False, True])
+def test_real_prefill_record_does_not_become_a_complete_decode_capture(tmp_path, direct_model):
     capture(tmp_path)
     path, original = registry(tmp_path)
+    template = ({'template_case_path': original['cases'][0]['sim_case_path']} if direct_model
+                else {'template_case_id': 'declared-glm'})
     result = discover_local(path, [tmp_path], patterns=['*_128k_decode_*'],
         output=tmp_path / 'discovery.json', archive_root=tmp_path / 'evidence',
-        template_case_id='declared-glm', update=True)
+        **template, update=True)
     assert result['cases'][0]['status'] == 'unresolved'
     assert result['cases'][0]['reasons'] == ['complete_decode_topology_not_found']
     assert json.loads(path.read_text()) == original
@@ -153,3 +157,79 @@ def test_requested_prompt_fallback_is_not_reported_as_observed_usage(tmp_path):
     context = capture_metadata(tmp_path)['context_evidence']
     assert context['representative_tokens'] == 4104
     assert context['basis'] == 'requested_prefix_plus_suffix_condition'
+
+
+def test_real_v41_profile_cell_uses_nested_usage_not_shared_prefix_or_directory(tmp_path):
+    source = ROOT / 'tests/fixtures/pipeline/local_v41_128k/benchmark-cell.json'
+    payload = json.loads(source.read_text())
+    directory = tmp_path / 'unrelated_capture_c99_p1'
+    directory.mkdir()
+    # The producer's own cell identity selects the sidecar; no standard
+    # benchmark_summary.json or directory-derived workload is present.
+    sidecar = directory / (payload['summary']['cell'] + '.json')
+    shutil.copyfile(source, sidecar)
+
+    metadata = capture_metadata(directory)
+    context = metadata['context_evidence']
+    assert metadata['client'] == {'input_len': 126000, 'concurrency': 4, 'output_tokens': 3000}
+    assert context['representative_tokens'] == context['lower_bound_tokens'] == 126000
+    assert context['upper_bound_tokens'] == 129000
+    assert context['basis'] == 'retained_request_prompt_usage'
+    assert context['per_step_context_observed'] is False
+    assert context['client_token_exact'] is True
+    assert context['source_identity'] == identity(sidecar)
+    assert metadata['capture_parameters'] == {}
+    assert payload['summary']['design']['shared_tokens'] == 125000
+    assert context['representative_tokens'] != payload['summary']['design']['shared_tokens']
+
+
+def test_complete_v41_discovery_registers_all_forward_populations_from_model_path(tmp_path):
+    fixtures = ROOT / 'tests/fixtures/decode_forward'
+    config = json.loads((fixtures / 'a3_v41_dspark7_model_config.json').read_text())
+    source = fixtures / 'a3_v41_dspark7_two_forwards.csv'
+    directory = tmp_path / 'capture_decode_retained'
+    directory.mkdir()
+    shutil.copyfile(source, directory / 'kernel_details.csv')
+    # This independent client fixture exercises intake schema only. It is not
+    # the client run of the retained two-forward capture and supplies no score.
+    client = ROOT / 'tests/fixtures/pipeline/local_v41_128k/benchmark-cell.json'
+    cell_name = json.loads(client.read_text())['summary']['cell']
+    shutil.copyfile(client, directory / (cell_name + '.json'))
+    declaration = json.loads(case_path('a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4.json').read_text())
+    segmentation = {key: config[key] for key in ('body_layers', 'forward_closure', 'sequence_parallel')}
+    declaration['runtime'].setdefault('metadata', {})['segmentation_options'] = segmentation
+    model_path = tmp_path / 'source-model.json'
+    model_path.write_text(json.dumps(declaration))
+    manifest = tmp_path / 'cases.json'
+    manifest.write_text(json.dumps({'schema_version': 'mindie-cases/1', 'cases': []}))
+
+    result = discover_local(manifest, [tmp_path], patterns=['capture_decode_*'],
+        output=tmp_path / 'discovery.json', archive_root=tmp_path / 'evidence',
+        template_case_path=model_path, update=True)
+
+    candidate, = result['cases']
+    assert candidate['status'] == 'registered'
+    assert candidate['forward_count'] == 2
+    entry, = json.loads(manifest.read_text())['cases']
+    assert result['summary']['registered_ids'] == [entry['id']]
+    assert entry['id'].startswith('decode:local_')
+    assert entry['source'] == {**identity(directory / 'kernel_details.csv'), 'kind': 'csv'}
+    assert entry['model_case'] == identity(model_path)
+    assert entry['segmentation_options'] == segmentation
+    assert entry['geometry_limit'] is None
+    observed = json.loads(Path(entry['extraction_path']).read_text())
+    assert entry['forward_metadata'] == {
+        'body_count': 2,
+        'geometry_groups': [{'geometry': group['geometry'],
+                             'forward_count': group['body_forward_span_ms']['count']}
+                            for group in observed['geometry_groups']],
+    }
+    assert sum(group['forward_count'] for group in entry['forward_metadata']['geometry_groups']) == 2
+    group, = observed['geometry_groups']
+    assert group['geometry']['query_rows'] == 8
+    assert group['geometry']['sequences_per_replica'] == 1
+    assert group['body_forward_span_ms']['count'] == 2
+    assert [row['body_forward_span_ms'] for row in observed['forwards']] == pytest.approx(
+        [194.077022, 208.357817])
+    assert result['new_Sim_predictions'] == 0
+    assert entry['calibration']['evaluation_relation'] == 'not_declared'

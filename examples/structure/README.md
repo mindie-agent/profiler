@@ -1,7 +1,7 @@
 # 结构、实测与预测的统一验证管线
 
 `pipeline.py` 是唯一公开回放入口，`cases.json` 是唯一 Case 清册，`results/` 保存当前结果。
-每一轮从同一个已安装 Sim 0.8.0 包重新预测，不读取历史预测缓存或按误差选择旧结果。
+每一轮从同一个固定的 Sim 包重新预测，记录包内容 SHA256 和已安装源码提交，不按误差选择旧结果。
 原始采集、逐源完整报告及训练证据保留在仓库外，以 SHA256 指针关联。
 
 ## 运行
@@ -52,6 +52,8 @@ python examples/structure/pipeline.py \
 
 此模式只流式提取设备证据；`--update` 将完整 Decode 来源追加到唯一 `cases.json`，不执行 Sim 预测。
 省略 `--update` 时只返回候选与提取结果。随后使用正常 `--phase decode --update` 回放新增来源。
+新部署尚无已登记来源时，可用 `--template-case-path cases/source-model.json` 提供已核验的模型声明；它与 `--template-case-id` 二选一，不会向清册写入占位来源。
+当根目录是某次采集的 `prof/` 时，使用实际叶子目录模式（例如 `--capture-pattern 'decode_*'`），避免把包含多个来源的父目录当作一次采集。
 没有设备 CSV、只有 Prefill、模板不明确和上下文证据缺失分别报告；不会把 API 统计或目录名称变成 Body。
 已登记的相同源内容不再提取，多 rank 目录优先唯一 `tp0` / `rank0`，有歧义时保留缺口。
 
@@ -59,6 +61,7 @@ python examples/structure/pipeline.py \
 `capture_parameters` 或 `source_configuration` 中的 `model/hardware/tp/dp/ep/quant` 是显式部署声明。
 同时支持生产摘要的 `model_path`、`tensor_parallel_size`、`extra.recipe`、`extra.quantization` 和明确硬件 SKU 字段。
 同 label 的 `client_cell.json` 可提供完整请求 usage；实际 `prompt_tokens` 优先于 prefix 长度。
+也支持生产器以自身 `summary.cell` 命名的 Profile JSON，以及 `requests[].usage` 中的实际输入/输出长度；同一目录存在多个匹配摘要时保留歧义。
 例如 4096 prefix 加 8 suffix 的真实 usage 是 4104；usage 缺失时只保留显式请求长度条件，DP/EP 缺失不会补成 1。
 明确的 TP/DP/EP 或 SKU 与模板冲突时拒绝接入，缺字段则仍需明确模板声明。
 未指定 `--template-case-id` 时，清册顶层 `capture_templates` 必须有唯一的完整匹配：

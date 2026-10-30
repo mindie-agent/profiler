@@ -86,3 +86,32 @@ def test_real_fusion_cohort_roles_do_not_encode_the_layer_occurrence(replay):
     assert len(set(identifiers))==2
     roles={replay.declared_role({'subgraph_id':identifier}) for identifier in identifiers}
     assert roles=={'shared.situ_quant'}
+
+
+@pytest.mark.parametrize('fixture,expected_spans', [
+    ('a3_v41_dspark7', [194.077022, 208.357817]),
+    ('v41_dp8', [13.848067]),
+])
+@pytest.mark.parametrize('declaration_location', ['model_declaration', 'segmentation_options'])
+def test_retained_v41_segmentation_declaration_preserves_complete_body_windows(
+        replay, fixture, expected_spans, declaration_location):
+    from mindie_profiler.decode_segmentation import auto_segment_decode_forwards
+    filename = 'a3_v41_dspark7_two_forwards.csv' if fixture == 'a3_v41_dspark7' else 'v41_dp8_first_body.csv'
+    rows = list(replay.kernel_rows(FIXTURE / filename))
+    declared = json.loads((FIXTURE / (fixture + '_model_config.json')).read_text())
+    prior = auto_segment_decode_forwards(rows, declared)
+    source_keys = ('source_attention_anchors', 'source_decode_query', 'forward_closure', 'sequence_parallel')
+    model = {key: value for key, value in declared.items() if key not in source_keys}
+    if declaration_location == 'segmentation_options':
+        prior['segmentation_options'] = {key: declared[key] for key in source_keys if key in declared}
+        prior['model_declaration'] = {key: value for key, value in prior['model_declaration'].items()
+                                      if key not in source_keys}
+    config = replay.segmentation_config(model, prior)
+    actual = auto_segment_decode_forwards(rows, config)
+    assert [f['body_forward_span_ms'] for f in actual['forwards']] == pytest.approx(expected_spans)
+    assert actual['forwards'] == prior['forwards']
+    assert actual['geometry'] == prior['geometry']
+    assert actual['anomaly_counts'] == prior['anomaly_counts']
+    assert all(len([stage for stage in f['stages'] if stage['layer_id'] is not None]) == 40
+               for f in actual['forwards'])
+    assert not any(key in model for key in source_keys)

@@ -63,8 +63,8 @@ def _client_token_bounds(summary):
     """Usage covers the complete prompt; a shared prefix alone does not."""
     native = summary.get("native", {})
     records = summary.get("per_request") or summary.get("requests") or []
-    prompts = summary.get("observed_prompt_tokens", [r.get("prompt_tokens") for r in records])
-    outputs = summary.get("observed_completion_tokens", [r.get("completion_tokens") for r in records])
+    prompts = summary.get("observed_prompt_tokens", [r.get("prompt_tokens", r.get("usage", {}).get("prompt_tokens")) for r in records])
+    outputs = summary.get("observed_completion_tokens", [r.get("completion_tokens", r.get("usage", {}).get("completion_tokens")) for r in records])
     prompts = [float(v) for v in prompts if v is not None]
     outputs = [float(v) for v in outputs if v is not None]
     inputs = native.get("InputTokens", {})
@@ -94,6 +94,26 @@ def capture_metadata(directory):
     summary = documents.get("benchmark_summary.json", {})
     client_name = "benchmark_summary.json"
     client = summary
+    if not summary and "client_cell.json" not in documents:
+        # Some producers retain their named profile cell rather than copying
+        # it to benchmark_summary.json. Its own schema/identity selects it;
+        # the directory label never supplies concurrency or token lengths.
+        candidates = []
+        for path in sorted(directory.glob('*.json')):
+            if path.name in documents:
+                continue
+            cell = _read(path)
+            metrics = cell.get('summary', {}) if isinstance(cell, dict) else {}
+            if (metrics.get('cell') == path.stem and metrics.get('mode') == 'profile'
+                    and metrics.get('profile', {}).get('calls') and isinstance(cell.get('requests'), list)):
+                candidates.append((path, cell))
+        if len(candidates) > 1:
+            raise ValueError('profile_client_cell_ambiguous')
+        if candidates:
+            path, client = candidates[0]
+            client_name = path.name
+            documents[client_name] = client
+            identities[client_name] = _file_identity(path)
     if "client_cell.json" in documents:
         cell = documents["client_cell.json"]
         if not cell.get("label") or cell.get("label") != summary.get("label"):
@@ -300,11 +320,21 @@ def _source(path, declaration, boundaries, *, max_events, timeout_s):
 
 def _sim_identity():
     import mindie_sim
+    from importlib.metadata import distribution, PackageNotFoundError
 
     package = Path(mindie_sim.__file__).resolve().parent
     files = {str(path.relative_to(package)): sha256_file(path)
              for path in sorted(package.rglob("*")) if path.suffix in {".py", ".json"}}
+    source_commit = None
+    try:
+        installed = distribution('mindie-sim')
+    except PackageNotFoundError:
+        installed = None
+    if installed and Path(installed.locate_file('mindie_sim')).resolve() == package:
+        origin = json.loads(installed.read_text('direct_url.json') or '{}')
+        source_commit = origin.get('vcs_info', {}).get('commit_id')
     return {"package_path": str(package), "version": mindie_sim.__version__,
+            "installed_source_commit": source_commit,
             "package_sha256": sha256(json.dumps(files, sort_keys=True).encode()).hexdigest(),
             "file_count": len(files), "algorithm": "sha256(sorted relative-path to file-sha256 JSON)"}
 

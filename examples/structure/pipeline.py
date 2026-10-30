@@ -52,7 +52,7 @@ def operator_case(row, base, directory, timeout):
     directory.mkdir(parents=True, exist_ok=True)
     entry = {'case_id': row['case_id'], 'source_identity': row['source'],
              'report_path': str(extraction), 'report_sha256': identity(extraction)['sha256']}
-    populations = extract_case(entry, [case], directory, geometry_limit=1,
+    populations = extract_case(entry, [case], directory, geometry_limit=row.get('geometry_limit', 1),
                                context_tokens=row.get('geometry', {}).get('context_tokens'))
     result = []
     for population in populations:
@@ -96,6 +96,44 @@ def identity(path):
     return {'path': str(path.resolve()), 'sha256': value.hexdigest(), 'size_bytes': path.stat().st_size}
 
 
+def compact_layers(value):
+    """Keep layer statistics; full membership and scope prose stay in evidence."""
+    if isinstance(value, list):
+        return [compact_layers(item) for item in value]
+    if not isinstance(value, dict):
+        return value
+    if 'count' in value and 'mean' in value:
+        return {key: value[key] for key in ('count', 'mean', 'p50', 'p90') if key in value}
+    omitted = {'basis', 'endpoint', 'assumptions', 'quantile_scope', 'observed_basis',
+               'predicted_basis', 'statistic_scope', 'body_span_modified', 'layer_ids', 'layers'}
+    result = {key: compact_layers(item) for key, item in value.items() if key not in omitted}
+    observed, predicted = result.get('observed_ms'), result.get('predicted_ms')
+    if isinstance(observed, dict) and isinstance(predicted, dict):
+        result['relative_errors'] = {
+            key: predicted[key] / observed[key] - 1 if observed.get(key) and predicted.get(key) is not None else None
+            for key in ('mean', 'p50')}
+    return result
+
+
+def compact_card(card):
+    """Project new and retained cards identically without changing any score."""
+    result = dict(card)
+    if card.get('per_layer'):
+        result['per_layer'] = compact_layers(card['per_layer'])
+    if card.get('stage_span_ms'):
+        fields = {'kind', 'layer_id', 'stats', 'activity_ms_stats', 'internal_gap_ms_stats', 'total_count'}
+        result['stage_span_ms'] = [{key: compact_layers(value) for key, value in stage.items() if key in fields}
+                                   for stage in card['stage_span_ms']]
+    if 'geometry_comparisons' in card:
+        fields = {'status', 'reasons', 'observed_forward_count', 'observed_ms', 'predicted_ms',
+                  'relative_error', 'per_forward_diff_ms', 'passed', 'primary_population_passed'}
+        result['geometry_comparisons'] = [
+            {**population, 'comparison': {key: value for key, value in population['comparison'].items() if key in fields},
+             'per_layer': compact_layers(population.get('per_layer', {}))}
+            for population in card['geometry_comparisons']]
+    return result
+
+
 def project(row, result, evidence, *, scope=None):
     comparison = result.get('comparison') or {}
     observed = result.get('observed') or {}
@@ -129,7 +167,7 @@ def project(row, result, evidence, *, scope=None):
     if scope is not None:
         card['input_scope'] = scope
         card['input_sha256'] = entry_hash(row, scope=scope)
-    return card
+    return compact_card(card)
 
 
 def entry_hash(row, *, scope=None):
@@ -162,7 +200,7 @@ def retained_cards(previous, rows, selected_ids, generation, scope):
         evidence = card['evidence']
         if identity(evidence['path'])['sha256'] != evidence['sha256']:
             raise ValueError('retained_evidence_changed:' + card['id'])
-        cards.append(card)
+        cards.append(compact_card(card))
     return cards
 
 
@@ -232,6 +270,25 @@ def render(report):
                              f"bounds {context.get('lower_bound_tokens')}–{context.get('upper_bound_tokens')} tokens. "
                              + context.get('limitation', ''))
                 lines[-1] = lines[-1].rstrip()
+    if report.get('scope', 'body') == 'body' and any(r.get('per_layer') for r in report['cases']):
+        lines += ['', '| Case | B / q | Layer group | Layers | Real mean / P50 ms | Sim mean / P50 ms | Mean / P50 error |',
+                  '|---|---|---|---:|---:|---:|---:|']
+        for row in report['cases']:
+            populations = row.get('geometry_comparisons') or [{'geometry': row.get('geometry'), 'per_layer': row.get('per_layer', {})}]
+            for population in populations:
+                geometry = population.get('geometry') or {}
+                for field in ('attention_kind_distributions', 'ffn_kind_distributions'):
+                    for group in population.get('per_layer', {}).get(field, []):
+                        observed, predicted = group['observed_ms'], group['predicted_ms']
+                        errors = group.get('relative_errors', {})
+                        lines.append(f"| {row['case_id']} | {geometry.get('sequences_per_replica')} / {geometry.get('tokens_per_sequence')} | "
+                            f"{group.get('attention_kind', group.get('kind'))} | {observed.get('count', '—')} | "
+                            + ' / '.join(number(observed.get(k)) for k in ('mean', 'p50')) + ' | '
+                            + ' / '.join(number(predicted.get(k)) for k in ('mean', 'p50')) + ' | '
+                            + ' / '.join('—' if errors.get(k) is None else f'{errors[k]:+.2%}' for k in ('mean', 'p50')) + ' |')
+        lines += ['', 'Layer-group statistics summarize complete layer spans, not isolated attention or FFN kernel time. '
+                  'Group P50 is across layer means; steady-layer P50 remains the median of per-layer call P50 values in JSON. '
+                  'Full layer membership, extrema, stream details and alignment assumptions remain in the SHA256-pinned evidence.']
     if report.get('scope') == 'engine':
         from engine import geometry_key
         lines += ['', '| Case | Complete target cycles | Cycle mean / P50 ms | Client token TPOT P50 ms | Serving status |',
@@ -504,7 +561,8 @@ def run(manifest_path, *, output, archive_root, phase=None, scope='body', case_i
     return report
 
 
-def discover_local(manifest_path, roots, *, patterns, output, archive_root, template_case_id=None, update=False):
+def discover_local(manifest_path, roots, *, patterns, output, archive_root, template_case_id=None,
+                   template_case_path=None, update=False):
     """Extract newly discovered local captures into the single canonical registry."""
     from decode import local_capture_directories, prepare_local_capture, replay_case
     manifest_path = Path(manifest_path)
@@ -512,6 +570,17 @@ def discover_local(manifest_path, roots, *, patterns, output, archive_root, temp
     if registry['schema_version'] != 'mindie-cases/1':
         raise ValueError('unknown_case_registry')
     before = identity(manifest_path)
+    template = None
+    if template_case_path is not None:
+        if template_case_id is not None:
+            raise ValueError('choose_one_explicit_capture_template')
+        declaration = identity(template_case_path)
+        template_case_id = 'model:' + declaration['sha256']
+        template = {'id': template_case_id, 'case_id': template_case_id, 'phase': 'decode',
+                    'sim_case_path': declaration['path'], 'model_case': declaration, 'source': {}}
+        metadata = read(template_case_path).get('runtime', {}).get('metadata', {})
+        if metadata.get('segmentation_options'):
+            template['segmentation_options'] = metadata['segmentation_options']
     report = {'schema_version': 'mindie-local-capture-discovery/1', 'scope': 'discovery',
               'status': 'running', 'registry': before, 'cases': [], 'summary': {},
               'new_device_collection': False, 'new_Sim_predictions': 0}
@@ -523,7 +592,8 @@ def discover_local(manifest_path, roots, *, patterns, output, archive_root, temp
                     continue
                 seen.add(directory)
                 try:
-                    candidate = prepare_local_capture(directory, registry, manifest_path.parent, template_case_id=template_case_id)
+                    templates = ({**registry, 'cases': [*registry['cases'], template]} if template else registry)
+                    candidate = prepare_local_capture(directory, templates, manifest_path.parent, template_case_id=template_case_id)
                     if candidate['status'] == 'prepared':
                         entry = candidate['entry']
                         extraction = replay_case(entry, manifest_path.parent, run_predictions=False)
@@ -536,7 +606,7 @@ def discover_local(manifest_path, roots, *, patterns, output, archive_root, temp
                             pointer = archive_report(observed, archive_root)
                             entry.update(extraction_path=pointer['path'], extraction_identity=pointer,
                                 forward_metadata={'body_count': observed['body_forward_span_ms']['count'],
-                                    'geometry_groups': [{'geometry': g['geometry'], 'forward_count': g['forward_count']}
+                                    'geometry_groups': [{'geometry': g['geometry'], 'forward_count': g['body_forward_span_ms']['count']}
                                                         for g in observed['geometry_groups']]})
                             candidate.update(status='registered' if update else 'extracted',
                                              forward_count=observed['body_forward_span_ms']['count'])
@@ -579,10 +649,12 @@ def main():
     parser.add_argument('--discover-local', type=Path, action='append', default=[], help='Find and extract existing local captures; --update appends complete Decode entries to --cases, without model prediction')
     parser.add_argument('--capture-pattern', action='append', default=[], help='Capture directory glob (default: *_128k_decode_*)')
     parser.add_argument('--template-case-id', help='Explicit registered model declaration for discovered captures; otherwise require an exact capture_templates match')
+    parser.add_argument('--template-case-path', type=Path, help='Explicit source model declaration for a deployment with no registered capture yet')
     args = parser.parse_args()
     if args.discover_local:
         result = discover_local(args.cases, args.discover_local, patterns=args.capture_pattern or ['*_128k_decode_*'],
-            output=args.output, archive_root=args.archive_root, template_case_id=args.template_case_id, update=args.update)
+            output=args.output, archive_root=args.archive_root, template_case_id=args.template_case_id,
+            template_case_path=args.template_case_path, update=args.update)
         return int(result['status'] == 'failed')
     result = run(args.cases, output=args.output, archive_root=args.archive_root, phase=args.phase,
                  scope=args.scope, case_ids=args.case_id, timeout=args.prediction_timeout, workers=args.workers, update=args.update)

@@ -1,0 +1,109 @@
+{
+  "summary": {
+    "concurrency": 4,
+    "n_ok": 4,
+    "n_fail": 0,
+    "token_exact": true,
+    "ttft_p50_ms": 8568.638324737549,
+    "ttft_p99_ms": 16240.65113067627,
+    "ttft_min_ms": 514.0767097473145,
+    "ttft_max_ms": 16323.929071426392,
+    "tpot_true_p50_ms": 10.720681293521892,
+    "tpot_true_p99_ms": 13.05501911790421,
+    "itl_mean_p50_ms": 80.99351377930198,
+    "step_from_metrics_ms": 23.43733290184468,
+    "e2e_p50_ms": 41119.842290878296,
+    "wall_s": 41.39258599281311,
+    "out_tokens": 12000,
+    "out_tok_s": 289.9069896740332,
+    "queue_s_total": 14.565669439733028,
+    "kv_peak_perc": 0.09977507353365245,
+    "max_running": 2.0,
+    "spec_accept_ratio": null,
+    "prefix": {
+      "hits": 0.0,
+      "queries": 0.0,
+      "hit_ratio": null,
+      "cached_tokens": 0.0,
+      "prompt_tokens": 0.0
+    },
+    "errors": [],
+    "profile": {
+      "all_first_chunks": true,
+      "ready_wall_s": 16.32427978515625,
+      "start_profile_epoch": 1793353956.353908,
+      "stop_profile_epoch": 1793353963.3919532,
+      "window_s": 7.038045167922974,
+      "calls": [
+        {
+          "action": "start_profile",
+          "status_code": 200,
+          "body": "",
+          "wall_s": 0.2556002140045166
+        },
+        {
+          "action": "stop_profile",
+          "status_code": 200,
+          "body": "",
+          "wall_s": 2.037904739379883
+        }
+      ],
+      "profiled_max_tokens": 3000
+    },
+    "cell": "decode_128k_in126k_out3k_c4_c4",
+    "elapsed_s": 41.44310712814331,
+    "mode": "profile",
+    "design": {
+      "prompt_tokens": 126000,
+      "shared_tokens": 125000,
+      "fresh_tokens": 1000,
+      "designed_hit_ratio": 0.9920634920634921,
+      "max_tokens": 3000,
+      "seed": 20261030
+    }
+  },
+  "requests": [
+    {
+      "idx": 0,
+      "usage": {
+        "prompt_tokens": 126000,
+        "total_tokens": 129000,
+        "completion_tokens": 3000
+      },
+      "requested_max_tokens": 3000
+    },
+    {
+      "idx": 1,
+      "usage": {
+        "prompt_tokens": 126000,
+        "total_tokens": 129000,
+        "completion_tokens": 3000
+      },
+      "requested_max_tokens": 3000
+    },
+    {
+      "idx": 2,
+      "usage": {
+        "prompt_tokens": 126000,
+        "total_tokens": 129000,
+        "completion_tokens": 3000
+      },
+      "requested_max_tokens": 3000
+    },
+    {
+      "idx": 3,
+      "usage": {
+        "prompt_tokens": 126000,
+        "total_tokens": 129000,
+        "completion_tokens": 3000
+      },
+      "requested_max_tokens": 3000
+    }
+  ],
+  "provenance": {
+    "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/dsv41_tp4dp4_128k_decode_20261030/prof/decode_128k_in126k_out3k_c4/decode_128k_in126k_out3k_c4_c4.json",
+    "source_sha256": "096c46d5bda2d16e7dae7c449ef95d1c9e0a8389000964fdecf5927622608829",
+    "source_size_bytes": 41951,
+    "projection": "summary preserved verbatim; all four requests retained with idx, usage and requested_max_tokens; other request fields including chunk_epochs and top-level live_peak omitted. No values synthesized."
+  }
+}
