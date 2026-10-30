@@ -107,8 +107,7 @@ def _sim_identity():
 
 
 def _model_config(case):
-    """Reuse the Sim front end to declare topology; these are not observed rows."""
-    from mindie_sim import target_graphs
+    """Reuse Sim's normalized layer plan without instantiating a physical run."""
     from mindie_sim.prediction.structure import parse_case
 
     parsed = parse_case(case)
@@ -116,14 +115,9 @@ def _model_config(case):
     config["tp"] = parsed.runtime.parallel.tp
     proposals = int(dict(parsed.runtime.metadata).get("draft_proposal_tokens", 0))
     config["decode_max_tokens"] = max(32, parsed.runtime.max_num_seqs * (proposals + 1))
-    graphs = target_graphs(parsed, phase="decode", tokens=1, context=0, sequences=1, scope="body")
-    topology = []
-    for op in next(iter(graphs.values())):
-        if op.layer >= 0:
-            topology.append({"layer_id": op.layer, "family": op.family, "recipe": op.recipe,
-                             "local_shape": list(op.local_shape), "source_boundary": op.source_boundary})
-    config["layer_signatures"] = topology
-    config["layer_signature_geometry"] = {"tokens": 1, "context": 0, "basis": "declared_topology_only"}
+    # Segmentation consumes layer_plans. A made-up B1/q1 graph can violate an
+    # explicit HCCL/source program's geometry before any capture is inspected.
+    # Physical graphs belong to prediction at the measured query geometry.
     return config
 
 
