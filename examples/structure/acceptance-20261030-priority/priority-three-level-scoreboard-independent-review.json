@@ -1,11 +1,11 @@
 {
   "schema_version": "mindie-priority-scoreboard-independent-review/2",
   "status": "passed",
-  "checks": 200713,
+  "checks": 203646,
   "failures": [],
-  "report_sha256": "bdc93c3577aeaf12f03b4a921c3e17b8be01c5d83d9f68921c6c9080e18caa72",
+  "report_sha256": "7e6ab812a3746c8c010fba8f2422da2b4a87e85a2f686806dd35e1c9a33bcae0",
   "summary": {
-    "body_compared": 546,
+    "body_compared": 549,
     "body_passed": 141,
     "current_body_compared": 66,
     "current_body_passed": 22,
@@ -21,7 +21,7 @@
     "unique_observed_forward_count": 5250,
     "operator_status_counts": {
       "reference_only": 208,
-      "compared": 2892
+      "compared": 2929
     },
     "operator_accuracy_by_tier": {
       "heavy_relative_15pct": {
@@ -29,8 +29,8 @@
         "passed": 17
       },
       "micro_absolute_15us": {
-        "compared": 762,
-        "passed": 739
+        "compared": 763,
+        "passed": 740
       }
     },
     "current_operator_source_populations": 54,
@@ -38,26 +38,27 @@
       "c27d72c215c2c98f804908823d9c4172ab85399134814ec639fbb2f059cbbe05": 5,
       "20dbf57be438004348b0efba951450222dd5bf9d64537b4fd2b9e2cd5433e438": 1,
       "fd8238dbb993f505dc1ceacf52bd560530038229a37d6ca46f8fa1e903fff981": 5,
-      "e78bca41dba4e1bcd3043bc503777d0510b95645d7afbd640ef3abc95d34919f": 33,
+      "e78bca41dba4e1bcd3043bc503777d0510b95645d7afbd640ef3abc95d34919f": 30,
       "mixed_native_family_runtimes": 3,
-      "d5345a2d23c063b1eff8153a6a08424043e6a10b222fdebb156e0dc53a0a1bd5": 7
+      "d5345a2d23c063b1eff8153a6a08424043e6a10b222fdebb156e0dc53a0a1bd5": 7,
+      "b8dd0b80a283b6e7acccca26c60390cab5caaaab60c56072237b1766248eb67b": 3
     },
     "operator_supplement_applications": 3,
     "current_controller_overlay_rows": 10,
     "current_controller_overlay_events": 15288,
     "current_mixed_operator_runtime_populations": 3,
-    "current_operator_scored_events": 1419006,
+    "current_operator_scored_events": 1431166,
     "current_operator_body_events": 7799454,
-    "current_external_native_reference_groups": 662,
-    "current_external_native_reference_calls": 964726,
-    "current_external_native_reference_populations": 41,
-    "current_external_native_reference_forwards": 2545,
-    "heavy_cohorts": 157
+    "current_external_native_reference_groups": 722,
+    "current_external_native_reference_calls": 1050766,
+    "current_external_native_reference_populations": 44,
+    "current_external_native_reference_forwards": 2784,
+    "heavy_cohorts": 159
   },
-  "body_rows": 1794,
-  "family_rows": 10659,
-  "cohort_rows": 3100,
-  "reference_rows": 2120,
+  "body_rows": 1834,
+  "family_rows": 10791,
+  "cohort_rows": 3137,
+  "reference_rows": 2180,
   "corrected_kimi_quant_cases_checked": 36,
   "historical_case_resolutions": [
     {
@@ -146,8 +147,8 @@
     }
   ],
   "execution": {
-    "elapsed_seconds": 14.177782249986194,
-    "peak_rss_bytes": 395083776,
+    "elapsed_seconds": 13.577262250008062,
+    "peak_rss_bytes": 405045248,
     "receipt_read_engine": "ijson top-level fields and sequential receipt cases"
   },
   "scope": "Independent sequential receipt reconciliation; no raw capture parsing or prediction. Invalidation, effective current Kimi precision, source/geometry deduplication, explicit input order, strict tier arithmetic and unscored source references are checked separately."
