@@ -75,3 +75,64 @@ rule-count checks with no failures or new capture reads/costs. Eight workers
 completed without resource failures; peak RSS was 135,921,664 bytes. Rebuild
 this arm with `build_a3_observed_service_cases.py` and the same replay command,
 using the A3 manifest/output filenames.
+
+## Qwen additional complete gating populations
+
+`decode-forward-qwen-gating-service-replay.json` adds the complete saved
+gating48, Q/K L2 normalization96 and output normalization48 call populations
+for the requested c12/c1 follow-up. The Q/K mean is explicitly pooled; its
+two identical physical source shapes do not establish direction-specific
+latency. All seven rules hit the expected counts once. The first three-case
+receipt remains immutable.
+
+| Case | Real mean ms | Sim ms | Error | 15% |
+|---|---:|---:|---:|---|
+| c12 | 24.225774 | 20.323928 | -16.106% | FAIL |
+| c1 | 12.318284 | 9.511835 | -22.783% | FAIL |
+
+The complete sources contain no `_copy_conv_state_kernel` family. Their
+mixed Slice populations cannot prove a sole convolution-copy latency, so no
+copy rule was invented. These additional native populations are source-call
+service observations, not new strict ABI mappings or heldout validation.
+Reproduce with `build_qwen_gating_service_cases.py` and the corresponding
+gating manifest. The standard saved-Body audit passed 532 checks.
+
+## GLM78 newly retained native evidence and grouped-call arm
+
+Three targeted local streaming passes reuse the accepted controller-corrected
+Body windows and exactly revalidate their integer endpoints. They preserve
+137 primary Forwards, 332,998 positive events and 185 full native ABI
+partitions. No new Forward or device capture is created. Total parsing time
+was 23.15 seconds; peak RSS 72,089,600 bytes. AI_CPU controller intervals
+remain in the evidence inventory but are not assigned service rules or
+added to HCCL tasks.
+
+The native evidence shows INT8 cache rows of **656 bytes with rope64** for
+KvQuantSparseFlashAttention, 78 calls/Forward, and MlaPrologV3 with 57 ordinary
+plus 21 quantized-query-output occurrences. The existing BF16-cache prolog
+and D528/rope0 attention implementations cannot represent this boundary.
+No per-sequence response duplicates the observed whole-batch time.
+
+The explicit `ascend_w4a8_msd` resource fusion does support the 75 fused
+gate/up+SwiGLU+quant calls, accompanied by 75 grouped-down calls. The separate
+`decode-forward-glm78-grouped-service-replay.json` executes these complete
+means on runtime `3b72ea2d`, retaining the 156 prior AllReduce responses.
+Fused semantic member launches are removed by the existing Sim lowering.
+Observed buffer capacities (128/384 rows) do not identify dynamic valid
+expert-row counts; the prior symmetric integer-routing declaration remains
+visible and is not validated by the service fit.
+
+| Case | Real mean ms | Sim ms | Error | 15% |
+|---|---:|---:|---:|---|
+| tpot88 c8 | 69.556298 | 55.152565 | -20.708% | FAIL |
+| tpot30 c2 | 57.639270 | 37.652901 | -34.675% | FAIL |
+| tpot50 c2 | 57.817112 | 37.655092 | -34.872% | FAIL |
+
+All four rules per source hit exactly 78/78/75/75 invocations. All 162
+captured Forwards and ten geometry groups remain in the report, with seven
+smaller groups deferred. Three fresh workers completed within 134.02 MiB;
+the standard saved-Body audit passed 999 checks. Selection follows the new
+declared mechanism, including the slightly worse c8 result; no best-error
+selection is used. Reproduce the evidence with
+`collect_glm78_retained_native.py --case-id CASE`, then build with
+`build_glm78_grouped_service_cases.py` and replay its matching manifest.

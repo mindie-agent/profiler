@@ -1,0 +1,643 @@
+{
+  "cases": [
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot88_c8",
+      "rules": [
+        {
+          "rule_id": "groupedmatmulswigluquantv2-complete-native-response",
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot88_c8-native-partitions.json",
+            "sha256": "9326996c302647d763cd1f82bd3af8545df2f985fddf7f2a9226c3ae23155ec8",
+            "size_bytes": 2369862
+          },
+          "native_operator_type": "GroupedMatmulSwigluQuantV2",
+          "observed": {
+            "count": 3675,
+            "mean_us": 172.33175700680272,
+            "p50_us": 172.184
+          },
+          "forward_count": 49,
+          "expected_rule_hits": 75,
+          "native_abi": [
+            "native_tensor_abi",
+            "GroupedMatmulSwigluQuantV2",
+            [
+              [
+                [
+                  384,
+                  6144
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  384
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [
+                  16
+                ],
+                "int64",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  64,
+                  384,
+                  16,
+                  64
+                ],
+                "DT_INT4",
+                "FRACTAL_NZ"
+              ],
+              [
+                [
+                  16,
+                  4096
+                ],
+                "UINT64",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  4096
+                ],
+                "fp32",
+                "ND"
+              ]
+            ],
+            [
+              [
+                [
+                  384,
+                  2048
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  384
+                ],
+                "fp32",
+                "ND"
+              ]
+            ]
+          ],
+          "declared_physical_shape": [
+            24,
+            2048
+          ],
+          "observed_buffer_capacity_rows": 384,
+          "observed_valid_routed_rows": null,
+          "routing_basis": "retained_symmetric_integer_declaration; values not observed",
+          "response_boundary": "one_fused_up_call",
+          "body_residual_used": false,
+          "strict_tensor_admission_changed": false
+        },
+        {
+          "rule_id": "groupedmatmul-complete-native-response",
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot88_c8-native-partitions.json",
+            "sha256": "9326996c302647d763cd1f82bd3af8545df2f985fddf7f2a9226c3ae23155ec8",
+            "size_bytes": 2369862
+          },
+          "native_operator_type": "GroupedMatmul",
+          "observed": {
+            "count": 3675,
+            "mean_us": 95.16497088435374,
+            "p50_us": 94.702
+          },
+          "forward_count": 49,
+          "expected_rule_hits": 75,
+          "native_abi": [
+            "native_tensor_abi",
+            "GroupedMatmul",
+            [
+              [
+                [
+                  384,
+                  2048
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  2048,
+                  6144
+                ],
+                "DT_INT4",
+                "FRACTAL_NZ"
+              ],
+              [
+                [
+                  16,
+                  6144
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  1,
+                  6144
+                ],
+                "UINT64",
+                "NCL"
+              ],
+              [
+                [],
+                "fp32",
+                "ND"
+              ],
+              [
+                [],
+                "fp16",
+                "ND"
+              ],
+              [
+                [],
+                "fp16",
+                "ND"
+              ],
+              [
+                [
+                  16
+                ],
+                "int64",
+                "ND"
+              ],
+              [
+                [
+                  384
+                ],
+                "fp32",
+                "ND"
+              ]
+            ],
+            [
+              [
+                [
+                  384,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ]
+            ]
+          ],
+          "declared_physical_shape": [
+            24,
+            6144,
+            2048
+          ],
+          "observed_buffer_capacity_rows": 384,
+          "observed_valid_routed_rows": null,
+          "routing_basis": "retained_symmetric_integer_declaration; values not observed",
+          "response_boundary": "one_grouped_down_call",
+          "body_residual_used": false,
+          "strict_tensor_admission_changed": false
+        }
+      ]
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot30_c2",
+      "rules": [
+        {
+          "rule_id": "groupedmatmulswigluquantv2-complete-native-response",
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot30_c2-native-partitions.json",
+            "sha256": "4e96d7466d545cc68d4481833bd9833117ed57a41de56e7a60e4bc2ed43bc0cd",
+            "size_bytes": 2661235
+          },
+          "native_operator_type": "GroupedMatmulSwigluQuantV2",
+          "observed": {
+            "count": 3300,
+            "mean_us": 98.43022727272728,
+            "p50_us": 98.122
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 75,
+          "native_abi": [
+            "native_tensor_abi",
+            "GroupedMatmulSwigluQuantV2",
+            [
+              [
+                [
+                  128,
+                  6144
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  128
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [
+                  16
+                ],
+                "int64",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  64,
+                  384,
+                  16,
+                  64
+                ],
+                "DT_INT4",
+                "FRACTAL_NZ"
+              ],
+              [
+                [
+                  16,
+                  4096
+                ],
+                "UINT64",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  4096
+                ],
+                "fp32",
+                "ND"
+              ]
+            ],
+            [
+              [
+                [
+                  128,
+                  2048
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  128
+                ],
+                "fp32",
+                "ND"
+              ]
+            ]
+          ],
+          "declared_physical_shape": [
+            8,
+            2048
+          ],
+          "observed_buffer_capacity_rows": 128,
+          "observed_valid_routed_rows": null,
+          "routing_basis": "retained_symmetric_integer_declaration; values not observed",
+          "response_boundary": "one_fused_up_call",
+          "body_residual_used": false,
+          "strict_tensor_admission_changed": false
+        },
+        {
+          "rule_id": "groupedmatmul-complete-native-response",
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot30_c2-native-partitions.json",
+            "sha256": "4e96d7466d545cc68d4481833bd9833117ed57a41de56e7a60e4bc2ed43bc0cd",
+            "size_bytes": 2661235
+          },
+          "native_operator_type": "GroupedMatmul",
+          "observed": {
+            "count": 3300,
+            "mean_us": 56.917762727272724,
+            "p50_us": 56.381
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 75,
+          "native_abi": [
+            "native_tensor_abi",
+            "GroupedMatmul",
+            [
+              [
+                [
+                  128,
+                  2048
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  2048,
+                  6144
+                ],
+                "DT_INT4",
+                "FRACTAL_NZ"
+              ],
+              [
+                [
+                  16,
+                  6144
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  1,
+                  6144
+                ],
+                "UINT64",
+                "NCL"
+              ],
+              [
+                [],
+                "fp32",
+                "ND"
+              ],
+              [
+                [],
+                "fp16",
+                "ND"
+              ],
+              [
+                [],
+                "fp16",
+                "ND"
+              ],
+              [
+                [
+                  16
+                ],
+                "int64",
+                "ND"
+              ],
+              [
+                [
+                  128
+                ],
+                "fp32",
+                "ND"
+              ]
+            ],
+            [
+              [
+                [
+                  128,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ]
+            ]
+          ],
+          "declared_physical_shape": [
+            8,
+            6144,
+            2048
+          ],
+          "observed_buffer_capacity_rows": 128,
+          "observed_valid_routed_rows": null,
+          "routing_basis": "retained_symmetric_integer_declaration; values not observed",
+          "response_boundary": "one_grouped_down_call",
+          "body_residual_used": false,
+          "strict_tensor_admission_changed": false
+        }
+      ]
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot50_c2",
+      "rules": [
+        {
+          "rule_id": "groupedmatmulswigluquantv2-complete-native-response",
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot50_c2-native-partitions.json",
+            "sha256": "bff3391eed6d11b8ddf807b15bb1e4345a7b35a47bb97b20c1652533d6b54dd5",
+            "size_bytes": 2685140
+          },
+          "native_operator_type": "GroupedMatmulSwigluQuantV2",
+          "observed": {
+            "count": 3300,
+            "mean_us": 98.47852484848484,
+            "p50_us": 98.162
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 75,
+          "native_abi": [
+            "native_tensor_abi",
+            "GroupedMatmulSwigluQuantV2",
+            [
+              [
+                [
+                  128,
+                  6144
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  128
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [
+                  16
+                ],
+                "int64",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  64,
+                  384,
+                  16,
+                  64
+                ],
+                "DT_INT4",
+                "FRACTAL_NZ"
+              ],
+              [
+                [
+                  16,
+                  4096
+                ],
+                "UINT64",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  4096
+                ],
+                "fp32",
+                "ND"
+              ]
+            ],
+            [
+              [
+                [
+                  128,
+                  2048
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  128
+                ],
+                "fp32",
+                "ND"
+              ]
+            ]
+          ],
+          "declared_physical_shape": [
+            8,
+            2048
+          ],
+          "observed_buffer_capacity_rows": 128,
+          "observed_valid_routed_rows": null,
+          "routing_basis": "retained_symmetric_integer_declaration; values not observed",
+          "response_boundary": "one_fused_up_call",
+          "body_residual_used": false,
+          "strict_tensor_admission_changed": false
+        },
+        {
+          "rule_id": "groupedmatmul-complete-native-response",
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot50_c2-native-partitions.json",
+            "sha256": "bff3391eed6d11b8ddf807b15bb1e4345a7b35a47bb97b20c1652533d6b54dd5",
+            "size_bytes": 2685140
+          },
+          "native_operator_type": "GroupedMatmul",
+          "observed": {
+            "count": 3300,
+            "mean_us": 56.946977878787884,
+            "p50_us": 56.381
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 75,
+          "native_abi": [
+            "native_tensor_abi",
+            "GroupedMatmul",
+            [
+              [
+                [
+                  128,
+                  2048
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  2048,
+                  6144
+                ],
+                "DT_INT4",
+                "FRACTAL_NZ"
+              ],
+              [
+                [
+                  16,
+                  6144
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  1,
+                  6144
+                ],
+                "UINT64",
+                "NCL"
+              ],
+              [
+                [],
+                "fp32",
+                "ND"
+              ],
+              [
+                [],
+                "fp16",
+                "ND"
+              ],
+              [
+                [],
+                "fp16",
+                "ND"
+              ],
+              [
+                [
+                  16
+                ],
+                "int64",
+                "ND"
+              ],
+              [
+                [
+                  128
+                ],
+                "fp32",
+                "ND"
+              ]
+            ],
+            [
+              [
+                [
+                  128,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ]
+            ]
+          ],
+          "declared_physical_shape": [
+            8,
+            6144,
+            2048
+          ],
+          "observed_buffer_capacity_rows": 128,
+          "observed_valid_routed_rows": null,
+          "routing_basis": "retained_symmetric_integer_declaration; values not observed",
+          "response_boundary": "one_grouped_down_call",
+          "body_residual_used": false,
+          "strict_tensor_admission_changed": false
+        }
+      ]
+    }
+  ]
+}
