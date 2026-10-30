@@ -1,0 +1,43 @@
+{
+  "source_identity": {
+    "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/kimi_k3_w4a8_4layer_tp8_128k_decode_20261030/prof/decode_c12_p4k/kernel_details.csv",
+    "size_bytes": 16916978,
+    "mtime_ns": 1793353484000000000,
+    "schema_version": "kernel_details_csv_46col",
+    "sha256": "eaefbda6e8b6b899da943bd665806d65d1371c36e8696084bf79fdc7a9a221cc"
+  },
+  "source_first_csv_line": 2,
+  "source_last_csv_line": 260,
+  "fixture_sha256": "29cdeff6671a94242834dd759a9bb7748ce6a39652573bf194d996b67ab22310",
+  "cell_values_preserved": true,
+  "source_declaration_identity": {
+    "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/a3-kimi4-tp8-longctx-source.json",
+    "sha256": "30b285b463fcae45cd6a07c9c24accc525194bebe0dbc8fe3bc3ab8c6c922526",
+    "size_bytes": 15468
+  },
+  "expected_body_start_ns": 1793353446357069822,
+  "expected_body_end_ns": 1793353446361416749,
+  "expected_head_start_ns": 1793353446361422589,
+  "expected_body_span_ms": 4.346927,
+  "expected_first_locator": {
+    "source": "/Volumes/data/code/mindie-release-20261014/profiler/tests/fixtures/decode_forward/kimi4_tp8_head_unpad_c12.csv",
+    "table": "kernel_details.csv",
+    "row_index": 80,
+    "csv_line": 82,
+    "task_id": "4",
+    "stream_id": "253",
+    "device_id": "4"
+  },
+  "expected_last_locator": {
+    "source": "/Volumes/data/code/mindie-release-20261014/profiler/tests/fixtures/decode_forward/kimi4_tp8_head_unpad_c12.csv",
+    "table": "kernel_details.csv",
+    "row_index": 256,
+    "csv_line": 258,
+    "task_id": "27447",
+    "stream_id": "45",
+    "device_id": "4"
+  },
+  "expected_head_query_rows": 12,
+  "expected_body_query_rows": 16,
+  "no_mtp_basis": "resolved startup speculative_config=None; separate from head-query geometry"
+}

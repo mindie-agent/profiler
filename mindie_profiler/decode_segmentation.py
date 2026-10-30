@@ -339,12 +339,20 @@ def _align(rows, config, ordinal, *, terminal_norm=False):
     query_sizes = {prod(rows[index].inputs[0][:-1]) for index in input_norms
                    if rows[index].kind != "AttnResFwd"}
     if not query_sizes:
-        # Flat AttnRes buffers also contain history/padding. Head query rows,
-        # cross-checked with BSND KDA query slots, supply the token geometry.
-        query_sizes.add(rows[-1].inputs[0][0])
+        # Flat AttnRes buffers contain history. The body uses padded attention
+        # rows, while the separate vocabulary projection may select fewer rows.
+        # Cross-check KDA's BSND query and FIA's BNSD query inside the body.
         query_sizes.update(prod(rows[index].inputs[3][:2]) for index, _ in anchors
-                           if rows[index].kind == "RecurrentKda"
+                           if rows[index].kind in {"RecurrentKda", "RecurrentKdaFwd", "FusedRecurrentKda"}
                            and len(rows[index].inputs) > 3 and len(rows[index].inputs[3]) == 4)
+        for index, _ in anchors:
+            row = rows[index]
+            if row.kind == "FusedInferAttentionScore" and row.inputs:
+                query = row.inputs[0]
+                if len(query) == 4:
+                    query_sizes.add(query[0] * query[2])
+                elif len(query) == 3:
+                    query_sizes.add(query[0])
     if len(query_sizes) != 1:
         return None, {"reason": "layer_query_geometry_changes", "query_rows": sorted(query_sizes)}
     hidden_rows = query_rows = next(iter(query_sizes))
@@ -359,6 +367,10 @@ def _align(rows, config, ordinal, *, terminal_norm=False):
                           "declared_factor": factor}
         query_rows = next(iter(attention_rows))
     geometry = _query_geometry([rows[index] for index, _ in anchors], query_rows, config)
+    if not terminal_norm:
+        # This is an observed logits boundary, not an inferred active-request
+        # count: speculative/output selection can also reduce head rows.
+        geometry["output_query_rows"] = rows[-1].inputs[0][0]
     if config.get("sequence_parallel"):
         geometry.update(hidden_rows_per_shard=hidden_rows,
                         query_rows_basis="captured_attention_query_with_source_declared_sequence_parallel",
@@ -478,7 +490,8 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
     def accumulate_stages(result):
         geometry = result["geometry"]
         geometry_key = (result["rank_id"], result["device_id"], geometry["query_rows"],
-                        geometry["sequences_per_replica"], geometry["tokens_per_sequence"])
+                        geometry["sequences_per_replica"], geometry["tokens_per_sequence"],
+                        geometry.get("output_query_rows"))
         geometry_group = geometry_groups.setdefault(geometry_key, {
             "geometry": geometry, "rank_id": result["rank_id"], "device_id": result["device_id"],
             "forward_ids": [], "values": [], "activity": [], "gaps": [],

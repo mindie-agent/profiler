@@ -206,3 +206,54 @@ def test_forward_consumer_receives_complete_layers_before_detail_limit(capture):
     assert seen[0][2] > 0
     assert report["forwards"][0]["stages"] == []
     assert report["body_forward_span_ms"]["mean"] == pytest.approx(17.202996)
+
+
+@pytest.mark.parametrize("output_rows", [6, 12])
+def test_real_kimi_graph_padding_keeps_body_and_logits_geometry_separate(output_rows):
+    stem = f"kimi4_tp8_head_unpad_c{output_rows}"
+    events = [row.event for row in kernel_rows(FIXTURE / f"{stem}.csv")]
+    config = json.loads((FIXTURE / "kimi4_tp8_model_config.json").read_text())
+    evidence = json.loads((FIXTURE / f"{stem}.provenance.json").read_text())
+    report = auto_segment_decode_forwards(events, config)
+    forward = report["forwards"][0]
+    assert report["body_forward_span_ms"]["count"] == 1
+    assert report["anomaly_counts"] == {}
+    assert report["geometry"]["query_rows"] == evidence["expected_body_query_rows"]
+    assert report["geometry"]["sequences_per_replica"] == evidence["expected_body_query_rows"]
+    assert report["geometry"]["tokens_per_sequence"] == 1
+    assert report["geometry"]["output_query_rows"] == output_rows
+    assert forward["confidence"]["matched_layers"] == 4
+    assert forward["start_ns"] == evidence["expected_body_start_ns"]
+    assert forward["end_ns"] == evidence["expected_body_end_ns"]
+    assert forward["head_start_ns"] == evidence["expected_head_start_ns"]
+    assert forward["body_forward_span_ms"] == evidence["expected_body_span_ms"]
+    body = next(stage for stage in forward["stages"] if stage["kind"] == "target_body")
+    for endpoint in ("first_locator", "last_locator"):
+        assert {k: v for k, v in body["evidence"][endpoint].items() if k != "source"} == {
+            k: v for k, v in evidence[f"expected_{endpoint}"].items() if k != "source"}
+    assert report["scan_counts"]["complete_body_segment_events"] == len(events)
+
+
+def test_kimi_padding_does_not_accept_inconsistent_body_attention():
+    events = [row.event for row in kernel_rows(FIXTURE / "kimi4_tp8_head_unpad_c6.csv")]
+    config = json.loads((FIXTURE / "kimi4_tp8_model_config.json").read_text())
+    kda = next(event for event in events if event.op_type == "RecurrentKda")
+    # Controlled corruption of a real body query slot, not another capture.
+    changed = replace(kda, input_shapes=kda.input_shapes.replace("1,8,12,128", "1,6,12,128"))
+    report = auto_segment_decode_forwards([changed if event is kda else event for event in events], config)
+    assert report["body_forward_span_ms"]["count"] == 0
+    assert report["anomaly_counts"] == {"layer_query_geometry_changes": 1}
+
+
+def test_same_padded_body_different_output_rows_are_distinct_populations():
+    events = [row.event for row in kernel_rows(FIXTURE / "kimi4_tp8_head_unpad_c6.csv")]
+    config = json.loads((FIXTURE / "kimi4_tp8_model_config.json").read_text())
+    # Controlled second logits-selection boundary on the same captured body.
+    shifted = [replace(event, start_ns=event.start_ns + 1_000_000_000,
+                       end_ns=event.end_ns + 1_000_000_000) for event in events]
+    shifted[-1] = replace(shifted[-1], input_shapes='"8,7168;20480,7168"',
+                          output_shapes='"8,20480"')
+    report = auto_segment_decode_forwards([*events, *shifted], config)
+    assert report["body_forward_span_ms"]["count"] == 2
+    assert {group["geometry"]["output_query_rows"] for group in report["geometry_groups"]} == {6, 8}
+    assert all(group["body_forward_span_ms"]["count"] == 1 for group in report["geometry_groups"])
