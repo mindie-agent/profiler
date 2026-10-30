@@ -16,7 +16,7 @@ def test_qwen96_twoshot_keeps_normalized_layer_plan_without_physical_b1_graph(mo
     if not case_path.is_file():
         pytest.skip("requires the source-pinned high-concurrency Sim case")
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "examples/structure"))
-    replay = importlib.import_module("replay_decode_forwards")
+    replay = importlib.import_module("decode")
     original = json.loads(case_path.read_text())
     source = deepcopy(original)
     # This is the committed HCCL source alternative: its physical invocation

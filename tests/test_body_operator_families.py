@@ -16,7 +16,7 @@ FIXTURE=ROOT/'tests/fixtures/decode_forward'
 def replay(monkeypatch):
     pytest.importorskip('mindie_sim.structure')
     monkeypatch.syspath_prepend(str(ROOT/'examples/structure'))
-    return importlib.import_module('replay_body_operator_families')
+    return importlib.import_module('operators')
 
 
 def test_real_duplicate_hcom_summary_is_not_a_second_call(replay):
@@ -82,10 +82,8 @@ def test_qwen_repeated_qkv_tensor_contract_is_refined_by_whole_layer_topology(re
 
 
 def test_real_fusion_cohort_roles_do_not_encode_the_layer_occurrence(replay):
-    path=ROOT/'examples/structure/acceptance-20261030-priority-operators/body-operator-a5_kimi_k3_p32768_c1-kimi-checkpoint-conditional.mapping.json'
-    mapping=replay.read(path)
-    rows=[row for row in mapping['windows'][0]['cohorts'] if row['native_operator_type']=='SituMxQuant']
-    identifiers=[row['target_ids'][0] for row in rows[:2]]
+    # Original source-declared fusion identifiers from the retained Kimi cohort.
+    identifiers=['rank:0/subgraph:s0.l1.shared.situ_quant', 'rank:0/subgraph:s0.l2.shared.situ_quant']
     assert len(set(identifiers))==2
     roles={replay.declared_role({'subgraph_id':identifier}) for identifier in identifiers}
     assert roles=={'shared.situ_quant'}

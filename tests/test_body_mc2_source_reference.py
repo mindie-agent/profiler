@@ -19,8 +19,8 @@ def mc2_reference():
     from mindie_sim.structure import export_structure
     from mindie_profiler.normalized import kernel_rows
     sys.path.insert(0, str(ROOT / 'examples/structure'))
-    helper = importlib.import_module('body_source_role_references')
-    replay = importlib.import_module('replay_body_operator_families')
+    helper = importlib.import_module('references')
+    replay = importlib.import_module('operators')
     path = Path(sim.__file__).resolve().parents[1] / 'examples/cases/high-concurrency-20261030/v41-new6/a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4.json'
     if not path.exists():
         pytest.skip('requires the source-bound A3 V4.1 declaration')

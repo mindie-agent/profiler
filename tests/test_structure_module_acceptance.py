@@ -17,10 +17,50 @@ from mindie_profiler.structure_mapping import StructureMapper
 FIXTURE = Path(__file__).parent / "fixtures/structure_module"
 
 
+def mlp_structure(*, hidden=256, batch=8):
+    from mindie_sim.catalog.ops import gemm_op, vector_op
+    from mindie_sim.catalog.types import QuantSpec
+    from mindie_sim.structure import export_op_structure
+
+    quant = QuantSpec("fp32", weight_format="fp32", activation_format="fp32")
+
+    def linear(module, deps, inputs, outputs):
+        return gemm_op(
+            op_id=module, deps=deps, stage=0, layer=-1, requests=(),
+            m=batch, n=outputs, k=inputs, quant=quant,
+            category="dense_mlp", family="linear", phase="eager_mlp",
+            metadata=(("module_id", module), ("module_type", "Linear"),
+                      ("input_shape", (batch, inputs)), ("weight_shape", (outputs, inputs)),
+                      ("output_shape", (batch, outputs)), ("bias", True),
+                      ("bias_shape", (outputs,)), ("bias_dtype", "fp32")),
+        )
+
+    ops = (
+        linear("0", ("input",), hidden, hidden * 2),
+        vector_op(
+            op_id="1", deps=("0",), stage=0, layer=-1, requests=(),
+            elements=batch * hidden * 2, ops_per_element=1, dtype="fp32",
+            family="relu", phase="eager_mlp", recipe="relu", shape=(batch, hidden * 2),
+            metadata=(("module_id", "1"), ("module_type", "ReLU")),
+        ),
+        linear("2", ("1",), hidden * 2, hidden),
+    )
+    source = Path(__file__).parent / "live_framework_capture_workload.py"
+    return export_op_structure(
+        ops, model={"kind": "sequential", "name": "tiny-mlp-relu",
+                    "input_shape": [batch, hidden], "dtype": "fp32"},
+        execution={"phase": "eager_mlp", "scope": "model",
+                   "replica_axis": "data_parallel", "shard_scope": "unsharded",
+                   "stage_scope": "single_stage"},
+        source={"path": str(source), "sha256": sha256(source.read_bytes()).hexdigest(),
+                "declaration": "Linear(hidden,2*hidden), ReLU(), Linear(2*hidden,hidden)",
+                "arguments": {"hidden": hidden, "batch": batch, "activation": "relu"}},
+    )
+
+
 @pytest.fixture
 def declaration():
     pytest.importorskip("mindie_sim.structure")
-    from examples.structure.replay_module_capture import mlp_structure
 
     manifest = mlp_structure()
     bindings = {

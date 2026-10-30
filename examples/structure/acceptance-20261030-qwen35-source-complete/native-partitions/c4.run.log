@@ -1,1 +1,0 @@
-{"case": "qwen35-35b-a5-tp4-c4-graph", "forwards": 84, "events": 16800, "native_family_counts": {"DequantSwigluQuant": 3360, "GroupedMatmul": 6720, "MoeDistributeDispatchV3": 3360, "MoeGatingTopK": 3360, "TensorMove": 0}, "partitions": 10, "elapsed_s": 8.332562583032995, "rss": 114655232}

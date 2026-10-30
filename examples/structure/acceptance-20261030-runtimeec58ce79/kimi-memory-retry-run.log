@@ -1,3 +1,0 @@
-{"source_case_id": "a5_kimi_k3_p32768_c1", "geometry_index": 1, "geometry_count": 1, "forward_count": 63, "geometry": {"query_rows": 1, "sequences_per_replica": 1, "tokens_per_sequence": 1, "context_tokens": 32768, "batch_basis": "captured_paged_attention_block_table_rows", "context_basis": "not_observed_from_cache_capacity", "phase": "decode"}, "status": "compared", "reason": null, "reused_prediction": false}
-{"source_case_id": "a5_kimi_k3_p32768_c1", "completed_source_cases": 1, "total_source_cases": 1, "geometry_rows": 1}
-{"case_count": 1, "source_case_count": 1, "measured_cases": 1, "compared_cases": 1, "passed_cases": 1, "unresolved_cases": 0, "failed_cases": 0}

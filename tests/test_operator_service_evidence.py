@@ -10,26 +10,19 @@ pytest.importorskip("mindie_sim", reason="companion Sim acceptance tools require
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'examples/structure'))
-from operator_service_evidence import service_execution_evidence
-from replay_fusion_cohorts import _compact_comparison
+from service_evidence import service_execution_evidence
+from cohorts import _compact_comparison
 
 
 def test_public_complete_tensor_cohort_executes_joint_service_once():
     sim = pytest.importorskip('mindie_sim')
     from mindie_sim.cohort_comparison import compare_cohorts
     from mindie_sim.structure import export_structure
-    from reprice_body_operator_families import rebind_mapping
+    from tests.retained_tensor_cohort import mapping_for_case, retained_case
 
-    retained = ROOT / 'examples/structure/acceptance-20261030-qwen35-source-complete/canonical-with-tensor-move'
-    mapping = json.loads(next(retained.glob('*c128*.mapping.json')).read_text())
-    cohort = next(c for c in mapping['windows'][0]['cohorts'] if c['native_operator_type'] == 'TensorMove')
-    mapping['windows'][0]['cohorts'] = [cohort]
-    case_path = Path(sim.__file__).resolve().parents[1] / 'examples/cases/high-concurrency-20261030/qwen35-mc2-tp-source-complete-conditional/qwen35-35b-a5-tp4-c128-mc2-tp-source-complete.json'
-    if not case_path.exists():
-        pytest.skip('companion real Qwen35 case unavailable')
-    case = json.loads(case_path.read_text())
-    geometry = {k: mapping['declared_execution'][k] for k in ('phase', 'tokens', 'context', 'sequences', 'scope')}
-    manifest = export_structure(case, **geometry)
+    case = retained_case()
+    manifest, mapping = mapping_for_case(case)
+    cohort = mapping['windows'][0]['cohorts'][0]
     target = next(n for n in manifest['nodes'] if n['node_id'] == cohort['target_ids'][0])
     operator = target['operator']
     match = {'recipe': operator['recipe'], 'phase': 'decode', 'dtype': operator['dtype'],
@@ -45,8 +38,7 @@ def test_public_complete_tensor_cohort_executes_joint_service_once():
     device = case['machine'].setdefault('device', {})
     for field, value in [('rates', 1e9), ('work_units', 'busy_ns'), ('resource_units', 1)]:
         device.setdefault(field, {})['observed_copy'] = value
-    fresh = export_structure(case, **geometry)
-    rebound, _ = rebind_mapping(mapping, fresh, mapping['windows'][0]['source_identity'])
+    fresh, rebound = mapping_for_case(case)
     result = compare_cohorts(case, rebound)
     original = result['windows'][0]['cohorts'][0]
     row = _compact_comparison(result)['windows'][0]['cohorts'][0]

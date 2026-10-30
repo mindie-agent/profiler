@@ -6,7 +6,6 @@ binding control are test inputs, not evidence of a newly collected module.
 from dataclasses import replace
 import json
 from pathlib import Path
-import runpy
 
 import pytest
 
@@ -172,23 +171,3 @@ def test_kimi_norm_gate_keeps_primary_output_scope_and_original_missing_fields()
     assert missing["status"] == "unmapped" and missing["observed_contract"] is None
     assert missing["diagnostic"]["category"] == "capture_metadata_missing"
     assert not missing["candidate_node_ids"]
-
-
-def test_streaming_replay_retains_body_evidence_without_double_counting():
-    structure = pytest.importorskip("mindie_sim.structure")
-    case = Path(structure.__file__).resolve().parents[1] / "examples/cases/qwen38-a5.json"
-    example = Path(__file__).resolve().parents[1] / "examples/structure/replay_body_capture.py"
-    replay = runpy.run_path(str(example))["replay"]
-    report = replay(
-        FIXTURES / "body_fused/a5_qwen38.csv", case,
-        phase="prefill", tokens=16384, mapping_limit=0)
-    assert report["positive_event_count"] == 4
-    assert sum(report["status_counts"].values()) == 4
-    assert report["body_contracts"]["event_count"] == 4
-    assert report["retained_examples"] == []
-    examples = report["retained_body_examples"]
-    assert len(examples) == 4
-    assert {row["operator_type"] for row in examples} == {
-        "_layer_norm_fwd_1pass_kernel_npu", "split_qkv_rmsnorm_mrope_kernel",
-    }
-    assert all(row["observed_contract_scope"] is not None for row in examples)

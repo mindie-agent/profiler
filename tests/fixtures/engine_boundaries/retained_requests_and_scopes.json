@@ -1,0 +1,2448 @@
+{
+  "schema_version": "mindie-engine-boundary-fixture/1",
+  "sources": {
+    "qwen36-a5-tp2-c12": {
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030/kernel_details.csv",
+        "size_bytes": 43475364,
+        "mtime_ns": 1793298518000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen36-a5-tp2-c12.json",
+        "sha256": "cb5fe8dd50fda431e2f28cd27eb9a1cf0796f85b6e7adbed0a070fcd43f84d29",
+        "size_bytes": 1498703
+      },
+      "benchmark_summary_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030/benchmark_summary.json",
+        "sha256": "de690311a3b66ff28d61d89b164dbae28f1b5d9ac3f993f806051a8a71d55ce4",
+        "size_bytes": 26765
+      },
+      "extraction": {
+        "forwards": [
+          {
+            "forward_id": "auto:0",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298460337469983,
+            "end_ns": 1793298460362706047,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298460362743822,
+            "head_end_ns": 1793298460363145237
+          },
+          {
+            "forward_id": "auto:1",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298460372962787,
+            "end_ns": 1793298460397007529,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298460397044724,
+            "head_end_ns": 1793298460397447875
+          },
+          {
+            "forward_id": "auto:2",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298460406688591,
+            "end_ns": 1793298460430678450,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298460430715802,
+            "head_end_ns": 1793298460431119585
+          },
+          {
+            "forward_id": "auto:3",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298460441151407,
+            "end_ns": 1793298460465450054,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298460465487410,
+            "head_end_ns": 1793298460465891717
+          },
+          {
+            "forward_id": "auto:4",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298460475471816,
+            "end_ns": 1793298460499448708,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298460499486915,
+            "head_end_ns": 1793298460499889099
+          },
+          {
+            "forward_id": "auto:5",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298460508938269,
+            "end_ns": 1793298460532920920,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298460532958695,
+            "head_end_ns": 1793298460533363409
+          },
+          {
+            "forward_id": "auto:6",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298460542619817,
+            "end_ns": 1793298460566579980,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298460566617369,
+            "head_end_ns": 1793298460567021181
+          },
+          {
+            "forward_id": "auto:7",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298460576546858,
+            "end_ns": 1793298460600518570,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298460600555529,
+            "head_end_ns": 1793298460600955374
+          },
+          {
+            "forward_id": "auto:8",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298460610195042,
+            "end_ns": 1793298460634247028,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298460634284003,
+            "head_end_ns": 1793298460634687094
+          },
+          {
+            "forward_id": "auto:9",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298460644083609,
+            "end_ns": 1793298460668071807,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298460668109944,
+            "head_end_ns": 1793298460668512377
+          },
+          {
+            "forward_id": "auto:10",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298460677589830,
+            "end_ns": 1793298460701550199,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298460701588720,
+            "head_end_ns": 1793298460701994132
+          },
+          {
+            "forward_id": "auto:11",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298460710961547,
+            "end_ns": 1793298460734927455,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298460734964765,
+            "head_end_ns": 1793298460735370199
+          },
+          {
+            "forward_id": "auto:12",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298460744522275,
+            "end_ns": 1793298460768505119,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298460768542275,
+            "head_end_ns": 1793298460768943001
+          },
+          {
+            "forward_id": "auto:13",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298460777828302,
+            "end_ns": 1793298460802020285,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298460802057275,
+            "head_end_ns": 1793298460802460671
+          },
+          {
+            "forward_id": "auto:14",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298460812053289,
+            "end_ns": 1793298460836015772,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298460836053397,
+            "head_end_ns": 1793298460836458643
+          },
+          {
+            "forward_id": "auto:15",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298460846004618,
+            "end_ns": 1793298460870087225,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298460870124847,
+            "head_end_ns": 1793298460870527116
+          },
+          {
+            "forward_id": "auto:16",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298460879595318,
+            "end_ns": 1793298460903583174,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298460903621200,
+            "head_end_ns": 1793298460904022485
+          },
+          {
+            "forward_id": "auto:17",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298460913079428,
+            "end_ns": 1793298460937056451,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298460937094026,
+            "head_end_ns": 1793298460937496444
+          },
+          {
+            "forward_id": "auto:18",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298460946164986,
+            "end_ns": 1793298460970152565,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298460970190285,
+            "head_end_ns": 1793298460970591165
+          },
+          {
+            "forward_id": "auto:19",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298460979528656,
+            "end_ns": 1793298461003602436,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461003639831,
+            "head_end_ns": 1793298461004041065
+          },
+          {
+            "forward_id": "auto:20",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461012787838,
+            "end_ns": 1793298461037299563,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461037337094,
+            "head_end_ns": 1793298461037741569
+          },
+          {
+            "forward_id": "auto:21",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461046618512,
+            "end_ns": 1793298461070952299,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461070989184,
+            "head_end_ns": 1793298461071395023
+          },
+          {
+            "forward_id": "auto:22",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461080370850,
+            "end_ns": 1793298461104630218,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461104667569,
+            "head_end_ns": 1793298461105068947
+          },
+          {
+            "forward_id": "auto:23",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461114169886,
+            "end_ns": 1793298461138472791,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461138510264,
+            "head_end_ns": 1793298461138912424
+          },
+          {
+            "forward_id": "auto:24",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461147955685,
+            "end_ns": 1793298461172336923,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461172374095,
+            "head_end_ns": 1793298461172779593
+          },
+          {
+            "forward_id": "auto:25",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461182070212,
+            "end_ns": 1793298461206052229,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461206089528,
+            "head_end_ns": 1793298461206493074
+          },
+          {
+            "forward_id": "auto:26",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461215774842,
+            "end_ns": 1793298461241383832,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461241421454,
+            "head_end_ns": 1793298461241821173
+          },
+          {
+            "forward_id": "auto:27",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461251047266,
+            "end_ns": 1793298461275981604,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461276018951,
+            "head_end_ns": 1793298461276418754
+          },
+          {
+            "forward_id": "auto:28",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461285873892,
+            "end_ns": 1793298461309880741,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461309917831,
+            "head_end_ns": 1793298461310318205
+          },
+          {
+            "forward_id": "auto:29",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461318954721,
+            "end_ns": 1793298461343383698,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461343421608,
+            "head_end_ns": 1793298461343823361
+          },
+          {
+            "forward_id": "auto:30",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461353293948,
+            "end_ns": 1793298461377361753,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461377398887,
+            "head_end_ns": 1793298461377802102
+          },
+          {
+            "forward_id": "auto:31",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461386659463,
+            "end_ns": 1793298461410643189,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461410680495,
+            "head_end_ns": 1793298461411078534
+          },
+          {
+            "forward_id": "auto:32",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461420271673,
+            "end_ns": 1793298461444344957,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461444382923,
+            "head_end_ns": 1793298461444786403
+          },
+          {
+            "forward_id": "auto:33",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461453740346,
+            "end_ns": 1793298461477718489,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461477757359,
+            "head_end_ns": 1793298461478160461
+          },
+          {
+            "forward_id": "auto:34",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461487343676,
+            "end_ns": 1793298461511314790,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461511352690,
+            "head_end_ns": 1793298461511757605
+          },
+          {
+            "forward_id": "auto:35",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461520815653,
+            "end_ns": 1793298461544816598,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461544853857,
+            "head_end_ns": 1793298461545257052
+          },
+          {
+            "forward_id": "auto:36",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461554266010,
+            "end_ns": 1793298461578318772,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461578355770,
+            "head_end_ns": 1793298461578758189
+          },
+          {
+            "forward_id": "auto:37",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461588170787,
+            "end_ns": 1793298461612164326,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461612202546,
+            "head_end_ns": 1793298461612604364
+          },
+          {
+            "forward_id": "auto:38",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461622009858,
+            "end_ns": 1793298461645990235,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461646027877,
+            "head_end_ns": 1793298461646430387
+          },
+          {
+            "forward_id": "auto:39",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461655246445,
+            "end_ns": 1793298461679265662,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461679302978,
+            "head_end_ns": 1793298461679706036
+          },
+          {
+            "forward_id": "auto:40",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461689090891,
+            "end_ns": 1793298461713124012,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461713161116,
+            "head_end_ns": 1793298461713564555
+          },
+          {
+            "forward_id": "auto:41",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461722552900,
+            "end_ns": 1793298461746555805,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461746593070,
+            "head_end_ns": 1793298461746992993
+          },
+          {
+            "forward_id": "auto:42",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461755708918,
+            "end_ns": 1793298461780163662,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461780201448,
+            "head_end_ns": 1793298461780607253
+          },
+          {
+            "forward_id": "auto:43",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461789895202,
+            "end_ns": 1793298461813956038,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461813993332,
+            "head_end_ns": 1793298461814394278
+          },
+          {
+            "forward_id": "auto:44",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461823004041,
+            "end_ns": 1793298461847407567,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461847444611,
+            "head_end_ns": 1793298461847847595
+          },
+          {
+            "forward_id": "auto:45",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461856619178,
+            "end_ns": 1793298461880789647,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461880827565,
+            "head_end_ns": 1793298461881229863
+          },
+          {
+            "forward_id": "auto:46",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461890200498,
+            "end_ns": 1793298461914815230,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461914852272,
+            "head_end_ns": 1793298461915253003
+          },
+          {
+            "forward_id": "auto:47",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461923678234,
+            "end_ns": 1793298461948102242,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461948139694,
+            "head_end_ns": 1793298461948539869
+          },
+          {
+            "forward_id": "auto:48",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461957207874,
+            "end_ns": 1793298461981724656,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298461981761325,
+            "head_end_ns": 1793298461982164251
+          },
+          {
+            "forward_id": "auto:49",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298461990366346,
+            "end_ns": 1793298462015077096,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298462015113948,
+            "head_end_ns": 1793298462015517030
+          },
+          {
+            "forward_id": "auto:50",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298462023850295,
+            "end_ns": 1793298462048133060,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298462048170191,
+            "head_end_ns": 1793298462048573825
+          },
+          {
+            "forward_id": "auto:51",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298462057643243,
+            "end_ns": 1793298462081674357,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298462081711660,
+            "head_end_ns": 1793298462082115379
+          },
+          {
+            "forward_id": "auto:52",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298462090318971,
+            "end_ns": 1793298462115194491,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298462115231995,
+            "head_end_ns": 1793298462115641675
+          },
+          {
+            "forward_id": "auto:53",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298462123777257,
+            "end_ns": 1793298462148791999,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298462148830152,
+            "head_end_ns": 1793298462149231469
+          },
+          {
+            "forward_id": "auto:54",
+            "geometry": {
+              "query_rows": 48,
+              "sequences_per_replica": 12,
+              "tokens_per_sequence": 4,
+              "context_tokens": null,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793298462157673276,
+            "end_ns": 1793298462181950376,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": 1793298462181987183,
+            "head_end_ns": 1793298462182391947
+          }
+        ],
+        "auxiliary_occurrences": [
+          {
+            "start_ns": 1793298460363920255,
+            "end_ns": 1793298460364607387,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460364851494,
+            "end_ns": 1793298460365561263,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460365790138,
+            "end_ns": 1793298460366498250,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460398158625,
+            "end_ns": 1793298460398846160,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460399090052,
+            "end_ns": 1793298460399800954,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460400034507,
+            "end_ns": 1793298460400739077,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460431813883,
+            "end_ns": 1793298460432498928,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460432740388,
+            "end_ns": 1793298460433449309,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460433682861,
+            "end_ns": 1793298460434391025,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460466592986,
+            "end_ns": 1793298460467274649,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460467513854,
+            "end_ns": 1793298460468222878,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460468453136,
+            "end_ns": 1793298460469165098,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460500588977,
+            "end_ns": 1793298460501279088,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460501521132,
+            "end_ns": 1793298460502234290,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460502469485,
+            "end_ns": 1793298460503175657,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460534058385,
+            "end_ns": 1793298460534743901,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460534986164,
+            "end_ns": 1793298460535695681,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460535926482,
+            "end_ns": 1793298460536635920,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460567712999,
+            "end_ns": 1793298460568398431,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460568643274,
+            "end_ns": 1793298460569352613,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460569586556,
+            "end_ns": 1793298460570291561,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460601650997,
+            "end_ns": 1793298460602333775,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460602575360,
+            "end_ns": 1793298460603284980,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460603517737,
+            "end_ns": 1793298460604226829,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460635376204,
+            "end_ns": 1793298460636059985,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460636300922,
+            "end_ns": 1793298460637008841,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460637240284,
+            "end_ns": 1793298460637948004,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460669206254,
+            "end_ns": 1793298460669891554,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460670134292,
+            "end_ns": 1793298460670847665,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460671078771,
+            "end_ns": 1793298460671788907,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460702699037,
+            "end_ns": 1793298460703385150,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460703627392,
+            "end_ns": 1793298460704339975,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460704570391,
+            "end_ns": 1793298460705278156,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460736065320,
+            "end_ns": 1793298460736745321,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460736986693,
+            "end_ns": 1793298460737698226,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460737931960,
+            "end_ns": 1793298460738642540,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460769633451,
+            "end_ns": 1793298460770315348,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460770556029,
+            "end_ns": 1793298460771264185,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460771501754,
+            "end_ns": 1793298460772208670,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460803149434,
+            "end_ns": 1793298460803836027,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460804078279,
+            "end_ns": 1793298460804790620,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460805025092,
+            "end_ns": 1793298460805731646,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460837149000,
+            "end_ns": 1793298460837833439,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460838078140,
+            "end_ns": 1793298460838790814,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460839020416,
+            "end_ns": 1793298460839729581,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460871211142,
+            "end_ns": 1793298460871893287,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460872137133,
+            "end_ns": 1793298460872846847,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460873081865,
+            "end_ns": 1793298460873792402,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460904721332,
+            "end_ns": 1793298460905408701,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460905649138,
+            "end_ns": 1793298460906356269,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460906588006,
+            "end_ns": 1793298460907298751,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460938183082,
+            "end_ns": 1793298460938866602,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460939107529,
+            "end_ns": 1793298460939819754,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460940055424,
+            "end_ns": 1793298460940762681,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460971289698,
+            "end_ns": 1793298460971974061,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460972216833,
+            "end_ns": 1793298460972928252,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298460973162222,
+            "end_ns": 1793298460973873274,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461004730589,
+            "end_ns": 1793298461005413397,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461005658460,
+            "end_ns": 1793298461006367705,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461006605304,
+            "end_ns": 1793298461007314540,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461038426930,
+            "end_ns": 1793298461039114727,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461039355736,
+            "end_ns": 1793298461040067640,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461040299164,
+            "end_ns": 1793298461041008889,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461072089877,
+            "end_ns": 1793298461072773842,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461073016497,
+            "end_ns": 1793298461073727618,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461073960773,
+            "end_ns": 1793298461074668596,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461105775164,
+            "end_ns": 1793298461106458920,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461106703168,
+            "end_ns": 1793298461107411586,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461107644383,
+            "end_ns": 1793298461108354150,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461139600175,
+            "end_ns": 1793298461140285174,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461140528231,
+            "end_ns": 1793298461141241618,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461141473928,
+            "end_ns": 1793298461142181364,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461173469576,
+            "end_ns": 1793298461174151920,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461174393802,
+            "end_ns": 1793298461175104014,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461175335911,
+            "end_ns": 1793298461176044040,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461207187096,
+            "end_ns": 1793298461207869985,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461208111342,
+            "end_ns": 1793298461208819700,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461209054088,
+            "end_ns": 1793298461209766699,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461242504778,
+            "end_ns": 1793298461243189287,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461243431870,
+            "end_ns": 1793298461244140570,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461244376088,
+            "end_ns": 1793298461245084125,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461277102393,
+            "end_ns": 1793298461277785809,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461278024987,
+            "end_ns": 1793298461278735639,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461278967421,
+            "end_ns": 1793298461279675471,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461310998129,
+            "end_ns": 1793298461311682780,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461311926033,
+            "end_ns": 1793298461312635100,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461312868844,
+            "end_ns": 1793298461313577731,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461344502659,
+            "end_ns": 1793298461345190747,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461345432276,
+            "end_ns": 1793298461346143383,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461346372549,
+            "end_ns": 1793298461347085414,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461378486665,
+            "end_ns": 1793298461379173228,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461379415382,
+            "end_ns": 1793298461380127954,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461380360643,
+            "end_ns": 1793298461381070617,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461411771254,
+            "end_ns": 1793298461412455744,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461412695047,
+            "end_ns": 1793298461413407371,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461413638232,
+            "end_ns": 1793298461414348299,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461445475593,
+            "end_ns": 1793298461446160754,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461446403616,
+            "end_ns": 1793298461447111601,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461447342005,
+            "end_ns": 1793298461448052398,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461478848751,
+            "end_ns": 1793298461479532020,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461479777595,
+            "end_ns": 1793298461480488646,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461480723069,
+            "end_ns": 1793298461481433765,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461512448686,
+            "end_ns": 1793298461513134585,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461513379646,
+            "end_ns": 1793298461514091556,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461514328481,
+            "end_ns": 1793298461515038061,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461545953905,
+            "end_ns": 1793298461546640442,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461546881202,
+            "end_ns": 1793298461547594778,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461547830598,
+            "end_ns": 1793298461548550675,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461579439376,
+            "end_ns": 1793298461580123598,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461580366422,
+            "end_ns": 1793298461581078527,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461581314090,
+            "end_ns": 1793298461582023898,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461613292006,
+            "end_ns": 1793298461613977493,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461614220870,
+            "end_ns": 1793298461614930520,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461615165667,
+            "end_ns": 1793298461615873814,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461647109456,
+            "end_ns": 1793298461647796826,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461648038706,
+            "end_ns": 1793298461648748291,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461648978678,
+            "end_ns": 1793298461649688129,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461680387103,
+            "end_ns": 1793298461681076334,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461681317632,
+            "end_ns": 1793298461682030359,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461682264793,
+            "end_ns": 1793298461682975503,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461714256650,
+            "end_ns": 1793298461714939788,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461715185159,
+            "end_ns": 1793298461715896773,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461716131177,
+            "end_ns": 1793298461716840607,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461747674302,
+            "end_ns": 1793298461748361259,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461748602344,
+            "end_ns": 1793298461749316666,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461749552462,
+            "end_ns": 1793298461750260454,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461781298133,
+            "end_ns": 1793298461781984530,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461782228728,
+            "end_ns": 1793298461782940561,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461783174771,
+            "end_ns": 1793298461783886231,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461815084879,
+            "end_ns": 1793298461815771383,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461816014805,
+            "end_ns": 1793298461816727924,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461816960050,
+            "end_ns": 1793298461817671869,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461848540960,
+            "end_ns": 1793298461849226150,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461849470308,
+            "end_ns": 1793298461850182542,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461850413655,
+            "end_ns": 1793298461851124600,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461881912587,
+            "end_ns": 1793298461882598516,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461882845524,
+            "end_ns": 1793298461883553355,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461883788102,
+            "end_ns": 1793298461884497649,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461915938342,
+            "end_ns": 1793298461916623568,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461916864761,
+            "end_ns": 1793298461917576454,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461917811717,
+            "end_ns": 1793298461918520478,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461949223062,
+            "end_ns": 1793298461949905152,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461950151900,
+            "end_ns": 1793298461950863138,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461951095310,
+            "end_ns": 1793298461951806110,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461982853304,
+            "end_ns": 1793298461983540152,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461983781875,
+            "end_ns": 1793298461984492967,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298461984726458,
+            "end_ns": 1793298461985433861,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298462016219788,
+            "end_ns": 1793298462016903296,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298462017145644,
+            "end_ns": 1793298462017856572,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298462018087469,
+            "end_ns": 1793298462018798692,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298462049257488,
+            "end_ns": 1793298462049945751,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298462050189349,
+            "end_ns": 1793298462050901949,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298462051137372,
+            "end_ns": 1793298462051846975,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298462082804899,
+            "end_ns": 1793298462083490449,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298462083732790,
+            "end_ns": 1793298462084445096,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298462084676659,
+            "end_ns": 1793298462085388983,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298462116326262,
+            "end_ns": 1793298462117016956,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298462117261130,
+            "end_ns": 1793298462117972753,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298462118205952,
+            "end_ns": 1793298462118921188,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298462149929069,
+            "end_ns": 1793298462150613346,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298462150854097,
+            "end_ns": 1793298462151568686,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298462151804525,
+            "end_ns": 1793298462152515702,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298462183077693,
+            "end_ns": 1793298462183767850,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298462184010328,
+            "end_ns": 1793298462184719128,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          },
+          {
+            "start_ns": 1793298462184954390,
+            "end_ns": 1793298462185666766,
+            "device_id": "0",
+            "rank_id": "",
+            "anchor_count": 1
+          }
+        ]
+      },
+      "requests": [
+        {
+          "ok": true,
+          "t_start_epoch": 1793298457.9617314,
+          "ttft_ms": 913.8199600020016,
+          "e2e_ms": 7432.193280001229,
+          "n_text_chunks": 179,
+          "prompt_tokens": 4104,
+          "completion_tokens": 512,
+          "decode_ms": 6518.3733199992275,
+          "tpot_ms": 12.75611217220984
+        },
+        {
+          "ok": true,
+          "t_start_epoch": 1793298457.9622934,
+          "ttft_ms": 913.222159997531,
+          "e2e_ms": 7351.34719999769,
+          "n_text_chunks": 176,
+          "prompt_tokens": 4104,
+          "completion_tokens": 512,
+          "decode_ms": 6438.125040000159,
+          "tpot_ms": 12.599070528376044
+        },
+        {
+          "ok": true,
+          "t_start_epoch": 1793298457.9624493,
+          "ttft_ms": 227.28669000207447,
+          "e2e_ms": 7380.566769999859,
+          "n_text_chunks": 180,
+          "prompt_tokens": 4104,
+          "completion_tokens": 512,
+          "decode_ms": 7153.280079997785,
+          "tpot_ms": 13.998591154594491
+        },
+        {
+          "ok": true,
+          "t_start_epoch": 1793298457.9655075,
+          "ttft_ms": 909.8796100006439,
+          "e2e_ms": 7291.512270003295,
+          "n_text_chunks": 174,
+          "prompt_tokens": 4104,
+          "completion_tokens": 512,
+          "decode_ms": 6381.632660002651,
+          "tpot_ms": 12.488517925641197
+        },
+        {
+          "ok": true,
+          "t_start_epoch": 1793298457.9682384,
+          "ttft_ms": 907.2225700001582,
+          "e2e_ms": 7481.620279999333,
+          "n_text_chunks": 183,
+          "prompt_tokens": 4104,
+          "completion_tokens": 512,
+          "decode_ms": 6574.397709999175,
+          "tpot_ms": 12.865748943246919
+        },
+        {
+          "ok": true,
+          "t_start_epoch": 1793298457.963567,
+          "ttft_ms": 912.0784000006097,
+          "e2e_ms": 7239.936829999351,
+          "n_text_chunks": 173,
+          "prompt_tokens": 4104,
+          "completion_tokens": 512,
+          "decode_ms": 6327.8584299987415,
+          "tpot_ms": 12.38328459882337
+        },
+        {
+          "ok": true,
+          "t_start_epoch": 1793298457.9718397,
+          "ttft_ms": 903.5073699997156,
+          "e2e_ms": 7371.339970002737,
+          "n_text_chunks": 178,
+          "prompt_tokens": 4104,
+          "completion_tokens": 512,
+          "decode_ms": 6467.832600003021,
+          "tpot_ms": 12.657206653626265
+        },
+        {
+          "ok": true,
+          "t_start_epoch": 1793298457.9664419,
+          "ttft_ms": 432.06672000087565,
+          "e2e_ms": 7209.293160001835,
+          "n_text_chunks": 173,
+          "prompt_tokens": 4104,
+          "completion_tokens": 512,
+          "decode_ms": 6777.226440000959,
+          "tpot_ms": 13.262674050882502
+        },
+        {
+          "ok": true,
+          "t_start_epoch": 1793298457.969053,
+          "ttft_ms": 906.3743199985765,
+          "e2e_ms": 7148.087729998224,
+          "n_text_chunks": 170,
+          "prompt_tokens": 4104,
+          "completion_tokens": 512,
+          "decode_ms": 6241.713409999647,
+          "tpot_ms": 12.214703346378958
+        },
+        {
+          "ok": true,
+          "t_start_epoch": 1793298457.970797,
+          "ttft_ms": 904.6861399983754,
+          "e2e_ms": 7422.9717399975925,
+          "n_text_chunks": 179,
+          "prompt_tokens": 4104,
+          "completion_tokens": 512,
+          "decode_ms": 6518.285599999217,
+          "tpot_ms": 12.75594050880473
+        },
+        {
+          "ok": true,
+          "t_start_epoch": 1793298457.9645445,
+          "ttft_ms": 911.1270399989735,
+          "e2e_ms": 7152.950330000749,
+          "n_text_chunks": 170,
+          "prompt_tokens": 4104,
+          "completion_tokens": 512,
+          "decode_ms": 6241.823290001776,
+          "tpot_ms": 12.21491837573733
+        },
+        {
+          "ok": true,
+          "t_start_epoch": 1793298457.9673584,
+          "ttft_ms": 908.2476900002803,
+          "e2e_ms": 7376.049720001902,
+          "n_text_chunks": 178,
+          "prompt_tokens": 4104,
+          "completion_tokens": 512,
+          "decode_ms": 6467.8020300016215,
+          "tpot_ms": 12.65714682974877
+        }
+      ],
+      "request_records_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030/client_cell.json",
+        "sha256": "3e6867d8a69edb26d0ab29d6551a1e34574d0f51d610bc9e9b141a85710ed5fe",
+        "size_bytes": 61939
+      },
+      "engine_window": {
+        "profiler_window_s": 1.8067,
+        "metrics_interval_s": 2.1669,
+        "steps_in_window": 55.0,
+        "d_drafts": 660.0,
+        "d_draft_tokens": 1980.0,
+        "d_accepted_tokens": 1251.0,
+        "d_generation_tokens": 1911.0,
+        "note": "vllm:spec_decode_num_drafts_total is per-request; engine steps = d_drafts / concurrency, and the interval is the timestamped /metrics fetch span (metrics_interval_s), not the sleep window."
+      }
+    },
+    "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64": {
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
+        "size_bytes": 50179338,
+        "mtime_ns": 1793303665000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "085c8c00a0560d14a3ca4beb9b965efc04b6be1f40b47734cd47102af4363282"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64.json",
+        "sha256": "62440544d383de860c1135ee174bcaee866a0dbee8c1d806770041e3ad74b056",
+        "size_bytes": 793792
+      },
+      "benchmark_summary_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/benchmark_summary.json",
+        "sha256": "270a387c8d84a0b0b9fa274ac83c5fe8ca735e66e045b4802919375f9d68bc9c",
+        "size_bytes": 1015939
+      },
+      "extraction": {
+        "forwards": [
+          {
+            "forward_id": "auto:0",
+            "geometry": {
+              "query_rows": 8,
+              "sequences_per_replica": 8,
+              "tokens_per_sequence": 1,
+              "context_tokens": null,
+              "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793303587287013344,
+            "end_ns": 1793303587314890269,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": null,
+            "head_end_ns": null
+          },
+          {
+            "forward_id": "auto:1",
+            "geometry": {
+              "query_rows": 8,
+              "sequences_per_replica": 8,
+              "tokens_per_sequence": 1,
+              "context_tokens": null,
+              "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+              "context_basis": "not_observed_from_cache_capacity"
+            },
+            "start_ns": 1793303587315588755,
+            "end_ns": 1793303587341892691,
+            "rank_id": "",
+            "device_id": "0",
+            "head_start_ns": null,
+            "head_end_ns": null
+          }
+        ],
+        "auxiliary_occurrences": []
+      }
+    },
+    "glm53flash-a3-tp16-c4-livepre": {
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot30_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 11734491,
+        "mtime_ns": 1793295009000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "35c1ff6c9570a472ca26f1bfa293cd09709a1e4d0f2984b039de9e48d961c1e2"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-glm53flash-a3-tp16-c4-livepre.json",
+        "sha256": "46c12b352e4b51330e61e108947c977e2fa2aaa621a90b6b1907b76dc1a47867",
+        "size_bytes": 1703313
+      },
+      "benchmark_summary_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot30_c4_20261030/benchmark_summary.json",
+        "sha256": "aa9c1bdd67f88bed4beba29d4a53913be40ce6d0e45d5bca3bf6c76334299f66",
+        "size_bytes": 10949
+      },
+      "requests": [
+        {
+          "ok": true,
+          "t_start_epoch": 1793294588.2979543,
+          "ttft_ms": 456.4289702102542,
+          "e2e_ms": 1927.5692598894238,
+          "n_text_chunks": 27,
+          "prompt_tokens": 4096,
+          "completion_tokens": 96,
+          "tpot_ms": 56.57542538112746,
+          "decode_ms": 1470.961059909314
+        },
+        {
+          "ok": true,
+          "t_start_epoch": 1793294588.2981107,
+          "ttft_ms": 982.8255600295961,
+          "e2e_ms": 1886.3952402025461,
+          "n_text_chunks": 24,
+          "prompt_tokens": 4096,
+          "completion_tokens": 96,
+          "tpot_ms": 39.27429174275502,
+          "decode_ms": 903.3087100833654
+        },
+        {
+          "ok": true,
+          "t_start_epoch": 1793294588.2982564,
+          "ttft_ms": 982.750569935888,
+          "e2e_ms": 1690.9174299798906,
+          "n_text_chunks": 19,
+          "prompt_tokens": 4096,
+          "completion_tokens": 96,
+          "tpot_ms": 39.30566889337368,
+          "decode_ms": 707.5020400807261
+        },
+        {
+          "ok": true,
+          "t_start_epoch": 1793294588.2964954,
+          "ttft_ms": 984.2996601946652,
+          "e2e_ms": 2028.4300800412893,
+          "n_text_chunks": 27,
+          "prompt_tokens": 4096,
+          "completion_tokens": 96,
+          "tpot_ms": 40.151161911825724,
+          "decode_ms": 1043.9302097074687
+        },
+        {
+          "ok": true,
+          "t_start_epoch": 1793294590.3271267,
+          "ttft_ms": 1014.5531203597784,
+          "e2e_ms": 2340.582060161978,
+          "n_text_chunks": 35,
+          "prompt_tokens": 4096,
+          "completion_tokens": 96,
+          "tpot_ms": 38.99597676525659,
+          "decode_ms": 1325.8632100187242
+        },
+        {
+          "ok": true,
+          "t_start_epoch": 1793294590.3267193,
+          "ttft_ms": 1014.8213398642838,
+          "e2e_ms": 2481.204580049962,
+          "n_text_chunks": 39,
+          "prompt_tokens": 4096,
+          "completion_tokens": 96,
+          "tpot_ms": 38.58373605793244,
+          "decode_ms": 1466.1819702014327
+        },
+        {
+          "ok": true,
+          "t_start_epoch": 1793294590.3269782,
+          "ttft_ms": 1014.5153203047812,
+          "e2e_ms": 2647.451610304415,
+          "n_text_chunks": 44,
+          "prompt_tokens": 4096,
+          "completion_tokens": 96,
+          "tpot_ms": 37.970617900840764,
+          "decode_ms": 1632.736569736153
+        },
+        {
+          "ok": true,
+          "t_start_epoch": 1793294590.326426,
+          "ttft_ms": 499.7503301128745,
+          "e2e_ms": 2038.2102699950337,
+          "n_text_chunks": 29,
+          "prompt_tokens": 4096,
+          "completion_tokens": 96,
+          "tpot_ms": 54.937494286735145,
+          "decode_ms": 1538.249840028584
+        }
+      ],
+      "reported_tpot": {
+        "n": 8,
+        "mean": 43.22429661748085,
+        "median": 39.28998031806435,
+        "std": 7.270390367006819,
+        "min": 37.970617900840764,
+        "max": 56.57542538112746,
+        "p50": 39.28998031806435,
+        "p90": 55.42887361505284,
+        "p99": 56.460770204519996
+      }
+    }
+  },
+  "projection": "Original field values only; all selected Qwen target/aux/request records retained, unused stage details and ITL arrays omitted."
+}

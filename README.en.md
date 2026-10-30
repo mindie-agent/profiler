@@ -129,41 +129,36 @@ pytest -m "not live_npu"
 | **`memory`**<br/>`mindie_profiler.memory_profile`<br/>`python3 -m mindie_profiler.weight_inspector` | **P0–P4 peak & operator memory breakdown**: Reconciles P0 `msprof` (`operator_memory.csv` / `memory_record.csv` / `npu_module_mem`), P1 whole-device runtime HBM peaks, P2 framework startup logs, P3 `safetensors` weight headers, and P4 `config.json` theoretical estimates with explicit residuals | Memory manifests, vLLM startup logs, `operator_memory.csv`, `memory_record.csv`, model weight dir | `mindie-memory-attribution/1` JSON report (weights, KV cache, activations, communication buffers, and uninvented residual) |
 | **`modeling-inputs`**<br/>`mindie_profiler.modeling_inputs`<br/>`python3 -m mindie_profiler.enrichment_model` | **Retained observation export and Roofline comparison**: Extracts shapes, dtypes, layouts, durations and hardware peaks into `ModelingInputsBundle` and computes single-kernel ideal lower bounds; rewritten sim does not natively consume this legacy bundle | C7 summary JSON, hotspot records, and raw physical hardware peaks | `mindie-modeling-inputs/1` observation bundle and 3-value alignment (`ideal_hardware_lower_bound_ms`, `model_predicted_ms`, `measured_device_ms`) |
 
-Attention, cache and fused contracts reuse sim's GQA/MLA/DSA/GDN/KDA frontend.
-They preserve native operator identity, active tensor comparison scope and
-unobserved fields; repeated layers never bind automatically. CSV, native
-`op_summary` and `.csv.gz` use one decoder. See the [eight complete A3/A5
-body replays and remaining boundaries](examples/structure/acceptance-20261029/body-contract-replay.md).
+`analyze --structure FILE [--bindings FILE] [--correlation FILE] [--module-trace FILE]`
+adds `mindie-profile-structure-mapping/1` to C7. It separates candidates, ambiguity,
+proven bindings and missing matches. Attention, cache, GDN/KDA, MoE, mHC and fusion
+boundaries reuse the Sim frontend. CSV, native `op_summary` and `.csv.gz` share one
+parser; operator names alone never prove a layer occurrence.
 
-Development `analyze --structure FILE [--bindings FILE] [--correlation FILE] [--module-trace FILE]`
-adds `mindie-profile-structure-mapping/1` to C7. It separates `candidate`,
-`ambiguous`, `bound` and `unmapped`, accounting for layers, blocks and nodes with
-measured event intervals. This path requires matching development sources; see
-the [structure example](examples/structure/README.md) for installation and evidence
-boundaries.
+Equal contracts, physical work and placement form cohorts with observed calls,
+declared instances and per-call Mean/P50. Sim consumes them with
+`python -m mindie_sim.cohort_comparison CASE REPORT -o RESULT`. Calls above 50 us
+use 15% relative tolerance; smaller calls use 15 us absolute tolerance.
 
-Repeated candidates with equal contracts, physical work and placement also
-produce `windows[].cohorts`: observed calls, declared instances/layers, per-call
-Mean/P50 and cumulative measured activity. Sim consumes the C7 report directly
-with `python -m mindie_sim.cohort_comparison CASE REPORT -o RESULT`. Comparisons
-remain conditional; selected fusion programs and unfused references are
-distinct, and internal HBM traffic is removed only under an explicit source
-profile.
+`auto_segment_decode_forwards(events, model_config)` uses complete layer plans,
+tensor geometry and head boundaries to measure Body and layers. It retains
+internal communication and gaps, and separates crossing AICPU control tails.
+Topology-based inference remains distinct from Host/module occurrence binding.
 
-Decode timing also accepts normalized CSV events directly through
-`auto_segment_decode_forwards(events, model_config)`. It aligns complete Sim layer
-plans, tensor geometry and vocabulary-head closure, then reports body and layer
-Mean/P50/P90 with source locators. Automatic topology inference remains separate
-from Host/module occurrence binding. Internal communication and gaps remain in
-the span; scheduler tails crossing the next dependency boundary are recorded
-separately.
+The [single validation pipeline](examples/structure/README.md) uses one
+[`cases.json`](examples/structure/cases.json) registry:
 
-The [six high-concurrency A5 replays](examples/structure/acceptance-20261030-high-concurrency/decode-forward-replay.md)
-use Qwen3.6 TP8 and Qwen3.8 TP4, with 48 GDN and 16 GQA full-layer groups.
-Execution query/batch, client concurrency, cache hits, speculative acceptance,
-TPOT and runtime identity have separate fields. The
-[earlier 30-source baseline](examples/structure/acceptance-20261029/decode-forward-baseline-0061.md)
-retains its own runtime and comparison denominator.
+```bash
+python examples/structure/pipeline.py --phase decode \
+  --output examples/structure/results/decode.json \
+  --archive-root /path/to/external-evidence
+```
+
+Use `--phase prefill`, `--scope operators` or `--scope engine` for the other
+boundaries. [Current results](examples/structure/results/) record one Sim package
+identity and source SHA256 pins. Device Body, client TTFT, device cycles and client
+token TPOT have separate denominators. Training, in-sample calibration and held-out
+validation remain explicit; historical predictions do not enter current scores.
 
 ### Key Accounting & Classification Guarantees
 

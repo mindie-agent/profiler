@@ -1,0 +1,53 @@
+{
+  "label": "pre4096",
+  "url": "http://127.0.0.1:18237/v1/completions",
+  "model": "dsv4pro",
+  "input_len": 4096,
+  "output_len": 1,
+  "concurrency": 1,
+  "num_prompts": 1,
+  "seed": 4101,
+  "wall_s": 2.7330966000445187,
+  "n_ok": 1,
+  "n_failed": 0,
+  "ttft_ms": {},
+  "tpot_ms": {},
+  "itl_ms_all_tokens": {},
+  "e2e_ms": {
+    "n": 1,
+    "mean": 2732.478460064158,
+    "median": 2732.478460064158,
+    "std": 0.0,
+    "min": 2732.478460064158,
+    "max": 2732.478460064158,
+    "p50": 2732.478460064158,
+    "p90": 2732.478460064158,
+    "p99": 2732.478460064158
+  },
+  "request_throughput_rps": 0.36588534777135623,
+  "output_throughput_tok_s": 0.36588534777135623,
+  "input_throughput_tok_s": 1498.666384471475,
+  "total_prompt_tokens": 4096,
+  "total_output_tokens": 1,
+  "meta": {},
+  "per_request": [
+    {
+      "slot": 0,
+      "ok": true,
+      "status": 200,
+      "ttft_ms": null,
+      "e2e_ms": 2732.478460064158,
+      "itl_ms": [],
+      "n_text_chunks": 0,
+      "prompt_tokens": 4096,
+      "completion_tokens": 1,
+      "tpot_ms": null,
+      "decode_ms": 0.0
+    }
+  ],
+  "_fixture_source_identity": {
+    "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4pro-prefill/raw/pre4096.json",
+    "sha256": "84277723fd7c65d288f366117af282520cc5045d1e99f100bc2b61d7861b4168",
+    "size_bytes": 1016
+  }
+}

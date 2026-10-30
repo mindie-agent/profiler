@@ -129,51 +129,38 @@ pytest -m "not live_npu"
 | **`memory`**<br/>`mindie_profiler.memory_profile`<br/>`python3 -m mindie_profiler.weight_inspector` | **P0–P4 峰值与算子级显存归因**：融合 P0 `msprof`（`operator_memory.csv` / `memory_record.csv` / `npu_module_mem`）、P1 整卡运行时 HBM 峰值、P2 框架启动日志、P3 `safetensors` 权重头与 P4 `config.json` 理论估算，诚实报告未解释残差（Residual） | 显存采集清单、服务日志、`operator_memory.csv`、`memory_record.csv`、模型权重目录 | `mindie-memory-attribution/1` 显存归因报告（含权重、KV Cache、激活值、通信 Buffer 与残差） |
 | **`modeling-inputs`**<br/>`mindie_profiler.modeling_inputs`<br/>`python3 -m mindie_profiler.enrichment_model` | **保留的观测导出与 Roofline 对照接口**：从实测热点提取 Shape、Dtype、Layout、耗时与硬件规格，生成 `ModelingInputsBundle` 并计算单算子理想 Roofline 下界；新版 sim 不原生消费此旧输入包 | C7 剖析摘要、算子热点记录、硬件峰值规格（或 `msmodeling` 提供方） | `mindie-modeling-inputs/1` 观测包与三值对齐记录（理想下界 / 模型预测 / 实测耗时） |
 
-开发版 `analyze --structure FILE [--bindings FILE] [--correlation FILE] [--module-trace FILE]`
+`analyze --structure FILE [--bindings FILE] [--correlation FILE] [--module-trace FILE]`
 在 C7 中附加 `mindie-profile-structure-mapping/1`，区分 `candidate`、`ambiguous`、
-`bound` 与 `unmapped`，并按实际事件区间核算层、块和节点。该路径需配套开发源码；
-已有同步 module trace 可通过 DB SHA256 和唯一完整包含绑定；报告区分真实缺字段、
-契约缺口、声明不一致与 occurrence 证据不足。安装与证据边界见[结构关联示例](examples/structure/README.md)，
-完整历史采集回放见[验收记录](examples/structure/acceptance-20261029/README.md)。
+`bound` 与 `unmapped`。Attention、cache、GDN/KDA、MoE、mHC 和融合边界复用 Sim
+结构前端；CSV、原生 `op_summary` 与 `.csv.gz` 共用解析器。同步 module trace
+可通过 DB SHA256 与唯一完整包含关联；没有 occurrence 证据时不猜测具体层。
 
-相同契约、物理工作量及部署范围的重复候选通过 `windows[].cohorts` 输出实测
-调用数、声明实例/层数、单次 Mean/P50 和整组累计耗时。sim 的
-`python -m mindie_sim.cohort_comparison CASE REPORT -o RESULT` 直接消费该报告，
-给出同一声明程序的条件性预测误差；没有具体层绑定也能进行集合级对账。
-所选融合资源程序与未融合参考值分别标识，不将所有内部 HBM 传输自动归零。
+相同契约、物理工作量及部署范围的候选通过 `windows[].cohorts` 输出调用数、
+声明实例数、单次 Mean/P50 和整组活动量。Sim 的
+`python -m mindie_sim.cohort_comparison CASE REPORT -o RESULT` 对账同一物理程序。
+调用均值 >50 us 使用 15% 相对误差；<=50 us 使用 15 us 单次绝对误差。
 
-Attention、cache、fused 契约复用 sim 现有 GQA/MLA/DSA/GDN/KDA 前端，
-分别保留原生类型、活动张量比较范围与未观察字段；重复层不自动绑定。
-普通 CSV、原生 `op_summary` 与 `.csv.gz` 共用解析器。八组完整 A3/A5
-采集的结果及未完成边界见[body 契约验收](examples/structure/acceptance-20261029/body-contract-replay.md)。
+Decode 切分直接使用 `auto_segment_decode_forwards(events, model_config)`，依据完整
+Sim 层计划、张量几何和 head 边界输出 Body 与层耗时，保留内部通信和间隙，单列跨步
+AICPU 控制等待。结构条件推断与真实 Host/module 绑定分别报告。
 
-已有 profiling 可用 `mindie-profiler kernels --manifest ... --output-dir ...`
-流式整理完整 kernel/shape 变体、去重并导出观测成本；不重复采集、不启动 NPU。
-新版 sim 可只读查询该清单，自动替换预测成本尚未接通。参见
-[profiling 复用与观测查询](examples/kernel-inventory/README.md)。
-
-Decode 主体计时可以直接读取 CSV，不需要手写同步边界 JSON：
-`mindie_profiler.decode_segmentation.auto_segment_decode_forwards(events, model_config)`
-接受统一解析后的事件和 Sim 现有层计划，按完整层拓扑、张量几何与词表投影
-切分 target body、层及 head。输出 `body_forward_span_ms` 的 mean/P50/P90、
-`per_layer_ms` 和边界定位符，并将结构推断与确定的 Host/module 绑定分开。
-它保留内部通信和间隙，单列跨后继依赖边界的 AICPU 尾等待；不把活动量相加
-当作 Forward 跨度。多 Case 回放与 Sim 对账见
-[Decode 主体回放](examples/structure/acceptance-20261029/decode-forward-replay.md)：
+全部验证只使用[标准管线](examples/structure/README.md)及唯一
+[`cases.json`](examples/structure/cases.json)：
 
 ```bash
-python examples/structure/replay_decode_forwards.py \
-  --manifest examples/structure/acceptance-20261029/decode-forward-auto-cases.json \
-  --output examples/structure/acceptance-20261029/decode-forward-replay.json
+python examples/structure/pipeline.py --phase decode \
+  --output examples/structure/results/decode.json \
+  --archive-root /path/to/external-evidence
 ```
 
-新 A5 高并发 Qwen3.6 TP8、Qwen3.8 TP4 的六组采集使用
-[`acceptance-20261030-high-concurrency/decode-forward-auto-cases.json`](examples/structure/acceptance-20261030-high-concurrency/decode-forward-auto-cases.json)。
-该目录的 [主体与分层对账](examples/structure/acceptance-20261030-high-concurrency/decode-forward-replay.md)
-按 48 GDN / 16 GQA 完整层分组，分别保留实际执行 query/batch、客户端并发、
-Prefix Cache 命中率、MTP 接收率、TPOT 与运行时包身份。
-[`0061` 历史基线](examples/structure/acceptance-20261029/decode-forward-baseline-0061.md)
-保留旧运行时的 30 源、37 种执行几何，不与新版预测混算通过率。
+同一入口支持 `--phase prefill`、`--scope operators` 与 `--scope engine`。
+[当前结果](examples/structure/results/)记录统一 Sim 包身份和原始证据 SHA256；
+模型内 Body、Prefill TTFT、设备周期和客户端 token TPOT 保留各自边界。
+观测服务参数明确区分训练源、同源校准及留出验证，旧历史预测不参与当前评分。
+
+已有 profiling 可用 `mindie-profiler kernels --manifest ... --output-dir ...`
+流式整理 kernel/shape 变体并导出观测成本；不启动 NPU。
+参见[观测查询](examples/kernel-inventory/README.md)。
 
 开发期也可用 `mindie-profiler camodel --trace ... --plan ... --output ...`
 把 CAModel Chrome trace 导出为旧版 `mindie-sim pipeline --durations` 的阶段成本。

@@ -10,8 +10,8 @@ import pytest
 @pytest.fixture(scope="module")
 def adapter():
     pytest.importorskip("mindie_sim.prediction.body")
-    path = Path(__file__).resolve().parents[1] / "examples/structure/body_forward_comparison.py"
-    spec = importlib.util.spec_from_file_location("body_forward_comparison", path)
+    path = Path(__file__).resolve().parents[1] / "examples/structure/body.py"
+    spec = importlib.util.spec_from_file_location("body", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -81,8 +81,7 @@ def test_real_livepre_native_roles_do_not_collapse_into_one_fusion_bucket(adapte
     from mindie_sim import predict
 
     path = (Path(__file__).resolve().parents[1] /
-            "examples/structure/acceptance-20261030-livepre-native/cases/"
-            "glm53flash-a3-tp16-c4-livepre-native.json")
+            "examples/structure/cases/decode-glm53flash-a3-tp16-c4-livepre.json")
     raw = json.loads(path.read_text())
     result = predict(raw, scope="body", phase="decode", tokens=6,
                      sequences=4, context=4096, event_limit=0)

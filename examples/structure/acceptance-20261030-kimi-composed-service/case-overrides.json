@@ -1,4 +1,0 @@
-{
-  "a5_kimi_tp8_e16_bf16_c32_p4k": "examples/cases/high-concurrency-20261030/kimi-composed-service/a5_kimi_tp8_e16_bf16_c32_p4k.json",
-  "a5_kimi_tp8_e16_bf16_c32_p16k": "examples/cases/high-concurrency-20261030/kimi-composed-service/a5_kimi_tp8_e16_bf16_c32_p16k.json"
-}

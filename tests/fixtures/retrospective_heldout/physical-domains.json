@@ -1,0 +1,763 @@
+{
+  "provenance": {
+    "training_models_sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+    "evaluation_sha256": "4fc49518f655c26867640d39eb0297dd7f263bd49eb73508597db15e94726432",
+    "basis": "Retained previously validated full native mean populations and source-declared axes; retrospective only. Boundary retains normalized/source evidence, not a new full ABI claim."
+  },
+  "domains": [
+    {
+      "id": "hcom-allreduce-aicpukernel-observed",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "kernel": "HCCL_AICPU_TS_allreduce_mesh_oneshot",
+        "metadata.hccl_selection.ranks": 8,
+        "metadata.hccl_selection.dtype_bytes": 2
+      },
+      "boundary": {
+        "native_operator_type": "hcom_allReduce_AicpuKernel",
+        "source_implementation": "HCCL_AICPU_TS_allreduce_mesh_oneshot",
+        "precision": {
+          "metadata.hccl_selection.dtype_bytes": 2
+        },
+        "layout": {
+          "basis": "retained_normalized_contract_or_source_recipe",
+          "full_native_abi_claimed": false
+        },
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "coordinates": {
+        "physical_axis": {
+          "path": "metadata.hccl_selection.payload_bytes"
+        }
+      },
+      "execution": null
+    },
+    {
+      "id": "-copy-conv-state-kernel-observed",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "triton_noncontiguous_conv_state_copy",
+        "dtype": "bf16",
+        "local_shape.1": 6,
+        "local_shape.2": 3072
+      },
+      "boundary": {
+        "native_operator_type": "_copy_conv_state_kernel",
+        "source_implementation": "triton_noncontiguous_conv_state_copy",
+        "precision": {
+          "dtype": "bf16"
+        },
+        "layout": {
+          "basis": "retained_normalized_contract_or_source_recipe",
+          "full_native_abi_claimed": false
+        },
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "coordinates": {
+        "physical_axis": {
+          "path": "local_shape.0"
+        }
+      },
+      "execution": null
+    },
+    {
+      "id": "moeinitroutingv3-observed",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "ascend_moe_init_routing_v3_mxfp8",
+        "dtype": "bf16",
+        "metadata.moe_init_config.experts": 288,
+        "metadata.moe_init_config.topk": 8,
+        "metadata.moe_init_config.width": 4096
+      },
+      "boundary": {
+        "native_operator_type": "MoeInitRoutingV3",
+        "source_implementation": "ascend_moe_init_routing_v3_mxfp8",
+        "precision": {
+          "dtype": "bf16"
+        },
+        "layout": {
+          "basis": "retained_normalized_contract_or_source_recipe",
+          "full_native_abi_claimed": false
+        },
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "coordinates": {
+        "physical_axis": {
+          "path": "local_shape.0"
+        }
+      },
+      "execution": null
+    },
+    {
+      "id": "matrix-router-complete-native",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "router",
+        "dtype": "fp32",
+        "local_shape.1": 288,
+        "local_shape.2": 4096
+      },
+      "boundary": {
+        "native_operator_type": "MatMulV3",
+        "source_implementation": "router",
+        "precision": {
+          "dtype": "fp32"
+        },
+        "layout": {
+          "basis": "retained_normalized_contract_or_source_recipe",
+          "full_native_abi_claimed": false
+        },
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "coordinates": {
+        "physical_axis": {
+          "path": "local_shape.0"
+        }
+      },
+      "execution": null
+    }
+  ],
+  "training_points": [
+    {
+      "domain_id": "hcom-allreduce-aicpukernel-observed",
+      "population_id": "hcom-allreduce-aicpukernel-observed",
+      "source_sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "kernel": "HCCL_AICPU_TS_allreduce_mesh_oneshot",
+        "metadata.hccl_selection.ranks": 8,
+        "metadata.hccl_selection.dtype_bytes": 2,
+        "metadata.hccl_selection.payload_bytes": 1048576
+      },
+      "boundary": {
+        "native_operator_type": "hcom_allReduce_AicpuKernel",
+        "source_implementation": "HCCL_AICPU_TS_allreduce_mesh_oneshot",
+        "precision": {
+          "metadata.hccl_selection.dtype_bytes": 2
+        },
+        "layout": {
+          "basis": "retained_normalized_contract_or_source_recipe",
+          "full_native_abi_claimed": false
+        },
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 2790,
+        "forward_count": 31,
+        "calls_per_forward": 90,
+        "mean_us": 36.277049820788534,
+        "p50_us": 33.661
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c32_p4k-glm-flash-ws9.actual.json",
+        "sha256": "20cd9b716669cb53da1d3ec73e6a274493f564e09b02ac8e10875fdc0b5564a8",
+        "size_bytes": 1678805
+      }
+    },
+    {
+      "domain_id": "hcom-allreduce-aicpukernel-observed",
+      "population_id": "hcom-allreduce-aicpukernel-observed",
+      "source_sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "kernel": "HCCL_AICPU_TS_allreduce_mesh_oneshot",
+        "metadata.hccl_selection.ranks": 8,
+        "metadata.hccl_selection.dtype_bytes": 2,
+        "metadata.hccl_selection.payload_bytes": 262144
+      },
+      "boundary": {
+        "native_operator_type": "hcom_allReduce_AicpuKernel",
+        "source_implementation": "HCCL_AICPU_TS_allreduce_mesh_oneshot",
+        "precision": {
+          "metadata.hccl_selection.dtype_bytes": 2
+        },
+        "layout": {
+          "basis": "retained_normalized_contract_or_source_recipe",
+          "full_native_abi_claimed": false
+        },
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 2700,
+        "forward_count": 30,
+        "calls_per_forward": 90,
+        "mean_us": 28.268106666666668,
+        "p50_us": 24.2925
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c8_p4k-glm-flash-ws9.actual.json",
+        "sha256": "a63d10abf5d769e60539b4a18e80d60d815cf5a5ba8bc4a4eb119df52c1168dd",
+        "size_bytes": 1547179
+      }
+    },
+    {
+      "domain_id": "hcom-allreduce-aicpukernel-observed",
+      "population_id": "hcom-allreduce-aicpukernel-observed",
+      "source_sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "kernel": "HCCL_AICPU_TS_allreduce_mesh_oneshot",
+        "metadata.hccl_selection.ranks": 8,
+        "metadata.hccl_selection.dtype_bytes": 2,
+        "metadata.hccl_selection.payload_bytes": 32768
+      },
+      "boundary": {
+        "native_operator_type": "hcom_allReduce_AicpuKernel",
+        "source_implementation": "HCCL_AICPU_TS_allreduce_mesh_oneshot",
+        "precision": {
+          "metadata.hccl_selection.dtype_bytes": 2
+        },
+        "layout": {
+          "basis": "retained_normalized_contract_or_source_recipe",
+          "full_native_abi_claimed": false
+        },
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 5850,
+        "forward_count": 65,
+        "calls_per_forward": 90,
+        "mean_us": 21.928148205128203,
+        "p50_us": 18.015
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators-5935c87b/body-operator-glm53flash-a5-tp8-c1-new17.actual.json",
+        "sha256": "210b9219324bad13c3a6a9a0953e58237da1620770881d2af593214ab7bfed20",
+        "size_bytes": 1950412
+      }
+    },
+    {
+      "domain_id": "-copy-conv-state-kernel-observed",
+      "population_id": "-copy-conv-state-kernel-observed",
+      "source_sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "triton_noncontiguous_conv_state_copy",
+        "dtype": "bf16",
+        "local_shape.1": 6,
+        "local_shape.2": 3072,
+        "local_shape.0": 32
+      },
+      "boundary": {
+        "native_operator_type": "_copy_conv_state_kernel",
+        "source_implementation": "triton_noncontiguous_conv_state_copy",
+        "precision": {
+          "dtype": "bf16"
+        },
+        "layout": {
+          "basis": "retained_normalized_contract_or_source_recipe",
+          "full_native_abi_claimed": false
+        },
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 2108,
+        "forward_count": 31,
+        "calls_per_forward": 68,
+        "mean_us": 12.895869070208727,
+        "p50_us": 12.4765
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c32_p4k-glm-flash-ws9.actual.json",
+        "sha256": "20cd9b716669cb53da1d3ec73e6a274493f564e09b02ac8e10875fdc0b5564a8",
+        "size_bytes": 1678805
+      }
+    },
+    {
+      "domain_id": "-copy-conv-state-kernel-observed",
+      "population_id": "-copy-conv-state-kernel-observed",
+      "source_sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "triton_noncontiguous_conv_state_copy",
+        "dtype": "bf16",
+        "local_shape.1": 6,
+        "local_shape.2": 3072,
+        "local_shape.0": 8
+      },
+      "boundary": {
+        "native_operator_type": "_copy_conv_state_kernel",
+        "source_implementation": "triton_noncontiguous_conv_state_copy",
+        "precision": {
+          "dtype": "bf16"
+        },
+        "layout": {
+          "basis": "retained_normalized_contract_or_source_recipe",
+          "full_native_abi_claimed": false
+        },
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 2040,
+        "forward_count": 30,
+        "calls_per_forward": 68,
+        "mean_us": 5.822796078431373,
+        "p50_us": 5.8165
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c8_p4k-glm-flash-ws9.actual.json",
+        "sha256": "a63d10abf5d769e60539b4a18e80d60d815cf5a5ba8bc4a4eb119df52c1168dd",
+        "size_bytes": 1547179
+      }
+    },
+    {
+      "domain_id": "-copy-conv-state-kernel-observed",
+      "population_id": "-copy-conv-state-kernel-observed",
+      "source_sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "triton_noncontiguous_conv_state_copy",
+        "dtype": "bf16",
+        "local_shape.1": 6,
+        "local_shape.2": 3072,
+        "local_shape.0": 1
+      },
+      "boundary": {
+        "native_operator_type": "_copy_conv_state_kernel",
+        "source_implementation": "triton_noncontiguous_conv_state_copy",
+        "precision": {
+          "dtype": "bf16"
+        },
+        "layout": {
+          "basis": "retained_normalized_contract_or_source_recipe",
+          "full_native_abi_claimed": false
+        },
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 4420,
+        "forward_count": 65,
+        "calls_per_forward": 68,
+        "mean_us": 3.68445,
+        "p50_us": 3.564
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators-5935c87b/body-operator-glm53flash-a5-tp8-c1-new17.actual.json",
+        "sha256": "210b9219324bad13c3a6a9a0953e58237da1620770881d2af593214ab7bfed20",
+        "size_bytes": 1950412
+      }
+    },
+    {
+      "domain_id": "moeinitroutingv3-observed",
+      "population_id": "moeinitroutingv3-observed",
+      "source_sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "ascend_moe_init_routing_v3_mxfp8",
+        "dtype": "bf16",
+        "metadata.moe_init_config.experts": 288,
+        "metadata.moe_init_config.topk": 8,
+        "metadata.moe_init_config.width": 4096,
+        "local_shape.0": 128
+      },
+      "boundary": {
+        "native_operator_type": "MoeInitRoutingV3",
+        "source_implementation": "ascend_moe_init_routing_v3_mxfp8",
+        "precision": {
+          "dtype": "bf16"
+        },
+        "layout": {
+          "basis": "retained_normalized_contract_or_source_recipe",
+          "full_native_abi_claimed": false
+        },
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 1302,
+        "forward_count": 31,
+        "calls_per_forward": 42,
+        "mean_us": 24.68482411674347,
+        "p50_us": 24.8435
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c32_p4k-glm-flash-ws9.actual.json",
+        "sha256": "20cd9b716669cb53da1d3ec73e6a274493f564e09b02ac8e10875fdc0b5564a8",
+        "size_bytes": 1678805
+      }
+    },
+    {
+      "domain_id": "moeinitroutingv3-observed",
+      "population_id": "moeinitroutingv3-observed",
+      "source_sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "ascend_moe_init_routing_v3_mxfp8",
+        "dtype": "bf16",
+        "metadata.moe_init_config.experts": 288,
+        "metadata.moe_init_config.topk": 8,
+        "metadata.moe_init_config.width": 4096,
+        "local_shape.0": 32
+      },
+      "boundary": {
+        "native_operator_type": "MoeInitRoutingV3",
+        "source_implementation": "ascend_moe_init_routing_v3_mxfp8",
+        "precision": {
+          "dtype": "bf16"
+        },
+        "layout": {
+          "basis": "retained_normalized_contract_or_source_recipe",
+          "full_native_abi_claimed": false
+        },
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 1260,
+        "forward_count": 30,
+        "calls_per_forward": 42,
+        "mean_us": 21.64116031746032,
+        "p50_us": 21.509
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c8_p4k-glm-flash-ws9.actual.json",
+        "sha256": "a63d10abf5d769e60539b4a18e80d60d815cf5a5ba8bc4a4eb119df52c1168dd",
+        "size_bytes": 1547179
+      }
+    },
+    {
+      "domain_id": "moeinitroutingv3-observed",
+      "population_id": "moeinitroutingv3-observed",
+      "source_sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "ascend_moe_init_routing_v3_mxfp8",
+        "dtype": "bf16",
+        "metadata.moe_init_config.experts": 288,
+        "metadata.moe_init_config.topk": 8,
+        "metadata.moe_init_config.width": 4096,
+        "local_shape.0": 4
+      },
+      "boundary": {
+        "native_operator_type": "MoeInitRoutingV3",
+        "source_implementation": "ascend_moe_init_routing_v3_mxfp8",
+        "precision": {
+          "dtype": "bf16"
+        },
+        "layout": {
+          "basis": "retained_normalized_contract_or_source_recipe",
+          "full_native_abi_claimed": false
+        },
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 2730,
+        "forward_count": 65,
+        "calls_per_forward": 42,
+        "mean_us": 20.795851648351647,
+        "p50_us": 20.692
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators-5935c87b/body-operator-glm53flash-a5-tp8-c1-new17.actual.json",
+        "sha256": "210b9219324bad13c3a6a9a0953e58237da1620770881d2af593214ab7bfed20",
+        "size_bytes": 1950412
+      }
+    },
+    {
+      "domain_id": "matrix-router-complete-native",
+      "population_id": "matrix-router-complete-native",
+      "source_sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "router",
+        "dtype": "fp32",
+        "local_shape.0": 128,
+        "local_shape.1": 288,
+        "local_shape.2": 4096
+      },
+      "boundary": {
+        "native_operator_type": "MatMulV3",
+        "source_implementation": "router",
+        "precision": {
+          "dtype": "fp32"
+        },
+        "layout": {
+          "basis": "retained_normalized_contract_or_source_recipe",
+          "full_native_abi_claimed": false
+        },
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 1302,
+        "forward_count": 31,
+        "calls_per_forward": 42,
+        "mean_us": 19.914667434715824,
+        "p50_us": 19.981
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c32_p4k-glm-flash-ws9.actual.json",
+        "sha256": "20cd9b716669cb53da1d3ec73e6a274493f564e09b02ac8e10875fdc0b5564a8",
+        "size_bytes": 1678805
+      }
+    },
+    {
+      "domain_id": "matrix-router-complete-native",
+      "population_id": "matrix-router-complete-native",
+      "source_sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "router",
+        "dtype": "fp32",
+        "local_shape.0": 32,
+        "local_shape.1": 288,
+        "local_shape.2": 4096
+      },
+      "boundary": {
+        "native_operator_type": "MatMulV3",
+        "source_implementation": "router",
+        "precision": {
+          "dtype": "fp32"
+        },
+        "layout": {
+          "basis": "retained_normalized_contract_or_source_recipe",
+          "full_native_abi_claimed": false
+        },
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 1260,
+        "forward_count": 30,
+        "calls_per_forward": 42,
+        "mean_us": 12.318930158730158,
+        "p50_us": 12.2265
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c8_p4k-glm-flash-ws9.actual.json",
+        "sha256": "a63d10abf5d769e60539b4a18e80d60d815cf5a5ba8bc4a4eb119df52c1168dd",
+        "size_bytes": 1547179
+      }
+    },
+    {
+      "domain_id": "matrix-router-complete-native",
+      "population_id": "matrix-router-complete-native",
+      "source_sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "router",
+        "dtype": "fp32",
+        "local_shape.0": 4,
+        "local_shape.1": 288,
+        "local_shape.2": 4096
+      },
+      "boundary": {
+        "native_operator_type": "MatMulV3",
+        "source_implementation": "router",
+        "precision": {
+          "dtype": "fp32"
+        },
+        "layout": {
+          "basis": "retained_normalized_contract_or_source_recipe",
+          "full_native_abi_claimed": false
+        },
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 2730,
+        "forward_count": 65,
+        "calls_per_forward": 42,
+        "mean_us": 8.756306593406592,
+        "p50_us": 8.7425
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators-5935c87b/body-operator-glm53flash-a5-tp8-c1-new17.actual.json",
+        "sha256": "210b9219324bad13c3a6a9a0953e58237da1620770881d2af593214ab7bfed20",
+        "size_bytes": 1950412
+      }
+    }
+  ],
+  "evaluation_points": [
+    {
+      "domain_id": "hcom-allreduce-aicpukernel-observed",
+      "population_id": "hcom-allreduce-aicpukernel-observed",
+      "source_sha256": "1d33448e6faeeedf5175035f4c324b74220bbc179d2cec85657162970576095a",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "kernel": "HCCL_AICPU_TS_allreduce_mesh_oneshot",
+        "metadata.hccl_selection.ranks": 8,
+        "metadata.hccl_selection.dtype_bytes": 2,
+        "metadata.hccl_selection.payload_bytes": 2097152
+      },
+      "boundary": {
+        "native_operator_type": "hcom_allReduce_AicpuKernel",
+        "source_implementation": "HCCL_AICPU_TS_allreduce_mesh_oneshot",
+        "precision": {
+          "metadata.hccl_selection.dtype_bytes": 2
+        },
+        "layout": {
+          "basis": "retained_normalized_contract_or_source_recipe",
+          "full_native_abi_claimed": false
+        },
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 2790,
+        "forward_count": 31,
+        "calls_per_forward": 90,
+        "mean_us": 42.65762867383513,
+        "p50_us": 40.0715
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c64_p4k-glm-flash-ws9.actual.json",
+        "sha256": "e2a782aaef172250356935d91eb63eee96d5e7d7b6048fa3587dae8e2f59dc4b",
+        "size_bytes": 1690062
+      },
+      "expected_predicted_us": 50.44968806005193
+    },
+    {
+      "domain_id": "-copy-conv-state-kernel-observed",
+      "population_id": "-copy-conv-state-kernel-observed",
+      "source_sha256": "1d33448e6faeeedf5175035f4c324b74220bbc179d2cec85657162970576095a",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "triton_noncontiguous_conv_state_copy",
+        "dtype": "bf16",
+        "local_shape.1": 6,
+        "local_shape.2": 3072,
+        "local_shape.0": 64
+      },
+      "boundary": {
+        "native_operator_type": "_copy_conv_state_kernel",
+        "source_implementation": "triton_noncontiguous_conv_state_copy",
+        "precision": {
+          "dtype": "bf16"
+        },
+        "layout": {
+          "basis": "retained_normalized_contract_or_source_recipe",
+          "full_native_abi_claimed": false
+        },
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 2108,
+        "forward_count": 31,
+        "calls_per_forward": 68,
+        "mean_us": 21.77710863377609,
+        "p50_us": 21.506
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c64_p4k-glm-flash-ws9.actual.json",
+        "sha256": "e2a782aaef172250356935d91eb63eee96d5e7d7b6048fa3587dae8e2f59dc4b",
+        "size_bytes": 1690062
+      },
+      "expected_predicted_us": 22.392400508720748
+    },
+    {
+      "domain_id": "moeinitroutingv3-observed",
+      "population_id": "moeinitroutingv3-observed",
+      "source_sha256": "1d33448e6faeeedf5175035f4c324b74220bbc179d2cec85657162970576095a",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "ascend_moe_init_routing_v3_mxfp8",
+        "dtype": "bf16",
+        "metadata.moe_init_config.experts": 288,
+        "metadata.moe_init_config.topk": 8,
+        "metadata.moe_init_config.width": 4096,
+        "local_shape.0": 256
+      },
+      "boundary": {
+        "native_operator_type": "MoeInitRoutingV3",
+        "source_implementation": "ascend_moe_init_routing_v3_mxfp8",
+        "precision": {
+          "dtype": "bf16"
+        },
+        "layout": {
+          "basis": "retained_normalized_contract_or_source_recipe",
+          "full_native_abi_claimed": false
+        },
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 1302,
+        "forward_count": 31,
+        "calls_per_forward": 42,
+        "mean_us": 28.767923963133644,
+        "p50_us": 28.822
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c64_p4k-glm-flash-ws9.actual.json",
+        "sha256": "e2a782aaef172250356935d91eb63eee96d5e7d7b6048fa3587dae8e2f59dc4b",
+        "size_bytes": 1690062
+      },
+      "expected_predicted_us": 28.706019550930016
+    },
+    {
+      "domain_id": "matrix-router-complete-native",
+      "population_id": "matrix-router-complete-native",
+      "source_sha256": "1d33448e6faeeedf5175035f4c324b74220bbc179d2cec85657162970576095a",
+      "axes": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "router",
+        "dtype": "fp32",
+        "local_shape.1": 288,
+        "local_shape.2": 4096,
+        "local_shape.0": 256
+      },
+      "boundary": {
+        "native_operator_type": "MatMulV3",
+        "source_implementation": "router",
+        "precision": {
+          "dtype": "fp32"
+        },
+        "layout": {
+          "basis": "retained_normalized_contract_or_source_recipe",
+          "full_native_abi_claimed": false
+        },
+        "execution_boundary": "inclusive_native_call_once"
+      },
+      "observation": {
+        "basis": "complete_native_call_population",
+        "count": 1302,
+        "forward_count": 31,
+        "calls_per_forward": 42,
+        "mean_us": 29.76230030721966,
+        "p50_us": 29.854
+      },
+      "evidence_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c64_p4k-glm-flash-ws9.actual.json",
+        "sha256": "e2a782aaef172250356935d91eb63eee96d5e7d7b6048fa3587dae8e2f59dc4b",
+        "size_bytes": 1690062
+      },
+      "expected_predicted_us": 31.217931932584243
+    }
+  ],
+  "expected": {
+    "hcom-allreduce-aicpukernel-observed": {
+      "fixed_us": 22.95267741631265,
+      "us_per_axis_unit": 1.311159641444172e-05,
+      "design_rank": 2,
+      "training_sse_us2": 5.822520986621616
+    },
+    "-copy-conv-state-kernel-observed": {
+      "fixed_us": 3.415304295731231,
+      "us_per_axis_unit": 0.2965171283279612,
+      "design_rank": 2,
+      "training_sse_us2": 0.0020628872223513732
+    },
+    "moeinitroutingv3-observed": {
+      "fixed_us": 20.654640448314012,
+      "us_per_axis_unit": 0.03145069961959376,
+      "design_rank": 2,
+      "training_sse_us2": 0.0006537261771481714
+    },
+    "matrix-router-complete-native": {
+      "fixed_us": 8.896812309421266,
+      "us_per_axis_unit": 0.08719187352798037,
+      "design_rank": 2,
+      "training_sse_us2": 0.6591489631910933
+    }
+  }
+}

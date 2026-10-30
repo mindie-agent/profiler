@@ -21,8 +21,8 @@ def captured_reference_groups():
     from mindie_profiler.tensor_contracts import observed_contract
     import sys
     sys.path.insert(0, str(ROOT / 'examples/structure'))
-    helper = importlib.import_module('body_source_role_references')
-    replay = importlib.import_module('replay_body_operator_families')
+    helper = importlib.import_module('references')
+    replay = importlib.import_module('operators')
     path = Path(sim.__file__).resolve().parents[1] / 'examples/cases/high-concurrency-20261030/v41-dp8/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1.json'
     if not path.exists():
         pytest.skip('source-bound V4.1 case requires companion Sim source checkout')

@@ -1,8 +1,0 @@
-{
-  "schema_version": "mindie-a3-borderline-independent-review/1",
-  "status": "passed",
-  "checks": 257,
-  "failures": [],
-  "ledger_sha256": "10b2d43530f270d37346a56b753e6bcc56f83a452fd19ffce7167074d9f72547",
-  "scope": "Independent pinned Body/family joins, arithmetic, same-direction Top3, controller exclusion, native histogram and complete FIA batch. No raw scan or cost execution."
-}
