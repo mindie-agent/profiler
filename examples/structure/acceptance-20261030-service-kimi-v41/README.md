@@ -1,8 +1,8 @@
 # A5 Kimi / V4.1 observable service replay
 
-Current accepted result: [route-validated replay](decode-forward-route-validated-replay.json), **11/11 Body comparisons pass**, 1,013 retained complete forwards. These are in-sample comparisons: effective per-call service parameters and evaluation measurements share the same source capture. This result does not establish held-out generalization.
+First accepted subset: [route-validated replay](decode-forward-route-validated-replay.json), **11/11 Body comparisons pass**, 1,013 retained complete forwards. These are in-sample comparisons: effective per-call service parameters and evaluation measurements share the same source capture. This result does not establish held-out generalization.
 
-The active subset contains Kimi c16/c32 at both prompt contexts and all seven V4.1 sources. Kimi c1/c2/c4/c8 at both contexts remain prepared but unexecuted in the formal generation: the force-EPLB source policy produces different valid expert-row counts from the previous generic padded-balanced declaration. Their corrected work must be exported before replay. The input-only complete19 manifest is not a completed19 receipt.
+The active subset contains Kimi c16/c32 at both prompt contexts and all seven V4.1 sources. The subsequent Wave0 low-M arm below evaluates Kimi c1/c2/c4/c8 at both contexts with the known force-EPLB declared-work gap explicitly retained. Its new measurements are valid in-sample service comparisons, but do not establish source-policy closure. The input-only complete19 manifest is not a completed19 receipt.
 
 ## Parameters and boundary
 
@@ -39,7 +39,7 @@ The final queue took 349.46 seconds: eight new workers plus three exact case/run
 - `decode-forward-priority-replay.json` is the completed exploratory four-source generation. Its Kimi KDA fitting population was incomplete and is superseded by the complete-population generation. Its two unchanged V4.1 case bytes remain valid cache inputs. Keep this historical report out of the current main scoreboard.
 - `complete-replay.log` records an interrupted full19 attempt: the driver received SIGINT after c32p4k completed, while c32p16k was running, and exited 130. The owned child was verified exited; successful cache output was retained. This attempt did not produce a completed19 report.
 - `decode-forward-route-validated-cases.json` and its matching replay are the formal safe11 generation. Kimi c32p4k reuses its exact completed result from the interrupted attempt. Other newly completed workers are recorded individually.
-- `decode-forward-complete-cases.json` and `cases-complete-population/` retain prepared inputs for all19, including the eight deferred low-concurrency Kimi inputs. Do not execute those eight until the source routing policy is corrected and their physical work/domain is regenerated.
+- `decode-forward-complete-cases.json` and `cases-complete-population/` retain prepared inputs for all19, including the eight deferred low-concurrency Kimi inputs. Those original prepared files were subsequently mounted into an independent current-runtime low-M arm with the routing limitation made explicit. A future source-policy correction must still regenerate physical work/domain rather than relabel this arm as source-closed.
 
 ## Reproduce
 
@@ -52,3 +52,20 @@ python examples/structure/acceptance-20261030-service-kimi-v41/review_service_re
 ```
 
 The generator preserves original source IDs and pins every source/case/extraction identity. New arms use `variant_id`; they do not rename source populations or overwrite historical receipts.
+
+## Wave0 low-M current-runtime arm
+
+[Eight-source replay](decode-forward-low-m-3b72ea2d-replay.json) on `3b72ea2d`: **8/8 pass**, 435 complete forwards, 88.53 seconds and 147.77 MiB maximum worker RSS. All eight predictions are new executions. [Independent review](low-m-3b72ea2d-independent-review.json): 2,592 checks, zero failures, 145.86 MiB. No new raw parse, device capture or parameter fit occurred.
+
+These cases reuse their own complete retained observation means; no high-c32 grouped rule is extrapolated. The generic declared expert rows remain `(4,4)` for rank0, while the source-compatible masked-cursor scenario produces `(1,0)`, `(2,0)`, `(3,1)`, `(5,3)` at c1/c2/c4/c8. The actual group-list values were not captured. `known_routing_work_gap` is carried by every case and result calibration/scenario metadata with `source_contract_closed=false`. Numerical pass does not close this known physical-work discrepancy.
+
+| Source | Forwards | Real mean ms | Sim ms | Error |
+|---|---:|---:|---:|---:|
+| a5_kimi_tp8_e16_bf16_c1_p16k | 59 | 30.823435 | 32.549560 | +5.60% |
+| a5_kimi_tp8_e16_bf16_c1_p4k | 59 | 30.636854 | 32.359275 | +5.62% |
+| a5_kimi_tp8_e16_bf16_c2_p16k | 54 | 33.875753 | 34.768187 | +2.63% |
+| a5_kimi_tp8_e16_bf16_c2_p4k | 55 | 33.547630 | 34.418280 | +2.60% |
+| a5_kimi_tp8_e16_bf16_c4_p16k | 52 | 34.816498 | 35.074433 | +0.74% |
+| a5_kimi_tp8_e16_bf16_c4_p4k | 53 | 34.193709 | 34.461857 | +0.78% |
+| a5_kimi_tp8_e16_bf16_c8_p16k | 51 | 35.964417 | 37.585296 | +4.51% |
+| a5_kimi_tp8_e16_bf16_c8_p4k | 52 | 34.819213 | 36.421314 | +4.60% |
