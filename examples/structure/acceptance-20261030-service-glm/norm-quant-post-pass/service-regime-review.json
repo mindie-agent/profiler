@@ -1,0 +1,484 @@
+{
+  "schema_version": "mindie-norm-quant-post-service-review/1",
+  "status": "passed",
+  "checks": 1596,
+  "failures": [],
+  "report_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/norm-quant-post-pass/decode-forward-service-replay.json",
+    "sha256": "719745a9360dc8b443f7634dfee1a83bef50d85667656d3068fbc6beca374482",
+    "size_bytes": 8944214
+  },
+  "population_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/norm-quant-post-pass/observed-populations.json",
+    "sha256": "e76d5ec21732f005952979ecf89c39c5aa79e38045642becc312e1124e774418",
+    "size_bytes": 2947244
+  },
+  "reviewer_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/review_norm_quant_post_pass.py",
+    "sha256": "e59e599bc9fe55afb898ce6219cf88b2a4028469a2232db7012fd1e0fedd7dc1",
+    "size_bytes": 9191
+  },
+  "cases": [
+    {
+      "case_id": "a5_glm53flash_tp8_c64_p4k",
+      "forward_count": 31,
+      "body": {
+        "status": "compared",
+        "metric_boundary": "target_body_device_graph",
+        "reasons": [],
+        "observed_forward_count": 31,
+        "observed_ms": {
+          "count": 31,
+          "mean": 46.528232967741936,
+          "p50": 46.498735,
+          "p90": 46.644535,
+          "min": 46.405041,
+          "max": 46.821126
+        },
+        "predicted_ms": 47.07152803555536,
+        "relative_error": 0.011676675282082853,
+        "per_forward_diff_ms": 0.5432950678134247,
+        "passed": true,
+        "tolerance": {
+          "kind": "relative",
+          "limit": 0.15,
+          "scope": "whole_body_forward_not_single_kernel_launch"
+        },
+        "comparison_scope": {},
+        "comparison_basis": "conditional_single_rank_topology_alignment",
+        "assumptions": [
+          "Context basis: explicit_case_geometry; active KV increments during this capture are not established.",
+          "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+          "Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage."
+        ],
+        "endpoints": {
+          "observed": "first_retained_device_event_start_to_last_retained_device_event_end",
+          "predicted": "first_kernel_invocation_ready_to_body_complete_including_startup",
+          "input_ready_to_first_kernel_ms": 0,
+          "kernel_startup_included": true
+        }
+      },
+      "prior_predicted_ms": 45.57905203766598,
+      "regime_count": 27,
+      "added_native_calls_per_forward": 270,
+      "runtime_identity": {
+        "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+        "version": "0.8.0",
+        "package_sha256": "c347250c5f5e8aeccd0abda9d2a96a8e22928e2ed8668aed825671276f0e2ce5",
+        "file_count": 283,
+        "algorithm": "sha256(sorted relative-path to file-sha256 JSON)",
+        "sources_unchanged": true
+      }
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c32_p4k",
+      "forward_count": 31,
+      "body": {
+        "status": "compared",
+        "metric_boundary": "target_body_device_graph",
+        "reasons": [],
+        "observed_forward_count": 31,
+        "observed_ms": {
+          "count": 31,
+          "mean": 37.66896412903226,
+          "p50": 37.665316,
+          "p90": 37.76115,
+          "min": 37.569747,
+          "max": 37.797992
+        },
+        "predicted_ms": 35.16746073435765,
+        "relative_error": -0.06640754404888594,
+        "per_forward_diff_ms": -2.5015033946746144,
+        "passed": true,
+        "tolerance": {
+          "kind": "relative",
+          "limit": 0.15,
+          "scope": "whole_body_forward_not_single_kernel_launch"
+        },
+        "comparison_scope": {},
+        "comparison_basis": "conditional_single_rank_topology_alignment",
+        "assumptions": [
+          "Context basis: explicit_case_geometry; active KV increments during this capture are not established.",
+          "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+          "Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage."
+        ],
+        "endpoints": {
+          "observed": "first_retained_device_event_start_to_last_retained_device_event_end",
+          "predicted": "first_kernel_invocation_ready_to_body_complete_including_startup",
+          "input_ready_to_first_kernel_ms": 0,
+          "kernel_startup_included": true
+        }
+      },
+      "prior_predicted_ms": 34.069526446967465,
+      "regime_count": 27,
+      "added_native_calls_per_forward": 270,
+      "runtime_identity": {
+        "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+        "version": "0.8.0",
+        "package_sha256": "c347250c5f5e8aeccd0abda9d2a96a8e22928e2ed8668aed825671276f0e2ce5",
+        "file_count": 283,
+        "algorithm": "sha256(sorted relative-path to file-sha256 JSON)",
+        "sources_unchanged": true
+      }
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c32_p8k",
+      "forward_count": 35,
+      "body": {
+        "status": "compared",
+        "metric_boundary": "target_body_device_graph",
+        "reasons": [],
+        "observed_forward_count": 35,
+        "observed_ms": {
+          "count": 35,
+          "mean": 38.71318854285714,
+          "p50": 38.72185,
+          "p90": 38.759233,
+          "min": 38.568107,
+          "max": 38.937622
+        },
+        "predicted_ms": 36.207061660144724,
+        "relative_error": -0.06473573934469455,
+        "per_forward_diff_ms": -2.5061268827124152,
+        "passed": true,
+        "tolerance": {
+          "kind": "relative",
+          "limit": 0.15,
+          "scope": "whole_body_forward_not_single_kernel_launch"
+        },
+        "comparison_scope": {},
+        "comparison_basis": "conditional_single_rank_topology_alignment",
+        "assumptions": [
+          "Context basis: explicit_case_geometry; active KV increments during this capture are not established.",
+          "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+          "Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage."
+        ],
+        "endpoints": {
+          "observed": "first_retained_device_event_start_to_last_retained_device_event_end",
+          "predicted": "first_kernel_invocation_ready_to_body_complete_including_startup",
+          "input_ready_to_first_kernel_ms": 0,
+          "kernel_startup_included": true
+        }
+      },
+      "prior_predicted_ms": 35.11123060040441,
+      "regime_count": 27,
+      "added_native_calls_per_forward": 270,
+      "runtime_identity": {
+        "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+        "version": "0.8.0",
+        "package_sha256": "c347250c5f5e8aeccd0abda9d2a96a8e22928e2ed8668aed825671276f0e2ce5",
+        "file_count": 283,
+        "algorithm": "sha256(sorted relative-path to file-sha256 JSON)",
+        "sources_unchanged": true
+      }
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c16_p4k",
+      "forward_count": 30,
+      "body": {
+        "status": "compared",
+        "metric_boundary": "target_body_device_graph",
+        "reasons": [],
+        "observed_forward_count": 30,
+        "observed_ms": {
+          "count": 30,
+          "mean": 33.0309177,
+          "p50": 33.0264815,
+          "p90": 33.164019,
+          "min": 32.883158,
+          "max": 33.193867
+        },
+        "predicted_ms": 29.627801705211876,
+        "relative_error": -0.10302819999421714,
+        "per_forward_diff_ms": -3.403115994788127,
+        "passed": true,
+        "tolerance": {
+          "kind": "relative",
+          "limit": 0.15,
+          "scope": "whole_body_forward_not_single_kernel_launch"
+        },
+        "comparison_scope": {},
+        "comparison_basis": "conditional_single_rank_topology_alignment",
+        "assumptions": [
+          "Context basis: explicit_case_geometry; active KV increments during this capture are not established.",
+          "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+          "Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage."
+        ],
+        "endpoints": {
+          "observed": "first_retained_device_event_start_to_last_retained_device_event_end",
+          "predicted": "first_kernel_invocation_ready_to_body_complete_including_startup",
+          "input_ready_to_first_kernel_ms": 0,
+          "kernel_startup_included": true
+        }
+      },
+      "prior_predicted_ms": 28.45578223248458,
+      "regime_count": 27,
+      "added_native_calls_per_forward": 270,
+      "runtime_identity": {
+        "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+        "version": "0.8.0",
+        "package_sha256": "c347250c5f5e8aeccd0abda9d2a96a8e22928e2ed8668aed825671276f0e2ce5",
+        "file_count": 283,
+        "algorithm": "sha256(sorted relative-path to file-sha256 JSON)",
+        "sources_unchanged": true
+      }
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c16_p8k",
+      "forward_count": 32,
+      "body": {
+        "status": "compared",
+        "metric_boundary": "target_body_device_graph",
+        "reasons": [],
+        "observed_forward_count": 32,
+        "observed_ms": {
+          "count": 32,
+          "mean": 33.616091374999996,
+          "p50": 33.62586,
+          "p90": 33.709694,
+          "min": 33.517443,
+          "max": 33.747635
+        },
+        "predicted_ms": 30.20974559896174,
+        "relative_error": -0.10133081023725228,
+        "per_forward_diff_ms": -3.4063457760382576,
+        "passed": true,
+        "tolerance": {
+          "kind": "relative",
+          "limit": 0.15,
+          "scope": "whole_body_forward_not_single_kernel_launch"
+        },
+        "comparison_scope": {},
+        "comparison_basis": "conditional_single_rank_topology_alignment",
+        "assumptions": [
+          "Context basis: explicit_case_geometry; active KV increments during this capture are not established.",
+          "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+          "Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage."
+        ],
+        "endpoints": {
+          "observed": "first_retained_device_event_start_to_last_retained_device_event_end",
+          "predicted": "first_kernel_invocation_ready_to_body_complete_including_startup",
+          "input_ready_to_first_kernel_ms": 0,
+          "kernel_startup_included": true
+        }
+      },
+      "prior_predicted_ms": 29.040987107484394,
+      "regime_count": 27,
+      "added_native_calls_per_forward": 270,
+      "runtime_identity": {
+        "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+        "version": "0.8.0",
+        "package_sha256": "c347250c5f5e8aeccd0abda9d2a96a8e22928e2ed8668aed825671276f0e2ce5",
+        "file_count": 283,
+        "algorithm": "sha256(sorted relative-path to file-sha256 JSON)",
+        "sources_unchanged": true
+      }
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c8_p4k",
+      "forward_count": 30,
+      "body": {
+        "status": "compared",
+        "metric_boundary": "target_body_device_graph",
+        "reasons": [],
+        "observed_forward_count": 30,
+        "observed_ms": {
+          "count": 30,
+          "mean": 28.833324133333335,
+          "p50": 28.828410499999997,
+          "p90": 28.884507,
+          "min": 28.606826,
+          "max": 28.91941
+        },
+        "predicted_ms": 25.431004695272456,
+        "relative_error": -0.11799955573376154,
+        "per_forward_diff_ms": -3.4023194380608786,
+        "passed": true,
+        "tolerance": {
+          "kind": "relative",
+          "limit": 0.15,
+          "scope": "whole_body_forward_not_single_kernel_launch"
+        },
+        "comparison_scope": {},
+        "comparison_basis": "conditional_single_rank_topology_alignment",
+        "assumptions": [
+          "Context basis: explicit_case_geometry; active KV increments during this capture are not established.",
+          "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+          "Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage."
+        ],
+        "endpoints": {
+          "observed": "first_retained_device_event_start_to_last_retained_device_event_end",
+          "predicted": "first_kernel_invocation_ready_to_body_complete_including_startup",
+          "input_ready_to_first_kernel_ms": 0,
+          "kernel_startup_included": true
+        }
+      },
+      "prior_predicted_ms": 24.434070628605756,
+      "regime_count": 29,
+      "added_native_calls_per_forward": 270,
+      "runtime_identity": {
+        "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+        "version": "0.8.0",
+        "package_sha256": "c347250c5f5e8aeccd0abda9d2a96a8e22928e2ed8668aed825671276f0e2ce5",
+        "file_count": 283,
+        "algorithm": "sha256(sorted relative-path to file-sha256 JSON)",
+        "sources_unchanged": true
+      }
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c4_p8k",
+      "forward_count": 11,
+      "body": {
+        "status": "compared",
+        "metric_boundary": "target_body_device_graph",
+        "reasons": [],
+        "observed_forward_count": 11,
+        "observed_ms": {
+          "count": 11,
+          "mean": 21.41824609090909,
+          "p50": 21.408145,
+          "p90": 21.432068,
+          "min": 21.246225,
+          "max": 21.839515
+        },
+        "predicted_ms": 18.19052445430298,
+        "relative_error": -0.15069962418519908,
+        "per_forward_diff_ms": -3.227721636606109,
+        "passed": false,
+        "tolerance": {
+          "kind": "relative",
+          "limit": 0.15,
+          "scope": "whole_body_forward_not_single_kernel_launch"
+        },
+        "comparison_scope": {},
+        "comparison_basis": "conditional_single_rank_topology_alignment",
+        "assumptions": [
+          "Context basis: explicit_case_geometry; active KV increments during this capture are not established.",
+          "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+          "Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage."
+        ],
+        "endpoints": {
+          "observed": "first_retained_device_event_start_to_last_retained_device_event_end",
+          "predicted": "first_kernel_invocation_ready_to_body_complete_including_startup",
+          "input_ready_to_first_kernel_ms": 0,
+          "kernel_startup_included": true
+        }
+      },
+      "prior_predicted_ms": 17.394483727030366,
+      "regime_count": 29,
+      "added_native_calls_per_forward": 270,
+      "runtime_identity": {
+        "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+        "version": "0.8.0",
+        "package_sha256": "c347250c5f5e8aeccd0abda9d2a96a8e22928e2ed8668aed825671276f0e2ce5",
+        "file_count": 283,
+        "algorithm": "sha256(sorted relative-path to file-sha256 JSON)",
+        "sources_unchanged": true
+      }
+    },
+    {
+      "case_id": "glm53flash-a5-tp8-c3",
+      "forward_count": 53,
+      "body": {
+        "status": "compared",
+        "metric_boundary": "target_body_device_graph",
+        "reasons": [],
+        "observed_forward_count": 53,
+        "observed_ms": {
+          "count": 53,
+          "mean": 21.067548924528303,
+          "p50": 21.05718,
+          "p90": 21.170037,
+          "min": 20.882993,
+          "max": 21.361573
+        },
+        "predicted_ms": 18.251868718728492,
+        "relative_error": -0.1336501087946496,
+        "per_forward_diff_ms": -2.8156802057998114,
+        "passed": true,
+        "tolerance": {
+          "kind": "relative",
+          "limit": 0.15,
+          "scope": "whole_body_forward_not_single_kernel_launch"
+        },
+        "comparison_scope": {},
+        "comparison_basis": "conditional_single_rank_topology_alignment",
+        "assumptions": [
+          "Context basis: explicit_case_geometry; active KV increments during this capture are not established.",
+          "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+          "Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage."
+        ],
+        "endpoints": {
+          "observed": "first_retained_device_event_start_to_last_retained_device_event_end",
+          "predicted": "first_kernel_invocation_ready_to_body_complete_including_startup",
+          "input_ready_to_first_kernel_ms": 0,
+          "kernel_startup_included": true
+        }
+      },
+      "prior_predicted_ms": 17.470946303634246,
+      "regime_count": 27,
+      "added_native_calls_per_forward": 270,
+      "runtime_identity": {
+        "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+        "version": "0.8.0",
+        "package_sha256": "c347250c5f5e8aeccd0abda9d2a96a8e22928e2ed8668aed825671276f0e2ce5",
+        "file_count": 283,
+        "algorithm": "sha256(sorted relative-path to file-sha256 JSON)",
+        "sources_unchanged": true
+      }
+    },
+    {
+      "case_id": "glm53flash-a5-tp8-c1",
+      "forward_count": 65,
+      "body": {
+        "status": "compared",
+        "metric_boundary": "target_body_device_graph",
+        "reasons": [],
+        "observed_forward_count": 65,
+        "observed_ms": {
+          "count": 65,
+          "mean": 15.683328046153846,
+          "p50": 15.670472,
+          "p90": 15.738329,
+          "min": 15.494044,
+          "max": 17.258429
+        },
+        "predicted_ms": 13.267585463925537,
+        "relative_error": -0.15403252263289505,
+        "per_forward_diff_ms": -2.41574258222831,
+        "passed": false,
+        "tolerance": {
+          "kind": "relative",
+          "limit": 0.15,
+          "scope": "whole_body_forward_not_single_kernel_launch"
+        },
+        "comparison_scope": {},
+        "comparison_basis": "conditional_single_rank_topology_alignment",
+        "assumptions": [
+          "Context basis: explicit_case_geometry; active KV increments during this capture are not established.",
+          "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+          "Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage."
+        ],
+        "endpoints": {
+          "observed": "first_retained_device_event_start_to_last_retained_device_event_end",
+          "predicted": "first_kernel_invocation_ready_to_body_complete_including_startup",
+          "input_ready_to_first_kernel_ms": 0,
+          "kernel_startup_included": true
+        }
+      },
+      "prior_predicted_ms": 12.665579756233296,
+      "regime_count": 29,
+      "added_native_calls_per_forward": 270,
+      "runtime_identity": {
+        "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+        "version": "0.8.0",
+        "package_sha256": "c347250c5f5e8aeccd0abda9d2a96a8e22928e2ed8668aed825671276f0e2ce5",
+        "file_count": 283,
+        "algorithm": "sha256(sorted relative-path to file-sha256 JSON)",
+        "sources_unchanged": true
+      }
+    }
+  ],
+  "raw_scans": 0,
+  "new_costs": 0
+}
