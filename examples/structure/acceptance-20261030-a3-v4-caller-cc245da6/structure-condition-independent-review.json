@@ -1,0 +1,1770 @@
+{
+  "schema_version": "mindie-a3-v4-caller-structure-independent-review/1",
+  "status": "passed",
+  "checks": 4333,
+  "failures": [],
+  "runtime_commit": "cc245da639ea693daecc3ea273965606659da13a",
+  "runtime_package_file_map_sha256": "901ec6288b47c259c58b481d5a0863f581a77140eabe148383c204895866a1f5",
+  "runtime_package_file_count": 275,
+  "retained_caller_evidence_identity": {
+    "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/data/verification/a3-v4-caller-contracts-20261030.json",
+    "sha256": "cf6fc780cb017682140e2d2c046f61001ec6d77901d32eecac8ad1a6b93a240b",
+    "size_bytes": 167975
+  },
+  "c4_retained_precision_evidence_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-a3-borderline/v4-actual/body-operator-v4flash-a3-tp8-c4-new17.actual.json",
+    "sha256": "39543999f00be6c6371296413e32e7eab528e739ab294eac672b140c55782a5f",
+    "size_bytes": 1009577
+  },
+  "cases": [
+    {
+      "case_id": "v4flash-a3-tp8-c4",
+      "case_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/a3-v4-caller-conditional/v4flash-a3-tp8-c4-caller-bf16.json",
+        "sha256": "5022bd6281fff8c7adbac6282ac1bb27601bfe02d877229bb276ec2bcc9ea1ff",
+        "size_bytes": 4332
+      },
+      "parent_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/new17/v4flash-a3-tp8-c4.json",
+        "sha256": "a20b7c039fda8928c308d45b5cff9bfac94eaa33e272bc1b97b723f718106dde",
+        "size_bytes": 3115
+      },
+      "input_changes": [
+        {
+          "path": "/model/quant/category_overrides/mla.o_a",
+          "before": null,
+          "after": {
+            "weight_format": "bf16",
+            "activation_format": "bf16"
+          }
+        },
+        {
+          "path": "/runtime/kernels",
+          "before": null,
+          "after": {
+            "moe_token_partition": {
+              "kind": "vllm_ascend_mc2_tp_slice"
+            }
+          }
+        }
+      ],
+      "geometry": {
+        "phase": "decode",
+        "tokens": 2,
+        "sequences": 4,
+        "context": 4096
+      },
+      "layer_count": 43,
+      "generic_allgather_count": 43,
+      "unchanged_expert_matrix_count": 86,
+      "output_a_precision_evidence": "retained_c4_contract_example",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_flash_w8a8_mtp_high_conc_decode_tpot30_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 17267089,
+        "mtime_ns": 1793299475000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "540c7fbc1816b7ecaf68317df8d6dc291441ee389fe59b41e76109f483f1e2cd"
+      },
+      "retained_caller_forward_id": "auto:1",
+      "layers": [
+        {
+          "layer": 0,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "hash_routing"
+        },
+        {
+          "layer": 1,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "hash_routing"
+        },
+        {
+          "layer": 2,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "hash_routing"
+        },
+        {
+          "layer": 3,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 4,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 5,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 6,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 7,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 8,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 9,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 10,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 11,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 12,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 13,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 14,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 15,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 16,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 17,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 18,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 19,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 20,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 21,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 22,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 23,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 24,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 25,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 26,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 27,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 28,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 29,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 30,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 31,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 32,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 33,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 34,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 35,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 36,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 37,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 38,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 39,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 40,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 41,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 42,
+          "router_rows": 8,
+          "topk_source_rows": 1,
+          "gather_input_rows": 1,
+          "gather_output_rows": 8,
+          "expert_up_shape": [
+            6,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            6,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        }
+      ]
+    },
+    {
+      "case_id": "v4flash-a3-tp8-c8",
+      "case_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/a3-v4-caller-conditional/v4flash-a3-tp8-c8-caller-bf16.json",
+        "sha256": "124f35c900a7c2ff78f41d81a44b2bab1d6ef48c426071830057ebd721bf335c",
+        "size_bytes": 4332
+      },
+      "parent_identity": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/new17/v4flash-a3-tp8-c8.json",
+        "sha256": "ab010289f8281bc5f073653c894b4eb2ff709ebc54d2d5c57897fe6828edb1c8",
+        "size_bytes": 3115
+      },
+      "input_changes": [
+        {
+          "path": "/model/quant/category_overrides/mla.o_a",
+          "before": null,
+          "after": {
+            "weight_format": "bf16",
+            "activation_format": "bf16"
+          }
+        },
+        {
+          "path": "/runtime/kernels",
+          "before": null,
+          "after": {
+            "moe_token_partition": {
+              "kind": "vllm_ascend_mc2_tp_slice"
+            }
+          }
+        }
+      ],
+      "geometry": {
+        "phase": "decode",
+        "tokens": 2,
+        "sequences": 8,
+        "context": 4096
+      },
+      "layer_count": 43,
+      "generic_allgather_count": 43,
+      "unchanged_expert_matrix_count": 86,
+      "output_a_precision_evidence": "explicit_sibling_model_precision_condition_not_independently_observed_in_c8_caller_extract",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_flash_w8a8_mtp_high_conc_decode_tpot50_c8_20261030/ranks/tp0/kernel_details.csv.gz",
+        "size_bytes": 18753472,
+        "mtime_ns": 1793299492000000000,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "43228298ed603e07a4aacb3b298867aecdff1941db0701f4736edae050718213"
+      },
+      "retained_caller_forward_id": "auto:1",
+      "layers": [
+        {
+          "layer": 0,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "hash_routing"
+        },
+        {
+          "layer": 1,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "hash_routing"
+        },
+        {
+          "layer": 2,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "hash_routing"
+        },
+        {
+          "layer": 3,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 4,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 5,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 6,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 7,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 8,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 9,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 10,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 11,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 12,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 13,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 14,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 15,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 16,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 17,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 18,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 19,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 20,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 21,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 22,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 23,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 24,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 25,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 26,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 27,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 28,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 29,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 30,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 31,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 32,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 33,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 34,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 35,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 36,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 37,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 38,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 39,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 40,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 41,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        },
+        {
+          "layer": 42,
+          "router_rows": 16,
+          "topk_source_rows": 2,
+          "gather_input_rows": 2,
+          "gather_output_rows": 16,
+          "expert_up_shape": [
+            12,
+            4096,
+            4096
+          ],
+          "expert_down_shape": [
+            12,
+            4096,
+            2048
+          ],
+          "output_a_weight_bytes": 8388608.0,
+          "topk_recipe": "router_topk"
+        }
+      ]
+    }
+  ],
+  "metadata_graph_exports": 4,
+  "raw_capture_reads": 0,
+  "new_cost_evaluations": 0,
+  "maximum_resident_set_size_bytes": 67158016,
+  "limits": [
+    "All 86 declared layers checked through public target_graphs; only TP caller slice/reconstruction and mla.o_a BF16 input declaration change. Expert matrix work preserved exactly.",
+    "Retained caller evidence contains one complete representative Forward per source, not a new scan of every Forward. c4 BF16 output-A evidence is a retained exact contract sample; c8 precision remains an explicit compatible sibling declaration.",
+    "Captured V2 binary and generic transport are not equated. Actual group_list/routing, graph-padding validity, active context and HCCL algorithm remain unobserved.",
+    "The declaration keeps 3 hash/40 generic top-k layers while all 43 observed kernels are named MoeGatingTopKHash; no native-name inference changes those semantic roles.",
+    "Generic ring AllGather is chosen by existing default declaration, not by choosing the closest measured timing. No native elapsed value is added as a new Body budget."
+  ]
+}
