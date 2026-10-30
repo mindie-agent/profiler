@@ -10529,8 +10529,8 @@
       },
       "model_case": {
         "path": "cases/decode-a5_qwen36_highconc_c4.json",
-        "sha256": "55c6b5fac867cb830041b5acdbb5127859daf22645f5e9ca8b8e210a447e0de9",
-        "size_bytes": 9920
+        "sha256": "163d6f8541d710dec6b3c82637227c70d185ee20b7f953a0fd17435b4aa501fe",
+        "size_bytes": 10182
       },
       "sim_case_path": "cases/decode-a5_qwen36_highconc_c4.json",
       "model_declaration": {
@@ -10667,8 +10667,8 @@
       },
       "model_case": {
         "path": "cases/decode-a5_qwen36_highconc_c40.json",
-        "sha256": "ff6af27336873ef35b13ed4e24a107a82f9cac13036b0eef7f50a4193173f57d",
-        "size_bytes": 9914
+        "sha256": "975c3af6dcb4405a720a65ed3c8d939c8bd89ce8e3e5014673487426d08df634",
+        "size_bytes": 10176
       },
       "sim_case_path": "cases/decode-a5_qwen36_highconc_c40.json",
       "model_declaration": {
@@ -10805,8 +10805,8 @@
       },
       "model_case": {
         "path": "cases/decode-a5_qwen36_highconc_c128.json",
-        "sha256": "9c80767e2c465195deca81532d0515ab1cdfc0f611ff01f7d66e6189dc9dcc01",
-        "size_bytes": 9927
+        "sha256": "bbdafc87dcbe5b13d5d3ac88d73c079a833e369116e8a2523977d14b2d4a7abe",
+        "size_bytes": 10189
       },
       "sim_case_path": "cases/decode-a5_qwen36_highconc_c128.json",
       "model_declaration": {
@@ -10943,8 +10943,8 @@
       },
       "model_case": {
         "path": "cases/decode-a5_qwen38_highconc_c4.json",
-        "sha256": "6c0423b8171d193994f0b2d7a01f50dfbd56cf99842f8fb14823abeff7f6925f",
-        "size_bytes": 5559
+        "sha256": "2bace0926d283f461a3b0b126c76fd1a0081df118245f11c40fc1f697e3f45f9",
+        "size_bytes": 5690
       },
       "sim_case_path": "cases/decode-a5_qwen38_highconc_c4.json",
       "model_declaration": {
@@ -11081,8 +11081,8 @@
       },
       "model_case": {
         "path": "cases/decode-a5_qwen38_highconc_c32.json",
-        "sha256": "d82c0af8378e0bdc96a69ecb2a9b673a97eb897f18e1c7218647370f3671412f",
-        "size_bytes": 5563
+        "sha256": "2eee650ba9e11798cfe8fe6c7a221ca6e0022f4d08e8cd742e516d7253d17d5c",
+        "size_bytes": 5694
       },
       "sim_case_path": "cases/decode-a5_qwen38_highconc_c32.json",
       "model_declaration": {
@@ -11219,8 +11219,8 @@
       },
       "model_case": {
         "path": "cases/decode-a5_qwen38_highconc_c128.json",
-        "sha256": "0637e37e6fefbb33f1f41657285941e68491453020baefb42f358665886f6e3e",
-        "size_bytes": 5566
+        "sha256": "3d3e7df7e407183138a243d3a0cb31e8a4a03dd10ca2e46c6093c10488db9d9c",
+        "size_bytes": 5697
       },
       "sim_case_path": "cases/decode-a5_qwen38_highconc_c128.json",
       "model_declaration": {
@@ -19235,44 +19235,874 @@
     },
     {
       "id": "a5-heldout-frozen-native-functions",
-      "status": "planned",
-      "reason": "Frozen training functions exported after complete primary-geometry cohort admission; per-domain heldout observation evaluation has not yet been published. Body is evaluated separately by the standard pipeline.",
-      "frozen_model_sha256": "064794d75838296791f2208d1d4082ee43c8dcdb69b542ec5448395558ea8392",
-      "source_sha256": [
-        "d2fac3de02b20beed6c3ee0007fc7d3669b574549fb34740c0a03cfbf97a46dd",
-        "e9bc57d205e9b457528195ac93e7769795e27ac1725badb0a93f060156c39360",
-        "b69e5d19dd18e8da8e92d3df42158c2a7ca4456053655efe80af32f3952a9ef7",
-        "5bcab7f1321006a8662fb7ddbd8bc37ef1551b055693452f8f6d898807bd2ec1"
-      ],
-      "admission_evidence": [
-        {
-          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/heldout-prepared/a5_glm53flash_heldout_c12_p4k-transfer-admission.json",
-          "sha256": "ba5999a5ef5e69746f061e8380c8c21c869c2b0475f0277524d457c5f9e7ad95",
-          "size_bytes": 115279
-        },
-        {
-          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/heldout-prepared/a5_glm53flash_heldout_c24_p12k-transfer-admission.json",
-          "sha256": "ff1978bc005f927e8bf8f84d41996ab0e3a955cefeb8d4494065e9a901e6ab32",
-          "size_bytes": 115333
-        },
-        {
-          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/heldout-prepared/a5_glm53flash_heldout_c48_p4k-transfer-admission.json",
-          "sha256": "bcb9f88ba557daa60707c27f0918f96d778b16e9c1d6caf836d87c8a07e9b244",
-          "size_bytes": 115390
-        },
-        {
-          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/heldout-prepared/a5_glm53flash_heldout_eager_c80_p4k-transfer-admission.json",
-          "sha256": "0d9adb284cdc10bff29c7932d56c0504c3c0ef6aad3f3dea36fe1cc7cb014957",
-          "size_bytes": 112115
-        }
-      ],
+      "status": "ready",
+      "specification": {
+        "schema_version": "mindie-service-specification/1",
+        "training_sources": [
+          "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+          "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+          "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72"
+        ],
+        "evaluation_sources": [
+          "5bcab7f1321006a8662fb7ddbd8bc37ef1551b055693452f8f6d898807bd2ec1",
+          "b69e5d19dd18e8da8e92d3df42158c2a7ca4456053655efe80af32f3952a9ef7",
+          "d2fac3de02b20beed6c3ee0007fc7d3669b574549fb34740c0a03cfbf97a46dd",
+          "e9bc57d205e9b457528195ac93e7769795e27ac1725badb0a93f060156c39360"
+        ],
+        "evaluation_relation": "frozen_training_function_transfer_to_new_capture",
+        "domains": [
+          {
+            "id": "hcom-allreduce-aicpukernel-observed",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "kernel": "HCCL_AICPU_TS_allreduce_mesh_oneshot",
+              "metadata.hccl_selection.ranks": 8,
+              "metadata.hccl_selection.dtype_bytes": 2
+            },
+            "boundary": {
+              "native_operator_type": "hcom_allReduce_AicpuKernel",
+              "source_implementation": "HCCL_AICPU_TS_allreduce_mesh_oneshot",
+              "precision": {
+                "explicit_selectors": {
+                  "metadata.hccl_selection.dtype_bytes": 2
+                },
+                "source_recipe": "HCCL_AICPU_TS_allreduce_mesh_oneshot"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "metadata.hccl_selection.payload_bytes"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "-copy-conv-state-kernel-observed",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "triton_noncontiguous_conv_state_copy",
+              "dtype": "bf16",
+              "local_shape.1": 6,
+              "local_shape.2": 3072
+            },
+            "boundary": {
+              "native_operator_type": "_copy_conv_state_kernel",
+              "source_implementation": "triton_noncontiguous_conv_state_copy",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16"
+                },
+                "source_recipe": "triton_noncontiguous_conv_state_copy"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "moeinitroutingv3-observed",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "ascend_moe_init_routing_v3_mxfp8",
+              "dtype": "bf16",
+              "metadata.moe_init_config.experts": 288,
+              "metadata.moe_init_config.topk": 8,
+              "metadata.moe_init_config.width": 4096
+            },
+            "boundary": {
+              "native_operator_type": "MoeInitRoutingV3",
+              "source_implementation": "ascend_moe_init_routing_v3_mxfp8",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16"
+                },
+                "source_recipe": "ascend_moe_init_routing_v3_mxfp8"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "groupedmatmulswigluquantv2-observed",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "ascend_mxfp8_grouped_swiglu_quant",
+              "metadata.mxfp8_swiglu_config.k": 4096,
+              "metadata.mxfp8_swiglu_config.width": 256
+            },
+            "boundary": {
+              "native_operator_type": "GroupedMatmulSwigluQuantV2",
+              "source_implementation": "ascend_mxfp8_grouped_swiglu_quant",
+              "precision": {
+                "explicit_selectors": {},
+                "source_recipe": "ascend_mxfp8_grouped_swiglu_quant"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "causalconv1d-observed",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "short_convolution",
+              "dtype": "bf16"
+            },
+            "boundary": {
+              "native_operator_type": "CausalConv1d",
+              "source_implementation": "short_convolution",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16"
+                },
+                "source_recipe": "short_convolution"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "recurrentkda-observed",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "vllm_ascend_recurrent_kda_arch35",
+              "metadata.native_kind": "RecurrentKda",
+              "metadata.heads": 8,
+              "metadata.dk": 128,
+              "metadata.dv": 128,
+              "metadata.state_dtype": "fp32"
+            },
+            "boundary": {
+              "native_operator_type": "RecurrentKda",
+              "source_implementation": "vllm_ascend_recurrent_kda_arch35",
+              "precision": {
+                "explicit_selectors": {
+                  "metadata.state_dtype": "fp32"
+                },
+                "source_recipe": "vllm_ascend_recurrent_kda_arch35"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "groupedmatmul-observed-second",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "balanced_grouped_down",
+              "dtype": "fp8_e4m3",
+              "local_shape.1": 4096,
+              "local_shape.2": 256,
+              "metadata.matrix_weight_bank_groups": 288,
+              "metadata.input_format": "fp8_e4m3",
+              "metadata.weight_format": "fp8_e4m3",
+              "metadata.output_format": "bf16"
+            },
+            "boundary": {
+              "native_operator_type": "GroupedMatmul",
+              "source_implementation": "balanced_grouped_down",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "fp8_e4m3",
+                  "metadata.input_format": "fp8_e4m3",
+                  "metadata.weight_format": "fp8_e4m3",
+                  "metadata.output_format": "bf16"
+                },
+                "source_recipe": "balanced_grouped_down"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "hcpre-hc-pre-observed-third",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "declared_native_fusion",
+              "dtype": "bf16",
+              "metadata.fusion_role": "hc_pre",
+              "metadata.fusion_boundary.traffic_profile": "hc_pre_arch35_mk_175ef4d4",
+              "metadata.fusion_tensor_view.hidden": 4096,
+              "metadata.fusion_tensor_view.hc": 4,
+              "metadata.fusion_tensor_view.parameter_dtype": "fp32"
+            },
+            "boundary": {
+              "native_operator_type": "HcPre",
+              "source_implementation": "declared_native_fusion",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16",
+                  "metadata.fusion_tensor_view.parameter_dtype": "fp32"
+                },
+                "source_recipe": "declared_native_fusion"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "metadata.fusion_tensor_view.tokens"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "matmulv3-linear_qkvbfg_a-observed-third",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "linear_qkvbfg_a",
+              "dtype": "bf16",
+              "local_shape.1": 3336,
+              "local_shape.2": 4096
+            },
+            "boundary": {
+              "native_operator_type": "MatMulV3",
+              "source_implementation": "linear_qkvbfg_a",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16"
+                },
+                "source_recipe": "linear_qkvbfg_a"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "matrix-linear_output-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "linear_output",
+              "dtype": "bf16",
+              "local_shape.1": 4096,
+              "local_shape.2": 1024
+            },
+            "boundary": {
+              "native_operator_type": "MatMulV3",
+              "source_implementation": "linear_output",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16"
+                },
+                "source_recipe": "linear_output"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "matrix-index_q-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "index_q",
+              "dtype": "bf16",
+              "local_shape.1": 4096,
+              "local_shape.2": 1536
+            },
+            "boundary": {
+              "native_operator_type": "MatMulV3",
+              "source_implementation": "index_q",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16"
+                },
+                "source_recipe": "index_q"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "matrix-router-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "router",
+              "dtype": "fp32",
+              "local_shape.1": 288,
+              "local_shape.2": 4096
+            },
+            "boundary": {
+              "native_operator_type": "MatMulV3",
+              "source_implementation": "router",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "fp32"
+                },
+                "source_recipe": "router"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "matrix-gate_up-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "dense_gate_up",
+              "dtype": "fp8_e4m3",
+              "local_shape.1": 3072,
+              "local_shape.2": 4096
+            },
+            "boundary": {
+              "native_operator_type": "QuantBatchMatmulV3",
+              "source_implementation": "dense_gate_up",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "fp8_e4m3"
+                },
+                "source_recipe": "dense_gate_up"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "matrix-down-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "dense_down",
+              "dtype": "fp8_e4m3",
+              "local_shape.1": 4096,
+              "local_shape.2": 1536
+            },
+            "boundary": {
+              "native_operator_type": "QuantBatchMatmulV3",
+              "source_implementation": "dense_down",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "fp8_e4m3"
+                },
+                "source_recipe": "dense_down"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "matrix-shared-gate_up-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "dense_gate_up",
+              "dtype": "fp8_e4m3",
+              "local_shape.1": 512,
+              "local_shape.2": 4096
+            },
+            "boundary": {
+              "native_operator_type": "QuantBatchMatmulV3",
+              "source_implementation": "dense_gate_up",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "fp8_e4m3"
+                },
+                "source_recipe": "dense_gate_up"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "matrix-shared-down-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "dense_down",
+              "dtype": "fp8_e4m3",
+              "local_shape.1": 4096,
+              "local_shape.2": 256
+            },
+            "boundary": {
+              "native_operator_type": "QuantBatchMatmulV3",
+              "source_implementation": "dense_down",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "fp8_e4m3"
+                },
+                "source_recipe": "dense_down"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "matrix-q_absorb-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "q_absorb",
+              "dtype": "bf16",
+              "local_shape.1": 512,
+              "local_shape.2": 256
+            },
+            "boundary": {
+              "native_operator_type": "TransposeBatchMatMul",
+              "source_implementation": "q_absorb",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16"
+                },
+                "source_recipe": "q_absorb"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "matrix-v_expand-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "v_expand",
+              "dtype": "bf16",
+              "local_shape.1": 256,
+              "local_shape.2": 512
+            },
+            "boundary": {
+              "native_operator_type": "TransposeBatchMatMul",
+              "source_implementation": "v_expand",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16"
+                },
+                "source_recipe": "v_expand"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "rmsnorm-norm1-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "rmsnorm",
+              "dtype": "bf16",
+              "local_shape.1": 4096,
+              "metadata.structure_block": "attention"
+            },
+            "boundary": {
+              "native_operator_type": "RmsNorm",
+              "source_implementation": "rmsnorm",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16"
+                },
+                "source_recipe": "rmsnorm"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "rmsnorm-norm2-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "rmsnorm",
+              "dtype": "bf16",
+              "local_shape.1": 4096,
+              "metadata.structure_block": "ffn"
+            },
+            "boundary": {
+              "native_operator_type": "RmsNorm",
+              "source_implementation": "rmsnorm",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16"
+                },
+                "source_recipe": "rmsnorm"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "dynamicmxquant-gate_up-quantize-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "dynamic_quantize",
+              "dtype": "bf16",
+              "local_shape.1": 4096,
+              "metadata.structure_block": "ffn",
+              "metadata.output_format": "fp8_e4m3",
+              "metadata.activation_scale_format": "fp8_e8m0",
+              "metadata.activation_group_size": 32
+            },
+            "boundary": {
+              "native_operator_type": "DynamicMxQuant",
+              "source_implementation": "dynamic_quantize",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16",
+                  "metadata.output_format": "fp8_e4m3",
+                  "metadata.activation_scale_format": "fp8_e8m0",
+                  "metadata.activation_group_size": 32
+                },
+                "source_recipe": "dynamic_quantize"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "dynamicmxquant-down-quantize-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "dynamic_quantize",
+              "dtype": "bf16",
+              "local_shape.1": 1536,
+              "metadata.structure_block": "ffn",
+              "metadata.output_format": "fp8_e4m3",
+              "metadata.activation_scale_format": "fp8_e8m0",
+              "metadata.activation_group_size": 32
+            },
+            "boundary": {
+              "native_operator_type": "DynamicMxQuant",
+              "source_implementation": "dynamic_quantize",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16",
+                  "metadata.output_format": "fp8_e4m3",
+                  "metadata.activation_scale_format": "fp8_e8m0",
+                  "metadata.activation_group_size": 32
+                },
+                "source_recipe": "dynamic_quantize"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "dynamicmxquant-shared-down-quantize-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "dynamic_quantize",
+              "dtype": "bf16",
+              "local_shape.1": 256,
+              "metadata.structure_block": "ffn",
+              "metadata.output_format": "fp8_e4m3",
+              "metadata.activation_scale_format": "fp8_e8m0",
+              "metadata.activation_group_size": 32
+            },
+            "boundary": {
+              "native_operator_type": "DynamicMxQuant",
+              "source_implementation": "dynamic_quantize",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16",
+                  "metadata.output_format": "fp8_e4m3",
+                  "metadata.activation_scale_format": "fp8_e8m0",
+                  "metadata.activation_group_size": 32
+                },
+                "source_recipe": "dynamic_quantize"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "hcpost-attention-hc_post_group-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "declared_native_fusion",
+              "dtype": "bf16",
+              "metadata.structure_block": "attention",
+              "metadata.fusion_role": "hc_post",
+              "metadata.fusion_boundary.traffic_profile": "hc_post_arch35_bf16_175ef4d4",
+              "metadata.fusion_tensor_view.hidden": 4096,
+              "metadata.fusion_tensor_view.hc": 4,
+              "metadata.fusion_tensor_view.coefficient_dtype": "fp32"
+            },
+            "boundary": {
+              "native_operator_type": "HcPost",
+              "source_implementation": "declared_native_fusion",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16",
+                  "metadata.fusion_tensor_view.coefficient_dtype": "fp32"
+                },
+                "source_recipe": "declared_native_fusion"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "metadata.fusion_tensor_view.tokens"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "hcpost-ffn-hc_post_group-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "declared_native_fusion",
+              "dtype": "bf16",
+              "metadata.structure_block": "ffn",
+              "metadata.fusion_role": "hc_post",
+              "metadata.fusion_boundary.traffic_profile": "hc_post_arch35_bf16_175ef4d4",
+              "metadata.fusion_tensor_view.hidden": 4096,
+              "metadata.fusion_tensor_view.hc": 4,
+              "metadata.fusion_tensor_view.coefficient_dtype": "fp32"
+            },
+            "boundary": {
+              "native_operator_type": "HcPost",
+              "source_implementation": "declared_native_fusion",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16",
+                  "metadata.fusion_tensor_view.coefficient_dtype": "fp32"
+                },
+                "source_recipe": "declared_native_fusion"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "metadata.fusion_tensor_view.tokens"
+              }
+            },
+            "execution": null
+          }
+        ],
+        "minimum_training_sources": 3,
+        "function_class": "nonnegative_affine_physical_coordinates",
+        "fit_objective": "equal_source_weight_complete_native_call_mean",
+        "heldout_timing_used_to_select_function": false,
+        "body_residual_used": false,
+        "sha256": "41588aff3abbd0018db122eaa1cc93a1f909df69b5087e8065e44c46957fa1a2"
+      },
       "training_observations": {
         "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/5798e56d27e742056073c64938f2466e510aec0d9553265e1b0c9a7a15a37317.json",
         "sha256": "5798e56d27e742056073c64938f2466e510aec0d9553265e1b0c9a7a15a37317",
         "size_bytes": 115497
       },
-      "body_residual_used": false,
-      "new_latency_fit": false
+      "evaluation_observations": {
+        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/heldout-prepared/frozen-native-evaluation-observations.json",
+        "sha256": "5dad36f0b3b0e620ff5ab265655d32626526497d3d265002c1d409a0a9a062af",
+        "size_bytes": 2098952
+      },
+      "frozen_model_sha256": "064794d75838296791f2208d1d4082ee43c8dcdb69b542ec5448395558ea8392",
+      "limits": [
+        "Frozen training coefficients were committed to external evidence before native target timing evaluation. Client aggregate timings were previously exposed; this is not a pristine blind claim.",
+        "Three graph captures and one Eager M320 capture are evaluated as native physical domains. Eager source remains Engine-only in the canonical case list.",
+        "Only complete admitted native populations are scored; 70/73 native passing groups do not imply Body passing.",
+        "No target timing was used to refit coefficients; no communication topology is transferred."
+      ],
+      "serving_mode_groups": [
+        {
+          "group": "ACLGraph_decode",
+          "case_ids": [
+            "a5_glm53flash_heldout_c12_p4k",
+            "a5_glm53flash_heldout_c24_p12k",
+            "a5_glm53flash_heldout_c48_p4k"
+          ]
+        },
+        {
+          "group": "Eager_engine_only",
+          "case_ids": [
+            "a5_glm53flash_heldout_eager_c80_p4k"
+          ]
+        }
+      ]
     },
     {
       "id": "qwen-cross-TP-matrix-physical-functions",
@@ -19397,6 +20227,4823 @@
         "Qwen38 FP8 matrices have no matching INT8 training domain and keep analytic costs.",
         "Communication TP/ranks are not generalized.",
         "Explicit GDN source mechanism selection is recorded separately from matrix function transfer."
+      ]
+    },
+    {
+      "id": "kimi-a5-retrospective-concurrency-exclusion",
+      "source_groups": [
+        {
+          "concurrency": 1,
+          "source_sha256": [
+            "cc316ae15600914b4c58c7ef10a0103026a7d5abae1dc733dd3eedcaa0397f8e",
+            "95fe4cc26e249dbd597c62ae1db12710fca8ea758ff16cf1f12e6ed5584d256d"
+          ]
+        },
+        {
+          "concurrency": 2,
+          "source_sha256": [
+            "61a5ff863f23b0ebc55338e6b48de1b8211fa2ed6179ec3304d3e4bcf0852e62",
+            "3c42b0662a8b658cdf071cbac275883d050c883b8f0730035ee074a12f4d307d"
+          ]
+        },
+        {
+          "concurrency": 4,
+          "source_sha256": [
+            "215453044c83a8d780b14de5ffd329404f8c9cdae2a5f6d56001889d85e17b49",
+            "7e0bf0c288bb9df7aa08b19f698030892771a0d6a9990b0d9447c22f973c133e"
+          ]
+        },
+        {
+          "concurrency": 8,
+          "source_sha256": [
+            "705cd2cd4965560f3a1149bcb62d2a053cded55e0aff15aabb374d318011f749",
+            "00fb1678504ab7023ac1a258f05e78f9d793ef009147a985c1174527e3be8b3f"
+          ]
+        },
+        {
+          "concurrency": 16,
+          "source_sha256": [
+            "0bb137f44691457fb0d8a3fbe186d7dffa95945ae273de8ee71f6f384694f851",
+            "c74cb4160daf0d07420b3288c234e6f4a0c07d7ddcc9ffde5053aea131426664"
+          ]
+        },
+        {
+          "concurrency": 32,
+          "source_sha256": [
+            "e0165e2c51d162f7dcfafa75346acbc739f1e30fbea2bd741e7c5b40f5b7437d",
+            "d734e9ec764b0f1baf35589d4886f6b9e2cd9254c660721f3ad6a86b0602c504"
+          ]
+        }
+      ],
+      "observations": [
+        {
+          "source_sha256": "0bb137f44691457fb0d8a3fbe186d7dffa95945ae273de8ee71f6f384694f851",
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c16_p16k-observations.json",
+          "sha256": "633296dd94594c55df9e886c688ae709c0d503181d882a22dc70bf3515fe9a9b",
+          "size_bytes": 1842677
+        },
+        {
+          "source_sha256": "c74cb4160daf0d07420b3288c234e6f4a0c07d7ddcc9ffde5053aea131426664",
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c16_p4k-observations.json",
+          "sha256": "e3c0c531c11e47ab9119c776548503b55fd15988462428c5c9e3dbf69d06e168",
+          "size_bytes": 1868327
+        },
+        {
+          "source_sha256": "cc316ae15600914b4c58c7ef10a0103026a7d5abae1dc733dd3eedcaa0397f8e",
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c1_p16k-observations.json",
+          "sha256": "c7b5c382c02ce9ff84b819dab7356c5c826f278d9b07a168337bb27ee751c288",
+          "size_bytes": 1611981
+        },
+        {
+          "source_sha256": "95fe4cc26e249dbd597c62ae1db12710fca8ea758ff16cf1f12e6ed5584d256d",
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c1_p4k-observations.json",
+          "sha256": "0cfa80788d5bc22dd3431019d57fb1ea6434db7b41c6a61f6bbdf4fe472b2b2c",
+          "size_bytes": 1609838
+        },
+        {
+          "source_sha256": "61a5ff863f23b0ebc55338e6b48de1b8211fa2ed6179ec3304d3e4bcf0852e62",
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c2_p16k-observations.json",
+          "sha256": "90f70b8024de44744d0237cebffa948f287f989e75d2dcd4f47211dc746c216e",
+          "size_bytes": 1733664
+        },
+        {
+          "source_sha256": "3c42b0662a8b658cdf071cbac275883d050c883b8f0730035ee074a12f4d307d",
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c2_p4k-observations.json",
+          "sha256": "440898a6a22bc4684f92bede5b0dd61a9f086ca267dc4eb6015216eb62aec88d",
+          "size_bytes": 1744055
+        },
+        {
+          "source_sha256": "e0165e2c51d162f7dcfafa75346acbc739f1e30fbea2bd741e7c5b40f5b7437d",
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c32_p16k-observations.json",
+          "sha256": "b099f139652fb8d45cb2c1f60638a4203e9c658e48e56066abd395e3a6bdcbc0",
+          "size_bytes": 1773953
+        },
+        {
+          "source_sha256": "d734e9ec764b0f1baf35589d4886f6b9e2cd9254c660721f3ad6a86b0602c504",
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c32_p4k-observations.json",
+          "sha256": "a20067dc593b55ec8648d0f87f97c6dd6d8a0a7a1ba38ada76b5ff64490ec737",
+          "size_bytes": 1852757
+        },
+        {
+          "source_sha256": "215453044c83a8d780b14de5ffd329404f8c9cdae2a5f6d56001889d85e17b49",
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c4_p16k-observations.json",
+          "sha256": "d3282bf0e8779a46dea926e2edb24b4b137146ef2a7970801850acaf703a579a",
+          "size_bytes": 1677329
+        },
+        {
+          "source_sha256": "7e0bf0c288bb9df7aa08b19f698030892771a0d6a9990b0d9447c22f973c133e",
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c4_p4k-observations.json",
+          "sha256": "5c807c2ed0aec7c91fab6e6dcf80e0436077891f7a16834a6126f5eb39b6bab4",
+          "size_bytes": 1691960
+        },
+        {
+          "source_sha256": "705cd2cd4965560f3a1149bcb62d2a053cded55e0aff15aabb374d318011f749",
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c8_p16k-observations.json",
+          "sha256": "f35c2f24f7b833e5cd195b83cecb8a9d023cbf003b8945c4452c72da233c2f33",
+          "size_bytes": 1907241
+        },
+        {
+          "source_sha256": "00fb1678504ab7023ac1a258f05e78f9d793ef009147a985c1174527e3be8b3f",
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a5_kimi_tp8_e16_bf16_c8_p4k-observations.json",
+          "sha256": "d133199b083139a33709802ffd678770435eed41c8ec76a3b8e2af542965ec49",
+          "size_bytes": 1914542
+        }
+      ],
+      "domains": [
+        {
+          "id": "a5-rmsnorm-6d6f1b8d395257",
+          "boundary": {
+            "native_operator_type": "RmsNorm",
+            "source_implementation": "captured_normalized_active_tensor_contract",
+            "precision": "bf16",
+            "layout": "normalized_rmsnorm_contract",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "bf16",
+              "layout": "normalized_rmsnorm_contract",
+              "hidden_width": 3584,
+              "affine": true
+            }
+          },
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "6d6f1b8d39525768f7a0bd0f33bab3375993e9740b7687382f24c42da96b13ee"
+          },
+          "coordinates": {
+            "elements": {
+              "path": "elements",
+              "scale": 1e-06
+            }
+          }
+        },
+        {
+          "id": "a5-matmulv3-e1eb35aa1cd4bb",
+          "boundary": {
+            "native_operator_type": "MatMulV3",
+            "source_implementation": "captured_normalized_active_tensor_contract",
+            "precision": [
+              "bf16",
+              "bf16",
+              "bf16"
+            ],
+            "layout": "normalized_matrix_contract",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": [
+                "bf16",
+                "bf16",
+                "bf16"
+              ],
+              "layout": "normalized_matrix_contract",
+              "scale_rank": 0,
+              "scale_dtype": "",
+              "input_weight_output_contract": "matrix"
+            }
+          },
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "e1eb35aa1cd4bb4707cb8cf5d8de66d08432d0b27d985e4d776603e1044669fd"
+          },
+          "coordinates": {
+            "gflops": {
+              "path": "work.flops",
+              "scale": 1e-09
+            },
+            "hbm_mb": {
+              "path": "work.hbm_bytes",
+              "scale": 1e-06
+            }
+          }
+        },
+        {
+          "id": "a5-matmulv3-39ad13bead592d",
+          "boundary": {
+            "native_operator_type": "MatMulV3",
+            "source_implementation": "captured_normalized_active_tensor_contract",
+            "precision": [
+              "bf16",
+              "bf16",
+              "fp32"
+            ],
+            "layout": "normalized_matrix_contract",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": [
+                "bf16",
+                "bf16",
+                "fp32"
+              ],
+              "layout": "normalized_matrix_contract",
+              "scale_rank": 0,
+              "scale_dtype": "",
+              "input_weight_output_contract": "matrix"
+            }
+          },
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "39ad13bead592de4b077b1ea03bf214d32741d02c0acc47831d2563615b16ecf"
+          },
+          "coordinates": {
+            "gflops": {
+              "path": "work.flops",
+              "scale": 1e-09
+            },
+            "hbm_mb": {
+              "path": "work.hbm_bytes",
+              "scale": 1e-06
+            }
+          }
+        },
+        {
+          "id": "a5-hcom_allgather_-4e4a5ec881d92b",
+          "boundary": {
+            "native_operator_type": "hcom_allGather_",
+            "source_implementation": "captured_TP8_HCOM_joint_elapsed",
+            "precision": "bf16",
+            "layout": "declared_ND_7168",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "bf16",
+              "layout": "declared_ND_7168",
+              "ranks": 8,
+              "group_axis": "tp",
+              "hardware": "Ascend950DT_9582",
+              "captured_algorithm": "not_identified",
+              "structural_block": "attention_output_communication"
+            }
+          },
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "4e4a5ec881d92b1c53079f82cd7b7081df00dad85f5f8c7864de5bb8f874fe1d"
+          },
+          "coordinates": {
+            "payload_mb": {
+              "path": "declared_payload_bytes",
+              "scale": 1e-06
+            }
+          }
+        },
+        {
+          "id": "a5-hcom_allgather_-a2134a2346bdb3",
+          "boundary": {
+            "native_operator_type": "hcom_allGather_",
+            "source_implementation": "captured_TP8_HCOM_joint_elapsed",
+            "precision": "bf16",
+            "layout": "declared_ND_7168",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "bf16",
+              "layout": "declared_ND_7168",
+              "ranks": 8,
+              "group_axis": "tp",
+              "hardware": "Ascend950DT_9582",
+              "captured_algorithm": "not_identified",
+              "structural_block": "ffn_down_communication"
+            }
+          },
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "a2134a2346bdb351e62da9954a9420af8b0de720388c49a108aa76dfe26a2f92"
+          },
+          "coordinates": {
+            "payload_mb": {
+              "path": "declared_payload_bytes",
+              "scale": 1e-06
+            }
+          }
+        },
+        {
+          "id": "a5-hcom_reducescatter_-06b8d31d2f406f",
+          "boundary": {
+            "native_operator_type": "hcom_reduceScatter_",
+            "source_implementation": "captured_TP8_HCOM_joint_elapsed",
+            "precision": "bf16",
+            "layout": "declared_ND_7168",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "bf16",
+              "layout": "declared_ND_7168",
+              "ranks": 8,
+              "group_axis": "tp",
+              "hardware": "Ascend950DT_9582",
+              "captured_algorithm": "not_identified",
+              "structural_block": "attention_output_communication"
+            }
+          },
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "06b8d31d2f406f0878bf8946a41b84253e563837ff7355ae58f38a9babef9113"
+          },
+          "coordinates": {
+            "payload_mb": {
+              "path": "declared_payload_bytes",
+              "scale": 1e-06
+            }
+          }
+        },
+        {
+          "id": "a5-hcom_reducescatter_-32e8647c20ab68",
+          "boundary": {
+            "native_operator_type": "hcom_reduceScatter_",
+            "source_implementation": "captured_TP8_HCOM_joint_elapsed",
+            "precision": "bf16",
+            "layout": "declared_ND_7168",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "bf16",
+              "layout": "declared_ND_7168",
+              "ranks": 8,
+              "group_axis": "tp",
+              "hardware": "Ascend950DT_9582",
+              "captured_algorithm": "not_identified",
+              "structural_block": "ffn_down_communication"
+            }
+          },
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "32e8647c20ab684a78ab0180f0a6fb167586688012f10e75eaf3fdd36e5da1e4"
+          },
+          "coordinates": {
+            "payload_mb": {
+              "path": "declared_payload_bytes",
+              "scale": 1e-06
+            }
+          }
+        },
+        {
+          "id": "a5-causalconv1d-51ba322338745e",
+          "boundary": {
+            "native_operator_type": "CausalConv1d",
+            "source_implementation": "captured_causal_conv_4x4608_bf16",
+            "precision": "typed_ABI_preserved",
+            "layout": "typed_ABI_preserved",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "typed_ABI_preserved",
+              "layout": "typed_ABI_preserved",
+              "native_ABI_template": [
+                "native_tensor_abi",
+                "CausalConv1d",
+                [
+                  [
+                    [
+                      "tokens",
+                      4608
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      4,
+                      4608
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [
+                      "cache_pool_capacity",
+                      3,
+                      4608
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "tokens+1"
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "tokens"
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ]
+                ],
+                [
+                  [
+                    [
+                      "tokens",
+                      4608
+                    ],
+                    "bf16",
+                    "ND"
+                  ]
+                ]
+              ],
+              "tp": 8,
+              "ep": null
+            }
+          },
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "51ba322338745e3531cb03470bc5c416a6a255746766c7fb49f16ac4cad1527a"
+          },
+          "coordinates": {
+            "tokens": {
+              "path": "logical_tokens"
+            }
+          }
+        },
+        {
+          "id": "a5-recurrentkda-3ca0b03a5ddc4d",
+          "boundary": {
+            "native_operator_type": "RecurrentKda",
+            "source_implementation": "captured_arch35_kda_10_input_no_accepted_array",
+            "precision": "typed_ABI_preserved",
+            "layout": "typed_ABI_preserved",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "typed_ABI_preserved",
+              "layout": "typed_ABI_preserved",
+              "native_ABI_template": [
+                "native_tensor_abi",
+                "RecurrentKda",
+                [
+                  [
+                    [
+                      "opaque_backing_extent"
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "opaque_backing_extent"
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "opaque_backing_extent"
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      1,
+                      "tokens",
+                      12,
+                      128
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      1,
+                      "tokens",
+                      12
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "opaque_backing_extent"
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "tokens+1"
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "tokens"
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      12
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      1536
+                    ],
+                    "fp32",
+                    "ND"
+                  ]
+                ],
+                [
+                  [
+                    [
+                      "tokens*1536"
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "opaque_backing_extent"
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "opaque_backing_extent"
+                    ],
+                    "fp32",
+                    "ND"
+                  ]
+                ]
+              ],
+              "tp": 8,
+              "ep": null
+            }
+          },
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "3ca0b03a5ddc4d4ff3c9ca3d84607aafe20f102e968aacd79745260f57572ca4"
+          },
+          "coordinates": {
+            "tokens": {
+              "path": "logical_tokens"
+            }
+          }
+        },
+        {
+          "id": "a5-fusedinferattentionscore-c2839ce1852a46",
+          "boundary": {
+            "native_operator_type": "FusedInferAttentionScore",
+            "source_implementation": "captured_paged_MLA_31slot_NBSD_output",
+            "precision": "typed_ABI_preserved",
+            "layout": "typed_ABI_preserved",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "typed_ABI_preserved",
+              "layout": "typed_ABI_preserved",
+              "native_ABI_template": [
+                "native_tensor_abi",
+                "FusedInferAttentionScore",
+                [
+                  [
+                    [
+                      "tokens",
+                      16,
+                      1,
+                      512
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "cache_pool_capacity",
+                      1,
+                      128,
+                      512
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "cache_pool_capacity",
+                      1,
+                      128,
+                      512
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [
+                      "tokens"
+                    ],
+                    "int64",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [
+                      "tokens",
+                      516
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [
+                      "tokens",
+                      16,
+                      1,
+                      64
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "cache_pool_capacity",
+                      1,
+                      128,
+                      64
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ]
+                ],
+                [
+                  [
+                    [
+                      16,
+                      "tokens",
+                      1,
+                      512
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    "fp32",
+                    "ND"
+                  ]
+                ]
+              ],
+              "tp": 8,
+              "ep": null
+            }
+          },
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "c2839ce1852a4672f43b7e5652085d17fd6544c55dfbb25ca6e204a82799638d"
+          },
+          "coordinates": {
+            "tokens": {
+              "path": "logical_tokens"
+            },
+            "token_context": {
+              "path": "declared_token_context_product",
+              "scale": 0.001
+            }
+          }
+        },
+        {
+          "id": "a5-moedistributedispatchv3-c0ca4443fffc8c",
+          "boundary": {
+            "native_operator_type": "MoeDistributeDispatchV3",
+            "source_implementation": "captured_arch35_MC2_unquantized_rows_EP8_TP8",
+            "precision": "typed_ABI_preserved",
+            "layout": "typed_ABI_preserved",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "typed_ABI_preserved",
+              "layout": "typed_ABI_preserved",
+              "native_ABI_template": [
+                "native_tensor_abi",
+                "MoeDistributeDispatchV3",
+                [
+                  [
+                    [
+                      4100
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [
+                      "1*input_rows"
+                    ],
+                    "bool",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ]
+                ],
+                [
+                  [
+                    [
+                      "16*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "16*input_rows"
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "2048*input_rows"
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      2
+                    ],
+                    "int64",
+                    "ND"
+                  ],
+                  [
+                    [
+                      16
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      1
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "16*input_rows"
+                    ],
+                    "fp32",
+                    "ND"
+                  ]
+                ]
+              ],
+              "tp": 8,
+              "ep": 8
+            }
+          },
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "c0ca4443fffc8c8702df0b57456330f9e726e1260b6f6c4f3cfa50d809fbfb26"
+          },
+          "coordinates": {
+            "input_rows": {
+              "path": "source_input_rows"
+            }
+          }
+        },
+        {
+          "id": "a5-moedistributecombinev3-d46c0161570e83",
+          "boundary": {
+            "native_operator_type": "MoeDistributeCombineV3",
+            "source_implementation": "captured_arch35_MC2_unquantized_rows_EP8_TP8",
+            "precision": "typed_ABI_preserved",
+            "layout": "typed_ABI_preserved",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "typed_ABI_preserved",
+              "layout": "typed_ABI_preserved",
+              "native_ABI_template": [
+                "native_tensor_abi",
+                "MoeDistributeCombineV3",
+                [
+                  [
+                    [
+                      4100
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "16*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "2048*input_rows"
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      16
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows",
+                      8
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      1
+                    ],
+                    "int32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      "1*input_rows"
+                    ],
+                    "bool",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [
+                      "16*input_rows"
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ],
+                  [
+                    [],
+                    null,
+                    null
+                  ]
+                ],
+                [
+                  [
+                    [
+                      "1*input_rows",
+                      3584
+                    ],
+                    "bf16",
+                    "ND"
+                  ]
+                ]
+              ],
+              "tp": 8,
+              "ep": 8
+            }
+          },
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "native_signature": "d46c0161570e8358ae3bfed781fb4db2ee2462ed64dc61471f6e6871c6f49d23"
+          },
+          "coordinates": {
+            "input_rows": {
+              "path": "source_input_rows"
+            }
+          }
+        }
+      ],
+      "minimum_training_sources": 3,
+      "limits": [
+        "All contexts at the excluded concurrency are held out together; historical timings were previously examined.",
+        "Native response scoring only; no fresh Sim cost or Body accuracy claim.",
+        "MC2/HCOM joint elapsed keeps architecture, TP/EP and native-call domain separate; peer wait is not isolated.",
+        "Unavailable complete ABI/active routing populations remain explicitly unscored."
+      ],
+      "population_coverage": [
+        {
+          "case_id": "a5_kimi_tp8_e16_bf16_c16_p16k",
+          "source_sha256": "0bb137f44691457fb0d8a3fbe186d7dffa95945ae273de8ee71f6f384694f851",
+          "forward_count": 47,
+          "native_families": [
+            {
+              "native_operator_type": "AsStrided",
+              "full_calls": 3243,
+              "admitted_calls": 0,
+              "unadmitted_calls": 3243
+            },
+            {
+              "native_operator_type": "AttnResFwd",
+              "full_calls": 8789,
+              "admitted_calls": 0,
+              "unadmitted_calls": 8789
+            },
+            {
+              "native_operator_type": "BroadcastTo",
+              "full_calls": 47,
+              "admitted_calls": 0,
+              "unadmitted_calls": 47
+            },
+            {
+              "native_operator_type": "Cast",
+              "full_calls": 30550,
+              "admitted_calls": 0,
+              "unadmitted_calls": 30550
+            },
+            {
+              "native_operator_type": "CausalConv1d",
+              "full_calls": 3243,
+              "admitted_calls": 3243,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Fill",
+              "full_calls": 94,
+              "admitted_calls": 0,
+              "unadmitted_calls": 94
+            },
+            {
+              "native_operator_type": "ForeachAddList",
+              "full_calls": 4324,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4324
+            },
+            {
+              "native_operator_type": "FusedInferAttentionScore",
+              "full_calls": 1128,
+              "admitted_calls": 1128,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "GroupedMatmul",
+              "full_calls": 8648,
+              "admitted_calls": 0,
+              "unadmitted_calls": 8648
+            },
+            {
+              "native_operator_type": "Index",
+              "full_calls": 47,
+              "admitted_calls": 0,
+              "unadmitted_calls": 47
+            },
+            {
+              "native_operator_type": "MatMulV3",
+              "full_calls": 33699,
+              "admitted_calls": 27213,
+              "unadmitted_calls": 6486
+            },
+            {
+              "native_operator_type": "MlaPrologV3",
+              "full_calls": 1128,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1128
+            },
+            {
+              "native_operator_type": "MoeDistributeCombineV3",
+              "full_calls": 4324,
+              "admitted_calls": 4324,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeDistributeDispatchV3",
+              "full_calls": 4324,
+              "admitted_calls": 4324,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeGatingTopK",
+              "full_calls": 4324,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4324
+            },
+            {
+              "native_operator_type": "Mul",
+              "full_calls": 35908,
+              "admitted_calls": 0,
+              "unadmitted_calls": 35908
+            },
+            {
+              "native_operator_type": "Muls",
+              "full_calls": 17390,
+              "admitted_calls": 0,
+              "unadmitted_calls": 17390
+            },
+            {
+              "native_operator_type": "PadV3",
+              "full_calls": 2256,
+              "admitted_calls": 0,
+              "unadmitted_calls": 2256
+            },
+            {
+              "native_operator_type": "RecurrentKda",
+              "full_calls": 3243,
+              "admitted_calls": 3243,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "RmsNorm",
+              "full_calls": 4324,
+              "admitted_calls": 4324,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Sigmoid",
+              "full_calls": 13066,
+              "admitted_calls": 0,
+              "unadmitted_calls": 13066
+            },
+            {
+              "native_operator_type": "Slice",
+              "full_calls": 26132,
+              "admitted_calls": 0,
+              "unadmitted_calls": 26132
+            },
+            {
+              "native_operator_type": "Tanh",
+              "full_calls": 17390,
+              "admitted_calls": 0,
+              "unadmitted_calls": 17390
+            },
+            {
+              "native_operator_type": "TransposeBatchMatMul",
+              "full_calls": 1128,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1128
+            },
+            {
+              "native_operator_type": "ZerosLike",
+              "full_calls": 4371,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4371
+            },
+            {
+              "native_operator_type": "hcom_allGather_",
+              "full_calls": 8789,
+              "admitted_calls": 8789,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "hcom_reduceScatter_",
+              "full_calls": 8742,
+              "admitted_calls": 8742,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "layer_norm_gated_fwd_kernel",
+              "full_calls": 3243,
+              "admitted_calls": 0,
+              "unadmitted_calls": 3243
+            }
+          ],
+          "source_forward_count": 47,
+          "unselected_source_forward_count": 0,
+          "geometry": {
+            "query_rows": 16,
+            "sequences_per_replica": 16,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          }
+        },
+        {
+          "case_id": "a5_kimi_tp8_e16_bf16_c16_p4k",
+          "source_sha256": "c74cb4160daf0d07420b3288c234e6f4a0c07d7ddcc9ffde5053aea131426664",
+          "forward_count": 49,
+          "native_families": [
+            {
+              "native_operator_type": "AsStrided",
+              "full_calls": 3381,
+              "admitted_calls": 0,
+              "unadmitted_calls": 3381
+            },
+            {
+              "native_operator_type": "AttnResFwd",
+              "full_calls": 9163,
+              "admitted_calls": 0,
+              "unadmitted_calls": 9163
+            },
+            {
+              "native_operator_type": "BroadcastTo",
+              "full_calls": 49,
+              "admitted_calls": 0,
+              "unadmitted_calls": 49
+            },
+            {
+              "native_operator_type": "Cast",
+              "full_calls": 31850,
+              "admitted_calls": 0,
+              "unadmitted_calls": 31850
+            },
+            {
+              "native_operator_type": "CausalConv1d",
+              "full_calls": 3381,
+              "admitted_calls": 3381,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Fill",
+              "full_calls": 98,
+              "admitted_calls": 0,
+              "unadmitted_calls": 98
+            },
+            {
+              "native_operator_type": "ForeachAddList",
+              "full_calls": 4508,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4508
+            },
+            {
+              "native_operator_type": "FusedInferAttentionScore",
+              "full_calls": 1176,
+              "admitted_calls": 1176,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "GroupedMatmul",
+              "full_calls": 9016,
+              "admitted_calls": 0,
+              "unadmitted_calls": 9016
+            },
+            {
+              "native_operator_type": "Index",
+              "full_calls": 49,
+              "admitted_calls": 0,
+              "unadmitted_calls": 49
+            },
+            {
+              "native_operator_type": "MatMulV3",
+              "full_calls": 35133,
+              "admitted_calls": 28371,
+              "unadmitted_calls": 6762
+            },
+            {
+              "native_operator_type": "MlaPrologV3",
+              "full_calls": 1176,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1176
+            },
+            {
+              "native_operator_type": "MoeDistributeCombineV3",
+              "full_calls": 4508,
+              "admitted_calls": 4508,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeDistributeDispatchV3",
+              "full_calls": 4508,
+              "admitted_calls": 4508,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeGatingTopK",
+              "full_calls": 4508,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4508
+            },
+            {
+              "native_operator_type": "Mul",
+              "full_calls": 37436,
+              "admitted_calls": 0,
+              "unadmitted_calls": 37436
+            },
+            {
+              "native_operator_type": "Muls",
+              "full_calls": 18130,
+              "admitted_calls": 0,
+              "unadmitted_calls": 18130
+            },
+            {
+              "native_operator_type": "PadV3",
+              "full_calls": 2352,
+              "admitted_calls": 0,
+              "unadmitted_calls": 2352
+            },
+            {
+              "native_operator_type": "RecurrentKda",
+              "full_calls": 3381,
+              "admitted_calls": 3381,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "RmsNorm",
+              "full_calls": 4508,
+              "admitted_calls": 4508,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Sigmoid",
+              "full_calls": 13622,
+              "admitted_calls": 0,
+              "unadmitted_calls": 13622
+            },
+            {
+              "native_operator_type": "Slice",
+              "full_calls": 27244,
+              "admitted_calls": 0,
+              "unadmitted_calls": 27244
+            },
+            {
+              "native_operator_type": "Tanh",
+              "full_calls": 18130,
+              "admitted_calls": 0,
+              "unadmitted_calls": 18130
+            },
+            {
+              "native_operator_type": "TransposeBatchMatMul",
+              "full_calls": 1176,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1176
+            },
+            {
+              "native_operator_type": "ZerosLike",
+              "full_calls": 4557,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4557
+            },
+            {
+              "native_operator_type": "hcom_allGather_",
+              "full_calls": 9163,
+              "admitted_calls": 9163,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "hcom_reduceScatter_",
+              "full_calls": 9114,
+              "admitted_calls": 9114,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "layer_norm_gated_fwd_kernel",
+              "full_calls": 3381,
+              "admitted_calls": 0,
+              "unadmitted_calls": 3381
+            }
+          ],
+          "source_forward_count": 49,
+          "unselected_source_forward_count": 0,
+          "geometry": {
+            "query_rows": 16,
+            "sequences_per_replica": 16,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          }
+        },
+        {
+          "case_id": "a5_kimi_tp8_e16_bf16_c1_p16k",
+          "source_sha256": "cc316ae15600914b4c58c7ef10a0103026a7d5abae1dc733dd3eedcaa0397f8e",
+          "forward_count": 59,
+          "native_families": [
+            {
+              "native_operator_type": "AttnResFwd",
+              "full_calls": 11033,
+              "admitted_calls": 0,
+              "unadmitted_calls": 11033
+            },
+            {
+              "native_operator_type": "BroadcastTo",
+              "full_calls": 59,
+              "admitted_calls": 0,
+              "unadmitted_calls": 59
+            },
+            {
+              "native_operator_type": "Cast",
+              "full_calls": 38350,
+              "admitted_calls": 0,
+              "unadmitted_calls": 38350
+            },
+            {
+              "native_operator_type": "CausalConv1d",
+              "full_calls": 4071,
+              "admitted_calls": 4071,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Fill",
+              "full_calls": 118,
+              "admitted_calls": 0,
+              "unadmitted_calls": 118
+            },
+            {
+              "native_operator_type": "ForeachAddList",
+              "full_calls": 5428,
+              "admitted_calls": 0,
+              "unadmitted_calls": 5428
+            },
+            {
+              "native_operator_type": "FusedInferAttentionScore",
+              "full_calls": 1416,
+              "admitted_calls": 1416,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "GroupedMatmul",
+              "full_calls": 10856,
+              "admitted_calls": 0,
+              "unadmitted_calls": 10856
+            },
+            {
+              "native_operator_type": "Index",
+              "full_calls": 59,
+              "admitted_calls": 0,
+              "unadmitted_calls": 59
+            },
+            {
+              "native_operator_type": "MatMulV3",
+              "full_calls": 42303,
+              "admitted_calls": 27376,
+              "unadmitted_calls": 14927
+            },
+            {
+              "native_operator_type": "MlaPrologV3",
+              "full_calls": 1416,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1416
+            },
+            {
+              "native_operator_type": "MoeDistributeCombineV3",
+              "full_calls": 5428,
+              "admitted_calls": 5428,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeDistributeDispatchV3",
+              "full_calls": 5428,
+              "admitted_calls": 5428,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeGatingTopK",
+              "full_calls": 5428,
+              "admitted_calls": 0,
+              "unadmitted_calls": 5428
+            },
+            {
+              "native_operator_type": "Mul",
+              "full_calls": 45076,
+              "admitted_calls": 0,
+              "unadmitted_calls": 45076
+            },
+            {
+              "native_operator_type": "Muls",
+              "full_calls": 21830,
+              "admitted_calls": 0,
+              "unadmitted_calls": 21830
+            },
+            {
+              "native_operator_type": "PadV3",
+              "full_calls": 13747,
+              "admitted_calls": 0,
+              "unadmitted_calls": 13747
+            },
+            {
+              "native_operator_type": "RecurrentKda",
+              "full_calls": 4071,
+              "admitted_calls": 4071,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "RmsNorm",
+              "full_calls": 5428,
+              "admitted_calls": 5428,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Sigmoid",
+              "full_calls": 16402,
+              "admitted_calls": 0,
+              "unadmitted_calls": 16402
+            },
+            {
+              "native_operator_type": "Slice",
+              "full_calls": 10974,
+              "admitted_calls": 0,
+              "unadmitted_calls": 10974
+            },
+            {
+              "native_operator_type": "Tanh",
+              "full_calls": 21830,
+              "admitted_calls": 0,
+              "unadmitted_calls": 21830
+            },
+            {
+              "native_operator_type": "TransposeBatchMatMul",
+              "full_calls": 1416,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1416
+            },
+            {
+              "native_operator_type": "ZerosLike",
+              "full_calls": 5487,
+              "admitted_calls": 0,
+              "unadmitted_calls": 5487
+            },
+            {
+              "native_operator_type": "hcom_allGather_",
+              "full_calls": 11033,
+              "admitted_calls": 11033,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "hcom_reduceScatter_",
+              "full_calls": 10974,
+              "admitted_calls": 10974,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "layer_norm_gated_fwd_kernel",
+              "full_calls": 4071,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4071
+            }
+          ],
+          "source_forward_count": 59,
+          "unselected_source_forward_count": 0,
+          "geometry": {
+            "query_rows": 1,
+            "sequences_per_replica": 1,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          }
+        },
+        {
+          "case_id": "a5_kimi_tp8_e16_bf16_c1_p4k",
+          "source_sha256": "95fe4cc26e249dbd597c62ae1db12710fca8ea758ff16cf1f12e6ed5584d256d",
+          "forward_count": 59,
+          "native_families": [
+            {
+              "native_operator_type": "AttnResFwd",
+              "full_calls": 11033,
+              "admitted_calls": 0,
+              "unadmitted_calls": 11033
+            },
+            {
+              "native_operator_type": "BroadcastTo",
+              "full_calls": 59,
+              "admitted_calls": 0,
+              "unadmitted_calls": 59
+            },
+            {
+              "native_operator_type": "Cast",
+              "full_calls": 38350,
+              "admitted_calls": 0,
+              "unadmitted_calls": 38350
+            },
+            {
+              "native_operator_type": "CausalConv1d",
+              "full_calls": 4071,
+              "admitted_calls": 4071,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Fill",
+              "full_calls": 118,
+              "admitted_calls": 0,
+              "unadmitted_calls": 118
+            },
+            {
+              "native_operator_type": "ForeachAddList",
+              "full_calls": 5428,
+              "admitted_calls": 0,
+              "unadmitted_calls": 5428
+            },
+            {
+              "native_operator_type": "FusedInferAttentionScore",
+              "full_calls": 1416,
+              "admitted_calls": 1416,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "GroupedMatmul",
+              "full_calls": 10856,
+              "admitted_calls": 0,
+              "unadmitted_calls": 10856
+            },
+            {
+              "native_operator_type": "Index",
+              "full_calls": 59,
+              "admitted_calls": 0,
+              "unadmitted_calls": 59
+            },
+            {
+              "native_operator_type": "MatMulV3",
+              "full_calls": 42303,
+              "admitted_calls": 27376,
+              "unadmitted_calls": 14927
+            },
+            {
+              "native_operator_type": "MlaPrologV3",
+              "full_calls": 1416,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1416
+            },
+            {
+              "native_operator_type": "MoeDistributeCombineV3",
+              "full_calls": 5428,
+              "admitted_calls": 5428,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeDistributeDispatchV3",
+              "full_calls": 5428,
+              "admitted_calls": 5428,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeGatingTopK",
+              "full_calls": 5428,
+              "admitted_calls": 0,
+              "unadmitted_calls": 5428
+            },
+            {
+              "native_operator_type": "Mul",
+              "full_calls": 45076,
+              "admitted_calls": 0,
+              "unadmitted_calls": 45076
+            },
+            {
+              "native_operator_type": "Muls",
+              "full_calls": 21830,
+              "admitted_calls": 0,
+              "unadmitted_calls": 21830
+            },
+            {
+              "native_operator_type": "PadV3",
+              "full_calls": 13747,
+              "admitted_calls": 0,
+              "unadmitted_calls": 13747
+            },
+            {
+              "native_operator_type": "RecurrentKda",
+              "full_calls": 4071,
+              "admitted_calls": 4071,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "RmsNorm",
+              "full_calls": 5428,
+              "admitted_calls": 5428,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Sigmoid",
+              "full_calls": 16402,
+              "admitted_calls": 0,
+              "unadmitted_calls": 16402
+            },
+            {
+              "native_operator_type": "Slice",
+              "full_calls": 10974,
+              "admitted_calls": 0,
+              "unadmitted_calls": 10974
+            },
+            {
+              "native_operator_type": "Tanh",
+              "full_calls": 21830,
+              "admitted_calls": 0,
+              "unadmitted_calls": 21830
+            },
+            {
+              "native_operator_type": "TransposeBatchMatMul",
+              "full_calls": 1416,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1416
+            },
+            {
+              "native_operator_type": "ZerosLike",
+              "full_calls": 5487,
+              "admitted_calls": 0,
+              "unadmitted_calls": 5487
+            },
+            {
+              "native_operator_type": "hcom_allGather_",
+              "full_calls": 11033,
+              "admitted_calls": 11033,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "hcom_reduceScatter_",
+              "full_calls": 10974,
+              "admitted_calls": 10974,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "layer_norm_gated_fwd_kernel",
+              "full_calls": 4071,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4071
+            }
+          ],
+          "source_forward_count": 59,
+          "unselected_source_forward_count": 0,
+          "geometry": {
+            "query_rows": 1,
+            "sequences_per_replica": 1,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          }
+        },
+        {
+          "case_id": "a5_kimi_tp8_e16_bf16_c2_p16k",
+          "source_sha256": "61a5ff863f23b0ebc55338e6b48de1b8211fa2ed6179ec3304d3e4bcf0852e62",
+          "forward_count": 54,
+          "native_families": [
+            {
+              "native_operator_type": "AsStrided",
+              "full_calls": 3726,
+              "admitted_calls": 0,
+              "unadmitted_calls": 3726
+            },
+            {
+              "native_operator_type": "AttnResFwd",
+              "full_calls": 10098,
+              "admitted_calls": 0,
+              "unadmitted_calls": 10098
+            },
+            {
+              "native_operator_type": "BroadcastTo",
+              "full_calls": 108,
+              "admitted_calls": 0,
+              "unadmitted_calls": 108
+            },
+            {
+              "native_operator_type": "Cast",
+              "full_calls": 35208,
+              "admitted_calls": 0,
+              "unadmitted_calls": 35208
+            },
+            {
+              "native_operator_type": "CausalConv1d",
+              "full_calls": 3726,
+              "admitted_calls": 3726,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Fill",
+              "full_calls": 108,
+              "admitted_calls": 0,
+              "unadmitted_calls": 108
+            },
+            {
+              "native_operator_type": "ForeachAddList",
+              "full_calls": 4968,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4968
+            },
+            {
+              "native_operator_type": "FusedInferAttentionScore",
+              "full_calls": 1296,
+              "admitted_calls": 1296,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "GroupedMatmul",
+              "full_calls": 9936,
+              "admitted_calls": 0,
+              "unadmitted_calls": 9936
+            },
+            {
+              "native_operator_type": "Index",
+              "full_calls": 54,
+              "admitted_calls": 0,
+              "unadmitted_calls": 54
+            },
+            {
+              "native_operator_type": "MatMulV3",
+              "full_calls": 38718,
+              "admitted_calls": 21330,
+              "unadmitted_calls": 17388
+            },
+            {
+              "native_operator_type": "MlaPrologV3",
+              "full_calls": 1296,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1296
+            },
+            {
+              "native_operator_type": "MoeDistributeCombineV3",
+              "full_calls": 4968,
+              "admitted_calls": 4968,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeDistributeDispatchV3",
+              "full_calls": 4968,
+              "admitted_calls": 4968,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeGatingTopK",
+              "full_calls": 4968,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4968
+            },
+            {
+              "native_operator_type": "Mul",
+              "full_calls": 41256,
+              "admitted_calls": 0,
+              "unadmitted_calls": 41256
+            },
+            {
+              "native_operator_type": "Muls",
+              "full_calls": 19980,
+              "admitted_calls": 0,
+              "unadmitted_calls": 19980
+            },
+            {
+              "native_operator_type": "PadV3",
+              "full_calls": 12582,
+              "admitted_calls": 0,
+              "unadmitted_calls": 12582
+            },
+            {
+              "native_operator_type": "RecurrentKda",
+              "full_calls": 3726,
+              "admitted_calls": 3726,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "RmsNorm",
+              "full_calls": 4968,
+              "admitted_calls": 4968,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Sigmoid",
+              "full_calls": 15012,
+              "admitted_calls": 0,
+              "unadmitted_calls": 15012
+            },
+            {
+              "native_operator_type": "Slice",
+              "full_calls": 30024,
+              "admitted_calls": 0,
+              "unadmitted_calls": 30024
+            },
+            {
+              "native_operator_type": "Tanh",
+              "full_calls": 19980,
+              "admitted_calls": 0,
+              "unadmitted_calls": 19980
+            },
+            {
+              "native_operator_type": "TransposeBatchMatMul",
+              "full_calls": 1296,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1296
+            },
+            {
+              "native_operator_type": "ZerosLike",
+              "full_calls": 5022,
+              "admitted_calls": 0,
+              "unadmitted_calls": 5022
+            },
+            {
+              "native_operator_type": "hcom_allGather_",
+              "full_calls": 10098,
+              "admitted_calls": 10098,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "hcom_reduceScatter_",
+              "full_calls": 10044,
+              "admitted_calls": 10044,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "layer_norm_gated_fwd_kernel",
+              "full_calls": 3726,
+              "admitted_calls": 0,
+              "unadmitted_calls": 3726
+            }
+          ],
+          "source_forward_count": 54,
+          "unselected_source_forward_count": 0,
+          "geometry": {
+            "query_rows": 2,
+            "sequences_per_replica": 2,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          }
+        },
+        {
+          "case_id": "a5_kimi_tp8_e16_bf16_c2_p4k",
+          "source_sha256": "3c42b0662a8b658cdf071cbac275883d050c883b8f0730035ee074a12f4d307d",
+          "forward_count": 55,
+          "native_families": [
+            {
+              "native_operator_type": "AsStrided",
+              "full_calls": 3795,
+              "admitted_calls": 0,
+              "unadmitted_calls": 3795
+            },
+            {
+              "native_operator_type": "AttnResFwd",
+              "full_calls": 10285,
+              "admitted_calls": 0,
+              "unadmitted_calls": 10285
+            },
+            {
+              "native_operator_type": "BroadcastTo",
+              "full_calls": 110,
+              "admitted_calls": 0,
+              "unadmitted_calls": 110
+            },
+            {
+              "native_operator_type": "Cast",
+              "full_calls": 35860,
+              "admitted_calls": 0,
+              "unadmitted_calls": 35860
+            },
+            {
+              "native_operator_type": "CausalConv1d",
+              "full_calls": 3795,
+              "admitted_calls": 3795,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Fill",
+              "full_calls": 110,
+              "admitted_calls": 0,
+              "unadmitted_calls": 110
+            },
+            {
+              "native_operator_type": "ForeachAddList",
+              "full_calls": 5060,
+              "admitted_calls": 0,
+              "unadmitted_calls": 5060
+            },
+            {
+              "native_operator_type": "FusedInferAttentionScore",
+              "full_calls": 1320,
+              "admitted_calls": 1320,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "GroupedMatmul",
+              "full_calls": 10120,
+              "admitted_calls": 0,
+              "unadmitted_calls": 10120
+            },
+            {
+              "native_operator_type": "Index",
+              "full_calls": 55,
+              "admitted_calls": 0,
+              "unadmitted_calls": 55
+            },
+            {
+              "native_operator_type": "MatMulV3",
+              "full_calls": 39435,
+              "admitted_calls": 21725,
+              "unadmitted_calls": 17710
+            },
+            {
+              "native_operator_type": "MlaPrologV3",
+              "full_calls": 1320,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1320
+            },
+            {
+              "native_operator_type": "MoeDistributeCombineV3",
+              "full_calls": 5060,
+              "admitted_calls": 5060,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeDistributeDispatchV3",
+              "full_calls": 5060,
+              "admitted_calls": 5060,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeGatingTopK",
+              "full_calls": 5060,
+              "admitted_calls": 0,
+              "unadmitted_calls": 5060
+            },
+            {
+              "native_operator_type": "Mul",
+              "full_calls": 42020,
+              "admitted_calls": 0,
+              "unadmitted_calls": 42020
+            },
+            {
+              "native_operator_type": "Muls",
+              "full_calls": 20350,
+              "admitted_calls": 0,
+              "unadmitted_calls": 20350
+            },
+            {
+              "native_operator_type": "PadV3",
+              "full_calls": 12815,
+              "admitted_calls": 0,
+              "unadmitted_calls": 12815
+            },
+            {
+              "native_operator_type": "RecurrentKda",
+              "full_calls": 3795,
+              "admitted_calls": 3795,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "RmsNorm",
+              "full_calls": 5060,
+              "admitted_calls": 5060,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Sigmoid",
+              "full_calls": 15290,
+              "admitted_calls": 0,
+              "unadmitted_calls": 15290
+            },
+            {
+              "native_operator_type": "Slice",
+              "full_calls": 30580,
+              "admitted_calls": 0,
+              "unadmitted_calls": 30580
+            },
+            {
+              "native_operator_type": "Tanh",
+              "full_calls": 20350,
+              "admitted_calls": 0,
+              "unadmitted_calls": 20350
+            },
+            {
+              "native_operator_type": "TransposeBatchMatMul",
+              "full_calls": 1320,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1320
+            },
+            {
+              "native_operator_type": "ZerosLike",
+              "full_calls": 5115,
+              "admitted_calls": 0,
+              "unadmitted_calls": 5115
+            },
+            {
+              "native_operator_type": "hcom_allGather_",
+              "full_calls": 10285,
+              "admitted_calls": 10285,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "hcom_reduceScatter_",
+              "full_calls": 10230,
+              "admitted_calls": 10230,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "layer_norm_gated_fwd_kernel",
+              "full_calls": 3795,
+              "admitted_calls": 0,
+              "unadmitted_calls": 3795
+            }
+          ],
+          "source_forward_count": 55,
+          "unselected_source_forward_count": 0,
+          "geometry": {
+            "query_rows": 2,
+            "sequences_per_replica": 2,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          }
+        },
+        {
+          "case_id": "a5_kimi_tp8_e16_bf16_c32_p16k",
+          "source_sha256": "e0165e2c51d162f7dcfafa75346acbc739f1e30fbea2bd741e7c5b40f5b7437d",
+          "forward_count": 41,
+          "native_families": [
+            {
+              "native_operator_type": "AsStrided",
+              "full_calls": 2829,
+              "admitted_calls": 0,
+              "unadmitted_calls": 2829
+            },
+            {
+              "native_operator_type": "AttnResFwd",
+              "full_calls": 7667,
+              "admitted_calls": 0,
+              "unadmitted_calls": 7667
+            },
+            {
+              "native_operator_type": "BroadcastTo",
+              "full_calls": 41,
+              "admitted_calls": 0,
+              "unadmitted_calls": 41
+            },
+            {
+              "native_operator_type": "Cast",
+              "full_calls": 26650,
+              "admitted_calls": 0,
+              "unadmitted_calls": 26650
+            },
+            {
+              "native_operator_type": "CausalConv1d",
+              "full_calls": 2829,
+              "admitted_calls": 2829,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Fill",
+              "full_calls": 82,
+              "admitted_calls": 0,
+              "unadmitted_calls": 82
+            },
+            {
+              "native_operator_type": "ForeachAddList",
+              "full_calls": 3772,
+              "admitted_calls": 0,
+              "unadmitted_calls": 3772
+            },
+            {
+              "native_operator_type": "FusedInferAttentionScore",
+              "full_calls": 984,
+              "admitted_calls": 984,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "GroupedMatmul",
+              "full_calls": 7544,
+              "admitted_calls": 0,
+              "unadmitted_calls": 7544
+            },
+            {
+              "native_operator_type": "Index",
+              "full_calls": 41,
+              "admitted_calls": 0,
+              "unadmitted_calls": 41
+            },
+            {
+              "native_operator_type": "MatMulV3",
+              "full_calls": 29397,
+              "admitted_calls": 23739,
+              "unadmitted_calls": 5658
+            },
+            {
+              "native_operator_type": "MlaPrologV3",
+              "full_calls": 984,
+              "admitted_calls": 0,
+              "unadmitted_calls": 984
+            },
+            {
+              "native_operator_type": "MoeDistributeCombineV3",
+              "full_calls": 3772,
+              "admitted_calls": 3772,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeDistributeDispatchV3",
+              "full_calls": 3772,
+              "admitted_calls": 3772,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeGatingTopK",
+              "full_calls": 3772,
+              "admitted_calls": 0,
+              "unadmitted_calls": 3772
+            },
+            {
+              "native_operator_type": "Mul",
+              "full_calls": 31324,
+              "admitted_calls": 0,
+              "unadmitted_calls": 31324
+            },
+            {
+              "native_operator_type": "Muls",
+              "full_calls": 15170,
+              "admitted_calls": 0,
+              "unadmitted_calls": 15170
+            },
+            {
+              "native_operator_type": "PadV3",
+              "full_calls": 1968,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1968
+            },
+            {
+              "native_operator_type": "RecurrentKda",
+              "full_calls": 2829,
+              "admitted_calls": 2829,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "RmsNorm",
+              "full_calls": 3772,
+              "admitted_calls": 3772,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Sigmoid",
+              "full_calls": 11398,
+              "admitted_calls": 0,
+              "unadmitted_calls": 11398
+            },
+            {
+              "native_operator_type": "Slice",
+              "full_calls": 22796,
+              "admitted_calls": 0,
+              "unadmitted_calls": 22796
+            },
+            {
+              "native_operator_type": "Tanh",
+              "full_calls": 15170,
+              "admitted_calls": 0,
+              "unadmitted_calls": 15170
+            },
+            {
+              "native_operator_type": "TensorMove",
+              "full_calls": 41,
+              "admitted_calls": 0,
+              "unadmitted_calls": 41
+            },
+            {
+              "native_operator_type": "TransposeBatchMatMul",
+              "full_calls": 984,
+              "admitted_calls": 0,
+              "unadmitted_calls": 984
+            },
+            {
+              "native_operator_type": "ZerosLike",
+              "full_calls": 3813,
+              "admitted_calls": 0,
+              "unadmitted_calls": 3813
+            },
+            {
+              "native_operator_type": "hcom_allGather_",
+              "full_calls": 7667,
+              "admitted_calls": 7667,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "hcom_reduceScatter_",
+              "full_calls": 7626,
+              "admitted_calls": 7626,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "layer_norm_gated_fwd_kernel",
+              "full_calls": 2829,
+              "admitted_calls": 0,
+              "unadmitted_calls": 2829
+            }
+          ],
+          "source_forward_count": 41,
+          "unselected_source_forward_count": 0,
+          "geometry": {
+            "query_rows": 32,
+            "sequences_per_replica": 32,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          }
+        },
+        {
+          "case_id": "a5_kimi_tp8_e16_bf16_c32_p4k",
+          "source_sha256": "d734e9ec764b0f1baf35589d4886f6b9e2cd9254c660721f3ad6a86b0602c504",
+          "forward_count": 46,
+          "native_families": [
+            {
+              "native_operator_type": "AsStrided",
+              "full_calls": 3174,
+              "admitted_calls": 0,
+              "unadmitted_calls": 3174
+            },
+            {
+              "native_operator_type": "AttnResFwd",
+              "full_calls": 8602,
+              "admitted_calls": 0,
+              "unadmitted_calls": 8602
+            },
+            {
+              "native_operator_type": "BroadcastTo",
+              "full_calls": 46,
+              "admitted_calls": 0,
+              "unadmitted_calls": 46
+            },
+            {
+              "native_operator_type": "Cast",
+              "full_calls": 29900,
+              "admitted_calls": 0,
+              "unadmitted_calls": 29900
+            },
+            {
+              "native_operator_type": "CausalConv1d",
+              "full_calls": 3174,
+              "admitted_calls": 3174,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Fill",
+              "full_calls": 92,
+              "admitted_calls": 0,
+              "unadmitted_calls": 92
+            },
+            {
+              "native_operator_type": "ForeachAddList",
+              "full_calls": 4232,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4232
+            },
+            {
+              "native_operator_type": "FusedInferAttentionScore",
+              "full_calls": 1104,
+              "admitted_calls": 1104,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "GroupedMatmul",
+              "full_calls": 8464,
+              "admitted_calls": 0,
+              "unadmitted_calls": 8464
+            },
+            {
+              "native_operator_type": "Index",
+              "full_calls": 46,
+              "admitted_calls": 0,
+              "unadmitted_calls": 46
+            },
+            {
+              "native_operator_type": "MatMulV3",
+              "full_calls": 32982,
+              "admitted_calls": 26634,
+              "unadmitted_calls": 6348
+            },
+            {
+              "native_operator_type": "MlaPrologV3",
+              "full_calls": 1104,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1104
+            },
+            {
+              "native_operator_type": "MoeDistributeCombineV3",
+              "full_calls": 4232,
+              "admitted_calls": 4232,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeDistributeDispatchV3",
+              "full_calls": 4232,
+              "admitted_calls": 4232,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeGatingTopK",
+              "full_calls": 4232,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4232
+            },
+            {
+              "native_operator_type": "Mul",
+              "full_calls": 35144,
+              "admitted_calls": 0,
+              "unadmitted_calls": 35144
+            },
+            {
+              "native_operator_type": "Muls",
+              "full_calls": 17020,
+              "admitted_calls": 0,
+              "unadmitted_calls": 17020
+            },
+            {
+              "native_operator_type": "PadV3",
+              "full_calls": 2208,
+              "admitted_calls": 0,
+              "unadmitted_calls": 2208
+            },
+            {
+              "native_operator_type": "RecurrentKda",
+              "full_calls": 3174,
+              "admitted_calls": 3174,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "RmsNorm",
+              "full_calls": 4232,
+              "admitted_calls": 4232,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Sigmoid",
+              "full_calls": 12788,
+              "admitted_calls": 0,
+              "unadmitted_calls": 12788
+            },
+            {
+              "native_operator_type": "Slice",
+              "full_calls": 25576,
+              "admitted_calls": 0,
+              "unadmitted_calls": 25576
+            },
+            {
+              "native_operator_type": "Tanh",
+              "full_calls": 17020,
+              "admitted_calls": 0,
+              "unadmitted_calls": 17020
+            },
+            {
+              "native_operator_type": "TensorMove",
+              "full_calls": 46,
+              "admitted_calls": 0,
+              "unadmitted_calls": 46
+            },
+            {
+              "native_operator_type": "TransposeBatchMatMul",
+              "full_calls": 1104,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1104
+            },
+            {
+              "native_operator_type": "ZerosLike",
+              "full_calls": 4278,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4278
+            },
+            {
+              "native_operator_type": "hcom_allGather_",
+              "full_calls": 8602,
+              "admitted_calls": 8602,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "hcom_reduceScatter_",
+              "full_calls": 8556,
+              "admitted_calls": 8556,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "layer_norm_gated_fwd_kernel",
+              "full_calls": 3174,
+              "admitted_calls": 0,
+              "unadmitted_calls": 3174
+            }
+          ],
+          "source_forward_count": 46,
+          "unselected_source_forward_count": 0,
+          "geometry": {
+            "query_rows": 32,
+            "sequences_per_replica": 32,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          }
+        },
+        {
+          "case_id": "a5_kimi_tp8_e16_bf16_c4_p16k",
+          "source_sha256": "215453044c83a8d780b14de5ffd329404f8c9cdae2a5f6d56001889d85e17b49",
+          "forward_count": 52,
+          "native_families": [
+            {
+              "native_operator_type": "AsStrided",
+              "full_calls": 3588,
+              "admitted_calls": 0,
+              "unadmitted_calls": 3588
+            },
+            {
+              "native_operator_type": "AttnResFwd",
+              "full_calls": 9724,
+              "admitted_calls": 0,
+              "unadmitted_calls": 9724
+            },
+            {
+              "native_operator_type": "BroadcastTo",
+              "full_calls": 104,
+              "admitted_calls": 0,
+              "unadmitted_calls": 104
+            },
+            {
+              "native_operator_type": "Cast",
+              "full_calls": 33904,
+              "admitted_calls": 0,
+              "unadmitted_calls": 33904
+            },
+            {
+              "native_operator_type": "CausalConv1d",
+              "full_calls": 3588,
+              "admitted_calls": 3588,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Fill",
+              "full_calls": 104,
+              "admitted_calls": 0,
+              "unadmitted_calls": 104
+            },
+            {
+              "native_operator_type": "ForeachAddList",
+              "full_calls": 4784,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4784
+            },
+            {
+              "native_operator_type": "FusedInferAttentionScore",
+              "full_calls": 1248,
+              "admitted_calls": 1248,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "GroupedMatmul",
+              "full_calls": 9568,
+              "admitted_calls": 0,
+              "unadmitted_calls": 9568
+            },
+            {
+              "native_operator_type": "Index",
+              "full_calls": 52,
+              "admitted_calls": 0,
+              "unadmitted_calls": 52
+            },
+            {
+              "native_operator_type": "MatMulV3",
+              "full_calls": 37284,
+              "admitted_calls": 20540,
+              "unadmitted_calls": 16744
+            },
+            {
+              "native_operator_type": "MlaPrologV3",
+              "full_calls": 1248,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1248
+            },
+            {
+              "native_operator_type": "MoeDistributeCombineV3",
+              "full_calls": 4784,
+              "admitted_calls": 4784,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeDistributeDispatchV3",
+              "full_calls": 4784,
+              "admitted_calls": 4784,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeGatingTopK",
+              "full_calls": 4784,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4784
+            },
+            {
+              "native_operator_type": "Mul",
+              "full_calls": 39728,
+              "admitted_calls": 0,
+              "unadmitted_calls": 39728
+            },
+            {
+              "native_operator_type": "Muls",
+              "full_calls": 19240,
+              "admitted_calls": 0,
+              "unadmitted_calls": 19240
+            },
+            {
+              "native_operator_type": "PadV3",
+              "full_calls": 12116,
+              "admitted_calls": 0,
+              "unadmitted_calls": 12116
+            },
+            {
+              "native_operator_type": "RecurrentKda",
+              "full_calls": 3588,
+              "admitted_calls": 3588,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "RmsNorm",
+              "full_calls": 4784,
+              "admitted_calls": 4784,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Sigmoid",
+              "full_calls": 14456,
+              "admitted_calls": 0,
+              "unadmitted_calls": 14456
+            },
+            {
+              "native_operator_type": "Slice",
+              "full_calls": 28912,
+              "admitted_calls": 0,
+              "unadmitted_calls": 28912
+            },
+            {
+              "native_operator_type": "Tanh",
+              "full_calls": 19240,
+              "admitted_calls": 0,
+              "unadmitted_calls": 19240
+            },
+            {
+              "native_operator_type": "TransposeBatchMatMul",
+              "full_calls": 1248,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1248
+            },
+            {
+              "native_operator_type": "ZerosLike",
+              "full_calls": 4836,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4836
+            },
+            {
+              "native_operator_type": "hcom_allGather_",
+              "full_calls": 9724,
+              "admitted_calls": 9724,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "hcom_reduceScatter_",
+              "full_calls": 9672,
+              "admitted_calls": 9672,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "layer_norm_gated_fwd_kernel",
+              "full_calls": 3588,
+              "admitted_calls": 0,
+              "unadmitted_calls": 3588
+            }
+          ],
+          "source_forward_count": 52,
+          "unselected_source_forward_count": 0,
+          "geometry": {
+            "query_rows": 4,
+            "sequences_per_replica": 4,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          }
+        },
+        {
+          "case_id": "a5_kimi_tp8_e16_bf16_c4_p4k",
+          "source_sha256": "7e0bf0c288bb9df7aa08b19f698030892771a0d6a9990b0d9447c22f973c133e",
+          "forward_count": 53,
+          "native_families": [
+            {
+              "native_operator_type": "AsStrided",
+              "full_calls": 3657,
+              "admitted_calls": 0,
+              "unadmitted_calls": 3657
+            },
+            {
+              "native_operator_type": "AttnResFwd",
+              "full_calls": 9911,
+              "admitted_calls": 0,
+              "unadmitted_calls": 9911
+            },
+            {
+              "native_operator_type": "BroadcastTo",
+              "full_calls": 106,
+              "admitted_calls": 0,
+              "unadmitted_calls": 106
+            },
+            {
+              "native_operator_type": "Cast",
+              "full_calls": 34556,
+              "admitted_calls": 0,
+              "unadmitted_calls": 34556
+            },
+            {
+              "native_operator_type": "CausalConv1d",
+              "full_calls": 3657,
+              "admitted_calls": 3657,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Fill",
+              "full_calls": 106,
+              "admitted_calls": 0,
+              "unadmitted_calls": 106
+            },
+            {
+              "native_operator_type": "ForeachAddList",
+              "full_calls": 4876,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4876
+            },
+            {
+              "native_operator_type": "FusedInferAttentionScore",
+              "full_calls": 1272,
+              "admitted_calls": 1272,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "GroupedMatmul",
+              "full_calls": 9752,
+              "admitted_calls": 0,
+              "unadmitted_calls": 9752
+            },
+            {
+              "native_operator_type": "Index",
+              "full_calls": 53,
+              "admitted_calls": 0,
+              "unadmitted_calls": 53
+            },
+            {
+              "native_operator_type": "MatMulV3",
+              "full_calls": 38001,
+              "admitted_calls": 20935,
+              "unadmitted_calls": 17066
+            },
+            {
+              "native_operator_type": "MlaPrologV3",
+              "full_calls": 1272,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1272
+            },
+            {
+              "native_operator_type": "MoeDistributeCombineV3",
+              "full_calls": 4876,
+              "admitted_calls": 4876,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeDistributeDispatchV3",
+              "full_calls": 4876,
+              "admitted_calls": 4876,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeGatingTopK",
+              "full_calls": 4876,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4876
+            },
+            {
+              "native_operator_type": "Mul",
+              "full_calls": 40492,
+              "admitted_calls": 0,
+              "unadmitted_calls": 40492
+            },
+            {
+              "native_operator_type": "Muls",
+              "full_calls": 19610,
+              "admitted_calls": 0,
+              "unadmitted_calls": 19610
+            },
+            {
+              "native_operator_type": "PadV3",
+              "full_calls": 12349,
+              "admitted_calls": 0,
+              "unadmitted_calls": 12349
+            },
+            {
+              "native_operator_type": "RecurrentKda",
+              "full_calls": 3657,
+              "admitted_calls": 3657,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "RmsNorm",
+              "full_calls": 4876,
+              "admitted_calls": 4876,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Sigmoid",
+              "full_calls": 14734,
+              "admitted_calls": 0,
+              "unadmitted_calls": 14734
+            },
+            {
+              "native_operator_type": "Slice",
+              "full_calls": 29468,
+              "admitted_calls": 0,
+              "unadmitted_calls": 29468
+            },
+            {
+              "native_operator_type": "Tanh",
+              "full_calls": 19610,
+              "admitted_calls": 0,
+              "unadmitted_calls": 19610
+            },
+            {
+              "native_operator_type": "TransposeBatchMatMul",
+              "full_calls": 1272,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1272
+            },
+            {
+              "native_operator_type": "ZerosLike",
+              "full_calls": 4929,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4929
+            },
+            {
+              "native_operator_type": "hcom_allGather_",
+              "full_calls": 9911,
+              "admitted_calls": 9911,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "hcom_reduceScatter_",
+              "full_calls": 9858,
+              "admitted_calls": 9858,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "layer_norm_gated_fwd_kernel",
+              "full_calls": 3657,
+              "admitted_calls": 0,
+              "unadmitted_calls": 3657
+            }
+          ],
+          "source_forward_count": 53,
+          "unselected_source_forward_count": 0,
+          "geometry": {
+            "query_rows": 4,
+            "sequences_per_replica": 4,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          }
+        },
+        {
+          "case_id": "a5_kimi_tp8_e16_bf16_c8_p16k",
+          "source_sha256": "705cd2cd4965560f3a1149bcb62d2a053cded55e0aff15aabb374d318011f749",
+          "forward_count": 51,
+          "native_families": [
+            {
+              "native_operator_type": "AsStrided",
+              "full_calls": 3519,
+              "admitted_calls": 0,
+              "unadmitted_calls": 3519
+            },
+            {
+              "native_operator_type": "AttnResFwd",
+              "full_calls": 9537,
+              "admitted_calls": 0,
+              "unadmitted_calls": 9537
+            },
+            {
+              "native_operator_type": "BroadcastTo",
+              "full_calls": 51,
+              "admitted_calls": 0,
+              "unadmitted_calls": 51
+            },
+            {
+              "native_operator_type": "Cast",
+              "full_calls": 33150,
+              "admitted_calls": 0,
+              "unadmitted_calls": 33150
+            },
+            {
+              "native_operator_type": "CausalConv1d",
+              "full_calls": 3519,
+              "admitted_calls": 3519,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Fill",
+              "full_calls": 102,
+              "admitted_calls": 0,
+              "unadmitted_calls": 102
+            },
+            {
+              "native_operator_type": "ForeachAddList",
+              "full_calls": 4692,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4692
+            },
+            {
+              "native_operator_type": "FusedInferAttentionScore",
+              "full_calls": 1224,
+              "admitted_calls": 1224,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "GroupedMatmul",
+              "full_calls": 9384,
+              "admitted_calls": 0,
+              "unadmitted_calls": 9384
+            },
+            {
+              "native_operator_type": "Index",
+              "full_calls": 51,
+              "admitted_calls": 0,
+              "unadmitted_calls": 51
+            },
+            {
+              "native_operator_type": "MatMulV3",
+              "full_calls": 36567,
+              "admitted_calls": 29529,
+              "unadmitted_calls": 7038
+            },
+            {
+              "native_operator_type": "MlaPrologV3",
+              "full_calls": 1224,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1224
+            },
+            {
+              "native_operator_type": "MoeDistributeCombineV3",
+              "full_calls": 4692,
+              "admitted_calls": 4692,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeDistributeDispatchV3",
+              "full_calls": 4692,
+              "admitted_calls": 4692,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeGatingTopK",
+              "full_calls": 4692,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4692
+            },
+            {
+              "native_operator_type": "Mul",
+              "full_calls": 38964,
+              "admitted_calls": 0,
+              "unadmitted_calls": 38964
+            },
+            {
+              "native_operator_type": "Muls",
+              "full_calls": 18870,
+              "admitted_calls": 0,
+              "unadmitted_calls": 18870
+            },
+            {
+              "native_operator_type": "PadV3",
+              "full_calls": 2448,
+              "admitted_calls": 0,
+              "unadmitted_calls": 2448
+            },
+            {
+              "native_operator_type": "RecurrentKda",
+              "full_calls": 3519,
+              "admitted_calls": 3519,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "RmsNorm",
+              "full_calls": 4692,
+              "admitted_calls": 4692,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Sigmoid",
+              "full_calls": 14178,
+              "admitted_calls": 0,
+              "unadmitted_calls": 14178
+            },
+            {
+              "native_operator_type": "Slice",
+              "full_calls": 28356,
+              "admitted_calls": 0,
+              "unadmitted_calls": 28356
+            },
+            {
+              "native_operator_type": "Tanh",
+              "full_calls": 18870,
+              "admitted_calls": 0,
+              "unadmitted_calls": 18870
+            },
+            {
+              "native_operator_type": "TransposeBatchMatMul",
+              "full_calls": 1224,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1224
+            },
+            {
+              "native_operator_type": "ZerosLike",
+              "full_calls": 4743,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4743
+            },
+            {
+              "native_operator_type": "hcom_allGather_",
+              "full_calls": 9537,
+              "admitted_calls": 9537,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "hcom_reduceScatter_",
+              "full_calls": 9486,
+              "admitted_calls": 9486,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "layer_norm_gated_fwd_kernel",
+              "full_calls": 3519,
+              "admitted_calls": 0,
+              "unadmitted_calls": 3519
+            }
+          ],
+          "source_forward_count": 51,
+          "unselected_source_forward_count": 0,
+          "geometry": {
+            "query_rows": 8,
+            "sequences_per_replica": 8,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          }
+        },
+        {
+          "case_id": "a5_kimi_tp8_e16_bf16_c8_p4k",
+          "source_sha256": "00fb1678504ab7023ac1a258f05e78f9d793ef009147a985c1174527e3be8b3f",
+          "forward_count": 52,
+          "native_families": [
+            {
+              "native_operator_type": "AsStrided",
+              "full_calls": 3588,
+              "admitted_calls": 0,
+              "unadmitted_calls": 3588
+            },
+            {
+              "native_operator_type": "AttnResFwd",
+              "full_calls": 9724,
+              "admitted_calls": 0,
+              "unadmitted_calls": 9724
+            },
+            {
+              "native_operator_type": "BroadcastTo",
+              "full_calls": 52,
+              "admitted_calls": 0,
+              "unadmitted_calls": 52
+            },
+            {
+              "native_operator_type": "Cast",
+              "full_calls": 33800,
+              "admitted_calls": 0,
+              "unadmitted_calls": 33800
+            },
+            {
+              "native_operator_type": "CausalConv1d",
+              "full_calls": 3588,
+              "admitted_calls": 3588,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Fill",
+              "full_calls": 104,
+              "admitted_calls": 0,
+              "unadmitted_calls": 104
+            },
+            {
+              "native_operator_type": "ForeachAddList",
+              "full_calls": 4784,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4784
+            },
+            {
+              "native_operator_type": "FusedInferAttentionScore",
+              "full_calls": 1248,
+              "admitted_calls": 1248,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "GroupedMatmul",
+              "full_calls": 9568,
+              "admitted_calls": 0,
+              "unadmitted_calls": 9568
+            },
+            {
+              "native_operator_type": "Index",
+              "full_calls": 52,
+              "admitted_calls": 0,
+              "unadmitted_calls": 52
+            },
+            {
+              "native_operator_type": "MatMulV3",
+              "full_calls": 37284,
+              "admitted_calls": 30108,
+              "unadmitted_calls": 7176
+            },
+            {
+              "native_operator_type": "MlaPrologV3",
+              "full_calls": 1248,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1248
+            },
+            {
+              "native_operator_type": "MoeDistributeCombineV3",
+              "full_calls": 4784,
+              "admitted_calls": 4784,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeDistributeDispatchV3",
+              "full_calls": 4784,
+              "admitted_calls": 4784,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "MoeGatingTopK",
+              "full_calls": 4784,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4784
+            },
+            {
+              "native_operator_type": "Mul",
+              "full_calls": 39728,
+              "admitted_calls": 0,
+              "unadmitted_calls": 39728
+            },
+            {
+              "native_operator_type": "Muls",
+              "full_calls": 19240,
+              "admitted_calls": 0,
+              "unadmitted_calls": 19240
+            },
+            {
+              "native_operator_type": "PadV3",
+              "full_calls": 2496,
+              "admitted_calls": 0,
+              "unadmitted_calls": 2496
+            },
+            {
+              "native_operator_type": "RecurrentKda",
+              "full_calls": 3588,
+              "admitted_calls": 3588,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "RmsNorm",
+              "full_calls": 4784,
+              "admitted_calls": 4784,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "Sigmoid",
+              "full_calls": 14456,
+              "admitted_calls": 0,
+              "unadmitted_calls": 14456
+            },
+            {
+              "native_operator_type": "Slice",
+              "full_calls": 28912,
+              "admitted_calls": 0,
+              "unadmitted_calls": 28912
+            },
+            {
+              "native_operator_type": "Tanh",
+              "full_calls": 19240,
+              "admitted_calls": 0,
+              "unadmitted_calls": 19240
+            },
+            {
+              "native_operator_type": "TransposeBatchMatMul",
+              "full_calls": 1248,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1248
+            },
+            {
+              "native_operator_type": "ZerosLike",
+              "full_calls": 4836,
+              "admitted_calls": 0,
+              "unadmitted_calls": 4836
+            },
+            {
+              "native_operator_type": "hcom_allGather_",
+              "full_calls": 9724,
+              "admitted_calls": 9724,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "hcom_reduceScatter_",
+              "full_calls": 9672,
+              "admitted_calls": 9672,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "layer_norm_gated_fwd_kernel",
+              "full_calls": 3588,
+              "admitted_calls": 0,
+              "unadmitted_calls": 3588
+            }
+          ],
+          "source_forward_count": 52,
+          "unselected_source_forward_count": 0,
+          "geometry": {
+            "query_rows": 8,
+            "sequences_per_replica": 8,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          }
+        }
+      ]
+    },
+    {
+      "id": "kimi-a3-retrospective-concurrency-exclusion",
+      "source_groups": [
+        {
+          "concurrency": 1,
+          "source_sha256": [
+            "1b0e4fcb7c3d80fefa5a1484937508502b0da346ea5657ed48e6bc0b893587c3"
+          ]
+        },
+        {
+          "concurrency": 4,
+          "source_sha256": [
+            "c51c0c5b4ec2b0eef777237b726fe20f82a94b866b21c0b3a2844d8aca56d857"
+          ]
+        },
+        {
+          "concurrency": 16,
+          "source_sha256": [
+            "9fdc461cb0f4061ae156e87301b1b586dc68d2f12bbf925df52d0ebbb1c71991"
+          ]
+        },
+        {
+          "concurrency": 32,
+          "source_sha256": [
+            "c7deb048fabcf5650aeb014c411b0eda709758e8dd4227119f7de5316a1c294e"
+          ]
+        },
+        {
+          "concurrency": 64,
+          "source_sha256": [
+            "2137943b502a105b3c044dd1cd88635cf88fe19786e86fdf84d75c059d347fa2"
+          ]
+        }
+      ],
+      "observations": [
+        {
+          "source_sha256": "1b0e4fcb7c3d80fefa5a1484937508502b0da346ea5657ed48e6bc0b893587c3",
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a3_kimi4_tp8_w4a8_c1-observations.json",
+          "sha256": "4eefb5e6162304614a175ec57d507a67b53e9fff03bb72b528ee6447834835aa",
+          "size_bytes": 252615
+        },
+        {
+          "source_sha256": "9fdc461cb0f4061ae156e87301b1b586dc68d2f12bbf925df52d0ebbb1c71991",
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a3_kimi4_tp8_w4a8_c16-observations.json",
+          "sha256": "87ba5215256d2a444afcd5123f6c01aa6a4f28c459b58b25691c93ec8f04a4e1",
+          "size_bytes": 311321
+        },
+        {
+          "source_sha256": "c7deb048fabcf5650aeb014c411b0eda709758e8dd4227119f7de5316a1c294e",
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a3_kimi4_tp8_w4a8_c32-observations.json",
+          "sha256": "d0ffdf64374e46656defb303eb822b1172872a7dc29ea8583e70dc76dcdee414",
+          "size_bytes": 308787
+        },
+        {
+          "source_sha256": "c51c0c5b4ec2b0eef777237b726fe20f82a94b866b21c0b3a2844d8aca56d857",
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a3_kimi4_tp8_w4a8_c4-observations.json",
+          "sha256": "e972bfa1fc7fc2f2aea3804b735cb58f283eb56457f14b516d1332e0e9e244cf",
+          "size_bytes": 238826
+        },
+        {
+          "source_sha256": "2137943b502a105b3c044dd1cd88635cf88fe19786e86fdf84d75c059d347fa2",
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/kimi-concurrency-generalization/a3_kimi4_tp8_w4a8_c64-observations.json",
+          "sha256": "add34c4f251338d52346c0b829c8dcee3d1f8daaf957e102fce839d21c682a31",
+          "size_bytes": 301005
+        }
+      ],
+      "domains": [
+        {
+          "id": "a3-dynamicquant-e79672acfe6789",
+          "boundary": {
+            "native_operator_type": "DynamicQuant",
+            "source_implementation": "captured_normalized_active_tensor_contract",
+            "precision": [
+              "bf16",
+              "int8",
+              "fp32"
+            ],
+            "layout": [
+              "ND",
+              "ND",
+              "ND"
+            ],
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": [
+                "bf16",
+                "int8",
+                "fp32"
+              ],
+              "layout": [
+                "ND",
+                "ND",
+                "ND"
+              ],
+              "row_scale": true
+            }
+          },
+          "match": {
+            "hardware": "Ascend910_9362",
+            "native_signature": "e79672acfe6789651ab43b5f2251448bcb04c13fee0ee4a037a56a1ae0b058bb"
+          },
+          "coordinates": {
+            "elements": {
+              "path": "elements",
+              "scale": 1e-06
+            }
+          }
+        },
+        {
+          "id": "a3-quantbatchmatmulv3-bec4311c3957cf",
+          "boundary": {
+            "native_operator_type": "QuantBatchMatmulV3",
+            "source_implementation": "captured_normalized_active_tensor_contract",
+            "precision": [
+              "int8",
+              "int8",
+              "bf16"
+            ],
+            "layout": "normalized_matrix_contract",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": [
+                "int8",
+                "int8",
+                "bf16"
+              ],
+              "layout": "normalized_matrix_contract",
+              "scale_rank": 1,
+              "scale_dtype": "fp32",
+              "input_weight_output_contract": "matrix"
+            }
+          },
+          "match": {
+            "hardware": "Ascend910_9362",
+            "native_signature": "bec4311c3957cfa790815f14db5642f89b012ed0e57b5354bc0905423985d266"
+          },
+          "coordinates": {
+            "gflops": {
+              "path": "work.flops",
+              "scale": 1e-09
+            },
+            "hbm_mb": {
+              "path": "work.hbm_bytes",
+              "scale": 1e-06
+            }
+          }
+        },
+        {
+          "id": "a3-rmsnorm-6d6f1b8d395257",
+          "boundary": {
+            "native_operator_type": "RmsNorm",
+            "source_implementation": "captured_normalized_active_tensor_contract",
+            "precision": "bf16",
+            "layout": "normalized_rmsnorm_contract",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "bf16",
+              "layout": "normalized_rmsnorm_contract",
+              "hidden_width": 3584,
+              "affine": true
+            }
+          },
+          "match": {
+            "hardware": "Ascend910_9362",
+            "native_signature": "6d6f1b8d39525768f7a0bd0f33bab3375993e9740b7687382f24c42da96b13ee"
+          },
+          "coordinates": {
+            "elements": {
+              "path": "elements",
+              "scale": 1e-06
+            }
+          }
+        },
+        {
+          "id": "a3-hcom_allgather_-06da8772a7a736",
+          "boundary": {
+            "native_operator_type": "hcom_allGather_",
+            "source_implementation": "captured_TP8_HCOM_joint_elapsed",
+            "precision": "bf16",
+            "layout": "declared_ND_7168",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "bf16",
+              "layout": "declared_ND_7168",
+              "ranks": 8,
+              "group_axis": "tp",
+              "hardware": "Ascend910_9362",
+              "captured_algorithm": "not_identified",
+              "structural_block": "attention_output_communication"
+            }
+          },
+          "match": {
+            "hardware": "Ascend910_9362",
+            "native_signature": "06da8772a7a7364aa7d8e210995c44dc892a8265a2b2b7f978ebbef762911f65"
+          },
+          "coordinates": {
+            "payload_mb": {
+              "path": "declared_payload_bytes",
+              "scale": 1e-06
+            }
+          }
+        },
+        {
+          "id": "a3-hcom_allgather_-091118422342aa",
+          "boundary": {
+            "native_operator_type": "hcom_allGather_",
+            "source_implementation": "captured_TP8_HCOM_joint_elapsed",
+            "precision": "bf16",
+            "layout": "declared_ND_7168",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "bf16",
+              "layout": "declared_ND_7168",
+              "ranks": 8,
+              "group_axis": "tp",
+              "hardware": "Ascend910_9362",
+              "captured_algorithm": "not_identified",
+              "structural_block": "ffn_down_communication"
+            }
+          },
+          "match": {
+            "hardware": "Ascend910_9362",
+            "native_signature": "091118422342aae130102827929b33910c00e94c8fe9d2a21099c091134eb76d"
+          },
+          "coordinates": {
+            "payload_mb": {
+              "path": "declared_payload_bytes",
+              "scale": 1e-06
+            }
+          }
+        },
+        {
+          "id": "a3-hcom_reducescatter_-d14e19c385f8e9",
+          "boundary": {
+            "native_operator_type": "hcom_reduceScatter_",
+            "source_implementation": "captured_TP8_HCOM_joint_elapsed",
+            "precision": "bf16",
+            "layout": "declared_ND_7168",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "bf16",
+              "layout": "declared_ND_7168",
+              "ranks": 8,
+              "group_axis": "tp",
+              "hardware": "Ascend910_9362",
+              "captured_algorithm": "not_identified",
+              "structural_block": "attention_output_communication"
+            }
+          },
+          "match": {
+            "hardware": "Ascend910_9362",
+            "native_signature": "d14e19c385f8e9c73165085058f28a515c88dc0b3ee0f1efc7e7deb3e3131ff1"
+          },
+          "coordinates": {
+            "payload_mb": {
+              "path": "declared_payload_bytes",
+              "scale": 1e-06
+            }
+          }
+        },
+        {
+          "id": "a3-hcom_reducescatter_-a6157eaf713960",
+          "boundary": {
+            "native_operator_type": "hcom_reduceScatter_",
+            "source_implementation": "captured_TP8_HCOM_joint_elapsed",
+            "precision": "bf16",
+            "layout": "declared_ND_7168",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": "bf16",
+              "layout": "declared_ND_7168",
+              "ranks": 8,
+              "group_axis": "tp",
+              "hardware": "Ascend910_9362",
+              "captured_algorithm": "not_identified",
+              "structural_block": "ffn_down_communication"
+            }
+          },
+          "match": {
+            "hardware": "Ascend910_9362",
+            "native_signature": "a6157eaf713960c0298b8993fbac5c12441420f9bec39d549726c47c779d32ab"
+          },
+          "coordinates": {
+            "payload_mb": {
+              "path": "declared_payload_bytes",
+              "scale": 1e-06
+            }
+          }
+        },
+        {
+          "id": "a3-matmulv2-341718e6cd6454",
+          "boundary": {
+            "native_operator_type": "MatMulV2",
+            "source_implementation": "captured_normalized_active_tensor_contract",
+            "precision": [
+              "bf16",
+              "bf16",
+              "bf16"
+            ],
+            "layout": "normalized_matrix_contract",
+            "execution_boundary": "one_complete_native_call",
+            "contract": {
+              "precision": [
+                "bf16",
+                "bf16",
+                "bf16"
+              ],
+              "layout": "normalized_matrix_contract",
+              "scale_rank": 0,
+              "scale_dtype": "",
+              "input_weight_output_contract": "matrix"
+            }
+          },
+          "match": {
+            "hardware": "Ascend910_9362",
+            "native_signature": "341718e6cd64540dc159849adc3327f7246da0f27aa31fc0d26b6e63fc6c7924"
+          },
+          "coordinates": {
+            "gflops": {
+              "path": "work.flops",
+              "scale": 1e-09
+            },
+            "hbm_mb": {
+              "path": "work.hbm_bytes",
+              "scale": 1e-06
+            }
+          }
+        }
+      ],
+      "minimum_training_sources": 3,
+      "limits": [
+        "All contexts at the excluded concurrency are held out together; historical timings were previously examined.",
+        "Native response scoring only; no fresh Sim cost or Body accuracy claim.",
+        "MC2/HCOM joint elapsed keeps architecture, TP/EP and native-call domain separate; peer wait is not isolated.",
+        "Unavailable complete ABI/active routing populations remain explicitly unscored."
+      ],
+      "population_coverage": [
+        {
+          "case_id": "a3_kimi4_tp8_w4a8_c1",
+          "source_sha256": "1b0e4fcb7c3d80fefa5a1484937508502b0da346ea5657ed48e6bc0b893587c3",
+          "forward_count": 254,
+          "native_families": [
+            {
+              "native_operator_type": "AttnResFwd",
+              "full_calls": 2286,
+              "admitted_calls": 0,
+              "unadmitted_calls": 2286
+            },
+            {
+              "native_operator_type": "BatchMatMulV2",
+              "full_calls": 254,
+              "admitted_calls": 0,
+              "unadmitted_calls": 254
+            },
+            {
+              "native_operator_type": "Cast",
+              "full_calls": 1524,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1524
+            },
+            {
+              "native_operator_type": "CausalConv1d",
+              "full_calls": 762,
+              "admitted_calls": 0,
+              "unadmitted_calls": 762
+            },
+            {
+              "native_operator_type": "DequantSituQuant",
+              "full_calls": 1524,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1524
+            },
+            {
+              "native_operator_type": "DynamicQuant",
+              "full_calls": 4064,
+              "admitted_calls": 2794,
+              "unadmitted_calls": 1270
+            },
+            {
+              "native_operator_type": "ForeachAddList",
+              "full_calls": 762,
+              "admitted_calls": 0,
+              "unadmitted_calls": 762
+            },
+            {
+              "native_operator_type": "FusedInferAttentionScore",
+              "full_calls": 254,
+              "admitted_calls": 0,
+              "unadmitted_calls": 254
+            },
+            {
+              "native_operator_type": "GroupedMatmul",
+              "full_calls": 1524,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1524
+            },
+            {
+              "native_operator_type": "Index",
+              "full_calls": 254,
+              "admitted_calls": 0,
+              "unadmitted_calls": 254
+            },
+            {
+              "native_operator_type": "IndexCheck",
+              "full_calls": 254,
+              "admitted_calls": 0,
+              "unadmitted_calls": 254
+            },
+            {
+              "native_operator_type": "MatMulV2",
+              "full_calls": 2032,
+              "admitted_calls": 0,
+              "unadmitted_calls": 2032
+            },
+            {
+              "native_operator_type": "MatMulV3",
+              "full_calls": 762,
+              "admitted_calls": 0,
+              "unadmitted_calls": 762
+            },
+            {
+              "native_operator_type": "MemSet",
+              "full_calls": 2286,
+              "admitted_calls": 0,
+              "unadmitted_calls": 2286
+            },
+            {
+              "native_operator_type": "MoeDistributeCombineV2",
+              "full_calls": 762,
+              "admitted_calls": 0,
+              "unadmitted_calls": 762
+            },
+            {
+              "native_operator_type": "MoeDistributeDispatchV2",
+              "full_calls": 762,
+              "admitted_calls": 0,
+              "unadmitted_calls": 762
+            },
+            {
+              "native_operator_type": "MoeGatingTopK",
+              "full_calls": 762,
+              "admitted_calls": 0,
+              "unadmitted_calls": 762
+            },
+            {
+              "native_operator_type": "Mul",
+              "full_calls": 1270,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1270
+            },
+            {
+              "native_operator_type": "PadV3",
+              "full_calls": 2286,
+              "admitted_calls": 0,
+              "unadmitted_calls": 2286
+            },
+            {
+              "native_operator_type": "QuantBatchMatmulV3",
+              "full_calls": 4826,
+              "admitted_calls": 2032,
+              "unadmitted_calls": 2794
+            },
+            {
+              "native_operator_type": "RealDiv",
+              "full_calls": 508,
+              "admitted_calls": 0,
+              "unadmitted_calls": 508
+            },
+            {
+              "native_operator_type": "RecurrentKda",
+              "full_calls": 762,
+              "admitted_calls": 0,
+              "unadmitted_calls": 762
+            },
+            {
+              "native_operator_type": "RmsNorm",
+              "full_calls": 1270,
+              "admitted_calls": 762,
+              "unadmitted_calls": 508
+            },
+            {
+              "native_operator_type": "ScatterPaKvCache",
+              "full_calls": 254,
+              "admitted_calls": 0,
+              "unadmitted_calls": 254
+            },
+            {
+              "native_operator_type": "Sigmoid",
+              "full_calls": 1270,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1270
+            },
+            {
+              "native_operator_type": "Slice",
+              "full_calls": 1016,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1016
+            },
+            {
+              "native_operator_type": "Tanh",
+              "full_calls": 508,
+              "admitted_calls": 0,
+              "unadmitted_calls": 508
+            },
+            {
+              "native_operator_type": "TransposeBatchMatMul",
+              "full_calls": 254,
+              "admitted_calls": 0,
+              "unadmitted_calls": 254
+            },
+            {
+              "native_operator_type": "ZerosLike",
+              "full_calls": 1016,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1016
+            },
+            {
+              "native_operator_type": "hcom_allGather_",
+              "full_calls": 2286,
+              "admitted_calls": 2286,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "hcom_reduceScatter_",
+              "full_calls": 2032,
+              "admitted_calls": 2032,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "layer_norm_gated_fwd_kernel",
+              "full_calls": 762,
+              "admitted_calls": 0,
+              "unadmitted_calls": 762
+            },
+            {
+              "native_operator_type": "reduce_scatterAicpuKernel",
+              "full_calls": 2032,
+              "admitted_calls": 0,
+              "unadmitted_calls": 2032
+            }
+          ],
+          "source_forward_count": 254,
+          "unselected_source_forward_count": 0,
+          "geometry": {
+            "query_rows": 1,
+            "sequences_per_replica": 1,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          }
+        },
+        {
+          "case_id": "a3_kimi4_tp8_w4a8_c16",
+          "source_sha256": "9fdc461cb0f4061ae156e87301b1b586dc68d2f12bbf925df52d0ebbb1c71991",
+          "forward_count": 235,
+          "native_families": [
+            {
+              "native_operator_type": "AsStrided",
+              "full_calls": 940,
+              "admitted_calls": 0,
+              "unadmitted_calls": 940
+            },
+            {
+              "native_operator_type": "AttnResFwd",
+              "full_calls": 2115,
+              "admitted_calls": 0,
+              "unadmitted_calls": 2115
+            },
+            {
+              "native_operator_type": "BatchMatMulV2",
+              "full_calls": 235,
+              "admitted_calls": 0,
+              "unadmitted_calls": 235
+            },
+            {
+              "native_operator_type": "Cast",
+              "full_calls": 1410,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1410
+            },
+            {
+              "native_operator_type": "CausalConv1d",
+              "full_calls": 705,
+              "admitted_calls": 0,
+              "unadmitted_calls": 705
+            },
+            {
+              "native_operator_type": "DequantSituQuant",
+              "full_calls": 1410,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1410
+            },
+            {
+              "native_operator_type": "DynamicQuant",
+              "full_calls": 3760,
+              "admitted_calls": 3760,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "ForeachAddList",
+              "full_calls": 705,
+              "admitted_calls": 0,
+              "unadmitted_calls": 705
+            },
+            {
+              "native_operator_type": "FusedInferAttentionScore",
+              "full_calls": 235,
+              "admitted_calls": 0,
+              "unadmitted_calls": 235
+            },
+            {
+              "native_operator_type": "GroupedMatmul",
+              "full_calls": 1410,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1410
+            },
+            {
+              "native_operator_type": "Index",
+              "full_calls": 235,
+              "admitted_calls": 0,
+              "unadmitted_calls": 235
+            },
+            {
+              "native_operator_type": "IndexCheck",
+              "full_calls": 235,
+              "admitted_calls": 0,
+              "unadmitted_calls": 235
+            },
+            {
+              "native_operator_type": "MatMulV2",
+              "full_calls": 1880,
+              "admitted_calls": 1175,
+              "unadmitted_calls": 705
+            },
+            {
+              "native_operator_type": "MatMulV3",
+              "full_calls": 705,
+              "admitted_calls": 0,
+              "unadmitted_calls": 705
+            },
+            {
+              "native_operator_type": "MemSet",
+              "full_calls": 470,
+              "admitted_calls": 0,
+              "unadmitted_calls": 470
+            },
+            {
+              "native_operator_type": "MoeDistributeCombineV2",
+              "full_calls": 705,
+              "admitted_calls": 0,
+              "unadmitted_calls": 705
+            },
+            {
+              "native_operator_type": "MoeDistributeDispatchV2",
+              "full_calls": 705,
+              "admitted_calls": 0,
+              "unadmitted_calls": 705
+            },
+            {
+              "native_operator_type": "MoeGatingTopK",
+              "full_calls": 705,
+              "admitted_calls": 0,
+              "unadmitted_calls": 705
+            },
+            {
+              "native_operator_type": "Mul",
+              "full_calls": 1175,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1175
+            },
+            {
+              "native_operator_type": "PadV3",
+              "full_calls": 470,
+              "admitted_calls": 0,
+              "unadmitted_calls": 470
+            },
+            {
+              "native_operator_type": "QuantBatchMatmulV3",
+              "full_calls": 4465,
+              "admitted_calls": 2820,
+              "unadmitted_calls": 1645
+            },
+            {
+              "native_operator_type": "RealDiv",
+              "full_calls": 470,
+              "admitted_calls": 0,
+              "unadmitted_calls": 470
+            },
+            {
+              "native_operator_type": "RecurrentKda",
+              "full_calls": 705,
+              "admitted_calls": 0,
+              "unadmitted_calls": 705
+            },
+            {
+              "native_operator_type": "RmsNorm",
+              "full_calls": 1175,
+              "admitted_calls": 705,
+              "unadmitted_calls": 470
+            },
+            {
+              "native_operator_type": "ScatterPaKvCache",
+              "full_calls": 235,
+              "admitted_calls": 0,
+              "unadmitted_calls": 235
+            },
+            {
+              "native_operator_type": "Sigmoid",
+              "full_calls": 1175,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1175
+            },
+            {
+              "native_operator_type": "Slice",
+              "full_calls": 2350,
+              "admitted_calls": 0,
+              "unadmitted_calls": 2350
+            },
+            {
+              "native_operator_type": "Tanh",
+              "full_calls": 470,
+              "admitted_calls": 0,
+              "unadmitted_calls": 470
+            },
+            {
+              "native_operator_type": "Transpose",
+              "full_calls": 235,
+              "admitted_calls": 0,
+              "unadmitted_calls": 235
+            },
+            {
+              "native_operator_type": "TransposeBatchMatMul",
+              "full_calls": 235,
+              "admitted_calls": 0,
+              "unadmitted_calls": 235
+            },
+            {
+              "native_operator_type": "ZerosLike",
+              "full_calls": 940,
+              "admitted_calls": 0,
+              "unadmitted_calls": 940
+            },
+            {
+              "native_operator_type": "hcom_allGather_",
+              "full_calls": 2115,
+              "admitted_calls": 2115,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "hcom_reduceScatter_",
+              "full_calls": 1880,
+              "admitted_calls": 1880,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "layer_norm_gated_fwd_kernel",
+              "full_calls": 705,
+              "admitted_calls": 0,
+              "unadmitted_calls": 705
+            },
+            {
+              "native_operator_type": "reduce_scatterAicpuKernel",
+              "full_calls": 1880,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1880
+            }
+          ],
+          "source_forward_count": 238,
+          "unselected_source_forward_count": 3,
+          "geometry": {
+            "query_rows": 16,
+            "sequences_per_replica": 16,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          }
+        },
+        {
+          "case_id": "a3_kimi4_tp8_w4a8_c32",
+          "source_sha256": "c7deb048fabcf5650aeb014c411b0eda709758e8dd4227119f7de5316a1c294e",
+          "forward_count": 220,
+          "native_families": [
+            {
+              "native_operator_type": "AsStrided",
+              "full_calls": 880,
+              "admitted_calls": 0,
+              "unadmitted_calls": 880
+            },
+            {
+              "native_operator_type": "AttnResFwd",
+              "full_calls": 1980,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1980
+            },
+            {
+              "native_operator_type": "BatchMatMulV2",
+              "full_calls": 220,
+              "admitted_calls": 0,
+              "unadmitted_calls": 220
+            },
+            {
+              "native_operator_type": "Cast",
+              "full_calls": 1320,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1320
+            },
+            {
+              "native_operator_type": "CausalConv1d",
+              "full_calls": 660,
+              "admitted_calls": 0,
+              "unadmitted_calls": 660
+            },
+            {
+              "native_operator_type": "DequantSituQuant",
+              "full_calls": 1320,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1320
+            },
+            {
+              "native_operator_type": "DynamicQuant",
+              "full_calls": 3520,
+              "admitted_calls": 3520,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "ForeachAddList",
+              "full_calls": 660,
+              "admitted_calls": 0,
+              "unadmitted_calls": 660
+            },
+            {
+              "native_operator_type": "FusedInferAttentionScore",
+              "full_calls": 220,
+              "admitted_calls": 0,
+              "unadmitted_calls": 220
+            },
+            {
+              "native_operator_type": "GroupedMatmul",
+              "full_calls": 1320,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1320
+            },
+            {
+              "native_operator_type": "Index",
+              "full_calls": 220,
+              "admitted_calls": 0,
+              "unadmitted_calls": 220
+            },
+            {
+              "native_operator_type": "IndexCheck",
+              "full_calls": 220,
+              "admitted_calls": 0,
+              "unadmitted_calls": 220
+            },
+            {
+              "native_operator_type": "MatMulV2",
+              "full_calls": 1760,
+              "admitted_calls": 1100,
+              "unadmitted_calls": 660
+            },
+            {
+              "native_operator_type": "MatMulV3",
+              "full_calls": 660,
+              "admitted_calls": 0,
+              "unadmitted_calls": 660
+            },
+            {
+              "native_operator_type": "MemSet",
+              "full_calls": 440,
+              "admitted_calls": 0,
+              "unadmitted_calls": 440
+            },
+            {
+              "native_operator_type": "MoeDistributeCombineV2",
+              "full_calls": 660,
+              "admitted_calls": 0,
+              "unadmitted_calls": 660
+            },
+            {
+              "native_operator_type": "MoeDistributeDispatchV2",
+              "full_calls": 660,
+              "admitted_calls": 0,
+              "unadmitted_calls": 660
+            },
+            {
+              "native_operator_type": "MoeGatingTopK",
+              "full_calls": 660,
+              "admitted_calls": 0,
+              "unadmitted_calls": 660
+            },
+            {
+              "native_operator_type": "Mul",
+              "full_calls": 1100,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1100
+            },
+            {
+              "native_operator_type": "PadV3",
+              "full_calls": 440,
+              "admitted_calls": 0,
+              "unadmitted_calls": 440
+            },
+            {
+              "native_operator_type": "QuantBatchMatmulV3",
+              "full_calls": 4180,
+              "admitted_calls": 2640,
+              "unadmitted_calls": 1540
+            },
+            {
+              "native_operator_type": "RealDiv",
+              "full_calls": 440,
+              "admitted_calls": 0,
+              "unadmitted_calls": 440
+            },
+            {
+              "native_operator_type": "RecurrentKda",
+              "full_calls": 660,
+              "admitted_calls": 0,
+              "unadmitted_calls": 660
+            },
+            {
+              "native_operator_type": "RmsNorm",
+              "full_calls": 1100,
+              "admitted_calls": 660,
+              "unadmitted_calls": 440
+            },
+            {
+              "native_operator_type": "ScatterPaKvCache",
+              "full_calls": 220,
+              "admitted_calls": 0,
+              "unadmitted_calls": 220
+            },
+            {
+              "native_operator_type": "Sigmoid",
+              "full_calls": 1100,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1100
+            },
+            {
+              "native_operator_type": "Slice",
+              "full_calls": 2200,
+              "admitted_calls": 0,
+              "unadmitted_calls": 2200
+            },
+            {
+              "native_operator_type": "Tanh",
+              "full_calls": 440,
+              "admitted_calls": 0,
+              "unadmitted_calls": 440
+            },
+            {
+              "native_operator_type": "TensorMove",
+              "full_calls": 220,
+              "admitted_calls": 0,
+              "unadmitted_calls": 220
+            },
+            {
+              "native_operator_type": "Transpose",
+              "full_calls": 220,
+              "admitted_calls": 0,
+              "unadmitted_calls": 220
+            },
+            {
+              "native_operator_type": "TransposeBatchMatMul",
+              "full_calls": 220,
+              "admitted_calls": 0,
+              "unadmitted_calls": 220
+            },
+            {
+              "native_operator_type": "ZerosLike",
+              "full_calls": 880,
+              "admitted_calls": 0,
+              "unadmitted_calls": 880
+            },
+            {
+              "native_operator_type": "hcom_allGather_",
+              "full_calls": 1980,
+              "admitted_calls": 1980,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "hcom_reduceScatter_",
+              "full_calls": 1760,
+              "admitted_calls": 1760,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "layer_norm_gated_fwd_kernel",
+              "full_calls": 660,
+              "admitted_calls": 0,
+              "unadmitted_calls": 660
+            },
+            {
+              "native_operator_type": "reduce_scatterAicpuKernel",
+              "full_calls": 1760,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1760
+            }
+          ],
+          "source_forward_count": 229,
+          "unselected_source_forward_count": 9,
+          "geometry": {
+            "query_rows": 32,
+            "sequences_per_replica": 32,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          }
+        },
+        {
+          "case_id": "a3_kimi4_tp8_w4a8_c4",
+          "source_sha256": "c51c0c5b4ec2b0eef777237b726fe20f82a94b866b21c0b3a2844d8aca56d857",
+          "forward_count": 246,
+          "native_families": [
+            {
+              "native_operator_type": "AsStrided",
+              "full_calls": 984,
+              "admitted_calls": 0,
+              "unadmitted_calls": 984
+            },
+            {
+              "native_operator_type": "AttnResFwd",
+              "full_calls": 2214,
+              "admitted_calls": 0,
+              "unadmitted_calls": 2214
+            },
+            {
+              "native_operator_type": "BatchMatMulV2",
+              "full_calls": 246,
+              "admitted_calls": 0,
+              "unadmitted_calls": 246
+            },
+            {
+              "native_operator_type": "Cast",
+              "full_calls": 1476,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1476
+            },
+            {
+              "native_operator_type": "CausalConv1d",
+              "full_calls": 738,
+              "admitted_calls": 0,
+              "unadmitted_calls": 738
+            },
+            {
+              "native_operator_type": "DequantSituQuant",
+              "full_calls": 1476,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1476
+            },
+            {
+              "native_operator_type": "DynamicQuant",
+              "full_calls": 3936,
+              "admitted_calls": 1968,
+              "unadmitted_calls": 1968
+            },
+            {
+              "native_operator_type": "ForeachAddList",
+              "full_calls": 738,
+              "admitted_calls": 0,
+              "unadmitted_calls": 738
+            },
+            {
+              "native_operator_type": "FusedInferAttentionScore",
+              "full_calls": 246,
+              "admitted_calls": 0,
+              "unadmitted_calls": 246
+            },
+            {
+              "native_operator_type": "GroupedMatmul",
+              "full_calls": 1476,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1476
+            },
+            {
+              "native_operator_type": "Index",
+              "full_calls": 246,
+              "admitted_calls": 0,
+              "unadmitted_calls": 246
+            },
+            {
+              "native_operator_type": "IndexCheck",
+              "full_calls": 246,
+              "admitted_calls": 0,
+              "unadmitted_calls": 246
+            },
+            {
+              "native_operator_type": "MatMulV2",
+              "full_calls": 1968,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1968
+            },
+            {
+              "native_operator_type": "MatMulV3",
+              "full_calls": 738,
+              "admitted_calls": 0,
+              "unadmitted_calls": 738
+            },
+            {
+              "native_operator_type": "MemSet",
+              "full_calls": 2214,
+              "admitted_calls": 0,
+              "unadmitted_calls": 2214
+            },
+            {
+              "native_operator_type": "MoeDistributeCombineV2",
+              "full_calls": 738,
+              "admitted_calls": 0,
+              "unadmitted_calls": 738
+            },
+            {
+              "native_operator_type": "MoeDistributeDispatchV2",
+              "full_calls": 738,
+              "admitted_calls": 0,
+              "unadmitted_calls": 738
+            },
+            {
+              "native_operator_type": "MoeGatingTopK",
+              "full_calls": 738,
+              "admitted_calls": 0,
+              "unadmitted_calls": 738
+            },
+            {
+              "native_operator_type": "Mul",
+              "full_calls": 1230,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1230
+            },
+            {
+              "native_operator_type": "PadV3",
+              "full_calls": 2214,
+              "admitted_calls": 0,
+              "unadmitted_calls": 2214
+            },
+            {
+              "native_operator_type": "QuantBatchMatmulV3",
+              "full_calls": 4674,
+              "admitted_calls": 1968,
+              "unadmitted_calls": 2706
+            },
+            {
+              "native_operator_type": "RealDiv",
+              "full_calls": 492,
+              "admitted_calls": 0,
+              "unadmitted_calls": 492
+            },
+            {
+              "native_operator_type": "RecurrentKda",
+              "full_calls": 738,
+              "admitted_calls": 0,
+              "unadmitted_calls": 738
+            },
+            {
+              "native_operator_type": "RmsNorm",
+              "full_calls": 1230,
+              "admitted_calls": 738,
+              "unadmitted_calls": 492
+            },
+            {
+              "native_operator_type": "ScatterPaKvCache",
+              "full_calls": 246,
+              "admitted_calls": 0,
+              "unadmitted_calls": 246
+            },
+            {
+              "native_operator_type": "Sigmoid",
+              "full_calls": 1230,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1230
+            },
+            {
+              "native_operator_type": "Slice",
+              "full_calls": 2460,
+              "admitted_calls": 0,
+              "unadmitted_calls": 2460
+            },
+            {
+              "native_operator_type": "Tanh",
+              "full_calls": 492,
+              "admitted_calls": 0,
+              "unadmitted_calls": 492
+            },
+            {
+              "native_operator_type": "Transpose",
+              "full_calls": 246,
+              "admitted_calls": 0,
+              "unadmitted_calls": 246
+            },
+            {
+              "native_operator_type": "TransposeBatchMatMul",
+              "full_calls": 246,
+              "admitted_calls": 0,
+              "unadmitted_calls": 246
+            },
+            {
+              "native_operator_type": "ZerosLike",
+              "full_calls": 984,
+              "admitted_calls": 0,
+              "unadmitted_calls": 984
+            },
+            {
+              "native_operator_type": "hcom_allGather_",
+              "full_calls": 2214,
+              "admitted_calls": 2214,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "hcom_reduceScatter_",
+              "full_calls": 1968,
+              "admitted_calls": 1968,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "layer_norm_gated_fwd_kernel",
+              "full_calls": 738,
+              "admitted_calls": 0,
+              "unadmitted_calls": 738
+            },
+            {
+              "native_operator_type": "reduce_scatterAicpuKernel",
+              "full_calls": 1968,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1968
+            }
+          ],
+          "source_forward_count": 253,
+          "unselected_source_forward_count": 7,
+          "geometry": {
+            "query_rows": 4,
+            "sequences_per_replica": 4,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          }
+        },
+        {
+          "case_id": "a3_kimi4_tp8_w4a8_c64",
+          "source_sha256": "2137943b502a105b3c044dd1cd88635cf88fe19786e86fdf84d75c059d347fa2",
+          "forward_count": 196,
+          "native_families": [
+            {
+              "native_operator_type": "AsStrided",
+              "full_calls": 784,
+              "admitted_calls": 0,
+              "unadmitted_calls": 784
+            },
+            {
+              "native_operator_type": "AttnResFwd",
+              "full_calls": 1764,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1764
+            },
+            {
+              "native_operator_type": "BatchMatMulV2",
+              "full_calls": 196,
+              "admitted_calls": 0,
+              "unadmitted_calls": 196
+            },
+            {
+              "native_operator_type": "Cast",
+              "full_calls": 1176,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1176
+            },
+            {
+              "native_operator_type": "CausalConv1d",
+              "full_calls": 588,
+              "admitted_calls": 0,
+              "unadmitted_calls": 588
+            },
+            {
+              "native_operator_type": "DequantSituQuant",
+              "full_calls": 1176,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1176
+            },
+            {
+              "native_operator_type": "DynamicQuant",
+              "full_calls": 3136,
+              "admitted_calls": 3136,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "ForeachAddList",
+              "full_calls": 588,
+              "admitted_calls": 0,
+              "unadmitted_calls": 588
+            },
+            {
+              "native_operator_type": "FusedInferAttentionScore",
+              "full_calls": 196,
+              "admitted_calls": 0,
+              "unadmitted_calls": 196
+            },
+            {
+              "native_operator_type": "GroupedMatmul",
+              "full_calls": 1176,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1176
+            },
+            {
+              "native_operator_type": "Index",
+              "full_calls": 196,
+              "admitted_calls": 0,
+              "unadmitted_calls": 196
+            },
+            {
+              "native_operator_type": "IndexCheck",
+              "full_calls": 196,
+              "admitted_calls": 0,
+              "unadmitted_calls": 196
+            },
+            {
+              "native_operator_type": "MatMulV2",
+              "full_calls": 1568,
+              "admitted_calls": 980,
+              "unadmitted_calls": 588
+            },
+            {
+              "native_operator_type": "MatMulV3",
+              "full_calls": 588,
+              "admitted_calls": 0,
+              "unadmitted_calls": 588
+            },
+            {
+              "native_operator_type": "MemSet",
+              "full_calls": 392,
+              "admitted_calls": 0,
+              "unadmitted_calls": 392
+            },
+            {
+              "native_operator_type": "MoeDistributeCombineV2",
+              "full_calls": 588,
+              "admitted_calls": 0,
+              "unadmitted_calls": 588
+            },
+            {
+              "native_operator_type": "MoeDistributeDispatchV2",
+              "full_calls": 588,
+              "admitted_calls": 0,
+              "unadmitted_calls": 588
+            },
+            {
+              "native_operator_type": "MoeGatingTopK",
+              "full_calls": 588,
+              "admitted_calls": 0,
+              "unadmitted_calls": 588
+            },
+            {
+              "native_operator_type": "Mul",
+              "full_calls": 980,
+              "admitted_calls": 0,
+              "unadmitted_calls": 980
+            },
+            {
+              "native_operator_type": "PadV3",
+              "full_calls": 392,
+              "admitted_calls": 0,
+              "unadmitted_calls": 392
+            },
+            {
+              "native_operator_type": "QuantBatchMatmulV3",
+              "full_calls": 3724,
+              "admitted_calls": 2352,
+              "unadmitted_calls": 1372
+            },
+            {
+              "native_operator_type": "RealDiv",
+              "full_calls": 392,
+              "admitted_calls": 0,
+              "unadmitted_calls": 392
+            },
+            {
+              "native_operator_type": "RecurrentKda",
+              "full_calls": 588,
+              "admitted_calls": 0,
+              "unadmitted_calls": 588
+            },
+            {
+              "native_operator_type": "RmsNorm",
+              "full_calls": 980,
+              "admitted_calls": 588,
+              "unadmitted_calls": 392
+            },
+            {
+              "native_operator_type": "ScatterPaKvCache",
+              "full_calls": 196,
+              "admitted_calls": 0,
+              "unadmitted_calls": 196
+            },
+            {
+              "native_operator_type": "Sigmoid",
+              "full_calls": 980,
+              "admitted_calls": 0,
+              "unadmitted_calls": 980
+            },
+            {
+              "native_operator_type": "Slice",
+              "full_calls": 1960,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1960
+            },
+            {
+              "native_operator_type": "Tanh",
+              "full_calls": 392,
+              "admitted_calls": 0,
+              "unadmitted_calls": 392
+            },
+            {
+              "native_operator_type": "TensorMove",
+              "full_calls": 196,
+              "admitted_calls": 0,
+              "unadmitted_calls": 196
+            },
+            {
+              "native_operator_type": "Transpose",
+              "full_calls": 196,
+              "admitted_calls": 0,
+              "unadmitted_calls": 196
+            },
+            {
+              "native_operator_type": "TransposeBatchMatMul",
+              "full_calls": 196,
+              "admitted_calls": 0,
+              "unadmitted_calls": 196
+            },
+            {
+              "native_operator_type": "ZerosLike",
+              "full_calls": 784,
+              "admitted_calls": 0,
+              "unadmitted_calls": 784
+            },
+            {
+              "native_operator_type": "hcom_allGather_",
+              "full_calls": 1764,
+              "admitted_calls": 1764,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "hcom_reduceScatter_",
+              "full_calls": 1568,
+              "admitted_calls": 1568,
+              "unadmitted_calls": 0
+            },
+            {
+              "native_operator_type": "layer_norm_gated_fwd_kernel",
+              "full_calls": 588,
+              "admitted_calls": 0,
+              "unadmitted_calls": 588
+            },
+            {
+              "native_operator_type": "reduce_scatterAicpuKernel",
+              "full_calls": 1568,
+              "admitted_calls": 0,
+              "unadmitted_calls": 1568
+            }
+          ],
+          "source_forward_count": 207,
+          "unselected_source_forward_count": 11,
+          "geometry": {
+            "query_rows": 64,
+            "sequences_per_replica": 64,
+            "tokens_per_sequence": 1,
+            "context_tokens": null,
+            "batch_basis": "captured_paged_attention_block_table_rows",
+            "context_basis": "not_observed_from_cache_capacity"
+          }
+        }
       ]
     }
   ]

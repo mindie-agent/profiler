@@ -19,6 +19,16 @@ One canonical case registry and one recorded Sim package. All costs are fresh in
 | qwen35-a5-p4096 | prefill | 1 | 142.868 / 142.868 / 142.868 | 133.073 | -6.86% | PASS |
 | qwen35-a5-p65536 | prefill | 1 | 1372.007 / 1372.007 / 1372.007 | 2289.725 | +66.89% | FAIL |
 | qwen35-a5-p126976 | prefill | 1 | 3275.422 / 3275.422 / 3275.422 | 4807.607 | +46.78% | FAIL |
+| a3_glm53flash_heldout_s5_prefill_p16384_c1 | prefill | 0 | — / — / — | — | — | observed_only |
+| a3_glm53flash_heldout_s5_prefill_p16384_c4 | prefill | 0 | — / — / — | — | — | observed_only |
+| a3_glm53flash_heldout_s5_prefill_p2048_c1 | prefill | 0 | — / — / — | — | — | observed_only |
+| a3_glm53flash_heldout_s5_prefill_p2048_c4 | prefill | 0 | — / — / — | — | — | observed_only |
+| a3_glm53flash_heldout_s5_prefill_p32768_c1 | prefill | 0 | — / — / — | — | — | observed_only |
+| a3_glm53flash_heldout_s5_prefill_p32768_c4 | prefill | 0 | — / — / — | — | — | observed_only |
+| a3_glm53flash_heldout_s5_prefill_p4096_c1 | prefill | 0 | — / — / — | — | — | observed_only |
+| a3_glm53flash_heldout_s5_prefill_p4096_c4 | prefill | 0 | — / — / — | — | — | observed_only |
+| a3_glm53flash_heldout_s5_prefill_p8192_c1 | prefill | 0 | — / — / — | — | — | observed_only |
+| a3_glm53flash_heldout_s5_prefill_p8192_c4 | prefill | 0 | — / — / — | — | — | observed_only |
 
 | Case | Client TTFT ms | Predicted TTFT ms | Query coverage complete |
 |---|---:|---:|---|
@@ -37,9 +47,19 @@ One canonical case registry and one recorded Sim package. All costs are fresh in
 | qwen35-a5-p4096 | 186.032 | — | True |
 | qwen35-a5-p65536 | 1835.448 | — | True |
 | qwen35-a5-p126976 | 4262.595 | — | True |
+| a3_glm53flash_heldout_s5_prefill_p16384_c1 | 2729.099 | — | None |
+| a3_glm53flash_heldout_s5_prefill_p16384_c4 | 6950.875 | — | None |
+| a3_glm53flash_heldout_s5_prefill_p2048_c1 | 685.956 | — | None |
+| a3_glm53flash_heldout_s5_prefill_p2048_c4 | 1332.368 | — | None |
+| a3_glm53flash_heldout_s5_prefill_p32768_c1 | 4922.888 | — | None |
+| a3_glm53flash_heldout_s5_prefill_p32768_c4 | 12694.102 | — | None |
+| a3_glm53flash_heldout_s5_prefill_p4096_c1 | 883.659 | — | None |
+| a3_glm53flash_heldout_s5_prefill_p4096_c4 | 2206.948 | — | None |
+| a3_glm53flash_heldout_s5_prefill_p8192_c1 | 1340.904 | — | None |
+| a3_glm53flash_heldout_s5_prefill_p8192_c4 | 3545.694 | — | None |
 
 Prefill Body sums complete device chunk spans. Client TTFT includes other stages and is not substituted for Body.
 
-Summary: {"compared": 14, "passed": 4, "requested_sources": 15, "sources": 15, "status_counts": {"compared": 14, "unresolved": 1}}
+Summary: {"compared": 14, "passed": 4, "requested_sources": 25, "sources": 25, "status_counts": {"compared": 14, "observed_only": 10, "unresolved": 1}}
 
 Full per-layer, operator and prediction details retain their individual SHA256 evidence pointers. Missing evidence and failed predictions remain visible and never count as a pass.

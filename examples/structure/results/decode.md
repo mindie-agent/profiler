@@ -1,6 +1,6 @@
 # Current profiling validation
 
-One canonical case registry and one recorded Sim package. All costs are fresh in this run. Calibration and held-out labels remain distinct; device Body latency is not client TPOT.
+One canonical case registry and one recorded Sim package. Selected costs are freshly replayed; unchanged cases retain verified evidence from this same Sim package. Calibration and held-out labels remain distinct; device Body latency is not client TPOT.
 
 | Case | Phase | Calls | Real mean / P50 / P90 ms | Sim ms | Error | Status |
 |---|---|---:|---:|---:|---:|---|
@@ -19,7 +19,7 @@ One canonical case registry and one recorded Sim package. All costs are fresh in
 | a3_glm53_dc4k_b4 | decode | 67 | 43.438 / 43.437 / 43.598 | 38.631 | -11.07% | PASS |
 | a3_glm53_dc4k_b8 | decode | 61 | 47.113 / 47.149 / 47.402 | 44.125 | -6.34% | PASS |
 | a3_glm53_dc16k_b1 | decode | 74 | 39.112 / 39.105 / 39.196 | 38.334 | -1.99% | PASS |
-| qwen35-397b-a3-tp16-c48 | decode | 23 | 76.089 / 76.132 / 76.632 | 61.285 | -19.46% | FAIL |
+| qwen35-397b-a3-tp16-c48 | decode | 23 | 76.089 / 76.132 / 76.632 | 66.783 | -12.23% | PASS |
 | qwen35-397b-a3-tp16-c136 | decode | 18 | 119.054 / 119.131 / 119.486 | 104.482 | -12.24% | PASS |
 | qwen35-35b-a5-tp4-c64-graph | decode | 79 | 21.957 / 22.001 / 22.068 | 19.975 | -9.03% | PASS |
 | qwen35-35b-a5-tp4-c128-graph | decode | 76 | 28.585 / 28.571 / 28.704 | 26.049 | -8.87% | PASS |
@@ -32,7 +32,7 @@ One canonical case registry and one recorded Sim package. All costs are fresh in
 | a3_glm53_w4a8_tp16_tpot88_c8 | decode | 49 | 69.556 / 69.489 / 69.830 | 66.764 | -4.01% | PASS |
 | a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1 | decode | 152 | 13.135 / 13.129 / 13.145 | 12.436 | -5.32% | PASS |
 | a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8 | decode | 145 | 13.292 / 12.803 / 12.817 | 12.155 | -8.55% | PASS |
-| a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64 | decode | 75 | 26.328 / 26.306 / 26.336 | — | — | failed |
+| a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64 | decode | 75 | 26.328 / 26.306 / 26.336 | 24.812 | -5.76% | PASS |
 | a5_glm53flash_tp8_c16_p4k | decode | 30 | 33.031 / 33.026 / 33.164 | 30.187 | -8.61% | PASS |
 | a5_glm53flash_tp8_c16_p8k | decode | 32 | 33.616 / 33.626 / 33.710 | 30.768 | -8.47% | PASS |
 | a5_glm53flash_tp8_c32_p4k | decode | 31 | 37.669 / 37.665 / 37.761 | 35.809 | -4.94% | PASS |
@@ -44,9 +44,9 @@ One canonical case registry and one recorded Sim package. All costs are fresh in
 | a3_glm53flash_tp16_aclgraph_c32 | decode | 49 | 69.361 / 69.418 / 69.528 | 65.400 | -5.71% | PASS |
 | a3_glm53flash_tp16_aclgraph_c64 | decode | 47 | 97.375 / 97.487 / 97.895 | 97.858 | +0.50% | PASS |
 | a3_glm53flash_tp16_aclgraph_c8 | decode | 47 | 46.859 / 46.817 / 47.175 | 42.056 | -10.25% | PASS |
-| a5_v41_fp8_tp1_dp8_ep8_c16_p2k | decode | 129 | 14.929 / 14.914 / 14.929 | — | — | failed |
-| a5_v41_fp8_tp1_dp8_ep8_c32_p2k | decode | 105 | 18.625 / 18.616 / 18.640 | — | — | failed |
-| a5_v41_fp8_tp1_dp8_ep8_c4_p2k | decode | 151 | 13.239 / 13.209 / 13.227 | — | — | failed |
+| a5_v41_fp8_tp1_dp8_ep8_c16_p2k | decode | 129 | 14.929 / 14.914 / 14.929 | 13.749 | -7.91% | PASS |
+| a5_v41_fp8_tp1_dp8_ep8_c32_p2k | decode | 105 | 18.625 / 18.616 / 18.640 | 17.361 | -6.78% | PASS |
+| a5_v41_fp8_tp1_dp8_ep8_c4_p2k | decode | 151 | 13.239 / 13.209 / 13.227 | 12.550 | -5.21% | PASS |
 | a3_kimi4_tp8_w4a8_c1 | decode | 254 | 3.180 / 3.128 / 3.432 | 3.238 | +1.82% | PASS |
 | a3_kimi4_tp8_w4a8_c16 | decode | 235 | 4.807 / 4.779 / 4.992 | 4.174 | -13.17% | PASS |
 | a3_kimi4_tp8_w4a8_c32 | decode | 220 | 6.714 / 6.665 / 6.923 | 6.097 | -9.19% | PASS |
@@ -69,23 +69,25 @@ One canonical case registry and one recorded Sim package. All costs are fresh in
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4 | decode | 48 | 47.654 / 47.425 / 47.666 | 50.270 | +5.49% | PASS |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64 | decode | 21 | 61.811 / 61.629 / 62.042 | 63.541 | +2.80% | PASS |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8 | decode | 29 | 48.582 / 48.412 / 48.662 | 51.673 | +6.36% | PASS |
-| a5_v41_fp8_tp1_dp8_ep8_c128_p2k | decode | 73 | 27.286 / 27.266 / 27.290 | — | — | failed |
+| a5_v41_fp8_tp1_dp8_ep8_c128_p2k | decode | 73 | 27.286 / 27.266 / 27.290 | 25.540 | -6.40% | PASS |
 | qwen35-35b-a3-tp4-c144 | decode | 25 | 61.750 / 61.784 / 62.102 | 60.393 | -2.20% | PASS |
 | qwen35-35b-a3-tp4-c320 | decode | 21 | 99.692 / 99.679 / 100.090 | 107.334 | +7.67% | PASS |
 | qwen36-a3-tp4-c64 | decode | 27 | 62.520 / 62.407 / 62.858 | 61.622 | -1.44% | PASS |
 | qwen36-a3-tp4-c128 | decode | 22 | 97.566 / 97.506 / 97.890 | 115.144 | +18.02% | FAIL |
 | qwen38-a3-tp4-c64 | decode | 27 | 62.648 / 62.586 / 63.058 | 61.622 | -1.64% | PASS |
 | qwen38-a3-tp4-c128 | decode | 22 | 97.457 / 97.455 / 97.787 | 115.144 | +18.15% | FAIL |
-| qwen35-35b-a5-tp4-c8-eager | decode | 78 | 167.719 / 166.703 / 176.962 | 6.790 | -95.95% | FAIL |
-| qwen35-35b-a5-tp4-c16-eager | decode | 81 | 170.298 / 167.098 / 186.266 | 7.899 | -95.36% | FAIL |
-| qwen35-35b-a5-tp4-c32-eager | decode | 78 | 168.740 / 168.003 / 175.220 | 8.931 | -94.71% | FAIL |
-| a5_qwen36_highconc_c4 | decode | 73 | 13.342 / 13.245 / 13.485 | 7.911 | -40.71% | FAIL |
-| a5_qwen36_highconc_c40 | decode | 54 | 20.684 / 20.612 / 21.334 | 14.079 | -31.93% | FAIL |
-| a5_qwen36_highconc_c128 | decode | 38 | 32.609 / 32.227 / 33.851 | 24.198 | -25.79% | FAIL |
-| a5_qwen38_highconc_c4 | decode | 45 | 13.027 / 13.005 / 13.167 | 7.559 | -41.97% | FAIL |
-| a5_qwen38_highconc_c32 | decode | 48 | 22.791 / 22.711 / 22.894 | 14.569 | -36.08% | FAIL |
-| a5_qwen38_highconc_c128 | decode | 29 | 45.689 / 45.690 / 45.735 | 35.495 | -22.31% | FAIL |
+| a5_qwen36_highconc_c4 | decode | 73 | 13.342 / 13.245 / 13.485 | 9.106 | -31.75% | FAIL |
+| a5_qwen36_highconc_c40 | decode | 54 | 20.684 / 20.612 / 21.334 | 14.472 | -30.03% | FAIL |
+| a5_qwen36_highconc_c128 | decode | 38 | 32.609 / 32.227 / 33.851 | 24.357 | -25.30% | FAIL |
+| a5_qwen38_highconc_c4 | decode | 45 | 13.027 / 13.005 / 13.167 | 8.739 | -32.91% | FAIL |
+| a5_qwen38_highconc_c32 | decode | 48 | 22.791 / 22.711 / 22.894 | 15.434 | -32.28% | FAIL |
+| a5_qwen38_highconc_c128 | decode | 29 | 45.689 / 45.690 / 45.735 | 35.558 | -22.17% | FAIL |
+| a3_glm53flash_heldout_c12_p4k | decode | 13 | 23.412 / 23.008 / 23.288 | 21.869 | -6.59% | PASS |
+| a3_glm53flash_heldout_c24_p12k | decode | 14 | 23.601 / 23.242 / 23.719 | 21.986 | -6.84% | PASS |
+| a5_glm53flash_heldout_c12_p4k | decode | 20 | 18.133 / 18.108 / 18.148 | 10.890 | -39.94% | FAIL |
+| a5_glm53flash_heldout_c24_p12k | decode | 21 | 38.995 / 39.210 / 39.263 | 26.465 | -32.13% | FAIL |
+| a5_glm53flash_heldout_c48_p4k | decode | 26 | 43.228 / 43.355 / 43.400 | 36.202 | -16.25% | FAIL |
 
-Summary: {"compared": 76, "passed": 64, "requested_sources": 81, "sources": 81, "status_counts": {"compared": 76, "failed": 5}}
+Summary: {"compared": 83, "passed": 72, "requested_sources": 83, "sources": 83, "status_counts": {"compared": 83}}
 
 Full per-layer, operator and prediction details retain their individual SHA256 evidence pointers. Missing evidence and failed predictions remain visible and never count as a pass.

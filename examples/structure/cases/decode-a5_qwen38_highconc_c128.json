@@ -59,11 +59,11 @@
           },
           "coordinates": {
             "giga_flops": {
-              "path": "work.flops",
+              "path": "work.cube",
               "scale": 1e-09
             },
             "mega_hbm_bytes": {
-              "path": "work.hbm_bytes",
+              "path": "work.hbm",
               "scale": 1e-06
             }
           },
@@ -114,7 +114,11 @@
               "execution_boundary": "inclusive_whole_native_call_once"
             },
             "body_residual_used": false,
-            "heldout_observed_values_used_in_fit": false
+            "heldout_observed_values_used_in_fit": false,
+            "coordinate_projection": {
+              "work.flops": "work.cube",
+              "work.hbm_bytes": "work.hbm"
+            }
           }
         }
       ],

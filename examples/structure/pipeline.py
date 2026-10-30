@@ -239,11 +239,13 @@ def render(report):
             for tier, stats in row['comparison'].get('tiers', {}).items():
                 lines.append(f"| {row['case_id']} | {tier} | {stats['passed']} / {stats['compared']} | {stats['events']} |")
     if report.get('scope') == 'generalization':
-        lines += ['', '| Experiment | Relation | Fitted domains | Passed / predicted populations |',
-                  '|---|---|---:|---:|']
+        lines += ['', '| Experiment | Relation | Fitted domains | Passed / predicted / total populations | Admitted / Body events |',
+                  '|---|---|---:|---:|---:|']
         for row in report['cases']:
             result = row['comparison']
-            lines.append(f"| {row['case_id']} | {row.get('evaluation_relation', 'planned')} | {row.get('fitted_domains', '—')} | {result.get('passed_populations', 0)} / {result.get('predicted_populations', 0)} |")
+            coverage = row.get('population_coverage')
+            events = (f"{coverage['admitted_events']} / {coverage['body_events']}" if coverage else '—')
+            lines.append(f"| {row['case_id']} | {row.get('evaluation_relation', 'planned')} | {row.get('fitted_domains', '—')} | {result.get('passed_populations', 0)} / {result.get('predicted_populations', 0)} / {result.get('total_populations', '—')} | {events} |")
         lines += ['', 'Retrospective source holdout is not new blind validation. Native activity differences are not additive Body wall-time errors.']
     lines += ['', 'Summary: ' + json.dumps(report['summary'], sort_keys=True), '',
               'Full per-layer, operator and prediction details retain their individual SHA256 evidence pointers. '
@@ -357,12 +359,19 @@ def run(manifest_path, *, output, archive_root, phase=None, scope='body', case_i
         cards = []
         for experiment in result['experiments']:
             summary = (experiment.get('evaluation') or {}).get('summary', {})
+            coverage = experiment.get('population_coverage')
             cards.append({'id': experiment['id'], 'case_id': experiment['id'], 'phase': 'native_service',
                 'status': experiment['status'], 'evaluation_relation': experiment.get('evaluation_relation'),
                 'fitted_domains': experiment.get('fitted_domains'),
                 'frozen_model_sha256': experiment.get('frozen_model_sha256'),
                 'limits': experiment.get('limits', []), 'reason': experiment.get('reason'),
+                'population_coverage': ({
+                    'body_events': sum(f['full_calls'] for r in coverage for f in r['native_families']),
+                    'admitted_events': sum(f['admitted_calls'] for r in coverage for f in r['native_families']),
+                    'forward_count': sum(r['forward_count'] for r in coverage),
+                } if coverage else None),
                 'comparison': {'status': 'generalization_compared' if experiment['status'] == 'completed' else experiment['status'],
+                    'total_populations': summary.get('populations', 0),
                     'predicted_populations': summary.get('predicted', 0),
                     'passed_populations': summary.get('passed', 0)},
                 'evidence': archive_report(experiment, archive_root)})
