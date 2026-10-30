@@ -1,6 +1,16 @@
 # GLM source mechanisms: retained ABI applicability
 
-This arm reuses complete accepted Decode populations. It does not change Body endpoints, infer layers from operator names, or treat activity sums as Body wall-clock contributions. Explicit source-program costs will be recorded separately from the earlier `c2261d63` generic references.
+This arm reuses complete accepted Decode populations. It does not change Body endpoints, infer layers from operator names, or treat activity sums as Body wall-clock contributions. Explicit source-program costs are recorded separately from the earlier `c2261d63` generic references.
+
+## Completed source-program replay
+
+The fixed `18c423c7297fc3b3e92a5eb34f204df40a2a6cb6` runtime actually executed fresh programs for all five sources. The [complete family scoreboard](body-operator-family-scoreboard.md) preserves 223 Forwards and all 529,584 selected Body events, including unscored families. Its 118,271 strict calls form 99 cohorts: **85 pass**, comprising 83/93 micro-call cohorts and 2/6 large-call cohorts. It can replace the corresponding complete operator receipts; the earlier focused down-only receipts cannot. [Independent replay review](body-operator-reprice-independent-review.json) verifies 4,589 identity, population, histogram and arithmetic checks.
+
+The [focused mechanism table](source-mechanism-scoreboard.md) shows expert_down at c64/c32 improving to -3.96%/-2.78%. At c1 the single-call error is -10.95 us, so it passes the absolute 15 us micro-call tolerance despite -48.73% relative error. All three are included in the full-family scoreboard, rather than counted again.
+
+The independent [native reference table](glm-source-native-reference-scoreboard.md) retains 14 full ABI groups and 12,105 calls across the same 223 Forwards. None enters strict accuracy. A5 sparse-attention residuals are -0.212/+1.558/+3.323 ms/F at c1/c32/c64; A3 packed528 residuals are +5.153/+10.606 ms/F at c32/c64. These results retain the analytic mechanism's remaining error; they are activity differences, not additive Body wall-clock attribution. A3 operator references retain their original conditional context 4096, whereas the separate Body campaign uses 4104; A5 retains 4104.
+
+[Native/focused independent review](glm-source-mechanism-independent-review.json) verifies 615 checks without rerunning predictions. Individual program rate/service traces were not retained, so this review does not claim to reconstruct predicted cost from hardware rates. It checks the retained inputs, complete observations, declared program work and aggregate arithmetic. The three exploratory focused-only reviews rejected the full-case reviewer's population assumption; the final complete-family receipt passed that reviewer unchanged.
 
 ## A3 packed-cache sparse MLA
 
@@ -27,6 +37,6 @@ It does not directly implement `GroupedMatmulSwigluQuantV2`, whose actual up-pro
 
 ## Execution boundary
 
-No source-mechanism predictions are claimed by this preparation receipt. New costs require an explicit, independently identified source-case variant and a fixed runtime. The native reference driver accepts `--case` while preserving `original_case_identity`; it checks that model, hardware and parallel declarations stay equal, then exports fresh contracts/work and actually executes the selected programs. `--source-mechanisms` enables the packed528 selector and requires the explicit analytic recipe. Existing strict cohort repricing uses `reprice_body_operator_families.py --role expert_down` with the new case, preserving original observations and safely rebuilding the declaration.
+The original partition receipt records evidence preparation only; the separate cost receipts above bind explicit source-case variants to their fixed runtime. The native reference driver accepts `--case` while preserving `original_case_identity`; it checks that model, hardware and parallel declarations stay equal, then exports fresh contracts/work and actually executes the selected programs. `--source-mechanisms` enables the packed528 selector and requires the explicit analytic recipe. The initial `--role expert_down` trials preserve original observations but cover only that role; the subsequent full-family repricing omits that filter and retains every measured family.
 
 KDA remains separate: the retained native ABI has a nonempty accepted-token tensor. The current arch35 source adapter rejects that state-slot branch. Neither the accepted-token input nor flat active strides may be fabricated to force an implementation match.
