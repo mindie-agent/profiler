@@ -62,6 +62,11 @@ def worker(path, runtime_commit, *, case_path=None, source_mechanisms=False,
             or actual["forward_count"] != partitions["forward_count"]
             or actual["geometry"] != partitions["geometry"]):
         raise ValueError("partition_actual_population_changed")
+    context = actual["conditional_context_tokens"]
+    # The retained full-family histograms have served their identity/population
+    # check. Keeping them through the DP-expanded export needlessly overlaps two
+    # independent working sets; the selected native partitions remain live.
+    del actual
     case = parse_case(read(case_pin["path"])); geo = partitions["geometry"]
     declaration_changes = {}
     if case_path:
@@ -78,6 +83,12 @@ def worker(path, runtime_commit, *, case_path=None, source_mechanisms=False,
             declaration_changes["model.metadata"] = {"original": original_metadata, "selected": selected_metadata}
         if original.runtime.kernels != case.runtime.kernels:
             declaration_changes["runtime.kernels"] = {"original": original.runtime.kernels, "selected": case.runtime.kernels}
+        del original, original_model, selected_model, original_metadata, selected_metadata
+    # Native histograms are needed after graph export, not during its JSON
+    # materialization. Reload this small retained metadata artifact afterwards;
+    # the original content pin is checked again before publishing any result.
+    del partitions
+    gc.collect()
     selectors = None
     if source_mechanisms:
         from glm_source_mechanism_references import SELECTORS
@@ -87,7 +98,8 @@ def worker(path, runtime_commit, *, case_path=None, source_mechanisms=False,
         from glm_kda_accepted_references import SELECTORS as ACCEPTED_SELECTORS
         selectors = {**(BASE_SELECTORS if selectors is None else selectors), **ACCEPTED_SELECTORS}
     manifest = export_structure(case, phase="decode", tokens=geo["tokens_per_sequence"],
-        sequences=geo["sequences_per_replica"], context=actual["conditional_context_tokens"], scope="body")
+        sequences=geo["sequences_per_replica"], context=context, scope="body")
+    partitions = read(path)
     if v41_native_roles:
         from v41_native_references import prepare_references as prepare_v41
         refs, unresolved, compact = prepare_v41(partitions, manifest)
@@ -107,7 +119,7 @@ def worker(path, runtime_commit, *, case_path=None, source_mechanisms=False,
         unique.setdefault(group["program_set_key"], group)
     # The source helper expands the shared frontend itself; release the first
     # complete manifest so only its selected representative targets remain live.
-    del manifest, actual
+    del manifest
     gc.collect()
     priced = predict_source_role_references(case, compact, {
         "source_role_references": list(unique.values()), "forward_count": partitions["forward_count"]})
