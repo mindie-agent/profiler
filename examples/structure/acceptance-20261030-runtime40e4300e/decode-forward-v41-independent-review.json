@@ -1,0 +1,32 @@
+{
+  "schema_version": "mindie-decode-prediction-review/1",
+  "status": "passed",
+  "report_sha256": "192c4e3b2210055292d31e181163225c9db9e245768883b7321582ff19c70eb5",
+  "checks": 1021,
+  "failures": [],
+  "compared": 6,
+  "passed": 0,
+  "unique_source_geometry_populations": 7,
+  "input_execution_status": "failed",
+  "failed_attempts": [
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c128_p2k:q1_b16_m16",
+      "failure": {
+        "status": "failed",
+        "reason": "body_prediction_timeout",
+        "timeout_s": 90.0,
+        "runtime_identity": {
+          "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+          "version": "0.8.0",
+          "package_sha256": "ab51c56356b3b6f11a130dd7a59d2fd894b99148d0917fc4cc40189102286124",
+          "file_count": 271,
+          "algorithm": "sha256(sorted relative-path to file-sha256 JSON)"
+        }
+      },
+      "observed_calls_retained": 73,
+      "diagnostic_prediction_retained": false
+    }
+  ],
+  "unique_forwards": 830,
+  "scope": "Independent saved-source population, endpoint, error and unrounded 15% arithmetic; no raw scan or prediction."
+}

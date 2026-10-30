@@ -1,0 +1,242 @@
+{
+  "schema_version": "mindie-decode-forward-replay/1",
+  "variant_id": "body-runtime40e4300e-v41",
+  "not_new_live_collection": true,
+  "basis": "fresh runtime prediction using unchanged retained source populations",
+  "runtime_plan": {
+    "checkout": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029",
+    "source_commit": "40e4300ea7ccc1123759f6201cc2d69e3aa77ad6"
+  },
+  "cases": [
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c128_p2k",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c128_p2k_20261030/kernel_details.csv",
+        "sha256": "9f4378314a899c8389ba107c89a43dd5fa90c329553bd204ae546ffad39a2f41",
+        "size_bytes": 49316349
+      },
+      "sim_case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_c128_p2k-composed-arch35-source.json",
+      "model_declaration": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_c128_p2k-composed-arch35-source.json",
+        "sha256": "100af55b531f0a6c69930f1e4e7f1c9a241cf89070ed940f058b4f85fb855593",
+        "size_bytes": 154797
+      },
+      "segmentation": "auto_structure_guided",
+      "segmentation_options": {
+        "source_attention_anchors": [
+          {
+            "op_type": "MqsmlaKernel___call__",
+            "name": "mixed_quant_sparse_flash_mla",
+            "attention": "mla",
+            "evidence": {
+              "path": "/Users/maoxx241/code/refs/cannbot-dsl/samples/mixed_quant_sparse_flash_mla/mixed_quant_sparse_flash_mla.py",
+              "bytes": 111124,
+              "sha256": "40b5b14ced15bb7c3d3687ab7387d508a19065eb5353dfb0675348e0de22fa3f",
+              "revision": "4519e5372a8b9306f7d823688c0cb8141ee34fb1",
+              "definition_lines": [
+                897,
+                938
+              ],
+              "layout_lines": [
+                100,
+                118
+              ],
+              "wrapper_lines": [
+                2142,
+                2233
+              ]
+            },
+            "binary_identity": "source symbol matches; r31 binary/source identity not established"
+          }
+        ],
+        "source_decode_query": {
+          "tokens_per_sequence": 1,
+          "basis": "source_declared_no_speculation_decode_capture",
+          "evidence": {
+            "path": "/Volumes/data/mindie-sim-data/a5/dsv41_dp8ep8_sweep_20261030/serve.log",
+            "sha256": "6e621f4bbc3f65caa89b3f5b800fed8ab193bf3ebb73121c1fdd5f09e0990d6f",
+            "size_bytes": 268539
+          },
+          "lines": [
+            23,
+            198
+          ]
+        },
+        "forward_closure": "mhc_final_norm"
+      },
+      "boundaries_path": null,
+      "geometry": {
+        "context_tokens": 2048
+      },
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c128_p2k_20261030",
+        "retained_inventory": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-final6/retained-source-evidence.json",
+          "sha256": "06e87ec000621c8f5adeac51465644ba69f47898e3625d3e8de773474906f6b8",
+          "size_bytes": 312386
+        },
+        "client": {
+          "concurrency": 128,
+          "input_len": 2048,
+          "output_len": 512,
+          "profiled_token_tpot_p50_ms": 33.341303551858346,
+          "body_forward_is_separate_metric": true
+        },
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c128_p2k_20261030/benchmark_summary.json",
+          "sha256": "be3e4962c4307e24a971e653d5cf4739b704ca9b4bcefd9810d4cc8559787c36",
+          "size_bytes": 1397697
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "median": 33.341303551858346
+          },
+          "body_forward_is_separate_metric": true
+        },
+        "deployment_evidence": {
+          "launch_source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/dsv41_dp8ep8_sweep_20261030/cfg/hc_serve_dp8.sh",
+            "sha256": "ab844d20c271a3c37fc008bc6756080bd04656133866550cdb98311c8d033e2e",
+            "size_bytes": 3248
+          },
+          "resolved_startup": {
+            "source": {
+              "path": "/Volumes/data/mindie-sim-data/a5/dsv41_dp8ep8_sweep_20261030/serve.log",
+              "sha256": "6e621f4bbc3f65caa89b3f5b800fed8ab193bf3ebb73121c1fdd5f09e0990d6f",
+              "size_bytes": 268539
+            },
+            "facts": [
+              {
+                "line": 23,
+                "values": {
+                  "model": "'/mnt/weight/DeepSeek-V4.1-Flash-1017'",
+                  "data_parallel_size": "8",
+                  "enable_expert_parallel": "True",
+                  "max_model_len": "16384",
+                  "enable_prefix_caching": "False",
+                  "enable_force_eplb": "True",
+                  "quantization": "'deepseek_v4_fp8'"
+                }
+              },
+              {
+                "line": 26,
+                "architecture": "DeepseekV41ForCausalLM"
+              },
+              {
+                "line": 198,
+                "values": {
+                  "model": "'/mnt/weight/DeepSeek-V4.1-Flash-1017'",
+                  "tensor_parallel_size": "1",
+                  "data_parallel_size": "8",
+                  "enable_prefix_caching": "False",
+                  "quantization": "deepseek_v4_fp8"
+                }
+              }
+            ]
+          },
+          "actual_force_eplb": true,
+          "current_capture_engine_config": {
+            "checkpoint": "/mnt/weight/DeepSeek-V4.1-Flash-1017",
+            "image": "9e869e814846 (vllm-ascend v0.30.0-a5-cann9.2.0-r31)",
+            "topology": "TP1/DP8/EP8",
+            "tensor_parallel_size": 1,
+            "data_parallel_size": 8,
+            "enable_expert_parallel": true,
+            "enable_force_eplb": true,
+            "enable_prefix_caching": false,
+            "quantization": "deepseek_v4_fp8",
+            "max_model_len": 16384,
+            "max_num_seqs_per_die": 16,
+            "max_num_batched_tokens": 8192,
+            "gpu_memory_utilization": 0.94,
+            "profiler": "torch (torch_npu text export, Level1, aic PipeUtilization)"
+          }
+        },
+        "prefix_cache": {
+          "enabled": false,
+          "basis": "startup lines23/198"
+        },
+        "speculation": {
+          "enabled": false,
+          "basis": "startup line198 speculative_config=None"
+        },
+        "graph_native_mode": "FULL_AND_PIECEWISE; decode full graph bucket 1/2/4/8/16",
+        "selected_rank": "dp0_pp0_tp0_dcp0_ep0_rank0",
+        "selected_rank_alias": null,
+        "request_geometry_is_not_per_forward_geometry": true,
+        "hidden_shard_rows_and_routed_capacity_are_not_query_rows": true,
+        "representative_context": {
+          "tokens": 2048,
+          "basis": "profiled client input length; live context growth not observed"
+        }
+      },
+      "unresolved_reasons": [
+        "exact active rows and context on every DP peer",
+        "r31 packaged MQSMLA source/binary identity and tensor ABI",
+        "mixed FP8/FP4 KV resident/traffic ABI is not the current analytic BF16-cache envelope",
+        "Engram gate wkv quantized checkpoint representation is not yet a separate execution role",
+        "host lookup/UVA path and shared host owner supply across replicas"
+      ],
+      "extraction_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-final6/auto-forward-a5_v41_fp8_tp1_dp8_ep8_c128_p2k.json",
+      "variant_id": "body-runtime40e4300e-v41",
+      "baseline_reference": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-final6/decode-forward-d08be4d4-replay.json",
+        "sha256": "b9c82720d5c546bcf142ad72249f571a0c2da2be79f401f4a4170013934da186",
+        "case_id": "a5_v41_fp8_tp1_dp8_ep8_c128_p2k:q1_b16_m16"
+      },
+      "replay_input_pins": {
+        "case": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_c128_p2k-composed-arch35-source.json",
+          "sha256": "100af55b531f0a6c69930f1e4e7f1c9a241cf89070ed940f058b4f85fb855593",
+          "size_bytes": 154797
+        },
+        "extraction": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-final6/auto-forward-a5_v41_fp8_tp1_dp8_ep8_c128_p2k.json",
+          "sha256": "b708bd10f7b07a057fecdbad3d407c24d8b489275894c95d0ed458b540c16e18",
+          "size_bytes": 1196543,
+          "reused_existing_extraction": true
+        },
+        "primary_geometry": {
+          "query_rows": 16,
+          "sequences_per_replica": 16,
+          "tokens_per_sequence": 1,
+          "context_tokens": 2048,
+          "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+          "context_basis": "not_observed_from_cache_capacity",
+          "phase": "decode"
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c128_p2k_20261030/kernel_details.csv",
+          "size_bytes": 49316349,
+          "mtime_ns": 1793305202000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "9f4378314a899c8389ba107c89a43dd5fa90c329553bd204ae546ffad39a2f41"
+        }
+      },
+      "prior_source_case_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/v41-new6/a5_v41_fp8_tp1_dp8_ep8_c128_p2k.json",
+        "sha256": "948b702e9a458482fa629c6acacb16920e6cc91e62d0332e4d462061b2a3c3be",
+        "source_unchanged": true
+      },
+      "runtime_refresh": {
+        "prior_input_manifest": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtimeec58ce79/decode-forward-v41-composed-cases.json",
+          "sha256": "5a3f067467f0f9741a47f2e234d1e89b031fa836442f9ab587a25dcd0c6905cc",
+          "size_bytes": 91172
+        },
+        "prior_case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_c128_p2k-composed-arch35-source.json",
+          "sha256": "100af55b531f0a6c69930f1e4e7f1c9a241cf89070ed940f058b4f85fb855593",
+          "size_bytes": 154797
+        },
+        "case_bytes_changed": false,
+        "explicit_case_override": false,
+        "retained_extraction_bytes_unchanged": true
+      }
+    }
+  ],
+  "retry_context": {
+    "reason": "prior 90-second timeout under concurrent queue; same runtime/case/budget, one additional attempt after Body queue finished",
+    "prior_report": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-v41-replay.json"
+  }
+}

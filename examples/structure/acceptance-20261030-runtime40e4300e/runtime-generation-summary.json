@@ -1,0 +1,207 @@
+{
+  "schema_version": "mindie-runtime-controller-replay-summary/1",
+  "status": "completed",
+  "runtime_commit": "40e4300ea7ccc1123759f6201cc2d69e3aa77ad6",
+  "runtime_package_sha256": "ab51c56356b3b6f11a130dd7a59d2fd894b99148d0917fc4cc40189102286124",
+  "base_source_count": 66,
+  "base_passed_sources": 22,
+  "completed_compared_arms": 99,
+  "final_failed_arms": 0,
+  "unique_observed_source_geometry_populations": 222,
+  "unique_observed_forwards": 5250,
+  "original_prediction_max_peak_rss_bytes": 451133440,
+  "original_prediction_max_elapsed_seconds": 74.5431465000147,
+  "controller_refresh_new_prediction_executions": 0,
+  "independent_review_checks": 22795,
+  "reports": [
+    {
+      "family": "glm",
+      "report_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-glm-controller-replay.json",
+        "sha256": "0534af9badfddedbe4d5530e854e1cfdc3e1b8596433dbf93f6e7b96420e4939"
+      },
+      "summary": {
+        "case_count": 103,
+        "source_case_count": 26,
+        "measured_cases": 103,
+        "compared_cases": 26,
+        "passed_cases": 12,
+        "unresolved_cases": 77,
+        "failed_cases": 0
+      },
+      "independent_checks": 6333,
+      "predictions_reused": 26,
+      "fresh_predictions": 0
+    },
+    {
+      "family": "kimi",
+      "report_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-kimi-controller-replay.json",
+        "sha256": "df08712f8f96aa5b74c51383c75263d616fea79d1bbe49967ac7012ff2fe707a"
+      },
+      "summary": {
+        "case_count": 12,
+        "source_case_count": 12,
+        "measured_cases": 12,
+        "compared_cases": 12,
+        "passed_cases": 0,
+        "unresolved_cases": 0,
+        "failed_cases": 0
+      },
+      "independent_checks": 4564,
+      "predictions_reused": 12,
+      "fresh_predictions": 0
+    },
+    {
+      "family": "qwen",
+      "report_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-qwen-controller-replay.json",
+        "sha256": "0eabddd00ea79a873def2201f40e4ee02647aac6568092554876788817a8cc68"
+      },
+      "summary": {
+        "case_count": 43,
+        "source_case_count": 6,
+        "measured_cases": 43,
+        "compared_cases": 6,
+        "passed_cases": 0,
+        "unresolved_cases": 37,
+        "failed_cases": 0
+      },
+      "independent_checks": 1485,
+      "predictions_reused": 6,
+      "fresh_predictions": 0
+    },
+    {
+      "family": "v41",
+      "report_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-v41-controller-replay.json",
+        "sha256": "d0d078a7c53ee007323e34a971692dcbe9b4921665db965b226ba8e4d939ef0e"
+      },
+      "summary": {
+        "case_count": 7,
+        "source_case_count": 7,
+        "measured_cases": 7,
+        "compared_cases": 7,
+        "passed_cases": 0,
+        "unresolved_cases": 0,
+        "failed_cases": 0
+      },
+      "independent_checks": 1180,
+      "predictions_reused": 7,
+      "fresh_predictions": 0
+    },
+    {
+      "family": "remaining",
+      "report_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-remaining-controller-replay.json",
+        "sha256": "2450c732bc759ff350346dc4b60fa3f1a72e52d411dff9b26a96dde3e54d4f0f"
+      },
+      "summary": {
+        "case_count": 57,
+        "source_case_count": 15,
+        "measured_cases": 57,
+        "compared_cases": 15,
+        "passed_cases": 10,
+        "unresolved_cases": 42,
+        "failed_cases": 0
+      },
+      "independent_checks": 2410,
+      "predictions_reused": 15,
+      "fresh_predictions": 0
+    },
+    {
+      "family": "qwen-hccl",
+      "report_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-qwen-hccl-controller-replay.json",
+        "sha256": "ba463c3f20c678ac14520272eddd6666837a69d51a8f12e18b6531fc101dcadf"
+      },
+      "summary": {
+        "case_count": 3,
+        "source_case_count": 3,
+        "measured_cases": 3,
+        "compared_cases": 3,
+        "passed_cases": 0,
+        "unresolved_cases": 0,
+        "failed_cases": 0
+      },
+      "independent_checks": 796,
+      "predictions_reused": 3,
+      "fresh_predictions": 0
+    },
+    {
+      "family": "glm-hbm-control",
+      "report_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-glm-hbm-control-controller-replay.json",
+        "sha256": "3e8699f2dda8a6159a49b640d1109804c15f2115bc585442f066267b6fb5c180"
+      },
+      "summary": {
+        "case_count": 35,
+        "source_case_count": 10,
+        "measured_cases": 35,
+        "compared_cases": 10,
+        "passed_cases": 1,
+        "unresolved_cases": 25,
+        "failed_cases": 0
+      },
+      "independent_checks": 2009,
+      "predictions_reused": 10,
+      "fresh_predictions": 0
+    },
+    {
+      "family": "glm-source-composed",
+      "report_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-glm-source-composed-controller-replay.json",
+        "sha256": "d236fd879df04ef2c3c2c38f4afb3cb09229dbd06273093c92f4167b939eeb75"
+      },
+      "summary": {
+        "case_count": 35,
+        "source_case_count": 10,
+        "measured_cases": 35,
+        "compared_cases": 10,
+        "passed_cases": 1,
+        "unresolved_cases": 25,
+        "failed_cases": 0
+      },
+      "independent_checks": 2009,
+      "predictions_reused": 10,
+      "fresh_predictions": 0
+    },
+    {
+      "family": "glm-join-reduce",
+      "report_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-glm-join-reduce-replay.json",
+        "sha256": "25e6ecbf8c40f7162f4a7f4e549e412629d9142e8e1e3a070a881e4db543879f"
+      },
+      "summary": {
+        "case_count": 35,
+        "source_case_count": 10,
+        "measured_cases": 35,
+        "compared_cases": 10,
+        "passed_cases": 1,
+        "unresolved_cases": 25,
+        "failed_cases": 0
+      },
+      "independent_checks": 2009,
+      "predictions_reused": 0,
+      "fresh_predictions": 10
+    }
+  ],
+  "retained_failed_attempts": [
+    {
+      "report": "decode-forward-qwen-hccl-before-metadata-fix.json",
+      "reason": "artificial B1/q1 physical lowering during metadata parsing; fixed by f0d89c6"
+    },
+    {
+      "report": "decode-forward-v41-replay.json",
+      "case": "a5_v41_fp8_tp1_dp8_ep8_c128_p2k",
+      "reason": "90-second timeout; same-input same-budget retry completed in 74.54 seconds"
+    }
+  ],
+  "conditions": [
+    "HCCL templates and source copy/reduce issue rates are explicit conditional declarations, not selected-algorithm or measured rate evidence.",
+    "The 42 GLM ETP expert reductions remain distinct from 90 TP HCCL declarations; no node is removed merely to fit capture counts.",
+    "Body spans are unchanged by controller alias correction. Layer endpoints/activity may change; the final reports use the new extraction generation.",
+    "Operator activities and native source references are not additive wall-clock causal costs.",
+    "Final GLM recommendations use f57540a8 tp_join_reduce (90 TP invocations), superseding the older 132-invocation declared arm while preserving it for comparison."
+  ]
+}
