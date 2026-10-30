@@ -206,3 +206,88 @@ def test_v41_merged_native_partitions_keep_full_population_and_unscored_gaps(mon
     path.write_text(json.dumps(report))
     check = reviewer.review(path)
     assert check["status"] == "passed", check["failures"]
+
+
+def test_v41_composed_references_preserve_all_three_evidence_domains(monkeypatch, tmp_path):
+    root = Path(__file__).resolve().parents[1]
+    monkeypatch.syspath_prepend(str(root / "examples/structure"))
+    module = importlib.import_module("priority_decode_scoreboard")
+    reviewer = importlib.import_module("review_priority_decode_scoreboard")
+    base = root / "examples/structure"
+    v41 = base / "acceptance-20261030-v41-composed-native-5ec8843a/v41-complete-reference-scoreboard.json"
+    glm = base / "acceptance-20261030-glm-source-complete-operators/glm-native-reference-scoreboard.json"
+    original = json.loads(v41.read_text())
+    originals = {(case["case_id"], group["group_id"]): group
+                 for case in original["cases"] for group in case["groups"]}
+    report = module.build([], [], [glm, v41])
+    rows = [row for row in report["current_source_role_references"] if row["receipt"]["path"] == str(v41.resolve())]
+    assert len(rows) == 98
+    assert sum(row["observed_us"]["count"] for row in rows) == 398400
+    assert report["summary"]["current_operator_scored_events"] == 0
+    assert report["summary"]["operator_accuracy_by_tier"] == {
+        "heavy_relative_15pct": {"compared": 0, "passed": 0},
+        "micro_absolute_15us": {"compared": 0, "passed": 0}}
+    domains = {}
+    for row in rows:
+        group = originals[row["case_id"], row["group_id"]]
+        domain = row["observation_identity_domain"]
+        domains[domain] = domains.get(domain, 0) + 1
+        assert row["observed_us"] == group["observed_us"]
+        assert row["source_correspondence"] == group["source_correspondence"]
+        assert row["conditions"] == group.get("conditions")
+        assert row["retained_group_id"] == group.get("retained_group_id")
+        assert row["retained_cohort_id"] == group.get("retained_cohort_id")
+        assert row["cohort_id"] == group.get("cohort_id")
+        assert row["observed_contract"] == group.get("observed_contract")
+        assert not row["scored"] and not row["additional_budget_allowed"]
+        if "partition_indices" not in group and "partition_index" not in group:
+            assert row["partition_indices"] is None
+        if domain != "full_native_abi":
+            assert row["native_abi_sha256"] is None
+            assert "native_abi" not in row["evidence_strength"]
+    assert domains == {"full_native_abi": 49, "source_symbol_retained_group": 21, "normalized_contract": 28}
+    # Independent derivation of the existing complete-ABI key: the new tagged
+    # identity must not change old GLM generation selection.
+    legacy = json.loads(glm.read_text())
+    old_keys = set()
+    for case in legacy["cases"]:
+        geo = case["geometry"]
+        population = (case["source_identity"]["sha256"], geo["query_rows"], geo["tokens_per_sequence"], geo["sequences_per_replica"])
+        for group in case["groups"]:
+            abi_sha = hashlib.sha256(json.dumps(group["native_abi"], sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+            old_keys.add((population, group["native_operator_type"], (group["declared_role"],), tuple(sorted(group["layer_ids"])), abi_sha))
+    actual_keys = {(module._population(row), row["native_operator_type"], tuple(sorted(row["declared_roles"])),
+                   tuple(sorted(row["layer_ids"])), row["native_abi_sha256"])
+                  for row in report["current_source_role_references"] if row["receipt"]["path"] == str(glm.resolve())}
+    assert len(old_keys) == 45 and actual_keys == old_keys
+    output = tmp_path / "composed-references.json"
+    output.write_text(json.dumps(report))
+    # The reviewer must not consult the production observation selector.
+    monkeypatch.setattr(module, "reference_observation_identity", lambda *_: pytest.fail("review imported producer"))
+    check = reviewer.review(output)
+    assert check["status"] == "passed", check["failures"]
+    weakened = next(row for row in rows if row["observation_identity_domain"] == "source_symbol_retained_group")
+    weakened["native_abi_sha256"] = hashlib.sha256(b"null").hexdigest()
+    weakened["evidence_strength"] = "complete_native_abi_conditional_program_reference"
+    output.write_text(json.dumps(report))
+    check = reviewer.review(output)
+    assert check["status"] == "failed"
+    assert "All conditional references retain evidence and remain unscored" in check["failures"]
+
+
+def test_latest_v41_reference_keeps_distinct_source_symbol_groups_without_null_abi_collision(monkeypatch):
+    root = Path(__file__).resolve().parents[1]
+    monkeypatch.syspath_prepend(str(root / "examples/structure"))
+    module = importlib.import_module("priority_decode_scoreboard")
+    source = root / "examples/structure/acceptance-20261030-v41-composed-native-5ec8843a/v41-complete-reference-scoreboard.json"
+    case = json.loads(source.read_text())["cases"][0]
+    old = module.native_reference_rows(case, {"path": "old", "sha256": "old"})
+    newer = [{**row, "receipt": {"path": "new", "sha256": "new"}, "group_id": "new-cost-" + row["group_id"]} for row in old]
+    assert module.select_references(old + newer, {}) == newer
+    symbol = [row for row in old if row["observation_identity_domain"] == "source_symbol_retained_group"]
+    assert len(symbol) == 3 and all(row["native_abi_sha256"] is None for row in symbol)
+    # Hold the other selector fields equal to exercise evidence identity alone;
+    # these remain copied real observations, not a new capture acceptance.
+    shared_layer_set = [{**row, "layer_ids": symbol[0]["layer_ids"]} for row in symbol]
+    assert len(module.select_references(shared_layer_set, {})) == 3
+    assert len({row["observation_identity_sha256"] for row in symbol}) == 3

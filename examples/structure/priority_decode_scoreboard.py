@@ -82,8 +82,28 @@ def _population(row):
             geometry.get("tokens_per_sequence"), geometry.get("sequences_per_replica"))
 
 
+def reference_observation_identity(group):
+    """Identify retained measurements without folding fresh work into their key."""
+    abi, contract = group.get("native_abi"), group.get("observed_contract")
+    native_sha = None
+    if abi is not None:
+        domain, value = "full_native_abi", abi
+        native_sha = hashlib.sha256(json.dumps(abi, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        strength = "complete_native_abi_conditional_program_reference"
+    elif contract is not None:
+        domain, value = "normalized_contract", contract
+        strength = "complete_normalized_contract_conditional_program_reference"
+    else:
+        domain, value = "source_symbol_retained_group", group["retained_group_id"]
+        strength = "source_symbol_conditional_program_reference"
+    observation_sha = hashlib.sha256(json.dumps(
+        {"domain": domain, "value": value}, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    return {"native_abi_sha256": native_sha, "observation_identity_domain": domain,
+            "observation_identity_sha256": observation_sha, "evidence_strength": strength}
+
+
 def native_reference_rows(case, identity):
-    """Keep each retained full-ABI histogram separate from strict cohorts."""
+    """Keep each retained evidence domain and histogram outside strict cohorts."""
     rows = []
     for group in case["groups"]:
         if (group["prediction_status"] != "reference_only"
@@ -100,21 +120,23 @@ def native_reference_rows(case, identity):
             "case_identity": case["case_identity"], "partition_identity": case["partition_identity"],
             "group_id": group["group_id"],
             "partition_indices": (group["partition_indices"] if "partition_indices" in group
-                                  else [group["partition_index"]]),
-            "native_abi_sha256": hashlib.sha256(json.dumps(
-                group["native_abi"], sort_keys=True, separators=(",", ":")).encode()).hexdigest(),
+                                  else [group["partition_index"]] if "partition_index" in group else None),
+            "retained_group_id": group.get("retained_group_id"),
+            "cohort_id": group.get("cohort_id"), "retained_cohort_id": group.get("retained_cohort_id"),
+            "observed_contract": group.get("observed_contract"),
+            **reference_observation_identity(group),
             "forward_count": case["forward_count"], "calls_per_forward": group["calls_per_forward"],
             "native_operator_type": group["native_operator_type"],
             "attention_kind": group.get("attention_kind"), "block": group.get("block"),
             "declared_roles": [group["declared_role"]], "layer_ids": group["layer_ids"],
-            "status": "reference_only", "evidence_strength": "complete_native_abi_conditional_program_reference",
+            "status": "reference_only",
             "observed_us": group["observed_us"], "predicted_us": None,
             "predicted_reference_us": group["predicted_reference_us"],
             "observed_activity_ms_per_forward": observed,
             "predicted_service_ms_per_forward": predicted,
             "reference_residual_ms_per_forward": predicted - observed,
             "model_program_already_costed": True, "additional_budget_allowed": False,
-            "boundary": group["reference_boundary"], "conditions": group["conditions"],
+            "boundary": group["reference_boundary"], "conditions": group.get("conditions"),
             "source_correspondence": group["source_correspondence"],
             "physical_program_signatures": group["physical_program_signatures"],
             "scored": False})
@@ -132,9 +154,14 @@ def select_references(references, operator_selection):
                 continue
             other.append(row)
         else:
+            # Existing complete-ABI keys remain byte-for-byte identical. Other
+            # domains use a tagged identity, never SHA256(null) as a fake ABI.
+            observation_key = row["native_abi_sha256"]
+            if observation_key is None:
+                observation_key = (row["observation_identity_domain"], row["observation_identity_sha256"])
             key = (population, row["native_operator_type"],
                    tuple(sorted(row["declared_roles"])), tuple(sorted(row["layer_ids"])),
-                   row["native_abi_sha256"])
+                   observation_key)
             current[key] = row
     return other + list(current.values())
 
@@ -365,7 +392,7 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
             "current_selection_policy": "last compared input receipt per source and measured geometry; prior arms retained",
             "source_role_references": references,
             "current_source_role_references": current_references,
-            "reference_selection_policy": "last external native input per source/geometry/native operator/role/layer set/observed ABI; embedded references retain operator receipt selection",
+            "reference_selection_policy": "last external input per source/geometry/operator/role/layer set/retained observation identity; full_native_abi keeps its original ABI key, normalized_contract and source_symbol_retained_group use separate identity domains; embedded references retain operator receipt selection",
             "summary": {"body_compared": sum(row["comparison"]["status"] == "compared" for row in bodies),
                         "body_passed": sum(row["comparison"].get("passed") is True for row in bodies),
                         "current_body_compared": sum(row["comparison"]["status"] == "compared" for row in current_rows),
@@ -492,8 +519,8 @@ def render(report):
                      f"{row['unscored_event_count']} | {row['unscored_activity_ms_per_forward']:.3f} | {row['status']} |")
     lines += ["", "## Source-role references — already costed work is not an extra budget", "",
               "Reference differences have distinct evidence and are excluded from strict cohort accuracy counts.", "",
-              "External native references are selected independently by measured source/geometry, native operator, role, layer set and observed ABI. Each row retains its own histogram P50; rows are not averaged.", "",
-              "| Case | Operator / region | Calls | Real Mean / P50 / reference us | Real / Sim service ms per Forward | Residual ms | Boundary |",
+              "External references are selected independently by measured source/geometry, operator, role, layer set and retained observation identity. Complete native ABI, normalized contract and source-symbol evidence stay distinct. Each row retains its own histogram P50; rows are not averaged.", "",
+              "| Case | Operator / region | Calls | Real Mean / P50 / reference us | Real / Sim service ms per Forward | Residual ms | Evidence / boundary |",
               "|---|---|---:|---:|---:|---:|---|"]
     references = sorted(report["current_source_role_references"],
                         key=lambda row: abs(row["reference_residual_ms_per_forward"] or 0), reverse=True)
@@ -507,7 +534,7 @@ def render(report):
         lines.append(f"| {row['case_id']} / `{_runtime_tag(row)}` | {row['native_operator_type']} / {roles} / {region} | "
                      f"{row['observed_us']['count']} | {_num(row['observed_us']['mean'])} / {_num(row['observed_us'].get('p50'))} / {_num(prediction)} | "
                      f"{_num(row['observed_activity_ms_per_forward'])} / {_num(row['predicted_service_ms_per_forward'])} | "
-                     f"{_num(row['reference_residual_ms_per_forward'])} | {boundary} |")
+                     f"{_num(row['reference_residual_ms_per_forward'])} | {row.get('observation_identity_domain') or row.get('evidence_strength')} / {boundary} |")
     lines += ["", "## Receipt identities", ""]
     lines += [f"- [{Path(item['path']).name}]({item['path']}), SHA256 `{item['sha256']}`" for item in report["inputs"]]
     if report["additional_evidence"]:

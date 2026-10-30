@@ -87,6 +87,27 @@ def canonical(value):
     return json.dumps(value, sort_keys=True, separators=(",", ":"))
 
 
+def retained_observation_evidence(group):
+    """Derive evidence from the original receipt, independently of the importer."""
+    observed_abi = group.get("native_abi")
+    observed_contract = group.get("observed_contract")
+    if observed_abi is not None:
+        raw_abi_digest = hashlib.sha256(canonical(observed_abi).encode()).hexdigest()
+        domain, measured = "full_native_abi", observed_abi
+        evidence = "complete_native_abi_conditional_program_reference"
+    elif observed_contract is not None:
+        raw_abi_digest = None
+        domain, measured = "normalized_contract", observed_contract
+        evidence = "complete_normalized_contract_conditional_program_reference"
+    else:
+        raw_abi_digest = None
+        domain, measured = "source_symbol_retained_group", group["retained_group_id"]
+        evidence = "source_symbol_conditional_program_reference"
+    return {"native_abi_sha256": raw_abi_digest, "observation_identity_domain": domain,
+            "observation_identity_sha256": hashlib.sha256(canonical({"domain": domain, "value": measured}).encode()).hexdigest(),
+            "evidence_strength": evidence}
+
+
 def review(path):
     started = time.monotonic()
     initial_sha = digest(path)
@@ -139,17 +160,20 @@ def review(path):
                 "partition_identity": case["partition_identity"],
                 "group_id": group["group_id"],
                 "partition_indices": (group["partition_indices"] if "partition_indices" in group
-                                      else [group["partition_index"]]),
-                "native_abi_sha256": hashlib.sha256(canonical(group["native_abi"]).encode()).hexdigest(),
+                                      else [group["partition_index"]] if "partition_index" in group else None),
+                "retained_group_id": group.get("retained_group_id"),
+                "cohort_id": group.get("cohort_id"), "retained_cohort_id": group.get("retained_cohort_id"),
+                "observed_contract": group.get("observed_contract"),
+                **retained_observation_evidence(group),
                 "forward_count": case["forward_count"], "calls_per_forward": group["calls_per_forward"],
                 "native_operator_type": group["native_operator_type"],
                 "attention_kind": group.get("attention_kind"), "block": group.get("block"),
                 "declared_roles": [group["declared_role"]], "layer_ids": group["layer_ids"],
-                "status": "reference_only", "evidence_strength": "complete_native_abi_conditional_program_reference",
+                "status": "reference_only",
                 "observed_us": group["observed_us"], "predicted_us": None,
                 "predicted_reference_us": group["predicted_reference_us"],
                 "model_program_already_costed": True, "additional_budget_allowed": False,
-                "boundary": group["reference_boundary"], "conditions": group["conditions"],
+                "boundary": group["reference_boundary"], "conditions": group.get("conditions"),
                 "source_correspondence": group["source_correspondence"],
                 "physical_program_signatures": group["physical_program_signatures"]}
             label = (case["case_id"], group["group_id"])
@@ -378,15 +402,18 @@ def review(path):
                     (row["receipt"]["path"], row["case_id"])):
                 continue
             if row.get("reference_origin") == "external_native_partition":
+                evidence_key = row["native_abi_sha256"]
+                if evidence_key is None:
+                    evidence_key = (row["observation_identity_domain"], row["observation_identity_sha256"])
                 key = (pk, row["native_operator_type"], tuple(sorted(row["declared_roles"])),
-                       tuple(sorted(row["layer_ids"])), row["native_abi_sha256"])
+                       tuple(sorted(row["layer_ids"])), evidence_key)
                 selected_references[key] = row
             else:
                 other_references.append(row)
         expected_current_references = other_references + list(selected_references.values())
         check(Counter(canonical(row) for row in report["current_source_role_references"]) ==
               Counter(canonical(row) for row in expected_current_references),
-              "Current native references use their own population/role/layer/ABI generation; embedded references follow operator generation")
+              "Current references use their own population/role/layer/observation-domain generation; embedded references follow operator generation")
     current_runtime_populations = {}
     for row in expected_current_families:
         key, value = population(row), row["runtime_identity"]["recorded_sim_file_map_sha256"]
