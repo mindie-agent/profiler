@@ -37,8 +37,8 @@ def geometry_key(value):
 
 def relevant(event):
     text = (event.name + event.op_type).lower()
-    return event.op_type.startswith('hcom_') or event.core in {'COMMUNICATION', 'SDMA'} or any(
-        word in text for word in ('sdma', 'notify', 'ccu', 'moedistributedispatch',
+    return event.op_type.startswith('hcom_') or event.core in {'COMMUNICATION', 'SDMA', 'DPU'} or any(
+        word in text for word in ('sdma', 'notify', 'ccu', 'dpu', 'moedistributedispatch',
                                    'moedistributecombine', 'dispatchffncombine')) or (
         'aicpu' in event.core.lower().replace('_', '') and
         any(word in text for word in ('hccl', 'hcom', 'reduce', 'gather', 'alltoall')))
