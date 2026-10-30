@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/collect_grouped_micro_pmu.py", line 204, in <module>
+    if __name__ == '__main__': main()
+                               ~~~~^^
+  File "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/collect_grouped_micro_pmu.py", line 191, in main
+    if a.case_id: collect(next(e for e in entries if e['case_id'] == a.case_id)); return
+                  ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/collect_grouped_micro_pmu.py", line 148, in collect
+    close(expected[cursor]); buffer.clear(); raw_buffer.clear(); cursor += 1
+    ~~~~~^^^^^^^^^^^^^^^^^^
+  File "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/collect_grouped_micro_pmu.py", line 116, in close
+    roles = layer_roles(buffer, config, layers); ordinal = Counter()
+  File "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/collect_grouped_micro_pmu.py", line 89, in layer_roles
+    raise ValueError(f'grouped_layer_call_chain_differs:{layer["layer_id"]}:{kinds}')
+ValueError: grouped_layer_call_chain_differs:3:['DequantSwigluQuant', 'GroupedMatmulSwigluQuantV2', 'GroupedMatmul']

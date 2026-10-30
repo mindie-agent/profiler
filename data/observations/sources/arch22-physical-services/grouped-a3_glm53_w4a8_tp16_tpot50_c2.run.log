@@ -1,0 +1,1 @@
+{"case_id": "a3_glm53_w4a8_tp16_tpot50_c2", "forwards": 44, "partitions": 2, "native_counts": {"GroupedMatmulSwigluQuantV2": 3300, "GroupedMatmul": 3300}, "execution": {"source_passes": 1, "predictions": 0, "elapsed_seconds": 6.29621458298061, "peak_rss_bytes": 78348288, "parsed_rows": 176494}}

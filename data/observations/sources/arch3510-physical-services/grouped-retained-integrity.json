@@ -1,0 +1,15 @@
+{
+  "schema_version": "mindie-grouped-retained-integrity/1",
+  "status": "passed",
+  "checks": 2208,
+  "source_count": 6,
+  "primary_forwards": 376,
+  "partitions": 18,
+  "source_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/grouped-extraction-receipt.json",
+    "sha256": "0d7c692a8fd1aca7c5257bb7d308ae52a4bfd35169cdbd2e3dd18555a699f424"
+  },
+  "raw_scans": 0,
+  "new_costs": 0,
+  "scope": "Saved source hashes, full integer duration/layer/Forward populations and all PMU numeric/missing/zero denominators. Source tile/descriptor joint constraints deferred while Wave0 active."
+}

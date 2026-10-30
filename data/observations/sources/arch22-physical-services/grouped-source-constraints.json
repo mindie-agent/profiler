@@ -1,0 +1,3681 @@
+{
+  "schema_version": "mindie-grouped-source-pmu-constraints/1",
+  "status": "completed",
+  "extraction_receipt_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/grouped-extraction-receipt.json",
+    "sha256": "0d7c692a8fd1aca7c5257bb7d308ae52a4bfd35169cdbd2e3dd18555a699f424",
+    "size_bytes": 4461
+  },
+  "source_modules": {
+    "mindie_sim/prediction/w4a8_schedule.py": {
+      "path": "/Users/maoxx241/code/sim-rewrite-20261027/mindie_sim/prediction/w4a8_schedule.py",
+      "sha256": "ef9d0dff6429acfe3f2db4b56b3a476a859831a20fab8b19c7fb5aa1607daed8",
+      "size_bytes": 16787
+    },
+    "mindie_sim/prediction/w4a8.py": {
+      "path": "/Users/maoxx241/code/sim-rewrite-20261027/mindie_sim/prediction/w4a8.py",
+      "sha256": "5cca6c5cad87d44e05a227ad0a0306d42241cb48310062bde95d96a74f0ad0fd",
+      "size_bytes": 18341
+    },
+    "mindie_sim/prediction/operators/quant_grouped_schedule.py": {
+      "path": "/Users/maoxx241/code/sim-rewrite-20261027/mindie_sim/prediction/operators/quant_grouped_schedule.py",
+      "sha256": "b22b165381a3d8d7c9493ae608452687f01627619a235633e17c9032e21980bf",
+      "size_bytes": 24064
+    }
+  },
+  "producer_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/summarize_grouped_micro_services.py",
+    "sha256": "1694643b73336bb1f9ce8660d1e381586d06e35eb97421163e6f022c28061c7f",
+    "size_bytes": 14531
+  },
+  "records": [
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot30_c2",
+      "architecture": "arch22",
+      "hardware": "Ascend910_9362",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+        "sha256": "5c13263d015f971a90b790b1c94aba384b402a1e15ed6417dc6794b0c3b40ab5",
+        "size_bytes": 61482469
+      },
+      "partition_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/grouped-a3_glm53_w4a8_tp16_tpot30_c2.json",
+        "sha256": "290b3aee4a565fa2925eb526b4c9806b2068a97a39509218fb3e91207f22b4e2",
+        "size_bytes": 4036157
+      },
+      "partition_index": 0,
+      "body_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/scope-paired/auto-forward-a3_glm53_w4a8_tp16_tpot30_c2.json",
+        "sha256": "525dd932b38dee69324762979dcf0e39af0dfdc2c3f55ec14976d03ce1112e5e",
+        "size_bytes": 1876482
+      },
+      "geometry": {
+        "query_rows": 12,
+        "sequences_per_replica": 2,
+        "tokens_per_sequence": 6,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "forward_count": 44,
+      "native_operator_type": "GroupedMatmulSwigluQuantV2",
+      "role": "expert_up_activation_quant",
+      "attention_kind": "mla",
+      "native_abi": [
+        "native_tensor_abi",
+        "GroupedMatmulSwigluQuantV2",
+        [
+          [
+            [
+              128,
+              6144
+            ],
+            "int8",
+            "ND"
+          ],
+          [
+            [
+              128
+            ],
+            "fp32",
+            "ND"
+          ],
+          [
+            [
+              16
+            ],
+            "int64",
+            "ND"
+          ],
+          [
+            [
+              16,
+              64,
+              384,
+              16,
+              64
+            ],
+            "DT_INT4",
+            "FRACTAL_NZ"
+          ],
+          [
+            [
+              16,
+              4096
+            ],
+            "UINT64",
+            "ND"
+          ],
+          [
+            [
+              16,
+              4096
+            ],
+            "fp32",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              128,
+              2048
+            ],
+            "int8",
+            "ND"
+          ],
+          [
+            [
+              128
+            ],
+            "fp32",
+            "ND"
+          ]
+        ]
+      ],
+      "accelerator_core": "MIX_AIC",
+      "block_num": "20",
+      "mix_block_num": "40",
+      "layer_counts": {
+        "3": 44,
+        "4": 44,
+        "5": 44,
+        "6": 44,
+        "7": 44,
+        "8": 44,
+        "9": 44,
+        "10": 44,
+        "11": 44,
+        "12": 44,
+        "13": 44,
+        "14": 44,
+        "15": 44,
+        "16": 44,
+        "17": 44,
+        "18": 44,
+        "19": 44,
+        "20": 44,
+        "21": 44,
+        "22": 44,
+        "23": 44,
+        "24": 44,
+        "25": 44,
+        "26": 44,
+        "27": 44,
+        "28": 44,
+        "29": 44,
+        "30": 44,
+        "31": 44,
+        "32": 44,
+        "33": 44,
+        "34": 44,
+        "35": 44,
+        "36": 44,
+        "37": 44,
+        "38": 44,
+        "39": 44,
+        "40": 44,
+        "41": 44,
+        "42": 44,
+        "43": 44,
+        "44": 44,
+        "45": 44,
+        "46": 44,
+        "47": 44,
+        "48": 44,
+        "49": 44,
+        "50": 44,
+        "51": 44,
+        "52": 44,
+        "53": 44,
+        "54": 44,
+        "55": 44,
+        "56": 44,
+        "57": 44,
+        "58": 44,
+        "59": 44,
+        "60": 44,
+        "61": 44,
+        "62": 44,
+        "63": 44,
+        "64": 44,
+        "65": 44,
+        "66": 44,
+        "67": 44,
+        "68": 44,
+        "69": 44,
+        "70": 44,
+        "71": 44,
+        "72": 44,
+        "73": 44,
+        "74": 44,
+        "75": 44,
+        "76": 44,
+        "77": 44
+      },
+      "observed": {
+        "count": 3300,
+        "mean_us": 98.43022727272728,
+        "p50_us": 98.122,
+        "p90_us": 101.662,
+        "min_us": 92.842,
+        "max_us": 106.762
+      },
+      "calls_per_forward": 75.0,
+      "native_coordinates": {
+        "input_buffer_capacity_rows": 128,
+        "output_buffer_capacity_rows": 128,
+        "matrix_n": 4096,
+        "matrix_k": 6144,
+        "stored_expert_banks": 16,
+        "activation_dtype": "int8",
+        "weight_dtype": "DT_INT4",
+        "output_dtype": "int8",
+        "group_list_descriptor": [
+          [
+            16
+          ],
+          "int64",
+          "ND"
+        ],
+        "observed_valid_rows": null,
+        "observed_active_experts": null,
+        "observed_expert_rows": null,
+        "capacity_equals_valid_rows": false
+      },
+      "source_branch": {
+        "candidate": "A8W4_MSD_double_row",
+        "observed_dispatch_confirmed": false,
+        "source_formula": "sum_e ceil(2*valid_rows[e]/base_m)*ceil(N/base_n)",
+        "tile_constants": {
+          "up": [
+            128,
+            256,
+            256
+          ],
+          "down_short": [
+            64,
+            512
+          ],
+          "down_tall": [
+            128,
+            256
+          ]
+        },
+        "host_down_predicate": "floor(valid_M/stored_expert_banks) < 32",
+        "counter_scope": "whole native invocation; per-owner tile counts separately retained",
+        "compiled_dma_descriptor_count": null
+      },
+      "pmu": {
+        "fields": {
+          "Duration(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 98.43022727272728,
+              "p50": 98.122,
+              "p90": 101.662,
+              "min": 92.842,
+              "max": 106.762
+            }
+          },
+          "Wait Time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 3300,
+            "statistics": {
+              "count": 3300,
+              "mean": 0.0,
+              "p50": 0.0,
+              "p90": 0.0,
+              "min": 0.0,
+              "max": 0.0
+            }
+          },
+          "aicore_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 89.64398454545454,
+              "p50": 89.353,
+              "p90": 92.685,
+              "min": 84.017,
+              "max": 97.592
+            }
+          },
+          "aic_mac_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 7.488551515151515,
+              "p50": 7.488,
+              "p90": 7.497,
+              "min": 7.474,
+              "max": 7.547
+            }
+          },
+          "aic_scalar_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 41.92325212121212,
+              "p50": 41.556,
+              "p90": 46.499,
+              "min": 38.283,
+              "max": 49.25
+            }
+          },
+          "aic_mte1_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 46.79311454545454,
+              "p50": 46.791,
+              "p90": 46.817,
+              "min": 46.749,
+              "max": 46.9
+            }
+          },
+          "aic_mte2_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 43.86987060606061,
+              "p50": 43.912,
+              "p90": 45.309,
+              "min": 40.667,
+              "max": 49.849
+            }
+          },
+          "aic_fixpipe_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 8.448545151515152,
+              "p50": 8.454,
+              "p90": 8.932,
+              "min": 7.19,
+              "max": 9.536
+            }
+          },
+          "aiv_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 93.16920575757575,
+              "p50": 92.8575,
+              "p90": 96.308,
+              "min": 87.572,
+              "max": 101.435
+            }
+          },
+          "aiv_vec_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 0.30013606060606063,
+              "p50": 0.3,
+              "p90": 0.301,
+              "min": 0.298,
+              "max": 0.307
+            }
+          },
+          "aiv_scalar_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 7.403881515151515,
+              "p50": 6.701,
+              "p90": 11.012,
+              "min": 5.536,
+              "max": 12.076
+            }
+          },
+          "aiv_mte2_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 6.726950909090909,
+              "p50": 6.4025,
+              "p90": 9.868,
+              "min": 3.961,
+              "max": 12.825
+            }
+          },
+          "aiv_mte3_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 0.12087666666666666,
+              "p50": 0.122,
+              "p90": 0.162,
+              "min": 0.068,
+              "max": 0.209
+            }
+          }
+        },
+        "complete_numeric_mean_us": {
+          "Duration(us)": 98.43022727272728,
+          "Wait Time(us)": 0.0,
+          "aicore_time(us)": 89.64398454545454,
+          "aic_mac_time(us)": 7.488551515151515,
+          "aic_scalar_time(us)": 41.92325212121212,
+          "aic_mte1_time(us)": 46.79311454545454,
+          "aic_mte2_time(us)": 43.86987060606061,
+          "aic_fixpipe_time(us)": 8.448545151515152,
+          "aiv_time(us)": 93.16920575757575,
+          "aiv_vec_time(us)": 0.30013606060606063,
+          "aiv_scalar_time(us)": 7.403881515151515,
+          "aiv_mte2_time(us)": 6.726950909090909,
+          "aiv_mte3_time(us)": 0.12087666666666666
+        },
+        "aiv_signed_diagnostics": {
+          "complete_numeric_mean_us": {
+            "Duration(us)": 98.43022727272728,
+            "aiv_time(us)": 93.16920575757575,
+            "aiv_vec_time(us)": 0.30013606060606063,
+            "aiv_scalar_time(us)": 7.403881515151515,
+            "aiv_mte2_time(us)": 6.726950909090909,
+            "aiv_mte3_time(us)": 0.12087666666666666
+          },
+          "signed_aiv_minus_pipe_sum_us": 78.6173606060606,
+          "signed_aiv_minus_max_pipe_us": 85.76532424242424,
+          "signed_duration_minus_aiv_us": 5.261021515151526,
+          "interpretation": "Signed boundary diagnostics only; neither remainder is classified as synchronization or launch."
+        },
+        "aic_original_scope_mean_us": {
+          "aicore_time(us)": 89.64398454545454,
+          "aic_mac_time(us)": 7.488551515151515,
+          "aic_mte1_time(us)": 46.79311454545454,
+          "aic_mte2_time(us)": 43.86987060606061,
+          "aic_fixpipe_time(us)": 8.448545151515152,
+          "aic_scalar_time(us)": 41.92325212121212
+        },
+        "owner_aggregation": "capture exporter not identified; raw units retained",
+        "isolated_descriptor_or_scalar_price_ns": null
+      },
+      "usable_response": "whole native call joint response in this complete ABI/Block/attention domain",
+      "generalization": "in_sample; no arbitrary valid-row, tile or owner extrapolation",
+      "body_residual_used": false,
+      "parameter_changes": [],
+      "conditional_source_counts": {
+        "basis": "retained balanced Sim routing declaration, not captured group-list values",
+        "case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot30_c2.json",
+          "sha256": "e555a4428633b264671b748f9cd0dcd04342845fcc0636aaba8178d606312b04",
+          "size_bytes": 6508
+        },
+        "query_rows": 12,
+        "top_k": 8,
+        "ep": 16,
+        "declared_valid_rows": 6,
+        "declared_expert_rows": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "active_experts": 6,
+        "stored_expert_banks": 16,
+        "base_m": 128,
+        "base_n": 256,
+        "matrix_output_tile_count": 96,
+        "matrix_tiles_per_aic_owner": {
+          "0": 5,
+          "1": 5,
+          "2": 5,
+          "3": 5,
+          "4": 5,
+          "5": 5,
+          "6": 5,
+          "7": 5,
+          "8": 5,
+          "9": 5,
+          "10": 5,
+          "11": 5,
+          "12": 5,
+          "13": 5,
+          "14": 5,
+          "15": 5,
+          "16": 4,
+          "17": 4,
+          "18": 4,
+          "19": 4
+        },
+        "all_bank_source_scan_count": 16,
+        "source_matrix_set_tensor_a_submissions": 96,
+        "source_matrix_set_tensor_b_submissions": 96,
+        "compiled_dma_descriptor_count": null,
+        "not_an_observed_route_or_dispatch": true,
+        "no_latency_divided_by_conditional_tile_count": true
+      },
+      "source_provenance": {
+        "repository": "vllm-project/vllm-ascend",
+        "revision": "8fd0bc4885cb52e58791aaa8efacc571b9bd115d",
+        "files": [
+          {
+            "path": "vllm_ascend/quantization/methods/w4a8/w4a8.py",
+            "sha256": "efdcc610c05a44952c2548e0d8b0cd48ca7704c3e2cf8247f8f08f5e765b830b",
+            "lines": "495-507"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_pre.h",
+            "sha256": "b87eda2542700e1800412f9775360552b5c6ae6e38e2afcbd77da677d60f8332",
+            "lines": "145-218"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_mid.h",
+            "sha256": "1881d03e65258e846fe9bbfb736f4cbbcd770b84a6730319dd0c9d00abdc4087",
+            "lines": "180-285"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_post.h",
+            "sha256": "8cf63fb3e34955a2ed28d4f9f56c2030e74744cbe5a63aaeb5d130eb0940758f",
+            "lines": "100-250"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_pipeline.h",
+            "sha256": "e7398287dcc06dd2a70d7c658cd4b3839367f32f34a9c6a5a6f68a8bf0077ae9",
+            "lines": "90-130"
+          }
+        ],
+        "branch": "A8W4_MSD Key2 (INT8 x INT4, double-row cube, FP16 workspace)"
+      }
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot30_c2",
+      "architecture": "arch22",
+      "hardware": "Ascend910_9362",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+        "sha256": "5c13263d015f971a90b790b1c94aba384b402a1e15ed6417dc6794b0c3b40ab5",
+        "size_bytes": 61482469
+      },
+      "partition_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/grouped-a3_glm53_w4a8_tp16_tpot30_c2.json",
+        "sha256": "290b3aee4a565fa2925eb526b4c9806b2068a97a39509218fb3e91207f22b4e2",
+        "size_bytes": 4036157
+      },
+      "partition_index": 1,
+      "body_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/scope-paired/auto-forward-a3_glm53_w4a8_tp16_tpot30_c2.json",
+        "sha256": "525dd932b38dee69324762979dcf0e39af0dfdc2c3f55ec14976d03ce1112e5e",
+        "size_bytes": 1876482
+      },
+      "geometry": {
+        "query_rows": 12,
+        "sequences_per_replica": 2,
+        "tokens_per_sequence": 6,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "forward_count": 44,
+      "native_operator_type": "GroupedMatmul",
+      "role": "expert_down",
+      "attention_kind": "mla",
+      "native_abi": [
+        "native_tensor_abi",
+        "GroupedMatmul",
+        [
+          [
+            [
+              128,
+              2048
+            ],
+            "int8",
+            "ND"
+          ],
+          [
+            [
+              16,
+              2048,
+              6144
+            ],
+            "DT_INT4",
+            "FRACTAL_NZ"
+          ],
+          [
+            [
+              16,
+              6144
+            ],
+            "fp32",
+            "ND"
+          ],
+          [
+            [
+              16,
+              1,
+              6144
+            ],
+            "UINT64",
+            "NCL"
+          ],
+          [
+            [],
+            "fp32",
+            "ND"
+          ],
+          [
+            [],
+            "fp16",
+            "ND"
+          ],
+          [
+            [],
+            "fp16",
+            "ND"
+          ],
+          [
+            [
+              16
+            ],
+            "int64",
+            "ND"
+          ],
+          [
+            [
+              128
+            ],
+            "fp32",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              128,
+              6144
+            ],
+            "bf16",
+            "ND"
+          ]
+        ]
+      ],
+      "accelerator_core": "MIX_AIC",
+      "block_num": "20",
+      "mix_block_num": "40",
+      "layer_counts": {
+        "3": 44,
+        "4": 44,
+        "5": 44,
+        "6": 44,
+        "7": 44,
+        "8": 44,
+        "9": 44,
+        "10": 44,
+        "11": 44,
+        "12": 44,
+        "13": 44,
+        "14": 44,
+        "15": 44,
+        "16": 44,
+        "17": 44,
+        "18": 44,
+        "19": 44,
+        "20": 44,
+        "21": 44,
+        "22": 44,
+        "23": 44,
+        "24": 44,
+        "25": 44,
+        "26": 44,
+        "27": 44,
+        "28": 44,
+        "29": 44,
+        "30": 44,
+        "31": 44,
+        "32": 44,
+        "33": 44,
+        "34": 44,
+        "35": 44,
+        "36": 44,
+        "37": 44,
+        "38": 44,
+        "39": 44,
+        "40": 44,
+        "41": 44,
+        "42": 44,
+        "43": 44,
+        "44": 44,
+        "45": 44,
+        "46": 44,
+        "47": 44,
+        "48": 44,
+        "49": 44,
+        "50": 44,
+        "51": 44,
+        "52": 44,
+        "53": 44,
+        "54": 44,
+        "55": 44,
+        "56": 44,
+        "57": 44,
+        "58": 44,
+        "59": 44,
+        "60": 44,
+        "61": 44,
+        "62": 44,
+        "63": 44,
+        "64": 44,
+        "65": 44,
+        "66": 44,
+        "67": 44,
+        "68": 44,
+        "69": 44,
+        "70": 44,
+        "71": 44,
+        "72": 44,
+        "73": 44,
+        "74": 44,
+        "75": 44,
+        "76": 44,
+        "77": 44
+      },
+      "observed": {
+        "count": 3300,
+        "mean_us": 56.917762727272724,
+        "p50_us": 56.381,
+        "p90_us": 60.321,
+        "min_us": 52.281,
+        "max_us": 63.621
+      },
+      "calls_per_forward": 75.0,
+      "native_coordinates": {
+        "input_buffer_capacity_rows": 128,
+        "output_buffer_capacity_rows": 128,
+        "matrix_n": 6144,
+        "matrix_k": 2048,
+        "stored_expert_banks": 16,
+        "activation_dtype": "int8",
+        "weight_dtype": "DT_INT4",
+        "output_dtype": "bf16",
+        "group_list_descriptor": [
+          [
+            16
+          ],
+          "int64",
+          "ND"
+        ],
+        "observed_valid_rows": null,
+        "observed_active_experts": null,
+        "observed_expert_rows": null,
+        "capacity_equals_valid_rows": false
+      },
+      "source_branch": {
+        "candidate": "A8W4_MSD_double_row",
+        "observed_dispatch_confirmed": false,
+        "source_formula": "sum_e ceil(2*valid_rows[e]/base_m)*ceil(N/base_n)",
+        "tile_constants": {
+          "up": [
+            128,
+            256,
+            256
+          ],
+          "down_short": [
+            64,
+            512
+          ],
+          "down_tall": [
+            128,
+            256
+          ]
+        },
+        "host_down_predicate": "floor(valid_M/stored_expert_banks) < 32",
+        "counter_scope": "whole native invocation; per-owner tile counts separately retained",
+        "compiled_dma_descriptor_count": null
+      },
+      "pmu": {
+        "fields": {
+          "Duration(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 56.91776272727273,
+              "p50": 56.381,
+              "p90": 60.321,
+              "min": 52.281,
+              "max": 63.621
+            }
+          },
+          "Wait Time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 1322,
+            "statistics": {
+              "count": 3300,
+              "mean": 1.7055039393939393,
+              "p50": 2.628,
+              "p90": 3.058,
+              "min": 0.0,
+              "max": 5.678
+            }
+          },
+          "aicore_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 49.751717575757574,
+              "p50": 49.1025,
+              "p90": 53.301,
+              "min": 45.654,
+              "max": 56.145
+            }
+          },
+          "aic_mac_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 3.7401860606060606,
+              "p50": 3.74,
+              "p90": 3.743,
+              "min": 3.735,
+              "max": 3.76
+            }
+          },
+          "aic_scalar_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 27.95712303030303,
+              "p50": 27.157,
+              "p90": 31.936,
+              "min": 25.583,
+              "max": 33.924
+            }
+          },
+          "aic_mte1_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 24.673521212121212,
+              "p50": 24.666,
+              "p90": 24.758,
+              "min": 24.543,
+              "max": 24.919
+            }
+          },
+          "aic_mte2_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 27.157876666666667,
+              "p50": 27.0605,
+              "p90": 28.937,
+              "min": 23.336,
+              "max": 33.197
+            }
+          },
+          "aic_fixpipe_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 3.9209806060606063,
+              "p50": 3.9145,
+              "p90": 4.122,
+              "min": 3.535,
+              "max": 4.495
+            }
+          },
+          "aiv_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 50.54555272727273,
+              "p50": 49.897,
+              "p90": 54.096,
+              "min": 46.433,
+              "max": 56.848
+            }
+          },
+          "aiv_vec_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 0.4898445454545455,
+              "p50": 0.489,
+              "p90": 0.494,
+              "min": 0.483,
+              "max": 0.499
+            }
+          },
+          "aiv_scalar_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 8.981933030303031,
+              "p50": 8.528,
+              "p90": 13.485,
+              "min": 5.825,
+              "max": 15.778
+            }
+          },
+          "aiv_mte2_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 3.8811524242424245,
+              "p50": 3.848,
+              "p90": 4.717,
+              "min": 2.071,
+              "max": 8.382
+            }
+          },
+          "aiv_mte3_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 0.3285690909090909,
+              "p50": 0.326,
+              "p90": 0.368,
+              "min": 0.265,
+              "max": 0.457
+            }
+          }
+        },
+        "complete_numeric_mean_us": {
+          "Duration(us)": 56.91776272727273,
+          "Wait Time(us)": 1.7055039393939393,
+          "aicore_time(us)": 49.751717575757574,
+          "aic_mac_time(us)": 3.7401860606060606,
+          "aic_scalar_time(us)": 27.95712303030303,
+          "aic_mte1_time(us)": 24.673521212121212,
+          "aic_mte2_time(us)": 27.157876666666667,
+          "aic_fixpipe_time(us)": 3.9209806060606063,
+          "aiv_time(us)": 50.54555272727273,
+          "aiv_vec_time(us)": 0.4898445454545455,
+          "aiv_scalar_time(us)": 8.981933030303031,
+          "aiv_mte2_time(us)": 3.8811524242424245,
+          "aiv_mte3_time(us)": 0.3285690909090909
+        },
+        "aiv_signed_diagnostics": {
+          "complete_numeric_mean_us": {
+            "Duration(us)": 56.91776272727273,
+            "aiv_time(us)": 50.54555272727273,
+            "aiv_vec_time(us)": 0.4898445454545455,
+            "aiv_scalar_time(us)": 8.981933030303031,
+            "aiv_mte2_time(us)": 3.8811524242424245,
+            "aiv_mte3_time(us)": 0.3285690909090909
+          },
+          "signed_aiv_minus_pipe_sum_us": 36.864053636363636,
+          "signed_aiv_minus_max_pipe_us": 41.563619696969695,
+          "signed_duration_minus_aiv_us": 6.372210000000003,
+          "interpretation": "Signed boundary diagnostics only; neither remainder is classified as synchronization or launch."
+        },
+        "aic_original_scope_mean_us": {
+          "aicore_time(us)": 49.751717575757574,
+          "aic_mac_time(us)": 3.7401860606060606,
+          "aic_mte1_time(us)": 24.673521212121212,
+          "aic_mte2_time(us)": 27.157876666666667,
+          "aic_fixpipe_time(us)": 3.9209806060606063,
+          "aic_scalar_time(us)": 27.95712303030303
+        },
+        "owner_aggregation": "capture exporter not identified; raw units retained",
+        "isolated_descriptor_or_scalar_price_ns": null
+      },
+      "usable_response": "whole native call joint response in this complete ABI/Block/attention domain",
+      "generalization": "in_sample; no arbitrary valid-row, tile or owner extrapolation",
+      "body_residual_used": false,
+      "parameter_changes": [],
+      "conditional_source_counts": {
+        "basis": "retained balanced Sim routing declaration, not captured group-list values",
+        "case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot30_c2.json",
+          "sha256": "e555a4428633b264671b748f9cd0dcd04342845fcc0636aaba8178d606312b04",
+          "size_bytes": 6508
+        },
+        "query_rows": 12,
+        "top_k": 8,
+        "ep": 16,
+        "declared_valid_rows": 6,
+        "declared_expert_rows": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "active_experts": 6,
+        "stored_expert_banks": 16,
+        "base_m": 64,
+        "base_n": 512,
+        "matrix_output_tile_count": 72,
+        "matrix_tiles_per_aic_owner": {
+          "0": 4,
+          "1": 4,
+          "2": 4,
+          "3": 4,
+          "4": 4,
+          "5": 4,
+          "6": 4,
+          "7": 4,
+          "8": 4,
+          "9": 4,
+          "10": 4,
+          "11": 4,
+          "12": 3,
+          "13": 3,
+          "14": 3,
+          "15": 3,
+          "16": 3,
+          "17": 3,
+          "18": 3,
+          "19": 3
+        },
+        "all_bank_source_scan_count": 16,
+        "source_matrix_set_tensor_a_submissions": 72,
+        "source_matrix_set_tensor_b_submissions": 72,
+        "compiled_dma_descriptor_count": null,
+        "not_an_observed_route_or_dispatch": true,
+        "no_latency_divided_by_conditional_tile_count": true
+      },
+      "source_provenance": {
+        "repository": "vllm-project/vllm-ascend",
+        "revision": "8fd0bc4885cb52e58791aaa8efacc571b9bd115d",
+        "files": [
+          {
+            "path": "vllm_ascend/quantization/methods/w4a8/w4a8.py",
+            "sha256": "efdcc610c05a44952c2548e0d8b0cd48ca7704c3e2cf8247f8f08f5e765b830b",
+            "lines": "495-507"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_pre.h",
+            "sha256": "b87eda2542700e1800412f9775360552b5c6ae6e38e2afcbd77da677d60f8332",
+            "lines": "145-218"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_mid.h",
+            "sha256": "1881d03e65258e846fe9bbfb736f4cbbcd770b84a6730319dd0c9d00abdc4087",
+            "lines": "180-285"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_post.h",
+            "sha256": "8cf63fb3e34955a2ed28d4f9f56c2030e74744cbe5a63aaeb5d130eb0940758f",
+            "lines": "100-250"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_pipeline.h",
+            "sha256": "e7398287dcc06dd2a70d7c658cd4b3839367f32f34a9c6a5a6f68a8bf0077ae9",
+            "lines": "90-130"
+          }
+        ],
+        "branch": "A8W4_MSD Key2 (INT8 x INT4, double-row cube, FP16 workspace)"
+      }
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot50_c2",
+      "architecture": "arch22",
+      "hardware": "Ascend910_9362",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+        "sha256": "1f91ecac9a99c7ab0687fb1175db3ceefa39c6d31cca0bc4e4a4edb859a9ad13",
+        "size_bytes": 68070780
+      },
+      "partition_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/grouped-a3_glm53_w4a8_tp16_tpot50_c2.json",
+        "sha256": "4a6497e1ae5f052dbbece241dc513fbf4c6225b0db044881174a7369aea8e0f0",
+        "size_bytes": 4034509
+      },
+      "partition_index": 0,
+      "body_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/scope-paired/auto-forward-a3_glm53_w4a8_tp16_tpot50_c2.json",
+        "sha256": "6589bad92e7ca731937524466b69528d88b47c7c9bdc5c8b968a92dcbb18245d",
+        "size_bytes": 1891945
+      },
+      "geometry": {
+        "query_rows": 12,
+        "sequences_per_replica": 2,
+        "tokens_per_sequence": 6,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "forward_count": 44,
+      "native_operator_type": "GroupedMatmulSwigluQuantV2",
+      "role": "expert_up_activation_quant",
+      "attention_kind": "mla",
+      "native_abi": [
+        "native_tensor_abi",
+        "GroupedMatmulSwigluQuantV2",
+        [
+          [
+            [
+              128,
+              6144
+            ],
+            "int8",
+            "ND"
+          ],
+          [
+            [
+              128
+            ],
+            "fp32",
+            "ND"
+          ],
+          [
+            [
+              16
+            ],
+            "int64",
+            "ND"
+          ],
+          [
+            [
+              16,
+              64,
+              384,
+              16,
+              64
+            ],
+            "DT_INT4",
+            "FRACTAL_NZ"
+          ],
+          [
+            [
+              16,
+              4096
+            ],
+            "UINT64",
+            "ND"
+          ],
+          [
+            [
+              16,
+              4096
+            ],
+            "fp32",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              128,
+              2048
+            ],
+            "int8",
+            "ND"
+          ],
+          [
+            [
+              128
+            ],
+            "fp32",
+            "ND"
+          ]
+        ]
+      ],
+      "accelerator_core": "MIX_AIC",
+      "block_num": "20",
+      "mix_block_num": "40",
+      "layer_counts": {
+        "3": 44,
+        "4": 44,
+        "5": 44,
+        "6": 44,
+        "7": 44,
+        "8": 44,
+        "9": 44,
+        "10": 44,
+        "11": 44,
+        "12": 44,
+        "13": 44,
+        "14": 44,
+        "15": 44,
+        "16": 44,
+        "17": 44,
+        "18": 44,
+        "19": 44,
+        "20": 44,
+        "21": 44,
+        "22": 44,
+        "23": 44,
+        "24": 44,
+        "25": 44,
+        "26": 44,
+        "27": 44,
+        "28": 44,
+        "29": 44,
+        "30": 44,
+        "31": 44,
+        "32": 44,
+        "33": 44,
+        "34": 44,
+        "35": 44,
+        "36": 44,
+        "37": 44,
+        "38": 44,
+        "39": 44,
+        "40": 44,
+        "41": 44,
+        "42": 44,
+        "43": 44,
+        "44": 44,
+        "45": 44,
+        "46": 44,
+        "47": 44,
+        "48": 44,
+        "49": 44,
+        "50": 44,
+        "51": 44,
+        "52": 44,
+        "53": 44,
+        "54": 44,
+        "55": 44,
+        "56": 44,
+        "57": 44,
+        "58": 44,
+        "59": 44,
+        "60": 44,
+        "61": 44,
+        "62": 44,
+        "63": 44,
+        "64": 44,
+        "65": 44,
+        "66": 44,
+        "67": 44,
+        "68": 44,
+        "69": 44,
+        "70": 44,
+        "71": 44,
+        "72": 44,
+        "73": 44,
+        "74": 44,
+        "75": 44,
+        "76": 44,
+        "77": 44
+      },
+      "observed": {
+        "count": 3300,
+        "mean_us": 98.47852484848484,
+        "p50_us": 98.162,
+        "p90_us": 101.622,
+        "min_us": 93.081,
+        "max_us": 106.802
+      },
+      "calls_per_forward": 75.0,
+      "native_coordinates": {
+        "input_buffer_capacity_rows": 128,
+        "output_buffer_capacity_rows": 128,
+        "matrix_n": 4096,
+        "matrix_k": 6144,
+        "stored_expert_banks": 16,
+        "activation_dtype": "int8",
+        "weight_dtype": "DT_INT4",
+        "output_dtype": "int8",
+        "group_list_descriptor": [
+          [
+            16
+          ],
+          "int64",
+          "ND"
+        ],
+        "observed_valid_rows": null,
+        "observed_active_experts": null,
+        "observed_expert_rows": null,
+        "capacity_equals_valid_rows": false
+      },
+      "source_branch": {
+        "candidate": "A8W4_MSD_double_row",
+        "observed_dispatch_confirmed": false,
+        "source_formula": "sum_e ceil(2*valid_rows[e]/base_m)*ceil(N/base_n)",
+        "tile_constants": {
+          "up": [
+            128,
+            256,
+            256
+          ],
+          "down_short": [
+            64,
+            512
+          ],
+          "down_tall": [
+            128,
+            256
+          ]
+        },
+        "host_down_predicate": "floor(valid_M/stored_expert_banks) < 32",
+        "counter_scope": "whole native invocation; per-owner tile counts separately retained",
+        "compiled_dma_descriptor_count": null
+      },
+      "pmu": {
+        "fields": {
+          "Duration(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 98.47852484848485,
+              "p50": 98.162,
+              "p90": 101.622,
+              "min": 93.081,
+              "max": 106.802
+            }
+          },
+          "Wait Time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 3300,
+            "statistics": {
+              "count": 3300,
+              "mean": 0.0,
+              "p50": 0.0,
+              "p90": 0.0,
+              "min": 0.0,
+              "max": 0.0
+            }
+          },
+          "aicore_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3298,
+            "missing_or_na_count": 2,
+            "numeric_count": 3298,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3298,
+              "mean": 89.70562310491206,
+              "p50": 89.4365,
+              "p90": 92.7,
+              "min": 84.482,
+              "max": 97.177
+            }
+          },
+          "aic_mac_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3298,
+            "missing_or_na_count": 2,
+            "numeric_count": 3298,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3298,
+              "mean": 7.4887580351728325,
+              "p50": 7.488,
+              "p90": 7.498,
+              "min": 7.475,
+              "max": 7.557
+            }
+          },
+          "aic_scalar_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3298,
+            "missing_or_na_count": 2,
+            "numeric_count": 3298,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3298,
+              "mean": 41.92147180109157,
+              "p50": 41.5615,
+              "p90": 46.502,
+              "min": 38.249,
+              "max": 49.147
+            }
+          },
+          "aic_mte1_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3298,
+            "missing_or_na_count": 2,
+            "numeric_count": 3298,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3298,
+              "mean": 46.79374105518496,
+              "p50": 46.792,
+              "p90": 46.818,
+              "min": 46.746,
+              "max": 46.882
+            }
+          },
+          "aic_mte2_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3298,
+            "missing_or_na_count": 2,
+            "numeric_count": 3298,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3298,
+              "mean": 43.87538781079442,
+              "p50": 43.9115,
+              "p90": 45.365,
+              "min": 40.623,
+              "max": 49.028
+            }
+          },
+          "aic_fixpipe_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3298,
+            "missing_or_na_count": 2,
+            "numeric_count": 3298,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3298,
+              "mean": 8.458690418435415,
+              "p50": 8.453,
+              "p90": 8.964,
+              "min": 7.245,
+              "max": 9.539
+            }
+          },
+          "aiv_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3298,
+            "missing_or_na_count": 2,
+            "numeric_count": 3298,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3298,
+              "mean": 93.23576440266828,
+              "p50": 92.931,
+              "p90": 96.334,
+              "min": 87.715,
+              "max": 101.11
+            }
+          },
+          "aiv_vec_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3298,
+            "missing_or_na_count": 2,
+            "numeric_count": 3298,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3298,
+              "mean": 0.3001161309884779,
+              "p50": 0.3,
+              "p90": 0.301,
+              "min": 0.298,
+              "max": 0.307
+            }
+          },
+          "aiv_scalar_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3298,
+            "missing_or_na_count": 2,
+            "numeric_count": 3298,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3298,
+              "mean": 7.4057780473013946,
+              "p50": 6.709,
+              "p90": 11.027,
+              "min": 5.525,
+              "max": 12.149
+            }
+          },
+          "aiv_mte2_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3298,
+            "missing_or_na_count": 2,
+            "numeric_count": 3298,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3298,
+              "mean": 6.7311928441479685,
+              "p50": 6.427,
+              "p90": 9.902,
+              "min": 4.093,
+              "max": 12.93
+            }
+          },
+          "aiv_mte3_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3298,
+            "missing_or_na_count": 2,
+            "numeric_count": 3298,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3298,
+              "mean": 0.12087689508793208,
+              "p50": 0.122,
+              "p90": 0.161,
+              "min": 0.069,
+              "max": 0.212
+            }
+          }
+        },
+        "complete_numeric_mean_us": {
+          "Duration(us)": 98.47852484848485,
+          "Wait Time(us)": 0.0,
+          "aicore_time(us)": null,
+          "aic_mac_time(us)": null,
+          "aic_scalar_time(us)": null,
+          "aic_mte1_time(us)": null,
+          "aic_mte2_time(us)": null,
+          "aic_fixpipe_time(us)": null,
+          "aiv_time(us)": null,
+          "aiv_vec_time(us)": null,
+          "aiv_scalar_time(us)": null,
+          "aiv_mte2_time(us)": null,
+          "aiv_mte3_time(us)": null
+        },
+        "aiv_signed_diagnostics": {
+          "complete_numeric_mean_us": {
+            "Duration(us)": 98.47852484848485,
+            "aiv_time(us)": null,
+            "aiv_vec_time(us)": null,
+            "aiv_scalar_time(us)": null,
+            "aiv_mte2_time(us)": null,
+            "aiv_mte3_time(us)": null
+          },
+          "signed_aiv_minus_pipe_sum_us": null,
+          "signed_aiv_minus_max_pipe_us": null,
+          "signed_duration_minus_aiv_us": null,
+          "interpretation": "Signed boundary diagnostics only; neither remainder is classified as synchronization or launch."
+        },
+        "aic_original_scope_mean_us": {
+          "aicore_time(us)": null,
+          "aic_mac_time(us)": null,
+          "aic_mte1_time(us)": null,
+          "aic_mte2_time(us)": null,
+          "aic_fixpipe_time(us)": null,
+          "aic_scalar_time(us)": null
+        },
+        "owner_aggregation": "capture exporter not identified; raw units retained",
+        "isolated_descriptor_or_scalar_price_ns": null
+      },
+      "usable_response": "whole native call joint response in this complete ABI/Block/attention domain",
+      "generalization": "in_sample; no arbitrary valid-row, tile or owner extrapolation",
+      "body_residual_used": false,
+      "parameter_changes": [],
+      "conditional_source_counts": {
+        "basis": "retained balanced Sim routing declaration, not captured group-list values",
+        "case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot50_c2.json",
+          "sha256": "4b1b2260e0b9d0da00261e5fad5875b52dc3d94dd79aaf96555329c1d9c4521e",
+          "size_bytes": 6508
+        },
+        "query_rows": 12,
+        "top_k": 8,
+        "ep": 16,
+        "declared_valid_rows": 6,
+        "declared_expert_rows": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "active_experts": 6,
+        "stored_expert_banks": 16,
+        "base_m": 128,
+        "base_n": 256,
+        "matrix_output_tile_count": 96,
+        "matrix_tiles_per_aic_owner": {
+          "0": 5,
+          "1": 5,
+          "2": 5,
+          "3": 5,
+          "4": 5,
+          "5": 5,
+          "6": 5,
+          "7": 5,
+          "8": 5,
+          "9": 5,
+          "10": 5,
+          "11": 5,
+          "12": 5,
+          "13": 5,
+          "14": 5,
+          "15": 5,
+          "16": 4,
+          "17": 4,
+          "18": 4,
+          "19": 4
+        },
+        "all_bank_source_scan_count": 16,
+        "source_matrix_set_tensor_a_submissions": 96,
+        "source_matrix_set_tensor_b_submissions": 96,
+        "compiled_dma_descriptor_count": null,
+        "not_an_observed_route_or_dispatch": true,
+        "no_latency_divided_by_conditional_tile_count": true
+      },
+      "source_provenance": {
+        "repository": "vllm-project/vllm-ascend",
+        "revision": "8fd0bc4885cb52e58791aaa8efacc571b9bd115d",
+        "files": [
+          {
+            "path": "vllm_ascend/quantization/methods/w4a8/w4a8.py",
+            "sha256": "efdcc610c05a44952c2548e0d8b0cd48ca7704c3e2cf8247f8f08f5e765b830b",
+            "lines": "495-507"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_pre.h",
+            "sha256": "b87eda2542700e1800412f9775360552b5c6ae6e38e2afcbd77da677d60f8332",
+            "lines": "145-218"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_mid.h",
+            "sha256": "1881d03e65258e846fe9bbfb736f4cbbcd770b84a6730319dd0c9d00abdc4087",
+            "lines": "180-285"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_post.h",
+            "sha256": "8cf63fb3e34955a2ed28d4f9f56c2030e74744cbe5a63aaeb5d130eb0940758f",
+            "lines": "100-250"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_pipeline.h",
+            "sha256": "e7398287dcc06dd2a70d7c658cd4b3839367f32f34a9c6a5a6f68a8bf0077ae9",
+            "lines": "90-130"
+          }
+        ],
+        "branch": "A8W4_MSD Key2 (INT8 x INT4, double-row cube, FP16 workspace)"
+      }
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot50_c2",
+      "architecture": "arch22",
+      "hardware": "Ascend910_9362",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+        "sha256": "1f91ecac9a99c7ab0687fb1175db3ceefa39c6d31cca0bc4e4a4edb859a9ad13",
+        "size_bytes": 68070780
+      },
+      "partition_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/grouped-a3_glm53_w4a8_tp16_tpot50_c2.json",
+        "sha256": "4a6497e1ae5f052dbbece241dc513fbf4c6225b0db044881174a7369aea8e0f0",
+        "size_bytes": 4034509
+      },
+      "partition_index": 1,
+      "body_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/scope-paired/auto-forward-a3_glm53_w4a8_tp16_tpot50_c2.json",
+        "sha256": "6589bad92e7ca731937524466b69528d88b47c7c9bdc5c8b968a92dcbb18245d",
+        "size_bytes": 1891945
+      },
+      "geometry": {
+        "query_rows": 12,
+        "sequences_per_replica": 2,
+        "tokens_per_sequence": 6,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "forward_count": 44,
+      "native_operator_type": "GroupedMatmul",
+      "role": "expert_down",
+      "attention_kind": "mla",
+      "native_abi": [
+        "native_tensor_abi",
+        "GroupedMatmul",
+        [
+          [
+            [
+              128,
+              2048
+            ],
+            "int8",
+            "ND"
+          ],
+          [
+            [
+              16,
+              2048,
+              6144
+            ],
+            "DT_INT4",
+            "FRACTAL_NZ"
+          ],
+          [
+            [
+              16,
+              6144
+            ],
+            "fp32",
+            "ND"
+          ],
+          [
+            [
+              16,
+              1,
+              6144
+            ],
+            "UINT64",
+            "NCL"
+          ],
+          [
+            [],
+            "fp32",
+            "ND"
+          ],
+          [
+            [],
+            "fp16",
+            "ND"
+          ],
+          [
+            [],
+            "fp16",
+            "ND"
+          ],
+          [
+            [
+              16
+            ],
+            "int64",
+            "ND"
+          ],
+          [
+            [
+              128
+            ],
+            "fp32",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              128,
+              6144
+            ],
+            "bf16",
+            "ND"
+          ]
+        ]
+      ],
+      "accelerator_core": "MIX_AIC",
+      "block_num": "20",
+      "mix_block_num": "40",
+      "layer_counts": {
+        "3": 44,
+        "4": 44,
+        "5": 44,
+        "6": 44,
+        "7": 44,
+        "8": 44,
+        "9": 44,
+        "10": 44,
+        "11": 44,
+        "12": 44,
+        "13": 44,
+        "14": 44,
+        "15": 44,
+        "16": 44,
+        "17": 44,
+        "18": 44,
+        "19": 44,
+        "20": 44,
+        "21": 44,
+        "22": 44,
+        "23": 44,
+        "24": 44,
+        "25": 44,
+        "26": 44,
+        "27": 44,
+        "28": 44,
+        "29": 44,
+        "30": 44,
+        "31": 44,
+        "32": 44,
+        "33": 44,
+        "34": 44,
+        "35": 44,
+        "36": 44,
+        "37": 44,
+        "38": 44,
+        "39": 44,
+        "40": 44,
+        "41": 44,
+        "42": 44,
+        "43": 44,
+        "44": 44,
+        "45": 44,
+        "46": 44,
+        "47": 44,
+        "48": 44,
+        "49": 44,
+        "50": 44,
+        "51": 44,
+        "52": 44,
+        "53": 44,
+        "54": 44,
+        "55": 44,
+        "56": 44,
+        "57": 44,
+        "58": 44,
+        "59": 44,
+        "60": 44,
+        "61": 44,
+        "62": 44,
+        "63": 44,
+        "64": 44,
+        "65": 44,
+        "66": 44,
+        "67": 44,
+        "68": 44,
+        "69": 44,
+        "70": 44,
+        "71": 44,
+        "72": 44,
+        "73": 44,
+        "74": 44,
+        "75": 44,
+        "76": 44,
+        "77": 44
+      },
+      "observed": {
+        "count": 3300,
+        "mean_us": 56.946977878787884,
+        "p50_us": 56.381,
+        "p90_us": 60.321,
+        "min_us": 52.901,
+        "max_us": 63.722
+      },
+      "calls_per_forward": 75.0,
+      "native_coordinates": {
+        "input_buffer_capacity_rows": 128,
+        "output_buffer_capacity_rows": 128,
+        "matrix_n": 6144,
+        "matrix_k": 2048,
+        "stored_expert_banks": 16,
+        "activation_dtype": "int8",
+        "weight_dtype": "DT_INT4",
+        "output_dtype": "bf16",
+        "group_list_descriptor": [
+          [
+            16
+          ],
+          "int64",
+          "ND"
+        ],
+        "observed_valid_rows": null,
+        "observed_active_experts": null,
+        "observed_expert_rows": null,
+        "capacity_equals_valid_rows": false
+      },
+      "source_branch": {
+        "candidate": "A8W4_MSD_double_row",
+        "observed_dispatch_confirmed": false,
+        "source_formula": "sum_e ceil(2*valid_rows[e]/base_m)*ceil(N/base_n)",
+        "tile_constants": {
+          "up": [
+            128,
+            256,
+            256
+          ],
+          "down_short": [
+            64,
+            512
+          ],
+          "down_tall": [
+            128,
+            256
+          ]
+        },
+        "host_down_predicate": "floor(valid_M/stored_expert_banks) < 32",
+        "counter_scope": "whole native invocation; per-owner tile counts separately retained",
+        "compiled_dma_descriptor_count": null
+      },
+      "pmu": {
+        "fields": {
+          "Duration(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3300,
+              "mean": 56.94697787878788,
+              "p50": 56.381,
+              "p90": 60.321,
+              "min": 52.901,
+              "max": 63.722
+            }
+          },
+          "Wait Time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3300,
+            "missing_or_na_count": 0,
+            "numeric_count": 3300,
+            "invalid_numeric_count": 0,
+            "zero_count": 1273,
+            "statistics": {
+              "count": 3300,
+              "mean": 1.7445621212121212,
+              "p50": 2.648,
+              "p90": 3.058,
+              "min": 0.0,
+              "max": 4.458
+            }
+          },
+          "aicore_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3299,
+            "missing_or_na_count": 1,
+            "numeric_count": 3299,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3299,
+              "mean": 49.78822764474083,
+              "p50": 49.165,
+              "p90": 53.255,
+              "min": 46.265,
+              "max": 56.31
+            }
+          },
+          "aic_mac_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3299,
+            "missing_or_na_count": 1,
+            "numeric_count": 3299,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3299,
+              "mean": 3.740225522885723,
+              "p50": 3.74,
+              "p90": 3.743,
+              "min": 3.735,
+              "max": 3.753
+            }
+          },
+          "aic_scalar_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3299,
+            "missing_or_na_count": 1,
+            "numeric_count": 3299,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3299,
+              "mean": 27.948589269475598,
+              "p50": 27.144,
+              "p90": 31.986,
+              "min": 25.475,
+              "max": 33.918
+            }
+          },
+          "aic_mte1_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3299,
+            "missing_or_na_count": 1,
+            "numeric_count": 3299,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3299,
+              "mean": 24.67291300394059,
+              "p50": 24.664,
+              "p90": 24.759,
+              "min": 24.518,
+              "max": 24.91
+            }
+          },
+          "aic_mte2_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3299,
+            "missing_or_na_count": 1,
+            "numeric_count": 3299,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3299,
+              "mean": 27.198373749621098,
+              "p50": 27.099,
+              "p90": 28.919,
+              "min": 23.554,
+              "max": 33.59
+            }
+          },
+          "aic_fixpipe_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3299,
+            "missing_or_na_count": 1,
+            "numeric_count": 3299,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3299,
+              "mean": 3.918606850560776,
+              "p50": 3.909,
+              "p90": 4.114,
+              "min": 3.5,
+              "max": 4.451
+            }
+          },
+          "aiv_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3299,
+            "missing_or_na_count": 1,
+            "numeric_count": 3299,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3299,
+              "mean": 50.58270445589572,
+              "p50": 49.961,
+              "p90": 54.055,
+              "min": 47.04,
+              "max": 57.15
+            }
+          },
+          "aiv_vec_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3299,
+            "missing_or_na_count": 1,
+            "numeric_count": 3299,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3299,
+              "mean": 0.48985177326462565,
+              "p50": 0.489,
+              "p90": 0.494,
+              "min": 0.483,
+              "max": 0.498
+            }
+          },
+          "aiv_scalar_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3299,
+            "missing_or_na_count": 1,
+            "numeric_count": 3299,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3299,
+              "mean": 9.004799030009094,
+              "p50": 8.558,
+              "p90": 13.537,
+              "min": 5.824,
+              "max": 15.769
+            }
+          },
+          "aiv_mte2_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3299,
+            "missing_or_na_count": 1,
+            "numeric_count": 3299,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3299,
+              "mean": 3.8938017581085176,
+              "p50": 3.874,
+              "p90": 4.741,
+              "min": 2.223,
+              "max": 8.45
+            }
+          },
+          "aiv_mte3_time(us)": {
+            "column_present": true,
+            "present_count": 3300,
+            "non_na_count": 3299,
+            "missing_or_na_count": 1,
+            "numeric_count": 3299,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3299,
+              "mean": 0.3286856623219157,
+              "p50": 0.327,
+              "p90": 0.368,
+              "min": 0.265,
+              "max": 0.446
+            }
+          }
+        },
+        "complete_numeric_mean_us": {
+          "Duration(us)": 56.94697787878788,
+          "Wait Time(us)": 1.7445621212121212,
+          "aicore_time(us)": null,
+          "aic_mac_time(us)": null,
+          "aic_scalar_time(us)": null,
+          "aic_mte1_time(us)": null,
+          "aic_mte2_time(us)": null,
+          "aic_fixpipe_time(us)": null,
+          "aiv_time(us)": null,
+          "aiv_vec_time(us)": null,
+          "aiv_scalar_time(us)": null,
+          "aiv_mte2_time(us)": null,
+          "aiv_mte3_time(us)": null
+        },
+        "aiv_signed_diagnostics": {
+          "complete_numeric_mean_us": {
+            "Duration(us)": 56.94697787878788,
+            "aiv_time(us)": null,
+            "aiv_vec_time(us)": null,
+            "aiv_scalar_time(us)": null,
+            "aiv_mte2_time(us)": null,
+            "aiv_mte3_time(us)": null
+          },
+          "signed_aiv_minus_pipe_sum_us": null,
+          "signed_aiv_minus_max_pipe_us": null,
+          "signed_duration_minus_aiv_us": null,
+          "interpretation": "Signed boundary diagnostics only; neither remainder is classified as synchronization or launch."
+        },
+        "aic_original_scope_mean_us": {
+          "aicore_time(us)": null,
+          "aic_mac_time(us)": null,
+          "aic_mte1_time(us)": null,
+          "aic_mte2_time(us)": null,
+          "aic_fixpipe_time(us)": null,
+          "aic_scalar_time(us)": null
+        },
+        "owner_aggregation": "capture exporter not identified; raw units retained",
+        "isolated_descriptor_or_scalar_price_ns": null
+      },
+      "usable_response": "whole native call joint response in this complete ABI/Block/attention domain",
+      "generalization": "in_sample; no arbitrary valid-row, tile or owner extrapolation",
+      "body_residual_used": false,
+      "parameter_changes": [],
+      "conditional_source_counts": {
+        "basis": "retained balanced Sim routing declaration, not captured group-list values",
+        "case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot50_c2.json",
+          "sha256": "4b1b2260e0b9d0da00261e5fad5875b52dc3d94dd79aaf96555329c1d9c4521e",
+          "size_bytes": 6508
+        },
+        "query_rows": 12,
+        "top_k": 8,
+        "ep": 16,
+        "declared_valid_rows": 6,
+        "declared_expert_rows": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "active_experts": 6,
+        "stored_expert_banks": 16,
+        "base_m": 64,
+        "base_n": 512,
+        "matrix_output_tile_count": 72,
+        "matrix_tiles_per_aic_owner": {
+          "0": 4,
+          "1": 4,
+          "2": 4,
+          "3": 4,
+          "4": 4,
+          "5": 4,
+          "6": 4,
+          "7": 4,
+          "8": 4,
+          "9": 4,
+          "10": 4,
+          "11": 4,
+          "12": 3,
+          "13": 3,
+          "14": 3,
+          "15": 3,
+          "16": 3,
+          "17": 3,
+          "18": 3,
+          "19": 3
+        },
+        "all_bank_source_scan_count": 16,
+        "source_matrix_set_tensor_a_submissions": 72,
+        "source_matrix_set_tensor_b_submissions": 72,
+        "compiled_dma_descriptor_count": null,
+        "not_an_observed_route_or_dispatch": true,
+        "no_latency_divided_by_conditional_tile_count": true
+      },
+      "source_provenance": {
+        "repository": "vllm-project/vllm-ascend",
+        "revision": "8fd0bc4885cb52e58791aaa8efacc571b9bd115d",
+        "files": [
+          {
+            "path": "vllm_ascend/quantization/methods/w4a8/w4a8.py",
+            "sha256": "efdcc610c05a44952c2548e0d8b0cd48ca7704c3e2cf8247f8f08f5e765b830b",
+            "lines": "495-507"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_pre.h",
+            "sha256": "b87eda2542700e1800412f9775360552b5c6ae6e38e2afcbd77da677d60f8332",
+            "lines": "145-218"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_mid.h",
+            "sha256": "1881d03e65258e846fe9bbfb736f4cbbcd770b84a6730319dd0c9d00abdc4087",
+            "lines": "180-285"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_post.h",
+            "sha256": "8cf63fb3e34955a2ed28d4f9f56c2030e74744cbe5a63aaeb5d130eb0940758f",
+            "lines": "100-250"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_pipeline.h",
+            "sha256": "e7398287dcc06dd2a70d7c658cd4b3839367f32f34a9c6a5a6f68a8bf0077ae9",
+            "lines": "90-130"
+          }
+        ],
+        "branch": "A8W4_MSD Key2 (INT8 x INT4, double-row cube, FP16 workspace)"
+      }
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot88_c8",
+      "architecture": "arch22",
+      "hardware": "Ascend910_9362",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot88_c8_20261030/kernel_details.csv",
+        "sha256": "59f5666d6709695fad7e1f8502a656de699a200932199f2344c44aaa07662ee8",
+        "size_bytes": 75781277
+      },
+      "partition_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/grouped-a3_glm53_w4a8_tp16_tpot88_c8.json",
+        "sha256": "f2a630375bc0b96a04a70d65c2612109633b2d9d25eaa47054995367ff87bb78",
+        "size_bytes": 4098777
+      },
+      "partition_index": 0,
+      "body_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/scope-paired/auto-forward-a3_glm53_w4a8_tp16_tpot88_c8.json",
+        "sha256": "08e60f3ad0b357b8bd3480150080a2f232382c95311512722a8baaf4528698fa",
+        "size_bytes": 2308757
+      },
+      "geometry": {
+        "query_rows": 48,
+        "sequences_per_replica": 8,
+        "tokens_per_sequence": 6,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "forward_count": 49,
+      "native_operator_type": "GroupedMatmulSwigluQuantV2",
+      "role": "expert_up_activation_quant",
+      "attention_kind": "mla",
+      "native_abi": [
+        "native_tensor_abi",
+        "GroupedMatmulSwigluQuantV2",
+        [
+          [
+            [
+              384,
+              6144
+            ],
+            "int8",
+            "ND"
+          ],
+          [
+            [
+              384
+            ],
+            "fp32",
+            "ND"
+          ],
+          [
+            [
+              16
+            ],
+            "int64",
+            "ND"
+          ],
+          [
+            [
+              16,
+              64,
+              384,
+              16,
+              64
+            ],
+            "DT_INT4",
+            "FRACTAL_NZ"
+          ],
+          [
+            [
+              16,
+              4096
+            ],
+            "UINT64",
+            "ND"
+          ],
+          [
+            [
+              16,
+              4096
+            ],
+            "fp32",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              384,
+              2048
+            ],
+            "int8",
+            "ND"
+          ],
+          [
+            [
+              384
+            ],
+            "fp32",
+            "ND"
+          ]
+        ]
+      ],
+      "accelerator_core": "MIX_AIC",
+      "block_num": "20",
+      "mix_block_num": "40",
+      "layer_counts": {
+        "3": 49,
+        "4": 49,
+        "5": 49,
+        "6": 49,
+        "7": 49,
+        "8": 49,
+        "9": 49,
+        "10": 49,
+        "11": 49,
+        "12": 49,
+        "13": 49,
+        "14": 49,
+        "15": 49,
+        "16": 49,
+        "17": 49,
+        "18": 49,
+        "19": 49,
+        "20": 49,
+        "21": 49,
+        "22": 49,
+        "23": 49,
+        "24": 49,
+        "25": 49,
+        "26": 49,
+        "27": 49,
+        "28": 49,
+        "29": 49,
+        "30": 49,
+        "31": 49,
+        "32": 49,
+        "33": 49,
+        "34": 49,
+        "35": 49,
+        "36": 49,
+        "37": 49,
+        "38": 49,
+        "39": 49,
+        "40": 49,
+        "41": 49,
+        "42": 49,
+        "43": 49,
+        "44": 49,
+        "45": 49,
+        "46": 49,
+        "47": 49,
+        "48": 49,
+        "49": 49,
+        "50": 49,
+        "51": 49,
+        "52": 49,
+        "53": 49,
+        "54": 49,
+        "55": 49,
+        "56": 49,
+        "57": 49,
+        "58": 49,
+        "59": 49,
+        "60": 49,
+        "61": 49,
+        "62": 49,
+        "63": 49,
+        "64": 49,
+        "65": 49,
+        "66": 49,
+        "67": 49,
+        "68": 49,
+        "69": 49,
+        "70": 49,
+        "71": 49,
+        "72": 49,
+        "73": 49,
+        "74": 49,
+        "75": 49,
+        "76": 49,
+        "77": 49
+      },
+      "observed": {
+        "count": 3675,
+        "mean_us": 172.33175700680272,
+        "p50_us": 172.184,
+        "p90_us": 175.003,
+        "min_us": 166.064,
+        "max_us": 183.104
+      },
+      "calls_per_forward": 75.0,
+      "native_coordinates": {
+        "input_buffer_capacity_rows": 384,
+        "output_buffer_capacity_rows": 384,
+        "matrix_n": 4096,
+        "matrix_k": 6144,
+        "stored_expert_banks": 16,
+        "activation_dtype": "int8",
+        "weight_dtype": "DT_INT4",
+        "output_dtype": "int8",
+        "group_list_descriptor": [
+          [
+            16
+          ],
+          "int64",
+          "ND"
+        ],
+        "observed_valid_rows": null,
+        "observed_active_experts": null,
+        "observed_expert_rows": null,
+        "capacity_equals_valid_rows": false
+      },
+      "source_branch": {
+        "candidate": "A8W4_MSD_double_row",
+        "observed_dispatch_confirmed": false,
+        "source_formula": "sum_e ceil(2*valid_rows[e]/base_m)*ceil(N/base_n)",
+        "tile_constants": {
+          "up": [
+            128,
+            256,
+            256
+          ],
+          "down_short": [
+            64,
+            512
+          ],
+          "down_tall": [
+            128,
+            256
+          ]
+        },
+        "host_down_predicate": "floor(valid_M/stored_expert_banks) < 32",
+        "counter_scope": "whole native invocation; per-owner tile counts separately retained",
+        "compiled_dma_descriptor_count": null
+      },
+      "pmu": {
+        "fields": {
+          "Duration(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3675,
+            "missing_or_na_count": 0,
+            "numeric_count": 3675,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3675,
+              "mean": 172.33175700680272,
+              "p50": 172.184,
+              "p90": 175.003,
+              "min": 166.064,
+              "max": 183.104
+            }
+          },
+          "Wait Time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3675,
+            "missing_or_na_count": 0,
+            "numeric_count": 3675,
+            "invalid_numeric_count": 0,
+            "zero_count": 3675,
+            "statistics": {
+              "count": 3675,
+              "mean": 0.0,
+              "p50": 0.0,
+              "p90": 0.0,
+              "min": 0.0,
+              "max": 0.0
+            }
+          },
+          "aicore_time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3661,
+            "missing_or_na_count": 14,
+            "numeric_count": 3661,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3661,
+              "mean": 162.66137175635072,
+              "p50": 162.535,
+              "p90": 165.287,
+              "min": 157.024,
+              "max": 173.238
+            }
+          },
+          "aic_mac_time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3661,
+            "missing_or_na_count": 14,
+            "numeric_count": 3661,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3661,
+              "mean": 18.732237639989073,
+              "p50": 18.73,
+              "p90": 18.751,
+              "min": 18.7,
+              "max": 18.83
+            }
+          },
+          "aic_scalar_time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3661,
+            "missing_or_na_count": 14,
+            "numeric_count": 3661,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3661,
+              "mean": 75.3655577711008,
+              "p50": 74.544,
+              "p90": 77.23,
+              "min": 73.767,
+              "max": 82.151
+            }
+          },
+          "aic_mte1_time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3661,
+            "missing_or_na_count": 14,
+            "numeric_count": 3661,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3661,
+              "mean": 117.01085987435127,
+              "p50": 117.005,
+              "p90": 117.062,
+              "min": 116.92,
+              "max": 117.304
+            }
+          },
+          "aic_mte2_time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3661,
+            "missing_or_na_count": 14,
+            "numeric_count": 3661,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3661,
+              "mean": 110.4384225621415,
+              "p50": 110.562,
+              "p90": 113.176,
+              "min": 105.446,
+              "max": 121.75
+            }
+          },
+          "aic_fixpipe_time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3661,
+            "missing_or_na_count": 14,
+            "numeric_count": 3661,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3661,
+              "mean": 21.563673313302377,
+              "p50": 21.601,
+              "p90": 22.19,
+              "min": 19.876,
+              "max": 22.927
+            }
+          },
+          "aiv_time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3661,
+            "missing_or_na_count": 14,
+            "numeric_count": 3661,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3661,
+              "mean": 167.85881398524992,
+              "p50": 167.711,
+              "p90": 170.563,
+              "min": 161.711,
+              "max": 178.685
+            }
+          },
+          "aiv_vec_time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3661,
+            "missing_or_na_count": 14,
+            "numeric_count": 3661,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3661,
+              "mean": 0.8788522261677137,
+              "p50": 0.885,
+              "p90": 0.888,
+              "min": 0.782,
+              "max": 0.896
+            }
+          },
+          "aiv_scalar_time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3661,
+            "missing_or_na_count": 14,
+            "numeric_count": 3661,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3661,
+              "mean": 8.669881453154876,
+              "p50": 7.561,
+              "p90": 12.344,
+              "min": 5.508,
+              "max": 17.653
+            }
+          },
+          "aiv_mte2_time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3661,
+            "missing_or_na_count": 14,
+            "numeric_count": 3661,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3661,
+              "mean": 0.9203296913411636,
+              "p50": 0.92,
+              "p90": 1.094,
+              "min": 0.509,
+              "max": 1.57
+            }
+          },
+          "aiv_mte3_time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3661,
+            "missing_or_na_count": 14,
+            "numeric_count": 3661,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3661,
+              "mean": 0.6706358918328326,
+              "p50": 0.694,
+              "p90": 0.819,
+              "min": 0.331,
+              "max": 0.92
+            }
+          }
+        },
+        "complete_numeric_mean_us": {
+          "Duration(us)": 172.33175700680272,
+          "Wait Time(us)": 0.0,
+          "aicore_time(us)": null,
+          "aic_mac_time(us)": null,
+          "aic_scalar_time(us)": null,
+          "aic_mte1_time(us)": null,
+          "aic_mte2_time(us)": null,
+          "aic_fixpipe_time(us)": null,
+          "aiv_time(us)": null,
+          "aiv_vec_time(us)": null,
+          "aiv_scalar_time(us)": null,
+          "aiv_mte2_time(us)": null,
+          "aiv_mte3_time(us)": null
+        },
+        "aiv_signed_diagnostics": {
+          "complete_numeric_mean_us": {
+            "Duration(us)": 172.33175700680272,
+            "aiv_time(us)": null,
+            "aiv_vec_time(us)": null,
+            "aiv_scalar_time(us)": null,
+            "aiv_mte2_time(us)": null,
+            "aiv_mte3_time(us)": null
+          },
+          "signed_aiv_minus_pipe_sum_us": null,
+          "signed_aiv_minus_max_pipe_us": null,
+          "signed_duration_minus_aiv_us": null,
+          "interpretation": "Signed boundary diagnostics only; neither remainder is classified as synchronization or launch."
+        },
+        "aic_original_scope_mean_us": {
+          "aicore_time(us)": null,
+          "aic_mac_time(us)": null,
+          "aic_mte1_time(us)": null,
+          "aic_mte2_time(us)": null,
+          "aic_fixpipe_time(us)": null,
+          "aic_scalar_time(us)": null
+        },
+        "owner_aggregation": "capture exporter not identified; raw units retained",
+        "isolated_descriptor_or_scalar_price_ns": null
+      },
+      "usable_response": "whole native call joint response in this complete ABI/Block/attention domain",
+      "generalization": "in_sample; no arbitrary valid-row, tile or owner extrapolation",
+      "body_residual_used": false,
+      "parameter_changes": [],
+      "conditional_source_counts": {
+        "basis": "retained balanced Sim routing declaration, not captured group-list values",
+        "case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot88_c8.json",
+          "sha256": "5f745effaa4d40b208a4d04c3ecd43bfd38a13c67b556dd5250e0452c10ae13e",
+          "size_bytes": 6512
+        },
+        "query_rows": 48,
+        "top_k": 8,
+        "ep": 16,
+        "declared_valid_rows": 24,
+        "declared_expert_rows": [
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "active_experts": 16,
+        "stored_expert_banks": 16,
+        "base_m": 128,
+        "base_n": 256,
+        "matrix_output_tile_count": 256,
+        "matrix_tiles_per_aic_owner": {
+          "0": 13,
+          "1": 13,
+          "2": 13,
+          "3": 13,
+          "4": 13,
+          "5": 13,
+          "6": 13,
+          "7": 13,
+          "8": 13,
+          "9": 13,
+          "10": 13,
+          "11": 13,
+          "12": 13,
+          "13": 13,
+          "14": 13,
+          "15": 13,
+          "16": 12,
+          "17": 12,
+          "18": 12,
+          "19": 12
+        },
+        "all_bank_source_scan_count": 16,
+        "source_matrix_set_tensor_a_submissions": 256,
+        "source_matrix_set_tensor_b_submissions": 256,
+        "compiled_dma_descriptor_count": null,
+        "not_an_observed_route_or_dispatch": true,
+        "no_latency_divided_by_conditional_tile_count": true
+      },
+      "source_provenance": {
+        "repository": "vllm-project/vllm-ascend",
+        "revision": "8fd0bc4885cb52e58791aaa8efacc571b9bd115d",
+        "files": [
+          {
+            "path": "vllm_ascend/quantization/methods/w4a8/w4a8.py",
+            "sha256": "efdcc610c05a44952c2548e0d8b0cd48ca7704c3e2cf8247f8f08f5e765b830b",
+            "lines": "495-507"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_pre.h",
+            "sha256": "b87eda2542700e1800412f9775360552b5c6ae6e38e2afcbd77da677d60f8332",
+            "lines": "145-218"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_mid.h",
+            "sha256": "1881d03e65258e846fe9bbfb736f4cbbcd770b84a6730319dd0c9d00abdc4087",
+            "lines": "180-285"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_post.h",
+            "sha256": "8cf63fb3e34955a2ed28d4f9f56c2030e74744cbe5a63aaeb5d130eb0940758f",
+            "lines": "100-250"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_pipeline.h",
+            "sha256": "e7398287dcc06dd2a70d7c658cd4b3839367f32f34a9c6a5a6f68a8bf0077ae9",
+            "lines": "90-130"
+          }
+        ],
+        "branch": "A8W4_MSD Key2 (INT8 x INT4, double-row cube, FP16 workspace)"
+      }
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot88_c8",
+      "architecture": "arch22",
+      "hardware": "Ascend910_9362",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot88_c8_20261030/kernel_details.csv",
+        "sha256": "59f5666d6709695fad7e1f8502a656de699a200932199f2344c44aaa07662ee8",
+        "size_bytes": 75781277
+      },
+      "partition_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/grouped-a3_glm53_w4a8_tp16_tpot88_c8.json",
+        "sha256": "f2a630375bc0b96a04a70d65c2612109633b2d9d25eaa47054995367ff87bb78",
+        "size_bytes": 4098777
+      },
+      "partition_index": 1,
+      "body_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/scope-paired/auto-forward-a3_glm53_w4a8_tp16_tpot88_c8.json",
+        "sha256": "08e60f3ad0b357b8bd3480150080a2f232382c95311512722a8baaf4528698fa",
+        "size_bytes": 2308757
+      },
+      "geometry": {
+        "query_rows": 48,
+        "sequences_per_replica": 8,
+        "tokens_per_sequence": 6,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "forward_count": 49,
+      "native_operator_type": "GroupedMatmul",
+      "role": "expert_down",
+      "attention_kind": "mla",
+      "native_abi": [
+        "native_tensor_abi",
+        "GroupedMatmul",
+        [
+          [
+            [
+              384,
+              2048
+            ],
+            "int8",
+            "ND"
+          ],
+          [
+            [
+              16,
+              2048,
+              6144
+            ],
+            "DT_INT4",
+            "FRACTAL_NZ"
+          ],
+          [
+            [
+              16,
+              6144
+            ],
+            "fp32",
+            "ND"
+          ],
+          [
+            [
+              16,
+              1,
+              6144
+            ],
+            "UINT64",
+            "NCL"
+          ],
+          [
+            [],
+            "fp32",
+            "ND"
+          ],
+          [
+            [],
+            "fp16",
+            "ND"
+          ],
+          [
+            [],
+            "fp16",
+            "ND"
+          ],
+          [
+            [
+              16
+            ],
+            "int64",
+            "ND"
+          ],
+          [
+            [
+              384
+            ],
+            "fp32",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              384,
+              6144
+            ],
+            "bf16",
+            "ND"
+          ]
+        ]
+      ],
+      "accelerator_core": "MIX_AIC",
+      "block_num": "20",
+      "mix_block_num": "40",
+      "layer_counts": {
+        "3": 49,
+        "4": 49,
+        "5": 49,
+        "6": 49,
+        "7": 49,
+        "8": 49,
+        "9": 49,
+        "10": 49,
+        "11": 49,
+        "12": 49,
+        "13": 49,
+        "14": 49,
+        "15": 49,
+        "16": 49,
+        "17": 49,
+        "18": 49,
+        "19": 49,
+        "20": 49,
+        "21": 49,
+        "22": 49,
+        "23": 49,
+        "24": 49,
+        "25": 49,
+        "26": 49,
+        "27": 49,
+        "28": 49,
+        "29": 49,
+        "30": 49,
+        "31": 49,
+        "32": 49,
+        "33": 49,
+        "34": 49,
+        "35": 49,
+        "36": 49,
+        "37": 49,
+        "38": 49,
+        "39": 49,
+        "40": 49,
+        "41": 49,
+        "42": 49,
+        "43": 49,
+        "44": 49,
+        "45": 49,
+        "46": 49,
+        "47": 49,
+        "48": 49,
+        "49": 49,
+        "50": 49,
+        "51": 49,
+        "52": 49,
+        "53": 49,
+        "54": 49,
+        "55": 49,
+        "56": 49,
+        "57": 49,
+        "58": 49,
+        "59": 49,
+        "60": 49,
+        "61": 49,
+        "62": 49,
+        "63": 49,
+        "64": 49,
+        "65": 49,
+        "66": 49,
+        "67": 49,
+        "68": 49,
+        "69": 49,
+        "70": 49,
+        "71": 49,
+        "72": 49,
+        "73": 49,
+        "74": 49,
+        "75": 49,
+        "76": 49,
+        "77": 49
+      },
+      "observed": {
+        "count": 3675,
+        "mean_us": 95.16497088435374,
+        "p50_us": 94.702,
+        "p90_us": 98.982,
+        "min_us": 90.802,
+        "max_us": 102.182
+      },
+      "calls_per_forward": 75.0,
+      "native_coordinates": {
+        "input_buffer_capacity_rows": 384,
+        "output_buffer_capacity_rows": 384,
+        "matrix_n": 6144,
+        "matrix_k": 2048,
+        "stored_expert_banks": 16,
+        "activation_dtype": "int8",
+        "weight_dtype": "DT_INT4",
+        "output_dtype": "bf16",
+        "group_list_descriptor": [
+          [
+            16
+          ],
+          "int64",
+          "ND"
+        ],
+        "observed_valid_rows": null,
+        "observed_active_experts": null,
+        "observed_expert_rows": null,
+        "capacity_equals_valid_rows": false
+      },
+      "source_branch": {
+        "candidate": "A8W4_MSD_double_row",
+        "observed_dispatch_confirmed": false,
+        "source_formula": "sum_e ceil(2*valid_rows[e]/base_m)*ceil(N/base_n)",
+        "tile_constants": {
+          "up": [
+            128,
+            256,
+            256
+          ],
+          "down_short": [
+            64,
+            512
+          ],
+          "down_tall": [
+            128,
+            256
+          ]
+        },
+        "host_down_predicate": "floor(valid_M/stored_expert_banks) < 32",
+        "counter_scope": "whole native invocation; per-owner tile counts separately retained",
+        "compiled_dma_descriptor_count": null
+      },
+      "pmu": {
+        "fields": {
+          "Duration(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3675,
+            "missing_or_na_count": 0,
+            "numeric_count": 3675,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3675,
+              "mean": 95.16497088435374,
+              "p50": 94.702,
+              "p90": 98.982,
+              "min": 90.802,
+              "max": 102.182
+            }
+          },
+          "Wait Time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3675,
+            "missing_or_na_count": 0,
+            "numeric_count": 3675,
+            "invalid_numeric_count": 0,
+            "zero_count": 2093,
+            "statistics": {
+              "count": 3675,
+              "mean": 1.22688,
+              "p50": 0.0,
+              "p90": 3.026,
+              "min": 0.0,
+              "max": 4.407
+            }
+          },
+          "aicore_time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3661,
+            "missing_or_na_count": 14,
+            "numeric_count": 3661,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3661,
+              "mean": 90.32466621141765,
+              "p50": 89.839,
+              "p90": 94.085,
+              "min": 86.921,
+              "max": 97.379
+            }
+          },
+          "aic_mac_time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3661,
+            "missing_or_na_count": 14,
+            "numeric_count": 3661,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3661,
+              "mean": 9.350237639989073,
+              "p50": 9.35,
+              "p90": 9.355,
+              "min": 9.341,
+              "max": 9.368
+            }
+          },
+          "aic_scalar_time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3661,
+            "missing_or_na_count": 14,
+            "numeric_count": 3661,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3661,
+              "mean": 50.80358426659382,
+              "p50": 49.323,
+              "p90": 57.698,
+              "min": 47.873,
+              "max": 61.893
+            }
+          },
+          "aic_mte1_time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3661,
+            "missing_or_na_count": 14,
+            "numeric_count": 3661,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3661,
+              "mean": 62.203646271510515,
+              "p50": 62.209,
+              "p90": 62.272,
+              "min": 61.905,
+              "max": 62.364
+            }
+          },
+          "aic_mte2_time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3661,
+            "missing_or_na_count": 14,
+            "numeric_count": 3661,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3661,
+              "mean": 60.77781070745698,
+              "p50": 60.711,
+              "p90": 61.987,
+              "min": 58.123,
+              "max": 64.618
+            }
+          },
+          "aic_fixpipe_time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3661,
+            "missing_or_na_count": 14,
+            "numeric_count": 3661,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3661,
+              "mean": 10.03548046981699,
+              "p50": 10.04,
+              "p90": 10.324,
+              "min": 9.322,
+              "max": 10.82
+            }
+          },
+          "aiv_time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3661,
+            "missing_or_na_count": 14,
+            "numeric_count": 3661,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3661,
+              "mean": 90.88643540016389,
+              "p50": 90.413,
+              "p90": 94.656,
+              "min": 27.224,
+              "max": 97.929
+            }
+          },
+          "aiv_vec_time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3661,
+            "missing_or_na_count": 14,
+            "numeric_count": 3661,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3661,
+              "mean": 1.2272682327232995,
+              "p50": 1.231,
+              "p90": 1.234,
+              "min": 0.374,
+              "max": 1.24
+            }
+          },
+          "aiv_scalar_time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3661,
+            "missing_or_na_count": 14,
+            "numeric_count": 3661,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3661,
+              "mean": 11.690945916416279,
+              "p50": 10.701,
+              "p90": 17.103,
+              "min": 3.002,
+              "max": 20.082
+            }
+          },
+          "aiv_mte2_time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3661,
+            "missing_or_na_count": 14,
+            "numeric_count": 3661,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3661,
+              "mean": 4.9428702540289535,
+              "p50": 4.922,
+              "p90": 5.455,
+              "min": 1.642,
+              "max": 6.523
+            }
+          },
+          "aiv_mte3_time(us)": {
+            "column_present": true,
+            "present_count": 3675,
+            "non_na_count": 3661,
+            "missing_or_na_count": 14,
+            "numeric_count": 3661,
+            "invalid_numeric_count": 0,
+            "zero_count": 0,
+            "statistics": {
+              "count": 3661,
+              "mean": 0.7977872166074843,
+              "p50": 0.795,
+              "p90": 0.847,
+              "min": 0.25,
+              "max": 0.951
+            }
+          }
+        },
+        "complete_numeric_mean_us": {
+          "Duration(us)": 95.16497088435374,
+          "Wait Time(us)": 1.22688,
+          "aicore_time(us)": null,
+          "aic_mac_time(us)": null,
+          "aic_scalar_time(us)": null,
+          "aic_mte1_time(us)": null,
+          "aic_mte2_time(us)": null,
+          "aic_fixpipe_time(us)": null,
+          "aiv_time(us)": null,
+          "aiv_vec_time(us)": null,
+          "aiv_scalar_time(us)": null,
+          "aiv_mte2_time(us)": null,
+          "aiv_mte3_time(us)": null
+        },
+        "aiv_signed_diagnostics": {
+          "complete_numeric_mean_us": {
+            "Duration(us)": 95.16497088435374,
+            "aiv_time(us)": null,
+            "aiv_vec_time(us)": null,
+            "aiv_scalar_time(us)": null,
+            "aiv_mte2_time(us)": null,
+            "aiv_mte3_time(us)": null
+          },
+          "signed_aiv_minus_pipe_sum_us": null,
+          "signed_aiv_minus_max_pipe_us": null,
+          "signed_duration_minus_aiv_us": null,
+          "interpretation": "Signed boundary diagnostics only; neither remainder is classified as synchronization or launch."
+        },
+        "aic_original_scope_mean_us": {
+          "aicore_time(us)": null,
+          "aic_mac_time(us)": null,
+          "aic_mte1_time(us)": null,
+          "aic_mte2_time(us)": null,
+          "aic_fixpipe_time(us)": null,
+          "aic_scalar_time(us)": null
+        },
+        "owner_aggregation": "capture exporter not identified; raw units retained",
+        "isolated_descriptor_or_scalar_price_ns": null
+      },
+      "usable_response": "whole native call joint response in this complete ABI/Block/attention domain",
+      "generalization": "in_sample; no arbitrary valid-row, tile or owner extrapolation",
+      "body_residual_used": false,
+      "parameter_changes": [],
+      "conditional_source_counts": {
+        "basis": "retained balanced Sim routing declaration, not captured group-list values",
+        "case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot88_c8.json",
+          "sha256": "5f745effaa4d40b208a4d04c3ecd43bfd38a13c67b556dd5250e0452c10ae13e",
+          "size_bytes": 6512
+        },
+        "query_rows": 48,
+        "top_k": 8,
+        "ep": 16,
+        "declared_valid_rows": 24,
+        "declared_expert_rows": [
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "active_experts": 16,
+        "stored_expert_banks": 16,
+        "base_m": 64,
+        "base_n": 512,
+        "matrix_output_tile_count": 192,
+        "matrix_tiles_per_aic_owner": {
+          "0": 10,
+          "1": 10,
+          "2": 10,
+          "3": 10,
+          "4": 10,
+          "5": 10,
+          "6": 10,
+          "7": 10,
+          "8": 10,
+          "9": 10,
+          "10": 10,
+          "11": 10,
+          "12": 9,
+          "13": 9,
+          "14": 9,
+          "15": 9,
+          "16": 9,
+          "17": 9,
+          "18": 9,
+          "19": 9
+        },
+        "all_bank_source_scan_count": 16,
+        "source_matrix_set_tensor_a_submissions": 192,
+        "source_matrix_set_tensor_b_submissions": 192,
+        "compiled_dma_descriptor_count": null,
+        "not_an_observed_route_or_dispatch": true,
+        "no_latency_divided_by_conditional_tile_count": true
+      },
+      "source_provenance": {
+        "repository": "vllm-project/vllm-ascend",
+        "revision": "8fd0bc4885cb52e58791aaa8efacc571b9bd115d",
+        "files": [
+          {
+            "path": "vllm_ascend/quantization/methods/w4a8/w4a8.py",
+            "sha256": "efdcc610c05a44952c2548e0d8b0cd48ca7704c3e2cf8247f8f08f5e765b830b",
+            "lines": "495-507"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_pre.h",
+            "sha256": "b87eda2542700e1800412f9775360552b5c6ae6e38e2afcbd77da677d60f8332",
+            "lines": "145-218"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_mid.h",
+            "sha256": "1881d03e65258e846fe9bbfb736f4cbbcd770b84a6730319dd0c9d00abdc4087",
+            "lines": "180-285"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_post.h",
+            "sha256": "8cf63fb3e34955a2ed28d4f9f56c2030e74744cbe5a63aaeb5d130eb0940758f",
+            "lines": "100-250"
+          },
+          {
+            "path": "csrc/gmm/grouped_matmul_swiglu_quant_v2/op_kernel/grouped_matmul_swiglu_quant_v2_a8w4_msd_pipeline.h",
+            "sha256": "e7398287dcc06dd2a70d7c658cd4b3839367f32f34a9c6a5a6f68a8bf0077ae9",
+            "lines": "90-130"
+          }
+        ],
+        "branch": "A8W4_MSD Key2 (INT8 x INT4, double-row cube, FP16 workspace)"
+      }
+    }
+  ],
+  "identifiability": {
+    "usable": "Complete observed whole-call and individual PMU-field responses; source-conditional tile coordinates where independently declared.",
+    "unidentified": [
+      "actual group-list values/active experts",
+      "captured host tiling/binary",
+      "MatmulImpl internal DMA descriptor count",
+      "exporter owner aggregation",
+      "independent descriptor/scalar/byte/sync rates"
+    ],
+    "next_contrast": "At fixed N/K/dtype/Block, retain route counts and host tiling; vary active groups at fixed total valid M, then vary tile boundaries at fixed bytes. Keep native inclusive and owner PMU scopes separate.",
+    "no_pipe_subtraction_as_exclusive_latency": true
+  },
+  "new_raw_scans": 0,
+  "new_costs": 0,
+  "body_residual_used": false
+}

@@ -1,0 +1,1 @@
+{"case_id": "qwen35-35b-a5-tp4-c4-graph", "forwards": 84, "partitions": 4, "native_counts": {"GroupedMatmulSwigluQuantV2": 0, "GroupedMatmul": 6720}, "execution": {"source_passes": 1, "predictions": 0, "elapsed_seconds": 7.069615125074051, "peak_rss_bytes": 87179264, "parsed_rows": 194457}}

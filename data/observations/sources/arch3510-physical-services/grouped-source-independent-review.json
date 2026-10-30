@@ -1,0 +1,101 @@
+{
+  "schema_version": "mindie-grouped-micro-independent-review/1",
+  "status": "passed",
+  "checks": 3105,
+  "failures": [],
+  "sources": [
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot30_c2",
+      "forwards": 44,
+      "partitions": 2,
+      "calls": 6600,
+      "identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/grouped-a3_glm53_w4a8_tp16_tpot30_c2.json",
+        "sha256": "290b3aee4a565fa2925eb526b4c9806b2068a97a39509218fb3e91207f22b4e2",
+        "size_bytes": 4036157
+      }
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot50_c2",
+      "forwards": 44,
+      "partitions": 2,
+      "calls": 6600,
+      "identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/grouped-a3_glm53_w4a8_tp16_tpot50_c2.json",
+        "sha256": "4a6497e1ae5f052dbbece241dc513fbf4c6225b0db044881174a7369aea8e0f0",
+        "size_bytes": 4034509
+      }
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot88_c8",
+      "forwards": 49,
+      "partitions": 2,
+      "calls": 7350,
+      "identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/grouped-a3_glm53_w4a8_tp16_tpot88_c8.json",
+        "sha256": "f2a630375bc0b96a04a70d65c2612109633b2d9d25eaa47054995367ff87bb78",
+        "size_bytes": 4098777
+      }
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c4-graph",
+      "forwards": 84,
+      "partitions": 4,
+      "calls": 6720,
+      "identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/grouped-qwen35-35b-a5-tp4-c4-graph.json",
+        "sha256": "00e935809d7b7354b670f8fddb0a9f624d6d45febf6607be8fe11e2f0c964069",
+        "size_bytes": 3725860
+      }
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph",
+      "forwards": 79,
+      "partitions": 4,
+      "calls": 6320,
+      "identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/grouped-qwen35-35b-a5-tp4-c64-graph.json",
+        "sha256": "a4001aa59f1e392b5ecd29cb36c433e65d62926903653f7e189b5ac71fe6f0f6",
+        "size_bytes": 4155771
+      }
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph",
+      "forwards": 76,
+      "partitions": 4,
+      "calls": 6080,
+      "identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/grouped-qwen35-35b-a5-tp4-c128-graph.json",
+        "sha256": "5e6ace643206a116beed69a7a05253a0a763ba46bd14878e3c24abb780d65cd2",
+        "size_bytes": 4080464
+      }
+    }
+  ],
+  "primary_forwards": 376,
+  "summary_identities": {
+    "arch22": {
+      "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/grouped-source-constraints.json",
+      "sha256": "06920d40a62d503eefb7e9b044b69e43371e1eae2f8e05ac038aee69a8d2924c",
+      "size_bytes": 108332
+    },
+    "arch3510": {
+      "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/grouped-source-constraints.json",
+      "sha256": "1d52dc718536c5ea0fac974a9456943ad52725115e348a352cb41f8db509d390",
+      "size_bytes": 191879
+    }
+  },
+  "extraction_receipt_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/grouped-extraction-receipt.json",
+    "sha256": "0d7c692a8fd1aca7c5257bb7d308ae52a4bfd35169cdbd2e3dd18555a699f424",
+    "size_bytes": 4461
+  },
+  "reviewer_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/review_grouped_micro_services.py",
+    "sha256": "866e8e4baad24c0eca7a014b56f238ec523bea18d7d3bdfddd9e5f35c2659de4",
+    "size_bytes": 7093
+  },
+  "raw_scans": 0,
+  "new_costs": 0,
+  "peak_rss_bytes": 121749504,
+  "scope": "Saved full native integer/Decimal histograms and PMU denominators; declared source arithmetic, not proof of captured tile dispatch."
+}
