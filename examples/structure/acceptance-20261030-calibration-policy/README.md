@@ -22,3 +22,11 @@ Validation on companion Sim `cc245da639ea693daecc3ea273965606659da13a`: `tests/t
 Decode replay also preserves explicit `calibration_origin` and `calibration_evidence` from each manifest row, falling back to the Sim case's `runtime.metadata`. A manifest declaration takes precedence. Every geometry result carries the same declaration; missing values stay `not_declared` / `null`. Explicit `runtime.kernels.service_regimes` are retained in `calibration_evidence.declared_service_regimes`, including each rule's domain, response, `scale_with` and provenance. A regime declaration alone does not establish an in-sample or heldout evaluation relationship. This metadata does not change contract admission or measured spans.
 
 The replay regression reuses the real Qwen3.5 c4 extraction (91 complete forwards, including the 84-call main geometry), verifies its source hash without parsing raw events, and tests absent, case-level, manifest-level and regime-only declarations. It preserves all measured geometry populations without running a prediction or rewriting historical receipts.
+
+`glm-qwen-observed-service-inputs.json` supplies compact native observations for
+six GLM/Qwen captures and 256 complete Forwards, with 190 identity, histogram
+and population checks. It contains no Sim residuals. GLM routing keeps the
+complete retained ABI; Qwen groups retain their complete active-contract
+populations without pretending representative samples establish a full ABI.
+The 90 GLM COMMUNICATION AllReduce envelopes per Forward remain separate from
+AI_CPU control tasks and may parameterize the same collective service boundary.

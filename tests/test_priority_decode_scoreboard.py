@@ -392,15 +392,22 @@ def test_audited_controller_population_is_separate_display_not_removed_events(mo
     module=importlib.import_module('priority_decode_scoreboard');reviewer=importlib.import_module('review_priority_decode_scoreboard')
     audit=root/'examples/structure/acceptance-20261030-controller-alias/operator-population-review.json'
     evidence=json.loads(audit.read_text());paths=[Path(x['path']) for x in evidence['operator_receipts']]
-    before=module.build([],paths);after=module.build([],paths,controller_overlay_paths=[audit])
+    before=module.build([],paths)
+    before_counts={key:before['summary'][key] for key in ('current_operator_body_events','current_operator_scored_events')}
+    cohort_digest=lambda rows:hashlib.sha256(json.dumps(rows,sort_keys=True).encode()).hexdigest()
+    before_cohorts=cohort_digest(before['current_operator_cohorts'])
+    # Keep only the comparison projection while reading the next full receipt.
+    del before
+    after=module.build([],paths,controller_overlay_paths=[audit])
     assert len(after['current_controller_overlays'])==10
-    assert after['summary']['current_operator_body_events']==before['summary']['current_operator_body_events']
-    assert after['summary']['current_operator_scored_events']==before['summary']['current_operator_scored_events']
-    assert after['current_operator_cohorts']==before['current_operator_cohorts']
+    assert all(after['summary'][key]==value for key,value in before_counts.items())
+    assert cohort_digest(after['current_operator_cohorts'])==before_cohorts
     assert all(r['native_operator_type']=='reduce_scatterAicpuKernel' for r in after['current_controller_overlays'])
     rendered=module.render(after);gap_section=rendered.split('## Highest unscored activity')[1].split('## Audited controller')[0]
     assert 'reduce_scatterAicpuKernel' not in gap_section
-    out=tmp_path/'controllers.json';out.write_text(json.dumps(after));review=reviewer.review(out)
+    out=tmp_path/'controllers.json'
+    with out.open('w') as stream:json.dump(after,stream)
+    review=reviewer.review(out)
     assert review['status']=='passed',review['failures']
     # Removing every display annotation must not erase the audit's obligation.
     for key in ('operator_families','current_operator_families'):
@@ -408,6 +415,7 @@ def test_audited_controller_population_is_separate_display_not_removed_events(mo
     after['current_controller_overlays']=[]
     after['summary']['current_controller_overlay_rows']=0
     after['summary']['current_controller_overlay_events']=0
-    out.write_text(json.dumps(after));review=reviewer.review(out)
+    with out.open('w') as stream:json.dump(after,stream)
+    review=reviewer.review(out)
     assert review['status']=='failed'
     assert 'Controller audited current population overlay complete' in review['failures']

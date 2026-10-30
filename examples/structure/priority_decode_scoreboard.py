@@ -185,6 +185,11 @@ def body_rows(receipt, identity):
                "body_activity_ms": observed.get("body_activity_ms"),
                "body_internal_gap_ms": observed.get("body_internal_gap_ms"),
                "per_layer": layers}
+        for field in ("calibration_origin", "calibration_evidence"):
+            for owner in (case, case.get("scenario_evidence") or {}, receipt):
+                if owner.get(field) is not None:
+                    row[field] = owner[field]
+                    break
         result.append(row)
     return result
 
@@ -248,7 +253,7 @@ def body_history_row(row):
 
 
 def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), invalidation_paths=(),
-          operator_supplement_paths=(), controller_overlay_paths=()):
+          operator_supplement_paths=(), controller_overlay_paths=(), focus_spec_path=None):
     bodies, families, cohorts, references, inputs = [], [], [], [], []
     invalidations = {}
     operator_cases = {}
@@ -456,6 +461,13 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
         selected = [row for row in current_cohorts if row["status"] == "compared" and row["heavy_call"] == heavy]
         tiers[label] = {"compared": len(selected), "passed": sum(row["accuracy_pass"] is True for row in selected)}
     history = [body_history_row(row) for row in bodies]
+    focus = None
+    if focus_spec_path:
+        from high_concurrency_scoreboard import build_focus
+        specification, identity = _read(focus_spec_path)
+        focus = build_focus(current_rows, specification, latest_attempts.values())
+        focus["specification_identity"] = identity
+        inputs.append(identity)
     return {"schema_version": "mindie-priority-decode-scoreboard/1",
             "coverage_status": "partial" if (not cohorts or any(row["comparison"]["status"] != "compared" for row in bodies)
                                                 or any(row.get("unscored_event_count") for row in families)) else "compared",
@@ -463,6 +475,14 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
             "body_comparisons": history, "operator_families": families, "operator_cohorts": cohorts,
             "body_history_layer_storage": "source receipt field and content hash; current layer tables are expanded below",
             "current_body_comparisons": current_rows,
+            "priority_focus": focus,
+            "calibration_policy": {
+                "observable_regime_parameters_admitted": True,
+                "parameter_origin_changes_admission": False,
+                "in_sample_results_in_current_accuracy": True,
+                "evaluation_relation_default": "not_declared",
+                "comparator_fits_parameters_implicitly": False,
+                "contract_and_physical_boundary_requirements_unchanged": True},
             "latest_body_attempts": [body_history_row(row) for row in latest_attempts.values()],
             "body_failed_attempts": [row for row in history if row["comparison"]["status"] == "failed"],
             "current_operator_families": current_families, "current_operator_cohorts": current_cohorts,
@@ -543,7 +563,14 @@ def render(report):
              "A high pass rate within this subset does not establish whole-model accuracy.", "",
              "Local replay receipts with explicit comparison coverage. Body errors are measured wall-clock differences; "
              "operator priorities are nonadditive kernel activity residuals per complete Forward.", "",
-             "## Whole Decode Body — sorted by absolute ms error", "",
+             "Observed small-payload / low-M effective rates and per-call / per-group service parameters are accepted modelling inputs. "
+             "They use the same accuracy table; measurement origin alone never demotes a result to a conditional reference. "
+             "Declared in-sample accuracy is included; held-out validation is a separate evidence dimension. "
+             "Unspecified calibration provenance remains not_declared. Contract and physical boundary gaps remain separately visible.", ""]
+    if report.get("priority_focus"):
+        from high_concurrency_scoreboard import render_focus
+        lines += render_focus(report["priority_focus"]) + [""]
+    lines += ["## Whole Decode Body — sorted by absolute ms error", "",
              "| Case / variant | Status | Calls | Real Mean / P50 / P90 ms | Activity ms | Sim ms | Diff ms | Mean / P50 error |",
              "|---|---|---:|---:|---:|---:|---:|---:|"]
     for row in report["current_body_comparisons"]:
@@ -647,6 +674,7 @@ def main():
     parser.add_argument("--references", type=Path, action="append", default=[])
     parser.add_argument("--evidence", type=Path, action="append", default=[])
     parser.add_argument("--invalidations", type=Path, action="append", default=[])
+    parser.add_argument("--focus-spec", type=Path, help="Selected source identities and benchmark scenarios")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     manifest_identity = None
@@ -656,7 +684,11 @@ def main():
             paths = [Path(value) for value in manifest.get(key, [])]
             paths = [path if path.is_absolute() else args.input_manifest.parent / path for path in paths]
             setattr(args, key, paths + getattr(args, key))
-    report = build(args.body, args.operators, args.references, args.evidence, args.invalidations, args.operator_supplements, args.controller_overlays)
+        if not args.focus_spec and manifest.get("focus_spec"):
+            path = Path(manifest["focus_spec"])
+            args.focus_spec = path if path.is_absolute() else args.input_manifest.parent / path
+    report = build(args.body, args.operators, args.references, args.evidence, args.invalidations,
+                   args.operator_supplements, args.controller_overlays, args.focus_spec)
     if manifest_identity:
         report["input_manifest_identity"] = manifest_identity
     peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss

@@ -1,0 +1,183 @@
+{
+  "schema_version": "mindie-highconc-replay-independent-review/1",
+  "status": "passed",
+  "checks": 3880,
+  "failed": [],
+  "report_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency-priority/decode-forward-highconc-mc2-replay.json",
+    "sha256": "e0bda7ee49008ec9802731849a22c1e3ecd57601d4612c63fe15382ae3c11a2f"
+  },
+  "manifest_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency-priority/decode-forward-highconc-mc2-cases.json",
+    "sha256": "cff5837d0b523dc7a6a0964f641b888e85456c1db8eeb433dcc16026f80cdc6d"
+  },
+  "runtime": {
+    "source_commit": "cc245da639ea693daecc3ea273965606659da13a",
+    "package_sha256": "1c7fc78cb8be5b2c053f2770ed90ac83f96019cd929cb40ddffbe7cc516e3c25",
+    "file_count": 275,
+    "actual_saved_package_rehashed": true
+  },
+  "summary": {
+    "source_count": 4,
+    "geometry_count": 4,
+    "retained_forward_count": 235,
+    "body_passed": 0,
+    "body_compared": 4,
+    "layer_passed": 2,
+    "layer_compared": 266,
+    "new_prediction_workers": 4,
+    "execution_failures": 0,
+    "review_raw_reads": 0,
+    "review_cost_runs": 0
+  },
+  "cases": [
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c32_p16k:q1_b32_m32",
+      "source_sha256": "e0165e2c51d162f7dcfafa75346acbc739f1e30fbea2bd741e7c5b40f5b7437d",
+      "case_sha256": "af20d35b5840b5cb673dd8dfcaadb3ed2087eebe75a5414f33f7a549eb63aee8",
+      "geometry": {
+        "query_rows": 32,
+        "sequences_per_replica": 32,
+        "tokens_per_sequence": 1,
+        "context_tokens": 16392,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "observed_forward_count": 41,
+      "observed_mean_ms": 44.66619290243902,
+      "old_40e_predicted_ms": 33.73051372517995,
+      "new_cc_predicted_ms": 33.730643535789234,
+      "predicted_delta_ms": 0.0001298106092875173,
+      "predicted_delta_us": 0.1298106092875173,
+      "old_relative_error": -0.24483123513895733,
+      "new_relative_error": -0.24482832890046122,
+      "passed": false,
+      "compared_layers": 93,
+      "passed_layers": 0,
+      "worker_peak_rss_bytes": 150929408,
+      "new_worker": true,
+      "old_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-kimi-controller-replay.json",
+        "sha256": "df08712f8f96aa5b74c51383c75263d616fea79d1bbe49967ac7012ff2fe707a"
+      }
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c32_p4k:q1_b32_m32",
+      "source_sha256": "d734e9ec764b0f1baf35589d4886f6b9e2cd9254c660721f3ad6a86b0602c504",
+      "case_sha256": "0372c802fe170abc6cc453d2dfcea6938158a3636f16fe7423765406b2ac28f1",
+      "geometry": {
+        "query_rows": 32,
+        "sequences_per_replica": 32,
+        "tokens_per_sequence": 1,
+        "context_tokens": 4104,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "observed_forward_count": 46,
+      "observed_mean_ms": 40.01872763043478,
+      "old_40e_predicted_ms": 28.543760096088047,
+      "new_cc_predicted_ms": 28.543889906696567,
+      "predicted_delta_ms": 0.00012981060852013115,
+      "predicted_delta_us": 0.12981060852013115,
+      "old_relative_error": -0.28673993936828385,
+      "new_relative_error": -0.286736695621763,
+      "passed": false,
+      "compared_layers": 93,
+      "passed_layers": 0,
+      "worker_peak_rss_bytes": 151126016,
+      "new_worker": true,
+      "old_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-kimi-controller-replay.json",
+        "sha256": "df08712f8f96aa5b74c51383c75263d616fea79d1bbe49967ac7012ff2fe707a"
+      }
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64:q1_b8_m8",
+      "source_sha256": "085c8c00a0560d14a3ca4beb9b965efc04b6be1f40b47734cd47102af4363282",
+      "case_sha256": "335a943d3ba00368aac41fac044586fe6d12a1bbc9d356796129cc5894381bb4",
+      "geometry": {
+        "query_rows": 8,
+        "sequences_per_replica": 8,
+        "tokens_per_sequence": 1,
+        "context_tokens": 2048,
+        "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "observed_forward_count": 75,
+      "observed_mean_ms": 26.328226106666666,
+      "old_40e_predicted_ms": 18.932524024861003,
+      "new_cc_predicted_ms": 18.932610767284885,
+      "predicted_delta_ms": 8.674242388195808e-05,
+      "predicted_delta_us": 0.08674242388195808,
+      "old_relative_error": -0.28090392614536874,
+      "new_relative_error": -0.28090063149028904,
+      "passed": false,
+      "compared_layers": 40,
+      "passed_layers": 1,
+      "worker_peak_rss_bytes": 467517440,
+      "new_worker": true,
+      "old_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-v41-controller-replay.json",
+        "sha256": "d0d078a7c53ee007323e34a971692dcbe9b4921665db965b226ba8e4d939ef0e"
+      }
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c128_p2k:q1_b16_m16",
+      "source_sha256": "9f4378314a899c8389ba107c89a43dd5fa90c329553bd204ae546ffad39a2f41",
+      "case_sha256": "100af55b531f0a6c69930f1e4e7f1c9a241cf89070ed940f058b4f85fb855593",
+      "geometry": {
+        "query_rows": 16,
+        "sequences_per_replica": 16,
+        "tokens_per_sequence": 1,
+        "context_tokens": 2048,
+        "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "observed_forward_count": 73,
+      "observed_mean_ms": 27.28597294520548,
+      "old_40e_predicted_ms": 19.244759050667035,
+      "new_cc_predicted_ms": 19.24500829309097,
+      "predicted_delta_ms": 0.0002492424239335378,
+      "predicted_delta_us": 0.2492424239335378,
+      "old_relative_error": -0.2947013804743729,
+      "new_relative_error": -0.2946922460218674,
+      "passed": false,
+      "compared_layers": 40,
+      "passed_layers": 1,
+      "worker_peak_rss_bytes": 471793664,
+      "new_worker": true,
+      "old_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-v41-controller-replay.json",
+        "sha256": "d0d078a7c53ee007323e34a971692dcbe9b4921665db965b226ba8e4d939ef0e"
+      }
+    }
+  ],
+  "scope": [
+    "Independently rehashed cases, extraction artifacts, old/new receipts, runtime package and Git commit bytes.",
+    "Recomputed body/layer errors, 15% decisions, replica envelope, layer summaries, complete-layer and steady distributions; observed values exactly retained from old 40e population.",
+    "Fresh workers and their budget/failure status checked; all four failed accuracy remain visible and are not execution failures.",
+    "Observable same-regime service parameters are valid inputs. Residual qualifications here concern unobserved full-rank equivalence, active KV, native boundary or source selection evidence, not the fact that parameters may be measured."
+  ],
+  "review_attempts": [
+    {
+      "status": "checker_schema_mismatch_corrected",
+      "checks": 3872,
+      "reported_failures": 4,
+      "reason": "Initial checker compared the compact manifest path/SHA/size identity dict with the richer report mtime/schema identity dict. Corrected to exact required compact fields plus full report-vs-pin equality; no input/report values changed."
+    }
+  ],
+  "limits": [
+    "No new prediction was run by this review; saved program-service costs are not independently re-solved.",
+    "Cross-layer medians are checked with their explicit scope; they are not pooled per-call medians.",
+    "Operator activity residuals are not additive body wall attribution."
+  ],
+  "execution": {
+    "elapsed_seconds": 0.24261199997272342,
+    "peak_rss_bytes": 54050816,
+    "memory_limit_bytes": 536870912
+  }
+}

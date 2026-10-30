@@ -76,6 +76,24 @@ def test_ep_replicas_keep_envelopes_without_adding_parallel_layer_spans(adapter,
         max(r["span_ms"] for r in result["replica_envelopes_ms"]))
 
 
+def test_observable_response_selection_survives_body_projection(adapter, case):
+    from mindie_sim import predict
+
+    raw = deepcopy(case)
+    baseline = predict(raw, scope="body", tokens=2, context=64, sequences=2, event_limit=0)
+    raw["runtime"].setdefault("kernels", {})["service_regimes"] = [{
+        "id": "normalization-response-control", "match": {"family": "rmsnorm"},
+        "response": {"fixed_us": 100}, "provenance": {"kind": "causal_test_control"}}]
+    result = predict(raw, scope="body", tokens=2, context=64, sequences=2, event_limit=0)
+    projected = adapter.summarize_prediction(raw, result)
+    assert projected["body_forward_span_ms"] > baseline["body_forward_ms"]
+    selection = projected["parameters"]["service_regimes"][0]
+    native_calls = sum(row["family"] == "rmsnorm" for row in result["timeline"])
+    assert selection["queries"]["observable_response"] == native_calls
+    assert projected["parameters"]["regime_selection"]["unmatched"] == []
+    assert projected["parameters"] == result["parameters"]
+
+
 def test_body_receipt_retains_actual_parsed_hf_wrapper_quantization(adapter):
     import mindie_sim
 

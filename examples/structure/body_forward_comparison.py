@@ -203,6 +203,7 @@ def summarize_prediction(case, result):
         "span_start_basis": "input_hidden_and_kv_ready",
         "span_end_basis": "target_body_output_ready_on_all_cohort_participants",
         "geometry": result["geometry"],
+        "parameters": result.get("parameters", {}),
         "body_forward_span_ms": result["body_forward_ms"],
         "first_kernel_ready_ms": first_kernel_ready,
         "first_kernel_to_body_complete_ms": (

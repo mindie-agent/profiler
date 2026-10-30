@@ -1,0 +1,14 @@
+{
+  "schema_version": "mindie-decode-prediction-review/1",
+  "status": "passed",
+  "report_sha256": "e0bda7ee49008ec9802731849a22c1e3ecd57601d4612c63fe15382ae3c11a2f",
+  "checks": 1100,
+  "failures": [],
+  "compared": 4,
+  "passed": 0,
+  "unique_source_geometry_populations": 4,
+  "input_execution_status": "completed",
+  "failed_attempts": [],
+  "unique_forwards": 235,
+  "scope": "Independent saved-source population, endpoint, error and unrounded 15% arithmetic; no raw scan or prediction."
+}
