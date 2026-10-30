@@ -1,0 +1,423 @@
+{
+  "schema_version": "mindie-body-runtime-arm-comparison/1",
+  "inputs": [
+    {
+      "arm": "before",
+      "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-qwen-controller-replay.json",
+      "sha256": "0eabddd00ea79a873def2201f40e4ee02647aac6568092554876788817a8cc68"
+    },
+    {
+      "arm": "after",
+      "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen35-mc2-tp-bf71bd7d/decode-forward-qwen35-mc2-tp-replay.json",
+      "sha256": "2f99d9fa09b6ddf357883d8deeb13fbf3b813b41f985282ec611c39a7b794569"
+    }
+  ],
+  "raw_capture_reads": 0,
+  "prediction_executions": 0,
+  "cases": [
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph:q4_b64_m256",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+        "size_bytes": 79462851,
+        "mtime_ns": 1793299528000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "5612e7cccfb3878cf27b22b1e89c5d186cd100633a44748973349f1bf03872f3"
+      },
+      "geometry": {
+        "query_rows": 256,
+        "sequences_per_replica": 64,
+        "tokens_per_sequence": 4,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen35-35b-a5-tp4-c64-graph.json",
+        "sha256": "b1b09ba9be230b0c30d8d62c1539aa340e1eda4125bac54cf24731ceab2a42e4",
+        "reused_existing_extraction": true
+      },
+      "before_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-qwen-controller-replay.json",
+        "sha256": "0eabddd00ea79a873def2201f40e4ee02647aac6568092554876788817a8cc68"
+      },
+      "after_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen35-mc2-tp-bf71bd7d/decode-forward-qwen35-mc2-tp-replay.json",
+        "sha256": "2f99d9fa09b6ddf357883d8deeb13fbf3b813b41f985282ec611c39a7b794569"
+      },
+      "before_runtime": {
+        "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+        "version": "0.8.0",
+        "package_sha256": "ab51c56356b3b6f11a130dd7a59d2fd894b99148d0917fc4cc40189102286124",
+        "file_count": 271,
+        "algorithm": "sha256(sorted relative-path to file-sha256 JSON)",
+        "sources_unchanged": true
+      },
+      "after_runtime": {
+        "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+        "version": "0.8.0",
+        "package_sha256": "db3e8eafccff621cf1f9734f7440c1e4b151a61c840c6627b7b6537061217d4e",
+        "file_count": 274,
+        "algorithm": "sha256(sorted relative-path to file-sha256 JSON)",
+        "sources_unchanged": true
+      },
+      "observed_ms": {
+        "count": 79,
+        "mean": 21.95684469620253,
+        "p50": 22.000889,
+        "p90": 22.067637,
+        "min": 21.680619,
+        "max": 22.118773
+      },
+      "before": {
+        "status": "compared",
+        "metric_boundary": "target_body_device_graph",
+        "reasons": [],
+        "observed_forward_count": 79,
+        "observed_ms": {
+          "count": 79,
+          "mean": 21.95684469620253,
+          "p50": 22.000889,
+          "p90": 22.067637,
+          "min": 21.680619,
+          "max": 22.118773
+        },
+        "predicted_ms": 10.941656985517318,
+        "relative_error": -0.5016744374290859,
+        "per_forward_diff_ms": -11.015187710685213,
+        "passed": false,
+        "tolerance": {
+          "kind": "relative",
+          "limit": 0.15,
+          "scope": "whole_body_forward_not_single_kernel_launch"
+        },
+        "comparison_scope": {},
+        "comparison_basis": "conditional_single_rank_topology_alignment",
+        "assumptions": [
+          "Context basis: explicit_case_geometry; active KV increments during this capture are not established.",
+          "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+          "Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage."
+        ],
+        "endpoints": {
+          "observed": "first_retained_device_event_start_to_last_retained_device_event_end",
+          "predicted": "first_kernel_invocation_ready_to_body_complete_including_startup",
+          "input_ready_to_first_kernel_ms": 0,
+          "kernel_startup_included": true
+        }
+      },
+      "after": {
+        "status": "compared",
+        "metric_boundary": "target_body_device_graph",
+        "reasons": [],
+        "observed_forward_count": 79,
+        "observed_ms": {
+          "count": 79,
+          "mean": 21.95684469620253,
+          "p50": 22.000889,
+          "p90": 22.067637,
+          "min": 21.680619,
+          "max": 22.118773
+        },
+        "predicted_ms": 11.723497970527035,
+        "relative_error": -0.4660663618687146,
+        "per_forward_diff_ms": -10.233346725675496,
+        "passed": false,
+        "tolerance": {
+          "kind": "relative",
+          "limit": 0.15,
+          "scope": "whole_body_forward_not_single_kernel_launch"
+        },
+        "comparison_scope": {},
+        "comparison_basis": "conditional_single_rank_topology_alignment",
+        "assumptions": [
+          "Context basis: explicit_case_geometry; active KV increments during this capture are not established.",
+          "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+          "Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage."
+        ],
+        "endpoints": {
+          "observed": "first_retained_device_event_start_to_last_retained_device_event_end",
+          "predicted": "first_kernel_invocation_ready_to_body_complete_including_startup",
+          "input_ready_to_first_kernel_ms": 0,
+          "kernel_startup_included": true
+        }
+      },
+      "prediction_delta_ms": 0.7818409850097172
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b128_m512",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+        "size_bytes": 88444963,
+        "mtime_ns": 1793299565000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "bf35b8b21c078d6fc7223918b280158fda5ee7c1f83009c70c98b16f27b08df5"
+      },
+      "geometry": {
+        "query_rows": 512,
+        "sequences_per_replica": 128,
+        "tokens_per_sequence": 4,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen35-35b-a5-tp4-c128-graph.json",
+        "sha256": "c735f6f862fd6a7b730b79498051db24a96f2134f8744662cbc5eb89ab77e613",
+        "reused_existing_extraction": true
+      },
+      "before_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-qwen-controller-replay.json",
+        "sha256": "0eabddd00ea79a873def2201f40e4ee02647aac6568092554876788817a8cc68"
+      },
+      "after_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen35-mc2-tp-bf71bd7d/decode-forward-qwen35-mc2-tp-replay.json",
+        "sha256": "2f99d9fa09b6ddf357883d8deeb13fbf3b813b41f985282ec611c39a7b794569"
+      },
+      "before_runtime": {
+        "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+        "version": "0.8.0",
+        "package_sha256": "ab51c56356b3b6f11a130dd7a59d2fd894b99148d0917fc4cc40189102286124",
+        "file_count": 271,
+        "algorithm": "sha256(sorted relative-path to file-sha256 JSON)",
+        "sources_unchanged": true
+      },
+      "after_runtime": {
+        "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+        "version": "0.8.0",
+        "package_sha256": "db3e8eafccff621cf1f9734f7440c1e4b151a61c840c6627b7b6537061217d4e",
+        "file_count": 274,
+        "algorithm": "sha256(sorted relative-path to file-sha256 JSON)",
+        "sources_unchanged": true
+      },
+      "observed_ms": {
+        "count": 76,
+        "mean": 28.584773552631578,
+        "p50": 28.5706575,
+        "p90": 28.703784,
+        "min": 28.450656,
+        "max": 28.85065
+      },
+      "before": {
+        "status": "compared",
+        "metric_boundary": "target_body_device_graph",
+        "reasons": [],
+        "observed_forward_count": 76,
+        "observed_ms": {
+          "count": 76,
+          "mean": 28.584773552631578,
+          "p50": 28.5706575,
+          "p90": 28.703784,
+          "min": 28.450656,
+          "max": 28.85065
+        },
+        "predicted_ms": 14.844834306187522,
+        "relative_error": -0.4806733634305501,
+        "per_forward_diff_ms": -13.739939246444056,
+        "passed": false,
+        "tolerance": {
+          "kind": "relative",
+          "limit": 0.15,
+          "scope": "whole_body_forward_not_single_kernel_launch"
+        },
+        "comparison_scope": {},
+        "comparison_basis": "conditional_single_rank_topology_alignment",
+        "assumptions": [
+          "Context basis: explicit_case_geometry; active KV increments during this capture are not established.",
+          "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+          "Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage."
+        ],
+        "endpoints": {
+          "observed": "first_retained_device_event_start_to_last_retained_device_event_end",
+          "predicted": "first_kernel_invocation_ready_to_body_complete_including_startup",
+          "input_ready_to_first_kernel_ms": 0,
+          "kernel_startup_included": true
+        }
+      },
+      "after": {
+        "status": "compared",
+        "metric_boundary": "target_body_device_graph",
+        "reasons": [],
+        "observed_forward_count": 76,
+        "observed_ms": {
+          "count": 76,
+          "mean": 28.584773552631578,
+          "p50": 28.5706575,
+          "p90": 28.703784,
+          "min": 28.450656,
+          "max": 28.85065
+        },
+        "predicted_ms": 16.621713176650335,
+        "relative_error": -0.41851163711177614,
+        "per_forward_diff_ms": -11.963060375981243,
+        "passed": false,
+        "tolerance": {
+          "kind": "relative",
+          "limit": 0.15,
+          "scope": "whole_body_forward_not_single_kernel_launch"
+        },
+        "comparison_scope": {},
+        "comparison_basis": "conditional_single_rank_topology_alignment",
+        "assumptions": [
+          "Context basis: explicit_case_geometry; active KV increments during this capture are not established.",
+          "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+          "Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage."
+        ],
+        "endpoints": {
+          "observed": "first_retained_device_event_start_to_last_retained_device_event_end",
+          "predicted": "first_kernel_invocation_ready_to_body_complete_including_startup",
+          "input_ready_to_first_kernel_ms": 0,
+          "kernel_startup_included": true
+        }
+      },
+      "prediction_delta_ms": 1.776878870462813
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c4-graph:q4_b4_m16",
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
+        "size_bytes": 70137504,
+        "mtime_ns": 1793299592000000000,
+        "schema_version": "kernel_details_csv_48col",
+        "sha256": "9b8a87bfd6252204ab077e331ed97976ff9f5256935cb153677ac619dd96aac1"
+      },
+      "geometry": {
+        "query_rows": 16,
+        "sequences_per_replica": 4,
+        "tokens_per_sequence": 4,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen35-35b-a5-tp4-c4-graph.json",
+        "sha256": "8d3809e747bf6d404c893339d6d2c2dafb62cd89025e950dc876edf8fe8ac8b3",
+        "reused_existing_extraction": true
+      },
+      "before_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-qwen-controller-replay.json",
+        "sha256": "0eabddd00ea79a873def2201f40e4ee02647aac6568092554876788817a8cc68"
+      },
+      "after_receipt": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen35-mc2-tp-bf71bd7d/decode-forward-qwen35-mc2-tp-replay.json",
+        "sha256": "2f99d9fa09b6ddf357883d8deeb13fbf3b813b41f985282ec611c39a7b794569"
+      },
+      "before_runtime": {
+        "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+        "version": "0.8.0",
+        "package_sha256": "ab51c56356b3b6f11a130dd7a59d2fd894b99148d0917fc4cc40189102286124",
+        "file_count": 271,
+        "algorithm": "sha256(sorted relative-path to file-sha256 JSON)",
+        "sources_unchanged": true
+      },
+      "after_runtime": {
+        "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+        "version": "0.8.0",
+        "package_sha256": "db3e8eafccff621cf1f9734f7440c1e4b151a61c840c6627b7b6537061217d4e",
+        "file_count": 274,
+        "algorithm": "sha256(sorted relative-path to file-sha256 JSON)",
+        "sources_unchanged": true
+      },
+      "observed_ms": {
+        "count": 84,
+        "mean": 11.551366761904761,
+        "p50": 11.481642,
+        "p90": 11.817997,
+        "min": 10.98308,
+        "max": 12.018012
+      },
+      "before": {
+        "status": "compared",
+        "metric_boundary": "target_body_device_graph",
+        "reasons": [],
+        "observed_forward_count": 84,
+        "observed_ms": {
+          "count": 84,
+          "mean": 11.551366761904761,
+          "p50": 11.481642,
+          "p90": 11.817997,
+          "min": 10.98308,
+          "max": 12.018012
+        },
+        "predicted_ms": 5.367694354662898,
+        "relative_error": -0.5353195457038893,
+        "per_forward_diff_ms": -6.183672407241863,
+        "passed": false,
+        "tolerance": {
+          "kind": "relative",
+          "limit": 0.15,
+          "scope": "whole_body_forward_not_single_kernel_launch"
+        },
+        "comparison_scope": {},
+        "comparison_basis": "conditional_single_rank_topology_alignment",
+        "assumptions": [
+          "Context basis: explicit_case_geometry; active KV increments during this capture are not established.",
+          "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+          "Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage."
+        ],
+        "endpoints": {
+          "observed": "first_retained_device_event_start_to_last_retained_device_event_end",
+          "predicted": "first_kernel_invocation_ready_to_body_complete_including_startup",
+          "input_ready_to_first_kernel_ms": 0,
+          "kernel_startup_included": true
+        }
+      },
+      "after": {
+        "status": "compared",
+        "metric_boundary": "target_body_device_graph",
+        "reasons": [],
+        "observed_forward_count": 84,
+        "observed_ms": {
+          "count": 84,
+          "mean": 11.551366761904761,
+          "p50": 11.481642,
+          "p90": 11.817997,
+          "min": 10.98308,
+          "max": 12.018012
+        },
+        "predicted_ms": 4.705845817953044,
+        "relative_error": -0.5926156692147939,
+        "per_forward_diff_ms": -6.845520943951717,
+        "passed": false,
+        "tolerance": {
+          "kind": "relative",
+          "limit": 0.15,
+          "scope": "whole_body_forward_not_single_kernel_launch"
+        },
+        "comparison_scope": {},
+        "comparison_basis": "conditional_single_rank_topology_alignment",
+        "assumptions": [
+          "Context basis: explicit_case_geometry; active KV increments during this capture are not established.",
+          "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+          "Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage."
+        ],
+        "endpoints": {
+          "observed": "first_retained_device_event_start_to_last_retained_device_event_end",
+          "predicted": "first_kernel_invocation_ready_to_body_complete_including_startup",
+          "input_ready_to_first_kernel_ms": 0,
+          "kernel_startup_included": true
+        }
+      },
+      "prediction_delta_ms": -0.6618485367098543
+    }
+  ],
+  "prior_failures_without_geometry": [],
+  "after_failures_without_geometry": [],
+  "summary": {
+    "attempted_after": 3,
+    "compared_after": 3,
+    "failed_after": 0,
+    "passed_before": 0,
+    "passed_after": 0,
+    "failed_before": 0,
+    "became_failed": [],
+    "lost_pass": [],
+    "gained_pass": []
+  },
+  "limitations": [
+    "A runtime arm may include multiple changes; the delta is not a single-commit causal attribution.",
+    "Body wall time is distinct from accumulated operator activity or isolated service time."
+  ]
+}

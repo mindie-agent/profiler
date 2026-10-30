@@ -1,0 +1,1064 @@
+{
+  "schema_version": "mindie-decode-forward-replay/1",
+  "variant_id": "body-qwen35-mc2-tp-source-bf71bd7d",
+  "not_new_live_collection": true,
+  "basis": "fresh runtime prediction using unchanged retained source populations",
+  "runtime_plan": {
+    "checkout": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029",
+    "source_commit": "bf71bd7d8d0c676165886c84baa22e97d0f1a68f"
+  },
+  "cases": [
+    {
+      "case_id": "qwen35-35b-a5-tp4-c64-graph",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+        "sha256": "5612e7cccfb3878cf27b22b1e89c5d186cd100633a44748973349f1bf03872f3",
+        "size_bytes": 79462851
+      },
+      "sim_case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-mc2-tp-source-complete-conditional/qwen35-35b-a5-tp4-c64-mc2-tp-source-complete.json",
+      "model_declaration": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-mc2-tp-source-complete-conditional/qwen35-35b-a5-tp4-c64-mc2-tp-source-complete.json",
+        "sha256": "382c56151b85d5d23011fdaf7be8ea481b2a29bc8be318c5dc95e0ba33352870",
+        "size_bytes": 11154
+      },
+      "segmentation": "auto_structure_guided",
+      "boundaries_path": null,
+      "geometry": {
+        "context_tokens": 4096
+      },
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030",
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/benchmark_summary.json",
+          "sha256": "b20cecdd139544aaf85dd44f778b0abead1c4ed849d8a7f0f289c52f1147e14c",
+          "size_bytes": 156866
+        },
+        "benchmark_summary_fields": {
+          "label": "qwen35_c64",
+          "url": "http://127.0.0.1:18218/v1/completions",
+          "model": "qwen35",
+          "prefix_len": 4096,
+          "output_len": 256,
+          "concurrency": 64,
+          "waves": 1,
+          "n_ok": 64,
+          "n_failed": 0,
+          "wall_s": 4.70435193000003,
+          "steady_window_s": 4.530956268310547,
+          "ttft_ms": {
+            "n": 64,
+            "mean": 1007.3904662500155,
+            "median": 1237.9731150000453,
+            "std": 341.61523938531184,
+            "min": 237.20919000015783,
+            "max": 1498.3255000001918,
+            "p50": 1237.9731150000453,
+            "p90": 1271.1493959999416,
+            "p99": 1482.4939969001548
+          },
+          "tpot_tok_ms": {
+            "n": 64,
+            "mean": 12.604054669730305,
+            "median": 11.999975529411756,
+            "std": 1.2966902846277901,
+            "min": 10.751374705882078,
+            "max": 15.37096113725502,
+            "p50": 11.999975529411756,
+            "p90": 14.397894117647304,
+            "p99": 15.14414139725444
+          },
+          "step_ms": {
+            "n": 64,
+            "mean": 37.164764240698084,
+            "median": 34.67422400000059,
+            "std": 3.581245709717038,
+            "min": 32.283449885057806,
+            "max": 45.03157482352917,
+            "p50": 34.67422400000059,
+            "p90": 41.78236779862283,
+            "p99": 43.24656527204687
+          },
+          "e2e_ms": {
+            "n": 64,
+            "mean": 4221.424407031243,
+            "median": 4239.376064999988,
+            "std": 126.70120628802657,
+            "min": 3935.2060300000176,
+            "max": 4508.671190000086,
+            "p50": 4239.376064999988,
+            "p90": 4385.112366000021,
+            "p99": 4490.788117099984
+          },
+          "request_throughput_rps": 13.604424361167977,
+          "output_throughput_tok_s": 3482.732636459002,
+          "output_throughput_tok_s_steady": 3616.013713173419,
+          "total_prompt_tokens": 262144,
+          "total_output_tokens": 16384,
+          "prefix_cache_reuse_ratio": 0.0,
+          "errors": [],
+          "profile": {
+            "requested": true,
+            "started_at": 1793299072.5950444,
+            "stopped_at": 1793299077.2996857
+          },
+          "meta": {}
+        },
+        "retained_deployment": {
+          "startup": {
+            "source": {
+              "path": "/Users/maoxx241/code/mindie-agent/.workstreams/w3-a5-hc-decode/evidence/qwen35_graph_startup_and_prefix_hit.txt",
+              "sha256": "c45d43edd03349cd84763f801aa42ea8fb6b7452b6e9132c7f92b1249bc072f6",
+              "size_bytes": 6676
+            },
+            "evidence_lines": [
+              {
+                "line": 3,
+                "text": "(APIServer pid=139099) INFO 10-29 18:29:24 [api_utils.py:286] non-default args: {'model_tag': '/mnt/weight/Qwen3.5-35B-A3B-w8a8-mtp', 'host': '0.0.0.0', 'port': 18218, 'model': '/mnt/weight/Qwen3.5-35B-A3B-w8a8-mtp', 'trust_remote_code': True, 'max_model_len': 8192, 'quantization': 'ascend', 'served_model_name': ['qwen35'], 'tensor_parallel_size': 4, 'enable_expert_parallel': True, 'gpu_memory_utilization': 0.9, 'enable_prefix_caching': True, 'max_num_batched_tokens': 16384, 'max_num_seqs': 256, 'speculative_config': {'method': 'qwen3_5_mtp', 'num_speculative_tokens': 3, 'rejection_sample_method': 'synthetic', 'synthetic_acceptance_rates': [0.8, 0.64, 0.512]}, 'compilation_config': {'mode': None, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'vllm_ascend.compilation.compiler_interface.AscendCompiler', 'custom_ops': [], 'ir_enable_torch_wrap': None, 'splitting_ops': None, 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': None, 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': None, 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': None, 'pass_config': {}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': None, 'static_all_moe_layers': []}, 'additional_config': {'enable_force_eplb': True, 'enable_cpu_binding': True, 'ascend_fusion_config': {'fusion_ops_gmmswigluquant': False}}, 'profiler_config': ProfilerConfig(profiler='torch', torch_profiler_dir='/tmp/qwen35_prof', proton_profiler_dir='', proton_context='shadow', proton_data='tree', proton_backend=None, proton_mode=None, proton_hook=None, proton_output_format=None, proton_graph_attribution=False, torch_profiler_with_stack=False, torch_profiler_with_flops=False, torch_profiler_use_gzip=True, torch_profiler_dump_cuda_time_total=True, torch_profiler_record_shapes=False, torch_profiler_with_memory=False, capture_torch_profiler=False, detailed_trace_annotation=False, ignore_frontend=False, delay_iterations=0, max_iterations=0, warmup_iterations=0, active_iterations=5, wait_iterations=0)}"
+              },
+              {
+                "line": 9,
+                "text": "(Worker_TP0_EP0 pid=139254) INFO 10-29 18:36:28 [acl_graph.py:301] ACL graph replay is active (logged once)."
+              },
+              {
+                "line": 10,
+                "text": "(APIServer pid=139099) INFO 10-29 18:37:16 [loggers.py:315] Engine 000: Avg prompt throughput: 1689.1 tokens/s, Avg generation throughput: 823.8 tokens/s, Running: 64 reqs, Waiting: 0 reqs, NPU KV cache usage: 8.1%, Prefix cache hit rate: 93.1%"
+              },
+              {
+                "line": 11,
+                "text": "(APIServer pid=139099) INFO 10-29 18:37:26 [loggers.py:315] Engine 000: Avg prompt throughput: 51.2 tokens/s, Avg generation throughput: 817.6 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.1%"
+              },
+              {
+                "line": 12,
+                "text": "(APIServer pid=139099) INFO 10-29 18:37:36 [loggers.py:315] Engine 000: Avg prompt throughput: 3276.7 tokens/s, Avg generation throughput: 3276.7 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.4%"
+              },
+              {
+                "line": 13,
+                "text": "(APIServer pid=139099) INFO 10-29 18:37:46 [loggers.py:315] Engine 000: Avg prompt throughput: 153.6 tokens/s, Avg generation throughput: 104.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.4%"
+              },
+              {
+                "line": 14,
+                "text": "(APIServer pid=139099) INFO 10-29 18:37:56 [loggers.py:315] Engine 000: Avg prompt throughput: 1689.1 tokens/s, Avg generation throughput: 1383.9 tokens/s, Running: 64 reqs, Waiting: 0 reqs, NPU KV cache usage: 8.1%, Prefix cache hit rate: 93.5%"
+              }
+            ],
+            "runtime_fields": {
+              "model": "/mnt/weight/Qwen3.5-35B-A3B-w8a8-mtp",
+              "tensor_parallel_size": 4,
+              "enable_expert_parallel": true,
+              "enable_force_eplb": true,
+              "num_speculative_tokens": 3,
+              "enforce_eager": null,
+              "enable_prefix_caching": true,
+              "max_num_seqs": 256,
+              "max_num_batched_tokens": 16384,
+              "fusion_ops_gmmswigluquant": false
+            },
+            "engine_config_observed": false,
+            "missing_argument_is_not_false": true
+          },
+          "launch_sources": [
+            {
+              "path": "/Users/maoxx241/code/mindie-agent/.workstreams/w3-a5-hc-decode/cfg/serve_qwen35_graph.sh",
+              "sha256": "d22cd78c04583e3e525ca7f251745b8cabec8d04e5ae9e457d0a3ec89236b576",
+              "size_bytes": 3907
+            }
+          ],
+          "launch_source_is_execution_intent": true,
+          "script_local_patches": [
+            "DequantSwigluQuantV2 clamp_limit=1e9",
+            "disable Triton swiglu_quant branch"
+          ]
+        },
+        "client": {
+          "concurrency": 64,
+          "input_len": 4096,
+          "token_exact": null
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "n": 64,
+            "mean": 12.604054669730305,
+            "median": 11.999975529411756,
+            "std": 1.2966902846277901,
+            "min": 10.751374705882078,
+            "max": 15.37096113725502,
+            "p50": 11.999975529411756,
+            "p90": 14.397894117647304,
+            "p99": 15.14414139725444
+          },
+          "unprofiled_sweep_ms": 10.693847980391915,
+          "body_forward_is_separate_metric": true,
+          "unprofiled_sweep_source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/sweep_c64.json",
+            "sha256": "019af53d17a5c8bddac7f604f1a69e83166eef3db3d2039165bac7e4f17185cd",
+            "size_bytes": 159029
+          }
+        },
+        "prefix_cache": {
+          "profiled_metrics": null,
+          "unprofiled_metrics": null,
+          "unknown_metrics_are_not_zero": true
+        },
+        "source_population": {
+          "selected_rank": "top_level_export",
+          "available_rank_directories": [],
+          "all_ranks_are_not_summed": true,
+          "gzip_is_streamed_without_materialization": false
+        },
+        "step_trace": {
+          "source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/step_trace_time.csv",
+            "sha256": "95876ac76e827a0370b3366de6a199e2fe9e6a7d8bbcc45a3d7c1d6b20f5c9a0",
+            "size_bytes": 294
+          },
+          "rows": [
+            {
+              "Device_id": "0",
+              "Step": "",
+              "Computing": "2269399.1959999977",
+              "Communication(Not Overlapped)": "1332949.0720000076",
+              "Overlapped": "95.79399999976158",
+              "Communication": "1333044.8660000074",
+              "Free": "905230.9139999679",
+              "Stage": "4507579.0",
+              "Bubble": "0",
+              "Communication(Not Overlapped and Exclude Receive)": "1332949.0720000076",
+              "Preparing": "1374.0"
+            }
+          ],
+          "explicit_nonempty_step_values": 0
+        },
+        "request_geometry_is_not_per_forward_geometry": true,
+        "force_load_balance": {
+          "value": true,
+          "basis": "retained_non_default_startup_args_if_present"
+        },
+        "prefix_and_acceptance": {
+          "configured_values_are_not_measured_rates": true,
+          "unknown_metrics_are_not_zero": true,
+          "prefix_cache_reuse_ratio_client_field_is_not_cache_metric": true
+        },
+        "tpot_body_scope": "client/profiled/sweep metrics retained separately in source fields; never body_forward_span_ms",
+        "sim_input_audit": {
+          "source": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/high-concurrency-new9-inputs-20261030.json",
+            "sha256": "795d155b42d02d4d7eefac01bd5446ec440beaabca2965db289c808a3f435335",
+            "size_bytes": 171786
+          },
+          "case_id": "qwen35-35b-a5-tp4-c64-graph",
+          "model_contract": {
+            "catalog_candidate": "qwen3.5-35b-a3b",
+            "basis": "same_named_local_structure_reference; exact_checkpoint_config_identity_unverified",
+            "precision": "w8a8_dynamic",
+            "layers": 40,
+            "hidden_size": 2048,
+            "attention_counts": {
+              "gdn": 30,
+              "gqa": 10
+            },
+            "model_coverage": "partial",
+            "unmodeled_features": [
+              "unrecognized_config_field:full_attention_interval",
+              "unrecognized_config_field:mamba_ssm_dtype",
+              "unrecognized_config_field:mtp_use_dedicated_embeddings",
+              "unrecognized_config_field:rope_parameters",
+              "unrecognized_config_field:vision_end_token_id",
+              "unrecognized_config_field:vision_start_token_id"
+            ]
+          },
+          "case_status": "parsed_body_template; exact_comparison_contract_pending",
+          "unresolved": [
+            "exact_active_context_lengths_not_encoded_in_tensor_shapes",
+            "checkpoint_config_json_not_in_delivered_capture",
+            "capture_tensor_slots_may_include_graph_padding_or_inactive_requests",
+            "per_projection_precision_and_fused_KDA_MLA_wrapper_contracts_not_fully_audited"
+          ]
+        }
+      },
+      "unresolved_reasons": [],
+      "extraction_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen35-35b-a5-tp4-c64-graph.json",
+      "variant_id": "body-qwen35-mc2-tp-source-bf71bd7d",
+      "baseline_reference": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority/decode-forward-second-wave-replay.json",
+        "sha256": "574bd3ac3b05bded807b10c34d91933c170bb66fbe88eeb301b4b93ef92111c6",
+        "case_id": "qwen35-35b-a5-tp4-c64-graph:q4_b64_m256"
+      },
+      "replay_input_pins": {
+        "case": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-mc2-tp-source-complete-conditional/qwen35-35b-a5-tp4-c64-mc2-tp-source-complete.json",
+          "sha256": "382c56151b85d5d23011fdaf7be8ea481b2a29bc8be318c5dc95e0ba33352870",
+          "size_bytes": 11154
+        },
+        "extraction": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen35-35b-a5-tp4-c64-graph.json",
+          "sha256": "b1b09ba9be230b0c30d8d62c1539aa340e1eda4125bac54cf24731ceab2a42e4",
+          "size_bytes": 2127035,
+          "reused_existing_extraction": true
+        },
+        "primary_geometry": {
+          "query_rows": 256,
+          "sequences_per_replica": 64,
+          "tokens_per_sequence": 4,
+          "context_tokens": 4096,
+          "batch_basis": "captured_paged_attention_block_table_rows",
+          "context_basis": "not_observed_from_cache_capacity",
+          "phase": "decode"
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+          "size_bytes": 79462851,
+          "mtime_ns": 1793299528000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "5612e7cccfb3878cf27b22b1e89c5d186cd100633a44748973349f1bf03872f3"
+        }
+      },
+      "prior_source_case_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new9/qwen35-35b-a5-tp4-c64-graph.json",
+        "sha256": "fcd7c235d50ca62a16edfd9c102fcd492379a5eb52db12efa4f3cd34e8d2c1fe",
+        "source_unchanged": true
+      },
+      "runtime_refresh": {
+        "prior_input_manifest": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-qwen-controller-cases.json",
+          "sha256": "785cb3f67487b49276a09df11d2f7efff578779f183ed8bdf8db077ac66a6e15",
+          "size_bytes": 139956
+        },
+        "prior_case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen-source-gdn-native/qwen35-35b-a5-tp4-c64-graph-source-gdn-native.json",
+          "sha256": "45af9b4b530a72d55925e70f1100fc76d4af044d5c7b718d5c837e8c4012d3f7",
+          "size_bytes": 7343
+        },
+        "case_bytes_changed": true,
+        "explicit_case_override": true,
+        "retained_extraction_bytes_unchanged": true
+      },
+      "observation_generation_refresh": {
+        "map_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/extraction-generation-map.json",
+          "sha256": "96a26d8474f41f7fd43cb6124d51bb2b9b95a3b6174203a760e7d63afbda0c49"
+        },
+        "previous_extraction_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-expanded/auto-forward-qwen35-35b-a5-tp4-c64-graph.json",
+          "sha256": "1e4b2377fc30d82e8c07bc870d223d6f9543d8f766217bc2b50fbe5f2adfda3f",
+          "size_bytes": 3552771,
+          "reused_existing_extraction": true
+        },
+        "body_operator_population_reusable": true,
+        "per_layer_span_changed": false,
+        "model_or_cost_inputs_changed": false
+      }
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c128-graph",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+        "sha256": "bf35b8b21c078d6fc7223918b280158fda5ee7c1f83009c70c98b16f27b08df5",
+        "size_bytes": 88444963
+      },
+      "sim_case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-mc2-tp-source-complete-conditional/qwen35-35b-a5-tp4-c128-mc2-tp-source-complete.json",
+      "model_declaration": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-mc2-tp-source-complete-conditional/qwen35-35b-a5-tp4-c128-mc2-tp-source-complete.json",
+        "sha256": "b583405cc0070811ef14c77ab73a7eea01be424a99ce0872c37c0d5024e2c38b",
+        "size_bytes": 11184
+      },
+      "segmentation": "auto_structure_guided",
+      "boundaries_path": null,
+      "geometry": {
+        "context_tokens": 4096
+      },
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030",
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/benchmark_summary.json",
+          "sha256": "0afb77a0809450ea3cd5e55126219f9348f53d29a867639ed0b95151059910b0",
+          "size_bytes": 310067
+        },
+        "benchmark_summary_fields": {
+          "label": "qwen35_c128",
+          "url": "http://127.0.0.1:18218/v1/completions",
+          "model": "qwen35",
+          "prefix_len": 4096,
+          "output_len": 256,
+          "concurrency": 128,
+          "waves": 1,
+          "n_ok": 128,
+          "n_failed": 0,
+          "wall_s": 5.986152800000127,
+          "steady_window_s": 5.8225226402282715,
+          "ttft_ms": {
+            "n": 128,
+            "mean": 1336.5823361718672,
+            "median": 1477.63800000007,
+            "std": 431.8912860501764,
+            "min": 267.34095000006164,
+            "max": 2013.2973699999184,
+            "p50": 1477.63800000007,
+            "p90": 1818.5168340000246,
+            "p99": 1868.8140816001123
+          },
+          "tpot_tok_ms": {
+            "n": 128,
+            "mean": 15.922304949142198,
+            "median": 15.843076019607942,
+            "std": 1.619830276963278,
+            "min": 12.924714274509718,
+            "max": 19.546969568627187,
+            "p50": 15.843076019607942,
+            "p90": 18.468699925490142,
+            "p99": 19.386903270980234
+          },
+          "step_ms": {
+            "n": 128,
+            "mean": 46.95294431495935,
+            "median": 45.70571998292657,
+            "std": 4.582221668282194,
+            "min": 40.140611931819464,
+            "max": 57.86068372093046,
+            "p50": 45.70571998292657,
+            "p90": 54.56492710424976,
+            "p99": 55.875224412788555
+          },
+          "e2e_ms": {
+            "n": 128,
+            "mean": 5396.770098203127,
+            "median": 5391.913749999958,
+            "std": 160.0983052317375,
+            "min": 4964.857199999869,
+            "max": 5809.362699999838,
+            "p50": 5391.913749999958,
+            "p90": 5590.406139000106,
+            "p99": 5747.77615410002
+          },
+          "request_throughput_rps": 21.382681711699252,
+          "output_throughput_tok_s": 5473.966518195009,
+          "output_throughput_tok_s_steady": 5627.801216882058,
+          "total_prompt_tokens": 524288,
+          "total_output_tokens": 32768,
+          "prefix_cache_reuse_ratio": 0.0,
+          "errors": [],
+          "profile": {
+            "requested": true,
+            "started_at": 1793299086.9522614,
+            "stopped_at": 1793299092.9388492
+          },
+          "meta": {}
+        },
+        "retained_deployment": {
+          "startup": {
+            "source": {
+              "path": "/Users/maoxx241/code/mindie-agent/.workstreams/w3-a5-hc-decode/evidence/qwen35_graph_startup_and_prefix_hit.txt",
+              "sha256": "c45d43edd03349cd84763f801aa42ea8fb6b7452b6e9132c7f92b1249bc072f6",
+              "size_bytes": 6676
+            },
+            "evidence_lines": [
+              {
+                "line": 3,
+                "text": "(APIServer pid=139099) INFO 10-29 18:29:24 [api_utils.py:286] non-default args: {'model_tag': '/mnt/weight/Qwen3.5-35B-A3B-w8a8-mtp', 'host': '0.0.0.0', 'port': 18218, 'model': '/mnt/weight/Qwen3.5-35B-A3B-w8a8-mtp', 'trust_remote_code': True, 'max_model_len': 8192, 'quantization': 'ascend', 'served_model_name': ['qwen35'], 'tensor_parallel_size': 4, 'enable_expert_parallel': True, 'gpu_memory_utilization': 0.9, 'enable_prefix_caching': True, 'max_num_batched_tokens': 16384, 'max_num_seqs': 256, 'speculative_config': {'method': 'qwen3_5_mtp', 'num_speculative_tokens': 3, 'rejection_sample_method': 'synthetic', 'synthetic_acceptance_rates': [0.8, 0.64, 0.512]}, 'compilation_config': {'mode': None, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'vllm_ascend.compilation.compiler_interface.AscendCompiler', 'custom_ops': [], 'ir_enable_torch_wrap': None, 'splitting_ops': None, 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': None, 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': None, 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': None, 'pass_config': {}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': None, 'static_all_moe_layers': []}, 'additional_config': {'enable_force_eplb': True, 'enable_cpu_binding': True, 'ascend_fusion_config': {'fusion_ops_gmmswigluquant': False}}, 'profiler_config': ProfilerConfig(profiler='torch', torch_profiler_dir='/tmp/qwen35_prof', proton_profiler_dir='', proton_context='shadow', proton_data='tree', proton_backend=None, proton_mode=None, proton_hook=None, proton_output_format=None, proton_graph_attribution=False, torch_profiler_with_stack=False, torch_profiler_with_flops=False, torch_profiler_use_gzip=True, torch_profiler_dump_cuda_time_total=True, torch_profiler_record_shapes=False, torch_profiler_with_memory=False, capture_torch_profiler=False, detailed_trace_annotation=False, ignore_frontend=False, delay_iterations=0, max_iterations=0, warmup_iterations=0, active_iterations=5, wait_iterations=0)}"
+              },
+              {
+                "line": 9,
+                "text": "(Worker_TP0_EP0 pid=139254) INFO 10-29 18:36:28 [acl_graph.py:301] ACL graph replay is active (logged once)."
+              },
+              {
+                "line": 10,
+                "text": "(APIServer pid=139099) INFO 10-29 18:37:16 [loggers.py:315] Engine 000: Avg prompt throughput: 1689.1 tokens/s, Avg generation throughput: 823.8 tokens/s, Running: 64 reqs, Waiting: 0 reqs, NPU KV cache usage: 8.1%, Prefix cache hit rate: 93.1%"
+              },
+              {
+                "line": 11,
+                "text": "(APIServer pid=139099) INFO 10-29 18:37:26 [loggers.py:315] Engine 000: Avg prompt throughput: 51.2 tokens/s, Avg generation throughput: 817.6 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.1%"
+              },
+              {
+                "line": 12,
+                "text": "(APIServer pid=139099) INFO 10-29 18:37:36 [loggers.py:315] Engine 000: Avg prompt throughput: 3276.7 tokens/s, Avg generation throughput: 3276.7 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.4%"
+              },
+              {
+                "line": 13,
+                "text": "(APIServer pid=139099) INFO 10-29 18:37:46 [loggers.py:315] Engine 000: Avg prompt throughput: 153.6 tokens/s, Avg generation throughput: 104.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.4%"
+              },
+              {
+                "line": 14,
+                "text": "(APIServer pid=139099) INFO 10-29 18:37:56 [loggers.py:315] Engine 000: Avg prompt throughput: 1689.1 tokens/s, Avg generation throughput: 1383.9 tokens/s, Running: 64 reqs, Waiting: 0 reqs, NPU KV cache usage: 8.1%, Prefix cache hit rate: 93.5%"
+              }
+            ],
+            "runtime_fields": {
+              "model": "/mnt/weight/Qwen3.5-35B-A3B-w8a8-mtp",
+              "tensor_parallel_size": 4,
+              "enable_expert_parallel": true,
+              "enable_force_eplb": true,
+              "num_speculative_tokens": 3,
+              "enforce_eager": null,
+              "enable_prefix_caching": true,
+              "max_num_seqs": 256,
+              "max_num_batched_tokens": 16384,
+              "fusion_ops_gmmswigluquant": false
+            },
+            "engine_config_observed": false,
+            "missing_argument_is_not_false": true
+          },
+          "launch_sources": [
+            {
+              "path": "/Users/maoxx241/code/mindie-agent/.workstreams/w3-a5-hc-decode/cfg/serve_qwen35_graph.sh",
+              "sha256": "d22cd78c04583e3e525ca7f251745b8cabec8d04e5ae9e457d0a3ec89236b576",
+              "size_bytes": 3907
+            }
+          ],
+          "launch_source_is_execution_intent": true,
+          "script_local_patches": [
+            "DequantSwigluQuantV2 clamp_limit=1e9",
+            "disable Triton swiglu_quant branch"
+          ]
+        },
+        "client": {
+          "concurrency": 128,
+          "input_len": 4096,
+          "token_exact": null
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "n": 128,
+            "mean": 15.922304949142198,
+            "median": 15.843076019607942,
+            "std": 1.619830276963278,
+            "min": 12.924714274509718,
+            "max": 19.546969568627187,
+            "p50": 15.843076019607942,
+            "p90": 18.468699925490142,
+            "p99": 19.386903270980234
+          },
+          "unprofiled_sweep_ms": 14.042576764706038,
+          "body_forward_is_separate_metric": true,
+          "unprofiled_sweep_source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/sweep_c128.json",
+            "sha256": "6f915c06e523b9ad04b9f4e4361034aa950b90ea17240f3d3cfea6059f284394",
+            "size_bytes": 311747
+          }
+        },
+        "prefix_cache": {
+          "profiled_metrics": null,
+          "unprofiled_metrics": null,
+          "unknown_metrics_are_not_zero": true
+        },
+        "source_population": {
+          "selected_rank": "top_level_export",
+          "available_rank_directories": [],
+          "all_ranks_are_not_summed": true,
+          "gzip_is_streamed_without_materialization": false
+        },
+        "step_trace": {
+          "source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/step_trace_time.csv",
+            "sha256": "4caa4063faf453ac7e69214163d7daa47a75e3cea0b42a19930d01d1b7baf2ff",
+            "size_bytes": 293
+          },
+          "rows": [
+            {
+              "Device_id": "0",
+              "Step": "",
+              "Computing": "3001755.205999988",
+              "Communication(Not Overlapped)": "1858892.7359999933",
+              "Overlapped": "67.13999999966472",
+              "Communication": "1858959.875999993",
+              "Free": "925105.9559999057",
+              "Stage": "5785753.75",
+              "Bubble": "0",
+              "Communication(Not Overlapped and Exclude Receive)": "1858892.7359999933",
+              "Preparing": "1411.5"
+            }
+          ],
+          "explicit_nonempty_step_values": 0
+        },
+        "request_geometry_is_not_per_forward_geometry": true,
+        "force_load_balance": {
+          "value": true,
+          "basis": "retained_non_default_startup_args_if_present"
+        },
+        "prefix_and_acceptance": {
+          "configured_values_are_not_measured_rates": true,
+          "unknown_metrics_are_not_zero": true,
+          "prefix_cache_reuse_ratio_client_field_is_not_cache_metric": true
+        },
+        "tpot_body_scope": "client/profiled/sweep metrics retained separately in source fields; never body_forward_span_ms",
+        "sim_input_audit": {
+          "source": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/high-concurrency-new9-inputs-20261030.json",
+            "sha256": "795d155b42d02d4d7eefac01bd5446ec440beaabca2965db289c808a3f435335",
+            "size_bytes": 171786
+          },
+          "case_id": "qwen35-35b-a5-tp4-c128-graph",
+          "model_contract": {
+            "catalog_candidate": "qwen3.5-35b-a3b",
+            "basis": "same_named_local_structure_reference; exact_checkpoint_config_identity_unverified",
+            "precision": "w8a8_dynamic",
+            "layers": 40,
+            "hidden_size": 2048,
+            "attention_counts": {
+              "gdn": 30,
+              "gqa": 10
+            },
+            "model_coverage": "partial",
+            "unmodeled_features": [
+              "unrecognized_config_field:full_attention_interval",
+              "unrecognized_config_field:mamba_ssm_dtype",
+              "unrecognized_config_field:mtp_use_dedicated_embeddings",
+              "unrecognized_config_field:rope_parameters",
+              "unrecognized_config_field:vision_end_token_id",
+              "unrecognized_config_field:vision_start_token_id"
+            ]
+          },
+          "case_status": "parsed_body_template; exact_comparison_contract_pending",
+          "unresolved": [
+            "exact_active_context_lengths_not_encoded_in_tensor_shapes",
+            "checkpoint_config_json_not_in_delivered_capture",
+            "capture_tensor_slots_may_include_graph_padding_or_inactive_requests",
+            "per_projection_precision_and_fused_KDA_MLA_wrapper_contracts_not_fully_audited"
+          ]
+        }
+      },
+      "unresolved_reasons": [],
+      "extraction_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen35-35b-a5-tp4-c128-graph.json",
+      "variant_id": "body-qwen35-mc2-tp-source-bf71bd7d",
+      "baseline_reference": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority/decode-forward-second-wave-replay.json",
+        "sha256": "574bd3ac3b05bded807b10c34d91933c170bb66fbe88eeb301b4b93ef92111c6",
+        "case_id": "qwen35-35b-a5-tp4-c128-graph:q4_b128_m512"
+      },
+      "replay_input_pins": {
+        "case": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-mc2-tp-source-complete-conditional/qwen35-35b-a5-tp4-c128-mc2-tp-source-complete.json",
+          "sha256": "b583405cc0070811ef14c77ab73a7eea01be424a99ce0872c37c0d5024e2c38b",
+          "size_bytes": 11184
+        },
+        "extraction": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen35-35b-a5-tp4-c128-graph.json",
+          "sha256": "c735f6f862fd6a7b730b79498051db24a96f2134f8744662cbc5eb89ab77e613",
+          "size_bytes": 2396220,
+          "reused_existing_extraction": true
+        },
+        "primary_geometry": {
+          "query_rows": 512,
+          "sequences_per_replica": 128,
+          "tokens_per_sequence": 4,
+          "context_tokens": 4096,
+          "batch_basis": "captured_paged_attention_block_table_rows",
+          "context_basis": "not_observed_from_cache_capacity",
+          "phase": "decode"
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+          "size_bytes": 88444963,
+          "mtime_ns": 1793299565000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "bf35b8b21c078d6fc7223918b280158fda5ee7c1f83009c70c98b16f27b08df5"
+        }
+      },
+      "prior_source_case_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new9/qwen35-35b-a5-tp4-c128-graph.json",
+        "sha256": "5458702a97018637526c916b6db2ec27e36ca3d73d525b4f48e2b58656318b09",
+        "source_unchanged": true
+      },
+      "runtime_refresh": {
+        "prior_input_manifest": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-qwen-controller-cases.json",
+          "sha256": "785cb3f67487b49276a09df11d2f7efff578779f183ed8bdf8db077ac66a6e15",
+          "size_bytes": 139956
+        },
+        "prior_case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen-source-gdn-native/qwen35-35b-a5-tp4-c128-graph-source-gdn-native.json",
+          "sha256": "6caa42b4950405c43a17f920a4ed71dd423b8a0097661642c167f22b7f9e5cfa",
+          "size_bytes": 7348
+        },
+        "case_bytes_changed": true,
+        "explicit_case_override": true,
+        "retained_extraction_bytes_unchanged": true
+      },
+      "observation_generation_refresh": {
+        "map_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/extraction-generation-map.json",
+          "sha256": "96a26d8474f41f7fd43cb6124d51bb2b9b95a3b6174203a760e7d63afbda0c49"
+        },
+        "previous_extraction_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-expanded/auto-forward-qwen35-35b-a5-tp4-c128-graph.json",
+          "sha256": "c1ca06ada60530c17cc7df146d7a2768d3712bb938c948148605fcd3435c6288",
+          "size_bytes": 4111917,
+          "reused_existing_extraction": true
+        },
+        "body_operator_population_reusable": true,
+        "per_layer_span_changed": false,
+        "model_or_cost_inputs_changed": false
+      }
+    },
+    {
+      "case_id": "qwen35-35b-a5-tp4-c4-graph",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
+        "sha256": "9b8a87bfd6252204ab077e331ed97976ff9f5256935cb153677ac619dd96aac1",
+        "size_bytes": 70137504
+      },
+      "sim_case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-mc2-tp-source-complete-conditional/qwen35-35b-a5-tp4-c4-mc2-tp-source-complete.json",
+      "model_declaration": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-mc2-tp-source-complete-conditional/qwen35-35b-a5-tp4-c4-mc2-tp-source-complete.json",
+        "sha256": "4719f9dc5264146421dbd19ea4412f9a58dc2b3952e557b775edee689ea18e12",
+        "size_bytes": 11144
+      },
+      "segmentation": "auto_structure_guided",
+      "boundaries_path": null,
+      "geometry": {
+        "context_tokens": 4096
+      },
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030",
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/benchmark_summary.json",
+          "sha256": "9309f9b7e1e7b987fa953eb6b8b801b6148bc83a63fc9c0166b1a0d3066d0929",
+          "size_bytes": 11273
+        },
+        "benchmark_summary_fields": {
+          "label": "qwen35_c4",
+          "url": "http://127.0.0.1:18218/v1/completions",
+          "model": "qwen35",
+          "prefix_len": 4096,
+          "output_len": 256,
+          "concurrency": 4,
+          "waves": 1,
+          "n_ok": 4,
+          "n_failed": 0,
+          "wall_s": 2.3118524500000603,
+          "steady_window_s": 2.311011791229248,
+          "ttft_ms": {
+            "n": 4,
+            "mean": 389.55255500002295,
+            "median": 446.80262000008497,
+            "std": 99.53172657368242,
+            "min": 217.16001000004326,
+            "max": 447.4449699998786,
+            "p50": 446.80262000008497,
+            "p90": 447.3859599999287,
+            "p99": 447.4390689998836
+          },
+          "tpot_tok_ms": {
+            "n": 4,
+            "mean": 7.155374656862674,
+            "median": 7.133439254902013,
+            "std": 0.4297483568574591,
+            "min": 6.596108901960499,
+            "max": 7.758511215686168,
+            "p50": 7.133439254902013,
+            "p90": 7.623476933333098,
+            "p99": 7.745007787450861
+          },
+          "step_ms": {
+            "n": 4,
+            "mean": 21.5897915339794,
+            "median": 21.073193821429133,
+            "std": 0.9746852942619806,
+            "min": 20.938562022470403,
+            "max": 23.27421647058894,
+            "p50": 21.073193821429133,
+            "p90": 22.628777172269547,
+            "p99": 23.209672540757
+          },
+          "e2e_ms": {
+            "n": 4,
+            "mean": 2214.1730925000047,
+            "median": 2208.719070000029,
+            "std": 64.80373969613083,
+            "min": 2129.256039999973,
+            "max": 2309.9981899999875,
+            "p50": 2208.719070000029,
+            "p90": 2283.556064000004,
+            "p99": 2307.353977399989
+          },
+          "request_throughput_rps": 1.7302142271233165,
+          "output_throughput_tok_s": 442.934842143569,
+          "output_throughput_tok_s_steady": 443.09596510337366,
+          "total_prompt_tokens": 16384,
+          "total_output_tokens": 1024,
+          "prefix_cache_reuse_ratio": 0.0,
+          "errors": [],
+          "profile": {
+            "requested": true,
+            "started_at": 1793299060.8107982,
+            "stopped_at": 1793299063.1227412
+          },
+          "meta": {}
+        },
+        "retained_deployment": {
+          "startup": {
+            "source": {
+              "path": "/Users/maoxx241/code/mindie-agent/.workstreams/w3-a5-hc-decode/evidence/qwen35_graph_startup_and_prefix_hit.txt",
+              "sha256": "c45d43edd03349cd84763f801aa42ea8fb6b7452b6e9132c7f92b1249bc072f6",
+              "size_bytes": 6676
+            },
+            "evidence_lines": [
+              {
+                "line": 3,
+                "text": "(APIServer pid=139099) INFO 10-29 18:29:24 [api_utils.py:286] non-default args: {'model_tag': '/mnt/weight/Qwen3.5-35B-A3B-w8a8-mtp', 'host': '0.0.0.0', 'port': 18218, 'model': '/mnt/weight/Qwen3.5-35B-A3B-w8a8-mtp', 'trust_remote_code': True, 'max_model_len': 8192, 'quantization': 'ascend', 'served_model_name': ['qwen35'], 'tensor_parallel_size': 4, 'enable_expert_parallel': True, 'gpu_memory_utilization': 0.9, 'enable_prefix_caching': True, 'max_num_batched_tokens': 16384, 'max_num_seqs': 256, 'speculative_config': {'method': 'qwen3_5_mtp', 'num_speculative_tokens': 3, 'rejection_sample_method': 'synthetic', 'synthetic_acceptance_rates': [0.8, 0.64, 0.512]}, 'compilation_config': {'mode': None, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'vllm_ascend.compilation.compiler_interface.AscendCompiler', 'custom_ops': [], 'ir_enable_torch_wrap': None, 'splitting_ops': None, 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': None, 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': None, 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': None, 'pass_config': {}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': None, 'static_all_moe_layers': []}, 'additional_config': {'enable_force_eplb': True, 'enable_cpu_binding': True, 'ascend_fusion_config': {'fusion_ops_gmmswigluquant': False}}, 'profiler_config': ProfilerConfig(profiler='torch', torch_profiler_dir='/tmp/qwen35_prof', proton_profiler_dir='', proton_context='shadow', proton_data='tree', proton_backend=None, proton_mode=None, proton_hook=None, proton_output_format=None, proton_graph_attribution=False, torch_profiler_with_stack=False, torch_profiler_with_flops=False, torch_profiler_use_gzip=True, torch_profiler_dump_cuda_time_total=True, torch_profiler_record_shapes=False, torch_profiler_with_memory=False, capture_torch_profiler=False, detailed_trace_annotation=False, ignore_frontend=False, delay_iterations=0, max_iterations=0, warmup_iterations=0, active_iterations=5, wait_iterations=0)}"
+              },
+              {
+                "line": 9,
+                "text": "(Worker_TP0_EP0 pid=139254) INFO 10-29 18:36:28 [acl_graph.py:301] ACL graph replay is active (logged once)."
+              },
+              {
+                "line": 10,
+                "text": "(APIServer pid=139099) INFO 10-29 18:37:16 [loggers.py:315] Engine 000: Avg prompt throughput: 1689.1 tokens/s, Avg generation throughput: 823.8 tokens/s, Running: 64 reqs, Waiting: 0 reqs, NPU KV cache usage: 8.1%, Prefix cache hit rate: 93.1%"
+              },
+              {
+                "line": 11,
+                "text": "(APIServer pid=139099) INFO 10-29 18:37:26 [loggers.py:315] Engine 000: Avg prompt throughput: 51.2 tokens/s, Avg generation throughput: 817.6 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.1%"
+              },
+              {
+                "line": 12,
+                "text": "(APIServer pid=139099) INFO 10-29 18:37:36 [loggers.py:315] Engine 000: Avg prompt throughput: 3276.7 tokens/s, Avg generation throughput: 3276.7 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.4%"
+              },
+              {
+                "line": 13,
+                "text": "(APIServer pid=139099) INFO 10-29 18:37:46 [loggers.py:315] Engine 000: Avg prompt throughput: 153.6 tokens/s, Avg generation throughput: 104.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, NPU KV cache usage: 0.0%, Prefix cache hit rate: 93.4%"
+              },
+              {
+                "line": 14,
+                "text": "(APIServer pid=139099) INFO 10-29 18:37:56 [loggers.py:315] Engine 000: Avg prompt throughput: 1689.1 tokens/s, Avg generation throughput: 1383.9 tokens/s, Running: 64 reqs, Waiting: 0 reqs, NPU KV cache usage: 8.1%, Prefix cache hit rate: 93.5%"
+              }
+            ],
+            "runtime_fields": {
+              "model": "/mnt/weight/Qwen3.5-35B-A3B-w8a8-mtp",
+              "tensor_parallel_size": 4,
+              "enable_expert_parallel": true,
+              "enable_force_eplb": true,
+              "num_speculative_tokens": 3,
+              "enforce_eager": null,
+              "enable_prefix_caching": true,
+              "max_num_seqs": 256,
+              "max_num_batched_tokens": 16384,
+              "fusion_ops_gmmswigluquant": false
+            },
+            "engine_config_observed": false,
+            "missing_argument_is_not_false": true
+          },
+          "launch_sources": [
+            {
+              "path": "/Users/maoxx241/code/mindie-agent/.workstreams/w3-a5-hc-decode/cfg/serve_qwen35_graph.sh",
+              "sha256": "d22cd78c04583e3e525ca7f251745b8cabec8d04e5ae9e457d0a3ec89236b576",
+              "size_bytes": 3907
+            }
+          ],
+          "launch_source_is_execution_intent": true,
+          "script_local_patches": [
+            "DequantSwigluQuantV2 clamp_limit=1e9",
+            "disable Triton swiglu_quant branch"
+          ]
+        },
+        "client": {
+          "concurrency": 4,
+          "input_len": 4096,
+          "token_exact": null
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "n": 4,
+            "mean": 7.155374656862674,
+            "median": 7.133439254902013,
+            "std": 0.4297483568574591,
+            "min": 6.596108901960499,
+            "max": 7.758511215686168,
+            "p50": 7.133439254902013,
+            "p90": 7.623476933333098,
+            "p99": 7.745007787450861
+          },
+          "unprofiled_sweep_ms": 5.955660960784389,
+          "body_forward_is_separate_metric": true,
+          "unprofiled_sweep_source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/sweep_c4.json",
+            "sha256": "eb12c06c632da25fbc779c6fcf56bae8f85b1a68f439e2e57a922172de35412a",
+            "size_bytes": 11414
+          }
+        },
+        "prefix_cache": {
+          "profiled_metrics": null,
+          "unprofiled_metrics": null,
+          "unknown_metrics_are_not_zero": true
+        },
+        "source_population": {
+          "selected_rank": "top_level_export",
+          "available_rank_directories": [],
+          "all_ranks_are_not_summed": true,
+          "gzip_is_streamed_without_materialization": false
+        },
+        "step_trace": {
+          "source": {
+            "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/step_trace_time.csv",
+            "sha256": "a5dc1136ecfc8658fd11bdc0fe3abfd2ba5850b3f21efc552cc1b9f34d5299e4",
+            "size_bytes": 295
+          },
+          "rows": [
+            {
+              "Device_id": "0",
+              "Step": "",
+              "Computing": "1014451.9880000087",
+              "Communication(Not Overlapped)": "471396.37799999636",
+              "Overlapped": "36.93899999995483",
+              "Communication": "471433.3169999963",
+              "Free": "821411.2079997379",
+              "Stage": "2307259.75",
+              "Bubble": "0",
+              "Communication(Not Overlapped and Exclude Receive)": "471396.37799999636",
+              "Preparing": "1474.25"
+            }
+          ],
+          "explicit_nonempty_step_values": 0
+        },
+        "request_geometry_is_not_per_forward_geometry": true,
+        "force_load_balance": {
+          "value": true,
+          "basis": "retained_non_default_startup_args_if_present"
+        },
+        "prefix_and_acceptance": {
+          "configured_values_are_not_measured_rates": true,
+          "unknown_metrics_are_not_zero": true,
+          "prefix_cache_reuse_ratio_client_field_is_not_cache_metric": true
+        },
+        "tpot_body_scope": "client/profiled/sweep metrics retained separately in source fields; never body_forward_span_ms",
+        "sim_input_audit": {
+          "source": {
+            "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/high-concurrency-new9-inputs-20261030.json",
+            "sha256": "795d155b42d02d4d7eefac01bd5446ec440beaabca2965db289c808a3f435335",
+            "size_bytes": 171786
+          },
+          "case_id": "qwen35-35b-a5-tp4-c4-graph",
+          "model_contract": {
+            "catalog_candidate": "qwen3.5-35b-a3b",
+            "basis": "same_named_local_structure_reference; exact_checkpoint_config_identity_unverified",
+            "precision": "w8a8_dynamic",
+            "layers": 40,
+            "hidden_size": 2048,
+            "attention_counts": {
+              "gdn": 30,
+              "gqa": 10
+            },
+            "model_coverage": "partial",
+            "unmodeled_features": [
+              "unrecognized_config_field:full_attention_interval",
+              "unrecognized_config_field:mamba_ssm_dtype",
+              "unrecognized_config_field:mtp_use_dedicated_embeddings",
+              "unrecognized_config_field:rope_parameters",
+              "unrecognized_config_field:vision_end_token_id",
+              "unrecognized_config_field:vision_start_token_id"
+            ]
+          },
+          "case_status": "parsed_body_template; exact_comparison_contract_pending",
+          "unresolved": [
+            "exact_active_context_lengths_not_encoded_in_tensor_shapes",
+            "checkpoint_config_json_not_in_delivered_capture",
+            "capture_tensor_slots_may_include_graph_padding_or_inactive_requests",
+            "per_projection_precision_and_fused_KDA_MLA_wrapper_contracts_not_fully_audited"
+          ]
+        }
+      },
+      "unresolved_reasons": [],
+      "extraction_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen35-35b-a5-tp4-c4-graph.json",
+      "variant_id": "body-qwen35-mc2-tp-source-bf71bd7d",
+      "baseline_reference": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority/decode-forward-second-wave-replay.json",
+        "sha256": "574bd3ac3b05bded807b10c34d91933c170bb66fbe88eeb301b4b93ef92111c6",
+        "case_id": "qwen35-35b-a5-tp4-c4-graph:q4_b4_m16"
+      },
+      "replay_input_pins": {
+        "case": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-mc2-tp-source-complete-conditional/qwen35-35b-a5-tp4-c4-mc2-tp-source-complete.json",
+          "sha256": "4719f9dc5264146421dbd19ea4412f9a58dc2b3952e557b775edee689ea18e12",
+          "size_bytes": 11144
+        },
+        "extraction": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen35-35b-a5-tp4-c4-graph.json",
+          "sha256": "8d3809e747bf6d404c893339d6d2c2dafb62cd89025e950dc876edf8fe8ac8b3",
+          "size_bytes": 1436503,
+          "reused_existing_extraction": true
+        },
+        "primary_geometry": {
+          "query_rows": 16,
+          "sequences_per_replica": 4,
+          "tokens_per_sequence": 4,
+          "context_tokens": 4096,
+          "batch_basis": "captured_paged_attention_block_table_rows",
+          "context_basis": "not_observed_from_cache_capacity",
+          "phase": "decode"
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
+          "size_bytes": 70137504,
+          "mtime_ns": 1793299592000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "9b8a87bfd6252204ab077e331ed97976ff9f5256935cb153677ac619dd96aac1"
+        }
+      },
+      "prior_source_case_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new9/qwen35-35b-a5-tp4-c4-graph.json",
+        "sha256": "0e0a5575f51d4a58f305475384ef5c34c5546d3fc830e5714c9bad708bf8095c",
+        "source_unchanged": true
+      },
+      "runtime_refresh": {
+        "prior_input_manifest": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-runtime40e4300e/decode-forward-qwen-controller-cases.json",
+          "sha256": "785cb3f67487b49276a09df11d2f7efff578779f183ed8bdf8db077ac66a6e15",
+          "size_bytes": 139956
+        },
+        "prior_case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen-source-gdn-native/qwen35-35b-a5-tp4-c4-graph-source-gdn-native.json",
+          "sha256": "c737422cc45ffa9fc1b5b305900623610915df58e61221bebd025ab07caac797",
+          "size_bytes": 7336
+        },
+        "case_bytes_changed": true,
+        "explicit_case_override": true,
+        "retained_extraction_bytes_unchanged": true
+      },
+      "observation_generation_refresh": {
+        "map_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/extraction-generation-map.json",
+          "sha256": "96a26d8474f41f7fd43cb6124d51bb2b9b95a3b6174203a760e7d63afbda0c49"
+        },
+        "previous_extraction_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-expanded/auto-forward-qwen35-35b-a5-tp4-c4-graph.json",
+          "sha256": "8c158cae5304a1e5267a7845d2130cea453e16eaef1b5e2be28132af36e7e1a1",
+          "size_bytes": 2110162,
+          "reused_existing_extraction": true
+        },
+        "body_operator_population_reusable": true,
+        "per_layer_span_changed": false,
+        "model_or_cost_inputs_changed": false
+      }
+    }
+  ],
+  "declaration_source_commits": [
+    {
+      "source_commit": "91aeb533af614b75516897ea87335a69d7f7fab9",
+      "repository_relative_path": "examples/cases/high-concurrency-20261030/qwen35-mc2-tp-source-complete-conditional/qwen35-35b-a5-tp4-c4-mc2-tp-source-complete.json",
+      "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-mc2-tp-source-complete-conditional/qwen35-35b-a5-tp4-c4-mc2-tp-source-complete.json",
+      "sha256": "4719f9dc5264146421dbd19ea4412f9a58dc2b3952e557b775edee689ea18e12",
+      "size_bytes": 11144
+    },
+    {
+      "source_commit": "91aeb533af614b75516897ea87335a69d7f7fab9",
+      "repository_relative_path": "examples/cases/high-concurrency-20261030/qwen35-mc2-tp-source-complete-conditional/qwen35-35b-a5-tp4-c64-mc2-tp-source-complete.json",
+      "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-mc2-tp-source-complete-conditional/qwen35-35b-a5-tp4-c64-mc2-tp-source-complete.json",
+      "sha256": "382c56151b85d5d23011fdaf7be8ea481b2a29bc8be318c5dc95e0ba33352870",
+      "size_bytes": 11154
+    },
+    {
+      "source_commit": "91aeb533af614b75516897ea87335a69d7f7fab9",
+      "repository_relative_path": "examples/cases/high-concurrency-20261030/qwen35-mc2-tp-source-complete-conditional/qwen35-35b-a5-tp4-c128-mc2-tp-source-complete.json",
+      "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/qwen35-mc2-tp-source-complete-conditional/qwen35-35b-a5-tp4-c128-mc2-tp-source-complete.json",
+      "sha256": "b583405cc0070811ef14c77ab73a7eea01be424a99ce0872c37c0d5024e2c38b",
+      "size_bytes": 11184
+    }
+  ],
+  "source_conditions": {
+    "expected_calls_per_body": {
+      "tp_allgather": 40,
+      "tp_allreduce": 80,
+      "mc2_dispatch": 40,
+      "mc2_combine": 40
+    },
+    "c128_ffn_materialization_calls": 160,
+    "token_domain": "router/shared full M; topk and MC2 M/TP; TP AllGather restores M",
+    "scales": "MC2 publishes per-token INT8 payload and FP32 receiver row scale; DequantSwigluQuant supplies down scale",
+    "observed_algorithm_binary_identity_confirmed": false
+  }
+}
