@@ -249,3 +249,45 @@ contributions to the Body wall span. No additional SFA/prolog empirical floor
 has been assigned. Reproduce the grid arm with
 `build_glm78_packed_source_cases.py --captured-grid`, then the native arm with
 `build_glm78_native_service_cases.py`; both reuse the retained local evidence.
+
+
+## GLM78 local caller padding and dense-FFN norm boundary
+
+`decode-forward-glm78-caller-complete-service-replay.json` is a fresh three-source
+arm on `c2b21f20`. It uses the parent `glm78-capture-rows` caller declaration:
+attention/router/shared work stays at captured M12/M48; MC2 preparation pads
+hidden states and router logits locally to a TP-divisible allocation, slices
+one or three rows per rank, and gathers/trims the result. On c2 this declares
+the actual two Concat calls and one output AllGather in each of 75 MoE blocks.
+The consumer-limited norm policy permits fusion only for `dense_gate_up`, so
+the complete graph has exactly 152 AddRmsNormBias and three fused
+AddRmsNormDynamicQuant calls. Router BF16 operands with FP32 output are taken
+from all 75 retained native MatMulV3 occurrences per Forward.
+
+All new means come from the complete same-source histograms. Concat validates
+all input/output shape, dtype and layout slots; collective response retains
+joint protocol/peer waiting, without claiming a separately measured wire rate.
+The native/active-contract rules all hit: 22 rules on c8, 24 on each c2.
+Neither the shared source geometry nor the rules select a model/layer by name.
+
+| Case | Real mean ms | Sim ms | Error | Body 15% |
+|---|---:|---:|---:|---|
+| tpot88 c8 | 69.556298 | 82.079530 | +18.004% | FAIL |
+| tpot30 c2 | 57.639270 | 48.757266 | −15.410% | FAIL |
+| tpot50 c2 | 57.817112 | 48.768534 | −15.650% | FAIL |
+
+The newest c8 result supersedes its earlier passing source arm for this
+comparison; it is not selected by best error. All three attempts completed,
+with three fresh workers and peak 116,703,232 bytes RSS. The unchanged 162
+observed Forwards and ten geometry buckets include 137 scored primary
+Forwards and seven deferred geometries. Standard arithmetic review passed
+999 checks and independent source/rule/population review passed 605 checks.
+
+The remaining MC2 call is explicitly decomposed into pack, generic transport,
+extra expert quantization and unpack. The native DispatchV2 already returns
+INT8 payload plus row scales, so a whole native dispatch response cannot be
+added onto that transport subprogram. No such response is assigned here.
+ForeachAddList/Muls remain unparameterized until their complete source boundary
+is represented. These limitations are separate from the observed-service
+parameters, which are valid in-sample assignments. Reproduce with
+`build_glm78_native_service_cases.py --caller-complete` on the pinned runtime.
