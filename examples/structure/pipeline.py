@@ -286,7 +286,13 @@ def render(report):
             result = row['comparison']
             coverage = row.get('population_coverage')
             events = (f"{coverage['admitted_events']} / {coverage['body_events']}" if coverage else '—')
-            lines.append(f"| {row['case_id']} | {row.get('evaluation_relation', 'planned')} | {row.get('fitted_domains', '—')} | {result.get('passed_populations', 0)} / {result.get('predicted_populations', 0)} / {result.get('total_populations', '—')} | {events} |")
+            counts = ' / '.join(str(result[k]) if result.get(k) is not None else '—'
+                for k in ('passed_populations', 'predicted_populations', 'total_populations'))
+            lines.append(f"| {row['case_id']} | {row.get('evaluation_relation') or 'planned'} | {row.get('fitted_domains') if row.get('fitted_domains') is not None else '—'} | {counts} | {events} |")
+        for row in report['cases']:
+            if row.get('status') == 'planned':
+                lines += ['', f"{row['case_id']}: {row['reason']}. Coverage: "
+                    + json.dumps(row.get('coverage', {}), sort_keys=True)]
         lines += ['', 'Retrospective source holdout is not new blind validation. Native activity differences are not additive Body wall-time errors.']
     lines += ['', 'Summary: ' + json.dumps(report['summary'], sort_keys=True), '',
               'Full per-layer, operator and prediction details retain their individual SHA256 evidence pointers. '
@@ -440,15 +446,16 @@ def run(manifest_path, *, output, archive_root, phase=None, scope='body', case_i
                 'fitted_domains': experiment.get('fitted_domains'),
                 'frozen_model_sha256': experiment.get('frozen_model_sha256'),
                 'limits': experiment.get('limits', []), 'reason': experiment.get('reason'),
+                **({'coverage': experiment['coverage']} if 'coverage' in experiment else {}),
                 'population_coverage': ({
                     'body_events': sum(f['full_calls'] for r in coverage for f in r['native_families']),
                     'admitted_events': sum(f['admitted_calls'] for r in coverage for f in r['native_families']),
                     'forward_count': sum(r['forward_count'] for r in coverage),
                 } if coverage else None),
                 'comparison': {'status': 'generalization_compared' if experiment['status'] == 'completed' else experiment['status'],
-                    'total_populations': summary.get('populations', 0),
-                    'predicted_populations': summary.get('predicted', 0),
-                    'passed_populations': summary.get('passed', 0)},
+                    **({'total_populations': summary['populations'],
+                        'predicted_populations': summary['predicted'],
+                        'passed_populations': summary['passed']} if experiment['status'] == 'completed' else {})},
                 'evidence': archive_report(experiment, archive_root)})
         report = {'schema_version': 'mindie-current-validation/1', 'registry': identity(manifest_path),
             'scope': scope, 'status': result['status'], 'cases': cards, 'summary': result['summary'],

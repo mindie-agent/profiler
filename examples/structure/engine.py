@@ -242,34 +242,52 @@ def client_observation(entry, base):
     """Retain literal client/PD metrics without manufacturing device boundaries."""
     pin = pin_path(entry['source'], base)
     payload = read(pin['path'])
-    config = payload.get('config', {})
+    # Campaign summaries retain aggregates under summary and requests beside it.
+    # Keep each literal metric's field identity; a reported per-request median
+    # must not become a pooled token mean or a device-cycle measurement.
+    nested = isinstance(payload.get('summary'), dict)
+    reported = payload['summary'] if nested else payload
+    config = payload.get('config', reported.get('config', {}))
     metrics = {}
+    source_fields = {}
     for name in ('ttft_ms', 'itl_ms', 'steady_itl_ms', 'tpot_ms', 'prefill_ms', 'decode_ttft_ms', 'e2e_ms'):
-        values = {stat: payload[name + '_' + stat] for stat in ('mean', 'p50', 'p90', 'max')
-                  if name + '_' + stat in payload}
-        if not values and isinstance(payload.get(name),dict):values=payload[name]
-        if values: metrics[name] = values
-    if 'itl_ms' not in metrics and isinstance(payload.get('itl_ms_all_tokens'),dict):
-        metrics['itl_ms']=payload['itl_ms_all_tokens']
+        values = {stat: reported[name + '_' + stat] for stat in ('mean', 'p50', 'p90', 'p99', 'min', 'max')
+                  if name + '_' + stat in reported}
+        if not values and isinstance(reported.get(name),dict):values=reported[name]
+        if values:
+            metrics[name] = values
+            source_fields[name] = ('summary.' if nested else '') + name
+    if 'itl_ms' not in metrics and isinstance(reported.get('itl_ms_all_tokens'),dict):
+        metrics['itl_ms']=reported['itl_ms_all_tokens']
+        source_fields['itl_ms']=('summary.' if nested else '')+'itl_ms_all_tokens'
+    if nested:
+        for name, stem in (('ttft_ms','ttft'), ('e2e_ms','e2e'),
+                           ('tpot_ms','tpot_true'), ('itl_ms','itl_mean')):
+            values = {stat: reported[f'{stem}_{stat}_ms']
+                      for stat in ('mean','p50','p90','p99','min','max')
+                      if f'{stem}_{stat}_ms' in reported}
+            if values and name not in metrics:
+                metrics[name]=values
+                source_fields[name]=f'summary.{stem}_{{stat}}_ms'
     records=payload.get('per_request') or payload.get('requests') or []
     request_stats=request_summary(records,seconds=bool(records and 'e2e_s' in records[0])) if records else None
-    n_errors=payload.get('n_errors',payload.get('n_failed'))
-    producer_status=payload.get('status')
+    n_errors=reported.get('n_errors',reported.get('n_failed',reported.get('n_fail')))
+    producer_status=reported.get('status',payload.get('status'))
     if producer_status is None and n_errors is not None:
         producer_status='failed' if n_errors else 'completed'
-    errors=payload.get('errors')
+    errors=reported.get('errors')
     if errors is None:
         errors=[{key:record[key] for key in ('slot','status','error') if key in record}
                 for record in records if record.get('ok') is False]
     evidence = {
         'benchmark_summary_identity': pin, 'producer_status': producer_status,
         'producer_status_basis':'literal status or retained failure count',
-        'client_concurrency': config.get('concurrency',payload.get('concurrency')),
-        'request_configuration': config or {k:payload[k] for k in ('input_len','output_len','concurrency','num_prompts') if k in payload},
-        'n_requests': payload.get('n_requests',len(records) if records else None), 'n_errors': n_errors,
+        'client_concurrency': config.get('concurrency',reported.get('concurrency')),
+        'request_configuration': config or {**reported.get('design', {}),
+            **{k:reported[k] for k in ('input_len','output_len','concurrency','num_prompts') if k in reported}},
+        'n_requests': reported.get('n_requests',len(records) if records else None), 'n_errors': n_errors,
         'errors': errors, 'metrics': metrics,
-        'metric_source_fields':{'itl_ms':'itl_ms_all_tokens' if 'itl_ms_all_tokens' in payload
-                                and 'itl_ms' not in payload else 'itl_ms'},
+        'metric_source_fields':source_fields,
         'metric_boundaries': {'ttft_ms': 'client request to first streamed response',
             'itl_ms': 'streamed event cadence; not assumed one token per event',
             'tpot_ms': 'literal producer TPOT; denominator audited against retained requests when available',
@@ -279,17 +297,21 @@ def client_observation(entry, base):
         'reported_aggregate_tpot_ms': metrics.get('tpot_ms'),
         'raw_request_records_available': bool(records),
         'request_population':request_stats,
-        'output_tok_s': payload.get('output_tok_s',payload.get('output_throughput_tok_s')),
-        'completion_tokens': payload.get('completion_tokens',payload.get('total_output_tokens')),
-        'wall_s': payload.get('wall_s'),
-        'retained_counters': {k: v for k, v in payload.items() if k in {
+        'output_tok_s': reported.get('output_tok_s',reported.get('output_throughput_tok_s',reported.get('out_tok_s'))),
+        'completion_tokens': reported.get('completion_tokens',reported.get('total_output_tokens',reported.get('out_tokens'))),
+        'wall_s': reported.get('wall_s'),
+        'retained_counters': {k: v for k, v in reported.items() if k in {
             'decode_s_sum', 'decode_events_sum', 'token_gaps_sum', 'prefix_cache_queries_delta',
             'prefix_cache_hits_delta', 'measured_hit_rate', 'target_hit_rate', 'planned_cached_tokens',
             'warm_uncached_prompt_tokens', 'alpha_from_server', 'alpha_from_decode_server',
             'tokens_per_step_from_server', 'tokens_per_step_pooled', 'prefill_hit_rate',
             'prefill_prompt_tokens_delta', 'decode_generation_tokens_delta'}},
     }
-    alpha = payload.get('alpha_from_server', payload.get('alpha_from_decode_server'))
+    if nested:
+        evidence['reported_client_summary'] = {k:reported[k] for k in (
+            'mode','cell','n_ok','n_fail','token_exact','prefix','step_from_metrics_ms',
+            'queue_s_total','kv_peak_perc','max_running','spec_accept_ratio') if k in reported}
+    alpha = reported.get('alpha_from_server', reported.get('alpha_from_decode_server'))
     proposals = entry['engine'].get('draft_proposals')
     cadence = metrics.get('steady_itl_ms', {}).get('mean')
     real_tpot = metrics.get('tpot_ms', {}).get('mean')

@@ -501,7 +501,8 @@ def run_generalization(registry, base):
     experiments = []
     for entry in registry.get('generalization', []):
         if entry.get('status') == 'planned':
-            experiments.append({'id': entry['id'], 'status': 'planned', 'reason': entry['reason']})
+            experiments.append({'id': entry['id'], 'status': 'planned', 'reason': entry['reason'],
+                **{key: entry[key] for key in ('coverage', 'evaluation_relation', 'limits') if key in entry}})
             continue
         if 'source_groups' in entry:
             if not {s for g in entry['source_groups'] for s in g['source_sha256']} <= sources:

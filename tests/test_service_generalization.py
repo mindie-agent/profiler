@@ -148,6 +148,37 @@ def test_canonical_registry_runs_source_excluded_native_validation(retained, tmp
     assert result['new_Sim_predictions'] == 0
 
 
+def test_client_only_native_generalization_keeps_gap_without_fabricated_scores(tmp_path):
+    from engine import identity
+    from pipeline import run
+
+    path = ROOT/'tests/fixtures/engine_boundaries/client_only/kimi-tp8-sweep-c2-p4k.json'
+    captured = json.loads(path.read_text())
+    entry = {'id': 'kimi-tp8-native-coverage', 'status': 'planned',
+        'reason': 'device_capture_missing',
+        'coverage': {'client_runs': 1, 'client_requests': len(captured['requests']),
+            'successful_requests': captured['summary']['n_ok'], 'decode_device_captures': 0,
+            'native_populations': None, 'body_accuracy_available': False},
+        'limits': ['Client TPOT does not substitute for native latency.']}
+    registry = {'schema_version': 'mindie-cases/1',
+        'cases': [{'source': identity(path)}], 'generalization': [entry]}
+    source = tmp_path/'cases.json'
+    source.write_text(json.dumps(registry))
+    output = tmp_path/'generalization.json'
+    report = run(source, output=output, archive_root=tmp_path/'archive', scope='generalization')
+    card = report['cases'][0]
+    assert card['coverage'] == entry['coverage']
+    assert card['comparison'] == {'status': 'planned'}
+    assert card['fitted_domains'] is None
+    assert card['population_coverage'] is None
+    assert report['summary']['completed'] == 0
+    assert report['summary']['planned'] == 1
+    assert report['new_Sim_predictions'] == 0
+    # The rendered card keeps the missing denominator rather than 0/0 accuracy.
+    assert '| — / — / — |' in output.with_suffix('.md').read_text()
+    assert 'device_capture_missing' in output.with_suffix('.md').read_text()
+
+
 def test_kimi_whole_concurrency_exclusion_preserves_real_mc2_discontinuity(tmp_path):
     retained = json.loads((ROOT / 'tests/fixtures/retrospective_heldout/kimi-concurrency.json').read_text())
     pins = []

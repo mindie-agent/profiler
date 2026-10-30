@@ -169,6 +169,38 @@ def test_real_kimi_nested_client_retains_chunk_tpot_and_recomputes_token_denomin
     assert result['execution']['prediction_executions']==0
 
 
+def test_real_kimi_campaign_nested_summary_preserves_literal_and_request_metrics():
+    from engine import run_case
+
+    entry, captured = client_case('kimi-tp8-sweep-c2-p4k.json')
+    result = run_case(entry, CLIENT_FIXTURES)
+    evidence = result['observed']['serving_evidence']
+    summary = captured['summary']
+    assert evidence['producer_status'] == 'completed'
+    assert evidence['client_concurrency'] == evidence['n_requests'] == summary['n_ok'] == 2
+    assert evidence['n_errors'] == summary['n_fail'] == 0
+    assert evidence['request_configuration'] == {**summary['design'], 'concurrency': 2}
+    assert evidence['metrics']['ttft_ms'] == {
+        k: summary[f'ttft_{k}_ms'] for k in ('p50', 'p99', 'min', 'max')}
+    assert evidence['metrics']['tpot_ms'] == {
+        k: summary[f'tpot_true_{k}_ms'] for k in ('p50', 'p99')}
+    assert evidence['metrics']['itl_ms'] == {'p50': summary['itl_mean_p50_ms']}
+    assert evidence['metric_source_fields']['itl_ms'] == 'summary.itl_mean_{stat}_ms'
+    expected = [(r['e2e_s'] - r['ttft_s']) * 1000 / (r['completion_tokens'] - 1)
+                for r in captured['requests']]
+    assert evidence['request_population']['recomputed_per_request_tpot_ms']['mean'] == pytest.approx(sum(expected)/2)
+    assert evidence['completion_tokens'] == summary['out_tokens'] == 256
+    assert evidence['output_tok_s'] == summary['out_tok_s']
+    assert evidence['reported_client_summary']['prefix'] == summary['prefix']
+    assert evidence['reported_client_summary']['step_from_metrics_ms'] == summary['step_from_metrics_ms']
+    assert result['observed']['observed_target_forwards'] is None
+    assert result['observed']['cycle_geometry_groups'] == []
+    assert result['prediction'] is None
+    assert result['comparison']['status'] == 'observed_only'
+    assert result['comparison']['passed'] is None
+    assert result['execution'] == {'raw_capture_reads': 0, 'prediction_executions': 0}
+
+
 def test_real_kimi_client_http_failures_are_not_hidden_by_missing_top_level_status():
     from engine import run_case
 
