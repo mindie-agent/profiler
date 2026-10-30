@@ -124,3 +124,23 @@ def test_incremental_replay_preserves_same_runtime_evidence_not_historical_best(
         retained_cards(previous, [changed], set(), runtime, 'body')
     with pytest.raises(ValueError, match='incremental_update_requires_same_sim'):
         retained_cards(previous, [sample['row']], set(), {**runtime, 'package_sha256': 'new-runtime'}, 'body')
+
+
+def test_client_evidence_registration_does_not_invalidate_body_cost(tmp_path):
+    sample = samples()[0]
+    pointer = archive_report(sample['result'], tmp_path)
+    runtime = {'package_sha256': 'retained-runtime', 'version': '0.8.0'}
+    updated = deepcopy(sample['row'])
+    updated['engine'] = {'benchmark_summary': {'path': 'new-client-capture.json', 'sha256': 'new-client-pin'}}
+    for scope in ('body', 'operators', 'engine'):
+        card = project(sample['row'], sample['result'], pointer, scope=scope)
+        previous = {'scope': scope, 'runtime': runtime, 'cases': [card]}
+        if scope == 'engine':
+            with pytest.raises(ValueError, match='changed_case_requires_replay'):
+                retained_cards(previous, [updated], set(), runtime, scope)
+        else:
+            assert retained_cards(previous, [updated], set(), runtime, scope) == [card]
+            changed = deepcopy(updated)
+            changed['model_case']['sha256'] = 'different-physical-model'
+            with pytest.raises(ValueError, match='changed_case_requires_replay'):
+                retained_cards(previous, [changed], set(), runtime, scope)

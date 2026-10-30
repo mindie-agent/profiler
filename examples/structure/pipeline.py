@@ -96,7 +96,7 @@ def identity(path):
     return {'path': str(path.resolve()), 'sha256': value.hexdigest(), 'size_bytes': path.stat().st_size}
 
 
-def project(row, result, evidence):
+def project(row, result, evidence, *, scope=None):
     comparison = result.get('comparison') or {}
     observed = result.get('observed') or {}
     layers = result.get('per_layer_comparison') or {}
@@ -123,12 +123,24 @@ def project(row, result, evidence):
         card['engine'] = observed
         prediction = result.get('prediction') or {}
         card['serving_prediction'] = {k: v for k, v in prediction.items() if k != 'error'}
+    if scope is not None:
+        card['input_scope'] = scope
+        card['input_sha256'] = entry_hash(row, scope=scope)
     return card
 
 
-def entry_hash(row):
-    """Pin the full declaration, including source selection and engine settings."""
-    return sha256(json.dumps(row, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+def entry_hash(row, *, scope=None):
+    """Engine client metadata is not an input to Body or operator prediction."""
+    declaration = dict(row)
+    if scope in {'body', 'operators'}:
+        declaration.pop('engine', None)
+    return sha256(json.dumps(declaration, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+
+
+def same_inputs(card, row, scope):
+    if card.get('input_scope') == scope:
+        return card['input_sha256'] == entry_hash(row, scope=scope)
+    return card.get('entry_sha256') == entry_hash(row)
 
 
 def retained_cards(previous, rows, selected_ids, generation, scope):
@@ -142,7 +154,7 @@ def retained_cards(previous, rows, selected_ids, generation, scope):
     for card in previous['cases']:
         if card['id'] in selected_ids or card['id'] not in current:
             continue
-        if card.get('entry_sha256') != entry_hash(current[card['id']]):
+        if not same_inputs(card, current[card['id']], scope):
             raise ValueError('changed_case_requires_replay:' + card['id'])
         evidence = card['evidence']
         if identity(evidence['path'])['sha256'] != evidence['sha256']:
@@ -263,7 +275,10 @@ def summarize(cards, requested_sources):
         for tier, observed in card['comparison'].get('tiers', {}).items():
             total = tiers.setdefault(tier, {'compared': 0, 'passed': 0, 'events': 0})
             for field in total: total[field] += observed[field]
-    if tiers: result['operator_tiers'] = tiers
+    if tiers:
+        result['operator_tiers'] = tiers
+        result['strict_compared'] = sum(t['compared'] for t in tiers.values())
+        result['strict_passed'] = sum(t['passed'] for t in tiers.values())
     return result
 
 
@@ -366,7 +381,7 @@ def run(manifest_path, *, output, archive_root, phase=None, scope='body', case_i
         previous = read(output)
         if not case_ids:
             prior = {r['id']: r for r in previous['cases']}
-            rows = [r for r in rows if prior.get(r['id'], {}).get('entry_sha256') != entry_hash(r)]
+            rows = [r for r in rows if not same_inputs(prior.get(r['id'], {}), r, scope)]
         cards = retained_cards(previous, eligible, {r['id'] for r in rows}, generation, scope)
     retained_count = len(cards)
     report = {'schema_version': 'mindie-current-validation/1', 'registry': identity(manifest_path),
@@ -376,7 +391,7 @@ def run(manifest_path, *, output, archive_root, phase=None, scope='body', case_i
     for row, result in execute_rows(rows, manifest_path.parent, scope, archive_root, timeout, generation, workers):
         if identity(manifest_path) != report['registry']: raise ValueError('case_registry_changed_during_run')
         evidence = archive_report(result, archive_root)
-        cards.append(project(row, result, evidence))
+        cards.append(project(row, result, evidence, scope=scope))
         report['summary'] = summarize(cards, len(rows) + retained_count)
         report['elapsed_seconds'] = time.monotonic() - started
         publish(report, output)
