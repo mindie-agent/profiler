@@ -1,0 +1,170 @@
+{
+  "schema_version": "mindie-observed-service-replay-independent-review/1",
+  "report_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-kimi-v41/decode-forward-route-validated-replay.json",
+    "sha256": "50e8c2d4b89e72321f947cbd41ef02a9f479996063d1c74ae50e616574319d62"
+  },
+  "manifest_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-kimi-v41/decode-forward-route-validated-cases.json",
+    "sha256": "28288d33a1e64a9867f380a89d84eca0aa1146a00eef6c172b17120d147d8b2e"
+  },
+  "checks": 3659,
+  "failures": [],
+  "status": "passed",
+  "cases": [
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c32_p4k",
+      "observed_forwards": 46,
+      "observed_mean_ms": 40.01872763043478,
+      "predicted_ms": 41.99572464468051,
+      "relative_error": 0.04940179589173626,
+      "passed": true,
+      "rule_count": 22,
+      "matched_invocations": 1785,
+      "peak_worker_rss_bytes": 152305664,
+      "prediction_elapsed_seconds": 14.84071270795539
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c32_p16k",
+      "observed_forwards": 41,
+      "observed_mean_ms": 44.66619290243902,
+      "predicted_ms": 47.21868057034116,
+      "relative_error": 0.05714585242304711,
+      "passed": true,
+      "rule_count": 22,
+      "matched_invocations": 1785,
+      "peak_worker_rss_bytes": 151715840,
+      "prediction_elapsed_seconds": 33.06959824997466
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64",
+      "observed_forwards": 75,
+      "observed_mean_ms": 26.328226106666666,
+      "predicted_ms": 24.81157756185846,
+      "relative_error": -0.05760542083859457,
+      "passed": true,
+      "rule_count": 25,
+      "matched_invocations": 7240,
+      "peak_worker_rss_bytes": 465092608,
+      "prediction_elapsed_seconds": 71.85935762501322
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c128_p2k",
+      "observed_forwards": 73,
+      "observed_mean_ms": 27.28597294520548,
+      "predicted_ms": 25.539779191201085,
+      "relative_error": -0.06399602306690791,
+      "passed": true,
+      "rule_count": 25,
+      "matched_invocations": 7240,
+      "peak_worker_rss_bytes": 478871552,
+      "prediction_elapsed_seconds": 74.83823487500194
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c16_p16k",
+      "observed_forwards": 47,
+      "observed_mean_ms": 39.24738604255319,
+      "predicted_ms": 40.76383923581404,
+      "relative_error": 0.03863832336799876,
+      "passed": true,
+      "rule_count": 22,
+      "matched_invocations": 1785,
+      "peak_worker_rss_bytes": 152010752,
+      "prediction_elapsed_seconds": 23.598513999953866
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c16_p4k",
+      "observed_forwards": 49,
+      "observed_mean_ms": 36.985292306122446,
+      "predicted_ms": 38.38785960791591,
+      "relative_error": 0.03792229868523395,
+      "passed": true,
+      "rule_count": 22,
+      "matched_invocations": 1785,
+      "peak_worker_rss_bytes": 152223744,
+      "prediction_elapsed_seconds": 12.953637333936058
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c16_p2k",
+      "observed_forwards": 129,
+      "observed_mean_ms": 14.929338178294573,
+      "predicted_ms": 13.748800118792664,
+      "relative_error": -0.07907504307312611,
+      "passed": true,
+      "rule_count": 25,
+      "matched_invocations": 7240,
+      "peak_worker_rss_bytes": 463077376,
+      "prediction_elapsed_seconds": 83.83290933293756
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c32_p2k",
+      "observed_forwards": 105,
+      "observed_mean_ms": 18.62455658095238,
+      "predicted_ms": 17.361229316549974,
+      "relative_error": -0.06783126668875597,
+      "passed": true,
+      "rule_count": 25,
+      "matched_invocations": 7240,
+      "peak_worker_rss_bytes": 449003520,
+      "prediction_elapsed_seconds": 60.65337533398997
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c4_p2k",
+      "observed_forwards": 151,
+      "observed_mean_ms": 13.23880344370861,
+      "predicted_ms": 12.549524005846077,
+      "relative_error": -0.05206508585110044,
+      "passed": true,
+      "rule_count": 25,
+      "matched_invocations": 7240,
+      "peak_worker_rss_bytes": 455163904,
+      "prediction_elapsed_seconds": 46.46623804210685
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8",
+      "observed_forwards": 145,
+      "observed_mean_ms": 13.291562179310345,
+      "predicted_ms": 12.155046614089223,
+      "relative_error": -0.08550654542249544,
+      "passed": true,
+      "rule_count": 25,
+      "matched_invocations": 7240,
+      "peak_worker_rss_bytes": 465485824,
+      "prediction_elapsed_seconds": 42.340128000010736
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1",
+      "observed_forwards": 152,
+      "observed_mean_ms": 13.134611046052632,
+      "predicted_ms": 12.436060614616501,
+      "relative_error": -0.053183944997447566,
+      "passed": true,
+      "rule_count": 25,
+      "matched_invocations": 7240,
+      "peak_worker_rss_bytes": 458096640,
+      "prediction_elapsed_seconds": 43.67920845898334
+    }
+  ],
+  "observation_receipts": {
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c32_p4k-source-complete30dcea1e-full-matrix.mapping.json": "f5c67de3214330524edf8b04785ae16d229f51ebd0f93749e88df03291cf460c",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-native-references-5ec8843a/kimi-native-reference-scoreboard.json": "8fbf36350f208900a01accb57d6695a99a1d5e5feeee9cda13adb7e27a8fa547",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c32_p4k-source-complete30dcea1e-full-matrix.family-scoreboard.json": "a412d61aa9d056cbe79777315b4b5528ae90559219f1e03977d2d8bda7d45289",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c32_p16k-source-complete30dcea1e-full-matrix.mapping.json": "e599b274a40874e53912e7fff847932bc874d58f0026ca84b0d36325cf68c955",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c32_p16k-source-complete30dcea1e-full-matrix.family-scoreboard.json": "4ddf31f66549f0797dc0b3926dd5b19fa852f4a3b1e6f11a27f2d1a4f9d942ad",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-composed-operators-40e4300e/a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64/body-operator-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-composed-arch35-40e4300e.mapping.json": "db8a62012fb2b1a4f92cb909859c8c02178c6306ee2a2f95993d84dc131dc515",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-composed-native-5ec8843a/v41-complete-reference-scoreboard.json": "b4cf00373820829263c1e55742bf556199ee9cf8fd3e9da80caceefb5fbb0f4e",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-composed-operators-40e4300e/a5_v41_fp8_tp1_dp8_ep8_c128_p2k/body-operator-a5_v41_fp8_tp1_dp8_ep8_c128_p2k-composed-arch35-40e4300e.mapping.json": "aa517e21166ea614951c8eb863d0ebe2c202ec1da89329cc36d0923d8e7163bf",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c16_p16k-source-complete30dcea1e-full-matrix.mapping.json": "3f0f80152f192c917ace1269ae55e3d33b46d4ac52a80ee33e5afd6dc4331324",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c16_p16k-source-complete30dcea1e-full-matrix.family-scoreboard.json": "595445fb8771f753d81babfa5aa4fe461359e2d34f79060ded177c99f71adbd4",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c16_p4k-source-complete30dcea1e-full-matrix.mapping.json": "d68f8c161ceba9c3b98c0d29a8d85d2c582175630de546c19a806b0dac849538",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c16_p4k-source-complete30dcea1e-full-matrix.family-scoreboard.json": "456cfa289375b0cda66ec821337742c5a7c581929f44ac2a5277529cbb807dca",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-composed-operators-40e4300e/a5_v41_fp8_tp1_dp8_ep8_c16_p2k/body-operator-a5_v41_fp8_tp1_dp8_ep8_c16_p2k-composed-arch35-40e4300e.mapping.json": "a39fdea8c86fb3fd607a097a007a28a847d13bf71ebbaf6131d47cd106bf47e7",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-composed-operators-40e4300e/a5_v41_fp8_tp1_dp8_ep8_c32_p2k/body-operator-a5_v41_fp8_tp1_dp8_ep8_c32_p2k-composed-arch35-40e4300e.mapping.json": "6c17eb17f54118563c1879405036dee0d9377a449343342dce7e62f342dcd051",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-composed-operators-40e4300e/a5_v41_fp8_tp1_dp8_ep8_c4_p2k/body-operator-a5_v41_fp8_tp1_dp8_ep8_c4_p2k-composed-arch35-40e4300e.mapping.json": "473ebfadd977ca5d962b8b5ccd057c771da85c9c5c7061585dd3cc7d30817d60",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-composed-operators-40e4300e/a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8/body-operator-a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8-composed-arch35-40e4300e.mapping.json": "8969ca7bcabde2dfc059055f953ba3647d2838d8063c4a50b77540aab06e8d41",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-composed-operators-40e4300e/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1/body-operator-a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1-composed-arch35-40e4300e.mapping.json": "c4ce4003d471bb228713d587e717572caac7106b06da70342863fa4ab75ad7b0"
+  },
+  "raw_event_reads": 0,
+  "new_predictions": 0,
+  "peak_rss_bytes": 160874496
+}

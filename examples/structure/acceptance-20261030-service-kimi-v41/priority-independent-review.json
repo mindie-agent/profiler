@@ -1,0 +1,77 @@
+{
+  "schema_version": "mindie-observed-service-replay-independent-review/1",
+  "report_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-kimi-v41/decode-forward-priority-replay.json",
+    "sha256": "ea74920324ac5cf98f65c75335cc9dd816dbf20311d515e4484540c6ecc80918"
+  },
+  "manifest_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-kimi-v41/decode-forward-priority-cases.json",
+    "sha256": "3658be7df2b266c14b93b26ebc266c8e4bf20b8d17c39d2c1e9939985cb4ee38"
+  },
+  "checks": 1240,
+  "failures": [],
+  "status": "passed",
+  "cases": [
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c32_p4k",
+      "observed_forwards": 46,
+      "observed_mean_ms": 40.01872763043478,
+      "predicted_ms": 42.012455601984335,
+      "relative_error": 0.049819874083985034,
+      "passed": true,
+      "rule_count": 22,
+      "matched_invocations": 1785,
+      "peak_worker_rss_bytes": 151896064,
+      "prediction_elapsed_seconds": 16.42026345792692
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c32_p16k",
+      "observed_forwards": 41,
+      "observed_mean_ms": 44.66619290243902,
+      "predicted_ms": 47.232759437510694,
+      "relative_error": 0.057461054285007654,
+      "passed": true,
+      "rule_count": 22,
+      "matched_invocations": 1785,
+      "peak_worker_rss_bytes": 151797760,
+      "prediction_elapsed_seconds": 36.42896937497426
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64",
+      "observed_forwards": 75,
+      "observed_mean_ms": 26.328226106666666,
+      "predicted_ms": 24.81157756185846,
+      "relative_error": -0.05760542083859457,
+      "passed": true,
+      "rule_count": 25,
+      "matched_invocations": 7240,
+      "peak_worker_rss_bytes": 465092608,
+      "prediction_elapsed_seconds": 71.85935762501322
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c128_p2k",
+      "observed_forwards": 73,
+      "observed_mean_ms": 27.28597294520548,
+      "predicted_ms": 25.539779191201085,
+      "relative_error": -0.06399602306690791,
+      "passed": true,
+      "rule_count": 25,
+      "matched_invocations": 7240,
+      "peak_worker_rss_bytes": 478871552,
+      "prediction_elapsed_seconds": 74.83823487500194
+    }
+  ],
+  "observation_receipts": {
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c32_p4k-source-complete30dcea1e-full-matrix.mapping.json": "f5c67de3214330524edf8b04785ae16d229f51ebd0f93749e88df03291cf460c",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-native-references-5ec8843a/kimi-native-reference-scoreboard.json": "8fbf36350f208900a01accb57d6695a99a1d5e5feeee9cda13adb7e27a8fa547",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c32_p4k-source-complete30dcea1e-full-matrix.family-scoreboard.json": "a412d61aa9d056cbe79777315b4b5528ae90559219f1e03977d2d8bda7d45289",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c32_p16k-source-complete30dcea1e-full-matrix.mapping.json": "e599b274a40874e53912e7fff847932bc874d58f0026ca84b0d36325cf68c955",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c32_p16k-source-complete30dcea1e-full-matrix.family-scoreboard.json": "4ddf31f66549f0797dc0b3926dd5b19fa852f4a3b1e6f11a27f2d1a4f9d942ad",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-composed-operators-40e4300e/a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64/body-operator-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-composed-arch35-40e4300e.mapping.json": "db8a62012fb2b1a4f92cb909859c8c02178c6306ee2a2f95993d84dc131dc515",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-composed-native-5ec8843a/v41-complete-reference-scoreboard.json": "b4cf00373820829263c1e55742bf556199ee9cf8fd3e9da80caceefb5fbb0f4e",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-composed-operators-40e4300e/a5_v41_fp8_tp1_dp8_ep8_c128_p2k/body-operator-a5_v41_fp8_tp1_dp8_ep8_c128_p2k-composed-arch35-40e4300e.mapping.json": "aa517e21166ea614951c8eb863d0ebe2c202ec1da89329cc36d0923d8e7163bf"
+  },
+  "raw_event_reads": 0,
+  "new_predictions": 0,
+  "peak_rss_bytes": 134758400
+}

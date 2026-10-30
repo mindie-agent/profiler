@@ -1,0 +1,750 @@
+{
+  "case_id": "a5_v41_fp8_tp1_dp8_ep8_c32_p2k",
+  "case_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-kimi-v41/cases-complete-population/a5_v41_fp8_tp1_dp8_ep8_c32_p2k.json",
+    "sha256": "de4da2e42af29d2960f2f640eae63cc79dcf668add78094e8d34112dc84a53d8",
+    "size_bytes": 222171
+  },
+  "original_case_identity": {
+    "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_c32_p2k-composed-arch35-source.json",
+    "sha256": "a758b41d6ce4d81fdfc1b9281412cfa54a2968234f67427b7825311aecdd7d3d",
+    "size_bytes": 21529
+  },
+  "source_identity": {
+    "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c32_p2k_20261030/kernel_details.csv",
+    "sha256": "e20b27b78f65b08fac9e034b6c5a31b550f4795a1dd5dbcf514172031640d94e",
+    "size_bytes": 70173237
+  },
+  "extraction_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-a5_v41_fp8_tp1_dp8_ep8_c32_p2k.json",
+    "sha256": "f98df278ee3f1f9e2f0830a0589b7660ca4988b4ff65eacebccb374e4ebfc2a2",
+    "size_bytes": 866966
+  },
+  "forward_count": 105,
+  "geometry": {
+    "query_rows": 4,
+    "sequences_per_replica": 4,
+    "tokens_per_sequence": 1,
+    "context_tokens": null,
+    "batch_basis": "measured_hidden_rows_divided_by_source_declared_decode_query",
+    "context_basis": "not_observed_from_cache_capacity"
+  },
+  "rule_count": 25,
+  "rule_native_counts": {
+    "RmsNorm": 2,
+    "DynamicMxQuant": 3,
+    "QuantBatchMatmulV3": 7,
+    "MatMulV3": 3,
+    "MoeDistributeDispatchV3": 1,
+    "HcPre": 1,
+    "MoeDistributeCombineV3": 1,
+    "GroupedMatmul": 2,
+    "TransposeQuantBatchMatMul": 1,
+    "MqsmlaKernel___call__": 3,
+    "HcPost": 1
+  },
+  "rules": [
+    {
+      "id": "retained-service-caa663e62d859770",
+      "response": {
+        "fixed_us": 2.818119047619047
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "rmsnorm",
+        "family": "rmsnorm",
+        "dtype": "bf16",
+        "metadata.output_format": "bf16"
+      },
+      "domain": {
+        "d0": {
+          "min": 4,
+          "max": 4
+        },
+        "d1": {
+          "min": 5120,
+          "max": 5120
+        }
+      }
+    },
+    {
+      "id": "retained-service-c578bf2d319758fc",
+      "response": {
+        "fixed_us": 3.9148955952380953
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "dynamic_quantize",
+        "family": "quantize",
+        "dtype": "bf16",
+        "metadata.output_format": "fp8_e4m3"
+      },
+      "domain": {
+        "d0": {
+          "min": 4,
+          "max": 4
+        },
+        "d1": {
+          "min": 5120,
+          "max": 5120
+        }
+      }
+    },
+    {
+      "id": "retained-service-4254c53545eb7295",
+      "response": {
+        "fixed_us": 5.84133880952381
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "q_a",
+        "family": "gemm",
+        "dtype": "fp8_e4m3",
+        "metadata.compute_format": "fp8_e4m3",
+        "metadata.activation_format": "fp8_e4m3",
+        "metadata.weight_format": "fp8_e4m3",
+        "metadata.output_format": "bf16",
+        "metadata.matrix_groups": 1
+      },
+      "domain": {
+        "d0": {
+          "min": 4,
+          "max": 4
+        },
+        "d1": {
+          "min": 1280,
+          "max": 1280
+        },
+        "d2": {
+          "min": 5120,
+          "max": 5120
+        }
+      }
+    },
+    {
+      "id": "retained-service-f7c26ccce858ae46",
+      "response": {
+        "fixed_us": 4.875121666666667
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "kv_a",
+        "family": "gemm",
+        "dtype": "fp8_e4m3",
+        "metadata.compute_format": "fp8_e4m3",
+        "metadata.activation_format": "fp8_e4m3",
+        "metadata.weight_format": "fp8_e4m3",
+        "metadata.output_format": "bf16",
+        "metadata.matrix_groups": 1
+      },
+      "domain": {
+        "d0": {
+          "min": 4,
+          "max": 4
+        },
+        "d1": {
+          "min": 512,
+          "max": 512
+        },
+        "d2": {
+          "min": 5120,
+          "max": 5120
+        }
+      }
+    },
+    {
+      "id": "retained-service-ab6de4f373a2d94d",
+      "response": {
+        "fixed_us": 3.68507003968254
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "dynamic_quantize",
+        "family": "quantize",
+        "dtype": "bf16",
+        "metadata.output_format": "fp8_e4m3"
+      },
+      "domain": {
+        "d0": {
+          "min": 4,
+          "max": 4
+        },
+        "d1": {
+          "min": 1280,
+          "max": 1280
+        }
+      }
+    },
+    {
+      "id": "retained-service-b23014e9fd96d269",
+      "response": {
+        "fixed_us": 16.397064761904762
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "prepared_mx32_aic_matrix",
+        "family": "gemm",
+        "dtype": "fp8_e4m3",
+        "metadata.compute_format": "fp8_e4m3",
+        "metadata.activation_format": "fp8_e4m3",
+        "metadata.weight_format": "fp8_e4m3",
+        "metadata.output_format": "bf16",
+        "metadata.matrix_groups": 1
+      },
+      "domain": {
+        "d0": {
+          "min": 4,
+          "max": 4
+        },
+        "d1": {
+          "min": 32768,
+          "max": 32768
+        },
+        "d2": {
+          "min": 1280,
+          "max": 1280
+        }
+      }
+    },
+    {
+      "id": "retained-service-19ca6a66f0c22182",
+      "response": {
+        "fixed_us": 4.124726428571428
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "dynamic_quantize",
+        "family": "quantize",
+        "dtype": "bf16",
+        "metadata.output_format": "fp8_e4m3"
+      },
+      "domain": {
+        "d0": {
+          "min": 4,
+          "max": 4
+        },
+        "d1": {
+          "min": 8192,
+          "max": 8192
+        }
+      }
+    },
+    {
+      "id": "retained-service-596841fcfc5a49e8",
+      "response": {
+        "fixed_us": 20.13783738095238
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "prepared_mx32_aic_matrix",
+        "family": "gemm",
+        "dtype": "fp8_e4m3",
+        "metadata.compute_format": "fp8_e4m3",
+        "metadata.activation_format": "fp8_e4m3",
+        "metadata.weight_format": "fp8_e4m3",
+        "metadata.output_format": "bf16",
+        "metadata.matrix_groups": 1
+      },
+      "domain": {
+        "d0": {
+          "min": 4,
+          "max": 4
+        },
+        "d1": {
+          "min": 5120,
+          "max": 5120
+        },
+        "d2": {
+          "min": 8192,
+          "max": 8192
+        }
+      }
+    },
+    {
+      "id": "retained-service-9759c50051c68e4b",
+      "response": {
+        "fixed_us": 11.616614285714286
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "dense_gate_up",
+        "family": "gate_up_projection",
+        "dtype": "fp8_e4m3",
+        "metadata.compute_format": "fp8_e4m3",
+        "metadata.activation_format": "fp8_e4m3",
+        "metadata.weight_format": "fp8_e4m3",
+        "metadata.output_format": "bf16",
+        "metadata.matrix_groups": 1
+      },
+      "domain": {
+        "d0": {
+          "min": 4,
+          "max": 4
+        },
+        "d1": {
+          "min": 4608,
+          "max": 4608
+        },
+        "d2": {
+          "min": 5120,
+          "max": 5120
+        }
+      }
+    },
+    {
+      "id": "retained-service-6f53fd7ff443f15e",
+      "response": {
+        "fixed_us": 7.170758095238095
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "dense_down",
+        "family": "down_projection",
+        "dtype": "fp8_e4m3",
+        "metadata.compute_format": "fp8_e4m3",
+        "metadata.activation_format": "fp8_e4m3",
+        "metadata.weight_format": "fp8_e4m3",
+        "metadata.output_format": "bf16",
+        "metadata.matrix_groups": 1
+      },
+      "domain": {
+        "d0": {
+          "min": 4,
+          "max": 4
+        },
+        "d1": {
+          "min": 5120,
+          "max": 5120
+        },
+        "d2": {
+          "min": 2304,
+          "max": 2304
+        }
+      }
+    },
+    {
+      "id": "retained-service-b35915af44a17394",
+      "response": {
+        "fixed_us": 5.333278571428571
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "index_q",
+        "family": "gemm",
+        "dtype": "fp8_e4m3",
+        "metadata.compute_format": "fp8_e4m3",
+        "metadata.activation_format": "fp8_e4m3",
+        "metadata.weight_format": "fp8_e4m3",
+        "metadata.output_format": "bf16",
+        "metadata.matrix_groups": 1
+      },
+      "domain": {
+        "d0": {
+          "min": 4,
+          "max": 4
+        },
+        "d1": {
+          "min": 4096,
+          "max": 4096
+        },
+        "d2": {
+          "min": 1280,
+          "max": 1280
+        }
+      }
+    },
+    {
+      "id": "retained-service-d3959659981f828e",
+      "response": {
+        "fixed_us": 10.850807142857143
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "index_weights",
+        "family": "gemm",
+        "dtype": "bf16",
+        "metadata.compute_format": "bf16",
+        "metadata.activation_format": "bf16",
+        "metadata.weight_format": "bf16",
+        "metadata.output_format": "bf16",
+        "metadata.matrix_groups": 1
+      },
+      "domain": {
+        "d0": {
+          "min": 4,
+          "max": 4
+        },
+        "d1": {
+          "min": 32,
+          "max": 32
+        },
+        "d2": {
+          "min": 5120,
+          "max": 5120
+        }
+      }
+    },
+    {
+      "id": "retained-service-e64ab1415581c2b2",
+      "response": {
+        "fixed_us": 5.134990476190477
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "compress_norm",
+        "family": "rmsnorm",
+        "dtype": "bf16",
+        "metadata.output_format": "bf16"
+      },
+      "domain": {
+        "d0": {
+          "min": 4,
+          "max": 4
+        },
+        "d1": {
+          "min": 512,
+          "max": 512
+        }
+      }
+    },
+    {
+      "id": "retained-service-cadd28cc758d3b54",
+      "response": {
+        "fixed_us": 8.554200000000002
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "compress_gates",
+        "family": "gemm",
+        "dtype": "bf16",
+        "metadata.compute_format": "bf16",
+        "metadata.activation_format": "bf16",
+        "metadata.weight_format": "bf16",
+        "metadata.output_format": "bf16",
+        "metadata.matrix_groups": 1
+      },
+      "domain": {
+        "d0": {
+          "min": 4,
+          "max": 4
+        },
+        "d1": {
+          "min": 512,
+          "max": 512
+        },
+        "d2": {
+          "min": 5120,
+          "max": 5120
+        }
+      }
+    },
+    {
+      "id": "retained-service-c0b405916bd654f6",
+      "response": {
+        "fixed_us": 8.554200000000002
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "compress_values",
+        "family": "gemm",
+        "dtype": "bf16",
+        "metadata.compute_format": "bf16",
+        "metadata.activation_format": "bf16",
+        "metadata.weight_format": "bf16",
+        "metadata.output_format": "bf16",
+        "metadata.matrix_groups": 1
+      },
+      "domain": {
+        "d0": {
+          "min": 4,
+          "max": 4
+        },
+        "d1": {
+          "min": 512,
+          "max": 512
+        },
+        "d2": {
+          "min": 5120,
+          "max": 5120
+        }
+      }
+    },
+    {
+      "id": "retained-service-a3e5deb4bc5d6247",
+      "response": {
+        "fixed_us": 18.548100238095238
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "arch35_fullmesh_resource_phase",
+        "family": "mc2_protocol",
+        "dtype": "bf16",
+        "kernel": "MoeDistributeDispatchV3",
+        "metadata.implementation": "arch35_fullmesh_mx32_bf16_e4m3",
+        "metadata.native_kind": "MoeDistributeDispatchV3"
+      },
+      "domain": {
+        "d0": {
+          "min": 24,
+          "max": 24
+        },
+        "d1": {
+          "min": 5120,
+          "max": 5120
+        }
+      }
+    },
+    {
+      "id": "retained-service-37dee2a9700105cc",
+      "response": {
+        "fixed_us": 11.238498095238095
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "declared_native_fusion",
+        "family": "native_fusion",
+        "dtype": "bf16",
+        "metadata.fusion_boundary.native.native_kind": "HcPre"
+      },
+      "domain": {
+        "d0": {
+          "min": 20480,
+          "max": 20480
+        }
+      }
+    },
+    {
+      "id": "retained-service-9d8e91c50716b848",
+      "response": {
+        "fixed_us": 12.381461428571429
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "arch35_fullmesh_resource_phase",
+        "family": "mc2_protocol",
+        "dtype": "bf16",
+        "kernel": "MoeDistributeCombineV3",
+        "metadata.implementation": "arch35_fullmesh_unquantized_rows",
+        "metadata.native_kind": "MoeDistributeCombineV3"
+      },
+      "domain": {
+        "d0": {
+          "min": 24,
+          "max": 24
+        },
+        "d1": {
+          "min": 5120,
+          "max": 5120
+        }
+      }
+    },
+    {
+      "id": "retained-service-b682c911007c14e1",
+      "response": {
+        "fixed_us": 65.23752380952381
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "balanced_grouped_down",
+        "family": "grouped_gemm",
+        "dtype": "bf16",
+        "metadata.compute_format": "bf16",
+        "metadata.activation_format": "fp8_e4m3",
+        "metadata.weight_format": "mxfp4",
+        "metadata.output_format": "bf16",
+        "metadata.matrix_groups": 24
+      },
+      "domain": {
+        "d0": {
+          "min": 24,
+          "max": 24
+        },
+        "d1": {
+          "min": 5120,
+          "max": 5120
+        },
+        "d2": {
+          "min": 2304,
+          "max": 2304
+        }
+      }
+    },
+    {
+      "id": "retained-service-071a63363e5c068f",
+      "response": {
+        "fixed_us": 127.40574023809522
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "balanced_grouped_gate_up",
+        "family": "grouped_gemm",
+        "dtype": "bf16",
+        "metadata.compute_format": "bf16",
+        "metadata.activation_format": "fp8_e4m3",
+        "metadata.weight_format": "mxfp4",
+        "metadata.output_format": "bf16",
+        "metadata.matrix_groups": 24
+      },
+      "domain": {
+        "d0": {
+          "min": 24,
+          "max": 24
+        },
+        "d1": {
+          "min": 4608,
+          "max": 4608
+        },
+        "d2": {
+          "min": 5120,
+          "max": 5120
+        }
+      }
+    },
+    {
+      "id": "retained-service-9db4903411a4d8cf",
+      "response": {
+        "fixed_us": 20.002608571428574
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "prepared_mx32_aic_matrix",
+        "family": "gemm",
+        "dtype": "fp8_e4m3",
+        "metadata.compute_format": "fp8_e4m3",
+        "metadata.activation_format": "fp8_e4m3",
+        "metadata.weight_format": "fp8_e4m3",
+        "metadata.output_format": "bf16",
+        "metadata.matrix_groups": 8
+      },
+      "domain": {
+        "d0": {
+          "min": 32,
+          "max": 32
+        },
+        "d1": {
+          "min": 1024,
+          "max": 1024
+        },
+        "d2": {
+          "min": 4096,
+          "max": 4096
+        }
+      }
+    },
+    {
+      "id": "retained-service-3a7c108e0bf065db",
+      "response": {
+        "fixed_us": 13.40037619047619
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "cannbot_mixed_quant_sparse_flash_mla",
+        "family": "attention",
+        "dtype": "bf16",
+        "metadata.native_kind": "MqsmlaKernel___call__",
+        "metadata.mqsmla_geometry.ratio": 0,
+        "metadata.mqsmla_geometry.topk": 0
+      },
+      "domain": {
+        "d0": {
+          "min": 4,
+          "max": 4
+        },
+        "d1": {
+          "min": 64,
+          "max": 64
+        },
+        "d2": {
+          "min": 512,
+          "max": 512
+        }
+      }
+    },
+    {
+      "id": "retained-service-349e6abc16833d03",
+      "response": {
+        "fixed_us": 30.876443915343916
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "cannbot_mixed_quant_sparse_flash_mla",
+        "family": "attention",
+        "dtype": "bf16",
+        "metadata.native_kind": "MqsmlaKernel___call__",
+        "metadata.mqsmla_geometry.ratio": 2,
+        "metadata.mqsmla_geometry.topk": 512
+      },
+      "domain": {
+        "d0": {
+          "min": 4,
+          "max": 4
+        },
+        "d1": {
+          "min": 64,
+          "max": 64
+        },
+        "d2": {
+          "min": 512,
+          "max": 512
+        }
+      }
+    },
+    {
+      "id": "retained-service-4e7a723b25a58464",
+      "response": {
+        "fixed_us": 31.372409047619044
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "cannbot_mixed_quant_sparse_flash_mla",
+        "family": "attention",
+        "dtype": "bf16",
+        "metadata.native_kind": "MqsmlaKernel___call__",
+        "metadata.mqsmla_geometry.ratio": 1,
+        "metadata.mqsmla_geometry.topk": 512
+      },
+      "domain": {
+        "d0": {
+          "min": 4,
+          "max": 4
+        },
+        "d1": {
+          "min": 64,
+          "max": 64
+        },
+        "d2": {
+          "min": 512,
+          "max": 512
+        }
+      }
+    },
+    {
+      "id": "retained-service-3461ddcc40a7f6b8",
+      "response": {
+        "fixed_us": 4.500884285714286
+      },
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "declared_native_fusion",
+        "family": "native_fusion",
+        "dtype": "bf16",
+        "metadata.fusion_boundary.native.native_kind": "HcPost"
+      },
+      "domain": {
+        "d0": {
+          "min": 81920,
+          "max": 81920
+        }
+      }
+    }
+  ],
+  "omissions": [],
+  "elapsed_seconds": 1.6730547919869423,
+  "peak_rss_bytes": 248758272,
+  "raw_event_reads": 0,
+  "predictions_run": 0,
+  "full_peer_graph_binding_preserved": true,
+  "serialized_replica_projection": [
+    0
+  ]
+}
