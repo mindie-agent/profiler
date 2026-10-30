@@ -1,0 +1,105 @@
+{
+  "schema_version": "mindie-v41-independent-reference-review/1",
+  "status": "passed",
+  "report_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-composed-native-5ec8843a/v41-complete-reference-scoreboard.json",
+    "size_bytes": 2967389,
+    "sha256": "b4cf00373820829263c1e55742bf556199ee9cf8fd3e9da80caceefb5fbb0f4e"
+  },
+  "reviewer_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/review_v41_complete_references.py",
+    "size_bytes": 19216,
+    "sha256": "59793908eb21b1f61c80546aa084932f45abece3af1ea57afaafc9791a79aed8"
+  },
+  "checks": 179952,
+  "failures": [],
+  "population": {
+    "sources": 7,
+    "forwards": 830,
+    "groups": 98,
+    "native_calls": 265600,
+    "normalized_calls": 132800
+  },
+  "strict_compared": 0,
+  "raw_capture_reads": 0,
+  "new_predictions": 0,
+  "quantile_definition": {
+    "p50": "mean_of_two_central_order_statistics",
+    "p90": "nearest_rank_ceil_0.9N"
+  },
+  "metadata_files_hashed": 52,
+  "cases": [
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c128_p2k",
+      "forward_count": 73,
+      "native_calls": 23360,
+      "normalized_calls": 11680,
+      "reference_groups": 14,
+      "strict_compared": 0
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c16_p2k",
+      "forward_count": 129,
+      "native_calls": 41280,
+      "normalized_calls": 20640,
+      "reference_groups": 14,
+      "strict_compared": 0
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c32_p2k",
+      "forward_count": 105,
+      "native_calls": 33600,
+      "normalized_calls": 16800,
+      "reference_groups": 14,
+      "strict_compared": 0
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c4_p2k",
+      "forward_count": 151,
+      "native_calls": 48320,
+      "normalized_calls": 24160,
+      "reference_groups": 14,
+      "strict_compared": 0
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8",
+      "forward_count": 145,
+      "native_calls": 46400,
+      "normalized_calls": 23200,
+      "reference_groups": 14,
+      "strict_compared": 0
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64",
+      "forward_count": 75,
+      "native_calls": 24000,
+      "normalized_calls": 12000,
+      "reference_groups": 14,
+      "strict_compared": 0
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1",
+      "forward_count": 152,
+      "native_calls": 48640,
+      "normalized_calls": 24320,
+      "reference_groups": 14,
+      "strict_compared": 0
+    }
+  ],
+  "elapsed_seconds": 0.7272079579997808,
+  "maximum_resident_set_size_bytes": 141295616,
+  "scope": [
+    "Full saved histogram moments/quantiles and original 70+28 groups unchanged.",
+    "Retained actual/partition/mapping/case/body receipts and identical runtime generation.",
+    "All forty-layer and declared eight-DP candidate populations; physical work/signatures retained.",
+    "Per-Forward reference arithmetic and successful execution budgets; earlier failed attempt preserved."
+  ],
+  "limits": [
+    "No raw CSV scan, Sim export, new prediction or independent rate/service-trace reconstruction.",
+    "Fresh forty-layer physical-work validation is inspected in the producer and saved evidence; no fresh graph is re-exported.",
+    "declared_programs may name a memoized physically equivalent representative, not the group semantic occurrence.",
+    "HCPre extra [B,4] branch remains partial; native route values/peer readiness and captured binary are unobserved.",
+    "Normalized references do not create a full native ABI or strict accuracy pass; source-symbol MQSMLA remains conditional.",
+    "Activity/service residuals are nonadditive with respect to Body wall-clock error."
+  ]
+}
