@@ -1,0 +1,724 @@
+{
+  "schema_version": "mindie-observed-service-replay-review/1",
+  "status": "passed",
+  "replay_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/decode-forward-service-replay.json",
+    "sha256": "f33bb64aa05ba5ca5ad8ede5f7a70f1caa2d8fa672f3d7b95070948a637cd261",
+    "size_bytes": 6573162
+  },
+  "manifest_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/decode-forward-service-cases.json",
+    "sha256": "5daec6c43b7a26b3b423dbdee5d05675db108ddcee8f61e124cbcd2959d0c5e8",
+    "size_bytes": 147438
+  },
+  "population_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/observed-populations.json",
+    "sha256": "9775237b1011981f5468240af598c7da5fabc8cb2ac38534cffbc985ff9e9fe7",
+    "size_bytes": 5512654
+  },
+  "reviewer_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/review_service_replay.py",
+    "sha256": "30305ee2a6ae7c82b059c1db73a3d20e995cb443c475099ee00dac45b6df90f9",
+    "size_bytes": 11220
+  },
+  "checks": 625,
+  "failures": [],
+  "source_count": 9,
+  "review_corrections": [
+    "Initial reviewer compared a pin with size_bytes against the production path/SHA-only manifest identity. It now checks the declared identity fields. No capture, prediction, population or response changed."
+  ],
+  "selected_forward_count": 318,
+  "body_passed": 3,
+  "cases": [
+    {
+      "source_case_id": "a5_glm53flash_tp8_c64_p4k",
+      "body_count": 31,
+      "geometry": {
+        "query_rows": 256,
+        "sequences_per_replica": 64,
+        "tokens_per_sequence": 4,
+        "context_tokens": 4104,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "real_ms": {
+        "count": 31,
+        "mean": 46.528232967741936,
+        "p50": 46.498735,
+        "p90": 46.644535,
+        "min": 46.405041,
+        "max": 46.821126
+      },
+      "sim_ms": 43.79200060927938,
+      "relative_error_pct": -5.8808000732793575,
+      "body_passed": true,
+      "evaluation_role": "in_sample",
+      "native_contract_admission_changed": false,
+      "groups": [
+        {
+          "native_operator_type": "hcom_allReduce_AicpuKernel",
+          "calls_per_forward": 90,
+          "count": 2790,
+          "mean_us": 42.65762867383513,
+          "p50_us": 40.0715,
+          "observable_response_hits": 90
+        },
+        {
+          "native_operator_type": "_copy_conv_state_kernel",
+          "calls_per_forward": 68,
+          "count": 2108,
+          "mean_us": 21.77710863377609,
+          "p50_us": 21.506,
+          "observable_response_hits": 68
+        },
+        {
+          "native_operator_type": "MoeInitRoutingV3",
+          "calls_per_forward": 42,
+          "count": 1302,
+          "mean_us": 28.767923963133644,
+          "p50_us": 28.822,
+          "observable_response_hits": 42
+        },
+        {
+          "native_operator_type": "GroupedMatmulSwigluQuantV2",
+          "calls_per_forward": 42,
+          "count": 1302,
+          "mean_us": 211.0887450076805,
+          "p50_us": 210.7225,
+          "observable_response_hits": 42
+        },
+        {
+          "native_operator_type": "CausalConv1d",
+          "calls_per_forward": 34,
+          "count": 1054,
+          "mean_us": 17.221537001897534,
+          "p50_us": 17.2355,
+          "observable_response_hits": 34
+        },
+        {
+          "native_operator_type": "RecurrentKda",
+          "calls_per_forward": 34,
+          "count": 1054,
+          "mean_us": 78.33827134724858,
+          "p50_us": 78.285,
+          "observable_response_hits": 34
+        }
+      ]
+    },
+    {
+      "source_case_id": "a5_glm53flash_tp8_c32_p4k",
+      "body_count": 31,
+      "geometry": {
+        "query_rows": 128,
+        "sequences_per_replica": 32,
+        "tokens_per_sequence": 4,
+        "context_tokens": 4104,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "real_ms": {
+        "count": 31,
+        "mean": 37.66896412903226,
+        "p50": 37.665316,
+        "p90": 37.76115,
+        "min": 37.569747,
+        "max": 37.797992
+      },
+      "sim_ms": 32.8609958778336,
+      "relative_error_pct": -12.763738962211225,
+      "body_passed": true,
+      "evaluation_role": "in_sample",
+      "native_contract_admission_changed": false,
+      "groups": [
+        {
+          "native_operator_type": "hcom_allReduce_AicpuKernel",
+          "calls_per_forward": 90,
+          "count": 2790,
+          "mean_us": 36.277049820788534,
+          "p50_us": 33.661,
+          "observable_response_hits": 90
+        },
+        {
+          "native_operator_type": "_copy_conv_state_kernel",
+          "calls_per_forward": 68,
+          "count": 2108,
+          "mean_us": 12.895869070208727,
+          "p50_us": 12.4765,
+          "observable_response_hits": 68
+        },
+        {
+          "native_operator_type": "MoeInitRoutingV3",
+          "calls_per_forward": 42,
+          "count": 1302,
+          "mean_us": 24.68482411674347,
+          "p50_us": 24.8435,
+          "observable_response_hits": 42
+        },
+        {
+          "native_operator_type": "GroupedMatmulSwigluQuantV2",
+          "calls_per_forward": 42,
+          "count": 1302,
+          "mean_us": 207.86539861751152,
+          "p50_us": 207.616,
+          "observable_response_hits": 42
+        },
+        {
+          "native_operator_type": "CausalConv1d",
+          "calls_per_forward": 34,
+          "count": 1054,
+          "mean_us": 13.04542789373814,
+          "p50_us": 13.1125,
+          "observable_response_hits": 34
+        },
+        {
+          "native_operator_type": "RecurrentKda",
+          "calls_per_forward": 34,
+          "count": 1054,
+          "mean_us": 43.98692789373814,
+          "p50_us": 44.073,
+          "observable_response_hits": 34
+        }
+      ]
+    },
+    {
+      "source_case_id": "a5_glm53flash_tp8_c32_p8k",
+      "body_count": 35,
+      "geometry": {
+        "query_rows": 128,
+        "sequences_per_replica": 32,
+        "tokens_per_sequence": 4,
+        "context_tokens": 8200,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "real_ms": {
+        "count": 35,
+        "mean": 38.71318854285714,
+        "p50": 38.72185,
+        "p90": 38.759233,
+        "min": 38.568107,
+        "max": 38.937622
+      },
+      "sim_ms": 33.213527818551725,
+      "relative_error_pct": -14.206168314493283,
+      "body_passed": true,
+      "evaluation_role": "in_sample",
+      "native_contract_admission_changed": false,
+      "groups": [
+        {
+          "native_operator_type": "hcom_allReduce_AicpuKernel",
+          "calls_per_forward": 90,
+          "count": 3150,
+          "mean_us": 36.1521853968254,
+          "p50_us": 33.5785,
+          "observable_response_hits": 90
+        },
+        {
+          "native_operator_type": "_copy_conv_state_kernel",
+          "calls_per_forward": 68,
+          "count": 2380,
+          "mean_us": 12.624344117647059,
+          "p50_us": 12.4385,
+          "observable_response_hits": 68
+        },
+        {
+          "native_operator_type": "MoeInitRoutingV3",
+          "calls_per_forward": 42,
+          "count": 1470,
+          "mean_us": 24.737474149659864,
+          "p50_us": 24.852,
+          "observable_response_hits": 42
+        },
+        {
+          "native_operator_type": "GroupedMatmulSwigluQuantV2",
+          "calls_per_forward": 42,
+          "count": 1470,
+          "mean_us": 207.84861972789113,
+          "p50_us": 207.4605,
+          "observable_response_hits": 42
+        },
+        {
+          "native_operator_type": "CausalConv1d",
+          "calls_per_forward": 34,
+          "count": 1190,
+          "mean_us": 13.051609243697479,
+          "p50_us": 13.098,
+          "observable_response_hits": 34
+        },
+        {
+          "native_operator_type": "RecurrentKda",
+          "calls_per_forward": 34,
+          "count": 1190,
+          "mean_us": 44.02473277310924,
+          "p50_us": 44.0625,
+          "observable_response_hits": 34
+        }
+      ]
+    },
+    {
+      "source_case_id": "a5_glm53flash_tp8_c16_p4k",
+      "body_count": 30,
+      "geometry": {
+        "query_rows": 64,
+        "sequences_per_replica": 16,
+        "tokens_per_sequence": 4,
+        "context_tokens": 4104,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "real_ms": {
+        "count": 30,
+        "mean": 33.0309177,
+        "p50": 33.0264815,
+        "p90": 33.164019,
+        "min": 32.883158,
+        "max": 33.193867
+      },
+      "sim_ms": 27.59744888206038,
+      "relative_error_pct": -16.4496453513298,
+      "body_passed": false,
+      "evaluation_role": "in_sample",
+      "native_contract_admission_changed": false,
+      "groups": [
+        {
+          "native_operator_type": "hcom_allReduce_AicpuKernel",
+          "calls_per_forward": 90,
+          "count": 2700,
+          "mean_us": 34.4135,
+          "p50_us": 32.3545,
+          "observable_response_hits": 90
+        },
+        {
+          "native_operator_type": "_copy_conv_state_kernel",
+          "calls_per_forward": 68,
+          "count": 2040,
+          "mean_us": 8.338639215686275,
+          "p50_us": 8.2845,
+          "observable_response_hits": 68
+        },
+        {
+          "native_operator_type": "MoeInitRoutingV3",
+          "calls_per_forward": 42,
+          "count": 1260,
+          "mean_us": 23.010918253968256,
+          "p50_us": 23.0515,
+          "observable_response_hits": 42
+        },
+        {
+          "native_operator_type": "GroupedMatmulSwigluQuantV2",
+          "calls_per_forward": 42,
+          "count": 1260,
+          "mean_us": 206.22730634920634,
+          "p50_us": 205.998,
+          "observable_response_hits": 42
+        },
+        {
+          "native_operator_type": "CausalConv1d",
+          "calls_per_forward": 34,
+          "count": 1020,
+          "mean_us": 11.603623529411765,
+          "p50_us": 11.4825,
+          "observable_response_hits": 34
+        },
+        {
+          "native_operator_type": "RecurrentKda",
+          "calls_per_forward": 34,
+          "count": 1020,
+          "mean_us": 25.355354901960787,
+          "p50_us": 25.1065,
+          "observable_response_hits": 34
+        }
+      ]
+    },
+    {
+      "source_case_id": "a5_glm53flash_tp8_c16_p8k",
+      "body_count": 32,
+      "geometry": {
+        "query_rows": 64,
+        "sequences_per_replica": 16,
+        "tokens_per_sequence": 4,
+        "context_tokens": 8200,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "real_ms": {
+        "count": 32,
+        "mean": 33.616091374999996,
+        "p50": 33.62586,
+        "p90": 33.709694,
+        "min": 33.517443,
+        "max": 33.747635
+      },
+      "sim_ms": 27.761140550393637,
+      "relative_error_pct": -17.417107656247733,
+      "body_passed": false,
+      "evaluation_role": "in_sample",
+      "native_contract_admission_changed": false,
+      "groups": [
+        {
+          "native_operator_type": "hcom_allReduce_AicpuKernel",
+          "calls_per_forward": 90,
+          "count": 2880,
+          "mean_us": 34.32995208333333,
+          "p50_us": 32.3515,
+          "observable_response_hits": 90
+        },
+        {
+          "native_operator_type": "_copy_conv_state_kernel",
+          "calls_per_forward": 68,
+          "count": 2176,
+          "mean_us": 8.170021139705883,
+          "p50_us": 8.2,
+          "observable_response_hits": 68
+        },
+        {
+          "native_operator_type": "MoeInitRoutingV3",
+          "calls_per_forward": 42,
+          "count": 1344,
+          "mean_us": 22.79966443452381,
+          "p50_us": 22.8805,
+          "observable_response_hits": 42
+        },
+        {
+          "native_operator_type": "GroupedMatmulSwigluQuantV2",
+          "calls_per_forward": 42,
+          "count": 1344,
+          "mean_us": 206.10494270833334,
+          "p50_us": 205.956,
+          "observable_response_hits": 42
+        },
+        {
+          "native_operator_type": "CausalConv1d",
+          "calls_per_forward": 34,
+          "count": 1088,
+          "mean_us": 11.722695772058824,
+          "p50_us": 11.664,
+          "observable_response_hits": 34
+        },
+        {
+          "native_operator_type": "RecurrentKda",
+          "calls_per_forward": 34,
+          "count": 1088,
+          "mean_us": 25.508517463235293,
+          "p50_us": 25.294,
+          "observable_response_hits": 34
+        }
+      ]
+    },
+    {
+      "source_case_id": "a5_glm53flash_tp8_c8_p4k",
+      "body_count": 30,
+      "geometry": {
+        "query_rows": 32,
+        "sequences_per_replica": 8,
+        "tokens_per_sequence": 4,
+        "context_tokens": 4104,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "real_ms": {
+        "count": 30,
+        "mean": 28.833324133333335,
+        "p50": 28.828410499999997,
+        "p90": 28.884507,
+        "min": 28.606826,
+        "max": 28.91941
+      },
+      "sim_ms": 23.245098936605874,
+      "relative_error_pct": -19.381134033959967,
+      "body_passed": false,
+      "evaluation_role": "in_sample",
+      "native_contract_admission_changed": false,
+      "groups": [
+        {
+          "native_operator_type": "hcom_allReduce_AicpuKernel",
+          "calls_per_forward": 90,
+          "count": 2700,
+          "mean_us": 28.268106666666668,
+          "p50_us": 24.2925,
+          "observable_response_hits": 90
+        },
+        {
+          "native_operator_type": "_copy_conv_state_kernel",
+          "calls_per_forward": 68,
+          "count": 2040,
+          "mean_us": 5.822796078431373,
+          "p50_us": 5.8165,
+          "observable_response_hits": 68
+        },
+        {
+          "native_operator_type": "MoeInitRoutingV3",
+          "calls_per_forward": 42,
+          "count": 1260,
+          "mean_us": 21.64116031746032,
+          "p50_us": 21.509,
+          "observable_response_hits": 42
+        },
+        {
+          "native_operator_type": "GroupedMatmulSwigluQuantV2",
+          "calls_per_forward": 42,
+          "count": 1260,
+          "mean_us": 184.59210793650794,
+          "p50_us": 184.1465,
+          "observable_response_hits": 42
+        },
+        {
+          "native_operator_type": "CausalConv1d",
+          "calls_per_forward": 34,
+          "count": 1020,
+          "mean_us": 8.92038137254902,
+          "p50_us": 8.9115,
+          "observable_response_hits": 34
+        },
+        {
+          "native_operator_type": "RecurrentKda",
+          "calls_per_forward": 34,
+          "count": 1020,
+          "mean_us": 16.45474705882353,
+          "p50_us": 16.289,
+          "observable_response_hits": 34
+        }
+      ]
+    },
+    {
+      "source_case_id": "a5_glm53flash_tp8_c4_p8k",
+      "body_count": 11,
+      "geometry": {
+        "query_rows": 16,
+        "sequences_per_replica": 4,
+        "tokens_per_sequence": 4,
+        "context_tokens": 8200,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "real_ms": {
+        "count": 11,
+        "mean": 21.41824609090909,
+        "p50": 21.408145,
+        "p90": 21.432068,
+        "min": 21.246225,
+        "max": 21.839515
+      },
+      "sim_ms": 16.20645730909138,
+      "relative_error_pct": -24.333406011381285,
+      "body_passed": false,
+      "evaluation_role": "in_sample",
+      "native_contract_admission_changed": false,
+      "groups": [
+        {
+          "native_operator_type": "hcom_allReduce_AicpuKernel",
+          "calls_per_forward": 90,
+          "count": 990,
+          "mean_us": 22.908758585858585,
+          "p50_us": 21.2325,
+          "observable_response_hits": 90
+        },
+        {
+          "native_operator_type": "_copy_conv_state_kernel",
+          "calls_per_forward": 68,
+          "count": 748,
+          "mean_us": 4.524312834224599,
+          "p50_us": 4.452,
+          "observable_response_hits": 68
+        },
+        {
+          "native_operator_type": "MoeInitRoutingV3",
+          "calls_per_forward": 42,
+          "count": 462,
+          "mean_us": 21.820865800865803,
+          "p50_us": 21.5375,
+          "observable_response_hits": 42
+        },
+        {
+          "native_operator_type": "GroupedMatmulSwigluQuantV2",
+          "calls_per_forward": 42,
+          "count": 462,
+          "mean_us": 98.45777922077922,
+          "p50_us": 98.182,
+          "observable_response_hits": 42
+        },
+        {
+          "native_operator_type": "CausalConv1d",
+          "calls_per_forward": 34,
+          "count": 374,
+          "mean_us": 8.33101871657754,
+          "p50_us": 8.139,
+          "observable_response_hits": 34
+        },
+        {
+          "native_operator_type": "RecurrentKda",
+          "calls_per_forward": 34,
+          "count": 374,
+          "mean_us": 14.29047860962567,
+          "p50_us": 13.915,
+          "observable_response_hits": 34
+        }
+      ]
+    },
+    {
+      "source_case_id": "glm53flash-a5-tp8-c3",
+      "body_count": 53,
+      "geometry": {
+        "query_rows": 16,
+        "sequences_per_replica": 4,
+        "tokens_per_sequence": 4,
+        "context_tokens": 4104,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "real_ms": {
+        "count": 53,
+        "mean": 21.067548924528303,
+        "p50": 21.05718,
+        "p90": 21.170037,
+        "min": 20.882993,
+        "max": 21.361573
+      },
+      "sim_ms": 17.426155078545804,
+      "relative_error_pct": -17.284373512207374,
+      "body_passed": false,
+      "evaluation_role": "in_sample",
+      "native_contract_admission_changed": false,
+      "groups": [
+        {
+          "native_operator_type": "hcom_allReduce_AicpuKernel",
+          "calls_per_forward": 90,
+          "count": 4770,
+          "mean_us": 24.73755324947589,
+          "p50_us": 21.28,
+          "observable_response_hits": 90
+        },
+        {
+          "native_operator_type": "_copy_conv_state_kernel",
+          "calls_per_forward": 68,
+          "count": 3604,
+          "mean_us": 4.258791342952275,
+          "p50_us": 4.257,
+          "observable_response_hits": 68
+        },
+        {
+          "native_operator_type": "MoeInitRoutingV3",
+          "calls_per_forward": 42,
+          "count": 2226,
+          "mean_us": 20.738143306379154,
+          "p50_us": 20.6535,
+          "observable_response_hits": 42
+        },
+        {
+          "native_operator_type": "GroupedMatmulSwigluQuantV2",
+          "calls_per_forward": 42,
+          "count": 2226,
+          "mean_us": 98.72812353998202,
+          "p50_us": 98.5175,
+          "observable_response_hits": 42
+        },
+        {
+          "native_operator_type": "CausalConv1d",
+          "calls_per_forward": 34,
+          "count": 1802,
+          "mean_us": 8.144829633740288,
+          "p50_us": 7.9685,
+          "observable_response_hits": 34
+        },
+        {
+          "native_operator_type": "RecurrentKda",
+          "calls_per_forward": 34,
+          "count": 1802,
+          "mean_us": 14.05267591564928,
+          "p50_us": 13.8125,
+          "observable_response_hits": 34
+        }
+      ]
+    },
+    {
+      "source_case_id": "glm53flash-a5-tp8-c1",
+      "body_count": 65,
+      "geometry": {
+        "query_rows": 4,
+        "sequences_per_replica": 1,
+        "tokens_per_sequence": 4,
+        "context_tokens": 4104,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "real_ms": {
+        "count": 65,
+        "mean": 15.683328046153846,
+        "p50": 15.670472,
+        "p90": 15.738329,
+        "min": 15.494044,
+        "max": 17.258429
+      },
+      "sim_ms": 11.715752993352426,
+      "relative_error_pct": -25.298042871547423,
+      "body_passed": false,
+      "evaluation_role": "in_sample",
+      "native_contract_admission_changed": false,
+      "groups": [
+        {
+          "native_operator_type": "hcom_allReduce_AicpuKernel",
+          "calls_per_forward": 90,
+          "count": 5850,
+          "mean_us": 21.928148205128203,
+          "p50_us": 18.015,
+          "observable_response_hits": 90
+        },
+        {
+          "native_operator_type": "_copy_conv_state_kernel",
+          "calls_per_forward": 68,
+          "count": 4420,
+          "mean_us": 3.68445,
+          "p50_us": 3.564,
+          "observable_response_hits": 68
+        },
+        {
+          "native_operator_type": "MoeInitRoutingV3",
+          "calls_per_forward": 42,
+          "count": 2730,
+          "mean_us": 20.795851648351647,
+          "p50_us": 20.692,
+          "observable_response_hits": 42
+        },
+        {
+          "native_operator_type": "GroupedMatmulSwigluQuantV2",
+          "calls_per_forward": 42,
+          "count": 2730,
+          "mean_us": 33.52036263736264,
+          "p50_us": 33.429,
+          "observable_response_hits": 42
+        },
+        {
+          "native_operator_type": "CausalConv1d",
+          "calls_per_forward": 34,
+          "count": 2210,
+          "mean_us": 6.754846153846154,
+          "p50_us": 6.6115,
+          "observable_response_hits": 34
+        },
+        {
+          "native_operator_type": "RecurrentKda",
+          "calls_per_forward": 34,
+          "count": 2210,
+          "mean_us": 13.00360180995475,
+          "p50_us": 12.695,
+          "observable_response_hits": 34
+        }
+      ]
+    }
+  ],
+  "execution": {
+    "raw_scans": 0,
+    "new_costs": 0,
+    "elapsed_seconds": 4.212975082919002,
+    "peak_rss_bytes": 138133504
+  }
+}
