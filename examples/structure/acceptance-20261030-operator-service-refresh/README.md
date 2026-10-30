@@ -30,3 +30,9 @@ The first Q35 c128 attempt completed its 13 workers but failed the final runtime
 Focused real-capture tests: `test_operator_service_evidence.py` and `test_native_service_domains.py`, 4 passed. These cover public strict cohort execution, exact service queries, complete retained call populations, and true fusion/V2 ABI boundaries. No historical receipts are rewritten.
 
 The Qwen35 case selection is the explicitly pinned pre-shared-native Body generation. A later BF16 shared-expert Body declaration landed while this queue was running; it is not silently substituted into these operator receipts. Body and operator case identities remain separate, and the changed shared-expert families need a scoped fresh rebind.
+
+## Completed selection
+
+`completed-inputs.json` lists the eight complete canonical receipts after the HcPost repair: **132/136 strict cohorts, 214,818 calls across 445 forwards**; micro 128/132 and heavy 4/4. The four HC sources now preserve their original strict populations. `complete-hcpost/` retains the exact contract/member proofs and fresh full-source Engine execution; no old costs were copied. The six initial conservative receipts remain as history under `canonical/`.
+
+For current native reference import use `livepre-native-resource/current-native-reference-scoreboard.json`: its eight groups contain 15,355 calls, omitting 7,470 HcPost calls already strictly scored. The complete original ten-group execution receipt is unchanged. Keep GLM78 fifteen groups as references. Supersede prior references only for the same source/geometry/native/layer population; preserve other families such as KDA. Different historical source-symbol IDs are not evidence of disjoint measurements.

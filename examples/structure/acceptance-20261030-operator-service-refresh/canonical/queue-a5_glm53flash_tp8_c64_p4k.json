@@ -1,0 +1,79 @@
+{
+  "input_path": "examples/structure/acceptance-20261030-operator-service-refresh/inputs.json",
+  "input_sha256": "7caae3c5732ef117ca238599ffbb8ea0427b9dabfbb96e316d16a5b53ef54d3f",
+  "attempts": [
+    {
+      "case_id": "a5_glm53flash_tp8_c64_p4k",
+      "command": [
+        "/Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python",
+        "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/reprice_body_operator_families.py",
+        "--actual",
+        "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c64_p4k-glm-flash-ws9.actual.json",
+        "--mapping",
+        "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-complete-operators/families/a5_glm53flash_tp8_c64_p4k/body-operator-a5_glm53flash_tp8_c64_p4k-source-complete-30dcea1e.mapping.json",
+        "--case",
+        "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/metadata-pass/cases/a5_glm53flash_tp8_c64_p4k-metadata-layer-service.json",
+        "--output-dir",
+        "examples/structure/acceptance-20261030-operator-service-refresh/canonical/a5_glm53flash_tp8_c64_p4k",
+        "--variant",
+        "executed-service-21c30821",
+        "--runtime-source-commit",
+        "21c30821d87a757bace8cf6b2fffea2536db643e",
+        "--skip-references"
+      ],
+      "status": "completed",
+      "returncode": 0,
+      "source_timeout_seconds": 2820,
+      "elapsed_seconds": 48.9088580829557
+    },
+    {
+      "case_id": "glm53flash-a5-tp8-c1",
+      "command": [
+        "/Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python",
+        "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/reprice_body_operator_families.py",
+        "--actual",
+        "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators-5935c87b/body-operator-glm53flash-a5-tp8-c1-new17.actual.json",
+        "--mapping",
+        "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-complete-operators/families/glm53flash-a5-tp8-c1/body-operator-glm53flash-a5-tp8-c1-source-complete-30dcea1e.mapping.json",
+        "--case",
+        "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/metadata-pass/cases/glm53flash-a5-tp8-c1-metadata-layer-service.json",
+        "--output-dir",
+        "examples/structure/acceptance-20261030-operator-service-refresh/canonical/glm53flash-a5-tp8-c1",
+        "--variant",
+        "executed-service-21c30821",
+        "--runtime-source-commit",
+        "21c30821d87a757bace8cf6b2fffea2536db643e",
+        "--skip-references"
+      ],
+      "status": "completed",
+      "returncode": 0,
+      "source_timeout_seconds": 2820,
+      "elapsed_seconds": 47.27932649990544
+    },
+    {
+      "case_id": "glm53flash-a5-tp8-c96",
+      "command": [
+        "/Users/maoxx241/code/sim-rewrite-20261027/.venv/bin/python",
+        "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/reprice_body_operator_families.py",
+        "--actual",
+        "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-accepted-26/retained-four-actual/a5-c96/body-operator-glm53flash-a5-tp8-c96-new17.actual.json",
+        "--mapping",
+        "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-complete-operators/families/glm53flash-a5-tp8-c96/body-operator-glm53flash-a5-tp8-c96-source-complete-30dcea1e.mapping.json",
+        "--case",
+        "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm-hccl-join-reduce-conditional/glm53flash-a5-tp8-c96.json",
+        "--output-dir",
+        "examples/structure/acceptance-20261030-operator-service-refresh/canonical/glm53flash-a5-tp8-c96",
+        "--variant",
+        "executed-service-21c30821",
+        "--runtime-source-commit",
+        "21c30821d87a757bace8cf6b2fffea2536db643e",
+        "--skip-references"
+      ],
+      "status": "completed",
+      "returncode": 0,
+      "source_timeout_seconds": 2820,
+      "elapsed_seconds": 23.612011792021804
+    }
+  ],
+  "raw_capture_reads": 0
+}

@@ -1,0 +1,40 @@
+{
+  "schema_version": "mindie-repriced-body-operator-review/1",
+  "status": "passed",
+  "checks": 684,
+  "failures": [],
+  "scoreboard_sha256": "6fafa67832d536a9721232875af9da2a54b377ac72b80a16097edfb3da612bbc",
+  "script_sha256": "248b9978f799ee5a12a8873363a95ac1f7a955b36478c3cb366b883ab2e433e9",
+  "source_count": 1,
+  "counts": {
+    "passed": 20,
+    "compared": 21,
+    "strict_events": 23506,
+    "retained_reference_groups": 0,
+    "excluded_reference_groups": 0,
+    "strict_rebind_exclusions": 0,
+    "forward_count": 46
+  },
+  "accuracy_by_tier": {
+    "absolute_15us": {
+      "compared": 21,
+      "passed": 20
+    }
+  },
+  "cases": [
+    {
+      "case_id": "glm53flash-a3-tp16-c4-livepre / complete-hcpost-21c30821",
+      "passed": 20,
+      "compared": 21,
+      "strict_events": 23506,
+      "retained_reference_groups": 0,
+      "excluded_reference_groups": 0,
+      "reference_worker_status": "not_requested",
+      "strict_rebind_exclusions": 0,
+      "forward_count": 46
+    }
+  ],
+  "raw_capture_reads": 0,
+  "prediction_executions": 0,
+  "method": "stdlib identities/histograms, old-to-new observed partition equality and independent tier math"
+}

@@ -1,0 +1,44 @@
+{
+  "schema_version": "mindie-repriced-body-operator-review/1",
+  "status": "passed",
+  "checks": 741,
+  "failures": [],
+  "scoreboard_sha256": "bd12193a5c37067b9d19c3183392dfafd6788c78fa2b7dde376b30a5e00345ac",
+  "script_sha256": "248b9978f799ee5a12a8873363a95ac1f7a955b36478c3cb366b883ab2e433e9",
+  "source_count": 1,
+  "counts": {
+    "passed": 19,
+    "compared": 19,
+    "strict_events": 16895,
+    "retained_reference_groups": 0,
+    "excluded_reference_groups": 0,
+    "strict_rebind_exclusions": 0,
+    "forward_count": 31
+  },
+  "accuracy_by_tier": {
+    "absolute_15us": {
+      "compared": 18,
+      "passed": 18
+    },
+    "relative_15pct": {
+      "compared": 1,
+      "passed": 1
+    }
+  },
+  "cases": [
+    {
+      "case_id": "a5_glm53flash_tp8_c64_p4k / complete-hcpost-21c30821",
+      "passed": 19,
+      "compared": 19,
+      "strict_events": 16895,
+      "retained_reference_groups": 0,
+      "excluded_reference_groups": 0,
+      "reference_worker_status": "not_requested",
+      "strict_rebind_exclusions": 0,
+      "forward_count": 31
+    }
+  ],
+  "raw_capture_reads": 0,
+  "prediction_executions": 0,
+  "method": "stdlib identities/histograms, old-to-new observed partition equality and independent tier math"
+}

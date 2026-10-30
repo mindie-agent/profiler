@@ -113,7 +113,10 @@ def review(directory):
             for field in ('event_count','complete_activity_sum_ns','duration_ns','busy_union_ns',
                           'status_counts','contract','target_ids','native_operator_type'):
                 check(before[field] == after[field], cid+':preserved_'+field)
-        check(len(change['rebound'])+len(change['excluded']) == len(old_cohorts), cid+':rebind_partition')
+        if change['mode'] == 'identical_declaration_new_cost':
+            check(old_cohorts == new_cohorts and not change['excluded'], cid+':identical_declaration_population')
+        else:
+            check(len(change['rebound'])+len(change['excluded']) == len(old_cohorts), cid+':rebind_partition')
         original_families = {(row['native_operator_type'],row['declared_role']):row for row in actual['families']}
         source_groups = {group['group_id']:group for group in actual.get('source_role_references',())}
         raw_count, strict_events, strict_cohorts, passed, refs, excluded_refs = 0,0,0,0,0,0
