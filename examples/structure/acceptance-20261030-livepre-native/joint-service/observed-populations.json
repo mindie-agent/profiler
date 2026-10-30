@@ -1,0 +1,5766 @@
+{
+  "cases": [
+    {
+      "case_id": "glm53flash-a3-tp16-c4-livepre",
+      "rules": [
+        {
+          "id": "joint-expert_down",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "grouped_down",
+            "family": "grouped_gemm",
+            "phase": "decode",
+            "dtype": "int8",
+            "local_shape.0": 12,
+            "local_shape.1": 4096,
+            "local_shape.2": 2048,
+            "metadata.weight_dtype": "int8",
+            "metadata.expected_active_experts": 8.845269770356259,
+            "metadata.expected_rows": 12.0
+          },
+          "response": {
+            "fixed_us": 42.13763561076605
+          },
+          "execution": {
+            "kind": "joint_native",
+            "native_kernel": "GroupedMatmul",
+            "resource": "observed_a3_local_native",
+            "reference_rate": 1000000000.0
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "input_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/native-joint-service-inputs.json",
+              "sha256": "d9dfbab2a371f073ec5e4ce4f06419efdb1c575843ece3254c7ec05ac8713e18",
+              "size_bytes": 2166772
+            },
+            "candidate_id": "sha256:aec1375ec9120503452d8879bd6e01e3975b44553cfcde94e63a047b660fefaf",
+            "source_identity": {
+              "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot30_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+              "size_bytes": 11734491,
+              "mtime_ns": 1793295009000000000,
+              "schema_version": "kernel_details_csv_46col",
+              "sha256": "35c1ff6c9570a472ca26f1bfa293cd09709a1e4d0f2984b039de9e48d961c1e2"
+            },
+            "timing_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-accepted-26/retained-four-actual/body-operator-glm53flash-a3-tp16-c4-livepre-new17.actual.json",
+              "sha256": "b347d2263e84d1fbffe1b190141357b4d97c4083d640ea0b51df7b32fcfc17b6",
+              "size_bytes": 831617
+            },
+            "timing_members": [
+              "families/11/duration_ns_counter"
+            ],
+            "observed_native_elapsed_us": {
+              "count": 1932,
+              "mean_us": 42.13763561076605,
+              "p50_us": 37.591,
+              "p90_us": 56.261,
+              "min_us": 8.92,
+              "max_us": 86.701
+            },
+            "applicability_domain": {
+              "hardware": "Ascend910_9362",
+              "native_operator_type": "GroupedMatmul",
+              "observed_block_num": null,
+              "observed_mix_block_num": null,
+              "native_abi": null,
+              "evidence_scope": "complete_duration_population_with_source_role_conditions",
+              "source_program_domain": "INT8_grouped_down_BF16_per_token_scale",
+              "source_role": "expert_down",
+              "execution_query_rows": 24,
+              "execution_batch": 4,
+              "query_tokens_per_sequence": 6,
+              "source_dtype_condition": "INT8 x INT8 grouped / BF16 output",
+              "source_logical_axes": {
+                "local_expert_banks": 18,
+                "hidden_width": 4096,
+                "expert_intermediate_width": 2048
+              },
+              "routing_values_observed": false,
+              "buffer_capacity_is_valid_rows": false
+            },
+            "expected_rule_hits": 42,
+            "forward_count": 46,
+            "body_residual_used": false,
+            "strict_admission_changed": false,
+            "service_semantics": "one_complete_local_native_call; analytical_work_retained_as_reference",
+            "queue_scope": "one_declared_device_queue_shared_by_the_five_local_native_domains",
+            "physical_HBM_or_ISA_rate_identified": false
+          }
+        },
+        {
+          "id": "joint-grouped_gate_up_activation_quant",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "declared_native_fusion",
+            "family": "native_fusion",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 12,
+            "local_shape.1": 2048,
+            "metadata.fusion_role": "grouped_gate_up_activation_quant"
+          },
+          "response": {
+            "fixed_us": 78.89214958592133
+          },
+          "execution": {
+            "kind": "joint_native",
+            "native_kernel": "GroupedMatmulSwigluQuant",
+            "resource": "observed_a3_local_native",
+            "reference_rate": 1000000000.0
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "input_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/native-joint-service-inputs.json",
+              "sha256": "d9dfbab2a371f073ec5e4ce4f06419efdb1c575843ece3254c7ec05ac8713e18",
+              "size_bytes": 2166772
+            },
+            "candidate_id": "sha256:dd4ec5d80f941fa7e27ebce4ac23e7ece9de1146bcb86062f389fffd5f48f134",
+            "source_identity": {
+              "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot30_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+              "size_bytes": 11734491,
+              "mtime_ns": 1793295009000000000,
+              "schema_version": "kernel_details_csv_46col",
+              "sha256": "35c1ff6c9570a472ca26f1bfa293cd09709a1e4d0f2984b039de9e48d961c1e2"
+            },
+            "timing_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-accepted-26/retained-four-actual/body-operator-glm53flash-a3-tp16-c4-livepre-new17.actual.json",
+              "sha256": "b347d2263e84d1fbffe1b190141357b4d97c4083d640ea0b51df7b32fcfc17b6",
+              "size_bytes": 831617
+            },
+            "timing_members": [
+              "families/12/duration_ns_counter"
+            ],
+            "observed_native_elapsed_us": {
+              "count": 1932,
+              "mean_us": 78.89214958592133,
+              "p50_us": 74.8715,
+              "p90_us": 112.222,
+              "min_us": 13.16,
+              "max_us": 178.584
+            },
+            "applicability_domain": {
+              "hardware": "Ascend910_9362",
+              "native_operator_type": "GroupedMatmulSwigluQuant",
+              "observed_block_num": null,
+              "observed_mix_block_num": null,
+              "native_abi": null,
+              "evidence_scope": "complete_duration_population_with_source_role_conditions",
+              "source_program_domain": "grouped_swiglu_quant_int8_split_workspace_ae923905",
+              "source_role": "grouped_gate_up_activation_quant",
+              "execution_query_rows": 24,
+              "execution_batch": 4,
+              "query_tokens_per_sequence": 6,
+              "source_dtype_condition": "INT8 x INT8 grouped / INT8 activation output",
+              "source_logical_axes": {
+                "local_expert_banks": 18,
+                "hidden_width": 4096,
+                "expert_intermediate_width": 2048
+              },
+              "routing_values_observed": false,
+              "buffer_capacity_is_valid_rows": false
+            },
+            "expected_rule_hits": 42,
+            "forward_count": 46,
+            "body_residual_used": false,
+            "strict_admission_changed": false,
+            "service_semantics": "one_complete_local_native_call; analytical_work_retained_as_reference",
+            "queue_scope": "one_declared_device_queue_shared_by_the_five_local_native_domains",
+            "physical_HBM_or_ISA_rate_identified": false
+          }
+        },
+        {
+          "id": "joint-indexed_attention_batch",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "latent_attention_batch",
+            "family": "attention",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 4,
+            "local_shape.1": 24,
+            "local_shape.2": 4102,
+            "local_shape.3": 4,
+            "local_shape.4": 512,
+            "local_shape.5": 512,
+            "metadata.indexed_attention_geometry": {
+              "topk": 2048,
+              "compression_ratio": 1,
+              "window": 0,
+              "heads": 4,
+              "latent": 512,
+              "rope": 0,
+              "cp": 1,
+              "query_dtype": "bf16",
+              "cache_dtype": "int8",
+              "sequences": [
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ]
+              ]
+            }
+          },
+          "response": {
+            "fixed_us": 156.69711462450593
+          },
+          "execution": {
+            "kind": "joint_native",
+            "native_kernel": "KvQuantSparseFlashAttentionVllm",
+            "resource": "observed_a3_local_native",
+            "reference_rate": 1000000000.0
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "input_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/native-joint-service-inputs.json",
+              "sha256": "d9dfbab2a371f073ec5e4ce4f06419efdb1c575843ece3254c7ec05ac8713e18",
+              "size_bytes": 2166772
+            },
+            "candidate_id": "sha256:062ffafd4c6d641d04ed0ecb3fd7fdb27dd9e76b6c726ad3f8a70f8f3eb14478",
+            "source_identity": {
+              "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot30_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+              "size_bytes": 11734491,
+              "mtime_ns": 1793295009000000000,
+              "schema_version": "kernel_details_csv_46col",
+              "sha256": "35c1ff6c9570a472ca26f1bfa293cd09709a1e4d0f2984b039de9e48d961c1e2"
+            },
+            "timing_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-accepted-26/retained-four-actual/body-operator-glm53flash-a3-tp16-c4-livepre-new17.actual.json",
+              "sha256": "b347d2263e84d1fbffe1b190141357b4d97c4083d640ea0b51df7b32fcfc17b6",
+              "size_bytes": 831617
+            },
+            "timing_members": [
+              "families/18/duration_ns_counter"
+            ],
+            "observed_native_elapsed_us": {
+              "count": 506,
+              "mean_us": 156.69711462450593,
+              "p50_us": 156.283,
+              "p90_us": 158.663,
+              "min_us": 153.743,
+              "max_us": 164.303
+            },
+            "applicability_domain": {
+              "hardware": "Ascend910_9362",
+              "native_operator_type": "KvQuantSparseFlashAttentionVllm",
+              "observed_block_num": null,
+              "observed_mix_block_num": null,
+              "native_abi": null,
+              "evidence_scope": "complete_duration_population_with_source_role_conditions",
+              "source_program_domain": "INT8_packed_D528_sparse_MLA_query_D512_output_D512",
+              "source_role": "indexed_attention_batch",
+              "execution_query_rows": 24,
+              "execution_batch": 4,
+              "query_tokens_per_sequence": 6,
+              "source_dtype_condition": "BF16 query/output, INT8 cache D528",
+              "source_logical_axes": {
+                "query_heads": 4,
+                "query_head_dim": 512,
+                "output_head_dim": 512
+              },
+              "routing_values_observed": false,
+              "buffer_capacity_is_valid_rows": false
+            },
+            "expected_rule_hits": 11,
+            "forward_count": 46,
+            "body_residual_used": false,
+            "strict_admission_changed": false,
+            "service_semantics": "one_complete_local_native_call; analytical_work_retained_as_reference",
+            "queue_scope": "one_declared_device_queue_shared_by_the_five_local_native_domains",
+            "physical_HBM_or_ISA_rate_identified": false
+          }
+        },
+        {
+          "id": "joint-hc_pre",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "declared_native_fusion",
+            "family": "native_fusion",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 98304,
+            "metadata.fusion_role": "hc_pre"
+          },
+          "response": {
+            "fixed_us": 28.900800966183574
+          },
+          "execution": {
+            "kind": "joint_native",
+            "native_kernel": "HcPre",
+            "resource": "observed_a3_local_native",
+            "reference_rate": 1000000000.0
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "input_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/native-joint-service-inputs.json",
+              "sha256": "d9dfbab2a371f073ec5e4ce4f06419efdb1c575843ece3254c7ec05ac8713e18",
+              "size_bytes": 2166772
+            },
+            "candidate_id": "sha256:4d1a16314c83fc6ca27ccce9e0bad63d26aacfcd8ab9f934e6b5083fdb340e02",
+            "source_identity": {
+              "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot30_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+              "size_bytes": 11734491,
+              "mtime_ns": 1793295009000000000,
+              "schema_version": "kernel_details_csv_46col",
+              "sha256": "35c1ff6c9570a472ca26f1bfa293cd09709a1e4d0f2984b039de9e48d961c1e2"
+            },
+            "timing_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-accepted-26/retained-four-actual/body-operator-glm53flash-a3-tp16-c4-livepre-new17.actual.json",
+              "sha256": "b347d2263e84d1fbffe1b190141357b4d97c4083d640ea0b51df7b32fcfc17b6",
+              "size_bytes": 831617
+            },
+            "timing_members": [
+              "families/15/duration_ns_counter",
+              "families/16/duration_ns_counter"
+            ],
+            "observed_native_elapsed_us": {
+              "count": 4140,
+              "mean_us": 28.900800966183574,
+              "p50_us": 28.821,
+              "p90_us": 30.98,
+              "min_us": 24.401,
+              "max_us": 35.84
+            },
+            "applicability_domain": {
+              "hardware": "Ascend910_9362",
+              "native_operator_type": "HcPre",
+              "observed_block_num": null,
+              "observed_mix_block_num": null,
+              "native_abi": null,
+              "evidence_scope": "complete_duration_population_with_source_role_conditions",
+              "source_program_domain": "hc_pre_m_k_split_175ef4d4",
+              "source_role": "hc_pre",
+              "execution_query_rows": 24,
+              "execution_batch": 4,
+              "query_tokens_per_sequence": 6,
+              "source_dtype_condition": "BF16 residual/hidden and FP32 mixing parameters",
+              "source_logical_axes": {
+                "hidden_width": 4096,
+                "residual_streams": 4
+              },
+              "routing_values_observed": false,
+              "buffer_capacity_is_valid_rows": false
+            },
+            "expected_rule_hits": 90,
+            "forward_count": 46,
+            "body_residual_used": false,
+            "strict_admission_changed": false,
+            "service_semantics": "one_complete_local_native_call; analytical_work_retained_as_reference",
+            "queue_scope": "one_declared_device_queue_shared_by_the_five_local_native_domains",
+            "physical_HBM_or_ISA_rate_identified": false
+          }
+        },
+        {
+          "id": "joint-hc_post",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "declared_native_fusion",
+            "family": "native_fusion",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 393216,
+            "metadata.fusion_role": "hc_post"
+          },
+          "response": {
+            "fixed_us": 10.681547101449276
+          },
+          "execution": {
+            "kind": "joint_native",
+            "native_kernel": "HcPost",
+            "resource": "observed_a3_local_native",
+            "reference_rate": 1000000000.0
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "input_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/native-joint-service-inputs.json",
+              "sha256": "d9dfbab2a371f073ec5e4ce4f06419efdb1c575843ece3254c7ec05ac8713e18",
+              "size_bytes": 2166772
+            },
+            "candidate_id": "sha256:f2e682bb43c8da3a63459853f0fe9426f0154ec3d054639d6a20e0495b021b5e",
+            "source_identity": {
+              "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot30_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+              "size_bytes": 11734491,
+              "mtime_ns": 1793295009000000000,
+              "schema_version": "kernel_details_csv_46col",
+              "sha256": "35c1ff6c9570a472ca26f1bfa293cd09709a1e4d0f2984b039de9e48d961c1e2"
+            },
+            "timing_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-accepted-26/retained-four-actual/body-operator-glm53flash-a3-tp16-c4-livepre-new17.actual.json",
+              "sha256": "b347d2263e84d1fbffe1b190141357b4d97c4083d640ea0b51df7b32fcfc17b6",
+              "size_bytes": 831617
+            },
+            "timing_members": [
+              "families/13/duration_ns_counter",
+              "families/14/duration_ns_counter"
+            ],
+            "observed_native_elapsed_us": {
+              "count": 4140,
+              "mean_us": 10.681547101449276,
+              "p50_us": 10.7,
+              "p90_us": 10.96,
+              "min_us": 9.48,
+              "max_us": 14.46
+            },
+            "applicability_domain": {
+              "hardware": "Ascend910_9362",
+              "native_operator_type": "HcPost",
+              "observed_block_num": null,
+              "observed_mix_block_num": null,
+              "native_abi": null,
+              "evidence_scope": "complete_duration_population_with_source_role_conditions",
+              "source_program_domain": "hc_post_d_split_175ef4d4",
+              "source_role": "hc_post",
+              "execution_query_rows": 24,
+              "execution_batch": 4,
+              "query_tokens_per_sequence": 6,
+              "source_dtype_condition": "BF16 residual/hidden and FP32 mixing parameters",
+              "source_logical_axes": {
+                "hidden_width": 4096,
+                "residual_streams": 4
+              },
+              "routing_values_observed": false,
+              "buffer_capacity_is_valid_rows": false
+            },
+            "expected_rule_hits": 90,
+            "forward_count": 46,
+            "body_residual_used": false,
+            "strict_admission_changed": false,
+            "service_semantics": "one_complete_local_native_call; analytical_work_retained_as_reference",
+            "queue_scope": "one_declared_device_queue_shared_by_the_five_local_native_domains",
+            "physical_HBM_or_ISA_rate_identified": false
+          }
+        }
+      ],
+      "replaced_same_native_completion_floors": [
+        {
+          "id": "groupedmatmul-expert_down-observed-0",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "grouped_down",
+            "family": "grouped_gemm",
+            "phase": "decode",
+            "dtype": "int8",
+            "local_shape.0": 12,
+            "local_shape.1": 4096,
+            "local_shape.2": 2048,
+            "metadata.weight_dtype": "int8"
+          },
+          "response": {
+            "fixed_us": 42.13763561076605
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_role": "in_sample",
+            "source_identity": {
+              "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot30_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+              "sha256": "35c1ff6c9570a472ca26f1bfa293cd09709a1e4d0f2984b039de9e48d961c1e2",
+              "size_bytes": 11734491
+            },
+            "observation_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-accepted-26/retained-four-actual/body-operator-glm53flash-a3-tp16-c4-livepre-new17.actual.json",
+              "sha256": "b347d2263e84d1fbffe1b190141357b4d97c4083d640ea0b51df7b32fcfc17b6",
+              "size_bytes": 831617
+            },
+            "native_operator_type": "GroupedMatmul:expert_down",
+            "complete_population": {
+              "count": 1932,
+              "mean_us": 42.13763561076605,
+              "p50_us": 37.591,
+              "duration_ns_counter": [
+                [
+                  8920,
+                  1
+                ],
+                [
+                  9460,
+                  1
+                ],
+                [
+                  9560,
+                  1
+                ],
+                [
+                  24220,
+                  1
+                ],
+                [
+                  24340,
+                  1
+                ],
+                [
+                  24400,
+                  1
+                ],
+                [
+                  24401,
+                  1
+                ],
+                [
+                  24540,
+                  1
+                ],
+                [
+                  24600,
+                  3
+                ],
+                [
+                  24640,
+                  1
+                ],
+                [
+                  24661,
+                  2
+                ],
+                [
+                  24680,
+                  1
+                ],
+                [
+                  24700,
+                  1
+                ],
+                [
+                  24701,
+                  1
+                ],
+                [
+                  24721,
+                  1
+                ],
+                [
+                  24761,
+                  1
+                ],
+                [
+                  24820,
+                  1
+                ],
+                [
+                  24841,
+                  1
+                ],
+                [
+                  24860,
+                  2
+                ],
+                [
+                  24880,
+                  1
+                ],
+                [
+                  24900,
+                  1
+                ],
+                [
+                  24980,
+                  2
+                ],
+                [
+                  25041,
+                  1
+                ],
+                [
+                  25060,
+                  1
+                ],
+                [
+                  25101,
+                  1
+                ],
+                [
+                  25120,
+                  1
+                ],
+                [
+                  25141,
+                  1
+                ],
+                [
+                  25180,
+                  2
+                ],
+                [
+                  25181,
+                  1
+                ],
+                [
+                  25221,
+                  3
+                ],
+                [
+                  25240,
+                  1
+                ],
+                [
+                  25241,
+                  1
+                ],
+                [
+                  25281,
+                  1
+                ],
+                [
+                  25301,
+                  1
+                ],
+                [
+                  25320,
+                  1
+                ],
+                [
+                  25341,
+                  1
+                ],
+                [
+                  25360,
+                  1
+                ],
+                [
+                  25400,
+                  1
+                ],
+                [
+                  25401,
+                  1
+                ],
+                [
+                  25420,
+                  1
+                ],
+                [
+                  25441,
+                  2
+                ],
+                [
+                  25480,
+                  1
+                ],
+                [
+                  25540,
+                  1
+                ],
+                [
+                  25560,
+                  2
+                ],
+                [
+                  25581,
+                  2
+                ],
+                [
+                  25621,
+                  1
+                ],
+                [
+                  25640,
+                  1
+                ],
+                [
+                  25641,
+                  2
+                ],
+                [
+                  25661,
+                  3
+                ],
+                [
+                  25680,
+                  1
+                ],
+                [
+                  25681,
+                  1
+                ],
+                [
+                  25700,
+                  1
+                ],
+                [
+                  25701,
+                  1
+                ],
+                [
+                  25721,
+                  2
+                ],
+                [
+                  25740,
+                  2
+                ],
+                [
+                  25801,
+                  3
+                ],
+                [
+                  25820,
+                  2
+                ],
+                [
+                  25841,
+                  1
+                ],
+                [
+                  25880,
+                  2
+                ],
+                [
+                  25901,
+                  1
+                ],
+                [
+                  25921,
+                  1
+                ],
+                [
+                  25980,
+                  2
+                ],
+                [
+                  25981,
+                  1
+                ],
+                [
+                  26020,
+                  1
+                ],
+                [
+                  26041,
+                  2
+                ],
+                [
+                  26060,
+                  1
+                ],
+                [
+                  26061,
+                  1
+                ],
+                [
+                  26080,
+                  1
+                ],
+                [
+                  26100,
+                  1
+                ],
+                [
+                  26101,
+                  1
+                ],
+                [
+                  26120,
+                  1
+                ],
+                [
+                  26140,
+                  1
+                ],
+                [
+                  26141,
+                  1
+                ],
+                [
+                  26160,
+                  1
+                ],
+                [
+                  26181,
+                  1
+                ],
+                [
+                  26200,
+                  2
+                ],
+                [
+                  26201,
+                  1
+                ],
+                [
+                  26220,
+                  1
+                ],
+                [
+                  26240,
+                  3
+                ],
+                [
+                  26241,
+                  1
+                ],
+                [
+                  26260,
+                  1
+                ],
+                [
+                  26261,
+                  1
+                ],
+                [
+                  26280,
+                  1
+                ],
+                [
+                  26281,
+                  1
+                ],
+                [
+                  26300,
+                  1
+                ],
+                [
+                  26301,
+                  2
+                ],
+                [
+                  26320,
+                  1
+                ],
+                [
+                  26340,
+                  1
+                ],
+                [
+                  26360,
+                  1
+                ],
+                [
+                  26361,
+                  2
+                ],
+                [
+                  26380,
+                  1
+                ],
+                [
+                  26401,
+                  1
+                ],
+                [
+                  26421,
+                  1
+                ],
+                [
+                  26441,
+                  1
+                ],
+                [
+                  26460,
+                  1
+                ],
+                [
+                  26461,
+                  2
+                ],
+                [
+                  26520,
+                  1
+                ],
+                [
+                  26521,
+                  3
+                ],
+                [
+                  26541,
+                  4
+                ],
+                [
+                  26561,
+                  2
+                ],
+                [
+                  26600,
+                  1
+                ],
+                [
+                  26601,
+                  1
+                ],
+                [
+                  26660,
+                  1
+                ],
+                [
+                  26720,
+                  1
+                ],
+                [
+                  26740,
+                  1
+                ],
+                [
+                  26741,
+                  1
+                ],
+                [
+                  26761,
+                  1
+                ],
+                [
+                  26800,
+                  1
+                ],
+                [
+                  26801,
+                  3
+                ],
+                [
+                  26820,
+                  1
+                ],
+                [
+                  26840,
+                  3
+                ],
+                [
+                  26841,
+                  1
+                ],
+                [
+                  26860,
+                  1
+                ],
+                [
+                  26861,
+                  1
+                ],
+                [
+                  26881,
+                  2
+                ],
+                [
+                  26901,
+                  3
+                ],
+                [
+                  26920,
+                  1
+                ],
+                [
+                  26940,
+                  1
+                ],
+                [
+                  26960,
+                  1
+                ],
+                [
+                  26961,
+                  3
+                ],
+                [
+                  26981,
+                  1
+                ],
+                [
+                  27000,
+                  2
+                ],
+                [
+                  27001,
+                  3
+                ],
+                [
+                  27021,
+                  2
+                ],
+                [
+                  27041,
+                  1
+                ],
+                [
+                  27060,
+                  2
+                ],
+                [
+                  27061,
+                  2
+                ],
+                [
+                  27080,
+                  1
+                ],
+                [
+                  27081,
+                  4
+                ],
+                [
+                  27100,
+                  1
+                ],
+                [
+                  27101,
+                  1
+                ],
+                [
+                  27120,
+                  1
+                ],
+                [
+                  27121,
+                  2
+                ],
+                [
+                  27141,
+                  2
+                ],
+                [
+                  27160,
+                  2
+                ],
+                [
+                  27161,
+                  4
+                ],
+                [
+                  27181,
+                  2
+                ],
+                [
+                  27201,
+                  1
+                ],
+                [
+                  27241,
+                  1
+                ],
+                [
+                  27260,
+                  1
+                ],
+                [
+                  27261,
+                  1
+                ],
+                [
+                  27280,
+                  2
+                ],
+                [
+                  27301,
+                  1
+                ],
+                [
+                  27320,
+                  2
+                ],
+                [
+                  27321,
+                  3
+                ],
+                [
+                  27340,
+                  2
+                ],
+                [
+                  27341,
+                  2
+                ],
+                [
+                  27360,
+                  2
+                ],
+                [
+                  27380,
+                  1
+                ],
+                [
+                  27381,
+                  2
+                ],
+                [
+                  27400,
+                  1
+                ],
+                [
+                  27440,
+                  1
+                ],
+                [
+                  27441,
+                  1
+                ],
+                [
+                  27460,
+                  4
+                ],
+                [
+                  27461,
+                  2
+                ],
+                [
+                  27500,
+                  2
+                ],
+                [
+                  27501,
+                  1
+                ],
+                [
+                  27520,
+                  1
+                ],
+                [
+                  27540,
+                  5
+                ],
+                [
+                  27541,
+                  3
+                ],
+                [
+                  27560,
+                  2
+                ],
+                [
+                  27561,
+                  1
+                ],
+                [
+                  27580,
+                  1
+                ],
+                [
+                  27581,
+                  1
+                ],
+                [
+                  27600,
+                  2
+                ],
+                [
+                  27601,
+                  2
+                ],
+                [
+                  27620,
+                  1
+                ],
+                [
+                  27621,
+                  3
+                ],
+                [
+                  27640,
+                  1
+                ],
+                [
+                  27641,
+                  4
+                ],
+                [
+                  27660,
+                  2
+                ],
+                [
+                  27661,
+                  3
+                ],
+                [
+                  27680,
+                  1
+                ],
+                [
+                  27681,
+                  2
+                ],
+                [
+                  27700,
+                  2
+                ],
+                [
+                  27720,
+                  1
+                ],
+                [
+                  27740,
+                  3
+                ],
+                [
+                  27760,
+                  3
+                ],
+                [
+                  27761,
+                  3
+                ],
+                [
+                  27780,
+                  1
+                ],
+                [
+                  27781,
+                  1
+                ],
+                [
+                  27800,
+                  1
+                ],
+                [
+                  27801,
+                  1
+                ],
+                [
+                  27820,
+                  2
+                ],
+                [
+                  27821,
+                  1
+                ],
+                [
+                  27841,
+                  2
+                ],
+                [
+                  27860,
+                  3
+                ],
+                [
+                  27881,
+                  3
+                ],
+                [
+                  27900,
+                  2
+                ],
+                [
+                  27901,
+                  1
+                ],
+                [
+                  27921,
+                  2
+                ],
+                [
+                  27941,
+                  3
+                ],
+                [
+                  27960,
+                  3
+                ],
+                [
+                  27961,
+                  2
+                ],
+                [
+                  27980,
+                  1
+                ],
+                [
+                  27981,
+                  2
+                ],
+                [
+                  28000,
+                  2
+                ],
+                [
+                  28001,
+                  4
+                ],
+                [
+                  28020,
+                  4
+                ],
+                [
+                  28021,
+                  2
+                ],
+                [
+                  28040,
+                  1
+                ],
+                [
+                  28041,
+                  3
+                ],
+                [
+                  28060,
+                  1
+                ],
+                [
+                  28061,
+                  3
+                ],
+                [
+                  28080,
+                  2
+                ],
+                [
+                  28081,
+                  4
+                ],
+                [
+                  28100,
+                  2
+                ],
+                [
+                  28141,
+                  1
+                ],
+                [
+                  28160,
+                  2
+                ],
+                [
+                  28161,
+                  1
+                ],
+                [
+                  28180,
+                  1
+                ],
+                [
+                  28181,
+                  2
+                ],
+                [
+                  28201,
+                  2
+                ],
+                [
+                  28220,
+                  1
+                ],
+                [
+                  28221,
+                  2
+                ],
+                [
+                  28241,
+                  1
+                ],
+                [
+                  28260,
+                  1
+                ],
+                [
+                  28261,
+                  1
+                ],
+                [
+                  28280,
+                  2
+                ],
+                [
+                  28281,
+                  1
+                ],
+                [
+                  28300,
+                  2
+                ],
+                [
+                  28301,
+                  2
+                ],
+                [
+                  28341,
+                  2
+                ],
+                [
+                  28380,
+                  3
+                ],
+                [
+                  28400,
+                  1
+                ],
+                [
+                  28401,
+                  2
+                ],
+                [
+                  28420,
+                  1
+                ],
+                [
+                  28440,
+                  3
+                ],
+                [
+                  28480,
+                  1
+                ],
+                [
+                  28481,
+                  1
+                ],
+                [
+                  28501,
+                  2
+                ],
+                [
+                  28520,
+                  2
+                ],
+                [
+                  28560,
+                  2
+                ],
+                [
+                  28580,
+                  1
+                ],
+                [
+                  28620,
+                  1
+                ],
+                [
+                  28621,
+                  1
+                ],
+                [
+                  28661,
+                  1
+                ],
+                [
+                  28700,
+                  1
+                ],
+                [
+                  28701,
+                  2
+                ],
+                [
+                  28721,
+                  1
+                ],
+                [
+                  28761,
+                  1
+                ],
+                [
+                  28821,
+                  1
+                ],
+                [
+                  28841,
+                  1
+                ],
+                [
+                  28880,
+                  1
+                ],
+                [
+                  28881,
+                  1
+                ],
+                [
+                  28900,
+                  1
+                ],
+                [
+                  28961,
+                  1
+                ],
+                [
+                  29000,
+                  1
+                ],
+                [
+                  29021,
+                  2
+                ],
+                [
+                  29060,
+                  1
+                ],
+                [
+                  29061,
+                  1
+                ],
+                [
+                  29081,
+                  1
+                ],
+                [
+                  29120,
+                  1
+                ],
+                [
+                  29141,
+                  1
+                ],
+                [
+                  29161,
+                  1
+                ],
+                [
+                  29181,
+                  1
+                ],
+                [
+                  29221,
+                  1
+                ],
+                [
+                  29241,
+                  1
+                ],
+                [
+                  29260,
+                  1
+                ],
+                [
+                  29300,
+                  1
+                ],
+                [
+                  29301,
+                  1
+                ],
+                [
+                  29321,
+                  1
+                ],
+                [
+                  29341,
+                  1
+                ],
+                [
+                  29481,
+                  1
+                ],
+                [
+                  29701,
+                  2
+                ],
+                [
+                  29720,
+                  1
+                ],
+                [
+                  29860,
+                  1
+                ],
+                [
+                  30020,
+                  1
+                ],
+                [
+                  30021,
+                  1
+                ],
+                [
+                  30041,
+                  1
+                ],
+                [
+                  30061,
+                  1
+                ],
+                [
+                  30121,
+                  1
+                ],
+                [
+                  30180,
+                  1
+                ],
+                [
+                  30241,
+                  1
+                ],
+                [
+                  30401,
+                  1
+                ],
+                [
+                  30541,
+                  1
+                ],
+                [
+                  30581,
+                  1
+                ],
+                [
+                  30640,
+                  1
+                ],
+                [
+                  30641,
+                  1
+                ],
+                [
+                  30660,
+                  1
+                ],
+                [
+                  30740,
+                  2
+                ],
+                [
+                  30741,
+                  1
+                ],
+                [
+                  30761,
+                  2
+                ],
+                [
+                  30780,
+                  1
+                ],
+                [
+                  30801,
+                  2
+                ],
+                [
+                  30820,
+                  1
+                ],
+                [
+                  30860,
+                  1
+                ],
+                [
+                  30861,
+                  1
+                ],
+                [
+                  30881,
+                  1
+                ],
+                [
+                  30921,
+                  1
+                ],
+                [
+                  30940,
+                  2
+                ],
+                [
+                  30960,
+                  1
+                ],
+                [
+                  30961,
+                  2
+                ],
+                [
+                  30980,
+                  1
+                ],
+                [
+                  30981,
+                  2
+                ],
+                [
+                  31000,
+                  3
+                ],
+                [
+                  31001,
+                  1
+                ],
+                [
+                  31020,
+                  1
+                ],
+                [
+                  31021,
+                  1
+                ],
+                [
+                  31040,
+                  1
+                ],
+                [
+                  31041,
+                  1
+                ],
+                [
+                  31081,
+                  1
+                ],
+                [
+                  31100,
+                  1
+                ],
+                [
+                  31101,
+                  1
+                ],
+                [
+                  31121,
+                  2
+                ],
+                [
+                  31140,
+                  1
+                ],
+                [
+                  31141,
+                  1
+                ],
+                [
+                  31161,
+                  1
+                ],
+                [
+                  31181,
+                  2
+                ],
+                [
+                  31200,
+                  1
+                ],
+                [
+                  31201,
+                  2
+                ],
+                [
+                  31220,
+                  1
+                ],
+                [
+                  31221,
+                  1
+                ],
+                [
+                  31240,
+                  3
+                ],
+                [
+                  31241,
+                  1
+                ],
+                [
+                  31260,
+                  2
+                ],
+                [
+                  31281,
+                  3
+                ],
+                [
+                  31300,
+                  1
+                ],
+                [
+                  31301,
+                  1
+                ],
+                [
+                  31321,
+                  2
+                ],
+                [
+                  31340,
+                  2
+                ],
+                [
+                  31360,
+                  2
+                ],
+                [
+                  31361,
+                  2
+                ],
+                [
+                  31380,
+                  2
+                ],
+                [
+                  31400,
+                  3
+                ],
+                [
+                  31401,
+                  1
+                ],
+                [
+                  31420,
+                  2
+                ],
+                [
+                  31421,
+                  2
+                ],
+                [
+                  31441,
+                  3
+                ],
+                [
+                  31481,
+                  4
+                ],
+                [
+                  31500,
+                  2
+                ],
+                [
+                  31501,
+                  1
+                ],
+                [
+                  31521,
+                  2
+                ],
+                [
+                  31541,
+                  1
+                ],
+                [
+                  31560,
+                  2
+                ],
+                [
+                  31561,
+                  1
+                ],
+                [
+                  31580,
+                  2
+                ],
+                [
+                  31581,
+                  1
+                ],
+                [
+                  31600,
+                  1
+                ],
+                [
+                  31601,
+                  1
+                ],
+                [
+                  31621,
+                  2
+                ],
+                [
+                  31640,
+                  2
+                ],
+                [
+                  31641,
+                  2
+                ],
+                [
+                  31660,
+                  1
+                ],
+                [
+                  31661,
+                  5
+                ],
+                [
+                  31681,
+                  1
+                ],
+                [
+                  31700,
+                  2
+                ],
+                [
+                  31701,
+                  3
+                ],
+                [
+                  31721,
+                  1
+                ],
+                [
+                  31740,
+                  2
+                ],
+                [
+                  31741,
+                  3
+                ],
+                [
+                  31760,
+                  1
+                ],
+                [
+                  31781,
+                  1
+                ],
+                [
+                  31801,
+                  2
+                ],
+                [
+                  31820,
+                  1
+                ],
+                [
+                  31821,
+                  1
+                ],
+                [
+                  31840,
+                  1
+                ],
+                [
+                  31841,
+                  2
+                ],
+                [
+                  31860,
+                  3
+                ],
+                [
+                  31861,
+                  1
+                ],
+                [
+                  31880,
+                  2
+                ],
+                [
+                  31881,
+                  1
+                ],
+                [
+                  31900,
+                  2
+                ],
+                [
+                  31901,
+                  4
+                ],
+                [
+                  31921,
+                  1
+                ],
+                [
+                  31940,
+                  2
+                ],
+                [
+                  31941,
+                  2
+                ],
+                [
+                  31960,
+                  1
+                ],
+                [
+                  31961,
+                  2
+                ],
+                [
+                  31981,
+                  1
+                ],
+                [
+                  32000,
+                  1
+                ],
+                [
+                  32001,
+                  2
+                ],
+                [
+                  32021,
+                  1
+                ],
+                [
+                  32040,
+                  1
+                ],
+                [
+                  32041,
+                  3
+                ],
+                [
+                  32060,
+                  1
+                ],
+                [
+                  32061,
+                  2
+                ],
+                [
+                  32080,
+                  1
+                ],
+                [
+                  32081,
+                  2
+                ],
+                [
+                  32101,
+                  2
+                ],
+                [
+                  32120,
+                  2
+                ],
+                [
+                  32121,
+                  4
+                ],
+                [
+                  32140,
+                  1
+                ],
+                [
+                  32141,
+                  3
+                ],
+                [
+                  32161,
+                  2
+                ],
+                [
+                  32180,
+                  1
+                ],
+                [
+                  32201,
+                  1
+                ],
+                [
+                  32221,
+                  3
+                ],
+                [
+                  32241,
+                  2
+                ],
+                [
+                  32280,
+                  3
+                ],
+                [
+                  32281,
+                  3
+                ],
+                [
+                  32300,
+                  1
+                ],
+                [
+                  32320,
+                  1
+                ],
+                [
+                  32341,
+                  3
+                ],
+                [
+                  32381,
+                  2
+                ],
+                [
+                  32400,
+                  1
+                ],
+                [
+                  32401,
+                  2
+                ],
+                [
+                  32420,
+                  1
+                ],
+                [
+                  32421,
+                  2
+                ],
+                [
+                  32441,
+                  1
+                ],
+                [
+                  32460,
+                  2
+                ],
+                [
+                  32461,
+                  3
+                ],
+                [
+                  32481,
+                  2
+                ],
+                [
+                  32501,
+                  1
+                ],
+                [
+                  32520,
+                  1
+                ],
+                [
+                  32521,
+                  1
+                ],
+                [
+                  32540,
+                  3
+                ],
+                [
+                  32561,
+                  1
+                ],
+                [
+                  32580,
+                  1
+                ],
+                [
+                  32600,
+                  1
+                ],
+                [
+                  32601,
+                  2
+                ],
+                [
+                  32620,
+                  1
+                ],
+                [
+                  32621,
+                  1
+                ],
+                [
+                  32641,
+                  2
+                ],
+                [
+                  32660,
+                  1
+                ],
+                [
+                  32680,
+                  1
+                ],
+                [
+                  32681,
+                  3
+                ],
+                [
+                  32700,
+                  2
+                ],
+                [
+                  32760,
+                  1
+                ],
+                [
+                  32761,
+                  2
+                ],
+                [
+                  32780,
+                  1
+                ],
+                [
+                  32781,
+                  1
+                ],
+                [
+                  32801,
+                  1
+                ],
+                [
+                  32820,
+                  1
+                ],
+                [
+                  32821,
+                  1
+                ],
+                [
+                  32840,
+                  2
+                ],
+                [
+                  32841,
+                  4
+                ],
+                [
+                  32861,
+                  1
+                ],
+                [
+                  32920,
+                  1
+                ],
+                [
+                  32921,
+                  2
+                ],
+                [
+                  32961,
+                  2
+                ],
+                [
+                  32981,
+                  1
+                ],
+                [
+                  33020,
+                  1
+                ],
+                [
+                  33021,
+                  1
+                ],
+                [
+                  33080,
+                  2
+                ],
+                [
+                  33081,
+                  3
+                ],
+                [
+                  33100,
+                  2
+                ],
+                [
+                  33120,
+                  2
+                ],
+                [
+                  33141,
+                  2
+                ],
+                [
+                  33161,
+                  1
+                ],
+                [
+                  33180,
+                  1
+                ],
+                [
+                  33200,
+                  1
+                ],
+                [
+                  33201,
+                  1
+                ],
+                [
+                  33221,
+                  2
+                ],
+                [
+                  33241,
+                  1
+                ],
+                [
+                  33261,
+                  1
+                ],
+                [
+                  33280,
+                  1
+                ],
+                [
+                  33300,
+                  1
+                ],
+                [
+                  33301,
+                  3
+                ],
+                [
+                  33341,
+                  1
+                ],
+                [
+                  33361,
+                  1
+                ],
+                [
+                  33441,
+                  1
+                ],
+                [
+                  33501,
+                  1
+                ],
+                [
+                  33521,
+                  1
+                ],
+                [
+                  33561,
+                  1
+                ],
+                [
+                  33600,
+                  1
+                ],
+                [
+                  33701,
+                  1
+                ],
+                [
+                  33760,
+                  1
+                ],
+                [
+                  33820,
+                  1
+                ],
+                [
+                  33841,
+                  1
+                ],
+                [
+                  34001,
+                  1
+                ],
+                [
+                  34100,
+                  1
+                ],
+                [
+                  34160,
+                  2
+                ],
+                [
+                  34420,
+                  1
+                ],
+                [
+                  34421,
+                  1
+                ],
+                [
+                  34481,
+                  1
+                ],
+                [
+                  34660,
+                  1
+                ],
+                [
+                  34681,
+                  1
+                ],
+                [
+                  34941,
+                  1
+                ],
+                [
+                  35021,
+                  1
+                ],
+                [
+                  35160,
+                  1
+                ],
+                [
+                  35180,
+                  1
+                ],
+                [
+                  35561,
+                  1
+                ],
+                [
+                  35581,
+                  1
+                ],
+                [
+                  35601,
+                  1
+                ],
+                [
+                  35641,
+                  2
+                ],
+                [
+                  35661,
+                  1
+                ],
+                [
+                  35680,
+                  1
+                ],
+                [
+                  35681,
+                  1
+                ],
+                [
+                  35801,
+                  1
+                ],
+                [
+                  35841,
+                  1
+                ],
+                [
+                  35880,
+                  1
+                ],
+                [
+                  35881,
+                  1
+                ],
+                [
+                  35901,
+                  1
+                ],
+                [
+                  35920,
+                  1
+                ],
+                [
+                  35921,
+                  1
+                ],
+                [
+                  35940,
+                  1
+                ],
+                [
+                  35941,
+                  1
+                ],
+                [
+                  35960,
+                  1
+                ],
+                [
+                  35980,
+                  1
+                ],
+                [
+                  35981,
+                  1
+                ],
+                [
+                  36020,
+                  1
+                ],
+                [
+                  36021,
+                  1
+                ],
+                [
+                  36080,
+                  1
+                ],
+                [
+                  36100,
+                  1
+                ],
+                [
+                  36101,
+                  2
+                ],
+                [
+                  36120,
+                  1
+                ],
+                [
+                  36121,
+                  1
+                ],
+                [
+                  36140,
+                  1
+                ],
+                [
+                  36141,
+                  4
+                ],
+                [
+                  36160,
+                  1
+                ],
+                [
+                  36181,
+                  1
+                ],
+                [
+                  36201,
+                  2
+                ],
+                [
+                  36221,
+                  1
+                ],
+                [
+                  36261,
+                  4
+                ],
+                [
+                  36280,
+                  1
+                ],
+                [
+                  36281,
+                  2
+                ],
+                [
+                  36300,
+                  2
+                ],
+                [
+                  36301,
+                  2
+                ],
+                [
+                  36320,
+                  1
+                ],
+                [
+                  36321,
+                  1
+                ],
+                [
+                  36361,
+                  1
+                ],
+                [
+                  36381,
+                  1
+                ],
+                [
+                  36440,
+                  1
+                ],
+                [
+                  36441,
+                  5
+                ],
+                [
+                  36461,
+                  4
+                ],
+                [
+                  36481,
+                  3
+                ],
+                [
+                  36500,
+                  1
+                ],
+                [
+                  36501,
+                  3
+                ],
+                [
+                  36521,
+                  2
+                ],
+                [
+                  36540,
+                  1
+                ],
+                [
+                  36541,
+                  1
+                ],
+                [
+                  36560,
+                  1
+                ],
+                [
+                  36561,
+                  4
+                ],
+                [
+                  36580,
+                  2
+                ],
+                [
+                  36581,
+                  4
+                ],
+                [
+                  36600,
+                  1
+                ],
+                [
+                  36601,
+                  1
+                ],
+                [
+                  36620,
+                  2
+                ],
+                [
+                  36621,
+                  2
+                ],
+                [
+                  36641,
+                  4
+                ],
+                [
+                  36660,
+                  1
+                ],
+                [
+                  36661,
+                  3
+                ],
+                [
+                  36680,
+                  2
+                ],
+                [
+                  36681,
+                  2
+                ],
+                [
+                  36700,
+                  2
+                ],
+                [
+                  36701,
+                  2
+                ],
+                [
+                  36720,
+                  2
+                ],
+                [
+                  36721,
+                  6
+                ],
+                [
+                  36740,
+                  2
+                ],
+                [
+                  36741,
+                  2
+                ],
+                [
+                  36761,
+                  3
+                ],
+                [
+                  36780,
+                  1
+                ],
+                [
+                  36781,
+                  2
+                ],
+                [
+                  36801,
+                  5
+                ],
+                [
+                  36820,
+                  2
+                ],
+                [
+                  36821,
+                  1
+                ],
+                [
+                  36841,
+                  2
+                ],
+                [
+                  36860,
+                  3
+                ],
+                [
+                  36861,
+                  3
+                ],
+                [
+                  36881,
+                  3
+                ],
+                [
+                  36901,
+                  1
+                ],
+                [
+                  36921,
+                  1
+                ],
+                [
+                  36941,
+                  3
+                ],
+                [
+                  36961,
+                  1
+                ],
+                [
+                  36981,
+                  2
+                ],
+                [
+                  37000,
+                  4
+                ],
+                [
+                  37001,
+                  5
+                ],
+                [
+                  37021,
+                  1
+                ],
+                [
+                  37041,
+                  2
+                ],
+                [
+                  37061,
+                  1
+                ],
+                [
+                  37080,
+                  2
+                ],
+                [
+                  37081,
+                  1
+                ],
+                [
+                  37100,
+                  2
+                ],
+                [
+                  37101,
+                  5
+                ],
+                [
+                  37120,
+                  1
+                ],
+                [
+                  37121,
+                  1
+                ],
+                [
+                  37141,
+                  2
+                ],
+                [
+                  37160,
+                  1
+                ],
+                [
+                  37161,
+                  1
+                ],
+                [
+                  37181,
+                  3
+                ],
+                [
+                  37220,
+                  1
+                ],
+                [
+                  37221,
+                  2
+                ],
+                [
+                  37241,
+                  1
+                ],
+                [
+                  37261,
+                  4
+                ],
+                [
+                  37280,
+                  1
+                ],
+                [
+                  37281,
+                  2
+                ],
+                [
+                  37300,
+                  1
+                ],
+                [
+                  37301,
+                  1
+                ],
+                [
+                  37320,
+                  1
+                ],
+                [
+                  37321,
+                  4
+                ],
+                [
+                  37341,
+                  2
+                ],
+                [
+                  37361,
+                  2
+                ],
+                [
+                  37380,
+                  2
+                ],
+                [
+                  37381,
+                  1
+                ],
+                [
+                  37400,
+                  2
+                ],
+                [
+                  37401,
+                  2
+                ],
+                [
+                  37420,
+                  2
+                ],
+                [
+                  37421,
+                  1
+                ],
+                [
+                  37441,
+                  2
+                ],
+                [
+                  37461,
+                  1
+                ],
+                [
+                  37481,
+                  4
+                ],
+                [
+                  37501,
+                  1
+                ],
+                [
+                  37521,
+                  2
+                ],
+                [
+                  37540,
+                  1
+                ],
+                [
+                  37541,
+                  3
+                ],
+                [
+                  37561,
+                  3
+                ],
+                [
+                  37581,
+                  2
+                ],
+                [
+                  37601,
+                  1
+                ],
+                [
+                  37620,
+                  3
+                ],
+                [
+                  37641,
+                  3
+                ],
+                [
+                  37660,
+                  1
+                ],
+                [
+                  37661,
+                  2
+                ],
+                [
+                  37681,
+                  1
+                ],
+                [
+                  37700,
+                  1
+                ],
+                [
+                  37721,
+                  4
+                ],
+                [
+                  37740,
+                  1
+                ],
+                [
+                  37741,
+                  1
+                ],
+                [
+                  37761,
+                  1
+                ],
+                [
+                  37781,
+                  2
+                ],
+                [
+                  37801,
+                  1
+                ],
+                [
+                  37821,
+                  2
+                ],
+                [
+                  37841,
+                  2
+                ],
+                [
+                  37880,
+                  1
+                ],
+                [
+                  37881,
+                  1
+                ],
+                [
+                  37900,
+                  1
+                ],
+                [
+                  37901,
+                  3
+                ],
+                [
+                  37921,
+                  2
+                ],
+                [
+                  37960,
+                  1
+                ],
+                [
+                  37961,
+                  2
+                ],
+                [
+                  37981,
+                  1
+                ],
+                [
+                  38000,
+                  2
+                ],
+                [
+                  38041,
+                  1
+                ],
+                [
+                  38061,
+                  1
+                ],
+                [
+                  38080,
+                  2
+                ],
+                [
+                  38081,
+                  1
+                ],
+                [
+                  38101,
+                  2
+                ],
+                [
+                  38120,
+                  1
+                ],
+                [
+                  38141,
+                  3
+                ],
+                [
+                  38180,
+                  2
+                ],
+                [
+                  38181,
+                  3
+                ],
+                [
+                  38200,
+                  1
+                ],
+                [
+                  38241,
+                  1
+                ],
+                [
+                  38261,
+                  3
+                ],
+                [
+                  38300,
+                  1
+                ],
+                [
+                  38301,
+                  3
+                ],
+                [
+                  38321,
+                  2
+                ],
+                [
+                  38341,
+                  1
+                ],
+                [
+                  38361,
+                  1
+                ],
+                [
+                  38381,
+                  2
+                ],
+                [
+                  38401,
+                  1
+                ],
+                [
+                  38440,
+                  2
+                ],
+                [
+                  38460,
+                  1
+                ],
+                [
+                  38501,
+                  2
+                ],
+                [
+                  38520,
+                  1
+                ],
+                [
+                  38561,
+                  1
+                ],
+                [
+                  38581,
+                  2
+                ],
+                [
+                  38600,
+                  1
+                ],
+                [
+                  38601,
+                  1
+                ],
+                [
+                  38660,
+                  1
+                ],
+                [
+                  38681,
+                  1
+                ],
+                [
+                  38700,
+                  1
+                ],
+                [
+                  38720,
+                  2
+                ],
+                [
+                  38740,
+                  1
+                ],
+                [
+                  38741,
+                  1
+                ],
+                [
+                  38800,
+                  1
+                ],
+                [
+                  38801,
+                  1
+                ],
+                [
+                  38820,
+                  1
+                ],
+                [
+                  38821,
+                  1
+                ],
+                [
+                  38961,
+                  1
+                ],
+                [
+                  39021,
+                  2
+                ],
+                [
+                  39101,
+                  1
+                ],
+                [
+                  39141,
+                  1
+                ],
+                [
+                  39181,
+                  1
+                ],
+                [
+                  39260,
+                  1
+                ],
+                [
+                  39280,
+                  1
+                ],
+                [
+                  39321,
+                  1
+                ],
+                [
+                  39361,
+                  1
+                ],
+                [
+                  39381,
+                  1
+                ],
+                [
+                  39400,
+                  1
+                ],
+                [
+                  39481,
+                  1
+                ],
+                [
+                  39501,
+                  1
+                ],
+                [
+                  39561,
+                  1
+                ],
+                [
+                  39641,
+                  1
+                ],
+                [
+                  39681,
+                  1
+                ],
+                [
+                  39881,
+                  1
+                ],
+                [
+                  40001,
+                  1
+                ],
+                [
+                  40121,
+                  1
+                ],
+                [
+                  40201,
+                  1
+                ],
+                [
+                  40661,
+                  1
+                ],
+                [
+                  40801,
+                  1
+                ],
+                [
+                  40821,
+                  1
+                ],
+                [
+                  41040,
+                  1
+                ],
+                [
+                  42321,
+                  1
+                ],
+                [
+                  42421,
+                  1
+                ],
+                [
+                  42481,
+                  1
+                ],
+                [
+                  42901,
+                  1
+                ],
+                [
+                  43421,
+                  1
+                ],
+                [
+                  43661,
+                  1
+                ],
+                [
+                  44721,
+                  1
+                ],
+                [
+                  44761,
+                  1
+                ],
+                [
+                  45321,
+                  1
+                ],
+                [
+                  48161,
+                  1
+                ],
+                [
+                  48201,
+                  1
+                ],
+                [
+                  48301,
+                  1
+                ],
+                [
+                  48761,
+                  1
+                ],
+                [
+                  48821,
+                  1
+                ],
+                [
+                  48881,
+                  1
+                ],
+                [
+                  48981,
+                  1
+                ],
+                [
+                  49021,
+                  1
+                ],
+                [
+                  49201,
+                  1
+                ],
+                [
+                  49280,
+                  1
+                ],
+                [
+                  49341,
+                  1
+                ],
+                [
+                  49361,
+                  2
+                ],
+                [
+                  49381,
+                  1
+                ],
+                [
+                  49401,
+                  1
+                ],
+                [
+                  49441,
+                  1
+                ],
+                [
+                  49461,
+                  1
+                ],
+                [
+                  49481,
+                  2
+                ],
+                [
+                  49541,
+                  1
+                ],
+                [
+                  49561,
+                  1
+                ],
+                [
+                  49581,
+                  1
+                ],
+                [
+                  49621,
+                  2
+                ],
+                [
+                  49661,
+                  1
+                ],
+                [
+                  49781,
+                  2
+                ],
+                [
+                  49801,
+                  1
+                ],
+                [
+                  49821,
+                  2
+                ],
+                [
+                  49861,
+                  2
+                ],
+                [
+                  49881,
+                  1
+                ],
+                [
+                  49901,
+                  1
+                ],
+                [
+                  49921,
+                  2
+                ],
+                [
+                  49941,
+                  1
+                ],
+                [
+                  49981,
+                  3
+                ],
+                [
+                  50021,
+                  1
+                ],
+                [
+                  50061,
+                  1
+                ],
+                [
+                  50081,
+                  1
+                ],
+                [
+                  50121,
+                  1
+                ],
+                [
+                  50181,
+                  1
+                ],
+                [
+                  50201,
+                  2
+                ],
+                [
+                  50241,
+                  3
+                ],
+                [
+                  50261,
+                  3
+                ],
+                [
+                  50281,
+                  2
+                ],
+                [
+                  50301,
+                  1
+                ],
+                [
+                  50321,
+                  2
+                ],
+                [
+                  50381,
+                  3
+                ],
+                [
+                  50401,
+                  2
+                ],
+                [
+                  50421,
+                  3
+                ],
+                [
+                  50461,
+                  6
+                ],
+                [
+                  50481,
+                  2
+                ],
+                [
+                  50501,
+                  1
+                ],
+                [
+                  50561,
+                  2
+                ],
+                [
+                  50581,
+                  2
+                ],
+                [
+                  50601,
+                  2
+                ],
+                [
+                  50641,
+                  2
+                ],
+                [
+                  50661,
+                  1
+                ],
+                [
+                  50681,
+                  3
+                ],
+                [
+                  50701,
+                  1
+                ],
+                [
+                  50721,
+                  1
+                ],
+                [
+                  50761,
+                  2
+                ],
+                [
+                  50781,
+                  1
+                ],
+                [
+                  50801,
+                  1
+                ],
+                [
+                  50821,
+                  3
+                ],
+                [
+                  50841,
+                  2
+                ],
+                [
+                  50861,
+                  4
+                ],
+                [
+                  50901,
+                  4
+                ],
+                [
+                  50921,
+                  4
+                ],
+                [
+                  50941,
+                  3
+                ],
+                [
+                  50961,
+                  1
+                ],
+                [
+                  50981,
+                  2
+                ],
+                [
+                  51001,
+                  3
+                ],
+                [
+                  51002,
+                  1
+                ],
+                [
+                  51021,
+                  1
+                ],
+                [
+                  51041,
+                  2
+                ],
+                [
+                  51061,
+                  3
+                ],
+                [
+                  51081,
+                  1
+                ],
+                [
+                  51082,
+                  1
+                ],
+                [
+                  51121,
+                  2
+                ],
+                [
+                  51141,
+                  7
+                ],
+                [
+                  51181,
+                  1
+                ],
+                [
+                  51201,
+                  2
+                ],
+                [
+                  51221,
+                  1
+                ],
+                [
+                  51261,
+                  1
+                ],
+                [
+                  51281,
+                  1
+                ],
+                [
+                  51301,
+                  1
+                ],
+                [
+                  51321,
+                  2
+                ],
+                [
+                  51341,
+                  2
+                ],
+                [
+                  51361,
+                  3
+                ],
+                [
+                  51381,
+                  3
+                ],
+                [
+                  51401,
+                  1
+                ],
+                [
+                  51402,
+                  1
+                ],
+                [
+                  51421,
+                  3
+                ],
+                [
+                  51441,
+                  3
+                ],
+                [
+                  51442,
+                  1
+                ],
+                [
+                  51461,
+                  5
+                ],
+                [
+                  51481,
+                  5
+                ],
+                [
+                  51482,
+                  1
+                ],
+                [
+                  51501,
+                  2
+                ],
+                [
+                  51521,
+                  2
+                ],
+                [
+                  51541,
+                  1
+                ],
+                [
+                  51581,
+                  2
+                ],
+                [
+                  51601,
+                  2
+                ],
+                [
+                  51621,
+                  2
+                ],
+                [
+                  51661,
+                  3
+                ],
+                [
+                  51701,
+                  1
+                ],
+                [
+                  51721,
+                  5
+                ],
+                [
+                  51741,
+                  2
+                ],
+                [
+                  51761,
+                  2
+                ],
+                [
+                  51801,
+                  1
+                ],
+                [
+                  51841,
+                  3
+                ],
+                [
+                  51861,
+                  4
+                ],
+                [
+                  51901,
+                  5
+                ],
+                [
+                  51921,
+                  2
+                ],
+                [
+                  51941,
+                  2
+                ],
+                [
+                  51961,
+                  4
+                ],
+                [
+                  51981,
+                  4
+                ],
+                [
+                  52001,
+                  2
+                ],
+                [
+                  52021,
+                  3
+                ],
+                [
+                  52061,
+                  3
+                ],
+                [
+                  52081,
+                  3
+                ],
+                [
+                  52101,
+                  3
+                ],
+                [
+                  52121,
+                  1
+                ],
+                [
+                  52141,
+                  2
+                ],
+                [
+                  52161,
+                  2
+                ],
+                [
+                  52181,
+                  1
+                ],
+                [
+                  52201,
+                  5
+                ],
+                [
+                  52221,
+                  6
+                ],
+                [
+                  52241,
+                  4
+                ],
+                [
+                  52261,
+                  3
+                ],
+                [
+                  52281,
+                  1
+                ],
+                [
+                  52301,
+                  2
+                ],
+                [
+                  52302,
+                  2
+                ],
+                [
+                  52321,
+                  2
+                ],
+                [
+                  52341,
+                  1
+                ],
+                [
+                  52361,
+                  3
+                ],
+                [
+                  52381,
+                  2
+                ],
+                [
+                  52401,
+                  2
+                ],
+                [
+                  52402,
+                  1
+                ],
+                [
+                  52421,
+                  4
+                ],
+                [
+                  52441,
+                  7
+                ],
+                [
+                  52461,
+                  1
+                ],
+                [
+                  52481,
+                  3
+                ],
+                [
+                  52501,
+                  4
+                ],
+                [
+                  52521,
+                  2
+                ],
+                [
+                  52522,
+                  1
+                ],
+                [
+                  52541,
+                  6
+                ],
+                [
+                  52561,
+                  2
+                ],
+                [
+                  52581,
+                  2
+                ],
+                [
+                  52601,
+                  1
+                ],
+                [
+                  52621,
+                  2
+                ],
+                [
+                  52622,
+                  1
+                ],
+                [
+                  52641,
+                  5
+                ],
+                [
+                  52661,
+                  2
+                ],
+                [
+                  52662,
+                  1
+                ],
+                [
+                  52681,
+                  2
+                ],
+                [
+                  52701,
+                  2
+                ],
+                [
+                  52721,
+                  1
+                ],
+                [
+                  52741,
+                  2
+                ],
+                [
+                  52761,
+                  2
+                ],
+                [
+                  52781,
+                  2
+                ],
+                [
+                  52801,
+                  2
+                ],
+                [
+                  52821,
+                  1
+                ],
+                [
+                  52861,
+                  2
+                ],
+                [
+                  52881,
+                  3
+                ],
+                [
+                  52901,
+                  3
+                ],
+                [
+                  52921,
+                  7
+                ],
+                [
+                  52922,
+                  1
+                ],
+                [
+                  52941,
+                  5
+                ],
+                [
+                  52942,
+                  2
+                ],
+                [
+                  52961,
+                  4
+                ],
+                [
+                  52981,
+                  7
+                ],
+                [
+                  53021,
+                  1
+                ],
+                [
+                  53041,
+                  3
+                ],
+                [
+                  53061,
+                  2
+                ],
+                [
+                  53081,
+                  1
+                ],
+                [
+                  53101,
+                  1
+                ],
+                [
+                  53102,
+                  1
+                ],
+                [
+                  53121,
+                  2
+                ],
+                [
+                  53141,
+                  4
+                ],
+                [
+                  53161,
+                  1
+                ],
+                [
+                  53181,
+                  2
+                ],
+                [
+                  53201,
+                  2
+                ],
+                [
+                  53221,
+                  2
+                ],
+                [
+                  53222,
+                  1
+                ],
+                [
+                  53241,
+                  1
+                ],
+                [
+                  53261,
+                  3
+                ],
+                [
+                  53281,
+                  1
+                ],
+                [
+                  53301,
+                  2
+                ],
+                [
+                  53302,
+                  1
+                ],
+                [
+                  53321,
+                  4
+                ],
+                [
+                  53401,
+                  5
+                ],
+                [
+                  53402,
+                  1
+                ],
+                [
+                  53421,
+                  2
+                ],
+                [
+                  53441,
+                  1
+                ],
+                [
+                  53442,
+                  1
+                ],
+                [
+                  53461,
+                  3
+                ],
+                [
+                  53481,
+                  4
+                ],
+                [
+                  53501,
+                  2
+                ],
+                [
+                  53521,
+                  2
+                ],
+                [
+                  53541,
+                  3
+                ],
+                [
+                  53561,
+                  2
+                ],
+                [
+                  53581,
+                  2
+                ],
+                [
+                  53601,
+                  2
+                ],
+                [
+                  53621,
+                  3
+                ],
+                [
+                  53661,
+                  4
+                ],
+                [
+                  53681,
+                  1
+                ],
+                [
+                  53701,
+                  1
+                ],
+                [
+                  53721,
+                  2
+                ],
+                [
+                  53741,
+                  2
+                ],
+                [
+                  53761,
+                  2
+                ],
+                [
+                  53781,
+                  1
+                ],
+                [
+                  53801,
+                  2
+                ],
+                [
+                  53821,
+                  1
+                ],
+                [
+                  53822,
+                  1
+                ],
+                [
+                  53841,
+                  2
+                ],
+                [
+                  53842,
+                  1
+                ],
+                [
+                  53861,
+                  3
+                ],
+                [
+                  53881,
+                  4
+                ],
+                [
+                  53901,
+                  1
+                ],
+                [
+                  53921,
+                  1
+                ],
+                [
+                  53941,
+                  2
+                ],
+                [
+                  53961,
+                  5
+                ],
+                [
+                  53962,
+                  1
+                ],
+                [
+                  53981,
+                  3
+                ],
+                [
+                  54001,
+                  2
+                ],
+                [
+                  54021,
+                  2
+                ],
+                [
+                  54041,
+                  3
+                ],
+                [
+                  54061,
+                  3
+                ],
+                [
+                  54081,
+                  4
+                ],
+                [
+                  54121,
+                  1
+                ],
+                [
+                  54122,
+                  1
+                ],
+                [
+                  54141,
+                  2
+                ],
+                [
+                  54161,
+                  2
+                ],
+                [
+                  54181,
+                  3
+                ],
+                [
+                  54201,
+                  3
+                ],
+                [
+                  54241,
+                  2
+                ],
+                [
+                  54261,
+                  3
+                ],
+                [
+                  54281,
+                  4
+                ],
+                [
+                  54282,
+                  1
+                ],
+                [
+                  54301,
+                  3
+                ],
+                [
+                  54321,
+                  2
+                ],
+                [
+                  54341,
+                  1
+                ],
+                [
+                  54381,
+                  3
+                ],
+                [
+                  54382,
+                  1
+                ],
+                [
+                  54401,
+                  2
+                ],
+                [
+                  54421,
+                  4
+                ],
+                [
+                  54481,
+                  2
+                ],
+                [
+                  54501,
+                  1
+                ],
+                [
+                  54521,
+                  3
+                ],
+                [
+                  54561,
+                  4
+                ],
+                [
+                  54581,
+                  1
+                ],
+                [
+                  54601,
+                  1
+                ],
+                [
+                  54621,
+                  5
+                ],
+                [
+                  54641,
+                  1
+                ],
+                [
+                  54661,
+                  1
+                ],
+                [
+                  54662,
+                  1
+                ],
+                [
+                  54681,
+                  3
+                ],
+                [
+                  54701,
+                  3
+                ],
+                [
+                  54721,
+                  2
+                ],
+                [
+                  54761,
+                  2
+                ],
+                [
+                  54762,
+                  1
+                ],
+                [
+                  54781,
+                  3
+                ],
+                [
+                  54801,
+                  1
+                ],
+                [
+                  54821,
+                  4
+                ],
+                [
+                  54822,
+                  1
+                ],
+                [
+                  54841,
+                  1
+                ],
+                [
+                  54861,
+                  2
+                ],
+                [
+                  54881,
+                  1
+                ],
+                [
+                  54901,
+                  3
+                ],
+                [
+                  54921,
+                  1
+                ],
+                [
+                  54961,
+                  1
+                ],
+                [
+                  54981,
+                  3
+                ],
+                [
+                  55001,
+                  2
+                ],
+                [
+                  55021,
+                  2
+                ],
+                [
+                  55041,
+                  1
+                ],
+                [
+                  55061,
+                  1
+                ],
+                [
+                  55081,
+                  1
+                ],
+                [
+                  55101,
+                  1
+                ],
+                [
+                  55121,
+                  3
+                ],
+                [
+                  55141,
+                  2
+                ],
+                [
+                  55161,
+                  1
+                ],
+                [
+                  55201,
+                  1
+                ],
+                [
+                  55202,
+                  1
+                ],
+                [
+                  55241,
+                  2
+                ],
+                [
+                  55281,
+                  1
+                ],
+                [
+                  55361,
+                  1
+                ],
+                [
+                  55401,
+                  1
+                ],
+                [
+                  55441,
+                  2
+                ],
+                [
+                  55461,
+                  1
+                ],
+                [
+                  55462,
+                  1
+                ],
+                [
+                  55481,
+                  4
+                ],
+                [
+                  55501,
+                  2
+                ],
+                [
+                  55521,
+                  2
+                ],
+                [
+                  55561,
+                  1
+                ],
+                [
+                  55562,
+                  1
+                ],
+                [
+                  55581,
+                  2
+                ],
+                [
+                  55601,
+                  2
+                ],
+                [
+                  55622,
+                  1
+                ],
+                [
+                  55641,
+                  1
+                ],
+                [
+                  55661,
+                  2
+                ],
+                [
+                  55662,
+                  1
+                ],
+                [
+                  55702,
+                  1
+                ],
+                [
+                  55721,
+                  1
+                ],
+                [
+                  55741,
+                  1
+                ],
+                [
+                  55821,
+                  1
+                ],
+                [
+                  55841,
+                  2
+                ],
+                [
+                  55902,
+                  1
+                ],
+                [
+                  55941,
+                  1
+                ],
+                [
+                  55982,
+                  1
+                ],
+                [
+                  56001,
+                  3
+                ],
+                [
+                  56021,
+                  2
+                ],
+                [
+                  56041,
+                  1
+                ],
+                [
+                  56101,
+                  1
+                ],
+                [
+                  56181,
+                  1
+                ],
+                [
+                  56201,
+                  1
+                ],
+                [
+                  56241,
+                  1
+                ],
+                [
+                  56261,
+                  1
+                ],
+                [
+                  56302,
+                  1
+                ],
+                [
+                  56321,
+                  1
+                ],
+                [
+                  56381,
+                  2
+                ],
+                [
+                  56461,
+                  2
+                ],
+                [
+                  56481,
+                  1
+                ],
+                [
+                  56561,
+                  1
+                ],
+                [
+                  56601,
+                  3
+                ],
+                [
+                  56621,
+                  1
+                ],
+                [
+                  56622,
+                  1
+                ],
+                [
+                  56641,
+                  1
+                ],
+                [
+                  56701,
+                  1
+                ],
+                [
+                  56721,
+                  1
+                ],
+                [
+                  56761,
+                  3
+                ],
+                [
+                  56901,
+                  1
+                ],
+                [
+                  56921,
+                  1
+                ],
+                [
+                  56941,
+                  1
+                ],
+                [
+                  56942,
+                  1
+                ],
+                [
+                  57041,
+                  1
+                ],
+                [
+                  57081,
+                  1
+                ],
+                [
+                  57101,
+                  1
+                ],
+                [
+                  57161,
+                  1
+                ],
+                [
+                  57201,
+                  1
+                ],
+                [
+                  57281,
+                  1
+                ],
+                [
+                  57401,
+                  1
+                ],
+                [
+                  57421,
+                  1
+                ],
+                [
+                  57461,
+                  2
+                ],
+                [
+                  57481,
+                  1
+                ],
+                [
+                  57541,
+                  1
+                ],
+                [
+                  57721,
+                  1
+                ],
+                [
+                  57761,
+                  1
+                ],
+                [
+                  57801,
+                  1
+                ],
+                [
+                  57901,
+                  1
+                ],
+                [
+                  57961,
+                  1
+                ],
+                [
+                  58061,
+                  1
+                ],
+                [
+                  58062,
+                  1
+                ],
+                [
+                  58101,
+                  1
+                ],
+                [
+                  58161,
+                  1
+                ],
+                [
+                  58241,
+                  1
+                ],
+                [
+                  58242,
+                  1
+                ],
+                [
+                  58441,
+                  1
+                ],
+                [
+                  58501,
+                  1
+                ],
+                [
+                  58541,
+                  1
+                ],
+                [
+                  58621,
+                  2
+                ],
+                [
+                  58661,
+                  1
+                ],
+                [
+                  58701,
+                  1
+                ],
+                [
+                  58781,
+                  1
+                ],
+                [
+                  58902,
+                  1
+                ],
+                [
+                  58961,
+                  1
+                ],
+                [
+                  58982,
+                  1
+                ],
+                [
+                  59041,
+                  1
+                ],
+                [
+                  59081,
+                  1
+                ],
+                [
+                  59102,
+                  1
+                ],
+                [
+                  59141,
+                  2
+                ],
+                [
+                  59321,
+                  1
+                ],
+                [
+                  59341,
+                  1
+                ],
+                [
+                  59481,
+                  1
+                ],
+                [
+                  59521,
+                  1
+                ],
+                [
+                  59561,
+                  1
+                ],
+                [
+                  59582,
+                  1
+                ],
+                [
+                  59601,
+                  1
+                ],
+                [
+                  59621,
+                  1
+                ],
+                [
+                  59622,
+                  1
+                ],
+                [
+                  59661,
+                  1
+                ],
+                [
+                  59761,
+                  1
+                ],
+                [
+                  59801,
+                  1
+                ],
+                [
+                  59841,
+                  1
+                ],
+                [
+                  59842,
+                  1
+                ],
+                [
+                  59901,
+                  1
+                ],
+                [
+                  59962,
+                  1
+                ],
+                [
+                  60022,
+                  1
+                ],
+                [
+                  60161,
+                  1
+                ],
+                [
+                  60421,
+                  1
+                ],
+                [
+                  60441,
+                  1
+                ],
+                [
+                  60562,
+                  1
+                ],
+                [
+                  60701,
+                  2
+                ],
+                [
+                  60721,
+                  1
+                ],
+                [
+                  60722,
+                  1
+                ],
+                [
+                  60742,
+                  1
+                ],
+                [
+                  60781,
+                  1
+                ],
+                [
+                  60782,
+                  1
+                ],
+                [
+                  60841,
+                  1
+                ],
+                [
+                  60861,
+                  1
+                ],
+                [
+                  60941,
+                  1
+                ],
+                [
+                  61021,
+                  1
+                ],
+                [
+                  61102,
+                  1
+                ],
+                [
+                  61221,
+                  1
+                ],
+                [
+                  61422,
+                  1
+                ],
+                [
+                  61481,
+                  1
+                ],
+                [
+                  61601,
+                  1
+                ],
+                [
+                  61661,
+                  1
+                ],
+                [
+                  61741,
+                  1
+                ],
+                [
+                  61881,
+                  1
+                ],
+                [
+                  61901,
+                  1
+                ],
+                [
+                  61922,
+                  1
+                ],
+                [
+                  62061,
+                  1
+                ],
+                [
+                  62081,
+                  1
+                ],
+                [
+                  62141,
+                  1
+                ],
+                [
+                  62261,
+                  1
+                ],
+                [
+                  62321,
+                  2
+                ],
+                [
+                  62382,
+                  2
+                ],
+                [
+                  62461,
+                  1
+                ],
+                [
+                  62561,
+                  1
+                ],
+                [
+                  62601,
+                  1
+                ],
+                [
+                  62622,
+                  1
+                ],
+                [
+                  63001,
+                  1
+                ],
+                [
+                  63242,
+                  1
+                ],
+                [
+                  63381,
+                  2
+                ],
+                [
+                  63661,
+                  1
+                ],
+                [
+                  63781,
+                  1
+                ],
+                [
+                  63901,
+                  1
+                ],
+                [
+                  63942,
+                  1
+                ],
+                [
+                  64022,
+                  1
+                ],
+                [
+                  64081,
+                  2
+                ],
+                [
+                  64101,
+                  1
+                ],
+                [
+                  64201,
+                  2
+                ],
+                [
+                  64281,
+                  1
+                ],
+                [
+                  64301,
+                  1
+                ],
+                [
+                  64422,
+                  1
+                ],
+                [
+                  64461,
+                  1
+                ],
+                [
+                  64521,
+                  1
+                ],
+                [
+                  64621,
+                  1
+                ],
+                [
+                  64701,
+                  1
+                ],
+                [
+                  64881,
+                  1
+                ],
+                [
+                  65281,
+                  1
+                ],
+                [
+                  65361,
+                  1
+                ],
+                [
+                  65442,
+                  1
+                ],
+                [
+                  65502,
+                  1
+                ],
+                [
+                  65701,
+                  1
+                ],
+                [
+                  66241,
+                  1
+                ],
+                [
+                  66401,
+                  1
+                ],
+                [
+                  66562,
+                  1
+                ],
+                [
+                  66601,
+                  1
+                ],
+                [
+                  66682,
+                  1
+                ],
+                [
+                  66821,
+                  1
+                ],
+                [
+                  66901,
+                  1
+                ],
+                [
+                  67322,
+                  1
+                ],
+                [
+                  67382,
+                  1
+                ],
+                [
+                  67461,
+                  1
+                ],
+                [
+                  67721,
+                  1
+                ],
+                [
+                  68361,
+                  1
+                ],
+                [
+                  68542,
+                  1
+                ],
+                [
+                  68661,
+                  1
+                ],
+                [
+                  69341,
+                  1
+                ],
+                [
+                  76301,
+                  1
+                ],
+                [
+                  77822,
+                  1
+                ],
+                [
+                  77881,
+                  1
+                ],
+                [
+                  78021,
+                  1
+                ],
+                [
+                  78061,
+                  1
+                ],
+                [
+                  78901,
+                  1
+                ],
+                [
+                  79142,
+                  1
+                ],
+                [
+                  79281,
+                  1
+                ],
+                [
+                  79662,
+                  1
+                ],
+                [
+                  79882,
+                  1
+                ],
+                [
+                  80001,
+                  1
+                ],
+                [
+                  80482,
+                  2
+                ],
+                [
+                  80581,
+                  1
+                ],
+                [
+                  80821,
+                  1
+                ],
+                [
+                  81062,
+                  1
+                ],
+                [
+                  81101,
+                  1
+                ],
+                [
+                  81261,
+                  1
+                ],
+                [
+                  81362,
+                  1
+                ],
+                [
+                  81602,
+                  1
+                ],
+                [
+                  81742,
+                  1
+                ],
+                [
+                  81842,
+                  1
+                ],
+                [
+                  81961,
+                  1
+                ],
+                [
+                  82201,
+                  1
+                ],
+                [
+                  82462,
+                  1
+                ],
+                [
+                  83142,
+                  1
+                ],
+                [
+                  83802,
+                  1
+                ],
+                [
+                  83841,
+                  1
+                ],
+                [
+                  84201,
+                  1
+                ],
+                [
+                  84522,
+                  1
+                ],
+                [
+                  84582,
+                  1
+                ],
+                [
+                  85482,
+                  1
+                ],
+                [
+                  85981,
+                  1
+                ],
+                [
+                  86221,
+                  1
+                ],
+                [
+                  86701,
+                  1
+                ]
+              ]
+            },
+            "forward_count": 46,
+            "expected_rule_hits": 42,
+            "population_partition_count": 1,
+            "pooled_assignment": false,
+            "body_residual_used": false,
+            "response_boundary": "one_declared_whole_call",
+            "scope_limitations": "Complete native family/role population; source physical domain retained. Dynamic routed row values are not identified by buffer capacity."
+          }
+        }
+      ],
+      "original_case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-livepre-native/cases/glm53flash-a3-tp16-c4-livepre-native.json",
+        "sha256": "4c367d97ebbf90321b1ac75b390745cbf8e46c63dca8b6f6b014b9762461e771",
+        "size_bytes": 561160
+      },
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-livepre-native/joint-service/cases/glm53flash-a3-tp16-c4-livepre.json",
+        "sha256": "17b81eefa2f1d954e0aeec4ba519b7bc287fc264cc3620e77a1dc2a030ddf416",
+        "size_bytes": 591584
+      }
+    },
+    {
+      "case_id": "glm53flash-a3-tp16-c16-livepre",
+      "rules": [
+        {
+          "id": "joint-expert_down",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "grouped_down",
+            "family": "grouped_gemm",
+            "phase": "decode",
+            "dtype": "int8",
+            "local_shape.0": 48,
+            "local_shape.1": 4096,
+            "local_shape.2": 2048,
+            "metadata.weight_dtype": "int8",
+            "metadata.expected_active_experts": 16.795616799494926,
+            "metadata.expected_rows": 48.0
+          },
+          "response": {
+            "fixed_us": 71.92663127413127
+          },
+          "execution": {
+            "kind": "joint_native",
+            "native_kernel": "GroupedMatmul",
+            "resource": "observed_a3_local_native",
+            "reference_rate": 1000000000.0
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "input_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/native-joint-service-inputs.json",
+              "sha256": "d9dfbab2a371f073ec5e4ce4f06419efdb1c575843ece3254c7ec05ac8713e18",
+              "size_bytes": 2166772
+            },
+            "candidate_id": "sha256:e52871e67f21b100598022c5915c4e5a6dadf37d166c93e1e5ce45d3ee954fcc",
+            "source_identity": {
+              "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot50_c16_20261030/ranks/tp0/kernel_details.csv.gz",
+              "size_bytes": 16687762,
+              "mtime_ns": 1793295236000000000,
+              "schema_version": "kernel_details_csv_46col",
+              "sha256": "4b584fe1f672fd0ef96e2649d497f007ad2a464c953c3319b00837146e046bdf"
+            },
+            "timing_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators-5935c87b/body-operator-glm53flash-a3-tp16-c16-livepre-q6-b16-new17.actual.json",
+              "sha256": "4e7fd87629b9a5369d9e080cfdec106f6720020d76e66cebc91ee3144a93709e",
+              "size_bytes": 758590
+            },
+            "timing_members": [
+              "families/11/duration_ns_counter"
+            ],
+            "observed_native_elapsed_us": {
+              "count": 1554,
+              "mean_us": 71.92663127413127,
+              "p50_us": 71.581,
+              "p90_us": 94.102,
+              "min_us": 21.66,
+              "max_us": 114.622
+            },
+            "applicability_domain": {
+              "hardware": "Ascend910_9362",
+              "native_operator_type": "GroupedMatmul",
+              "observed_block_num": null,
+              "observed_mix_block_num": null,
+              "native_abi": null,
+              "evidence_scope": "complete_duration_population_with_source_role_conditions",
+              "source_program_domain": "INT8_grouped_down_BF16_per_token_scale",
+              "source_role": "expert_down",
+              "execution_query_rows": 96,
+              "execution_batch": 16,
+              "query_tokens_per_sequence": 6,
+              "source_dtype_condition": "INT8 x INT8 grouped / BF16 output",
+              "source_logical_axes": {
+                "local_expert_banks": 18,
+                "hidden_width": 4096,
+                "expert_intermediate_width": 2048
+              },
+              "routing_values_observed": false,
+              "buffer_capacity_is_valid_rows": false
+            },
+            "expected_rule_hits": 42,
+            "forward_count": 37,
+            "body_residual_used": false,
+            "strict_admission_changed": false,
+            "service_semantics": "one_complete_local_native_call; analytical_work_retained_as_reference",
+            "queue_scope": "one_declared_device_queue_shared_by_the_five_local_native_domains",
+            "physical_HBM_or_ISA_rate_identified": false
+          }
+        },
+        {
+          "id": "joint-grouped_gate_up_activation_quant",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "declared_native_fusion",
+            "family": "native_fusion",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 48,
+            "local_shape.1": 2048,
+            "metadata.fusion_role": "grouped_gate_up_activation_quant"
+          },
+          "response": {
+            "fixed_us": 142.41549034749036
+          },
+          "execution": {
+            "kind": "joint_native",
+            "native_kernel": "GroupedMatmulSwigluQuant",
+            "resource": "observed_a3_local_native",
+            "reference_rate": 1000000000.0
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "input_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/native-joint-service-inputs.json",
+              "sha256": "d9dfbab2a371f073ec5e4ce4f06419efdb1c575843ece3254c7ec05ac8713e18",
+              "size_bytes": 2166772
+            },
+            "candidate_id": "sha256:cae6386b31b896c958c846165c7f73f2ee7d960b678a76f90c1308135a4ce8da",
+            "source_identity": {
+              "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot50_c16_20261030/ranks/tp0/kernel_details.csv.gz",
+              "size_bytes": 16687762,
+              "mtime_ns": 1793295236000000000,
+              "schema_version": "kernel_details_csv_46col",
+              "sha256": "4b584fe1f672fd0ef96e2649d497f007ad2a464c953c3319b00837146e046bdf"
+            },
+            "timing_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators-5935c87b/body-operator-glm53flash-a3-tp16-c16-livepre-q6-b16-new17.actual.json",
+              "sha256": "4e7fd87629b9a5369d9e080cfdec106f6720020d76e66cebc91ee3144a93709e",
+              "size_bytes": 758590
+            },
+            "timing_members": [
+              "families/12/duration_ns_counter"
+            ],
+            "observed_native_elapsed_us": {
+              "count": 1554,
+              "mean_us": 142.41549034749036,
+              "p50_us": 142.163,
+              "p90_us": 187.243,
+              "min_us": 38.721,
+              "max_us": 238.284
+            },
+            "applicability_domain": {
+              "hardware": "Ascend910_9362",
+              "native_operator_type": "GroupedMatmulSwigluQuant",
+              "observed_block_num": null,
+              "observed_mix_block_num": null,
+              "native_abi": null,
+              "evidence_scope": "complete_duration_population_with_source_role_conditions",
+              "source_program_domain": "grouped_swiglu_quant_int8_split_workspace_ae923905",
+              "source_role": "grouped_gate_up_activation_quant",
+              "execution_query_rows": 96,
+              "execution_batch": 16,
+              "query_tokens_per_sequence": 6,
+              "source_dtype_condition": "INT8 x INT8 grouped / INT8 activation output",
+              "source_logical_axes": {
+                "local_expert_banks": 18,
+                "hidden_width": 4096,
+                "expert_intermediate_width": 2048
+              },
+              "routing_values_observed": false,
+              "buffer_capacity_is_valid_rows": false
+            },
+            "expected_rule_hits": 42,
+            "forward_count": 37,
+            "body_residual_used": false,
+            "strict_admission_changed": false,
+            "service_semantics": "one_complete_local_native_call; analytical_work_retained_as_reference",
+            "queue_scope": "one_declared_device_queue_shared_by_the_five_local_native_domains",
+            "physical_HBM_or_ISA_rate_identified": false
+          }
+        },
+        {
+          "id": "joint-indexed_attention_batch",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "latent_attention_batch",
+            "family": "attention",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 16,
+            "local_shape.1": 96,
+            "local_shape.2": 4102,
+            "local_shape.3": 4,
+            "local_shape.4": 512,
+            "local_shape.5": 512,
+            "metadata.indexed_attention_geometry": {
+              "topk": 2048,
+              "compression_ratio": 1,
+              "window": 0,
+              "heads": 4,
+              "latent": 512,
+              "rope": 0,
+              "cp": 1,
+              "query_dtype": "bf16",
+              "cache_dtype": "int8",
+              "sequences": [
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ]
+              ]
+            }
+          },
+          "response": {
+            "fixed_us": 377.57967813267817
+          },
+          "execution": {
+            "kind": "joint_native",
+            "native_kernel": "KvQuantSparseFlashAttentionVllm",
+            "resource": "observed_a3_local_native",
+            "reference_rate": 1000000000.0
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "input_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/native-joint-service-inputs.json",
+              "sha256": "d9dfbab2a371f073ec5e4ce4f06419efdb1c575843ece3254c7ec05ac8713e18",
+              "size_bytes": 2166772
+            },
+            "candidate_id": "sha256:721ff5ab0fa8210e4bd1b183f890f2766d320386a81b7d4673d96c2528a3f67c",
+            "source_identity": {
+              "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot50_c16_20261030/ranks/tp0/kernel_details.csv.gz",
+              "size_bytes": 16687762,
+              "mtime_ns": 1793295236000000000,
+              "schema_version": "kernel_details_csv_46col",
+              "sha256": "4b584fe1f672fd0ef96e2649d497f007ad2a464c953c3319b00837146e046bdf"
+            },
+            "timing_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators-5935c87b/body-operator-glm53flash-a3-tp16-c16-livepre-q6-b16-new17.actual.json",
+              "sha256": "4e7fd87629b9a5369d9e080cfdec106f6720020d76e66cebc91ee3144a93709e",
+              "size_bytes": 758590
+            },
+            "timing_members": [
+              "families/18/duration_ns_counter"
+            ],
+            "observed_native_elapsed_us": {
+              "count": 407,
+              "mean_us": 377.57967813267817,
+              "p50_us": 377.447,
+              "p90_us": 380.487,
+              "min_us": 371.647,
+              "max_us": 385.928
+            },
+            "applicability_domain": {
+              "hardware": "Ascend910_9362",
+              "native_operator_type": "KvQuantSparseFlashAttentionVllm",
+              "observed_block_num": null,
+              "observed_mix_block_num": null,
+              "native_abi": null,
+              "evidence_scope": "complete_duration_population_with_source_role_conditions",
+              "source_program_domain": "INT8_packed_D528_sparse_MLA_query_D512_output_D512",
+              "source_role": "indexed_attention_batch",
+              "execution_query_rows": 96,
+              "execution_batch": 16,
+              "query_tokens_per_sequence": 6,
+              "source_dtype_condition": "BF16 query/output, INT8 cache D528",
+              "source_logical_axes": {
+                "query_heads": 4,
+                "query_head_dim": 512,
+                "output_head_dim": 512
+              },
+              "routing_values_observed": false,
+              "buffer_capacity_is_valid_rows": false
+            },
+            "expected_rule_hits": 11,
+            "forward_count": 37,
+            "body_residual_used": false,
+            "strict_admission_changed": false,
+            "service_semantics": "one_complete_local_native_call; analytical_work_retained_as_reference",
+            "queue_scope": "one_declared_device_queue_shared_by_the_five_local_native_domains",
+            "physical_HBM_or_ISA_rate_identified": false
+          }
+        },
+        {
+          "id": "joint-hc_pre",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "declared_native_fusion",
+            "family": "native_fusion",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 393216,
+            "metadata.fusion_role": "hc_pre"
+          },
+          "response": {
+            "fixed_us": 34.70325885885886
+          },
+          "execution": {
+            "kind": "joint_native",
+            "native_kernel": "HcPre",
+            "resource": "observed_a3_local_native",
+            "reference_rate": 1000000000.0
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "input_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/native-joint-service-inputs.json",
+              "sha256": "d9dfbab2a371f073ec5e4ce4f06419efdb1c575843ece3254c7ec05ac8713e18",
+              "size_bytes": 2166772
+            },
+            "candidate_id": "sha256:d928a5bb25c26c7f318e5911f4d185d54654458a0a45a6abc20b6db718223f6f",
+            "source_identity": {
+              "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot50_c16_20261030/ranks/tp0/kernel_details.csv.gz",
+              "size_bytes": 16687762,
+              "mtime_ns": 1793295236000000000,
+              "schema_version": "kernel_details_csv_46col",
+              "sha256": "4b584fe1f672fd0ef96e2649d497f007ad2a464c953c3319b00837146e046bdf"
+            },
+            "timing_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators-5935c87b/body-operator-glm53flash-a3-tp16-c16-livepre-q6-b16-new17.actual.json",
+              "sha256": "4e7fd87629b9a5369d9e080cfdec106f6720020d76e66cebc91ee3144a93709e",
+              "size_bytes": 758590
+            },
+            "timing_members": [
+              "families/15/duration_ns_counter",
+              "families/16/duration_ns_counter"
+            ],
+            "observed_native_elapsed_us": {
+              "count": 3330,
+              "mean_us": 34.70325885885886,
+              "p50_us": 33.861,
+              "p90_us": 37.48,
+              "min_us": 31.361,
+              "max_us": 39.241
+            },
+            "applicability_domain": {
+              "hardware": "Ascend910_9362",
+              "native_operator_type": "HcPre",
+              "observed_block_num": null,
+              "observed_mix_block_num": null,
+              "native_abi": null,
+              "evidence_scope": "complete_duration_population_with_source_role_conditions",
+              "source_program_domain": "hc_pre_m_k_split_175ef4d4",
+              "source_role": "hc_pre",
+              "execution_query_rows": 96,
+              "execution_batch": 16,
+              "query_tokens_per_sequence": 6,
+              "source_dtype_condition": "BF16 residual/hidden and FP32 mixing parameters",
+              "source_logical_axes": {
+                "hidden_width": 4096,
+                "residual_streams": 4
+              },
+              "routing_values_observed": false,
+              "buffer_capacity_is_valid_rows": false
+            },
+            "expected_rule_hits": 90,
+            "forward_count": 37,
+            "body_residual_used": false,
+            "strict_admission_changed": false,
+            "service_semantics": "one_complete_local_native_call; analytical_work_retained_as_reference",
+            "queue_scope": "one_declared_device_queue_shared_by_the_five_local_native_domains",
+            "physical_HBM_or_ISA_rate_identified": false
+          }
+        },
+        {
+          "id": "joint-hc_post",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "declared_native_fusion",
+            "family": "native_fusion",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 1572864,
+            "metadata.fusion_role": "hc_post"
+          },
+          "response": {
+            "fixed_us": 20.144186486486486
+          },
+          "execution": {
+            "kind": "joint_native",
+            "native_kernel": "HcPost",
+            "resource": "observed_a3_local_native",
+            "reference_rate": 1000000000.0
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "input_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/native-joint-service-inputs.json",
+              "sha256": "d9dfbab2a371f073ec5e4ce4f06419efdb1c575843ece3254c7ec05ac8713e18",
+              "size_bytes": 2166772
+            },
+            "candidate_id": "sha256:731c7b9577a7140bb01dfda1304bc8a891c4285d79049bfe976ba3b80b7bcf1e",
+            "source_identity": {
+              "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot50_c16_20261030/ranks/tp0/kernel_details.csv.gz",
+              "size_bytes": 16687762,
+              "mtime_ns": 1793295236000000000,
+              "schema_version": "kernel_details_csv_46col",
+              "sha256": "4b584fe1f672fd0ef96e2649d497f007ad2a464c953c3319b00837146e046bdf"
+            },
+            "timing_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority-operators-5935c87b/body-operator-glm53flash-a3-tp16-c16-livepre-q6-b16-new17.actual.json",
+              "sha256": "4e7fd87629b9a5369d9e080cfdec106f6720020d76e66cebc91ee3144a93709e",
+              "size_bytes": 758590
+            },
+            "timing_members": [
+              "families/13/duration_ns_counter",
+              "families/14/duration_ns_counter"
+            ],
+            "observed_native_elapsed_us": {
+              "count": 3330,
+              "mean_us": 20.144186486486486,
+              "p50_us": 19.78,
+              "p90_us": 21.82,
+              "min_us": 18.101,
+              "max_us": 25.54
+            },
+            "applicability_domain": {
+              "hardware": "Ascend910_9362",
+              "native_operator_type": "HcPost",
+              "observed_block_num": null,
+              "observed_mix_block_num": null,
+              "native_abi": null,
+              "evidence_scope": "complete_duration_population_with_source_role_conditions",
+              "source_program_domain": "hc_post_d_split_175ef4d4",
+              "source_role": "hc_post",
+              "execution_query_rows": 96,
+              "execution_batch": 16,
+              "query_tokens_per_sequence": 6,
+              "source_dtype_condition": "BF16 residual/hidden and FP32 mixing parameters",
+              "source_logical_axes": {
+                "hidden_width": 4096,
+                "residual_streams": 4
+              },
+              "routing_values_observed": false,
+              "buffer_capacity_is_valid_rows": false
+            },
+            "expected_rule_hits": 90,
+            "forward_count": 37,
+            "body_residual_used": false,
+            "strict_admission_changed": false,
+            "service_semantics": "one_complete_local_native_call; analytical_work_retained_as_reference",
+            "queue_scope": "one_declared_device_queue_shared_by_the_five_local_native_domains",
+            "physical_HBM_or_ISA_rate_identified": false
+          }
+        }
+      ],
+      "replaced_same_native_completion_floors": [],
+      "original_case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-livepre-native/cases/glm53flash-a3-tp16-c16-livepre-native.json",
+        "sha256": "0dd4f3b4f2c030c59b7e2195aeb0574e256a073fa1ec9fc822f52d4ddaf3cf36",
+        "size_bytes": 8220
+      },
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-livepre-native/joint-service/cases/glm53flash-a3-tp16-c16-livepre.json",
+        "sha256": "6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8",
+        "size_bytes": 30725
+      }
+    }
+  ],
+  "input_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/native-joint-service-inputs.json",
+    "sha256": "d9dfbab2a371f073ec5e4ce4f06419efdb1c575843ece3254c7ec05ac8713e18",
+    "size_bytes": 2166772
+  },
+  "raw_scans": 0,
+  "cost_predictions": 0
+}

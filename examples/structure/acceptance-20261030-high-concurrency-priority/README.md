@@ -6,25 +6,33 @@ selected complete Forwards; neither table adds captures to the main denominator.
 Execution completion, Body accuracy and native contract coverage are separate.
 
 The current focus has 13/13 Body PASS, including all six A5 priority cases.
-The main board has 62/66 PASS over 5,250 distinct observed Forwards, with all
+The main board has 66/66 PASS over 5,250 distinct observed Forwards, with all
 66 latest predictions completed. Kimi low-concurrency c1/c2/c4/c8 now contributes
 eight new PASS results. A subsequent replay uses the source force-EPLB policy
 to close the declared expert-routing work discrepancy while retaining all eight
 PASS results. Captured group-list values remain unobserved. Qwen3.5 TP4
-c4/c64/c128 now pass at -14.66%/-14.28%/-13.56%. A3 GLM
-c4-livepre also passes after its native source declaration. GLM78 c8's earlier
-PASS is superseded by the latest complete caller replay (+18.00%, FAIL).
+c4/c64/c128 now pass at -14.66%/-14.28%/-13.56%.
 
 GLM uses the corrected HC native implementation consistently across all nine
 A5 cases. Complete matrix, norm/quant and native HC response populations, then
 eleven layer-ordered AICPU sparse-attention metadata calls, bring all nine to
 PASS. The earlier 3/9 source-corrected result and the preceding 6/9 result whose
-decomposed HC work compensated for missing costs stay inspectable. Remaining
-failures are the three A3 GLM78 sources and A3 GLM Flash c16-livepre. GLM78's
-complete local padding, AllGather, router precision and consumer-scoped norm
-declaration brings the two c2 cases to -15.41%/-15.65%. Native MC2 still needs
-to replace generic pack/transport/quant boundaries; complete-body accuracy
-does not override this recorded source mismatch.
+decomposed HC work compensated for missing costs stay inspectable.
+
+The five final A3 populations use complete observed native-call services on
+Sim `f6e68d5e`. Livepre c4/c16 pass at -0.726%/-0.455%; GLM78 tpot30-c2,
+tpot50-c2 and c8 pass at -14.493%/-14.746%/-2.470%. These are in-sample
+calibrations with exact source, geometry and call-count pins. They replace the
+analytical schedule of each selected local native call while retaining input
+dependencies and queue contention. Analytical work remains reference data.
+The preceding source-only failures remain in the ordered history.
+
+The local-native joint baseline still declares generic MC2 pack/transport
+boundaries. Its 66/66 Body result does not establish native V2 caller fidelity.
+An independently reviewed V2 caller increment and explicit peer-window
+sensitivity are recorded separately before promotion, including regressions.
+Measured whole-group communication is a completion floor over its transport;
+it is not charged as a second transfer or used to infer a captured peer window.
 
 `source-inventory.json` records selection identities, benchmark scenarios and the
 state before this replay. Its old predictions are not inputs to the focus table.
@@ -58,7 +66,8 @@ parameters are accepted through the same comparison path. Explicit calibration
 metadata is retained separately from accuracy. In-sample results are admitted;
 unreported data independence is `not_declared`, not invented held-out evidence.
 
-Validation: 850 tests passed, 26 optional tests skipped. The full-suite controller
+Validation: 866 tests passed, 26 optional tests skipped; 16 affected checks also
+passed against `f6e68d5e`. The full-suite controller
 review initially exceeded the RSS gate while retaining two full comparison
 graphs; the test now keeps a compact baseline projection and streams JSON.
 The unchanged 512 MiB gate passes. The current main-board independent review
