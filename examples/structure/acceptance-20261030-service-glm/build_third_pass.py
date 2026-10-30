@@ -16,16 +16,17 @@ THIRD=HERE/'third-pass'
 ORDER=['a5_glm53flash_tp8_c8_p4k','a5_glm53flash_tp8_c4_p8k','glm53flash-a5-tp8-c1']
 
 
-def main():
+def main(*, manifest_path=None, output_dir=None, case_ids=None):
     from mindie_sim.prediction.structure import parse_case
     from mindie_sim.prediction.operator_analysis import target_graphs
     from mindie_sim.structure_contracts import matrix_contract
     from mindie_sim.prediction.family_hc_arch35 import SOURCE, PRE_PROFILE
-    manifest=read(HERE/'second-pass/decode-forward-service-cases.json');inputs={r['case_id']:r for r in manifest['cases']}
+    destination=Path(output_dir or THIRD)
+    manifest=read(manifest_path or HERE/'second-pass/decode-forward-service-cases.json');inputs={r['case_id']:r for r in manifest['cases']}
     allpop={r['case_id']:r for r in read(HERE/'observed-populations.json')['cases']}
     canon=read(ROOT/'examples/structure/acceptance-20261030-glm-source-complete-operators/body-operator-family-scoreboard.json')
     prior={r['source_case_id']:r for r in canon['cases']};rows=[];evidence=[]
-    for cid in ORDER:
+    for cid in (case_ids or ORDER):
         row=deepcopy(inputs[cid]);old_path=Path(row['sim_case_path']);case=read(old_path);old=deepcopy(case)
         actual_pin=allpop[cid]['groups'][0]['actual_identity'];actual=read(actual_pin['path']);g=allpop[cid]['geometry'];M=g['query_rows']
         mapping_pin=prior[cid]['mapping_identity'];mapping=read(mapping_pin['path']);cohorts=[c for w in mapping['windows'] for c in w['cohorts']]
@@ -81,7 +82,7 @@ def main():
         calibration={**row['calibration_evidence'],'evaluation_relation':'in_sample','regime_count':11,
                      'source_boundary_added':PRE_PROFILE,'normalized_contract_populations_verified':True}
         case['runtime']['metadata']['calibration_evidence']=calibration
-        path=THIRD/'cases'/f'{cid}-hc-atomic-service.json';write(path,case)
+        path=destination/'cases'/f'{cid}-hc-atomic-service.json';write(path,case)
         row.update(sim_case_path=str(path),model_declaration=pin(path),calibration_evidence=calibration,
                    variant_id='observed-service-hc-atomic-3b72ea2d')
         row['replay_input_pins']['case']=pin(path);row['prior_source_case_identity']=pin(old_path)
@@ -91,8 +92,8 @@ def main():
            'native_hc_instances_added':90,'prior_nine_rules_unchanged':case['runtime']['kernels']['service_regimes'][:9]==old['runtime']['kernels']['service_regimes']})
         print(cid,'verified90HC34QKV',flush=True)
     manifest.update(cases=rows,variant_id='observed-service-hc-atomic-3b72ea2d')
-    write(THIRD/'decode-forward-service-cases.json',manifest)
-    write(THIRD/'observed-populations.json',{'schema_version':'mindie-native-service-populations/1','cases':evidence,
+    write(destination/'decode-forward-service-cases.json',manifest)
+    write(destination/'observed-populations.json',{'schema_version':'mindie-native-service-populations/1','cases':evidence,
         'generator_identity':pin(__file__),'raw_scans':0,'new_costs':0})
 
 

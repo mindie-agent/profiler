@@ -17,15 +17,16 @@ ORDER=['a5_glm53flash_tp8_c16_p4k','a5_glm53flash_tp8_c16_p8k',
        'glm53flash-a5-tp8-c3','glm53flash-a5-tp8-c1']
 
 
-def main():
+def main(*, manifest_path=None, output_dir=None, case_ids=None, variant_id='observed-service-extended-2f48346b'):
     from mindie_sim.prediction.structure import parse_case
     from mindie_sim.prediction.operator_analysis import target_graphs
-    manifest_path=HERE/'decode-forward-service-cases.json'
+    manifest_path=Path(manifest_path or HERE/'decode-forward-service-cases.json')
+    destination=Path(output_dir or SECOND)
     manifest=read(manifest_path)
     entries={r['case_id']:r for r in manifest['cases']}
     populations={r['case_id']:r for r in read(HERE/'observed-populations.json')['cases']}
     result=[];evidence=[]
-    for cid in ORDER:
+    for cid in (case_ids or ORDER):
         row=deepcopy(entries[cid]);first_path=Path(row['sim_case_path']);case=read(first_path)
         pop=populations[cid];actual_pin=pop['groups'][0]['actual_identity'];actual=read(actual_pin['path'])
         assert pin(actual_pin['path'])==actual_pin
@@ -98,9 +99,9 @@ def main():
         calibration=deepcopy(row['calibration_evidence']);calibration.update(regime_count=9,
            first_arm_case_identity=pin(first_path),new_native_service_families=[x[0] for x in choices])
         case['runtime']['metadata']['calibration_evidence']=calibration
-        path=SECOND/'cases'/f'{cid}-service-regimes-extended.json';write(path,case)
+        path=destination/'cases'/f'{cid}-service-regimes-extended.json';write(path,case)
         row.update(sim_case_path=str(path),calibration_evidence={**calibration,'evaluation_relation':'in_sample'},
-                   variant_id='observed-service-extended-2f48346b')
+                   variant_id=variant_id)
         row['model_declaration']=pin(path);row['replay_input_pins']['case']=pin(path)
         row['prior_source_case_identity']=pin(first_path)
         result.append(row)
@@ -108,12 +109,12 @@ def main():
                          'geometry':g,'source_identity':row['source'],'forward_count':actual['forward_count'],
                          'groups':additions})
         print(cid,'three additions',[(r['native_operator_type'],r['observed']['mean_us']) for r in additions],flush=True)
-    write(SECOND/'observed-populations.json',{'schema_version':'mindie-native-service-populations/1',
+    write(destination/'observed-populations.json',{'schema_version':'mindie-native-service-populations/1',
           'cases':evidence,'first_arm_population_identity':pin(HERE/'observed-populations.json'),
           'generator_identity':pin(__file__),'raw_scans':0,'new_costs':0})
-    manifest.update(cases=result,variant_id='observed-service-extended-2f48346b',
+    manifest.update(cases=result,variant_id=variant_id,
                     first_arm_manifest_identity=pin(manifest_path))
-    write(SECOND/'decode-forward-service-cases.json',manifest)
+    write(destination/'decode-forward-service-cases.json',manifest)
 
 
 if __name__=='__main__':

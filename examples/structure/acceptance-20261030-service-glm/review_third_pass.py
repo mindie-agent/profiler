@@ -7,15 +7,17 @@
 """
 from copy import deepcopy
 import json
+from pathlib import Path
 
 from build_service_cases import HERE, read, pin, write, summarize
 
 
-def main():
-    dest = HERE / 'third-pass'
+def main(destination=None):
+    dest = Path(destination or HERE / 'third-pass')
     report = read(dest / 'decode-forward-service-replay.json')
     old_report = read(HERE / 'second-pass/decode-forward-service-replay.json')
-    old_rows = {r['source_case_id']: r for r in old_report['cases'] if r['status'] == 'compared'}
+    initial = read(HERE / 'decode-forward-service-replay.json')
+    old_rows = {r['source_case_id']: r for r in initial['cases'] + old_report['cases'] if r['status'] == 'compared'}
     rows = {r['source_case_id']: r for r in report['cases'] if r['status'] == 'compared'}
     populations = read(dest / 'observed-populations.json')
     checks = 0
@@ -27,7 +29,7 @@ def main():
         if not ok:
             failures.append(label)
 
-    check(report['status'] == 'completed' and len(rows) == 3, 'three completed source populations')
+    check(report['status'] == 'completed' and len(rows) == len(populations['cases']), 'all requested source populations completed')
     check(report['runtime_generation']['unchanged'], 'fixed runtime unchanged')
     check(report['runtime_generation']['start']['package_sha256'] ==
           '57520ed725bfe6358585bd404f4cefa1f7702c00aabbc9294fecfb44a2f21db8', '3b72 runtime package')
@@ -66,6 +68,24 @@ def main():
             current = hits[previous['id']]
             for key in ('queries', 'response_us_min', 'response_us_max'):
                 check(current[key] == previous[key], cid + ' preserved native response ' + previous['id'] + '/' + key)
+        # The three high-M inputs previously carried only six responses. Their
+        # new grouped-down/MLA/index rules use the same complete populations as
+        # the lower-M cases, not the previous Body pass/fail classification.
+        ap = population['groups'][0]['actual_identity']
+        actual = read(ap['path'])
+        for rule in rules:
+            native = rule['provenance']['native_operator_type']
+            families = [f for f in actual['families'] if f['native_operator_type'] == native]
+            if native == 'MatMulV3':
+                families = [f for f in families if f['declared_role'] == 'linear_qkvbfg_a']
+            if native == 'GroupedMatmul':
+                families = [f for f in families if f['declared_role'] == 'expert_down']
+            stats = summarize(families)
+            check(stats['count'] == rule['provenance']['count'], cid + ' full native count ' + rule['id'])
+            check(stats['mean_us'] == rule['response']['fixed_us'], cid + ' full native Mean ' + rule['id'])
+            check(stats['p50_us'] == rule['provenance']['p50_us'], cid + ' full native P50 ' + rule['id'])
+            check(hits[rule['id']]['queries']['observable_response'] * population['forward_count'] == stats['count'],
+                  cid + ' inclusive hit multiplicity ' + rule['id'])
         added = []
         for group in population['groups']:
             ap = group['actual_identity']
@@ -123,15 +143,16 @@ def main():
     for r in results:
         o = r['real_ms']
         lines.append(f"| {r['case_id']} | {r['forward_count']} | {o['mean']:.6f} / {o['p50']:.6f} / {o['p90']:.6f} | {r['prior_sim_ms']:.6f} | {r['predicted_ms']:.6f} | {r['relative_error_pct']:+.2f}% | {'PASS' if r['passed'] else 'FAIL'} |")
-    lines += ['', 'All three remain outside the 15% Body tolerance. Source-consistent fusion reduces prediction rather than adding arbitrary delay; the old decomposition is not restored to improve error. The prior runtime was 2f48346b and this runtime is 3b72ea2d, so the difference is not attributed solely to HC.', '',
+    lines += ['', f"{sum(r['passed'] for r in results)}/{len(results)} sources pass the 15% Body tolerance. The source configuration applies to every eligible capture irrespective of its prior result. The old decomposition is not restored to improve error. The prior runtime was 2f48346b and this runtime is 3b72ea2d, so the difference is not attributed solely to HC.", '',
               'All eleven regimes hit exactly their declared native multiplicities. These are explicit in-sample measured service parameters, not a held-out validation and not a claim that every native ABI is closed. Scheduled family intervals include contention and are not additive Body budgets.', '',
               'Slice (224 calls/F) and SparseFlashMlaMetadata (11 calls/F) remain separate unresolved physical-boundary work. No observed time is attached to an unproven view/copy/metadata mapping.', '',
-              f'Retained-population/rule review: {checks} checks, {len(failures)} failures. Body arithmetic and unchanged source/geometry checks are in body-independent-review.json. Three fresh predictions, no raw parsing or device collection; the shared replay validates source file identities.', '',
-              'Reproduce: run ../build_third_pass.py with fixed 3b72ea2d on PYTHONPATH, then replay decode-forward-service-cases.json via ../../replay_decode_forwards.py with --geometry-limit 1 --prediction-timeout 90, and run ../review_third_pass.py.']
+              f'Retained-population/rule review: {checks} checks, {len(failures)} failures. Body arithmetic and unchanged source/geometry checks are in body-independent-review.json. {len(results)} fresh predictions, no raw parsing or device collection; the shared replay validates source file identities.', '',
+              'Reproduce with fixed 3b72ea2d on PYTHONPATH. The initial three inputs use ../build_third_pass.py; the remaining six use ../build_remaining_six.py. Replay this manifest through ../../replay_decode_forwards.py with --geometry-limit 1 --prediction-timeout 90, then run ../review_third_pass.py with this directory as the positional argument.']
     (dest / 'README.md').write_text('\n'.join(lines) + '\n')
     print(json.dumps({'checks': checks, 'failures': failures, 'passed': sum(r['passed'] for r in results)}))
     return bool(failures)
 
 
 if __name__ == '__main__':
-    raise SystemExit(main())
+    import sys
+    raise SystemExit(main(sys.argv[1] if len(sys.argv) > 1 else None))

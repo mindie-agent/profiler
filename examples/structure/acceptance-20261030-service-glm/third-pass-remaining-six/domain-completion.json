@@ -1,0 +1,40 @@
+{
+  "schema_version": "mindie-native-service-domain-completion/1",
+  "selection_basis": "all nine captures with the same supported premix-absent HC4 BF16 source contract; independent of prior pass status",
+  "supported_source_domain": {
+    "tokens_min": 4,
+    "tokens_max": 256,
+    "hidden": 4096,
+    "hc": 4
+  },
+  "previous_three_replay_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/third-pass/decode-forward-service-replay.json",
+    "sha256": "858cffb8ed0187d3ecee57c2569d629166de7dff9cda9e928c583d0248e1ef16",
+    "size_bytes": 2051910
+  },
+  "previous_three_case_ids": [
+    "a5_glm53flash_tp8_c8_p4k",
+    "a5_glm53flash_tp8_c4_p8k",
+    "glm53flash-a5-tp8-c1"
+  ],
+  "remaining_six_case_ids": [
+    "a5_glm53flash_tp8_c64_p4k",
+    "a5_glm53flash_tp8_c32_p4k",
+    "a5_glm53flash_tp8_c32_p8k",
+    "a5_glm53flash_tp8_c16_p4k",
+    "a5_glm53flash_tp8_c16_p8k",
+    "glm53flash-a5-tp8-c3"
+  ],
+  "new_high_three_nine_rule_population_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/third-pass-remaining-six/prepared-prior-nine/observed-populations.json",
+    "sha256": "fcccb568ff3fe0d406c828791ea5d0dcc4a2b29ff19e49dd137a26821ba2edf9",
+    "size_bytes": 577303
+  },
+  "generator_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/build_remaining_six.py",
+    "sha256": "b5d38cf38f9f5fe416f6a3490310e0d4912c1bed7915e4a96886c349468ba47c",
+    "size_bytes": 2532
+  },
+  "raw_scans": 0,
+  "new_costs": 0
+}
