@@ -2,17 +2,17 @@
 
 13 个独立来源 / 877 次选中 Body Forward。两个表格有交集，分母只计一次。接受建模声明不代表精度达标。
 
-Body 误差目标（同一分母）：≤5%：2/13；≤8%：6/13；≤10%：9/13；≤15%：13/13。原 15% 验收标准不变。
+Body 误差目标（同一分母）：≤5%：2/13；≤8%：6/13；≤10%：10/13；≤15%：13/13。原 15% 验收标准不变。
 
 | Case / source family | 当前保留结果 | 最近执行 | Body error | calibration / evaluation | 契约边界 | 当前 runtime / receipt |
 |---|---|---|---:|---|---|---|
 | qwen36-a5-tp2-c96 / qwen36_tp2_hccl | Body PASS | COMPLETED | -1.59% | in_sample / in_sample | Body 不证明 native strict 闭合 | `e71d76a0e8fb` / [3132121ac920](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/decode-forward-qwen-service-replay.json) |
-| qwen35-35b-a5-tp4-c128-graph / qwen35_mc2_tp | Body PASS | COMPLETED | -9.38% | observed / in_sample | Body 不证明 native strict 闭合 | `9f88dac92812` / [fc2504b266ec](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5/decode-forward-replay.compact.json) |
-| qwen35-35b-a5-tp4-c4-graph / qwen35_mc2_tp | Body PASS | COMPLETED | -14.66% | observed / in_sample | Body 不证明 native strict 闭合 | `9f88dac92812` / [fc2504b266ec](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5/decode-forward-replay.compact.json) |
-| qwen35-35b-a5-tp4-c64-graph / qwen35_mc2_tp | Body PASS | COMPLETED | -9.65% | observed / in_sample | Body 不证明 native strict 闭合 | `9f88dac92812` / [fc2504b266ec](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5/decode-forward-replay.compact.json) |
+| qwen35-35b-a5-tp4-c128-graph / qwen35_mc2_tp | Body PASS | COMPLETED | -8.87% | observed / in_sample | Body 不证明 native strict 闭合 | `9f88dac92812` / [b56ef473484b](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/decode-forward-replay.compact.json) |
+| qwen35-35b-a5-tp4-c4-graph / qwen35_mc2_tp | Body PASS | COMPLETED | -14.29% | observed / in_sample | Body 不证明 native strict 闭合 | `9f88dac92812` / [b56ef473484b](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/decode-forward-replay.compact.json) |
+| qwen35-35b-a5-tp4-c64-graph / qwen35_mc2_tp | Body PASS | COMPLETED | -9.03% | observed / in_sample | Body 不证明 native strict 闭合 | `9f88dac92812` / [b56ef473484b](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-highconc-service-refinement/qwen35-a5-shared-native/decode-forward-replay.compact.json) |
 | qwen36-a5-tp2-c12 / qwen36_tp2_hccl | Body PASS | COMPLETED | -11.33% | observed / in_sample | Body 不证明 native strict 闭合 | `57520ed725bf` / [3c8fea138325](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/decode-forward-qwen-cohort-service-replay.json) |
 | qwen36-a5-tp2-c1 / qwen36_tp2_hccl | Body PASS | COMPLETED | -12.98% | observed / in_sample | Body 不证明 native strict 闭合 | `57520ed725bf` / [3c8fea138325](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/decode-forward-qwen-cohort-service-replay.json) |
-| v4flash-a3-tp8-c4 / v4_a3_caller_bf16 | Body PASS | COMPLETED | -14.92% | not_declared / not_declared | Body 不证明 native strict 闭合 | `1c7fc78cb8be` / [c29b9ee49edb](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-a3-v4-caller-cc245da6/decode-forward-a3-v4-caller-replay.json) |
+| v4flash-a3-tp8-c4 / v4_a3_caller_bf16 | Body PASS | COMPLETED | -9.89% | observed / in_sample | Body 不证明 native strict 闭合 | `9f88dac92812` / [795ebe220095](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-a3-tail-service-refinement/retained-cohorts/decode-forward-retained-cohort-replay.json) |
 | v4flash-a3-tp8-c8 / v4_a3_caller_bf16 | Body PASS | COMPLETED | -8.09% | not_declared / not_declared | Body 不证明 native strict 闭合 | `1c7fc78cb8be` / [c29b9ee49edb](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-a3-v4-caller-cc245da6/decode-forward-a3-v4-caller-replay.json) |
 
 ## 六个 A5 高并发重点

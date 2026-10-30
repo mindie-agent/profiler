@@ -1,25 +1,25 @@
 {
   "schema_version": "mindie-priority-scoreboard-independent-review/2",
   "status": "passed",
-  "checks": 211457,
+  "checks": 220867,
   "failures": [],
-  "report_sha256": "6ab3a18d8a530e202a996895d14049f6455682500e3320708f812d703ad55758",
+  "report_sha256": "0de04228b2bce5f22ab521d48a3bb68b34ef0427a79acec0dcdca607e7af5dc1",
   "summary": {
-    "body_compared": 689,
-    "body_passed": 229,
+    "body_compared": 715,
+    "body_passed": 251,
     "current_body_compared": 66,
-    "current_body_passed": 66,
+    "current_body_passed": 65,
     "current_body_precision": {
       "population_count": 66,
       "weighting": "one selected completed source/geometry population; no Forward weighting",
-      "absolute_relative_error_mean": 0.07473132613874166,
-      "absolute_relative_error_median": 0.07202113210415345,
-      "absolute_relative_error_max": 0.1492252632422039,
+      "absolute_relative_error_mean": 0.06818766480679667,
+      "absolute_relative_error_median": 0.06352738210459091,
+      "absolute_relative_error_max": 0.19456723953736807,
       "within_relative_error": {
-        "5": 23,
-        "8": 36,
-        "10": 44,
-        "15": 66
+        "5": 26,
+        "8": 39,
+        "10": 51,
+        "15": 65
       }
     },
     "invalidated_body_prediction_arms": 31,
@@ -27,14 +27,14 @@
     "latest_body_attempt_count": 66,
     "latest_body_attempt_completed": 66,
     "latest_body_attempt_failed": 0,
-    "latest_body_attempt_passed": 66,
+    "latest_body_attempt_passed": 65,
     "body_denominator": "prediction_variants; identical observed populations are not additional captures",
     "unique_source_count": 66,
     "unique_source_geometry_populations": 222,
     "unique_observed_forward_count": 5250,
     "operator_status_counts": {
-      "reference_only": 208,
-      "compared": 2929
+      "reference_only": 213,
+      "compared": 3065
     },
     "operator_accuracy_by_tier": {
       "heavy_relative_15pct": {
@@ -51,10 +51,10 @@
       "c27d72c215c2c98f804908823d9c4172ab85399134814ec639fbb2f059cbbe05": 5,
       "20dbf57be438004348b0efba951450222dd5bf9d64537b4fd2b9e2cd5433e438": 1,
       "fd8238dbb993f505dc1ceacf52bd560530038229a37d6ca46f8fa1e903fff981": 5,
-      "e78bca41dba4e1bcd3043bc503777d0510b95645d7afbd640ef3abc95d34919f": 30,
+      "e78bca41dba4e1bcd3043bc503777d0510b95645d7afbd640ef3abc95d34919f": 26,
       "mixed_native_family_runtimes": 3,
       "d5345a2d23c063b1eff8153a6a08424043e6a10b222fdebb156e0dc53a0a1bd5": 7,
-      "b8dd0b80a283b6e7acccca26c60390cab5caaaab60c56072237b1766248eb67b": 3
+      "cae1f33d343c089198983a8ba464cfb5ab0fb6cfeccb724f74ecb49ea68da777": 7
     },
     "operator_supplement_applications": 3,
     "current_controller_overlay_rows": 10,
@@ -66,11 +66,11 @@
     "current_external_native_reference_calls": 1050766,
     "current_external_native_reference_populations": 44,
     "current_external_native_reference_forwards": 2784,
-    "heavy_cohorts": 159
+    "heavy_cohorts": 163
   },
-  "body_rows": 2350,
-  "family_rows": 10791,
-  "cohort_rows": 3137,
+  "body_rows": 2445,
+  "family_rows": 11244,
+  "cohort_rows": 3278,
   "reference_rows": 2240,
   "corrected_kimi_quant_cases_checked": 36,
   "historical_case_resolutions": [
@@ -160,8 +160,8 @@
     }
   ],
   "execution": {
-    "elapsed_seconds": 22.355165750021115,
-    "peak_rss_bytes": 425967616,
+    "elapsed_seconds": 31.251392832957208,
+    "peak_rss_bytes": 441974784,
     "receipt_read_engine": "ijson top-level fields and sequential receipt cases"
   },
   "scope": "Independent sequential receipt reconciliation; no raw capture parsing or prediction. Invalidation, effective current Kimi precision, source/geometry deduplication, explicit input order, strict tier arithmetic and unscored source references are checked separately."

@@ -97,9 +97,12 @@
     "db_sha256": "481518e30036925aecd04606915c149da91bcf06d988af955975d23d1a8fa5a3",
     "db_size_bytes": 552960,
     "csv_path": "tests/fixtures/profiler_core/real_glm45/kernel_details_slice.csv",
-    "csv_sha256": "ddc1d314b145d27060d8e5a6c94a1ca42a113d983b870b55aad62f6156eb131f",
-    "csv_size_bytes": 2416,
-    "csv_header_sha256": "cd3abd3c903285c6a51bf4ec129f434a323a0c4e011ae54e81f72b60e35b4bb4"
+    "csv_sha256": "e19e3e0b0119a7e76901b520c96a0f2dd73cc9b5f2f9426138bdccde1310de7a",
+    "csv_size_bytes": 2409,
+    "csv_header_sha256": "cd3abd3c903285c6a51bf4ec129f434a323a0c4e011ae54e81f72b60e35b4bb4",
+    "csv_source_crlf_sha256": "ddc1d314b145d27060d8e5a6c94a1ca42a113d983b870b55aad62f6156eb131f",
+    "csv_source_crlf_size_bytes": 2416,
+    "line_ending_normalization": "CRLF to LF; CSV header and all six data rows retain identical cells."
   },
   "tables_copied": [
     "TASK",

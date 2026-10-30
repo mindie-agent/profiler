@@ -702,6 +702,10 @@ def main():
     parser.add_argument("--invalidations", type=Path, action="append", default=[])
     parser.add_argument("--focus-spec", type=Path, help="Selected source identities and benchmark scenarios")
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--archive-root", type=Path,
+                        default=Path(os.environ.get('MINDIE_PROFILER_ARCHIVE_ROOT',
+                            Path(__file__).resolve().parents[2] / '.mindie-local/acceptance-archives')),
+                        help="Store full evidence externally and publish a compact JSON (<5 MB)")
     args = parser.parse_args()
     manifest_identity = None
     if args.input_manifest:
@@ -724,13 +728,19 @@ def main():
         "receipt_read_strategy": "stream_native_operator_cases; bounded_body_receipts",
         "raw_capture_scans": 0, "prediction_executions": 0,
     }
-    publish(report, args.output)
+    publish(report, args.output, args.archive_root)
     print(json.dumps(report["summary"]))
 
 
-def publish(report, destination):
+def publish(report, destination, archive_root=None):
     """Keep readers on the last complete artifact while the next one streams."""
-    writers = ((destination, lambda stream: json.dump(report, stream, separators=(",", ":"))),
+    publication = report
+    if archive_root is not None:
+        from scoreboard_archive import archive_report, project
+        publication = project(report, archive_report(report, archive_root))
+        if len(json.dumps(publication, separators=(",", ":")).encode()) >= 5_000_000:
+            raise ValueError("compact scoreboard exceeds 5 MB publication budget")
+    writers = ((destination, lambda stream: json.dump(publication, stream, separators=(",", ":"))),
                (destination.with_suffix(".md"), lambda stream: stream.write(render(report).rstrip("\n"))))
     for path, write in writers:
         fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)

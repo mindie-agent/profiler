@@ -1,5 +1,4 @@
 """Host/Runtime to device correlation for one explicit profiler window.
-
 [Role]
   Drill into a device gap, hotspot kernel name, or explicit window by joining
   ``PYTORCH_API`` / ``MSTX_EVENTS`` (same ``globalTid`` nanosecond containment)
@@ -27,7 +26,6 @@
   ``timeout_s`` (default 20s) is enforced through a sqlite progress handler.
   Window events and referenced connections have row caps; the connection closes
   in finally. STRING_IDS remains a shared capture dictionary.
-
 [Side-Effect Policy]
   Read-only sqlite access to one DB.  No writes, index files, or network.
 """

@@ -204,6 +204,9 @@ def review_precision(summary, errors, check, label):
 
 def review(path):
     started = time.monotonic()
+    from scoreboard_archive import resolve_full
+    published_path = path
+    path = resolve_full(path)
     initial_sha = digest(path)
     # Cumulative scoreboard arrays can exceed the single-receipt JSON limit.
     # Decode their fields incrementally without also retaining the full text;
@@ -216,6 +219,22 @@ def review(path):
         checks += 1
         if not condition:
             failures.append(message)
+
+    if Path(published_path) != Path(path):
+        compact = read(published_path)
+        check(compact['summary'] == report['summary'], 'Compact summary preserves full evidence')
+        for key in ('current_body_comparisons', 'latest_body_attempts',
+                    'body_failed_attempts', 'current_operator_cohorts'):
+            rows = compact[key]; full_rows = report[key]
+            check(len(rows) == len(full_rows), 'Compact population ' + key)
+            for row, full_row in zip(rows, full_rows):
+                required = {'case_id', 'source_identity', 'geometry', 'receipt'}
+                required |= {'accuracy_pass', 'observed_us', 'predicted_us'} if key == 'current_operator_cohorts' else {'comparison'}
+                check(required <= row.keys(), 'Compact comparison fields ' + key)
+                check(all(k in full_row and v == full_row[k] for k, v in row.items()),
+                      'Compact values ' + key)
+        check(compact['archived_row_counts'] == {k: len(v) for k, v in report.items()
+                                                if isinstance(v, list)}, 'Compact history counts')
 
     def near(a, b):
         return math.isclose(a, b, rel_tol=1e-11, abs_tol=1e-10)
@@ -643,7 +662,7 @@ def review(path):
         values = [row for row in expected_current_cohorts if row["status"] == "compared" and row["heavy_call"] == heavy]
         tiers[label] = {"compared": len(values), "passed": sum(row["accuracy_pass"] is True for row in values)}
     check(summary["operator_accuracy_by_tier"] == tiers, "Strict current-only tier denominator excludes references")
-    manifest = Path(path).with_name("priority-scoreboard-inputs.json")
+    manifest = Path(published_path).with_name("priority-scoreboard-inputs.json")
     if manifest.exists():
         declared = read(manifest)
         check(body_order == declared["body"], "Explicit body input order")
@@ -658,7 +677,7 @@ def review(path):
     check(peak_bytes <= 512 * 1024 ** 2, "Bounded reviewer peak RSS")
     return {"schema_version": "mindie-priority-scoreboard-independent-review/2",
         "status": "passed" if not failures else "failed", "checks": checks,
-        "failures": failures, "report_sha256": digest(path), "summary": summary,
+        "failures": failures, "report_sha256": digest(published_path), "full_evidence_sha256": digest(path), "summary": summary,
         "body_rows": len(body), "family_rows": len(family), "cohort_rows": len(cohort),
         "reference_rows": sum(reference.values()), "corrected_kimi_quant_cases_checked": corrected_quant_cases,
         "historical_case_resolutions": historical_case_resolutions,
