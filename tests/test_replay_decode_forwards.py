@@ -1,5 +1,6 @@
 """Missing evidence and source mismatches never turn into numerical accuracy."""
 import importlib.util
+from copy import deepcopy
 import json
 from pathlib import Path
 
@@ -98,6 +99,64 @@ def test_real_mixed_geometry_priority_retains_tail_population(replay):
     assert rows[1]["comparison"]["reasons"] == ["prediction_deferred_by_population_priority"]
     assert sum(row["comparison"]["observed_forward_count"] for row in rows) == observed["body_forward_span_ms"]["count"]
     assert all(row["comparison"]["predicted_ms"] is None for row in rows)
+
+
+@pytest.mark.parametrize("declaration", ["none", "case", "manifest", "regime_only"])
+def test_reused_capture_retains_explicit_calibration_and_service_domains(
+        replay, monkeypatch, tmp_path, declaration):
+    pytest.importorskip("mindie_sim.prediction.structure")
+    directory = ROOT / "examples/structure/acceptance-20261030-qwen35-mc2-tp-bf71bd7d"
+    manifest = json.loads((directory / "decode-forward-qwen35-mc2-tp-cases.json").read_text())
+    row = next(row for row in manifest["cases"] if row["case_id"].endswith("-c4-graph"))
+    if not Path(row["source"]["path"]).is_file() or not Path(row["sim_case_path"]).is_file():
+        pytest.skip("requires retained source identity and companion Sim case")
+    observed = json.loads(Path(row["extraction_path"]).read_text())
+    case = json.loads(Path(row["sim_case_path"]).read_text())
+    evidence = {"evaluation_relation": "in_sample", "fit_source_identity": row["source"],
+                "evaluation_source_identity": row["source"]}
+    rule = {"id": "explicit-copy-service", "match": {"recipe": "tensor_materialization"},
+            "coordinates": {"rows": {"path": "local_shape.0"}},
+            "domain": {"rows": {"min": 16, "max": 128}},
+            "response": {"fixed_us": 3.0, "terms": [{"coordinate": "rows", "us_per_unit": 0.1,
+                "scale_with": {"resource": "mte3", "reference_rate": 4000000000000}}]},
+            "provenance": {"basis": "test_declaration_transport_only", "source_identity": row["source"]}}
+    if declaration != "none":
+        case["runtime"].setdefault("kernels", {})["service_regimes"] = [rule]
+    if declaration in {"case", "manifest"}:
+        case["runtime"].setdefault("metadata", {}).update(
+            calibration_origin="explicit_case", calibration_evidence=evidence)
+    if declaration == "manifest":
+        # Explicit report declaration wins; this tests transport, not whether a
+        # purported holdout split is independent (which needs its own evidence).
+        row.update(calibration_origin="explicit_manifest", calibration_evidence={
+            "evaluation_relation": "heldout", "basis": "declaration_transport_test_only"})
+    case_path = tmp_path / "source-case.json"
+    case_path.write_text(json.dumps(case))
+    row["sim_case_path"] = str(case_path)
+    unchanged = deepcopy((row, case, observed))
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("retained extraction metadata replay must not scan events or execute a model")
+
+    monkeypatch.setattr(replay, "_source", forbidden)
+    monkeypatch.setattr(replay, "_predict_bounded", forbidden)
+    result = replay.replay_case(row, ROOT, run_predictions=False)
+    geometries = result["geometry_cases"]
+    assert sum(item["comparison"]["observed_forward_count"] for item in geometries) == 91
+    assert max(item["comparison"]["observed_forward_count"] for item in geometries) == 84
+    for item in [result, *geometries]:
+        assert item["calibration_origin"] == {
+            "case": "explicit_case", "manifest": "explicit_manifest"}.get(declaration, "not_declared")
+        if declaration == "none":
+            assert item["calibration_evidence"] is None
+        else:
+            saved = item["calibration_evidence"]
+            assert saved["declared_service_regimes"] == [rule]
+            assert saved.get("evaluation_relation") == {
+                "case": "in_sample", "manifest": "heldout"}.get(declaration)
+    assert result["observed"]["geometry_groups"] == observed["geometry_groups"]
+    assert (row, case, observed) == unchanged
+    assert all(item["prediction"] is None for item in geometries)
 
 
 def test_prediction_worker_has_bounded_receipt_and_reuses_completed_geometry(replay, monkeypatch, tmp_path):

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter
+from copy import deepcopy
 from dataclasses import replace
 from hashlib import sha256
 import json
@@ -131,6 +132,22 @@ def _declared_runtime(case):
             "graph_mode": runtime.graph_mode, "graph_capture_mode": runtime.graph_capture_mode,
             "captured_execution_mode": metadata.get("captured_execution_mode"),
             "captured_mode_basis": "source_bound_case_metadata"}
+
+
+def _calibration_metadata(row, case=None):
+    """Preserve explicit declarations; a fitted parameter does not imply a split."""
+    runtime = (case or {}).get("runtime", {})
+    metadata = runtime.get("metadata", {})
+    evidence = deepcopy(row.get("calibration_evidence", metadata.get("calibration_evidence")))
+    regimes = runtime.get("kernels", {}).get("service_regimes", [])
+    if regimes:
+        evidence = evidence or {}
+        evidence["declared_service_regimes"] = deepcopy(regimes)
+        evidence["service_regime_declaration_path"] = "runtime.kernels.service_regimes"
+    return {
+        "calibration_origin": row.get("calibration_origin", metadata.get("calibration_origin")) or "not_declared",
+        "calibration_evidence": evidence,
+    }
 
 
 def _predict_bounded(case_path, geometry, cache, *, timeout_s):
@@ -313,6 +330,7 @@ def replay_case(row, base, *, max_events=5_000_000, timeout_s=30,
         "source_identity": dict(row["source"]), "geometry": row.get("geometry"),
         "scenario_evidence": row.get("scenario_evidence", {}),
         "observed": None, "prediction": None, "runtime_identity": None,
+        **_calibration_metadata(row),
         "comparison": _empty_comparison(list(row.get("unresolved_reasons", []))),
         "auxiliary_graph_envelopes": {
             "reference": row.get("graph_envelopes_path"), "not_body_forward": True},
@@ -328,6 +346,7 @@ def replay_case(row, base, *, max_events=5_000_000, timeout_s=30,
 
         case_path = _path(base, row["sim_case_path"])
         case = _read(case_path)
+        result.update(_calibration_metadata(row, case))
         config = _model_config(case)
         config.update(row.get("segmentation_options", {}))
         result["declared_runtime"] = _declared_runtime(case)
@@ -392,6 +411,7 @@ def replay_case(row, base, *, max_events=5_000_000, timeout_s=30,
         return result
     case_path = _path(base, row["sim_case_path"])
     result["case_identity"] = {"path": str(case_path), "sha256": sha256_file(case_path)}
+    result.update(_calibration_metadata(row, _read(case_path)))
     if not run_predictions:
         result["comparison"] = _empty_comparison(["prediction_not_requested"])
         result["comparison"].update(observed_ms=observed["body_forward_span_ms"],
@@ -432,6 +452,7 @@ def replay_manifest(manifest, *, base, max_events=5_000_000, timeout_s=30,
             rows.extend(result.pop("geometry_cases", None) or [result])
         except (OSError, ValueError, ProfilerError) as error:
             rows.append({"case_id": row["case_id"], "status": "failed",
+                         **_calibration_metadata(row),
                          "source_identity": row["source"], "observed": None, "prediction": None,
                          "comparison": {**_empty_comparison([str(error)]), "status": "failed"},
                          "error": {"type": type(error).__name__, "message": str(error)}})
@@ -455,7 +476,7 @@ def replay_manifest(manifest, *, base, max_events=5_000_000, timeout_s=30,
         "limitations": ["Graph execution envelopes and TPOT are not target-body spans.",
                         "Automatic topology alignment is not exact Host/module occurrence binding.",
                         "Scenario targets do not establish capture conditions.",
-                        "Sim TP peers are symmetric and initially ready at zero; measured collective elapsed can include peer wait. Single-rank intervals cannot separate payload transport from peer wait and must not be used to fit link bandwidth."],
+                        "Sim TP peers are symmetric and initially ready at zero; measured collective elapsed can include peer wait. Single-rank intervals do not identify pure link bandwidth without separating that wait. Same-boundary observed service may calibrate explicit per-call, per-group or payload-regime responses; evaluation provenance is reported separately from contract eligibility."],
     }
 
 
@@ -516,7 +537,7 @@ def render(report):
         ]) + " |")
     lines.extend(["", "## Device activity and internal uncovered intervals", "",
                   "Device activity is the interval union of retained non-scheduler device events. Real HCOM intervals include protocol wait, so this coverage is not PMU-confirmed useful hardware busy time. Internal uncovered time is body span minus this union. It remains inside body latency and does not by itself identify Host scheduling. Concurrent stream activity is not additive.", "",
-                  "Sim assumes symmetric TP peers initially ready at zero. A measured collective interval may include peer wait; single-rank profiling cannot separate payload transport from that wait, so this elapsed time is not a link-bandwidth calibration.", "",
+                  "Sim assumes symmetric TP peers initially ready at zero. A measured collective interval may include peer wait; without separating that wait, elapsed time does not identify pure link bandwidth. The same observed boundary may calibrate per-call, per-group or payload-regime service responses. Explicit in-sample/heldout declarations are retained separately from contract eligibility; missing evaluation provenance remains not_declared.", "",
                   "| Case | Real body mean ms | Device activity mean ms | Internal uncovered mean ms | Uncovered fraction | Captured graph mode | Sim TP / DP / EP | Sim graph mode / capture |",
                   "|---|---:|---:|---:|---:|---|---|---|"])
     for row in report["cases"]:
