@@ -1,0 +1,26 @@
+{
+  "schema_version": "mindie-source-caller-independent-review/1",
+  "status": "passed",
+  "checks": 664,
+  "failures": [],
+  "report_sha256": "9ca56bd5f607fed575c9c997a200756e304a2293af22b0f957120cec946b58bd",
+  "scope": "Independent retained HCOM histogram, original-ledger projection, priced representative signatures, every-layer complete source program work and arithmetic; zero raw and zero cost",
+  "review_corrections": [
+    "Initial checker incorrectly required per-location physical_signature equality with memoized representative; final check preserves exact representative signatures and independently compares full ordered source work/dependencies/selection/peer traffic across every layer. No evidence or prediction changed.",
+    "The recorded short revision 40e4300e resolves locally to the pinned full revision; every recorded runtime file SHA is verified."
+  ],
+  "summary": {
+    "selected_forwards": 220,
+    "source_forwards": 229,
+    "reference_groups": 11,
+    "reference_calls": 3300,
+    "unresolved_calls": 440,
+    "strict_compared": 0,
+    "raw_capture_reads": 0,
+    "new_cost_evaluations": 0
+  },
+  "execution": {
+    "elapsed_seconds": 0.20022383390460163,
+    "peak_rss_bytes": 83034112
+  }
+}
