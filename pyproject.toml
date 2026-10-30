@@ -9,7 +9,7 @@ description = "Ascend NPU profiling collection, in-place inventory/analyze/corre
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "mindie-sim @ git+https://github.com/mindie-agent/sim.git@ee3a4d5edb95611528eb832ff4ba930c76129914",
+    "mindie-sim @ git+https://github.com/mindie-agent/sim.git@1c5939cd0ade04d51be1ff397bb5ca86f8be3f56",
 ]
 
 [project.optional-dependencies]
