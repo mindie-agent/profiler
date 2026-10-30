@@ -2218,7 +2218,19 @@
           "selection": "complete_native_boundaries_and_existing_source_lowerings; not selected_by_Body_error",
           "body_residual_used": false
         }
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-qwen35-397b-a3-tp16-c48/body-operator-qwen35-397b-a3-tp16-c48-cases.actual.json",
+          "sha256": "458ea1d6fb36843b72bebaf4533c298932e04f3992aa2743a5bb7ec49cf8255f",
+          "size_bytes": 543819,
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-qwen35-397b-a3-tp16-c48/body-operator-qwen35-397b-a3-tp16-c48-cases.mapping.json",
+            "sha256": "4ad5f6abaeba5fed01a0e331d0e2ad451e8f20c688a81e0a5aa522db90120d22",
+            "size_bytes": 176817
+          }
+        }
+      ]
     },
     {
       "id": "decode:qwen35-397b-a3-tp16-c136",
@@ -3371,7 +3383,19 @@
         },
         "historical_cost_is_not_new_scoreboard_input": true,
         "non_provenance_configuration_unchanged": true
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-qwen36-a5-tp2-c96/body-operator-qwen36-a5-tp2-c96-cases.actual.json",
+          "sha256": "30d9965831b2337611515f96c28e75eab7b1be4858a3684a3c74c9d59e4b3091",
+          "size_bytes": 1031449,
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-qwen36-a5-tp2-c96/body-operator-qwen36-a5-tp2-c96-cases.mapping.json",
+            "sha256": "6cb7532fd09027e890cdf43327a88432e21250b55f1410ce6ed27801c3b769db",
+            "size_bytes": 60804
+          }
+        }
+      ]
     },
     {
       "id": "decode:qwen36-a5-tp2-c1",
@@ -4419,7 +4443,19 @@
           "completion_token": 21
         },
         "client_metric_scope": "complete benchmark requests, not only retained device-window calls"
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64/body-operator-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-cases.actual.json",
+          "sha256": "038fcbffc09bcae0ddf31e095c3886fed05ac68ede4200700d6a6b39adc54435",
+          "size_bytes": 2042496,
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64/body-operator-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-cases.mapping.json",
+            "sha256": "16ac5fa0c263ebe5c724acdb7a28ad7866f551e161c49e22c7ea5418bb58b111",
+            "size_bytes": 256201
+          }
+        }
+      ]
     },
     {
       "id": "decode:a5_glm53flash_tp8_c16_p4k",
@@ -5230,7 +5266,41 @@
         },
         "historical_cost_is_not_new_scoreboard_input": true,
         "non_provenance_configuration_unchanged": true
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/body-operator-a5_glm53flash_tp8_c4_p8k-retained.actual.json",
+          "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+          "size_bytes": 791398,
+          "retained_body_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/e4fef63dbaa977d5c172bffe4039a5006ac3cf6443d19dd132a7894dba99b583.json",
+            "sha256": "e4fef63dbaa977d5c172bffe4039a5006ac3cf6443d19dd132a7894dba99b583",
+            "size_bytes": 1519551
+          },
+          "current_body_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/63dafa30ffd7999418836edf24333f88ae82684a959f9380d8a5555aa66cee57.json",
+            "sha256": "63dafa30ffd7999418836edf24333f88ae82684a959f9380d8a5555aa66cee57",
+            "size_bytes": 989657
+          },
+          "body_acceptance_equivalence": {
+            "basis": "exact_retained_body_and_layer_population_equality",
+            "compared_fields": [
+              "model_declaration",
+              "segmentation_options",
+              "forwards",
+              "geometry_groups",
+              "per_layer_ms"
+            ],
+            "forward_count": 23,
+            "selected_forward_count": 11
+          },
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/body-operator-a5_glm53flash_tp8_c4_p8k-retained.mapping.json",
+            "sha256": "e8a22a4bd97bf51e4e2029f377b4d6ee95bc67e8c31ad2acc9f9157e92cb1475",
+            "size_bytes": 80232
+          }
+        }
+      ]
     },
     {
       "id": "decode:a5_glm53flash_tp8_c64_p4k",
@@ -6743,7 +6813,19 @@
         "extraction_path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/86ed9ea9985c5e6e02091c97c3bab5982d56d9f32d45fc75a3f442b7cf543ea2.json",
         "client_metric_scope": "complete retained benchmark requests; distinct from device capture window",
         "client_concurrency": 1
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a3_kimi4_tp8_w4a8_c1/body-operator-a3_kimi4_tp8_w4a8_c1-cases.actual.json",
+          "sha256": "8bd21b031530f4fecfa0d627041dcb421057943aefd93d28a731fdd95ffae393",
+          "size_bytes": 537171,
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a3_kimi4_tp8_w4a8_c1/body-operator-a3_kimi4_tp8_w4a8_c1-cases.mapping.json",
+            "sha256": "36ee9f525cf4ebf04dc2b6e0104eca7770b1e76255625bcd6e1a9a3818ff234e",
+            "size_bytes": 57674
+          }
+        }
+      ]
     },
     {
       "id": "decode:a3_kimi4_tp8_w4a8_c16",
@@ -6880,7 +6962,19 @@
         "extraction_path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/d0d059e71b5c0bcb639f0a21f4d7a37383a770dd227f340869f116b6044a13a3.json",
         "client_metric_scope": "complete retained benchmark requests; distinct from device capture window",
         "client_concurrency": 16
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a3_kimi4_tp8_w4a8_c16/body-operator-a3_kimi4_tp8_w4a8_c16-cases.actual.json",
+          "sha256": "d4079dad2189cb54a7ab6dbd35cac154f275a833433bad018531aae85d872e67",
+          "size_bytes": 585661,
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a3_kimi4_tp8_w4a8_c16/body-operator-a3_kimi4_tp8_w4a8_c16-cases.mapping.json",
+            "sha256": "eb51cdf09de11162be6c9446d8021fc405baddc451da6b38cd44e42783fb7061",
+            "size_bytes": 62920
+          }
+        }
+      ]
     },
     {
       "id": "decode:a3_kimi4_tp8_w4a8_c32",
@@ -7061,7 +7155,19 @@
         "extraction_path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/9887693509566c856e8dd7b28eb117b27b56ec12bafaa8c18395a1ef4835f209.json",
         "client_metric_scope": "complete retained benchmark requests; distinct from device capture window",
         "client_concurrency": 32
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a3_kimi4_tp8_w4a8_c32/body-operator-a3_kimi4_tp8_w4a8_c32-cases.actual.json",
+          "sha256": "50a63f5e3e2bac693580cfc8987d6cc7fb2ed823aabb6431a1ec7dd75c97574f",
+          "size_bytes": 583520,
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a3_kimi4_tp8_w4a8_c32/body-operator-a3_kimi4_tp8_w4a8_c32-cases.mapping.json",
+            "sha256": "220edbb0428b1bfa949942f0bc5a2b7c33d5b0a5402d4748be6ea27e4d31369e",
+            "size_bytes": 89222
+          }
+        }
+      ]
     },
     {
       "id": "decode:a3_kimi4_tp8_w4a8_c4",
@@ -7209,7 +7315,19 @@
         "extraction_path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/071e690b98689b26f4668cfdd103ea564b6e045b7832f0977b52ab48e2edb765.json",
         "client_metric_scope": "complete retained benchmark requests; distinct from device capture window",
         "client_concurrency": 4
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a3_kimi4_tp8_w4a8_c4/body-operator-a3_kimi4_tp8_w4a8_c4-cases.actual.json",
+          "sha256": "a2f11aacbfd14439d7583df17bd20a786725d5d1b1d441e814d5a084f2fc2c69",
+          "size_bytes": 562429,
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a3_kimi4_tp8_w4a8_c4/body-operator-a3_kimi4_tp8_w4a8_c4-cases.mapping.json",
+            "sha256": "af0d3bc41512dddc43104189672dccdb47e6d8a557fd7f9e928f19cc6fbda273",
+            "size_bytes": 57678
+          }
+        }
+      ]
     },
     {
       "id": "decode:a3_kimi4_tp8_w4a8_c64",
@@ -7401,7 +7519,19 @@
         "extraction_path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/fb2b0a5e0f9cc28d3fe6827a3eeb3bf3ef9df2ee603b3c8691ad797008290c68.json",
         "client_metric_scope": "complete retained benchmark requests; distinct from device capture window",
         "client_concurrency": 64
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a3_kimi4_tp8_w4a8_c64/body-operator-a3_kimi4_tp8_w4a8_c64-cases.actual.json",
+          "sha256": "58f9866df9b3b01a5bd0f86d7157876e8f30d75370a7bb4ec7643f119e7b5efc",
+          "size_bytes": 571656,
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a3_kimi4_tp8_w4a8_c64/body-operator-a3_kimi4_tp8_w4a8_c64-cases.mapping.json",
+            "sha256": "461e526f02fb7ef17c72ec29abed8067a5c978f9135b0f9bbf8634390641401e",
+            "size_bytes": 82752
+          }
+        }
+      ]
     },
     {
       "id": "decode:a5_kimi_tp8_e16_bf16_c16_p16k",
@@ -7536,7 +7666,19 @@
           "unprofiled_sweep_ms": 94.42328845753389,
           "profiled_run_client_ms": 100.21879158767999
         }
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c16_p16k/body-operator-a5_kimi_tp8_e16_bf16_c16_p16k-cases.actual.json",
+          "sha256": "dda7a86bacdae52b11b2ba6ed88aa9e5c5175317ce84ee78da3df62620447918",
+          "size_bytes": 2467752,
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c16_p16k/body-operator-a5_kimi_tp8_e16_bf16_c16_p16k-cases.mapping.json",
+            "sha256": "d7da9c1b1de588a5c112949529cecc450f8ae84191b91f5ec9dbe70c8fbd33c5",
+            "size_bytes": 112721
+          }
+        }
+      ]
     },
     {
       "id": "decode:a5_kimi_tp8_e16_bf16_c16_p4k",
@@ -7671,7 +7813,19 @@
           "unprofiled_sweep_ms": 46.93399363873051,
           "profiled_run_client_ms": 52.46089065776151
         }
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c16_p4k/body-operator-a5_kimi_tp8_e16_bf16_c16_p4k-cases.actual.json",
+          "sha256": "15cc7d6ef7678a6fbdf2f1413b9bea1cd6e425f01f9425889d823d7b92a6b7ad",
+          "size_bytes": 2504058,
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c16_p4k/body-operator-a5_kimi_tp8_e16_bf16_c16_p4k-cases.mapping.json",
+            "sha256": "57bec1d754c69078f34c4ca2c617aaebee99f500372a3246166ff706b251216e",
+            "size_bytes": 112670
+          }
+        }
+      ]
     },
     {
       "id": "decode:a5_kimi_tp8_e16_bf16_c1_p16k",
@@ -7806,7 +7960,19 @@
           "unprofiled_sweep_ms": 29.981761820176068,
           "profiled_run_client_ms": 35.81352888369093
         }
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c1_p16k/body-operator-a5_kimi_tp8_e16_bf16_c1_p16k-cases.actual.json",
+          "sha256": "be00023edbd393d63eeaf63f439e1547b219807ad202a3789b8e16a0cc13b0d8",
+          "size_bytes": 2436497,
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c1_p16k/body-operator-a5_kimi_tp8_e16_bf16_c1_p16k-cases.mapping.json",
+            "sha256": "f2f0bcede1fddfb484739504e51c135ebb38bebfa590d23369b712194016ffbc",
+            "size_bytes": 103728
+          }
+        }
+      ]
     },
     {
       "id": "decode:a5_kimi_tp8_e16_bf16_c1_p4k",
@@ -7941,7 +8107,19 @@
           "unprofiled_sweep_ms": 29.765648935355394,
           "profiled_run_client_ms": 35.862669290280806
         }
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c1_p4k/body-operator-a5_kimi_tp8_e16_bf16_c1_p4k-cases.actual.json",
+          "sha256": "99ceca7a56e78643f4fee2c3d5680bce2efd107cb964d8782d23b80f92636e5d",
+          "size_bytes": 2435152,
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c1_p4k/body-operator-a5_kimi_tp8_e16_bf16_c1_p4k-cases.mapping.json",
+            "sha256": "7bdf25951dcf001344df42fec36839153ca240c5165e87b62e0003b68d47584e",
+            "size_bytes": 103693
+          }
+        }
+      ]
     },
     {
       "id": "decode:a5_kimi_tp8_e16_bf16_c2_p16k",
@@ -8076,7 +8254,19 @@
           "unprofiled_sweep_ms": 35.76881792031082,
           "profiled_run_client_ms": 41.417497747084674
         }
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c2_p16k/body-operator-a5_kimi_tp8_e16_bf16_c2_p16k-cases.actual.json",
+          "sha256": "5ccfb707ced8da78dfb500f9db225b428e6718bd1f915a8f240513d6b2b1ae1e",
+          "size_bytes": 2505897,
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c2_p16k/body-operator-a5_kimi_tp8_e16_bf16_c2_p16k-cases.mapping.json",
+            "sha256": "10722a5d2df0e031a17f5fab4ef4e761e0519ce774ba24c78f2d5331ec0389a7",
+            "size_bytes": 97104
+          }
+        }
+      ]
     },
     {
       "id": "decode:a5_kimi_tp8_e16_bf16_c2_p4k",
@@ -8211,7 +8401,19 @@
           "unprofiled_sweep_ms": 33.560557926402375,
           "profiled_run_client_ms": 39.22153033462225
         }
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c2_p4k/body-operator-a5_kimi_tp8_e16_bf16_c2_p4k-cases.actual.json",
+          "sha256": "9a937ee83816b1fefe6b9e0702ce222d649b43ab0b2f4427434f3a9b50911eb1",
+          "size_bytes": 2523854,
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c2_p4k/body-operator-a5_kimi_tp8_e16_bf16_c2_p4k-cases.mapping.json",
+            "sha256": "eaa20eb34dd54c97571c601d340def1c2b81671eb1870d27c35f3804f497f4e8",
+            "size_bytes": 96909
+          }
+        }
+      ]
     },
     {
       "id": "decode:a5_kimi_tp8_e16_bf16_c32_p16k",
@@ -8346,7 +8548,19 @@
           "unprofiled_sweep_ms": 159.04071564767878,
           "profiled_run_client_ms": 164.74103880863564
         }
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c32_p16k/body-operator-a5_kimi_tp8_e16_bf16_c32_p16k-cases.actual.json",
+          "sha256": "75af225fa5623fb6c7379cc263fc26bf937c2d284da9d3cf4e21f9ed2208d227",
+          "size_bytes": 2380659,
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c32_p16k/body-operator-a5_kimi_tp8_e16_bf16_c32_p16k-cases.mapping.json",
+            "sha256": "ddf109f5128fe43249b2a2c7fc762039f3fcb18571d6bdadeb589d7ca054c274",
+            "size_bytes": 85993
+          }
+        }
+      ]
     },
     {
       "id": "decode:a5_kimi_tp8_e16_bf16_c32_p4k",
@@ -8489,7 +8703,19 @@
           "unprofiled_sweep_ms": 63.31222010593788,
           "profiled_run_client_ms": 69.66345917944815
         }
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c32_p4k/body-operator-a5_kimi_tp8_e16_bf16_c32_p4k-cases.actual.json",
+          "sha256": "4ea6e5d4cad94c49903fb076410c5296669fb1a529f3f87dda21505bc1a6121d",
+          "size_bytes": 2487989,
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c32_p4k/body-operator-a5_kimi_tp8_e16_bf16_c32_p4k-cases.mapping.json",
+            "sha256": "3912241641408f92a0a63cd352b77c108fd06e4fedd625a19e05270b78e11f06",
+            "size_bytes": 85853
+          }
+        }
+      ]
     },
     {
       "id": "decode:a5_kimi_tp8_e16_bf16_c4_p16k",
@@ -8624,7 +8850,19 @@
           "unprofiled_sweep_ms": 43.421820565765984,
           "profiled_run_client_ms": 49.446240593405335
         }
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c4_p16k/body-operator-a5_kimi_tp8_e16_bf16_c4_p16k-cases.actual.json",
+          "sha256": "b9bf90013f53102975df47fadfb24c65aaf6c73e3e78843bc2137991f85e1985",
+          "size_bytes": 2498304,
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c4_p16k/body-operator-a5_kimi_tp8_e16_bf16_c4_p16k-cases.mapping.json",
+            "sha256": "cce353e8690c1b29e6613b3e905876c167d1e9025865f730324276fc2210e560",
+            "size_bytes": 97542
+          }
+        }
+      ]
     },
     {
       "id": "decode:a5_kimi_tp8_e16_bf16_c4_p4k",
@@ -8759,7 +8997,19 @@
           "unprofiled_sweep_ms": 34.405140783272536,
           "profiled_run_client_ms": 42.488351522707475
         }
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c4_p4k/body-operator-a5_kimi_tp8_e16_bf16_c4_p4k-cases.actual.json",
+          "sha256": "52cc607ca82a581ab6117d4ee8c13c59ba44e9fada70ea2d734b1134be3353fa",
+          "size_bytes": 2517062,
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c4_p4k/body-operator-a5_kimi_tp8_e16_bf16_c4_p4k-cases.mapping.json",
+            "sha256": "74a5747aa142080d6805c1c9990b985ba7c58808175ffaf6dd6df367599087d5",
+            "size_bytes": 97083
+          }
+        }
+      ]
     },
     {
       "id": "decode:a5_kimi_tp8_e16_bf16_c8_p16k",
@@ -8894,7 +9144,19 @@
           "unprofiled_sweep_ms": 59.9738265953812,
           "profiled_run_client_ms": 65.3152442445942
         }
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c8_p16k/body-operator-a5_kimi_tp8_e16_bf16_c8_p16k-cases.actual.json",
+          "sha256": "e72bdda1da5be6b1a6304fcfe7c4ba73b38934e235a81625cbe6f8ac382e7b3a",
+          "size_bytes": 2492403,
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c8_p16k/body-operator-a5_kimi_tp8_e16_bf16_c8_p16k-cases.mapping.json",
+            "sha256": "e277f8cb74463115e5c458bc4370af8a3c2ccc7a60df0393da13155e5958690e",
+            "size_bytes": 112711
+          }
+        }
+      ]
     },
     {
       "id": "decode:a5_kimi_tp8_e16_bf16_c8_p4k",
@@ -9029,7 +9291,19 @@
           "unprofiled_sweep_ms": 38.008494938121125,
           "profiled_run_client_ms": 44.41408783781762
         }
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c8_p4k/body-operator-a5_kimi_tp8_e16_bf16_c8_p4k-cases.actual.json",
+          "sha256": "ae735519df33f383b57c762508626e2e32f3564a954186c0aaf2d4bb90f2edb9",
+          "size_bytes": 2501737,
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/operators/decode-a5_kimi_tp8_e16_bf16_c8_p4k/body-operator-a5_kimi_tp8_e16_bf16_c8_p4k-cases.mapping.json",
+            "sha256": "bfdf95376c3a855b42b115a3f5f47ea0bc87de72f5adb29d7913ec04c036f71a",
+            "size_bytes": 112600
+          }
+        }
+      ]
     },
     {
       "id": "decode:a3_v41_w8a8_tp4_dp4_ep16_dspark7_c16",
@@ -18212,7 +18486,19 @@
           "format": "full_scoreboard_json"
         },
         "layer_count": 45
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/heldout-prepared/native-populations/body-operator-a5_glm53flash_heldout_c12_p4k-heldout-prepared.actual.json",
+          "sha256": "68275bb20cb0ec160ec05513dde75a4830e27237a33ad120a285a81823bcb5de",
+          "size_bytes": 1113717,
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/heldout-prepared/native-populations/body-operator-a5_glm53flash_heldout_c12_p4k-heldout-prepared.mapping.json",
+            "sha256": "bee581073626d0f219e0302bf584cb48bbae212da4bf4c734c8dc1e7f75512a3",
+            "size_bytes": 111157
+          }
+        }
+      ]
     },
     {
       "id": "decode:a5_glm53flash_heldout_c24_p12k",
@@ -18451,7 +18737,19 @@
           "format": "full_scoreboard_json"
         },
         "layer_count": 45
-      }
+      },
+      "operator_population_evidence": [
+        {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/heldout-prepared/native-populations/body-operator-a5_glm53flash_heldout_c24_p12k-heldout-prepared.actual.json",
+          "sha256": "bed3a8671d5477903f83b7c60c19dea80ecc0348ed2e355bcf95f7f50ba1b3d3",
+          "size_bytes": 1362545,
+          "mapping_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/heldout-prepared/native-populations/body-operator-a5_glm53flash_heldout_c24_p12k-heldout-prepared.mapping.json",
+            "sha256": "bb020250ae800159689f02ec8366f6bd85731d280311793b9e089ea562047e0f",
+            "size_bytes": 111347
+          }
+        }
+      ]
     },
     {
       "id": "decode:a5_glm53flash_heldout_c48_p4k",
@@ -57286,7 +57584,7 @@
     "runtime_requirement": {
       "package": "mindie-sim",
       "version": "0.8.0",
-      "commit": "pending_parent_stable_runtime"
+      "commit": "ee3a4d5edb95611528eb832ff4ba930c76129914"
     },
     "current_runtime_source_commit": "ee3a4d5edb95611528eb832ff4ba930c76129914"
   },

@@ -1,6 +1,6 @@
 # Current profiling validation
 
-One canonical case registry and one recorded Sim package. All costs are fresh in this run. Calibration and held-out labels remain distinct; device Body latency is not client TPOT.
+One canonical case registry and one recorded Sim package. Selected costs are freshly replayed; unchanged cases retain verified evidence from this same Sim package. Calibration and held-out labels remain distinct; device Body latency is not client TPOT.
 
 | Case | Phase | Calls | Real mean / P50 / P90 ms | Sim ms | Error | Status |
 |---|---|---:|---:|---:|---:|---|
@@ -69,7 +69,7 @@ One canonical case registry and one recorded Sim package. All costs are fresh in
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4 | decode | 48 | 47.654 / 47.425 / 47.666 | 50.270 | +5.49% | PASS |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64 | decode | 21 | 61.811 / 61.629 / 62.042 | 63.580 | +2.86% | PASS |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8 | decode | 29 | 48.582 / 48.412 / 48.662 | 51.673 | +6.36% | PASS |
-| a5_v41_fp8_tp1_dp8_ep8_c128_p2k | decode | 73 | 27.286 / 27.266 / 27.290 | — | — | failed |
+| a5_v41_fp8_tp1_dp8_ep8_c128_p2k | decode | 73 | 27.286 / 27.266 / 27.290 | 25.540 | -6.40% | PASS |
 | qwen35-35b-a3-tp4-c144 | decode | 25 | 61.750 / 61.784 / 62.102 | 53.661 | -13.10% | PASS |
 | qwen35-35b-a3-tp4-c320 | decode | 21 | 99.692 / 99.679 / 100.090 | 94.185 | -5.52% | PASS |
 | qwen36-a3-tp4-c64 | decode | 27 | 62.520 / 62.407 / 62.858 | 61.622 | -1.44% | PASS |
@@ -1077,6 +1077,8 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64 | 17 / 8 | moe_layer | 40 | 1.544 / 1.461 | 1.589 / 1.554 | +2.94% / +6.33% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8 | 4 / 8 | mla | 40 | 1.213 / 1.160 | 1.292 / 1.273 | +6.47% / +9.75% |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8 | 4 / 8 | moe_layer | 40 | 1.213 / 1.160 | 1.292 / 1.273 | +6.47% / +9.75% |
+| a5_v41_fp8_tp1_dp8_ep8_c128_p2k | 16 / 1 | mla | 40 | 0.682 / 0.655 | 0.638 / 0.626 | -6.40% / -4.38% |
+| a5_v41_fp8_tp1_dp8_ep8_c128_p2k | 16 / 1 | moe_layer | 40 | 0.682 / 0.655 | 0.638 / 0.626 | -6.40% / -4.38% |
 | qwen35-35b-a3-tp4-c144 | 160 / 4 | gdn | 30 | 1.579 / 1.574 | 1.375 / 1.375 | -12.92% / -12.65% |
 | qwen35-35b-a3-tp4-c144 | 160 / 4 | gqa | 10 | 1.435 / 1.432 | 1.242 / 1.242 | -13.48% / -13.26% |
 | qwen35-35b-a3-tp4-c144 | 160 / 4 | moe_layer | 40 | 1.543 / 1.572 | 1.342 / 1.375 | -13.05% / -12.54% |
@@ -2165,6 +2167,6 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 
 Layer-group statistics summarize complete layer spans, not isolated attention or FFN kernel time. Group P50 is across layer means; steady-layer P50 remains the median of per-layer call P50 values in JSON. Full layer membership, extrema, stream details and alignment assumptions remain in the SHA256-pinned evidence.
 
-Summary: {"compared": 275, "passed": 134, "requested_sources": 280, "sources": 280, "status_counts": {"compared": 275, "failed": 5}}
+Summary: {"compared": 276, "passed": 135, "requested_sources": 280, "sources": 280, "status_counts": {"compared": 276, "failed": 4}}
 
 Full per-layer, operator and prediction details retain their individual SHA256 evidence pointers. Missing evidence and failed predictions remain visible and never count as a pass.

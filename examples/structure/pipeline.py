@@ -414,6 +414,15 @@ def render(report):
         for row in report['cases']:
             for tier, stats in row['comparison'].get('tiers', {}).items():
                 lines.append(f"| {row['case_id']} | {tier} | {stats['passed']} / {stats['compared']} | {stats['events']} |")
+        lines += ['', '| Case | Selected / observed geometries | Selected / observed Forward calls | Scope |',
+                  '|---|---:|---:|---|']
+        for row in report['cases']:
+            coverage = row.get('population_coverage')
+            if coverage:
+                lines.append(f"| {row['case_id']} | {coverage['compared_populations']} / {coverage['observed_populations']} | "
+                    f"{coverage['covered_calls']} / {coverage['observed_calls']} | {coverage['scoring_scope']} |")
+        lines += ['', 'Contract and fusion-boundary exclusions remain in the complete family population and SHA256-pinned evidence. '
+                  'A strict cohort score does not cover unscored families or unselected geometry populations.']
     if report.get('scope') == 'generalization':
         lines += ['', '| Experiment | Relation | Fitted domains | Passed / predicted / total populations | Admitted / Body events |',
                   '|---|---|---:|---:|---:|']
