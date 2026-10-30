@@ -195,3 +195,13 @@ def test_join_retains_disjoint_histograms_and_counts_source_forwards_once():
         }
         assert len(expected) == 14
         assert {g["group_id"]: g["duration_ns_counter"] for g in case["groups"]} == expected
+
+
+def test_retained_relative_actual_pin_matches_resolved_successful_replay():
+    helper = importlib.import_module("replay_v41_composed_strict")
+    base = ROOT / "examples/structure"
+    retained = json.loads((base / "acceptance-20261030-v41-composed-native-5ec8843a/v41-composed-native-reference-scoreboard.json").read_text())
+    original = next(c for c in retained["cases"] if c["case_id"] == "a5_v41_fp8_tp1_dp8_ep8_c32_p2k")
+    current = json.loads((base / "acceptance-20261030-v41-composed-operators-40e4300e/a5_v41_fp8_tp1_dp8_ep8_c32_p2k/body-operator-family-scoreboard.json").read_text())["cases"][0]
+    assert helper.resolved_pin(original["actual_identity"]) == current["actual_identity"]
+    assert original["actual_identity"]["sha256"] == current["actual_identity"]["sha256"]
