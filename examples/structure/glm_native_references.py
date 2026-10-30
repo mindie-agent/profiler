@@ -65,6 +65,34 @@ def _mx_swiglu(native, local, groups, execution):
             or freeze(by_role["expert_down.quantize"]["contract"]) !=
                ("DynamicMxQuant", (rows, width), "bf16", "fp8_e4m3", (rows, width // 64, 2), "fp8_e8m0")):
         raise ValueError("mx_swiglu_declared_epilogue_geometry")
+    boundary = semantic.get("resource_boundary", {})
+    if boundary.get("kind") == "selected_native_fusion":
+        ids = set(boundary["operator_ids"])
+        resources = [t for t in local if t["node_id"] in ids]
+        profile = "ascend_mxfp8_grouped_swiglu_quant"
+        if (boundary.get("program_profile") != profile or len(resources) != 1
+                or len(ids) != 1 or resources[0]["recipe"] != profile):
+            raise ValueError("mx_swiglu_selected_resource_profile_not_supported")
+        resource = resources[0]
+        metadata = resource["operator"]["metadata"]
+        config = metadata["mxfp8_swiglu_config"]
+        if (config["k"] != hidden or config["width"] != width
+                or len(config["rows"]) != experts or sum(config["rows"]) != rows
+                or set(metadata["fusion_semantic_ids"]) != {t["op_id"] for t in targets}):
+            raise ValueError("mx_swiglu_resource_semantic_geometry_differs")
+        return semantic["role"], resources, semantic.get("source"), {
+            "boundary_relation": "FP8_MX_expert_gate_up_activation_quant_source_fused_reference",
+            "observed_buffer_row_capacity": capacity, "observed_valid_routed_rows": None,
+            "observed_group_list_values": None, "declared_valid_routed_rows": rows,
+            "validated_expert_bank_channels": [experts, hidden, width],
+            "native_fusion_resource_program_selected": True,
+            "declared_resource_boundary": boundary,
+            "semantic_member_ids": sorted(semantic["node_ids"]),
+            "observed_input_output_abi": {"inputs": ins, "outputs": outs},
+            "declared_l1_k": config["l1_k"], "observed_l1_k": None,
+            "limitations": ["One declared fused source program replaces all three semantic members; down projection remains external.",
+                "Expert group-list values and active routing distribution are not retained.",
+                "Public source resource accounting and explicit L1 K do not establish captured binary or native tiling identity."]}
     return semantic["role"], targets, semantic.get("source"), {
         "boundary_relation": "FP8_MX_expert_gate_up_activation_quant_decomposed_reference",
         "observed_buffer_row_capacity": capacity, "observed_valid_routed_rows": None,
@@ -185,7 +213,7 @@ def prepare_references(partitions, manifest, *, selectors=None):
     selectors = SELECTORS if selectors is None else selectors
     replica = min(manifest["execution"]["replicas"])
     by_layer, subgraphs = defaultdict(list), defaultdict(list)
-    for node in manifest["nodes"]:
+    for node in (*manifest["nodes"], *manifest.get("resource_operators", ())):
         if node["replica"] == replica:
             by_layer[node.get("layer")].append(node)
     for group in manifest["subgraphs"]:

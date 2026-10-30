@@ -303,6 +303,8 @@ def predict_source_role_references(case, manifest, actual):
             raise ValueError('source_role_reference_physical_declaration_changed')
         identifier_set = set(identifiers)
         ops = tuple(op for key, op in by_id.items() if key in identifier_set)
+        if len(ops) != len(identifier_set):
+            raise ValueError('source_role_reference_targets_missing_from_fresh_graph')
         replica = group['representative_replica']
         if len(ops) == 1 and ops[0].source_boundary != 'call':
             cost = operator_costs(case, ops, recipes=book, replica=replica)
