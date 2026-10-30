@@ -1,0 +1,115 @@
+{
+  "cases": [
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot88_c8",
+      "rules": [
+        {
+          "rule_id": "kvquantsparseflashattention-pooled-joint-native",
+          "native_operator_type": "KvQuantSparseFlashAttention",
+          "rule_hits": 78,
+          "parameter_us": 209.25156305599162,
+          "source_member_count": 1,
+          "pooled_call_count": 3822
+        },
+        {
+          "rule_id": "groupedmatmulswigluquantv2-pooled-joint-native",
+          "native_operator_type": "GroupedMatmulSwigluQuantV2",
+          "rule_hits": 75,
+          "parameter_us": 172.33175700680272,
+          "source_member_count": 1,
+          "pooled_call_count": 3675
+        },
+        {
+          "rule_id": "groupedmatmul-pooled-joint-native",
+          "native_operator_type": "GroupedMatmul",
+          "rule_hits": 75,
+          "parameter_us": 95.16497088435374,
+          "source_member_count": 1,
+          "pooled_call_count": 3675
+        }
+      ],
+      "local_native_calls_per_forward": 228,
+      "communication_and_multiphase_rules_unchanged": true
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot30_c2",
+      "rules": [
+        {
+          "rule_id": "kvquantsparseflashattention-pooled-joint-native",
+          "native_operator_type": "KvQuantSparseFlashAttention",
+          "rule_hits": 78,
+          "parameter_us": 95.76410168997668,
+          "source_member_count": 2,
+          "pooled_call_count": 6864
+        },
+        {
+          "rule_id": "groupedmatmulswigluquantv2-pooled-joint-native",
+          "native_operator_type": "GroupedMatmulSwigluQuantV2",
+          "rule_hits": 75,
+          "parameter_us": 98.45437606060607,
+          "source_member_count": 2,
+          "pooled_call_count": 6600
+        },
+        {
+          "rule_id": "groupedmatmul-pooled-joint-native",
+          "native_operator_type": "GroupedMatmul",
+          "rule_hits": 75,
+          "parameter_us": 56.932370303030304,
+          "source_member_count": 2,
+          "pooled_call_count": 6600
+        }
+      ],
+      "local_native_calls_per_forward": 228,
+      "communication_and_multiphase_rules_unchanged": true
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot50_c2",
+      "rules": [
+        {
+          "rule_id": "kvquantsparseflashattention-pooled-joint-native",
+          "native_operator_type": "KvQuantSparseFlashAttention",
+          "rule_hits": 78,
+          "parameter_us": 95.76410168997668,
+          "source_member_count": 2,
+          "pooled_call_count": 6864
+        },
+        {
+          "rule_id": "groupedmatmulswigluquantv2-pooled-joint-native",
+          "native_operator_type": "GroupedMatmulSwigluQuantV2",
+          "rule_hits": 75,
+          "parameter_us": 98.45437606060607,
+          "source_member_count": 2,
+          "pooled_call_count": 6600
+        },
+        {
+          "rule_id": "groupedmatmul-pooled-joint-native",
+          "native_operator_type": "GroupedMatmul",
+          "rule_hits": 75,
+          "parameter_us": 56.932370303030304,
+          "source_member_count": 2,
+          "pooled_call_count": 6600
+        }
+      ],
+      "local_native_calls_per_forward": 228,
+      "communication_and_multiphase_rules_unchanged": true
+    }
+  ],
+  "producer_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/build_glm78_joint_service_cases.py",
+    "sha256": "58ef6908ca45c291b1bf762d129e03c2de86490b328d09651e19adf7bebf4ed0",
+    "size_bytes": 11997
+  },
+  "neutral_sfa_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/native-joint-service-inputs.json",
+    "sha256": "d9dfbab2a371f073ec5e4ce4f06419efdb1c575843ece3254c7ec05ac8713e18",
+    "size_bytes": 2166772
+  },
+  "grouped_domain_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/grouped-source-constraints.json",
+    "sha256": "06920d40a62d503eefb7e9b044b69e43371e1eae2f8e05ac038aee69a8d2924c",
+    "size_bytes": 108332
+  },
+  "raw_reads": 0,
+  "cost_predictions": 0,
+  "status": "prepared"
+}

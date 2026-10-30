@@ -1,0 +1,111 @@
+{
+  "schema_version": "mindie-joint-native-parameter-independent-review/1",
+  "status": "passed",
+  "report_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm78-joint-service/decode-forward-glm78-joint-service-replay.json",
+    "sha256": "b24460acec5c99acd39c03843c52952b1df5bf21c1ce213565a05c97d61c6325",
+    "size_bytes": 13228015
+  },
+  "checks": 270,
+  "failures": [],
+  "cases": [
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot88_c8",
+      "forward_count": 49,
+      "predicted_ms": 67.83812083975202,
+      "real_mean_ms": 69.55629785714285,
+      "relative_error": -0.024701961868638853,
+      "native_domains": [
+        {
+          "native_operator_type": "KvQuantSparseFlashAttention",
+          "calls_per_forward": 78,
+          "pooled_observed_calls": 3822,
+          "mean_us": 209.25156305599162
+        },
+        {
+          "native_operator_type": "GroupedMatmulSwigluQuantV2",
+          "calls_per_forward": 75,
+          "pooled_observed_calls": 3675,
+          "mean_us": 172.33175700680272
+        },
+        {
+          "native_operator_type": "GroupedMatmul",
+          "calls_per_forward": 75,
+          "pooled_observed_calls": 3675,
+          "mean_us": 95.16497088435374
+        }
+      ],
+      "nonjoint_old_rule_count": 20
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot30_c2",
+      "forward_count": 44,
+      "predicted_ms": 49.285701366938255,
+      "real_mean_ms": 57.639269772727275,
+      "relative_error": -0.1449284218680649,
+      "native_domains": [
+        {
+          "native_operator_type": "KvQuantSparseFlashAttention",
+          "calls_per_forward": 78,
+          "pooled_observed_calls": 6864,
+          "mean_us": 95.76410168997668
+        },
+        {
+          "native_operator_type": "GroupedMatmulSwigluQuantV2",
+          "calls_per_forward": 75,
+          "pooled_observed_calls": 6600,
+          "mean_us": 98.45437606060607
+        },
+        {
+          "native_operator_type": "GroupedMatmul",
+          "calls_per_forward": 75,
+          "pooled_observed_calls": 6600,
+          "mean_us": 56.932370303030304
+        }
+      ],
+      "nonjoint_old_rule_count": 22
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot50_c2",
+      "forward_count": 44,
+      "predicted_ms": 49.29115543021824,
+      "real_mean_ms": 57.817111568181815,
+      "relative_error": -0.14746423518423601,
+      "native_domains": [
+        {
+          "native_operator_type": "KvQuantSparseFlashAttention",
+          "calls_per_forward": 78,
+          "pooled_observed_calls": 6864,
+          "mean_us": 95.76410168997668
+        },
+        {
+          "native_operator_type": "GroupedMatmulSwigluQuantV2",
+          "calls_per_forward": 75,
+          "pooled_observed_calls": 6600,
+          "mean_us": 98.45437606060607
+        },
+        {
+          "native_operator_type": "GroupedMatmul",
+          "calls_per_forward": 75,
+          "pooled_observed_calls": 6600,
+          "mean_us": 56.932370303030304
+        }
+      ],
+      "nonjoint_old_rule_count": 22
+    }
+  ],
+  "raw_scans": 0,
+  "cost_predictions": 0,
+  "reviewer_identity": {
+    "path": "/Volumes/data-tmp/tmp/review-glm78-joint-results.py",
+    "sha256": "62086393c1638de76c0a3e570744bab37b454673258c20094b30ee343ee15abc",
+    "size_bytes": 7861
+  },
+  "elapsed_s": 0.19234204199165106,
+  "peak_rss_bytes": 108838912,
+  "scope": [
+    "Complete retained ABI and integer histograms are pooled only within declared matching physical and Block/Mix domains.",
+    "Observed whole-native mean is charged once at an independent queue; analytical work remains reference metadata.",
+    "No inference of isolated physical throughput or binary identity."
+  ]
+}
