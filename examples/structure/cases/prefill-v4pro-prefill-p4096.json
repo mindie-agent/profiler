@@ -89,6 +89,20 @@
       8,
       12,
       16
-    ]
+    ],
+    "kernels": {
+      "service_regimes": [
+        {
+          "id": "v4pro-a3-tp8-ep16-prefill-allreduce-regime",
+          "match": {
+            "phase": "prefill",
+            "family": "allreduce"
+          },
+          "response": {
+            "fixed_us": 3480.0
+          }
+        }
+      ]
+    }
   }
 }

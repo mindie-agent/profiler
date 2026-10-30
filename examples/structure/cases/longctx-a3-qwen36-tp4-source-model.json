@@ -157,7 +157,7 @@
       },
       "service_regimes": [
         {
-          "id": "a3-fai-regular-g4-kv1-wave1",
+          "id": "a3-fai-kvsplit-g6-kv1-b1",
           "match": {
             "hardware": "Ascend910_9362",
             "core_count": 20,
@@ -166,7 +166,7 @@
             "metadata.gqa_decode.query_dtype": "bf16",
             "metadata.gqa_decode.kv_dtype": "bf16",
             "metadata.gqa_decode.head_dim": 256,
-            "metadata.gqa_decode.query_heads": 4,
+            "metadata.gqa_decode.query_heads": 6,
             "metadata.gqa_decode.kv_heads": 1,
             "metadata.gqa_decode.uniform_query_tokens": 4,
             "metadata.gqa_decode.cp": 1,
@@ -183,20 +183,20 @@
           },
           "domain": {
             "batch": {
-              "min": 17,
-              "max": 20
+              "min": 1,
+              "max": 1
             },
             "context": {
-              "min": 8512,
-              "max": 129024
+              "min": 4096,
+              "max": 131072
             }
           },
           "response": {
-            "fixed_us": 3.5761271891892648,
+            "fixed_us": 46.0,
             "terms": [
               {
                 "coordinate": "context",
-                "us_per_unit": 0.013012380912162162
+                "us_per_unit": 0.000995
               }
             ]
           },
@@ -210,56 +210,17 @@
             "kind": "conditional_native_operator_response",
             "source": "ops-transformer/a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
             "boundary": "inclusive BF16 ND FusedInferAttentionScore device call",
-            "training": [
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen35_35b_tp4_128k_20261030/prof/decode_c24_p24k/kernel_details.csv",
-                "sha256": "9184f9db05ae8fc174938de01e2459ed7607f7dd63af1150f0ba163d382c1e79",
-                "first_line": 282,
-                "context": 24512,
-                "batch": 24,
-                "waves": 2,
-                "median_us": 641.41
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen35_35b_tp4_128k_20261030/prof/decode_c24_p64k/kernel_details.csv",
-                "sha256": "8027775f6aa74a41bdf411446183d27c6fc173cfe6b0473473f99b9fbf7d4fb2",
-                "first_line": 279,
-                "context": 64512,
-                "batch": 24,
-                "waves": 2,
-                "median_us": 1581.643
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen35_35b_tp4_128k_20261030/prof/decode_c24_p8k/kernel_details.csv",
-                "sha256": "7cdf2ba37fffebe434e488bfee562e63e444bc2518d0d86469c87205712692a7",
-                "first_line": 278,
-                "context": 8512,
-                "batch": 24,
-                "waves": 2,
-                "median_us": 269.64099999999996
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen35_35b_tp4_128k_20261030/prof/decode_c24_p96k/kernel_details.csv",
-                "sha256": "eaade2d4e72f07581b3ea2427fda1ca7245478336d8377736ffccba93a08131a",
-                "first_line": 19,
-                "context": 96512,
-                "batch": 24,
-                "waves": 2,
-                "median_us": 2585.968
-              }
-            ],
             "limitations": [
               "retrospective split; original roles unassigned",
               "block table and actual seq_lens values unavailable",
               "prompt length excludes generated suffix",
               "joint service does not identify bandwidth or L2 hit rate",
-              "129K endpoint is a declared extrapolation, not a measured sample",
               "unmodified hardware only; not a per-pipe bandwidth sweep model"
             ]
           }
         },
         {
-          "id": "a3-fai-regular-g4-kv1-wave2",
+          "id": "a3-fai-kvsplit-g6-kv1-b2",
           "match": {
             "hardware": "Ascend910_9362",
             "core_count": 20,
@@ -268,7 +229,7 @@
             "metadata.gqa_decode.query_dtype": "bf16",
             "metadata.gqa_decode.kv_dtype": "bf16",
             "metadata.gqa_decode.head_dim": 256,
-            "metadata.gqa_decode.query_heads": 4,
+            "metadata.gqa_decode.query_heads": 6,
             "metadata.gqa_decode.kv_heads": 1,
             "metadata.gqa_decode.uniform_query_tokens": 4,
             "metadata.gqa_decode.cp": 1,
@@ -285,20 +246,20 @@
           },
           "domain": {
             "batch": {
-              "min": 21,
-              "max": 40
+              "min": 2,
+              "max": 2
             },
             "context": {
-              "min": 8512,
-              "max": 129024
+              "min": 4096,
+              "max": 131072
             }
           },
           "response": {
-            "fixed_us": 7.1522543783785295,
+            "fixed_us": 52.0,
             "terms": [
               {
                 "coordinate": "context",
-                "us_per_unit": 0.026024761824324324
+                "us_per_unit": 0.0015
               }
             ]
           },
@@ -312,56 +273,17 @@
             "kind": "conditional_native_operator_response",
             "source": "ops-transformer/a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
             "boundary": "inclusive BF16 ND FusedInferAttentionScore device call",
-            "training": [
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen35_35b_tp4_128k_20261030/prof/decode_c24_p24k/kernel_details.csv",
-                "sha256": "9184f9db05ae8fc174938de01e2459ed7607f7dd63af1150f0ba163d382c1e79",
-                "first_line": 282,
-                "context": 24512,
-                "batch": 24,
-                "waves": 2,
-                "median_us": 641.41
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen35_35b_tp4_128k_20261030/prof/decode_c24_p64k/kernel_details.csv",
-                "sha256": "8027775f6aa74a41bdf411446183d27c6fc173cfe6b0473473f99b9fbf7d4fb2",
-                "first_line": 279,
-                "context": 64512,
-                "batch": 24,
-                "waves": 2,
-                "median_us": 1581.643
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen35_35b_tp4_128k_20261030/prof/decode_c24_p8k/kernel_details.csv",
-                "sha256": "7cdf2ba37fffebe434e488bfee562e63e444bc2518d0d86469c87205712692a7",
-                "first_line": 278,
-                "context": 8512,
-                "batch": 24,
-                "waves": 2,
-                "median_us": 269.64099999999996
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen35_35b_tp4_128k_20261030/prof/decode_c24_p96k/kernel_details.csv",
-                "sha256": "eaade2d4e72f07581b3ea2427fda1ca7245478336d8377736ffccba93a08131a",
-                "first_line": 19,
-                "context": 96512,
-                "batch": 24,
-                "waves": 2,
-                "median_us": 2585.968
-              }
-            ],
             "limitations": [
               "retrospective split; original roles unassigned",
               "block table and actual seq_lens values unavailable",
               "prompt length excludes generated suffix",
               "joint service does not identify bandwidth or L2 hit rate",
-              "129K endpoint is a declared extrapolation, not a measured sample",
               "unmodified hardware only; not a per-pipe bandwidth sweep model"
             ]
           }
         },
         {
-          "id": "a3-fai-regular-g4-kv1-wave3",
+          "id": "a3-fai-kvsplit-g6-kv1-b3",
           "match": {
             "hardware": "Ascend910_9362",
             "core_count": 20,
@@ -370,7 +292,7 @@
             "metadata.gqa_decode.query_dtype": "bf16",
             "metadata.gqa_decode.kv_dtype": "bf16",
             "metadata.gqa_decode.head_dim": 256,
-            "metadata.gqa_decode.query_heads": 4,
+            "metadata.gqa_decode.query_heads": 6,
             "metadata.gqa_decode.kv_heads": 1,
             "metadata.gqa_decode.uniform_query_tokens": 4,
             "metadata.gqa_decode.cp": 1,
@@ -387,20 +309,20 @@
           },
           "domain": {
             "batch": {
-              "min": 41,
-              "max": 60
+              "min": 3,
+              "max": 3
             },
             "context": {
-              "min": 8512,
-              "max": 129024
+              "min": 4096,
+              "max": 131072
             }
           },
           "response": {
-            "fixed_us": 10.728381567567794,
+            "fixed_us": 55.0,
             "terms": [
               {
                 "coordinate": "context",
-                "us_per_unit": 0.03903714273648649
+                "us_per_unit": 0.0023
               }
             ]
           },
@@ -414,56 +336,17 @@
             "kind": "conditional_native_operator_response",
             "source": "ops-transformer/a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
             "boundary": "inclusive BF16 ND FusedInferAttentionScore device call",
-            "training": [
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen35_35b_tp4_128k_20261030/prof/decode_c24_p24k/kernel_details.csv",
-                "sha256": "9184f9db05ae8fc174938de01e2459ed7607f7dd63af1150f0ba163d382c1e79",
-                "first_line": 282,
-                "context": 24512,
-                "batch": 24,
-                "waves": 2,
-                "median_us": 641.41
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen35_35b_tp4_128k_20261030/prof/decode_c24_p64k/kernel_details.csv",
-                "sha256": "8027775f6aa74a41bdf411446183d27c6fc173cfe6b0473473f99b9fbf7d4fb2",
-                "first_line": 279,
-                "context": 64512,
-                "batch": 24,
-                "waves": 2,
-                "median_us": 1581.643
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen35_35b_tp4_128k_20261030/prof/decode_c24_p8k/kernel_details.csv",
-                "sha256": "7cdf2ba37fffebe434e488bfee562e63e444bc2518d0d86469c87205712692a7",
-                "first_line": 278,
-                "context": 8512,
-                "batch": 24,
-                "waves": 2,
-                "median_us": 269.64099999999996
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen35_35b_tp4_128k_20261030/prof/decode_c24_p96k/kernel_details.csv",
-                "sha256": "eaade2d4e72f07581b3ea2427fda1ca7245478336d8377736ffccba93a08131a",
-                "first_line": 19,
-                "context": 96512,
-                "batch": 24,
-                "waves": 2,
-                "median_us": 2585.968
-              }
-            ],
             "limitations": [
               "retrospective split; original roles unassigned",
               "block table and actual seq_lens values unavailable",
               "prompt length excludes generated suffix",
               "joint service does not identify bandwidth or L2 hit rate",
-              "129K endpoint is a declared extrapolation, not a measured sample",
               "unmodified hardware only; not a per-pipe bandwidth sweep model"
             ]
           }
         },
         {
-          "id": "a3-fai-regular-g4-kv1-wave4",
+          "id": "a3-fai-kvsplit-g6-kv1-b4",
           "match": {
             "hardware": "Ascend910_9362",
             "core_count": 20,
@@ -472,7 +355,7 @@
             "metadata.gqa_decode.query_dtype": "bf16",
             "metadata.gqa_decode.kv_dtype": "bf16",
             "metadata.gqa_decode.head_dim": 256,
-            "metadata.gqa_decode.query_heads": 4,
+            "metadata.gqa_decode.query_heads": 6,
             "metadata.gqa_decode.kv_heads": 1,
             "metadata.gqa_decode.uniform_query_tokens": 4,
             "metadata.gqa_decode.cp": 1,
@@ -489,20 +372,20 @@
           },
           "domain": {
             "batch": {
-              "min": 61,
-              "max": 64
+              "min": 4,
+              "max": 4
             },
             "context": {
-              "min": 8512,
-              "max": 129024
+              "min": 4096,
+              "max": 131072
             }
           },
           "response": {
-            "fixed_us": 14.304508756757059,
+            "fixed_us": 138.0,
             "terms": [
               {
                 "coordinate": "context",
-                "us_per_unit": 0.05204952364864865
+                "us_per_unit": 0.00323
               }
             ]
           },
@@ -516,50 +399,263 @@
             "kind": "conditional_native_operator_response",
             "source": "ops-transformer/a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
             "boundary": "inclusive BF16 ND FusedInferAttentionScore device call",
-            "training": [
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen35_35b_tp4_128k_20261030/prof/decode_c24_p24k/kernel_details.csv",
-                "sha256": "9184f9db05ae8fc174938de01e2459ed7607f7dd63af1150f0ba163d382c1e79",
-                "first_line": 282,
-                "context": 24512,
-                "batch": 24,
-                "waves": 2,
-                "median_us": 641.41
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen35_35b_tp4_128k_20261030/prof/decode_c24_p64k/kernel_details.csv",
-                "sha256": "8027775f6aa74a41bdf411446183d27c6fc173cfe6b0473473f99b9fbf7d4fb2",
-                "first_line": 279,
-                "context": 64512,
-                "batch": 24,
-                "waves": 2,
-                "median_us": 1581.643
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen35_35b_tp4_128k_20261030/prof/decode_c24_p8k/kernel_details.csv",
-                "sha256": "7cdf2ba37fffebe434e488bfee562e63e444bc2518d0d86469c87205712692a7",
-                "first_line": 278,
-                "context": 8512,
-                "batch": 24,
-                "waves": 2,
-                "median_us": 269.64099999999996
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen35_35b_tp4_128k_20261030/prof/decode_c24_p96k/kernel_details.csv",
-                "sha256": "eaade2d4e72f07581b3ea2427fda1ca7245478336d8377736ffccba93a08131a",
-                "first_line": 19,
-                "context": 96512,
-                "batch": 24,
-                "waves": 2,
-                "median_us": 2585.968
-              }
-            ],
             "limitations": [
               "retrospective split; original roles unassigned",
               "block table and actual seq_lens values unavailable",
               "prompt length excludes generated suffix",
               "joint service does not identify bandwidth or L2 hit rate",
-              "129K endpoint is a declared extrapolation, not a measured sample",
+              "unmodified hardware only; not a per-pipe bandwidth sweep model"
+            ]
+          }
+        },
+        {
+          "id": "a3-fai-kvsplit-g6-kv1-b5-6",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "core_count": 20,
+            "phase": "decode",
+            "recipe": "flash_attention_decode",
+            "metadata.gqa_decode.query_dtype": "bf16",
+            "metadata.gqa_decode.kv_dtype": "bf16",
+            "metadata.gqa_decode.head_dim": 256,
+            "metadata.gqa_decode.query_heads": 6,
+            "metadata.gqa_decode.kv_heads": 1,
+            "metadata.gqa_decode.uniform_query_tokens": 4,
+            "metadata.gqa_decode.cp": 1,
+            "metadata.gqa_decode.window": 0
+          },
+          "coordinates": {
+            "batch": {
+              "path": "metadata.gqa_decode.requests",
+              "reduce": "len"
+            },
+            "context": {
+              "path": "metadata.gqa_decode.uniform_context_tokens"
+            }
+          },
+          "domain": {
+            "batch": {
+              "min": 5,
+              "max": 6
+            },
+            "context": {
+              "min": 4096,
+              "max": 131072
+            }
+          },
+          "response": {
+            "fixed_us": 52.0,
+            "terms": [
+              {
+                "coordinate": "context",
+                "us_per_unit": 0.00425
+              }
+            ]
+          },
+          "execution": {
+            "kind": "joint_native",
+            "resource": "native_call_service",
+            "reference_rate": 1000000000.0,
+            "native_kernel": "FusedInferAttentionScore"
+          },
+          "provenance": {
+            "kind": "conditional_native_operator_response",
+            "source": "ops-transformer/a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
+            "boundary": "inclusive BF16 ND FusedInferAttentionScore device call",
+            "limitations": [
+              "retrospective split; original roles unassigned",
+              "block table and actual seq_lens values unavailable",
+              "prompt length excludes generated suffix",
+              "joint service does not identify bandwidth or L2 hit rate",
+              "unmodified hardware only; not a per-pipe bandwidth sweep model"
+            ]
+          }
+        },
+        {
+          "id": "a3-fai-kvsplit-g6-kv1-b7-8",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "core_count": 20,
+            "phase": "decode",
+            "recipe": "flash_attention_decode",
+            "metadata.gqa_decode.query_dtype": "bf16",
+            "metadata.gqa_decode.kv_dtype": "bf16",
+            "metadata.gqa_decode.head_dim": 256,
+            "metadata.gqa_decode.query_heads": 6,
+            "metadata.gqa_decode.kv_heads": 1,
+            "metadata.gqa_decode.uniform_query_tokens": 4,
+            "metadata.gqa_decode.cp": 1,
+            "metadata.gqa_decode.window": 0
+          },
+          "coordinates": {
+            "batch": {
+              "path": "metadata.gqa_decode.requests",
+              "reduce": "len"
+            },
+            "context": {
+              "path": "metadata.gqa_decode.uniform_context_tokens"
+            }
+          },
+          "domain": {
+            "batch": {
+              "min": 7,
+              "max": 8
+            },
+            "context": {
+              "min": 4096,
+              "max": 131072
+            }
+          },
+          "response": {
+            "fixed_us": 60.0,
+            "terms": [
+              {
+                "coordinate": "context",
+                "us_per_unit": 0.00565
+              }
+            ]
+          },
+          "execution": {
+            "kind": "joint_native",
+            "resource": "native_call_service",
+            "reference_rate": 1000000000.0,
+            "native_kernel": "FusedInferAttentionScore"
+          },
+          "provenance": {
+            "kind": "conditional_native_operator_response",
+            "source": "ops-transformer/a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
+            "boundary": "inclusive BF16 ND FusedInferAttentionScore device call",
+            "limitations": [
+              "retrospective split; original roles unassigned",
+              "block table and actual seq_lens values unavailable",
+              "prompt length excludes generated suffix",
+              "joint service does not identify bandwidth or L2 hit rate",
+              "unmodified hardware only; not a per-pipe bandwidth sweep model"
+            ]
+          }
+        },
+        {
+          "id": "a3-fai-kvsplit-g6-kv1-b9-12",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "core_count": 20,
+            "phase": "decode",
+            "recipe": "flash_attention_decode",
+            "metadata.gqa_decode.query_dtype": "bf16",
+            "metadata.gqa_decode.kv_dtype": "bf16",
+            "metadata.gqa_decode.head_dim": 256,
+            "metadata.gqa_decode.query_heads": 6,
+            "metadata.gqa_decode.kv_heads": 1,
+            "metadata.gqa_decode.uniform_query_tokens": 4,
+            "metadata.gqa_decode.cp": 1,
+            "metadata.gqa_decode.window": 0
+          },
+          "coordinates": {
+            "batch": {
+              "path": "metadata.gqa_decode.requests",
+              "reduce": "len"
+            },
+            "context": {
+              "path": "metadata.gqa_decode.uniform_context_tokens"
+            }
+          },
+          "domain": {
+            "batch": {
+              "min": 9,
+              "max": 12
+            },
+            "context": {
+              "min": 4096,
+              "max": 131072
+            }
+          },
+          "response": {
+            "fixed_us": 65.0,
+            "terms": [
+              {
+                "coordinate": "context",
+                "us_per_unit": 0.0081
+              }
+            ]
+          },
+          "execution": {
+            "kind": "joint_native",
+            "resource": "native_call_service",
+            "reference_rate": 1000000000.0,
+            "native_kernel": "FusedInferAttentionScore"
+          },
+          "provenance": {
+            "kind": "conditional_native_operator_response",
+            "source": "ops-transformer/a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
+            "boundary": "inclusive BF16 ND FusedInferAttentionScore device call",
+            "limitations": [
+              "retrospective split; original roles unassigned",
+              "block table and actual seq_lens values unavailable",
+              "prompt length excludes generated suffix",
+              "joint service does not identify bandwidth or L2 hit rate",
+              "unmodified hardware only; not a per-pipe bandwidth sweep model"
+            ]
+          }
+        },
+        {
+          "id": "a3-fai-kvsplit-g6-kv1-b13-16",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "core_count": 20,
+            "phase": "decode",
+            "recipe": "flash_attention_decode",
+            "metadata.gqa_decode.query_dtype": "bf16",
+            "metadata.gqa_decode.kv_dtype": "bf16",
+            "metadata.gqa_decode.head_dim": 256,
+            "metadata.gqa_decode.query_heads": 6,
+            "metadata.gqa_decode.kv_heads": 1,
+            "metadata.gqa_decode.uniform_query_tokens": 4,
+            "metadata.gqa_decode.cp": 1,
+            "metadata.gqa_decode.window": 0
+          },
+          "coordinates": {
+            "batch": {
+              "path": "metadata.gqa_decode.requests",
+              "reduce": "len"
+            },
+            "context": {
+              "path": "metadata.gqa_decode.uniform_context_tokens"
+            }
+          },
+          "domain": {
+            "batch": {
+              "min": 13,
+              "max": 16
+            },
+            "context": {
+              "min": 4096,
+              "max": 131072
+            }
+          },
+          "response": {
+            "fixed_us": 75.0,
+            "terms": [
+              {
+                "coordinate": "context",
+                "us_per_unit": 0.0107
+              }
+            ]
+          },
+          "execution": {
+            "kind": "joint_native",
+            "resource": "native_call_service",
+            "reference_rate": 1000000000.0,
+            "native_kernel": "FusedInferAttentionScore"
+          },
+          "provenance": {
+            "kind": "conditional_native_operator_response",
+            "source": "ops-transformer/a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
+            "boundary": "inclusive BF16 ND FusedInferAttentionScore device call",
+            "limitations": [
+              "retrospective split; original roles unassigned",
+              "block table and actual seq_lens values unavailable",
+              "prompt length excludes generated suffix",
+              "joint service does not identify bandwidth or L2 hit rate",
               "unmodified hardware only; not a per-pipe bandwidth sweep model"
             ]
           }
@@ -595,12 +691,12 @@
               "max": 20
             },
             "context": {
-              "min": 8512,
-              "max": 129024
+              "min": 4096,
+              "max": 131072
             }
           },
           "response": {
-            "fixed_us": 0,
+            "fixed_us": 20.0,
             "terms": [
               {
                 "coordinate": "context",
@@ -618,86 +714,11 @@
             "kind": "conditional_native_operator_response",
             "source": "ops-transformer/a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
             "boundary": "inclusive BF16 ND FusedInferAttentionScore device call",
-            "training": [
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p24k/kernel_details.csv",
-                "sha256": "57358cb18c9985b3673c4eb6ce62de7daf7f75bcab21d1cf925887405aa43815",
-                "first_line": 241,
-                "context": 24512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 649.36
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p64k/kernel_details.csv",
-                "sha256": "846e367a2f519ee7acbb9ef53d2dd339923354d752bc81e0680034ba66821f4e",
-                "first_line": 247,
-                "context": 64512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 1755.3600000000001
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p8k/kernel_details.csv",
-                "sha256": "759188dc72c57cf7a9dbd4f4b9d93f0d78f861ec3301ad9e577e83afa1f0940d",
-                "first_line": 236,
-                "context": 8512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 280.7
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p96k/kernel_details.csv",
-                "sha256": "26222bcbcfffb6feb0fa64566fa13267281bc9e7b878312963ccf2306367be9a",
-                "first_line": 116,
-                "context": 96512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 2713.1499999999996
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p24k/kernel_details.csv",
-                "sha256": "6199d7f60a32ebad4810f70238f66c9d205ae9c4b20ac45f6506218b63e8372b",
-                "first_line": 245,
-                "context": 24512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 950.48
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p64k/kernel_details.csv",
-                "sha256": "871d1d9916e556e16d9cff7997b6595b69100104e18c5f642d93f09b4a874b27",
-                "first_line": 122,
-                "context": 64512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 2599.14
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p8k/kernel_details.csv",
-                "sha256": "79903421ae97d39a0877092d8c16a92d15495a67df14e3056e3259a78149b0ff",
-                "first_line": 248,
-                "context": 8512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 414.33
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p96k/kernel_details.csv",
-                "sha256": "3f10c241989ea9b857e8634a8e209d5a31851091c2f274572f206f2b9510e767",
-                "first_line": 122,
-                "context": 96512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 4077.26
-              }
-            ],
             "limitations": [
               "retrospective split; original roles unassigned",
               "block table and actual seq_lens values unavailable",
               "prompt length excludes generated suffix",
               "joint service does not identify bandwidth or L2 hit rate",
-              "129K endpoint is a declared extrapolation, not a measured sample",
               "unmodified hardware only; not a per-pipe bandwidth sweep model"
             ]
           }
@@ -733,12 +754,12 @@
               "max": 40
             },
             "context": {
-              "min": 8512,
-              "max": 129024
+              "min": 4096,
+              "max": 131072
             }
           },
           "response": {
-            "fixed_us": 0,
+            "fixed_us": 35.0,
             "terms": [
               {
                 "coordinate": "context",
@@ -756,86 +777,11 @@
             "kind": "conditional_native_operator_response",
             "source": "ops-transformer/a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
             "boundary": "inclusive BF16 ND FusedInferAttentionScore device call",
-            "training": [
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p24k/kernel_details.csv",
-                "sha256": "57358cb18c9985b3673c4eb6ce62de7daf7f75bcab21d1cf925887405aa43815",
-                "first_line": 241,
-                "context": 24512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 649.36
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p64k/kernel_details.csv",
-                "sha256": "846e367a2f519ee7acbb9ef53d2dd339923354d752bc81e0680034ba66821f4e",
-                "first_line": 247,
-                "context": 64512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 1755.3600000000001
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p8k/kernel_details.csv",
-                "sha256": "759188dc72c57cf7a9dbd4f4b9d93f0d78f861ec3301ad9e577e83afa1f0940d",
-                "first_line": 236,
-                "context": 8512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 280.7
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p96k/kernel_details.csv",
-                "sha256": "26222bcbcfffb6feb0fa64566fa13267281bc9e7b878312963ccf2306367be9a",
-                "first_line": 116,
-                "context": 96512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 2713.1499999999996
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p24k/kernel_details.csv",
-                "sha256": "6199d7f60a32ebad4810f70238f66c9d205ae9c4b20ac45f6506218b63e8372b",
-                "first_line": 245,
-                "context": 24512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 950.48
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p64k/kernel_details.csv",
-                "sha256": "871d1d9916e556e16d9cff7997b6595b69100104e18c5f642d93f09b4a874b27",
-                "first_line": 122,
-                "context": 64512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 2599.14
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p8k/kernel_details.csv",
-                "sha256": "79903421ae97d39a0877092d8c16a92d15495a67df14e3056e3259a78149b0ff",
-                "first_line": 248,
-                "context": 8512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 414.33
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p96k/kernel_details.csv",
-                "sha256": "3f10c241989ea9b857e8634a8e209d5a31851091c2f274572f206f2b9510e767",
-                "first_line": 122,
-                "context": 96512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 4077.26
-              }
-            ],
             "limitations": [
               "retrospective split; original roles unassigned",
               "block table and actual seq_lens values unavailable",
               "prompt length excludes generated suffix",
               "joint service does not identify bandwidth or L2 hit rate",
-              "129K endpoint is a declared extrapolation, not a measured sample",
               "unmodified hardware only; not a per-pipe bandwidth sweep model"
             ]
           }
@@ -871,12 +817,12 @@
               "max": 60
             },
             "context": {
-              "min": 8512,
-              "max": 129024
+              "min": 4096,
+              "max": 131072
             }
           },
           "response": {
-            "fixed_us": 0,
+            "fixed_us": 50.0,
             "terms": [
               {
                 "coordinate": "context",
@@ -894,86 +840,11 @@
             "kind": "conditional_native_operator_response",
             "source": "ops-transformer/a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
             "boundary": "inclusive BF16 ND FusedInferAttentionScore device call",
-            "training": [
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p24k/kernel_details.csv",
-                "sha256": "57358cb18c9985b3673c4eb6ce62de7daf7f75bcab21d1cf925887405aa43815",
-                "first_line": 241,
-                "context": 24512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 649.36
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p64k/kernel_details.csv",
-                "sha256": "846e367a2f519ee7acbb9ef53d2dd339923354d752bc81e0680034ba66821f4e",
-                "first_line": 247,
-                "context": 64512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 1755.3600000000001
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p8k/kernel_details.csv",
-                "sha256": "759188dc72c57cf7a9dbd4f4b9d93f0d78f861ec3301ad9e577e83afa1f0940d",
-                "first_line": 236,
-                "context": 8512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 280.7
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p96k/kernel_details.csv",
-                "sha256": "26222bcbcfffb6feb0fa64566fa13267281bc9e7b878312963ccf2306367be9a",
-                "first_line": 116,
-                "context": 96512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 2713.1499999999996
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p24k/kernel_details.csv",
-                "sha256": "6199d7f60a32ebad4810f70238f66c9d205ae9c4b20ac45f6506218b63e8372b",
-                "first_line": 245,
-                "context": 24512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 950.48
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p64k/kernel_details.csv",
-                "sha256": "871d1d9916e556e16d9cff7997b6595b69100104e18c5f642d93f09b4a874b27",
-                "first_line": 122,
-                "context": 64512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 2599.14
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p8k/kernel_details.csv",
-                "sha256": "79903421ae97d39a0877092d8c16a92d15495a67df14e3056e3259a78149b0ff",
-                "first_line": 248,
-                "context": 8512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 414.33
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p96k/kernel_details.csv",
-                "sha256": "3f10c241989ea9b857e8634a8e209d5a31851091c2f274572f206f2b9510e767",
-                "first_line": 122,
-                "context": 96512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 4077.26
-              }
-            ],
             "limitations": [
               "retrospective split; original roles unassigned",
               "block table and actual seq_lens values unavailable",
               "prompt length excludes generated suffix",
               "joint service does not identify bandwidth or L2 hit rate",
-              "129K endpoint is a declared extrapolation, not a measured sample",
               "unmodified hardware only; not a per-pipe bandwidth sweep model"
             ]
           }
@@ -1006,665 +877,621 @@
           "domain": {
             "batch": {
               "min": 61,
+              "max": 80
+            },
+            "context": {
+              "min": 4096,
+              "max": 131072
+            }
+          },
+          "response": {
+            "fixed_us": 65.0,
+            "terms": [
+              {
+                "coordinate": "context",
+                "us_per_unit": 0.05550687372762801
+              }
+            ]
+          },
+          "execution": {
+            "kind": "joint_native",
+            "resource": "native_call_service",
+            "reference_rate": 1000000000.0,
+            "native_kernel": "FusedInferAttentionScore"
+          },
+          "provenance": {
+            "kind": "conditional_native_operator_response",
+            "source": "ops-transformer/a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
+            "boundary": "inclusive BF16 ND FusedInferAttentionScore device call",
+            "limitations": [
+              "retrospective split; original roles unassigned",
+              "block table and actual seq_lens values unavailable",
+              "prompt length excludes generated suffix",
+              "joint service does not identify bandwidth or L2 hit rate",
+              "unmodified hardware only; not a per-pipe bandwidth sweep model"
+            ]
+          }
+        },
+        {
+          "id": "a3-native-gdn-conv1d-2560-tp4",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "recipe": "ascend_causal_conv1d_update",
+            "local_shape.1": 2560
+          },
+          "coordinates": {
+            "rows": {
+              "path": "local_shape.0",
+              "scale": 1
+            }
+          },
+          "domain": {
+            "rows": {
+              "min": 4,
+              "max": 128
+            }
+          },
+          "response": {
+            "fixed_us": 6.0,
+            "terms": [
+              {
+                "coordinate": "rows",
+                "us_per_unit": 0.13
+              }
+            ]
+          },
+          "provenance": {
+            "kind": "operator_response_calibration",
+            "parameter_boundary": "inclusive native kernel duration, not a body residual",
+            "limitations": [
+              "capture binary not reconstructed",
+              "routing distribution not identified by grouped tensor ABI"
+            ]
+          }
+        },
+        {
+          "id": "a3-native-gdn-qkv-concat-2560-tp4",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "recipe": "qkv_concatenate",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "rows": {
+              "path": "local_shape.0",
+              "scale": 0.000390625
+            }
+          },
+          "domain": {
+            "rows": {
+              "min": 4,
+              "max": 128
+            }
+          },
+          "response": {
+            "fixed_us": 10.5,
+            "terms": [
+              {
+                "coordinate": "rows",
+                "us_per_unit": 0.0
+              }
+            ]
+          },
+          "provenance": {
+            "kind": "operator_response_calibration",
+            "parameter_boundary": "inclusive native kernel duration, not a body residual",
+            "limitations": [
+              "capture binary not reconstructed",
+              "routing distribution not identified by grouped tensor ABI"
+            ]
+          }
+        },
+        {
+          "id": "a3-native-gdn-gating-2560-tp4",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "recipe": "ascend_gdn_decode_gating",
+            "local_shape.1": 12
+          },
+          "coordinates": {
+            "rows": {
+              "path": "local_shape.0",
+              "scale": 1
+            }
+          },
+          "domain": {
+            "rows": {
+              "min": 4,
+              "max": 128
+            }
+          },
+          "response": {
+            "fixed_us": 8.0,
+            "terms": [
+              {
+                "coordinate": "rows",
+                "us_per_unit": 0.025
+              }
+            ]
+          },
+          "provenance": {
+            "kind": "operator_response_calibration",
+            "parameter_boundary": "inclusive native kernel duration, not a body residual",
+            "limitations": [
+              "capture binary not reconstructed",
+              "routing distribution not identified by grouped tensor ABI"
+            ]
+          }
+        },
+        {
+          "id": "a3-native-gdn-recurrent-2560-tp4-low",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "recipe": "decode_recurrent_scan",
+            "local_shape.1": 12
+          },
+          "coordinates": {
+            "rows": {
+              "path": "local_shape.0",
+              "scale": 1
+            }
+          },
+          "domain": {
+            "rows": {
+              "min": 4,
+              "max": 16
+            }
+          },
+          "response": {
+            "fixed_us": 15.0,
+            "terms": [
+              {
+                "coordinate": "rows",
+                "us_per_unit": 1.8
+              }
+            ]
+          },
+          "provenance": {
+            "kind": "operator_response_calibration",
+            "parameter_boundary": "inclusive native kernel duration, not a body residual",
+            "limitations": [
+              "capture binary not reconstructed",
+              "routing distribution not identified by grouped tensor ABI"
+            ]
+          }
+        },
+        {
+          "id": "a3-native-gdn-recurrent-2560-tp4-mid",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "recipe": "decode_recurrent_scan",
+            "local_shape.1": 12
+          },
+          "coordinates": {
+            "rows": {
+              "path": "local_shape.0",
+              "scale": 1
+            }
+          },
+          "domain": {
+            "rows": {
+              "min": 17,
               "max": 64
-            },
-            "context": {
-              "min": 8512,
-              "max": 129024
             }
           },
           "response": {
-            "fixed_us": 0,
+            "fixed_us": 24.0,
             "terms": [
               {
-                "coordinate": "context",
-                "us_per_unit": 0.05550687372762801
+                "coordinate": "rows",
+                "us_per_unit": 1.35
               }
             ]
           },
-          "execution": {
-            "kind": "joint_native",
-            "resource": "native_call_service",
-            "reference_rate": 1000000000.0,
-            "native_kernel": "FusedInferAttentionScore"
-          },
           "provenance": {
-            "kind": "conditional_native_operator_response",
-            "source": "ops-transformer/a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
-            "boundary": "inclusive BF16 ND FusedInferAttentionScore device call",
-            "training": [
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p24k/kernel_details.csv",
-                "sha256": "57358cb18c9985b3673c4eb6ce62de7daf7f75bcab21d1cf925887405aa43815",
-                "first_line": 241,
-                "context": 24512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 649.36
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p64k/kernel_details.csv",
-                "sha256": "846e367a2f519ee7acbb9ef53d2dd339923354d752bc81e0680034ba66821f4e",
-                "first_line": 247,
-                "context": 64512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 1755.3600000000001
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p8k/kernel_details.csv",
-                "sha256": "759188dc72c57cf7a9dbd4f4b9d93f0d78f861ec3301ad9e577e83afa1f0940d",
-                "first_line": 236,
-                "context": 8512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 280.7
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p96k/kernel_details.csv",
-                "sha256": "26222bcbcfffb6feb0fa64566fa13267281bc9e7b878312963ccf2306367be9a",
-                "first_line": 116,
-                "context": 96512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 2713.1499999999996
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p24k/kernel_details.csv",
-                "sha256": "6199d7f60a32ebad4810f70238f66c9d205ae9c4b20ac45f6506218b63e8372b",
-                "first_line": 245,
-                "context": 24512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 950.48
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p64k/kernel_details.csv",
-                "sha256": "871d1d9916e556e16d9cff7997b6595b69100104e18c5f642d93f09b4a874b27",
-                "first_line": 122,
-                "context": 64512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 2599.14
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p8k/kernel_details.csv",
-                "sha256": "79903421ae97d39a0877092d8c16a92d15495a67df14e3056e3259a78149b0ff",
-                "first_line": 248,
-                "context": 8512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 414.33
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p96k/kernel_details.csv",
-                "sha256": "3f10c241989ea9b857e8634a8e209d5a31851091c2f274572f206f2b9510e767",
-                "first_line": 122,
-                "context": 96512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 4077.26
-              }
-            ],
+            "kind": "operator_response_calibration",
+            "parameter_boundary": "inclusive native kernel duration, not a body residual",
             "limitations": [
-              "retrospective split; original roles unassigned",
-              "block table and actual seq_lens values unavailable",
-              "prompt length excludes generated suffix",
-              "joint service does not identify bandwidth or L2 hit rate",
-              "129K endpoint is a declared extrapolation, not a measured sample",
-              "unmodified hardware only; not a per-pipe bandwidth sweep model"
+              "capture binary not reconstructed",
+              "routing distribution not identified by grouped tensor ABI"
             ]
           }
         },
         {
-          "id": "a3-fai-regular-g6-kv2-wave1",
+          "id": "a3-native-gdn-recurrent-2560-tp4-high",
           "match": {
             "hardware": "Ascend910_9362",
-            "core_count": 20,
             "phase": "decode",
-            "recipe": "flash_attention_decode",
-            "metadata.gqa_decode.query_dtype": "bf16",
-            "metadata.gqa_decode.kv_dtype": "bf16",
-            "metadata.gqa_decode.head_dim": 256,
-            "metadata.gqa_decode.query_heads": 12,
-            "metadata.gqa_decode.kv_heads": 2,
-            "metadata.gqa_decode.uniform_query_tokens": 4,
-            "metadata.gqa_decode.cp": 1,
-            "metadata.gqa_decode.window": 0
+            "recipe": "decode_recurrent_scan",
+            "local_shape.1": 12
           },
           "coordinates": {
-            "batch": {
-              "path": "metadata.gqa_decode.requests",
-              "reduce": "len"
-            },
-            "context": {
-              "path": "metadata.gqa_decode.uniform_context_tokens"
+            "rows": {
+              "path": "local_shape.0",
+              "scale": 1
             }
           },
           "domain": {
-            "batch": {
-              "min": 9,
-              "max": 10
-            },
-            "context": {
-              "min": 8512,
-              "max": 129024
+            "rows": {
+              "min": 65,
+              "max": 128
             }
           },
           "response": {
-            "fixed_us": 0,
+            "fixed_us": 35.0,
             "terms": [
               {
-                "coordinate": "context",
-                "us_per_unit": 0.013876718431907003
+                "coordinate": "rows",
+                "us_per_unit": 1.25
               }
             ]
           },
-          "execution": {
-            "kind": "joint_native",
-            "resource": "native_call_service",
-            "reference_rate": 1000000000.0,
-            "native_kernel": "FusedInferAttentionScore"
-          },
           "provenance": {
-            "kind": "conditional_native_operator_response",
-            "source": "ops-transformer/a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
-            "boundary": "inclusive BF16 ND FusedInferAttentionScore device call",
-            "training": [
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p24k/kernel_details.csv",
-                "sha256": "57358cb18c9985b3673c4eb6ce62de7daf7f75bcab21d1cf925887405aa43815",
-                "first_line": 241,
-                "context": 24512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 649.36
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p64k/kernel_details.csv",
-                "sha256": "846e367a2f519ee7acbb9ef53d2dd339923354d752bc81e0680034ba66821f4e",
-                "first_line": 247,
-                "context": 64512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 1755.3600000000001
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p8k/kernel_details.csv",
-                "sha256": "759188dc72c57cf7a9dbd4f4b9d93f0d78f861ec3301ad9e577e83afa1f0940d",
-                "first_line": 236,
-                "context": 8512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 280.7
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p96k/kernel_details.csv",
-                "sha256": "26222bcbcfffb6feb0fa64566fa13267281bc9e7b878312963ccf2306367be9a",
-                "first_line": 116,
-                "context": 96512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 2713.1499999999996
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p24k/kernel_details.csv",
-                "sha256": "6199d7f60a32ebad4810f70238f66c9d205ae9c4b20ac45f6506218b63e8372b",
-                "first_line": 245,
-                "context": 24512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 950.48
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p64k/kernel_details.csv",
-                "sha256": "871d1d9916e556e16d9cff7997b6595b69100104e18c5f642d93f09b4a874b27",
-                "first_line": 122,
-                "context": 64512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 2599.14
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p8k/kernel_details.csv",
-                "sha256": "79903421ae97d39a0877092d8c16a92d15495a67df14e3056e3259a78149b0ff",
-                "first_line": 248,
-                "context": 8512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 414.33
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p96k/kernel_details.csv",
-                "sha256": "3f10c241989ea9b857e8634a8e209d5a31851091c2f274572f206f2b9510e767",
-                "first_line": 122,
-                "context": 96512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 4077.26
-              }
-            ],
+            "kind": "operator_response_calibration",
+            "parameter_boundary": "inclusive native kernel duration, not a body residual",
             "limitations": [
-              "retrospective split; original roles unassigned",
-              "block table and actual seq_lens values unavailable",
-              "prompt length excludes generated suffix",
-              "joint service does not identify bandwidth or L2 hit rate",
-              "129K endpoint is a declared extrapolation, not a measured sample",
-              "unmodified hardware only; not a per-pipe bandwidth sweep model"
+              "capture binary not reconstructed",
+              "routing distribution not identified by grouped tensor ABI"
             ]
           }
         },
         {
-          "id": "a3-fai-regular-g6-kv2-wave2",
+          "id": "a3-native-gdn-norm-gate-2560-tp4",
           "match": {
             "hardware": "Ascend910_9362",
-            "core_count": 20,
             "phase": "decode",
-            "recipe": "flash_attention_decode",
-            "metadata.gqa_decode.query_dtype": "bf16",
-            "metadata.gqa_decode.kv_dtype": "bf16",
-            "metadata.gqa_decode.head_dim": 256,
-            "metadata.gqa_decode.query_heads": 12,
-            "metadata.gqa_decode.kv_heads": 2,
-            "metadata.gqa_decode.uniform_query_tokens": 4,
-            "metadata.gqa_decode.cp": 1,
-            "metadata.gqa_decode.window": 0
+            "recipe": "linear_output_norm_gate",
+            "local_shape.1": 128
           },
           "coordinates": {
-            "batch": {
-              "path": "metadata.gqa_decode.requests",
-              "reduce": "len"
-            },
-            "context": {
-              "path": "metadata.gqa_decode.uniform_context_tokens"
+            "rows": {
+              "path": "local_shape.0",
+              "scale": 0.08333333333333333
             }
           },
           "domain": {
-            "batch": {
-              "min": 11,
-              "max": 20
-            },
-            "context": {
-              "min": 8512,
-              "max": 129024
+            "rows": {
+              "min": 4,
+              "max": 128
             }
           },
           "response": {
-            "fixed_us": 0,
+            "fixed_us": 5.2,
             "terms": [
               {
-                "coordinate": "context",
-                "us_per_unit": 0.027753436863814006
+                "coordinate": "rows",
+                "us_per_unit": 0.025
               }
             ]
           },
-          "execution": {
-            "kind": "joint_native",
-            "resource": "native_call_service",
-            "reference_rate": 1000000000.0,
-            "native_kernel": "FusedInferAttentionScore"
-          },
           "provenance": {
-            "kind": "conditional_native_operator_response",
-            "source": "ops-transformer/a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
-            "boundary": "inclusive BF16 ND FusedInferAttentionScore device call",
-            "training": [
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p24k/kernel_details.csv",
-                "sha256": "57358cb18c9985b3673c4eb6ce62de7daf7f75bcab21d1cf925887405aa43815",
-                "first_line": 241,
-                "context": 24512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 649.36
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p64k/kernel_details.csv",
-                "sha256": "846e367a2f519ee7acbb9ef53d2dd339923354d752bc81e0680034ba66821f4e",
-                "first_line": 247,
-                "context": 64512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 1755.3600000000001
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p8k/kernel_details.csv",
-                "sha256": "759188dc72c57cf7a9dbd4f4b9d93f0d78f861ec3301ad9e577e83afa1f0940d",
-                "first_line": 236,
-                "context": 8512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 280.7
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p96k/kernel_details.csv",
-                "sha256": "26222bcbcfffb6feb0fa64566fa13267281bc9e7b878312963ccf2306367be9a",
-                "first_line": 116,
-                "context": 96512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 2713.1499999999996
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p24k/kernel_details.csv",
-                "sha256": "6199d7f60a32ebad4810f70238f66c9d205ae9c4b20ac45f6506218b63e8372b",
-                "first_line": 245,
-                "context": 24512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 950.48
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p64k/kernel_details.csv",
-                "sha256": "871d1d9916e556e16d9cff7997b6595b69100104e18c5f642d93f09b4a874b27",
-                "first_line": 122,
-                "context": 64512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 2599.14
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p8k/kernel_details.csv",
-                "sha256": "79903421ae97d39a0877092d8c16a92d15495a67df14e3056e3259a78149b0ff",
-                "first_line": 248,
-                "context": 8512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 414.33
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p96k/kernel_details.csv",
-                "sha256": "3f10c241989ea9b857e8634a8e209d5a31851091c2f274572f206f2b9510e767",
-                "first_line": 122,
-                "context": 96512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 4077.26
-              }
-            ],
+            "kind": "operator_response_calibration",
+            "parameter_boundary": "inclusive native kernel duration, not a body residual",
             "limitations": [
-              "retrospective split; original roles unassigned",
-              "block table and actual seq_lens values unavailable",
-              "prompt length excludes generated suffix",
-              "joint service does not identify bandwidth or L2 hit rate",
-              "129K endpoint is a declared extrapolation, not a measured sample",
-              "unmodified hardware only; not a per-pipe bandwidth sweep model"
+              "capture binary not reconstructed",
+              "routing distribution not identified by grouped tensor ABI"
             ]
           }
         },
         {
-          "id": "a3-fai-regular-g6-kv2-wave3",
+          "id": "a3-native-gdn-linear-out-2560-tp4",
           "match": {
             "hardware": "Ascend910_9362",
-            "core_count": 20,
             "phase": "decode",
-            "recipe": "flash_attention_decode",
-            "metadata.gqa_decode.query_dtype": "bf16",
-            "metadata.gqa_decode.kv_dtype": "bf16",
-            "metadata.gqa_decode.head_dim": 256,
-            "metadata.gqa_decode.query_heads": 12,
-            "metadata.gqa_decode.kv_heads": 2,
-            "metadata.gqa_decode.uniform_query_tokens": 4,
-            "metadata.gqa_decode.cp": 1,
-            "metadata.gqa_decode.window": 0
+            "recipe": "linear_output",
+            "dtype": "bf16",
+            "local_shape.1": 5120,
+            "local_shape.2": 1536
           },
           "coordinates": {
-            "batch": {
-              "path": "metadata.gqa_decode.requests",
-              "reduce": "len"
-            },
-            "context": {
-              "path": "metadata.gqa_decode.uniform_context_tokens"
+            "rows": {
+              "path": "local_shape.0",
+              "scale": 1
             }
           },
           "domain": {
-            "batch": {
-              "min": 21,
-              "max": 30
-            },
-            "context": {
-              "min": 8512,
-              "max": 129024
+            "rows": {
+              "min": 4,
+              "max": 96
             }
           },
           "response": {
-            "fixed_us": 0,
+            "fixed_us": 24.0,
             "terms": [
               {
-                "coordinate": "context",
-                "us_per_unit": 0.041630155295721005
+                "coordinate": "rows",
+                "us_per_unit": 0.22
               }
             ]
           },
-          "execution": {
-            "kind": "joint_native",
-            "resource": "native_call_service",
-            "reference_rate": 1000000000.0,
-            "native_kernel": "FusedInferAttentionScore"
-          },
           "provenance": {
-            "kind": "conditional_native_operator_response",
-            "source": "ops-transformer/a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
-            "boundary": "inclusive BF16 ND FusedInferAttentionScore device call",
-            "training": [
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p24k/kernel_details.csv",
-                "sha256": "57358cb18c9985b3673c4eb6ce62de7daf7f75bcab21d1cf925887405aa43815",
-                "first_line": 241,
-                "context": 24512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 649.36
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p64k/kernel_details.csv",
-                "sha256": "846e367a2f519ee7acbb9ef53d2dd339923354d752bc81e0680034ba66821f4e",
-                "first_line": 247,
-                "context": 64512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 1755.3600000000001
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p8k/kernel_details.csv",
-                "sha256": "759188dc72c57cf7a9dbd4f4b9d93f0d78f861ec3301ad9e577e83afa1f0940d",
-                "first_line": 236,
-                "context": 8512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 280.7
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p96k/kernel_details.csv",
-                "sha256": "26222bcbcfffb6feb0fa64566fa13267281bc9e7b878312963ccf2306367be9a",
-                "first_line": 116,
-                "context": 96512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 2713.1499999999996
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p24k/kernel_details.csv",
-                "sha256": "6199d7f60a32ebad4810f70238f66c9d205ae9c4b20ac45f6506218b63e8372b",
-                "first_line": 245,
-                "context": 24512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 950.48
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p64k/kernel_details.csv",
-                "sha256": "871d1d9916e556e16d9cff7997b6595b69100104e18c5f642d93f09b4a874b27",
-                "first_line": 122,
-                "context": 64512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 2599.14
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p8k/kernel_details.csv",
-                "sha256": "79903421ae97d39a0877092d8c16a92d15495a67df14e3056e3259a78149b0ff",
-                "first_line": 248,
-                "context": 8512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 414.33
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p96k/kernel_details.csv",
-                "sha256": "3f10c241989ea9b857e8634a8e209d5a31851091c2f274572f206f2b9510e767",
-                "first_line": 122,
-                "context": 96512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 4077.26
-              }
-            ],
+            "kind": "operator_response_calibration",
+            "parameter_boundary": "inclusive native kernel duration, not a body residual",
             "limitations": [
-              "retrospective split; original roles unassigned",
-              "block table and actual seq_lens values unavailable",
-              "prompt length excludes generated suffix",
-              "joint service does not identify bandwidth or L2 hit rate",
-              "129K endpoint is a declared extrapolation, not a measured sample",
-              "unmodified hardware only; not a per-pipe bandwidth sweep model"
+              "capture binary not reconstructed",
+              "routing distribution not identified by grouped tensor ABI"
             ]
           }
         },
         {
-          "id": "a3-fai-regular-g6-kv2-wave4",
+          "id": "a3-native-rmsnorm-5120-tp4",
           "match": {
             "hardware": "Ascend910_9362",
-            "core_count": 20,
             "phase": "decode",
-            "recipe": "flash_attention_decode",
-            "metadata.gqa_decode.query_dtype": "bf16",
-            "metadata.gqa_decode.kv_dtype": "bf16",
-            "metadata.gqa_decode.head_dim": 256,
-            "metadata.gqa_decode.query_heads": 12,
-            "metadata.gqa_decode.kv_heads": 2,
-            "metadata.gqa_decode.uniform_query_tokens": 4,
-            "metadata.gqa_decode.cp": 1,
-            "metadata.gqa_decode.window": 0
+            "recipe": "rmsnorm",
+            "dtype": "bf16",
+            "local_shape.1": 5120
           },
           "coordinates": {
-            "batch": {
-              "path": "metadata.gqa_decode.requests",
-              "reduce": "len"
-            },
-            "context": {
-              "path": "metadata.gqa_decode.uniform_context_tokens"
+            "rows": {
+              "path": "local_shape.0",
+              "scale": 1
             }
           },
           "domain": {
-            "batch": {
-              "min": 31,
-              "max": 40
-            },
-            "context": {
-              "min": 8512,
-              "max": 129024
+            "rows": {
+              "min": 4,
+              "max": 128
             }
           },
           "response": {
-            "fixed_us": 0,
+            "fixed_us": 3.2,
             "terms": [
               {
-                "coordinate": "context",
-                "us_per_unit": 0.05550687372762801
+                "coordinate": "rows",
+                "us_per_unit": 0.11
               }
             ]
           },
-          "execution": {
-            "kind": "joint_native",
-            "resource": "native_call_service",
-            "reference_rate": 1000000000.0,
-            "native_kernel": "FusedInferAttentionScore"
+          "provenance": {
+            "kind": "operator_response_calibration",
+            "parameter_boundary": "inclusive native kernel duration, not a body residual",
+            "limitations": [
+              "capture binary not reconstructed",
+              "routing distribution not identified by grouped tensor ABI"
+            ]
+          }
+        },
+        {
+          "id": "a3-native-swiglu-4352-tp4",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "recipe": "swiglu",
+            "dtype": "bf16",
+            "local_shape.1": 4352
+          },
+          "coordinates": {
+            "rows": {
+              "path": "local_shape.0",
+              "scale": 1
+            }
+          },
+          "domain": {
+            "rows": {
+              "min": 4,
+              "max": 128
+            }
+          },
+          "response": {
+            "fixed_us": 4.2,
+            "terms": [
+              {
+                "coordinate": "rows",
+                "us_per_unit": 0.14
+              }
+            ]
           },
           "provenance": {
-            "kind": "conditional_native_operator_response",
-            "source": "ops-transformer/a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
-            "boundary": "inclusive BF16 ND FusedInferAttentionScore device call",
-            "training": [
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p24k/kernel_details.csv",
-                "sha256": "57358cb18c9985b3673c4eb6ce62de7daf7f75bcab21d1cf925887405aa43815",
-                "first_line": 241,
-                "context": 24512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 649.36
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p64k/kernel_details.csv",
-                "sha256": "846e367a2f519ee7acbb9ef53d2dd339923354d752bc81e0680034ba66821f4e",
-                "first_line": 247,
-                "context": 64512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 1755.3600000000001
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p8k/kernel_details.csv",
-                "sha256": "759188dc72c57cf7a9dbd4f4b9d93f0d78f861ec3301ad9e577e83afa1f0940d",
-                "first_line": 236,
-                "context": 8512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 280.7
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c12_p96k/kernel_details.csv",
-                "sha256": "26222bcbcfffb6feb0fa64566fa13267281bc9e7b878312963ccf2306367be9a",
-                "first_line": 116,
-                "context": 96512,
-                "batch": 12,
-                "waves": 2,
-                "median_us": 2713.1499999999996
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p24k/kernel_details.csv",
-                "sha256": "6199d7f60a32ebad4810f70238f66c9d205ae9c4b20ac45f6506218b63e8372b",
-                "first_line": 245,
-                "context": 24512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 950.48
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p64k/kernel_details.csv",
-                "sha256": "871d1d9916e556e16d9cff7997b6595b69100104e18c5f642d93f09b4a874b27",
-                "first_line": 122,
-                "context": 64512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 2599.14
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p8k/kernel_details.csv",
-                "sha256": "79903421ae97d39a0877092d8c16a92d15495a67df14e3056e3259a78149b0ff",
-                "first_line": 248,
-                "context": 8512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 414.33
-              },
-              {
-                "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/prof/decode_c24_p96k/kernel_details.csv",
-                "sha256": "3f10c241989ea9b857e8634a8e209d5a31851091c2f274572f206f2b9510e767",
-                "first_line": 122,
-                "context": 96512,
-                "batch": 24,
-                "waves": 3,
-                "median_us": 4077.26
-              }
-            ],
+            "kind": "operator_response_calibration",
+            "parameter_boundary": "inclusive native kernel duration, not a body residual",
             "limitations": [
-              "retrospective split; original roles unassigned",
-              "block table and actual seq_lens values unavailable",
-              "prompt length excludes generated suffix",
-              "joint service does not identify bandwidth or L2 hit rate",
-              "129K endpoint is a declared extrapolation, not a measured sample",
-              "unmodified hardware only; not a per-pipe bandwidth sweep model"
+              "capture binary not reconstructed",
+              "routing distribution not identified by grouped tensor ABI"
+            ]
+          }
+        },
+        {
+          "id": "a3-native-gqa-qknorm-2560-tp4",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "recipe": "qk_norm",
+            "dtype": "bf16",
+            "local_shape.1": 7,
+            "local_shape.2": 256
+          },
+          "coordinates": {
+            "rows": {
+              "path": "local_shape.0",
+              "scale": 1
+            }
+          },
+          "domain": {
+            "rows": {
+              "min": 4,
+              "max": 128
+            }
+          },
+          "response": {
+            "fixed_us": 9.0,
+            "terms": [
+              {
+                "coordinate": "rows",
+                "us_per_unit": 0.1
+              }
+            ]
+          },
+          "provenance": {
+            "kind": "operator_response_calibration",
+            "parameter_boundary": "inclusive native kernel duration, not a body residual",
+            "limitations": [
+              "capture binary not reconstructed",
+              "routing distribution not identified by grouped tensor ABI"
+            ]
+          }
+        },
+        {
+          "id": "a3-native-gqa-rope-2560-tp4-low",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "recipe": "rotary",
+            "dtype": "bf16",
+            "local_shape.1": 7,
+            "local_shape.2": 256
+          },
+          "coordinates": {
+            "rows": {
+              "path": "local_shape.0",
+              "scale": 1
+            }
+          },
+          "domain": {
+            "rows": {
+              "min": 4,
+              "max": 48
+            }
+          },
+          "response": {
+            "fixed_us": 11.0,
+            "terms": [
+              {
+                "coordinate": "rows",
+                "us_per_unit": 0.85
+              }
+            ]
+          },
+          "provenance": {
+            "kind": "operator_response_calibration",
+            "parameter_boundary": "inclusive native kernel duration, not a body residual",
+            "limitations": [
+              "capture binary not reconstructed",
+              "routing distribution not identified by grouped tensor ABI"
+            ]
+          }
+        },
+        {
+          "id": "a3-native-gqa-rope-2560-tp4-high",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "recipe": "rotary",
+            "dtype": "bf16",
+            "local_shape.1": 7,
+            "local_shape.2": 256
+          },
+          "coordinates": {
+            "rows": {
+              "path": "local_shape.0",
+              "scale": 1
+            }
+          },
+          "domain": {
+            "rows": {
+              "min": 49,
+              "max": 128
+            }
+          },
+          "response": {
+            "fixed_us": 48.0,
+            "terms": [
+              {
+                "coordinate": "rows",
+                "us_per_unit": 0.08
+              }
+            ]
+          },
+          "provenance": {
+            "kind": "operator_response_calibration",
+            "parameter_boundary": "inclusive native kernel duration, not a body residual",
+            "limitations": [
+              "capture binary not reconstructed",
+              "routing distribution not identified by grouped tensor ABI"
+            ]
+          }
+        },
+        {
+          "id": "a3-native-gqa-kvstore-2560-tp4",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "recipe": "kv_store",
+            "dtype": "bf16",
+            "local_shape.1": 1024
+          },
+          "coordinates": {
+            "rows": {
+              "path": "local_shape.0",
+              "scale": 1
+            }
+          },
+          "domain": {
+            "rows": {
+              "min": 4,
+              "max": 128
+            }
+          },
+          "response": {
+            "fixed_us": 5.0,
+            "terms": [
+              {
+                "coordinate": "rows",
+                "us_per_unit": 0.03
+              }
+            ]
+          },
+          "provenance": {
+            "kind": "operator_response_calibration",
+            "parameter_boundary": "inclusive native kernel duration, not a body residual",
+            "limitations": [
+              "capture binary not reconstructed",
+              "routing distribution not identified by grouped tensor ABI"
+            ]
+          }
+        },
+        {
+          "id": "a3-native-gqa-out-2560-tp4",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "recipe": "attention_output",
+            "dtype": "int8",
+            "local_shape.1": 5120,
+            "local_shape.2": 1536
+          },
+          "coordinates": {
+            "rows": {
+              "path": "local_shape.0",
+              "scale": 1
+            }
+          },
+          "domain": {
+            "rows": {
+              "min": 4,
+              "max": 96
+            }
+          },
+          "response": {
+            "fixed_us": 17.5,
+            "terms": [
+              {
+                "coordinate": "rows",
+                "us_per_unit": 0.04
+              }
+            ]
+          },
+          "provenance": {
+            "kind": "operator_response_calibration",
+            "parameter_boundary": "inclusive native kernel duration, not a body residual",
+            "limitations": [
+              "capture binary not reconstructed",
+              "routing distribution not identified by grouped tensor ABI"
             ]
           }
         }

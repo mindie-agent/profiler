@@ -30,6 +30,1449 @@
       "physical_geometry_policy": "captured tensor q/B supplied by profiler; graph padding is not re-applied to physical rows",
       "new_latency_parameter_fit": false,
       "runtime_recipe_basis": "uncalibrated catalog baseline; no high-concurrency EP/MC2 policy transferred"
+    },
+    "kernels": {
+      "lowerings": {
+        "gdn_decode": {
+          "implementation": "vllm_ascend_gdn_decode",
+          "options": {
+            "gating_beta_store": {
+              "bytes_per_element": 2,
+              "resource": "scalar_store_issue",
+              "queue": {
+                "outstanding": 8,
+                "granule_bytes": 128,
+                "response_ms": 9.125e-05,
+                "row_control_ms": 7e-06
+              }
+            },
+            "recurrent_implementation": "arch35_fp32",
+            "cache_index_row_stride": 4
+          }
+        }
+      },
+      "service_regimes": [
+        {
+          "id": "frozen-native-matrix-int8",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "dtype": "int8",
+            "layout": "int8_per_channel",
+            "metadata.program_kind": "matmul",
+            "metadata.weight_dtype": "int8",
+            "metadata.input_format": "int8",
+            "metadata.output_format": "bf16",
+            "metadata.matrix_groups": 1,
+            "metadata.dequant_before_compute": false,
+            "metadata.activation_scale_format": "fp32",
+            "metadata.matrix_output_contract": "int32_cast_row_scale_column_scale_output_cast"
+          },
+          "coordinates": {
+            "giga_flops": {
+              "path": "work.cube",
+              "scale": 1e-09
+            },
+            "mega_hbm_bytes": {
+              "path": "work.hbm",
+              "scale": 1e-06
+            }
+          },
+          "domain": {
+            "giga_flops": {
+              "min": 0
+            },
+            "mega_hbm_bytes": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 6.351403771901458,
+            "terms": [
+              {
+                "coordinate": "giga_flops",
+                "us_per_unit": 0.9561567935990344
+              },
+              {
+                "coordinate": "mega_hbm_bytes",
+                "us_per_unit": 0.21093632872050297
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "frozen_model_sha256": "ca169cb6744c4e55845d6c06bf8f6c34f9b4e317f4989aea6508a53de5b29e9b",
+            "specification_sha256": "5402fe549cb91fb09eadc935d5ca0d55314c7639a04ac906a0b652fb3aeac7cb",
+            "native_boundary": {
+              "native_operator_type": "QuantBatchMatmulV3",
+              "source_implementation": "ordinary_declared_matrix_program_with_normalized_native_contract",
+              "precision": {
+                "activation": "int8",
+                "weight": "int8",
+                "output": "bf16",
+                "activation_scale": "fp32"
+              },
+              "layout": {
+                "declared_layout": "int8_per_channel",
+                "scope": "normalized_active_matrix_contract; native_strides_and_weight_scale_values_not_retained"
+              },
+              "execution_boundary": "inclusive_whole_native_call_once"
+            },
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "coordinate_projection": {
+              "work.flops": "work.cube",
+              "work.hbm_bytes": "work.hbm"
+            }
+          }
+        },
+        {
+          "id": "frozen-native-matrix-bf16",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "dtype": "bf16",
+            "layout": "bf16",
+            "metadata.program_kind": "matmul",
+            "metadata.weight_dtype": "bf16",
+            "metadata.input_format": "bf16",
+            "metadata.output_format": "bf16",
+            "metadata.matrix_groups": 1,
+            "metadata.dequant_before_compute": false
+          },
+          "coordinates": {
+            "giga_flops": {
+              "path": "work.cube",
+              "scale": 1e-09
+            },
+            "mega_hbm_bytes": {
+              "path": "work.hbm",
+              "scale": 1e-06
+            }
+          },
+          "domain": {
+            "giga_flops": {
+              "min": 0
+            },
+            "mega_hbm_bytes": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 6.983604343486468,
+            "terms": [
+              {
+                "coordinate": "giga_flops",
+                "us_per_unit": 1.7627632046361619
+              },
+              {
+                "coordinate": "mega_hbm_bytes",
+                "us_per_unit": 0.37770682509919956
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "frozen_model_sha256": "ca169cb6744c4e55845d6c06bf8f6c34f9b4e317f4989aea6508a53de5b29e9b",
+            "specification_sha256": "5402fe549cb91fb09eadc935d5ca0d55314c7639a04ac906a0b652fb3aeac7cb",
+            "native_boundary": {
+              "native_operator_type": "MatMulV3",
+              "source_implementation": "ordinary_declared_matrix_program_with_normalized_native_contract",
+              "precision": {
+                "activation": "bf16",
+                "weight": "bf16",
+                "output": "bf16",
+                "activation_scale": ""
+              },
+              "layout": {
+                "declared_layout": "bf16",
+                "scope": "normalized_active_matrix_contract; native_strides_and_weight_scale_values_not_retained"
+              },
+              "execution_boundary": "inclusive_whole_native_call_once"
+            },
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "coordinate_projection": {
+              "work.flops": "work.cube",
+              "work.hbm_bytes": "work.hbm"
+            }
+          }
+        },
+        {
+          "id": "frozen-native-helper-causal-conv",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "ascend_causal_conv1d_update",
+            "metadata.kernel_width": 4,
+            "metadata.state_history_slots": 6,
+            "metadata.cache_index_row_stride": 4
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 7.864433971363647,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 1.4587218727606415e-05
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "frozen_model_sha256": "1f9d82348d509c54c831cc62ba090e2e30f1313f966a4b533c4b7ddbc21f3627",
+            "specification_sha256": "625b53b3f08c3ae9edc0908c04e5c4e688b08d391971e3e715c6693b0fe2a548",
+            "native_boundary": {
+              "native_operator_type": "CausalConv1d",
+              "source_implementation": "ascend_causal_conv1d_update",
+              "precision": {
+                "activation": "bf16",
+                "state": "not_applicable"
+              },
+              "layout": {
+                "declared": "contiguous",
+                "basis": "source-caller native boundary; exact stored tensor contract retained separately"
+              },
+              "execution_boundary": "one_inclusive_native_call; Q/K l2norm pooled only across identical local shape, 96 calls retained"
+            },
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false
+          }
+        },
+        {
+          "id": "frozen-native-helper-gdn-recurrent",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "ascend_recurrent_gdn_fp32_state",
+            "metadata.dk": 128,
+            "metadata.dv": 128,
+            "metadata.state_dtype": "fp32",
+            "metadata.recurrence_selection": "arch35_fp32"
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 3.2264688329288163,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 1.8120312029220632e-06
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "frozen_model_sha256": "1f9d82348d509c54c831cc62ba090e2e30f1313f966a4b533c4b7ddbc21f3627",
+            "specification_sha256": "625b53b3f08c3ae9edc0908c04e5c4e688b08d391971e3e715c6693b0fe2a548",
+            "native_boundary": {
+              "native_operator_type": "RecurrentGatedDeltaRule",
+              "source_implementation": "ascend_recurrent_gdn_fp32_state",
+              "precision": {
+                "activation": "bf16",
+                "state": "fp32"
+              },
+              "layout": {
+                "declared": "contiguous",
+                "basis": "source-caller native boundary; exact stored tensor contract retained separately"
+              },
+              "execution_boundary": "one_inclusive_native_call; Q/K l2norm pooled only across identical local shape, 96 calls retained"
+            },
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false
+          }
+        },
+        {
+          "id": "frozen-native-helper-gdn-l2norm",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "metadata.implementation_scope": "analytical_decode_l2norm",
+            "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+            "local_shape.3": 128
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 1.974984990543339,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 5.4831456291627314e-06
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "frozen_model_sha256": "1f9d82348d509c54c831cc62ba090e2e30f1313f966a4b533c4b7ddbc21f3627",
+            "specification_sha256": "625b53b3f08c3ae9edc0908c04e5c4e688b08d391971e3e715c6693b0fe2a548",
+            "native_boundary": {
+              "native_operator_type": "l2norm_fwd_kernel2",
+              "source_implementation": "analytical_decode_l2norm",
+              "precision": {
+                "activation": "bf16",
+                "state": "not_applicable"
+              },
+              "layout": {
+                "declared": "contiguous",
+                "basis": "source-caller native boundary; exact stored tensor contract retained separately"
+              },
+              "execution_boundary": "one_inclusive_native_call; Q/K l2norm pooled only across identical local shape, 96 calls retained"
+            },
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false
+          }
+        },
+        {
+          "id": "frozen-native-helper-gdn-output-norm",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "linear_output_norm_gate",
+            "metadata.norm_group_width": 128,
+            "metadata.gate_present": true,
+            "metadata.recurrent_attention_kind": "gdn"
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 3.588527848641263,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 5.170805545357361e-06
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "frozen_model_sha256": "1f9d82348d509c54c831cc62ba090e2e30f1313f966a4b533c4b7ddbc21f3627",
+            "specification_sha256": "625b53b3f08c3ae9edc0908c04e5c4e688b08d391971e3e715c6693b0fe2a548",
+            "native_boundary": {
+              "native_operator_type": "_layer_norm_fwd_1pass_kernel_npu",
+              "source_implementation": "linear_output_norm_gate",
+              "precision": {
+                "activation": "bf16",
+                "state": "not_applicable"
+              },
+              "layout": {
+                "declared": "contiguous",
+                "basis": "source-caller native boundary; exact stored tensor contract retained separately"
+              },
+              "execution_boundary": "one_inclusive_native_call; Q/K l2norm pooled only across identical local shape, 96 calls retained"
+            },
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false
+          }
+        },
+        {
+          "id": "frozen-native-helper-swiglu",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "swiglu",
+            "family": "swiglu"
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 4.324006435453574,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 2.0620329488088877e-06
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "frozen_model_sha256": "1f9d82348d509c54c831cc62ba090e2e30f1313f966a4b533c4b7ddbc21f3627",
+            "specification_sha256": "625b53b3f08c3ae9edc0908c04e5c4e688b08d391971e3e715c6693b0fe2a548",
+            "native_boundary": {
+              "native_operator_type": "SwiGlu",
+              "source_implementation": "swiglu",
+              "precision": {
+                "activation": "bf16",
+                "state": "not_applicable"
+              },
+              "layout": {
+                "declared": "contiguous",
+                "basis": "source-caller native boundary; exact stored tensor contract retained separately"
+              },
+              "execution_boundary": "one_inclusive_native_call; Q/K l2norm pooled only across identical local shape, 96 calls retained"
+            },
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false
+          }
+        },
+        {
+          "id": "frozen-slice-cache-beta-alpha-beta_contiguous",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "beta_contiguous",
+            "family": "tensor_copy",
+            "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+            "metadata.source_layout.strides.1": 1,
+            "metadata.input_format": "bf16",
+            "metadata.output_format": "bf16"
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 1.7628658498765666,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 6.024266378343817e-05
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
+              "size_bytes": 812897
+            },
+            "native_operator_type": "Slice",
+            "pooled_native_count_per_forward": 96,
+            "expected_rule_hits": 48,
+            "normalized_contract": [
+              "slice_copy",
+              [
+                16,
+                12
+              ],
+              [
+                16,
+                6
+              ],
+              "bf16",
+              "bf16"
+            ],
+            "full_native_strides_observed": false,
+            "conditional_declared_source_layout": true,
+            "body_residual_used": false,
+            "heldout_timing_used_to_refit": false
+          }
+        },
+        {
+          "id": "frozen-slice-cache-beta-alpha-alpha_contiguous",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "alpha_contiguous",
+            "family": "tensor_copy",
+            "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+            "metadata.source_layout.strides.1": 1,
+            "metadata.input_format": "bf16",
+            "metadata.output_format": "bf16"
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 1.7628658498765666,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 6.024266378343817e-05
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
+              "size_bytes": 812897
+            },
+            "native_operator_type": "Slice",
+            "pooled_native_count_per_forward": 96,
+            "expected_rule_hits": 48,
+            "normalized_contract": [
+              "slice_copy",
+              [
+                16,
+                12
+              ],
+              [
+                16,
+                6
+              ],
+              "bf16",
+              "bf16"
+            ],
+            "full_native_strides_observed": false,
+            "conditional_declared_source_layout": true,
+            "body_residual_used": false,
+            "heldout_timing_used_to_refit": false
+          }
+        },
+        {
+          "id": "frozen-slice-cache-conv-input-convolution_input_contiguous",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "convolution_input_contiguous",
+            "family": "tensor_copy",
+            "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+            "metadata.source_layout.strides.1": 1,
+            "metadata.input_format": "bf16",
+            "metadata.output_format": "bf16"
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 3.4334238569196334,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 9.512602627644667e-07
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
+              "size_bytes": 812897
+            },
+            "native_operator_type": "Slice",
+            "pooled_native_count_per_forward": 48,
+            "expected_rule_hits": 48,
+            "normalized_contract": [
+              "slice_copy",
+              [
+                16,
+                2048
+              ],
+              [
+                16,
+                1280
+              ],
+              "bf16",
+              "bf16"
+            ],
+            "full_native_strides_observed": false,
+            "conditional_declared_source_layout": true,
+            "body_residual_used": false,
+            "heldout_timing_used_to_refit": false
+          }
+        },
+        {
+          "id": "frozen-slice-cache-qk-flat-q_flat",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "q_flat",
+            "family": "tensor_copy",
+            "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+            "metadata.source_layout.strides.1": 1,
+            "metadata.input_format": "bf16",
+            "metadata.output_format": "bf16"
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 2.4614482323170734,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 3.860510107529072e-06
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
+              "size_bytes": 812897
+            },
+            "native_operator_type": "Slice",
+            "pooled_native_count_per_forward": 96,
+            "expected_rule_hits": 48,
+            "normalized_contract": [
+              "slice_copy",
+              [
+                16,
+                1280
+              ],
+              [
+                16,
+                256
+              ],
+              "bf16",
+              "bf16"
+            ],
+            "full_native_strides_observed": false,
+            "conditional_declared_source_layout": true,
+            "body_residual_used": false,
+            "heldout_timing_used_to_refit": false
+          }
+        },
+        {
+          "id": "frozen-slice-cache-qk-flat-k_flat",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "k_flat",
+            "family": "tensor_copy",
+            "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+            "metadata.source_layout.strides.1": 1,
+            "metadata.input_format": "bf16",
+            "metadata.output_format": "bf16"
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 2.4614482323170734,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 3.860510107529072e-06
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
+              "size_bytes": 812897
+            },
+            "native_operator_type": "Slice",
+            "pooled_native_count_per_forward": 96,
+            "expected_rule_hits": 48,
+            "normalized_contract": [
+              "slice_copy",
+              [
+                16,
+                1280
+              ],
+              [
+                16,
+                256
+              ],
+              "bf16",
+              "bf16"
+            ],
+            "full_native_strides_observed": false,
+            "conditional_declared_source_layout": true,
+            "body_residual_used": false,
+            "heldout_timing_used_to_refit": false
+          }
+        },
+        {
+          "id": "frozen-slice-cache-v-flat-v_flat",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "v_flat",
+            "family": "tensor_copy",
+            "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+            "metadata.source_layout.strides.1": 1,
+            "metadata.input_format": "bf16",
+            "metadata.output_format": "bf16"
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 2.9027920978641997,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 1.1007466763855495e-06
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
+              "size_bytes": 812897
+            },
+            "native_operator_type": "Slice",
+            "pooled_native_count_per_forward": 48,
+            "expected_rule_hits": 48,
+            "normalized_contract": [
+              "slice_copy",
+              [
+                16,
+                1280
+              ],
+              [
+                16,
+                768
+              ],
+              "bf16",
+              "bf16"
+            ],
+            "full_native_strides_observed": false,
+            "conditional_declared_source_layout": true,
+            "body_residual_used": false,
+            "heldout_timing_used_to_refit": false
+          }
+        },
+        {
+          "id": "frozen-slice-cache-cache-kv_store-tp4-tp8",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "kv_store",
+            "family": "cache_store",
+            "metadata.cache_kind": "gqa",
+            "local_shape.1": 1024
+          },
+          "coordinates": {
+            "query_rows": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "query_rows": {
+              "min": 1,
+              "max": 512
+            }
+          },
+          "response": {
+            "fixed_us": 3.984782608695652,
+            "terms": [
+              {
+                "coordinate": "query_rows",
+                "us_per_unit": 0.0038043478260869528
+              }
+            ]
+          }
+        },
+        {
+          "id": "frozen-slice-cache-cache-kv_store-tp2-low",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "kv_store",
+            "family": "cache_store",
+            "metadata.cache_kind": "gqa",
+            "local_shape.1": 2048
+          },
+          "coordinates": {
+            "query_rows": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "query_rows": {
+              "min": 1,
+              "max": 20
+            }
+          },
+          "response": {
+            "fixed_us": 3.98,
+            "terms": [
+              {
+                "coordinate": "query_rows",
+                "us_per_unit": 0.0074999999999999884
+              }
+            ]
+          }
+        },
+        {
+          "id": "frozen-slice-cache-cache-kv_store-tp2-m24",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "kv_store",
+            "family": "cache_store",
+            "metadata.cache_kind": "gqa",
+            "local_shape.1": 2048
+          },
+          "coordinates": {
+            "query_rows": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "query_rows": {
+              "min": 20.001,
+              "max": 28
+            }
+          },
+          "response": {
+            "fixed_us": 62.0,
+            "terms": []
+          }
+        },
+        {
+          "id": "frozen-slice-cache-cache-kv_store-tp2-high",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "kv_store",
+            "family": "cache_store",
+            "metadata.cache_kind": "gqa",
+            "local_shape.1": 2048
+          },
+          "coordinates": {
+            "query_rows": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "query_rows": {
+              "min": 28.001,
+              "max": 512
+            }
+          },
+          "response": {
+            "fixed_us": 4.019989411608995,
+            "terms": [
+              {
+                "coordinate": "query_rows",
+                "us_per_unit": 0.007500110295739641
+              }
+            ]
+          }
+        },
+        {
+          "id": "frozen-slice-cache-cache-kv_store-tp1-b1",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "kv_store",
+            "family": "cache_store",
+            "metadata.cache_kind": "gqa",
+            "local_shape.1": 4096
+          },
+          "coordinates": {
+            "query_rows": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "query_rows": {
+              "min": 1,
+              "max": 6
+            }
+          },
+          "response": {
+            "fixed_us": 4.04,
+            "terms": []
+          }
+        },
+        {
+          "id": "frozen-slice-cache-cache-kv_store-tp1-b2-b4",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "kv_store",
+            "family": "cache_store",
+            "metadata.cache_kind": "gqa",
+            "local_shape.1": 4096
+          },
+          "coordinates": {
+            "query_rows": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "query_rows": {
+              "min": 6.001,
+              "max": 512
+            }
+          },
+          "response": {
+            "fixed_us": 68.0,
+            "terms": []
+          }
+        },
+        {
+          "id": "a5-qwen-gdn-z_norm_materialize-v1",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "family": "tensor_copy",
+            "recipe": "z_norm_materialize",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "rows": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "rows": {
+              "min": 1,
+              "max": 4096
+            }
+          },
+          "response": {
+            "fixed_us": 1.9735652173913043,
+            "terms": [
+              {
+                "coordinate": "rows",
+                "us_per_unit": 0.008608695652173912
+              }
+            ]
+          }
+        },
+        {
+          "id": "a5-qwen-gdn-core_output_copy-v1",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "family": "tensor_copy",
+            "recipe": "core_output_copy",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "rows": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "rows": {
+              "min": 1,
+              "max": 4096
+            }
+          },
+          "response": {
+            "fixed_us": 3.143157894736842,
+            "terms": [
+              {
+                "coordinate": "rows",
+                "us_per_unit": 0.006842105263157894
+              }
+            ]
+          }
+        },
+        {
+          "id": "a5-qwen-gdn-core_output_zero-v1",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "family": "tensor_fill",
+            "recipe": "core_output_zero",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "rows": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "rows": {
+              "min": 1,
+              "max": 4096
+            }
+          },
+          "response": {
+            "fixed_us": 2.102821052631579,
+            "terms": [
+              {
+                "coordinate": "rows",
+                "us_per_unit": 0.005178947368421053
+              }
+            ]
+          }
+        },
+        {
+          "id": "a5-qwen-gqa-attention_gate-v1",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "family": "elementwise",
+            "recipe": "attention_gate",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "query_rows": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "query_rows": {
+              "min": 1,
+              "max": 512
+            }
+          },
+          "response": {
+            "fixed_us": 5.556363636363637,
+            "terms": [
+              {
+                "coordinate": "query_rows",
+                "us_per_unit": 0.05590909090909091
+              }
+            ]
+          }
+        },
+        {
+          "id": "a5-qwen-gqa-qk_norm-v1",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "family": "rmsnorm",
+            "recipe": "qk_norm",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "query_rows": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "query_rows": {
+              "min": 1,
+              "max": 512
+            }
+          },
+          "response": {
+            "fixed_us": 5.452727272727272,
+            "terms": [
+              {
+                "coordinate": "query_rows",
+                "us_per_unit": 0.04681818181818183
+              }
+            ]
+          }
+        },
+        {
+          "id": "a5-qwen-gqa-rotary-v1",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "family": "rotary",
+            "recipe": "rotary",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "query_rows": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "query_rows": {
+              "min": 1,
+              "max": 512
+            }
+          },
+          "response": {
+            "fixed_us": 8.163636363636364,
+            "terms": [
+              {
+                "coordinate": "query_rows",
+                "us_per_unit": 0.05909090909090908
+              }
+            ]
+          }
+        },
+        {
+          "id": "a5-qwen-add_rmsnorm-v1",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "family": "add_rmsnorm",
+            "recipe": "add_rmsnorm",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "query_rows": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "query_rows": {
+              "min": 1,
+              "max": 512
+            }
+          },
+          "response": {
+            "fixed_us": 3.0254545454545454,
+            "terms": [
+              {
+                "coordinate": "query_rows",
+                "us_per_unit": 0.07363636363636362
+              }
+            ]
+          }
+        },
+        {
+          "id": "a5-qwen-add_rmsnorm_quantize-v1",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "family": "add_rmsnorm_quant",
+            "recipe": "add_rmsnorm_quantize",
+            "dtype": "int8"
+          },
+          "coordinates": {
+            "query_rows": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "query_rows": {
+              "min": 1,
+              "max": 512
+            }
+          },
+          "response": {
+            "fixed_us": 3.9172727272727275,
+            "terms": [
+              {
+                "coordinate": "query_rows",
+                "us_per_unit": 0.11318181818181818
+              }
+            ]
+          }
+        },
+        {
+          "id": "a5-qwen-gemma_gamma_shift-v1",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "family": "elementwise",
+            "recipe": "gemma_gamma_shift",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "rows": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "rows": {
+              "min": 1,
+              "max": 8192
+            }
+          },
+          "response": {
+            "fixed_us": 2.0127272727272727,
+            "terms": [
+              {
+                "coordinate": "rows",
+                "us_per_unit": 0.0018181818181818197
+              }
+            ]
+          }
+        },
+        {
+          "id": "a5-qwen-rmsnorm-v1",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "family": "rmsnorm",
+            "recipe": "rmsnorm",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "query_rows": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "query_rows": {
+              "min": 1,
+              "max": 512
+            }
+          },
+          "response": {
+            "fixed_us": 3.0254545454545454,
+            "terms": [
+              {
+                "coordinate": "query_rows",
+                "us_per_unit": 0.07363636363636362
+              }
+            ]
+          }
+        },
+        {
+          "id": "a5-qwen-residual_add-v1",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "family": "elementwise",
+            "recipe": "residual_add",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "query_rows": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "query_rows": {
+              "min": 1,
+              "max": 512
+            }
+          },
+          "response": {
+            "fixed_us": 2.081818181818182,
+            "terms": [
+              {
+                "coordinate": "query_rows",
+                "us_per_unit": 0.02954545454545454
+              }
+            ]
+          }
+        },
+        {
+          "id": "a5-qwen-dynamic_quantize-v1",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "family": "quantize",
+            "recipe": "dynamic_quantize",
+            "dtype": "int8"
+          },
+          "coordinates": {
+            "rows": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "rows": {
+              "min": 1,
+              "max": 512
+            }
+          },
+          "response": {
+            "fixed_us": 4.363636363636363,
+            "terms": [
+              {
+                "coordinate": "rows",
+                "us_per_unit": 0.03409090909090909
+              }
+            ]
+          }
+        },
+        {
+          "id": "observed-gating-H48-partial-row-tile",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "ascend_gdn_decode_gating",
+            "family": "gdn_gating",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.1": 48
+          },
+          "coordinates": {
+            "query_rows": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "query_rows": {
+              "min": 1,
+              "max": 63.999
+            }
+          },
+          "response": {
+            "fixed_us": 8.5,
+            "terms": [
+              {
+                "coordinate": "query_rows",
+                "us_per_unit": 2.9
+              }
+            ]
+          }
+        }
+      ]
     }
   },
   "workload": {

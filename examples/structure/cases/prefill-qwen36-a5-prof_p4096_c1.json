@@ -94,6 +94,18 @@
       "measured_baseline": ".workstreams/hp-serving/qwen36-a5/report.md (2026-10-23, rack08os8)",
       "mtp": "MTP3: num_speculative_tokens=3, qwen3_5_mtp normalised to mtp; the served stream measured 3.476-3.989 committed tokens per decode step across the long-context matrix",
       "row_policy": "measured A5 rows are declared by the cells manifest and applied only when their exact geometry matches; a row for another TP/head layout is declared missing, never substituted"
+    },
+    "kernels": {
+      "hccl": {
+        "allreduce": {
+          "expansion": "AIV",
+          "template": "mesh_twoshot",
+          "axes": [
+            "tp"
+          ],
+          "block_limit": 64
+        }
+      }
     }
   }
 }

@@ -88,6 +88,20 @@
     },
     "vllm_impl": "sha256:5bdd40411c1abda875996cb83cdd6c0ca1a5251240aa19755ae6aab539ce1bdc",
     "vllm_version": "0.30.0rc2.dev200+g8fd0bc488",
-    "kernel_format": "w8a8_dynamic"
+    "kernel_format": "w8a8_dynamic",
+    "kernels": {
+      "service_regimes": [
+        {
+          "id": "v4f-a3-tp8-prefill-allreduce-regime",
+          "match": {
+            "phase": "prefill",
+            "family": "allreduce"
+          },
+          "response": {
+            "fixed_us": 2480.0
+          }
+        }
+      ]
+    }
   }
 }

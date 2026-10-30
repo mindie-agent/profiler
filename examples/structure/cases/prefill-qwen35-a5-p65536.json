@@ -46,7 +46,73 @@
   },
   "model": {
     "catalog_key": "qwen3.5-35b-a3b",
-    "quantization": "W8A8_DYNAMIC"
+    "quantization": "W8A8_DYNAMIC",
+    "quant": {
+      "name": "W8A8_DYNAMIC",
+      "weight_format": "int8",
+      "native_format": "bf16",
+      "activation_format": "int8",
+      "expert_weight_format": "int8",
+      "weight_block": [
+        1,
+        1
+      ],
+      "expert_block": 1,
+      "scale_format": "fp32",
+      "scale_bytes": 4.0,
+      "kv_dtype": "bf16",
+      "index_dtype": "bf16",
+      "index_scale_dtype": "none",
+      "exclusions": [
+        "mtp",
+        "norm",
+        "lm_head",
+        "embedding",
+        "vision",
+        "projector",
+        "conv_weight_f32",
+        "conv_weight_bf16",
+        "router"
+      ],
+      "engram_table_mode": "device_bf16",
+      "activation_group_size": 0,
+      "activation_scale_format": "",
+      "activation_scale_pack": 1,
+      "category_overrides": {
+        "gdn.qkvz": {
+          "weight_format": "bf16",
+          "activation_format": "bf16"
+        },
+        "gdn.beta_alpha": {
+          "weight_format": "bf16",
+          "activation_format": "bf16"
+        },
+        "gdn.o": {
+          "weight_format": "bf16",
+          "activation_format": "bf16"
+        },
+        "routed_expert": {
+          "scale_format": "bf16",
+          "scale_bytes": 2
+        },
+        "shared_expert": {
+          "weight_format": "bf16",
+          "activation_format": "bf16"
+        },
+        "attn.o": {
+          "weight_format": "bf16",
+          "activation_format": "bf16"
+        }
+      },
+      "source": {
+        "kind": "representation_preset",
+        "preset": "w8a8_dynamic",
+        "checkpoint_identity": "not_verified_from_capture_config"
+      },
+      "notes": [
+        "Declared representation template; retained tensor samples establish selected contracts separately."
+      ]
+    }
   },
   "runtime": {
     "dp": 1,
@@ -78,9 +144,49 @@
       "mtp": "MTP3: num_speculative_tokens=3, qwen3_5_mtp normalised to mtp; the PASS gate measured 3.72-3.99 committed tokens per decode step on its long-context cells",
       "row_policy": "measured A5 rows are declared by the cells manifest and applied only when their exact geometry matches; a row for another TP/head layout or an uncovered band is declared missing, never substituted"
     },
-    "moe_recipe": "alltoall",
+    "moe_recipe": "tp_join_reduce",
     "pp": 1,
-    "tp": 4
+    "tp": 4,
+    "kernels": {
+      "service_regimes": [
+        {
+          "id": "qwen35-a5-longctx-prefill-allreduce-regime",
+          "match": {
+            "phase": "prefill",
+            "family": "allreduce"
+          },
+          "response": {
+            "fixed_us": 1050.0
+          }
+        }
+      ],
+      "lowerings": {
+        "gdn_decode": {
+          "implementation": "vllm_ascend_gdn_decode",
+          "options": {
+            "gating_beta_store": {
+              "bytes_per_element": 2,
+              "resource": "scalar_store_issue",
+              "queue": {
+                "outstanding": 8,
+                "granule_bytes": 128,
+                "response_ms": 9.125e-05,
+                "row_control_ms": 7e-06
+              }
+            },
+            "recurrent_implementation": "arch35_fp32",
+            "cache_index_row_stride": 4
+          }
+        },
+        "add_rmsnorm_quant": {
+          "implementation": "vllm_ascend_native_norm",
+          "options": {
+            "has_bias": false,
+            "external_gamma_shift": true
+          }
+        }
+      }
+    }
   },
   "workload": {
     "requests": [
