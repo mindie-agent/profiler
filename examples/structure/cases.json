@@ -13194,5 +13194,864 @@
     "scope": "Every case parsed; non-provenance parameters reconstruct original byte-pinned declarations; all 1078 service rule parameter objects unchanged; extraction SHA and phase IDs verified.",
     "raw_scans": 0,
     "new_cost_predictions": 0
-  }
+  },
+  "generalization": [
+    {
+      "id": "glm-a5-retrospective-concurrency-exclusion",
+      "status": "ready",
+      "specification": {
+        "schema_version": "mindie-service-specification/1",
+        "training_sources": [
+          "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+          "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+          "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72"
+        ],
+        "evaluation_sources": [
+          "0562978c83fd2dd6ddb5f51a053dcdc7693e307ef8bcf6b90ee70e2a7c2b5a78",
+          "1a9184ace6c33136182c6947fce23e27e238795d5d526532ab000065ad8d5e45",
+          "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
+          "1d33448e6faeeedf5175035f4c324b74220bbc179d2cec85657162970576095a",
+          "7b5fcac6c1e58c05cb232a7ddb4450b761301ba5efc33b4b9f7909b9d59fbbe1",
+          "bd9aaa075053ec7b4520a8a45238e810192b9b83f96d9833792be3ce9a46ca34"
+        ],
+        "evaluation_relation": "retrospective_leave_concurrency_out",
+        "domains": [
+          {
+            "id": "hcom-allreduce-aicpukernel-observed",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "kernel": "HCCL_AICPU_TS_allreduce_mesh_oneshot",
+              "metadata.hccl_selection.ranks": 8,
+              "metadata.hccl_selection.dtype_bytes": 2
+            },
+            "boundary": {
+              "native_operator_type": "hcom_allReduce_AicpuKernel",
+              "source_implementation": "HCCL_AICPU_TS_allreduce_mesh_oneshot",
+              "precision": {
+                "explicit_selectors": {
+                  "metadata.hccl_selection.dtype_bytes": 2
+                },
+                "source_recipe": "HCCL_AICPU_TS_allreduce_mesh_oneshot"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "metadata.hccl_selection.payload_bytes"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "-copy-conv-state-kernel-observed",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "triton_noncontiguous_conv_state_copy",
+              "dtype": "bf16",
+              "local_shape.1": 6,
+              "local_shape.2": 3072
+            },
+            "boundary": {
+              "native_operator_type": "_copy_conv_state_kernel",
+              "source_implementation": "triton_noncontiguous_conv_state_copy",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16"
+                },
+                "source_recipe": "triton_noncontiguous_conv_state_copy"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "moeinitroutingv3-observed",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "ascend_moe_init_routing_v3_mxfp8",
+              "dtype": "bf16",
+              "metadata.moe_init_config.experts": 288,
+              "metadata.moe_init_config.topk": 8,
+              "metadata.moe_init_config.width": 4096
+            },
+            "boundary": {
+              "native_operator_type": "MoeInitRoutingV3",
+              "source_implementation": "ascend_moe_init_routing_v3_mxfp8",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16"
+                },
+                "source_recipe": "ascend_moe_init_routing_v3_mxfp8"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "groupedmatmulswigluquantv2-observed",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "ascend_mxfp8_grouped_swiglu_quant",
+              "metadata.mxfp8_swiglu_config.k": 4096,
+              "metadata.mxfp8_swiglu_config.width": 256
+            },
+            "boundary": {
+              "native_operator_type": "GroupedMatmulSwigluQuantV2",
+              "source_implementation": "ascend_mxfp8_grouped_swiglu_quant",
+              "precision": {
+                "explicit_selectors": {},
+                "source_recipe": "ascend_mxfp8_grouped_swiglu_quant"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "causalconv1d-observed",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "short_convolution",
+              "dtype": "bf16"
+            },
+            "boundary": {
+              "native_operator_type": "CausalConv1d",
+              "source_implementation": "short_convolution",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16"
+                },
+                "source_recipe": "short_convolution"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "recurrentkda-observed",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "vllm_ascend_recurrent_kda_arch35",
+              "metadata.native_kind": "RecurrentKda",
+              "metadata.heads": 8,
+              "metadata.dk": 128,
+              "metadata.dv": 128,
+              "metadata.state_dtype": "fp32"
+            },
+            "boundary": {
+              "native_operator_type": "RecurrentKda",
+              "source_implementation": "vllm_ascend_recurrent_kda_arch35",
+              "precision": {
+                "explicit_selectors": {
+                  "metadata.state_dtype": "fp32"
+                },
+                "source_recipe": "vllm_ascend_recurrent_kda_arch35"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "groupedmatmul-observed-second",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "balanced_grouped_down",
+              "dtype": "fp8_e4m3",
+              "local_shape.1": 4096,
+              "local_shape.2": 256,
+              "metadata.matrix_weight_bank_groups": 288,
+              "metadata.input_format": "fp8_e4m3",
+              "metadata.weight_format": "fp8_e4m3",
+              "metadata.output_format": "bf16"
+            },
+            "boundary": {
+              "native_operator_type": "GroupedMatmul",
+              "source_implementation": "balanced_grouped_down",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "fp8_e4m3",
+                  "metadata.input_format": "fp8_e4m3",
+                  "metadata.weight_format": "fp8_e4m3",
+                  "metadata.output_format": "bf16"
+                },
+                "source_recipe": "balanced_grouped_down"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "hcpre-hc-pre-observed-third",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "declared_native_fusion",
+              "dtype": "bf16",
+              "metadata.fusion_role": "hc_pre",
+              "metadata.fusion_boundary.traffic_profile": "hc_pre_arch35_mk_175ef4d4",
+              "metadata.fusion_tensor_view.hidden": 4096,
+              "metadata.fusion_tensor_view.hc": 4,
+              "metadata.fusion_tensor_view.parameter_dtype": "fp32"
+            },
+            "boundary": {
+              "native_operator_type": "HcPre",
+              "source_implementation": "declared_native_fusion",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16",
+                  "metadata.fusion_tensor_view.parameter_dtype": "fp32"
+                },
+                "source_recipe": "declared_native_fusion"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "metadata.fusion_tensor_view.tokens"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "matmulv3-linear_qkvbfg_a-observed-third",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "linear_qkvbfg_a",
+              "dtype": "bf16",
+              "local_shape.1": 3336,
+              "local_shape.2": 4096
+            },
+            "boundary": {
+              "native_operator_type": "MatMulV3",
+              "source_implementation": "linear_qkvbfg_a",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16"
+                },
+                "source_recipe": "linear_qkvbfg_a"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "matrix-linear_output-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "linear_output",
+              "dtype": "bf16",
+              "local_shape.1": 4096,
+              "local_shape.2": 1024
+            },
+            "boundary": {
+              "native_operator_type": "MatMulV3",
+              "source_implementation": "linear_output",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16"
+                },
+                "source_recipe": "linear_output"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "matrix-index_q-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "index_q",
+              "dtype": "bf16",
+              "local_shape.1": 4096,
+              "local_shape.2": 1536
+            },
+            "boundary": {
+              "native_operator_type": "MatMulV3",
+              "source_implementation": "index_q",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16"
+                },
+                "source_recipe": "index_q"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "matrix-router-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "router",
+              "dtype": "fp32",
+              "local_shape.1": 288,
+              "local_shape.2": 4096
+            },
+            "boundary": {
+              "native_operator_type": "MatMulV3",
+              "source_implementation": "router",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "fp32"
+                },
+                "source_recipe": "router"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "matrix-gate_up-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "dense_gate_up",
+              "dtype": "fp8_e4m3",
+              "local_shape.1": 3072,
+              "local_shape.2": 4096
+            },
+            "boundary": {
+              "native_operator_type": "QuantBatchMatmulV3",
+              "source_implementation": "dense_gate_up",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "fp8_e4m3"
+                },
+                "source_recipe": "dense_gate_up"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "matrix-down-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "dense_down",
+              "dtype": "fp8_e4m3",
+              "local_shape.1": 4096,
+              "local_shape.2": 1536
+            },
+            "boundary": {
+              "native_operator_type": "QuantBatchMatmulV3",
+              "source_implementation": "dense_down",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "fp8_e4m3"
+                },
+                "source_recipe": "dense_down"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "matrix-shared-gate_up-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "dense_gate_up",
+              "dtype": "fp8_e4m3",
+              "local_shape.1": 512,
+              "local_shape.2": 4096
+            },
+            "boundary": {
+              "native_operator_type": "QuantBatchMatmulV3",
+              "source_implementation": "dense_gate_up",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "fp8_e4m3"
+                },
+                "source_recipe": "dense_gate_up"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "matrix-shared-down-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "dense_down",
+              "dtype": "fp8_e4m3",
+              "local_shape.1": 4096,
+              "local_shape.2": 256
+            },
+            "boundary": {
+              "native_operator_type": "QuantBatchMatmulV3",
+              "source_implementation": "dense_down",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "fp8_e4m3"
+                },
+                "source_recipe": "dense_down"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "matrix-q_absorb-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "q_absorb",
+              "dtype": "bf16",
+              "local_shape.1": 512,
+              "local_shape.2": 256
+            },
+            "boundary": {
+              "native_operator_type": "TransposeBatchMatMul",
+              "source_implementation": "q_absorb",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16"
+                },
+                "source_recipe": "q_absorb"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "matrix-v_expand-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "v_expand",
+              "dtype": "bf16",
+              "local_shape.1": 256,
+              "local_shape.2": 512
+            },
+            "boundary": {
+              "native_operator_type": "TransposeBatchMatMul",
+              "source_implementation": "v_expand",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16"
+                },
+                "source_recipe": "v_expand"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "rmsnorm-norm1-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "rmsnorm",
+              "dtype": "bf16",
+              "local_shape.1": 4096,
+              "metadata.structure_block": "attention"
+            },
+            "boundary": {
+              "native_operator_type": "RmsNorm",
+              "source_implementation": "rmsnorm",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16"
+                },
+                "source_recipe": "rmsnorm"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "rmsnorm-norm2-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "rmsnorm",
+              "dtype": "bf16",
+              "local_shape.1": 4096,
+              "metadata.structure_block": "ffn"
+            },
+            "boundary": {
+              "native_operator_type": "RmsNorm",
+              "source_implementation": "rmsnorm",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16"
+                },
+                "source_recipe": "rmsnorm"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "dynamicmxquant-gate_up-quantize-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "dynamic_quantize",
+              "dtype": "bf16",
+              "local_shape.1": 4096,
+              "metadata.structure_block": "ffn",
+              "metadata.output_format": "fp8_e4m3",
+              "metadata.activation_scale_format": "fp8_e8m0",
+              "metadata.activation_group_size": 32
+            },
+            "boundary": {
+              "native_operator_type": "DynamicMxQuant",
+              "source_implementation": "dynamic_quantize",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16",
+                  "metadata.output_format": "fp8_e4m3",
+                  "metadata.activation_scale_format": "fp8_e8m0",
+                  "metadata.activation_group_size": 32
+                },
+                "source_recipe": "dynamic_quantize"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "dynamicmxquant-down-quantize-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "dynamic_quantize",
+              "dtype": "bf16",
+              "local_shape.1": 1536,
+              "metadata.structure_block": "ffn",
+              "metadata.output_format": "fp8_e4m3",
+              "metadata.activation_scale_format": "fp8_e8m0",
+              "metadata.activation_group_size": 32
+            },
+            "boundary": {
+              "native_operator_type": "DynamicMxQuant",
+              "source_implementation": "dynamic_quantize",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16",
+                  "metadata.output_format": "fp8_e4m3",
+                  "metadata.activation_scale_format": "fp8_e8m0",
+                  "metadata.activation_group_size": 32
+                },
+                "source_recipe": "dynamic_quantize"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "dynamicmxquant-shared-down-quantize-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "dynamic_quantize",
+              "dtype": "bf16",
+              "local_shape.1": 256,
+              "metadata.structure_block": "ffn",
+              "metadata.output_format": "fp8_e4m3",
+              "metadata.activation_scale_format": "fp8_e8m0",
+              "metadata.activation_group_size": 32
+            },
+            "boundary": {
+              "native_operator_type": "DynamicMxQuant",
+              "source_implementation": "dynamic_quantize",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16",
+                  "metadata.output_format": "fp8_e4m3",
+                  "metadata.activation_scale_format": "fp8_e8m0",
+                  "metadata.activation_group_size": 32
+                },
+                "source_recipe": "dynamic_quantize"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "local_shape.0"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "hcpost-attention-hc_post_group-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "declared_native_fusion",
+              "dtype": "bf16",
+              "metadata.structure_block": "attention",
+              "metadata.fusion_role": "hc_post",
+              "metadata.fusion_boundary.traffic_profile": "hc_post_arch35_bf16_175ef4d4",
+              "metadata.fusion_tensor_view.hidden": 4096,
+              "metadata.fusion_tensor_view.hc": 4,
+              "metadata.fusion_tensor_view.coefficient_dtype": "fp32"
+            },
+            "boundary": {
+              "native_operator_type": "HcPost",
+              "source_implementation": "declared_native_fusion",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16",
+                  "metadata.fusion_tensor_view.coefficient_dtype": "fp32"
+                },
+                "source_recipe": "declared_native_fusion"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "metadata.fusion_tensor_view.tokens"
+              }
+            },
+            "execution": null
+          },
+          {
+            "id": "hcpost-ffn-hc_post_group-complete-native",
+            "match": {
+              "hardware": "Ascend950DT_9582",
+              "recipe": "declared_native_fusion",
+              "dtype": "bf16",
+              "metadata.structure_block": "ffn",
+              "metadata.fusion_role": "hc_post",
+              "metadata.fusion_boundary.traffic_profile": "hc_post_arch35_bf16_175ef4d4",
+              "metadata.fusion_tensor_view.hidden": 4096,
+              "metadata.fusion_tensor_view.hc": 4,
+              "metadata.fusion_tensor_view.coefficient_dtype": "fp32"
+            },
+            "boundary": {
+              "native_operator_type": "HcPost",
+              "source_implementation": "declared_native_fusion",
+              "precision": {
+                "explicit_selectors": {
+                  "dtype": "bf16",
+                  "metadata.fusion_tensor_view.coefficient_dtype": "fp32"
+                },
+                "source_recipe": "declared_native_fusion"
+              },
+              "layout": {
+                "basis": "retained_normalized_contract_or_source_recipe",
+                "full_native_ABI_claimed": false
+              },
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "coordinates": {
+              "physical_axis": {
+                "path": "metadata.fusion_tensor_view.tokens"
+              }
+            },
+            "execution": null
+          }
+        ],
+        "minimum_training_sources": 3,
+        "function_class": "nonnegative_affine_physical_coordinates",
+        "fit_objective": "equal_source_weight_complete_native_call_mean",
+        "heldout_timing_used_to_select_function": false,
+        "body_residual_used": false,
+        "sha256": "4671ff713cc0ca1da5e3b270591cab994e7deb8a3a3d254b2470ff6da4268f28"
+      },
+      "training_observations": {
+        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/5798e56d27e742056073c64938f2466e510aec0d9553265e1b0c9a7a15a37317.json",
+        "sha256": "5798e56d27e742056073c64938f2466e510aec0d9553265e1b0c9a7a15a37317",
+        "size_bytes": 115497
+      },
+      "evaluation_observations": {
+        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/e56b2d0f455f84b0be29845d07ff57b507697933c646404580f73b402cd108d9.json",
+        "sha256": "e56b2d0f455f84b0be29845d07ff57b507697933c646404580f73b402cd108d9",
+        "size_bytes": 228103
+      },
+      "limits": [
+        "Historical capture timings and source programs were previously inspected; this is retrospective exclusion, not blind or zero-shot validation.",
+        "Native per-call physical response functions only; no fresh Sim Engine or Body cost is claimed.",
+        "Complete timing populations retain source-declared or normalized native boundaries; this does not upgrade unknown full ABI or protocol waiting to strict admission.",
+        "Precision, source recipe, boundary and constant selectors remain fixed. Payload extrapolation stays in the same declared collective ranks and algorithm.",
+        "Source attention/cache domains without independently identified context work remain excluded."
+      ]
+    }
+  ]
 }

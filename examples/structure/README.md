@@ -24,6 +24,10 @@ python examples/structure/pipeline.py --scope operators --phase decode \
 python examples/structure/pipeline.py --scope engine \
   --output examples/structure/results/engine.json \
   --archive-root /path/to/external-evidence
+
+python examples/structure/pipeline.py --scope generalization \
+  --output examples/structure/results/generalization.json \
+  --archive-root /path/to/external-evidence
 ```
 
 `--case-id ID` 可以选择单一场景；`--prediction-timeout` 设置单次预测预算。
@@ -61,6 +65,7 @@ python examples/structure/pipeline.py --scope engine \
 - [Decode](results/decode.md)
 - [Prefill Body 与 TTFT](results/prefill.md)
 - [Engine 与客户端边界](results/engine.md)
+- [物理服务域留出验证](results/generalization.md)
 
 JSON 小于 5 MB，逐源完整分层与预测详情可由其 SHA256 证据指针取回。
 同源校准的通过率不等于盲测泛化；执行成功也不等于精度通过。
