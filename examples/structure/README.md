@@ -79,7 +79,13 @@ python examples/structure/pipeline.py \
 新增来源的 `geometry_limit: null` 比较所有实际 B/q 桶。旧清册行默认仍只预测最大人口桶。
 结果中的 `geometry_comparisons` 分别保存每桶调用数、Mean/P50/P90、预测与误差；不混算不同 B 的单层分布。
 `population_coverage` 明示覆盖调用数，`source_all_populations_passed` 仅在全部桶均已评分且全部通过时为真。
-全桶模式的源级状态采用这个结果，主桶数值仍保留供查看。
+源级 Headline 以完整 Forward 数最多的主群为准；同数时保持输入顺序，不按误差或预测成功与否择优。
+其余爬坡/收尾候选群逐桶展示，不否决主群，但最大人口本身不代表 Host 已证实稳态。
+全桶通过与覆盖率是独立审计，主群通过不会把其他群的失败改成通过。
+
+回放期间保留上一份完整记分牌，全部选定来源执行完毕后才替换当前 JSON/Markdown；中途进度写入标准输出。
+中断不会发布局部主表，已完成源的完整证据仍保存在外置 SHA256 归档中。
+局部 `--case-id` 调试不能覆盖较大的已有记分牌；同运行时增量更新使用 `--update`，新运行时需完整重放。
 
 已提取的完整原生算子人口可通过清册的 `operator_population_evidence` 复用，条目固定 actual 与 mapping 的路径、SHA256 和大小。
 管线逐个验证源码合同、候选层集合、角色及融合边界，再用当前 Sim 重新计算物理成本，不重扫原始 CSV，也不复用旧预测。

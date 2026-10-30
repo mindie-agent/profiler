@@ -327,8 +327,9 @@ def render(report):
                   'Frozen native-family transfer scores remain separately reported in generalization.md.']
     multi = [r for r in report['cases'] if len(r.get('geometry_comparisons', [])) > 1]
     if multi and report.get('scope', 'body') == 'body':
-        lines += ['', 'The source headline retains its largest population. Each execution geometry is scored separately; '
-                  'an all-population source pass requires complete scored coverage and every population to pass.', '',
+        lines += ['', 'The headline scores the population with the most complete Forward calls (ties retain input order), '
+                  'independent of timing or prediction success. This does not establish Host-observed steady state. '
+                  'Other geometries do not veto the headline; complete coverage and all-population pass remain separate audits.', '',
                   '| Case | B | q | Context | Calls | Real mean / P50 / P90 ms | Sim ms | Error | Status |',
                   '|---|---:|---:|---:|---:|---:|---:|---:|---|']
         for row in multi:
@@ -486,10 +487,16 @@ def summarize(cards, requested_sources):
 
 
 def decode_populations(rows, *, require_all):
-    """Keep one source headline without dropping smaller or failed populations."""
+    """Score the largest complete-call population; audit every other bucket.
+
+    Equal counts retain input order. Neither latency nor prediction success
+    selects the headline, and population size does not establish Host steady state.
+    """
     rows = sorted(rows, key=lambda r: -r['comparison'].get('observed_forward_count', 0))
     result = dict(rows[0])
     result['comparison'] = dict(result['comparison'])
+    result['comparison']['primary_population_passed'] = result['comparison'].get('passed')
+    result['status'] = result['comparison']['status']
     result['other_geometry_populations'] = rows[1:]
     populations = []
     for item in rows:
@@ -506,16 +513,14 @@ def decode_populations(rows, *, require_all):
         population_coverage={'observed_populations': len(populations), 'compared_populations': len(scored),
             'observed_calls': sum(p['forward_count'] for p in populations),
             'covered_calls': sum(p['forward_count'] for p in scored), 'complete': complete,
-            'scoring_scope': 'all_populations' if require_all else 'primary_population'})
+            'scoring_scope': 'primary_population',
+            'all_population_evaluation_requested': require_all,
+            'primary_population_basis': 'largest_complete_forward_count',
+            'primary_population_tie_break': 'retained_input_order',
+            'primary_population_host_steady_state_confirmed': False})
     context = (result.get('observed') or {}).get('context_evidence')
     if context:
         result['context_evidence'] = context
-    if require_all:
-        result['comparison']['primary_population_passed'] = result['comparison'].get('passed')
-        result['comparison']['passed'] = passed
-        if not complete:
-            result['status'] = result['comparison']['status'] = (
-                'failed' if any(p['comparison']['status'] == 'failed' for p in populations) else 'unresolved')
     return result
 
 
@@ -621,6 +626,11 @@ def run(manifest_path, *, output, archive_root, phase=None, scope='body', case_i
             and (scope != 'engine' or r.get('engine'))]
     rows = [r for r in eligible if not case_ids or r['id'] in case_ids or r['case_id'] in case_ids]
     if not rows or len({r['id'] for r in eligible}) != len(eligible): raise ValueError('empty_or_duplicate_case_selection')
+    if not update and Path(output).exists():
+        previous = read(output)
+        retained_ids = {r['id'] for r in previous['cases']} & {r['id'] for r in eligible}
+        if retained_ids - {r['id'] for r in rows}:
+            raise ValueError('partial_selection_cannot_replace_complete_scoreboard: use --update with the same runtime')
     generation = _sim_identity(); started = time.monotonic(); cards = []
     if update:
         previous = read(output)
@@ -639,7 +649,8 @@ def run(manifest_path, *, output, archive_root, phase=None, scope='body', case_i
         cards.append(project(row, result, evidence, scope=scope))
         report['summary'] = summarize(cards, len(rows) + retained_count)
         report['elapsed_seconds'] = time.monotonic() - started
-        publish(report, output)
+        # Keep the last complete generation visible until every selected input
+        # has returned. Interrupted runs retain their SHA-pinned source evidence.
         print(json.dumps({'id': row['id'], 'status': cards[-1]['status'], **report['summary']}), flush=True)
     report['status'] = 'completed' if not report['summary']['status_counts'].get('failed') else 'failed'
     order = {r['id']: i for i, r in enumerate(eligible)}

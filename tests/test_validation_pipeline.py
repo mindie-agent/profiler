@@ -166,28 +166,69 @@ def test_retained_native_population_registration_changes_operator_inputs_only(tm
 
 def test_real_glm128k_primary_pass_does_not_cover_other_five_populations():
     rows = json.loads((ROOT / 'tests/fixtures/pipeline/glm128k_populations.json').read_text())['rows']
+    original = deepcopy(rows)
     limited = decode_populations(rows, require_all=False)
     assert limited['comparison']['passed'] is True
     full = decode_populations(rows, require_all=True)
     assert full['comparison']['primary_population_passed'] is True
-    assert full['comparison']['status'] == 'unresolved'
+    assert full['status'] == full['comparison']['status'] == 'compared'
     assert full['source_all_populations_passed'] is None
-    assert full['comparison']['passed'] is None
+    assert full['comparison']['passed'] is True
     assert full['population_coverage']['observed_calls'] == 98
     assert full['population_coverage']['covered_calls'] == 68
     assert {p['geometry']['sequences_per_replica']: p['forward_count']
             for p in full['geometry_comparisons']} == {1: 68, 4: 13, 3: 1, 2: 3, 8: 12, 7: 1}
     assert full['comparison']['observed_ms']['p50'] == rows[0]['comparison']['observed_ms']['p50']
+    assert full['population_coverage']['complete'] is False
+    assert full['population_coverage']['scoring_scope'] == 'primary_population'
+    assert full['population_coverage']['all_population_evaluation_requested'] is True
+    assert limited['population_coverage']['all_population_evaluation_requested'] is False
+    assert full['population_coverage']['primary_population_basis'] == 'largest_complete_forward_count'
+    assert full['population_coverage']['primary_population_host_steady_state_confirmed'] is False
+    assert rows == original
 
 
-def test_failed_minority_population_cannot_be_replaced_by_primary_pass():
+def test_failed_minority_population_remains_visible_without_vetoing_headline():
     rows = json.loads((ROOT / 'tests/fixtures/pipeline/glm128k_populations.json').read_text())['rows']
     # Replay outcome perturbation: no captured durations or geometry change.
     rows[-1]['comparison'].update(status='failed', passed=None, reasons=['body_prediction_timeout'])
     full = decode_populations(rows, require_all=True)
-    assert full['comparison']['status'] == 'failed'
-    assert full['comparison']['passed'] is not True
+    assert full['status'] == full['comparison']['status'] == 'compared'
+    assert full['comparison']['passed'] is True
+    assert full['source_all_populations_passed'] is None
     assert full['geometry_comparisons'][-1]['comparison']['reasons'] == ['body_prediction_timeout']
+    assert full['geometry_comparisons'][-1]['comparison']['status'] == 'failed'
+
+
+def test_real_complete_glm_buckets_preserve_failures_and_never_select_by_accuracy():
+    samples = json.loads((ROOT / 'tests/fixtures/pipeline/decode_card_projection.json').read_text())['samples']
+    populations = samples[1]['full_result_projection']['geometry_comparisons']
+    rows = [{'geometry': p['geometry'], 'comparison': p['comparison'],
+             'status': p['comparison']['status'], 'per_layer_comparison': p['per_layer']}
+            for p in populations]
+    original = deepcopy(rows)
+    full = decode_populations(list(reversed(rows)), require_all=True)
+    assert full['comparison']['observed_forward_count'] == 68
+    assert full['comparison']['passed'] is full['comparison']['primary_population_passed'] is True
+    assert full['source_all_populations_passed'] is False
+    assert full['population_coverage']['complete'] is True
+    assert full['population_coverage']['covered_calls'] == full['population_coverage']['observed_calls'] == 98
+    assert [p['comparison']['passed'] for p in full['geometry_comparisons']] == [True, False, False, True, True, True]
+    # A selection control using the other unchanged real buckets must choose
+    # the largest 13-call FAIL, rather than a smaller bucket that passes.
+    other = decode_populations(rows[1:], require_all=True)
+    assert other['comparison']['observed_forward_count'] == 13
+    assert other['comparison']['passed'] is False
+    assert other['comparison'] == {**rows[1]['comparison'], 'primary_population_passed': False}
+    assert rows == original
+    # A failed primary prediction is not replaced by any passing minority.
+    failed = deepcopy(rows)
+    failed[0]['comparison'].update(status='failed', passed=None, reasons=['body_prediction_timeout'])
+    failed_primary = decode_populations(failed, require_all=True)
+    assert failed_primary['status'] == failed_primary['comparison']['status'] == 'failed'
+    assert failed_primary['comparison']['passed'] is None
+    assert failed_primary['comparison']['observed_forward_count'] == 68
+    assert failed_primary['comparison']['reasons'] == ['body_prediction_timeout']
 
 
 def test_operator_reuse_checks_declared_body_pin_before_equivalent_boundaries(tmp_path):
