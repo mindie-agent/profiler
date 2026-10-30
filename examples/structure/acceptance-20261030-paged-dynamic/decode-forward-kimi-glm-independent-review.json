@@ -1,0 +1,219 @@
+{
+  "schema_version": "mindie-decode-prediction-review/1",
+  "status": "passed",
+  "report_sha256": "a45d4158dacdcf17a684bca0b9c7bdc84efdf7ed8ef12af155adf678bc379c77",
+  "checks": 1140,
+  "failures": [],
+  "compared": 5,
+  "passed": 2,
+  "unique_source_geometry_populations": 37,
+  "input_execution_status": "failed",
+  "failed_attempts": [
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c16_p16k:q1_b16_m16",
+      "failure": {
+        "status": "failed",
+        "reason": "body_prediction_worker_failed",
+        "returncode": 1,
+        "stderr": "File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/body.py\", line 26, in body_forward\n    result = graph_costs(case, graphs, recipes=recipes, primitives=primitives,\n                         external_inputs={\"analysis_input\": 0},\n                         include_submission=False, isolated=False,\n                         trace_limit=event_limit)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/graph_analysis.py\", line 155, in graph_costs\n    steps[r] = execution.add(work, r, input_ready_ms, external_inputs=inputs[r])\n               ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 363, in add\n    op, recipe = self.prepare(op, replica)\n                 ~~~~~~~~~~~~^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 272, in prepare\n    return self.recipes.prepare(op, geometry)\n           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/program.py\", line 341, in prepare\n    return recipe.prepare(op, geometry) if isinstance(recipe, PlannedRecipe) else (op, recipe)\n           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/mechanism.py\", line 105, in prepare\n    plan = self.build(op, geometry)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 125, in build\n    spec = Spec.parse(op)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 93, in parse\n    Dispatch.parse(raw.get('dispatch'),contexts,raw['heads']))\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla_dispatch.py\", line 26, in parse\n    raise ModelingError('paged_mla_dispatch_geometry_mismatch')\nmindie_sim.schema.common.ModelingError: paged_mla_dispatch_geometry_mismatch\n",
+        "runtime_identity": {
+          "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+          "version": "0.8.0",
+          "package_sha256": "5dd1cb62f90c0f9651e18cd0931eb94c6a6be7b892b36ab3a6298a113a9f4270",
+          "file_count": 252,
+          "algorithm": "sha256(sorted relative-path to file-sha256 JSON)"
+        }
+      },
+      "observed_calls_retained": 47
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c16_p4k:q1_b16_m16",
+      "failure": {
+        "status": "failed",
+        "reason": "body_prediction_worker_failed",
+        "returncode": 1,
+        "stderr": "File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/body.py\", line 26, in body_forward\n    result = graph_costs(case, graphs, recipes=recipes, primitives=primitives,\n                         external_inputs={\"analysis_input\": 0},\n                         include_submission=False, isolated=False,\n                         trace_limit=event_limit)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/graph_analysis.py\", line 155, in graph_costs\n    steps[r] = execution.add(work, r, input_ready_ms, external_inputs=inputs[r])\n               ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 363, in add\n    op, recipe = self.prepare(op, replica)\n                 ~~~~~~~~~~~~^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 272, in prepare\n    return self.recipes.prepare(op, geometry)\n           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/program.py\", line 341, in prepare\n    return recipe.prepare(op, geometry) if isinstance(recipe, PlannedRecipe) else (op, recipe)\n           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/mechanism.py\", line 105, in prepare\n    plan = self.build(op, geometry)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 125, in build\n    spec = Spec.parse(op)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 93, in parse\n    Dispatch.parse(raw.get('dispatch'),contexts,raw['heads']))\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla_dispatch.py\", line 26, in parse\n    raise ModelingError('paged_mla_dispatch_geometry_mismatch')\nmindie_sim.schema.common.ModelingError: paged_mla_dispatch_geometry_mismatch\n",
+        "runtime_identity": {
+          "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+          "version": "0.8.0",
+          "package_sha256": "5dd1cb62f90c0f9651e18cd0931eb94c6a6be7b892b36ab3a6298a113a9f4270",
+          "file_count": 252,
+          "algorithm": "sha256(sorted relative-path to file-sha256 JSON)"
+        }
+      },
+      "observed_calls_retained": 49
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c1_p16k:q1_b1_m1",
+      "failure": {
+        "status": "failed",
+        "reason": "body_prediction_worker_failed",
+        "returncode": 1,
+        "stderr": "File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/body.py\", line 26, in body_forward\n    result = graph_costs(case, graphs, recipes=recipes, primitives=primitives,\n                         external_inputs={\"analysis_input\": 0},\n                         include_submission=False, isolated=False,\n                         trace_limit=event_limit)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/graph_analysis.py\", line 155, in graph_costs\n    steps[r] = execution.add(work, r, input_ready_ms, external_inputs=inputs[r])\n               ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 363, in add\n    op, recipe = self.prepare(op, replica)\n                 ~~~~~~~~~~~~^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 272, in prepare\n    return self.recipes.prepare(op, geometry)\n           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/program.py\", line 341, in prepare\n    return recipe.prepare(op, geometry) if isinstance(recipe, PlannedRecipe) else (op, recipe)\n           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/mechanism.py\", line 105, in prepare\n    plan = self.build(op, geometry)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 125, in build\n    spec = Spec.parse(op)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 93, in parse\n    Dispatch.parse(raw.get('dispatch'),contexts,raw['heads']))\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla_dispatch.py\", line 26, in parse\n    raise ModelingError('paged_mla_dispatch_geometry_mismatch')\nmindie_sim.schema.common.ModelingError: paged_mla_dispatch_geometry_mismatch\n",
+        "runtime_identity": {
+          "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+          "version": "0.8.0",
+          "package_sha256": "5dd1cb62f90c0f9651e18cd0931eb94c6a6be7b892b36ab3a6298a113a9f4270",
+          "file_count": 252,
+          "algorithm": "sha256(sorted relative-path to file-sha256 JSON)"
+        }
+      },
+      "observed_calls_retained": 59
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c1_p4k:q1_b1_m1",
+      "failure": {
+        "status": "failed",
+        "reason": "body_prediction_worker_failed",
+        "returncode": 1,
+        "stderr": "File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/body.py\", line 26, in body_forward\n    result = graph_costs(case, graphs, recipes=recipes, primitives=primitives,\n                         external_inputs={\"analysis_input\": 0},\n                         include_submission=False, isolated=False,\n                         trace_limit=event_limit)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/graph_analysis.py\", line 155, in graph_costs\n    steps[r] = execution.add(work, r, input_ready_ms, external_inputs=inputs[r])\n               ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 363, in add\n    op, recipe = self.prepare(op, replica)\n                 ~~~~~~~~~~~~^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 272, in prepare\n    return self.recipes.prepare(op, geometry)\n           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/program.py\", line 341, in prepare\n    return recipe.prepare(op, geometry) if isinstance(recipe, PlannedRecipe) else (op, recipe)\n           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/mechanism.py\", line 105, in prepare\n    plan = self.build(op, geometry)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 125, in build\n    spec = Spec.parse(op)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 93, in parse\n    Dispatch.parse(raw.get('dispatch'),contexts,raw['heads']))\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla_dispatch.py\", line 26, in parse\n    raise ModelingError('paged_mla_dispatch_geometry_mismatch')\nmindie_sim.schema.common.ModelingError: paged_mla_dispatch_geometry_mismatch\n",
+        "runtime_identity": {
+          "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+          "version": "0.8.0",
+          "package_sha256": "5dd1cb62f90c0f9651e18cd0931eb94c6a6be7b892b36ab3a6298a113a9f4270",
+          "file_count": 252,
+          "algorithm": "sha256(sorted relative-path to file-sha256 JSON)"
+        }
+      },
+      "observed_calls_retained": 59
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c2_p16k:q1_b2_m2",
+      "failure": {
+        "status": "failed",
+        "reason": "body_prediction_worker_failed",
+        "returncode": 1,
+        "stderr": "File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/body.py\", line 26, in body_forward\n    result = graph_costs(case, graphs, recipes=recipes, primitives=primitives,\n                         external_inputs={\"analysis_input\": 0},\n                         include_submission=False, isolated=False,\n                         trace_limit=event_limit)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/graph_analysis.py\", line 155, in graph_costs\n    steps[r] = execution.add(work, r, input_ready_ms, external_inputs=inputs[r])\n               ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 363, in add\n    op, recipe = self.prepare(op, replica)\n                 ~~~~~~~~~~~~^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 272, in prepare\n    return self.recipes.prepare(op, geometry)\n           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/program.py\", line 341, in prepare\n    return recipe.prepare(op, geometry) if isinstance(recipe, PlannedRecipe) else (op, recipe)\n           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/mechanism.py\", line 105, in prepare\n    plan = self.build(op, geometry)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 125, in build\n    spec = Spec.parse(op)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 93, in parse\n    Dispatch.parse(raw.get('dispatch'),contexts,raw['heads']))\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla_dispatch.py\", line 26, in parse\n    raise ModelingError('paged_mla_dispatch_geometry_mismatch')\nmindie_sim.schema.common.ModelingError: paged_mla_dispatch_geometry_mismatch\n",
+        "runtime_identity": {
+          "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+          "version": "0.8.0",
+          "package_sha256": "5dd1cb62f90c0f9651e18cd0931eb94c6a6be7b892b36ab3a6298a113a9f4270",
+          "file_count": 252,
+          "algorithm": "sha256(sorted relative-path to file-sha256 JSON)"
+        }
+      },
+      "observed_calls_retained": 54
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c2_p4k:q1_b2_m2",
+      "failure": {
+        "status": "failed",
+        "reason": "body_prediction_worker_failed",
+        "returncode": 1,
+        "stderr": "File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/body.py\", line 26, in body_forward\n    result = graph_costs(case, graphs, recipes=recipes, primitives=primitives,\n                         external_inputs={\"analysis_input\": 0},\n                         include_submission=False, isolated=False,\n                         trace_limit=event_limit)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/graph_analysis.py\", line 155, in graph_costs\n    steps[r] = execution.add(work, r, input_ready_ms, external_inputs=inputs[r])\n               ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 363, in add\n    op, recipe = self.prepare(op, replica)\n                 ~~~~~~~~~~~~^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 272, in prepare\n    return self.recipes.prepare(op, geometry)\n           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/program.py\", line 341, in prepare\n    return recipe.prepare(op, geometry) if isinstance(recipe, PlannedRecipe) else (op, recipe)\n           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/mechanism.py\", line 105, in prepare\n    plan = self.build(op, geometry)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 125, in build\n    spec = Spec.parse(op)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 93, in parse\n    Dispatch.parse(raw.get('dispatch'),contexts,raw['heads']))\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla_dispatch.py\", line 26, in parse\n    raise ModelingError('paged_mla_dispatch_geometry_mismatch')\nmindie_sim.schema.common.ModelingError: paged_mla_dispatch_geometry_mismatch\n",
+        "runtime_identity": {
+          "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+          "version": "0.8.0",
+          "package_sha256": "5dd1cb62f90c0f9651e18cd0931eb94c6a6be7b892b36ab3a6298a113a9f4270",
+          "file_count": 252,
+          "algorithm": "sha256(sorted relative-path to file-sha256 JSON)"
+        }
+      },
+      "observed_calls_retained": 55
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c32_p16k:q1_b32_m32",
+      "failure": {
+        "status": "failed",
+        "reason": "body_prediction_worker_failed",
+        "returncode": 1,
+        "stderr": "File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/body.py\", line 26, in body_forward\n    result = graph_costs(case, graphs, recipes=recipes, primitives=primitives,\n                         external_inputs={\"analysis_input\": 0},\n                         include_submission=False, isolated=False,\n                         trace_limit=event_limit)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/graph_analysis.py\", line 155, in graph_costs\n    steps[r] = execution.add(work, r, input_ready_ms, external_inputs=inputs[r])\n               ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 363, in add\n    op, recipe = self.prepare(op, replica)\n                 ~~~~~~~~~~~~^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 272, in prepare\n    return self.recipes.prepare(op, geometry)\n           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/program.py\", line 341, in prepare\n    return recipe.prepare(op, geometry) if isinstance(recipe, PlannedRecipe) else (op, recipe)\n           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/mechanism.py\", line 105, in prepare\n    plan = self.build(op, geometry)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 125, in build\n    spec = Spec.parse(op)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 93, in parse\n    Dispatch.parse(raw.get('dispatch'),contexts,raw['heads']))\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla_dispatch.py\", line 26, in parse\n    raise ModelingError('paged_mla_dispatch_geometry_mismatch')\nmindie_sim.schema.common.ModelingError: paged_mla_dispatch_geometry_mismatch\n",
+        "runtime_identity": {
+          "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+          "version": "0.8.0",
+          "package_sha256": "5dd1cb62f90c0f9651e18cd0931eb94c6a6be7b892b36ab3a6298a113a9f4270",
+          "file_count": 252,
+          "algorithm": "sha256(sorted relative-path to file-sha256 JSON)"
+        }
+      },
+      "observed_calls_retained": 41
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c32_p4k:q1_b32_m32",
+      "failure": {
+        "status": "failed",
+        "reason": "body_prediction_worker_failed",
+        "returncode": 1,
+        "stderr": "File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/body.py\", line 26, in body_forward\n    result = graph_costs(case, graphs, recipes=recipes, primitives=primitives,\n                         external_inputs={\"analysis_input\": 0},\n                         include_submission=False, isolated=False,\n                         trace_limit=event_limit)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/graph_analysis.py\", line 155, in graph_costs\n    steps[r] = execution.add(work, r, input_ready_ms, external_inputs=inputs[r])\n               ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 363, in add\n    op, recipe = self.prepare(op, replica)\n                 ~~~~~~~~~~~~^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 272, in prepare\n    return self.recipes.prepare(op, geometry)\n           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/program.py\", line 341, in prepare\n    return recipe.prepare(op, geometry) if isinstance(recipe, PlannedRecipe) else (op, recipe)\n           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/mechanism.py\", line 105, in prepare\n    plan = self.build(op, geometry)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 125, in build\n    spec = Spec.parse(op)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 93, in parse\n    Dispatch.parse(raw.get('dispatch'),contexts,raw['heads']))\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla_dispatch.py\", line 26, in parse\n    raise ModelingError('paged_mla_dispatch_geometry_mismatch')\nmindie_sim.schema.common.ModelingError: paged_mla_dispatch_geometry_mismatch\n",
+        "runtime_identity": {
+          "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+          "version": "0.8.0",
+          "package_sha256": "5dd1cb62f90c0f9651e18cd0931eb94c6a6be7b892b36ab3a6298a113a9f4270",
+          "file_count": 252,
+          "algorithm": "sha256(sorted relative-path to file-sha256 JSON)"
+        }
+      },
+      "observed_calls_retained": 46
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c4_p16k:q1_b4_m4",
+      "failure": {
+        "status": "failed",
+        "reason": "body_prediction_worker_failed",
+        "returncode": 1,
+        "stderr": "File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/body.py\", line 26, in body_forward\n    result = graph_costs(case, graphs, recipes=recipes, primitives=primitives,\n                         external_inputs={\"analysis_input\": 0},\n                         include_submission=False, isolated=False,\n                         trace_limit=event_limit)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/graph_analysis.py\", line 155, in graph_costs\n    steps[r] = execution.add(work, r, input_ready_ms, external_inputs=inputs[r])\n               ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 363, in add\n    op, recipe = self.prepare(op, replica)\n                 ~~~~~~~~~~~~^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 272, in prepare\n    return self.recipes.prepare(op, geometry)\n           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/program.py\", line 341, in prepare\n    return recipe.prepare(op, geometry) if isinstance(recipe, PlannedRecipe) else (op, recipe)\n           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/mechanism.py\", line 105, in prepare\n    plan = self.build(op, geometry)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 125, in build\n    spec = Spec.parse(op)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 93, in parse\n    Dispatch.parse(raw.get('dispatch'),contexts,raw['heads']))\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla_dispatch.py\", line 26, in parse\n    raise ModelingError('paged_mla_dispatch_geometry_mismatch')\nmindie_sim.schema.common.ModelingError: paged_mla_dispatch_geometry_mismatch\n",
+        "runtime_identity": {
+          "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+          "version": "0.8.0",
+          "package_sha256": "5dd1cb62f90c0f9651e18cd0931eb94c6a6be7b892b36ab3a6298a113a9f4270",
+          "file_count": 252,
+          "algorithm": "sha256(sorted relative-path to file-sha256 JSON)"
+        }
+      },
+      "observed_calls_retained": 52
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c4_p4k:q1_b4_m4",
+      "failure": {
+        "status": "failed",
+        "reason": "body_prediction_worker_failed",
+        "returncode": 1,
+        "stderr": "File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/body.py\", line 26, in body_forward\n    result = graph_costs(case, graphs, recipes=recipes, primitives=primitives,\n                         external_inputs={\"analysis_input\": 0},\n                         include_submission=False, isolated=False,\n                         trace_limit=event_limit)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/graph_analysis.py\", line 155, in graph_costs\n    steps[r] = execution.add(work, r, input_ready_ms, external_inputs=inputs[r])\n               ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 363, in add\n    op, recipe = self.prepare(op, replica)\n                 ~~~~~~~~~~~~^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 272, in prepare\n    return self.recipes.prepare(op, geometry)\n           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/program.py\", line 341, in prepare\n    return recipe.prepare(op, geometry) if isinstance(recipe, PlannedRecipe) else (op, recipe)\n           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/mechanism.py\", line 105, in prepare\n    plan = self.build(op, geometry)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 125, in build\n    spec = Spec.parse(op)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 93, in parse\n    Dispatch.parse(raw.get('dispatch'),contexts,raw['heads']))\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla_dispatch.py\", line 26, in parse\n    raise ModelingError('paged_mla_dispatch_geometry_mismatch')\nmindie_sim.schema.common.ModelingError: paged_mla_dispatch_geometry_mismatch\n",
+        "runtime_identity": {
+          "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+          "version": "0.8.0",
+          "package_sha256": "5dd1cb62f90c0f9651e18cd0931eb94c6a6be7b892b36ab3a6298a113a9f4270",
+          "file_count": 252,
+          "algorithm": "sha256(sorted relative-path to file-sha256 JSON)"
+        }
+      },
+      "observed_calls_retained": 53
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c8_p16k:q1_b8_m8",
+      "failure": {
+        "status": "failed",
+        "reason": "body_prediction_worker_failed",
+        "returncode": 1,
+        "stderr": "File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/body.py\", line 26, in body_forward\n    result = graph_costs(case, graphs, recipes=recipes, primitives=primitives,\n                         external_inputs={\"analysis_input\": 0},\n                         include_submission=False, isolated=False,\n                         trace_limit=event_limit)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/graph_analysis.py\", line 155, in graph_costs\n    steps[r] = execution.add(work, r, input_ready_ms, external_inputs=inputs[r])\n               ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 363, in add\n    op, recipe = self.prepare(op, replica)\n                 ~~~~~~~~~~~~^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 272, in prepare\n    return self.recipes.prepare(op, geometry)\n           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/program.py\", line 341, in prepare\n    return recipe.prepare(op, geometry) if isinstance(recipe, PlannedRecipe) else (op, recipe)\n           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/mechanism.py\", line 105, in prepare\n    plan = self.build(op, geometry)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 125, in build\n    spec = Spec.parse(op)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 93, in parse\n    Dispatch.parse(raw.get('dispatch'),contexts,raw['heads']))\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla_dispatch.py\", line 26, in parse\n    raise ModelingError('paged_mla_dispatch_geometry_mismatch')\nmindie_sim.schema.common.ModelingError: paged_mla_dispatch_geometry_mismatch\n",
+        "runtime_identity": {
+          "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+          "version": "0.8.0",
+          "package_sha256": "5dd1cb62f90c0f9651e18cd0931eb94c6a6be7b892b36ab3a6298a113a9f4270",
+          "file_count": 252,
+          "algorithm": "sha256(sorted relative-path to file-sha256 JSON)"
+        }
+      },
+      "observed_calls_retained": 51
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c8_p4k:q1_b8_m8",
+      "failure": {
+        "status": "failed",
+        "reason": "body_prediction_worker_failed",
+        "returncode": 1,
+        "stderr": "File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/body.py\", line 26, in body_forward\n    result = graph_costs(case, graphs, recipes=recipes, primitives=primitives,\n                         external_inputs={\"analysis_input\": 0},\n                         include_submission=False, isolated=False,\n                         trace_limit=event_limit)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/graph_analysis.py\", line 155, in graph_costs\n    steps[r] = execution.add(work, r, input_ready_ms, external_inputs=inputs[r])\n               ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 363, in add\n    op, recipe = self.prepare(op, replica)\n                 ~~~~~~~~~~~~^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/execution.py\", line 272, in prepare\n    return self.recipes.prepare(op, geometry)\n           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/program.py\", line 341, in prepare\n    return recipe.prepare(op, geometry) if isinstance(recipe, PlannedRecipe) else (op, recipe)\n           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/mechanism.py\", line 105, in prepare\n    plan = self.build(op, geometry)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 125, in build\n    spec = Spec.parse(op)\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla.py\", line 93, in parse\n    Dispatch.parse(raw.get('dispatch'),contexts,raw['heads']))\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/paged_mla_dispatch.py\", line 26, in parse\n    raise ModelingError('paged_mla_dispatch_geometry_mismatch')\nmindie_sim.schema.common.ModelingError: paged_mla_dispatch_geometry_mismatch\n",
+        "runtime_identity": {
+          "package_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim",
+          "version": "0.8.0",
+          "package_sha256": "5dd1cb62f90c0f9651e18cd0931eb94c6a6be7b892b36ab3a6298a113a9f4270",
+          "file_count": 252,
+          "algorithm": "sha256(sorted relative-path to file-sha256 JSON)"
+        }
+      },
+      "observed_calls_retained": 52
+    }
+  ],
+  "unique_forwards": 885,
+  "scope": "Independent saved-source population, endpoint, error and unrounded 15% arithmetic; no raw scan or prediction."
+}

@@ -133,7 +133,9 @@ def review(path):
                 "reference_origin": "external_native_partition",
                 "geometry": case["geometry"], "case_identity": case["case_identity"],
                 "partition_identity": case["partition_identity"],
-                "group_id": group["group_id"], "partition_index": group["partition_index"],
+                "group_id": group["group_id"],
+                "partition_indices": (group["partition_indices"] if "partition_indices" in group
+                                      else [group["partition_index"]]),
                 "native_abi_sha256": hashlib.sha256(canonical(group["native_abi"]).encode()).hexdigest(),
                 "forward_count": case["forward_count"], "calls_per_forward": group["calls_per_forward"],
                 "native_operator_type": group["native_operator_type"],

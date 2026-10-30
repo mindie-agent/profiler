@@ -1,0 +1,1338 @@
+{
+  "schema_version": "mindie-decode-forward-replay/1",
+  "variant_id": "kimi-source-a3",
+  "not_new_live_collection": true,
+  "basis": "fresh runtime prediction using unchanged retained source populations",
+  "runtime_plan": {
+    "checkout": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029",
+    "source_commit": "18c423c7297fc3b3e92a5eb34f204df40a2a6cb6"
+  },
+  "cases": [
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c1",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c1_20261030/ranks/tp0/kernel_details.csv.gz",
+        "sha256": "1b0e4fcb7c3d80fefa5a1484937508502b0da346ea5657ed48e6bc0b893587c3",
+        "size_bytes": 3766618
+      },
+      "sim_case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source/a3_kimi4_tp8_w4a8_c1_source.json",
+      "model_declaration": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source/a3_kimi4_tp8_w4a8_c1_source.json",
+        "sha256": "92ac02c25e1905e3185d6b780f3fbec108cd307bbca283d371567973ce0a272a",
+        "size_bytes": 17882
+      },
+      "segmentation": "auto_structure_guided",
+      "boundaries_path": null,
+      "geometry": {
+        "context_tokens": 4096
+      },
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c1_20261030",
+        "retained_inventory": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-bundle0406/retained-source-evidence.json",
+          "sha256": "ed8e523f3eea92aa697146085cb187258edbbe5d85ccca9d170e81b4efa98301",
+          "size_bytes": 666668
+        },
+        "case_source_identity_basis": "case path/size and inventory SHA; replay verifies full source SHA",
+        "client": {
+          "concurrency": 1,
+          "input_len": 4096,
+          "observed_prompt_tokens": [
+            4096
+          ],
+          "output_len": 128
+        },
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c1_20261030/benchmark_summary.json",
+          "sha256": "7c4359304a6618081cda9ce6c56d85def8aeae2b91cf21f0d7b9a99cedfce115",
+          "size_bytes": 8468
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "n": 2,
+            "mean": 7.167214691770945,
+            "median": 7.167214691770945,
+            "std": 0.004933733625088088,
+            "min": 7.162280958145857,
+            "max": 7.172148425396033,
+            "p50": 7.167214691770945,
+            "p90": 7.171161678671015,
+            "p99": 7.172049750723532
+          },
+          "unprofiled_sweep_ms": null,
+          "body_forward_is_separate_metric": true
+        },
+        "retained_deployment": {
+          "launch_source": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a3-highconc-decode/w10/cases/serve_kimi_k3_w4a8_4layer.sh",
+            "sha256": "2f917026e29148b0fe9c9c9ec45bff114c6d725342385a7fc4b3ea6cae02a77a",
+            "size_bytes": 1564
+          },
+          "resolved_startup": null,
+          "configured": {
+            "checkpoint": "/mnt/weight/Kimi-K3-w4a8-4layer",
+            "tp": 8,
+            "dp": 1,
+            "ep": 8,
+            "model_body_layers": 4,
+            "force_eplb": true,
+            "prefix_caching": true,
+            "num_speculative_tokens": 0,
+            "graph_mode": "FULL_DECODE_ONLY",
+            "quantization": "ascend / W4A8 checkpoint"
+          },
+          "evidence_strength": "retained_launch_intent; resolved startup and checkpoint config not located",
+          "actual_force_eplb": null
+        },
+        "captured_execution_mode": "FULL_DECODE_ONLY launch intent; simulated graph wrapper omitted at this body boundary",
+        "prefix_cache": {
+          "configured": true,
+          "observed_metrics": {
+            "prefix_cache_hit_rate": 0.9375,
+            "prefix_cache_metrics": {
+              "vllm:prefix_cache_queries_created": 0.0,
+              "vllm:external_prefix_cache_hits_created": 0.0,
+              "vllm:external_prefix_cache_queries_total": 0.0,
+              "vllm:prefix_cache_queries_total": 8192.0,
+              "vllm:prefix_cache_hits_created": 0.0,
+              "vllm:prefix_cache_hits_total": 7680.0,
+              "vllm:external_prefix_cache_queries_created": 0.0,
+              "vllm:external_prefix_cache_hits_total": 0.0
+            }
+          }
+        },
+        "force_load_balance": {
+          "configured": true,
+          "observed": null
+        },
+        "speculation": {
+          "enabled": false,
+          "basis": "launch declaration"
+        },
+        "source_population": {
+          "selected_rank": "tp0",
+          "body_layers": 4
+        },
+        "request_geometry_is_not_per_forward_geometry": true,
+        "context_basis": "initial prompt length; active per-forward KV growth is not observed",
+        "layer_binding_basis": "Sim-declared topology and tensor anchors, not Host/module evidence",
+        "prediction_transport_assumption": {
+          "variant": "quant-fixed-window8",
+          "declared_recipes": {
+            "expert_dispatch": {
+              "kind": "direct_peer_collective",
+              "max_inflight_per_rank": 8
+            },
+            "expert_combine": {
+              "kind": "direct_peer_collective",
+              "max_inflight_per_rank": 8
+            }
+          },
+          "capture_implementation_not_proven": true
+        }
+      },
+      "unresolved_reasons": [
+        "checkpoint config and quant-description bytes",
+        "resolved force-EPLB startup",
+        "current context and actual group_list",
+        "native physical padding/dispatch protocol",
+        "all layer-specific quant exceptions"
+      ],
+      "extraction_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c1.json",
+      "variant_id": "kimi-source-a3",
+      "parsed_representation_preflight": {
+        "quantization": "W4A8_DYNAMIC",
+        "quant": {
+          "name": "W4A8_DYNAMIC",
+          "weight_format": "int8",
+          "native_format": "bf16",
+          "activation_format": "int8",
+          "expert_weight_format": "int4",
+          "weight_block": [
+            1,
+            1
+          ],
+          "expert_block": 1,
+          "scale_format": "fp32",
+          "scale_bytes": 4.0,
+          "kv_dtype": "bf16",
+          "index_dtype": "bf16",
+          "index_scale_dtype": "none",
+          "exclusions": [
+            "conv_weight_bf16",
+            "conv_weight_f32",
+            "embedding",
+            "lm_head",
+            "mtp",
+            "norm",
+            "projector",
+            "router",
+            "vision"
+          ],
+          "engram_table_mode": "device_bf16",
+          "activation_group_size": 0,
+          "activation_scale_format": "",
+          "activation_scale_pack": 1,
+          "category_overrides": {
+            "kda": {
+              "activation_format": "bf16",
+              "weight_format": "bf16"
+            },
+            "kda.k": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "kda.q": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "kda.v": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "mla": {
+              "activation_format": "bf16",
+              "weight_format": "bf16"
+            },
+            "mla.kv_a": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "mla.q_a": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "mla.q_b": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            }
+          },
+          "source": {
+            "basis": "sampled operand dtypes plus distinct checkpoint launch declaration",
+            "checkpoint_config_bytes": "not_delivered",
+            "kind": "conditional_capture_representation"
+          },
+          "notes": [
+            "No old checkpoint calibration or FP8 source binding is inherited."
+          ]
+        },
+        "basis": "Sim parse_case agrees with source-declared outer QuantSpec core fields"
+      },
+      "baseline_reference": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/decode-forward-332f0420-window8-replay.json",
+        "sha256": "a7da466863207e05a62d45e297b215b70cdfbddcfa3b79971899ab68309a6f31",
+        "case_id": "a3_kimi4_tp8_w4a8_c1:q1_b1_m1"
+      },
+      "replay_input_pins": {
+        "case": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source/a3_kimi4_tp8_w4a8_c1_source.json",
+          "sha256": "92ac02c25e1905e3185d6b780f3fbec108cd307bbca283d371567973ce0a272a",
+          "size_bytes": 17882
+        },
+        "extraction": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c1.json",
+          "sha256": "ab9cf65040454bf42bf918eaf4ddd45f8b04490c37c668349341cecfe018a9a0",
+          "size_bytes": 680944,
+          "reused_existing_extraction": true
+        },
+        "primary_geometry": {
+          "query_rows": 1,
+          "sequences_per_replica": 1,
+          "tokens_per_sequence": 1,
+          "context_tokens": 4096,
+          "batch_basis": "captured_paged_attention_block_table_rows",
+          "context_basis": "not_observed_from_cache_capacity",
+          "phase": "decode"
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c1_20261030/ranks/tp0/kernel_details.csv.gz",
+          "size_bytes": 3766618,
+          "mtime_ns": 1793303770000000000,
+          "schema_version": "kernel_details_csv_46col",
+          "sha256": "1b0e4fcb7c3d80fefa5a1484937508502b0da346ea5657ed48e6bc0b893587c3"
+        }
+      },
+      "prior_source_case_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c1.json",
+        "sha256": "dcd4bd3bd9fcb01e99fbd4e0bf80ea365551e5c44f630e0a3d06fd4f1975ddc8",
+        "source_unchanged": true
+      },
+      "runtime_refresh": {
+        "prior_input_manifest": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-v4_kimi-cases.json",
+          "sha256": "a6137818e232eac299406db57d2849c3584722f22980f725101785c1c82119ed",
+          "size_bytes": 378891
+        },
+        "prior_case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c1.json",
+          "sha256": "dcd4bd3bd9fcb01e99fbd4e0bf80ea365551e5c44f630e0a3d06fd4f1975ddc8",
+          "size_bytes": 16700
+        },
+        "case_bytes_changed": true,
+        "explicit_case_override": true,
+        "retained_extraction_bytes_unchanged": true
+      }
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c16",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c16_20261030/ranks/tp0/kernel_details.csv.gz",
+        "sha256": "9fdc461cb0f4061ae156e87301b1b586dc68d2f12bbf925df52d0ebbb1c71991",
+        "size_bytes": 4324200
+      },
+      "sim_case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source/a3_kimi4_tp8_w4a8_c16_source.json",
+      "model_declaration": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source/a3_kimi4_tp8_w4a8_c16_source.json",
+        "sha256": "6e15e39f2c3953b6d3f425a35d0c7ece913e3b7f766d1519b15e63dfc49d2917",
+        "size_bytes": 17891
+      },
+      "segmentation": "auto_structure_guided",
+      "boundaries_path": null,
+      "geometry": {
+        "context_tokens": 4096
+      },
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c16_20261030",
+        "retained_inventory": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-bundle0406/retained-source-evidence.json",
+          "sha256": "ed8e523f3eea92aa697146085cb187258edbbe5d85ccca9d170e81b4efa98301",
+          "size_bytes": 666668
+        },
+        "case_source_identity_basis": "case path/size and inventory SHA; replay verifies full source SHA",
+        "client": {
+          "concurrency": 16,
+          "input_len": 4096,
+          "observed_prompt_tokens": [
+            4096
+          ],
+          "output_len": 128
+        },
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c16_20261030/benchmark_summary.json",
+          "sha256": "0a45b413e0d1a83cf315d145aa1b80fc62129afe7f702901fe53d36a0e0420bb",
+          "size_bytes": 109555
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "n": 32,
+            "mean": 8.646915185403056,
+            "median": 8.62780795249296,
+            "std": 0.663152905891508,
+            "min": 7.558627244759732,
+            "max": 9.968273308656112,
+            "p50": 8.62780795249296,
+            "p90": 9.515828656784773,
+            "p99": 9.90435431729447
+          },
+          "unprofiled_sweep_ms": null,
+          "body_forward_is_separate_metric": true
+        },
+        "retained_deployment": {
+          "launch_source": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a3-highconc-decode/w10/cases/serve_kimi_k3_w4a8_4layer.sh",
+            "sha256": "2f917026e29148b0fe9c9c9ec45bff114c6d725342385a7fc4b3ea6cae02a77a",
+            "size_bytes": 1564
+          },
+          "resolved_startup": null,
+          "configured": {
+            "checkpoint": "/mnt/weight/Kimi-K3-w4a8-4layer",
+            "tp": 8,
+            "dp": 1,
+            "ep": 8,
+            "model_body_layers": 4,
+            "force_eplb": true,
+            "prefix_caching": true,
+            "num_speculative_tokens": 0,
+            "graph_mode": "FULL_DECODE_ONLY",
+            "quantization": "ascend / W4A8 checkpoint"
+          },
+          "evidence_strength": "retained_launch_intent; resolved startup and checkpoint config not located",
+          "actual_force_eplb": null
+        },
+        "captured_execution_mode": "FULL_DECODE_ONLY launch intent; simulated graph wrapper omitted at this body boundary",
+        "prefix_cache": {
+          "configured": true,
+          "observed_metrics": {
+            "prefix_cache_hit_rate": 0.9375,
+            "prefix_cache_metrics": {
+              "vllm:prefix_cache_queries_created": 0.0,
+              "vllm:external_prefix_cache_hits_created": 0.0,
+              "vllm:external_prefix_cache_queries_total": 0.0,
+              "vllm:prefix_cache_queries_total": 131072.0,
+              "vllm:prefix_cache_hits_created": 0.0,
+              "vllm:prefix_cache_hits_total": 122880.0,
+              "vllm:external_prefix_cache_queries_created": 0.0,
+              "vllm:external_prefix_cache_hits_total": 0.0
+            }
+          }
+        },
+        "force_load_balance": {
+          "configured": true,
+          "observed": null
+        },
+        "speculation": {
+          "enabled": false,
+          "basis": "launch declaration"
+        },
+        "source_population": {
+          "selected_rank": "tp0",
+          "body_layers": 4
+        },
+        "request_geometry_is_not_per_forward_geometry": true,
+        "context_basis": "initial prompt length; active per-forward KV growth is not observed",
+        "layer_binding_basis": "Sim-declared topology and tensor anchors, not Host/module evidence",
+        "prediction_transport_assumption": {
+          "variant": "quant-fixed-window8",
+          "declared_recipes": {
+            "expert_dispatch": {
+              "kind": "direct_peer_collective",
+              "max_inflight_per_rank": 8
+            },
+            "expert_combine": {
+              "kind": "direct_peer_collective",
+              "max_inflight_per_rank": 8
+            }
+          },
+          "capture_implementation_not_proven": true
+        }
+      },
+      "unresolved_reasons": [
+        "checkpoint config and quant-description bytes",
+        "resolved force-EPLB startup",
+        "current context and actual group_list",
+        "native physical padding/dispatch protocol",
+        "all layer-specific quant exceptions"
+      ],
+      "extraction_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c16.json",
+      "variant_id": "kimi-source-a3",
+      "parsed_representation_preflight": {
+        "quantization": "W4A8_DYNAMIC",
+        "quant": {
+          "name": "W4A8_DYNAMIC",
+          "weight_format": "int8",
+          "native_format": "bf16",
+          "activation_format": "int8",
+          "expert_weight_format": "int4",
+          "weight_block": [
+            1,
+            1
+          ],
+          "expert_block": 1,
+          "scale_format": "fp32",
+          "scale_bytes": 4.0,
+          "kv_dtype": "bf16",
+          "index_dtype": "bf16",
+          "index_scale_dtype": "none",
+          "exclusions": [
+            "conv_weight_bf16",
+            "conv_weight_f32",
+            "embedding",
+            "lm_head",
+            "mtp",
+            "norm",
+            "projector",
+            "router",
+            "vision"
+          ],
+          "engram_table_mode": "device_bf16",
+          "activation_group_size": 0,
+          "activation_scale_format": "",
+          "activation_scale_pack": 1,
+          "category_overrides": {
+            "kda": {
+              "activation_format": "bf16",
+              "weight_format": "bf16"
+            },
+            "kda.k": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "kda.q": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "kda.v": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "mla": {
+              "activation_format": "bf16",
+              "weight_format": "bf16"
+            },
+            "mla.kv_a": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "mla.q_a": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "mla.q_b": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            }
+          },
+          "source": {
+            "basis": "sampled operand dtypes plus distinct checkpoint launch declaration",
+            "checkpoint_config_bytes": "not_delivered",
+            "kind": "conditional_capture_representation"
+          },
+          "notes": [
+            "No old checkpoint calibration or FP8 source binding is inherited."
+          ]
+        },
+        "basis": "Sim parse_case agrees with source-declared outer QuantSpec core fields"
+      },
+      "baseline_reference": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/decode-forward-332f0420-window8-replay.json",
+        "sha256": "a7da466863207e05a62d45e297b215b70cdfbddcfa3b79971899ab68309a6f31",
+        "case_id": "a3_kimi4_tp8_w4a8_c16:q1_b16_m16"
+      },
+      "replay_input_pins": {
+        "case": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source/a3_kimi4_tp8_w4a8_c16_source.json",
+          "sha256": "6e15e39f2c3953b6d3f425a35d0c7ece913e3b7f766d1519b15e63dfc49d2917",
+          "size_bytes": 17891
+        },
+        "extraction": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c16.json",
+          "sha256": "609cdc4a84b7a0d46a8c33eca3f575328186680b5401f0754fdc461472a4b2d9",
+          "size_bytes": 679193,
+          "reused_existing_extraction": true
+        },
+        "primary_geometry": {
+          "query_rows": 16,
+          "sequences_per_replica": 16,
+          "tokens_per_sequence": 1,
+          "context_tokens": 4096,
+          "batch_basis": "captured_paged_attention_block_table_rows",
+          "context_basis": "not_observed_from_cache_capacity",
+          "phase": "decode"
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c16_20261030/ranks/tp0/kernel_details.csv.gz",
+          "size_bytes": 4324200,
+          "mtime_ns": 1793303771000000000,
+          "schema_version": "kernel_details_csv_46col",
+          "sha256": "9fdc461cb0f4061ae156e87301b1b586dc68d2f12bbf925df52d0ebbb1c71991"
+        }
+      },
+      "prior_source_case_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c16.json",
+        "sha256": "52cabaea6a1e8fe597f67440c09f46ef31a6c20cea9b12026f096d5292ef493d",
+        "source_unchanged": true
+      },
+      "runtime_refresh": {
+        "prior_input_manifest": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-v4_kimi-cases.json",
+          "sha256": "a6137818e232eac299406db57d2849c3584722f22980f725101785c1c82119ed",
+          "size_bytes": 378891
+        },
+        "prior_case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c16.json",
+          "sha256": "52cabaea6a1e8fe597f67440c09f46ef31a6c20cea9b12026f096d5292ef493d",
+          "size_bytes": 16707
+        },
+        "case_bytes_changed": true,
+        "explicit_case_override": true,
+        "retained_extraction_bytes_unchanged": true
+      }
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c32",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c32_20261030/ranks/tp0/kernel_details.csv.gz",
+        "sha256": "c7deb048fabcf5650aeb014c411b0eda709758e8dd4227119f7de5316a1c294e",
+        "size_bytes": 4803119
+      },
+      "sim_case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source/a3_kimi4_tp8_w4a8_c32_source.json",
+      "model_declaration": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source/a3_kimi4_tp8_w4a8_c32_source.json",
+        "sha256": "824a0c372e6405568e7d9edd821408e6711f50f244575d061e3261602bcdc74a",
+        "size_bytes": 17892
+      },
+      "segmentation": "auto_structure_guided",
+      "boundaries_path": null,
+      "geometry": {
+        "context_tokens": 4096
+      },
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c32_20261030",
+        "retained_inventory": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-bundle0406/retained-source-evidence.json",
+          "sha256": "ed8e523f3eea92aa697146085cb187258edbbe5d85ccca9d170e81b4efa98301",
+          "size_bytes": 666668
+        },
+        "case_source_identity_basis": "case path/size and inventory SHA; replay verifies full source SHA",
+        "client": {
+          "concurrency": 32,
+          "input_len": 4096,
+          "observed_prompt_tokens": [
+            4096
+          ],
+          "output_len": 128
+        },
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c32_20261030/benchmark_summary.json",
+          "sha256": "eb86d4e954462f28acd17caf604b625552a7385bb82d5efea159d8873c13c5e2",
+          "size_bytes": 217961
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "n": 64,
+            "mean": 9.79039425257777,
+            "median": 9.771368425984786,
+            "std": 1.1373914290293234,
+            "min": 7.974864286740148,
+            "max": 11.963634722404123,
+            "p50": 9.771368425984786,
+            "p90": 11.223290646522063,
+            "p99": 11.91067077179064
+          },
+          "unprofiled_sweep_ms": null,
+          "body_forward_is_separate_metric": true
+        },
+        "retained_deployment": {
+          "launch_source": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a3-highconc-decode/w10/cases/serve_kimi_k3_w4a8_4layer.sh",
+            "sha256": "2f917026e29148b0fe9c9c9ec45bff114c6d725342385a7fc4b3ea6cae02a77a",
+            "size_bytes": 1564
+          },
+          "resolved_startup": null,
+          "configured": {
+            "checkpoint": "/mnt/weight/Kimi-K3-w4a8-4layer",
+            "tp": 8,
+            "dp": 1,
+            "ep": 8,
+            "model_body_layers": 4,
+            "force_eplb": true,
+            "prefix_caching": true,
+            "num_speculative_tokens": 0,
+            "graph_mode": "FULL_DECODE_ONLY",
+            "quantization": "ascend / W4A8 checkpoint"
+          },
+          "evidence_strength": "retained_launch_intent; resolved startup and checkpoint config not located",
+          "actual_force_eplb": null
+        },
+        "captured_execution_mode": "FULL_DECODE_ONLY launch intent; simulated graph wrapper omitted at this body boundary",
+        "prefix_cache": {
+          "configured": true,
+          "observed_metrics": {
+            "prefix_cache_hit_rate": 0.9375,
+            "prefix_cache_metrics": {
+              "vllm:prefix_cache_queries_created": 0.0,
+              "vllm:external_prefix_cache_hits_created": 0.0,
+              "vllm:external_prefix_cache_queries_total": 0.0,
+              "vllm:prefix_cache_queries_total": 262144.0,
+              "vllm:prefix_cache_hits_created": 0.0,
+              "vllm:prefix_cache_hits_total": 245760.0,
+              "vllm:external_prefix_cache_queries_created": 0.0,
+              "vllm:external_prefix_cache_hits_total": 0.0
+            }
+          }
+        },
+        "force_load_balance": {
+          "configured": true,
+          "observed": null
+        },
+        "speculation": {
+          "enabled": false,
+          "basis": "launch declaration"
+        },
+        "source_population": {
+          "selected_rank": "tp0",
+          "body_layers": 4
+        },
+        "request_geometry_is_not_per_forward_geometry": true,
+        "context_basis": "initial prompt length; active per-forward KV growth is not observed",
+        "layer_binding_basis": "Sim-declared topology and tensor anchors, not Host/module evidence",
+        "prediction_transport_assumption": {
+          "variant": "quant-fixed-window8",
+          "declared_recipes": {
+            "expert_dispatch": {
+              "kind": "direct_peer_collective",
+              "max_inflight_per_rank": 8
+            },
+            "expert_combine": {
+              "kind": "direct_peer_collective",
+              "max_inflight_per_rank": 8
+            }
+          },
+          "capture_implementation_not_proven": true
+        }
+      },
+      "unresolved_reasons": [
+        "checkpoint config and quant-description bytes",
+        "resolved force-EPLB startup",
+        "current context and actual group_list",
+        "native physical padding/dispatch protocol",
+        "all layer-specific quant exceptions"
+      ],
+      "extraction_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c32.json",
+      "variant_id": "kimi-source-a3",
+      "parsed_representation_preflight": {
+        "quantization": "W4A8_DYNAMIC",
+        "quant": {
+          "name": "W4A8_DYNAMIC",
+          "weight_format": "int8",
+          "native_format": "bf16",
+          "activation_format": "int8",
+          "expert_weight_format": "int4",
+          "weight_block": [
+            1,
+            1
+          ],
+          "expert_block": 1,
+          "scale_format": "fp32",
+          "scale_bytes": 4.0,
+          "kv_dtype": "bf16",
+          "index_dtype": "bf16",
+          "index_scale_dtype": "none",
+          "exclusions": [
+            "conv_weight_bf16",
+            "conv_weight_f32",
+            "embedding",
+            "lm_head",
+            "mtp",
+            "norm",
+            "projector",
+            "router",
+            "vision"
+          ],
+          "engram_table_mode": "device_bf16",
+          "activation_group_size": 0,
+          "activation_scale_format": "",
+          "activation_scale_pack": 1,
+          "category_overrides": {
+            "kda": {
+              "activation_format": "bf16",
+              "weight_format": "bf16"
+            },
+            "kda.k": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "kda.q": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "kda.v": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "mla": {
+              "activation_format": "bf16",
+              "weight_format": "bf16"
+            },
+            "mla.kv_a": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "mla.q_a": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "mla.q_b": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            }
+          },
+          "source": {
+            "basis": "sampled operand dtypes plus distinct checkpoint launch declaration",
+            "checkpoint_config_bytes": "not_delivered",
+            "kind": "conditional_capture_representation"
+          },
+          "notes": [
+            "No old checkpoint calibration or FP8 source binding is inherited."
+          ]
+        },
+        "basis": "Sim parse_case agrees with source-declared outer QuantSpec core fields"
+      },
+      "baseline_reference": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/decode-forward-332f0420-window8-replay.json",
+        "sha256": "a7da466863207e05a62d45e297b215b70cdfbddcfa3b79971899ab68309a6f31",
+        "case_id": "a3_kimi4_tp8_w4a8_c32:q1_b32_m32"
+      },
+      "replay_input_pins": {
+        "case": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source/a3_kimi4_tp8_w4a8_c32_source.json",
+          "sha256": "824a0c372e6405568e7d9edd821408e6711f50f244575d061e3261602bcdc74a",
+          "size_bytes": 17892
+        },
+        "extraction": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c32.json",
+          "sha256": "2170a9f270b4efca5773cb41b27b9d849ffc75bc054bdd1f6808afd4fcc6be74",
+          "size_bytes": 743150,
+          "reused_existing_extraction": true
+        },
+        "primary_geometry": {
+          "query_rows": 32,
+          "sequences_per_replica": 32,
+          "tokens_per_sequence": 1,
+          "context_tokens": 4096,
+          "batch_basis": "captured_paged_attention_block_table_rows",
+          "context_basis": "not_observed_from_cache_capacity",
+          "phase": "decode"
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c32_20261030/ranks/tp0/kernel_details.csv.gz",
+          "size_bytes": 4803119,
+          "mtime_ns": 1793303771000000000,
+          "schema_version": "kernel_details_csv_46col",
+          "sha256": "c7deb048fabcf5650aeb014c411b0eda709758e8dd4227119f7de5316a1c294e"
+        }
+      },
+      "prior_source_case_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c32.json",
+        "sha256": "335f10b14d1f197e88ccff8e5058df27186a188fc20226da2185de9810aa9117",
+        "source_unchanged": true
+      },
+      "runtime_refresh": {
+        "prior_input_manifest": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-v4_kimi-cases.json",
+          "sha256": "a6137818e232eac299406db57d2849c3584722f22980f725101785c1c82119ed",
+          "size_bytes": 378891
+        },
+        "prior_case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c32.json",
+          "sha256": "335f10b14d1f197e88ccff8e5058df27186a188fc20226da2185de9810aa9117",
+          "size_bytes": 16708
+        },
+        "case_bytes_changed": true,
+        "explicit_case_override": true,
+        "retained_extraction_bytes_unchanged": true
+      }
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c4",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+        "sha256": "c51c0c5b4ec2b0eef777237b726fe20f82a94b866b21c0b3a2844d8aca56d857",
+        "size_bytes": 4218000
+      },
+      "sim_case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source/a3_kimi4_tp8_w4a8_c4_source.json",
+      "model_declaration": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source/a3_kimi4_tp8_w4a8_c4_source.json",
+        "sha256": "032f06b99042a124f078949e42cc17a75c01582a3e7feea7574d18cd7bf273b8",
+        "size_bytes": 17884
+      },
+      "segmentation": "auto_structure_guided",
+      "boundaries_path": null,
+      "geometry": {
+        "context_tokens": 4096
+      },
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c4_20261030",
+        "retained_inventory": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-bundle0406/retained-source-evidence.json",
+          "sha256": "ed8e523f3eea92aa697146085cb187258edbbe5d85ccca9d170e81b4efa98301",
+          "size_bytes": 666668
+        },
+        "case_source_identity_basis": "case path/size and inventory SHA; replay verifies full source SHA",
+        "client": {
+          "concurrency": 4,
+          "input_len": 4096,
+          "observed_prompt_tokens": [
+            4096
+          ],
+          "output_len": 128
+        },
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c4_20261030/benchmark_summary.json",
+          "sha256": "d85cd93838979a854da1930eeed1f98a2191877bc9f25bfeae1dff3c82aa8219",
+          "size_bytes": 28647
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "n": 8,
+            "mean": 7.450663044831313,
+            "median": 7.475983190137571,
+            "std": 0.33908554148176306,
+            "min": 6.956952675355701,
+            "max": 7.9502608685746905,
+            "p50": 7.475983190137571,
+            "p90": 7.80929426193296,
+            "p99": 7.936164207910517
+          },
+          "unprofiled_sweep_ms": null,
+          "body_forward_is_separate_metric": true
+        },
+        "retained_deployment": {
+          "launch_source": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a3-highconc-decode/w10/cases/serve_kimi_k3_w4a8_4layer.sh",
+            "sha256": "2f917026e29148b0fe9c9c9ec45bff114c6d725342385a7fc4b3ea6cae02a77a",
+            "size_bytes": 1564
+          },
+          "resolved_startup": null,
+          "configured": {
+            "checkpoint": "/mnt/weight/Kimi-K3-w4a8-4layer",
+            "tp": 8,
+            "dp": 1,
+            "ep": 8,
+            "model_body_layers": 4,
+            "force_eplb": true,
+            "prefix_caching": true,
+            "num_speculative_tokens": 0,
+            "graph_mode": "FULL_DECODE_ONLY",
+            "quantization": "ascend / W4A8 checkpoint"
+          },
+          "evidence_strength": "retained_launch_intent; resolved startup and checkpoint config not located",
+          "actual_force_eplb": null
+        },
+        "captured_execution_mode": "FULL_DECODE_ONLY launch intent; simulated graph wrapper omitted at this body boundary",
+        "prefix_cache": {
+          "configured": true,
+          "observed_metrics": {
+            "prefix_cache_hit_rate": 0.9375,
+            "prefix_cache_metrics": {
+              "vllm:prefix_cache_queries_created": 0.0,
+              "vllm:external_prefix_cache_hits_created": 0.0,
+              "vllm:external_prefix_cache_queries_total": 0.0,
+              "vllm:prefix_cache_queries_total": 32768.0,
+              "vllm:prefix_cache_hits_created": 0.0,
+              "vllm:prefix_cache_hits_total": 30720.0,
+              "vllm:external_prefix_cache_queries_created": 0.0,
+              "vllm:external_prefix_cache_hits_total": 0.0
+            }
+          }
+        },
+        "force_load_balance": {
+          "configured": true,
+          "observed": null
+        },
+        "speculation": {
+          "enabled": false,
+          "basis": "launch declaration"
+        },
+        "source_population": {
+          "selected_rank": "tp0",
+          "body_layers": 4
+        },
+        "request_geometry_is_not_per_forward_geometry": true,
+        "context_basis": "initial prompt length; active per-forward KV growth is not observed",
+        "layer_binding_basis": "Sim-declared topology and tensor anchors, not Host/module evidence",
+        "prediction_transport_assumption": {
+          "variant": "quant-fixed-window8",
+          "declared_recipes": {
+            "expert_dispatch": {
+              "kind": "direct_peer_collective",
+              "max_inflight_per_rank": 8
+            },
+            "expert_combine": {
+              "kind": "direct_peer_collective",
+              "max_inflight_per_rank": 8
+            }
+          },
+          "capture_implementation_not_proven": true
+        }
+      },
+      "unresolved_reasons": [
+        "checkpoint config and quant-description bytes",
+        "resolved force-EPLB startup",
+        "current context and actual group_list",
+        "native physical padding/dispatch protocol",
+        "all layer-specific quant exceptions"
+      ],
+      "extraction_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c4.json",
+      "variant_id": "kimi-source-a3",
+      "parsed_representation_preflight": {
+        "quantization": "W4A8_DYNAMIC",
+        "quant": {
+          "name": "W4A8_DYNAMIC",
+          "weight_format": "int8",
+          "native_format": "bf16",
+          "activation_format": "int8",
+          "expert_weight_format": "int4",
+          "weight_block": [
+            1,
+            1
+          ],
+          "expert_block": 1,
+          "scale_format": "fp32",
+          "scale_bytes": 4.0,
+          "kv_dtype": "bf16",
+          "index_dtype": "bf16",
+          "index_scale_dtype": "none",
+          "exclusions": [
+            "conv_weight_bf16",
+            "conv_weight_f32",
+            "embedding",
+            "lm_head",
+            "mtp",
+            "norm",
+            "projector",
+            "router",
+            "vision"
+          ],
+          "engram_table_mode": "device_bf16",
+          "activation_group_size": 0,
+          "activation_scale_format": "",
+          "activation_scale_pack": 1,
+          "category_overrides": {
+            "kda": {
+              "activation_format": "bf16",
+              "weight_format": "bf16"
+            },
+            "kda.k": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "kda.q": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "kda.v": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "mla": {
+              "activation_format": "bf16",
+              "weight_format": "bf16"
+            },
+            "mla.kv_a": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "mla.q_a": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "mla.q_b": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            }
+          },
+          "source": {
+            "basis": "sampled operand dtypes plus distinct checkpoint launch declaration",
+            "checkpoint_config_bytes": "not_delivered",
+            "kind": "conditional_capture_representation"
+          },
+          "notes": [
+            "No old checkpoint calibration or FP8 source binding is inherited."
+          ]
+        },
+        "basis": "Sim parse_case agrees with source-declared outer QuantSpec core fields"
+      },
+      "baseline_reference": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/decode-forward-332f0420-window8-replay.json",
+        "sha256": "a7da466863207e05a62d45e297b215b70cdfbddcfa3b79971899ab68309a6f31",
+        "case_id": "a3_kimi4_tp8_w4a8_c4:q1_b4_m4"
+      },
+      "replay_input_pins": {
+        "case": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source/a3_kimi4_tp8_w4a8_c4_source.json",
+          "sha256": "032f06b99042a124f078949e42cc17a75c01582a3e7feea7574d18cd7bf273b8",
+          "size_bytes": 17884
+        },
+        "extraction": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c4.json",
+          "sha256": "478283c1c963a000f5ce66a0cd38ba1c2312b1300c03de9ffa01d266b4096f2b",
+          "size_bytes": 720006,
+          "reused_existing_extraction": true
+        },
+        "primary_geometry": {
+          "query_rows": 4,
+          "sequences_per_replica": 4,
+          "tokens_per_sequence": 1,
+          "context_tokens": 4096,
+          "batch_basis": "captured_paged_attention_block_table_rows",
+          "context_basis": "not_observed_from_cache_capacity",
+          "phase": "decode"
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+          "size_bytes": 4218000,
+          "mtime_ns": 1793303770000000000,
+          "schema_version": "kernel_details_csv_46col",
+          "sha256": "c51c0c5b4ec2b0eef777237b726fe20f82a94b866b21c0b3a2844d8aca56d857"
+        }
+      },
+      "prior_source_case_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c4.json",
+        "sha256": "96113d78abcf36907d9f498b33bfa19194a49933e6a6d2f0e02b9170a9749133",
+        "source_unchanged": true
+      },
+      "runtime_refresh": {
+        "prior_input_manifest": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-v4_kimi-cases.json",
+          "sha256": "a6137818e232eac299406db57d2849c3584722f22980f725101785c1c82119ed",
+          "size_bytes": 378891
+        },
+        "prior_case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c4.json",
+          "sha256": "96113d78abcf36907d9f498b33bfa19194a49933e6a6d2f0e02b9170a9749133",
+          "size_bytes": 16702
+        },
+        "case_bytes_changed": true,
+        "explicit_case_override": true,
+        "retained_extraction_bytes_unchanged": true
+      }
+    },
+    {
+      "case_id": "a3_kimi4_tp8_w4a8_c64",
+      "source": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c64_20261030/ranks/tp0/kernel_details.csv.gz",
+        "sha256": "2137943b502a105b3c044dd1cd88635cf88fe19786e86fdf84d75c059d347fa2",
+        "size_bytes": 5642669
+      },
+      "sim_case_path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source/a3_kimi4_tp8_w4a8_c64_source.json",
+      "model_declaration": {
+        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source/a3_kimi4_tp8_w4a8_c64_source.json",
+        "sha256": "f3edbf8756c1af1c6e77e78baaa3b5744344fb261463b39c13b0e4835ef58cc4",
+        "size_bytes": 17893
+      },
+      "segmentation": "auto_structure_guided",
+      "boundaries_path": null,
+      "geometry": {
+        "context_tokens": 4096
+      },
+      "scenario_evidence": {
+        "capture_directory": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c64_20261030",
+        "retained_inventory": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-bundle0406/retained-source-evidence.json",
+          "sha256": "ed8e523f3eea92aa697146085cb187258edbbe5d85ccca9d170e81b4efa98301",
+          "size_bytes": 666668
+        },
+        "case_source_identity_basis": "case path/size and inventory SHA; replay verifies full source SHA",
+        "client": {
+          "concurrency": 64,
+          "input_len": 4096,
+          "observed_prompt_tokens": [
+            4096
+          ],
+          "output_len": 128
+        },
+        "benchmark_summary": {
+          "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c64_20261030/benchmark_summary.json",
+          "sha256": "b7f84898a58a211647b3f4a5978ef167a4d57947251fa05a35a96cc12be73d17",
+          "size_bytes": 444829
+        },
+        "tpot": {
+          "profiled_run_client_ms": {
+            "n": 128,
+            "mean": 14.068942531415784,
+            "median": 14.183905234149709,
+            "std": 2.216612510725764,
+            "min": 10.292148580554667,
+            "max": 19.857363008885784,
+            "p50": 14.183905234149709,
+            "p90": 16.954953048874447,
+            "p99": 18.00340083394466
+          },
+          "unprofiled_sweep_ms": null,
+          "body_forward_is_separate_metric": true
+        },
+        "retained_deployment": {
+          "launch_source": {
+            "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a3-highconc-decode/w10/cases/serve_kimi_k3_w4a8_4layer.sh",
+            "sha256": "2f917026e29148b0fe9c9c9ec45bff114c6d725342385a7fc4b3ea6cae02a77a",
+            "size_bytes": 1564
+          },
+          "resolved_startup": null,
+          "configured": {
+            "checkpoint": "/mnt/weight/Kimi-K3-w4a8-4layer",
+            "tp": 8,
+            "dp": 1,
+            "ep": 8,
+            "model_body_layers": 4,
+            "force_eplb": true,
+            "prefix_caching": true,
+            "num_speculative_tokens": 0,
+            "graph_mode": "FULL_DECODE_ONLY",
+            "quantization": "ascend / W4A8 checkpoint"
+          },
+          "evidence_strength": "retained_launch_intent; resolved startup and checkpoint config not located",
+          "actual_force_eplb": null
+        },
+        "captured_execution_mode": "FULL_DECODE_ONLY launch intent; simulated graph wrapper omitted at this body boundary",
+        "prefix_cache": {
+          "configured": true,
+          "observed_metrics": {
+            "prefix_cache_hit_rate": 0.9375,
+            "prefix_cache_metrics": {
+              "vllm:prefix_cache_queries_created": 0.0,
+              "vllm:external_prefix_cache_hits_created": 0.0,
+              "vllm:external_prefix_cache_queries_total": 0.0,
+              "vllm:prefix_cache_queries_total": 524288.0,
+              "vllm:prefix_cache_hits_created": 0.0,
+              "vllm:prefix_cache_hits_total": 491520.0,
+              "vllm:external_prefix_cache_queries_created": 0.0,
+              "vllm:external_prefix_cache_hits_total": 0.0
+            }
+          }
+        },
+        "force_load_balance": {
+          "configured": true,
+          "observed": null
+        },
+        "speculation": {
+          "enabled": false,
+          "basis": "launch declaration"
+        },
+        "source_population": {
+          "selected_rank": "tp0",
+          "body_layers": 4
+        },
+        "request_geometry_is_not_per_forward_geometry": true,
+        "context_basis": "initial prompt length; active per-forward KV growth is not observed",
+        "layer_binding_basis": "Sim-declared topology and tensor anchors, not Host/module evidence",
+        "prediction_transport_assumption": {
+          "variant": "quant-fixed-window8",
+          "declared_recipes": {
+            "expert_dispatch": {
+              "kind": "direct_peer_collective",
+              "max_inflight_per_rank": 8
+            },
+            "expert_combine": {
+              "kind": "direct_peer_collective",
+              "max_inflight_per_rank": 8
+            }
+          },
+          "capture_implementation_not_proven": true
+        }
+      },
+      "unresolved_reasons": [
+        "checkpoint config and quant-description bytes",
+        "resolved force-EPLB startup",
+        "current context and actual group_list",
+        "native physical padding/dispatch protocol",
+        "all layer-specific quant exceptions"
+      ],
+      "extraction_path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c64.json",
+      "variant_id": "kimi-source-a3",
+      "parsed_representation_preflight": {
+        "quantization": "W4A8_DYNAMIC",
+        "quant": {
+          "name": "W4A8_DYNAMIC",
+          "weight_format": "int8",
+          "native_format": "bf16",
+          "activation_format": "int8",
+          "expert_weight_format": "int4",
+          "weight_block": [
+            1,
+            1
+          ],
+          "expert_block": 1,
+          "scale_format": "fp32",
+          "scale_bytes": 4.0,
+          "kv_dtype": "bf16",
+          "index_dtype": "bf16",
+          "index_scale_dtype": "none",
+          "exclusions": [
+            "conv_weight_bf16",
+            "conv_weight_f32",
+            "embedding",
+            "lm_head",
+            "mtp",
+            "norm",
+            "projector",
+            "router",
+            "vision"
+          ],
+          "engram_table_mode": "device_bf16",
+          "activation_group_size": 0,
+          "activation_scale_format": "",
+          "activation_scale_pack": 1,
+          "category_overrides": {
+            "kda": {
+              "activation_format": "bf16",
+              "weight_format": "bf16"
+            },
+            "kda.k": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "kda.q": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "kda.v": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "mla": {
+              "activation_format": "bf16",
+              "weight_format": "bf16"
+            },
+            "mla.kv_a": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "mla.q_a": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            },
+            "mla.q_b": {
+              "activation_format": "int8",
+              "weight_format": "int8"
+            }
+          },
+          "source": {
+            "basis": "sampled operand dtypes plus distinct checkpoint launch declaration",
+            "checkpoint_config_bytes": "not_delivered",
+            "kind": "conditional_capture_representation"
+          },
+          "notes": [
+            "No old checkpoint calibration or FP8 source binding is inherited."
+          ]
+        },
+        "basis": "Sim parse_case agrees with source-declared outer QuantSpec core fields"
+      },
+      "baseline_reference": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/decode-forward-332f0420-window8-replay.json",
+        "sha256": "a7da466863207e05a62d45e297b215b70cdfbddcfa3b79971899ab68309a6f31",
+        "case_id": "a3_kimi4_tp8_w4a8_c64:q1_b64_m64"
+      },
+      "replay_input_pins": {
+        "case": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source/a3_kimi4_tp8_w4a8_c64_source.json",
+          "sha256": "f3edbf8756c1af1c6e77e78baaa3b5744344fb261463b39c13b0e4835ef58cc4",
+          "size_bytes": 17893
+        },
+        "extraction": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a3_kimi4_tp8_w4a8_c64.json",
+          "sha256": "976a0a82eaf11bdea80c2f7e63678b12ba959ce94cc2a38c7198a771de4615f4",
+          "size_bytes": 733592,
+          "reused_existing_extraction": true
+        },
+        "primary_geometry": {
+          "query_rows": 64,
+          "sequences_per_replica": 64,
+          "tokens_per_sequence": 1,
+          "context_tokens": 4096,
+          "batch_basis": "captured_paged_attention_block_table_rows",
+          "context_basis": "not_observed_from_cache_capacity",
+          "phase": "decode"
+        },
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c64_20261030/ranks/tp0/kernel_details.csv.gz",
+          "size_bytes": 5642669,
+          "mtime_ns": 1793303771000000000,
+          "schema_version": "kernel_details_csv_46col",
+          "sha256": "2137943b502a105b3c044dd1cd88635cf88fe19786e86fdf84d75c059d347fa2"
+        }
+      },
+      "prior_source_case_identity": {
+        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c64.json",
+        "sha256": "fc67c9e9d1af19e237e6cf48647d27718885b095189c9a17eb114993c865bf2b",
+        "source_unchanged": true
+      },
+      "runtime_refresh": {
+        "prior_input_manifest": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-matrix-fix/decode-forward-v4_kimi-cases.json",
+          "sha256": "a6137818e232eac299406db57d2849c3584722f22980f725101785c1c82119ed",
+          "size_bytes": 378891
+        },
+        "prior_case_identity": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c64.json",
+          "sha256": "fc67c9e9d1af19e237e6cf48647d27718885b095189c9a17eb114993c865bf2b",
+          "size_bytes": 16709
+        },
+        "case_bytes_changed": true,
+        "explicit_case_override": true,
+        "retained_extraction_bytes_unchanged": true
+      }
+    }
+  ],
+  "mechanism_boundary": "Explicit source-compatible MC2 and BF16 grouped/KDA cases; A3 selects arch22 KDA only; paged MLA not yet selected. No runtime choice by observed error."
+}

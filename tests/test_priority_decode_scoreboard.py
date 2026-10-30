@@ -178,3 +178,31 @@ def test_native_selection_retains_distinct_observed_abis_and_latest_program(monk
              "group_id": "fresh-program-group"}
     selected = module.select_references([one, larger, newer], {})
     assert selected == [newer, larger]
+
+
+def test_v41_merged_native_partitions_keep_full_population_and_unscored_gaps(monkeypatch, tmp_path):
+    root = Path(__file__).resolve().parents[1]
+    monkeypatch.syspath_prepend(str(root / "examples/structure"))
+    module = importlib.import_module("priority_decode_scoreboard")
+    reviewer = importlib.import_module("review_priority_decode_scoreboard")
+    source = root / "examples/structure/acceptance-20261030-v41-native-references-0b822d0e/v41-native-reference-scoreboard.json"
+    original = json.loads(source.read_text())
+    report = module.build([], [], [source])
+    rows = report["current_source_role_references"]
+    assert len(rows) == 63
+    assert sum(row["observed_us"]["count"] for row in rows) == 83000
+    assert sum(item["event_count"] for case in original["cases"] for item in case["unresolved"]) == 99600
+    groups = {(case["case_id"], group["group_id"]): group
+              for case in original["cases"] for group in case["groups"]}
+    for row in rows:
+        expected = groups[row["case_id"], row["group_id"]]
+        assert row["partition_indices"] == expected["partition_indices"]
+        assert row["observed_us"] == expected["observed_us"]
+        assert not row["scored"] and not row["additional_budget_allowed"]
+    assert report["summary"]["operator_accuracy_by_tier"] == {
+        "heavy_relative_15pct": {"compared": 0, "passed": 0},
+        "micro_absolute_15us": {"compared": 0, "passed": 0}}
+    path = tmp_path / "v41-priority.json"
+    path.write_text(json.dumps(report))
+    check = reviewer.review(path)
+    assert check["status"] == "passed", check["failures"]

@@ -98,7 +98,9 @@ def native_reference_rows(case, identity):
             "runtime_identity": _runtime_identity(case),
             "source_identity": case["source_identity"], "geometry": case["geometry"],
             "case_identity": case["case_identity"], "partition_identity": case["partition_identity"],
-            "group_id": group["group_id"], "partition_index": group["partition_index"],
+            "group_id": group["group_id"],
+            "partition_indices": (group["partition_indices"] if "partition_indices" in group
+                                  else [group["partition_index"]]),
             "native_abi_sha256": hashlib.sha256(json.dumps(
                 group["native_abi"], sort_keys=True, separators=(",", ":")).encode()).hexdigest(),
             "forward_count": case["forward_count"], "calls_per_forward": group["calls_per_forward"],
@@ -545,7 +547,9 @@ def main():
         "raw_capture_scans": 0, "prediction_executions": 0,
     }
     with args.output.open("w") as stream:
-        json.dump(report, stream, indent=2)
+        # The linked source receipts keep readable detail. Avoid multiplying
+        # their whitespace across the cumulative machine-readable scoreboard.
+        json.dump(report, stream, separators=(",", ":"))
         stream.write("\n")
     args.output.with_suffix(".md").write_text(render(report))
     print(json.dumps(report["summary"]))
