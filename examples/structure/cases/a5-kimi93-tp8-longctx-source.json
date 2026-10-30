@@ -867,13 +867,318 @@
             "use_beta_sigmoid": false
           }
         },
-        "causal_conv_update": "ascend_causal_conv1d_update"
+        "causal_conv_update": "ascend_causal_conv1d_update",
+        "paged_mla_attention": {
+          "implementation": "ascend_paged_mla_decode_arch35",
+          "options": {
+            "dispatch": "source_split_core_v2"
+          }
+        }
       },
       "families": {
         "grouped_gemm": {
           "kind": "ascend_bf16_grouped"
         }
-      }
+      },
+      "service_regimes": [
+        {
+          "id": "p4k-transfer-latent-norm",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "latent_norm",
+            "family": "rmsnorm",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "d0": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "d0": {
+              "min": 1,
+              "max": 64
+            }
+          },
+          "response": {
+            "kind": "affine",
+            "fixed_us": 3.5703,
+            "terms": [
+              {
+                "coordinate": "d0",
+                "us_per_unit": 0.3195
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "retained_p4k_operator_service"
+          }
+        },
+        {
+          "id": "p4k-transfer-attn-res-fwd",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "attn_res_fwd",
+            "family": "attn_res_prefix",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "d0": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "d0": {
+              "min": 1,
+              "max": 64
+            }
+          },
+          "response": {
+            "kind": "affine",
+            "fixed_us": 10.8143,
+            "terms": [
+              {
+                "coordinate": "d0",
+                "us_per_unit": 0.1886
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "retained_p4k_operator_service"
+          }
+        },
+        {
+          "id": "p4k-transfer-causal-conv1d",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "ascend_causal_conv1d_update",
+            "family": "short_convolution",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "d0": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "d0": {
+              "min": 1,
+              "max": 64
+            }
+          },
+          "response": {
+            "kind": "affine",
+            "fixed_us": 5.2,
+            "terms": [
+              {
+                "coordinate": "d0",
+                "us_per_unit": 0.2
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "retained_p4k_operator_service"
+          }
+        },
+        {
+          "id": "p4k-transfer-recurrent-kda",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "vllm_ascend_recurrent_kda_arch35",
+            "family": "recurrent_scan",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "d0": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "d0": {
+              "min": 1,
+              "max": 64
+            }
+          },
+          "response": {
+            "kind": "affine",
+            "fixed_us": 10.0,
+            "terms": [
+              {
+                "coordinate": "d0",
+                "us_per_unit": 0.66
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "retained_p4k_operator_service"
+          }
+        },
+        {
+          "id": "p4k-transfer-expert-dispatch",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "expert_dispatch",
+            "family": "alltoall",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "d0": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "d0": {
+              "min": 1,
+              "max": 64
+            }
+          },
+          "response": {
+            "kind": "affine",
+            "fixed_us": 30.6462,
+            "terms": [
+              {
+                "coordinate": "d0",
+                "us_per_unit": 0.173
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "retained_p4k_operator_service"
+          }
+        },
+        {
+          "id": "p4k-transfer-expert-combine",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "expert_combine",
+            "family": "alltoall",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "d0": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "d0": {
+              "min": 1,
+              "max": 64
+            }
+          },
+          "response": {
+            "kind": "affine",
+            "fixed_us": 14.302,
+            "terms": [
+              {
+                "coordinate": "d0",
+                "us_per_unit": 0.0265
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "retained_p4k_operator_service"
+          }
+        },
+        {
+          "id": "p4k-transfer-grouped-gate-up",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "balanced_grouped_gate_up",
+            "family": "grouped_gemm",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "d0": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "d0": {
+              "min": 1,
+              "max": 64
+            }
+          },
+          "response": {
+            "kind": "affine",
+            "fixed_us": 40.3,
+            "terms": [
+              {
+                "coordinate": "d0",
+                "us_per_unit": 0.23
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "retained_p4k_operator_service"
+          }
+        },
+        {
+          "id": "p4k-transfer-grouped-down",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "balanced_grouped_down",
+            "family": "grouped_gemm",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "d0": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "d0": {
+              "min": 1,
+              "max": 64
+            }
+          },
+          "response": {
+            "kind": "affine",
+            "fixed_us": 19.65,
+            "terms": [
+              {
+                "coordinate": "d0",
+                "us_per_unit": 0.105
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "retained_p4k_operator_service"
+          }
+        },
+        {
+          "id": "p4k-transfer-reduce-scatter",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "ring_reduce_scatter",
+            "family": "reduce_scatter",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "d0": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "d0": {
+              "min": 1,
+              "max": 64
+            }
+          },
+          "response": {
+            "kind": "affine",
+            "fixed_us": 12.8777,
+            "terms": [
+              {
+                "coordinate": "d0",
+                "us_per_unit": 1.0721
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "retained_p4k_operator_service"
+          }
+        }
+      ]
     },
     "metadata": {
       "captured_execution_mode": "FULL_DECODE_ONLY",

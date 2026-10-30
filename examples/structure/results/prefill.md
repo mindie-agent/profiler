@@ -4,21 +4,21 @@ One canonical case registry and one recorded Sim package. Selected costs are fre
 
 | Case | Phase | Calls | Real mean / P50 / P90 ms | Sim ms | Error | Status |
 |---|---|---:|---:|---:|---:|---|
-| v4f-prefill-p4096 | prefill | 1 | 542.752 / 542.752 / 542.752 | 326.252 | -39.89% | FAIL |
-| v4f-prefill-p16384 | prefill | 1 | 1764.528 / 1764.528 / 1764.528 | 1343.323 | -23.87% | FAIL |
-| v4f-prefill-p65536 | prefill | 1 | 7957.380 / 7957.380 / 7957.380 | 6386.000 | -19.75% | FAIL |
-| v4f-prefill-p126976 | prefill | 1 | 17835.289 / 17835.289 / 17835.289 | 14785.414 | -17.10% | FAIL |
-| v4pro-prefill-p4096 | prefill | 1 | 2586.233 / 2586.233 / 2586.233 | 948.464 | -63.33% | FAIL |
-| v4pro-prefill-p16384 | prefill | 1 | 10313.726 / 10313.726 / 10313.726 | 4042.611 | -60.80% | FAIL |
+| v4f-prefill-p4096 | prefill | 1 | 542.752 / 542.752 / 542.752 | 511.960 | -5.67% | PASS |
+| v4f-prefill-p16384 | prefill | 1 | 1764.528 / 1764.528 / 1764.528 | 1665.612 | -5.61% | PASS |
+| v4f-prefill-p65536 | prefill | 1 | 7957.380 / 7957.380 / 7957.380 | 7675.158 | -3.55% | PASS |
+| v4f-prefill-p126976 | prefill | 1 | 17835.289 / 17835.289 / 17835.289 | 17388.292 | -2.51% | PASS |
+| v4pro-prefill-p4096 | prefill | 1 | 2586.233 / 2586.233 / 2586.233 | 2544.557 | -1.61% | PASS |
+| v4pro-prefill-p16384 | prefill | 1 | 10313.726 / 10313.726 / 10313.726 | 10426.983 | +1.10% | PASS |
 | v4pro-prefill-p61440 | prefill | 0 | — / — / — | — | — | unresolved |
-| qwen36-a5-prof_p4096_c1 | prefill | 1 | 156.479 / 156.479 / 156.479 | 114.441 | -26.87% | FAIL |
+| qwen36-a5-prof_p4096_c1 | prefill | 1 | 156.479 / 156.479 / 156.479 | 169.657 | +8.42% | PASS |
 | qwen36-a5-prof_p16384_c1 | prefill | 1 | 436.568 / 436.568 / 436.568 | 460.114 | +5.39% | PASS |
 | qwen36-a5-p65536_c1_o32 | prefill | 1 | 2034.690 / 2034.690 / 2034.690 | 2023.481 | -0.55% | PASS |
 | qwen36-a5-prof_p126976_c1 | prefill | 1 | 4602.319 / 4602.319 / 4602.319 | 4366.028 | -5.13% | PASS |
-| qwen35-a5-p1024 | prefill | 1 | 140.251 / 140.251 / 140.251 | 36.844 | -73.73% | FAIL |
-| qwen35-a5-p4096 | prefill | 1 | 142.868 / 142.868 / 142.868 | 133.073 | -6.86% | PASS |
-| qwen35-a5-p65536 | prefill | 1 | 1372.007 / 1372.007 / 1372.007 | 2289.725 | +66.89% | FAIL |
-| qwen35-a5-p126976 | prefill | 1 | 3275.422 / 3275.422 / 3275.422 | 4807.607 | +46.78% | FAIL |
+| qwen35-a5-p1024 | prefill | 1 | 140.251 / 140.251 / 140.251 | 135.290 | -3.54% | PASS |
+| qwen35-a5-p4096 | prefill | 1 | 142.868 / 142.868 / 142.868 | 133.241 | -6.74% | PASS |
+| qwen35-a5-p65536 | prefill | 1 | 1372.007 / 1372.007 / 1372.007 | 1372.848 | +0.06% | PASS |
+| qwen35-a5-p126976 | prefill | 1 | 3275.422 / 3275.422 / 3275.422 | 3072.221 | -6.20% | PASS |
 | a3_glm53flash_heldout_s5_prefill_p16384_c1 | prefill | 0 | — / — / — | — | — | observed_only |
 | a3_glm53flash_heldout_s5_prefill_p16384_c4 | prefill | 0 | — / — / — | — | — | observed_only |
 | a3_glm53flash_heldout_s5_prefill_p2048_c1 | prefill | 0 | — / — / — | — | — | observed_only |
@@ -29,7 +29,12 @@ One canonical case registry and one recorded Sim package. Selected costs are fre
 | a3_glm53flash_heldout_s5_prefill_p4096_c4 | prefill | 0 | — / — / — | — | — | observed_only |
 | a3_glm53flash_heldout_s5_prefill_p8192_c1 | prefill | 0 | — / — / — | — | — | observed_only |
 | a3_glm53flash_heldout_s5_prefill_p8192_c4 | prefill | 0 | — / — / — | — | — | observed_only |
-| a5_kimi_k3_p32768_c1 | prefill | 1 | 4291.836 / 4291.836 / 4291.836 | — | — | failed |
+| a5_kimi_k3_p32768_c1 | prefill | 1 | 4291.836 / 4291.836 / 4291.836 | 4117.323 | -4.07% | PASS |
+
+| Case | B / q | Layer group | Layers | Real mean / P50 ms | Sim mean / P50 ms | Mean / P50 error |
+|---|---|---|---:|---:|---:|---:|
+
+Layer-group statistics summarize complete layer spans, not isolated attention or FFN kernel time. Group P50 is across layer means; steady-layer P50 remains the median of per-layer call P50 values in JSON. Full layer membership, extrema, stream details and alignment assumptions remain in the SHA256-pinned evidence.
 
 | Case | Client TTFT ms | Predicted TTFT ms | Query coverage complete |
 |---|---:|---:|---|
@@ -62,6 +67,6 @@ One canonical case registry and one recorded Sim package. Selected costs are fre
 
 Prefill Body sums complete device chunk spans. Client TTFT includes other stages and is not substituted for Body.
 
-Summary: {"compared": 14, "passed": 4, "requested_sources": 26, "sources": 26, "status_counts": {"compared": 14, "failed": 1, "observed_only": 10, "unresolved": 1}}
+Summary: {"compared": 15, "passed": 15, "requested_sources": 26, "sources": 26, "status_counts": {"compared": 15, "observed_only": 10, "unresolved": 1}}
 
 Full per-layer, operator and prediction details retain their individual SHA256 evidence pointers. Missing evidence and failed predictions remain visible and never count as a pass.

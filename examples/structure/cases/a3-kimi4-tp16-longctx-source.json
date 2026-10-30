@@ -362,7 +362,584 @@
             "retained_kv_rows": 512
           }
         }
-      }
+      },
+      "hccl": {
+        "allgather": {
+          "expansion": "AICPU_TS",
+          "template": "mesh",
+          "buffer_mode": "separate",
+          "axes": [
+            "tp"
+          ]
+        },
+        "reduce_scatter": {
+          "expansion": "AICPU_TS",
+          "template": "mesh",
+          "buffer_mode": "separate",
+          "axes": [
+            "tp"
+          ]
+        }
+      },
+      "service_regimes": [
+        {
+          "id": "kimi-a3-tp16-hccl-allgather",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "dtype": "bf16",
+            "layout": "contiguous",
+            "replay_scope": "full",
+            "implementation": "HCCL_AICPU_TS_allgather_mesh",
+            "runtime": "",
+            "revision": "",
+            "format": "",
+            "kernel": "HCCL_AICPU_TS_allgather_mesh",
+            "transport": {
+              "dies_per_package": 2,
+              "links": [
+                {
+                  "capacity_bytes_per_ms": 448000000.0,
+                  "channel": "d2d_intra_package",
+                  "latency_us": 0.8,
+                  "members": [
+                    0,
+                    1
+                  ],
+                  "name": "d2d_intra_package:0",
+                  "semantics": "per_port"
+                },
+                {
+                  "capacity_bytes_per_ms": 448000000.0,
+                  "channel": "d2d_intra_package",
+                  "latency_us": 0.8,
+                  "members": [
+                    2,
+                    3
+                  ],
+                  "name": "d2d_intra_package:2",
+                  "semantics": "per_port"
+                },
+                {
+                  "capacity_bytes_per_ms": 448000000.0,
+                  "channel": "d2d_intra_package",
+                  "latency_us": 0.8,
+                  "members": [
+                    4,
+                    5
+                  ],
+                  "name": "d2d_intra_package:4",
+                  "semantics": "per_port"
+                },
+                {
+                  "capacity_bytes_per_ms": 448000000.0,
+                  "channel": "d2d_intra_package",
+                  "latency_us": 0.8,
+                  "members": [
+                    6,
+                    7
+                  ],
+                  "name": "d2d_intra_package:6",
+                  "semantics": "per_port"
+                },
+                {
+                  "capacity_bytes_per_ms": 448000000.0,
+                  "channel": "d2d_intra_package",
+                  "latency_us": 0.8,
+                  "members": [
+                    8,
+                    9
+                  ],
+                  "name": "d2d_intra_package:8",
+                  "semantics": "per_port"
+                },
+                {
+                  "capacity_bytes_per_ms": 448000000.0,
+                  "channel": "d2d_intra_package",
+                  "latency_us": 0.8,
+                  "members": [
+                    10,
+                    11
+                  ],
+                  "name": "d2d_intra_package:10",
+                  "semantics": "per_port"
+                },
+                {
+                  "capacity_bytes_per_ms": 448000000.0,
+                  "channel": "d2d_intra_package",
+                  "latency_us": 0.8,
+                  "members": [
+                    12,
+                    13
+                  ],
+                  "name": "d2d_intra_package:12",
+                  "semantics": "per_port"
+                },
+                {
+                  "capacity_bytes_per_ms": 448000000.0,
+                  "channel": "d2d_intra_package",
+                  "latency_us": 0.8,
+                  "members": [
+                    14,
+                    15
+                  ],
+                  "name": "d2d_intra_package:14",
+                  "semantics": "per_port"
+                },
+                {
+                  "capacity_bytes_per_ms": 196000000.0,
+                  "channel": "d2d_intra_node",
+                  "latency_us": 2.5,
+                  "members": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7,
+                    8,
+                    9,
+                    10,
+                    11,
+                    12,
+                    13,
+                    14,
+                    15
+                  ],
+                  "name": "d2d_intra_node:0",
+                  "semantics": "per_port"
+                }
+              ],
+              "placements": [
+                {
+                  "node": 0,
+                  "package": 0,
+                  "rank": 0
+                },
+                {
+                  "node": 0,
+                  "package": 0,
+                  "rank": 1
+                },
+                {
+                  "node": 0,
+                  "package": 1,
+                  "rank": 2
+                },
+                {
+                  "node": 0,
+                  "package": 1,
+                  "rank": 3
+                },
+                {
+                  "node": 0,
+                  "package": 2,
+                  "rank": 4
+                },
+                {
+                  "node": 0,
+                  "package": 2,
+                  "rank": 5
+                },
+                {
+                  "node": 0,
+                  "package": 3,
+                  "rank": 6
+                },
+                {
+                  "node": 0,
+                  "package": 3,
+                  "rank": 7
+                },
+                {
+                  "node": 0,
+                  "package": 4,
+                  "rank": 8
+                },
+                {
+                  "node": 0,
+                  "package": 4,
+                  "rank": 9
+                },
+                {
+                  "node": 0,
+                  "package": 5,
+                  "rank": 10
+                },
+                {
+                  "node": 0,
+                  "package": 5,
+                  "rank": 11
+                },
+                {
+                  "node": 0,
+                  "package": 6,
+                  "rank": 12
+                },
+                {
+                  "node": 0,
+                  "package": 6,
+                  "rank": 13
+                },
+                {
+                  "node": 0,
+                  "package": 7,
+                  "rank": 14
+                },
+                {
+                  "node": 0,
+                  "package": 7,
+                  "rank": 15
+                }
+              ],
+              "ranks_per_node": 16
+            }
+          },
+          "coordinates": {
+            "declared_input_bytes": {
+              "path": "metadata.hccl_selection.payload_bytes"
+            }
+          },
+          "domain": {
+            "declared_input_bytes": {
+              "min": 14336,
+              "max": 57344
+            }
+          },
+          "response": {
+            "kind": "piecewise_linear",
+            "coordinate": "declared_input_bytes",
+            "knots": [
+              [
+                14336,
+                156.81227611841234
+              ],
+              [
+                43008,
+                116.12927260981913
+              ],
+              [
+                57344,
+                116.12927260981913
+              ]
+            ],
+            "outside": "analytic"
+          }
+        },
+        {
+          "id": "kimi-a3-tp16-hccl-reduce_scatter",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "dtype": "bf16",
+            "layout": "contiguous",
+            "replay_scope": "full",
+            "implementation": "HCCL_AICPU_TS_reduce_scatter_mesh",
+            "runtime": "",
+            "revision": "",
+            "format": "",
+            "kernel": "HCCL_AICPU_TS_reduce_scatter_mesh",
+            "transport": {
+              "dies_per_package": 2,
+              "links": [
+                {
+                  "capacity_bytes_per_ms": 448000000.0,
+                  "channel": "d2d_intra_package",
+                  "latency_us": 0.8,
+                  "members": [
+                    0,
+                    1
+                  ],
+                  "name": "d2d_intra_package:0",
+                  "semantics": "per_port"
+                },
+                {
+                  "capacity_bytes_per_ms": 448000000.0,
+                  "channel": "d2d_intra_package",
+                  "latency_us": 0.8,
+                  "members": [
+                    2,
+                    3
+                  ],
+                  "name": "d2d_intra_package:2",
+                  "semantics": "per_port"
+                },
+                {
+                  "capacity_bytes_per_ms": 448000000.0,
+                  "channel": "d2d_intra_package",
+                  "latency_us": 0.8,
+                  "members": [
+                    4,
+                    5
+                  ],
+                  "name": "d2d_intra_package:4",
+                  "semantics": "per_port"
+                },
+                {
+                  "capacity_bytes_per_ms": 448000000.0,
+                  "channel": "d2d_intra_package",
+                  "latency_us": 0.8,
+                  "members": [
+                    6,
+                    7
+                  ],
+                  "name": "d2d_intra_package:6",
+                  "semantics": "per_port"
+                },
+                {
+                  "capacity_bytes_per_ms": 448000000.0,
+                  "channel": "d2d_intra_package",
+                  "latency_us": 0.8,
+                  "members": [
+                    8,
+                    9
+                  ],
+                  "name": "d2d_intra_package:8",
+                  "semantics": "per_port"
+                },
+                {
+                  "capacity_bytes_per_ms": 448000000.0,
+                  "channel": "d2d_intra_package",
+                  "latency_us": 0.8,
+                  "members": [
+                    10,
+                    11
+                  ],
+                  "name": "d2d_intra_package:10",
+                  "semantics": "per_port"
+                },
+                {
+                  "capacity_bytes_per_ms": 448000000.0,
+                  "channel": "d2d_intra_package",
+                  "latency_us": 0.8,
+                  "members": [
+                    12,
+                    13
+                  ],
+                  "name": "d2d_intra_package:12",
+                  "semantics": "per_port"
+                },
+                {
+                  "capacity_bytes_per_ms": 448000000.0,
+                  "channel": "d2d_intra_package",
+                  "latency_us": 0.8,
+                  "members": [
+                    14,
+                    15
+                  ],
+                  "name": "d2d_intra_package:14",
+                  "semantics": "per_port"
+                },
+                {
+                  "capacity_bytes_per_ms": 196000000.0,
+                  "channel": "d2d_intra_node",
+                  "latency_us": 2.5,
+                  "members": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7,
+                    8,
+                    9,
+                    10,
+                    11,
+                    12,
+                    13,
+                    14,
+                    15
+                  ],
+                  "name": "d2d_intra_node:0",
+                  "semantics": "per_port"
+                }
+              ],
+              "placements": [
+                {
+                  "node": 0,
+                  "package": 0,
+                  "rank": 0
+                },
+                {
+                  "node": 0,
+                  "package": 0,
+                  "rank": 1
+                },
+                {
+                  "node": 0,
+                  "package": 1,
+                  "rank": 2
+                },
+                {
+                  "node": 0,
+                  "package": 1,
+                  "rank": 3
+                },
+                {
+                  "node": 0,
+                  "package": 2,
+                  "rank": 4
+                },
+                {
+                  "node": 0,
+                  "package": 2,
+                  "rank": 5
+                },
+                {
+                  "node": 0,
+                  "package": 3,
+                  "rank": 6
+                },
+                {
+                  "node": 0,
+                  "package": 3,
+                  "rank": 7
+                },
+                {
+                  "node": 0,
+                  "package": 4,
+                  "rank": 8
+                },
+                {
+                  "node": 0,
+                  "package": 4,
+                  "rank": 9
+                },
+                {
+                  "node": 0,
+                  "package": 5,
+                  "rank": 10
+                },
+                {
+                  "node": 0,
+                  "package": 5,
+                  "rank": 11
+                },
+                {
+                  "node": 0,
+                  "package": 6,
+                  "rank": 12
+                },
+                {
+                  "node": 0,
+                  "package": 6,
+                  "rank": 13
+                },
+                {
+                  "node": 0,
+                  "package": 7,
+                  "rank": 14
+                },
+                {
+                  "node": 0,
+                  "package": 7,
+                  "rank": 15
+                }
+              ],
+              "ranks_per_node": 16
+            }
+          },
+          "coordinates": {
+            "declared_input_bytes": {
+              "path": "metadata.hccl_selection.payload_bytes"
+            }
+          },
+          "domain": {
+            "declared_input_bytes": {
+              "min": 229376,
+              "max": 917504
+            }
+          },
+          "response": {
+            "kind": "piecewise_linear",
+            "coordinate": "declared_input_bytes",
+            "knots": [
+              [
+                229376,
+                61.98428979988053
+              ],
+              [
+                688128,
+                38.60906976744186
+              ],
+              [
+                917504,
+                38.60906976744186
+              ]
+            ],
+            "outside": "analytic"
+          }
+        },
+        {
+          "id": "kimi-a3-tp16-grouped-situ",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "grouped_situ"
+          },
+          "coordinates": {
+            "active_routed_rows": {
+              "path": "semantic_shape.0"
+            }
+          },
+          "response": {
+            "kind": "affine",
+            "fixed_us": 7.5,
+            "terms": [
+              {
+                "coordinate": "active_routed_rows",
+                "us_per_unit": 2.33
+              }
+            ]
+          }
+        },
+        {
+          "id": "kimi-a3-tp16-recurrent-kda",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "vllm_ascend_recurrent_kda_arch22"
+          },
+          "coordinates": {
+            "state_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "response": {
+            "kind": "affine",
+            "fixed_us": 12.5,
+            "terms": [
+              {
+                "coordinate": "state_elements",
+                "us_per_unit": 1.3428e-05
+              }
+            ]
+          }
+        },
+        {
+          "id": "kimi-a3-tp16-causal-conv1d",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "short_convolution"
+          },
+          "coordinates": {
+            "conv_elements": {
+              "path": "local_shape.0"
+            }
+          },
+          "response": {
+            "kind": "affine",
+            "fixed_us": 9.5,
+            "terms": [
+              {
+                "coordinate": "conv_elements",
+                "us_per_unit": 6e-05
+              }
+            ]
+          }
+        }
+      ]
     },
     "metadata": {
       "draft_proposal_tokens": 0,
@@ -432,6 +1009,25 @@
           "basis": "Explicit platform mapping: read 110 and write 86 bytes/cycle × 20 AIC owners × 1.65 GHz; 168 MiB shared L2 per physical die. Not a timing fit, measured cache-hit rate or SKU default.",
           "resource_sharing": "Cached MTE2 uses the original mte2_aic pipe; L2 read/write share one l2 resource. Other rates, buffers and modes remain unchanged."
         }
+      },
+      "conditional_hccl_source_control": {
+        "basis": "explicit_source_compatible_AICPU_TS_mesh_separate; captured_executor_and_payload_arguments_not_observed",
+        "canonical_input": {
+          "path": "/Users/maoxx241/code/profiler/examples/structure/cases/a3-kimi4-tp16-longctx-source.json",
+          "sha256": "7d50920f678fd5317e9b37edcfc97fafd0029f65cf97940b6bbdcd263f5bc2c7",
+          "bytes": 15110
+        },
+        "fit": "none",
+        "unpriced": [
+          "hccl_copy",
+          "hccl_reduce",
+          "hccl_control"
+        ],
+        "limits": [
+          "HCOM event descriptors are N/A; payload is caller-declared only.",
+          "No source selector task constants are installed as measured hardware rates.",
+          "One physical node and original rank count are unchanged."
+        ]
       }
     },
     "graph_capture_mode": "full",

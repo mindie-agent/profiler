@@ -304,11 +304,13 @@ def _terminal_norm(rows, config):
                        and row.outputs[0][-2:] == (plan["hc_mult"], config["hidden_size"])), None)
     hidden, mult = config["hidden_size"], plan["hc_mult"]
     factor = config.get("sequence_parallel", {}).get("factor", 1)
+    norm_rows = prod(norm.inputs[0][:-1]) if norm.inputs and norm.inputs[0] else 0
     return (residual.outputs and residual.outputs[0][-2:] == (mult, hidden)
-            and reduced and reduced.outputs and multiplied and norm.inputs and norm.outputs
-            and reduced.outputs[0] == norm.inputs[0] == norm.outputs[0]
-            and prod(multiplied.outputs[0][:-2]) == prod(norm.inputs[0][:-1])
-            and prod(residual.outputs[0][:-2]) * factor == prod(norm.inputs[0][:-1]))
+            and reduced and reduced.outputs and reduced.outputs[0][-1:] == (hidden,)
+            and multiplied and norm.inputs and norm.outputs and norm.inputs[0] == norm.outputs[0]
+            and prod(multiplied.outputs[0][:-2]) == prod(reduced.outputs[0][:-1])
+            and prod(reduced.outputs[0][:-1]) in {norm_rows, norm_rows // max(1, factor)}
+            and prod(residual.outputs[0][:-2]) * factor == norm_rows)
 
 
 def _body_end(rows, final_norm, last_anchor, plan, query_rows, hidden):
