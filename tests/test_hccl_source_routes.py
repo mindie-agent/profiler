@@ -12,7 +12,7 @@ from audit_hccl_source_routes import (
 
 
 def source_catalog():
-    return json.loads((ROOT/'examples/structure/acceptance-20261030-hccl-source/hccl-source-template-audit.json').read_text())['registrations']
+    return json.loads((ROOT/'tests/fixtures/hccl/source-registrations.json').read_text())['registrations']
 
 
 def test_collective_size_is_not_the_same_buffer_extent_for_all_operations():

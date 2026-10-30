@@ -29,7 +29,7 @@ import json
 from dataclasses import dataclass, field
 from typing import Any
 
-PARSER_VERSION = "mindie_profiler/0.5.1"
+PARSER_VERSION = "mindie_profiler/0.5.2"
 REPORT_SCHEMA = "mindie-profile-summary/1"
 
 

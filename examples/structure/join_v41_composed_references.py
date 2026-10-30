@@ -9,7 +9,6 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from compare_glm_native_partitions import render
 from replay_body_operator_families import identity, read, write
 
 
@@ -72,6 +71,7 @@ def join(native_path, normalized_path):
 
 
 def main():
+    from compare_glm_native_partitions import render
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--native-report", type=Path, required=True)
     parser.add_argument("--normalized-report", type=Path, required=True)

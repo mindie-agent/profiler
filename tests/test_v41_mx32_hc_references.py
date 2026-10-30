@@ -9,6 +9,7 @@ import sys
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "examples/structure"))
 
 
 @pytest.fixture(scope="module")
@@ -203,5 +204,6 @@ def test_retained_relative_actual_pin_matches_resolved_successful_replay():
     retained = json.loads((base / "acceptance-20261030-v41-composed-native-5ec8843a/v41-composed-native-reference-scoreboard.json").read_text())
     original = next(c for c in retained["cases"] if c["case_id"] == "a5_v41_fp8_tp1_dp8_ep8_c32_p2k")
     current = json.loads((base / "acceptance-20261030-v41-composed-operators-40e4300e/a5_v41_fp8_tp1_dp8_ep8_c32_p2k/body-operator-family-scoreboard.json").read_text())["cases"][0]
-    assert helper.resolved_pin(original["actual_identity"]) == current["actual_identity"]
+    assert helper.resolved_pin(original["actual_identity"]) == {**current["actual_identity"],
+        "path": str(Path(original["actual_identity"]["path"]).resolve())}
     assert original["actual_identity"]["sha256"] == current["actual_identity"]["sha256"]

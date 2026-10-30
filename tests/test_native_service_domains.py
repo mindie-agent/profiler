@@ -5,6 +5,8 @@ import sys
 
 import pytest
 
+pytest.importorskip("mindie_sim", reason="companion Sim acceptance tools require the optional runtime")
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'examples/structure'))
 from price_native_service_domains import observed_population, selected_programs

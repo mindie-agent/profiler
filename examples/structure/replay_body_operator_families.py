@@ -28,8 +28,6 @@ from mindie_profiler.normalized import kernel_rows, shapes, row_from_event
 from mindie_profiler.native_tensor_abi import native_tensor_contract
 from mindie_profiler.structure_cohorts import CohortAccumulator
 from mindie_profiler.structure_mapping import StructureMapper, _freeze
-from mindie_sim.prediction.structure import parse_case
-from mindie_sim.structure import export_structure
 from body_source_role_references import SourceRoleReferences
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -288,6 +286,8 @@ def geometry_key(geometry):
 
 
 def extract_case(entry, case_paths, output, *, context_tokens=None, geometry_limit=None):
+    from mindie_sim.prediction.structure import parse_case
+    from mindie_sim.structure import export_structure
     started=time.perf_counter(); runtime_before=runtime_identity()
     prior=read(entry['report_path'])
     if digest(entry['report_path'])!=entry['report_sha256']:raise ValueError('body_acceptance_identity_changed')

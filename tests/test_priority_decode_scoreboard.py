@@ -124,7 +124,7 @@ def test_prediction_timeout_keeps_completed_capture_population(monkeypatch):
     root = Path(__file__).resolve().parents[1]
     monkeypatch.syspath_prepend(str(root / "examples/structure"))
     module = importlib.import_module("priority_decode_scoreboard")
-    source = root / "examples/structure/acceptance-20261030-matrix-fix/decode-forward-glm-replay.json"
+    source = root / "tests/fixtures/scoreboard/glm-timeout-populations.json"
     report = module.build([source], [])
     failure, = report["body_failed_attempts"]
     assert failure["comparison"]["observed_ms"]["count"] == 27

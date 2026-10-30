@@ -6,6 +6,8 @@ import sys
 
 import pytest
 
+pytest.importorskip("mindie_sim", reason="companion Sim acceptance tools require the optional runtime")
+
 ROOT=Path(__file__).resolve().parents[1]
 SCRIPTS=ROOT/'examples/structure'
 sys.path.insert(0,str(SCRIPTS))

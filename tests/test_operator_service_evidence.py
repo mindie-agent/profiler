@@ -6,6 +6,8 @@ import sys
 
 import pytest
 
+pytest.importorskip("mindie_sim", reason="companion Sim acceptance tools require the optional runtime")
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'examples/structure'))
 from operator_service_evidence import service_execution_evidence
@@ -64,9 +66,9 @@ def test_public_complete_tensor_cohort_executes_joint_service_once():
 
 
 def test_retained_joint_response_projection_keeps_unknown_counters_unknown():
-    path = ROOT / 'examples/structure/acceptance-20261030-glm78-joint-service/decode-forward-glm78-joint-service-replay.json'
+    path = ROOT / 'tests/fixtures/scoreboard/glm-joint-execution.json'
     report = json.loads(path.read_text())
-    original = next(row for row in report['cases'] if row.get('prediction'))['prediction']['parameters']
+    original = report['parameters']
     evidence = service_execution_evidence(deepcopy(original))
     assert evidence['serviced_resources'] is None
     assert evidence['serviced_resources_basis'] == 'not_retained'

@@ -34,14 +34,16 @@ def retained_population_origin(actual, partitions, current_actual_identity, nati
     retained = {**retained, 'path': str(path.resolve())}
     if identity(path) != retained:
         raise ValueError('matrix_partition_original_actual_changed')
-    if retained == current_actual_identity:
+    def same_content(left, right):
+        return bool(left and right and all(left.get(k) == right.get(k) for k in ('sha256', 'size_bytes')))
+    if same_content(retained, current_actual_identity):
         return {'basis': 'same_actual', 'retained_actual_identity': retained,
                 'original_actual_identity': actual.get('original_actual_identity', retained)}
     source = read(path)
     original = actual.get('original_actual_identity')
-    if original != retained and actual.get('previous_actual_identity') != retained:
+    if not same_content(original, retained) and not same_content(actual.get('previous_actual_identity'), retained):
         shared = source.get('original_actual_identity')
-        if not shared or original != shared or identity(shared['path']) != shared:
+        if not shared or not same_content(original, shared) or identity(shared['path']) != shared:
             raise ValueError('matrix_partition_actual_identity_differs')
     for key in ('source_identity', 'body_acceptance_identity', 'geometry', 'forward_count', 'source_case_id'):
         if source[key] != actual[key] or source[key] != partitions[key]:

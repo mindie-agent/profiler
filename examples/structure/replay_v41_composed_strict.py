@@ -12,9 +12,7 @@ import subprocess
 import sys
 import time
 
-from reprice_body_operator_families import render_repriced, runtime_identity
 from replay_body_operator_families import identity, read, write
-from replay_fusion_cohorts import _program_key
 
 
 def resolved_pin(record):
@@ -23,6 +21,8 @@ def resolved_pin(record):
 
 
 def main():
+    from reprice_body_operator_families import render_repriced, runtime_identity
+    from replay_fusion_cohorts import _program_key
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--native-report", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
