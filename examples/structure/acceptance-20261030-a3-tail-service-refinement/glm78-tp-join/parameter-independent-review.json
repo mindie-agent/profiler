@@ -1,0 +1,32 @@
+{
+  "status": "passed",
+  "checks": 142,
+  "failures": [],
+  "report_sha256": "010b69ca5cd0f87ab348ada6a5342f16716685810522747576fc428cf4096758",
+  "proof_sha256": "d3d9bbe4fe55ed20f3195affe8acd998f7dfc3ef0c295bb7b28576af4f72459b",
+  "cases": [
+    {
+      "case_id": "a3_glm53_dc16k_b1:q1_b1_m1",
+      "new_rules": 3,
+      "body_relative_error": -0.2087849373632256,
+      "body_passed": false
+    },
+    {
+      "case_id": "a3_glm53_dc4k_b1:q1_b1_m1",
+      "new_rules": 3,
+      "body_relative_error": -0.20559085021918877,
+      "body_passed": false
+    },
+    {
+      "case_id": "a3_glm53_dc4k_b2:q1_b2_m2",
+      "new_rules": 3,
+      "body_relative_error": -0.2012218227327322,
+      "body_passed": false
+    }
+  ],
+  "execution": {
+    "peak_rss_bytes": 50233344,
+    "new_cost_predictions": 0,
+    "raw_scans": 0
+  }
+}
