@@ -462,6 +462,9 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
     for heavy, label in ((True, "heavy_relative_15pct"), (False, "micro_absolute_15us")):
         selected = [row for row in current_cohorts if row["status"] == "compared" and row["heavy_call"] == heavy]
         tiers[label] = {"compared": len(selected), "passed": sum(row["accuracy_pass"] is True for row in selected)}
+    from high_concurrency_scoreboard import precision_summary
+    precision = precision_summary(row['comparison'].get('relative_error') for row in current_rows
+                                  if row['comparison']['status'] == 'compared')
     history = [body_history_row(row) for row in bodies]
     focus = None
     if focus_spec_path:
@@ -503,6 +506,7 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
                         "body_passed": sum(row["comparison"].get("passed") is True for row in bodies),
                         "current_body_compared": sum(row["comparison"]["status"] == "compared" for row in current_rows),
                         "current_body_passed": sum(row["comparison"].get("passed") is True for row in current_rows),
+                        "current_body_precision": precision,
                         "invalidated_body_prediction_arms": sum("prediction_invalidation" in row for row in bodies),
                         "body_failed_attempts": sum(row["comparison"]["status"] == "failed" for row in bodies),
                         "latest_body_attempt_count": len(latest_attempts),
@@ -546,10 +550,16 @@ def _runtime_tag(row):
 
 def render(report):
     summary = report["summary"]
+    precision = summary['current_body_precision']
     lines = ["# Priority Decode body, layer and operator scoreboard", "",
              f"Coverage status: **{report['coverage_status']}**. Missing predictions and unmatched roles stay visible.", "",
              f"Current selected Body arms: **{summary['current_body_passed']}/{summary['current_body_compared']} passed**. "
              "One latest completed receipt per measured source/geometry, selected in input order; each row retains its own runtime and case.", "",
+             'Current Body precision goals: ' + '; '.join(
+                 f"**≤{percent}%: {count}/{precision['population_count']}**"
+                 for percent, count in precision['within_relative_error'].items()) +
+             f". Absolute error mean / median: {_num(None if precision['absolute_relative_error_mean'] is None else 100 * precision['absolute_relative_error_mean'], 2)}% / {_num(None if precision['absolute_relative_error_median'] is None else 100 * precision['absolute_relative_error_median'], 2)}%. "
+             'Each selected source/geometry counts once; these goals do not change the 15% acceptance threshold.', '',
              f"Latest attempted Body arms: **{summary['latest_body_attempt_completed']}/{summary['latest_body_attempt_count']} completed**, "
              f"**{summary['latest_body_attempt_failed']} failed**, **{summary['latest_body_attempt_passed']} passed**. "
              "An earlier completed prediction remains available above when the newest attempt fails; it is not a successful new replay.", "",

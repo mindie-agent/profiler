@@ -12,8 +12,23 @@ import hashlib
 import json
 from pathlib import Path
 import resource
+from statistics import median
 
 import ijson
+
+
+def precision_summary(errors):
+    """Count tighter goals on the same completed populations, without new fits."""
+    values = sorted(abs(error) for error in errors if error is not None)
+    return {
+        'population_count': len(values),
+        'weighting': 'one selected completed source/geometry population; no Forward weighting',
+        'absolute_relative_error_mean': sum(values) / len(values) if values else None,
+        'absolute_relative_error_median': median(values) if values else None,
+        'absolute_relative_error_max': values[-1] if values else None,
+        'within_relative_error': {str(percent): sum(value <= percent / 100 for value in values)
+                                  for percent in (5, 8, 10, 15)},
+    }
 
 
 def _key(row):
@@ -146,6 +161,7 @@ def build_focus(current_body_rows, focus_spec, latest_attempts=()):
             'body_pass_count': sum(row['body_accuracy_status'] == 'PASS' for row in sources),
             'body_fail_count': sum(row['body_accuracy_status'] == 'FAIL' for row in sources),
             'latest_execution_failed_count': sum(row['latest_execution_status'] == 'EXEC_FAILED' for row in sources),
+            'body_precision': precision_summary(row['relative_error'] for row in sources),
         },
         'sources': sources,
         'accepted_source_arms': [row['case_id'] for row in sources if row['source_arm_families']],
@@ -177,6 +193,9 @@ def render_focus(view):
     summary = view['summary']
     lines = ['## 已接受的 source arms', '',
         f"{summary['distinct_source_count']} 个独立来源 / {summary['observed_forward_count']} 次选中 Body Forward。两个表格有交集，分母只计一次。接受建模声明不代表精度达标。", '',
+        'Body 误差目标（同一分母）：' + '；'.join(
+            f"≤{percent}%：{count}/{summary['body_precision']['population_count']}"
+            for percent, count in summary['body_precision']['within_relative_error'].items()) + '。原 15% 验收标准不变。', '',
         '| Case / source family | 当前保留结果 | 最近执行 | Body error | calibration / evaluation | 契约边界 | 当前 runtime / receipt |',
         '|---|---|---|---:|---|---|---|']
     for row in view['sources']:

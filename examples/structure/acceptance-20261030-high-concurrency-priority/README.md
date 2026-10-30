@@ -6,7 +6,7 @@ selected complete Forwards; neither table adds captures to the main denominator.
 Execution completion, Body accuracy and native contract coverage are separate.
 
 The current focus has 13/13 Body PASS, including all six A5 priority cases.
-The main board has 66/66 PASS over 5,250 distinct observed Forwards, with all
+The current main board has 65/66 PASS over 5,250 distinct observed Forwards, with all
 66 latest predictions completed. Kimi low-concurrency c1/c2/c4/c8 now contributes
 eight new PASS results. A subsequent replay uses the source force-EPLB policy
 to close the declared expert-routing work discrepancy while retaining all eight
@@ -27,12 +27,19 @@ analytical schedule of each selected local native call while retaining input
 dependencies and queue contention. Analytical work remains reference data.
 The preceding source-only failures remain in the ordered history.
 
-The local-native joint baseline still declares generic MC2 pack/transport
-boundaries. Its 66/66 Body result does not establish native V2 caller fidelity.
-An independently reviewed V2 caller increment and explicit peer-window
-sensitivity are recorded separately before promotion, including regressions.
+The local-native joint baseline (`b306341`) reached 66/66 while still declaring
+generic MC2 pack/transport boundaries. Its Body result does not establish native
+V2 caller fidelity. The latest native V2 caller increment supersedes those three
+GLM78 rows: tpot30-c2 -14.8226%, tpot50-c2 -15.1251% (FAIL), c8 -3.9025%.
+Explicit peer-window 8 and 16 sensitivity gives identical Body and layer results.
+Both windows are logical assumptions; neither is inferred from captured tiling
+or selected by accuracy. The original 66/66 receipt remains in the history.
 Measured whole-group communication is a completion floor over its transport;
 it is not charged as a second transfer or used to infer a captured peer window.
+
+The tighter 5%, 8% and 10% goals use the same selected completed populations as
+the original 15% gate. Errors are not weighted by Forward counts or rounded
+before classification. Calibration and held-out status remain separate.
 
 `source-inventory.json` records selection identities, benchmark scenarios and the
 state before this replay. Its old predictions are not inputs to the focus table.

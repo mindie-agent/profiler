@@ -2,6 +2,8 @@
 
 13 个独立来源 / 877 次选中 Body Forward。两个表格有交集，分母只计一次。接受建模声明不代表精度达标。
 
+Body 误差目标（同一分母）：≤5%：2/13；≤8%：6/13；≤10%：7/13；≤15%：13/13。原 15% 验收标准不变。
+
 | Case / source family | 当前保留结果 | 最近执行 | Body error | calibration / evaluation | 契约边界 | 当前 runtime / receipt |
 |---|---|---|---:|---|---|---|
 | qwen36-a5-tp2-c96 / qwen36_tp2_hccl | Body PASS | COMPLETED | -1.59% | in_sample / in_sample | Body 不证明 native strict 闭合 | `e71d76a0e8fb` / [3132121ac920](/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/decode-forward-qwen-service-replay.json) |

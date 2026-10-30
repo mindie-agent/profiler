@@ -9,7 +9,20 @@
     "priority_a5_count": 6,
     "body_pass_count": 13,
     "body_fail_count": 0,
-    "latest_execution_failed_count": 0
+    "latest_execution_failed_count": 0,
+    "body_precision": {
+      "population_count": 13,
+      "weighting": "one selected completed source/geometry population; no Forward weighting",
+      "absolute_relative_error_mean": 0.09225397020681353,
+      "absolute_relative_error_median": 0.08092960886625374,
+      "absolute_relative_error_max": 0.1492252632422039,
+      "within_relative_error": {
+        "5": 2,
+        "8": 6,
+        "10": 7,
+        "15": 13
+      }
+    }
   },
   "sources": [
     {
@@ -207134,8 +207147,8 @@
   "inputs": {
     "scoreboard": {
       "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-priority/priority-three-level-scoreboard.json",
-      "sha256": "a4c880b309bc09c9f5d1fd2f756e8f8318387ac3729da1104239107726671bf5",
-      "size_bytes": 87326974
+      "sha256": "808f658da78474c84213aa7b7d3354b3a13965233775d0ea383767b4cbe83ade",
+      "size_bytes": 89099018
     },
     "focus_spec": {
       "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-high-concurrency-priority/source-inventory.json",
@@ -207146,6 +207159,6 @@
   "execution": {
     "new_costs": 0,
     "raw_scans": 0,
-    "maximum_resident_set_size_bytes": 95469568
+    "maximum_resident_set_size_bytes": 97304576
   }
 }

@@ -57,6 +57,15 @@ def test_real_body_accuracy_and_overlapping_sections_preserve_one_population(rea
     assert not v4['contract_boundary']['body_pass_implies_native_contract_closure']
     assert qwen['tpot']['client_profiled_ms']['p50'] == pytest.approx(31.824432297650745)
     assert qwen['observed_body_ms']['p50'] == pytest.approx(63.561524)
+    precision = view['summary']['body_precision']
+    errors = sorted(abs(row['comparison']['predicted_ms'] / row['comparison']['observed_ms']['mean'] - 1)
+                    for row in data['current'])
+    assert precision['population_count'] == 13
+    assert precision['within_relative_error'] == {
+        str(limit): sum(error <= limit / 100 for error in errors) for limit in (5, 8, 10, 15)}
+    assert precision['absolute_relative_error_mean'] == pytest.approx(sum(errors) / 13)
+    assert precision['absolute_relative_error_median'] == pytest.approx(errors[6])
+    assert precision['within_relative_error']['15'] == view['summary']['body_pass_count']
 
 
 def test_caller_selected_new_arm_replaces_old_without_using_focus_predictions(real_focus):

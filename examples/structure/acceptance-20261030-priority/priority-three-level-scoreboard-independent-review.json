@@ -1,20 +1,33 @@
 {
   "schema_version": "mindie-priority-scoreboard-independent-review/2",
   "status": "passed",
-  "checks": 210637,
+  "checks": 210788,
   "failures": [],
-  "report_sha256": "a4c880b309bc09c9f5d1fd2f756e8f8318387ac3729da1104239107726671bf5",
+  "report_sha256": "808f658da78474c84213aa7b7d3354b3a13965233775d0ea383767b4cbe83ade",
   "summary": {
-    "body_compared": 680,
-    "body_passed": 221,
+    "body_compared": 683,
+    "body_passed": 223,
     "current_body_compared": 66,
-    "current_body_passed": 66,
+    "current_body_passed": 65,
+    "current_body_precision": {
+      "population_count": 66,
+      "weighting": "one selected completed source/geometry population; no Forward weighting",
+      "absolute_relative_error_mean": 0.07627746955141632,
+      "absolute_relative_error_median": 0.07202113210415345,
+      "absolute_relative_error_max": 0.1512510639847193,
+      "within_relative_error": {
+        "5": 23,
+        "8": 36,
+        "10": 42,
+        "15": 65
+      }
+    },
     "invalidated_body_prediction_arms": 31,
     "body_failed_attempts": 20,
     "latest_body_attempt_count": 66,
     "latest_body_attempt_completed": 66,
     "latest_body_attempt_failed": 0,
-    "latest_body_attempt_passed": 66,
+    "latest_body_attempt_passed": 65,
     "body_denominator": "prediction_variants; identical observed populations are not additional captures",
     "unique_source_count": 66,
     "unique_source_geometry_populations": 222,
@@ -55,7 +68,7 @@
     "current_external_native_reference_forwards": 2784,
     "heavy_cohorts": 159
   },
-  "body_rows": 2290,
+  "body_rows": 2300,
   "family_rows": 10791,
   "cohort_rows": 3137,
   "reference_rows": 2240,
@@ -147,8 +160,8 @@
     }
   ],
   "execution": {
-    "elapsed_seconds": 23.733681333018467,
-    "peak_rss_bytes": 413368320,
+    "elapsed_seconds": 23.63292279106099,
+    "peak_rss_bytes": 426147840,
     "receipt_read_engine": "ijson top-level fields and sequential receipt cases"
   },
   "scope": "Independent sequential receipt reconciliation; no raw capture parsing or prediction. Invalidation, effective current Kimi precision, source/geometry deduplication, explicit input order, strict tier arithmetic and unscored source references are checked separately."

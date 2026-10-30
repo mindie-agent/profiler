@@ -180,7 +180,26 @@ def review_priority_focus(report, check):
         check(shown["priority_six"] == bool(declared.get("priority_six")) and shown["source_arm_families"] == declared.get("source_arm_families", []), label + " explicit focus selection")
     rows = focus["sources"]
     expected_summary = {"distinct_source_count": len({key(row)[1] for row in rows}), "selected_population_count": len(rows), "observed_forward_count": sum(row["observed_forward_count"] or 0 for row in rows), "accepted_source_arm_count": sum(bool(row["source_arm_families"]) for row in rows), "priority_a5_count": sum(row["priority_six"] for row in rows), "body_pass_count": sum(row["body_accuracy_status"] == "PASS" for row in rows), "body_fail_count": sum(row["body_accuracy_status"] == "FAIL" for row in rows), "latest_execution_failed_count": sum(row["latest_execution_status"] == "EXEC_FAILED" for row in rows)}
+    if 'body_precision' in focus['summary']:
+        review_precision(focus['summary']['body_precision'],
+                         (row['relative_error'] for row in rows), check, 'Focus')
+        expected_summary['body_precision'] = focus['summary']['body_precision']
     check(focus["summary"] == expected_summary, "Focus counts do not alter or duplicate populations")
+
+
+def review_precision(summary, errors, check, label):
+    values = sorted(abs(error) for error in errors if error is not None)
+    count = len(values)
+    midpoint = (values[(count - 1) // 2] + values[count // 2]) / 2 if count else None
+    check(summary['population_count'] == count, label + ' precision population')
+    expected = {'absolute_relative_error_mean': sum(values) / count if count else None,
+                'absolute_relative_error_median': midpoint,
+                'absolute_relative_error_max': max(values) if count else None}
+    for field, value in expected.items():
+        check(summary[field] == value, label + ' ' + field)
+    check(summary['within_relative_error'] == {
+        str(percent): sum(value <= percent / 100 for value in values) for percent in (5, 8, 10, 15)},
+        label + ' unrounded nested precision counts')
 
 
 def review(path):
@@ -571,6 +590,10 @@ def review(path):
                                  for key,values in runtime_sets.items()}
     summary = report["summary"]
     review_priority_focus(report, check)
+    if 'current_body_precision' in summary:
+        review_precision(summary['current_body_precision'],
+            (row['comparison'].get('relative_error') for row in current_body.values()
+             if row['comparison']['status'] == 'compared'), check, 'Current Body')
     if "latest_body_attempts" in report:
         check(Counter(canonical(row) for row in report["latest_body_attempts"]) ==
               Counter(canonical(row) for row in latest_attempts.values()), "Latest attempts retain failed cost workers")
