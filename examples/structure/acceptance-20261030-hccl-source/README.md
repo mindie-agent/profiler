@@ -86,3 +86,19 @@ python3 examples/structure/audit_hccl_source_routes.py \
 全量 join 基准为 2.40 秒、峰值约 195 MiB；零 raw capture 解析、零 Sim 成本计算。源码注册表包含编译条件下的候选域，不能作为当前捕获二进制的兼容性保证。
 
 独立审核完成 80,492 项检查（448 项源码文件 SHA/行边界，80,044 项 66-source/geometry/分组人口与候选域核对），0 失败。随后仅补充执行单元过滤范围说明，全部源码、注册、case 分组和数值逐项相同。DPU 额外只读旁证在 [统计元数据检查](../acceptance-20261030-hccl-66/dpu-presence-metadata.json)：60 个来源、374 份统计文件、32,126 行未命中 DPU，另 6 个来源没有该统计；这仍不能消除原 event-filter 的范围限制。
+
+## 已执行的条件源码服务与真实 elapsed 对照
+
+[小型独立对账](hccl-conditional-program-review.json) 读取 Sim 已提交 `ec58ce79` 的 [条件预测](/Users/maoxx241/code/sim-rewrite-20261027/data/verification/hccl-conditional-20261030.json) 与 [机制说明](/Users/maoxx241/code/sim-rewrite-20261027/docs/operators/hccl-source-expansion.md)，以原 ledger SHA、case SHA 和 capture SHA 关联到 66-source 账本。352 项检查通过；没有重扫 CSV 或重新计算成本。该 Sim 实验仅有 Qwen3.6 TP2 三行，不能称为 66 源通信预测验收。
+
+| Qwen3.6 TP2 | 条件模板 / 候选字节 | 实测 BlockNum | 源码服务预测 us | steady elapsed Mean / P50 us | 预测 − Mean us |
+| --- | --- | ---: | ---: | ---: | ---: |
+| c1，q4/B1 | OneShot / 40,960 | 3 | 4.129 | 10.511 / 9.958 | −6.382 |
+| c12，q4/B12 | OneShot / 491,520 | 3 | 42.420 | 42.095 / 39.730 | +0.325 |
+| c96，q4/B96 | TwoShot / 3,932,160 | 63 | 79.691 | 127.436 / 127.209 | −47.744 |
+
+表中 steady 是完整 Layer1–63 的 126 次 AllReduce/Forward，Mean/P50 从全量整数 ns 直方图池化得到；Layer0 两次调用仍保留在原 Body 的 128 次/Forward 中。c12 与 c96 的 Layer0 attention-output AllReduce Mean/P50 分别为 263.503/38.802 us、429.909/126.384 us。它们位于 GDN 输出投影之后、FFN 之前，不能当作 embedding 收尾裁掉，也没有足够跨 rank 关联证据把长尾全部归因于 peer wait。
+
+- 三组实测 `AivKernel` 支持 AIV 执行引擎；BlockNum 是真实 launch 字段。payload 来自前置 hidden 张量，`measured_payload_bytes` 仍为空；mesh、OneShot/TwoShot 和 separate buffer 都是显式条件，不是已绑定的捕获模板。
+- c12 Mean 差仅 +0.77%，仍不能靠耗时接近证明 OneShot；c96 的 −47.744 us（−37.47%）差距是真实待解释项，不能直接换算成链路带宽不足。c1 的 −6.382 us 同样保留，不用拟合固定延迟填平。
+- Qwen3.5 TP4 与 GLM A5 的六份实测账本已列入小型对账的覆盖缺口，但这份 Sim 实验没有对应预测。GLM 的 HCOM envelope 与 AICPU 控制任务仍分开，不能借用 Qwen AIV 模板或把两种 elapsed 相加。
