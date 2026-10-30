@@ -1,0 +1,4 @@
+qwen35-35b-a5-tp4-c4-graph 32760 32760
+qwen35-35b-a5-tp4-c64-graph 30810 30810
+{"case": "body-operator-qwen35-35b-a5-tp4-c128-graph-mc2-tp-complete-TensorMove-3b532649", "program": 1, "programs": 1, "status": "completed"}
+qwen35-35b-a5-tp4-c128-graph 29640 41800

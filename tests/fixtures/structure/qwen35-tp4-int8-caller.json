@@ -1,0 +1,2289 @@
+{
+  "schema_version": "mindie-retained-qwen35-caller-fixture/1",
+  "partition_identity": {
+    "path": "examples/structure/acceptance-20261030-qwen35-source-complete/native-partitions/qwen35-35b-a5-tp4-c128-graph-native-partitions.json",
+    "sha256": "5c81a3d7f8dd87da2e1c3329576528be16568f323a85fe4e861a2fb7d3a775cb"
+  },
+  "source_identity": {
+    "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+    "size_bytes": 88444963,
+    "mtime_ns": 1793299565000000000,
+    "schema_version": "kernel_details_csv_48col",
+    "sha256": "bf35b8b21c078d6fc7223918b280158fda5ee7c1f83009c70c98b16f27b08df5"
+  },
+  "geometry": {
+    "query_rows": 512,
+    "sequences_per_replica": 128,
+    "tokens_per_sequence": 4,
+    "context_tokens": null,
+    "batch_basis": "captured_paged_attention_block_table_rows",
+    "context_basis": "not_observed_from_cache_capacity"
+  },
+  "forward_count": 76,
+  "partitions": [
+    {
+      "native_operator_type": "GroupedMatmul",
+      "native_abi": [
+        "native_tensor_abi",
+        "GroupedMatmul",
+        [
+          [
+            [
+              4096,
+              2048
+            ],
+            "int8",
+            "ND"
+          ],
+          [
+            [
+              64,
+              32,
+              128,
+              16,
+              32
+            ],
+            "int8",
+            "FRACTAL_NZ"
+          ],
+          [
+            [],
+            "int32",
+            "ND"
+          ],
+          [
+            [],
+            "UINT64",
+            "ND"
+          ],
+          [
+            [],
+            "fp32",
+            "ND"
+          ],
+          [
+            [],
+            "fp16",
+            "ND"
+          ],
+          [
+            [],
+            "fp16",
+            "ND"
+          ],
+          [
+            [
+              64
+            ],
+            "int64",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              4096,
+              1024
+            ],
+            "int32",
+            "ND"
+          ]
+        ]
+      ],
+      "contract": null,
+      "attention_kind": "gdn",
+      "topology_region": "ffn",
+      "native_type_ordinal_in_region": 1,
+      "declared_roles": [],
+      "role_basis": "native_abi_and_whole_layer_region_only",
+      "layer_counts": {
+        "0": 76,
+        "1": 76,
+        "2": 76,
+        "4": 76,
+        "5": 76,
+        "6": 76,
+        "8": 76,
+        "9": 76,
+        "10": 76,
+        "12": 76,
+        "13": 76,
+        "14": 76,
+        "16": 76,
+        "17": 76,
+        "18": 76,
+        "20": 76,
+        "21": 76,
+        "22": 76,
+        "24": 76,
+        "25": 76,
+        "26": 76,
+        "28": 76,
+        "29": 76,
+        "30": 76,
+        "32": 76,
+        "33": 76,
+        "34": 76,
+        "36": 76,
+        "37": 76,
+        "38": 76
+      },
+      "forward_counts": {
+        "auto:1": 30,
+        "auto:2": 30,
+        "auto:3": 30,
+        "auto:4": 30,
+        "auto:5": 30,
+        "auto:6": 30,
+        "auto:7": 30,
+        "auto:8": 30,
+        "auto:9": 30,
+        "auto:10": 30,
+        "auto:11": 30,
+        "auto:12": 30,
+        "auto:13": 30,
+        "auto:14": 30,
+        "auto:15": 30,
+        "auto:16": 30,
+        "auto:17": 30,
+        "auto:18": 30,
+        "auto:19": 30,
+        "auto:20": 30,
+        "auto:21": 30,
+        "auto:22": 30,
+        "auto:23": 30,
+        "auto:24": 30,
+        "auto:25": 30,
+        "auto:26": 30,
+        "auto:27": 30,
+        "auto:28": 30,
+        "auto:29": 30,
+        "auto:30": 30,
+        "auto:31": 30,
+        "auto:32": 30,
+        "auto:33": 30,
+        "auto:34": 30,
+        "auto:35": 30,
+        "auto:36": 30,
+        "auto:37": 30,
+        "auto:38": 30,
+        "auto:39": 30,
+        "auto:40": 30,
+        "auto:41": 30,
+        "auto:42": 30,
+        "auto:43": 30,
+        "auto:44": 30,
+        "auto:45": 30,
+        "auto:46": 30,
+        "auto:47": 30,
+        "auto:48": 30,
+        "auto:49": 30,
+        "auto:50": 30,
+        "auto:51": 30,
+        "auto:52": 30,
+        "auto:53": 30,
+        "auto:54": 30,
+        "auto:55": 30,
+        "auto:56": 30,
+        "auto:57": 30,
+        "auto:58": 30,
+        "auto:59": 30,
+        "auto:60": 30,
+        "auto:61": 30,
+        "auto:62": 30,
+        "auto:63": 30,
+        "auto:64": 30,
+        "auto:65": 30,
+        "auto:66": 30,
+        "auto:67": 30,
+        "auto:68": 30,
+        "auto:69": 30,
+        "auto:70": 30,
+        "auto:71": 30,
+        "auto:72": 30,
+        "auto:73": 30,
+        "auto:74": 30,
+        "auto:75": 30,
+        "auto:76": 30
+      },
+      "examples": [
+        {
+          "locator": {
+            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+            "table": "kernel_details.csv",
+            "row_index": 22551,
+            "csv_line": 22553,
+            "task_id": "11196",
+            "stream_id": "24",
+            "device_id": "0"
+          },
+          "layer_id": 0,
+          "forward_id": "auto:1",
+          "start_ns": 1793299089173688372,
+          "end_ns": 1793299089173751163
+        },
+        {
+          "locator": {
+            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+            "table": "kernel_details.csv",
+            "row_index": 22604,
+            "csv_line": 22606,
+            "task_id": "11268",
+            "stream_id": "24",
+            "device_id": "0"
+          },
+          "layer_id": 1,
+          "forward_id": "auto:1",
+          "start_ns": 1793299089174411841,
+          "end_ns": 1793299089174472785
+        }
+      ],
+      "observed_us": {
+        "count": 2280,
+        "mean": 62.32827412280702,
+        "p50": 62.2955,
+        "p90": 63.66,
+        "min": 59.275,
+        "max": 71.889
+      },
+      "observed_activity_ms_per_forward": 1.8698482236842104
+    },
+    {
+      "native_operator_type": "DequantSwigluQuant",
+      "native_abi": [
+        "native_tensor_abi",
+        "DequantSwigluQuant",
+        [
+          [
+            [
+              4096,
+              1024
+            ],
+            "int32",
+            "ND"
+          ],
+          [
+            [
+              64,
+              1024
+            ],
+            "fp32",
+            "ND"
+          ],
+          [
+            [
+              4096
+            ],
+            "fp32",
+            "ND"
+          ],
+          [
+            [],
+            null,
+            null
+          ],
+          [
+            [],
+            null,
+            null
+          ],
+          [
+            [],
+            null,
+            null
+          ],
+          [
+            [
+              64
+            ],
+            "int64",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              4096,
+              512
+            ],
+            "int8",
+            "ND"
+          ],
+          [
+            [
+              4096
+            ],
+            "fp32",
+            "ND"
+          ]
+        ]
+      ],
+      "contract": null,
+      "attention_kind": "gdn",
+      "topology_region": "ffn",
+      "native_type_ordinal_in_region": 1,
+      "declared_roles": [],
+      "role_basis": "native_abi_and_whole_layer_region_only",
+      "layer_counts": {
+        "0": 76,
+        "1": 76,
+        "2": 76,
+        "4": 76,
+        "5": 76,
+        "6": 76,
+        "8": 76,
+        "9": 76,
+        "10": 76,
+        "12": 76,
+        "13": 76,
+        "14": 76,
+        "16": 76,
+        "17": 76,
+        "18": 76,
+        "20": 76,
+        "21": 76,
+        "22": 76,
+        "24": 76,
+        "25": 76,
+        "26": 76,
+        "28": 76,
+        "29": 76,
+        "30": 76,
+        "32": 76,
+        "33": 76,
+        "34": 76,
+        "36": 76,
+        "37": 76,
+        "38": 76
+      },
+      "forward_counts": {
+        "auto:1": 30,
+        "auto:2": 30,
+        "auto:3": 30,
+        "auto:4": 30,
+        "auto:5": 30,
+        "auto:6": 30,
+        "auto:7": 30,
+        "auto:8": 30,
+        "auto:9": 30,
+        "auto:10": 30,
+        "auto:11": 30,
+        "auto:12": 30,
+        "auto:13": 30,
+        "auto:14": 30,
+        "auto:15": 30,
+        "auto:16": 30,
+        "auto:17": 30,
+        "auto:18": 30,
+        "auto:19": 30,
+        "auto:20": 30,
+        "auto:21": 30,
+        "auto:22": 30,
+        "auto:23": 30,
+        "auto:24": 30,
+        "auto:25": 30,
+        "auto:26": 30,
+        "auto:27": 30,
+        "auto:28": 30,
+        "auto:29": 30,
+        "auto:30": 30,
+        "auto:31": 30,
+        "auto:32": 30,
+        "auto:33": 30,
+        "auto:34": 30,
+        "auto:35": 30,
+        "auto:36": 30,
+        "auto:37": 30,
+        "auto:38": 30,
+        "auto:39": 30,
+        "auto:40": 30,
+        "auto:41": 30,
+        "auto:42": 30,
+        "auto:43": 30,
+        "auto:44": 30,
+        "auto:45": 30,
+        "auto:46": 30,
+        "auto:47": 30,
+        "auto:48": 30,
+        "auto:49": 30,
+        "auto:50": 30,
+        "auto:51": 30,
+        "auto:52": 30,
+        "auto:53": 30,
+        "auto:54": 30,
+        "auto:55": 30,
+        "auto:56": 30,
+        "auto:57": 30,
+        "auto:58": 30,
+        "auto:59": 30,
+        "auto:60": 30,
+        "auto:61": 30,
+        "auto:62": 30,
+        "auto:63": 30,
+        "auto:64": 30,
+        "auto:65": 30,
+        "auto:66": 30,
+        "auto:67": 30,
+        "auto:68": 30,
+        "auto:69": 30,
+        "auto:70": 30,
+        "auto:71": 30,
+        "auto:72": 30,
+        "auto:73": 30,
+        "auto:74": 30,
+        "auto:75": 30,
+        "auto:76": 30
+      },
+      "examples": [
+        {
+          "locator": {
+            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+            "table": "kernel_details.csv",
+            "row_index": 22554,
+            "csv_line": 22556,
+            "task_id": "11199",
+            "stream_id": "24",
+            "device_id": "0"
+          },
+          "layer_id": 0,
+          "forward_id": "auto:1",
+          "start_ns": 1793299089173757716,
+          "end_ns": 1793299089173814306
+        },
+        {
+          "locator": {
+            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+            "table": "kernel_details.csv",
+            "row_index": 22607,
+            "csv_line": 22609,
+            "task_id": "11271",
+            "stream_id": "24",
+            "device_id": "0"
+          },
+          "layer_id": 1,
+          "forward_id": "auto:1",
+          "start_ns": 1793299089174479178,
+          "end_ns": 1793299089174536691
+        }
+      ],
+      "observed_us": {
+        "count": 2280,
+        "mean": 57.2552399122807,
+        "p50": 57.135,
+        "p90": 58.567,
+        "min": 54.163,
+        "max": 61.123
+      },
+      "observed_activity_ms_per_forward": 1.717657197368421
+    },
+    {
+      "native_operator_type": "GroupedMatmul",
+      "native_abi": [
+        "native_tensor_abi",
+        "GroupedMatmul",
+        [
+          [
+            [
+              4096,
+              512
+            ],
+            "int8",
+            "ND"
+          ],
+          [
+            [
+              64,
+              64,
+              32,
+              16,
+              32
+            ],
+            "int8",
+            "FRACTAL_NZ"
+          ],
+          [
+            [],
+            "int32",
+            "ND"
+          ],
+          [
+            [
+              64,
+              2048
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [],
+            "fp32",
+            "ND"
+          ],
+          [
+            [],
+            "fp16",
+            "ND"
+          ],
+          [
+            [],
+            "fp16",
+            "ND"
+          ],
+          [
+            [
+              64
+            ],
+            "int64",
+            "ND"
+          ],
+          [
+            [
+              4096
+            ],
+            "fp32",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              4096,
+              2048
+            ],
+            "bf16",
+            "ND"
+          ]
+        ]
+      ],
+      "contract": null,
+      "attention_kind": "gdn",
+      "topology_region": "ffn",
+      "native_type_ordinal_in_region": 2,
+      "declared_roles": [],
+      "role_basis": "native_abi_and_whole_layer_region_only",
+      "layer_counts": {
+        "0": 76,
+        "1": 76,
+        "2": 76,
+        "4": 76,
+        "5": 76,
+        "6": 76,
+        "8": 76,
+        "9": 76,
+        "10": 76,
+        "12": 76,
+        "13": 76,
+        "14": 76,
+        "16": 76,
+        "17": 76,
+        "18": 76,
+        "20": 76,
+        "21": 76,
+        "22": 76,
+        "24": 76,
+        "25": 76,
+        "26": 76,
+        "28": 76,
+        "29": 76,
+        "30": 76,
+        "32": 76,
+        "33": 76,
+        "34": 76,
+        "36": 76,
+        "37": 76,
+        "38": 76
+      },
+      "forward_counts": {
+        "auto:1": 30,
+        "auto:2": 30,
+        "auto:3": 30,
+        "auto:4": 30,
+        "auto:5": 30,
+        "auto:6": 30,
+        "auto:7": 30,
+        "auto:8": 30,
+        "auto:9": 30,
+        "auto:10": 30,
+        "auto:11": 30,
+        "auto:12": 30,
+        "auto:13": 30,
+        "auto:14": 30,
+        "auto:15": 30,
+        "auto:16": 30,
+        "auto:17": 30,
+        "auto:18": 30,
+        "auto:19": 30,
+        "auto:20": 30,
+        "auto:21": 30,
+        "auto:22": 30,
+        "auto:23": 30,
+        "auto:24": 30,
+        "auto:25": 30,
+        "auto:26": 30,
+        "auto:27": 30,
+        "auto:28": 30,
+        "auto:29": 30,
+        "auto:30": 30,
+        "auto:31": 30,
+        "auto:32": 30,
+        "auto:33": 30,
+        "auto:34": 30,
+        "auto:35": 30,
+        "auto:36": 30,
+        "auto:37": 30,
+        "auto:38": 30,
+        "auto:39": 30,
+        "auto:40": 30,
+        "auto:41": 30,
+        "auto:42": 30,
+        "auto:43": 30,
+        "auto:44": 30,
+        "auto:45": 30,
+        "auto:46": 30,
+        "auto:47": 30,
+        "auto:48": 30,
+        "auto:49": 30,
+        "auto:50": 30,
+        "auto:51": 30,
+        "auto:52": 30,
+        "auto:53": 30,
+        "auto:54": 30,
+        "auto:55": 30,
+        "auto:56": 30,
+        "auto:57": 30,
+        "auto:58": 30,
+        "auto:59": 30,
+        "auto:60": 30,
+        "auto:61": 30,
+        "auto:62": 30,
+        "auto:63": 30,
+        "auto:64": 30,
+        "auto:65": 30,
+        "auto:66": 30,
+        "auto:67": 30,
+        "auto:68": 30,
+        "auto:69": 30,
+        "auto:70": 30,
+        "auto:71": 30,
+        "auto:72": 30,
+        "auto:73": 30,
+        "auto:74": 30,
+        "auto:75": 30,
+        "auto:76": 30
+      },
+      "examples": [
+        {
+          "locator": {
+            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+            "table": "kernel_details.csv",
+            "row_index": 22555,
+            "csv_line": 22557,
+            "task_id": "11201",
+            "stream_id": "24",
+            "device_id": "0"
+          },
+          "layer_id": 0,
+          "forward_id": "auto:1",
+          "start_ns": 1793299089173814377,
+          "end_ns": 1793299089173858939
+        },
+        {
+          "locator": {
+            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+            "table": "kernel_details.csv",
+            "row_index": 22608,
+            "csv_line": 22610,
+            "task_id": "11273",
+            "stream_id": "24",
+            "device_id": "0"
+          },
+          "layer_id": 1,
+          "forward_id": "auto:1",
+          "start_ns": 1793299089174536762,
+          "end_ns": 1793299089174585383
+        }
+      ],
+      "observed_us": {
+        "count": 2280,
+        "mean": 45.4154653508772,
+        "p50": 45.2425,
+        "p90": 47.228,
+        "min": 42.676,
+        "max": 51.38
+      },
+      "observed_activity_ms_per_forward": 1.3624639605263158
+    },
+    {
+      "native_operator_type": "MoeDistributeDispatchV3",
+      "native_abi": [
+        "native_tensor_abi",
+        "MoeDistributeDispatchV3",
+        [
+          [
+            [
+              4100
+            ],
+            "int32",
+            "ND"
+          ],
+          [
+            [
+              128,
+              2048
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              128,
+              8
+            ],
+            "int32",
+            "ND"
+          ],
+          [
+            [],
+            null,
+            null
+          ],
+          [
+            [
+              128
+            ],
+            "bool",
+            "ND"
+          ],
+          [
+            [],
+            null,
+            null
+          ],
+          [
+            [],
+            null,
+            null
+          ],
+          [
+            [],
+            null,
+            null
+          ]
+        ],
+        [
+          [
+            [
+              4096,
+              2048
+            ],
+            "int8",
+            "ND"
+          ],
+          [
+            [
+              4096
+            ],
+            "fp32",
+            "ND"
+          ],
+          [
+            [
+              524288
+            ],
+            "int32",
+            "ND"
+          ],
+          [
+            [
+              64
+            ],
+            "int64",
+            "ND"
+          ],
+          [
+            [
+              256
+            ],
+            "int32",
+            "ND"
+          ],
+          [
+            [
+              1
+            ],
+            "int32",
+            "ND"
+          ],
+          [
+            [
+              4096
+            ],
+            "fp32",
+            "ND"
+          ]
+        ]
+      ],
+      "contract": null,
+      "attention_kind": "gdn",
+      "topology_region": "ffn",
+      "native_type_ordinal_in_region": 1,
+      "declared_roles": [],
+      "role_basis": "native_abi_and_whole_layer_region_only",
+      "layer_counts": {
+        "0": 76,
+        "1": 76,
+        "2": 76,
+        "4": 76,
+        "5": 76,
+        "6": 76,
+        "8": 76,
+        "9": 76,
+        "10": 76,
+        "12": 76,
+        "13": 76,
+        "14": 76,
+        "16": 76,
+        "17": 76,
+        "18": 76,
+        "20": 76,
+        "21": 76,
+        "22": 76,
+        "24": 76,
+        "25": 76,
+        "26": 76,
+        "28": 76,
+        "29": 76,
+        "30": 76,
+        "32": 76,
+        "33": 76,
+        "34": 76,
+        "36": 76,
+        "37": 76,
+        "38": 76
+      },
+      "forward_counts": {
+        "auto:1": 30,
+        "auto:2": 30,
+        "auto:3": 30,
+        "auto:4": 30,
+        "auto:5": 30,
+        "auto:6": 30,
+        "auto:7": 30,
+        "auto:8": 30,
+        "auto:9": 30,
+        "auto:10": 30,
+        "auto:11": 30,
+        "auto:12": 30,
+        "auto:13": 30,
+        "auto:14": 30,
+        "auto:15": 30,
+        "auto:16": 30,
+        "auto:17": 30,
+        "auto:18": 30,
+        "auto:19": 30,
+        "auto:20": 30,
+        "auto:21": 30,
+        "auto:22": 30,
+        "auto:23": 30,
+        "auto:24": 30,
+        "auto:25": 30,
+        "auto:26": 30,
+        "auto:27": 30,
+        "auto:28": 30,
+        "auto:29": 30,
+        "auto:30": 30,
+        "auto:31": 30,
+        "auto:32": 30,
+        "auto:33": 30,
+        "auto:34": 30,
+        "auto:35": 30,
+        "auto:36": 30,
+        "auto:37": 30,
+        "auto:38": 30,
+        "auto:39": 30,
+        "auto:40": 30,
+        "auto:41": 30,
+        "auto:42": 30,
+        "auto:43": 30,
+        "auto:44": 30,
+        "auto:45": 30,
+        "auto:46": 30,
+        "auto:47": 30,
+        "auto:48": 30,
+        "auto:49": 30,
+        "auto:50": 30,
+        "auto:51": 30,
+        "auto:52": 30,
+        "auto:53": 30,
+        "auto:54": 30,
+        "auto:55": 30,
+        "auto:56": 30,
+        "auto:57": 30,
+        "auto:58": 30,
+        "auto:59": 30,
+        "auto:60": 30,
+        "auto:61": 30,
+        "auto:62": 30,
+        "auto:63": 30,
+        "auto:64": 30,
+        "auto:65": 30,
+        "auto:66": 30,
+        "auto:67": 30,
+        "auto:68": 30,
+        "auto:69": 30,
+        "auto:70": 30,
+        "auto:71": 30,
+        "auto:72": 30,
+        "auto:73": 30,
+        "auto:74": 30,
+        "auto:75": 30,
+        "auto:76": 30
+      },
+      "examples": [
+        {
+          "locator": {
+            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+            "table": "kernel_details.csv",
+            "row_index": 22550,
+            "csv_line": 22552,
+            "task_id": "11194",
+            "stream_id": "24",
+            "device_id": "0"
+          },
+          "layer_id": 0,
+          "forward_id": "auto:1",
+          "start_ns": 1793299089173643746,
+          "end_ns": 1793299089173688301
+        },
+        {
+          "locator": {
+            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+            "table": "kernel_details.csv",
+            "row_index": 22603,
+            "csv_line": 22605,
+            "task_id": "11266",
+            "stream_id": "24",
+            "device_id": "0"
+          },
+          "layer_id": 1,
+          "forward_id": "auto:1",
+          "start_ns": 1793299089174370062,
+          "end_ns": 1793299089174411770
+        }
+      ],
+      "observed_us": {
+        "count": 2280,
+        "mean": 41.67450701754386,
+        "p50": 41.485,
+        "p90": 43.512,
+        "min": 38.593,
+        "max": 46.843
+      },
+      "observed_activity_ms_per_forward": 1.2502352105263157
+    },
+    {
+      "native_operator_type": "MoeGatingTopK",
+      "native_abi": [
+        "native_tensor_abi",
+        "MoeGatingTopK",
+        [
+          [
+            [
+              128,
+              256
+            ],
+            "bf16",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              128,
+              8
+            ],
+            "bf16",
+            "ND"
+          ],
+          [
+            [
+              128,
+              8
+            ],
+            "int32",
+            "ND"
+          ],
+          [
+            [
+              128,
+              256
+            ],
+            "fp32",
+            "ND"
+          ]
+        ]
+      ],
+      "contract": null,
+      "attention_kind": "gdn",
+      "topology_region": "ffn",
+      "native_type_ordinal_in_region": 1,
+      "declared_roles": [],
+      "role_basis": "native_abi_and_whole_layer_region_only",
+      "layer_counts": {
+        "0": 76,
+        "1": 76,
+        "2": 76,
+        "4": 76,
+        "5": 76,
+        "6": 76,
+        "8": 76,
+        "9": 76,
+        "10": 76,
+        "12": 76,
+        "13": 76,
+        "14": 76,
+        "16": 76,
+        "17": 76,
+        "18": 76,
+        "20": 76,
+        "21": 76,
+        "22": 76,
+        "24": 76,
+        "25": 76,
+        "26": 76,
+        "28": 76,
+        "29": 76,
+        "30": 76,
+        "32": 76,
+        "33": 76,
+        "34": 76,
+        "36": 76,
+        "37": 76,
+        "38": 76
+      },
+      "forward_counts": {
+        "auto:1": 30,
+        "auto:2": 30,
+        "auto:3": 30,
+        "auto:4": 30,
+        "auto:5": 30,
+        "auto:6": 30,
+        "auto:7": 30,
+        "auto:8": 30,
+        "auto:9": 30,
+        "auto:10": 30,
+        "auto:11": 30,
+        "auto:12": 30,
+        "auto:13": 30,
+        "auto:14": 30,
+        "auto:15": 30,
+        "auto:16": 30,
+        "auto:17": 30,
+        "auto:18": 30,
+        "auto:19": 30,
+        "auto:20": 30,
+        "auto:21": 30,
+        "auto:22": 30,
+        "auto:23": 30,
+        "auto:24": 30,
+        "auto:25": 30,
+        "auto:26": 30,
+        "auto:27": 30,
+        "auto:28": 30,
+        "auto:29": 30,
+        "auto:30": 30,
+        "auto:31": 30,
+        "auto:32": 30,
+        "auto:33": 30,
+        "auto:34": 30,
+        "auto:35": 30,
+        "auto:36": 30,
+        "auto:37": 30,
+        "auto:38": 30,
+        "auto:39": 30,
+        "auto:40": 30,
+        "auto:41": 30,
+        "auto:42": 30,
+        "auto:43": 30,
+        "auto:44": 30,
+        "auto:45": 30,
+        "auto:46": 30,
+        "auto:47": 30,
+        "auto:48": 30,
+        "auto:49": 30,
+        "auto:50": 30,
+        "auto:51": 30,
+        "auto:52": 30,
+        "auto:53": 30,
+        "auto:54": 30,
+        "auto:55": 30,
+        "auto:56": 30,
+        "auto:57": 30,
+        "auto:58": 30,
+        "auto:59": 30,
+        "auto:60": 30,
+        "auto:61": 30,
+        "auto:62": 30,
+        "auto:63": 30,
+        "auto:64": 30,
+        "auto:65": 30,
+        "auto:66": 30,
+        "auto:67": 30,
+        "auto:68": 30,
+        "auto:69": 30,
+        "auto:70": 30,
+        "auto:71": 30,
+        "auto:72": 30,
+        "auto:73": 30,
+        "auto:74": 30,
+        "auto:75": 30,
+        "auto:76": 30
+      },
+      "examples": [
+        {
+          "locator": {
+            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+            "table": "kernel_details.csv",
+            "row_index": 22547,
+            "csv_line": 22549,
+            "task_id": "11190",
+            "stream_id": "24",
+            "device_id": "0"
+          },
+          "layer_id": 0,
+          "forward_id": "auto:1",
+          "start_ns": 1793299089173630573,
+          "end_ns": 1793299089173637044
+        },
+        {
+          "locator": {
+            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+            "table": "kernel_details.csv",
+            "row_index": 22600,
+            "csv_line": 22602,
+            "task_id": "11262",
+            "stream_id": "24",
+            "device_id": "0"
+          },
+          "layer_id": 1,
+          "forward_id": "auto:1",
+          "start_ns": 1793299089174356039,
+          "end_ns": 1793299089174363002
+        }
+      ],
+      "observed_us": {
+        "count": 2280,
+        "mean": 7.33103201754386,
+        "p50": 7.2935,
+        "p90": 7.87,
+        "min": 6.232,
+        "max": 9.023
+      },
+      "observed_activity_ms_per_forward": 0.2199309605263158
+    },
+    {
+      "native_operator_type": "TensorMove",
+      "native_abi": [
+        "native_tensor_abi",
+        "TensorMove",
+        [
+          [
+            [
+              512,
+              8,
+              128
+            ],
+            "bf16",
+            "NCL"
+          ]
+        ],
+        [
+          [
+            [
+              512,
+              8,
+              128
+            ],
+            "bf16",
+            "NCL"
+          ]
+        ]
+      ],
+      "contract": null,
+      "attention_kind": "gdn",
+      "topology_region": "after_attention_anchor",
+      "native_type_ordinal_in_region": 1,
+      "declared_roles": [],
+      "role_basis": "native_abi_and_whole_layer_region_only",
+      "layer_counts": {
+        "0": 76,
+        "1": 76,
+        "2": 76,
+        "4": 76,
+        "5": 76,
+        "6": 76,
+        "8": 76,
+        "9": 76,
+        "10": 76,
+        "12": 76,
+        "13": 76,
+        "14": 76,
+        "16": 76,
+        "17": 76,
+        "18": 76,
+        "20": 76,
+        "21": 76,
+        "22": 76,
+        "24": 76,
+        "25": 76,
+        "26": 76,
+        "28": 76,
+        "29": 76,
+        "30": 76,
+        "32": 76,
+        "33": 76,
+        "34": 76,
+        "36": 76,
+        "37": 76,
+        "38": 76
+      },
+      "forward_counts": {
+        "auto:1": 30,
+        "auto:2": 30,
+        "auto:3": 30,
+        "auto:4": 30,
+        "auto:5": 30,
+        "auto:6": 30,
+        "auto:7": 30,
+        "auto:8": 30,
+        "auto:9": 30,
+        "auto:10": 30,
+        "auto:11": 30,
+        "auto:12": 30,
+        "auto:13": 30,
+        "auto:14": 30,
+        "auto:15": 30,
+        "auto:16": 30,
+        "auto:17": 30,
+        "auto:18": 30,
+        "auto:19": 30,
+        "auto:20": 30,
+        "auto:21": 30,
+        "auto:22": 30,
+        "auto:23": 30,
+        "auto:24": 30,
+        "auto:25": 30,
+        "auto:26": 30,
+        "auto:27": 30,
+        "auto:28": 30,
+        "auto:29": 30,
+        "auto:30": 30,
+        "auto:31": 30,
+        "auto:32": 30,
+        "auto:33": 30,
+        "auto:34": 30,
+        "auto:35": 30,
+        "auto:36": 30,
+        "auto:37": 30,
+        "auto:38": 30,
+        "auto:39": 30,
+        "auto:40": 30,
+        "auto:41": 30,
+        "auto:42": 30,
+        "auto:43": 30,
+        "auto:44": 30,
+        "auto:45": 30,
+        "auto:46": 30,
+        "auto:47": 30,
+        "auto:48": 30,
+        "auto:49": 30,
+        "auto:50": 30,
+        "auto:51": 30,
+        "auto:52": 30,
+        "auto:53": 30,
+        "auto:54": 30,
+        "auto:55": 30,
+        "auto:56": 30,
+        "auto:57": 30,
+        "auto:58": 30,
+        "auto:59": 30,
+        "auto:60": 30,
+        "auto:61": 30,
+        "auto:62": 30,
+        "auto:63": 30,
+        "auto:64": 30,
+        "auto:65": 30,
+        "auto:66": 30,
+        "auto:67": 30,
+        "auto:68": 30,
+        "auto:69": 30,
+        "auto:70": 30,
+        "auto:71": 30,
+        "auto:72": 30,
+        "auto:73": 30,
+        "auto:74": 30,
+        "auto:75": 30,
+        "auto:76": 30
+      },
+      "examples": [
+        {
+          "locator": {
+            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+            "table": "kernel_details.csv",
+            "row_index": 22537,
+            "csv_line": 22539,
+            "task_id": "11173",
+            "stream_id": "24",
+            "device_id": "0"
+          },
+          "layer_id": 0,
+          "forward_id": "auto:1",
+          "start_ns": 1793299089173359746,
+          "end_ns": 1793299089173364235
+        },
+        {
+          "locator": {
+            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+            "table": "kernel_details.csv",
+            "row_index": 22590,
+            "csv_line": 22592,
+            "task_id": "11245",
+            "stream_id": "24",
+            "device_id": "0"
+          },
+          "layer_id": 1,
+          "forward_id": "auto:1",
+          "start_ns": 1793299089174256484,
+          "end_ns": 1793299089174261075
+        }
+      ],
+      "observed_us": {
+        "count": 2280,
+        "mean": 4.524965789473684,
+        "p50": 4.4825,
+        "p90": 4.93,
+        "min": 3.83,
+        "max": 5.662
+      },
+      "observed_activity_ms_per_forward": 0.13574897368421052
+    },
+    {
+      "native_operator_type": "TensorMove",
+      "native_abi": [
+        "native_tensor_abi",
+        "TensorMove",
+        [
+          [
+            [
+              128,
+              2048
+            ],
+            "bf16",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              128,
+              2048
+            ],
+            "bf16",
+            "ND"
+          ]
+        ]
+      ],
+      "contract": null,
+      "attention_kind": "gdn",
+      "topology_region": "ffn",
+      "native_type_ordinal_in_region": 1,
+      "declared_roles": [],
+      "role_basis": "native_abi_and_whole_layer_region_only",
+      "layer_counts": {
+        "0": 76,
+        "1": 76,
+        "2": 76,
+        "4": 76,
+        "5": 76,
+        "6": 76,
+        "8": 76,
+        "9": 76,
+        "10": 76,
+        "12": 76,
+        "13": 76,
+        "14": 76,
+        "16": 76,
+        "17": 76,
+        "18": 76,
+        "20": 76,
+        "21": 76,
+        "22": 76,
+        "24": 76,
+        "25": 76,
+        "26": 76,
+        "28": 76,
+        "29": 76,
+        "30": 76,
+        "32": 76,
+        "33": 76,
+        "34": 76,
+        "36": 76,
+        "37": 76,
+        "38": 76
+      },
+      "forward_counts": {
+        "auto:1": 30,
+        "auto:2": 30,
+        "auto:3": 30,
+        "auto:4": 30,
+        "auto:5": 30,
+        "auto:6": 30,
+        "auto:7": 30,
+        "auto:8": 30,
+        "auto:9": 30,
+        "auto:10": 30,
+        "auto:11": 30,
+        "auto:12": 30,
+        "auto:13": 30,
+        "auto:14": 30,
+        "auto:15": 30,
+        "auto:16": 30,
+        "auto:17": 30,
+        "auto:18": 30,
+        "auto:19": 30,
+        "auto:20": 30,
+        "auto:21": 30,
+        "auto:22": 30,
+        "auto:23": 30,
+        "auto:24": 30,
+        "auto:25": 30,
+        "auto:26": 30,
+        "auto:27": 30,
+        "auto:28": 30,
+        "auto:29": 30,
+        "auto:30": 30,
+        "auto:31": 30,
+        "auto:32": 30,
+        "auto:33": 30,
+        "auto:34": 30,
+        "auto:35": 30,
+        "auto:36": 30,
+        "auto:37": 30,
+        "auto:38": 30,
+        "auto:39": 30,
+        "auto:40": 30,
+        "auto:41": 30,
+        "auto:42": 30,
+        "auto:43": 30,
+        "auto:44": 30,
+        "auto:45": 30,
+        "auto:46": 30,
+        "auto:47": 30,
+        "auto:48": 30,
+        "auto:49": 30,
+        "auto:50": 30,
+        "auto:51": 30,
+        "auto:52": 30,
+        "auto:53": 30,
+        "auto:54": 30,
+        "auto:55": 30,
+        "auto:56": 30,
+        "auto:57": 30,
+        "auto:58": 30,
+        "auto:59": 30,
+        "auto:60": 30,
+        "auto:61": 30,
+        "auto:62": 30,
+        "auto:63": 30,
+        "auto:64": 30,
+        "auto:65": 30,
+        "auto:66": 30,
+        "auto:67": 30,
+        "auto:68": 30,
+        "auto:69": 30,
+        "auto:70": 30,
+        "auto:71": 30,
+        "auto:72": 30,
+        "auto:73": 30,
+        "auto:74": 30,
+        "auto:75": 30,
+        "auto:76": 30
+      },
+      "examples": [
+        {
+          "locator": {
+            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+            "table": "kernel_details.csv",
+            "row_index": 22560,
+            "csv_line": 22562,
+            "task_id": "11208",
+            "stream_id": "23",
+            "device_id": "0"
+          },
+          "layer_id": 0,
+          "forward_id": "auto:1",
+          "start_ns": 1793299089173940737,
+          "end_ns": 1793299089173944991
+        },
+        {
+          "locator": {
+            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+            "table": "kernel_details.csv",
+            "row_index": 22613,
+            "csv_line": 22615,
+            "task_id": "11280",
+            "stream_id": "23",
+            "device_id": "0"
+          },
+          "layer_id": 1,
+          "forward_id": "auto:1",
+          "start_ns": 1793299089174661207,
+          "end_ns": 1793299089174665055
+        }
+      ],
+      "observed_us": {
+        "count": 2280,
+        "mean": 3.8763925438596494,
+        "p50": 3.837,
+        "p90": 4.173,
+        "min": 3.248,
+        "max": 5.088
+      },
+      "observed_activity_ms_per_forward": 0.11629177631578946
+    },
+    {
+      "native_operator_type": "TensorMove",
+      "native_abi": [
+        "native_tensor_abi",
+        "TensorMove",
+        [
+          [
+            [
+              524288
+            ],
+            "bf16",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              524288
+            ],
+            "bf16",
+            "ND"
+          ]
+        ]
+      ],
+      "contract": null,
+      "attention_kind": "gdn",
+      "topology_region": "after_attention_anchor",
+      "native_type_ordinal_in_region": 2,
+      "declared_roles": [],
+      "role_basis": "native_abi_and_whole_layer_region_only",
+      "layer_counts": {
+        "0": 76,
+        "1": 76,
+        "2": 76,
+        "4": 76,
+        "5": 76,
+        "6": 76,
+        "8": 76,
+        "9": 76,
+        "10": 76,
+        "12": 76,
+        "13": 76,
+        "14": 76,
+        "16": 76,
+        "17": 76,
+        "18": 76,
+        "20": 76,
+        "21": 76,
+        "22": 76,
+        "24": 76,
+        "25": 76,
+        "26": 76,
+        "28": 76,
+        "29": 76,
+        "30": 76,
+        "32": 76,
+        "33": 76,
+        "34": 76,
+        "36": 76,
+        "37": 76,
+        "38": 76
+      },
+      "forward_counts": {
+        "auto:1": 30,
+        "auto:2": 30,
+        "auto:3": 30,
+        "auto:4": 30,
+        "auto:5": 30,
+        "auto:6": 30,
+        "auto:7": 30,
+        "auto:8": 30,
+        "auto:9": 30,
+        "auto:10": 30,
+        "auto:11": 30,
+        "auto:12": 30,
+        "auto:13": 30,
+        "auto:14": 30,
+        "auto:15": 30,
+        "auto:16": 30,
+        "auto:17": 30,
+        "auto:18": 30,
+        "auto:19": 30,
+        "auto:20": 30,
+        "auto:21": 30,
+        "auto:22": 30,
+        "auto:23": 30,
+        "auto:24": 30,
+        "auto:25": 30,
+        "auto:26": 30,
+        "auto:27": 30,
+        "auto:28": 30,
+        "auto:29": 30,
+        "auto:30": 30,
+        "auto:31": 30,
+        "auto:32": 30,
+        "auto:33": 30,
+        "auto:34": 30,
+        "auto:35": 30,
+        "auto:36": 30,
+        "auto:37": 30,
+        "auto:38": 30,
+        "auto:39": 30,
+        "auto:40": 30,
+        "auto:41": 30,
+        "auto:42": 30,
+        "auto:43": 30,
+        "auto:44": 30,
+        "auto:45": 30,
+        "auto:46": 30,
+        "auto:47": 30,
+        "auto:48": 30,
+        "auto:49": 30,
+        "auto:50": 30,
+        "auto:51": 30,
+        "auto:52": 30,
+        "auto:53": 30,
+        "auto:54": 30,
+        "auto:55": 30,
+        "auto:56": 30,
+        "auto:57": 30,
+        "auto:58": 30,
+        "auto:59": 30,
+        "auto:60": 30,
+        "auto:61": 30,
+        "auto:62": 30,
+        "auto:63": 30,
+        "auto:64": 30,
+        "auto:65": 30,
+        "auto:66": 30,
+        "auto:67": 30,
+        "auto:68": 30,
+        "auto:69": 30,
+        "auto:70": 30,
+        "auto:71": 30,
+        "auto:72": 30,
+        "auto:73": 30,
+        "auto:74": 30,
+        "auto:75": 30,
+        "auto:76": 30
+      },
+      "examples": [
+        {
+          "locator": {
+            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+            "table": "kernel_details.csv",
+            "row_index": 22539,
+            "csv_line": 22541,
+            "task_id": "11175",
+            "stream_id": "24",
+            "device_id": "0"
+          },
+          "layer_id": 0,
+          "forward_id": "auto:1",
+          "start_ns": 1793299089173369049,
+          "end_ns": 1793299089173372753
+        },
+        {
+          "locator": {
+            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+            "table": "kernel_details.csv",
+            "row_index": 22592,
+            "csv_line": 22594,
+            "task_id": "11247",
+            "stream_id": "24",
+            "device_id": "0"
+          },
+          "layer_id": 1,
+          "forward_id": "auto:1",
+          "start_ns": 1793299089174266121,
+          "end_ns": 1793299089174269934
+        }
+      ],
+      "observed_us": {
+        "count": 2280,
+        "mean": 3.779602192982456,
+        "p50": 3.72,
+        "p90": 4.157,
+        "min": 3.263,
+        "max": 4.759
+      },
+      "observed_activity_ms_per_forward": 0.11338806578947368
+    },
+    {
+      "native_operator_type": "TensorMove",
+      "native_abi": [
+        "native_tensor_abi",
+        "TensorMove",
+        [
+          [
+            [
+              128,
+              2048
+            ],
+            "bf16",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              128,
+              2048
+            ],
+            "bf16",
+            "ND"
+          ]
+        ]
+      ],
+      "contract": null,
+      "attention_kind": "gdn",
+      "topology_region": "ffn",
+      "native_type_ordinal_in_region": 2,
+      "declared_roles": [],
+      "role_basis": "native_abi_and_whole_layer_region_only",
+      "layer_counts": {
+        "0": 76,
+        "1": 76,
+        "2": 76,
+        "4": 76,
+        "5": 76,
+        "6": 76,
+        "8": 76,
+        "9": 76,
+        "10": 76,
+        "12": 76,
+        "13": 76,
+        "14": 76,
+        "16": 76,
+        "17": 76,
+        "18": 76,
+        "20": 76,
+        "21": 76,
+        "22": 76,
+        "24": 76,
+        "25": 76,
+        "26": 76,
+        "28": 76,
+        "29": 76,
+        "30": 76,
+        "32": 76,
+        "33": 76,
+        "34": 76,
+        "36": 76,
+        "37": 76,
+        "38": 76
+      },
+      "forward_counts": {
+        "auto:1": 30,
+        "auto:2": 30,
+        "auto:3": 30,
+        "auto:4": 30,
+        "auto:5": 30,
+        "auto:6": 30,
+        "auto:7": 30,
+        "auto:8": 30,
+        "auto:9": 30,
+        "auto:10": 30,
+        "auto:11": 30,
+        "auto:12": 30,
+        "auto:13": 30,
+        "auto:14": 30,
+        "auto:15": 30,
+        "auto:16": 30,
+        "auto:17": 30,
+        "auto:18": 30,
+        "auto:19": 30,
+        "auto:20": 30,
+        "auto:21": 30,
+        "auto:22": 30,
+        "auto:23": 30,
+        "auto:24": 30,
+        "auto:25": 30,
+        "auto:26": 30,
+        "auto:27": 30,
+        "auto:28": 30,
+        "auto:29": 30,
+        "auto:30": 30,
+        "auto:31": 30,
+        "auto:32": 30,
+        "auto:33": 30,
+        "auto:34": 30,
+        "auto:35": 30,
+        "auto:36": 30,
+        "auto:37": 30,
+        "auto:38": 30,
+        "auto:39": 30,
+        "auto:40": 30,
+        "auto:41": 30,
+        "auto:42": 30,
+        "auto:43": 30,
+        "auto:44": 30,
+        "auto:45": 30,
+        "auto:46": 30,
+        "auto:47": 30,
+        "auto:48": 30,
+        "auto:49": 30,
+        "auto:50": 30,
+        "auto:51": 30,
+        "auto:52": 30,
+        "auto:53": 30,
+        "auto:54": 30,
+        "auto:55": 30,
+        "auto:56": 30,
+        "auto:57": 30,
+        "auto:58": 30,
+        "auto:59": 30,
+        "auto:60": 30,
+        "auto:61": 30,
+        "auto:62": 30,
+        "auto:63": 30,
+        "auto:64": 30,
+        "auto:65": 30,
+        "auto:66": 30,
+        "auto:67": 30,
+        "auto:68": 30,
+        "auto:69": 30,
+        "auto:70": 30,
+        "auto:71": 30,
+        "auto:72": 30,
+        "auto:73": 30,
+        "auto:74": 30,
+        "auto:75": 30,
+        "auto:76": 30
+      },
+      "examples": [
+        {
+          "locator": {
+            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+            "table": "kernel_details.csv",
+            "row_index": 22561,
+            "csv_line": 22563,
+            "task_id": "11209",
+            "stream_id": "23",
+            "device_id": "0"
+          },
+          "layer_id": 0,
+          "forward_id": "auto:1",
+          "start_ns": 1793299089173945013,
+          "end_ns": 1793299089173948755
+        },
+        {
+          "locator": {
+            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+            "table": "kernel_details.csv",
+            "row_index": 22614,
+            "csv_line": 22616,
+            "task_id": "11281",
+            "stream_id": "23",
+            "device_id": "0"
+          },
+          "layer_id": 1,
+          "forward_id": "auto:1",
+          "start_ns": 1793299089174665077,
+          "end_ns": 1793299089174668082
+        }
+      ],
+      "observed_us": {
+        "count": 2280,
+        "mean": 3.4401039473684207,
+        "p50": 3.3845,
+        "p90": 3.886,
+        "min": 2.837,
+        "max": 4.711
+      },
+      "observed_activity_ms_per_forward": 0.10320311842105263
+    },
+    {
+      "native_operator_type": "TensorMove",
+      "native_abi": [
+        "native_tensor_abi",
+        "TensorMove",
+        [
+          [
+            [
+              128,
+              2048
+            ],
+            "bf16",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              128,
+              2048
+            ],
+            "bf16",
+            "ND"
+          ]
+        ]
+      ],
+      "contract": null,
+      "attention_kind": "gdn",
+      "topology_region": "ffn",
+      "native_type_ordinal_in_region": 4,
+      "declared_roles": [],
+      "role_basis": "native_abi_and_whole_layer_region_only",
+      "layer_counts": {
+        "0": 76,
+        "1": 76,
+        "2": 76,
+        "4": 76,
+        "5": 76,
+        "6": 76,
+        "8": 76,
+        "9": 76,
+        "10": 76,
+        "12": 76,
+        "13": 76,
+        "14": 76,
+        "16": 76,
+        "17": 76,
+        "18": 76,
+        "20": 76,
+        "21": 76,
+        "22": 76,
+        "24": 76,
+        "25": 76,
+        "26": 76,
+        "28": 76,
+        "29": 76,
+        "30": 76,
+        "32": 76,
+        "33": 76,
+        "34": 76,
+        "36": 76,
+        "37": 76,
+        "38": 76
+      },
+      "forward_counts": {
+        "auto:1": 30,
+        "auto:2": 30,
+        "auto:3": 30,
+        "auto:4": 30,
+        "auto:5": 30,
+        "auto:6": 30,
+        "auto:7": 30,
+        "auto:8": 30,
+        "auto:9": 30,
+        "auto:10": 30,
+        "auto:11": 30,
+        "auto:12": 30,
+        "auto:13": 30,
+        "auto:14": 30,
+        "auto:15": 30,
+        "auto:16": 30,
+        "auto:17": 30,
+        "auto:18": 30,
+        "auto:19": 30,
+        "auto:20": 30,
+        "auto:21": 30,
+        "auto:22": 30,
+        "auto:23": 30,
+        "auto:24": 30,
+        "auto:25": 30,
+        "auto:26": 30,
+        "auto:27": 30,
+        "auto:28": 30,
+        "auto:29": 30,
+        "auto:30": 30,
+        "auto:31": 30,
+        "auto:32": 30,
+        "auto:33": 30,
+        "auto:34": 30,
+        "auto:35": 30,
+        "auto:36": 30,
+        "auto:37": 30,
+        "auto:38": 30,
+        "auto:39": 30,
+        "auto:40": 30,
+        "auto:41": 30,
+        "auto:42": 30,
+        "auto:43": 30,
+        "auto:44": 30,
+        "auto:45": 30,
+        "auto:46": 30,
+        "auto:47": 30,
+        "auto:48": 30,
+        "auto:49": 30,
+        "auto:50": 30,
+        "auto:51": 30,
+        "auto:52": 30,
+        "auto:53": 30,
+        "auto:54": 30,
+        "auto:55": 30,
+        "auto:56": 30,
+        "auto:57": 30,
+        "auto:58": 30,
+        "auto:59": 30,
+        "auto:60": 30,
+        "auto:61": 30,
+        "auto:62": 30,
+        "auto:63": 30,
+        "auto:64": 30,
+        "auto:65": 30,
+        "auto:66": 30,
+        "auto:67": 30,
+        "auto:68": 30,
+        "auto:69": 30,
+        "auto:70": 30,
+        "auto:71": 30,
+        "auto:72": 30,
+        "auto:73": 30,
+        "auto:74": 30,
+        "auto:75": 30,
+        "auto:76": 30
+      },
+      "examples": [
+        {
+          "locator": {
+            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+            "table": "kernel_details.csv",
+            "row_index": 22563,
+            "csv_line": 22565,
+            "task_id": "11211",
+            "stream_id": "23",
+            "device_id": "0"
+          },
+          "layer_id": 0,
+          "forward_id": "auto:1",
+          "start_ns": 1793299089173951676,
+          "end_ns": 1793299089173954868
+        },
+        {
+          "locator": {
+            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+            "table": "kernel_details.csv",
+            "row_index": 22616,
+            "csv_line": 22618,
+            "task_id": "11283",
+            "stream_id": "23",
+            "device_id": "0"
+          },
+          "layer_id": 1,
+          "forward_id": "auto:1",
+          "start_ns": 1793299089174671520,
+          "end_ns": 1793299089174674670
+        }
+      ],
+      "observed_us": {
+        "count": 2280,
+        "mean": 3.3444100877192984,
+        "p50": 3.292,
+        "p90": 3.79,
+        "min": 2.737,
+        "max": 4.45
+      },
+      "observed_activity_ms_per_forward": 0.10033230263157895
+    },
+    {
+      "native_operator_type": "TensorMove",
+      "native_abi": [
+        "native_tensor_abi",
+        "TensorMove",
+        [
+          [
+            [
+              128,
+              2048
+            ],
+            "bf16",
+            "ND"
+          ]
+        ],
+        [
+          [
+            [
+              128,
+              2048
+            ],
+            "bf16",
+            "ND"
+          ]
+        ]
+      ],
+      "contract": null,
+      "attention_kind": "gdn",
+      "topology_region": "ffn",
+      "native_type_ordinal_in_region": 3,
+      "declared_roles": [],
+      "role_basis": "native_abi_and_whole_layer_region_only",
+      "layer_counts": {
+        "0": 76,
+        "1": 76,
+        "2": 76,
+        "4": 76,
+        "5": 76,
+        "6": 76,
+        "8": 76,
+        "9": 76,
+        "10": 76,
+        "12": 76,
+        "13": 76,
+        "14": 76,
+        "16": 76,
+        "17": 76,
+        "18": 76,
+        "20": 76,
+        "21": 76,
+        "22": 76,
+        "24": 76,
+        "25": 76,
+        "26": 76,
+        "28": 76,
+        "29": 76,
+        "30": 76,
+        "32": 76,
+        "33": 76,
+        "34": 76,
+        "36": 76,
+        "37": 76,
+        "38": 76
+      },
+      "forward_counts": {
+        "auto:1": 30,
+        "auto:2": 30,
+        "auto:3": 30,
+        "auto:4": 30,
+        "auto:5": 30,
+        "auto:6": 30,
+        "auto:7": 30,
+        "auto:8": 30,
+        "auto:9": 30,
+        "auto:10": 30,
+        "auto:11": 30,
+        "auto:12": 30,
+        "auto:13": 30,
+        "auto:14": 30,
+        "auto:15": 30,
+        "auto:16": 30,
+        "auto:17": 30,
+        "auto:18": 30,
+        "auto:19": 30,
+        "auto:20": 30,
+        "auto:21": 30,
+        "auto:22": 30,
+        "auto:23": 30,
+        "auto:24": 30,
+        "auto:25": 30,
+        "auto:26": 30,
+        "auto:27": 30,
+        "auto:28": 30,
+        "auto:29": 30,
+        "auto:30": 30,
+        "auto:31": 30,
+        "auto:32": 30,
+        "auto:33": 30,
+        "auto:34": 30,
+        "auto:35": 30,
+        "auto:36": 30,
+        "auto:37": 30,
+        "auto:38": 30,
+        "auto:39": 30,
+        "auto:40": 30,
+        "auto:41": 30,
+        "auto:42": 30,
+        "auto:43": 30,
+        "auto:44": 30,
+        "auto:45": 30,
+        "auto:46": 30,
+        "auto:47": 30,
+        "auto:48": 30,
+        "auto:49": 30,
+        "auto:50": 30,
+        "auto:51": 30,
+        "auto:52": 30,
+        "auto:53": 30,
+        "auto:54": 30,
+        "auto:55": 30,
+        "auto:56": 30,
+        "auto:57": 30,
+        "auto:58": 30,
+        "auto:59": 30,
+        "auto:60": 30,
+        "auto:61": 30,
+        "auto:62": 30,
+        "auto:63": 30,
+        "auto:64": 30,
+        "auto:65": 30,
+        "auto:66": 30,
+        "auto:67": 30,
+        "auto:68": 30,
+        "auto:69": 30,
+        "auto:70": 30,
+        "auto:71": 30,
+        "auto:72": 30,
+        "auto:73": 30,
+        "auto:74": 30,
+        "auto:75": 30,
+        "auto:76": 30
+      },
+      "examples": [
+        {
+          "locator": {
+            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+            "table": "kernel_details.csv",
+            "row_index": 22562,
+            "csv_line": 22564,
+            "task_id": "11210",
+            "stream_id": "23",
+            "device_id": "0"
+          },
+          "layer_id": 0,
+          "forward_id": "auto:1",
+          "start_ns": 1793299089173948777,
+          "end_ns": 1793299089173951654
+        },
+        {
+          "locator": {
+            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+            "table": "kernel_details.csv",
+            "row_index": 22615,
+            "csv_line": 22617,
+            "task_id": "11282",
+            "stream_id": "23",
+            "device_id": "0"
+          },
+          "layer_id": 1,
+          "forward_id": "auto:1",
+          "start_ns": 1793299089174668104,
+          "end_ns": 1793299089174671498
+        }
+      ],
+      "observed_us": {
+        "count": 2280,
+        "mean": 3.3427877192982454,
+        "p50": 3.29,
+        "p90": 3.814,
+        "min": 2.703,
+        "max": 4.36
+      },
+      "observed_activity_ms_per_forward": 0.10028363157894737
+    }
+  ]
+}
