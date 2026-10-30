@@ -82,7 +82,15 @@ does not prove link service or peer-wait causality.
   streams. Hidden-output occurrences are paired by device and measured Body
   input boundary; head-bearing models use the vocabulary-head occurrence.
 
-There were **80 full source-stream attempts** in this repair, plus one bounded
+Two workers wrote source outputs after their parent queue stopped and before
+its receipt could be updated: the initial `tpot88_c8` worker saved both a
+completed extraction and a successful comparison; the paired-scope V4.1 `c16`
+worker saved a complete extraction but no comparison. The [accounting correction](execution-accounting-correction.json) links both
+original artifacts. The original summary and generation map retain their
+historical byte identities. The latter saved extraction
+proves the stream completed, without inventing an exit code or an exception.
+Thus the preserved receipts record 80 streams, and the independently recovered
+outputs prove **82 full source-stream attempts** in this repair, plus one bounded
 c32 source read to retain the actual 180-row regression fixture. The 66 final
 source populations are counted once. Different accounting-runner generations
 retain their individual identities; the canonical controller core bytes stayed

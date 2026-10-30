@@ -1,0 +1,64 @@
+{
+  "schema_version": "mindie-controller-execution-accounting-correction/1",
+  "status": "completed",
+  "scope": "Saved execution accounting only; no new raw scan, extraction, or prediction. Original summary/map and failed receipts are immutable.",
+  "original_summary_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/controller-alias-summary.json",
+    "sha256": "241c9d052cc746868f9f170517c7c75bf0aeda0231bf34b7022a9ac2688c7b0b",
+    "size_bytes": 161004
+  },
+  "unchanged_generation_map_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/extraction-generation-map.json",
+    "sha256": "96a26d8474f41f7fd43cb6124d51bb2b9b95a3b6174203a760e7d63afbda0c49",
+    "size_bytes": 117020
+  },
+  "recorded_raw_scan_attempts": 80,
+  "corrected_raw_scan_attempts": 82,
+  "recovered_attempts": [
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot88_c8",
+      "generation": "initial",
+      "status": "completed",
+      "comparison_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/a3_glm53_w4a8_tp16_tpot88_c8-comparison.json",
+        "sha256": "6e630a2ca7347450266fbf93f3b5611804a81dc6c0a72184d3aa0ed914c4519a",
+        "size_bytes": 16546
+      },
+      "new_extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/auto-forward-a3_glm53_w4a8_tp16_tpot88_c8.json",
+        "sha256": "bfc1cd0d31356002972a6b44b66b858ed8b9b48cb86d7f8c22701eb7a03dd119",
+        "size_bytes": 2282169
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot88_c8_20261030/kernel_details.csv",
+        "sha256": "59f5666d6709695fad7e1f8502a656de699a200932199f2344c44aaa07662ee8",
+        "size_bytes": 75781277
+      },
+      "raw_capture_scans": 1,
+      "basis": "worker completed comparison output after parent queue receipt stopped"
+    },
+    {
+      "case_id": "a5_v41_fp8_tp1_dp8_ep8_c16_p2k",
+      "generation": "scope-paired",
+      "status": "extraction_completed_accounting_unrecorded",
+      "new_extraction_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/scope-paired/auto-forward-a5_v41_fp8_tp1_dp8_ep8_c16_p2k.json",
+        "sha256": "e310febd92528a031d224d42fb73360973e2d2290d5d229dbcf850646ef783da",
+        "size_bytes": 928535
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_c16_p2k_20261030/kernel_details.csv",
+        "sha256": "8294b03bbf47e43f172941354c4517fea55a7b57656ea209938f688f518f8832",
+        "size_bytes": 86067988
+      },
+      "raw_capture_scans": 1,
+      "basis": "complete extraction saved after parent queue receipt stopped; no comparison, exit code or exception is asserted"
+    }
+  ],
+  "final_source_count": 66,
+  "final_body_count": 5250,
+  "final_geometry_count": 222,
+  "all_final_extraction_and_comparison_identities_unchanged": true,
+  "new_raw_scans": 0,
+  "new_predictions": 0
+}
