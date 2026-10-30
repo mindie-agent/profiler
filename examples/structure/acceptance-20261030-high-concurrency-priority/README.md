@@ -5,16 +5,21 @@ priority A5 cases. The overlapping selections contain 13 sources and 877
 selected complete Forwards; neither table adds captures to the main denominator.
 Execution completion, Body accuracy and native contract coverage are separate.
 
-The current focus has 10/13 Body PASS, including all six A5 priority cases.
-The main board has 52/66 PASS over 5,250 distinct observed Forwards, with all
+The current focus has 13/13 Body PASS, including all six A5 priority cases.
+The main board has 63/66 PASS over 5,250 distinct observed Forwards, with all
 66 latest predictions completed. Kimi low-concurrency c1/c2/c4/c8 now contributes
-eight new PASS results; its separately recorded expert-routing work discrepancy
-is being checked against the new source force-EPLB policy. The three pending
-focus cases are Qwen3.5 TP4 c4/c64/c128.
+eight new PASS results. A subsequent replay uses the source force-EPLB policy
+to close the declared expert-routing work discrepancy while retaining all eight
+PASS results. Captured group-list values remain unobserved. Qwen3.5 TP4
+c4/c64/c128 now pass at -14.66%/-14.28%/-13.56%. A3 GLM
+c4-livepre and GLM78 c8 also pass after their native source declarations.
 
 GLM uses the corrected HC native implementation consistently across all nine
-A5 cases. Its 3/9 PASS result supersedes the earlier 6/9 result whose decomposed
-HC work compensated for other missing costs. Historical arms stay inspectable.
+A5 cases. Complete matrix, norm/quant and native HC response populations, then
+eleven layer-ordered AICPU sparse-attention metadata calls, bring all nine to
+PASS. The earlier 3/9 source-corrected result and the preceding 6/9 result whose
+decomposed HC work compensated for missing costs stay inspectable. Remaining
+failures are two A3 GLM78 c2 sources and A3 GLM Flash c16-livepre.
 
 `source-inventory.json` records selection identities, benchmark scenarios and the
 state before this replay. Its old predictions are not inputs to the focus table.
@@ -48,11 +53,11 @@ parameters are accepted through the same comparison path. Explicit calibration
 metadata is retained separately from accuracy. In-sample results are admitted;
 unreported data independence is `not_declared`, not invented held-out evidence.
 
-Validation: 830 tests passed, 26 optional tests skipped. The full-suite controller
+Validation: 850 tests passed, 26 optional tests skipped. The full-suite controller
 review initially exceeded the RSS gate while retaining two full comparison
 graphs; the test now keeps a compact baseline projection and streams JSON.
 The unchanged 512 MiB gate passes. The current main-board independent review
-passed 206,311 checks with 357.7 MiB peak RSS. Sharing identical immutable
+is rerun after each integration. Sharing identical immutable
 receipt metadata reduced review memory from 465.3 MiB without dropping fields.
 The 25 affected scoreboard tests
 also pass, including concurrent readers seeing a complete prior JSON while the
