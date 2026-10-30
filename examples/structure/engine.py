@@ -199,6 +199,8 @@ def pin_path(value,base,*,verify_hash=True):
 
 def observed_case(entry,base):
     """Consume the canonical case, not a prior prediction or ranking report."""
+    if entry['source'].get('kind') == 'client_json':
+        return client_observation(entry, base)
     engine=entry['engine'];extraction_pin=pin_path(entry.get('extraction_identity') or entry['extraction_path'],base)
     extraction=read(extraction_pin['path'])
     if extraction['source_identity']['sha256']!=entry['source']['sha256']:
@@ -234,6 +236,56 @@ def observed_case(entry,base):
         'outer_stage_population':'all complete target forwards in this extraction; not added to overlapping Body intervals',
         'serving_evidence':evidence,'bridge_kind':'observed boundaries; missing remainder is not attributed to Host',
         'prediction':None,'client_delivery_prediction_claimed':False}
+
+
+def client_observation(entry, base):
+    """Retain literal client/PD metrics without manufacturing device boundaries."""
+    pin = pin_path(entry['source'], base)
+    payload = read(pin['path'])
+    config = payload.get('config', {})
+    metrics = {}
+    for name in ('ttft_ms', 'itl_ms', 'steady_itl_ms', 'tpot_ms', 'prefill_ms', 'decode_ttft_ms', 'e2e_ms'):
+        values = {stat: payload[name + '_' + stat] for stat in ('mean', 'p50', 'p90', 'max')
+                  if name + '_' + stat in payload}
+        if values: metrics[name] = values
+    evidence = {
+        'benchmark_summary_identity': pin, 'producer_status': payload.get('status'),
+        'client_concurrency': config.get('concurrency'), 'request_configuration': config,
+        'n_requests': payload.get('n_requests'), 'n_errors': payload.get('n_errors'),
+        'errors': payload.get('errors', []), 'metrics': metrics,
+        'metric_boundaries': {'ttft_ms': 'client request to first streamed response',
+            'itl_ms': 'streamed event cadence; not assumed one token per event',
+            'tpot_ms': 'producer completion-token interval; retained request aggregates',
+            'prefill_ms': 'prefiller HTTP request; not device Prefill Body',
+            'decode_ttft_ms': 'decoder HTTP first response; separate PD endpoint',
+            'e2e_ms': 'whole client request'},
+        'reported_aggregate_tpot_ms': metrics.get('tpot_ms'),
+        'raw_request_records_available': bool(payload.get('requests')),
+        'output_tok_s': payload.get('output_tok_s'), 'completion_tokens': payload.get('completion_tokens'),
+        'wall_s': payload.get('wall_s'),
+        'retained_counters': {k: v for k, v in payload.items() if k in {
+            'decode_s_sum', 'decode_events_sum', 'token_gaps_sum', 'prefix_cache_queries_delta',
+            'prefix_cache_hits_delta', 'measured_hit_rate', 'target_hit_rate', 'planned_cached_tokens',
+            'warm_uncached_prompt_tokens', 'alpha_from_server', 'alpha_from_decode_server',
+            'tokens_per_step_from_server', 'tokens_per_step_pooled', 'prefill_hit_rate',
+            'prefill_prompt_tokens_delta', 'decode_generation_tokens_delta'}},
+    }
+    alpha = payload.get('alpha_from_server', payload.get('alpha_from_decode_server'))
+    proposals = entry['engine'].get('draft_proposals')
+    cadence = metrics.get('steady_itl_ms', {}).get('mean')
+    real_tpot = metrics.get('tpot_ms', {}).get('mean')
+    if alpha is not None and proposals is not None and cadence is not None and real_tpot:
+        expected = cadence / (1 + proposals * alpha)
+        evidence['acceptance_bridge'] = {'scope': 'measured event cadence and measured server acceptance; not Sim',
+            'draft_proposals': proposals, 'observed_acceptance': alpha,
+            'expected_tokens_per_step': 1 + proposals * alpha,
+            'cadence_based_tpot_ms': expected, 'observed_tpot_ms': real_tpot,
+            'relative_difference': expected / real_tpot - 1}
+    return {'id': entry['id'], 'case_id': entry['case_id'], 'source_identity': pin,
+        'observed_target_forwards': None, 'cycle_count': None, 'cycle_geometry_groups': [],
+        'outer_stage_measurements': [], 'serving_evidence': evidence,
+        'bridge_kind': 'client metrics only; device Body/Outer/MTP/Host intervals unavailable',
+        'client_delivery_prediction_claimed': False}
 
 
 def request_workload(records):
@@ -356,6 +408,15 @@ def run_case(row, base: Path, *, prediction_timeout_s=90):
                 'error':{'reason':'engine_request_metadata_not_declared'}}
     observed=observed_case(row,base)
     engine=row['engine']
+    if engine.get('observation_only'):
+        producer = observed['serving_evidence'].get('producer_status')
+        failed = producer not in (None, 'completed')
+        return {'case_id': row['case_id'], 'id': row['id'], 'observed': observed,
+            'status': 'failed' if failed else 'completed', 'prediction': None,
+            'comparison': {'status': 'failed' if failed else 'observed_only', 'passed': None,
+                'reason': 'producer_failed' if failed else 'full_serving_prediction_not_requested_for_client_only_source'},
+            'error': observed['serving_evidence'].get('errors') if failed else None,
+            'execution': {'raw_capture_reads': 0, 'prediction_executions': 0}}
     configured=engine.get('artifact_dir')
     artifact_dir=resolved(configured,base) if configured else Path(tempfile.gettempdir())/'mindie-profiler-engine'/row['case_id']
     artifact_dir.mkdir(parents=True,exist_ok=True)

@@ -4,7 +4,7 @@
 [Invariants] Ordered full topology, tensor geometry and a vocabulary head are
   required. MTP/head/client TTFT are separate; no client-derived span scaling.
 [Timeouts & Locks] One chronological source, <=25k active rows, no model weights.
-[Side-Effect Policy] Reads retained CSV; writes compact observations only.
+[Side-Effect Policy] Reads retained CSV/client JSON; writes compact observations.
 """
 from collections import Counter
 from hashlib import sha256
@@ -146,6 +146,8 @@ def request_population(value):
         total=len(requests);basis='retained_per_request_records'
     elif isinstance(value.get('n_ok'),int) and isinstance(value.get('n_failed'),int):
         ok=value['n_ok'];total=ok+value['n_failed'];basis='retained_n_ok_plus_n_failed'
+    elif isinstance(value.get('n_requests'),int) and isinstance(value.get('n_errors'),int):
+        total=value['n_requests'];ok=total-value['n_errors'];basis='retained_n_requests_minus_n_errors'
     else:
         return {'status':'unknown','request_count':None,'successful_requests':None,
                 'basis':'request_population_not_exported'}
@@ -153,17 +155,33 @@ def request_population(value):
             'request_count':total,'successful_requests':ok,'basis':basis}
 
 
-def client_measurement(path):
+def _flat_stats(value, prefix):
+    # The producer filters missing timings before aggregation. Request counts
+    # alone do not prove the metric's valid-timing denominator.
+    if value.get(prefix+'_mean') is None:return None
+    return {**{key:value.get(prefix+'_'+key) for key in ('mean','p50','p90','min','max')},
+            'count':None,'population_basis':'producer aggregate; valid timing count not exported'}
+
+
+def client_measurement(path, *, profiled=None):
     """Retain only the client's literal first-token metric; E2E is separate."""
     path=Path(path)
     if not path.exists():return {'status':'missing_same_run_client_artifact','identity':None,'ttft_ms':None}
-    value=json.loads(path.read_text());ttft=value.get('ttft_ms') or None
+    if path.stat().st_size>50_000_000:
+        raise ValueError('client_metadata_requires_streaming:'+str(path))
+    value=json.loads(path.read_text());cfg=value.get('config') or {}
+    ttft=value.get('ttft_ms') or _flat_stats(value,'ttft_ms')
     return {'identity':identity(path),'status':'measured' if ttft else 'ttft_not_exported',
-            'ttft_ms':ttft,'e2e_ms':value.get('e2e_ms'),
+            'source_status':value.get('status'),
+            'ttft_ms':ttft,'e2e_ms':value.get('e2e_ms') or _flat_stats(value,'e2e_ms'),
+            'decode_ttft_ms':_flat_stats(value,'decode_ttft_ms'),
+            'prefill_http_ms':_flat_stats(value,'prefill_ms'),
+            'metric_boundary':'literal client aggregates; HTTP prefill/Decode TTFT/E2E are separate from device Body',
             'request_population':request_population(value),
-            'input_len':value.get('input_len'),'output_len':value.get('output_len'),
-            'concurrency':value.get('concurrency'),'n_ok':value.get('n_ok'),
-            'n_failed':value.get('n_failed'),'profiled_client':True,
+            'input_len':value.get('input_len',value.get('prompt_tokens',cfg.get('prompt_tokens'))),
+            'output_len':value.get('output_len',cfg.get('output_tokens')),
+            'concurrency':value.get('concurrency',cfg.get('concurrency')),'n_ok':value.get('n_ok'),
+            'n_failed':value.get('n_failed'),'profiled_client':profiled,
             'e2e_substituted_for_ttft':False}
 
 
@@ -259,6 +277,29 @@ def run_case(row, base:Path, *, prediction_timeout_s=90):
     learned parameters are fit or modified. The unique capture with extra query
     chunks stays unscored at request scope; it is not trimmed by elapsed time.
     """
+    if row['source'].get('kind')=='client_json':
+        # A retained client benchmark is valid TTFT evidence without a device
+        # capture. Its request count does not identify Body calls or chunks.
+        source=Path(row['source']['path'])
+        if not source.is_absolute():source=Path(base)/source
+        source_pin=identity(source)
+        if any(source_pin[key]!=row['source'][key] for key in ('sha256','size_bytes')):
+            raise ValueError('client_source_identity_changed')
+        client=client_measurement(source,profiled=False)
+        if client['identity']!=source_pin:
+            raise ValueError('client_source_changed_during_read')
+        return {'case_id':row['case_id'],'catalog_id':row['id'],'phase':'prefill',
+            'status':'observed_only','source_identity':source_pin,'client':client,
+            'runtime_identity':runtime_identity(),'model_case_consumed':False,
+            'ttft_prediction_ms':None,'body_and_ttft_scopes_separate':True,
+            'comparison':{'status':'observed_only','observed_ms':_single_stat(None),
+                'predicted_ms':None,'relative_error':None,'passed':None,
+                'scope':'literal client TTFT only; device Body unavailable'},
+            'observed':{'status':'client_only','device_body_available':False,
+                'request_population':client['request_population'],
+                'request_identity_status':'no_device_chunk_association',
+                'body_span_sum_ms':None,'body_activity_union_sum_ms':None},
+            'execution':{'new_predictions':0,'new_device_captures':0,'fit_performed':False}}
     from mindie_sim.prediction.structure import parse_case
     started=time.monotonic();spec=row['prefill'];path=Path(row['sim_case_path'])
     if not path.is_absolute():path=Path(base)/path
@@ -276,7 +317,7 @@ def run_case(row, base:Path, *, prediction_timeout_s=90):
     observed=extract_file(row['source']['path'],cfg)
     if observed['source_identity']['sha256']!=row['source']['sha256']:
         return {**result,'status':'failed','reason':'source_identity_changed'}
-    client=client_measurement(spec['client'])
+    client=client_measurement(spec['client'],profiled=True)
     if spec.get('client_identity') and client['identity']!=spec['client_identity']:
         return {**result,'status':'failed','reason':'client_identity_changed'}
     prefix=identity(spec['prefix_evidence']) if spec.get('prefix_evidence') else None

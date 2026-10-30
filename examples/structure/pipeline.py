@@ -195,6 +195,15 @@ def render(report):
                 values = [number(metrics.get(k, {}).get('mean')) for k in ('ttft_ms', 'prefill_ms', 'decode_ttft_ms', 'tpot_ms')]
                 lines.append('| ' + row['case_id'] + ' | ' + ' | '.join(values) + ' | ' + number(serving.get('output_tok_s')) + ' |')
             lines += ['', 'Client-only and PD rows have no measured device Body. Prefiller HTTP, decoder first response and end-to-end request durations remain separate.']
+        bridges = [(r['case_id'], (r.get('engine') or {}).get('serving_evidence', {}).get('acceptance_bridge')) for r in report['cases']]
+        if any(b for _, b in bridges):
+            lines += ['', '| Case | Measured acceptance | Tokens / step | Cadence-based TPOT ms | Measured token TPOT ms | Difference |',
+                      '|---|---:|---:|---:|---:|---:|']
+            for name, bridge in bridges:
+                if bridge:
+                    values = [number(bridge[k]) for k in ('observed_acceptance', 'expected_tokens_per_step', 'cadence_based_tpot_ms', 'observed_tpot_ms')]
+                    lines.append('| ' + name + ' | ' + ' | '.join(values) + f" | {bridge['relative_difference']:+.2%} |")
+            lines += ['', 'This acceptance bridge uses measured cadence and measured server acceptance. It is not a Sim prediction or a device Body estimate.']
     if any(r.get('client') for r in report['cases']):
         lines += ['', '| Case | Client TTFT ms | Predicted TTFT ms | Query coverage complete |',
                   '|---|---:|---:|---|']
@@ -253,7 +262,9 @@ def summarize(cards, requested_sources):
 def execute(row, base, scope, archive_root, timeout, generation):
     try:
         case_path = None
-        if not (scope == 'engine' and row.get('engine', {}).get('observation_only')):
+        observation_only = (scope == 'engine' and row.get('engine', {}).get('observation_only')) or (
+            scope == 'body' and row['phase'] == 'prefill' and row['source'].get('kind') == 'client_json')
+        if not observation_only:
             declaration = row['model_case']
             case_path = Path(declaration['path'])
             if not case_path.is_absolute(): case_path = base / case_path

@@ -89,22 +89,5 @@
     "vllm_impl": "sha256:5bdd40411c1abda875996cb83cdd6c0ca1a5251240aa19755ae6aab539ce1bdc",
     "vllm_version": "0.30.0rc2.dev200+g8fd0bc488",
     "kernel_format": "w8a8_dynamic"
-  },
-  "migration": {
-    "retired_parameters": {
-      "mtp_overhead_ms": {
-        "value": 0.0,
-        "reason": "draft operators are derived from draft structure"
-      },
-      "mtp_small_prefill_ms": {
-        "value": 0.0,
-        "reason": "draft operators are derived from draft structure"
-      },
-      "timing_boundary": {
-        "value": "kernel_details",
-        "reason": "prediction reports device token commitment"
-      }
-    },
-    "source_version": "0.7"
   }
 }

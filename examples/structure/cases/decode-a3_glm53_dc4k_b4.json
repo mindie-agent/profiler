@@ -64,14 +64,5 @@
       "kv_cache": "Setting kv cache block size to 128 for ASCEND_SFA_INDEXER backend; Available KV cache memory: 7.98 GiB -> NPU KV cache size: 89,856 tokens, Maximum concurrency for 73,728 tokens per request: 1.22x",
       "engine_config": "Initializing a V1 LLM engine (v0.30.0): max_seq_len=73728, speculative_config=None, tensor_parallel_size=8, pipeline_parallel_size=1, data_parallel_size=1, enable_prefix_caching=False, enable_chunked_prefill=True"
     }
-  },
-  "migration": {
-    "retired_parameters": {
-      "timing_boundary": {
-        "value": "kernel_details",
-        "reason": "prediction reports device token commitment"
-      }
-    },
-    "source_version": "0.7"
   }
 }

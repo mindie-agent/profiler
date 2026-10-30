@@ -1,0 +1,37 @@
+{
+  "role": "Real retained client-only and disaggregated-PD producer results; no device or synthetic request records.",
+  "files": [
+    {
+      "fixture": "s1_c6_p4096.json",
+      "source_path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/glm5_3_flash_w8a8_heldout_suites_20261030/s1_c6_p4096.json",
+      "source_sha256": "c059baf768026f602f28a9cc910300381f6059212650de3e49c671ef19bfc3c2",
+      "fixture_sha256": "c059baf768026f602f28a9cc910300381f6059212650de3e49c671ef19bfc3c2",
+      "size_bytes": 1705,
+      "transformation": "none; complete original client JSON bytes"
+    },
+    {
+      "fixture": "s5_prefill_p2048_c1.json",
+      "source_path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/glm5_3_flash_w8a8_heldout_suites_20261030/s5_prefill_p2048_c1.json",
+      "source_sha256": "e320cef3f88cf7ec8754fea51937c1fdb1278353d666718d5c1a567a734bc8e4",
+      "fixture_sha256": "e320cef3f88cf7ec8754fea51937c1fdb1278353d666718d5c1a567a734bc8e4",
+      "size_bytes": 1437,
+      "transformation": "none; complete original client JSON bytes"
+    },
+    {
+      "fixture": "pd_pipeline_c4_p4096.json",
+      "source_path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/deepseek_v4_1_flash_w8a8_disagg_pd_dp4tp4_dp8tp2_20261030/pd_pipeline_c4_p4096.json",
+      "source_sha256": "a7d33cc7e3e68d467597058b6a1204bcc389bfa1ed3ffdcab8f693cad07cd857",
+      "fixture_sha256": "a7d33cc7e3e68d467597058b6a1204bcc389bfa1ed3ffdcab8f693cad07cd857",
+      "size_bytes": 1485,
+      "transformation": "none; complete original client JSON bytes"
+    },
+    {
+      "fixture": "pd_pipeline_c24_p4096.json",
+      "source_path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/deepseek_v4_1_flash_w8a8_disagg_pd_dp4tp4_dp8tp2_20261030/pd_pipeline_c24_p4096.json",
+      "source_sha256": "8a69651ddc9a189109f10d7fbba329b77967404088887c5930a1757861cf95c2",
+      "fixture_sha256": "8a69651ddc9a189109f10d7fbba329b77967404088887c5930a1757861cf95c2",
+      "size_bytes": 1638,
+      "transformation": "none; complete original client JSON bytes"
+    }
+  ]
+}

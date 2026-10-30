@@ -6,7 +6,7 @@ import sys
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'examples/structure'))
-from prefill import align, anchor, client_measurement, associate_request, validate, request_population
+from prefill import align, anchor, client_measurement, associate_request, validate, request_population, identity, run_case
 from mindie_profiler.decode_segmentation import _Row
 from mindie_profiler.events import Event
 
@@ -83,3 +83,45 @@ def test_real_multiple_request_records_cannot_establish_chunk_membership():
     assert result['body_workload_comparable'] is False
     assert result['comparison_body_sum_ms'] is None
     assert result['request_prefill_body_sum_ms'] is None
+
+
+def test_heldout_prefill_client_summary_has_no_device_or_profile_scope():
+    result=client_measurement(ROOT/'tests/fixtures/prefill/heldout-glm-prefill-client.json')
+    assert result['request_population']['request_count']==2
+    assert result['request_population']['successful_requests']==2
+    assert result['concurrency']==1
+    assert result['input_len']==2048 and result['output_len']==1
+    assert result['ttft_ms']['mean']>0
+    assert result['ttft_ms']['count'] is None
+    assert result['profiled_client'] is None
+    assert result['e2e_ms'] is None
+
+
+def test_disaggregated_http_prefill_and_decode_ttft_are_not_device_body():
+    result=client_measurement(ROOT/'tests/fixtures/prefill/heldout-v41-pd-client.json')
+    assert result['ttft_ms'] is None
+    assert result['prefill_http_ms']['mean']>0
+    assert result['decode_ttft_ms']['mean']>0
+    assert result['e2e_ms']['mean']>result['prefill_http_ms']['mean']
+    assert result['request_population']['request_count']==4
+    assert result['profiled_client'] is None
+
+
+def test_pure_prefill_client_is_publishable_without_device_or_model(tmp_path):
+    source=ROOT/'tests/fixtures/prefill/heldout-glm-prefill-client.json'
+    row={'id':'prefill:a3_glm53flash_heldout_s5_prefill_p2048_c1',
+         'case_id':'a3_glm53flash_heldout_s5_prefill_p2048_c1','phase':'prefill',
+         'source':{**identity(source),'kind':'client_json'}}
+    result=run_case(row,tmp_path)
+    literal=json.loads(source.read_text())
+    assert result['status']==result['comparison']['status']=='observed_only'
+    assert result['client']['ttft_ms']['mean']==literal['ttft_ms_mean']
+    assert result['client']['ttft_ms']['p50']==literal['ttft_ms_p50']
+    assert result['client']['request_population']['request_count']==2
+    assert result['client']['profiled_client'] is False
+    assert result['comparison']['observed_ms']['mean'] is None
+    assert result['comparison']['predicted_ms'] is None
+    assert result['comparison']['passed'] is None
+    assert result['observed']['device_body_available'] is False
+    assert result['execution']['new_predictions']==0
+    assert result['model_case_consumed'] is False

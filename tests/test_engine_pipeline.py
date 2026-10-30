@@ -65,3 +65,135 @@ def test_formal_serving_workload_keeps_actual_arrivals_and_token_denominators():
         assert mapped['arrival_ms']==(actual['t_start_epoch']-origin)*1000
         assert (mapped['prompt_tokens'],mapped['output_tokens'])==(actual['prompt_tokens'],actual['completion_tokens'])
         assert mapped['prefix_tokens']==0  # explicit cold condition, not inferred from a mean hit ratio
+
+
+CLIENT_FIXTURES = ROOT/'tests/fixtures/engine_boundaries/client_only'
+
+
+def client_case(name, *, scope='client_only'):
+    """Only the source identity is needed for an observation-only engine case."""
+    from engine import identity
+
+    path = CLIENT_FIXTURES/name
+    entry = {
+        'id': 'engine:'+path.stem, 'case_id': path.stem, 'phase': 'decode',
+        'source': {**identity(path), 'kind': 'client_json'},
+        'engine': {'scope': scope, 'observation_only': True},
+    }
+    return entry, json.loads(path.read_text())
+
+
+def test_real_client_aggregate_preserves_ttft_and_distinct_event_token_denominators():
+    from engine import run_case
+
+    entry, captured = client_case('s1_c6_p4096.json')
+    result = run_case(entry, CLIENT_FIXTURES)
+    evidence = result['observed']['serving_evidence']
+    metrics = evidence['metrics']
+    assert metrics['ttft_ms']['mean'] == captured['ttft_ms_mean']
+    assert metrics['ttft_ms']['mean'] != captured['server_ttft_ms_mean']
+    assert metrics['itl_ms']['mean'] == pytest.approx(
+        captured['decode_s_sum']*1000/captured['decode_events_sum'])
+    assert metrics['tpot_ms']['mean'] == pytest.approx(
+        captured['decode_s_sum']*1000/captured['token_gaps_sum'])
+    assert metrics['itl_ms']['mean'] != metrics['tpot_ms']['mean']
+    assert evidence['retained_counters']['decode_events_sum'] == 363
+    assert evidence['retained_counters']['token_gaps_sum'] == 1524
+    assert evidence['completion_tokens'] == 1536
+    assert evidence['raw_request_records_available'] is False
+    # A server acceptance aggregate cannot manufacture a per-device Step.
+    assert evidence['retained_counters']['alpha_from_server'] == captured['alpha_from_server']
+    assert 'acceptance_bridge' not in evidence  # no declared proposal-count input
+    assert result['observed']['observed_target_forwards'] is None
+    assert result['observed']['cycle_count'] is None
+    assert result['observed']['cycle_geometry_groups'] == []
+    assert result['observed']['outer_stage_measurements'] == []
+    assert result['prediction'] is None
+    assert result['comparison']['status'] == 'observed_only'
+    assert result['comparison']['passed'] is None
+    assert result['execution']['prediction_executions'] == 0
+
+
+def test_real_one_token_prefill_retains_null_tpot_without_fake_decode_or_body():
+    from engine import run_case
+
+    entry, captured = client_case('s5_prefill_p2048_c1.json')
+    result = run_case(entry, CLIENT_FIXTURES)
+    evidence = result['observed']['serving_evidence']
+    assert evidence['n_requests'] == 2
+    assert evidence['request_configuration']['output_tokens'] == 1
+    assert evidence['completion_tokens'] == 2
+    assert evidence['metrics']['ttft_ms']['p50'] == captured['ttft_ms_p50']
+    assert evidence['metrics']['tpot_ms']['mean'] is None
+    assert evidence['metrics']['itl_ms']['mean'] is None
+    assert evidence['retained_counters']['token_gaps_sum'] == 0
+    assert result['observed']['observed_target_forwards'] is None
+    assert result['prediction'] is None
+    assert result['execution'] == {'raw_capture_reads': 0, 'prediction_executions': 0}
+
+
+def test_real_pd_http_prefill_and_decoder_metrics_do_not_become_device_scopes():
+    from engine import run_case
+
+    entry, captured = client_case('pd_pipeline_c4_p4096.json', scope='disaggregated_pd')
+    result = run_case(entry, CLIENT_FIXTURES)
+    observation = result['observed']
+    evidence = observation['serving_evidence']
+    assert evidence['metrics']['prefill_ms']['mean'] == captured['prefill_ms_mean']
+    assert evidence['metrics']['decode_ttft_ms']['mean'] == captured['decode_ttft_ms_mean']
+    assert evidence['metrics']['e2e_ms']['mean'] == captured['e2e_ms_mean']
+    assert evidence['metric_boundaries']['prefill_ms'] == 'prefiller HTTP request; not device Prefill Body'
+    assert evidence['completion_tokens'] == evidence['retained_counters']['decode_generation_tokens_delta'] == 512
+    assert observation['outer_stage_measurements'] == []
+    assert observation['observed_target_forwards'] is None
+    assert observation['cycle_count'] is None
+    assert observation['client_delivery_prediction_claimed'] is False
+    assert result['prediction'] is None
+    assert result['comparison']['passed'] is None
+
+
+def test_real_failed_pd_producer_keeps_partial_metrics_and_failures():
+    from engine import run_case
+
+    entry, captured = client_case('pd_pipeline_c24_p4096.json', scope='disaggregated_pd')
+    result = run_case(entry, CLIENT_FIXTURES)
+    evidence = result['observed']['serving_evidence']
+    assert result['status'] == 'failed'
+    assert result['comparison']['status'] == 'failed'
+    assert result['comparison']['reason'] == 'producer_failed'
+    assert result['error'] == captured['errors']
+    assert evidence['n_requests'] == 24
+    assert evidence['n_errors'] == 3
+    assert len(evidence['errors']) == 3
+    assert evidence['completion_tokens'] == captured['completion_tokens'] == 2688
+    assert evidence['metrics']['tpot_ms']['mean'] == captured['tpot_ms_mean']
+    assert evidence['metrics']['prefill_ms']['mean'] == captured['prefill_ms_mean']
+    assert result['prediction'] is None
+    assert result['comparison']['passed'] is None
+    assert result['execution']['prediction_executions'] == 0
+
+
+@pytest.mark.parametrize('name', [
+    's1_c6_p4096.json', 'pd_pipeline_c4_p4096.json',
+    'pd_pipeline_c24_p4096.json',
+])
+def test_compact_pipeline_keeps_real_client_metrics_and_failed_partial_population(name):
+    from engine import run_case
+    from pipeline import project
+
+    entry, captured = client_case(name)
+    result = run_case(entry, CLIENT_FIXTURES)
+    card = project(entry, result, entry['source'])
+    assert card['engine']['serving_evidence'] == result['observed']['serving_evidence']
+    assert card['engine']['serving_evidence']['completion_tokens'] == captured['completion_tokens']
+    assert card['engine']['serving_evidence']['n_errors'] == captured['n_errors']
+    assert card['engine']['observed_target_forwards'] is None
+    assert card['body_activity_ms'] is None
+    assert card['geometry'] is None
+    assert not card['serving_prediction']
+    assert card['comparison']['passed'] is None
+    if captured['status'] == 'failed':
+        assert card['status'] == 'failed'
+        assert card['error'] == captured['errors']
+        assert len(card['error']) == 3
+        assert card['engine']['serving_evidence']['metrics']['tpot_ms']['mean'] == captured['tpot_ms_mean']

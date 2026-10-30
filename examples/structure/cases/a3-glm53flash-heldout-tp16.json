@@ -1,0 +1,514 @@
+{
+  "name": "a3-glm53flash-heldout-tp16",
+  "machine": {
+    "backend": "ascend",
+    "sku": "Ascend910_9362",
+    "num_devices": 16,
+    "ranks_per_node": 16,
+    "device": {
+      "rates": {
+        "observed_a3_local_native": 1000000000.0
+      },
+      "work_units": {
+        "observed_a3_local_native": "busy_ns"
+      },
+      "resource_units": {
+        "observed_a3_local_native": 1
+      }
+    }
+  },
+  "model": {
+    "catalog_key": "glm-5.3-flash",
+    "quantization": "w8a8_dynamic",
+    "quant": {
+      "name": "W8A8_DYNAMIC",
+      "weight_format": "int8",
+      "native_format": "bf16",
+      "activation_format": "int8",
+      "expert_weight_format": "int8",
+      "weight_block": [
+        1,
+        1
+      ],
+      "expert_block": 1,
+      "scale_format": "fp32",
+      "scale_bytes": 4.0,
+      "kv_dtype": "int8",
+      "index_dtype": "bf16",
+      "index_scale_dtype": "none",
+      "exclusions": [
+        "mtp",
+        "norm",
+        "lm_head",
+        "embedding",
+        "vision",
+        "projector",
+        "conv_weight_f32",
+        "conv_weight_bf16"
+      ],
+      "engram_table_mode": "device_bf16",
+      "activation_group_size": 0,
+      "activation_scale_format": "",
+      "activation_scale_pack": 1,
+      "category_overrides": {},
+      "source": {
+        "kind": "representation_preset",
+        "preset": "w8a8_dynamic",
+        "checkpoint_identity": "not_verified_from_capture_config"
+      },
+      "notes": [
+        "Declared representation template; retained tensor samples establish selected contracts separately."
+      ]
+    },
+    "metadata": {
+      "model_coverage": "partial",
+      "unmodeled_features": [
+        "fused_expert_gate_up_source_schedule_not_bound",
+        "unrecognized_config_field:hc_eps",
+        "unrecognized_config_field:index_kpool",
+        "unrecognized_config_field:index_kpool_always_select_tail",
+        "unrecognized_config_field:index_kpool_compress",
+        "unrecognized_config_field:index_share_for_mtp_iteration",
+        "unrecognized_config_field:indexer_rope_interleave",
+        "unrecognized_config_field:mla_use_nope",
+        "unrecognized_config_field:provenance",
+        "unrecognized_config_field:qk_head_dim",
+        "unrecognized_config_field:swiglu_limit"
+      ],
+      "degraded_submodules": [
+        "fused_expert_gate_up_analytic_decomposition"
+      ]
+    }
+  },
+  "runtime": {
+    "tp": 16,
+    "dp": 1,
+    "ep": 16,
+    "pp": 1,
+    "graph_mode": "NpuGraphEx",
+    "metadata": {
+      "input_boundary": "body-input template only; placeholder workload is not serving replay",
+      "capture_directory": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot50_c16_20261030",
+      "client_concurrency": 16,
+      "captured_execution_mode": "not_established",
+      "fusion_contract": null,
+      "tensor_geometry_candidates": [
+        {
+          "operator": "RecurrentKda",
+          "tensor_batch_slots": 1,
+          "query_rows_per_slot": 6,
+          "tensor_query_rows": 6,
+          "first_csv_row": 4012,
+          "sample_count": 38,
+          "phase": "not_classified_by_shape_only"
+        }
+      ],
+      "geometry_policy": "profiler must distinguish active requests from graph slots and supply exact q/B/context",
+      "unresolved_capture_contracts": [
+        "exact_active_context_lengths_not_encoded_in_tensor_shapes",
+        "checkpoint_config_json_not_in_delivered_capture",
+        "capture_tensor_slots_may_include_graph_padding_or_inactive_requests",
+        "manifest_contains_repeated_rank_from_distinct_windows; physical_ranks_counted_once",
+        "force_eplb_not_established; do_not_enable_balanced_routing",
+        "INT8_KV_payload_proven_but_scale_packing_and_sparse_KV_kernel_not_bound",
+        "per_projection_precision_and_fused_KDA_MLA_wrapper_contracts_not_fully_audited"
+      ],
+      "compatible_variant": {
+        "variant": "attention-only",
+        "not_observed_dispatch": true,
+        "scope": "conditional body declaration; unchanged precision and routing",
+        "indexed": {
+          "kind": "indexed_attention_packed_int8",
+          "scratch_policy": "offchip",
+          "operand_modes": true
+        },
+        "source_down": false,
+        "KDA": "explicit symbolic accepted-state source reference; captured values and flags unobserved",
+        "evidence_assumptions": {
+          "indexed_captured_schedule_and_valid_mask_identity": "not_established",
+          "indexed_geometry_extension": "packed_INT8_528_is_not_retained_native_672_kernel",
+          "MXFP8_down_captured_dispatch_identity": "not_selected",
+          "scope": "evidence limitations, not model structural coverage"
+        },
+        "validation": "mechanism execution only; no claimed body or kernel accuracy"
+      },
+      "accepted_state_scenario": {
+        "id": "glm53flash-a3-tp16-c16-livepre",
+        "baseline": {
+          "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/glm-compatible-variants/glm53flash-a3-tp16-c16-livepre--attention-only.json",
+          "sha256": "e20dad316f3a50ecce3d19e62180981c18e8e2f58f319ba9180d335879d865e9",
+          "size_bytes": 5047
+        },
+        "prototype": {
+          "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/glm-kda-accepted-conditional/glm53flash-a3-b4-q6.json",
+          "sha256": "84d1b902098e09fd34b68c9b11592a2519258d19528b0bd6753cc5ac828583fa",
+          "size_bytes": 6869
+        },
+        "tokens_per_sequence": 6,
+        "sequences_per_replica": 16,
+        "context_tokens": 4096,
+        "scope": "body",
+        "source_architecture": "arch22",
+        "value_identity": "not_established",
+        "acceptance_changes_query_work": false,
+        "sigmoid_placement": "explicit in-kernel scenario, not inferred from BF16 beta",
+        "private_external_fp32_sigmoid_boundary": "not_matched_by_this_conditional_native_program",
+        "observed_geometry_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-expanded/auto-forward-glm53flash-a3-tp16-c16-livepre.json",
+          "sha256": "1e2f6742af93b7d4ff26c8d9339c518441f7a6e92267c4296465fc956727bd36",
+          "size_bytes": 4102640
+        }
+      },
+      "native_fusion_source_condition": {
+        "basis": "A3 native HC and fused INT8 grouped gate-up observed boundaries",
+        "source_case": {
+          "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm-source-accepted-26/glm53flash-a3-tp16-c16-livepre.json",
+          "sha256": "39ea3c642d326292a692c2e9313f25410c4ceddb28567e7d89df3e05ad96a1cc",
+          "size_bytes": 7091
+        },
+        "capture_binary_identity_established": false,
+        "group_list_contents_observed": false,
+        "new_service_response_parameters": 0
+      },
+      "calibration_origin": "retained_training_parameters",
+      "calibration_evidence": {
+        "evaluation_relation": "new_capture_parameters_frozen_before_latency_read",
+        "training_lock_identity": {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending-a3-heldout-training-lock.json",
+          "sha256": "b77aaeabb6a2ced4e75f0fc9068b08ab931974870d06f3b636a918b8234f8189",
+          "size_bytes": 830576
+        },
+        "no_new_observed_latency_parameter_fit": true
+      },
+      "heldout_training_case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/cases/decode-glm53flash-a3-tp16-c16-livepre.json",
+        "sha256": "547fdd48d80bc3ef8a4db2dd5a47d0dd43adc21cddc47ac62a2be0e4489037d6",
+        "size_bytes": 17309
+      },
+      "heldout_training_lock": {
+        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending-a3-heldout-training-lock.json",
+        "sha256": "b77aaeabb6a2ced4e75f0fc9068b08ab931974870d06f3b636a918b8234f8189",
+        "size_bytes": 830576
+      },
+      "new_capture_declaration": {
+        "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/README.md",
+        "sha256": "258aac0de195a2cd5ad51a283bce036932a6d102e4bae4aae5aa12713fa7d837",
+        "size_bytes": 12351
+      },
+      "declared_draft_proposal_tokens": 5,
+      "draft_proposal_tokens": 5,
+      "speculation": {
+        "enabled": true,
+        "num_speculative_tokens": 5,
+        "acceptance_rate": null,
+        "target_verification_probe_rows": 6,
+        "probe_is_observed": false,
+        "source": "heldout benchmark protocol declaration; not fitted from latency"
+      },
+      "prior_capture_metadata_scope": "Any retained capture geometry/client/launch fields outside new_capture_declaration describe only heldout_training_case_identity, not these new requests."
+    },
+    "kernels": {
+      "programs": {
+        "indexed_attention": {
+          "kind": "indexed_attention_packed_int8",
+          "scratch_policy": "offchip",
+          "operand_modes": true
+        }
+      },
+      "lowerings": {
+        "kda": {
+          "implementation": "vllm_ascend_recurrent_kda_arch22",
+          "options": {
+            "safe_gate": true,
+            "use_beta_sigmoid": true,
+            "state_selection": {
+              "kind": "symbolic_valid_selection",
+              "index_layout": "speculative",
+              "index_row_stride": 6,
+              "validity": {
+                "prefix": true,
+                "state_indices": true,
+                "accepted_tokens": true,
+                "independent_sequences": true
+              }
+            }
+          }
+        },
+        "native_fusion": {
+          "implementation": "declared_native_fusion",
+          "options": {
+            "roles": [
+              "hc_pre",
+              "hc_post",
+              "grouped_gate_up_activation_quant"
+            ],
+            "traffic_profile": {
+              "hc_pre": "hc_pre_m_k_split_175ef4d4",
+              "hc_post": "hc_post_d_split_175ef4d4",
+              "grouped_gate_up_activation_quant": "grouped_swiglu_quant_int8_split_workspace_ae923905"
+            }
+          }
+        }
+      },
+      "service_regimes": [
+        {
+          "id": "joint-expert_down",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "grouped_down",
+            "family": "grouped_gemm",
+            "phase": "decode",
+            "dtype": "int8",
+            "local_shape.0": 48,
+            "local_shape.1": 4096,
+            "local_shape.2": 2048,
+            "metadata.weight_dtype": "int8",
+            "metadata.expected_active_experts": 16.795616799494926,
+            "metadata.expected_rows": 48.0
+          },
+          "response": {
+            "fixed_us": 71.92663127413127
+          },
+          "execution": {
+            "kind": "joint_native",
+            "native_kernel": "GroupedMatmul",
+            "resource": "observed_a3_local_native",
+            "reference_rate": 1000000000.0
+          },
+          "provenance": {
+            "evidence_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8.json",
+              "sha256": "6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8",
+              "size_bytes": 30725
+            },
+            "json_pointer": "/runtime/kernels/service_regimes/0/provenance",
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "expected_rule_hits": 42
+          }
+        },
+        {
+          "id": "joint-grouped_gate_up_activation_quant",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "declared_native_fusion",
+            "family": "native_fusion",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 48,
+            "local_shape.1": 2048,
+            "metadata.fusion_role": "grouped_gate_up_activation_quant"
+          },
+          "response": {
+            "fixed_us": 142.41549034749036
+          },
+          "execution": {
+            "kind": "joint_native",
+            "native_kernel": "GroupedMatmulSwigluQuant",
+            "resource": "observed_a3_local_native",
+            "reference_rate": 1000000000.0
+          },
+          "provenance": {
+            "evidence_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8.json",
+              "sha256": "6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8",
+              "size_bytes": 30725
+            },
+            "json_pointer": "/runtime/kernels/service_regimes/1/provenance",
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "expected_rule_hits": 42
+          }
+        },
+        {
+          "id": "joint-indexed_attention_batch",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "latent_attention_batch",
+            "family": "attention",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 16,
+            "local_shape.1": 96,
+            "local_shape.2": 4102,
+            "local_shape.3": 4,
+            "local_shape.4": 512,
+            "local_shape.5": 512,
+            "metadata.indexed_attention_geometry": {
+              "topk": 2048,
+              "compression_ratio": 1,
+              "window": 0,
+              "heads": 4,
+              "latent": 512,
+              "rope": 0,
+              "cp": 1,
+              "query_dtype": "bf16",
+              "cache_dtype": "int8",
+              "sequences": [
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ],
+                [
+                  6,
+                  4096
+                ]
+              ]
+            }
+          },
+          "response": {
+            "fixed_us": 377.57967813267817
+          },
+          "execution": {
+            "kind": "joint_native",
+            "native_kernel": "KvQuantSparseFlashAttentionVllm",
+            "resource": "observed_a3_local_native",
+            "reference_rate": 1000000000.0
+          },
+          "provenance": {
+            "evidence_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8.json",
+              "sha256": "6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8",
+              "size_bytes": 30725
+            },
+            "json_pointer": "/runtime/kernels/service_regimes/2/provenance",
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "expected_rule_hits": 11
+          }
+        },
+        {
+          "id": "joint-hc_pre",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "declared_native_fusion",
+            "family": "native_fusion",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 393216,
+            "metadata.fusion_role": "hc_pre"
+          },
+          "response": {
+            "fixed_us": 34.70325885885886
+          },
+          "execution": {
+            "kind": "joint_native",
+            "native_kernel": "HcPre",
+            "resource": "observed_a3_local_native",
+            "reference_rate": 1000000000.0
+          },
+          "provenance": {
+            "evidence_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8.json",
+              "sha256": "6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8",
+              "size_bytes": 30725
+            },
+            "json_pointer": "/runtime/kernels/service_regimes/3/provenance",
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "expected_rule_hits": 90
+          }
+        },
+        {
+          "id": "joint-hc_post",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "declared_native_fusion",
+            "family": "native_fusion",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 1572864,
+            "metadata.fusion_role": "hc_post"
+          },
+          "response": {
+            "fixed_us": 20.144186486486486
+          },
+          "execution": {
+            "kind": "joint_native",
+            "native_kernel": "HcPost",
+            "resource": "observed_a3_local_native",
+            "reference_rate": 1000000000.0
+          },
+          "provenance": {
+            "evidence_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8.json",
+              "sha256": "6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8",
+              "size_bytes": 30725
+            },
+            "json_pointer": "/runtime/kernels/service_regimes/4/provenance",
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "expected_rule_hits": 90
+          }
+        }
+      ]
+    },
+    "max_num_seqs": 32,
+    "max_num_batched_tokens": 8192
+  },
+  "workload": {
+    "requests": [
+      {
+        "id": "declaration-placeholder",
+        "prompt_tokens": 1,
+        "output_tokens": 1
+      }
+    ]
+  }
+}

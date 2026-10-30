@@ -1,0 +1,52 @@
+{
+  "config": {
+    "name": "pd_pipeline_c24_p4096",
+    "concurrency": 24,
+    "prompt_tokens": 4096,
+    "output_tokens": 128,
+    "mode": "pipeline",
+    "rounds": 1,
+    "seed": 505267
+  },
+  "status": "failed",
+  "n_requests": 24,
+  "n_errors": 3,
+  "errors": [
+    "ServerDisconnectedError: Server disconnected",
+    "ServerDisconnectedError: Server disconnected",
+    "ServerDisconnectedError: Server disconnected"
+  ],
+  "rounds": 1,
+  "wall_s": 6.9450309900566936,
+  "prefill_ms_mean": 2835.7325418896617,
+  "prefill_ms_p50": 3320.480610243976,
+  "prefill_ms_p90": 4180.651060305536,
+  "prefill_ms_max": 4322.809579782188,
+  "decode_ttft_ms_mean": 304.6650923345061,
+  "decode_ttft_ms_p50": 333.4035398438573,
+  "decode_ttft_ms_p90": 359.4204499386251,
+  "itl_ms_mean": 50.591688980588124,
+  "itl_ms_p50": 52.6933902874589,
+  "itl_ms_p90": 54.99416589736939,
+  "steady_itl_ms_mean": 50.81720541509245,
+  "tpot_ms_mean": 17.319164619151465,
+  "tpot_ms_p50": 17.45157449058895,
+  "tokens_per_step": 2.928833811988286,
+  "accepted_tokens_per_step": 1.928833811988286,
+  "alpha_from_decode_server": 0.382441113490364,
+  "tokens_per_step_from_server": 2.91220556745182,
+  "e2e_ms_mean": 5340.14723518686,
+  "e2e_ms_p50": 5823.983809910715,
+  "e2e_ms_p90": 6836.250170134008,
+  "completion_tokens": 2688,
+  "output_tok_s": 387.03930966592526,
+  "output_tok_s_round_mean": 387.47242993865024,
+  "prefill_prompt_tokens_delta": 98280.0,
+  "decode_generation_tokens_delta": 2688.0,
+  "prefill_prefix_cache_queries": 98280.0,
+  "prefill_prefix_cache_hits": 0.0,
+  "prefill_hit_rate": 0.0,
+  "per_round_wall_s": [
+    6.937267770059407
+  ]
+}

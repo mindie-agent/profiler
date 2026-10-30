@@ -90,18 +90,5 @@
       12,
       16
     ]
-  },
-  "migration": {
-    "retired_parameters": {
-      "mtp_overhead_ms": {
-        "value": 0.0,
-        "reason": "draft operators are derived from draft structure"
-      },
-      "mtp_small_prefill_ms": {
-        "value": 0.0,
-        "reason": "draft operators are derived from draft structure"
-      }
-    },
-    "source_version": "0.7"
   }
 }

@@ -1318,15 +1318,6 @@
       "residual_norm"
     ]
   },
-  "migration": {
-    "retired_parameters": {
-      "timing_boundary": {
-        "value": "kernel_details",
-        "reason": "prediction reports device token commitment"
-      }
-    },
-    "source_version": "0.7"
-  },
   "metadata": {
     "tp_join_caller_condition": {
       "upstream_repository": "vllm-project/vllm-ascend",

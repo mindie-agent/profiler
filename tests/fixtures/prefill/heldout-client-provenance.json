@@ -1,0 +1,15 @@
+{
+  "schema_version": "retained-client-fixtures/1",
+  "files": {
+    "heldout-glm-prefill-client.json": {
+      "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/glm5_3_flash_w8a8_heldout_suites_20261030/s5_prefill_p2048_c1.json",
+      "sha256": "e320cef3f88cf7ec8754fea51937c1fdb1278353d666718d5c1a567a734bc8e4",
+      "size_bytes": 1437
+    },
+    "heldout-v41-pd-client.json": {
+      "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/deepseek_v4_1_flash_w8a8_disagg_pd_dp4tp4_dp8tp2_20261030/pd_pipeline_c4_p4096.json",
+      "sha256": "a7d33cc7e3e68d467597058b6a1204bcc389bfa1ed3ffdcab8f693cad07cd857",
+      "size_bytes": 1485
+    }
+  }
+}
