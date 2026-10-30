@@ -1,0 +1,1725 @@
+{
+  "name": "a5_glm53flash_tp8_c4_p8k:source-accepted-conditional",
+  "machine": {
+    "backend": "ascend",
+    "sku": "Ascend950DT_9582",
+    "num_devices": 8,
+    "ranks_per_node": 8
+  },
+  "model": {
+    "catalog_key": "glm-5.3-flash",
+    "quantization": "w8a8_mxfp8",
+    "quant": {
+      "name": "W8A8_MXFP8",
+      "weight_format": "fp8_e4m3",
+      "native_format": "bf16",
+      "activation_format": "fp8_e4m3",
+      "expert_weight_format": "fp8_e4m3",
+      "weight_block": [
+        1,
+        32
+      ],
+      "expert_block": 32,
+      "scale_format": "fp8_e8m0",
+      "scale_bytes": 1.0,
+      "kv_dtype": "bf16",
+      "index_dtype": "bf16",
+      "index_scale_dtype": "none",
+      "exclusions": [
+        "gdn",
+        "mtp",
+        "norm",
+        "lm_head",
+        "embedding",
+        "vision",
+        "projector",
+        "conv_weight_f32",
+        "conv_weight_bf16"
+      ],
+      "engram_table_mode": "device_bf16",
+      "activation_group_size": 32,
+      "activation_scale_format": "fp8_e8m0",
+      "activation_scale_pack": 2,
+      "category_overrides": {},
+      "source": {
+        "kind": "representation_contract",
+        "checkpoint": "/mnt/weight/GLM-5.3-Flash-w8a8-mxfp8",
+        "basis": "resolved ascend loader plus sampled FP8/E8M0 matrix operands; source BF16 KDA/MLA exclusions"
+      },
+      "notes": [
+        "Declared representation template; retained tensor samples establish selected contracts separately."
+      ]
+    },
+    "metadata": {
+      "model_coverage": "partial",
+      "unmodeled_features": [
+        "fused_expert_gate_up_source_schedule_not_bound",
+        "unrecognized_config_field:hc_eps",
+        "unrecognized_config_field:index_kpool",
+        "unrecognized_config_field:index_kpool_always_select_tail",
+        "unrecognized_config_field:index_kpool_compress",
+        "unrecognized_config_field:index_share_for_mtp_iteration",
+        "unrecognized_config_field:indexer_rope_interleave",
+        "unrecognized_config_field:mla_use_nope",
+        "unrecognized_config_field:provenance",
+        "unrecognized_config_field:qk_head_dim",
+        "unrecognized_config_field:swiglu_limit"
+      ],
+      "degraded_submodules": [
+        "fused_expert_gate_up_analytic_decomposition"
+      ]
+    }
+  },
+  "runtime": {
+    "tp": 8,
+    "dp": 1,
+    "ep": 1,
+    "pp": 1,
+    "routing": {
+      "policy": "balanced"
+    },
+    "max_model_len": 16384,
+    "max_num_seqs": 256,
+    "max_num_batched_tokens": 8192,
+    "enable_chunked_prefill": true,
+    "gpu_memory_utilization": 0.9,
+    "graph_mode": "auto",
+    "graph_capture_mode": "full",
+    "graph_buckets": [
+      1,
+      2,
+      4,
+      8,
+      16,
+      24,
+      32,
+      40,
+      48,
+      56,
+      64,
+      72,
+      80,
+      88,
+      96,
+      104,
+      112,
+      120,
+      128,
+      136,
+      144,
+      152,
+      160,
+      168,
+      176,
+      184,
+      192,
+      200,
+      208,
+      216,
+      224,
+      232,
+      240,
+      248,
+      256,
+      272,
+      288,
+      304,
+      320,
+      336,
+      352,
+      368,
+      384,
+      400,
+      416,
+      432,
+      448,
+      464,
+      480,
+      496,
+      512
+    ],
+    "kernels": {
+      "programs": {
+        "matmul": {
+          "kind": "steady_matmul"
+        },
+        "indexed_attention": {
+          "kind": "indexed_attention_pipeline",
+          "scratch_policy": "offchip",
+          "operand_modes": false,
+          "rope0_analytic": true
+        }
+      },
+      "recipes": {
+        "balanced_grouped_down": {
+          "kind": "ascend_mxfp8_grouped_nz"
+        }
+      },
+      "lowerings": {
+        "kda": {
+          "implementation": "vllm_ascend_recurrent_kda_arch35",
+          "options": {
+            "safe_gate": true,
+            "use_beta_sigmoid": true,
+            "state_selection": {
+              "kind": "symbolic_valid_selection",
+              "index_layout": "speculative",
+              "index_row_stride": 4,
+              "validity": {
+                "prefix": true,
+                "state_indices": true,
+                "accepted_tokens": true,
+                "independent_sequences": true
+              }
+            }
+          }
+        },
+        "native_fusion": {
+          "implementation": "declared_native_fusion",
+          "options": {
+            "roles": [
+              "grouped_gate_up_activation_quant",
+              "hc_pre"
+            ],
+            "program_profiles": {
+              "grouped_gate_up_activation_quant": "ascend_mxfp8_grouped_swiglu_quant"
+            },
+            "program_options": {
+              "grouped_gate_up_activation_quant": {
+                "l1_k": 512
+              }
+            },
+            "traffic_profile": {
+              "hc_pre": "hc_pre_arch35_mk_175ef4d4"
+            }
+          }
+        },
+        "conv_state_copy": {
+          "implementation": "triton_noncontiguous_conv_state_copy",
+          "options": {
+            "state_slots": 6
+          }
+        },
+        "moe_init_routing": "ascend_moe_init_routing_v3_mxfp8"
+      },
+      "hccl": {
+        "allreduce": {
+          "expansion": "AICPU_TS",
+          "template": "mesh_oneshot",
+          "axes": [
+            "tp"
+          ]
+        }
+      },
+      "service_regimes": [
+        {
+          "id": "hcom-allreduce-aicpukernel-observed",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "kernel": "HCCL_AICPU_TS_allreduce_mesh_oneshot",
+            "metadata.hccl_selection.ranks": 8,
+            "metadata.hccl_selection.dtype_bytes": 2
+          },
+          "coordinates": {
+            "payload_bytes": {
+              "path": "metadata.hccl_selection.payload_bytes"
+            }
+          },
+          "domain": {
+            "payload_bytes": {
+              "min": 131072,
+              "max": 131072
+            }
+          },
+          "response": {
+            "fixed_us": 22.908758585858585
+          },
+          "provenance": {
+            "basis": "retained_complete_native_population_mean",
+            "calibration_origin": "observed",
+            "evaluation_role": "in_sample",
+            "actual_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c4_p8k-glm-flash-ws9.actual.json",
+              "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+              "size_bytes": 791398
+            },
+            "source_sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
+            "native_operator_type": "hcom_allReduce_AicpuKernel",
+            "count": 990,
+            "body_count": 11,
+            "mean_us": 22.908758585858585,
+            "p50_us": 21.2325,
+            "physical_domain": {
+              "query_rows": 16,
+              "sequences_per_replica": 4,
+              "tokens_per_sequence": 4,
+              "context_tokens": 8200,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity",
+              "phase": "decode"
+            },
+            "body_residual_used": false,
+            "response_boundary": "inclusive_native_call_once",
+            "contract_and_source_uncertainties_retained": true,
+            "boundary_caution": "COMMUNICATION envelope; full call may include peer waiting. Mesh OneShot and payload are source-declared conditions; no pure-link bandwidth inference."
+          }
+        },
+        {
+          "id": "-copy-conv-state-kernel-observed",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "triton_noncontiguous_conv_state_copy",
+            "dtype": "bf16",
+            "local_shape.1": 6,
+            "local_shape.2": 3072
+          },
+          "coordinates": {
+            "batch": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "batch": {
+              "min": 4,
+              "max": 4
+            }
+          },
+          "response": {
+            "fixed_us": 4.524312834224599
+          },
+          "provenance": {
+            "basis": "retained_complete_native_population_mean",
+            "calibration_origin": "observed",
+            "evaluation_role": "in_sample",
+            "actual_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c4_p8k-glm-flash-ws9.actual.json",
+              "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+              "size_bytes": 791398
+            },
+            "source_sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
+            "native_operator_type": "_copy_conv_state_kernel",
+            "count": 748,
+            "body_count": 11,
+            "mean_us": 4.524312834224599,
+            "p50_us": 4.452,
+            "physical_domain": {
+              "query_rows": 16,
+              "sequences_per_replica": 4,
+              "tokens_per_sequence": 4,
+              "context_tokens": 8200,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity",
+              "phase": "decode"
+            },
+            "body_residual_used": false,
+            "response_boundary": "inclusive_native_call_once",
+            "contract_and_source_uncertainties_retained": true,
+            "boundary_caution": "Pooled gather/scatter histogram; equal per-call mean is an explicit service assignment, not measured direction-specific latency."
+          }
+        },
+        {
+          "id": "moeinitroutingv3-observed",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "ascend_moe_init_routing_v3_mxfp8",
+            "dtype": "bf16",
+            "metadata.moe_init_config.experts": 288,
+            "metadata.moe_init_config.topk": 8,
+            "metadata.moe_init_config.width": 4096
+          },
+          "coordinates": {
+            "tokens": {
+              "path": "metadata.moe_init_config.tokens"
+            }
+          },
+          "domain": {
+            "tokens": {
+              "min": 16,
+              "max": 16
+            }
+          },
+          "response": {
+            "fixed_us": 21.820865800865803
+          },
+          "provenance": {
+            "basis": "retained_complete_native_population_mean",
+            "calibration_origin": "observed",
+            "evaluation_role": "in_sample",
+            "actual_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c4_p8k-glm-flash-ws9.actual.json",
+              "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+              "size_bytes": 791398
+            },
+            "source_sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
+            "native_operator_type": "MoeInitRoutingV3",
+            "count": 462,
+            "body_count": 11,
+            "mean_us": 21.820865800865803,
+            "p50_us": 21.5375,
+            "physical_domain": {
+              "query_rows": 16,
+              "sequences_per_replica": 4,
+              "tokens_per_sequence": 4,
+              "context_tokens": 8200,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity",
+              "phase": "decode"
+            },
+            "body_residual_used": false,
+            "response_boundary": "inclusive_native_call_once",
+            "contract_and_source_uncertainties_retained": true,
+            "boundary_caution": null
+          }
+        },
+        {
+          "id": "groupedmatmulswigluquantv2-observed",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "ascend_mxfp8_grouped_swiglu_quant",
+            "metadata.mxfp8_swiglu_config.k": 4096,
+            "metadata.mxfp8_swiglu_config.width": 256
+          },
+          "coordinates": {
+            "routed_rows": {
+              "path": "local_shape.0"
+            },
+            "groups": {
+              "path": "metadata.mxfp8_swiglu_config.rows",
+              "reduce": "len"
+            }
+          },
+          "domain": {
+            "routed_rows": {
+              "min": 128,
+              "max": 128
+            },
+            "groups": {
+              "min": 288,
+              "max": 288
+            }
+          },
+          "response": {
+            "fixed_us": 98.45777922077922
+          },
+          "provenance": {
+            "basis": "retained_complete_native_population_mean",
+            "calibration_origin": "observed",
+            "evaluation_role": "in_sample",
+            "actual_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c4_p8k-glm-flash-ws9.actual.json",
+              "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+              "size_bytes": 791398
+            },
+            "source_sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
+            "native_operator_type": "GroupedMatmulSwigluQuantV2",
+            "count": 462,
+            "body_count": 11,
+            "mean_us": 98.45777922077922,
+            "p50_us": 98.182,
+            "physical_domain": {
+              "query_rows": 16,
+              "sequences_per_replica": 4,
+              "tokens_per_sequence": 4,
+              "context_tokens": 8200,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity",
+              "phase": "decode"
+            },
+            "body_residual_used": false,
+            "response_boundary": "inclusive_native_call_once",
+            "contract_and_source_uncertainties_retained": true,
+            "boundary_caution": null
+          }
+        },
+        {
+          "id": "causalconv1d-observed",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "short_convolution",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "elements": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "elements": {
+              "min": 49152,
+              "max": 49152
+            }
+          },
+          "response": {
+            "fixed_us": 8.33101871657754
+          },
+          "provenance": {
+            "basis": "retained_complete_native_population_mean",
+            "calibration_origin": "observed",
+            "evaluation_role": "in_sample",
+            "actual_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c4_p8k-glm-flash-ws9.actual.json",
+              "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+              "size_bytes": 791398
+            },
+            "source_sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
+            "native_operator_type": "CausalConv1d",
+            "count": 374,
+            "body_count": 11,
+            "mean_us": 8.33101871657754,
+            "p50_us": 8.139,
+            "physical_domain": {
+              "query_rows": 16,
+              "sequences_per_replica": 4,
+              "tokens_per_sequence": 4,
+              "context_tokens": 8200,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity",
+              "phase": "decode"
+            },
+            "body_residual_used": false,
+            "response_boundary": "inclusive_native_call_once",
+            "contract_and_source_uncertainties_retained": true,
+            "boundary_caution": null
+          }
+        },
+        {
+          "id": "recurrentkda-observed",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "vllm_ascend_recurrent_kda_arch35",
+            "metadata.native_kind": "RecurrentKda",
+            "metadata.heads": 8,
+            "metadata.dk": 128,
+            "metadata.dv": 128,
+            "metadata.state_dtype": "fp32"
+          },
+          "coordinates": {
+            "tokens": {
+              "path": "local_shape.0"
+            },
+            "batch": {
+              "path": "metadata.sequence_tokens",
+              "reduce": "len"
+            },
+            "query": {
+              "path": "metadata.sequence_tokens",
+              "reduce": "max"
+            }
+          },
+          "domain": {
+            "tokens": {
+              "min": 16,
+              "max": 16
+            },
+            "batch": {
+              "min": 4,
+              "max": 4
+            },
+            "query": {
+              "min": 4,
+              "max": 4
+            }
+          },
+          "response": {
+            "fixed_us": 14.29047860962567
+          },
+          "provenance": {
+            "basis": "retained_complete_native_population_mean",
+            "calibration_origin": "observed",
+            "evaluation_role": "in_sample",
+            "actual_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c4_p8k-glm-flash-ws9.actual.json",
+              "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+              "size_bytes": 791398
+            },
+            "source_sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
+            "native_operator_type": "RecurrentKda",
+            "count": 374,
+            "body_count": 11,
+            "mean_us": 14.29047860962567,
+            "p50_us": 13.915,
+            "physical_domain": {
+              "query_rows": 16,
+              "sequences_per_replica": 4,
+              "tokens_per_sequence": 4,
+              "context_tokens": 8200,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity",
+              "phase": "decode"
+            },
+            "body_residual_used": false,
+            "response_boundary": "inclusive_native_call_once",
+            "contract_and_source_uncertainties_retained": true,
+            "boundary_caution": null
+          }
+        },
+        {
+          "id": "groupedmatmul-observed-second",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "balanced_grouped_down",
+            "dtype": "fp8_e4m3",
+            "local_shape.0": 128,
+            "local_shape.1": 4096,
+            "local_shape.2": 256,
+            "metadata.matrix_groups": 128,
+            "metadata.matrix_weight_bank_groups": 288,
+            "metadata.input_format": "fp8_e4m3",
+            "metadata.weight_format": "fp8_e4m3",
+            "metadata.output_format": "bf16"
+          },
+          "coordinates": {
+            "routed_rows": {
+              "path": "local_shape.0"
+            },
+            "banks": {
+              "path": "metadata.matrix_group_rows",
+              "reduce": "len"
+            }
+          },
+          "domain": {
+            "routed_rows": {
+              "min": 128,
+              "max": 128
+            },
+            "banks": {
+              "min": 288,
+              "max": 288
+            }
+          },
+          "response": {
+            "fixed_us": 51.43517532467532
+          },
+          "provenance": {
+            "basis": "retained_complete_native_population_mean",
+            "calibration_origin": "observed",
+            "evaluation_role": "in_sample",
+            "native_operator_type": "GroupedMatmul",
+            "actual_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c4_p8k-glm-flash-ws9.actual.json",
+              "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+              "size_bytes": 791398
+            },
+            "source_sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
+            "count": 462,
+            "body_count": 11,
+            "mean_us": 51.43517532467532,
+            "p50_us": 51.3335,
+            "physical_domain": {
+              "query_rows": 16,
+              "sequences_per_replica": 4,
+              "tokens_per_sequence": 4,
+              "context_tokens": 8200,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity",
+              "phase": "decode"
+            },
+            "body_residual_used": false,
+            "response_boundary": "inclusive_native_call_once",
+            "contract_and_source_uncertainties_retained": true,
+            "boundary_caution": "Source declared valid integer expert rows; native storage capacity does not establish group-list values."
+          }
+        },
+        {
+          "id": "sparseflashmla-observed-second",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "latent_attention_batch",
+            "dtype": "bf16",
+            "local_shape.0": 4,
+            "local_shape.1": 16,
+            "local_shape.2": 8204,
+            "local_shape.3": 8,
+            "local_shape.4": 512,
+            "local_shape.5": 512,
+            "metadata.indexed_attention_geometry.topk": 2048,
+            "metadata.indexed_attention_geometry.query_dtype": "bf16",
+            "metadata.indexed_attention_geometry.cache_dtype": "bf16"
+          },
+          "coordinates": {
+            "batch": {
+              "path": "metadata.attention_tensor_view.batch_count"
+            }
+          },
+          "domain": {
+            "batch": {
+              "min": 4,
+              "max": 4
+            }
+          },
+          "response": {
+            "fixed_us": 52.802471074380165
+          },
+          "provenance": {
+            "basis": "retained_complete_native_population_mean",
+            "calibration_origin": "observed",
+            "evaluation_role": "in_sample",
+            "native_operator_type": "SparseFlashMla",
+            "actual_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c4_p8k-glm-flash-ws9.actual.json",
+              "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+              "size_bytes": 791398
+            },
+            "source_sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
+            "count": 121,
+            "body_count": 11,
+            "mean_us": 52.802471074380165,
+            "p50_us": 52.896,
+            "physical_domain": {
+              "query_rows": 16,
+              "sequences_per_replica": 4,
+              "tokens_per_sequence": 4,
+              "context_tokens": 8200,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity",
+              "phase": "decode"
+            },
+            "body_residual_used": false,
+            "response_boundary": "inclusive_native_call_once",
+            "contract_and_source_uncertainties_retained": true,
+            "boundary_caution": "Whole-batch indexed attention boundary; active KV, sparse-index values and captured native implementation are not established."
+          }
+        },
+        {
+          "id": "-glm5-next-lightning-indexer-score-kernel-observed-second",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "index_scores",
+            "dtype": "bf16",
+            "local_shape.0": 16,
+            "local_shape.1": 32,
+            "local_shape.2": 128
+          },
+          "coordinates": {
+            "hbm_bytes": {
+              "path": "work.hbm"
+            }
+          },
+          "domain": {
+            "hbm_bytes": {
+              "min": 34122400.0,
+              "max": 34122400.0
+            }
+          },
+          "response": {
+            "fixed_us": 48.09739669421488
+          },
+          "provenance": {
+            "basis": "retained_complete_native_population_mean",
+            "calibration_origin": "observed",
+            "evaluation_role": "in_sample",
+            "native_operator_type": "_glm5_next_lightning_indexer_score_kernel",
+            "actual_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c4_p8k-glm-flash-ws9.actual.json",
+              "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+              "size_bytes": 791398
+            },
+            "source_sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
+            "count": 121,
+            "body_count": 11,
+            "mean_us": 48.09739669421488,
+            "p50_us": 49.747,
+            "physical_domain": {
+              "query_rows": 16,
+              "sequences_per_replica": 4,
+              "tokens_per_sequence": 4,
+              "context_tokens": 8200,
+              "batch_basis": "captured_paged_attention_block_table_rows",
+              "context_basis": "not_observed_from_cache_capacity",
+              "phase": "decode"
+            },
+            "body_residual_used": false,
+            "response_boundary": "inclusive_native_call_once",
+            "contract_and_source_uncertainties_retained": true,
+            "boundary_caution": "Source-symbol score kernel matches standalone index_scores; index_topk and projections remain separate; complete native ABI unavailable."
+          }
+        },
+        {
+          "id": "hcpre-hc-pre-observed-third",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "declared_native_fusion",
+            "dtype": "bf16",
+            "metadata.fusion_role": "hc_pre",
+            "metadata.fusion_boundary.traffic_profile": "hc_pre_arch35_mk_175ef4d4",
+            "metadata.fusion_tensor_view.tokens": 16,
+            "metadata.fusion_tensor_view.hidden": 4096,
+            "metadata.fusion_tensor_view.hc": 4,
+            "metadata.fusion_tensor_view.parameter_dtype": "fp32"
+          },
+          "response": {
+            "fixed_us": 11.846619191919192
+          },
+          "provenance": {
+            "basis": "complete_normalized_contract_native_mean",
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "actual_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c4_p8k-glm-flash-ws9.actual.json",
+              "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+              "size_bytes": 791398
+            },
+            "mapping_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-complete-operators/families/a5_glm53flash_tp8_c4_p8k/body-operator-a5_glm53flash_tp8_c4_p8k-source-complete-30dcea1e.mapping.json",
+              "sha256": "5cfdd72a82820ff93d27b2a705a99e0a50d59834e7df478b53553440a709ccdb",
+              "size_bytes": 83030
+            },
+            "native_operator_type": "HcPre",
+            "count": 990,
+            "body_count": 11,
+            "mean_us": 11.846619191919192,
+            "p50_us": 11.668,
+            "contract": [
+              "hyper_connection_active",
+              "HcPre",
+              [
+                [
+                  [
+                    16,
+                    4,
+                    4096
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    24,
+                    16384
+                  ],
+                  "fp32",
+                  "ND"
+                ],
+                [
+                  [
+                    3
+                  ],
+                  "fp32",
+                  "ND"
+                ],
+                [
+                  [
+                    24
+                  ],
+                  "fp32",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    16,
+                    4096
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    16,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ],
+                [
+                  [
+                    16,
+                    4,
+                    4
+                  ],
+                  "fp32",
+                  "ND"
+                ]
+              ]
+            ],
+            "body_residual_used": false,
+            "response_boundary": "inclusive_native_call_once",
+            "boundary_caution": "Complete normalized premix-absent contract population; optional output storage aliases, capture binary and runtime scalar values remain unestablished. Existing arch35 provider replaces all six phases once."
+          }
+        },
+        {
+          "id": "matmulv3-linear_qkvbfg_a-observed-third",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "linear_qkvbfg_a",
+            "dtype": "bf16",
+            "local_shape.0": 16,
+            "local_shape.1": 3336,
+            "local_shape.2": 4096
+          },
+          "response": {
+            "fixed_us": 18.013868983957217
+          },
+          "provenance": {
+            "basis": "complete_normalized_contract_native_mean",
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "actual_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c4_p8k-glm-flash-ws9.actual.json",
+              "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+              "size_bytes": 791398
+            },
+            "mapping_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-complete-operators/families/a5_glm53flash_tp8_c4_p8k/body-operator-a5_glm53flash_tp8_c4_p8k-source-complete-30dcea1e.mapping.json",
+              "sha256": "5cfdd72a82820ff93d27b2a705a99e0a50d59834e7df478b53553440a709ccdb",
+              "size_bytes": 83030
+            },
+            "native_operator_type": "MatMulV3",
+            "count": 374,
+            "body_count": 11,
+            "mean_us": 18.013868983957217,
+            "p50_us": 17.927,
+            "contract": [
+              "matrix",
+              [
+                16,
+                3336,
+                4096
+              ],
+              "bf16",
+              "bf16",
+              "bf16",
+              [],
+              ""
+            ],
+            "body_residual_used": false,
+            "response_boundary": "inclusive_native_call_once",
+            "boundary_caution": "Complete native matrix normalized contract matches each source role; placement/occurrence is topology-conditioned, not Host stack evidence."
+          }
+        },
+        {
+          "id": "matrix-linear_output-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "linear_output",
+            "dtype": "bf16",
+            "local_shape.0": 16,
+            "local_shape.1": 4096,
+            "local_shape.2": 1024
+          },
+          "response": {
+            "fixed_us": 6.738414438502674
+          },
+          "provenance": {
+            "basis": "complete_retained_native_population_mean",
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "count": 374,
+            "mean_us": 6.738414438502674,
+            "p50_us": 6.7105,
+            "body_residual_used": false,
+            "response_boundary": "inclusive_native_call_once",
+            "native_operator_type": "MatMulV3",
+            "declared_role": "linear_output",
+            "actual_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c4_p8k-glm-flash-ws9.actual.json",
+              "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+              "size_bytes": 791398
+            },
+            "mapping_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-complete-operators/families/a5_glm53flash_tp8_c4_p8k/body-operator-a5_glm53flash_tp8_c4_p8k-source-complete-30dcea1e.mapping.json",
+              "sha256": "5cfdd72a82820ff93d27b2a705a99e0a50d59834e7df478b53553440a709ccdb",
+              "size_bytes": 83030
+            },
+            "body_count": 11,
+            "normalized_contract": [
+              "matrix",
+              [
+                16,
+                4096,
+                1024
+              ],
+              "bf16",
+              "bf16",
+              "bf16",
+              [],
+              ""
+            ],
+            "boundary_caution": "Complete normalized geometry and whole-layer role; no Host occurrence or captured binary proof."
+          }
+        },
+        {
+          "id": "matrix-index_q-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "index_q",
+            "dtype": "bf16",
+            "local_shape.0": 16,
+            "local_shape.1": 4096,
+            "local_shape.2": 1536
+          },
+          "response": {
+            "fixed_us": 9.589561983471075
+          },
+          "provenance": {
+            "basis": "complete_retained_native_population_mean",
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "count": 121,
+            "mean_us": 9.589561983471075,
+            "p50_us": 9.573,
+            "body_residual_used": false,
+            "response_boundary": "inclusive_native_call_once",
+            "native_operator_type": "MatMulV3",
+            "declared_role": "index_q",
+            "actual_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c4_p8k-glm-flash-ws9.actual.json",
+              "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+              "size_bytes": 791398
+            },
+            "mapping_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-complete-operators/families/a5_glm53flash_tp8_c4_p8k/body-operator-a5_glm53flash_tp8_c4_p8k-source-complete-30dcea1e.mapping.json",
+              "sha256": "5cfdd72a82820ff93d27b2a705a99e0a50d59834e7df478b53553440a709ccdb",
+              "size_bytes": 83030
+            },
+            "body_count": 11,
+            "normalized_contract": [
+              "matrix",
+              [
+                16,
+                4096,
+                1536
+              ],
+              "bf16",
+              "bf16",
+              "bf16",
+              [],
+              ""
+            ],
+            "boundary_caution": "Complete normalized geometry and whole-layer role; no Host occurrence or captured binary proof."
+          }
+        },
+        {
+          "id": "matrix-router-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "router",
+            "dtype": "fp32",
+            "local_shape.0": 16,
+            "local_shape.1": 288,
+            "local_shape.2": 4096
+          },
+          "response": {
+            "fixed_us": 9.707993506493507
+          },
+          "provenance": {
+            "basis": "complete_retained_native_population_mean",
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "count": 462,
+            "mean_us": 9.707993506493507,
+            "p50_us": 9.5425,
+            "body_residual_used": false,
+            "response_boundary": "inclusive_native_call_once",
+            "native_operator_type": "MatMulV3",
+            "declared_role": "router",
+            "actual_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c4_p8k-glm-flash-ws9.actual.json",
+              "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+              "size_bytes": 791398
+            },
+            "mapping_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-complete-operators/families/a5_glm53flash_tp8_c4_p8k/body-operator-a5_glm53flash_tp8_c4_p8k-source-complete-30dcea1e.mapping.json",
+              "sha256": "5cfdd72a82820ff93d27b2a705a99e0a50d59834e7df478b53553440a709ccdb",
+              "size_bytes": 83030
+            },
+            "body_count": 11,
+            "normalized_contract": [
+              "matrix",
+              [
+                16,
+                288,
+                4096
+              ],
+              "fp32",
+              "fp32",
+              "fp32",
+              [],
+              ""
+            ],
+            "boundary_caution": "Complete normalized geometry and whole-layer role; no Host occurrence or captured binary proof."
+          }
+        },
+        {
+          "id": "matrix-gate_up-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "dense_gate_up",
+            "dtype": "fp8_e4m3",
+            "local_shape.0": 16,
+            "local_shape.1": 3072,
+            "local_shape.2": 4096
+          },
+          "response": {
+            "fixed_us": 8.698121212121212
+          },
+          "provenance": {
+            "basis": "complete_retained_native_population_mean",
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "count": 33,
+            "mean_us": 8.698121212121212,
+            "p50_us": 8.648,
+            "body_residual_used": false,
+            "response_boundary": "inclusive_native_call_once",
+            "native_operator_type": "QuantBatchMatmulV3",
+            "declared_role": "gate_up",
+            "actual_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c4_p8k-glm-flash-ws9.actual.json",
+              "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+              "size_bytes": 791398
+            },
+            "mapping_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-complete-operators/families/a5_glm53flash_tp8_c4_p8k/body-operator-a5_glm53flash_tp8_c4_p8k-source-complete-30dcea1e.mapping.json",
+              "sha256": "5cfdd72a82820ff93d27b2a705a99e0a50d59834e7df478b53553440a709ccdb",
+              "size_bytes": 83030
+            },
+            "body_count": 11,
+            "normalized_contract": [
+              "matrix",
+              [
+                16,
+                3072,
+                4096
+              ],
+              "fp8_e4m3",
+              "fp8_e4m3",
+              "bf16",
+              [
+                16,
+                64,
+                2
+              ],
+              "fp8_e8m0"
+            ],
+            "boundary_caution": "Complete normalized geometry and whole-layer role; no Host occurrence or captured binary proof."
+          }
+        },
+        {
+          "id": "matrix-down-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "dense_down",
+            "dtype": "fp8_e4m3",
+            "local_shape.0": 16,
+            "local_shape.1": 4096,
+            "local_shape.2": 1536
+          },
+          "response": {
+            "fixed_us": 5.47
+          },
+          "provenance": {
+            "basis": "complete_retained_native_population_mean",
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "count": 33,
+            "mean_us": 5.47,
+            "p50_us": 5.447,
+            "body_residual_used": false,
+            "response_boundary": "inclusive_native_call_once",
+            "native_operator_type": "QuantBatchMatmulV3",
+            "declared_role": "down",
+            "actual_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c4_p8k-glm-flash-ws9.actual.json",
+              "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+              "size_bytes": 791398
+            },
+            "mapping_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-complete-operators/families/a5_glm53flash_tp8_c4_p8k/body-operator-a5_glm53flash_tp8_c4_p8k-source-complete-30dcea1e.mapping.json",
+              "sha256": "5cfdd72a82820ff93d27b2a705a99e0a50d59834e7df478b53553440a709ccdb",
+              "size_bytes": 83030
+            },
+            "body_count": 11,
+            "normalized_contract": [
+              "matrix",
+              [
+                16,
+                4096,
+                1536
+              ],
+              "fp8_e4m3",
+              "fp8_e4m3",
+              "bf16",
+              [
+                16,
+                24,
+                2
+              ],
+              "fp8_e8m0"
+            ],
+            "boundary_caution": "Complete normalized geometry and whole-layer role; no Host occurrence or captured binary proof."
+          }
+        },
+        {
+          "id": "matrix-shared-gate_up-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "dense_gate_up",
+            "dtype": "fp8_e4m3",
+            "local_shape.0": 16,
+            "local_shape.1": 512,
+            "local_shape.2": 4096
+          },
+          "response": {
+            "fixed_us": 7.366049783549784
+          },
+          "provenance": {
+            "basis": "complete_retained_native_population_mean",
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "count": 462,
+            "mean_us": 7.366049783549784,
+            "p50_us": 7.275,
+            "body_residual_used": false,
+            "response_boundary": "inclusive_native_call_once",
+            "native_operator_type": "QuantBatchMatmulV3",
+            "declared_role": "shared.gate_up",
+            "actual_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c4_p8k-glm-flash-ws9.actual.json",
+              "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+              "size_bytes": 791398
+            },
+            "mapping_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-complete-operators/families/a5_glm53flash_tp8_c4_p8k/body-operator-a5_glm53flash_tp8_c4_p8k-source-complete-30dcea1e.mapping.json",
+              "sha256": "5cfdd72a82820ff93d27b2a705a99e0a50d59834e7df478b53553440a709ccdb",
+              "size_bytes": 83030
+            },
+            "body_count": 11,
+            "normalized_contract": [
+              "matrix",
+              [
+                16,
+                512,
+                4096
+              ],
+              "fp8_e4m3",
+              "fp8_e4m3",
+              "bf16",
+              [
+                16,
+                64,
+                2
+              ],
+              "fp8_e8m0"
+            ],
+            "boundary_caution": "Complete normalized geometry and whole-layer role; no Host occurrence or captured binary proof."
+          }
+        },
+        {
+          "id": "matrix-shared-down-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "dense_down",
+            "dtype": "fp8_e4m3",
+            "local_shape.0": 16,
+            "local_shape.1": 4096,
+            "local_shape.2": 256
+          },
+          "response": {
+            "fixed_us": 4.212190476190476
+          },
+          "provenance": {
+            "basis": "complete_retained_native_population_mean",
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "count": 462,
+            "mean_us": 4.212190476190476,
+            "p50_us": 4.173,
+            "body_residual_used": false,
+            "response_boundary": "inclusive_native_call_once",
+            "native_operator_type": "QuantBatchMatmulV3",
+            "declared_role": "shared.down",
+            "actual_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c4_p8k-glm-flash-ws9.actual.json",
+              "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+              "size_bytes": 791398
+            },
+            "mapping_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-complete-operators/families/a5_glm53flash_tp8_c4_p8k/body-operator-a5_glm53flash_tp8_c4_p8k-source-complete-30dcea1e.mapping.json",
+              "sha256": "5cfdd72a82820ff93d27b2a705a99e0a50d59834e7df478b53553440a709ccdb",
+              "size_bytes": 83030
+            },
+            "body_count": 11,
+            "normalized_contract": [
+              "matrix",
+              [
+                16,
+                4096,
+                256
+              ],
+              "fp8_e4m3",
+              "fp8_e4m3",
+              "bf16",
+              [
+                16,
+                4,
+                2
+              ],
+              "fp8_e8m0"
+            ],
+            "boundary_caution": "Complete normalized geometry and whole-layer role; no Host occurrence or captured binary proof."
+          }
+        },
+        {
+          "id": "matrix-q_absorb-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "q_absorb",
+            "dtype": "bf16",
+            "local_shape.0": 128,
+            "local_shape.1": 512,
+            "local_shape.2": 256
+          },
+          "response": {
+            "fixed_us": 6.748950413223141
+          },
+          "provenance": {
+            "basis": "complete_retained_native_population_mean",
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "count": 121,
+            "mean_us": 6.748950413223141,
+            "p50_us": 6.744,
+            "body_residual_used": false,
+            "response_boundary": "inclusive_native_call_once",
+            "native_operator_type": "TransposeBatchMatMul",
+            "declared_role": "q_absorb",
+            "actual_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c4_p8k-glm-flash-ws9.actual.json",
+              "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+              "size_bytes": 791398
+            },
+            "mapping_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-complete-operators/families/a5_glm53flash_tp8_c4_p8k/body-operator-a5_glm53flash_tp8_c4_p8k-source-complete-30dcea1e.mapping.json",
+              "sha256": "5cfdd72a82820ff93d27b2a705a99e0a50d59834e7df478b53553440a709ccdb",
+              "size_bytes": 83030
+            },
+            "body_count": 11,
+            "normalized_contract": [
+              "transpose_batchmatmul_active",
+              "TransposeBatchMatMul",
+              [
+                8,
+                16,
+                512,
+                256
+              ],
+              "bf16",
+              "bf16",
+              "bf16"
+            ],
+            "boundary_caution": "Complete normalized geometry and whole-layer role; no Host occurrence or captured binary proof."
+          }
+        },
+        {
+          "id": "matrix-v_expand-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "v_expand",
+            "dtype": "bf16",
+            "local_shape.0": 128,
+            "local_shape.1": 256,
+            "local_shape.2": 512
+          },
+          "response": {
+            "fixed_us": 6.185280991735537
+          },
+          "provenance": {
+            "basis": "complete_retained_native_population_mean",
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "count": 121,
+            "mean_us": 6.185280991735537,
+            "p50_us": 6.172,
+            "body_residual_used": false,
+            "response_boundary": "inclusive_native_call_once",
+            "native_operator_type": "TransposeBatchMatMul",
+            "declared_role": "v_expand",
+            "actual_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c4_p8k-glm-flash-ws9.actual.json",
+              "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+              "size_bytes": 791398
+            },
+            "mapping_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-complete-operators/families/a5_glm53flash_tp8_c4_p8k/body-operator-a5_glm53flash_tp8_c4_p8k-source-complete-30dcea1e.mapping.json",
+              "sha256": "5cfdd72a82820ff93d27b2a705a99e0a50d59834e7df478b53553440a709ccdb",
+              "size_bytes": 83030
+            },
+            "body_count": 11,
+            "normalized_contract": [
+              "transpose_batchmatmul_active",
+              "TransposeBatchMatMul",
+              [
+                8,
+                16,
+                256,
+                512
+              ],
+              "bf16",
+              "bf16",
+              "bf16"
+            ],
+            "boundary_caution": "Complete normalized geometry and whole-layer role; no Host occurrence or captured binary proof."
+          }
+        },
+        {
+          "id": "convolution_input_contiguous-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "convolution_input_contiguous",
+            "dtype": "bf16",
+            "local_shape.0": 16,
+            "local_shape.1": 3072,
+            "metadata.native_kind": "Slice",
+            "metadata.source_layout.strides.0": 3336,
+            "metadata.source_layout.offset": 0
+          },
+          "response": {
+            "fixed_us": 4.452002673796792
+          },
+          "provenance": {
+            "basis": "complete_retained_native_population_mean",
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "count": 374,
+            "mean_us": 4.452002673796792,
+            "p50_us": 4.397,
+            "body_residual_used": false,
+            "response_boundary": "inclusive_native_call_once",
+            "native_operator_type": "Slice",
+            "declared_role": "convolution_input_contiguous",
+            "partition_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+              "sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
+              "size_bytes": 2210414
+            },
+            "partition_indices": [
+              0
+            ],
+            "native_abi": [
+              "native_tensor_abi",
+              "Slice",
+              [
+                [
+                  [
+                    16,
+                    3336
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    2
+                  ],
+                  "int64",
+                  "ND"
+                ],
+                [
+                  [
+                    2
+                  ],
+                  "int64",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    16,
+                    3072
+                  ],
+                  "bf16",
+                  "ND"
+                ]
+              ]
+            ],
+            "normalized_contract": [
+              "slice_copy",
+              [
+                16,
+                3336
+              ],
+              [
+                16,
+                3072
+              ],
+              "bf16",
+              "bf16"
+            ],
+            "body_count": 11,
+            "boundary_caution": "Input/output storage geometry plus declared contiguous consumer; native scalar offsets not exported. NCL beta input label remains observed and is not silently rewritten to ND."
+          }
+        },
+        {
+          "id": "kda_beta_contiguous-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "kda_beta_contiguous",
+            "dtype": "bf16",
+            "local_shape.0": 16,
+            "local_shape.1": 8,
+            "metadata.native_kind": "Slice",
+            "metadata.source_layout.strides.0": 3336,
+            "metadata.source_layout.offset": 3072
+          },
+          "response": {
+            "fixed_us": 1.6903770053475937
+          },
+          "provenance": {
+            "basis": "complete_retained_native_population_mean",
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "count": 374,
+            "mean_us": 1.6903770053475937,
+            "p50_us": 1.616,
+            "body_residual_used": false,
+            "response_boundary": "inclusive_native_call_once",
+            "native_operator_type": "Slice",
+            "declared_role": "kda_beta_contiguous",
+            "partition_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+              "sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
+              "size_bytes": 2210414
+            },
+            "partition_indices": [
+              4
+            ],
+            "native_abi": [
+              "native_tensor_abi",
+              "Slice",
+              [
+                [
+                  [
+                    16,
+                    3336
+                  ],
+                  "bf16",
+                  "NCL"
+                ],
+                [
+                  [
+                    2
+                  ],
+                  "int64",
+                  "ND"
+                ],
+                [
+                  [
+                    2
+                  ],
+                  "int64",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    16,
+                    8
+                  ],
+                  "bf16",
+                  "ND"
+                ]
+              ]
+            ],
+            "normalized_contract": [
+              "slice_copy",
+              [
+                16,
+                3336
+              ],
+              [
+                16,
+                8
+              ],
+              "bf16",
+              "bf16"
+            ],
+            "body_count": 11,
+            "boundary_caution": "Input/output storage geometry plus declared contiguous consumer; native scalar offsets not exported. NCL beta input label remains observed and is not silently rewritten to ND."
+          }
+        }
+      ]
+    },
+    "metadata": {
+      "input_boundary": "complete 45-layer target-body template; placeholder request is not serving replay",
+      "capture_directory": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030",
+      "client_summary": {
+        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/benchmark_summary.json",
+        "bytes": 5494,
+        "sha256": "3be236b669ed8255b875cac99fd9e118fa93b43221c04e9da726041ec5a3e0ab"
+      },
+      "startup": {
+        "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/glm53-hc/raw/ws9/logs/serve-mtp.log",
+        "bytes": 335341,
+        "sha256": "8f9c278ee374c8983a178f515e3d37eb1e5325341e0d4a0cba14601a62517661"
+      },
+      "resolved_configuration_lines": [
+        25,
+        67
+      ],
+      "checkpoint": "/mnt/weight/GLM-5.3-Flash-w8a8-mxfp8",
+      "force_eplb": {
+        "enabled": true,
+        "basis": "startup line25"
+      },
+      "expert_parallel": {
+        "enabled": false,
+        "basis": "resolved TP8/DP1 with no enable_expert_parallel flag"
+      },
+      "graph_native_mode": "FULL_AND_PIECEWISE",
+      "prefix_cache": {
+        "enabled": true,
+        "basis": "startup lines25/67",
+        "observed_metrics": {
+          "prefix_cache_hits": 0.0,
+          "prefix_cache_queries": 0.0,
+          "prefix_cache_hit_ratio": null
+        },
+        "caution": "zero metric queries do not prove a zero hit rate"
+      },
+      "draft_mode": "mtp",
+      "draft_proposal_tokens": 3,
+      "speculative": {
+        "draft_len": 3,
+        "acceptance": [
+          0.8,
+          0.64,
+          0.512
+        ],
+        "acceptance_mode": "marginal",
+        "label": "configured synthetic acceptance, not observed ratio"
+      },
+      "observed_accept_ratio": 0.6402116402116402,
+      "client": {
+        "concurrency": 4,
+        "prompt_lengths": [
+          8200
+        ],
+        "completion_lengths": [
+          256
+        ],
+        "median_tpot_ms": 12.932970477085487,
+        "metric_boundary": "client token TPOT; not target forward or SSE chunk step"
+      },
+      "geometry_policy": "q4 is the declared target verification width; profiler must resolve active batch/context and graph padding",
+      "unresolved_capture_contracts": [
+        "current checkpoint config bytes not independently captured",
+        "per-body active context and accepted-state indices",
+        "all layer projection exceptions beyond native source defaults"
+      ],
+      "compatible_variant": {
+        "variant": "attention-plus-down",
+        "not_observed_dispatch": true,
+        "scope": "conditional body declaration; unchanged precision and routing",
+        "indexed": {
+          "kind": "indexed_attention_pipeline",
+          "scratch_policy": "offchip",
+          "operand_modes": false,
+          "rope0_analytic": true
+        },
+        "source_down": true,
+        "KDA": "explicit symbolic accepted-state source reference; captured values and flags unobserved",
+        "evidence_assumptions": {
+          "indexed_captured_schedule_and_valid_mask_identity": "not_established",
+          "indexed_geometry_extension": "BF16_rope0_is_not_retained_native_rope64_kernel",
+          "MXFP8_down_captured_dispatch_identity": "not_established",
+          "scope": "evidence limitations, not model structural coverage"
+        },
+        "validation": "mechanism execution only; no claimed body or kernel accuracy"
+      },
+      "accepted_state_scenario": {
+        "id": "a5_glm53flash_tp8_c4_p8k",
+        "baseline": {
+          "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/glm-compatible-variants/a5_glm53flash_tp8_c4_p8k--attention-plus-down.json",
+          "sha256": "44d4c798e8eec1fed78e9551511c436e9a762e328fea5809a62fbb47e2e78a82",
+          "size_bytes": 7371
+        },
+        "prototype": {
+          "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/glm-kda-accepted-conditional/glm53flash-a5-b32-q4.json",
+          "sha256": "cb0f498b700f72f54a2815bdbd2cfb6f1c7d48bae237b94cb688b7b769e20d40",
+          "size_bytes": 9296
+        },
+        "tokens_per_sequence": 4,
+        "sequences_per_replica": 4,
+        "context_tokens": 8200,
+        "scope": "body",
+        "source_architecture": "arch35",
+        "value_identity": "not_established",
+        "acceptance_changes_query_work": false,
+        "sigmoid_placement": "explicit in-kernel scenario, not inferred from BF16 beta",
+        "private_external_fp32_sigmoid_boundary": "not_matched_by_this_conditional_native_program",
+        "observed_geometry_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-flash-ws9/auto-forward-a5_glm53flash_tp8_c4_p8k.json",
+          "sha256": "e4fef63dbaa977d5c172bffe4039a5006ac3cf6443d19dd132a7894dba99b583",
+          "size_bytes": 1519551
+        }
+      },
+      "mxfp8_gate_up_condition": {
+        "parent": {
+          "path": "examples/cases/high-concurrency-20261030/glm-source-accepted-26/a5_glm53flash_tp8_c4_p8k.json",
+          "sha256": "a746accdd7c1a4ced4ddeb4e127c37ca151059b7eafdfbd9e63a0ecc2b731fbd"
+        },
+        "boundary": "two_FP32_UB_products_then_SwiGLU_MX",
+        "l1_k": "explicit512; captured_host_tiling_not_established",
+        "capture_binary_identity": "not_established",
+        "timings_fitted": false
+      },
+      "calibration_origin": "observed",
+      "calibration_evidence": {
+        "evaluation_role": "in_sample",
+        "parameter_assignment": "native_call_means_only",
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
+          "size_bytes": 25256665,
+          "mtime_ns": 1793303657000000000,
+          "schema_version": "kernel_details_csv_48col",
+          "sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd"
+        },
+        "actual_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-operators-09811dad/body-operator-a5_glm53flash_tp8_c4_p8k-glm-flash-ws9.actual.json",
+          "sha256": "637530d4e2ab67ede7752bbcf3e86ea4be23d885d271b22205cb05dbb6872d26",
+          "size_bytes": 791398
+        },
+        "body_residual_used": false,
+        "held_out_capture": false,
+        "contract_admission_changed": false,
+        "regime_count": 22,
+        "first_arm_case_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/cases/a5_glm53flash_tp8_c4_p8k-service-regimes.json",
+          "sha256": "98874253f29e2f095c8d3846c4e1e98af49df7bca80d4099c3c35de3487af9e4",
+          "size_bytes": 25324
+        },
+        "new_native_service_families": [
+          "GroupedMatmul",
+          "SparseFlashMla",
+          "_glm5_next_lightning_indexer_score_kernel"
+        ],
+        "evaluation_relation": "in_sample",
+        "source_boundary_added": "hc_pre_arch35_mk_175ef4d4",
+        "normalized_contract_populations_verified": true,
+        "matrix_population_complete": true,
+        "new_slice_responses": 2
+      }
+    },
+    "tensor_layouts": {
+      "short_convolution": {
+        "input": "contiguous"
+      },
+      "kda_recurrent": {
+        "beta": "contiguous"
+      }
+    }
+  },
+  "workload": {
+    "requests": [
+      {
+        "id": "placeholder",
+        "prompt_tokens": 1,
+        "output_tokens": 1
+      }
+    ]
+  }
+}
