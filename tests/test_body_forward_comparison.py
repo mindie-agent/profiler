@@ -156,7 +156,7 @@ def test_forward_comparison_requires_equal_phase_query_context_and_placement(ada
     compared = adapter.compare_body_forward(result, observed)
     assert compared["relative_error"] == pytest.approx(.1)
     assert compared["passed"] is True
-    observed['geometry']['physical_query_rows'] = result['geometry']['padded_query_tokens_by_replica'][0] + 1
+    observed['geometry']['physical_query_rows'] = result['geometry']['graph_query_tokens_by_replica'][0] + 1
     assert 'geometry_differs:physical_query_rows' in adapter.compare_body_forward(result, observed)['reasons']
     observed['geometry']['physical_query_rows'] -= 1
     assert adapter.compare_body_forward(result, observed)['passed'] is True

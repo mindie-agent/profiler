@@ -178,6 +178,20 @@ def _scheduled_operators(timeline):
     }
 
 
+def _graph_geometry(parsed, geometry):
+    """Use Sim's actual capture policy separately from its SP/router padding."""
+    from mindie_sim.prediction.graph import GraphPolicy
+    from mindie_sim.schema.workload import RequestView
+
+    graph_rows = {}
+    for replica, count in geometry['sequences_by_replica'].items():
+        views = tuple(RequestView(f'body:{replica}:{i}', geometry['tokens_per_sequence'],
+            geometry['context_tokens'], False, geometry['phase']) for i in range(count))
+        bucket, _ = GraphPolicy().select(views, parsed.runtime)
+        graph_rows[replica] = max(count * geometry['tokens_per_sequence'], bucket or 0)
+    return {**geometry, 'graph_query_tokens_by_replica': graph_rows}
+
+
 def summarize_prediction(case, result):
     """Preserve the graph completion span; project complete semantic timelines."""
     from mindie_sim.prediction.structure import parse_case
@@ -227,7 +241,7 @@ def summarize_prediction(case, result):
         },
         "span_start_basis": "input_hidden_and_kv_ready",
         "span_end_basis": "target_body_output_ready_on_all_cohort_participants",
-        "geometry": result["geometry"],
+        "geometry": _graph_geometry(parsed, result["geometry"]),
         "parameters": result.get("parameters", {}),
         "source_routing_declaration": source_routing_declaration(parsed.runtime.kernels),
         "body_forward_span_ms": result["body_forward_ms"],
@@ -308,7 +322,7 @@ def compare_body_forward(predicted, observed):
                 reasons.append(f"geometry_differs:{field}")
     physical_rows = (observed.get("geometry") or {}).get("physical_query_rows")
     if physical_rows is not None:
-        padded = predicted["geometry"].get("padded_query_tokens_by_replica", {})
+        padded = predicted["geometry"].get("graph_query_tokens_by_replica", {})
         if not padded or any(rows != physical_rows for rows in padded.values()):
             reasons.append("geometry_differs:physical_query_rows")
         assumptions.append("Valid q=1 requests follow unpadded LMHead rows with source-confirmed speculation disabled; Body tensors retain the separately checked graph padding. State-index and per-request KV values remain unobserved.")

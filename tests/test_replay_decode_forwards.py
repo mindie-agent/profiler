@@ -210,3 +210,22 @@ def test_real_unpadded_head_keeps_valid_requests_and_physical_graph_rows(replay,
         uncertain, = replay._automatic_scenarios(declaration, observed, model)
         assert uncertain['geometry']['sequences_per_replica'] == physical
         assert 'physical_query_rows' not in uncertain['geometry']
+
+
+def test_tp16_capture_padding_is_distinct_from_sequence_parallel_padding(replay):
+    pytest.importorskip('mindie_sim')
+    from body import predict_body, compare_body_forward
+    case = json.loads((ROOT / 'examples/structure/cases/a3-kimi4-tp16-longctx-source.json').read_text())
+    predicted = predict_body(case, tokens=1, sequences=6, context=4096)
+    geometry = predicted['geometry']
+    assert geometry['valid_query_tokens_by_replica'] == {0: 6}
+    assert geometry['graph_query_tokens_by_replica'] == {0: 8}
+    assert geometry['padded_query_tokens_by_replica'] == {0: 16}
+    # Arithmetic control isolates the boundary comparison from model accuracy.
+    observed = {'status': 'measured', 'metric_boundary': predicted['metric_boundary'],
+        'basis': 'structure_guided_topology_alignment',
+        'geometry': {**geometry, 'physical_query_rows': 8},
+        'body_forward_span_ms': {'count': 1, 'mean': predicted['first_kernel_to_body_complete_ms']}}
+    assert compare_body_forward(predicted, observed)['status'] == 'compared'
+    observed['geometry']['physical_query_rows'] = 16
+    assert 'geometry_differs:physical_query_rows' in compare_body_forward(predicted, observed)['reasons']

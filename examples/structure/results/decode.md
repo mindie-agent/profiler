@@ -112,6 +112,58 @@ One canonical case registry and one recorded Sim package. Selected costs are fre
 | a5-qwen36-tp8-longctx-p126976-c4-hold | decode | 176 | 26.646 / 26.650 / 26.767 | 23.162 | -13.08% | PASS |
 | a5-qwen36-tp8-longctx-p65536-c1-hold | decode | 137 | 17.801 / 17.796 / 17.900 | 14.998 | -15.74% | FAIL |
 | a5-qwen36-tp8-longctx-p65536-c4-hold | decode | 183 | 19.130 / 19.111 / 19.217 | 15.536 | -18.79% | FAIL |
+| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c1 | decode | 242 | 3.397 / 3.323 / 3.643 | 2.734 | -19.50% | FAIL |
+| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c12 | decode | 228 | 6.922 / 6.899 / 7.128 | 4.966 | -28.25% | FAIL |
+| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c16 | decode | 198 | 8.287 / 8.231 / 8.548 | 5.468 | -34.02% | FAIL |
+| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c2 | decode | 240 | 3.593 / 3.568 / 3.831 | 2.861 | -20.40% | FAIL |
+| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c24 | decode | 153 | 10.962 / 10.873 / 11.210 | 7.322 | -33.21% | FAIL |
+| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c32 | decode | 124 | 13.725 / 13.665 / 13.952 | 9.150 | -33.33% | FAIL |
+| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c4 | decode | 243 | 4.403 / 4.366 / 4.615 | 3.126 | -29.00% | FAIL |
+| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c48 | decode | 91 | 19.074 / 19.036 / 19.275 | 12.870 | -32.52% | FAIL |
+| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c6 | decode | 233 | 4.795 / 4.727 / 5.001 | 3.377 | -29.58% | FAIL |
+| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c64 | decode | 74 | 23.694 / 23.656 / 23.841 | 15.822 | -33.23% | FAIL |
+| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c8 | decode | 236 | 5.467 / 5.396 / 5.675 | 3.633 | -33.56% | FAIL |
+| a3-kimi4-tp8-longctx-decode-c12-p16k | decode | 189 | 4.435 / 4.402 / 4.659 | 3.704 | -16.49% | FAIL |
+| a3-kimi4-tp8-longctx-decode-c12-p32k | decode | 189 | 4.621 / 4.558 / 4.808 | 3.892 | -15.77% | FAIL |
+| a3-kimi4-tp8-longctx-decode-c12-p4k | decode | 191 | 4.229 / 4.195 / 4.479 | 3.575 | -15.48% | FAIL |
+| a3-kimi4-tp8-longctx-decode-c12-p8k | decode | 190 | 4.249 / 4.217 / 4.437 | 3.609 | -15.05% | FAIL |
+| a3-kimi4-tp8-longctx-decode-c24-p16k | decode | 190 | 6.096 / 6.046 / 6.322 | 4.796 | -21.33% | FAIL |
+| a3-kimi4-tp8-longctx-decode-c24-p32k | decode | 193 | 6.437 / 6.353 / 6.658 | 5.174 | -19.62% | FAIL |
+| a3-kimi4-tp8-longctx-decode-c24-p4k | decode | 200 | 5.641 / 5.582 / 5.874 | 4.538 | -19.55% | FAIL |
+| a3-kimi4-tp8-longctx-decode-c24-p8k | decode | 195 | 5.829 / 5.787 / 6.088 | 4.607 | -20.96% | FAIL |
+| a3-kimi4-tp8-longctx-decode-c2-p4k | decode | 200 | 3.285 / 3.243 / 3.520 | 2.629 | -19.98% | FAIL |
+| a3-kimi4-tp8-longctx-decode-c48-p4k | decode | 159 | 8.472 / 8.430 / 8.705 | 7.303 | -13.80% | PASS |
+| a3-kimi4-tp8-longctx-decode-c6-p4k | decode | 186 | 3.701 / 3.632 / 3.935 | 2.681 | -27.57% | FAIL |
+| a3-kimi4-tp8-longctx-decode-c8-p4k | decode | 191 | 3.839 / 3.765 / 4.168 | 2.705 | -29.54% | FAIL |
+| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c1 | decode | 228 | 4.093 / 3.992 / 4.443 | 3.108 | -24.05% | FAIL |
+| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c12 | decode | 207 | 6.865 / 6.792 / 7.109 | 4.507 | -34.34% | FAIL |
+| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c16 | decode | 206 | 7.840 / 7.747 / 8.108 | 5.005 | -36.16% | FAIL |
+| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c2 | decode | 232 | 4.362 / 4.303 / 4.648 | 3.233 | -25.87% | FAIL |
+| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c24 | decode | 167 | 10.062 / 10.014 / 10.358 | 6.845 | -31.98% | FAIL |
+| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c32 | decode | 138 | 12.295 / 12.243 / 12.550 | 7.856 | -36.11% | FAIL |
+| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c4 | decode | 226 | 5.008 / 4.905 / 5.299 | 3.484 | -30.42% | FAIL |
+| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c48 | decode | 103 | 16.734 / 16.715 / 16.992 | 10.726 | -35.90% | FAIL |
+| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c6 | decode | 222 | 5.264 / 5.192 / 5.571 | 3.744 | -28.87% | FAIL |
+| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c64 | decode | 83 | 20.942 / 20.922 / 21.125 | 13.219 | -36.88% | FAIL |
+| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c8 | decode | 212 | 5.865 / 5.802 / 6.140 | 3.999 | -31.82% | FAIL |
+| a3-kimi4-tp16-128k-decode-c12-p16k | decode | 180 | 4.430 / 4.375 / 4.726 | 3.245 | -26.76% | FAIL |
+| a3-kimi4-tp16-128k-decode-c12-p32k | decode | 178 | 4.659 / 4.586 / 4.886 | 3.433 | -26.30% | FAIL |
+| a3-kimi4-tp16-128k-decode-c12-p4k | decode | 162 | 4.439 / 4.155 / 4.610 | 3.116 | -29.81% | FAIL |
+| a3-kimi4-tp16-128k-decode-c12-p8k | decode | 173 | 4.379 / 4.203 / 4.614 | 3.150 | -28.06% | FAIL |
+| a3-kimi4-tp16-128k-decode-c24-p16k | decode | 175 | 5.260 / 5.124 / 5.362 | 4.319 | -17.88% | FAIL |
+| a3-kimi4-tp16-128k-decode-c24-p32k | decode | 186 | 5.661 / 5.606 / 5.932 | 4.697 | -17.04% | FAIL |
+| a3-kimi4-tp16-128k-decode-c24-p4k | decode | 177 | 8.082 / 5.032 / 12.608 | 4.061 | -49.75% | FAIL |
+| a3-kimi4-tp16-128k-decode-c24-p8k | decode | 179 | 4.939 / 4.913 / 5.134 | 4.130 | -16.37% | FAIL |
+| a3-kimi4-tp16-128k-decode-c2-p4k | decode | 186 | 4.055 / 3.989 / 4.321 | 3.001 | -25.99% | FAIL |
+| a3-kimi4-tp16-128k-decode-c48-p4k | decode | 172 | 6.201 / 6.157 / 6.393 | 5.159 | -16.80% | FAIL |
+| a3-kimi4-tp16-128k-decode-c6-p4k | decode | 181 | 4.110 / 4.033 / 4.408 | 3.048 | -25.83% | FAIL |
+| a3-kimi4-tp16-128k-decode-c8-p4k | decode | 183 | 4.188 / 4.058 / 4.447 | 3.071 | -26.67% | FAIL |
+| a5_kimi_tp8_e16_bf16_128k_c1 | decode | 56 | 32.485 / 32.470 / 32.485 | 26.201 | -19.34% | FAIL |
+| a5_kimi_tp8_e16_bf16_128k_c2 | decode | 50 | 36.854 / 36.840 / 36.856 | 27.125 | -26.40% | FAIL |
+| a5_kimi_tp8_e16_bf16_128k_c4 | decode | 45 | 40.416 / 40.391 / 40.420 | 28.996 | -28.26% | FAIL |
+| a5_kimi_tp8_e16_bf16_128k_c6 | decode | 42 | 43.589 / 43.560 / 43.578 | 31.012 | -28.85% | FAIL |
+| a5_kimi_tp8_e16_bf16_128k_c8 | decode | 40 | 46.691 / 46.673 / 46.694 | 32.762 | -29.83% | FAIL |
+| a5_kimi_tp8_e16_bf16_128k_c12 | decode | 34 | 54.147 / 54.132 / 54.160 | 37.216 | -31.27% | FAIL |
 
 | Case | Body validation basis | Target native timings used in rules |
 |---|---|---|
@@ -202,6 +254,6 @@ Context: same_capture_client_prompt_usage_and_requested_output_budget; not_per_c
 a5-qwen38-tp1-longctx-p65536-c4: scored 11 / 11 calls; all-population pass: False.
 Context: same_capture_client_prompt_usage_and_requested_output_budget; not_per_call_KV_tensor_values; representative 65536, bounds 65536–65568 tokens.
 
-Summary: {"compared": 108, "passed": 85, "requested_sources": 108, "sources": 108, "status_counts": {"compared": 108}}
+Summary: {"compared": 160, "passed": 86, "requested_sources": 160, "sources": 160, "status_counts": {"compared": 160}}
 
 Full per-layer, operator and prediction details retain their individual SHA256 evidence pointers. Missing evidence and failed predictions remain visible and never count as a pass.
