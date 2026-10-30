@@ -1,0 +1,103 @@
+{
+  "description": "Real exported signatures; bounded projection for source-route boundary tests. No invented runtime template.",
+  "signatures": {
+    "fused_program": {
+      "source_ledger": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-hccl-66/a3_glm53_w4a8_tp16_tpot30_c2-capture-hccl.json",
+        "sha256": "28632f135b765344594d6c9175f04da55ffd7f2e6a96bc69028a981d0b4999e2",
+        "size_bytes": 2383476
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+        "sha256": "5c13263d015f971a90b790b1c94aba384b402a1e15ed6417dc6794b0c3b40ab5",
+        "size_bytes": 61482469
+      },
+      "json_pointer": "/capture_inventory/4",
+      "group": {
+        "native_operator_type": "MoeDistributeDispatchV2",
+        "implementation_name": "MoeDistributeDispatchV2",
+        "accelerator_core": "MIX_AIV",
+        "event_category": "native_fused_communication_program",
+        "observed_us": {
+          "count": 4035,
+          "mean": 39.05944783147459,
+          "p50": 39.021,
+          "p90": 41.401,
+          "min": 34.001,
+          "max": 45.341
+        },
+        "scope": "complete_capture; phase_unclassified",
+        "includes_duplicate_summary_rows": false
+      }
+    },
+    "variable_gather": {
+      "source_ledger": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-hccl-66/a3_glm53_w4a8_tp16_tpot30_c2-capture-hccl.json",
+        "sha256": "28632f135b765344594d6c9175f04da55ffd7f2e6a96bc69028a981d0b4999e2",
+        "size_bytes": 2383476
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+        "sha256": "5c13263d015f971a90b790b1c94aba384b402a1e15ed6417dc6794b0c3b40ab5",
+        "size_bytes": 61482469
+      },
+      "json_pointer": "/capture_inventory/9",
+      "group": {
+        "native_operator_type": "hcom_allGatherv_",
+        "implementation_name": "hcom_summary",
+        "accelerator_core": "COMMUNICATION",
+        "event_category": "collective_envelope_only",
+        "observed_us": {
+          "count": 80,
+          "mean": 529.2121625,
+          "p50": 524.0905,
+          "p90": 654.573,
+          "min": 208.644,
+          "max": 1088.162
+        },
+        "scope": "complete_capture; phase_unclassified",
+        "includes_duplicate_summary_rows": true
+      }
+    },
+    "controller_alias": {
+      "source_ledger": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-hccl-66/a3_kimi4_tp8_w4a8_c1-capture-hccl.json",
+        "sha256": "a7323497c308354f19b6bf14e7c576b10b1539e2ea1d0d02427a28ce96439ab5",
+        "size_bytes": 1510665
+      },
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/kimi_k3_w4a8_4layer_tp8_high_conc_decode_c1_20261030/ranks/tp0/kernel_details.csv.gz",
+        "sha256": "1b0e4fcb7c3d80fefa5a1484937508502b0da346ea5657ed48e6bc0b893587c3",
+        "size_bytes": 3766618
+      },
+      "json_pointer": "/capture_inventory/3",
+      "group": {
+        "native_operator_type": "reduce_scatterAicpuKernel",
+        "implementation_name": "reduce_scatterAicpuKernel",
+        "accelerator_core": "AI_CPU",
+        "event_category": "unlinked_aicpu_wrapper",
+        "observed_us": {
+          "count": 2048,
+          "mean": 172.071755859375,
+          "p50": 164.1765,
+          "p90": 184.776,
+          "min": 144.337,
+          "max": 1574.549
+        },
+        "scope": "complete_capture; phase_unclassified",
+        "includes_duplicate_summary_rows": false
+      }
+    }
+  },
+  "multi_template_registration": {
+    "source": {
+      "path": "/Volumes/data-tmp/tmp/sim-hccl-source-20261030/src/ops/broadcast/algorithm/executor/ins_v2_broadcast_sequence_executor_aicpu_3level.cc",
+      "sha256": "2764de6d8165abadb57fc17cfc64263320a04a36459c99bc24be5b4a95f21a7e",
+      "size_bytes": 44843
+    },
+    "revision": "c2d6790464654ccf58aca39448de4b65fdc7b184",
+    "first_line": 836,
+    "last_line": 860,
+    "text": "REGISTER_EXEC_V2_MULTI(\n    HcclCMDType::HCCL_CMD_BROADCAST, AicpuBroadcastSequenceMeshConcurNHRNHR, BroadcastSequenceMesh1dNHRNHRExecutor,\n    TopoMatchThreeLevel,\n    AicpuTempScatterMesh1DZAxisDetour,    // Scatter L0 (\u6846\u5185, Z\u8f74\u7ed5\u8def)\n    InsTempScatterNHR,                    // Scatter L1 (\u6846\u95f4)\n    InsTempScatterNHR,                    // Scatter L2 (\u8de8\u8d85\u8282\u70b9)\n    InsTempAllGatherNHR,                  // AllGather L2 (\u8de8\u8d85\u8282\u70b9)\n    InsTempAllGatherNHR,                  // AllGather L1 (\u6846\u95f4)\n    InsTempAllGatherMesh1D1DZAxisDetour); // AllGather L0 (\u6846\u5185, Z\u8f74\u7ed5\u8def)\nREGISTER_ALG_ATTRS(\n    AicpuBroadcastSequenceMeshConcurNHR, topo.supportLevel0Topos = LEVEL0_TOPO_MESH_1D;\n    topo.minTopoLevelNum = TOPO_LEVEL_NUM_2; topo.maxTopoLevelNum = TOPO_LEVEL_NUM_2; topo.isSupportLevel1Nhr = false;\n    topo.topoCustomCheck = [](const TopoInfoWithNetLayerDetails* topo) -> bool {\n        (void)topo;\n        return false;\n    };);\nREGISTER_EXEC_V2_MULTI(\n    HcclCMDType::HCCL_CMD_BROADCAST, AicpuBroadcastSequenceMeshConcurNHR, BroadcastSequenceMesh1dNHRNHRExecutor,\n    TopoMatchTwoLevel,\n    AicpuTempScatterMesh1DZAxisDetour,    // Scatter L0 (\u6846\u5185, Z\u8f74\u7ed5\u8def)\n    InsTempScatterNHR,                    // Scatter L1 (\u6846\u95f4)\n    InsTempScatterNHR,                    // Scatter L2 (\u8de8\u8d85\u8282\u70b9)\n    InsTempAllGatherNHR,                  // AllGather L2 (\u8de8\u8d85\u8282\u70b9)\n    InsTempAllGatherNHR,                  // AllGather L1 (\u6846\u95f4)\n    InsTempAllGatherMesh1D1DZAxisDetour); // AllGather L0 (\u6846\u5185, Z\u8f74\u7ed5\u8def)\n"
+  }
+}
