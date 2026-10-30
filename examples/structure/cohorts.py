@@ -7,17 +7,16 @@ import argparse
 from collections import Counter
 import json
 from pathlib import Path
-import resource
 import subprocess
 import sys
 import time
+from mindie_profiler.process_memory import peak_rss_bytes
 from mindie_sim.cohort_accuracy import accuracy_fields, accuracy_policy
 from operators import read as _read, write as _write
 
 
 def _rss():
-    value = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    return int(value if sys.platform == 'darwin' else value * 1024)
+    return peak_rss_bytes()
 
 
 def _comparison_input(mapping):

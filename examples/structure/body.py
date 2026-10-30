@@ -16,9 +16,9 @@ import json
 import math
 from pathlib import Path
 from statistics import median
-import resource
 import sys
 import time
+from mindie_profiler.process_memory import peak_rss_bytes
 
 
 GEOMETRY_FIELDS = (
@@ -417,10 +417,8 @@ def main():
         sequences=args.sequences, phase=args.phase)}
     if args.observed:
         result["comparison"] = compare_body_forward(result["prediction"], _load(args.observed))
-    # Decode getrusage units only; this does not select an execution host.
-    rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     result["execution"] = {"elapsed_seconds": time.perf_counter() - started,
-                           "peak_rss_bytes": int(rss if sys.platform == "darwin" else rss * 1024)}
+                           "peak_rss_bytes": peak_rss_bytes()}
     result["adapter_identity"] = {"path": str(Path(__file__).resolve()),
                                   "sha256": adapter_sha,
                                   "sources_unchanged": adapter_sha == sha256(Path(__file__).read_bytes()).hexdigest()}

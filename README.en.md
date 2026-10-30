@@ -31,7 +31,7 @@ When tuning LLM inference (`vLLM-Ascend`, `MindIE` multi-node `DP × TP × EP`) 
 4. **Broken attribution under async launch and `ACLGraph` replay**: Device idle time (`device_uncovered_ms`) is often misdiagnosed as slow Python host dispatch when it is actually waiting on a multi-card collective or stream sync. Worse, `ACLGraph` replays reuse `taskId` and `globalTaskId`, breaking naive 1:1 joins against `TASK_PMU_INFO`.
 5. **Shape-blind hotspot grouping and apples-to-oranges A/B comparisons**: Grouping solely by `kernel_name` merges Prefill and Decode shapes into meaningless averages, and comparing runs with mismatched workload signatures leads to false speedup claims.
 
-`mindie-profiler` (`mindie_profiler`) turns Ascend performance analysis into a **zero-dependency, in-place, read-only deterministic accounting CLI and Python library**:
+`mindie-profiler` (`mindie_profiler`) turns Ascend performance analysis into a **in-place, read-only deterministic accounting CLI and Python library**:
 
 - **In-place read-only analysis of all Ascend profiler artifacts**: Directly inspects `ascend_pytorch_profiler_*.db` (`output.db`), `step_trace_time.csv`, `kernel_details.csv`, `op_summary.csv`, `operator_memory.csv`, `memory_record.csv`, and streaming `trace_view.json` without uploading gigabytes of raw trace files into the LLM context window.
 - **Nanosecond Interval Union Accounting**: Computes exact integer-nanosecond interval unions and differences to separate window span (`observed_event_span_ms`), true union device busy time (`device_busy_union_ms`), summed stream activity (`device_activity_sum_ms`), and uncovered gaps (`device_uncovered_ms`) — preventing multi-stream overlap from exceeding 100% of wall time and excluding boundary-clipped kernels (`clipped_event_count`) from single-call P50/P90/Max distributions.
@@ -69,7 +69,7 @@ Please install and configure https://github.com/mindie-agent/profiler for me
 
 If you are an AI Agent receiving the prompt above, follow these steps to install and verify `mindie-profiler` on the local machine or target remote Ascend container:
 
-1. **Check Prerequisites**: Confirm Python `>= 3.11` is available (`mindie-profiler` uses only the Python standard library at runtime, requires zero third-party packages, and supports isolated `python3 -I` imports).
+1. **Check Prerequisites**: Confirm Python `>= 3.11` is available. Basic event accounting uses the standard library; the distribution also installs the paired Sim 0.8.0 package. Basic CLI commands do not initialize Sim, model weights or a device context.
 2. **Install the CLI and Package**:
    - Install globally as a CLI tool via `uv` (recommended):
      ```bash

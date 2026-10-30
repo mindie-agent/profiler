@@ -186,6 +186,14 @@ def render(report):
             lines.append(f"| {row['case_id']} | {cycle.get('count', '—')} | {number(cycle.get('mean'))} / {number(cycle.get('p50'))} | {number(client.get('p50'))} | {prediction.get('reason', row['status'])} |")
         lines += ['', 'Device target cycles, completion-token TPOT and client delivery have different boundaries. '
                   'Uncovered cycle intervals are not assigned to Host scheduling without evidence.']
+        failures = [r for r in report['cases'] if r.get('error')]
+        if failures:
+            lines += ['', '| Case | Prediction / source failure |', '|---|---|']
+            for row in failures:
+                error = row['error']
+                detail = error.get('detail') or error.get('message') or error.get('reason') if isinstance(error, dict) else error
+                text = str(detail).strip().splitlines()[-1] if detail else str(error)
+                lines.append('| ' + row['case_id'] + ' | ' + text.replace('|', '\\|')[-500:] + ' |')
         client_only = [r for r in report['cases'] if (r.get('engine') or {}).get('serving_evidence', {}).get('metrics')]
         if client_only:
             lines += ['', '| Case | Client TTFT mean ms | Prefiller HTTP mean ms | Decoder TTFT mean ms | Token TPOT mean ms | Output tok/s |',

@@ -31,7 +31,7 @@
 4. **`ACLGraph` 图重放与异步下发归因断链**：设备空闲（`device_uncovered_ms`）不等于“Python 下发慢”，也可能是跨卡通信等待；而在 `ACLGraph` 图重放下 `globalTaskId` 会重复出现，盲目 1:1 关联会绑错调用栈与 PMU 计数器。
 5. **同名算子不同 Shape 混成一锅粥，跨 Run 对比口径不一致**：把 Prefill 和 Decode 不同 Shape 的 `MatMul` 混在一起算均值，或者拿不同输入签名的两次运行硬比 TPOT，都会得出错误的“负优化”或“假加速”结论。
 
-`mindie-profiler`（包名 `mindie_profiler`）把昇腾性能剖析做成了一套**零外部依赖、原地只读、纳秒级确定性核算的 CLI 与 Python 库**：
+`mindie-profiler`（包名 `mindie_profiler`）把昇腾性能剖析做成了一套**原地只读、纳秒级确定性核算的 CLI 与 Python 库**：
 
 - **原地只读解析全系昇腾产物**：直接读取 `ascend_pytorch_profiler_*.db`（或 `output.db`）、`step_trace_time.csv`、`kernel_details.csv`、`op_summary.csv`、`operator_memory.csv`、`memory_record.csv` 与流式 `trace_view.json`，输出几 KB 的标准化 `mindie-profile-summary/1`（C7 JSON）结构化摘要。
 - **纳秒区间并集计量（Interval Union Accounting）**：使用整数纳秒区间并集与差集运算，严格区分窗口跨度（`observed_event_span_ms`）、设备真实忙时并集（`device_busy_union_ms`）、多流累加工作量（`device_activity_sum_ms`）与设备未覆盖间隙（`device_uncovered_ms`），彻底杜绝多流重叠耗时超 100%，并自动剔除窗口边界被截断算子（`clipped_event_count`）对 P50/P90 分布的污染。
@@ -69,7 +69,7 @@ flowchart LR
 
 如果你是收到上述指令的 AI Agent，请按以下步骤为当前用户或目标远端昇腾容器完成 `mindie-profiler` 的安装与校验：
 
-1. **检查基础环境**：确认目标环境具备 Python `>= 3.11`（`mindie-profiler` 核心包为纯 Python 标准库实现，零第三方运行时依赖，支持在 `python3 -I` 隔离模式下直接导入）。
+1. **检查基础环境**：确认目标环境具备 Python `>= 3.11`（基础事件核算使用 Python 标准库，安装包配套依赖 Sim 0.8.0；基础 CLI 不会初始化 Sim、模型权重或设备上下文）。
 2. **安装命令行与 Python 包**：
    - 使用 `uv` 全局安装 CLI（推荐）：
      ```bash
@@ -281,7 +281,7 @@ print(bundle.schema_version, bound.as_dict())
 
 ```text
 profiler/
-├── mindie_profiler/                 # 核心 Python 包（零第三方运行时依赖，支持 python -I 隔离导入）
+├── mindie_profiler/                 # 核心 Python 包（基础核算可隔离导入，结构预测复用 Sim）
 │   ├── __main__.py / cli.py         # mindie-profiler CLI 入口（inventory / analyze / correlate / compare / sql）
 │   ├── inventory.py / segment.py    # Rank 目录发现、DB/CSV/Trace 候选扫描与显式 Step/时间窗口解析
 │   ├── analyze.py / accounting.py   # 纳秒区间并集计量、窗口边界裁剪保护与 C7 JSON 生成

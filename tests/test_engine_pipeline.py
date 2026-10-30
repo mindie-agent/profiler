@@ -67,6 +67,39 @@ def test_formal_serving_workload_keeps_actual_arrivals_and_token_denominators():
         assert mapped['prefix_tokens']==0  # explicit cold condition, not inferred from a mean hit ratio
 
 
+def test_real_mtp_prefix_counters_map_to_formal_policy_without_fabricating_round_trace():
+    from engine import captured_speculative_policy
+    from mindie_sim.schema.speculative import SpeculativeSpec
+
+    captured=json.loads((ROOT/'tests/fixtures/engine_boundaries/glm_a5_mtp3_c12_profile.json').read_text())
+    policy,evidence=captured_speculative_policy(captured,{})
+    declared=SpeculativeSpec.from_mapping(policy)
+    assert declared.draft_len==3
+    assert declared.acceptance_marginals()==pytest.approx((279/308,202/308,142/308))
+    assert declared.expected_committed_tokens()==pytest.approx(1+623/308)
+    assert evidence['draft_tokens']==924
+    assert evidence['accepted_tokens']==623
+    assert evidence['derived_draft_rounds']==308
+    assert evidence['fixed_proposal_width_assumption'] is True
+    assert evidence['evaluation_relation']=='in_sample'
+    assert evidence['actual_acceptance_trace_available'] is False
+    # This counter interval contains only part of the complete client workload.
+    workload,_=request_workload(captured['requests'])
+    assert len(workload['requests'])==12
+    assert sum(r['output_tokens'] for r in workload['requests'])==3072
+    assert captured['delta']['vllm:generation_tokens_total']==920
+    assert 'draft_accept_trace' not in policy
+
+
+def test_declared_mtp_without_retained_acceptance_is_not_silently_disabled():
+    from engine import captured_speculative_policy
+
+    captured=json.loads((ROOT/'tests/fixtures/engine_boundaries/glm_a5_mtp3_c12_profile.json').read_text())
+    captured['delta'].pop('spec_pos:2')
+    with pytest.raises(ValueError,match='captured_speculative_acceptance_counters_missing'):
+        captured_speculative_policy(captured,{})
+
+
 CLIENT_FIXTURES = ROOT/'tests/fixtures/engine_boundaries/client_only'
 
 

@@ -12,9 +12,9 @@ from collections import Counter, defaultdict
 from hashlib import sha256
 import json
 from pathlib import Path
-import resource
 import sys
 import time
+from mindie_profiler.process_memory import peak_rss_bytes
 
 import subprocess
 
@@ -302,6 +302,44 @@ def request_workload(records):
     return {'requests':requests,'synthetic':False},origin
 
 
+def captured_speculative_policy(summary, recipe):
+    """Map declared policy or retained prefix counters; never infer from TPOT."""
+    spec=recipe.get('speculative_config') or recipe.get('speculative')
+    if spec:
+        width=spec['num_speculative_tokens'];rates=spec.get('synthetic_acceptance_rates')
+        if rates is None or len(rates)!=width:raise ValueError('explicit_draft_acceptance_policy_missing')
+        return {'draft_len':width,'acceptance':rates,'acceptance_mode':'marginal',
+            'label':'captured configured synthetic policy; not actual acceptance trace'}, {
+            'basis':'captured configured synthetic distribution','evaluation_relation':'configured',
+            'actual_acceptance_trace_available':False}
+    reported=summary.get('summary') or {}
+    width=reported.get('spec_k')
+    if not width:return None,{'basis':'unchanged source case declaration',
+        'evaluation_relation':'not_declared','actual_acceptance_trace_available':False}
+    delta=summary.get('delta') or {}
+    draft_tokens=delta.get('vllm:spec_decode_num_draft_tokens_total')
+    accepted=delta.get('vllm:spec_decode_num_accepted_tokens_total')
+    counts=[delta.get(f'spec_pos:{i}') for i in range(width)]
+    if (draft_tokens is None or accepted is None or any(v is None for v in counts)):
+        raise ValueError('captured_speculative_acceptance_counters_missing')
+    # The producer retains tokens and prefix-position counts, not draft-round
+    # events. Dividing by explicitly declared fixed k is a stated input condition.
+    rounds=draft_tokens/width
+    if rounds<=0 or sum(counts)!=accepted or any(v<0 or v>rounds for v in counts):
+        raise ValueError('captured_speculative_acceptance_counters_inconsistent')
+    rates=[v/rounds for v in counts]
+    if any(a<b for a,b in zip(rates,rates[1:])):
+        raise ValueError('captured_prefix_acceptance_counts_not_monotone')
+    return {'draft_len':width,'acceptance':rates,'acceptance_mode':'marginal',
+        'label':'observed prefix marginals conditional on fixed proposal width; not request trace'}, {
+        'basis':'retained per-position accepted counts / (draft tokens / declared fixed proposal width)',
+        'evaluation_relation':'in_sample','declared_proposal_tokens':width,
+        'draft_tokens':draft_tokens,'accepted_tokens':accepted,'accepted_per_position':counts,
+        'derived_draft_rounds':rounds,'fixed_proposal_width_assumption':True,
+        'counter_window':'retained server metric delta; distinct from complete client-request population',
+        'actual_acceptance_trace_available':False,'observed_gaps_used_as_parameters':False}
+
+
 def prepare_serving(entry,base,case_path):
     original=pin_path(entry.get('model_case') or entry['sim_case_path'],base)
     case=read(original['path']);engine=entry['engine'];summary_pin=pin_path(engine['benchmark_summary'],base)
@@ -315,12 +353,9 @@ def prepare_serving(entry,base,case_path):
     recipe=summary.get('recipe') or summary.get('extra',{}).get('recipe') or {}
     copied={k:recipe[k] for k in ('max_model_len','max_num_seqs','max_num_batched_tokens','gpu_memory_utilization','enable_chunked_prefill') if k in recipe}
     case['runtime'].update(copied);metadata=case['runtime'].setdefault('metadata',{})
-    spec=recipe.get('speculative_config') or recipe.get('speculative')
+    spec,acceptance_evidence=captured_speculative_policy(summary,recipe)
     if spec:
-        width=spec['num_speculative_tokens'];rates=spec.get('synthetic_acceptance_rates')
-        if rates is None or len(rates)!=width:raise ValueError('explicit_draft_acceptance_policy_missing')
-        metadata['draft_mode']='mtp';metadata['speculative']={'draft_len':width,'acceptance':rates,'acceptance_mode':'marginal',
-            'label':'captured configured synthetic policy; not actual acceptance trace'}
+        metadata['draft_mode']='mtp';metadata['speculative']=spec
     prefix=engine.get('prefix_tokens');prefix_basis=engine.get('prefix_basis')
     if prefix is None:
         protocol=summary.get('prefix_cache_protocol')
@@ -337,7 +372,7 @@ def prepare_serving(entry,base,case_path):
         'arrival_epoch_origin':origin,'requests':len(workload['requests']),
         'actual_completion_tokens':sum(r['output_tokens'] for r in workload['requests']),
         'runtime_fields_from_retained_recipe':copied,'prefix_tokens':prefix,'prefix_residency_basis':prefix_basis,
-        'acceptance_basis':'captured configured synthetic distribution' if spec else 'unchanged source case declaration',
+        'acceptance_basis':acceptance_evidence['basis'],'acceptance_evidence':acceptance_evidence,
         'actual_acceptance_trace_available':False,'observed_gaps_used_as_parameters':False,
         'client_delivery_modeled':False,'scope':'full successful client-request workload; device token commit endpoint'}
     metadata['serving_workload_evidence']=proof
@@ -354,8 +389,7 @@ def serving_worker(case_path,output):
     from mindie_sim import predict
     before=sim_identity();started=time.perf_counter();pin=identity(case_path)
     result=predict(read(case_path),scope='serving',trace_limit=3,event_limit=0)
-    after=sim_identity();rss=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    if sys.platform!='darwin':rss*=1024
+    after=sim_identity();rss=peak_rss_bytes()
     if before!=after or identity(case_path)!=pin:raise ValueError('prediction_inputs_changed')
     if rss>512*1024**2:raise MemoryError('serving_prediction_exceeds_512MiB')
     receipt={'status':'completed','case_identity':pin,'runtime_identity':{**before,'sources_unchanged':True},
@@ -365,6 +399,7 @@ def serving_worker(case_path,output):
 
 
 def bounded_serving(prepared,output,timeout):
+    import psutil
     before=sim_identity();start=time.perf_counter();peak=0
     stderr=output.with_suffix('.stderr.log');stdout=output.with_suffix('.stdout.log')
     command=[sys.executable,__file__,'--worker-case',prepared['case_identity']['path'],'--worker-output',str(output)]
@@ -372,8 +407,10 @@ def bounded_serving(prepared,output,timeout):
     with stdout.open('w') as out,stderr.open('w') as err:
         process=subprocess.Popen(command,stdout=out,stderr=err)
         while process.poll() is None:
-            sample=subprocess.run(['ps','-o','rss=','-p',str(process.pid)],capture_output=True,text=True,timeout=2)
-            if sample.stdout.strip():peak=max(peak,int(sample.stdout.strip())*1024)
+            try:
+                peak=max(peak,psutil.Process(process.pid).memory_info().rss)
+            except psutil.NoSuchProcess:
+                break
             if peak>512*1024**2:reason='serving_prediction_memory_limit'
             elif time.perf_counter()-start>timeout:reason='serving_prediction_timeout'
             if reason:

@@ -17,10 +17,10 @@ import json
 from math import ceil
 from pathlib import Path
 import re
-import resource
 import subprocess
 import sys
 import time
+from mindie_profiler.process_memory import peak_rss_bytes
 
 from mindie_profiler.decode_segmentation import auto_segment_decode_forwards, _norm, _norm_start, _anchor, _Row, is_aicpu_controller
 from mindie_profiler.events import Observation, QueryStats, SourceRef, Window
@@ -352,7 +352,7 @@ def extract_case(entry, case_paths, output, *, context_tokens=None, geometry_lim
                 'raw_capture_scans':int(index==0),'shared_source_scan':entry['case_id'],
                 'source_hash_reads':int(index==0),'elapsed_seconds':round(time.perf_counter()-started,3),
                 'runtime_source_identity':runtime_before,'runtime_sources_unchanged':True,
-                'maximum_resident_set_size_bytes':int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*(1 if sys.platform=='darwin' else 1024))}
+                'maximum_resident_set_size_bytes':peak_rss_bytes()}
         write(prefix.with_suffix('.actual.json'),result)
         if key not in pooled_records:
             pooled_records[key]={'case_id':case_id,'source_case_id':entry['case_id'],'source_identity':source_identity,
