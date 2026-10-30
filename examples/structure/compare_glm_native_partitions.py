@@ -23,13 +23,16 @@ from glm_native_references import prepare_references
 from replay_body_operator_families import identity, read, write
 
 
-def runtime_identity(*, v41_native_roles=False):
+def runtime_identity(*, v41_native_roles=False, accepted_kda=False):
     value = prediction_runtime_identity()
     for name in ("glm_native_references.py", "glm_source_mechanism_references.py", "compare_glm_native_partitions.py"):
         path = Path(__file__).with_name(name).resolve()
         value[str(path)] = identity(path)["sha256"]
     if v41_native_roles:
         path = Path(__file__).with_name("v41_native_references.py").resolve()
+        value[str(path)] = identity(path)["sha256"]
+    if accepted_kda:
+        path = Path(__file__).with_name("glm_kda_accepted_references.py").resolve()
         value[str(path)] = identity(path)["sha256"]
     return value
 
@@ -39,11 +42,14 @@ def peak_rss():
     return value if sys.platform == "darwin" else value * 1024
 
 
-def worker(path, runtime_commit, *, case_path=None, source_mechanisms=False, v41_native_roles=False):
+def worker(path, runtime_commit, *, case_path=None, source_mechanisms=False,
+           v41_native_roles=False, accepted_kda=False):
     from mindie_sim.prediction.structure import parse_case
     from mindie_sim.structure import export_structure
 
-    started = time.perf_counter(); before = runtime_identity(v41_native_roles=v41_native_roles); pin = identity(path)
+    started = time.perf_counter()
+    before = runtime_identity(v41_native_roles=v41_native_roles, accepted_kda=accepted_kda)
+    pin = identity(path)
     partitions = read(path)
     actual_pin, original_case_pin = partitions["actual_identity"], partitions["case_identity"]
     case_pin = identity(case_path) if case_path else original_case_pin
@@ -76,6 +82,10 @@ def worker(path, runtime_commit, *, case_path=None, source_mechanisms=False, v41
     if source_mechanisms:
         from glm_source_mechanism_references import SELECTORS
         selectors = SELECTORS
+    if accepted_kda:
+        from glm_native_references import SELECTORS as BASE_SELECTORS
+        from glm_kda_accepted_references import SELECTORS as ACCEPTED_SELECTORS
+        selectors = {**(BASE_SELECTORS if selectors is None else selectors), **ACCEPTED_SELECTORS}
     manifest = export_structure(case, phase="decode", tokens=geo["tokens_per_sequence"],
         sequences=geo["sequences_per_replica"], context=actual["conditional_context_tokens"], scope="body")
     if v41_native_roles:
@@ -121,7 +131,7 @@ def worker(path, runtime_commit, *, case_path=None, source_mechanisms=False, v41
                 "Complete native descriptors are retained; scalar values, routing or sparse lengths remain conditional.",
                 "One native full-batch invocation is compared with the complete selected declared batch program set.",
                 *group["source_correspondence"]["limitations"]]})
-    if (runtime_identity(v41_native_roles=v41_native_roles) != before or identity(path) != pin
+    if (runtime_identity(v41_native_roles=v41_native_roles, accepted_kda=accepted_kda) != before or identity(path) != pin
             or identity(case_pin["path"])["sha256"] != case_pin["sha256"]):
         raise ValueError("reference_runtime_or_input_changed")
     rss = peak_rss()
@@ -176,19 +186,23 @@ def main():
                         help="Enable the complete INT8-528/rope0 analytic correspondence")
     parser.add_argument("--v41-native-roles", action="store_true",
                         help="Use complete V4.1 output-matrix/rotary/cache ABI and whole-layer role correspondence")
+    parser.add_argument("--accepted-kda", action="store_true",
+                        help="Use explicitly declared symbolic accepted-state KDA source references; never strict capture binding")
     parser.add_argument("--timeout", type=float, default=180)
     parser.add_argument("--worker", action="store_true")
     args = parser.parse_args(); args.output_dir.mkdir(parents=True, exist_ok=True)
-    if args.source_mechanisms and args.v41_native_roles:
+    if (args.source_mechanisms or args.accepted_kda) and args.v41_native_roles:
         parser.error("choose one source correspondence family")
     if args.case and len(args.partition) != 1:
         parser.error("an explicit case accepts one retained partition input")
     if args.worker:
         result = worker(args.partition[0], args.runtime_source_commit,
-                        case_path=args.case, source_mechanisms=args.source_mechanisms, v41_native_roles=args.v41_native_roles)
+                        case_path=args.case, source_mechanisms=args.source_mechanisms,
+                        v41_native_roles=args.v41_native_roles, accepted_kda=args.accepted_kda)
         write(args.output_dir / (result["case_id"] + "-references.json"), result)
         return
-    before = runtime_identity(v41_native_roles=args.v41_native_roles); started = time.perf_counter(); cases = []
+    before = runtime_identity(v41_native_roles=args.v41_native_roles, accepted_kda=args.accepted_kda)
+    started = time.perf_counter(); cases = []
     for path in args.partition:
         case_id = read(path)["source_case_id"]
         command = [sys.executable, str(Path(__file__).resolve()), "--worker", "--partition", str(path.resolve()),
@@ -199,6 +213,8 @@ def main():
             command.append("--source-mechanisms")
         if args.v41_native_roles:
             command.append("--v41-native-roles")
+        if args.accepted_kda:
+            command.append("--accepted-kda")
         try:
             result = subprocess.run(command, capture_output=True, text=True, timeout=args.timeout)
             if result.returncode:
@@ -208,7 +224,7 @@ def main():
             case = {"case_id": case_id, "partition_path": str(path), "status": "failed", "reason": str(error)}
         cases.append(case)
         print(json.dumps({"case": case_id, "status": case["status"]}), flush=True)
-    if before != runtime_identity(v41_native_roles=args.v41_native_roles):
+    if before != runtime_identity(v41_native_roles=args.v41_native_roles, accepted_kda=args.accepted_kda):
         raise ValueError("batch_reference_runtime_changed")
     report = {"schema_version": "mindie-native-body-reference-batch/1" if args.v41_native_roles else "mindie-glm-native-reference-batch/1",
         "status": "completed" if all(c["status"] == "completed" for c in cases) else "partial",

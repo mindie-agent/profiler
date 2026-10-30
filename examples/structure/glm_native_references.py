@@ -76,7 +76,8 @@ def _mx_swiglu(native, local, groups, execution):
             "Expert group-list values and active routing distribution are not retained."]}
 
 
-def _kda(native, local, groups, execution):
+def kda_native_geometry(native, execution):
+    """Validate the retained eleven-slot ABI without selecting an implementation."""
     ins, outs = native[2:]
     if (len(ins), len(outs)) != (11, 3):
         raise ValueError("kda_native_slot_count")
@@ -100,6 +101,15 @@ def _kda(native, local, groups, execution):
             or not _slot(outs[0], (rows * heads * width,), "bf16")
             or outs[1:] != (state, state)):
         raise ValueError("kda_gate_state_metadata_abi")
+    return {"batch": batch, "query": q, "rows": rows, "heads": heads,
+            "width": width, "accepted_descriptor": accepted}
+
+
+def _kda(native, local, groups, execution):
+    geometry = kda_native_geometry(native, execution)
+    batch, q, rows, heads, width = (geometry[name] for name in
+                                  ("batch", "query", "rows", "heads", "width"))
+    accepted = geometry["accepted_descriptor"]
     semantic, targets = _subgraph("kda_recurrent", groups, local)
     scans = [t for t in targets if t["family"] == "recurrent_scan"]
     if (len(scans) != batch or any(tuple(t["operator"]["local_shape"]) != (q, heads, width, width)

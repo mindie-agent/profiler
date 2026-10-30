@@ -34,7 +34,8 @@ def test_complete_native_populations_keep_full_batch_and_conditional_values(evid
         assert row["strict_accuracy_implied"] is False
         assert row["layer_ids"] == sorted(map(int, original["layer_counts"]))
     sparse = next(g for g in groups if g["native_operator_type"] == "SparseFlashMla")
-    assert len(sparse["representative_target_ids"]) == 64
+    assert sparse["source_correspondence"]["declared_sequence_count"] == 64
+    assert sparse["source_correspondence"]["declared_sequence_program_count"] == len(sparse["representative_target_ids"])
     assert sparse["source_correspondence"]["observed_sparse_index_capacity"] == 2051
     assert sparse["source_correspondence"]["declared_topk"] == 2048
     assert sparse["source_correspondence"]["observed_topk_length_values"] is None
