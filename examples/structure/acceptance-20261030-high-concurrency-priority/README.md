@@ -6,12 +6,14 @@ selected complete Forwards; neither table adds captures to the main denominator.
 Execution completion, Body accuracy and native contract coverage are separate.
 
 The current focus has 13/13 Body PASS, including all six A5 priority cases.
-The current main board has 65/66 PASS over 5,250 distinct observed Forwards, with all
+The current main board has 66/66 PASS over 5,250 distinct observed Forwards, with all
 66 latest predictions completed. Kimi low-concurrency c1/c2/c4/c8 now contributes
 eight new PASS results. A subsequent replay uses the source force-EPLB policy
 to close the declared expert-routing work discrepancy while retaining all eight
 PASS results. Captured group-list values remain unobserved. Qwen3.5 TP4
-c4/c64/c128 now pass at -14.66%/-14.28%/-13.56%.
+c4/c64/c128 now pass at -14.66%/-9.65%/-9.38%. The latter two use their own
+complete GDN helper, GQA and grouped-call populations; small-batch parameter
+values are not copied. They remain outside the new 8% goal.
 
 GLM uses the corrected HC native implementation consistently across all nine
 A5 cases. Complete matrix, norm/quant and native HC response populations, then
@@ -34,6 +36,12 @@ GLM78 rows: tpot30-c2 -14.8226%, tpot50-c2 -15.1251% (FAIL), c8 -3.9025%.
 Explicit peer-window 8 and 16 sensitivity gives identical Body and layer results.
 Both windows are logical assumptions; neither is inferred from captured tiling
 or selected by accuracy. The original 66/66 receipt remains in the history.
+The next complete-native increment binds 21 LightningIndexer and 75 MoeGatingTopK
+calls per Forward through existing fusion regions. All prior V2/source rules are
+unchanged. This produces -14.1763%/-14.4841%/-3.7978%, restoring 3/3 PASS and
+the current main 66/66. Parameters come from each complete native population,
+not the distance to the Body tolerance. The intervening 65/66 result remains
+in the ordered history.
 Measured whole-group communication is a completion floor over its transport;
 it is not charged as a second transfer or used to infer a captured peer window.
 
