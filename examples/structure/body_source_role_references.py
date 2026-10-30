@@ -312,6 +312,7 @@ def predict_source_role_references(case, manifest, actual):
     from mindie_sim.prediction.operator_analysis import target_graphs, operator_costs
     from mindie_sim.prediction.program import RecipeBook
     from mindie_sim.prediction.body_defaults import effective_body_declaration
+    from operator_service_evidence import service_execution_evidence
 
     groups = actual.get('source_role_references', ())
     if not groups:
@@ -346,6 +347,8 @@ def predict_source_role_references(case, manifest, actual):
             if cost['operator_occurrences'] != 1:
                 raise ValueError('source_role_reference_expands_to_multiple_programs')
             duration = cost['operators'][0]['duration_ms']
+            execution_parameters = cost['operators'][0]['basis']
+            execution_serviced = cost['operators'][0]['serviced']
             boundary = 'single_declared_program_reference'
             programs = [{'op_id': cost['operators'][0]['operator']['op_id'],
                          'program': cost['operators'][0]['program']}]
@@ -369,12 +372,16 @@ def predict_source_role_references(case, manifest, actual):
             cost = graph_costs(case, selected_graphs, recipes=book, external_inputs=external,
                                include_submission=False, isolated=False, trace_limit=0)
             duration = cost['duration_ms']
+            execution_parameters = cost['parameters']
+            execution_serviced = {item['resource']: item['work'] for item in cost['resources']}
             boundary = ('complete_collective_cohort_program_set_reference' if joint
                         else 'unfused_declared_program_set_reference')
             programs = [{'op_id': op.op_id, 'family': op.family, 'recipe': op.recipe} for op in ops]
         measured = group['observed_us']['mean']
         difference = duration * 1000 - measured
         row.update(prediction_status='reference_only', boundary=boundary,
+            executed_service_response=service_execution_evidence(
+                execution_parameters, serviced=execution_serviced),
             declared_programs=programs, predicted_reference_us=duration * 1000,
             per_call_reference_diff_us=difference,
             reference_tolerance_us=15 if measured <= 50 else measured * .15,

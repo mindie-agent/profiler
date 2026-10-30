@@ -133,6 +133,7 @@ def worker(path, runtime_commit, *, case_path=None, source_mechanisms=False,
         predicted = duration * count / 1000 / forwards
         results.append({**group, "prediction_status": "reference_only",
             "predicted_reference_us": duration, "declared_programs": cost["declared_programs"],
+            "executed_service_response": cost["executed_service_response"],
             "reference_boundary": cost["boundary"], "calls_per_forward": count / forwards,
             "observed_activity_ms_per_forward": observed,
             "predicted_service_ms_per_forward": predicted,

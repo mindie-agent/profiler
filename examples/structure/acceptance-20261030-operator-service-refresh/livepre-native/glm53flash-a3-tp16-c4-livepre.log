@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/price_native_service_domains.py", line 251, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/price_native_service_domains.py", line 230, in main
+    result=worker(row,args.kind,args.runtime_source_commit)
+  File "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/price_native_service_domains.py", line 135, in worker
+    targets = [nodes[o.op_id] for o in members]
+               ~~~~~^^^^^^^^^
+KeyError: 's0.l3.grouped_gate_up_activation_quant.native'

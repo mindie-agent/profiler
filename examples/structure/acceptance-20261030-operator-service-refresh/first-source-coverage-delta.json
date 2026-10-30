@@ -1,0 +1,184 @@
+{
+  "cases": [
+    {
+      "source_case_id": "glm53flash-a3-tp16-c4-livepre",
+      "prior_report": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm-source-complete-operators/body-operator-family-scoreboard.json",
+      "old": {
+        "comparison_status_counts": {
+          "reference_only": 3,
+          "compared": 21
+        },
+        "passed_cohorts": 20
+      },
+      "new": {
+        "comparison_status_counts": {
+          "compared": 19
+        },
+        "passed_cohorts": 18
+      },
+      "old_scored_events": 23506,
+      "new_scored_events": 19366,
+      "changed_families": [
+        {
+          "native": "HcPost",
+          "role": "attention.hc_post_group",
+          "old_scored": 2070,
+          "new_scored": 0,
+          "reason": [
+            {
+              "old_cohort_id": "sha256:8639d07469f0e90c9d36d22f5365a5c370ae983b025ca446b1cddc24c3541ffd",
+              "native_operator_type": "HcPost",
+              "declared_roles": [
+                "attention.hc_post_group"
+              ],
+              "event_count": 2070,
+              "reason": "aggregate_resource_boundary_changed",
+              "observed_contract": [
+                "hyper_connection_active",
+                "HcPost",
+                [
+                  [
+                    [
+                      24,
+                      4096
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      24,
+                      4,
+                      4096
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      24,
+                      4
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      24,
+                      4,
+                      4
+                    ],
+                    "fp32",
+                    "ND"
+                  ]
+                ],
+                [
+                  [
+                    [
+                      24,
+                      4,
+                      4096
+                    ],
+                    "bf16",
+                    "ND"
+                  ]
+                ]
+              ],
+              "requires": "richer_observed_partition_or_targeted_evidence"
+            }
+          ]
+        },
+        {
+          "native": "HcPost",
+          "role": "ffn.hc_post_group",
+          "old_scored": 2070,
+          "new_scored": 0,
+          "reason": [
+            {
+              "old_cohort_id": "sha256:f7447d780fad4197b21fda8a4557e92067cb85b54bd3461dfce2662ac7fbe8db",
+              "native_operator_type": "HcPost",
+              "declared_roles": [
+                "ffn.hc_post_group"
+              ],
+              "event_count": 2070,
+              "reason": "aggregate_resource_boundary_changed",
+              "observed_contract": [
+                "hyper_connection_active",
+                "HcPost",
+                [
+                  [
+                    [
+                      24,
+                      4096
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      24,
+                      4,
+                      4096
+                    ],
+                    "bf16",
+                    "ND"
+                  ],
+                  [
+                    [
+                      24,
+                      4
+                    ],
+                    "fp32",
+                    "ND"
+                  ],
+                  [
+                    [
+                      24,
+                      4,
+                      4
+                    ],
+                    "fp32",
+                    "ND"
+                  ]
+                ],
+                [
+                  [
+                    [
+                      24,
+                      4,
+                      4096
+                    ],
+                    "bf16",
+                    "ND"
+                  ]
+                ]
+              ],
+              "requires": "richer_observed_partition_or_targeted_evidence"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "source_case_id": "qwen35-35b-a5-tp4-c128-graph",
+      "prior_report": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen35-source-complete/canonical-with-tensor-move/body-operator-family-scoreboard.json",
+      "old": {
+        "comparison_status_counts": {
+          "compared": 13
+        },
+        "passed_cohorts": 13
+      },
+      "new": {
+        "comparison_status_counts": {
+          "compared": 13
+        },
+        "passed_cohorts": 13
+      },
+      "old_scored_events": 41800,
+      "new_scored_events": 41800,
+      "changed_families": []
+    }
+  ],
+  "raw_capture_reads": 0,
+  "prediction_executions": 0
+}

@@ -208,6 +208,8 @@ def _comparison_input(mapping):
 
 
 def _compact_comparison(result):
+    from operator_service_evidence import service_execution_evidence
+
     output = {key: value for key, value in result.items() if key != "windows"}
     output["kind"] = "historical_fusion_cohort_comparison_projection"
     output["report_schema_version"] = output.pop("schema_version")
@@ -227,6 +229,9 @@ def _compact_comparison(result):
                     "single_device_program", "observed_call_count_total_ms",
                     "per_declared_step_ms", "step_total_basis", "assumptions",
                     "prediction_coverage") if key in prediction}
+            if prediction is not None and "parameters" in prediction:
+                reduced["prediction"]["executed_service_response"] = service_execution_evidence(
+                    prediction["parameters"], serviced=prediction.get("serviced"))
             rows.append(reduced)
         output["windows"].append({**window, "cohorts": rows})
     return output

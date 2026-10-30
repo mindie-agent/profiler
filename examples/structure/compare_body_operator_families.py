@@ -34,7 +34,8 @@ from body_source_role_references import (predict_source_role_references,
 def prediction_runtime_identity():
     excluded={'decode_segmentation.py','forward_spans.py','graph_execution.py'}
     result={path:value for path,value in runtime_identity().items() if Path(path).name not in excluded}
-    own=identity(Path(__file__).resolve());result[own['path']]=own['sha256']
+    for name in (Path(__file__).name, 'operator_service_evidence.py', 'replay_fusion_cohorts.py'):
+        own=identity(Path(__file__).with_name(name).resolve());result[own['path']]=own['sha256']
     return result
 
 

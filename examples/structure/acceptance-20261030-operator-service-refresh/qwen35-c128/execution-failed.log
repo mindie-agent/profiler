@@ -1,0 +1,23 @@
+{"case": "body-operator-qwen35-35b-a5-tp4-c128-graph-executed-service-21c30821", "program": 1, "programs": 13, "status": "completed"}
+{"case": "body-operator-qwen35-35b-a5-tp4-c128-graph-executed-service-21c30821", "program": 2, "programs": 13, "status": "completed"}
+{"case": "body-operator-qwen35-35b-a5-tp4-c128-graph-executed-service-21c30821", "program": 3, "programs": 13, "status": "completed"}
+{"case": "body-operator-qwen35-35b-a5-tp4-c128-graph-executed-service-21c30821", "program": 4, "programs": 13, "status": "completed"}
+{"case": "body-operator-qwen35-35b-a5-tp4-c128-graph-executed-service-21c30821", "program": 5, "programs": 13, "status": "completed"}
+{"case": "body-operator-qwen35-35b-a5-tp4-c128-graph-executed-service-21c30821", "program": 6, "programs": 13, "status": "completed"}
+{"case": "body-operator-qwen35-35b-a5-tp4-c128-graph-executed-service-21c30821", "program": 7, "programs": 13, "status": "completed"}
+{"case": "body-operator-qwen35-35b-a5-tp4-c128-graph-executed-service-21c30821", "program": 8, "programs": 13, "status": "completed"}
+{"case": "body-operator-qwen35-35b-a5-tp4-c128-graph-executed-service-21c30821", "program": 9, "programs": 13, "status": "completed"}
+{"case": "body-operator-qwen35-35b-a5-tp4-c128-graph-executed-service-21c30821", "program": 10, "programs": 13, "status": "completed"}
+{"case": "body-operator-qwen35-35b-a5-tp4-c128-graph-executed-service-21c30821", "program": 11, "programs": 13, "status": "completed"}
+{"case": "body-operator-qwen35-35b-a5-tp4-c128-graph-executed-service-21c30821", "program": 12, "programs": 13, "status": "completed"}
+{"case": "body-operator-qwen35-35b-a5-tp4-c128-graph-executed-service-21c30821", "program": 13, "programs": 13, "status": "completed"}
+Traceback (most recent call last):
+  File "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/reprice_body_operator_families.py", line 588, in <module>
+    main()
+    ~~~~^^
+  File "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/reprice_body_operator_families.py", line 584, in main
+    reprice(args)
+    ~~~~~~~^^^^^^
+  File "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/reprice_body_operator_families.py", line 421, in reprice
+    raise ValueError("runtime_changed_during_reprice")
+ValueError: runtime_changed_during_reprice
