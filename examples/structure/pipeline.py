@@ -1,5 +1,5 @@
 """[Role] One source-pinned entry point for current model and engine validation.
-[Invariants] Every score comes from this run and one immutable Sim package;
+[Invariants] Every score uses one immutable Sim package and a pinned case;
   no historical cost selection, timing-fitted window selection or silent failures.
 [Timeouts & Locks] Bounded source and prediction workers, streaming capture
   readers. Individual full results are archived before the next case is retained.
@@ -52,7 +52,8 @@ def operator_case(row, base, directory, timeout):
     directory.mkdir(parents=True, exist_ok=True)
     entry = {'case_id': row['case_id'], 'source_identity': row['source'],
              'report_path': str(extraction), 'report_sha256': identity(extraction)['sha256']}
-    populations = extract_case(entry, [case], directory, geometry_limit=1)
+    populations = extract_case(entry, [case], directory, geometry_limit=1,
+                               context_tokens=row.get('geometry', {}).get('context_tokens'))
     result = []
     for population in populations:
         actual_path = Path(population['extraction_identity']['path'])
@@ -100,6 +101,7 @@ def project(row, result, evidence):
     observed = result.get('observed') or {}
     layers = result.get('per_layer_comparison') or {}
     card = {'id': row['id'], 'case_id': row['case_id'], 'phase': row['phase'],
+            'entry_sha256': entry_hash(row),
             'source': row['source'], 'model_case': row.get('model_case', row.get('sim_case_path')),
             'geometry': result.get('geometry', row.get('geometry')),
             'status': result.get('status', comparison.get('status', 'failed')),
@@ -117,23 +119,51 @@ def project(row, result, evidence):
         card['body_activity_union_sum_ms'] = observed.get('body_activity_union_sum_ms')
         card['request_identity_status'] = observed.get('request_identity_status')
         card['request_population'] = observed.get('request_population')
-    if 'serving_input' in result:
+    if 'serving_input' in result or 'serving_evidence' in observed:
         card['engine'] = observed
         prediction = result.get('prediction') or {}
         card['serving_prediction'] = {k: v for k, v in prediction.items() if k != 'error'}
     return card
 
 
+def entry_hash(row):
+    """Pin the full declaration, including source selection and engine settings."""
+    return sha256(json.dumps(row, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+
+
+def retained_cards(previous, rows, selected_ids, generation, scope):
+    """Incremental updates retain only unchanged inputs from the same runtime."""
+    runtime = previous.get('runtime', {})
+    if (previous['scope'] != scope or runtime.get('package_sha256') != generation['package_sha256']
+            or runtime.get('version') != generation['version']):
+        raise ValueError('incremental_update_requires_same_sim_and_scope')
+    current = {r['id']: r for r in rows}
+    cards = []
+    for card in previous['cases']:
+        if card['id'] in selected_ids or card['id'] not in current:
+            continue
+        if card.get('entry_sha256') != entry_hash(current[card['id']]):
+            raise ValueError('changed_case_requires_replay:' + card['id'])
+        evidence = card['evidence']
+        if identity(evidence['path'])['sha256'] != evidence['sha256']:
+            raise ValueError('retained_evidence_changed:' + card['id'])
+        cards.append(card)
+    return cards
+
+
 def render(report):
     def number(value): return '—' if value is None else f'{value:.3f}'
     lines = ['# Current profiling validation', '',
              'One canonical case registry and one recorded Sim package. '
-             + ('Frozen native service functions are evaluated separately from Sim Body prediction. ' if report.get('scope') == 'generalization' else 'All costs are fresh in this run. ')
+             + ('Frozen native service functions are evaluated separately from Sim Body prediction. ' if report.get('scope') == 'generalization' else
+                ('Selected costs are freshly replayed; unchanged cases retain verified evidence from this same Sim package. '
+                 if report.get('retained_unchanged_sources') else 'All costs are fresh in this run. '))
              +
-             'Calibration and held-out labels remain distinct; device Body latency is not client TPOT.', '',
-             '| Case | Phase | Calls | Real mean / P50 / P90 ms | Sim ms | Error | Status |',
-             '|---|---|---:|---:|---:|---:|---|']
-    for row in report['cases']:
+             'Calibration and held-out labels remain distinct; device Body latency is not client TPOT.', '']
+    if report.get('scope', 'body') == 'body':
+        lines += ['| Case | Phase | Calls | Real mean / P50 / P90 ms | Sim ms | Error | Status |',
+                  '|---|---|---:|---:|---:|---:|---|']
+    for row in report['cases'] if report.get('scope', 'body') == 'body' else []:
         c = row['comparison']; real = c.get('observed_ms') or {}; error = c.get('relative_error')
         status = ('PASS' if c.get('passed') else 'FAIL') if c.get('status') == 'compared' else row['status']
         lines.append(f"| {row['case_id']} | {row['phase']} | {c.get('observed_forward_count', real.get('count', '—'))} | "
@@ -149,11 +179,22 @@ def render(report):
             primary = observed.get('primary_geometry')
             group = next((g for g in groups if primary and geometry_key(g['geometry']) == geometry_key(primary)), {})
             cycle = group.get('target_cycle_span_ms') or {}
-            client = observed.get('serving_evidence', {}).get('profiled_request_population', {}).get('recomputed_per_request_tpot_ms', {})
+            serving = observed.get('serving_evidence', {})
+            client = (serving.get('profiled_request_population', {}).get('recomputed_per_request_tpot_ms')
+                      or serving.get('reported_aggregate_tpot_ms') or {})
             prediction = row.get('serving_prediction') or {}
             lines.append(f"| {row['case_id']} | {cycle.get('count', '—')} | {number(cycle.get('mean'))} / {number(cycle.get('p50'))} | {number(client.get('p50'))} | {prediction.get('reason', row['status'])} |")
         lines += ['', 'Device target cycles, completion-token TPOT and client delivery have different boundaries. '
                   'Uncovered cycle intervals are not assigned to Host scheduling without evidence.']
+        client_only = [r for r in report['cases'] if (r.get('engine') or {}).get('serving_evidence', {}).get('metrics')]
+        if client_only:
+            lines += ['', '| Case | Client TTFT mean ms | Prefiller HTTP mean ms | Decoder TTFT mean ms | Token TPOT mean ms | Output tok/s |',
+                      '|---|---:|---:|---:|---:|---:|']
+            for row in client_only:
+                serving = row['engine']['serving_evidence']; metrics = serving['metrics']
+                values = [number(metrics.get(k, {}).get('mean')) for k in ('ttft_ms', 'prefill_ms', 'decode_ttft_ms', 'tpot_ms')]
+                lines.append('| ' + row['case_id'] + ' | ' + ' | '.join(values) + ' | ' + number(serving.get('output_tok_s')) + ' |')
+            lines += ['', 'Client-only and PD rows have no measured device Body. Prefiller HTTP, decoder first response and end-to-end request durations remain separate.']
     if any(r.get('client') for r in report['cases']):
         lines += ['', '| Case | Client TTFT ms | Predicted TTFT ms | Query coverage complete |',
                   '|---|---:|---:|---|']
@@ -211,16 +252,18 @@ def summarize(cards, requested_sources):
 
 def execute(row, base, scope, archive_root, timeout, generation):
     try:
-        declaration = row['model_case']
-        case_path = Path(declaration['path'])
-        if not case_path.is_absolute(): case_path = base / case_path
-        consumed_path = Path(row['sim_case_path'])
-        if not consumed_path.is_absolute(): consumed_path = base / consumed_path
-        if case_path.resolve() != consumed_path.resolve():
-            raise ValueError('model_declaration_path_differs_from_consumer')
-        before = identity(case_path)
-        if any(before[k] != declaration[k] for k in ('sha256', 'size_bytes')):
-            raise ValueError('model_declaration_changed_from_registry')
+        case_path = None
+        if not (scope == 'engine' and row.get('engine', {}).get('observation_only')):
+            declaration = row['model_case']
+            case_path = Path(declaration['path'])
+            if not case_path.is_absolute(): case_path = base / case_path
+            consumed_path = Path(row['sim_case_path'])
+            if not consumed_path.is_absolute(): consumed_path = base / consumed_path
+            if case_path.resolve() != consumed_path.resolve():
+                raise ValueError('model_declaration_path_differs_from_consumer')
+            before = identity(case_path)
+            if any(before[k] != declaration[k] for k in ('sha256', 'size_bytes')):
+                raise ValueError('model_declaration_changed_from_registry')
         if scope == 'operators':
             result = operator_case(row, base, Path(archive_root) / 'operators', timeout)
         elif scope == 'engine':
@@ -235,7 +278,7 @@ def execute(row, base, scope, archive_root, timeout, generation):
             result = next((r for r in decoded['cases'] if r['comparison']['status'] != 'unresolved'), decoded['cases'][0])
             result['other_geometry_populations'] = [r for r in decoded['cases'] if r is not result]
         if _sim_identity() != generation: raise ValueError('sim_package_changed_during_run')
-        if identity(case_path) != before: raise ValueError('model_declaration_changed_during_run')
+        if case_path and identity(case_path) != before: raise ValueError('model_declaration_changed_during_run')
     except (OSError, ValueError, RuntimeError) as error:
         result = {'status': 'failed', 'comparison': {'status': 'failed', 'passed': False},
                   'error': {'type': type(error).__name__, 'message': str(error)}}
@@ -271,7 +314,7 @@ def execute_rows(rows, base, scope, archive_root, timeout, generation, workers):
             fill()
 
 
-def run(manifest_path, *, output, archive_root, phase=None, scope='body', case_ids=(), timeout=90, workers=1):
+def run(manifest_path, *, output, archive_root, phase=None, scope='body', case_ids=(), timeout=90, workers=1, update=False):
     manifest_path = Path(manifest_path); manifest = read(manifest_path)
     if manifest['schema_version'] != 'mindie-cases/1': raise ValueError('unknown_case_registry')
     if scope == 'generalization':
@@ -294,23 +337,28 @@ def run(manifest_path, *, output, archive_root, phase=None, scope='body', case_i
             'new_Sim_predictions': 0, 'new_blind_or_zero_shot_claimed': False}
         publish(report, output)
         return report
-    rows = [r for r in manifest['cases'] if (phase is None or r['phase'] == phase)
-            and (not case_ids or r['id'] in case_ids or r['case_id'] in case_ids)
+    eligible = [r for r in manifest['cases'] if (phase is None or r['phase'] == phase)
+            and (not r.get('supported_scopes') or scope in r['supported_scopes'])
             and (scope != 'engine' or r.get('engine'))]
+    rows = [r for r in eligible if not case_ids or r['id'] in case_ids or r['case_id'] in case_ids]
     if not rows or len({r['id'] for r in rows}) != len(rows): raise ValueError('empty_or_duplicate_case_selection')
     generation = _sim_identity(); started = time.monotonic(); cards = []
+    if update:
+        cards = retained_cards(read(output), eligible, {r['id'] for r in rows}, generation, scope)
+    retained_count = len(cards)
     report = {'schema_version': 'mindie-current-validation/1', 'registry': identity(manifest_path),
-              'runtime': generation, 'workers': workers, 'scope': scope, 'cases': cards, 'status': 'running', 'summary': {}}
+              'runtime': generation, 'workers': workers, 'scope': scope, 'cases': cards, 'status': 'running', 'summary': {},
+              'replayed_sources': len(rows), 'retained_unchanged_sources': retained_count}
     for row, result in execute_rows(rows, manifest_path.parent, scope, archive_root, timeout, generation, workers):
         if identity(manifest_path) != report['registry']: raise ValueError('case_registry_changed_during_run')
         evidence = archive_report(result, archive_root)
         cards.append(project(row, result, evidence))
-        report['summary'] = summarize(cards, len(rows))
+        report['summary'] = summarize(cards, len(rows) + retained_count)
         report['elapsed_seconds'] = time.monotonic() - started
         publish(report, output)
         print(json.dumps({'id': row['id'], 'status': cards[-1]['status'], **report['summary']}), flush=True)
     report['status'] = 'completed' if not report['summary']['status_counts'].get('failed') else 'failed'
-    order = {r['id']: i for i, r in enumerate(rows)}
+    order = {r['id']: i for i, r in enumerate(eligible)}
     cards.sort(key=lambda r: order[r['id']])
     publish(report, output)
     return report
@@ -326,9 +374,10 @@ def main():
     parser.add_argument('--case-id', action='append', default=[])
     parser.add_argument('--prediction-timeout', type=float, default=90)
     parser.add_argument('--workers', type=int, default=1)
+    parser.add_argument('--update', action='store_true', help='Replay selected cases while retaining unchanged cases from this exact Sim package')
     args = parser.parse_args()
     result = run(args.cases, output=args.output, archive_root=args.archive_root, phase=args.phase,
-                 scope=args.scope, case_ids=args.case_id, timeout=args.prediction_timeout, workers=args.workers)
+                 scope=args.scope, case_ids=args.case_id, timeout=args.prediction_timeout, workers=args.workers, update=args.update)
     return int(result['status'] == 'failed')
 
 

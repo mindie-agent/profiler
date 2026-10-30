@@ -31,6 +31,7 @@ python examples/structure/pipeline.py --scope generalization \
 ```
 
 `--case-id ID` 可以选择单一场景；`--prediction-timeout` 设置单次预测预算。
+选定场景时可加 `--update` 增量刷新当前结果：仅保留同一 Sim 内容哈希、完整 Case 定义和证据 SHA256 均未变化的其他行。变更模型或运行时必须重放，不按历史误差挑选结果。
 多 worker 按实际可用 CPU/RAM 限制，每个预测工作集预算 512 MiB。
 清册中的本地采集路径需可读；迁移数据时更新路径并保留、核验内容 SHA256。
 清册、模型和 Sim 包在一次运行内不可变。结果逐源写入，失败保留原始原因并使入口返回非零。

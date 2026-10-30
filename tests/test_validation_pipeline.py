@@ -8,7 +8,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'examples/structure'))
-from pipeline import archive_report, execute, identity, project
+from pipeline import archive_report, execute, identity, project, retained_cards
 from engine import geometry_key, observed_case
 
 FIXTURE = ROOT / 'tests/fixtures/prefill/pipeline_projection.json'
@@ -107,3 +107,20 @@ def test_retained_engine_boundaries_cannot_be_relabelled_as_another_capture(tmp_
     row['source']=samples()[1]['row']['source']
     with pytest.raises(ValueError,match='source_and_extraction_differ:'):
         observed_case(row,tmp_path)
+
+
+def test_incremental_replay_preserves_same_runtime_evidence_not_historical_best(tmp_path):
+    sample = samples()[0]
+    pointer = archive_report(sample['result'], tmp_path)
+    card = project(sample['row'], sample['result'], pointer)
+    runtime = {'package_sha256': 'retained-runtime', 'version': '0.8.0'}
+    previous = {'scope': 'body', 'runtime': runtime, 'cases': [card]}
+    assert retained_cards(previous, [sample['row']], set(), runtime, 'body') == [card]
+    # Selected cases are removed before execution even when the old cost passed.
+    assert retained_cards(previous, [sample['row']], {card['id']}, runtime, 'body') == []
+    changed = deepcopy(sample['row'])
+    changed['model_case']['sha256'] = 'changed-cost-declaration'
+    with pytest.raises(ValueError, match='changed_case_requires_replay'):
+        retained_cards(previous, [changed], set(), runtime, 'body')
+    with pytest.raises(ValueError, match='incremental_update_requires_same_sim'):
+        retained_cards(previous, [sample['row']], set(), {**runtime, 'package_sha256': 'new-runtime'}, 'body')

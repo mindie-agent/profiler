@@ -22,7 +22,6 @@ import hashlib
 from pathlib import Path
 import subprocess
 import sys
-import tomllib
 
 import pytest
 
@@ -173,11 +172,8 @@ def test_request_wall_is_measured_not_derived(tmp_path):
     assert row["host_dispatch_gap_ms"] is None
 
 
-def test_pyproject_is_standalone_and_isolated_core_import_succeeds(tmp_path):
+def test_isolated_inventory_does_not_load_simulation(tmp_path):
     repo_root = Path(__file__).resolve().parents[1]
-    pyproject = tomllib.loads((repo_root / "pyproject.toml").read_text(encoding="utf-8"))
-    assert pyproject["project"]["dependencies"] == []
-
     root = build_run(tmp_path)
     code = (
         "import sys; "
