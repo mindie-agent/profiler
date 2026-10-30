@@ -1,0 +1,1462 @@
+{
+  "schema_version": "mindie-retrospective-heldout-review/1",
+  "status": "passed",
+  "checks": 1644,
+  "failures": [],
+  "training_sources": 3,
+  "heldout_sources": 6,
+  "operator_groups": 150,
+  "operator_passed": 144,
+  "body": [
+    {
+      "case_id": "a5_glm53flash_tp8_c64_p4k:q4_b64_m256",
+      "comparison": {
+        "status": "compared",
+        "metric_boundary": "target_body_device_graph",
+        "reasons": [],
+        "observed_forward_count": 31,
+        "observed_ms": {
+          "count": 31,
+          "mean": 46.528232967741936,
+          "p50": 46.498735,
+          "p90": 46.644535,
+          "min": 46.405041,
+          "max": 46.821126
+        },
+        "predicted_ms": 55.427467392400594,
+        "relative_error": 0.19126525674913347,
+        "per_forward_diff_ms": 8.899234424658658,
+        "passed": false,
+        "tolerance": {
+          "kind": "relative",
+          "limit": 0.15,
+          "scope": "whole_body_forward_not_single_kernel_launch"
+        },
+        "comparison_scope": {},
+        "comparison_basis": "conditional_single_rank_topology_alignment",
+        "assumptions": [
+          "Context basis: explicit_case_geometry; active KV increments during this capture are not established.",
+          "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+          "Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage."
+        ],
+        "endpoints": {
+          "observed": "first_retained_device_event_start_to_last_retained_device_event_end",
+          "predicted": "first_kernel_invocation_ready_to_body_complete_including_startup",
+          "input_ready_to_first_kernel_ms": 0,
+          "kernel_startup_included": true
+        }
+      },
+      "service_regime_selection": [
+        {
+          "id": "loco-hcpre-hc-pre-observed-third",
+          "queries": {
+            "observable_response": 90
+          },
+          "response_us_min": 21.371858757864082,
+          "response_us_max": 21.371858757864082
+        },
+        {
+          "id": "loco-rmsnorm-norm1-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 6.044873058099697,
+          "response_us_max": 6.044873058099697
+        },
+        {
+          "id": "loco-matmulv3-linear_qkvbfg_a-observed-third",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 36.16863385246454,
+          "response_us_max": 36.16863385246454
+        },
+        {
+          "id": "loco--copy-conv-state-kernel-observed",
+          "queries": {
+            "observable_response": 68
+          },
+          "response_us_min": 22.392400508720748,
+          "response_us_max": 22.392400508720748
+        },
+        {
+          "id": "loco-causalconv1d-observed",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 19.385311462741512,
+          "response_us_max": 19.385311462741512
+        },
+        {
+          "id": "loco-recurrentkda-observed",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 76.70063938993819,
+          "response_us_max": 76.70063938993819
+        },
+        {
+          "id": "loco-matrix-linear_output-complete-native",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 14.46843945483976,
+          "response_us_max": 14.46843945483976
+        },
+        {
+          "id": "loco-hcom-allreduce-aicpukernel-observed",
+          "queries": {
+            "observable_response": 90
+          },
+          "response_us_min": 50.44968806005193,
+          "response_us_max": 50.44968806005193
+        },
+        {
+          "id": "loco-hcpost-attention-hc_post_group-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 12.129123986564267,
+          "response_us_max": 12.129123986564267
+        },
+        {
+          "id": "loco-rmsnorm-norm2-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 8.021430745612895,
+          "response_us_max": 8.021430745612895
+        },
+        {
+          "id": "loco-dynamicmxquant-gate_up-quantize-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 5.594445472303668,
+          "response_us_max": 5.594445472303668
+        },
+        {
+          "id": "loco-matrix-gate_up-complete-native",
+          "queries": {
+            "observable_response": 3
+          },
+          "response_us_min": 14.833392414760251,
+          "response_us_max": 14.833392414760251
+        },
+        {
+          "id": "loco-dynamicmxquant-down-quantize-complete-native",
+          "queries": {
+            "observable_response": 3
+          },
+          "response_us_min": 4.716850168033569,
+          "response_us_max": 4.716850168033569
+        },
+        {
+          "id": "loco-matrix-down-complete-native",
+          "queries": {
+            "observable_response": 3
+          },
+          "response_us_min": 8.921984437285726,
+          "response_us_max": 8.921984437285726
+        },
+        {
+          "id": "loco-hcpost-ffn-hc_post_group-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 10.718729483316768,
+          "response_us_max": 10.718729483316768
+        },
+        {
+          "id": "loco-matrix-q_absorb-complete-native",
+          "queries": {
+            "observable_response": 11
+          },
+          "response_us_min": 11.429996877582415,
+          "response_us_max": 11.429996877582415
+        },
+        {
+          "id": "loco-matrix-index_q-complete-native",
+          "queries": {
+            "observable_response": 11
+          },
+          "response_us_min": 20.467004999005788,
+          "response_us_max": 20.467004999005788
+        },
+        {
+          "id": "loco-matrix-v_expand-complete-native",
+          "queries": {
+            "observable_response": 11
+          },
+          "response_us_min": 10.777554547047547,
+          "response_us_max": 10.777554547047547
+        },
+        {
+          "id": "loco-matrix-router-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 31.217931932584243,
+          "response_us_max": 31.217931932584243
+        },
+        {
+          "id": "loco-moeinitroutingv3-observed",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 28.706019550930016,
+          "response_us_max": 28.706019550930016
+        },
+        {
+          "id": "loco-groupedmatmulswigluquantv2-observed",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 364.80354228031996,
+          "response_us_max": 364.80354228031996
+        },
+        {
+          "id": "loco-groupedmatmul-observed-second",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 189.88415005558656,
+          "response_us_max": 189.88415005558656
+        },
+        {
+          "id": "loco-matrix-shared-gate_up-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 8.264033348781489,
+          "response_us_max": 8.264033348781489
+        },
+        {
+          "id": "loco-dynamicmxquant-shared-down-quantize-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 6.08951988892306,
+          "response_us_max": 6.08951988892306
+        },
+        {
+          "id": "loco-matrix-shared-down-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 4.789180659935194,
+          "response_us_max": 4.789180659935194
+        }
+      ]
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c32_p8k:q4_b32_m128",
+      "comparison": {
+        "status": "compared",
+        "metric_boundary": "target_body_device_graph",
+        "reasons": [],
+        "observed_forward_count": 35,
+        "observed_ms": {
+          "count": 35,
+          "mean": 38.71318854285714,
+          "p50": 38.72185,
+          "p90": 38.759233,
+          "min": 38.568107,
+          "max": 38.937622
+        },
+        "predicted_ms": 35.59735732723764,
+        "relative_error": -0.08048500608959512,
+        "per_forward_diff_ms": -3.115831215619501,
+        "passed": true,
+        "tolerance": {
+          "kind": "relative",
+          "limit": 0.15,
+          "scope": "whole_body_forward_not_single_kernel_launch"
+        },
+        "comparison_scope": {},
+        "comparison_basis": "conditional_single_rank_topology_alignment",
+        "assumptions": [
+          "Context basis: explicit_case_geometry; active KV increments during this capture are not established.",
+          "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+          "Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage."
+        ],
+        "endpoints": {
+          "observed": "first_retained_device_event_start_to_last_retained_device_event_end",
+          "predicted": "first_kernel_invocation_ready_to_body_complete_including_startup",
+          "input_ready_to_first_kernel_ms": 0,
+          "kernel_startup_included": true
+        }
+      },
+      "service_regime_selection": [
+        {
+          "id": "loco-hcpre-hc-pre-observed-third",
+          "queries": {
+            "observable_response": 90
+          },
+          "response_us_min": 16.537214360031886,
+          "response_us_max": 16.537214360031886
+        },
+        {
+          "id": "loco-rmsnorm-norm1-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 4.950852336532332,
+          "response_us_max": 4.950852336532332
+        },
+        {
+          "id": "loco-matmulv3-linear_qkvbfg_a-observed-third",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 26.643332500962202,
+          "response_us_max": 26.643332500962202
+        },
+        {
+          "id": "loco--copy-conv-state-kernel-observed",
+          "queries": {
+            "observable_response": 68
+          },
+          "response_us_min": 12.903852402225988,
+          "response_us_max": 12.903852402225988
+        },
+        {
+          "id": "loco-causalconv1d-observed",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 13.147371548973835,
+          "response_us_max": 13.147371548973835
+        },
+        {
+          "id": "loco-recurrentkda-observed",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 43.501880946007454,
+          "response_us_max": 43.501880946007454
+        },
+        {
+          "id": "loco-matrix-linear_output-complete-native",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 10.367697864233637,
+          "response_us_max": 10.367697864233637
+        },
+        {
+          "id": "loco-hcom-allreduce-aicpukernel-observed",
+          "queries": {
+            "observable_response": 90
+          },
+          "response_us_min": 36.70118273818229,
+          "response_us_max": 36.70118273818229
+        },
+        {
+          "id": "loco-hcpost-attention-hc_post_group-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 8.083142218022251,
+          "response_us_max": 8.083142218022251
+        },
+        {
+          "id": "loco-rmsnorm-norm2-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 5.8599172667014585,
+          "response_us_max": 5.8599172667014585
+        },
+        {
+          "id": "loco-dynamicmxquant-gate_up-quantize-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 5.247921323655787,
+          "response_us_max": 5.247921323655787
+        },
+        {
+          "id": "loco-matrix-gate_up-complete-native",
+          "queries": {
+            "observable_response": 3
+          },
+          "response_us_min": 11.387191500571411,
+          "response_us_max": 11.387191500571411
+        },
+        {
+          "id": "loco-dynamicmxquant-down-quantize-complete-native",
+          "queries": {
+            "observable_response": 3
+          },
+          "response_us_min": 4.361182968374017,
+          "response_us_max": 4.361182968374017
+        },
+        {
+          "id": "loco-matrix-down-complete-native",
+          "queries": {
+            "observable_response": 3
+          },
+          "response_us_min": 7.055330159696215,
+          "response_us_max": 7.055330159696215
+        },
+        {
+          "id": "loco-hcpost-ffn-hc_post_group-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 7.391135452160268,
+          "response_us_max": 7.391135452160268
+        },
+        {
+          "id": "loco-matrix-q_absorb-complete-native",
+          "queries": {
+            "observable_response": 11
+          },
+          "response_us_min": 8.776297256290878,
+          "response_us_max": 8.776297256290878
+        },
+        {
+          "id": "loco-matrix-index_q-complete-native",
+          "queries": {
+            "observable_response": 11
+          },
+          "response_us_min": 14.674615320425819,
+          "response_us_max": 14.674615320425819
+        },
+        {
+          "id": "loco-matrix-v_expand-complete-native",
+          "queries": {
+            "observable_response": 11
+          },
+          "response_us_min": 8.311612349116121,
+          "response_us_max": 8.311612349116121
+        },
+        {
+          "id": "loco-matrix-router-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 20.057372121002754,
+          "response_us_max": 20.057372121002754
+        },
+        {
+          "id": "loco-moeinitroutingv3-observed",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 24.680329999622014,
+          "response_us_max": 24.680329999622014
+        },
+        {
+          "id": "loco-groupedmatmulswigluquantv2-observed",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 223.1489181426611,
+          "response_us_max": 223.1489181426611
+        },
+        {
+          "id": "loco-groupedmatmul-observed-second",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 116.52555017190028,
+          "response_us_max": 116.52555017190028
+        },
+        {
+          "id": "loco-matrix-shared-gate_up-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 7.482816361174229,
+          "response_us_max": 7.482816361174229
+        },
+        {
+          "id": "loco-dynamicmxquant-shared-down-quantize-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 4.475438353339316,
+          "response_us_max": 4.475438353339316
+        },
+        {
+          "id": "loco-matrix-shared-down-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 4.364255510881206,
+          "response_us_max": 4.364255510881206
+        }
+      ]
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c16_p4k:q4_b16_m64",
+      "comparison": {
+        "status": "compared",
+        "metric_boundary": "target_body_device_graph",
+        "reasons": [],
+        "observed_forward_count": 30,
+        "observed_ms": {
+          "count": 30,
+          "mean": 33.0309177,
+          "p50": 33.0264815,
+          "p90": 33.164019,
+          "min": 32.883158,
+          "max": 33.193867
+        },
+        "predicted_ms": 26.584467811832013,
+        "relative_error": -0.19516411704685968,
+        "per_forward_diff_ms": -6.44644988816799,
+        "passed": false,
+        "tolerance": {
+          "kind": "relative",
+          "limit": 0.15,
+          "scope": "whole_body_forward_not_single_kernel_launch"
+        },
+        "comparison_scope": {},
+        "comparison_basis": "conditional_single_rank_topology_alignment",
+        "assumptions": [
+          "Context basis: explicit_case_geometry; active KV increments during this capture are not established.",
+          "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+          "Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage."
+        ],
+        "endpoints": {
+          "observed": "first_retained_device_event_start_to_last_retained_device_event_end",
+          "predicted": "first_kernel_invocation_ready_to_body_complete_including_startup",
+          "input_ready_to_first_kernel_ms": 0,
+          "kernel_startup_included": true
+        }
+      },
+      "service_regime_selection": [
+        {
+          "id": "loco-hcpre-hc-pre-observed-third",
+          "queries": {
+            "observable_response": 90
+          },
+          "response_us_min": 14.119892161115787,
+          "response_us_max": 14.119892161115787
+        },
+        {
+          "id": "loco-rmsnorm-norm1-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 4.40384197574865,
+          "response_us_max": 4.40384197574865
+        },
+        {
+          "id": "loco-matmulv3-linear_qkvbfg_a-observed-third",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 21.880681825211038,
+          "response_us_max": 21.880681825211038
+        },
+        {
+          "id": "loco--copy-conv-state-kernel-observed",
+          "queries": {
+            "observable_response": 68
+          },
+          "response_us_min": 8.15957834897861,
+          "response_us_max": 8.15957834897861
+        },
+        {
+          "id": "loco-causalconv1d-observed",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 10.028401592089995,
+          "response_us_max": 10.028401592089995
+        },
+        {
+          "id": "loco-recurrentkda-observed",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 26.902501724042086,
+          "response_us_max": 26.902501724042086
+        },
+        {
+          "id": "loco-matrix-linear_output-complete-native",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 8.317327068930576,
+          "response_us_max": 8.317327068930576
+        },
+        {
+          "id": "loco-hcom-allreduce-aicpukernel-observed",
+          "queries": {
+            "observable_response": 90
+          },
+          "response_us_min": 29.82693007724747,
+          "response_us_max": 29.82693007724747
+        },
+        {
+          "id": "loco-hcpost-attention-hc_post_group-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 6.060151333751245,
+          "response_us_max": 6.060151333751245
+        },
+        {
+          "id": "loco-rmsnorm-norm2-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 4.7791605272457405,
+          "response_us_max": 4.7791605272457405
+        },
+        {
+          "id": "loco-dynamicmxquant-gate_up-quantize-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 5.074659249331847,
+          "response_us_max": 5.074659249331847
+        },
+        {
+          "id": "loco-matrix-gate_up-complete-native",
+          "queries": {
+            "observable_response": 3
+          },
+          "response_us_min": 9.664091043476992,
+          "response_us_max": 9.664091043476992
+        },
+        {
+          "id": "loco-dynamicmxquant-down-quantize-complete-native",
+          "queries": {
+            "observable_response": 3
+          },
+          "response_us_min": 4.183349368544241,
+          "response_us_max": 4.183349368544241
+        },
+        {
+          "id": "loco-matrix-down-complete-native",
+          "queries": {
+            "observable_response": 3
+          },
+          "response_us_min": 6.122003020901459,
+          "response_us_max": 6.122003020901459
+        },
+        {
+          "id": "loco-hcpost-ffn-hc_post_group-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 5.727338436582018,
+          "response_us_max": 5.727338436582018
+        },
+        {
+          "id": "loco-matrix-q_absorb-complete-native",
+          "queries": {
+            "observable_response": 11
+          },
+          "response_us_min": 7.449447445645109,
+          "response_us_max": 7.449447445645109
+        },
+        {
+          "id": "loco-matrix-index_q-complete-native",
+          "queries": {
+            "observable_response": 11
+          },
+          "response_us_min": 11.778420481135834,
+          "response_us_max": 11.778420481135834
+        },
+        {
+          "id": "loco-matrix-v_expand-complete-native",
+          "queries": {
+            "observable_response": 11
+          },
+          "response_us_min": 7.07864125015041,
+          "response_us_max": 7.07864125015041
+        },
+        {
+          "id": "loco-matrix-router-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 14.47709221521201,
+          "response_us_max": 14.47709221521201
+        },
+        {
+          "id": "loco-moeinitroutingv3-observed",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 22.66748522396801,
+          "response_us_max": 22.66748522396801
+        },
+        {
+          "id": "loco-groupedmatmulswigluquantv2-observed",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 152.32160607383165,
+          "response_us_max": 152.32160607383165
+        },
+        {
+          "id": "loco-groupedmatmul-observed-second",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 79.84625023005714,
+          "response_us_max": 79.84625023005714
+        },
+        {
+          "id": "loco-matrix-shared-gate_up-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 7.0922078673705995,
+          "response_us_max": 7.0922078673705995
+        },
+        {
+          "id": "loco-dynamicmxquant-shared-down-quantize-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 3.668397585547444,
+          "response_us_max": 3.668397585547444
+        },
+        {
+          "id": "loco-matrix-shared-down-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 4.151792936354212,
+          "response_us_max": 4.151792936354212
+        }
+      ]
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c16_p8k:q4_b16_m64",
+      "comparison": {
+        "status": "compared",
+        "metric_boundary": "target_body_device_graph",
+        "reasons": [],
+        "observed_forward_count": 32,
+        "observed_ms": {
+          "count": 32,
+          "mean": 33.616091374999996,
+          "p50": 33.62586,
+          "p90": 33.709694,
+          "min": 33.517443,
+          "max": 33.747635
+        },
+        "predicted_ms": 26.771900771832026,
+        "relative_error": -0.20359864348351744,
+        "per_forward_diff_ms": -6.84419060316797,
+        "passed": false,
+        "tolerance": {
+          "kind": "relative",
+          "limit": 0.15,
+          "scope": "whole_body_forward_not_single_kernel_launch"
+        },
+        "comparison_scope": {},
+        "comparison_basis": "conditional_single_rank_topology_alignment",
+        "assumptions": [
+          "Context basis: explicit_case_geometry; active KV increments during this capture are not established.",
+          "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+          "Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage."
+        ],
+        "endpoints": {
+          "observed": "first_retained_device_event_start_to_last_retained_device_event_end",
+          "predicted": "first_kernel_invocation_ready_to_body_complete_including_startup",
+          "input_ready_to_first_kernel_ms": 0,
+          "kernel_startup_included": true
+        }
+      },
+      "service_regime_selection": [
+        {
+          "id": "loco-hcpre-hc-pre-observed-third",
+          "queries": {
+            "observable_response": 90
+          },
+          "response_us_min": 14.119892161115787,
+          "response_us_max": 14.119892161115787
+        },
+        {
+          "id": "loco-rmsnorm-norm1-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 4.40384197574865,
+          "response_us_max": 4.40384197574865
+        },
+        {
+          "id": "loco-matmulv3-linear_qkvbfg_a-observed-third",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 21.880681825211038,
+          "response_us_max": 21.880681825211038
+        },
+        {
+          "id": "loco--copy-conv-state-kernel-observed",
+          "queries": {
+            "observable_response": 68
+          },
+          "response_us_min": 8.15957834897861,
+          "response_us_max": 8.15957834897861
+        },
+        {
+          "id": "loco-causalconv1d-observed",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 10.028401592089995,
+          "response_us_max": 10.028401592089995
+        },
+        {
+          "id": "loco-recurrentkda-observed",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 26.902501724042086,
+          "response_us_max": 26.902501724042086
+        },
+        {
+          "id": "loco-matrix-linear_output-complete-native",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 8.317327068930576,
+          "response_us_max": 8.317327068930576
+        },
+        {
+          "id": "loco-hcom-allreduce-aicpukernel-observed",
+          "queries": {
+            "observable_response": 90
+          },
+          "response_us_min": 29.82693007724747,
+          "response_us_max": 29.82693007724747
+        },
+        {
+          "id": "loco-hcpost-attention-hc_post_group-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 6.060151333751245,
+          "response_us_max": 6.060151333751245
+        },
+        {
+          "id": "loco-rmsnorm-norm2-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 4.7791605272457405,
+          "response_us_max": 4.7791605272457405
+        },
+        {
+          "id": "loco-dynamicmxquant-gate_up-quantize-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 5.074659249331847,
+          "response_us_max": 5.074659249331847
+        },
+        {
+          "id": "loco-matrix-gate_up-complete-native",
+          "queries": {
+            "observable_response": 3
+          },
+          "response_us_min": 9.664091043476992,
+          "response_us_max": 9.664091043476992
+        },
+        {
+          "id": "loco-dynamicmxquant-down-quantize-complete-native",
+          "queries": {
+            "observable_response": 3
+          },
+          "response_us_min": 4.183349368544241,
+          "response_us_max": 4.183349368544241
+        },
+        {
+          "id": "loco-matrix-down-complete-native",
+          "queries": {
+            "observable_response": 3
+          },
+          "response_us_min": 6.122003020901459,
+          "response_us_max": 6.122003020901459
+        },
+        {
+          "id": "loco-hcpost-ffn-hc_post_group-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 5.727338436582018,
+          "response_us_max": 5.727338436582018
+        },
+        {
+          "id": "loco-matrix-q_absorb-complete-native",
+          "queries": {
+            "observable_response": 11
+          },
+          "response_us_min": 7.449447445645109,
+          "response_us_max": 7.449447445645109
+        },
+        {
+          "id": "loco-matrix-index_q-complete-native",
+          "queries": {
+            "observable_response": 11
+          },
+          "response_us_min": 11.778420481135834,
+          "response_us_max": 11.778420481135834
+        },
+        {
+          "id": "loco-matrix-v_expand-complete-native",
+          "queries": {
+            "observable_response": 11
+          },
+          "response_us_min": 7.07864125015041,
+          "response_us_max": 7.07864125015041
+        },
+        {
+          "id": "loco-matrix-router-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 14.47709221521201,
+          "response_us_max": 14.47709221521201
+        },
+        {
+          "id": "loco-moeinitroutingv3-observed",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 22.66748522396801,
+          "response_us_max": 22.66748522396801
+        },
+        {
+          "id": "loco-groupedmatmulswigluquantv2-observed",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 152.32160607383165,
+          "response_us_max": 152.32160607383165
+        },
+        {
+          "id": "loco-groupedmatmul-observed-second",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 79.84625023005714,
+          "response_us_max": 79.84625023005714
+        },
+        {
+          "id": "loco-matrix-shared-gate_up-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 7.0922078673705995,
+          "response_us_max": 7.0922078673705995
+        },
+        {
+          "id": "loco-dynamicmxquant-shared-down-quantize-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 3.668397585547444,
+          "response_us_max": 3.668397585547444
+        },
+        {
+          "id": "loco-matrix-shared-down-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 4.151792936354212,
+          "response_us_max": 4.151792936354212
+        }
+      ]
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c4_p8k:q4_b4_m16",
+      "comparison": {
+        "status": "compared",
+        "metric_boundary": "target_body_device_graph",
+        "reasons": [],
+        "observed_forward_count": 11,
+        "observed_ms": {
+          "count": 11,
+          "mean": 21.41824609090909,
+          "p50": 21.408145,
+          "p90": 21.432068,
+          "min": 21.246225,
+          "max": 21.839515
+        },
+        "predicted_ms": 17.579151265474486,
+        "relative_error": -0.1792441271399947,
+        "per_forward_diff_ms": -3.8390948254346036,
+        "passed": false,
+        "tolerance": {
+          "kind": "relative",
+          "limit": 0.15,
+          "scope": "whole_body_forward_not_single_kernel_launch"
+        },
+        "comparison_scope": {},
+        "comparison_basis": "conditional_single_rank_topology_alignment",
+        "assumptions": [
+          "Context basis: explicit_case_geometry; active KV increments during this capture are not established.",
+          "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+          "Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage."
+        ],
+        "endpoints": {
+          "observed": "first_retained_device_event_start_to_last_retained_device_event_end",
+          "predicted": "first_kernel_invocation_ready_to_body_complete_including_startup",
+          "input_ready_to_first_kernel_ms": 0,
+          "kernel_startup_included": true
+        }
+      },
+      "service_regime_selection": [
+        {
+          "id": "loco-hcpre-hc-pre-observed-third",
+          "queries": {
+            "observable_response": 90
+          },
+          "response_us_min": 12.306900511928713,
+          "response_us_max": 12.306900511928713
+        },
+        {
+          "id": "loco-rmsnorm-norm1-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 3.993584205160887,
+          "response_us_max": 3.993584205160887
+        },
+        {
+          "id": "loco-matmulv3-linear_qkvbfg_a-observed-third",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 18.30869381839766,
+          "response_us_max": 18.30869381839766
+        },
+        {
+          "id": "loco--copy-conv-state-kernel-observed",
+          "queries": {
+            "observable_response": 68
+          },
+          "response_us_min": 4.601372809043076,
+          "response_us_max": 4.601372809043076
+        },
+        {
+          "id": "loco-causalconv1d-observed",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 7.689174124427115,
+          "response_us_max": 7.689174124427115
+        },
+        {
+          "id": "loco-recurrentkda-observed",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 14.45296730756806,
+          "response_us_max": 14.45296730756806
+        },
+        {
+          "id": "loco-matrix-linear_output-complete-native",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 6.77954897245328,
+          "response_us_max": 6.77954897245328
+        },
+        {
+          "id": "loco-hcom-allreduce-aicpukernel-observed",
+          "queries": {
+            "observable_response": 90
+          },
+          "response_us_min": 24.671240581546353,
+          "response_us_max": 24.671240581546353
+        },
+        {
+          "id": "loco-hcpost-attention-hc_post_group-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 4.542908170547989,
+          "response_us_max": 4.542908170547989
+        },
+        {
+          "id": "loco-rmsnorm-norm2-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 3.968592972653952,
+          "response_us_max": 3.968592972653952
+        },
+        {
+          "id": "loco-dynamicmxquant-gate_up-quantize-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 4.944712693588892,
+          "response_us_max": 4.944712693588892
+        },
+        {
+          "id": "loco-matrix-gate_up-complete-native",
+          "queries": {
+            "observable_response": 3
+          },
+          "response_us_min": 8.371765700656177,
+          "response_us_max": 8.371765700656177
+        },
+        {
+          "id": "loco-dynamicmxquant-down-quantize-complete-native",
+          "queries": {
+            "observable_response": 3
+          },
+          "response_us_min": 4.049974168671909,
+          "response_us_max": 4.049974168671909
+        },
+        {
+          "id": "loco-matrix-down-complete-native",
+          "queries": {
+            "observable_response": 3
+          },
+          "response_us_min": 5.422007666805391,
+          "response_us_max": 5.422007666805391
+        },
+        {
+          "id": "loco-hcpost-ffn-hc_post_group-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 4.47949067489833,
+          "response_us_max": 4.47949067489833
+        },
+        {
+          "id": "loco-matrix-q_absorb-complete-native",
+          "queries": {
+            "observable_response": 11
+          },
+          "response_us_min": 6.454310087660783,
+          "response_us_max": 6.454310087660783
+        },
+        {
+          "id": "loco-matrix-index_q-complete-native",
+          "queries": {
+            "observable_response": 11
+          },
+          "response_us_min": 9.606274351668345,
+          "response_us_max": 9.606274351668345
+        },
+        {
+          "id": "loco-matrix-v_expand-complete-native",
+          "queries": {
+            "observable_response": 11
+          },
+          "response_us_min": 6.153912925926126,
+          "response_us_max": 6.153912925926126
+        },
+        {
+          "id": "loco-matrix-router-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 10.291882285868953,
+          "response_us_max": 10.291882285868953
+        },
+        {
+          "id": "loco-moeinitroutingv3-observed",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 21.157851642227513,
+          "response_us_max": 21.157851642227513
+        },
+        {
+          "id": "loco-groupedmatmulswigluquantv2-observed",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 99.20112202220956,
+          "response_us_max": 99.20112202220956
+        },
+        {
+          "id": "loco-groupedmatmul-observed-second",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 52.336775273674775,
+          "response_us_max": 52.336775273674775
+        },
+        {
+          "id": "loco-matrix-shared-gate_up-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 6.7992514970178775,
+          "response_us_max": 6.7992514970178775
+        },
+        {
+          "id": "loco-dynamicmxquant-shared-down-quantize-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 3.0631170097035403,
+          "response_us_max": 3.0631170097035403
+        },
+        {
+          "id": "loco-matrix-shared-down-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 3.992446005458967,
+          "response_us_max": 3.992446005458967
+        }
+      ]
+    },
+    {
+      "case_id": "glm53flash-a5-tp8-c3:q4_b4_m16",
+      "comparison": {
+        "status": "compared",
+        "metric_boundary": "target_body_device_graph",
+        "reasons": [],
+        "observed_forward_count": 53,
+        "observed_ms": {
+          "count": 53,
+          "mean": 21.067548924528303,
+          "p50": 21.05718,
+          "p90": 21.170037,
+          "min": 20.882993,
+          "max": 21.361573
+        },
+        "predicted_ms": 18.023565605831617,
+        "relative_error": -0.14448682804066823,
+        "per_forward_diff_ms": -3.043983318696686,
+        "passed": true,
+        "tolerance": {
+          "kind": "relative",
+          "limit": 0.15,
+          "scope": "whole_body_forward_not_single_kernel_launch"
+        },
+        "comparison_scope": {},
+        "comparison_basis": "conditional_single_rank_topology_alignment",
+        "assumptions": [
+          "Context basis: explicit_case_geometry; active KV increments during this capture are not established.",
+          "Forced load balance, acceptance=0.8/DSpark and prefix-hit=100% are not assumed to be captured facts.",
+          "Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage."
+        ],
+        "endpoints": {
+          "observed": "first_retained_device_event_start_to_last_retained_device_event_end",
+          "predicted": "first_kernel_invocation_ready_to_body_complete_including_startup",
+          "input_ready_to_first_kernel_ms": 0,
+          "kernel_startup_included": true
+        }
+      },
+      "service_regime_selection": [
+        {
+          "id": "loco-hcpre-hc-pre-observed-third",
+          "queries": {
+            "observable_response": 90
+          },
+          "response_us_min": 12.306900511928713,
+          "response_us_max": 12.306900511928713
+        },
+        {
+          "id": "loco-rmsnorm-norm1-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 3.993584205160887,
+          "response_us_max": 3.993584205160887
+        },
+        {
+          "id": "loco-matmulv3-linear_qkvbfg_a-observed-third",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 18.30869381839766,
+          "response_us_max": 18.30869381839766
+        },
+        {
+          "id": "loco--copy-conv-state-kernel-observed",
+          "queries": {
+            "observable_response": 68
+          },
+          "response_us_min": 4.601372809043076,
+          "response_us_max": 4.601372809043076
+        },
+        {
+          "id": "loco-causalconv1d-observed",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 7.689174124427115,
+          "response_us_max": 7.689174124427115
+        },
+        {
+          "id": "loco-recurrentkda-observed",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 14.45296730756806,
+          "response_us_max": 14.45296730756806
+        },
+        {
+          "id": "loco-matrix-linear_output-complete-native",
+          "queries": {
+            "observable_response": 34
+          },
+          "response_us_min": 6.77954897245328,
+          "response_us_max": 6.77954897245328
+        },
+        {
+          "id": "loco-hcom-allreduce-aicpukernel-observed",
+          "queries": {
+            "observable_response": 90
+          },
+          "response_us_min": 24.671240581546353,
+          "response_us_max": 24.671240581546353
+        },
+        {
+          "id": "loco-hcpost-attention-hc_post_group-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 4.542908170547989,
+          "response_us_max": 4.542908170547989
+        },
+        {
+          "id": "loco-rmsnorm-norm2-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 3.968592972653952,
+          "response_us_max": 3.968592972653952
+        },
+        {
+          "id": "loco-dynamicmxquant-gate_up-quantize-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 4.944712693588892,
+          "response_us_max": 4.944712693588892
+        },
+        {
+          "id": "loco-matrix-gate_up-complete-native",
+          "queries": {
+            "observable_response": 3
+          },
+          "response_us_min": 8.371765700656177,
+          "response_us_max": 8.371765700656177
+        },
+        {
+          "id": "loco-dynamicmxquant-down-quantize-complete-native",
+          "queries": {
+            "observable_response": 3
+          },
+          "response_us_min": 4.049974168671909,
+          "response_us_max": 4.049974168671909
+        },
+        {
+          "id": "loco-matrix-down-complete-native",
+          "queries": {
+            "observable_response": 3
+          },
+          "response_us_min": 5.422007666805391,
+          "response_us_max": 5.422007666805391
+        },
+        {
+          "id": "loco-hcpost-ffn-hc_post_group-complete-native",
+          "queries": {
+            "observable_response": 45
+          },
+          "response_us_min": 4.47949067489833,
+          "response_us_max": 4.47949067489833
+        },
+        {
+          "id": "loco-matrix-q_absorb-complete-native",
+          "queries": {
+            "observable_response": 11
+          },
+          "response_us_min": 6.454310087660783,
+          "response_us_max": 6.454310087660783
+        },
+        {
+          "id": "loco-matrix-index_q-complete-native",
+          "queries": {
+            "observable_response": 11
+          },
+          "response_us_min": 9.606274351668345,
+          "response_us_max": 9.606274351668345
+        },
+        {
+          "id": "loco-matrix-v_expand-complete-native",
+          "queries": {
+            "observable_response": 11
+          },
+          "response_us_min": 6.153912925926126,
+          "response_us_max": 6.153912925926126
+        },
+        {
+          "id": "loco-matrix-router-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 10.291882285868953,
+          "response_us_max": 10.291882285868953
+        },
+        {
+          "id": "loco-moeinitroutingv3-observed",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 21.157851642227513,
+          "response_us_max": 21.157851642227513
+        },
+        {
+          "id": "loco-groupedmatmulswigluquantv2-observed",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 99.20112202220956,
+          "response_us_max": 99.20112202220956
+        },
+        {
+          "id": "loco-groupedmatmul-observed-second",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 52.336775273674775,
+          "response_us_max": 52.336775273674775
+        },
+        {
+          "id": "loco-matrix-shared-gate_up-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 6.7992514970178775,
+          "response_us_max": 6.7992514970178775
+        },
+        {
+          "id": "loco-dynamicmxquant-shared-down-quantize-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 3.0631170097035403,
+          "response_us_max": 3.0631170097035403
+        },
+        {
+          "id": "loco-matrix-shared-down-complete-native",
+          "queries": {
+            "observable_response": 42
+          },
+          "response_us_min": 3.992446005458967,
+          "response_us_max": 3.992446005458967
+        }
+      ]
+    }
+  ],
+  "scope": "Training exclusion, coefficient optimality certificate, complete native population and response arithmetic. No claim of whole-model historical blindness.",
+  "report_sha256": "d3af9544232ee98f81038bff132563dd2fc7274e6c8d9549e2ade8d60c997e03",
+  "new_raw_scans": 0,
+  "new_cost_predictions": 0
+}

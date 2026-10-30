@@ -1,0 +1,1943 @@
+{
+  "name": "glm53flash-a5-tp8-c3:source-accepted-conditional",
+  "machine": {
+    "backend": "ascend",
+    "sku": "Ascend950DT_9582",
+    "num_devices": 8,
+    "ranks_per_node": 8
+  },
+  "model": {
+    "catalog_key": "glm-5.3-flash",
+    "quantization": "w8a8_mxfp8",
+    "quant": {
+      "name": "W8A8_MXFP8",
+      "weight_format": "fp8_e4m3",
+      "native_format": "bf16",
+      "activation_format": "fp8_e4m3",
+      "expert_weight_format": "fp8_e4m3",
+      "weight_block": [
+        1,
+        32
+      ],
+      "expert_block": 32,
+      "scale_format": "fp8_e8m0",
+      "scale_bytes": 1.0,
+      "kv_dtype": "bf16",
+      "index_dtype": "bf16",
+      "index_scale_dtype": "none",
+      "exclusions": [
+        "gdn",
+        "mtp",
+        "norm",
+        "lm_head",
+        "embedding",
+        "vision",
+        "projector",
+        "conv_weight_f32",
+        "conv_weight_bf16"
+      ],
+      "engram_table_mode": "device_bf16",
+      "activation_group_size": 32,
+      "activation_scale_format": "fp8_e8m0",
+      "activation_scale_pack": 2,
+      "category_overrides": {},
+      "source": {
+        "kind": "representation_preset",
+        "preset": "w8a8_mxfp8",
+        "checkpoint_identity": "not_verified_from_capture_config"
+      },
+      "notes": [
+        "Declared representation template; retained tensor samples establish selected contracts separately."
+      ]
+    },
+    "metadata": {
+      "model_coverage": "partial",
+      "unmodeled_features": [
+        "fused_expert_gate_up_source_schedule_not_bound",
+        "unrecognized_config_field:hc_eps",
+        "unrecognized_config_field:index_kpool",
+        "unrecognized_config_field:index_kpool_always_select_tail",
+        "unrecognized_config_field:index_kpool_compress",
+        "unrecognized_config_field:index_share_for_mtp_iteration",
+        "unrecognized_config_field:indexer_rope_interleave",
+        "unrecognized_config_field:mla_use_nope",
+        "unrecognized_config_field:provenance",
+        "unrecognized_config_field:qk_head_dim",
+        "unrecognized_config_field:swiglu_limit"
+      ],
+      "degraded_submodules": [
+        "fused_expert_gate_up_analytic_decomposition"
+      ]
+    }
+  },
+  "runtime": {
+    "tp": 8,
+    "dp": 1,
+    "ep": 1,
+    "pp": 1,
+    "graph_mode": "none",
+    "metadata": {
+      "input_boundary": "body-input template only; placeholder workload is not serving replay",
+      "capture_directory": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot10ms_c3_20261030",
+      "client_concurrency": 3,
+      "captured_execution_mode": "not_established",
+      "fusion_contract": null,
+      "tensor_geometry_candidates": [
+        {
+          "operator": "RecurrentKda",
+          "tensor_batch_slots": 4,
+          "query_rows_per_slot": 4,
+          "tensor_query_rows": 16,
+          "first_csv_row": 147,
+          "sample_count": 74,
+          "phase": "not_classified_by_shape_only"
+        }
+      ],
+      "geometry_policy": "profiler must distinguish active requests from graph slots and supply exact q/B/context",
+      "unresolved_capture_contracts": [
+        "exact_active_context_lengths_not_encoded_in_tensor_shapes",
+        "checkpoint_config_json_not_in_delivered_capture",
+        "capture_tensor_slots_may_include_graph_padding_or_inactive_requests",
+        "per_projection_precision_and_fused_KDA_MLA_wrapper_contracts_not_fully_audited"
+      ],
+      "compatible_variant": {
+        "variant": "attention-plus-down",
+        "not_observed_dispatch": true,
+        "scope": "conditional body declaration; unchanged precision and routing",
+        "indexed": {
+          "kind": "indexed_attention_pipeline",
+          "scratch_policy": "offchip",
+          "operand_modes": false,
+          "rope0_analytic": true
+        },
+        "source_down": true,
+        "KDA": "explicit symbolic accepted-state source reference; captured values and flags unobserved",
+        "evidence_assumptions": {
+          "indexed_captured_schedule_and_valid_mask_identity": "not_established",
+          "indexed_geometry_extension": "BF16_rope0_is_not_retained_native_rope64_kernel",
+          "MXFP8_down_captured_dispatch_identity": "not_established",
+          "scope": "evidence limitations, not model structural coverage"
+        },
+        "validation": "mechanism execution only; no claimed body or kernel accuracy"
+      },
+      "accepted_state_scenario": {
+        "id": "glm53flash-a5-tp8-c3",
+        "baseline": {
+          "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/glm-compatible-variants/glm53flash-a5-tp8-c3--attention-plus-down.json",
+          "sha256": "2bbe203c1e722b47350b57d4fc8027b9fc3993cd00cbf79b765ace521cf7c3d7",
+          "size_bytes": 5066
+        },
+        "prototype": {
+          "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/glm-kda-accepted-conditional/glm53flash-a5-b32-q4.json",
+          "sha256": "cb0f498b700f72f54a2815bdbd2cfb6f1c7d48bae237b94cb688b7b769e20d40",
+          "size_bytes": 9296
+        },
+        "tokens_per_sequence": 4,
+        "sequences_per_replica": 4,
+        "context_tokens": 4104,
+        "scope": "body",
+        "source_architecture": "arch35",
+        "value_identity": "not_established",
+        "acceptance_changes_query_work": false,
+        "sigmoid_placement": "explicit in-kernel scenario, not inferred from BF16 beta",
+        "private_external_fp32_sigmoid_boundary": "not_matched_by_this_conditional_native_program",
+        "observed_geometry_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-expanded/auto-forward-glm53flash-a5-tp8-c3.json",
+          "sha256": "bf5edbe58200c74a25abe7bd2db1de5f1034c82d7aa72541da6cafd21af17327",
+          "size_bytes": 1697808
+        }
+      },
+      "mxfp8_gate_up_condition": {
+        "parent": {
+          "path": "examples/cases/high-concurrency-20261030/glm-source-accepted-26/glm53flash-a5-tp8-c3.json",
+          "sha256": "6f7241425e3866916bbfdfc499b55e746f0f99bede5ec2683092854338ff27f1"
+        },
+        "boundary": "two_FP32_UB_products_then_SwiGLU_MX",
+        "l1_k": "explicit512; captured_host_tiling_not_established",
+        "capture_binary_identity": "not_established",
+        "timings_fitted": false
+      },
+      "calibration_origin": "observed",
+      "calibration_evidence": {
+        "evaluation_relation": "retrospective_leave_concurrency_out",
+        "training_model_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+          "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+          "size_bytes": 314646
+        },
+        "split_policy_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+          "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+          "size_bytes": 11467
+        },
+        "all_prior_point_responses_removed": true,
+        "scope": "operator-only heldout; Body counterfactual with historically developed source/hardware inputs",
+        "baseline_case_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-glm/metadata-pass/cases/glm53flash-a5-tp8-c3-metadata-layer-service.json",
+          "sha256": "e3af8111902617bc4aa1bb4d24a043f9cf4fefb1ffcb4861e29ee4a68f81f691",
+          "size_bytes": 79706
+        },
+        "body_residual_used": false
+      }
+    },
+    "routing": {
+      "policy": "balanced"
+    },
+    "kernels": {
+      "programs": {
+        "indexed_attention": {
+          "kind": "indexed_attention_pipeline",
+          "scratch_policy": "offchip",
+          "operand_modes": false,
+          "rope0_analytic": true
+        }
+      },
+      "recipes": {
+        "balanced_grouped_down": {
+          "kind": "ascend_mxfp8_grouped_nz"
+        }
+      },
+      "lowerings": {
+        "kda": {
+          "implementation": "vllm_ascend_recurrent_kda_arch35",
+          "options": {
+            "safe_gate": true,
+            "use_beta_sigmoid": true,
+            "state_selection": {
+              "kind": "symbolic_valid_selection",
+              "index_layout": "speculative",
+              "index_row_stride": 4,
+              "validity": {
+                "prefix": true,
+                "state_indices": true,
+                "accepted_tokens": true,
+                "independent_sequences": true
+              }
+            }
+          }
+        },
+        "native_fusion": {
+          "implementation": "declared_native_fusion",
+          "options": {
+            "roles": [
+              "grouped_gate_up_activation_quant",
+              "hc_pre",
+              "hc_post"
+            ],
+            "program_profiles": {
+              "grouped_gate_up_activation_quant": "ascend_mxfp8_grouped_swiglu_quant"
+            },
+            "program_options": {
+              "grouped_gate_up_activation_quant": {
+                "l1_k": 512
+              }
+            },
+            "traffic_profile": {
+              "hc_pre": "hc_pre_arch35_mk_175ef4d4",
+              "hc_post": "hc_post_arch35_bf16_175ef4d4"
+            }
+          }
+        },
+        "conv_state_copy": {
+          "implementation": "triton_noncontiguous_conv_state_copy",
+          "options": {
+            "state_slots": 6
+          }
+        },
+        "moe_init_routing": "ascend_moe_init_routing_v3_mxfp8",
+        "sparse_mla_metadata": {
+          "implementation": "vllm_ascend_sparse_mla_metadata",
+          "options": {
+            "layer_groups": [
+              [
+                3
+              ],
+              [
+                7
+              ],
+              [
+                11
+              ],
+              [
+                15
+              ],
+              [
+                19
+              ],
+              [
+                23
+              ],
+              [
+                27
+              ],
+              [
+                31
+              ],
+              [
+                35
+              ],
+              [
+                39
+              ],
+              [
+                43
+              ]
+            ],
+            "schedule": "layer_ordered"
+          }
+        }
+      },
+      "hccl": {
+        "allreduce": {
+          "expansion": "AICPU_TS",
+          "template": "mesh_oneshot",
+          "axes": [
+            "tp"
+          ]
+        }
+      },
+      "service_regimes": [
+        {
+          "id": "loco-hcom-allreduce-aicpukernel-observed",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "kernel": "HCCL_AICPU_TS_allreduce_mesh_oneshot",
+            "metadata.hccl_selection.ranks": 8,
+            "metadata.hccl_selection.dtype_bytes": 2
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "metadata.hccl_selection.payload_bytes"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 22.95267741631265,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 1.311159641444172e-05
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "hcom_allReduce_AicpuKernel",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco--copy-conv-state-kernel-observed",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "triton_noncontiguous_conv_state_copy",
+            "dtype": "bf16",
+            "local_shape.1": 6,
+            "local_shape.2": 3072
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 3.415304295731231,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.2965171283279612
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "_copy_conv_state_kernel",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-moeinitroutingv3-observed",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "ascend_moe_init_routing_v3_mxfp8",
+            "dtype": "bf16",
+            "metadata.moe_init_config.experts": 288,
+            "metadata.moe_init_config.topk": 8,
+            "metadata.moe_init_config.width": 4096
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 20.654640448314012,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.03145069961959376
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "MoeInitRoutingV3",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-groupedmatmulswigluquantv2-observed",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "ascend_mxfp8_grouped_swiglu_quant",
+            "metadata.mxfp8_swiglu_config.k": 4096,
+            "metadata.mxfp8_swiglu_config.width": 256
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 81.4942940050022,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.1383345938844325
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "GroupedMatmulSwigluQuantV2",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-causalconv1d-observed",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "short_convolution",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 6.909431635206156,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 1.5863901554788408e-05
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "CausalConv1d",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-recurrentkda-observed",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "vllm_ascend_recurrent_kda_arch35",
+            "metadata.native_kind": "RecurrentKda",
+            "metadata.heads": 8,
+            "metadata.dk": 128,
+            "metadata.dv": 128,
+            "metadata.state_dtype": "fp32"
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 10.303122502076718,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.25936530034320887
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "RecurrentKda",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-groupedmatmul-observed-second",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "balanced_grouped_down",
+            "dtype": "fp8_e4m3",
+            "local_shape.1": 4096,
+            "local_shape.2": 256,
+            "metadata.matrix_weight_bank_groups": 288,
+            "metadata.input_format": "fp8_e4m3",
+            "metadata.weight_format": "fp8_e4m3",
+            "metadata.output_format": "bf16"
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 43.16695028821399,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.07163925769891238
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "GroupedMatmul",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-hcpre-hc-pre-observed-third",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "declared_native_fusion",
+            "dtype": "bf16",
+            "metadata.fusion_role": "hc_pre",
+            "metadata.fusion_boundary.traffic_profile": "hc_pre_arch35_mk_175ef4d4",
+            "metadata.fusion_tensor_view.hidden": 4096,
+            "metadata.fusion_tensor_view.hc": 4,
+            "metadata.fusion_tensor_view.parameter_dtype": "fp32"
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "metadata.fusion_tensor_view.tokens"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 11.70256996219969,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.037770659358064035
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "HcPre",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-matmulv3-linear_qkvbfg_a-observed-third",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "linear_qkvbfg_a",
+            "dtype": "bf16",
+            "local_shape.1": 3336,
+            "local_shape.2": 4096
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 17.11803114945987,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.07441641680861198
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "MatMulV3",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-matrix-linear_output-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "linear_output",
+            "dtype": "bf16",
+            "local_shape.1": 4096,
+            "local_shape.2": 1024
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 6.266956273627515,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.03203704367661033
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "MatMulV3",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-matrix-index_q-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "index_q",
+            "dtype": "bf16",
+            "local_shape.1": 4096,
+            "local_shape.2": 1536
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 8.88222564184585,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.04525304436390601
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "MatMulV3",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-matrix-router-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "router",
+            "dtype": "fp32",
+            "local_shape.1": 288,
+            "local_shape.2": 4096
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 8.896812309421266,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.08719187352798037
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "MatMulV3",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-matrix-gate_up-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "dense_gate_up",
+            "dtype": "fp8_e4m3",
+            "local_shape.1": 3072,
+            "local_shape.2": 4096
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 7.940990586382572,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.02692344464210031
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "QuantBatchMatmulV3",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-matrix-down-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "dense_down",
+            "dtype": "fp8_e4m3",
+            "local_shape.1": 4096,
+            "local_shape.2": 1536
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 5.188675882106702,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.014583236543668065
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "QuantBatchMatmulV3",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-matrix-shared-gate_up-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "dense_gate_up",
+            "dtype": "fp8_e4m3",
+            "local_shape.1": 512,
+            "local_shape.2": 4096
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 6.70159937356697,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.006103257715681709
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "QuantBatchMatmulV3",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-matrix-shared-down-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "dense_down",
+            "dtype": "fp8_e4m3",
+            "local_shape.1": 4096,
+            "local_shape.2": 256
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 3.939330361827219,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.0033197277269842755
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "QuantBatchMatmulV3",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-matrix-q_absorb-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "q_absorb",
+            "dtype": "bf16",
+            "local_shape.1": 512,
+            "local_shape.2": 256
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 6.122597634999341,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.002591503536417516
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "TransposeBatchMatMul",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-matrix-v_expand-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "v_expand",
+            "dtype": "bf16",
+            "local_shape.1": 256,
+            "local_shape.2": 512
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 5.845670151184698,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.0024081466776674065
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "TransposeBatchMatMul",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-rmsnorm-norm1-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "rmsnorm",
+            "dtype": "bf16",
+            "local_shape.1": 4096,
+            "metadata.structure_block": "attention"
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 3.8568316149649666,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.008547036887245042
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "RmsNorm",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-rmsnorm-norm2-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "rmsnorm",
+            "dtype": "bf16",
+            "local_shape.1": 4096,
+            "metadata.structure_block": "ffn"
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 3.698403787790023,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.01688682405399559
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "RmsNorm",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-dynamicmxquant-gate_up-quantize-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "dynamic_quantize",
+            "dtype": "bf16",
+            "local_shape.1": 4096,
+            "metadata.structure_block": "ffn",
+            "metadata.output_format": "fp8_e4m3",
+            "metadata.activation_scale_format": "fp8_e8m0",
+            "metadata.activation_group_size": 32
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 4.901397175007907,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.002707219911311564
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "DynamicMxQuant",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-dynamicmxquant-down-quantize-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "dynamic_quantize",
+            "dtype": "bf16",
+            "local_shape.1": 1536,
+            "metadata.structure_block": "ffn",
+            "metadata.output_format": "fp8_e4m3",
+            "metadata.activation_scale_format": "fp8_e8m0",
+            "metadata.activation_group_size": 32
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 4.005515768714465,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.0027786499973402497
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "DynamicMxQuant",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-dynamicmxquant-shared-down-quantize-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "dynamic_quantize",
+            "dtype": "bf16",
+            "local_shape.1": 256,
+            "metadata.structure_block": "ffn",
+            "metadata.output_format": "fp8_e4m3",
+            "metadata.activation_scale_format": "fp8_e8m0",
+            "metadata.activation_group_size": 32
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 2.8613568177555724,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.012610011996747997
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "DynamicMxQuant",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-hcpost-attention-hc_post_group-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "declared_native_fusion",
+            "dtype": "bf16",
+            "metadata.structure_block": "attention",
+            "metadata.fusion_role": "hc_post",
+            "metadata.fusion_boundary.traffic_profile": "hc_post_arch35_bf16_175ef4d4",
+            "metadata.fusion_tensor_view.hidden": 4096,
+            "metadata.fusion_tensor_view.hc": 4,
+            "metadata.fusion_tensor_view.coefficient_dtype": "fp32"
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "metadata.fusion_tensor_view.tokens"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 4.037160449480237,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.03160923256673449
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "HcPost",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        },
+        {
+          "id": "loco-hcpost-ffn-hc_post_group-complete-native",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "declared_native_fusion",
+            "dtype": "bf16",
+            "metadata.structure_block": "ffn",
+            "metadata.fusion_role": "hc_post",
+            "metadata.fusion_boundary.traffic_profile": "hc_post_arch35_bf16_175ef4d4",
+            "metadata.fusion_tensor_view.hidden": 4096,
+            "metadata.fusion_tensor_view.hc": 4,
+            "metadata.fusion_tensor_view.coefficient_dtype": "fp32"
+          },
+          "coordinates": {
+            "physical_work_axis": {
+              "path": "metadata.fusion_tensor_view.tokens"
+            }
+          },
+          "domain": {
+            "physical_work_axis": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 4.063541421003768,
+            "terms": [
+              {
+                "coordinate": "physical_work_axis",
+                "us_per_unit": 0.025996828368410156
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_leave_concurrency_out",
+            "training_source_identities": [
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+                "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+                "size_bytes": 41401175
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+                "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+                "size_bytes": 41993164
+              },
+              {
+                "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+                "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+                "size_bytes": 71005746
+              }
+            ],
+            "split_policy_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/split-policy.json",
+              "sha256": "86fd20bdca9d74791e252c502229be7f2f8bbb36973ecf9d5c1b05c29042bc9c",
+              "size_bytes": 11467
+            },
+            "native_operator_type": "HcPost",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "historical_source_model_blindness_claimed": false,
+            "training_model_identity": {
+              "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+              "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+              "size_bytes": 314646
+            }
+          }
+        }
+      ]
+    },
+    "tensor_layouts": {
+      "short_convolution": {
+        "input": "contiguous"
+      },
+      "kda_recurrent": {
+        "beta": "contiguous"
+      }
+    }
+  },
+  "workload": {
+    "requests": [
+      {
+        "id": "analysis-placeholder",
+        "prompt_tokens": 4104,
+        "output_tokens": 1280
+      }
+    ]
+  }
+}

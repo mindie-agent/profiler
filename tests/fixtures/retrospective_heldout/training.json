@@ -1,0 +1,118 @@
+{
+  "source": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-heldout-generalization/training-models.json",
+  "sha256": "774d3c3221007d20b3a727c242139b23ca370c4d19f581d7121d673f219f19a7",
+  "models": [
+    {
+      "domain": "hcom-allreduce-aicpukernel-observed",
+      "points": [
+        [
+          1048576,
+          36.277049820788534
+        ],
+        [
+          262144,
+          28.268106666666668
+        ],
+        [
+          32768,
+          21.928148205128203
+        ]
+      ],
+      "expected": {
+        "fixed_us": 22.95267741631265,
+        "us_per_axis_unit": 1.311159641444172e-05,
+        "design_rank": 2,
+        "training_sse_us2": 5.822520986621616
+      },
+      "source_shas": [
+        "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+        "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+        "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443"
+      ]
+    },
+    {
+      "domain": "-copy-conv-state-kernel-observed",
+      "points": [
+        [
+          32,
+          12.895869070208727
+        ],
+        [
+          8,
+          5.822796078431373
+        ],
+        [
+          1,
+          3.68445
+        ]
+      ],
+      "expected": {
+        "fixed_us": 3.415304295731231,
+        "us_per_axis_unit": 0.2965171283279612,
+        "design_rank": 2,
+        "training_sse_us2": 0.0020628872223513732
+      },
+      "source_shas": [
+        "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+        "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+        "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443"
+      ]
+    },
+    {
+      "domain": "moeinitroutingv3-observed",
+      "points": [
+        [
+          128,
+          24.68482411674347
+        ],
+        [
+          32,
+          21.64116031746032
+        ],
+        [
+          4,
+          20.795851648351647
+        ]
+      ],
+      "expected": {
+        "fixed_us": 20.654640448314012,
+        "us_per_axis_unit": 0.03145069961959376,
+        "design_rank": 2,
+        "training_sse_us2": 0.0006537261771481714
+      },
+      "source_shas": [
+        "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+        "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+        "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443"
+      ]
+    },
+    {
+      "domain": "groupedmatmulswigluquantv2-observed",
+      "points": [
+        [
+          1024,
+          207.86539861751152
+        ],
+        [
+          256,
+          184.59210793650794
+        ],
+        [
+          32,
+          33.52036263736264
+        ]
+      ],
+      "expected": {
+        "fixed_us": 81.4942940050022,
+        "us_per_axis_unit": 0.1383345938844325,
+        "design_rank": 2,
+        "training_sse_us2": 7560.558101100955
+      },
+      "source_shas": [
+        "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
+        "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+        "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443"
+      ]
+    }
+  ]
+}
