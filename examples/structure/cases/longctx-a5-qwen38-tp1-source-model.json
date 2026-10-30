@@ -1,0 +1,44 @@
+{
+  "name": "qwen38-a5-tp4-c4-body-input",
+  "machine": {
+    "backend": "ascend",
+    "sku": "Ascend950DT_9582",
+    "num_devices": 1,
+    "ranks_per_node": 8
+  },
+  "model": {
+    "catalog_key": "qwen3.8-27b",
+    "quantization": "w8a8_mxfp8"
+  },
+  "runtime": {
+    "tp": 1,
+    "dp": 1,
+    "ep": 1,
+    "pp": 1,
+    "graph_mode": "none",
+    "max_num_seqs": 32,
+    "max_num_batched_tokens": 16384,
+    "max_model_len": 131072,
+    "metadata": {
+      "capture_source": {
+        "path": "/Volumes/data/mindie-sim-data/a5/2026-10-22/qwen38-c4attn/scripts/serve_c4attn.sh",
+        "sha256": "1236bc87f04779c591c050ec8d3b4a0fdd1cdda165433d3b4de29f70531b6ebf",
+        "size_bytes": 1852
+      },
+      "captured_execution_mode": "FULL_DECODE_ONLY",
+      "draft_proposal_tokens": 3,
+      "physical_geometry_policy": "captured tensor q/B supplied by profiler; graph padding is not re-applied to physical rows",
+      "new_latency_parameter_fit": false,
+      "runtime_recipe_basis": "uncalibrated catalog baseline; no high-concurrency EP/MC2 policy transferred"
+    }
+  },
+  "workload": {
+    "requests": [
+      {
+        "id": "analysis-placeholder",
+        "prompt_tokens": 4104,
+        "output_tokens": 1024
+      }
+    ]
+  }
+}

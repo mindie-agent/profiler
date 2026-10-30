@@ -199,6 +199,16 @@ def render(report):
         lines.append(f"| {row['case_id']} | {row['phase']} | {c.get('observed_forward_count', real.get('count', '—'))} | "
                      + ' / '.join(number(real.get(k)) for k in ('mean', 'p50', 'p90'))
                      + f" | {number(c.get('predicted_ms'))} | {'—' if error is None else f'{error:+.2%}'} | {status} |")
+    labelled = [r for r in report['cases'] if r.get('calibration', {}).get('body_validation')]
+    if labelled and report.get('scope', 'body') == 'body':
+        lines += ['', '| Case | Body validation basis | Target native timings used in rules |',
+                  '|---|---|---|']
+        for row in labelled:
+            calibration = row['calibration']
+            lines.append(f"| {row['case_id']} | {calibration['body_validation']} | "
+                         f"{calibration.get('target_native_timings_used_in_rules')} |")
+        lines += ['', 'A Body pass with target-calibrated native rules is calibration evidence, not zero-shot generalization. '
+                  'Frozen native-family transfer scores remain separately reported in generalization.md.']
     multi = [r for r in report['cases'] if len(r.get('geometry_comparisons', [])) > 1]
     if multi and report.get('scope', 'body') == 'body':
         lines += ['', 'The source headline retains its largest population. Each execution geometry is scored separately; '

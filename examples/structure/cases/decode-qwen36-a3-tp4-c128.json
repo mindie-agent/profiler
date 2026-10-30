@@ -4,7 +4,18 @@
     "backend": "ascend",
     "sku": "Ascend910_9362",
     "num_devices": 4,
-    "ranks_per_node": 16
+    "ranks_per_node": 16,
+    "device": {
+      "rates": {
+        "joint_native_a3": 1000000000.0
+      },
+      "work_units": {
+        "joint_native_a3": "busy_ns"
+      },
+      "resource_units": {
+        "joint_native_a3": 1
+      }
+    }
   },
   "model": {
     "catalog_key": "qwen3.6-27b",
@@ -88,6 +99,1137 @@
         "checkpoint_config_json_not_in_delivered_capture",
         "capture_tensor_slots_may_include_graph_padding_or_inactive_requests",
         "per_projection_precision_and_fused_KDA_MLA_wrapper_contracts_not_fully_audited"
+      ],
+      "native_response_transfer": {
+        "baseline_case_identity": {
+          "path": "/Users/maoxx241/code/profiler/examples/structure/cases/decode-qwen36-a3-tp4-c128.json",
+          "sha256": "c56069fd6e51ee64f892e4188b0f4d04230fc6578cea1fc0ae7a1e544769c626",
+          "size_bytes": 2972
+        },
+        "model_identity": {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a3-joint-functions.json",
+          "sha256": "74ec38212a9b98bad71ef93fa6726d1bc6b1ae87176553ef2b611851b5a7303b",
+          "size_bytes": 31271
+        },
+        "body_residual_used": false,
+        "in_sample_training_source": true,
+        "not_zero_shot_or_concurrency_generalization": true,
+        "helper_model_identity": {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a3-complete-helper-functions.json",
+          "sha256": "cf609877bbd65c16d117f1df9e073503dd7e2fd0e544774f5130c392a71350ce",
+          "size_bytes": 469961
+        }
+      }
+    },
+    "kernels": {
+      "service_regimes": [
+        {
+          "id": "a3-native-int8",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "local_shape.0": 512,
+            "dtype": "int8",
+            "layout": "int8_per_channel",
+            "metadata.program_kind": "matmul",
+            "metadata.matrix_groups": 1,
+            "metadata.input_format": "int8",
+            "metadata.weight_dtype": "int8",
+            "metadata.output_format": "bf16",
+            "metadata.dequant_before_compute": false,
+            "metadata.activation_scale_format": "fp32",
+            "metadata.matrix_output_contract": "int32_cast_row_scale_column_scale_output_cast"
+          },
+          "coordinates": {
+            "giga_flops": {
+              "path": "work.cube",
+              "scale": 1e-09
+            },
+            "mega_hbm_bytes": {
+              "path": "work.hbm",
+              "scale": 1e-06
+            }
+          },
+          "domain": {
+            "giga_flops": {
+              "min": 8.053063669999998,
+              "max": 45.63402753
+            },
+            "mega_hbm_bytes": {
+              "min": 13.93663999,
+              "max": 56.17049601
+            }
+          },
+          "response": {
+            "fixed_us": 23.169415060974664,
+            "terms": [
+              {
+                "coordinate": "giga_flops",
+                "us_per_unit": 2.7254719935129668
+              },
+              {
+                "coordinate": "mega_hbm_bytes",
+                "us_per_unit": 0.0
+              }
+            ]
+          },
+          "execution": {
+            "kind": "joint_native",
+            "resource": "joint_native_a3",
+            "reference_rate": 1000000000.0,
+            "native_kernel": "QuantBatchMatmulV3"
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "training_source_sha256": [
+              "d10d82d4727c4a2f0fe37b11355b5e7c714997b78c0966039f8e345405d13601"
+            ],
+            "frozen_model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a3-joint-functions.json",
+              "sha256": "74ec38212a9b98bad71ef93fa6726d1bc6b1ae87176553ef2b611851b5a7303b",
+              "size_bytes": 31271
+            },
+            "normalized_contracts": [
+              [
+                "matrix",
+                [
+                  512,
+                  4096,
+                  5120
+                ],
+                "int8",
+                "int8",
+                "bf16",
+                [
+                  512
+                ],
+                "fp32"
+              ],
+              [
+                "matrix",
+                [
+                  512,
+                  8704,
+                  5120
+                ],
+                "int8",
+                "int8",
+                "bf16",
+                [
+                  512
+                ],
+                "fp32"
+              ],
+              [
+                "matrix",
+                [
+                  512,
+                  5120,
+                  4352
+                ],
+                "int8",
+                "int8",
+                "bf16",
+                [
+                  512
+                ],
+                "fp32"
+              ],
+              [
+                "matrix",
+                [
+                  512,
+                  3584,
+                  5120
+                ],
+                "int8",
+                "int8",
+                "bf16",
+                [
+                  512
+                ],
+                "fp32"
+              ],
+              [
+                "matrix",
+                [
+                  512,
+                  5120,
+                  1536
+                ],
+                "int8",
+                "int8",
+                "bf16",
+                [
+                  512
+                ],
+                "fp32"
+              ]
+            ],
+            "expected_rule_hits": 208,
+            "native_whole_call_once": true,
+            "body_residual_used": false,
+            "analytical_work_retained_as_nonexecuting_reference": true,
+            "scope": "single local device; no TP communication response"
+          }
+        },
+        {
+          "id": "a3-native-bf16",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "local_shape.0": 512,
+            "dtype": "bf16",
+            "layout": "bf16",
+            "metadata.program_kind": "matmul",
+            "metadata.matrix_groups": 1,
+            "metadata.input_format": "bf16",
+            "metadata.weight_dtype": "bf16",
+            "metadata.output_format": "bf16",
+            "metadata.dequant_before_compute": false
+          },
+          "coordinates": {
+            "giga_flops": {
+              "path": "work.cube",
+              "scale": 1e-09
+            }
+          },
+          "domain": {
+            "giga_flops": {
+              "min": 0.12582911,
+              "max": 8.05306369
+            }
+          },
+          "response": {
+            "fixed_us": 8.578694384319384,
+            "terms": [
+              {
+                "coordinate": "giga_flops",
+                "us_per_unit": 5.349657828750109
+              }
+            ]
+          },
+          "execution": {
+            "kind": "joint_native",
+            "resource": "joint_native_a3",
+            "reference_rate": 1000000000.0,
+            "native_kernel": "MatMulV2"
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "training_source_sha256": [
+              "d10d82d4727c4a2f0fe37b11355b5e7c714997b78c0966039f8e345405d13601"
+            ],
+            "frozen_model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a3-joint-functions.json",
+              "sha256": "74ec38212a9b98bad71ef93fa6726d1bc6b1ae87176553ef2b611851b5a7303b",
+              "size_bytes": 31271
+            },
+            "normalized_contracts": [
+              [
+                "matrix",
+                [
+                  512,
+                  24,
+                  5120
+                ],
+                "bf16",
+                "bf16",
+                "bf16",
+                [],
+                ""
+              ],
+              [
+                "matrix",
+                [
+                  512,
+                  5120,
+                  1536
+                ],
+                "bf16",
+                "bf16",
+                "bf16",
+                [],
+                ""
+              ]
+            ],
+            "expected_rule_hits": 96,
+            "native_whole_call_once": true,
+            "body_residual_used": false,
+            "analytical_work_retained_as_nonexecuting_reference": true,
+            "scope": "single local device; no TP communication response"
+          }
+        },
+        {
+          "id": "a3-native-recurrent",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "local_shape.0": 512,
+            "dtype": "bf16",
+            "recipe": "decode_recurrent_scan",
+            "family": "recurrent_vector",
+            "local_shape.1": 12,
+            "local_shape.2": 128,
+            "local_shape.3": 128,
+            "metadata.key_heads": 4,
+            "metadata.state_dtype": "fp32",
+            "metadata.tokens": 512
+          },
+          "coordinates": {},
+          "domain": {},
+          "response": {
+            "fixed_us": 724.2970265151515,
+            "terms": []
+          },
+          "execution": {
+            "kind": "joint_native",
+            "resource": "joint_native_a3",
+            "reference_rate": 1000000000.0,
+            "native_kernel": "RecurrentGatedDeltaRule"
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "training_source_sha256": [
+              "d10d82d4727c4a2f0fe37b11355b5e7c714997b78c0966039f8e345405d13601"
+            ],
+            "frozen_model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a3-joint-functions.json",
+              "sha256": "74ec38212a9b98bad71ef93fa6726d1bc6b1ae87176553ef2b611851b5a7303b",
+              "size_bytes": 31271
+            },
+            "normalized_contracts": [
+              [
+                "recurrent_vector",
+                [
+                  512,
+                  4,
+                  12,
+                  128,
+                  128
+                ],
+                128,
+                "fp32"
+              ]
+            ],
+            "expected_rule_hits": 48,
+            "native_whole_call_once": true,
+            "body_residual_used": false,
+            "analytical_work_retained_as_nonexecuting_reference": true,
+            "scope": "single local device; no TP communication response"
+          }
+        },
+        {
+          "id": "a3-complete-conv",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "ascend_causal_conv1d_update",
+            "metadata.kernel_width": 4,
+            "metadata.state_history_slots": 6,
+            "metadata.cache_index_row_stride": 1,
+            "local_shape.1": 2560,
+            "local_shape.0": 512
+          },
+          "coordinates": {},
+          "response": {
+            "fixed_us": 59.99329545454545
+          },
+          "execution": {
+            "kind": "joint_native",
+            "resource": "joint_native_a3",
+            "reference_rate": 1000000000.0,
+            "native_kernel": "CausalConv1d"
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "frozen_model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a3-complete-helper-functions.json",
+              "sha256": "cf609877bbd65c16d117f1df9e073503dd7e2fd0e544774f5130c392a71350ce",
+              "size_bytes": 469961
+            },
+            "training_source_sha256": [
+              "d10d82d4727c4a2f0fe37b11355b5e7c714997b78c0966039f8e345405d13601"
+            ],
+            "expected_rule_hits": 48,
+            "boundary": "normalized_active_contract",
+            "normalized_contract": [
+              "causal_conv1d_active",
+              "CausalConv1d",
+              [
+                [
+                  512,
+                  2560
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  4,
+                  2560
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [
+                  6,
+                  2560
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  512,
+                  2560
+                ],
+                "bf16",
+                "ND"
+              ]
+            ],
+            "body_residual_used": false,
+            "whole_native_call_once": true
+          }
+        },
+        {
+          "id": "a3-complete-swiglu",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "dtype": "bf16",
+            "family": "swiglu",
+            "recipe": "swiglu",
+            "local_shape.1": 4352,
+            "local_shape.0": 512
+          },
+          "coordinates": {},
+          "response": {
+            "fixed_us": 20.38705965909091
+          },
+          "execution": {
+            "kind": "joint_native",
+            "resource": "joint_native_a3",
+            "reference_rate": 1000000000.0,
+            "native_kernel": "SwiGlu"
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "frozen_model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a3-complete-helper-functions.json",
+              "sha256": "cf609877bbd65c16d117f1df9e073503dd7e2fd0e544774f5130c392a71350ce",
+              "size_bytes": 469961
+            },
+            "training_source_sha256": [
+              "d10d82d4727c4a2f0fe37b11355b5e7c714997b78c0966039f8e345405d13601"
+            ],
+            "expected_rule_hits": 64,
+            "boundary": "normalized_active_contract",
+            "normalized_contract": [
+              "swiglu",
+              [
+                512,
+                4352
+              ],
+              "bf16"
+            ],
+            "body_residual_used": false,
+            "whole_native_call_once": true
+          }
+        },
+        {
+          "id": "a3-complete-cache",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "dtype": "bf16",
+            "family": "cache_store",
+            "recipe": "kv_store",
+            "metadata.cache_kind": "gqa",
+            "local_shape.1": 1024,
+            "local_shape.0": 512
+          },
+          "coordinates": {},
+          "response": {
+            "fixed_us": 14.457556818181818
+          },
+          "execution": {
+            "kind": "joint_native",
+            "resource": "joint_native_a3",
+            "reference_rate": 1000000000.0,
+            "native_kernel": "ScatterPaKvCache"
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "frozen_model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a3-complete-helper-functions.json",
+              "sha256": "cf609877bbd65c16d117f1df9e073503dd7e2fd0e544774f5130c392a71350ce",
+              "size_bytes": 469961
+            },
+            "training_source_sha256": [
+              "d10d82d4727c4a2f0fe37b11355b5e7c714997b78c0966039f8e345405d13601"
+            ],
+            "expected_rule_hits": 16,
+            "boundary": "normalized_active_contract",
+            "normalized_contract": [
+              "kv_cache_store_active_elements",
+              "ScatterPaKvCache",
+              [
+                [
+                  131072,
+                  "bf16"
+                ],
+                [
+                  131072,
+                  "bf16"
+                ]
+              ],
+              [
+                512
+              ]
+            ],
+            "body_residual_used": false,
+            "whole_native_call_once": true
+          }
+        },
+        {
+          "id": "a3-complete-gating",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "dtype": "bf16",
+            "family": "gdn_gating",
+            "local_shape.1": 12,
+            "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+            "local_shape.0": 512
+          },
+          "coordinates": {},
+          "response": {
+            "fixed_us": 16.148238636363637
+          },
+          "execution": {
+            "kind": "joint_native",
+            "resource": "joint_native_a3",
+            "reference_rate": 1000000000.0,
+            "native_kernel": "fused_gdn_gating_kernel"
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "frozen_model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a3-complete-helper-functions.json",
+              "sha256": "cf609877bbd65c16d117f1df9e073503dd7e2fd0e544774f5130c392a71350ce",
+              "size_bytes": 469961
+            },
+            "training_source_sha256": [
+              "d10d82d4727c4a2f0fe37b11355b5e7c714997b78c0966039f8e345405d13601"
+            ],
+            "expected_rule_hits": 48,
+            "boundary": "source_role_only_no_full_native_abi",
+            "normalized_contract": [
+              "gdn_gating",
+              [
+                512,
+                12
+              ]
+            ],
+            "body_residual_used": false,
+            "whole_native_call_once": true
+          }
+        },
+        {
+          "id": "a3-complete-output-norm",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "linear_output_norm_gate",
+            "metadata.norm_group_width": 128,
+            "metadata.gate_present": true,
+            "metadata.recurrent_attention_kind": "gdn",
+            "local_shape.0": 6144,
+            "local_shape.1": 128
+          },
+          "coordinates": {},
+          "response": {
+            "fixed_us": 16.811117424242425
+          },
+          "execution": {
+            "kind": "joint_native",
+            "resource": "joint_native_a3",
+            "reference_rate": 1000000000.0,
+            "native_kernel": "_layer_norm_fwd_1pass_kernel_npu"
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "frozen_model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a3-complete-helper-functions.json",
+              "sha256": "cf609877bbd65c16d117f1df9e073503dd7e2fd0e544774f5130c392a71350ce",
+              "size_bytes": 469961
+            },
+            "training_source_sha256": [
+              "d10d82d4727c4a2f0fe37b11355b5e7c714997b78c0966039f8e345405d13601"
+            ],
+            "expected_rule_hits": 48,
+            "boundary": "source_role_only_no_full_native_abi",
+            "normalized_contract": [
+              "native_tensor_abi",
+              "_layer_norm_fwd_1pass_kernel_npu",
+              [
+                [
+                  [
+                    6144,
+                    128
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    128
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    6144,
+                    128
+                  ],
+                  "bf16",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    6144,
+                    128
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    6144
+                  ],
+                  "fp32",
+                  "ND"
+                ]
+              ]
+            ],
+            "body_residual_used": false,
+            "whole_native_call_once": true
+          }
+        },
+        {
+          "id": "a3-complete-l2norm",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "dtype": "bf16",
+            "metadata.implementation_scope": "analytical_decode_l2norm",
+            "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+            "local_shape.3": 128,
+            "local_shape.0": 1,
+            "local_shape.1": 512,
+            "local_shape.2": 4
+          },
+          "coordinates": {},
+          "response": {
+            "fixed_us": 6.875284090909091
+          },
+          "execution": {
+            "kind": "joint_native",
+            "resource": "joint_native_a3",
+            "reference_rate": 1000000000.0,
+            "native_kernel": "l2norm_fwd_kernel2"
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "frozen_model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a3-complete-helper-functions.json",
+              "sha256": "cf609877bbd65c16d117f1df9e073503dd7e2fd0e544774f5130c392a71350ce",
+              "size_bytes": 469961
+            },
+            "training_source_sha256": [
+              "d10d82d4727c4a2f0fe37b11355b5e7c714997b78c0966039f8e345405d13601"
+            ],
+            "expected_rule_hits": 96,
+            "boundary": "source_role_only_no_full_native_abi",
+            "normalized_contract": null,
+            "body_residual_used": false,
+            "whole_native_call_once": true
+          }
+        },
+        {
+          "id": "a3-complete-quant-1536",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "dtype": "bf16",
+            "family": "quantize",
+            "recipe": "dynamic_quantize",
+            "local_shape.1": 1536,
+            "metadata.input_format": "bf16",
+            "metadata.output_format": "int8",
+            "metadata.activation_scale_format": "fp32",
+            "local_shape.0": 512
+          },
+          "coordinates": {
+            "elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "response": {
+            "fixed_us": 12.778653901457059,
+            "terms": [
+              {
+                "coordinate": "elements",
+                "us_per_unit": 1.6156583608892173e-06
+              }
+            ]
+          },
+          "execution": {
+            "kind": "joint_native",
+            "resource": "joint_native_a3",
+            "reference_rate": 1000000000.0,
+            "native_kernel": "DynamicQuant"
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "frozen_model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a3-complete-helper-functions.json",
+              "sha256": "cf609877bbd65c16d117f1df9e073503dd7e2fd0e544774f5130c392a71350ce",
+              "size_bytes": 469961
+            },
+            "training_source_sha256": [
+              "d10d82d4727c4a2f0fe37b11355b5e7c714997b78c0966039f8e345405d13601"
+            ],
+            "expected_rule_hits": 16,
+            "boundary": "normalized_active_contract",
+            "normalized_contract": [
+              "dynamic_quant_active",
+              "DynamicQuant",
+              [
+                [
+                  512,
+                  1536
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  512,
+                  1536
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  512
+                ],
+                "fp32",
+                "ND"
+              ]
+            ],
+            "body_residual_used": false,
+            "whole_native_call_once": true
+          }
+        },
+        {
+          "id": "a3-complete-quant-4352",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "dtype": "bf16",
+            "family": "quantize",
+            "recipe": "dynamic_quantize",
+            "local_shape.1": 4352,
+            "metadata.input_format": "bf16",
+            "metadata.output_format": "int8",
+            "metadata.activation_scale_format": "fp32",
+            "local_shape.0": 512
+          },
+          "coordinates": {
+            "elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "response": {
+            "fixed_us": 12.778653901457059,
+            "terms": [
+              {
+                "coordinate": "elements",
+                "us_per_unit": 1.6156583608892173e-06
+              }
+            ]
+          },
+          "execution": {
+            "kind": "joint_native",
+            "resource": "joint_native_a3",
+            "reference_rate": 1000000000.0,
+            "native_kernel": "DynamicQuant"
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "frozen_model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a3-complete-helper-functions.json",
+              "sha256": "cf609877bbd65c16d117f1df9e073503dd7e2fd0e544774f5130c392a71350ce",
+              "size_bytes": 469961
+            },
+            "training_source_sha256": [
+              "d10d82d4727c4a2f0fe37b11355b5e7c714997b78c0966039f8e345405d13601"
+            ],
+            "expected_rule_hits": 64,
+            "boundary": "normalized_active_contract",
+            "normalized_contract": [
+              "dynamic_quant_active",
+              "DynamicQuant",
+              [
+                [
+                  512,
+                  4352
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  512,
+                  4352
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  512
+                ],
+                "fp32",
+                "ND"
+              ]
+            ],
+            "body_residual_used": false,
+            "whole_native_call_once": true
+          }
+        },
+        {
+          "id": "a3-complete-quant-5120",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "dtype": "bf16",
+            "family": "quantize",
+            "recipe": "dynamic_quantize",
+            "local_shape.1": 5120,
+            "metadata.input_format": "bf16",
+            "metadata.output_format": "int8",
+            "metadata.activation_scale_format": "fp32",
+            "local_shape.0": 512
+          },
+          "coordinates": {
+            "elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "response": {
+            "fixed_us": 12.778653901457059,
+            "terms": [
+              {
+                "coordinate": "elements",
+                "us_per_unit": 1.6156583608892173e-06
+              }
+            ]
+          },
+          "execution": {
+            "kind": "joint_native",
+            "resource": "joint_native_a3",
+            "reference_rate": 1000000000.0,
+            "native_kernel": "DynamicQuant"
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "frozen_model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a3-complete-helper-functions.json",
+              "sha256": "cf609877bbd65c16d117f1df9e073503dd7e2fd0e544774f5130c392a71350ce",
+              "size_bytes": 469961
+            },
+            "training_source_sha256": [
+              "d10d82d4727c4a2f0fe37b11355b5e7c714997b78c0966039f8e345405d13601"
+            ],
+            "expected_rule_hits": 128,
+            "boundary": "normalized_active_contract",
+            "normalized_contract": [
+              "dynamic_quant_active",
+              "DynamicQuant",
+              [
+                [
+                  512,
+                  5120
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  512,
+                  5120
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  512
+                ],
+                "fp32",
+                "ND"
+              ]
+            ],
+            "body_residual_used": false,
+            "whole_native_call_once": true
+          }
+        },
+        {
+          "id": "a3-complete-beta-alpha-copy",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "dtype": "bf16",
+            "family": "tensor_copy",
+            "local_shape.1": 12,
+            "metadata.source_layout.storage_shape.0": 512,
+            "metadata.source_layout.storage_shape.1": 24,
+            "metadata.source_layout.strides.1": 1,
+            "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+            "local_shape.0": 512
+          },
+          "coordinates": {},
+          "response": {
+            "fixed_us": 3.510880681818182
+          },
+          "execution": {
+            "kind": "joint_native",
+            "resource": "joint_native_a3",
+            "reference_rate": 1000000000.0,
+            "native_kernel": "Slice"
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "frozen_model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a3-complete-helper-functions.json",
+              "sha256": "cf609877bbd65c16d117f1df9e073503dd7e2fd0e544774f5130c392a71350ce",
+              "size_bytes": 469961
+            },
+            "training_source_sha256": [
+              "d10d82d4727c4a2f0fe37b11355b5e7c714997b78c0966039f8e345405d13601"
+            ],
+            "expected_rule_hits": 96,
+            "boundary": "normalized_active_contract",
+            "normalized_contract": [
+              "slice_copy",
+              [
+                512,
+                24
+              ],
+              [
+                512,
+                12
+              ],
+              "bf16",
+              "bf16"
+            ],
+            "body_residual_used": false,
+            "whole_native_call_once": true
+          }
+        },
+        {
+          "id": "a3-complete-conv-copy",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "dtype": "bf16",
+            "family": "tensor_copy",
+            "local_shape.1": 2560,
+            "metadata.source_layout.storage_shape.0": 512,
+            "metadata.source_layout.storage_shape.1": 4096,
+            "metadata.source_layout.strides.1": 1,
+            "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+            "local_shape.0": 512
+          },
+          "coordinates": {},
+          "response": {
+            "fixed_us": 8.186799242424241
+          },
+          "execution": {
+            "kind": "joint_native",
+            "resource": "joint_native_a3",
+            "reference_rate": 1000000000.0,
+            "native_kernel": "Slice"
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "frozen_model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a3-complete-helper-functions.json",
+              "sha256": "cf609877bbd65c16d117f1df9e073503dd7e2fd0e544774f5130c392a71350ce",
+              "size_bytes": 469961
+            },
+            "training_source_sha256": [
+              "d10d82d4727c4a2f0fe37b11355b5e7c714997b78c0966039f8e345405d13601"
+            ],
+            "expected_rule_hits": 48,
+            "boundary": "normalized_active_contract",
+            "normalized_contract": [
+              "slice_copy",
+              [
+                512,
+                4096
+              ],
+              [
+                512,
+                2560
+              ],
+              "bf16",
+              "bf16"
+            ],
+            "body_residual_used": false,
+            "whole_native_call_once": true
+          }
+        },
+        {
+          "id": "a3-complete-qk-copy",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "dtype": "bf16",
+            "family": "tensor_copy",
+            "local_shape.1": 512,
+            "metadata.source_layout.storage_shape.0": 512,
+            "metadata.source_layout.storage_shape.1": 2560,
+            "metadata.source_layout.strides.1": 1,
+            "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+            "local_shape.0": 512
+          },
+          "coordinates": {},
+          "response": {
+            "fixed_us": 2.721714015151515
+          },
+          "execution": {
+            "kind": "joint_native",
+            "resource": "joint_native_a3",
+            "reference_rate": 1000000000.0,
+            "native_kernel": "Slice"
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "frozen_model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a3-complete-helper-functions.json",
+              "sha256": "cf609877bbd65c16d117f1df9e073503dd7e2fd0e544774f5130c392a71350ce",
+              "size_bytes": 469961
+            },
+            "training_source_sha256": [
+              "d10d82d4727c4a2f0fe37b11355b5e7c714997b78c0966039f8e345405d13601"
+            ],
+            "expected_rule_hits": 96,
+            "boundary": "normalized_active_contract",
+            "normalized_contract": [
+              "slice_copy",
+              [
+                512,
+                2560
+              ],
+              [
+                512,
+                512
+              ],
+              "bf16",
+              "bf16"
+            ],
+            "body_residual_used": false,
+            "whole_native_call_once": true
+          }
+        },
+        {
+          "id": "a3-complete-v-copy",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "phase": "decode",
+            "dtype": "bf16",
+            "family": "tensor_copy",
+            "local_shape.1": 1536,
+            "metadata.source_layout.storage_shape.0": 512,
+            "metadata.source_layout.storage_shape.1": 2560,
+            "metadata.source_layout.strides.1": 1,
+            "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+            "local_shape.0": 512
+          },
+          "coordinates": {},
+          "response": {
+            "fixed_us": 3.9767992424242427
+          },
+          "execution": {
+            "kind": "joint_native",
+            "resource": "joint_native_a3",
+            "reference_rate": 1000000000.0,
+            "native_kernel": "Slice"
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "frozen_model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a3-complete-helper-functions.json",
+              "sha256": "cf609877bbd65c16d117f1df9e073503dd7e2fd0e544774f5130c392a71350ce",
+              "size_bytes": 469961
+            },
+            "training_source_sha256": [
+              "d10d82d4727c4a2f0fe37b11355b5e7c714997b78c0966039f8e345405d13601"
+            ],
+            "expected_rule_hits": 48,
+            "boundary": "normalized_active_contract",
+            "normalized_contract": [
+              "slice_copy",
+              [
+                512,
+                2560
+              ],
+              [
+                512,
+                1536
+              ],
+              "bf16",
+              "bf16"
+            ],
+            "body_residual_used": false,
+            "whole_native_call_once": true
+          }
+        }
       ]
     }
   },

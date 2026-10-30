@@ -91,6 +91,60 @@
         },
         "is_parameter_generalization": false,
         "native_contract_validation": "all retained recurrent cohort targets; kernel binary identity not captured"
+      },
+      "helper_transfer": {
+        "baseline_case_identity": {
+          "path": "/Users/maoxx241/code/profiler/examples/structure/cases/decode-a5_qwen36_highconc_c128.json",
+          "sha256": "bbdafc87dcbe5b13d5d3ac88d73c079a833e369116e8a2523977d14b2d4a7abe",
+          "size_bytes": 10189
+        },
+        "frozen_model_identity": {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-helper-functions.json",
+          "sha256": "dc10eb1cb969050e088b10fb31e0faccbcc494a7eebd916e3cdb4687b4e4408f",
+          "size_bytes": 29135
+        },
+        "actual_identity": {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/4ad6e6565a701b1c8b0ac8b5c0f293d2878ad29c944d6aa35538063ed4e2ab7d.json",
+          "sha256": "4ad6e6565a701b1c8b0ac8b5c0f293d2878ad29c944d6aa35538063ed4e2ab7d",
+          "size_bytes": 864676
+        },
+        "no_body_residual_used": true,
+        "heldout_timing_used_to_refit": false,
+        "excludes": "HCCL, gating, quant/norm fusion remain separately unresolved; not zero service"
+      },
+      "elapsed_domain_response": {
+        "model_identity": {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/native-elapsed-functions.json",
+          "sha256": "f7925988f0cdc854d65014e9fb6936ed0dfa4ea3ef4eb8bda585ffd174f96458",
+          "size_bytes": 2142355
+        },
+        "inclusive_once_per_native_call": true,
+        "independent_of_body_residual": true,
+        "HCCL_mode": "conditional_declared_template_and_payload",
+        "calibration_origin": "observed",
+        "evaluation_relation": "in_sample_physical_domain_fit",
+        "template_correction": {
+          "previous_case_identity": {
+            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a5_qwen36_highconc_c128-native-elapsed.case.json",
+            "sha256": "6472761732eab6b893670fa42e51fa09a6e97187c6e606c7cc15fdcf2eecc620",
+            "size_bytes": 29732
+          },
+          "reason": "case-wide oneshot bypassed AIV source threshold; AICPU mesh is only valid for AG/RS",
+          "conditional_selection": "explicit conditional source threshold: all_reduce_auto_selector.cc:680-693, AIV >=128KiB; capture template unknown"
+        }
+      },
+      "slice_cache_transfer": {
+        "model_identity": {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+          "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
+          "size_bytes": 812897
+        },
+        "previous_candidate_identity": {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a5_qwen36_highconc_c128-conditional-hccl.case.json",
+          "sha256": "64e151e605aa23a6b2816f56af39eb5154d50a88c0d7cca8fa362680536291e9",
+          "size_bytes": 30661
+        },
+        "whole_body_relation": "mixed_native_transfer_and_in_sample_hccl_gating"
       }
     },
     "kernels": {
@@ -250,6 +304,939 @@
               "work.hbm_bytes": "work.hbm"
             }
           }
+        },
+        {
+          "id": "frozen-native-helper-causal-conv",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "ascend_causal_conv1d_update",
+            "metadata.kernel_width": 4,
+            "metadata.state_history_slots": 6,
+            "metadata.cache_index_row_stride": 4
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 7.864433971363647,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 1.4587218727606415e-05
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "frozen_model_sha256": "1f9d82348d509c54c831cc62ba090e2e30f1313f966a4b533c4b7ddbc21f3627",
+            "specification_sha256": "625b53b3f08c3ae9edc0908c04e5c4e688b08d391971e3e715c6693b0fe2a548",
+            "native_boundary": {
+              "native_operator_type": "CausalConv1d",
+              "source_implementation": "ascend_causal_conv1d_update",
+              "precision": {
+                "activation": "bf16",
+                "state": "not_applicable"
+              },
+              "layout": {
+                "declared": "contiguous",
+                "basis": "source-caller native boundary; exact stored tensor contract retained separately"
+              },
+              "execution_boundary": "one_inclusive_native_call; Q/K l2norm pooled only across identical local shape, 96 calls retained"
+            },
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false
+          }
+        },
+        {
+          "id": "frozen-native-helper-gdn-recurrent",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "ascend_recurrent_gdn_fp32_state",
+            "metadata.dk": 128,
+            "metadata.dv": 128,
+            "metadata.state_dtype": "fp32",
+            "metadata.recurrence_selection": "arch35_fp32"
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 3.2264688329288163,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 1.8120312029220632e-06
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "frozen_model_sha256": "1f9d82348d509c54c831cc62ba090e2e30f1313f966a4b533c4b7ddbc21f3627",
+            "specification_sha256": "625b53b3f08c3ae9edc0908c04e5c4e688b08d391971e3e715c6693b0fe2a548",
+            "native_boundary": {
+              "native_operator_type": "RecurrentGatedDeltaRule",
+              "source_implementation": "ascend_recurrent_gdn_fp32_state",
+              "precision": {
+                "activation": "bf16",
+                "state": "fp32"
+              },
+              "layout": {
+                "declared": "contiguous",
+                "basis": "source-caller native boundary; exact stored tensor contract retained separately"
+              },
+              "execution_boundary": "one_inclusive_native_call; Q/K l2norm pooled only across identical local shape, 96 calls retained"
+            },
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false
+          }
+        },
+        {
+          "id": "frozen-native-helper-gdn-l2norm",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "metadata.implementation_scope": "analytical_decode_l2norm",
+            "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+            "local_shape.3": 128
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 1.974984990543339,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 5.4831456291627314e-06
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "frozen_model_sha256": "1f9d82348d509c54c831cc62ba090e2e30f1313f966a4b533c4b7ddbc21f3627",
+            "specification_sha256": "625b53b3f08c3ae9edc0908c04e5c4e688b08d391971e3e715c6693b0fe2a548",
+            "native_boundary": {
+              "native_operator_type": "l2norm_fwd_kernel2",
+              "source_implementation": "analytical_decode_l2norm",
+              "precision": {
+                "activation": "bf16",
+                "state": "not_applicable"
+              },
+              "layout": {
+                "declared": "contiguous",
+                "basis": "source-caller native boundary; exact stored tensor contract retained separately"
+              },
+              "execution_boundary": "one_inclusive_native_call; Q/K l2norm pooled only across identical local shape, 96 calls retained"
+            },
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false
+          }
+        },
+        {
+          "id": "frozen-native-helper-gdn-output-norm",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "linear_output_norm_gate",
+            "metadata.norm_group_width": 128,
+            "metadata.gate_present": true,
+            "metadata.recurrent_attention_kind": "gdn"
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 3.588527848641263,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 5.170805545357361e-06
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "frozen_model_sha256": "1f9d82348d509c54c831cc62ba090e2e30f1313f966a4b533c4b7ddbc21f3627",
+            "specification_sha256": "625b53b3f08c3ae9edc0908c04e5c4e688b08d391971e3e715c6693b0fe2a548",
+            "native_boundary": {
+              "native_operator_type": "_layer_norm_fwd_1pass_kernel_npu",
+              "source_implementation": "linear_output_norm_gate",
+              "precision": {
+                "activation": "bf16",
+                "state": "not_applicable"
+              },
+              "layout": {
+                "declared": "contiguous",
+                "basis": "source-caller native boundary; exact stored tensor contract retained separately"
+              },
+              "execution_boundary": "one_inclusive_native_call; Q/K l2norm pooled only across identical local shape, 96 calls retained"
+            },
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false
+          }
+        },
+        {
+          "id": "frozen-native-helper-swiglu",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "swiglu",
+            "family": "swiglu"
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 4.324006435453574,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 2.0620329488088877e-06
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "frozen_model_sha256": "1f9d82348d509c54c831cc62ba090e2e30f1313f966a4b533c4b7ddbc21f3627",
+            "specification_sha256": "625b53b3f08c3ae9edc0908c04e5c4e688b08d391971e3e715c6693b0fe2a548",
+            "native_boundary": {
+              "native_operator_type": "SwiGlu",
+              "source_implementation": "swiglu",
+              "precision": {
+                "activation": "bf16",
+                "state": "not_applicable"
+              },
+              "layout": {
+                "declared": "contiguous",
+                "basis": "source-caller native boundary; exact stored tensor contract retained separately"
+              },
+              "execution_boundary": "one_inclusive_native_call; Q/K l2norm pooled only across identical local shape, 96 calls retained"
+            },
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false
+          }
+        },
+        {
+          "id": "observed-gating-H6-partial-row-tile",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "ascend_gdn_decode_gating",
+            "family": "gdn_gating",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.1": 6
+          },
+          "coordinates": {
+            "query_rows": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "query_rows": {
+              "min": 16,
+              "max": 63.999
+            }
+          },
+          "response": {
+            "fixed_us": 3.269789930408048,
+            "terms": [
+              {
+                "coordinate": "query_rows",
+                "us_per_unit": 0.5913472118266659
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample_physical_domain_fit",
+            "model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/native-elapsed-functions.json",
+              "sha256": "f7925988f0cdc854d65014e9fb6936ed0dfa4ea3ef4eb8bda585ffd174f96458",
+              "size_bytes": 2142355
+            },
+            "training_source_sha256": [
+              "28644d6d5713e35de51f16b1a20dacd7574ea342c399d8afe049c487d0c8c880",
+              "5e83432a7c2f3b3804c7f12d489f0c203bf8665a36857d12dad4770d5efc73e3",
+              "65211276673c3f9e9ad9cbc8b2b618dede1c4724d1e343bfadb0c1f6cc3d9bba"
+            ],
+            "source_row_tile": 64,
+            "continuous_at_row_64": true,
+            "native_operator_type": "fused_gdn_gating_kernel",
+            "full_native_abi_available": false,
+            "complete_duration_population": true,
+            "calls_per_forward": 48,
+            "body_residual_used": false
+          }
+        },
+        {
+          "id": "observed-gating-H6-full-row-tile",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "ascend_gdn_decode_gating",
+            "family": "gdn_gating",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.1": 6
+          },
+          "coordinates": {
+            "query_rows": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "query_rows": {
+              "min": 64,
+              "max": 512
+            }
+          },
+          "response": {
+            "fixed_us": 40.66263977309646,
+            "terms": [
+              {
+                "coordinate": "query_rows",
+                "us_per_unit": 0.007083933034659468
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample_physical_domain_fit",
+            "model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/native-elapsed-functions.json",
+              "sha256": "f7925988f0cdc854d65014e9fb6936ed0dfa4ea3ef4eb8bda585ffd174f96458",
+              "size_bytes": 2142355
+            },
+            "training_source_sha256": [
+              "28644d6d5713e35de51f16b1a20dacd7574ea342c399d8afe049c487d0c8c880",
+              "5e83432a7c2f3b3804c7f12d489f0c203bf8665a36857d12dad4770d5efc73e3",
+              "65211276673c3f9e9ad9cbc8b2b618dede1c4724d1e343bfadb0c1f6cc3d9bba"
+            ],
+            "source_row_tile": 64,
+            "continuous_at_row_64": true,
+            "native_operator_type": "fused_gdn_gating_kernel",
+            "full_native_abi_available": false,
+            "complete_duration_population": true,
+            "calls_per_forward": 48,
+            "body_residual_used": false
+          }
+        },
+        {
+          "id": "observed-collective-elapsed-AIV-tp8",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "hccl_entry",
+            "phase": "decode",
+            "kernel": "HCCL_AIV_allreduce_mesh_twoshot",
+            "metadata.hccl_selection.ranks": 8,
+            "metadata.hccl_selection.collective": "allreduce",
+            "metadata.hccl_selection.template": "mesh_twoshot"
+          },
+          "coordinates": {
+            "payload_bytes": {
+              "path": "metadata.hccl_selection.payload_bytes"
+            }
+          },
+          "domain": {
+            "payload_bytes": {
+              "min": 163840,
+              "max": 5242880
+            }
+          },
+          "response": {
+            "fixed_us": 33.69139230584871,
+            "terms": [
+              {
+                "coordinate": "payload_bytes",
+                "us_per_unit": 7.086444250499137e-06
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample_physical_domain_fit",
+            "model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/native-elapsed-functions.json",
+              "sha256": "f7925988f0cdc854d65014e9fb6936ed0dfa4ea3ef4eb8bda585ffd174f96458",
+              "size_bytes": 2142355
+            },
+            "training_source_sha256": [
+              "28644d6d5713e35de51f16b1a20dacd7574ea342c399d8afe049c487d0c8c880",
+              "5e83432a7c2f3b3804c7f12d489f0c203bf8665a36857d12dad4770d5efc73e3",
+              "65211276673c3f9e9ad9cbc8b2b618dede1c4724d1e343bfadb0c1f6cc3d9bba"
+            ],
+            "native_operator_type": "hcom_allReduce_",
+            "calls_per_forward": 128,
+            "complete_duration_population": true,
+            "observed_payload_bytes": null,
+            "payload_basis": "declared full hidden tensor rows*5120*bf16",
+            "template_selection_basis": "explicit conditional source threshold: all_reduce_auto_selector.cc:680-693, AIV >=128KiB; capture template unknown",
+            "native_elapsed_includes_peer_wait": true,
+            "link_bandwidth_identified": false,
+            "body_residual_used": false,
+            "declared_payload_validation": {
+              "allreduce_count": 128,
+              "min_bytes": 5242880.0,
+              "max_bytes": 5242880.0,
+              "same_threshold_side": true,
+              "actual_payload_observed": false
+            }
+          }
+        },
+        {
+          "id": "frozen-slice-cache-beta-alpha-beta_contiguous",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "beta_contiguous",
+            "family": "tensor_copy",
+            "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+            "metadata.source_layout.strides.1": 1,
+            "metadata.input_format": "bf16",
+            "metadata.output_format": "bf16"
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 1.7628658498765666,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 6.024266378343817e-05
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
+              "size_bytes": 812897
+            },
+            "native_operator_type": "Slice",
+            "pooled_native_count_per_forward": 96,
+            "expected_rule_hits": 48,
+            "normalized_contract": [
+              "slice_copy",
+              [
+                512,
+                12
+              ],
+              [
+                512,
+                6
+              ],
+              "bf16",
+              "bf16"
+            ],
+            "full_native_strides_observed": false,
+            "conditional_declared_source_layout": true,
+            "body_residual_used": false,
+            "heldout_timing_used_to_refit": false
+          }
+        },
+        {
+          "id": "frozen-slice-cache-beta-alpha-alpha_contiguous",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "alpha_contiguous",
+            "family": "tensor_copy",
+            "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+            "metadata.source_layout.strides.1": 1,
+            "metadata.input_format": "bf16",
+            "metadata.output_format": "bf16"
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 1.7628658498765666,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 6.024266378343817e-05
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
+              "size_bytes": 812897
+            },
+            "native_operator_type": "Slice",
+            "pooled_native_count_per_forward": 96,
+            "expected_rule_hits": 48,
+            "normalized_contract": [
+              "slice_copy",
+              [
+                512,
+                12
+              ],
+              [
+                512,
+                6
+              ],
+              "bf16",
+              "bf16"
+            ],
+            "full_native_strides_observed": false,
+            "conditional_declared_source_layout": true,
+            "body_residual_used": false,
+            "heldout_timing_used_to_refit": false
+          }
+        },
+        {
+          "id": "frozen-slice-cache-conv-input-convolution_input_contiguous",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "convolution_input_contiguous",
+            "family": "tensor_copy",
+            "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+            "metadata.source_layout.strides.1": 1,
+            "metadata.input_format": "bf16",
+            "metadata.output_format": "bf16"
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 3.4334238569196334,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 9.512602627644667e-07
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
+              "size_bytes": 812897
+            },
+            "native_operator_type": "Slice",
+            "pooled_native_count_per_forward": 48,
+            "expected_rule_hits": 48,
+            "normalized_contract": [
+              "slice_copy",
+              [
+                512,
+                2048
+              ],
+              [
+                512,
+                1280
+              ],
+              "bf16",
+              "bf16"
+            ],
+            "full_native_strides_observed": false,
+            "conditional_declared_source_layout": true,
+            "body_residual_used": false,
+            "heldout_timing_used_to_refit": false
+          }
+        },
+        {
+          "id": "frozen-slice-cache-qk-flat-q_flat",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "q_flat",
+            "family": "tensor_copy",
+            "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+            "metadata.source_layout.strides.1": 1,
+            "metadata.input_format": "bf16",
+            "metadata.output_format": "bf16"
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 2.4614482323170734,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 3.860510107529072e-06
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
+              "size_bytes": 812897
+            },
+            "native_operator_type": "Slice",
+            "pooled_native_count_per_forward": 96,
+            "expected_rule_hits": 48,
+            "normalized_contract": [
+              "slice_copy",
+              [
+                512,
+                1280
+              ],
+              [
+                512,
+                256
+              ],
+              "bf16",
+              "bf16"
+            ],
+            "full_native_strides_observed": false,
+            "conditional_declared_source_layout": true,
+            "body_residual_used": false,
+            "heldout_timing_used_to_refit": false
+          }
+        },
+        {
+          "id": "frozen-slice-cache-qk-flat-k_flat",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "k_flat",
+            "family": "tensor_copy",
+            "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+            "metadata.source_layout.strides.1": 1,
+            "metadata.input_format": "bf16",
+            "metadata.output_format": "bf16"
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 2.4614482323170734,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 3.860510107529072e-06
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
+              "size_bytes": 812897
+            },
+            "native_operator_type": "Slice",
+            "pooled_native_count_per_forward": 96,
+            "expected_rule_hits": 48,
+            "normalized_contract": [
+              "slice_copy",
+              [
+                512,
+                1280
+              ],
+              [
+                512,
+                256
+              ],
+              "bf16",
+              "bf16"
+            ],
+            "full_native_strides_observed": false,
+            "conditional_declared_source_layout": true,
+            "body_residual_used": false,
+            "heldout_timing_used_to_refit": false
+          }
+        },
+        {
+          "id": "frozen-slice-cache-v-flat-v_flat",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "v_flat",
+            "family": "tensor_copy",
+            "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+            "metadata.source_layout.strides.1": 1,
+            "metadata.input_format": "bf16",
+            "metadata.output_format": "bf16"
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 2.9027920978641997,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 1.1007466763855495e-06
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
+              "size_bytes": 812897
+            },
+            "native_operator_type": "Slice",
+            "pooled_native_count_per_forward": 48,
+            "expected_rule_hits": 48,
+            "normalized_contract": [
+              "slice_copy",
+              [
+                512,
+                1280
+              ],
+              [
+                512,
+                768
+              ],
+              "bf16",
+              "bf16"
+            ],
+            "full_native_strides_observed": false,
+            "conditional_declared_source_layout": true,
+            "body_residual_used": false,
+            "heldout_timing_used_to_refit": false
+          }
+        },
+        {
+          "id": "frozen-slice-cache-cache-kv_store",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "phase": "decode",
+            "dtype": "bf16",
+            "recipe": "kv_store",
+            "family": "cache_store",
+            "metadata.cache_kind": "gqa",
+            "metadata.cache_tensor_view.key_dtype": "bf16",
+            "metadata.cache_tensor_view.value_dtype": "bf16"
+          },
+          "coordinates": {
+            "local_elements": {
+              "path": "local_shape",
+              "reduce": "product"
+            }
+          },
+          "domain": {
+            "local_elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 3.977468882963368,
+            "terms": [
+              {
+                "coordinate": "local_elements",
+                "us_per_unit": 3.857232287317281e-06
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "training_source_sha256": [
+              "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
+              "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
+              "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+            ],
+            "model_identity": {
+              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
+              "size_bytes": 812897
+            },
+            "native_operator_type": "ScatterPaKvCache",
+            "pooled_native_count_per_forward": 16,
+            "expected_rule_hits": 16,
+            "normalized_contract": [
+              "kv_cache_store_active_elements",
+              "ScatterPaKvCache",
+              [
+                [
+                  131072,
+                  "bf16"
+                ],
+                [
+                  131072,
+                  "bf16"
+                ]
+              ],
+              [
+                512
+              ]
+            ],
+            "full_native_strides_observed": false,
+            "conditional_declared_source_layout": true,
+            "body_residual_used": false,
+            "heldout_timing_used_to_refit": false
+          }
         }
       ],
       "lowerings": {
@@ -269,6 +1256,16 @@
             "recurrent_implementation": "arch35_fp32",
             "cache_index_row_stride": 4
           }
+        }
+      },
+      "hccl": {
+        "allreduce": {
+          "expansion": "AIV",
+          "template": "mesh_twoshot",
+          "axes": [
+            "tp"
+          ],
+          "block_limit": 64
         }
       }
     }

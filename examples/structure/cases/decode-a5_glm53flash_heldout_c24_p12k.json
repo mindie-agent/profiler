@@ -1323,6 +1323,516 @@
             "body_residual_used": false,
             "heldout_observed_values_used_in_fit": false
           }
+        },
+        {
+          "id": "frozen-glm-source-groupedmatmulswigluquantv2-observed",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "ascend_mxfp8_grouped_swiglu_quant",
+            "metadata.mxfp8_swiglu_config.k": 4096,
+            "metadata.mxfp8_swiglu_config.width": 256
+          },
+          "coordinates": {
+            "active_experts": {
+              "path": "metadata.mxfp8_swiglu_config.rows",
+              "reduce": "positive_count"
+            },
+            "routed_rows": {
+              "path": "metadata.mxfp8_swiglu_config.rows",
+              "reduce": "sum"
+            }
+          },
+          "domain": {
+            "active_experts": {
+              "min": 0
+            },
+            "routed_rows": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 12.408399314322002,
+            "terms": [
+              {
+                "coordinate": "active_experts",
+                "us_per_unit": 0.6683000645436745
+              },
+              {
+                "coordinate": "routed_rows",
+                "us_per_unit": 0.002975011275018786
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_new_capture_native_function_transfer_no_body_fit",
+            "training_source_sha256": [
+              "0562978c83fd2dd6ddb5f51a053dcdc7693e307ef8bcf6b90ee70e2a7c2b5a78",
+              "1a9184ace6c33136182c6947fce23e27e238795d5d526532ab000065ad8d5e45",
+              "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
+              "1d33448e6faeeedf5175035f4c324b74220bbc179d2cec85657162970576095a",
+              "7b5fcac6c1e58c05cb232a7ddb4450b761301ba5efc33b4b9f7909b9d59fbbe1",
+              "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+              "bd9aaa075053ec7b4520a8a45238e810192b9b83f96d9833792be3ce9a46ca34",
+              "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+              "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72"
+            ],
+            "frozen_model_sha256": "3a47075b891103aa9af34db106e98d44dfc4c1e303e255a7c4a7aa2331dd67d8",
+            "specification_sha256": "2893bd774faea390ba976ffcede2b7a5a89d03247249cd7874368c5f67f493c4",
+            "native_boundary": {
+              "native_operator_type": "GroupedMatmulSwigluQuantV2",
+              "source_implementation": "ascend_mxfp8_grouped_swiglu_quant",
+              "precision": "mxfp8_e4m3_e8m0",
+              "layout": "NZ",
+              "execution_boundary": "inclusive_native_gate_up_swiglu_quant_once; forced_balanced_integer_rows"
+            },
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false
+          }
+        },
+        {
+          "id": "frozen-glm-source-hcom-allreduce-aicpukernel-observed",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "kernel": "HCCL_AICPU_TS_allreduce_mesh_oneshot",
+            "metadata.hccl_selection.ranks": 8,
+            "metadata.hccl_selection.dtype_bytes": 2
+          },
+          "coordinates": {
+            "payload_bytes": {
+              "path": "metadata.hccl_selection.payload_bytes",
+              "scale": 1e-06
+            }
+          },
+          "domain": {
+            "payload_bytes": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 25.00503275296984,
+            "terms": [
+              {
+                "coordinate": "payload_bytes",
+                "us_per_unit": 9.76348496003804
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_new_capture_native_function_transfer_no_body_fit",
+            "training_source_sha256": [
+              "0562978c83fd2dd6ddb5f51a053dcdc7693e307ef8bcf6b90ee70e2a7c2b5a78",
+              "1a9184ace6c33136182c6947fce23e27e238795d5d526532ab000065ad8d5e45",
+              "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
+              "1d33448e6faeeedf5175035f4c324b74220bbc179d2cec85657162970576095a",
+              "7b5fcac6c1e58c05cb232a7ddb4450b761301ba5efc33b4b9f7909b9d59fbbe1",
+              "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+              "bd9aaa075053ec7b4520a8a45238e810192b9b83f96d9833792be3ce9a46ca34",
+              "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+              "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72"
+            ],
+            "frozen_model_sha256": "3a47075b891103aa9af34db106e98d44dfc4c1e303e255a7c4a7aa2331dd67d8",
+            "specification_sha256": "2893bd774faea390ba976ffcede2b7a5a89d03247249cd7874368c5f67f493c4",
+            "native_boundary": {
+              "native_operator_type": "hcom_allReduce_AicpuKernel",
+              "source_implementation": "HCCL_AICPU_TS_allreduce_mesh_oneshot",
+              "precision": "bf16",
+              "layout": "TP8_contiguous",
+              "execution_boundary": "inclusive_native_call_once_conditional_source_program; peer_wait_not_separated"
+            },
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false
+          }
+        },
+        {
+          "id": "frozen-glm-helper--copy-conv-state-kernel-observed",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "triton_noncontiguous_conv_state_copy",
+            "dtype": "bf16",
+            "local_shape.1": 6,
+            "local_shape.2": 3072
+          },
+          "coordinates": {
+            "batch": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "batch": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 3.439648466353044,
+            "terms": [
+              {
+                "coordinate": "batch",
+                "us_per_unit": 0.28892370754494284
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_new_capture_helper_function_transfer_no_body_fit",
+            "training_source_sha256": [
+              "0562978c83fd2dd6ddb5f51a053dcdc7693e307ef8bcf6b90ee70e2a7c2b5a78",
+              "1a9184ace6c33136182c6947fce23e27e238795d5d526532ab000065ad8d5e45",
+              "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
+              "1d33448e6faeeedf5175035f4c324b74220bbc179d2cec85657162970576095a",
+              "7b5fcac6c1e58c05cb232a7ddb4450b761301ba5efc33b4b9f7909b9d59fbbe1",
+              "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+              "bd9aaa075053ec7b4520a8a45238e810192b9b83f96d9833792be3ce9a46ca34",
+              "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+              "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72"
+            ],
+            "frozen_model_sha256": "ab3e817861541068443c73032f95769f612f5c9ef0e2e09d7c2b0646c729bb8d",
+            "specification_sha256": "fd427771de19d00c0fe29d6307d69e296460b3ad49bc20eb5796c87c3e90f3fb",
+            "native_boundary": {
+              "native_operator_type": "_copy_conv_state_kernel",
+              "source_implementation": "triton_noncontiguous_conv_state_copy",
+              "precision": {
+                "dtype": "bf16"
+              },
+              "layout": "declared_source_layout",
+              "execution_boundary": "complete_native_call_mean; gather_and_scatter_pooled"
+            },
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false
+          }
+        },
+        {
+          "id": "frozen-glm-helper-moeinitroutingv3-observed",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "ascend_moe_init_routing_v3_mxfp8",
+            "dtype": "bf16",
+            "metadata.moe_init_config.experts": 288,
+            "metadata.moe_init_config.topk": 8,
+            "metadata.moe_init_config.width": 4096
+          },
+          "coordinates": {
+            "rows": {
+              "path": "metadata.moe_init_config.tokens"
+            }
+          },
+          "domain": {
+            "rows": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 20.760409145255913,
+            "terms": [
+              {
+                "coordinate": "rows",
+                "us_per_unit": 0.031289750965794824
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_new_capture_helper_function_transfer_no_body_fit",
+            "training_source_sha256": [
+              "0562978c83fd2dd6ddb5f51a053dcdc7693e307ef8bcf6b90ee70e2a7c2b5a78",
+              "1a9184ace6c33136182c6947fce23e27e238795d5d526532ab000065ad8d5e45",
+              "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
+              "1d33448e6faeeedf5175035f4c324b74220bbc179d2cec85657162970576095a",
+              "7b5fcac6c1e58c05cb232a7ddb4450b761301ba5efc33b4b9f7909b9d59fbbe1",
+              "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+              "bd9aaa075053ec7b4520a8a45238e810192b9b83f96d9833792be3ce9a46ca34",
+              "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+              "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72"
+            ],
+            "frozen_model_sha256": "ab3e817861541068443c73032f95769f612f5c9ef0e2e09d7c2b0646c729bb8d",
+            "specification_sha256": "fd427771de19d00c0fe29d6307d69e296460b3ad49bc20eb5796c87c3e90f3fb",
+            "native_boundary": {
+              "native_operator_type": "MoeInitRoutingV3",
+              "source_implementation": "ascend_moe_init_routing_v3_mxfp8",
+              "precision": {
+                "dtype": "bf16"
+              },
+              "layout": "declared_source_layout",
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false
+          }
+        },
+        {
+          "id": "frozen-glm-helper-causalconv1d-observed",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "short_convolution",
+            "dtype": "bf16"
+          },
+          "coordinates": {
+            "elements": {
+              "path": "local_shape.0"
+            }
+          },
+          "domain": {
+            "elements": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 7.902678844427808,
+            "terms": [
+              {
+                "coordinate": "elements",
+                "us_per_unit": 1.2722834512963118e-05
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_new_capture_helper_function_transfer_no_body_fit",
+            "training_source_sha256": [
+              "0562978c83fd2dd6ddb5f51a053dcdc7693e307ef8bcf6b90ee70e2a7c2b5a78",
+              "1a9184ace6c33136182c6947fce23e27e238795d5d526532ab000065ad8d5e45",
+              "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
+              "1d33448e6faeeedf5175035f4c324b74220bbc179d2cec85657162970576095a",
+              "7b5fcac6c1e58c05cb232a7ddb4450b761301ba5efc33b4b9f7909b9d59fbbe1",
+              "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+              "bd9aaa075053ec7b4520a8a45238e810192b9b83f96d9833792be3ce9a46ca34",
+              "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+              "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72"
+            ],
+            "frozen_model_sha256": "ab3e817861541068443c73032f95769f612f5c9ef0e2e09d7c2b0646c729bb8d",
+            "specification_sha256": "fd427771de19d00c0fe29d6307d69e296460b3ad49bc20eb5796c87c3e90f3fb",
+            "native_boundary": {
+              "native_operator_type": "CausalConv1d",
+              "source_implementation": "short_convolution",
+              "precision": {
+                "dtype": "bf16"
+              },
+              "layout": "declared_source_layout",
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false
+          }
+        },
+        {
+          "id": "frozen-glm-helper-recurrentkda-observed",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "vllm_ascend_recurrent_kda_arch35",
+            "metadata.native_kind": "RecurrentKda",
+            "metadata.heads": 8,
+            "metadata.dk": 128,
+            "metadata.dv": 128,
+            "metadata.state_dtype": "fp32",
+            "metadata.kda_recurrent_params.state_selection.index_row_stride": 4,
+            "dtype": "bf16",
+            "layout": "TND",
+            "metadata.kda_recurrent_params.dtype": "bf16",
+            "metadata.kda_recurrent_params.gate_dtype": "bf16",
+            "metadata.kda_recurrent_params.beta_dtype": "bf16",
+            "metadata.kda_recurrent_params.use_qk_l2norm": true,
+            "metadata.kda_recurrent_params.use_gate_in_kernel": true,
+            "metadata.kda_recurrent_params.use_beta_sigmoid": true,
+            "metadata.kda_recurrent_params.safe_gate": true,
+            "metadata.kda_recurrent_params.allow_neg_eigval": false,
+            "metadata.kda_recurrent_params.has_a_log": true,
+            "metadata.kda_recurrent_params.has_dt_bias": true,
+            "metadata.kda_recurrent_params.has_initial_state": true,
+            "metadata.kda_recurrent_params.state_v_first": true,
+            "metadata.kda_recurrent_params.has_state_indices": true,
+            "metadata.kda_recurrent_params.has_accepted_tokens": true,
+            "metadata.kda_recurrent_params.metadata_dtype": "int32",
+            "metadata.kda_recurrent_params.state_selection.kind": "symbolic_valid_selection",
+            "metadata.kda_recurrent_params.state_selection.index_layout": "speculative"
+          },
+          "coordinates": {
+            "batch": {
+              "path": "metadata.sequence_tokens",
+              "reduce": "len"
+            },
+            "query_min": {
+              "path": "metadata.sequence_tokens",
+              "reduce": "min"
+            },
+            "query_max": {
+              "path": "metadata.sequence_tokens",
+              "reduce": "max"
+            }
+          },
+          "domain": {
+            "batch": {
+              "min": 0
+            },
+            "query_min": {
+              "min": 4,
+              "max": 4
+            },
+            "query_max": {
+              "min": 4,
+              "max": 4
+            }
+          },
+          "response": {
+            "fixed_us": 9.560900239641374,
+            "terms": [
+              {
+                "coordinate": "batch",
+                "us_per_unit": 1.0676113311670785
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_new_capture_helper_function_transfer_no_body_fit",
+            "training_source_sha256": [
+              "0562978c83fd2dd6ddb5f51a053dcdc7693e307ef8bcf6b90ee70e2a7c2b5a78",
+              "1a9184ace6c33136182c6947fce23e27e238795d5d526532ab000065ad8d5e45",
+              "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
+              "1d33448e6faeeedf5175035f4c324b74220bbc179d2cec85657162970576095a",
+              "7b5fcac6c1e58c05cb232a7ddb4450b761301ba5efc33b4b9f7909b9d59fbbe1",
+              "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+              "bd9aaa075053ec7b4520a8a45238e810192b9b83f96d9833792be3ce9a46ca34",
+              "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+              "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72"
+            ],
+            "frozen_model_sha256": "ab3e817861541068443c73032f95769f612f5c9ef0e2e09d7c2b0646c729bb8d",
+            "specification_sha256": "fd427771de19d00c0fe29d6307d69e296460b3ad49bc20eb5796c87c3e90f3fb",
+            "native_boundary": {
+              "native_operator_type": "RecurrentKda",
+              "source_implementation": "vllm_ascend_recurrent_kda_arch35",
+              "precision": {
+                "metadata.state_dtype": "fp32"
+              },
+              "layout": "declared_source_layout",
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false
+          }
+        },
+        {
+          "id": "frozen-glm-helper-sparseflashmla-observed-second",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "latent_attention_batch",
+            "dtype": "bf16",
+            "local_shape.3": 8,
+            "local_shape.4": 512,
+            "local_shape.5": 512,
+            "metadata.indexed_attention_geometry.topk": 2048,
+            "metadata.indexed_attention_geometry.query_dtype": "bf16",
+            "metadata.indexed_attention_geometry.cache_dtype": "bf16"
+          },
+          "coordinates": {
+            "rows": {
+              "path": "local_shape.1"
+            }
+          },
+          "domain": {
+            "rows": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 28.066560094313544,
+            "terms": [
+              {
+                "coordinate": "rows",
+                "us_per_unit": 0.9978954163434736
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_new_capture_helper_function_transfer_no_body_fit",
+            "training_source_sha256": [
+              "0562978c83fd2dd6ddb5f51a053dcdc7693e307ef8bcf6b90ee70e2a7c2b5a78",
+              "1a9184ace6c33136182c6947fce23e27e238795d5d526532ab000065ad8d5e45",
+              "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
+              "1d33448e6faeeedf5175035f4c324b74220bbc179d2cec85657162970576095a",
+              "7b5fcac6c1e58c05cb232a7ddb4450b761301ba5efc33b4b9f7909b9d59fbbe1",
+              "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+              "bd9aaa075053ec7b4520a8a45238e810192b9b83f96d9833792be3ce9a46ca34",
+              "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72"
+            ],
+            "frozen_model_sha256": "ab3e817861541068443c73032f95769f612f5c9ef0e2e09d7c2b0646c729bb8d",
+            "specification_sha256": "fd427771de19d00c0fe29d6307d69e296460b3ad49bc20eb5796c87c3e90f3fb",
+            "native_boundary": {
+              "native_operator_type": "SparseFlashMla",
+              "source_implementation": "latent_attention_batch",
+              "precision": {
+                "dtype": "bf16",
+                "metadata.indexed_attention_geometry.query_dtype": "bf16",
+                "metadata.indexed_attention_geometry.cache_dtype": "bf16"
+              },
+              "layout": "declared_source_layout",
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false
+          }
+        },
+        {
+          "id": "frozen-glm-helper--glm5-next-lightning-indexer-score-kernel-observed-second",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "index_scores",
+            "dtype": "bf16",
+            "local_shape.1": 32,
+            "local_shape.2": 128
+          },
+          "coordinates": {
+            "hbm_mb": {
+              "path": "work.hbm",
+              "scale": 1e-06
+            }
+          },
+          "domain": {
+            "hbm_mb": {
+              "min": 0
+            }
+          },
+          "response": {
+            "fixed_us": 21.377884884282906,
+            "terms": [
+              {
+                "coordinate": "hbm_mb",
+                "us_per_unit": 0.7315661673944182
+              }
+            ]
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "retrospective_new_capture_helper_function_transfer_no_body_fit",
+            "training_source_sha256": [
+              "0562978c83fd2dd6ddb5f51a053dcdc7693e307ef8bcf6b90ee70e2a7c2b5a78",
+              "1a9184ace6c33136182c6947fce23e27e238795d5d526532ab000065ad8d5e45",
+              "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
+              "1d33448e6faeeedf5175035f4c324b74220bbc179d2cec85657162970576095a",
+              "7b5fcac6c1e58c05cb232a7ddb4450b761301ba5efc33b4b9f7909b9d59fbbe1",
+              "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
+              "bd9aaa075053ec7b4520a8a45238e810192b9b83f96d9833792be3ce9a46ca34",
+              "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
+              "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72"
+            ],
+            "frozen_model_sha256": "ab3e817861541068443c73032f95769f612f5c9ef0e2e09d7c2b0646c729bb8d",
+            "specification_sha256": "fd427771de19d00c0fe29d6307d69e296460b3ad49bc20eb5796c87c3e90f3fb",
+            "native_boundary": {
+              "native_operator_type": "_glm5_next_lightning_indexer_score_kernel",
+              "source_implementation": "index_scores",
+              "precision": {
+                "dtype": "bf16"
+              },
+              "layout": "declared_source_layout",
+              "execution_boundary": "inclusive_native_call_once"
+            },
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": false,
+            "coordinate_projection": {
+              "work.hbm_bytes": "work.hbm"
+            }
+          }
         }
       ]
     },

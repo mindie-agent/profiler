@@ -1,6 +1,6 @@
 # Current profiling validation
 
-One canonical case registry and one recorded Sim package. All costs are fresh in this run. Calibration and held-out labels remain distinct; device Body latency is not client TPOT.
+One canonical case registry and one recorded Sim package. Selected costs are freshly replayed; unchanged cases retain verified evidence from this same Sim package. Calibration and held-out labels remain distinct; device Body latency is not client TPOT.
 
 | Case | Phase | Calls | Real mean / P50 / P90 ms | Sim ms | Error | Status |
 |---|---|---:|---:|---:|---:|---|
@@ -29,6 +29,7 @@ One canonical case registry and one recorded Sim package. All costs are fresh in
 | a3_glm53flash_heldout_s5_prefill_p4096_c4 | prefill | 0 | — / — / — | — | — | observed_only |
 | a3_glm53flash_heldout_s5_prefill_p8192_c1 | prefill | 0 | — / — / — | — | — | observed_only |
 | a3_glm53flash_heldout_s5_prefill_p8192_c4 | prefill | 0 | — / — / — | — | — | observed_only |
+| a5_kimi_k3_p32768_c1 | prefill | 1 | 4291.836 / 4291.836 / 4291.836 | — | — | failed |
 
 | Case | Client TTFT ms | Predicted TTFT ms | Query coverage complete |
 |---|---:|---:|---|
@@ -57,9 +58,10 @@ One canonical case registry and one recorded Sim package. All costs are fresh in
 | a3_glm53flash_heldout_s5_prefill_p4096_c4 | 2206.948 | — | None |
 | a3_glm53flash_heldout_s5_prefill_p8192_c1 | 1340.904 | — | None |
 | a3_glm53flash_heldout_s5_prefill_p8192_c4 | 3545.694 | — | None |
+| a5_kimi_k3_p32768_c1 | 4730.300 | — | True |
 
 Prefill Body sums complete device chunk spans. Client TTFT includes other stages and is not substituted for Body.
 
-Summary: {"compared": 14, "passed": 4, "requested_sources": 25, "sources": 25, "status_counts": {"compared": 14, "observed_only": 10, "unresolved": 1}}
+Summary: {"compared": 14, "passed": 4, "requested_sources": 26, "sources": 26, "status_counts": {"compared": 14, "failed": 1, "observed_only": 10, "unresolved": 1}}
 
 Full per-layer, operator and prediction details retain their individual SHA256 evidence pointers. Missing evidence and failed predictions remain visible and never count as a pass.

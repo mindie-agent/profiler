@@ -73,21 +73,135 @@ One canonical case registry and one recorded Sim package. Selected costs are fre
 | qwen35-35b-a3-tp4-c144 | decode | 25 | 61.750 / 61.784 / 62.102 | 60.393 | -2.20% | PASS |
 | qwen35-35b-a3-tp4-c320 | decode | 21 | 99.692 / 99.679 / 100.090 | 107.334 | +7.67% | PASS |
 | qwen36-a3-tp4-c64 | decode | 27 | 62.520 / 62.407 / 62.858 | 61.622 | -1.44% | PASS |
-| qwen36-a3-tp4-c128 | decode | 22 | 97.566 / 97.506 / 97.890 | 115.144 | +18.02% | FAIL |
+| qwen36-a3-tp4-c128 | decode | 22 | 97.566 / 97.506 / 97.890 | 89.346 | -8.42% | PASS |
 | qwen38-a3-tp4-c64 | decode | 27 | 62.648 / 62.586 / 63.058 | 61.622 | -1.64% | PASS |
-| qwen38-a3-tp4-c128 | decode | 22 | 97.457 / 97.455 / 97.787 | 115.144 | +18.15% | FAIL |
-| a5_qwen36_highconc_c4 | decode | 73 | 13.342 / 13.245 / 13.485 | 9.106 | -31.75% | FAIL |
-| a5_qwen36_highconc_c40 | decode | 54 | 20.684 / 20.612 / 21.334 | 14.472 | -30.03% | FAIL |
-| a5_qwen36_highconc_c128 | decode | 38 | 32.609 / 32.227 / 33.851 | 24.357 | -25.30% | FAIL |
-| a5_qwen38_highconc_c4 | decode | 45 | 13.027 / 13.005 / 13.167 | 8.739 | -32.91% | FAIL |
-| a5_qwen38_highconc_c32 | decode | 48 | 22.791 / 22.711 / 22.894 | 15.434 | -32.28% | FAIL |
-| a5_qwen38_highconc_c128 | decode | 29 | 45.689 / 45.690 / 45.735 | 35.558 | -22.17% | FAIL |
+| qwen38-a3-tp4-c128 | decode | 22 | 97.457 / 97.455 / 97.787 | 89.346 | -8.32% | PASS |
+| a5_qwen36_highconc_c4 | decode | 73 | 13.342 / 13.245 / 13.485 | 11.548 | -13.45% | PASS |
+| a5_qwen36_highconc_c40 | decode | 54 | 20.684 / 20.612 / 21.334 | 18.071 | -12.63% | PASS |
+| a5_qwen36_highconc_c128 | decode | 38 | 32.609 / 32.227 / 33.851 | 31.914 | -2.13% | PASS |
+| a5_qwen38_highconc_c4 | decode | 45 | 13.027 / 13.005 / 13.167 | 11.383 | -12.62% | PASS |
+| a5_qwen38_highconc_c32 | decode | 48 | 22.791 / 22.711 / 22.894 | 20.060 | -11.98% | PASS |
+| a5_qwen38_highconc_c128 | decode | 29 | 45.689 / 45.690 / 45.735 | 45.941 | +0.55% | PASS |
 | a3_glm53flash_heldout_c12_p4k | decode | 13 | 23.412 / 23.008 / 23.288 | 21.869 | -6.59% | PASS |
 | a3_glm53flash_heldout_c24_p12k | decode | 14 | 23.601 / 23.242 / 23.719 | 21.986 | -6.84% | PASS |
-| a5_glm53flash_heldout_c12_p4k | decode | 20 | 18.133 / 18.108 / 18.148 | 10.890 | -39.94% | FAIL |
-| a5_glm53flash_heldout_c24_p12k | decode | 21 | 38.995 / 39.210 / 39.263 | 26.465 | -32.13% | FAIL |
-| a5_glm53flash_heldout_c48_p4k | decode | 26 | 43.228 / 43.355 / 43.400 | 36.202 | -16.25% | FAIL |
+| a5_glm53flash_heldout_c12_p4k | decode | 20 | 18.133 / 18.108 / 18.148 | 15.458 | -14.75% | PASS |
+| a5_glm53flash_heldout_c24_p12k | decode | 21 | 38.995 / 39.210 / 39.263 | 33.630 | -13.76% | PASS |
+| a5_glm53flash_heldout_c48_p4k | decode | 26 | 43.228 / 43.355 / 43.400 | 42.692 | -1.24% | PASS |
+| a3_glm53flash_static_on_c10_p131201 | decode | 68 | 22.603 / 22.348 / 23.552 | 23.704 | +4.87% | FAIL |
+| a3-qwen35-tp4-longctx-p-126976-c1 | decode | 65 | 16.054 / 16.058 / 16.121 | 32.083 | +99.84% | FAIL |
+| a3-qwen35-tp4-longctx-p-126976-c4 | decode | 34 | 20.465 / 20.804 / 20.975 | 33.676 | +64.55% | FAIL |
+| a3-qwen35-tp4-longctx-p-65536-c1 | decode | 64 | 15.530 / 15.511 / 15.646 | 20.168 | +29.86% | FAIL |
+| a3-qwen35-tp4-longctx-p-65536-c2 | decode | 55 | 16.750 / 16.724 / 16.909 | 20.827 | +24.34% | FAIL |
+| a3-qwen35-tp4-longctx-p-65536-c4 | decode | 50 | 18.893 / 18.984 / 19.070 | 21.760 | +15.17% | FAIL |
+| a3-qwen35-tp4-longctx-p-65536-c8 | decode | 32 | 21.417 / 21.608 / 22.212 | 23.862 | +11.42% | FAIL |
+| a3-qwen36-tp4-longctx-p-126976-c1 | decode | 10 | 18.924 / 18.932 / 19.020 | 52.773 | +178.88% | FAIL |
+| a3-qwen36-tp4-longctx-p-126976-c4 | decode | 47 | 27.951 / 27.941 / 28.060 | 54.663 | +95.57% | FAIL |
+| a3-qwen36-tp4-longctx-p-65536-c1 | decode | 15 | 18.048 / 17.939 / 18.590 | 33.708 | +86.77% | FAIL |
+| a3-qwen36-tp4-longctx-p-65536-c4 | decode | 49 | 24.880 / 24.783 / 25.010 | 35.598 | +43.08% | FAIL |
+| a5-qwen35-tp4-longctx-p126976-c1-hold | decode | 161 | 18.202 / 18.181 / 18.223 | 13.793 | -24.22% | FAIL |
+| a5-qwen35-tp4-longctx-p126976-c1-o32 | decode | 9 | 19.345 / 18.879 / 23.000 | 13.793 | -28.70% | FAIL |
+| a5-qwen35-tp4-longctx-p126976-c4-hold | decode | 221 | 20.420 / 20.404 / 20.494 | 14.852 | -27.27% | FAIL |
+| a5-qwen35-tp4-longctx-p126976-c4-o32 | decode | 11 | 18.132 / 18.133 / 18.193 | 13.793 | -23.93% | FAIL |
+| a5-qwen35-tp4-longctx-p65536-c1-hold | decode | 196 | 13.678 / 13.649 / 13.717 | 9.027 | -34.01% | FAIL |
+| a5-qwen35-tp4-longctx-p65536-c1-o32 | decode | 11 | 13.892 / 13.921 / 14.105 | 9.027 | -35.02% | FAIL |
+| a5-qwen35-tp4-longctx-p65536-c4-hold | decode | 222 | 15.799 / 15.771 / 15.885 | 10.086 | -36.16% | FAIL |
+| a5-qwen35-tp4-longctx-p65536-c4-o32 | decode | 10 | 14.477 / 14.397 / 14.516 | 9.027 | -37.65% | FAIL |
+| a5-qwen38-tp1-longctx-p126976-c4 | decode | 9 | 32.215 / 32.211 / 32.237 | 27.823 | -13.63% | FAIL |
+| a5-qwen38-tp1-longctx-p65536-c4 | decode | 5 | 24.481 / 24.481 / 24.493 | 20.197 | -17.50% | FAIL |
+| a5-qwen36-tp8-longctx-p126976-c1-hold | decode | 121 | 25.271 / 25.202 / 25.297 | 22.624 | -10.48% | PASS |
+| a5-qwen36-tp8-longctx-p126976-c4-hold | decode | 176 | 26.646 / 26.650 / 26.767 | 23.162 | -13.08% | PASS |
+| a5-qwen36-tp8-longctx-p65536-c1-hold | decode | 137 | 17.801 / 17.796 / 17.900 | 14.998 | -15.74% | FAIL |
+| a5-qwen36-tp8-longctx-p65536-c4-hold | decode | 183 | 19.130 / 19.111 / 19.217 | 15.536 | -18.79% | FAIL |
 
-Summary: {"compared": 83, "passed": 72, "requested_sources": 83, "sources": 83, "status_counts": {"compared": 83}}
+| Case | Body validation basis | Target native timings used in rules |
+|---|---|---|
+| qwen36-a3-tp4-c128 | in_sample_native_physical_domains | True |
+| qwen38-a3-tp4-c128 | retrospective_same_geometry_cross_capture | False |
+| a5_qwen36_highconc_c4 | mixed_native_transfer_and_in_sample_hccl_gating | True |
+| a5_qwen36_highconc_c40 | mixed_native_transfer_and_in_sample_hccl_gating | True |
+| a5_qwen36_highconc_c128 | mixed_native_transfer_and_in_sample_hccl_gating | True |
+| a5_qwen38_highconc_c4 | mixed_native_transfer_and_in_sample_hccl_gating | True |
+| a5_qwen38_highconc_c32 | mixed_native_transfer_and_in_sample_hccl_gating | True |
+| a5_qwen38_highconc_c128 | mixed_native_transfer_and_in_sample_hccl_gating | True |
+| a5_glm53flash_heldout_c12_p4k | frozen_native_functions_from_prior_capture_training | False |
+| a5_glm53flash_heldout_c24_p12k | frozen_native_functions_from_prior_capture_training | False |
+| a5_glm53flash_heldout_c48_p4k | frozen_native_functions_from_prior_capture_training | False |
+
+A Body pass with target-calibrated native rules is calibration evidence, not zero-shot generalization. Frozen native-family transfer scores remain separately reported in generalization.md.
+
+The source headline retains its largest population. Each execution geometry is scored separately; an all-population source pass requires complete scored coverage and every population to pass.
+
+| Case | B | q | Context | Calls | Real mean / P50 / P90 ms | Sim ms | Error | Status |
+|---|---:|---:|---:|---:|---:|---:|---:|---|
+| a5_glm53flash_heldout_c12_p4k | 2 | 4 | 4104 | 20 | 18.133 / 18.108 / 18.148 | 15.458 | -14.75% | PASS |
+| a5_glm53flash_heldout_c12_p4k | 3 | 4 | 4104 | 15 | 19.876 / 19.730 / 20.375 | — | — | unresolved |
+| a5_glm53flash_heldout_c12_p4k | 12 | 4 | 4104 | 10 | 32.310 / 32.084 / 32.482 | — | — | unresolved |
+| a5_glm53flash_heldout_c12_p4k | 6 | 4 | 4104 | 9 | 25.926 / 25.380 / 27.537 | — | — | unresolved |
+| a5_glm53flash_heldout_c12_p4k | 4 | 4 | 4104 | 5 | 21.675 / 21.618 / 21.897 | — | — | unresolved |
+| a5_glm53flash_heldout_c12_p4k | 8 | 4 | 4104 | 1 | 28.855 / 28.855 / 28.855 | — | — | unresolved |
+
+a5_glm53flash_heldout_c12_p4k: scored 20 / 60 calls; all-population pass: None.
+| a5_glm53flash_heldout_c24_p12k | 24 | 4 | 12296 | 21 | 38.995 / 39.210 / 39.263 | 33.630 | -13.76% | PASS |
+| a5_glm53flash_heldout_c24_p12k | 12 | 4 | 12296 | 10 | 32.978 / 32.904 / 33.062 | — | — | unresolved |
+| a5_glm53flash_heldout_c24_p12k | 16 | 4 | 12296 | 6 | 34.357 / 34.349 / 34.465 | — | — | unresolved |
+| a5_glm53flash_heldout_c24_p12k | 8 | 4 | 12296 | 4 | 29.935 / 29.876 / 30.133 | — | — | unresolved |
+
+a5_glm53flash_heldout_c24_p12k: scored 21 / 41 calls; all-population pass: None.
+| a5_glm53flash_heldout_c48_p4k | 48 | 4 | 4104 | 26 | 43.228 / 43.355 / 43.400 | 42.692 | -1.24% | PASS |
+| a5_glm53flash_heldout_c48_p4k | 32 | 4 | 4104 | 9 | 38.189 / 38.157 / 38.314 | — | — | unresolved |
+| a5_glm53flash_heldout_c48_p4k | 24 | 4 | 4104 | 2 | 37.382 / 37.382 / 37.552 | — | — | unresolved |
+
+a5_glm53flash_heldout_c48_p4k: scored 26 / 37 calls; all-population pass: None.
+| a3_glm53flash_static_on_c10_p131201 | 1 | 6 | 131201 | 68 | 22.603 / 22.348 / 23.552 | 23.704 | +4.87% | PASS |
+| a3_glm53flash_static_on_c10_p131201 | 4 | 6 | 131201 | 13 | 28.251 / 27.985 / 28.308 | 37.773 | +33.71% | FAIL |
+| a3_glm53flash_static_on_c10_p131201 | 8 | 6 | 131201 | 12 | 31.580 / 31.520 / 31.998 | 53.766 | +70.25% | FAIL |
+| a3_glm53flash_static_on_c10_p131201 | 2 | 6 | 131201 | 3 | 25.713 / 24.344 / 28.811 | 28.392 | +10.42% | PASS |
+| a3_glm53flash_static_on_c10_p131201 | 3 | 6 | 131201 | 1 | 31.415 / 31.415 / 31.415 | 33.053 | +5.22% | PASS |
+| a3_glm53flash_static_on_c10_p131201 | 7 | 6 | 131201 | 1 | 35.748 / 35.748 / 35.748 | 49.878 | +39.53% | FAIL |
+
+a3_glm53flash_static_on_c10_p131201: scored 98 / 98 calls; all-population pass: False.
+Context: same_run_prompt_plus_requested_output_bounds; representative 131201, bounds 131201–131265 tokens. 131201 is a conditional initial-context representative. The requested 64 output tokens only bound context growth; no per-step sequence-length values are retained. KV cache capacity is not active context.
+| a3-qwen35-tp4-longctx-p-126976-c4 | 4 | 2 | 126976 | 34 | 20.465 / 20.804 / 20.975 | 33.676 | +64.55% | FAIL |
+| a3-qwen35-tp4-longctx-p-126976-c4 | 1 | 2 | 126976 | 16 | 16.107 / 16.100 / 16.156 | 32.083 | +99.19% | FAIL |
+| a3-qwen35-tp4-longctx-p-126976-c4 | 2 | 2 | 126976 | 15 | 17.687 / 17.706 / 17.759 | 32.742 | +85.12% | FAIL |
+
+a3-qwen35-tp4-longctx-p-126976-c4: scored 65 / 65 calls; all-population pass: False.
+Context: same_capture_client_prompt_usage_and_requested_output_budget; not_per_call_KV_tensor_values; representative 126976, bounds 126976–127104 tokens.
+| a3-qwen35-tp4-longctx-p-65536-c2 | 2 | 2 | 65536 | 55 | 16.750 / 16.724 / 16.909 | 20.827 | +24.34% | FAIL |
+| a3-qwen35-tp4-longctx-p-65536-c2 | 1 | 2 | 65536 | 11 | 15.583 / 15.520 / 15.562 | 20.168 | +29.42% | FAIL |
+
+a3-qwen35-tp4-longctx-p-65536-c2: scored 66 / 66 calls; all-population pass: False.
+Context: same_capture_client_prompt_usage_and_requested_output_budget; not_per_call_KV_tensor_values; representative 65536, bounds 65536–65664 tokens.
+| a3-qwen35-tp4-longctx-p-65536-c4 | 4 | 2 | 65536 | 50 | 18.893 / 18.984 / 19.070 | 21.760 | +15.17% | FAIL |
+| a3-qwen35-tp4-longctx-p-65536-c4 | 1 | 2 | 65536 | 8 | 15.649 / 15.561 / 16.432 | 20.168 | +28.88% | FAIL |
+| a3-qwen35-tp4-longctx-p-65536-c4 | 2 | 2 | 65536 | 7 | 16.789 / 16.628 / 17.557 | 20.827 | +24.05% | FAIL |
+
+a3-qwen35-tp4-longctx-p-65536-c4: scored 65 / 65 calls; all-population pass: False.
+Context: same_capture_client_prompt_usage_and_requested_output_budget; not_per_call_KV_tensor_values; representative 65536, bounds 65536–65664 tokens.
+| a3-qwen35-tp4-longctx-p-65536-c8 | 8 | 2 | 65536 | 32 | 21.417 / 21.608 / 22.212 | 23.862 | +11.42% | PASS |
+| a3-qwen35-tp4-longctx-p-65536-c8 | 4 | 2 | 65536 | 17 | 18.901 / 18.818 / 19.256 | 21.760 | +15.13% | FAIL |
+| a3-qwen35-tp4-longctx-p-65536-c8 | 2 | 2 | 65536 | 8 | 16.891 / 16.719 / 17.533 | 20.827 | +23.30% | FAIL |
+| a3-qwen35-tp4-longctx-p-65536-c8 | 1 | 2 | 65536 | 8 | 15.502 / 15.507 / 15.581 | 20.168 | +30.10% | FAIL |
+
+a3-qwen35-tp4-longctx-p-65536-c8: scored 65 / 65 calls; all-population pass: False.
+Context: same_capture_client_prompt_usage_and_requested_output_budget; not_per_call_KV_tensor_values; representative 65536, bounds 65536–65664 tokens.
+| a5-qwen35-tp4-longctx-p65536-c4-o32 | 1 | 4 | 65536 | 10 | 14.477 / 14.397 / 14.516 | 9.027 | -37.65% | FAIL |
+| a5-qwen35-tp4-longctx-p65536-c4-o32 | 2 | 4 | 65536 | 1 | 17.269 / 17.269 / 17.269 | 9.422 | -45.44% | FAIL |
+
+a5-qwen35-tp4-longctx-p65536-c4-o32: scored 11 / 11 calls; all-population pass: False.
+Context: same_capture_client_prompt_usage_and_requested_output_budget; not_per_call_KV_tensor_values; representative 65536, bounds 65536–65568 tokens.
+| a5-qwen38-tp1-longctx-p126976-c4 | 1 | 4 | 126976 | 9 | 32.215 / 32.211 / 32.237 | 27.823 | -13.63% | PASS |
+| a5-qwen38-tp1-longctx-p126976-c4 | 2 | 4 | 126976 | 8 | 35.503 / 35.500 / 35.516 | 28.757 | -19.00% | FAIL |
+
+a5-qwen38-tp1-longctx-p126976-c4: scored 17 / 17 calls; all-population pass: False.
+Context: same_capture_client_prompt_usage_and_requested_output_budget; not_per_call_KV_tensor_values; representative 126976, bounds 126976–127008 tokens.
+| a5-qwen38-tp1-longctx-p65536-c4 | 1 | 4 | 65536 | 5 | 24.481 / 24.481 / 24.493 | 20.197 | -17.50% | FAIL |
+| a5-qwen38-tp1-longctx-p65536-c4 | 2 | 4 | 65536 | 4 | 26.848 / 26.851 / 26.858 | 21.131 | -21.29% | FAIL |
+| a5-qwen38-tp1-longctx-p65536-c4 | 4 | 4 | 65536 | 2 | 29.056 / 29.056 / 29.389 | 22.959 | -20.98% | FAIL |
+
+a5-qwen38-tp1-longctx-p65536-c4: scored 11 / 11 calls; all-population pass: False.
+Context: same_capture_client_prompt_usage_and_requested_output_budget; not_per_call_KV_tensor_values; representative 65536, bounds 65536–65568 tokens.
+
+Summary: {"compared": 108, "passed": 85, "requested_sources": 108, "sources": 108, "status_counts": {"compared": 108}}
 
 Full per-layer, operator and prediction details retain their individual SHA256 evidence pointers. Missing evidence and failed predictions remain visible and never count as a pass.

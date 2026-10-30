@@ -1,6 +1,6 @@
 # Current profiling validation
 
-One canonical case registry and one recorded Sim package. All costs are fresh in this run. Calibration and held-out labels remain distinct; device Body latency is not client TPOT.
+One canonical case registry and one recorded Sim package. Selected costs are freshly replayed; unchanged cases retain verified evidence from this same Sim package. Calibration and held-out labels remain distinct; device Body latency is not client TPOT.
 
 
 | Case | Complete target cycles | Cycle mean / P50 ms | Client token TPOT P50 ms | Serving status |
@@ -10,7 +10,6 @@ One canonical case registry and one recorded Sim package. All costs are fresh in
 | qwen36-a5-tp2-c12 | 54 | 33.707 / 33.608 | 12.657 | serving_prediction_timeout |
 | a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64 | 74 | 27.023 / 27.002 | 28.943 | serving_prediction_failed |
 | a5_glm53flash_tp8_c64_p4k | 30 | 59.973 / 59.772 | 29.828 | serving_prediction_failed |
-| a5_kimi_tp8_e16_bf16_c32_p4k | 45 | 40.432 / 40.432 | 69.663 | serving_prediction_failed |
 | a3_glm53flash_heldout_s1_c10_p4096 | — | — / — | 9.965 | completed |
 | a3_glm53flash_heldout_s1_c12_p4096 | — | — / — | 10.749 | completed |
 | a3_glm53flash_heldout_s1_c18_p4096 | — | — / — | 11.814 | completed |
@@ -72,6 +71,12 @@ One canonical case registry and one recorded Sim package. All costs are fresh in
 | a5_glm53flash_heldout_c24_p12k | 21 | 47.970 / 48.119 | 13.998 | serving_prediction_failed |
 | a5_glm53flash_heldout_c48_p4k | 26 | 52.063 / 51.834 | 17.244 | serving_prediction_failed |
 | a5_glm53flash_heldout_eager_c80_p4k | 6 | 339.879 / 340.000 | 85.974 | serving_prediction_failed |
+| a5_kimi_k3_p32768_c1 | 62 | 33.952 / 32.817 | 32.769 | serving_prediction_failed |
+| a3_kimi4_tp8_w4a8_c1 | 253 | 7.359 / 7.091 | 7.112 | completed |
+| a3_kimi4_tp8_w4a8_c16 | 235 | 9.196 / 7.549 | 8.541 | serving_prediction_failed |
+| a3_kimi4_tp8_w4a8_c32 | 220 | 8.801 / 7.826 | 9.708 | serving_prediction_failed |
+| a3_kimi4_tp8_w4a8_c4 | 246 | 7.228 / 7.139 | 7.362 | serving_prediction_failed |
+| a3_kimi4_tp8_w4a8_c64 | 196 | 11.619 / 10.585 | 14.028 | serving_prediction_failed |
 
 Device target cycles, completion-token TPOT and client delivery have different boundaries. Uncovered cycle intervals are not assigned to Host scheduling without evidence.
 
@@ -82,12 +87,16 @@ Device target cycles, completion-token TPOT and client delivery have different b
 | qwen36-a5-tp2-c12 | serving_prediction_timeout |
 | a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64 | mindie_sim.schema.common.ModelingError: hc_pre_arch35_requires_bf16_hc4_M1to256_Kmultiple128_two_aiv_per_aic |
 | a5_glm53flash_tp8_c64_p4k | mindie_sim.schema.common.ModelingError: sparse_mla_metadata_requires_nope_bf16_paged_decode |
-| a5_kimi_tp8_e16_bf16_c32_p4k | mindie_sim.schema.common.ModelingError: causal_conv_update_requires_q1_non_speculative_decode |
 | a3_v41_heldout_pd_pipeline_c24_p4096 | ['ServerDisconnectedError: Server disconnected', 'ServerDisconnectedError: Server disconnected', 'ServerDisconnectedError: Server disconnected'] |
 | a5_glm53flash_heldout_c12_p4k | mindie_sim.schema.common.ModelingError: sparse_mla_metadata_requires_nope_bf16_paged_decode |
 | a5_glm53flash_heldout_c24_p12k | mindie_sim.schema.common.ModelingError: sparse_mla_metadata_requires_nope_bf16_paged_decode |
 | a5_glm53flash_heldout_c48_p4k | mindie_sim.schema.common.ModelingError: sparse_mla_metadata_requires_nope_bf16_paged_decode |
 | a5_glm53flash_heldout_eager_c80_p4k | mindie_sim.schema.common.ModelingError: sparse_mla_metadata_requires_nope_bf16_paged_decode |
+| a5_kimi_k3_p32768_c1 | mindie_sim.schema.common.ModelingError: native_fusion_selected_roles_unmatched:situ_quant |
+| a3_kimi4_tp8_w4a8_c16 | mindie_sim.schema.common.ModelingError: kda_source_recurrent_requires_decode_only_pcp1 |
+| a3_kimi4_tp8_w4a8_c32 | mindie_sim.schema.common.ModelingError: kda_source_recurrent_requires_decode_only_pcp1 |
+| a3_kimi4_tp8_w4a8_c4 | mindie_sim.schema.common.ModelingError: kda_source_recurrent_requires_decode_only_pcp1 |
+| a3_kimi4_tp8_w4a8_c64 | mindie_sim.schema.common.ModelingError: kda_source_recurrent_requires_decode_only_pcp1 |
 
 | Case | Client TTFT mean ms | Prefiller HTTP mean ms | Decoder TTFT mean ms | Token TPOT mean ms | Output tok/s |
 |---|---:|---:|---:|---:|---:|
@@ -151,6 +160,6 @@ Device target cycles, completion-token TPOT and client delivery have different b
 
 Client-only and PD rows have no measured device Body. Prefiller HTTP, decoder first response and end-to-end request durations remain separate.
 
-Summary: {"compared": 0, "passed": 0, "requested_sources": 67, "sources": 67, "status_counts": {"failed": 11, "observed_only": 56}}
+Summary: {"compared": 0, "passed": 0, "requested_sources": 119, "sources": 72, "status_counts": {"conditional_endpoint_comparison": 1, "failed": 15, "observed_only": 56}}
 
 Full per-layer, operator and prediction details retain their individual SHA256 evidence pointers. Missing evidence and failed predictions remain visible and never count as a pass.
