@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "checks": 131,
+  "failures": [],
+  "input_identities": [
+    {
+      "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm78-native-v2-service/decode-forward-glm78-native-v2-replay.json",
+      "sha256": "b8008c646f11863cd0ca7776d34887fbaa643e29daab018cc17fc615a4178e7e"
+    },
+    {
+      "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm78-native-v2-service/window8-sensitivity/decode-forward-glm78-native-v2-window8-replay.json",
+      "sha256": "3875b4faf45bd1994fb46bffb11b4d6c63224767f1b5023e27b3c2763409a2ae"
+    }
+  ],
+  "scope": "Producer-side sensitivity check; all native mean parameters and source population unchanged, window8 and16 exact saved Body/layer comparisons equal. No best-error selection.",
+  "raw_reads": 0,
+  "new_predictions": 0,
+  "peak_rss_bytes": 139788288
+}

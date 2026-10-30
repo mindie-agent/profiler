@@ -1,0 +1,545 @@
+{
+  "schema_version": "mindie-native-v2-baseline-compatibility-review/1",
+  "status": "passed",
+  "checks": 224,
+  "failures": [],
+  "spec_identity": {
+    "path": "/Users/maoxx241/.gemini/antigravity/brain/c528e227-017c-455f-8422-9fdff59e93a4/micro_instruction_and_network_modeling_plan.md",
+    "sha256": "e151a11206f290bd0f849bf3417e12296dac7c022f3371967fdfa9e3994c23b6",
+    "size_bytes": 16979
+  },
+  "baseline_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm78-joint-service/decode-forward-glm78-joint-service-replay.json",
+    "sha256": "b24460acec5c99acd39c03843c52952b1df5bf21c1ce213565a05c97d61c6325",
+    "size_bytes": 13228015
+  },
+  "v2_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm78-native-v2-service/decode-forward-glm78-native-v2-replay.json",
+    "sha256": "b8008c646f11863cd0ca7776d34887fbaa643e29daab018cc17fc615a4178e7e",
+    "size_bytes": 16037645
+  },
+  "input_proof_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm78-native-v2-service/native-v2-input-proof.json",
+    "sha256": "c43b53b9aeae16717821e04fa8f973c429b3465215f4f01c0d905ab2bb8c6b87",
+    "size_bytes": 62148
+  },
+  "cases": [
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot88_c8",
+      "forward_count": 49,
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot88_c8_20261030/kernel_details.csv",
+        "size_bytes": 75781277,
+        "mtime_ns": 1793302496606117183,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "59f5666d6709695fad7e1f8502a656de699a200932199f2344c44aaa07662ee8"
+      },
+      "geometry": {
+        "query_rows": 48,
+        "sequences_per_replica": 8,
+        "tokens_per_sequence": 6,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "router_evidence": {
+        "native_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot88_c8-native-partitions.json",
+          "sha256": "9326996c302647d763cd1f82bd3af8545df2f985fddf7f2a9226c3ae23155ec8",
+          "size_bytes": 2369862
+        },
+        "native_abi": [
+          "native_tensor_abi",
+          "MatMulV3",
+          [
+            [
+              [
+                48,
+                6144
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [
+                256,
+                6144
+              ],
+              "bf16",
+              "ND"
+            ]
+          ],
+          [
+            [
+              [
+                48,
+                256
+              ],
+              "fp32",
+              "ND"
+            ]
+          ]
+        ],
+        "calls_per_forward": 75,
+        "layer_ids": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77
+        ]
+      },
+      "baseline_rule_count": 23,
+      "inherited_rules_identical": true,
+      "new_native_response_groups": [
+        {
+          "native_operator_type": "MoeDistributeCombineV2",
+          "count": 3675,
+          "calls_per_forward": 75,
+          "observed_mean_us": 40.22685823129251,
+          "runtime_hits": 75
+        },
+        {
+          "native_operator_type": "MoeDistributeDispatchV2",
+          "count": 3675,
+          "calls_per_forward": 75,
+          "observed_mean_us": 31.62253850340136,
+          "runtime_hits": 75
+        }
+      ],
+      "tp_finalization_calls_per_forward": 75,
+      "materialized_pad_native_calls_per_forward": 0,
+      "baseline_prediction_ms": 67.83812083975202,
+      "v2_prediction_ms": 66.84183988056864,
+      "observed_mean_ms": 69.55629785714285,
+      "relative_error": -0.03902533717578327,
+      "passed": true,
+      "prediction_delta_ms": -0.9962809591833803,
+      "distance_outside_relative15_band_ms": 0,
+      "identified_missing_or_duplicated_service": null,
+      "conditional_limits": [
+        "max_inflight_per_rank16 is explicit source concurrency, not observed peer-window selection",
+        "Native buffer capacity is not actual valid route rows; actual mask/count values remain unobserved",
+        "Complete ABI compatibility does not establish producer pointer identity or binary implementation revision"
+      ]
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot30_c2",
+      "forward_count": 44,
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+        "size_bytes": 61482469,
+        "mtime_ns": 1793302496483652627,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "5c13263d015f971a90b790b1c94aba384b402a1e15ed6417dc6794b0c3b40ab5"
+      },
+      "geometry": {
+        "query_rows": 12,
+        "sequences_per_replica": 2,
+        "tokens_per_sequence": 6,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "router_evidence": {
+        "native_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot30_c2-native-partitions.json",
+          "sha256": "4e96d7466d545cc68d4481833bd9833117ed57a41de56e7a60e4bc2ed43bc0cd",
+          "size_bytes": 2661235
+        },
+        "native_abi": [
+          "native_tensor_abi",
+          "MatMulV3",
+          [
+            [
+              [
+                12,
+                6144
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [
+                256,
+                6144
+              ],
+              "bf16",
+              "ND"
+            ]
+          ],
+          [
+            [
+              [
+                12,
+                256
+              ],
+              "fp32",
+              "ND"
+            ]
+          ]
+        ],
+        "calls_per_forward": 75,
+        "layer_ids": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77
+        ]
+      },
+      "baseline_rule_count": 25,
+      "inherited_rules_identical": true,
+      "new_native_response_groups": [
+        {
+          "native_operator_type": "MoeDistributeCombineV2",
+          "count": 3300,
+          "calls_per_forward": 75,
+          "observed_mean_us": 41.608808787878786,
+          "runtime_hits": 75
+        },
+        {
+          "native_operator_type": "MoeDistributeDispatchV2",
+          "count": 3300,
+          "calls_per_forward": 75,
+          "observed_mean_us": 39.234831212121215,
+          "runtime_hits": 75
+        }
+      ],
+      "tp_finalization_calls_per_forward": 75,
+      "materialized_pad_native_calls_per_forward": 150,
+      "baseline_prediction_ms": 49.285701366938255,
+      "v2_prediction_ms": 49.09564579550919,
+      "observed_mean_ms": 57.639269772727275,
+      "relative_error": -0.14822574975196168,
+      "passed": true,
+      "prediction_delta_ms": -0.19005557142906326,
+      "distance_outside_relative15_band_ms": 0,
+      "identified_missing_or_duplicated_service": null,
+      "conditional_limits": [
+        "max_inflight_per_rank16 is explicit source concurrency, not observed peer-window selection",
+        "Native buffer capacity is not actual valid route rows; actual mask/count values remain unobserved",
+        "Complete ABI compatibility does not establish producer pointer identity or binary implementation revision"
+      ]
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot50_c2",
+      "forward_count": 44,
+      "source_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+        "size_bytes": 68070780,
+        "mtime_ns": 1793302496541966032,
+        "schema_version": "kernel_details_csv_46col",
+        "sha256": "1f91ecac9a99c7ab0687fb1175db3ceefa39c6d31cca0bc4e4a4edb859a9ad13"
+      },
+      "geometry": {
+        "query_rows": 12,
+        "sequences_per_replica": 2,
+        "tokens_per_sequence": 6,
+        "context_tokens": 4096,
+        "batch_basis": "captured_paged_attention_block_table_rows",
+        "context_basis": "not_observed_from_cache_capacity",
+        "phase": "decode"
+      },
+      "router_evidence": {
+        "native_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot50_c2-native-partitions.json",
+          "sha256": "bff3391eed6d11b8ddf807b15bb1e4345a7b35a47bb97b20c1652533d6b54dd5",
+          "size_bytes": 2685140
+        },
+        "native_abi": [
+          "native_tensor_abi",
+          "MatMulV3",
+          [
+            [
+              [
+                12,
+                6144
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [
+                256,
+                6144
+              ],
+              "bf16",
+              "ND"
+            ]
+          ],
+          [
+            [
+              [
+                12,
+                256
+              ],
+              "fp32",
+              "ND"
+            ]
+          ]
+        ],
+        "calls_per_forward": 75,
+        "layer_ids": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77
+        ]
+      },
+      "baseline_rule_count": 25,
+      "inherited_rules_identical": true,
+      "new_native_response_groups": [
+        {
+          "native_operator_type": "MoeDistributeCombineV2",
+          "count": 3300,
+          "calls_per_forward": 75,
+          "observed_mean_us": 41.234158484848486,
+          "runtime_hits": 75
+        },
+        {
+          "native_operator_type": "MoeDistributeDispatchV2",
+          "count": 3300,
+          "calls_per_forward": 75,
+          "observed_mean_us": 39.22430909090909,
+          "runtime_hits": 75
+        }
+      ],
+      "tp_finalization_calls_per_forward": 75,
+      "materialized_pad_native_calls_per_forward": 150,
+      "baseline_prediction_ms": 49.29115543021824,
+      "v2_prediction_ms": 49.07221192697109,
+      "observed_mean_ms": 57.817111568181815,
+      "relative_error": -0.15125106398471933,
+      "passed": false,
+      "prediction_delta_ms": -0.2189435032471465,
+      "distance_outside_relative15_band_ms": 0.07233290598344944,
+      "identified_missing_or_duplicated_service": null,
+      "conditional_limits": [
+        "max_inflight_per_rank16 is explicit source concurrency, not observed peer-window selection",
+        "Native buffer capacity is not actual valid route rows; actual mask/count values remain unobserved",
+        "Complete ABI compatibility does not establish producer pointer identity or binary implementation revision"
+      ]
+    }
+  ],
+  "conclusion": "No omitted BF16-router overlay, lost AG/pad response, duplicated routed pack/input quantization, or dropped inherited service rule was found in the retained formal V2 cases. The earlier FP32-router note describes the bare skeleton only. Keep c50 as FAIL; no independent evidence justifies adding its distance-to-threshold as a parameter.",
+  "new_raw_reads": 0,
+  "new_cost_predictions": 0,
+  "scope_limits": [
+    "Fresh graph node obligations are checked against retained proof and builder; this review does not independently rerun graph lowering or costs.",
+    "Scheduled resource-phase sums are nonadditive and do not decompose Body residual."
+  ]
+}

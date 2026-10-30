@@ -1,0 +1,2421 @@
+{
+  "cases": [
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot88_c8",
+      "retained_native_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot88_c8-native-partitions.json",
+        "sha256": "9326996c302647d763cd1f82bd3af8545df2f985fddf7f2a9226c3ae23155ec8",
+        "size_bytes": 2369862
+      },
+      "baseline_case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm78-joint-service/cases/a3_glm53_w4a8_tp16_tpot88_c8-joint-native.json",
+        "sha256": "b6549c6c2d64516c7cd48222e539a3bfec0fab51051bca3270f4ab4eb13f3c9d",
+        "size_bytes": 452646
+      },
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm78-native-v2-service/cases/a3_glm53_w4a8_tp16_tpot88_c8-native-v2.json",
+        "sha256": "c9d34d371916c81bd5f029dd1043156df8b1c4fa40a03a72b7a63e57702b8a30",
+        "size_bytes": 646018
+      },
+      "typed_native_proof": {
+        "case_id": "a3_glm53_w4a8_tp16_tpot88_c8",
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot88_c8_20261030/kernel_details.csv",
+          "sha256": "59f5666d6709695fad7e1f8502a656de699a200932199f2344c44aaa07662ee8",
+          "size_bytes": 75781277
+        },
+        "body_acceptance_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/scope-paired/auto-forward-a3_glm53_w4a8_tp16_tpot88_c8.json",
+          "sha256": "08e60f3ad0b357b8bd3480150080a2f232382c95311512722a8baaf4528698fa",
+          "size_bytes": 2308757
+        },
+        "geometry": {
+          "query_rows": 48,
+          "sequences_per_replica": 8,
+          "tokens_per_sequence": 6,
+          "context_tokens": 4096,
+          "batch_basis": "captured_paged_attention_block_table_rows",
+          "context_basis": "not_observed_from_cache_capacity",
+          "phase": "decode"
+        },
+        "forward_count": 49,
+        "layer_ids": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77
+        ],
+        "calls_per_native_per_forward": 75,
+        "source_caller_geometry": {
+          "global_query_rows": 48,
+          "tp": 16,
+          "ep": 16,
+          "experts": 256,
+          "right_padded_rows": 48,
+          "tp_local_rows": 3,
+          "hidden": 6144,
+          "topk": 8,
+          "expert_buffer_capacity_rows": 384,
+          "expert_valid_rows": null,
+          "buffer_capacity_is_not_valid_rows": true
+        },
+        "native_contracts": {
+          "dispatch": [
+            "native_tensor_abi",
+            "MoeDistributeDispatchV2",
+            [
+              [
+                [
+                  3,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  3,
+                  8
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [
+                  3
+                ],
+                "bool",
+                "ND"
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ]
+            ],
+            [
+              [
+                [
+                  384,
+                  6144
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  384
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [
+                  49152
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  16
+                ],
+                "int64",
+                "ND"
+              ],
+              [
+                [
+                  256
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  1
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  384
+                ],
+                "fp32",
+                "ND"
+              ]
+            ]
+          ],
+          "combine": [
+            "native_tensor_abi",
+            "MoeDistributeCombineV2",
+            [
+              [
+                [
+                  384,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  3,
+                  8
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  49152
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  256
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  3,
+                  8
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [
+                  1
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  3
+                ],
+                "bool",
+                "ND"
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [
+                  384
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ]
+            ],
+            [
+              [
+                [
+                  3,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ]
+            ]
+          ],
+          "expert_up": [
+            "native_tensor_abi",
+            "GroupedMatmulSwigluQuantV2",
+            [
+              [
+                [
+                  384,
+                  6144
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  384
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [
+                  16
+                ],
+                "int64",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  64,
+                  384,
+                  16,
+                  64
+                ],
+                "DT_INT4",
+                "FRACTAL_NZ"
+              ],
+              [
+                [
+                  16,
+                  4096
+                ],
+                "UINT64",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  4096
+                ],
+                "fp32",
+                "ND"
+              ]
+            ],
+            [
+              [
+                [
+                  384,
+                  2048
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  384
+                ],
+                "fp32",
+                "ND"
+              ]
+            ]
+          ],
+          "expert_down": [
+            "native_tensor_abi",
+            "GroupedMatmul",
+            [
+              [
+                [
+                  384,
+                  2048
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  2048,
+                  6144
+                ],
+                "DT_INT4",
+                "FRACTAL_NZ"
+              ],
+              [
+                [
+                  16,
+                  6144
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  1,
+                  6144
+                ],
+                "UINT64",
+                "NCL"
+              ],
+              [
+                [],
+                "fp32",
+                "ND"
+              ],
+              [
+                [],
+                "fp16",
+                "ND"
+              ],
+              [
+                [],
+                "fp16",
+                "ND"
+              ],
+              [
+                [
+                  16
+                ],
+                "int64",
+                "ND"
+              ],
+              [
+                [
+                  384
+                ],
+                "fp32",
+                "ND"
+              ]
+            ],
+            [
+              [
+                [
+                  384,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ]
+            ]
+          ]
+        },
+        "typed_links": [
+          {
+            "producer": "dispatch",
+            "output_slot": 0,
+            "consumer": "expert_up",
+            "input_slot": 0,
+            "role": "quantized_expert_payload",
+            "tensor_contract": [
+              [
+                384,
+                6144
+              ],
+              "int8",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "dispatch",
+            "output_slot": 1,
+            "consumer": "expert_up",
+            "input_slot": 1,
+            "role": "dynamic_activation_scale",
+            "tensor_contract": [
+              [
+                384
+              ],
+              "fp32",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "dispatch",
+            "output_slot": 3,
+            "consumer": "expert_up",
+            "input_slot": 2,
+            "role": "expert_token_counts",
+            "tensor_contract": [
+              [
+                16
+              ],
+              "int64",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "dispatch",
+            "output_slot": 3,
+            "consumer": "expert_down",
+            "input_slot": 7,
+            "role": "expert_token_counts",
+            "tensor_contract": [
+              [
+                16
+              ],
+              "int64",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "expert_up",
+            "output_slot": 0,
+            "consumer": "expert_down",
+            "input_slot": 0,
+            "role": "fused_swiglu_quantized_payload",
+            "tensor_contract": [
+              [
+                384,
+                2048
+              ],
+              "int8",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "expert_up",
+            "output_slot": 1,
+            "consumer": "expert_down",
+            "input_slot": 8,
+            "role": "fused_swiglu_dynamic_scale",
+            "tensor_contract": [
+              [
+                384
+              ],
+              "fp32",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "expert_down",
+            "output_slot": 0,
+            "consumer": "combine",
+            "input_slot": 0,
+            "role": "bf16_expert_output",
+            "tensor_contract": [
+              [
+                384,
+                6144
+              ],
+              "bf16",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "dispatch",
+            "output_slot": 2,
+            "consumer": "combine",
+            "input_slot": 2,
+            "role": "assist_info_for_combine",
+            "tensor_contract": [
+              [
+                49152
+              ],
+              "int32",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "dispatch",
+            "output_slot": 4,
+            "consumer": "combine",
+            "input_slot": 3,
+            "role": "ep_receive_send_counts",
+            "tensor_contract": [
+              [
+                256
+              ],
+              "int32",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "dispatch",
+            "output_slot": 5,
+            "consumer": "combine",
+            "input_slot": 5,
+            "role": "tp_receive_send_counts",
+            "tensor_contract": [
+              [
+                1
+              ],
+              "int32",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "dispatch",
+            "output_slot": 6,
+            "consumer": "combine",
+            "input_slot": 10,
+            "role": "expand_combine_scales",
+            "tensor_contract": [
+              [
+                384
+              ],
+              "fp32",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          }
+        ],
+        "materialized_right_pad": [],
+        "tp_finalization": {
+          "observed_native_calls_per_forward": 75,
+          "source_payload_bytes_per_rank": 36864,
+          "gathered_shape": [
+            48,
+            6144
+          ],
+          "unpad_output_shape": [
+            48,
+            6144
+          ],
+          "payload_basis": "source_caller_BF16_contract; not_observed_HCOM_descriptor"
+        },
+        "fresh_graph_obligations": [
+          "One complete native DispatchV2 and CombineV2 boundary per declared MoE layer.",
+          "Dispatch INT8 plus FP32 dynamic scale feeds GMM directly; no second routed activation quantizer.",
+          "Keep expand_scales distinct from dynamic_scales despite equal dtype and shape.",
+          "Native route replaces route_pack/route_unpack; preserve topk, active-mask, group-count and weighted-combine dependencies.",
+          "Preserve shared FFN DynamicQuant/DSQ; do not remove every same-named quantizer globally.",
+          "Keep source right-pad and TP local slicing, then AllGather and final unpad.",
+          "Every original external dependency must reach a surviving consumer; no dangling IDs or disconnected completion join."
+        ],
+        "unproven": [
+          "ABI cannot observe tensor values, per-expert valid counts or pointer-level producer identity.",
+          "Public V2 interface/source compatibility does not establish the captured binary revision."
+        ]
+      },
+      "source_condition": {
+        "kind": "explicit_logical_transport_concurrency",
+        "max_inflight_per_rank": 16,
+        "basis": "fully_concurrent_EP_peer_window_for_logical_payload_lower_bound",
+        "observed_window": false,
+        "captured_inner_tiling": null,
+        "scope": "Does not identify fullmesh/basic/hierarchy selection or captured native peer concurrency."
+      },
+      "response_rules": [
+        {
+          "rule_id": "moedistributecombinev2-complete-group-response",
+          "native_operator_type": "MoeDistributeCombineV2",
+          "expected_rule_hits": 75,
+          "parameter_us": 40.22685823129252,
+          "complete_call_count": 3675
+        },
+        {
+          "rule_id": "moedistributedispatchv2-complete-group-response",
+          "native_operator_type": "MoeDistributeDispatchV2",
+          "expected_rule_hits": 75,
+          "parameter_us": 31.622538503401362,
+          "complete_call_count": 3675
+        }
+      ],
+      "fresh_graph": {
+        "native_dispatch_groups": 75,
+        "native_combine_groups": 75,
+        "separate_route_pack_count": 0,
+        "separate_route_unpack_count": 0,
+        "routed_quantizers_removed": 75,
+        "shared_dequant_swiglu_quant_count": 75,
+        "tp_finalization_allgather_count": 75,
+        "dependencies_resolve_to_preserved_external_inputs": true
+      }
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot30_c2",
+      "retained_native_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot30_c2-native-partitions.json",
+        "sha256": "4e96d7466d545cc68d4481833bd9833117ed57a41de56e7a60e4bc2ed43bc0cd",
+        "size_bytes": 2661235
+      },
+      "baseline_case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm78-joint-service/cases/a3_glm53_w4a8_tp16_tpot30_c2-joint-native.json",
+        "sha256": "87fb181b5d9face169abfb00935775f6371aa19a33ca79610fecba21071df913",
+        "size_bytes": 1073299
+      },
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm78-native-v2-service/cases/a3_glm53_w4a8_tp16_tpot30_c2-native-v2.json",
+        "sha256": "8f79bf192d678aa8b600a326143b24311761d1fcbf9ee45d561281cfd791cf9d",
+        "size_bytes": 1264483
+      },
+      "typed_native_proof": {
+        "case_id": "a3_glm53_w4a8_tp16_tpot30_c2",
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+          "sha256": "5c13263d015f971a90b790b1c94aba384b402a1e15ed6417dc6794b0c3b40ab5",
+          "size_bytes": 61482469
+        },
+        "body_acceptance_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/scope-paired/auto-forward-a3_glm53_w4a8_tp16_tpot30_c2.json",
+          "sha256": "525dd932b38dee69324762979dcf0e39af0dfdc2c3f55ec14976d03ce1112e5e",
+          "size_bytes": 1876482
+        },
+        "geometry": {
+          "query_rows": 12,
+          "sequences_per_replica": 2,
+          "tokens_per_sequence": 6,
+          "context_tokens": 4096,
+          "batch_basis": "captured_paged_attention_block_table_rows",
+          "context_basis": "not_observed_from_cache_capacity",
+          "phase": "decode"
+        },
+        "forward_count": 44,
+        "layer_ids": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77
+        ],
+        "calls_per_native_per_forward": 75,
+        "source_caller_geometry": {
+          "global_query_rows": 12,
+          "tp": 16,
+          "ep": 16,
+          "experts": 256,
+          "right_padded_rows": 16,
+          "tp_local_rows": 1,
+          "hidden": 6144,
+          "topk": 8,
+          "expert_buffer_capacity_rows": 128,
+          "expert_valid_rows": null,
+          "buffer_capacity_is_not_valid_rows": true
+        },
+        "native_contracts": {
+          "dispatch": [
+            "native_tensor_abi",
+            "MoeDistributeDispatchV2",
+            [
+              [
+                [
+                  1,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  1,
+                  8
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [
+                  1
+                ],
+                "bool",
+                "ND"
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ]
+            ],
+            [
+              [
+                [
+                  128,
+                  6144
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  128
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [
+                  16384
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  16
+                ],
+                "int64",
+                "ND"
+              ],
+              [
+                [
+                  256
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  1
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  128
+                ],
+                "fp32",
+                "ND"
+              ]
+            ]
+          ],
+          "combine": [
+            "native_tensor_abi",
+            "MoeDistributeCombineV2",
+            [
+              [
+                [
+                  128,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  1,
+                  8
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  16384
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  256
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  1,
+                  8
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [
+                  1
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  1
+                ],
+                "bool",
+                "ND"
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [
+                  128
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ]
+            ],
+            [
+              [
+                [
+                  1,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ]
+            ]
+          ],
+          "expert_up": [
+            "native_tensor_abi",
+            "GroupedMatmulSwigluQuantV2",
+            [
+              [
+                [
+                  128,
+                  6144
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  128
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [
+                  16
+                ],
+                "int64",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  64,
+                  384,
+                  16,
+                  64
+                ],
+                "DT_INT4",
+                "FRACTAL_NZ"
+              ],
+              [
+                [
+                  16,
+                  4096
+                ],
+                "UINT64",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  4096
+                ],
+                "fp32",
+                "ND"
+              ]
+            ],
+            [
+              [
+                [
+                  128,
+                  2048
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  128
+                ],
+                "fp32",
+                "ND"
+              ]
+            ]
+          ],
+          "expert_down": [
+            "native_tensor_abi",
+            "GroupedMatmul",
+            [
+              [
+                [
+                  128,
+                  2048
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  2048,
+                  6144
+                ],
+                "DT_INT4",
+                "FRACTAL_NZ"
+              ],
+              [
+                [
+                  16,
+                  6144
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  1,
+                  6144
+                ],
+                "UINT64",
+                "NCL"
+              ],
+              [
+                [],
+                "fp32",
+                "ND"
+              ],
+              [
+                [],
+                "fp16",
+                "ND"
+              ],
+              [
+                [],
+                "fp16",
+                "ND"
+              ],
+              [
+                [
+                  16
+                ],
+                "int64",
+                "ND"
+              ],
+              [
+                [
+                  128
+                ],
+                "fp32",
+                "ND"
+              ]
+            ],
+            [
+              [
+                [
+                  128,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ]
+            ]
+          ]
+        },
+        "typed_links": [
+          {
+            "producer": "dispatch",
+            "output_slot": 0,
+            "consumer": "expert_up",
+            "input_slot": 0,
+            "role": "quantized_expert_payload",
+            "tensor_contract": [
+              [
+                128,
+                6144
+              ],
+              "int8",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "dispatch",
+            "output_slot": 1,
+            "consumer": "expert_up",
+            "input_slot": 1,
+            "role": "dynamic_activation_scale",
+            "tensor_contract": [
+              [
+                128
+              ],
+              "fp32",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "dispatch",
+            "output_slot": 3,
+            "consumer": "expert_up",
+            "input_slot": 2,
+            "role": "expert_token_counts",
+            "tensor_contract": [
+              [
+                16
+              ],
+              "int64",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "dispatch",
+            "output_slot": 3,
+            "consumer": "expert_down",
+            "input_slot": 7,
+            "role": "expert_token_counts",
+            "tensor_contract": [
+              [
+                16
+              ],
+              "int64",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "expert_up",
+            "output_slot": 0,
+            "consumer": "expert_down",
+            "input_slot": 0,
+            "role": "fused_swiglu_quantized_payload",
+            "tensor_contract": [
+              [
+                128,
+                2048
+              ],
+              "int8",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "expert_up",
+            "output_slot": 1,
+            "consumer": "expert_down",
+            "input_slot": 8,
+            "role": "fused_swiglu_dynamic_scale",
+            "tensor_contract": [
+              [
+                128
+              ],
+              "fp32",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "expert_down",
+            "output_slot": 0,
+            "consumer": "combine",
+            "input_slot": 0,
+            "role": "bf16_expert_output",
+            "tensor_contract": [
+              [
+                128,
+                6144
+              ],
+              "bf16",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "dispatch",
+            "output_slot": 2,
+            "consumer": "combine",
+            "input_slot": 2,
+            "role": "assist_info_for_combine",
+            "tensor_contract": [
+              [
+                16384
+              ],
+              "int32",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "dispatch",
+            "output_slot": 4,
+            "consumer": "combine",
+            "input_slot": 3,
+            "role": "ep_receive_send_counts",
+            "tensor_contract": [
+              [
+                256
+              ],
+              "int32",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "dispatch",
+            "output_slot": 5,
+            "consumer": "combine",
+            "input_slot": 5,
+            "role": "tp_receive_send_counts",
+            "tensor_contract": [
+              [
+                1
+              ],
+              "int32",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "dispatch",
+            "output_slot": 6,
+            "consumer": "combine",
+            "input_slot": 10,
+            "role": "expand_combine_scales",
+            "tensor_contract": [
+              [
+                128
+              ],
+              "fp32",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          }
+        ],
+        "materialized_right_pad": [
+          {
+            "role": "hidden",
+            "native_abi": [
+              "native_tensor_abi",
+              "ConcatD",
+              [
+                [
+                  [
+                    12,
+                    6144
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    4,
+                    6144
+                  ],
+                  "bf16",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    16,
+                    6144
+                  ],
+                  "bf16",
+                  "ND"
+                ]
+              ]
+            ],
+            "calls_per_forward": 75
+          },
+          {
+            "role": "router_logits",
+            "native_abi": [
+              "native_tensor_abi",
+              "ConcatD",
+              [
+                [
+                  [
+                    12,
+                    256
+                  ],
+                  "fp32",
+                  "ND"
+                ],
+                [
+                  [
+                    4,
+                    256
+                  ],
+                  "fp32",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    16,
+                    256
+                  ],
+                  "fp32",
+                  "ND"
+                ]
+              ]
+            ],
+            "calls_per_forward": 75
+          }
+        ],
+        "tp_finalization": {
+          "observed_native_calls_per_forward": 75,
+          "source_payload_bytes_per_rank": 12288,
+          "gathered_shape": [
+            16,
+            6144
+          ],
+          "unpad_output_shape": [
+            12,
+            6144
+          ],
+          "payload_basis": "source_caller_BF16_contract; not_observed_HCOM_descriptor"
+        },
+        "fresh_graph_obligations": [
+          "One complete native DispatchV2 and CombineV2 boundary per declared MoE layer.",
+          "Dispatch INT8 plus FP32 dynamic scale feeds GMM directly; no second routed activation quantizer.",
+          "Keep expand_scales distinct from dynamic_scales despite equal dtype and shape.",
+          "Native route replaces route_pack/route_unpack; preserve topk, active-mask, group-count and weighted-combine dependencies.",
+          "Preserve shared FFN DynamicQuant/DSQ; do not remove every same-named quantizer globally.",
+          "Keep source right-pad and TP local slicing, then AllGather and final unpad.",
+          "Every original external dependency must reach a surviving consumer; no dangling IDs or disconnected completion join."
+        ],
+        "unproven": [
+          "ABI cannot observe tensor values, per-expert valid counts or pointer-level producer identity.",
+          "Public V2 interface/source compatibility does not establish the captured binary revision."
+        ]
+      },
+      "source_condition": {
+        "kind": "explicit_logical_transport_concurrency",
+        "max_inflight_per_rank": 16,
+        "basis": "fully_concurrent_EP_peer_window_for_logical_payload_lower_bound",
+        "observed_window": false,
+        "captured_inner_tiling": null,
+        "scope": "Does not identify fullmesh/basic/hierarchy selection or captured native peer concurrency."
+      },
+      "response_rules": [
+        {
+          "rule_id": "moedistributecombinev2-complete-group-response",
+          "native_operator_type": "MoeDistributeCombineV2",
+          "expected_rule_hits": 75,
+          "parameter_us": 41.608808787878786,
+          "complete_call_count": 3300
+        },
+        {
+          "rule_id": "moedistributedispatchv2-complete-group-response",
+          "native_operator_type": "MoeDistributeDispatchV2",
+          "expected_rule_hits": 75,
+          "parameter_us": 39.234831212121215,
+          "complete_call_count": 3300
+        }
+      ],
+      "fresh_graph": {
+        "native_dispatch_groups": 75,
+        "native_combine_groups": 75,
+        "separate_route_pack_count": 0,
+        "separate_route_unpack_count": 0,
+        "routed_quantizers_removed": 75,
+        "shared_dequant_swiglu_quant_count": 75,
+        "tp_finalization_allgather_count": 75,
+        "dependencies_resolve_to_preserved_external_inputs": true
+      }
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot50_c2",
+      "retained_native_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot50_c2-native-partitions.json",
+        "sha256": "bff3391eed6d11b8ddf807b15bb1e4345a7b35a47bb97b20c1652533d6b54dd5",
+        "size_bytes": 2685140
+      },
+      "baseline_case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm78-joint-service/cases/a3_glm53_w4a8_tp16_tpot50_c2-joint-native.json",
+        "sha256": "1019fcbef22636b56604140aa2378d34d6433a0952d803a0006374b1909ea4e1",
+        "size_bytes": 1071255
+      },
+      "case_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-glm78-native-v2-service/cases/a3_glm53_w4a8_tp16_tpot50_c2-native-v2.json",
+        "sha256": "b1698a635e743edc32ac2214dc0a88ffe49140f3e5310974d7ef4e0471dc6851",
+        "size_bytes": 1264568
+      },
+      "typed_native_proof": {
+        "case_id": "a3_glm53_w4a8_tp16_tpot50_c2",
+        "source_identity": {
+          "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+          "sha256": "1f91ecac9a99c7ab0687fb1175db3ceefa39c6d31cca0bc4e4a4edb859a9ad13",
+          "size_bytes": 68070780
+        },
+        "body_acceptance_identity": {
+          "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/scope-paired/auto-forward-a3_glm53_w4a8_tp16_tpot50_c2.json",
+          "sha256": "6589bad92e7ca731937524466b69528d88b47c7c9bdc5c8b968a92dcbb18245d",
+          "size_bytes": 1891945
+        },
+        "geometry": {
+          "query_rows": 12,
+          "sequences_per_replica": 2,
+          "tokens_per_sequence": 6,
+          "context_tokens": 4096,
+          "batch_basis": "captured_paged_attention_block_table_rows",
+          "context_basis": "not_observed_from_cache_capacity",
+          "phase": "decode"
+        },
+        "forward_count": 44,
+        "layer_ids": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77
+        ],
+        "calls_per_native_per_forward": 75,
+        "source_caller_geometry": {
+          "global_query_rows": 12,
+          "tp": 16,
+          "ep": 16,
+          "experts": 256,
+          "right_padded_rows": 16,
+          "tp_local_rows": 1,
+          "hidden": 6144,
+          "topk": 8,
+          "expert_buffer_capacity_rows": 128,
+          "expert_valid_rows": null,
+          "buffer_capacity_is_not_valid_rows": true
+        },
+        "native_contracts": {
+          "dispatch": [
+            "native_tensor_abi",
+            "MoeDistributeDispatchV2",
+            [
+              [
+                [
+                  1,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  1,
+                  8
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [
+                  1
+                ],
+                "bool",
+                "ND"
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ]
+            ],
+            [
+              [
+                [
+                  128,
+                  6144
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  128
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [
+                  16384
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  16
+                ],
+                "int64",
+                "ND"
+              ],
+              [
+                [
+                  256
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  1
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  128
+                ],
+                "fp32",
+                "ND"
+              ]
+            ]
+          ],
+          "combine": [
+            "native_tensor_abi",
+            "MoeDistributeCombineV2",
+            [
+              [
+                [
+                  128,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  1,
+                  8
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  16384
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  256
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  1,
+                  8
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [
+                  1
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  1
+                ],
+                "bool",
+                "ND"
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [
+                  128
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ]
+            ],
+            [
+              [
+                [
+                  1,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ]
+            ]
+          ],
+          "expert_up": [
+            "native_tensor_abi",
+            "GroupedMatmulSwigluQuantV2",
+            [
+              [
+                [
+                  128,
+                  6144
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  128
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [
+                  16
+                ],
+                "int64",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  64,
+                  384,
+                  16,
+                  64
+                ],
+                "DT_INT4",
+                "FRACTAL_NZ"
+              ],
+              [
+                [
+                  16,
+                  4096
+                ],
+                "UINT64",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  4096
+                ],
+                "fp32",
+                "ND"
+              ]
+            ],
+            [
+              [
+                [
+                  128,
+                  2048
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  128
+                ],
+                "fp32",
+                "ND"
+              ]
+            ]
+          ],
+          "expert_down": [
+            "native_tensor_abi",
+            "GroupedMatmul",
+            [
+              [
+                [
+                  128,
+                  2048
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  2048,
+                  6144
+                ],
+                "DT_INT4",
+                "FRACTAL_NZ"
+              ],
+              [
+                [
+                  16,
+                  6144
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [
+                  16,
+                  1,
+                  6144
+                ],
+                "UINT64",
+                "NCL"
+              ],
+              [
+                [],
+                "fp32",
+                "ND"
+              ],
+              [
+                [],
+                "fp16",
+                "ND"
+              ],
+              [
+                [],
+                "fp16",
+                "ND"
+              ],
+              [
+                [
+                  16
+                ],
+                "int64",
+                "ND"
+              ],
+              [
+                [
+                  128
+                ],
+                "fp32",
+                "ND"
+              ]
+            ],
+            [
+              [
+                [
+                  128,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ]
+            ]
+          ]
+        },
+        "typed_links": [
+          {
+            "producer": "dispatch",
+            "output_slot": 0,
+            "consumer": "expert_up",
+            "input_slot": 0,
+            "role": "quantized_expert_payload",
+            "tensor_contract": [
+              [
+                128,
+                6144
+              ],
+              "int8",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "dispatch",
+            "output_slot": 1,
+            "consumer": "expert_up",
+            "input_slot": 1,
+            "role": "dynamic_activation_scale",
+            "tensor_contract": [
+              [
+                128
+              ],
+              "fp32",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "dispatch",
+            "output_slot": 3,
+            "consumer": "expert_up",
+            "input_slot": 2,
+            "role": "expert_token_counts",
+            "tensor_contract": [
+              [
+                16
+              ],
+              "int64",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "dispatch",
+            "output_slot": 3,
+            "consumer": "expert_down",
+            "input_slot": 7,
+            "role": "expert_token_counts",
+            "tensor_contract": [
+              [
+                16
+              ],
+              "int64",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "expert_up",
+            "output_slot": 0,
+            "consumer": "expert_down",
+            "input_slot": 0,
+            "role": "fused_swiglu_quantized_payload",
+            "tensor_contract": [
+              [
+                128,
+                2048
+              ],
+              "int8",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "expert_up",
+            "output_slot": 1,
+            "consumer": "expert_down",
+            "input_slot": 8,
+            "role": "fused_swiglu_dynamic_scale",
+            "tensor_contract": [
+              [
+                128
+              ],
+              "fp32",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "expert_down",
+            "output_slot": 0,
+            "consumer": "combine",
+            "input_slot": 0,
+            "role": "bf16_expert_output",
+            "tensor_contract": [
+              [
+                128,
+                6144
+              ],
+              "bf16",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "dispatch",
+            "output_slot": 2,
+            "consumer": "combine",
+            "input_slot": 2,
+            "role": "assist_info_for_combine",
+            "tensor_contract": [
+              [
+                16384
+              ],
+              "int32",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "dispatch",
+            "output_slot": 4,
+            "consumer": "combine",
+            "input_slot": 3,
+            "role": "ep_receive_send_counts",
+            "tensor_contract": [
+              [
+                256
+              ],
+              "int32",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "dispatch",
+            "output_slot": 5,
+            "consumer": "combine",
+            "input_slot": 5,
+            "role": "tp_receive_send_counts",
+            "tensor_contract": [
+              [
+                1
+              ],
+              "int32",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          },
+          {
+            "producer": "dispatch",
+            "output_slot": 6,
+            "consumer": "combine",
+            "input_slot": 10,
+            "role": "expand_combine_scales",
+            "tensor_contract": [
+              [
+                128
+              ],
+              "fp32",
+              "ND"
+            ],
+            "basis": "complete_native_tensor_contract_compatibility_and_V2_interface_role",
+            "observed_pointer_identity": false
+          }
+        ],
+        "materialized_right_pad": [
+          {
+            "role": "hidden",
+            "native_abi": [
+              "native_tensor_abi",
+              "ConcatD",
+              [
+                [
+                  [
+                    12,
+                    6144
+                  ],
+                  "bf16",
+                  "ND"
+                ],
+                [
+                  [
+                    4,
+                    6144
+                  ],
+                  "bf16",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    16,
+                    6144
+                  ],
+                  "bf16",
+                  "ND"
+                ]
+              ]
+            ],
+            "calls_per_forward": 75
+          },
+          {
+            "role": "router_logits",
+            "native_abi": [
+              "native_tensor_abi",
+              "ConcatD",
+              [
+                [
+                  [
+                    12,
+                    256
+                  ],
+                  "fp32",
+                  "ND"
+                ],
+                [
+                  [
+                    4,
+                    256
+                  ],
+                  "fp32",
+                  "ND"
+                ]
+              ],
+              [
+                [
+                  [
+                    16,
+                    256
+                  ],
+                  "fp32",
+                  "ND"
+                ]
+              ]
+            ],
+            "calls_per_forward": 75
+          }
+        ],
+        "tp_finalization": {
+          "observed_native_calls_per_forward": 75,
+          "source_payload_bytes_per_rank": 12288,
+          "gathered_shape": [
+            16,
+            6144
+          ],
+          "unpad_output_shape": [
+            12,
+            6144
+          ],
+          "payload_basis": "source_caller_BF16_contract; not_observed_HCOM_descriptor"
+        },
+        "fresh_graph_obligations": [
+          "One complete native DispatchV2 and CombineV2 boundary per declared MoE layer.",
+          "Dispatch INT8 plus FP32 dynamic scale feeds GMM directly; no second routed activation quantizer.",
+          "Keep expand_scales distinct from dynamic_scales despite equal dtype and shape.",
+          "Native route replaces route_pack/route_unpack; preserve topk, active-mask, group-count and weighted-combine dependencies.",
+          "Preserve shared FFN DynamicQuant/DSQ; do not remove every same-named quantizer globally.",
+          "Keep source right-pad and TP local slicing, then AllGather and final unpad.",
+          "Every original external dependency must reach a surviving consumer; no dangling IDs or disconnected completion join."
+        ],
+        "unproven": [
+          "ABI cannot observe tensor values, per-expert valid counts or pointer-level producer identity.",
+          "Public V2 interface/source compatibility does not establish the captured binary revision."
+        ]
+      },
+      "source_condition": {
+        "kind": "explicit_logical_transport_concurrency",
+        "max_inflight_per_rank": 16,
+        "basis": "fully_concurrent_EP_peer_window_for_logical_payload_lower_bound",
+        "observed_window": false,
+        "captured_inner_tiling": null,
+        "scope": "Does not identify fullmesh/basic/hierarchy selection or captured native peer concurrency."
+      },
+      "response_rules": [
+        {
+          "rule_id": "moedistributecombinev2-complete-group-response",
+          "native_operator_type": "MoeDistributeCombineV2",
+          "expected_rule_hits": 75,
+          "parameter_us": 41.234158484848486,
+          "complete_call_count": 3300
+        },
+        {
+          "rule_id": "moedistributedispatchv2-complete-group-response",
+          "native_operator_type": "MoeDistributeDispatchV2",
+          "expected_rule_hits": 75,
+          "parameter_us": 39.22430909090909,
+          "complete_call_count": 3300
+        }
+      ],
+      "fresh_graph": {
+        "native_dispatch_groups": 75,
+        "native_combine_groups": 75,
+        "separate_route_pack_count": 0,
+        "separate_route_unpack_count": 0,
+        "routed_quantizers_removed": 75,
+        "shared_dequant_swiglu_quant_count": 75,
+        "tp_finalization_allgather_count": 75,
+        "dependencies_resolve_to_preserved_external_inputs": true
+      }
+    }
+  ],
+  "raw_reads": 0,
+  "new_predictions": 0,
+  "producer_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/build_glm78_native_v2_service_cases.py",
+    "sha256": "d2b94b55049e6c7aee5000d38d2c14cee2eefb54a84472a9b8e89628f608cfd4",
+    "size_bytes": 9658
+  },
+  "typed_checker_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/check_glm78_native_v2.py",
+    "sha256": "19e659b2e5717a08b8716f52d160d40dcfb75f6770b7fe7f0cec395412ce7717",
+    "size_bytes": 7840
+  }
+}
