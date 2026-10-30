@@ -27,7 +27,8 @@ from replay_body_operator_families import identity, read, write
 def runtime_identity():
     value = prediction_runtime_identity()
     for name in ('kimi_native_references.py', 'compare_kimi_native_partitions.py',
-                 'glm_native_references.py', 'reprice_body_operator_families.py'):
+                 'kimi_paged_mla_references.py', 'glm_native_references.py',
+                 'reprice_kimi_matrix_partitions.py', 'reprice_body_operator_families.py'):
         path = Path(__file__).with_name(name).resolve()
         value[str(path)] = identity(path)['sha256']
     return value
@@ -44,7 +45,24 @@ def verify_pin(pin):
         raise ValueError('retained_input_changed:' + pin['path'])
 
 
-def worker(partition_path, case_path, runtime_commit):
+def additional_partitions(part, actual, path):
+    """Add a complete FIA population without copying MC2 from the same PMU pass."""
+    from reprice_kimi_matrix_partitions import retained_population_origin
+    added = read(path)
+    verify_pin(added['actual_identity'])
+    additional_actual = read(added['actual_identity']['path'])
+    proof = retained_population_origin(additional_actual, part, added['actual_identity'], 'FusedInferAttentionScore')
+    proof = {**proof, 'additional_actual_identity': added['actual_identity']}
+    for key in ('source_identity', 'body_acceptance_identity', 'geometry', 'forward_count', 'source_case_id'):
+        if part[key] != added[key]: raise ValueError('additional_partition_population_differs:' + key)
+    fia = [p for p in added['partitions'] if p['native_operator_type'] == 'FusedInferAttentionScore']
+    if not fia or any(p['native_operator_type'] == 'FusedInferAttentionScore' for p in part['partitions']):
+        raise ValueError('additional_FIA_population_missing_or_duplicated')
+    return {**part, 'partitions': part['partitions'] + fia,
+            'native_event_count': part['native_event_count'] + sum(p['observed_us']['count'] for p in fia)}, proof
+
+
+def worker(partition_path, case_path, runtime_commit, additional_partition_path=None):
     from mindie_sim.prediction.structure import parse_case
     from mindie_sim.structure import export_structure
 
@@ -53,6 +71,10 @@ def worker(partition_path, case_path, runtime_commit):
     part = read(partition_path); verify_pin(part['actual_identity'])
     actual = read(part['actual_identity']['path'])
     verify_pin(actual['body_acceptance_identity'])
+    additional_pin, additional_lineage = None, None
+    if additional_partition_path:
+        additional_pin = identity(additional_partition_path)
+        part, additional_lineage = additional_partitions(part, actual, additional_partition_path)
     for key in ('source_identity', 'geometry', 'forward_count', 'body_acceptance_identity'):
         if actual[key] != part[key]:
             raise ValueError('partition_actual_identity_differs:' + key)
@@ -138,12 +160,17 @@ def worker(partition_path, case_path, runtime_commit):
                 'Native elapsed activity and source service are not additive Body wall contributions.',
                 'Exact captured native histograms remain whole; per-layer latency is not imputed.', *limitations]})
     for pin in (part_pin, case_pin, part['actual_identity'], body_pin): verify_pin(pin)
+    if additional_pin:
+        verify_pin(additional_pin)
+        verify_pin(additional_lineage['additional_actual_identity'])
     if runtime_identity() != before: raise ValueError('reference_runtime_changed')
     rss = peak_rss()
     if rss > 512 * 1024**2: raise MemoryError('kimi_native_reference_exceeds_512_mib')
     return {'schema_version': 'mindie-native-body-reference/1',
         'status': 'partial' if unresolved else 'completed', 'case_id': part['source_case_id'],
         'partition_identity': part_pin, 'actual_identity': part['actual_identity'],
+        'additional_partition_identity': additional_pin,
+        'additional_partition_lineage': additional_lineage,
         'case_identity': case_pin, 'original_case_identity': part['case_identity'],
         'source_identity': source_pin, 'body_acceptance_identity': body_pin,
         'geometry': geo, 'forward_count': part['forward_count'],
@@ -195,6 +222,9 @@ def main():
     parser.add_argument('--manifest', type=Path)
     parser.add_argument('--partition-dir', type=Path)
     parser.add_argument('--partition', type=Path)
+    parser.add_argument('--additional-partition-dir', type=Path,
+        help='Complete FIA native buckets to add to the existing six-family reference population')
+    parser.add_argument('--additional-partition', type=Path)
     parser.add_argument('--case', type=Path)
     parser.add_argument('--output-dir', type=Path, required=True)
     parser.add_argument('--runtime-source-commit', required=True)
@@ -202,7 +232,7 @@ def main():
     parser.add_argument('--worker', action='store_true')
     args = parser.parse_args(); args.output_dir.mkdir(parents=True, exist_ok=True)
     if args.worker:
-        result = worker(args.partition, args.case, args.runtime_source_commit)
+        result = worker(args.partition, args.case, args.runtime_source_commit, args.additional_partition)
         write(args.output_dir / (result['case_id'] + '-references.json'), result)
         return
     manifest_pin = identity(args.manifest); entries = read(args.manifest)['cases']
@@ -212,6 +242,9 @@ def main():
         command = [sys.executable, str(Path(__file__).resolve()), '--worker', '--partition', str(part.resolve()),
             '--case', entry['sim_case_path'], '--output-dir', str(args.output_dir.resolve()),
             '--runtime-source-commit', args.runtime_source_commit]
+        if args.additional_partition_dir:
+            command += ['--additional-partition', str((args.additional_partition_dir /
+                (case_id + '-native-partitions.json')).resolve())]
         try:
             result = subprocess.run(command, capture_output=True, text=True, timeout=args.timeout)
             if result.returncode: raise RuntimeError(result.stderr[-4000:])

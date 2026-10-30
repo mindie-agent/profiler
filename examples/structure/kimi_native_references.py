@@ -15,6 +15,7 @@ from math import prod
 from glm_native_references import _slot, _subgraph, freeze
 from body_source_role_references import reference_signature
 from reprice_body_operator_families import canonical
+from kimi_paged_mla_references import paged_mla_reference
 
 
 def role(target):
@@ -157,7 +158,8 @@ def _prolog(native, local, groups, execution, partition):
             'Cache addresses, scalar flags and exact captured binary are not established.']}
 
 
-SELECTORS={'AttnResFwd':_attn_res,'CausalConv1d':_convolution,'RecurrentKda':_kda,'MlaPrologV3':_prolog}
+SELECTORS={'AttnResFwd':_attn_res,'CausalConv1d':_convolution,'RecurrentKda':_kda,
+           'MlaPrologV3':_prolog,'FusedInferAttentionScore':paged_mla_reference}
 
 
 def program_signature(target):

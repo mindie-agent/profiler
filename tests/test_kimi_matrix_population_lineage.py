@@ -60,3 +60,22 @@ def test_full_paged_abi_without_length_values_is_retained_but_not_strict():
     assert decisions[0]['reason'] == 'paged_attention_sequence_values_unavailable_for_strict_physical_work'
     assert dict(families[0]['duration_ns_counter']) == dict(next(g['duration_ns_counter'] for g in part['partitions']
         if g['native_operator_type'] == 'FusedInferAttentionScore'))
+
+
+def test_original_matrix_only_schema_keeps_every_captured_call():
+    helper, row, actual, partitions = inputs()
+    import mindie_sim
+    from mindie_sim.structure import export_structure
+    case_path = Path(mindie_sim.__file__).resolve().parents[1] / 'examples/cases/high-concurrency-20261030/kimi-source-complete/a5_kimi_tp8_e16_bf16_c32_p4k_source_complete.json'
+    if not case_path.exists(): pytest.skip('Companion source-complete case unavailable')
+    manifest = export_structure(json.loads(case_path.read_text()), phase='decode', tokens=1,
+        sequences=32, context=actual['conditional_context_tokens'], scope='body')
+    previous = json.loads(Path(row['mapping_identity']['path']).read_text())
+    cohorts, _, families, _ = helper.matrix_mapping(partitions, previous, manifest)
+    assert cohorts
+    from collections import Counter
+    before, after = Counter(), Counter()
+    for part in partitions['partitions']: before.update(dict(part['duration_ns_counter']))
+    for family in families: after.update(dict(family['duration_ns_counter']))
+    assert before == after
+    assert sum(c['event_count'] for c in cohorts) <= sum(before.values())

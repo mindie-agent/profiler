@@ -85,7 +85,8 @@ def matrix_mapping(partitions, previous, manifest, native_type='MatMulV3'):
     groups, family = {}, {}
     decisions = []
     for index, part in enumerate(partitions["partitions"]):
-        if part['native_operator_type'] != native_type:
+        # The original matrix-only schema carries the kind inside its full ABI.
+        if part.get('native_operator_type', part['native_abi'][1]) != native_type:
             continue
         contract = part["contract"]
         available = mapper._rank_candidates(mapper.contracts.get(_freeze(contract), ()), "rank_0") if contract else []

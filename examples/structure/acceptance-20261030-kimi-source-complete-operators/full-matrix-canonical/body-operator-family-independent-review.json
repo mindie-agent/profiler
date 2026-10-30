@@ -1,0 +1,89 @@
+{
+  "schema_version": "mindie-body-operator-independent-review/1",
+  "status": "passed",
+  "checks": 5728,
+  "failures": [],
+  "scoreboard_sha256": "777c6bc7d38e711d51e8a1987efd0ce7463358bc5b185dbb431a88c48fbede4e",
+  "steady_layer_pooled_sha256": null,
+  "source_count": 12,
+  "forward_count": 618,
+  "comparison_status_counts": {
+    "compared": 122
+  },
+  "accuracy_by_tier": {
+    "absolute_15us": {
+      "compared": 118,
+      "passed": 118
+    },
+    "relative_15pct": {
+      "compared": 4,
+      "passed": 4
+    }
+  },
+  "cases": [
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c16_p16k / source-complete30dcea1e-full-matrix",
+      "passed": 11,
+      "compared": 11
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c16_p4k / source-complete30dcea1e-full-matrix",
+      "passed": 11,
+      "compared": 11
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c1_p16k / source-complete30dcea1e-full-matrix",
+      "passed": 10,
+      "compared": 10
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c1_p4k / source-complete30dcea1e-full-matrix",
+      "passed": 10,
+      "compared": 10
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c2_p16k / source-complete30dcea1e-full-matrix",
+      "passed": 9,
+      "compared": 9
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c2_p4k / source-complete30dcea1e-full-matrix",
+      "passed": 9,
+      "compared": 9
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c32_p16k / source-complete30dcea1e-full-matrix",
+      "passed": 11,
+      "compared": 11
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c32_p4k / source-complete30dcea1e-full-matrix",
+      "passed": 11,
+      "compared": 11
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c4_p16k / source-complete30dcea1e-full-matrix",
+      "passed": 9,
+      "compared": 9
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c4_p4k / source-complete30dcea1e-full-matrix",
+      "passed": 9,
+      "compared": 9
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c8_p16k / source-complete30dcea1e-full-matrix",
+      "passed": 11,
+      "compared": 11
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c8_p4k / source-complete30dcea1e-full-matrix",
+      "passed": 11,
+      "compared": 11
+    }
+  ],
+  "method": "independent stdlib histogram/count/identity arithmetic; no profiler or Sim import",
+  "raw_capture_reads": 0,
+  "prediction_executions": 0,
+  "script_sha256": "a85103ef31f062af5e5398c93185a230367706f473fbed49219631235f43abc4"
+}
