@@ -1,0 +1,134 @@
+{
+  "schema_version": "mindie-observed-service-replay-independent-review/1",
+  "report_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-kimi-v41/decode-forward-source-routing-84d80b40-projected.json",
+    "sha256": "7b8c752ee58fc979bcf7185bc21d54d389d11987bcb6d43687bcc05fbc220b13"
+  },
+  "manifest_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-kimi-v41/decode-forward-source-routing-84d80b40-cases.json",
+    "sha256": "c98c185b1aca0358c0595497b94307d7b389905abe3b5c1b230a90ffb5ed7dfe"
+  },
+  "checks": 2592,
+  "failures": [],
+  "status": "passed",
+  "cases": [
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c1_p16k",
+      "observed_forwards": 59,
+      "observed_mean_ms": 30.823435050847458,
+      "predicted_ms": 31.86582389285551,
+      "relative_error": 0.03381806214292758,
+      "passed": true,
+      "rule_count": 21,
+      "matched_invocations": 1670,
+      "peak_worker_rss_bytes": 153993216,
+      "prediction_elapsed_seconds": 7.826222875039093
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c1_p4k",
+      "observed_forwards": 59,
+      "observed_mean_ms": 30.63685447457627,
+      "predicted_ms": 31.671910510729465,
+      "relative_error": 0.033784670583989804,
+      "passed": true,
+      "rule_count": 21,
+      "matched_invocations": 1670,
+      "peak_worker_rss_bytes": 152027136,
+      "prediction_elapsed_seconds": 7.051156957983039
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c2_p16k",
+      "observed_forwards": 54,
+      "observed_mean_ms": 33.875752685185184,
+      "predicted_ms": 34.11921556878443,
+      "relative_error": 0.007186936504756187,
+      "passed": true,
+      "rule_count": 20,
+      "matched_invocations": 1601,
+      "peak_worker_rss_bytes": 155992064,
+      "prediction_elapsed_seconds": 9.06111645908095
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c2_p4k",
+      "observed_forwards": 55,
+      "observed_mean_ms": 33.54763016363636,
+      "predicted_ms": 33.77764978316841,
+      "relative_error": 0.006856508743242658,
+      "passed": true,
+      "rule_count": 20,
+      "matched_invocations": 1601,
+      "peak_worker_rss_bytes": 153403392,
+      "prediction_elapsed_seconds": 7.558332583983429
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c4_p16k",
+      "observed_forwards": 52,
+      "observed_mean_ms": 34.816498326923075,
+      "predicted_ms": 35.07443316918223,
+      "relative_error": 0.007408408503266869,
+      "passed": true,
+      "rule_count": 20,
+      "matched_invocations": 1601,
+      "peak_worker_rss_bytes": 157679616,
+      "prediction_elapsed_seconds": 14.09023683401756
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c4_p4k",
+      "observed_forwards": 53,
+      "observed_mean_ms": 34.19370916981132,
+      "predicted_ms": 34.46185652538691,
+      "relative_error": 0.007842008430378931,
+      "passed": true,
+      "rule_count": 20,
+      "matched_invocations": 1601,
+      "peak_worker_rss_bytes": 155500544,
+      "prediction_elapsed_seconds": 9.698498541954905
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c8_p16k",
+      "observed_forwards": 51,
+      "observed_mean_ms": 35.964417431372546,
+      "predicted_ms": 37.58529623402688,
+      "relative_error": 0.04506895755359584,
+      "passed": true,
+      "rule_count": 22,
+      "matched_invocations": 1785,
+      "peak_worker_rss_bytes": 157237248,
+      "prediction_elapsed_seconds": 16.79257645807229
+    },
+    {
+      "case_id": "a5_kimi_tp8_e16_bf16_c8_p4k",
+      "observed_forwards": 52,
+      "observed_mean_ms": 34.81921332692308,
+      "predicted_ms": 36.421313911760144,
+      "relative_error": 0.04601196959261236,
+      "passed": true,
+      "rule_count": 22,
+      "matched_invocations": 1785,
+      "peak_worker_rss_bytes": 155992064,
+      "prediction_elapsed_seconds": 12.033040417009033
+    }
+  ],
+  "observation_receipts": {
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c1_p16k-source-complete30dcea1e-full-matrix.mapping.json": "771f204a5e3efa39a63c268bffa7e569db007388ea619d589d449bcbbcac83e0",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-native-references-5ec8843a/kimi-native-reference-scoreboard.json": "8fbf36350f208900a01accb57d6695a99a1d5e5feeee9cda13adb7e27a8fa547",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c1_p16k-source-complete30dcea1e-full-matrix.family-scoreboard.json": "57f2f3c6fc0ae29ca6020c4e6a719981f0bacdf447c6bd32fbb87d51aa1b8dcb",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c1_p4k-source-complete30dcea1e-full-matrix.mapping.json": "29ae70b8896fa23b08cc51d02d3cab1a211193fa9389b309832d2315c48e5caa",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c1_p4k-source-complete30dcea1e-full-matrix.family-scoreboard.json": "aff4d6f01bd83c0826607a4d80327353a2e3799a19aef45d0f7a200182b4ecd4",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c2_p16k-source-complete30dcea1e-full-matrix.mapping.json": "ed1daf334574ad0b88721b8ee0e2cbea41768f50a684203208f10db113aabf82",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c2_p16k-source-complete30dcea1e-full-matrix.family-scoreboard.json": "490278103a5f6c5109c03b8107b2d4b7f2d601672faaaff44f7406548d8498b1",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c2_p4k-source-complete30dcea1e-full-matrix.mapping.json": "d440fe87cbae89ac33c1b164697c0e0819ccc534e675745ff74a2cc5b4403004",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c2_p4k-source-complete30dcea1e-full-matrix.family-scoreboard.json": "9c8e003aa87ada1914cf4c5a9e309748aed1738124aed7d2933de1b60f601c18",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c4_p16k-source-complete30dcea1e-full-matrix.mapping.json": "0a9d3e6137722f12de5479d2f2972ba981df3db0ab6570d05dd13be920f0188f",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c4_p16k-source-complete30dcea1e-full-matrix.family-scoreboard.json": "a95051d45829840cc069fef14682d9b8e0da57a5ffa6d5691c18d6867099439d",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c4_p4k-source-complete30dcea1e-full-matrix.mapping.json": "79557d31a5b5185ae1e2c3ad499a1bc691039ff15fe1fa34a90cb63c82755eae",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c4_p4k-source-complete30dcea1e-full-matrix.family-scoreboard.json": "3b1f218ca984b665aec3eaae2a7c84b7cff062d5b80960f57d031f26a9aa6f25",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c8_p16k-source-complete30dcea1e-full-matrix.mapping.json": "9314dd9d5fdba1fd1575c07b13a449d46b48e3efb366439e366a86b934c7ccf9",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c8_p16k-source-complete30dcea1e-full-matrix.family-scoreboard.json": "926a243b9bb7c30e5712ce42762632153a0172bcc78fc304e2158f6534c0d757",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c8_p4k-source-complete30dcea1e-full-matrix.mapping.json": "0f562ef1b6bc94d53059a45314041fa6f4a9d5434ce4672f3e92911034653b80",
+    "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-source-complete-operators/full-matrix-canonical/body-operator-a5_kimi_tp8_e16_bf16_c8_p4k-source-complete30dcea1e-full-matrix.family-scoreboard.json": "9cf6a63880142cbdfc99d9abd749578c71765cc27de01bbab7fa39183d6e375f"
+  },
+  "raw_event_reads": 0,
+  "new_predictions": 0,
+  "peak_rss_bytes": 153370624
+}

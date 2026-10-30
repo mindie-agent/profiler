@@ -28,6 +28,25 @@ GEOMETRY_FIELDS = (
 BOUNDARY = "target_body_device_graph"
 
 
+def source_routing_declaration(kernels):
+    """Retain an explicit source scenario independently of timing calibration."""
+    selected = kernels.get("force_eplb_source")
+    if selected is None:
+        return None
+    return {"force_eplb_source": dict(selected),
+            "representative_physical_rank": 0,
+            "compute_scope": "declared_physical_rank_zero",
+            "transport_scope": "complete_source_integer_peer_matrix",
+            "captured_group_list_values_observed": False,
+            "captured_binary_identity_established": False}
+
+
+def _has_source_rank_scope(predicted):
+    declaration = predicted.get("source_routing_declaration") or {}
+    return declaration.get("force_eplb_source") == {
+        "kind": "vllm_ascend_sp_mc2", "global_bs": 0}
+
+
 def _stats(values):
     ordered = sorted(values)
     return {
@@ -204,6 +223,7 @@ def summarize_prediction(case, result):
         "span_end_basis": "target_body_output_ready_on_all_cohort_participants",
         "geometry": result["geometry"],
         "parameters": result.get("parameters", {}),
+        "source_routing_declaration": source_routing_declaration(parsed.runtime.kernels),
         "body_forward_span_ms": result["body_forward_ms"],
         "first_kernel_ready_ms": first_kernel_ready,
         "first_kernel_to_body_complete_ms": (
@@ -251,7 +271,8 @@ def compare_body_forward(predicted, observed):
 
     ``participating_replicas`` describes the measured boundary, not a guessed
     conversion of physical rank IDs. Automatic single-rank alignment is compared
-    conditionally under exchange symmetry; full-cohort observation is not claimed.
+    conditionally under the explicitly declared source-rank scope when present,
+    otherwise exchange symmetry; full-cohort observation is not claimed.
     """
     reasons = []
     if predicted.get("status") != "modeled" or not predicted.get("timeline_complete"):
@@ -264,7 +285,10 @@ def compare_body_forward(predicted, observed):
     scope = observed.get("comparison_scope") or {}
     assumptions = list(observed.get("comparison_assumptions", []))
     if automatic:
-        assumptions.append("Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage.")
+        if _has_source_rank_scope(predicted):
+            assumptions.append("The explicit source scenario models physical rank-zero compute with the complete asymmetric integer peer-transport matrix; captured group-list values and all-rank completion are not observed.")
+        else:
+            assumptions.append("Captured rank represents the declared balanced, exchange-symmetric cohort; this is conditional, not measured all-rank coverage.")
     if predicted.get("first_kernel_to_body_complete_ms") is None:
         reasons.append("prediction_first_kernel_endpoint_missing")
     for field in GEOMETRY_FIELDS:
@@ -306,7 +330,7 @@ def compare_body_forward(predicted, observed):
 
 
 def compare_layers(predicted, observed):
-    """Collapse symmetric DP copies to one representative, without summing them."""
+    """Compare one declared rank/replica without summing peer layer envelopes."""
     replica = min((row["replica"] for row in predicted["per_layer_ms"]), default=None)
     indexed = {row["layer_id"]: row for row in predicted["per_layer_ms"] if row["replica"] == replica}
     comparisons, grouped, attention = [], defaultdict(list), defaultdict(list)
@@ -337,7 +361,9 @@ def compare_layers(predicted, observed):
         "basis": "conditional_topology_layer_alignment_single_representative_replica",
         "endpoint": "first_layer_kernel_invocation_to_last_layer_kernel_completion",
         "assumptions": ["Captured layer ordinal follows the declared full topology; this is not a Host occurrence binding.",
-                        "One representative DP replica is compared under exchange symmetry; replicas are not summed."],
+                        ("The source scenario uses physical rank-zero layer compute with complete asymmetric peer transport; peer compute envelopes are not inferred or summed."
+                         if _has_source_rank_scope(predicted) else
+                         "One representative DP replica is compared under exchange symmetry; replicas are not summed.")],
         "layers": comparisons,
         "summary": {"observed_layers": len(comparisons), "declared_layers": len(indexed),
                     "compared_layers": sum(row["status"] == "compared" for row in comparisons),

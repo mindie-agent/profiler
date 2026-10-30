@@ -69,3 +69,27 @@ These cases reuse their own complete retained observation means; no high-c32 gro
 | a5_kimi_tp8_e16_bf16_c4_p4k | 53 | 34.193709 | 34.461857 | +0.78% |
 | a5_kimi_tp8_e16_bf16_c8_p16k | 51 | 35.964417 | 37.585296 | +4.51% |
 | a5_kimi_tp8_e16_bf16_c8_p4k | 52 | 34.819213 | 36.421314 | +4.60% |
+
+
+## Explicit source force-EPLB work, runtime 84d80b40
+
+The [source-routing replay](decode-forward-source-routing-84d80b40-projected.json) replaces the earlier generic padded assignment declaration for the same eight low-M populations: **8/8 pass, 435 forwards**, eight new workers, 85.63 seconds, 149.95 MiB maximum worker RSS. No timing parameter or observation population was refitted; the generated selectors were re-exported against the corrected physical work.
+
+The source cursor and SP valid-prefix mask yield rank-zero expert rows `(1,0)`, `(2,0)`, `(3,1)` and `(5,3)` for c1/c2/c4/c8. The [generation receipt](source-routing-84d80b40-generation.json) checks both grouped matrices and both peer transport directions across all 92 MoE layers per case. The source-scenario work discrepancy is closed. Captured group-list values, deployed binary identity and all-rank completion are still not observed; the modeled boundary is rank-zero compute plus the complete asymmetric integer peer matrix.
+
+| Case | Real ms | Sim ms | Signed error |
+|---|---:|---:|---:|
+| c1 p4k | 30.636854 | 31.671911 | +3.38% |
+| c1 p16k | 30.823435 | 31.865824 | +3.38% |
+| c2 p4k | 33.547630 | 33.777650 | +0.69% |
+| c2 p16k | 33.875753 | 34.119216 | +0.72% |
+| c4 p4k | 34.193709 | 34.461857 | +0.78% |
+| c4 p16k | 34.816498 | 35.074433 | +0.74% |
+| c8 p4k | 34.819213 | 36.421314 | +4.60% |
+| c8 p16k | 35.964417 | 37.585296 | +4.51% |
+
+[Independent retained-service review](source-routing-84d80b40-projected-independent-review.json): 2,592 checks, zero failures. Every declared service rule matched exactly its expected invocation count. The prior in-sample parameter populations and means remain unchanged, while physical shape/active-bank selectors were rebuilt.
+
+The [original cost report](decode-forward-source-routing-84d80b40-replay.json) remains unchanged. The recommended projected report only corrects the former exchange-symmetry display to the explicitly declared rank-zero/asymmetric-peer scope; it preserves the original worker adapter/runtime identities and records a separate comparison-projection adapter. Eight real-case regression checks verify all Body/Layer numbers and pass thresholds are unchanged. This is not another cost run. The earlier 3b72ea2d arm remains historical with its declared routing gap. The inherited `span_end_basis=target_body_output_ready_on_all_cohort_participants` is a generic label: in this explicit source arm it means completion of the modeled rank-zero compute plus complete peer-transport graph, not a claim that every physical rank's compute or completion was measured. The explicit routing declaration and comparison assumptions are the authoritative scope.
+
+Reproduce metadata generation with `prepare_source_routing_replay.py` under the pinned 84d80b40 runtime, run `replay_decode_forwards.py` with `decode-forward-source-routing-84d80b40-cases.json`, then apply `project_source_routing_scope.py`. No raw event parsing or new device work is involved.

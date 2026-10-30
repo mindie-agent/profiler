@@ -1,0 +1,748 @@
+{
+  "schema_version": "mindie-joint-collective-service-regimes/1",
+  "source_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/network-observable-service-baseline.json",
+    "sha256": "9f5fa01a4d099842be53915bebbcf5122bc86de5f6df1493e9dc4ea56fbf9e88"
+  },
+  "producer_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/fit_network_joint_services.py",
+    "sha256": "1416eedffd5893f1f720995d3273314ddd895c4bd95c4fa73b118e68882c2edf"
+  },
+  "regimes": [
+    {
+      "physical_domain": {
+        "declared_program_without_payload": {
+          "block_limit": 3,
+          "buffer_mode": "separate",
+          "collective": "allreduce",
+          "dtype_bytes": 2,
+          "expansion": "AIV",
+          "ranks": 2,
+          "selection_basis": "explicit_source_compatible_declaration",
+          "source_revision": "c2d6790464654ccf58aca39448de4b65fdc7b184",
+          "template": "mesh_oneshot",
+          "topology": "MESH_1D",
+          "topology_levels": 1
+        },
+        "hardware_sku": "Ascend950DT_9582",
+        "native_operator_type": "hcom_allReduce_",
+        "observed_engine": "AIV",
+        "observed_event_category": "collective_device_task",
+        "observed_implementation": "AivKernel"
+      },
+      "status": "bounded_two_point_secant",
+      "fit_method": "OLS over distinct payload pooled means; each payload equally weighted",
+      "evaluation_relation": "in_sample",
+      "samples": [
+        {
+          "declared_payload_bytes": 40960,
+          "observed_mean_us": 10.832807169117649,
+          "event_count": 10880,
+          "point_indices": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "source_sha256": [
+            "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d"
+          ],
+          "retained_group_mean_min_us": 10.0837875,
+          "retained_group_mean_max_us": 50.935129411764706,
+          "predicted_joint_us": 10.83280716911765,
+          "signed_per_call_residual_us": 1.7763568394002505e-15
+        },
+        {
+          "declared_payload_bytes": 491520,
+          "observed_mean_us": 43.8048497159091,
+          "event_count": 7040,
+          "point_indices": [
+            6,
+            7,
+            8,
+            9,
+            10,
+            11
+          ],
+          "source_sha256": [
+            "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841"
+          ],
+          "retained_group_mean_min_us": 39.20767045454546,
+          "retained_group_mean_max_us": 263.5030363636364,
+          "predicted_joint_us": 43.8048497159091,
+          "signed_per_call_residual_us": 0.0
+        }
+      ],
+      "parameters": {
+        "joint_fixed_us": 7.835348755772973,
+        "joint_us_per_declared_byte": 7.318013704454779e-05,
+        "effective_bytes_per_us": 13664.910184457,
+        "effective_GB_per_s_decimal": 13.664910184457,
+        "fixed_term_is_independent_rtt": false,
+        "slope_is_pure_link_bandwidth": false
+      },
+      "positive_service_parameterization": true,
+      "domain": {
+        "declared_payload_bytes": {
+          "min": 40960,
+          "max": 491520
+        },
+        "discrete_observed_payload_bytes": [
+          40960,
+          491520
+        ]
+      },
+      "extrapolation_allowed": false,
+      "original_group_residuals": [
+        {
+          "point_index": 0,
+          "predicted_joint_us": 10.83280716911765,
+          "observed_mean_us": 10.946095369211514,
+          "signed_per_call_residual_us": -0.11328820009386398,
+          "relative_error": -0.0103496448982634
+        },
+        {
+          "point_index": 1,
+          "predicted_joint_us": 10.83280716911765,
+          "observed_mean_us": 10.176453316645807,
+          "signed_per_call_residual_us": 0.6563538524718435,
+          "relative_error": 0.06449730884120841
+        },
+        {
+          "point_index": 2,
+          "predicted_joint_us": 10.83280716911765,
+          "observed_mean_us": 10.639586764705882,
+          "signed_per_call_residual_us": 0.19322040441176824,
+          "relative_error": 0.018160517761152795
+        },
+        {
+          "point_index": 3,
+          "predicted_joint_us": 10.83280716911765,
+          "observed_mean_us": 10.0837875,
+          "signed_per_call_residual_us": 0.7490196691176507,
+          "relative_error": 0.07427959674057494
+        },
+        {
+          "point_index": 4,
+          "predicted_joint_us": 10.83280716911765,
+          "observed_mean_us": 50.935129411764706,
+          "signed_per_call_residual_us": -40.102322242647055,
+          "relative_error": -0.7873214951208988
+        },
+        {
+          "point_index": 5,
+          "predicted_joint_us": 10.83280716911765,
+          "observed_mean_us": 11.330411764705882,
+          "signed_per_call_residual_us": -0.497604595588232,
+          "relative_error": -0.04391760916741483
+        },
+        {
+          "point_index": 6,
+          "predicted_joint_us": 43.8048497159091,
+          "observed_mean_us": 46.437652998065765,
+          "signed_per_call_residual_us": -2.632803282156665,
+          "relative_error": -0.05669544243044167
+        },
+        {
+          "point_index": 7,
+          "predicted_joint_us": 43.8048497159091,
+          "observed_mean_us": 39.694135783365574,
+          "signed_per_call_residual_us": 4.110713932543526,
+          "relative_error": 0.10355972869589936
+        },
+        {
+          "point_index": 8,
+          "predicted_joint_us": 43.8048497159091,
+          "observed_mean_us": 39.27898181818182,
+          "signed_per_call_residual_us": 4.525867897727281,
+          "relative_error": 0.11522365622095387
+        },
+        {
+          "point_index": 9,
+          "predicted_joint_us": 43.8048497159091,
+          "observed_mean_us": 39.20767045454546,
+          "signed_per_call_residual_us": 4.597179261363642,
+          "relative_error": 0.11725203788103866
+        },
+        {
+          "point_index": 10,
+          "predicted_joint_us": 43.8048497159091,
+          "observed_mean_us": 263.5030363636364,
+          "signed_per_call_residual_us": -219.6981866477273,
+          "relative_error": -0.8337596017092644
+        },
+        {
+          "point_index": 11,
+          "predicted_joint_us": 43.8048497159091,
+          "observed_mean_us": 39.53721818181818,
+          "signed_per_call_residual_us": 4.267631534090917,
+          "relative_error": 0.10793960046621232
+        }
+      ],
+      "max_abs_payload_mean_residual_us": 1.7763568394002505e-15,
+      "max_abs_original_group_residual_us": 219.6981866477273,
+      "interpretation": "Joint same-boundary service includes peer/control effects. Within-payload group variation remains visible; it is not eliminated by the linear fit."
+    },
+    {
+      "physical_domain": {
+        "declared_program_without_payload": {
+          "block_limit": 60,
+          "buffer_mode": "separate",
+          "collective": "allreduce",
+          "dtype_bytes": 2,
+          "expansion": "AIV",
+          "ranks": 4,
+          "selection_basis": "explicit_source_compatible_declaration",
+          "source_revision": "c2d6790464654ccf58aca39448de4b65fdc7b184",
+          "template": "mesh_twoshot",
+          "topology": "MESH_1D",
+          "topology_levels": 1
+        },
+        "hardware_sku": "Ascend950DT_9582",
+        "native_operator_type": "hcom_allReduce_",
+        "observed_engine": "AIV",
+        "observed_event_category": "collective_device_task",
+        "observed_implementation": "AivKernel"
+      },
+      "status": "joint_linear_fit",
+      "fit_method": "OLS over distinct payload pooled means; each payload equally weighted",
+      "evaluation_relation": "in_sample",
+      "samples": [
+        {
+          "declared_payload_bytes": 65536,
+          "observed_mean_us": 26.414897172619042,
+          "event_count": 6720,
+          "point_indices": [
+            18,
+            19,
+            21,
+            22,
+            23,
+            25
+          ],
+          "source_sha256": [
+            "9b8a87bfd6252204ab077e331ed97976ff9f5256935cb153677ac619dd96aac1"
+          ],
+          "retained_group_mean_min_us": 24.477809523809523,
+          "retained_group_mean_max_us": 114.052,
+          "predicted_joint_us": 26.297188597562787,
+          "signed_per_call_residual_us": -0.11770857505625543
+        },
+        {
+          "declared_payload_bytes": 1048576,
+          "observed_mean_us": 36.152740031645564,
+          "event_count": 6320,
+          "point_indices": [
+            27,
+            28,
+            30,
+            31,
+            32,
+            34
+          ],
+          "source_sha256": [
+            "5612e7cccfb3878cf27b22b1e89c5d186cd100633a44748973349f1bf03872f3"
+          ],
+          "retained_group_mean_min_us": 32.044835443037975,
+          "retained_group_mean_max_us": 255.9631265822785,
+          "predicted_joint_us": 36.380800395817054,
+          "signed_per_call_residual_us": 0.22806036417149045
+        },
+        {
+          "declared_payload_bytes": 2097152,
+          "observed_mean_us": 47.24700476973684,
+          "event_count": 6080,
+          "point_indices": [
+            36,
+            37,
+            39,
+            40,
+            42,
+            43
+          ],
+          "source_sha256": [
+            "bf35b8b21c078d6fc7223918b280158fda5ee7c1f83009c70c98b16f27b08df5"
+          ],
+          "retained_group_mean_min_us": 45.491368421052634,
+          "retained_group_mean_max_us": 75.94138157894737,
+          "predicted_joint_us": 47.136652980621605,
+          "signed_per_call_residual_us": -0.11035178911523502
+        }
+      ],
+      "parameters": {
+        "joint_fixed_us": 25.624947811012504,
+        "joint_us_per_declared_byte": 1.0257580361179875e-05,
+        "effective_bytes_per_us": 97488.8779603941,
+        "effective_GB_per_s_decimal": 97.48887796039409,
+        "fixed_term_is_independent_rtt": false,
+        "slope_is_pure_link_bandwidth": false
+      },
+      "positive_service_parameterization": true,
+      "domain": {
+        "declared_payload_bytes": {
+          "min": 65536,
+          "max": 2097152
+        },
+        "discrete_observed_payload_bytes": [
+          65536,
+          1048576,
+          2097152
+        ]
+      },
+      "extrapolation_allowed": false,
+      "original_group_residuals": [
+        {
+          "point_index": 18,
+          "predicted_joint_us": 26.297188597562787,
+          "observed_mean_us": 25.456769293924467,
+          "signed_per_call_residual_us": 0.8404193036383205,
+          "relative_error": 0.033013588406872074
+        },
+        {
+          "point_index": 19,
+          "predicted_joint_us": 26.297188597562787,
+          "observed_mean_us": 25.222540229885055,
+          "signed_per_call_residual_us": 1.0746483676777316,
+          "relative_error": 0.042606666810047544
+        },
+        {
+          "point_index": 21,
+          "predicted_joint_us": 26.297188597562787,
+          "observed_mean_us": 25.336713095238093,
+          "signed_per_call_residual_us": 0.9604755023246945,
+          "relative_error": 0.037908449241792486
+        },
+        {
+          "point_index": 22,
+          "predicted_joint_us": 26.297188597562787,
+          "observed_mean_us": 25.159485714285715,
+          "signed_per_call_residual_us": 1.137702883277072,
+          "relative_error": 0.04521963986851585
+        },
+        {
+          "point_index": 23,
+          "predicted_joint_us": 26.297188597562787,
+          "observed_mean_us": 114.052,
+          "signed_per_call_residual_us": -87.75481140243721,
+          "relative_error": -0.769428080195325
+        },
+        {
+          "point_index": 25,
+          "predicted_joint_us": 26.297188597562787,
+          "observed_mean_us": 24.477809523809523,
+          "signed_per_call_residual_us": 1.8193790737532645,
+          "relative_error": 0.07432769145390883
+        },
+        {
+          "point_index": 27,
+          "predicted_joint_us": 36.380800395817054,
+          "observed_mean_us": 34.54282322130074,
+          "signed_per_call_residual_us": 1.8379771745163112,
+          "relative_error": 0.0532086553186808
+        },
+        {
+          "point_index": 28,
+          "predicted_joint_us": 36.380800395817054,
+          "observed_mean_us": 32.24550414666084,
+          "signed_per_call_residual_us": 4.135296249156212,
+          "relative_error": 0.1282441183225984
+        },
+        {
+          "point_index": 30,
+          "predicted_joint_us": 36.380800395817054,
+          "observed_mean_us": 34.46494810126582,
+          "signed_per_call_residual_us": 1.915852294551236,
+          "relative_error": 0.05558842824663568
+        },
+        {
+          "point_index": 31,
+          "predicted_joint_us": 36.380800395817054,
+          "observed_mean_us": 32.27002658227848,
+          "signed_per_call_residual_us": 4.110773813538572,
+          "relative_error": 0.12738675014900847
+        },
+        {
+          "point_index": 32,
+          "predicted_joint_us": 36.380800395817054,
+          "observed_mean_us": 255.9631265822785,
+          "signed_per_call_residual_us": -219.58232618646144,
+          "relative_error": -0.8578670260768104
+        },
+        {
+          "point_index": 34,
+          "predicted_joint_us": 36.380800395817054,
+          "observed_mean_us": 32.044835443037975,
+          "signed_per_call_residual_us": 4.335964952779079,
+          "relative_error": 0.13530932185582834
+        },
+        {
+          "point_index": 36,
+          "predicted_joint_us": 47.136652980621605,
+          "observed_mean_us": 47.80289019963703,
+          "signed_per_call_residual_us": -0.6662372190154215,
+          "relative_error": -0.013937174430940114
+        },
+        {
+          "point_index": 37,
+          "predicted_joint_us": 47.136652980621605,
+          "observed_mean_us": 45.4981166061706,
+          "signed_per_call_residual_us": 1.6385363744510073,
+          "relative_error": 0.03601327915689545
+        },
+        {
+          "point_index": 39,
+          "predicted_joint_us": 47.136652980621605,
+          "observed_mean_us": 49.640213157894735,
+          "signed_per_call_residual_us": -2.5035601772731297,
+          "relative_error": -0.05043411415881416
+        },
+        {
+          "point_index": 40,
+          "predicted_joint_us": 47.136652980621605,
+          "observed_mean_us": 45.619630263157894,
+          "signed_per_call_residual_us": 1.5170227174637105,
+          "relative_error": 0.033253726711784504
+        },
+        {
+          "point_index": 42,
+          "predicted_joint_us": 47.136652980621605,
+          "observed_mean_us": 75.94138157894737,
+          "signed_per_call_residual_us": -28.804728598325767,
+          "relative_error": -0.3793021406699174
+        },
+        {
+          "point_index": 43,
+          "predicted_joint_us": 47.136652980621605,
+          "observed_mean_us": 45.491368421052634,
+          "signed_per_call_residual_us": 1.645284559568971,
+          "relative_error": 0.03616696126484431
+        }
+      ],
+      "max_abs_payload_mean_residual_us": 0.22806036417149045,
+      "max_abs_original_group_residual_us": 219.58232618646144,
+      "interpretation": "Joint same-boundary service includes peer/control effects. Within-payload group variation remains visible; it is not eliminated by the linear fit."
+    },
+    {
+      "physical_domain": {
+        "declared_program_without_payload": {
+          "block_limit": 63,
+          "buffer_mode": "separate",
+          "collective": "allreduce",
+          "dtype_bytes": 2,
+          "expansion": "AIV",
+          "ranks": 2,
+          "selection_basis": "explicit_source_compatible_declaration",
+          "source_revision": "c2d6790464654ccf58aca39448de4b65fdc7b184",
+          "template": "mesh_twoshot",
+          "topology": "MESH_1D",
+          "topology_levels": 1
+        },
+        "hardware_sku": "Ascend950DT_9582",
+        "native_operator_type": "hcom_allReduce_",
+        "observed_engine": "AIV",
+        "observed_event_category": "collective_device_task",
+        "observed_implementation": "AivKernel"
+      },
+      "status": "single_payload_observation",
+      "samples": [
+        {
+          "declared_payload_bytes": 3932160,
+          "observed_mean_us": 129.79983919270833,
+          "event_count": 3072,
+          "point_indices": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "source_sha256": [
+            "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
+          ],
+          "retained_group_mean_min_us": 126.71891578014184,
+          "retained_group_mean_max_us": 429.90933333333334
+        }
+      ],
+      "parameters": null,
+      "extrapolation_allowed": false
+    },
+    {
+      "physical_domain": {
+        "declared_program_without_payload": {
+          "block_limit": 64,
+          "buffer_mode": "separate",
+          "collective": "allgather",
+          "dtype_bytes": 2,
+          "expansion": "AIV",
+          "ranks": 4,
+          "selection_basis": "explicit_source_compatible_declaration",
+          "source_revision": "c2d6790464654ccf58aca39448de4b65fdc7b184",
+          "template": "mesh",
+          "topology": "MESH_1D",
+          "topology_levels": 1
+        },
+        "hardware_sku": "Ascend950DT_9582",
+        "native_operator_type": "hcom_allGather_",
+        "observed_engine": "AIV",
+        "observed_event_category": "collective_device_task",
+        "observed_implementation": "AivKernel"
+      },
+      "status": "joint_linear_fit",
+      "fit_method": "OLS over distinct payload pooled means; each payload equally weighted",
+      "evaluation_relation": "in_sample",
+      "samples": [
+        {
+          "declared_payload_bytes": 16384,
+          "observed_mean_us": 10.573477678571427,
+          "event_count": 3360,
+          "point_indices": [
+            20,
+            24,
+            26
+          ],
+          "source_sha256": [
+            "9b8a87bfd6252204ab077e331ed97976ff9f5256935cb153677ac619dd96aac1"
+          ],
+          "retained_group_mean_min_us": 10.168339285714286,
+          "retained_group_mean_max_us": 11.191619047619048,
+          "predicted_joint_us": 11.953950287004849,
+          "signed_per_call_residual_us": 1.380472608433422
+        },
+        {
+          "declared_payload_bytes": 262144,
+          "observed_mean_us": 24.071143670886077,
+          "event_count": 3160,
+          "point_indices": [
+            29,
+            33,
+            35
+          ],
+          "source_sha256": [
+            "5612e7cccfb3878cf27b22b1e89c5d186cd100633a44748973349f1bf03872f3"
+          ],
+          "retained_group_mean_min_us": 23.48910253164557,
+          "retained_group_mean_max_us": 24.291573548668705,
+          "predicted_joint_us": 21.396477992046318,
+          "signed_per_call_residual_us": -2.6746656788397587
+        },
+        {
+          "declared_payload_bytes": 524288,
+          "observed_mean_us": 30.174314473684216,
+          "event_count": 3040,
+          "point_indices": [
+            38,
+            41,
+            44
+          ],
+          "source_sha256": [
+            "bf35b8b21c078d6fc7223918b280158fda5ee7c1f83009c70c98b16f27b08df5"
+          ],
+          "retained_group_mean_min_us": 30.145510889292197,
+          "retained_group_mean_max_us": 30.735552631578948,
+          "predicted_joint_us": 31.46850754409055,
+          "signed_per_call_residual_us": 1.2941930704063331
+        }
+      ],
+      "parameters": {
+        "joint_fixed_us": 11.324448440002085,
+        "joint_us_per_declared_byte": 3.842174359147733e-05,
+        "effective_bytes_per_us": 26026.929194900436,
+        "effective_GB_per_s_decimal": 26.026929194900436,
+        "fixed_term_is_independent_rtt": false,
+        "slope_is_pure_link_bandwidth": false
+      },
+      "positive_service_parameterization": true,
+      "domain": {
+        "declared_payload_bytes": {
+          "min": 16384,
+          "max": 524288
+        },
+        "discrete_observed_payload_bytes": [
+          16384,
+          262144,
+          524288
+        ]
+      },
+      "extrapolation_allowed": false,
+      "original_group_residuals": [
+        {
+          "point_index": 20,
+          "predicted_joint_us": 11.953950287004849,
+          "observed_mean_us": 10.691865353037766,
+          "signed_per_call_residual_us": 1.262084933967083,
+          "relative_error": 0.11804160380756201
+        },
+        {
+          "point_index": 24,
+          "predicted_joint_us": 11.953950287004849,
+          "observed_mean_us": 10.168339285714286,
+          "signed_per_call_residual_us": 1.7856110012905635,
+          "relative_error": 0.17560497846479284
+        },
+        {
+          "point_index": 26,
+          "predicted_joint_us": 11.953950287004849,
+          "observed_mean_us": 11.191619047619048,
+          "signed_per_call_residual_us": 0.7623312393858015,
+          "relative_error": 0.06811626058233133
+        },
+        {
+          "point_index": 29,
+          "predicted_joint_us": 21.396477992046318,
+          "observed_mean_us": 24.291573548668705,
+          "signed_per_call_residual_us": -2.895095556622387,
+          "relative_error": -0.11918106296498243
+        },
+        {
+          "point_index": 33,
+          "predicted_joint_us": 21.396477992046318,
+          "observed_mean_us": 23.48910253164557,
+          "signed_per_call_residual_us": -2.092624539599253,
+          "relative_error": -0.08908916535997813
+        },
+        {
+          "point_index": 35,
+          "predicted_joint_us": 21.396477992046318,
+          "observed_mean_us": 23.49908860759494,
+          "signed_per_call_residual_us": -2.1026106155486204,
+          "relative_error": -0.0894762622780636
+        },
+        {
+          "point_index": 38,
+          "predicted_joint_us": 31.46850754409055,
+          "observed_mean_us": 30.145510889292197,
+          "signed_per_call_residual_us": 1.3229966547983523,
+          "relative_error": 0.04388702051383331
+        },
+        {
+          "point_index": 41,
+          "predicted_joint_us": 31.46850754409055,
+          "observed_mean_us": 30.20172105263158,
+          "signed_per_call_residual_us": 1.2667864914589693,
+          "relative_error": 0.04194418222893259
+        },
+        {
+          "point_index": 44,
+          "predicted_joint_us": 31.46850754409055,
+          "observed_mean_us": 30.735552631578948,
+          "signed_per_call_residual_us": 0.7329549125116017,
+          "relative_error": 0.023847136288629223
+        }
+      ],
+      "max_abs_payload_mean_residual_us": 2.6746656788397587,
+      "max_abs_original_group_residual_us": 2.895095556622387,
+      "interpretation": "Joint same-boundary service includes peer/control effects. Within-payload group variation remains visible; it is not eliminated by the linear fit."
+    },
+    {
+      "physical_domain": {
+        "declared_program_without_payload": {
+          "block_limit": null,
+          "buffer_mode": "separate",
+          "collective": "allgather",
+          "dtype_bytes": 2,
+          "expansion": "AICPU_TS",
+          "ranks": 8,
+          "selection_basis": "explicit_source_compatible_declaration",
+          "source_revision": "c2d6790464654ccf58aca39448de4b65fdc7b184",
+          "template": "mesh",
+          "topology": "MESH_1D",
+          "topology_levels": 1
+        },
+        "hardware_sku": "Ascend910_9362",
+        "native_operator_type": "hcom_allGather_",
+        "observed_engine": null,
+        "observed_event_category": "collective_envelope_only",
+        "observed_implementation": "hcom_summary"
+      },
+      "status": "single_payload_observation",
+      "samples": [
+        {
+          "declared_payload_bytes": 57344,
+          "observed_mean_us": 69.42733701298702,
+          "event_count": 1540,
+          "point_indices": [
+            45,
+            46,
+            47,
+            48,
+            53
+          ],
+          "source_sha256": [
+            "c7deb048fabcf5650aeb014c411b0eda709758e8dd4227119f7de5316a1c294e"
+          ],
+          "retained_group_mean_min_us": 26.83359318181818,
+          "retained_group_mean_max_us": 221.27001363636364
+        }
+      ],
+      "parameters": null,
+      "extrapolation_allowed": false
+    },
+    {
+      "physical_domain": {
+        "declared_program_without_payload": {
+          "block_limit": null,
+          "buffer_mode": "separate",
+          "collective": "reduce_scatter",
+          "dtype_bytes": 2,
+          "expansion": "AICPU_TS",
+          "ranks": 8,
+          "selection_basis": "explicit_source_compatible_declaration",
+          "source_revision": "c2d6790464654ccf58aca39448de4b65fdc7b184",
+          "template": "mesh",
+          "topology": "MESH_1D",
+          "topology_levels": 1
+        },
+        "hardware_sku": "Ascend910_9362",
+        "native_operator_type": "hcom_reduceScatter_",
+        "observed_engine": null,
+        "observed_event_category": "collective_envelope_only",
+        "observed_implementation": "hcom_summary"
+      },
+      "status": "single_payload_observation",
+      "samples": [
+        {
+          "declared_payload_bytes": 458752,
+          "observed_mean_us": 25.915105113636365,
+          "event_count": 1760,
+          "point_indices": [
+            49,
+            50,
+            51,
+            52,
+            54,
+            55
+          ],
+          "source_sha256": [
+            "c7deb048fabcf5650aeb014c411b0eda709758e8dd4227119f7de5316a1c294e"
+          ],
+          "retained_group_mean_min_us": 20.910502272727275,
+          "retained_group_mean_max_us": 41.50025
+        }
+      ],
+      "parameters": null,
+      "extrapolation_allowed": false
+    }
+  ],
+  "coverage": {
+    "source_count": 7,
+    "observation_groups": 56,
+    "observation_calls": 52972,
+    "joint_fits": 2,
+    "bounded_secants": 1,
+    "single_payload_domains": 3
+  },
+  "limitations": [
+    "Payload and source template are conditional declarations, not measured wire bytes or a confirmed runtime route.",
+    "Source/role/step peer readiness can vary with payload; the fitted terms are joint observable service parameters, not isolated causal mechanisms.",
+    "Two-payload secants have no independent shape validation and cannot extrapolate. Three-point fits retain all residuals and are still in-sample.",
+    "No exact 4 KiB or UB_CLOS curve is invented, and no coefficient is written into Sim automatically."
+  ],
+  "execution": {
+    "raw_event_reads": 0,
+    "new_predictions": 0,
+    "peak_rss_bytes": 18694144
+  }
+}
