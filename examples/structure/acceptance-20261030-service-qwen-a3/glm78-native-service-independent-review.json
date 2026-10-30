@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "checks": 234,
+  "failures": [],
+  "report_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/decode-forward-glm78-native-service-replay.json",
+    "sha256": "ca8b547de25e36cacef766e8528fe81af22be863a478ec75e5b0f1936210a489"
+  },
+  "raw_reads": 0,
+  "cost_predictions": 0,
+  "peak_rss_bytes": 72794112,
+  "scope": "Saved complete native histograms, exact rule provenance/hits and unchanged prior means. Body arithmetic is separately reviewed; no fresh cost."
+}

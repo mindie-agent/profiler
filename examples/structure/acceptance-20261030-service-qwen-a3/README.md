@@ -201,3 +201,51 @@ including seven deferred groups. Reproduce with
 `build_glm78_packed_source_cases.py`, then replay the matching packed-source
 manifest with `--geometry-limit 1` on the pinned runtime. No CSV reread or
 new device work is required.
+
+
+## GLM78 captured grid and complete native response arm
+
+Runtime `672a595f` preserves the existing whole-model declarations but supplies
+capture keys `[12]` for c2 and `[48]` for c8, using all retained prolog/query
+shapes as the input evidence. The prior case omitted 12 from its explicit
+capture grid, so selecting 16 was the declared GraphPolicy behavior, not a
+runtime leak. The earlier M16 results remain immutable counterexamples.
+
+`decode-forward-glm78-captured-grid-replay.json` first preserves the old four
+response selectors byte-for-byte. c8 remains 77.592182 ms (+11.553%, PASS).
+Both c2 predictions are 37.850900 ms (−34.331%/−34.533%, FAIL): their old M16
+selectors correctly register **zero hits** under M12. This attempted input
+change is retained rather than overwritten or counted as calibrated.
+
+`decode-forward-glm78-native-service-replay.json` rebinds the same four
+complete AR/grouped populations to fresh M12 physical axes, preserving every
+observed mean. It additionally selects the existing INT32 shared gate/up
+lowering and verifies both the native INT32 accumulator and DSQ output
+contracts. Twelve new rules per source use the exact complete populations:
+255 QBMM, 78 transpose-matmul, 75 DSQ, 81 dynamic quant, 21 layer norm and
+three SwiGLU calls per Forward. Every one of the 16 rules hits its declared
+population. No kernel name supplies a layer binding; the physical rule
+contains shape/precision/recipe axes and no model or layer identifier.
+
+| Case | Real mean ms | Sim ms | Error | Result |
+|---|---:|---:|---:|---|
+| tpot30 c2 | 57.639270 | 42.447117 | −26.357% | FAIL |
+| tpot50 c2 | 57.817112 | 42.454402 | −26.571% | FAIL |
+
+This is an in-sample observed-service assignment, using full integer duration
+histograms and no Body residual. It remains a whole-call floor, so a larger
+analytic program is not reduced. Native dynamic expert valid rows remain
+unknown; buffer capacities are not treated as valid routing counts. Both
+workers are fresh, with at most 111,919,104 bytes RSS. Standard Body/layer
+checks passed 654/654; independent parameter/population checks passed 234/234.
+
+Remaining source gaps are explicit: FFN and router Concat pad M12 to M16,
+and 75 native AllGathers have no matching declared caller node. The native
+router is BF16 operands with FP32 output while the existing declaration uses
+FP32 operands. Generic norm-quant fusion would also combine 60 calls, whereas
+the capture has only three fused dense-FFN calls; it cannot be enabled globally
+as a substitute. Their activities are diagnostic populations, not addable
+contributions to the Body wall span. No additional SFA/prolog empirical floor
+has been assigned. Reproduce the grid arm with
+`build_glm78_packed_source_cases.py --captured-grid`, then the native arm with
+`build_glm78_native_service_cases.py`; both reuse the retained local evidence.

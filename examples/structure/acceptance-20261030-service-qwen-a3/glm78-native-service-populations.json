@@ -1,0 +1,3880 @@
+{
+  "cases": [
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot30_c2",
+      "native_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot30_c2-native-partitions.json",
+        "sha256": "4e96d7466d545cc68d4481833bd9833117ed57a41de56e7a60e4bc2ed43bc0cd",
+        "size_bytes": 2661235
+      },
+      "forward_count": 44,
+      "rebound_prior_rules": [
+        {
+          "id": "hcom_allreduce_-observed-0",
+          "expected_hits": 78,
+          "new_match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "output_reduce",
+            "family": "allreduce",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 276480.0,
+            "metadata.group_axis": "tp"
+          }
+        },
+        {
+          "id": "hcom_allreduce_-observed-1",
+          "expected_hits": 78,
+          "new_match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "ring_allreduce",
+            "family": "allreduce",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 12,
+            "local_shape.1": 6144,
+            "metadata.group_axis": "tp"
+          }
+        },
+        {
+          "id": "groupedmatmulswigluquantv2-complete-native-response",
+          "expected_hits": 75,
+          "new_match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "ascend_w4a8_msd",
+            "family": "native_fusion",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 6,
+            "local_shape.1": 2048,
+            "metadata.fusion_tensor_view.input_width": 6144,
+            "metadata.fusion_tensor_view.intermediate_width": 2048,
+            "metadata.fusion_tensor_view.local_experts": 16,
+            "metadata.fusion_tensor_view.input_dtype": "int8",
+            "metadata.fusion_tensor_view.weight_dtype": "int4",
+            "metadata.fusion_tensor_view.output_dtype": "int8"
+          }
+        },
+        {
+          "id": "groupedmatmul-complete-native-response",
+          "expected_hits": 75,
+          "new_match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "balanced_grouped_down",
+            "family": "grouped_gemm",
+            "phase": "decode",
+            "dtype": "int8",
+            "local_shape.0": 6,
+            "local_shape.1": 6144,
+            "local_shape.2": 2048,
+            "metadata.weight_dtype": "int4",
+            "metadata.matrix_weight_bank_groups": 16
+          }
+        }
+      ],
+      "complete_contract_rules": [
+        {
+          "rule_id": "complete-quantbatchmatmulv3-0",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "dense_gate_up",
+            "family": "gate_up_projection",
+            "phase": "decode",
+            "dtype": "int8",
+            "local_shape.0": 12,
+            "local_shape.1": 256,
+            "local_shape.2": 6144,
+            "metadata.weight_dtype": "int8"
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot30_c2-native-partitions.json",
+            "sha256": "4e96d7466d545cc68d4481833bd9833117ed57a41de56e7a60e4bc2ed43bc0cd",
+            "size_bytes": 2661235
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+            "sha256": "5c13263d015f971a90b790b1c94aba384b402a1e15ed6417dc6794b0c3b40ab5",
+            "size_bytes": 61482469
+          },
+          "native_operator_type": "QuantBatchMatmulV3",
+          "partition_indices": [
+            15
+          ],
+          "contract": [
+            "matrix",
+            [
+              12,
+              256,
+              6144
+            ],
+            "int8",
+            "int8",
+            "int32",
+            [],
+            ""
+          ],
+          "observed_us": {
+            "count": 3300,
+            "mean_us": 23.22045696969697,
+            "p50_us": 22.66
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 75,
+          "target_ids": [
+            "s0.l3.shared.gate_up",
+            "s0.l4.shared.gate_up",
+            "s0.l5.shared.gate_up",
+            "s0.l6.shared.gate_up",
+            "s0.l7.shared.gate_up",
+            "s0.l8.shared.gate_up",
+            "s0.l9.shared.gate_up",
+            "s0.l10.shared.gate_up",
+            "s0.l11.shared.gate_up",
+            "s0.l12.shared.gate_up",
+            "s0.l13.shared.gate_up",
+            "s0.l14.shared.gate_up",
+            "s0.l15.shared.gate_up",
+            "s0.l16.shared.gate_up",
+            "s0.l17.shared.gate_up",
+            "s0.l18.shared.gate_up",
+            "s0.l19.shared.gate_up",
+            "s0.l20.shared.gate_up",
+            "s0.l21.shared.gate_up",
+            "s0.l22.shared.gate_up",
+            "s0.l23.shared.gate_up",
+            "s0.l24.shared.gate_up",
+            "s0.l25.shared.gate_up",
+            "s0.l26.shared.gate_up",
+            "s0.l27.shared.gate_up",
+            "s0.l28.shared.gate_up",
+            "s0.l29.shared.gate_up",
+            "s0.l30.shared.gate_up",
+            "s0.l31.shared.gate_up",
+            "s0.l32.shared.gate_up",
+            "s0.l33.shared.gate_up",
+            "s0.l34.shared.gate_up",
+            "s0.l35.shared.gate_up",
+            "s0.l36.shared.gate_up",
+            "s0.l37.shared.gate_up",
+            "s0.l38.shared.gate_up",
+            "s0.l39.shared.gate_up",
+            "s0.l40.shared.gate_up",
+            "s0.l41.shared.gate_up",
+            "s0.l42.shared.gate_up",
+            "s0.l43.shared.gate_up",
+            "s0.l44.shared.gate_up",
+            "s0.l45.shared.gate_up",
+            "s0.l46.shared.gate_up",
+            "s0.l47.shared.gate_up",
+            "s0.l48.shared.gate_up",
+            "s0.l49.shared.gate_up",
+            "s0.l50.shared.gate_up",
+            "s0.l51.shared.gate_up",
+            "s0.l52.shared.gate_up",
+            "s0.l53.shared.gate_up",
+            "s0.l54.shared.gate_up",
+            "s0.l55.shared.gate_up",
+            "s0.l56.shared.gate_up",
+            "s0.l57.shared.gate_up",
+            "s0.l58.shared.gate_up",
+            "s0.l59.shared.gate_up",
+            "s0.l60.shared.gate_up",
+            "s0.l61.shared.gate_up",
+            "s0.l62.shared.gate_up",
+            "s0.l63.shared.gate_up",
+            "s0.l64.shared.gate_up",
+            "s0.l65.shared.gate_up",
+            "s0.l66.shared.gate_up",
+            "s0.l67.shared.gate_up",
+            "s0.l68.shared.gate_up",
+            "s0.l69.shared.gate_up",
+            "s0.l70.shared.gate_up",
+            "s0.l71.shared.gate_up",
+            "s0.l72.shared.gate_up",
+            "s0.l73.shared.gate_up",
+            "s0.l74.shared.gate_up",
+            "s0.l75.shared.gate_up",
+            "s0.l76.shared.gate_up",
+            "s0.l77.shared.gate_up"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        },
+        {
+          "rule_id": "complete-quantbatchmatmulv3-1",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "output",
+            "family": "gemm",
+            "phase": "decode",
+            "dtype": "int8",
+            "local_shape.0": 12,
+            "local_shape.1": 6144,
+            "local_shape.2": 1024,
+            "metadata.weight_dtype": "int8"
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot30_c2-native-partitions.json",
+            "sha256": "4e96d7466d545cc68d4481833bd9833117ed57a41de56e7a60e4bc2ed43bc0cd",
+            "size_bytes": 2661235
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+            "sha256": "5c13263d015f971a90b790b1c94aba384b402a1e15ed6417dc6794b0c3b40ab5",
+            "size_bytes": 61482469
+          },
+          "native_operator_type": "QuantBatchMatmulV3",
+          "partition_indices": [
+            17
+          ],
+          "contract": [
+            "matrix",
+            [
+              12,
+              6144,
+              1024
+            ],
+            "int8",
+            "int8",
+            "bf16",
+            [
+              12
+            ],
+            "fp32"
+          ],
+          "observed_us": {
+            "count": 3432,
+            "mean_us": 18.130898892773892,
+            "p50_us": 17.981
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 78,
+          "target_ids": [
+            "s0.l0.output",
+            "s0.l1.output",
+            "s0.l2.output",
+            "s0.l3.output",
+            "s0.l4.output",
+            "s0.l5.output",
+            "s0.l6.output",
+            "s0.l7.output",
+            "s0.l8.output",
+            "s0.l9.output",
+            "s0.l10.output",
+            "s0.l11.output",
+            "s0.l12.output",
+            "s0.l13.output",
+            "s0.l14.output",
+            "s0.l15.output",
+            "s0.l16.output",
+            "s0.l17.output",
+            "s0.l18.output",
+            "s0.l19.output",
+            "s0.l20.output",
+            "s0.l21.output",
+            "s0.l22.output",
+            "s0.l23.output",
+            "s0.l24.output",
+            "s0.l25.output",
+            "s0.l26.output",
+            "s0.l27.output",
+            "s0.l28.output",
+            "s0.l29.output",
+            "s0.l30.output",
+            "s0.l31.output",
+            "s0.l32.output",
+            "s0.l33.output",
+            "s0.l34.output",
+            "s0.l35.output",
+            "s0.l36.output",
+            "s0.l37.output",
+            "s0.l38.output",
+            "s0.l39.output",
+            "s0.l40.output",
+            "s0.l41.output",
+            "s0.l42.output",
+            "s0.l43.output",
+            "s0.l44.output",
+            "s0.l45.output",
+            "s0.l46.output",
+            "s0.l47.output",
+            "s0.l48.output",
+            "s0.l49.output",
+            "s0.l50.output",
+            "s0.l51.output",
+            "s0.l52.output",
+            "s0.l53.output",
+            "s0.l54.output",
+            "s0.l55.output",
+            "s0.l56.output",
+            "s0.l57.output",
+            "s0.l58.output",
+            "s0.l59.output",
+            "s0.l60.output",
+            "s0.l61.output",
+            "s0.l62.output",
+            "s0.l63.output",
+            "s0.l64.output",
+            "s0.l65.output",
+            "s0.l66.output",
+            "s0.l67.output",
+            "s0.l68.output",
+            "s0.l69.output",
+            "s0.l70.output",
+            "s0.l71.output",
+            "s0.l72.output",
+            "s0.l73.output",
+            "s0.l74.output",
+            "s0.l75.output",
+            "s0.l76.output",
+            "s0.l77.output"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        },
+        {
+          "rule_id": "complete-quantbatchmatmulv3-2",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "dense_down",
+            "family": "down_projection",
+            "phase": "decode",
+            "dtype": "int8",
+            "local_shape.0": 12,
+            "local_shape.1": 6144,
+            "local_shape.2": 128,
+            "metadata.weight_dtype": "int8"
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot30_c2-native-partitions.json",
+            "sha256": "4e96d7466d545cc68d4481833bd9833117ed57a41de56e7a60e4bc2ed43bc0cd",
+            "size_bytes": 2661235
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+            "sha256": "5c13263d015f971a90b790b1c94aba384b402a1e15ed6417dc6794b0c3b40ab5",
+            "size_bytes": 61482469
+          },
+          "native_operator_type": "QuantBatchMatmulV3",
+          "partition_indices": [
+            19
+          ],
+          "contract": [
+            "matrix",
+            [
+              12,
+              6144,
+              128
+            ],
+            "int8",
+            "int8",
+            "bf16",
+            [
+              12
+            ],
+            "fp32"
+          ],
+          "observed_us": {
+            "count": 3300,
+            "mean_us": 16.066394242424245,
+            "p50_us": 16.061
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 75,
+          "target_ids": [
+            "s0.l3.shared.down",
+            "s0.l4.shared.down",
+            "s0.l5.shared.down",
+            "s0.l6.shared.down",
+            "s0.l7.shared.down",
+            "s0.l8.shared.down",
+            "s0.l9.shared.down",
+            "s0.l10.shared.down",
+            "s0.l11.shared.down",
+            "s0.l12.shared.down",
+            "s0.l13.shared.down",
+            "s0.l14.shared.down",
+            "s0.l15.shared.down",
+            "s0.l16.shared.down",
+            "s0.l17.shared.down",
+            "s0.l18.shared.down",
+            "s0.l19.shared.down",
+            "s0.l20.shared.down",
+            "s0.l21.shared.down",
+            "s0.l22.shared.down",
+            "s0.l23.shared.down",
+            "s0.l24.shared.down",
+            "s0.l25.shared.down",
+            "s0.l26.shared.down",
+            "s0.l27.shared.down",
+            "s0.l28.shared.down",
+            "s0.l29.shared.down",
+            "s0.l30.shared.down",
+            "s0.l31.shared.down",
+            "s0.l32.shared.down",
+            "s0.l33.shared.down",
+            "s0.l34.shared.down",
+            "s0.l35.shared.down",
+            "s0.l36.shared.down",
+            "s0.l37.shared.down",
+            "s0.l38.shared.down",
+            "s0.l39.shared.down",
+            "s0.l40.shared.down",
+            "s0.l41.shared.down",
+            "s0.l42.shared.down",
+            "s0.l43.shared.down",
+            "s0.l44.shared.down",
+            "s0.l45.shared.down",
+            "s0.l46.shared.down",
+            "s0.l47.shared.down",
+            "s0.l48.shared.down",
+            "s0.l49.shared.down",
+            "s0.l50.shared.down",
+            "s0.l51.shared.down",
+            "s0.l52.shared.down",
+            "s0.l53.shared.down",
+            "s0.l54.shared.down",
+            "s0.l55.shared.down",
+            "s0.l56.shared.down",
+            "s0.l57.shared.down",
+            "s0.l58.shared.down",
+            "s0.l59.shared.down",
+            "s0.l60.shared.down",
+            "s0.l61.shared.down",
+            "s0.l62.shared.down",
+            "s0.l63.shared.down",
+            "s0.l64.shared.down",
+            "s0.l65.shared.down",
+            "s0.l66.shared.down",
+            "s0.l67.shared.down",
+            "s0.l68.shared.down",
+            "s0.l69.shared.down",
+            "s0.l70.shared.down",
+            "s0.l71.shared.down",
+            "s0.l72.shared.down",
+            "s0.l73.shared.down",
+            "s0.l74.shared.down",
+            "s0.l75.shared.down",
+            "s0.l76.shared.down",
+            "s0.l77.shared.down"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        },
+        {
+          "rule_id": "complete-transposebatchmatmul-3",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "v_expand",
+            "family": "gemm",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 48,
+            "local_shape.1": 256,
+            "local_shape.2": 512,
+            "metadata.weight_dtype": "bf16"
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot30_c2-native-partitions.json",
+            "sha256": "4e96d7466d545cc68d4481833bd9833117ed57a41de56e7a60e4bc2ed43bc0cd",
+            "size_bytes": 2661235
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+            "sha256": "5c13263d015f971a90b790b1c94aba384b402a1e15ed6417dc6794b0c3b40ab5",
+            "size_bytes": 61482469
+          },
+          "native_operator_type": "TransposeBatchMatMul",
+          "partition_indices": [
+            23
+          ],
+          "contract": [
+            "transpose_batchmatmul_active",
+            "TransposeBatchMatMul",
+            [
+              4,
+              12,
+              256,
+              512
+            ],
+            "bf16",
+            "bf16",
+            "bf16"
+          ],
+          "observed_us": {
+            "count": 3432,
+            "mean_us": 12.706310314685316,
+            "p50_us": 12.561
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 78,
+          "target_ids": [
+            "s0.l0.v_expand",
+            "s0.l1.v_expand",
+            "s0.l2.v_expand",
+            "s0.l3.v_expand",
+            "s0.l4.v_expand",
+            "s0.l5.v_expand",
+            "s0.l6.v_expand",
+            "s0.l7.v_expand",
+            "s0.l8.v_expand",
+            "s0.l9.v_expand",
+            "s0.l10.v_expand",
+            "s0.l11.v_expand",
+            "s0.l12.v_expand",
+            "s0.l13.v_expand",
+            "s0.l14.v_expand",
+            "s0.l15.v_expand",
+            "s0.l16.v_expand",
+            "s0.l17.v_expand",
+            "s0.l18.v_expand",
+            "s0.l19.v_expand",
+            "s0.l20.v_expand",
+            "s0.l21.v_expand",
+            "s0.l22.v_expand",
+            "s0.l23.v_expand",
+            "s0.l24.v_expand",
+            "s0.l25.v_expand",
+            "s0.l26.v_expand",
+            "s0.l27.v_expand",
+            "s0.l28.v_expand",
+            "s0.l29.v_expand",
+            "s0.l30.v_expand",
+            "s0.l31.v_expand",
+            "s0.l32.v_expand",
+            "s0.l33.v_expand",
+            "s0.l34.v_expand",
+            "s0.l35.v_expand",
+            "s0.l36.v_expand",
+            "s0.l37.v_expand",
+            "s0.l38.v_expand",
+            "s0.l39.v_expand",
+            "s0.l40.v_expand",
+            "s0.l41.v_expand",
+            "s0.l42.v_expand",
+            "s0.l43.v_expand",
+            "s0.l44.v_expand",
+            "s0.l45.v_expand",
+            "s0.l46.v_expand",
+            "s0.l47.v_expand",
+            "s0.l48.v_expand",
+            "s0.l49.v_expand",
+            "s0.l50.v_expand",
+            "s0.l51.v_expand",
+            "s0.l52.v_expand",
+            "s0.l53.v_expand",
+            "s0.l54.v_expand",
+            "s0.l55.v_expand",
+            "s0.l56.v_expand",
+            "s0.l57.v_expand",
+            "s0.l58.v_expand",
+            "s0.l59.v_expand",
+            "s0.l60.v_expand",
+            "s0.l61.v_expand",
+            "s0.l62.v_expand",
+            "s0.l63.v_expand",
+            "s0.l64.v_expand",
+            "s0.l65.v_expand",
+            "s0.l66.v_expand",
+            "s0.l67.v_expand",
+            "s0.l68.v_expand",
+            "s0.l69.v_expand",
+            "s0.l70.v_expand",
+            "s0.l71.v_expand",
+            "s0.l72.v_expand",
+            "s0.l73.v_expand",
+            "s0.l74.v_expand",
+            "s0.l75.v_expand",
+            "s0.l76.v_expand",
+            "s0.l77.v_expand"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        },
+        {
+          "rule_id": "complete-dequantswigluquant-4",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "ascend_shared_dequant_swiglu_quant",
+            "family": "dequant_swiglu_quant",
+            "phase": "decode",
+            "dtype": "int8",
+            "local_shape.0": 12,
+            "local_shape.1": 128
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot30_c2-native-partitions.json",
+            "sha256": "4e96d7466d545cc68d4481833bd9833117ed57a41de56e7a60e4bc2ed43bc0cd",
+            "size_bytes": 2661235
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+            "sha256": "5c13263d015f971a90b790b1c94aba384b402a1e15ed6417dc6794b0c3b40ab5",
+            "size_bytes": 61482469
+          },
+          "native_operator_type": "DequantSwigluQuant",
+          "partition_indices": [
+            26
+          ],
+          "contract": [
+            "dequant_swiglu_quant_active",
+            "DequantSwigluQuant",
+            [
+              [
+                12,
+                256
+              ],
+              "int32",
+              "ND"
+            ],
+            [
+              [
+                256
+              ],
+              "fp32",
+              "ND"
+            ],
+            [
+              [
+                12
+              ],
+              "fp32",
+              "ND"
+            ],
+            [
+              [
+                12,
+                128
+              ],
+              "int8",
+              "ND"
+            ],
+            [
+              [
+                12
+              ],
+              "fp32",
+              "ND"
+            ]
+          ],
+          "observed_us": {
+            "count": 3300,
+            "mean_us": 10.984811515151517,
+            "p50_us": 10.22
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 75,
+          "target_ids": [
+            "s0.l3.shared.swiglu",
+            "s0.l4.shared.swiglu",
+            "s0.l5.shared.swiglu",
+            "s0.l6.shared.swiglu",
+            "s0.l7.shared.swiglu",
+            "s0.l8.shared.swiglu",
+            "s0.l9.shared.swiglu",
+            "s0.l10.shared.swiglu",
+            "s0.l11.shared.swiglu",
+            "s0.l12.shared.swiglu",
+            "s0.l13.shared.swiglu",
+            "s0.l14.shared.swiglu",
+            "s0.l15.shared.swiglu",
+            "s0.l16.shared.swiglu",
+            "s0.l17.shared.swiglu",
+            "s0.l18.shared.swiglu",
+            "s0.l19.shared.swiglu",
+            "s0.l20.shared.swiglu",
+            "s0.l21.shared.swiglu",
+            "s0.l22.shared.swiglu",
+            "s0.l23.shared.swiglu",
+            "s0.l24.shared.swiglu",
+            "s0.l25.shared.swiglu",
+            "s0.l26.shared.swiglu",
+            "s0.l27.shared.swiglu",
+            "s0.l28.shared.swiglu",
+            "s0.l29.shared.swiglu",
+            "s0.l30.shared.swiglu",
+            "s0.l31.shared.swiglu",
+            "s0.l32.shared.swiglu",
+            "s0.l33.shared.swiglu",
+            "s0.l34.shared.swiglu",
+            "s0.l35.shared.swiglu",
+            "s0.l36.shared.swiglu",
+            "s0.l37.shared.swiglu",
+            "s0.l38.shared.swiglu",
+            "s0.l39.shared.swiglu",
+            "s0.l40.shared.swiglu",
+            "s0.l41.shared.swiglu",
+            "s0.l42.shared.swiglu",
+            "s0.l43.shared.swiglu",
+            "s0.l44.shared.swiglu",
+            "s0.l45.shared.swiglu",
+            "s0.l46.shared.swiglu",
+            "s0.l47.shared.swiglu",
+            "s0.l48.shared.swiglu",
+            "s0.l49.shared.swiglu",
+            "s0.l50.shared.swiglu",
+            "s0.l51.shared.swiglu",
+            "s0.l52.shared.swiglu",
+            "s0.l53.shared.swiglu",
+            "s0.l54.shared.swiglu",
+            "s0.l55.shared.swiglu",
+            "s0.l56.shared.swiglu",
+            "s0.l57.shared.swiglu",
+            "s0.l58.shared.swiglu",
+            "s0.l59.shared.swiglu",
+            "s0.l60.shared.swiglu",
+            "s0.l61.shared.swiglu",
+            "s0.l62.shared.swiglu",
+            "s0.l63.shared.swiglu",
+            "s0.l64.shared.swiglu",
+            "s0.l65.shared.swiglu",
+            "s0.l66.shared.swiglu",
+            "s0.l67.shared.swiglu",
+            "s0.l68.shared.swiglu",
+            "s0.l69.shared.swiglu",
+            "s0.l70.shared.swiglu",
+            "s0.l71.shared.swiglu",
+            "s0.l72.shared.swiglu",
+            "s0.l73.shared.swiglu",
+            "s0.l74.shared.swiglu",
+            "s0.l75.shared.swiglu",
+            "s0.l76.shared.swiglu",
+            "s0.l77.shared.swiglu"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        },
+        {
+          "rule_id": "complete-quantbatchmatmulv3-5",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "index_q",
+            "family": "gemm",
+            "phase": "decode",
+            "dtype": "int8",
+            "local_shape.0": 12,
+            "local_shape.1": 4096,
+            "local_shape.2": 2048,
+            "metadata.weight_dtype": "int8"
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot30_c2-native-partitions.json",
+            "sha256": "4e96d7466d545cc68d4481833bd9833117ed57a41de56e7a60e4bc2ed43bc0cd",
+            "size_bytes": 2661235
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+            "sha256": "5c13263d015f971a90b790b1c94aba384b402a1e15ed6417dc6794b0c3b40ab5",
+            "size_bytes": 61482469
+          },
+          "native_operator_type": "QuantBatchMatmulV3",
+          "partition_indices": [
+            32
+          ],
+          "contract": [
+            "matrix",
+            [
+              12,
+              4096,
+              2048
+            ],
+            "int8",
+            "int8",
+            "bf16",
+            [
+              12
+            ],
+            "fp32"
+          ],
+          "observed_us": {
+            "count": 924,
+            "mean_us": 16.64304437229437,
+            "p50_us": 16.66
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 21,
+          "target_ids": [
+            "s0.l0.index_q",
+            "s0.l1.index_q",
+            "s0.l2.index_q",
+            "s0.l6.index_q",
+            "s0.l10.index_q",
+            "s0.l14.index_q",
+            "s0.l18.index_q",
+            "s0.l22.index_q",
+            "s0.l26.index_q",
+            "s0.l30.index_q",
+            "s0.l34.index_q",
+            "s0.l38.index_q",
+            "s0.l42.index_q",
+            "s0.l46.index_q",
+            "s0.l50.index_q",
+            "s0.l54.index_q",
+            "s0.l58.index_q",
+            "s0.l62.index_q",
+            "s0.l66.index_q",
+            "s0.l70.index_q",
+            "s0.l74.index_q"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        },
+        {
+          "rule_id": "complete-dynamicquant-6",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "dynamic_quantize",
+            "family": "quantize",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 12,
+            "local_shape.1": 1024
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot30_c2-native-partitions.json",
+            "sha256": "4e96d7466d545cc68d4481833bd9833117ed57a41de56e7a60e4bc2ed43bc0cd",
+            "size_bytes": 2661235
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+            "sha256": "5c13263d015f971a90b790b1c94aba384b402a1e15ed6417dc6794b0c3b40ab5",
+            "size_bytes": 61482469
+          },
+          "native_operator_type": "DynamicQuant",
+          "partition_indices": [
+            35
+          ],
+          "contract": [
+            "dynamic_quant_active",
+            "DynamicQuant",
+            [
+              [
+                12,
+                1024
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [
+                12,
+                1024
+              ],
+              "int8",
+              "ND"
+            ],
+            [
+              [
+                12
+              ],
+              "fp32",
+              "ND"
+            ]
+          ],
+          "observed_us": {
+            "count": 3432,
+            "mean_us": 3.860982226107226,
+            "p50_us": 3.84
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 78,
+          "target_ids": [
+            "s0.l0.output.quantize",
+            "s0.l1.output.quantize",
+            "s0.l2.output.quantize",
+            "s0.l3.output.quantize",
+            "s0.l4.output.quantize",
+            "s0.l5.output.quantize",
+            "s0.l6.output.quantize",
+            "s0.l7.output.quantize",
+            "s0.l8.output.quantize",
+            "s0.l9.output.quantize",
+            "s0.l10.output.quantize",
+            "s0.l11.output.quantize",
+            "s0.l12.output.quantize",
+            "s0.l13.output.quantize",
+            "s0.l14.output.quantize",
+            "s0.l15.output.quantize",
+            "s0.l16.output.quantize",
+            "s0.l17.output.quantize",
+            "s0.l18.output.quantize",
+            "s0.l19.output.quantize",
+            "s0.l20.output.quantize",
+            "s0.l21.output.quantize",
+            "s0.l22.output.quantize",
+            "s0.l23.output.quantize",
+            "s0.l24.output.quantize",
+            "s0.l25.output.quantize",
+            "s0.l26.output.quantize",
+            "s0.l27.output.quantize",
+            "s0.l28.output.quantize",
+            "s0.l29.output.quantize",
+            "s0.l30.output.quantize",
+            "s0.l31.output.quantize",
+            "s0.l32.output.quantize",
+            "s0.l33.output.quantize",
+            "s0.l34.output.quantize",
+            "s0.l35.output.quantize",
+            "s0.l36.output.quantize",
+            "s0.l37.output.quantize",
+            "s0.l38.output.quantize",
+            "s0.l39.output.quantize",
+            "s0.l40.output.quantize",
+            "s0.l41.output.quantize",
+            "s0.l42.output.quantize",
+            "s0.l43.output.quantize",
+            "s0.l44.output.quantize",
+            "s0.l45.output.quantize",
+            "s0.l46.output.quantize",
+            "s0.l47.output.quantize",
+            "s0.l48.output.quantize",
+            "s0.l49.output.quantize",
+            "s0.l50.output.quantize",
+            "s0.l51.output.quantize",
+            "s0.l52.output.quantize",
+            "s0.l53.output.quantize",
+            "s0.l54.output.quantize",
+            "s0.l55.output.quantize",
+            "s0.l56.output.quantize",
+            "s0.l57.output.quantize",
+            "s0.l58.output.quantize",
+            "s0.l59.output.quantize",
+            "s0.l60.output.quantize",
+            "s0.l61.output.quantize",
+            "s0.l62.output.quantize",
+            "s0.l63.output.quantize",
+            "s0.l64.output.quantize",
+            "s0.l65.output.quantize",
+            "s0.l66.output.quantize",
+            "s0.l67.output.quantize",
+            "s0.l68.output.quantize",
+            "s0.l69.output.quantize",
+            "s0.l70.output.quantize",
+            "s0.l71.output.quantize",
+            "s0.l72.output.quantize",
+            "s0.l73.output.quantize",
+            "s0.l74.output.quantize",
+            "s0.l75.output.quantize",
+            "s0.l76.output.quantize",
+            "s0.l77.output.quantize"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        },
+        {
+          "rule_id": "complete-layernormv3-7",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "index_norm",
+            "family": "layernorm",
+            "phase": "decode",
+            "dtype": "fp32",
+            "local_shape.0": 12,
+            "local_shape.1": 128
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot30_c2-native-partitions.json",
+            "sha256": "4e96d7466d545cc68d4481833bd9833117ed57a41de56e7a60e4bc2ed43bc0cd",
+            "size_bytes": 2661235
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+            "sha256": "5c13263d015f971a90b790b1c94aba384b402a1e15ed6417dc6794b0c3b40ab5",
+            "size_bytes": 61482469
+          },
+          "native_operator_type": "LayerNormV3",
+          "partition_indices": [
+            39
+          ],
+          "contract": [
+            "layernorm_active",
+            "LayerNormV3",
+            [
+              [
+                12,
+                128
+              ],
+              "fp32",
+              "ND"
+            ],
+            [
+              [
+                128
+              ],
+              "fp32",
+              "ND"
+            ],
+            [
+              [
+                128
+              ],
+              "fp32",
+              "ND"
+            ],
+            [
+              [
+                12,
+                128
+              ],
+              "fp32",
+              "ND"
+            ]
+          ],
+          "observed_us": {
+            "count": 924,
+            "mean_us": 7.976945887445888,
+            "p50_us": 7.96
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 21,
+          "target_ids": [
+            "s0.l0.index_norm",
+            "s0.l1.index_norm",
+            "s0.l2.index_norm",
+            "s0.l6.index_norm",
+            "s0.l10.index_norm",
+            "s0.l14.index_norm",
+            "s0.l18.index_norm",
+            "s0.l22.index_norm",
+            "s0.l26.index_norm",
+            "s0.l30.index_norm",
+            "s0.l34.index_norm",
+            "s0.l38.index_norm",
+            "s0.l42.index_norm",
+            "s0.l46.index_norm",
+            "s0.l50.index_norm",
+            "s0.l54.index_norm",
+            "s0.l58.index_norm",
+            "s0.l62.index_norm",
+            "s0.l66.index_norm",
+            "s0.l70.index_norm",
+            "s0.l74.index_norm"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        },
+        {
+          "rule_id": "complete-quantbatchmatmulv3-8",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "dense_gate_up",
+            "family": "gate_up_projection",
+            "phase": "decode",
+            "dtype": "int8",
+            "local_shape.0": 12,
+            "local_shape.1": 1536,
+            "local_shape.2": 6144,
+            "metadata.weight_dtype": "int8"
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot30_c2-native-partitions.json",
+            "sha256": "4e96d7466d545cc68d4481833bd9833117ed57a41de56e7a60e4bc2ed43bc0cd",
+            "size_bytes": 2661235
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+            "sha256": "5c13263d015f971a90b790b1c94aba384b402a1e15ed6417dc6794b0c3b40ab5",
+            "size_bytes": 61482469
+          },
+          "native_operator_type": "QuantBatchMatmulV3",
+          "partition_indices": [
+            44
+          ],
+          "contract": [
+            "matrix",
+            [
+              12,
+              1536,
+              6144
+            ],
+            "int8",
+            "int8",
+            "bf16",
+            [
+              12
+            ],
+            "fp32"
+          ],
+          "observed_us": {
+            "count": 132,
+            "mean_us": 19.78639393939394,
+            "p50_us": 19.82
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 3,
+          "target_ids": [
+            "s0.l0.gate_up",
+            "s0.l1.gate_up",
+            "s0.l2.gate_up"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        },
+        {
+          "rule_id": "complete-quantbatchmatmulv3-9",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "dense_down",
+            "family": "down_projection",
+            "phase": "decode",
+            "dtype": "int8",
+            "local_shape.0": 12,
+            "local_shape.1": 6144,
+            "local_shape.2": 768,
+            "metadata.weight_dtype": "int8"
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot30_c2-native-partitions.json",
+            "sha256": "4e96d7466d545cc68d4481833bd9833117ed57a41de56e7a60e4bc2ed43bc0cd",
+            "size_bytes": 2661235
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+            "sha256": "5c13263d015f971a90b790b1c94aba384b402a1e15ed6417dc6794b0c3b40ab5",
+            "size_bytes": 61482469
+          },
+          "native_operator_type": "QuantBatchMatmulV3",
+          "partition_indices": [
+            48
+          ],
+          "contract": [
+            "matrix",
+            [
+              12,
+              6144,
+              768
+            ],
+            "int8",
+            "int8",
+            "bf16",
+            [
+              12
+            ],
+            "fp32"
+          ],
+          "observed_us": {
+            "count": 132,
+            "mean_us": 14.892151515151516,
+            "p50_us": 14.58
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 3,
+          "target_ids": [
+            "s0.l0.down",
+            "s0.l1.down",
+            "s0.l2.down"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        },
+        {
+          "rule_id": "complete-swiglu-10",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "swiglu",
+            "family": "swiglu",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 12,
+            "local_shape.1": 768
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot30_c2-native-partitions.json",
+            "sha256": "4e96d7466d545cc68d4481833bd9833117ed57a41de56e7a60e4bc2ed43bc0cd",
+            "size_bytes": 2661235
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+            "sha256": "5c13263d015f971a90b790b1c94aba384b402a1e15ed6417dc6794b0c3b40ab5",
+            "size_bytes": 61482469
+          },
+          "native_operator_type": "SwiGlu",
+          "partition_indices": [
+            53
+          ],
+          "contract": [
+            "swiglu",
+            [
+              12,
+              768
+            ],
+            "bf16"
+          ],
+          "observed_us": {
+            "count": 132,
+            "mean_us": 4.2115757575757575,
+            "p50_us": 3.9605
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 3,
+          "target_ids": [
+            "s0.l0.swiglu",
+            "s0.l1.swiglu",
+            "s0.l2.swiglu"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        },
+        {
+          "rule_id": "complete-dynamicquant-11",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "dynamic_quantize",
+            "family": "quantize",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 12,
+            "local_shape.1": 768
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot30_c2-native-partitions.json",
+            "sha256": "4e96d7466d545cc68d4481833bd9833117ed57a41de56e7a60e4bc2ed43bc0cd",
+            "size_bytes": 2661235
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+            "sha256": "5c13263d015f971a90b790b1c94aba384b402a1e15ed6417dc6794b0c3b40ab5",
+            "size_bytes": 61482469
+          },
+          "native_operator_type": "DynamicQuant",
+          "partition_indices": [
+            54
+          ],
+          "contract": [
+            "dynamic_quant_active",
+            "DynamicQuant",
+            [
+              [
+                12,
+                768
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [
+                12,
+                768
+              ],
+              "int8",
+              "ND"
+            ],
+            [
+              [
+                12
+              ],
+              "fp32",
+              "ND"
+            ]
+          ],
+          "observed_us": {
+            "count": 132,
+            "mean_us": 3.4053560606060604,
+            "p50_us": 3.3805
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 3,
+          "target_ids": [
+            "s0.l0.down.quantize",
+            "s0.l1.down.quantize",
+            "s0.l2.down.quantize"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        }
+      ],
+      "unassigned_contracts": [
+        {
+          "native_operator_type": "KvQuantSparseFlashAttention",
+          "contract": [
+            "native_tensor_abi",
+            "KvQuantSparseFlashAttention",
+            [
+              [
+                [
+                  12,
+                  4,
+                  576
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  4248,
+                  128,
+                  1,
+                  656
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  4248,
+                  128,
+                  1,
+                  656
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  12,
+                  1,
+                  2048
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [
+                  2,
+                  1024
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  2
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  2
+                ],
+                "int32",
+                "ND"
+              ]
+            ],
+            [
+              [
+                [
+                  12,
+                  4,
+                  512
+                ],
+                "bf16",
+                "ND"
+              ]
+            ]
+          ],
+          "observed_calls_per_forward": 78.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 3432,
+            "mean_us": 95.76882954545455,
+            "p50_us": 95.082
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "GroupedMatmulSwigluQuantV2",
+          "contract": [
+            "grouped_mlp_parameters_active",
+            "GroupedMatmulSwigluQuantV2",
+            [
+              16,
+              6144,
+              2048
+            ],
+            [
+              "int8",
+              "int4",
+              "int8"
+            ]
+          ],
+          "observed_calls_per_forward": 75.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 3300,
+            "mean_us": 98.43022727272728,
+            "p50_us": 98.122
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "GroupedMatmul",
+          "contract": [
+            "grouped_matrix",
+            [
+              16,
+              128,
+              6144,
+              2048
+            ],
+            "int8",
+            "int4",
+            "bf16",
+            [
+              128
+            ],
+            "fp32"
+          ],
+          "observed_calls_per_forward": 75.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 3300,
+            "mean_us": 56.917762727272724,
+            "p50_us": 56.381
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "MatMulV3",
+          "contract": [
+            "matrix",
+            [
+              12,
+              256,
+              6144
+            ],
+            "bf16",
+            "bf16",
+            "fp32",
+            [],
+            ""
+          ],
+          "observed_calls_per_forward": 75.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 3300,
+            "mean_us": 14.898123636363636,
+            "p50_us": 14.78
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "LightningIndexer",
+          "contract": [
+            "lightning_indexer_active",
+            "LightningIndexer",
+            [
+              [
+                [
+                  12,
+                  32,
+                  128
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  12,
+                  32
+                ],
+                "bf16",
+                "ND"
+              ]
+            ],
+            [
+              [
+                1,
+                128
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [
+                12,
+                1,
+                2048
+              ],
+              "int32",
+              "ND"
+            ]
+          ],
+          "observed_calls_per_forward": 21.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 924,
+            "mean_us": 43.15128896103896,
+            "p50_us": 42.981
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "DynamicQuant",
+          "contract": [
+            "dynamic_quant_active",
+            "DynamicQuant",
+            [
+              [
+                12,
+                6144
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [
+                12,
+                6144
+              ],
+              "int8",
+              "ND"
+            ],
+            [
+              [
+                12
+              ],
+              "fp32",
+              "ND"
+            ]
+          ],
+          "observed_calls_per_forward": 153.0,
+          "declared_calls": 156,
+          "observed_us": {
+            "count": 6732,
+            "mean_us": 4.988718508615568,
+            "p50_us": 4.76
+          },
+          "reason": "declared_population_differs"
+        },
+        {
+          "native_operator_type": "AddRmsNormBias",
+          "contract": [
+            "native_tensor_abi",
+            "AddRmsNormBias",
+            [
+              [
+                [
+                  12,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  12,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ]
+            ],
+            [
+              [
+                [
+                  12,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  12,
+                  1
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [
+                  12,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ]
+            ]
+          ],
+          "observed_calls_per_forward": 152.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 6688,
+            "mean_us": 5.334901016746411,
+            "p50_us": 5.32
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "MatMulV2",
+          "contract": [
+            "matrix",
+            [
+              12,
+              160,
+              6144
+            ],
+            "bf16",
+            "bf16",
+            "bf16",
+            [],
+            ""
+          ],
+          "observed_calls_per_forward": 21.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 924,
+            "mean_us": 15.579620129870131,
+            "p50_us": 15.54
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "MoeGatingTopK",
+          "contract": [
+            "router_selection_active",
+            "MoeGatingTopK",
+            "score_topk",
+            [
+              [
+                1,
+                256
+              ],
+              "fp32",
+              "ND"
+            ],
+            [
+              [
+                1,
+                8
+              ],
+              "fp32",
+              "ND"
+            ],
+            [
+              [
+                1,
+                8
+              ],
+              "int32",
+              "ND"
+            ]
+          ],
+          "observed_calls_per_forward": 75.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 3300,
+            "mean_us": 4.068970909090909,
+            "p50_us": 4.0
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "ScatterNdUpdateSk",
+          "contract": [
+            "native_tensor_abi",
+            "ScatterNdUpdateSk",
+            [
+              [
+                [
+                  543744,
+                  128
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  12,
+                  1
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  12,
+                  128
+                ],
+                "bf16",
+                "ND"
+              ]
+            ],
+            [
+              [
+                [
+                  543744,
+                  128
+                ],
+                "bf16",
+                "ND"
+              ]
+            ]
+          ],
+          "observed_calls_per_forward": 21.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 924,
+            "mean_us": 10.618897186147185,
+            "p50_us": 10.46
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "Slice",
+          "contract": [
+            "slice_copy",
+            [
+              12,
+              160
+            ],
+            [
+              12,
+              128
+            ],
+            "bf16",
+            "bf16"
+          ],
+          "observed_calls_per_forward": 21.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 924,
+            "mean_us": 2.553348484848485,
+            "p50_us": 2.56
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "Slice",
+          "contract": [
+            "slice_copy",
+            [
+              12,
+              160
+            ],
+            [
+              12,
+              32
+            ],
+            "bf16",
+            "bf16"
+          ],
+          "observed_calls_per_forward": 21.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 924,
+            "mean_us": 2.163847402597402,
+            "p50_us": 2.16
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "AddRmsNormDynamicQuant",
+          "contract": [
+            "add_rmsnorm_dynamic_quant_active",
+            "AddRmsNormDynamicQuant",
+            [
+              [
+                [
+                  12,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  12,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ]
+            ],
+            [
+              [
+                [
+                  12,
+                  6144
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  12,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  12
+                ],
+                "fp32",
+                "ND"
+              ]
+            ]
+          ],
+          "observed_calls_per_forward": 3.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 132,
+            "mean_us": 7.627507575757576,
+            "p50_us": 7.5605
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "RmsNorm",
+          "contract": [
+            "rmsnorm",
+            [
+              12,
+              6144
+            ],
+            "bf16",
+            true
+          ],
+          "observed_calls_per_forward": 1.0,
+          "declared_calls": 156,
+          "observed_us": {
+            "count": 44,
+            "mean_us": 7.109272727272727,
+            "p50_us": 7.1105
+          },
+          "reason": "declared_population_differs"
+        }
+      ]
+    },
+    {
+      "case_id": "a3_glm53_w4a8_tp16_tpot50_c2",
+      "native_identity": {
+        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot50_c2-native-partitions.json",
+        "sha256": "bff3391eed6d11b8ddf807b15bb1e4345a7b35a47bb97b20c1652533d6b54dd5",
+        "size_bytes": 2685140
+      },
+      "forward_count": 44,
+      "rebound_prior_rules": [
+        {
+          "id": "hcom_allreduce_-observed-0",
+          "expected_hits": 78,
+          "new_match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "output_reduce",
+            "family": "allreduce",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 276480.0,
+            "metadata.group_axis": "tp"
+          }
+        },
+        {
+          "id": "hcom_allreduce_-observed-1",
+          "expected_hits": 78,
+          "new_match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "ring_allreduce",
+            "family": "allreduce",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 12,
+            "local_shape.1": 6144,
+            "metadata.group_axis": "tp"
+          }
+        },
+        {
+          "id": "groupedmatmulswigluquantv2-complete-native-response",
+          "expected_hits": 75,
+          "new_match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "ascend_w4a8_msd",
+            "family": "native_fusion",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 6,
+            "local_shape.1": 2048,
+            "metadata.fusion_tensor_view.input_width": 6144,
+            "metadata.fusion_tensor_view.intermediate_width": 2048,
+            "metadata.fusion_tensor_view.local_experts": 16,
+            "metadata.fusion_tensor_view.input_dtype": "int8",
+            "metadata.fusion_tensor_view.weight_dtype": "int4",
+            "metadata.fusion_tensor_view.output_dtype": "int8"
+          }
+        },
+        {
+          "id": "groupedmatmul-complete-native-response",
+          "expected_hits": 75,
+          "new_match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "balanced_grouped_down",
+            "family": "grouped_gemm",
+            "phase": "decode",
+            "dtype": "int8",
+            "local_shape.0": 6,
+            "local_shape.1": 6144,
+            "local_shape.2": 2048,
+            "metadata.weight_dtype": "int4",
+            "metadata.matrix_weight_bank_groups": 16
+          }
+        }
+      ],
+      "complete_contract_rules": [
+        {
+          "rule_id": "complete-quantbatchmatmulv3-0",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "dense_gate_up",
+            "family": "gate_up_projection",
+            "phase": "decode",
+            "dtype": "int8",
+            "local_shape.0": 12,
+            "local_shape.1": 256,
+            "local_shape.2": 6144,
+            "metadata.weight_dtype": "int8"
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot50_c2-native-partitions.json",
+            "sha256": "bff3391eed6d11b8ddf807b15bb1e4345a7b35a47bb97b20c1652533d6b54dd5",
+            "size_bytes": 2685140
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+            "sha256": "1f91ecac9a99c7ab0687fb1175db3ceefa39c6d31cca0bc4e4a4edb859a9ad13",
+            "size_bytes": 68070780
+          },
+          "native_operator_type": "QuantBatchMatmulV3",
+          "partition_indices": [
+            16
+          ],
+          "contract": [
+            "matrix",
+            [
+              12,
+              256,
+              6144
+            ],
+            "int8",
+            "int8",
+            "int32",
+            [],
+            ""
+          ],
+          "observed_us": {
+            "count": 3300,
+            "mean_us": 23.251826969696967,
+            "p50_us": 22.76
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 75,
+          "target_ids": [
+            "s0.l3.shared.gate_up",
+            "s0.l4.shared.gate_up",
+            "s0.l5.shared.gate_up",
+            "s0.l6.shared.gate_up",
+            "s0.l7.shared.gate_up",
+            "s0.l8.shared.gate_up",
+            "s0.l9.shared.gate_up",
+            "s0.l10.shared.gate_up",
+            "s0.l11.shared.gate_up",
+            "s0.l12.shared.gate_up",
+            "s0.l13.shared.gate_up",
+            "s0.l14.shared.gate_up",
+            "s0.l15.shared.gate_up",
+            "s0.l16.shared.gate_up",
+            "s0.l17.shared.gate_up",
+            "s0.l18.shared.gate_up",
+            "s0.l19.shared.gate_up",
+            "s0.l20.shared.gate_up",
+            "s0.l21.shared.gate_up",
+            "s0.l22.shared.gate_up",
+            "s0.l23.shared.gate_up",
+            "s0.l24.shared.gate_up",
+            "s0.l25.shared.gate_up",
+            "s0.l26.shared.gate_up",
+            "s0.l27.shared.gate_up",
+            "s0.l28.shared.gate_up",
+            "s0.l29.shared.gate_up",
+            "s0.l30.shared.gate_up",
+            "s0.l31.shared.gate_up",
+            "s0.l32.shared.gate_up",
+            "s0.l33.shared.gate_up",
+            "s0.l34.shared.gate_up",
+            "s0.l35.shared.gate_up",
+            "s0.l36.shared.gate_up",
+            "s0.l37.shared.gate_up",
+            "s0.l38.shared.gate_up",
+            "s0.l39.shared.gate_up",
+            "s0.l40.shared.gate_up",
+            "s0.l41.shared.gate_up",
+            "s0.l42.shared.gate_up",
+            "s0.l43.shared.gate_up",
+            "s0.l44.shared.gate_up",
+            "s0.l45.shared.gate_up",
+            "s0.l46.shared.gate_up",
+            "s0.l47.shared.gate_up",
+            "s0.l48.shared.gate_up",
+            "s0.l49.shared.gate_up",
+            "s0.l50.shared.gate_up",
+            "s0.l51.shared.gate_up",
+            "s0.l52.shared.gate_up",
+            "s0.l53.shared.gate_up",
+            "s0.l54.shared.gate_up",
+            "s0.l55.shared.gate_up",
+            "s0.l56.shared.gate_up",
+            "s0.l57.shared.gate_up",
+            "s0.l58.shared.gate_up",
+            "s0.l59.shared.gate_up",
+            "s0.l60.shared.gate_up",
+            "s0.l61.shared.gate_up",
+            "s0.l62.shared.gate_up",
+            "s0.l63.shared.gate_up",
+            "s0.l64.shared.gate_up",
+            "s0.l65.shared.gate_up",
+            "s0.l66.shared.gate_up",
+            "s0.l67.shared.gate_up",
+            "s0.l68.shared.gate_up",
+            "s0.l69.shared.gate_up",
+            "s0.l70.shared.gate_up",
+            "s0.l71.shared.gate_up",
+            "s0.l72.shared.gate_up",
+            "s0.l73.shared.gate_up",
+            "s0.l74.shared.gate_up",
+            "s0.l75.shared.gate_up",
+            "s0.l76.shared.gate_up",
+            "s0.l77.shared.gate_up"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        },
+        {
+          "rule_id": "complete-quantbatchmatmulv3-1",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "output",
+            "family": "gemm",
+            "phase": "decode",
+            "dtype": "int8",
+            "local_shape.0": 12,
+            "local_shape.1": 6144,
+            "local_shape.2": 1024,
+            "metadata.weight_dtype": "int8"
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot50_c2-native-partitions.json",
+            "sha256": "bff3391eed6d11b8ddf807b15bb1e4345a7b35a47bb97b20c1652533d6b54dd5",
+            "size_bytes": 2685140
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+            "sha256": "1f91ecac9a99c7ab0687fb1175db3ceefa39c6d31cca0bc4e4a4edb859a9ad13",
+            "size_bytes": 68070780
+          },
+          "native_operator_type": "QuantBatchMatmulV3",
+          "partition_indices": [
+            17
+          ],
+          "contract": [
+            "matrix",
+            [
+              12,
+              6144,
+              1024
+            ],
+            "int8",
+            "int8",
+            "bf16",
+            [
+              12
+            ],
+            "fp32"
+          ],
+          "observed_us": {
+            "count": 3432,
+            "mean_us": 18.132831585081586,
+            "p50_us": 17.981
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 78,
+          "target_ids": [
+            "s0.l0.output",
+            "s0.l1.output",
+            "s0.l2.output",
+            "s0.l3.output",
+            "s0.l4.output",
+            "s0.l5.output",
+            "s0.l6.output",
+            "s0.l7.output",
+            "s0.l8.output",
+            "s0.l9.output",
+            "s0.l10.output",
+            "s0.l11.output",
+            "s0.l12.output",
+            "s0.l13.output",
+            "s0.l14.output",
+            "s0.l15.output",
+            "s0.l16.output",
+            "s0.l17.output",
+            "s0.l18.output",
+            "s0.l19.output",
+            "s0.l20.output",
+            "s0.l21.output",
+            "s0.l22.output",
+            "s0.l23.output",
+            "s0.l24.output",
+            "s0.l25.output",
+            "s0.l26.output",
+            "s0.l27.output",
+            "s0.l28.output",
+            "s0.l29.output",
+            "s0.l30.output",
+            "s0.l31.output",
+            "s0.l32.output",
+            "s0.l33.output",
+            "s0.l34.output",
+            "s0.l35.output",
+            "s0.l36.output",
+            "s0.l37.output",
+            "s0.l38.output",
+            "s0.l39.output",
+            "s0.l40.output",
+            "s0.l41.output",
+            "s0.l42.output",
+            "s0.l43.output",
+            "s0.l44.output",
+            "s0.l45.output",
+            "s0.l46.output",
+            "s0.l47.output",
+            "s0.l48.output",
+            "s0.l49.output",
+            "s0.l50.output",
+            "s0.l51.output",
+            "s0.l52.output",
+            "s0.l53.output",
+            "s0.l54.output",
+            "s0.l55.output",
+            "s0.l56.output",
+            "s0.l57.output",
+            "s0.l58.output",
+            "s0.l59.output",
+            "s0.l60.output",
+            "s0.l61.output",
+            "s0.l62.output",
+            "s0.l63.output",
+            "s0.l64.output",
+            "s0.l65.output",
+            "s0.l66.output",
+            "s0.l67.output",
+            "s0.l68.output",
+            "s0.l69.output",
+            "s0.l70.output",
+            "s0.l71.output",
+            "s0.l72.output",
+            "s0.l73.output",
+            "s0.l74.output",
+            "s0.l75.output",
+            "s0.l76.output",
+            "s0.l77.output"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        },
+        {
+          "rule_id": "complete-quantbatchmatmulv3-2",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "dense_down",
+            "family": "down_projection",
+            "phase": "decode",
+            "dtype": "int8",
+            "local_shape.0": 12,
+            "local_shape.1": 6144,
+            "local_shape.2": 128,
+            "metadata.weight_dtype": "int8"
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot50_c2-native-partitions.json",
+            "sha256": "bff3391eed6d11b8ddf807b15bb1e4345a7b35a47bb97b20c1652533d6b54dd5",
+            "size_bytes": 2685140
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+            "sha256": "1f91ecac9a99c7ab0687fb1175db3ceefa39c6d31cca0bc4e4a4edb859a9ad13",
+            "size_bytes": 68070780
+          },
+          "native_operator_type": "QuantBatchMatmulV3",
+          "partition_indices": [
+            19
+          ],
+          "contract": [
+            "matrix",
+            [
+              12,
+              6144,
+              128
+            ],
+            "int8",
+            "int8",
+            "bf16",
+            [
+              12
+            ],
+            "fp32"
+          ],
+          "observed_us": {
+            "count": 3300,
+            "mean_us": 15.956279696969698,
+            "p50_us": 16.02
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 75,
+          "target_ids": [
+            "s0.l3.shared.down",
+            "s0.l4.shared.down",
+            "s0.l5.shared.down",
+            "s0.l6.shared.down",
+            "s0.l7.shared.down",
+            "s0.l8.shared.down",
+            "s0.l9.shared.down",
+            "s0.l10.shared.down",
+            "s0.l11.shared.down",
+            "s0.l12.shared.down",
+            "s0.l13.shared.down",
+            "s0.l14.shared.down",
+            "s0.l15.shared.down",
+            "s0.l16.shared.down",
+            "s0.l17.shared.down",
+            "s0.l18.shared.down",
+            "s0.l19.shared.down",
+            "s0.l20.shared.down",
+            "s0.l21.shared.down",
+            "s0.l22.shared.down",
+            "s0.l23.shared.down",
+            "s0.l24.shared.down",
+            "s0.l25.shared.down",
+            "s0.l26.shared.down",
+            "s0.l27.shared.down",
+            "s0.l28.shared.down",
+            "s0.l29.shared.down",
+            "s0.l30.shared.down",
+            "s0.l31.shared.down",
+            "s0.l32.shared.down",
+            "s0.l33.shared.down",
+            "s0.l34.shared.down",
+            "s0.l35.shared.down",
+            "s0.l36.shared.down",
+            "s0.l37.shared.down",
+            "s0.l38.shared.down",
+            "s0.l39.shared.down",
+            "s0.l40.shared.down",
+            "s0.l41.shared.down",
+            "s0.l42.shared.down",
+            "s0.l43.shared.down",
+            "s0.l44.shared.down",
+            "s0.l45.shared.down",
+            "s0.l46.shared.down",
+            "s0.l47.shared.down",
+            "s0.l48.shared.down",
+            "s0.l49.shared.down",
+            "s0.l50.shared.down",
+            "s0.l51.shared.down",
+            "s0.l52.shared.down",
+            "s0.l53.shared.down",
+            "s0.l54.shared.down",
+            "s0.l55.shared.down",
+            "s0.l56.shared.down",
+            "s0.l57.shared.down",
+            "s0.l58.shared.down",
+            "s0.l59.shared.down",
+            "s0.l60.shared.down",
+            "s0.l61.shared.down",
+            "s0.l62.shared.down",
+            "s0.l63.shared.down",
+            "s0.l64.shared.down",
+            "s0.l65.shared.down",
+            "s0.l66.shared.down",
+            "s0.l67.shared.down",
+            "s0.l68.shared.down",
+            "s0.l69.shared.down",
+            "s0.l70.shared.down",
+            "s0.l71.shared.down",
+            "s0.l72.shared.down",
+            "s0.l73.shared.down",
+            "s0.l74.shared.down",
+            "s0.l75.shared.down",
+            "s0.l76.shared.down",
+            "s0.l77.shared.down"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        },
+        {
+          "rule_id": "complete-transposebatchmatmul-3",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "v_expand",
+            "family": "gemm",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 48,
+            "local_shape.1": 256,
+            "local_shape.2": 512,
+            "metadata.weight_dtype": "bf16"
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot50_c2-native-partitions.json",
+            "sha256": "bff3391eed6d11b8ddf807b15bb1e4345a7b35a47bb97b20c1652533d6b54dd5",
+            "size_bytes": 2685140
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+            "sha256": "1f91ecac9a99c7ab0687fb1175db3ceefa39c6d31cca0bc4e4a4edb859a9ad13",
+            "size_bytes": 68070780
+          },
+          "native_operator_type": "TransposeBatchMatMul",
+          "partition_indices": [
+            23
+          ],
+          "contract": [
+            "transpose_batchmatmul_active",
+            "TransposeBatchMatMul",
+            [
+              4,
+              12,
+              256,
+              512
+            ],
+            "bf16",
+            "bf16",
+            "bf16"
+          ],
+          "observed_us": {
+            "count": 3432,
+            "mean_us": 12.70891317016317,
+            "p50_us": 12.541
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 78,
+          "target_ids": [
+            "s0.l0.v_expand",
+            "s0.l1.v_expand",
+            "s0.l2.v_expand",
+            "s0.l3.v_expand",
+            "s0.l4.v_expand",
+            "s0.l5.v_expand",
+            "s0.l6.v_expand",
+            "s0.l7.v_expand",
+            "s0.l8.v_expand",
+            "s0.l9.v_expand",
+            "s0.l10.v_expand",
+            "s0.l11.v_expand",
+            "s0.l12.v_expand",
+            "s0.l13.v_expand",
+            "s0.l14.v_expand",
+            "s0.l15.v_expand",
+            "s0.l16.v_expand",
+            "s0.l17.v_expand",
+            "s0.l18.v_expand",
+            "s0.l19.v_expand",
+            "s0.l20.v_expand",
+            "s0.l21.v_expand",
+            "s0.l22.v_expand",
+            "s0.l23.v_expand",
+            "s0.l24.v_expand",
+            "s0.l25.v_expand",
+            "s0.l26.v_expand",
+            "s0.l27.v_expand",
+            "s0.l28.v_expand",
+            "s0.l29.v_expand",
+            "s0.l30.v_expand",
+            "s0.l31.v_expand",
+            "s0.l32.v_expand",
+            "s0.l33.v_expand",
+            "s0.l34.v_expand",
+            "s0.l35.v_expand",
+            "s0.l36.v_expand",
+            "s0.l37.v_expand",
+            "s0.l38.v_expand",
+            "s0.l39.v_expand",
+            "s0.l40.v_expand",
+            "s0.l41.v_expand",
+            "s0.l42.v_expand",
+            "s0.l43.v_expand",
+            "s0.l44.v_expand",
+            "s0.l45.v_expand",
+            "s0.l46.v_expand",
+            "s0.l47.v_expand",
+            "s0.l48.v_expand",
+            "s0.l49.v_expand",
+            "s0.l50.v_expand",
+            "s0.l51.v_expand",
+            "s0.l52.v_expand",
+            "s0.l53.v_expand",
+            "s0.l54.v_expand",
+            "s0.l55.v_expand",
+            "s0.l56.v_expand",
+            "s0.l57.v_expand",
+            "s0.l58.v_expand",
+            "s0.l59.v_expand",
+            "s0.l60.v_expand",
+            "s0.l61.v_expand",
+            "s0.l62.v_expand",
+            "s0.l63.v_expand",
+            "s0.l64.v_expand",
+            "s0.l65.v_expand",
+            "s0.l66.v_expand",
+            "s0.l67.v_expand",
+            "s0.l68.v_expand",
+            "s0.l69.v_expand",
+            "s0.l70.v_expand",
+            "s0.l71.v_expand",
+            "s0.l72.v_expand",
+            "s0.l73.v_expand",
+            "s0.l74.v_expand",
+            "s0.l75.v_expand",
+            "s0.l76.v_expand",
+            "s0.l77.v_expand"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        },
+        {
+          "rule_id": "complete-dequantswigluquant-4",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "ascend_shared_dequant_swiglu_quant",
+            "family": "dequant_swiglu_quant",
+            "phase": "decode",
+            "dtype": "int8",
+            "local_shape.0": 12,
+            "local_shape.1": 128
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot50_c2-native-partitions.json",
+            "sha256": "bff3391eed6d11b8ddf807b15bb1e4345a7b35a47bb97b20c1652533d6b54dd5",
+            "size_bytes": 2685140
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+            "sha256": "1f91ecac9a99c7ab0687fb1175db3ceefa39c6d31cca0bc4e4a4edb859a9ad13",
+            "size_bytes": 68070780
+          },
+          "native_operator_type": "DequantSwigluQuant",
+          "partition_indices": [
+            26
+          ],
+          "contract": [
+            "dequant_swiglu_quant_active",
+            "DequantSwigluQuant",
+            [
+              [
+                12,
+                256
+              ],
+              "int32",
+              "ND"
+            ],
+            [
+              [
+                256
+              ],
+              "fp32",
+              "ND"
+            ],
+            [
+              [
+                12
+              ],
+              "fp32",
+              "ND"
+            ],
+            [
+              [
+                12,
+                128
+              ],
+              "int8",
+              "ND"
+            ],
+            [
+              [
+                12
+              ],
+              "fp32",
+              "ND"
+            ]
+          ],
+          "observed_us": {
+            "count": 3300,
+            "mean_us": 10.99021303030303,
+            "p50_us": 10.3
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 75,
+          "target_ids": [
+            "s0.l3.shared.swiglu",
+            "s0.l4.shared.swiglu",
+            "s0.l5.shared.swiglu",
+            "s0.l6.shared.swiglu",
+            "s0.l7.shared.swiglu",
+            "s0.l8.shared.swiglu",
+            "s0.l9.shared.swiglu",
+            "s0.l10.shared.swiglu",
+            "s0.l11.shared.swiglu",
+            "s0.l12.shared.swiglu",
+            "s0.l13.shared.swiglu",
+            "s0.l14.shared.swiglu",
+            "s0.l15.shared.swiglu",
+            "s0.l16.shared.swiglu",
+            "s0.l17.shared.swiglu",
+            "s0.l18.shared.swiglu",
+            "s0.l19.shared.swiglu",
+            "s0.l20.shared.swiglu",
+            "s0.l21.shared.swiglu",
+            "s0.l22.shared.swiglu",
+            "s0.l23.shared.swiglu",
+            "s0.l24.shared.swiglu",
+            "s0.l25.shared.swiglu",
+            "s0.l26.shared.swiglu",
+            "s0.l27.shared.swiglu",
+            "s0.l28.shared.swiglu",
+            "s0.l29.shared.swiglu",
+            "s0.l30.shared.swiglu",
+            "s0.l31.shared.swiglu",
+            "s0.l32.shared.swiglu",
+            "s0.l33.shared.swiglu",
+            "s0.l34.shared.swiglu",
+            "s0.l35.shared.swiglu",
+            "s0.l36.shared.swiglu",
+            "s0.l37.shared.swiglu",
+            "s0.l38.shared.swiglu",
+            "s0.l39.shared.swiglu",
+            "s0.l40.shared.swiglu",
+            "s0.l41.shared.swiglu",
+            "s0.l42.shared.swiglu",
+            "s0.l43.shared.swiglu",
+            "s0.l44.shared.swiglu",
+            "s0.l45.shared.swiglu",
+            "s0.l46.shared.swiglu",
+            "s0.l47.shared.swiglu",
+            "s0.l48.shared.swiglu",
+            "s0.l49.shared.swiglu",
+            "s0.l50.shared.swiglu",
+            "s0.l51.shared.swiglu",
+            "s0.l52.shared.swiglu",
+            "s0.l53.shared.swiglu",
+            "s0.l54.shared.swiglu",
+            "s0.l55.shared.swiglu",
+            "s0.l56.shared.swiglu",
+            "s0.l57.shared.swiglu",
+            "s0.l58.shared.swiglu",
+            "s0.l59.shared.swiglu",
+            "s0.l60.shared.swiglu",
+            "s0.l61.shared.swiglu",
+            "s0.l62.shared.swiglu",
+            "s0.l63.shared.swiglu",
+            "s0.l64.shared.swiglu",
+            "s0.l65.shared.swiglu",
+            "s0.l66.shared.swiglu",
+            "s0.l67.shared.swiglu",
+            "s0.l68.shared.swiglu",
+            "s0.l69.shared.swiglu",
+            "s0.l70.shared.swiglu",
+            "s0.l71.shared.swiglu",
+            "s0.l72.shared.swiglu",
+            "s0.l73.shared.swiglu",
+            "s0.l74.shared.swiglu",
+            "s0.l75.shared.swiglu",
+            "s0.l76.shared.swiglu",
+            "s0.l77.shared.swiglu"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        },
+        {
+          "rule_id": "complete-quantbatchmatmulv3-5",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "index_q",
+            "family": "gemm",
+            "phase": "decode",
+            "dtype": "int8",
+            "local_shape.0": 12,
+            "local_shape.1": 4096,
+            "local_shape.2": 2048,
+            "metadata.weight_dtype": "int8"
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot50_c2-native-partitions.json",
+            "sha256": "bff3391eed6d11b8ddf807b15bb1e4345a7b35a47bb97b20c1652533d6b54dd5",
+            "size_bytes": 2685140
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+            "sha256": "1f91ecac9a99c7ab0687fb1175db3ceefa39c6d31cca0bc4e4a4edb859a9ad13",
+            "size_bytes": 68070780
+          },
+          "native_operator_type": "QuantBatchMatmulV3",
+          "partition_indices": [
+            32
+          ],
+          "contract": [
+            "matrix",
+            [
+              12,
+              4096,
+              2048
+            ],
+            "int8",
+            "int8",
+            "bf16",
+            [
+              12
+            ],
+            "fp32"
+          ],
+          "observed_us": {
+            "count": 924,
+            "mean_us": 16.66600541125541,
+            "p50_us": 16.7105
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 21,
+          "target_ids": [
+            "s0.l0.index_q",
+            "s0.l1.index_q",
+            "s0.l2.index_q",
+            "s0.l6.index_q",
+            "s0.l10.index_q",
+            "s0.l14.index_q",
+            "s0.l18.index_q",
+            "s0.l22.index_q",
+            "s0.l26.index_q",
+            "s0.l30.index_q",
+            "s0.l34.index_q",
+            "s0.l38.index_q",
+            "s0.l42.index_q",
+            "s0.l46.index_q",
+            "s0.l50.index_q",
+            "s0.l54.index_q",
+            "s0.l58.index_q",
+            "s0.l62.index_q",
+            "s0.l66.index_q",
+            "s0.l70.index_q",
+            "s0.l74.index_q"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        },
+        {
+          "rule_id": "complete-dynamicquant-6",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "dynamic_quantize",
+            "family": "quantize",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 12,
+            "local_shape.1": 1024
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot50_c2-native-partitions.json",
+            "sha256": "bff3391eed6d11b8ddf807b15bb1e4345a7b35a47bb97b20c1652533d6b54dd5",
+            "size_bytes": 2685140
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+            "sha256": "1f91ecac9a99c7ab0687fb1175db3ceefa39c6d31cca0bc4e4a4edb859a9ad13",
+            "size_bytes": 68070780
+          },
+          "native_operator_type": "DynamicQuant",
+          "partition_indices": [
+            35
+          ],
+          "contract": [
+            "dynamic_quant_active",
+            "DynamicQuant",
+            [
+              [
+                12,
+                1024
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [
+                12,
+                1024
+              ],
+              "int8",
+              "ND"
+            ],
+            [
+              [
+                12
+              ],
+              "fp32",
+              "ND"
+            ]
+          ],
+          "observed_us": {
+            "count": 3432,
+            "mean_us": 3.861330710955711,
+            "p50_us": 3.84
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 78,
+          "target_ids": [
+            "s0.l0.output.quantize",
+            "s0.l1.output.quantize",
+            "s0.l2.output.quantize",
+            "s0.l3.output.quantize",
+            "s0.l4.output.quantize",
+            "s0.l5.output.quantize",
+            "s0.l6.output.quantize",
+            "s0.l7.output.quantize",
+            "s0.l8.output.quantize",
+            "s0.l9.output.quantize",
+            "s0.l10.output.quantize",
+            "s0.l11.output.quantize",
+            "s0.l12.output.quantize",
+            "s0.l13.output.quantize",
+            "s0.l14.output.quantize",
+            "s0.l15.output.quantize",
+            "s0.l16.output.quantize",
+            "s0.l17.output.quantize",
+            "s0.l18.output.quantize",
+            "s0.l19.output.quantize",
+            "s0.l20.output.quantize",
+            "s0.l21.output.quantize",
+            "s0.l22.output.quantize",
+            "s0.l23.output.quantize",
+            "s0.l24.output.quantize",
+            "s0.l25.output.quantize",
+            "s0.l26.output.quantize",
+            "s0.l27.output.quantize",
+            "s0.l28.output.quantize",
+            "s0.l29.output.quantize",
+            "s0.l30.output.quantize",
+            "s0.l31.output.quantize",
+            "s0.l32.output.quantize",
+            "s0.l33.output.quantize",
+            "s0.l34.output.quantize",
+            "s0.l35.output.quantize",
+            "s0.l36.output.quantize",
+            "s0.l37.output.quantize",
+            "s0.l38.output.quantize",
+            "s0.l39.output.quantize",
+            "s0.l40.output.quantize",
+            "s0.l41.output.quantize",
+            "s0.l42.output.quantize",
+            "s0.l43.output.quantize",
+            "s0.l44.output.quantize",
+            "s0.l45.output.quantize",
+            "s0.l46.output.quantize",
+            "s0.l47.output.quantize",
+            "s0.l48.output.quantize",
+            "s0.l49.output.quantize",
+            "s0.l50.output.quantize",
+            "s0.l51.output.quantize",
+            "s0.l52.output.quantize",
+            "s0.l53.output.quantize",
+            "s0.l54.output.quantize",
+            "s0.l55.output.quantize",
+            "s0.l56.output.quantize",
+            "s0.l57.output.quantize",
+            "s0.l58.output.quantize",
+            "s0.l59.output.quantize",
+            "s0.l60.output.quantize",
+            "s0.l61.output.quantize",
+            "s0.l62.output.quantize",
+            "s0.l63.output.quantize",
+            "s0.l64.output.quantize",
+            "s0.l65.output.quantize",
+            "s0.l66.output.quantize",
+            "s0.l67.output.quantize",
+            "s0.l68.output.quantize",
+            "s0.l69.output.quantize",
+            "s0.l70.output.quantize",
+            "s0.l71.output.quantize",
+            "s0.l72.output.quantize",
+            "s0.l73.output.quantize",
+            "s0.l74.output.quantize",
+            "s0.l75.output.quantize",
+            "s0.l76.output.quantize",
+            "s0.l77.output.quantize"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        },
+        {
+          "rule_id": "complete-layernormv3-7",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "index_norm",
+            "family": "layernorm",
+            "phase": "decode",
+            "dtype": "fp32",
+            "local_shape.0": 12,
+            "local_shape.1": 128
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot50_c2-native-partitions.json",
+            "sha256": "bff3391eed6d11b8ddf807b15bb1e4345a7b35a47bb97b20c1652533d6b54dd5",
+            "size_bytes": 2685140
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+            "sha256": "1f91ecac9a99c7ab0687fb1175db3ceefa39c6d31cca0bc4e4a4edb859a9ad13",
+            "size_bytes": 68070780
+          },
+          "native_operator_type": "LayerNormV3",
+          "partition_indices": [
+            40
+          ],
+          "contract": [
+            "layernorm_active",
+            "LayerNormV3",
+            [
+              [
+                12,
+                128
+              ],
+              "fp32",
+              "ND"
+            ],
+            [
+              [
+                128
+              ],
+              "fp32",
+              "ND"
+            ],
+            [
+              [
+                128
+              ],
+              "fp32",
+              "ND"
+            ],
+            [
+              [
+                12,
+                128
+              ],
+              "fp32",
+              "ND"
+            ]
+          ],
+          "observed_us": {
+            "count": 924,
+            "mean_us": 8.005386363636363,
+            "p50_us": 8.02
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 21,
+          "target_ids": [
+            "s0.l0.index_norm",
+            "s0.l1.index_norm",
+            "s0.l2.index_norm",
+            "s0.l6.index_norm",
+            "s0.l10.index_norm",
+            "s0.l14.index_norm",
+            "s0.l18.index_norm",
+            "s0.l22.index_norm",
+            "s0.l26.index_norm",
+            "s0.l30.index_norm",
+            "s0.l34.index_norm",
+            "s0.l38.index_norm",
+            "s0.l42.index_norm",
+            "s0.l46.index_norm",
+            "s0.l50.index_norm",
+            "s0.l54.index_norm",
+            "s0.l58.index_norm",
+            "s0.l62.index_norm",
+            "s0.l66.index_norm",
+            "s0.l70.index_norm",
+            "s0.l74.index_norm"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        },
+        {
+          "rule_id": "complete-quantbatchmatmulv3-8",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "dense_gate_up",
+            "family": "gate_up_projection",
+            "phase": "decode",
+            "dtype": "int8",
+            "local_shape.0": 12,
+            "local_shape.1": 1536,
+            "local_shape.2": 6144,
+            "metadata.weight_dtype": "int8"
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot50_c2-native-partitions.json",
+            "sha256": "bff3391eed6d11b8ddf807b15bb1e4345a7b35a47bb97b20c1652533d6b54dd5",
+            "size_bytes": 2685140
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+            "sha256": "1f91ecac9a99c7ab0687fb1175db3ceefa39c6d31cca0bc4e4a4edb859a9ad13",
+            "size_bytes": 68070780
+          },
+          "native_operator_type": "QuantBatchMatmulV3",
+          "partition_indices": [
+            44
+          ],
+          "contract": [
+            "matrix",
+            [
+              12,
+              1536,
+              6144
+            ],
+            "int8",
+            "int8",
+            "bf16",
+            [
+              12
+            ],
+            "fp32"
+          ],
+          "observed_us": {
+            "count": 132,
+            "mean_us": 19.791825757575758,
+            "p50_us": 19.801
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 3,
+          "target_ids": [
+            "s0.l0.gate_up",
+            "s0.l1.gate_up",
+            "s0.l2.gate_up"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        },
+        {
+          "rule_id": "complete-quantbatchmatmulv3-9",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "dense_down",
+            "family": "down_projection",
+            "phase": "decode",
+            "dtype": "int8",
+            "local_shape.0": 12,
+            "local_shape.1": 6144,
+            "local_shape.2": 768,
+            "metadata.weight_dtype": "int8"
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot50_c2-native-partitions.json",
+            "sha256": "bff3391eed6d11b8ddf807b15bb1e4345a7b35a47bb97b20c1652533d6b54dd5",
+            "size_bytes": 2685140
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+            "sha256": "1f91ecac9a99c7ab0687fb1175db3ceefa39c6d31cca0bc4e4a4edb859a9ad13",
+            "size_bytes": 68070780
+          },
+          "native_operator_type": "QuantBatchMatmulV3",
+          "partition_indices": [
+            48
+          ],
+          "contract": [
+            "matrix",
+            [
+              12,
+              6144,
+              768
+            ],
+            "int8",
+            "int8",
+            "bf16",
+            [
+              12
+            ],
+            "fp32"
+          ],
+          "observed_us": {
+            "count": 132,
+            "mean_us": 14.90325,
+            "p50_us": 14.64
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 3,
+          "target_ids": [
+            "s0.l0.down",
+            "s0.l1.down",
+            "s0.l2.down"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        },
+        {
+          "rule_id": "complete-swiglu-10",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "swiglu",
+            "family": "swiglu",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 12,
+            "local_shape.1": 768
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot50_c2-native-partitions.json",
+            "sha256": "bff3391eed6d11b8ddf807b15bb1e4345a7b35a47bb97b20c1652533d6b54dd5",
+            "size_bytes": 2685140
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+            "sha256": "1f91ecac9a99c7ab0687fb1175db3ceefa39c6d31cca0bc4e4a4edb859a9ad13",
+            "size_bytes": 68070780
+          },
+          "native_operator_type": "SwiGlu",
+          "partition_indices": [
+            53
+          ],
+          "contract": [
+            "swiglu",
+            [
+              12,
+              768
+            ],
+            "bf16"
+          ],
+          "observed_us": {
+            "count": 132,
+            "mean_us": 4.200530303030303,
+            "p50_us": 3.96
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 3,
+          "target_ids": [
+            "s0.l0.swiglu",
+            "s0.l1.swiglu",
+            "s0.l2.swiglu"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        },
+        {
+          "rule_id": "complete-dynamicquant-11",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "dynamic_quantize",
+            "family": "quantize",
+            "phase": "decode",
+            "dtype": "bf16",
+            "local_shape.0": 12,
+            "local_shape.1": 768
+          },
+          "calibration_origin": "observed",
+          "evaluation_relation": "in_sample",
+          "native_identity": {
+            "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot50_c2-native-partitions.json",
+            "sha256": "bff3391eed6d11b8ddf807b15bb1e4345a7b35a47bb97b20c1652533d6b54dd5",
+            "size_bytes": 2685140
+          },
+          "source_identity": {
+            "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+            "sha256": "1f91ecac9a99c7ab0687fb1175db3ceefa39c6d31cca0bc4e4a4edb859a9ad13",
+            "size_bytes": 68070780
+          },
+          "native_operator_type": "DynamicQuant",
+          "partition_indices": [
+            56
+          ],
+          "contract": [
+            "dynamic_quant_active",
+            "DynamicQuant",
+            [
+              [
+                12,
+                768
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [
+                12,
+                768
+              ],
+              "int8",
+              "ND"
+            ],
+            [
+              [
+                12
+              ],
+              "fp32",
+              "ND"
+            ]
+          ],
+          "observed_us": {
+            "count": 132,
+            "mean_us": 3.4035454545454544,
+            "p50_us": 3.4
+          },
+          "forward_count": 44,
+          "expected_rule_hits": 3,
+          "target_ids": [
+            "s0.l0.down.quantize",
+            "s0.l1.down.quantize",
+            "s0.l2.down.quantize"
+          ],
+          "response_boundary": "one_complete_active_contract_kernel_call",
+          "parameter_statistic": "full_native_population_arithmetic_mean_us",
+          "body_residual_used": false,
+          "strict_admission_changed": false,
+          "occurrence_binding_implied": false
+        }
+      ],
+      "unassigned_contracts": [
+        {
+          "native_operator_type": "KvQuantSparseFlashAttention",
+          "contract": [
+            "native_tensor_abi",
+            "KvQuantSparseFlashAttention",
+            [
+              [
+                [
+                  12,
+                  4,
+                  576
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  4248,
+                  128,
+                  1,
+                  656
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  4248,
+                  128,
+                  1,
+                  656
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  12,
+                  1,
+                  2048
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [],
+                null,
+                null
+              ],
+              [
+                [
+                  2,
+                  1024
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  2
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  2
+                ],
+                "int32",
+                "ND"
+              ]
+            ],
+            [
+              [
+                [
+                  12,
+                  4,
+                  512
+                ],
+                "bf16",
+                "ND"
+              ]
+            ]
+          ],
+          "observed_calls_per_forward": 78.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 3432,
+            "mean_us": 95.75937383449883,
+            "p50_us": 95.0815
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "GroupedMatmulSwigluQuantV2",
+          "contract": [
+            "grouped_mlp_parameters_active",
+            "GroupedMatmulSwigluQuantV2",
+            [
+              16,
+              6144,
+              2048
+            ],
+            [
+              "int8",
+              "int4",
+              "int8"
+            ]
+          ],
+          "observed_calls_per_forward": 75.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 3300,
+            "mean_us": 98.47852484848484,
+            "p50_us": 98.162
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "GroupedMatmul",
+          "contract": [
+            "grouped_matrix",
+            [
+              16,
+              128,
+              6144,
+              2048
+            ],
+            "int8",
+            "int4",
+            "bf16",
+            [
+              128
+            ],
+            "fp32"
+          ],
+          "observed_calls_per_forward": 75.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 3300,
+            "mean_us": 56.946977878787884,
+            "p50_us": 56.381
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "MatMulV3",
+          "contract": [
+            "matrix",
+            [
+              12,
+              256,
+              6144
+            ],
+            "bf16",
+            "bf16",
+            "fp32",
+            [],
+            ""
+          ],
+          "observed_calls_per_forward": 75.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 3300,
+            "mean_us": 14.886711212121211,
+            "p50_us": 14.761
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "LightningIndexer",
+          "contract": [
+            "lightning_indexer_active",
+            "LightningIndexer",
+            [
+              [
+                [
+                  12,
+                  32,
+                  128
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  12,
+                  32
+                ],
+                "bf16",
+                "ND"
+              ]
+            ],
+            [
+              [
+                1,
+                128
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [
+                12,
+                1,
+                2048
+              ],
+              "int32",
+              "ND"
+            ]
+          ],
+          "observed_calls_per_forward": 21.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 924,
+            "mean_us": 43.05271753246753,
+            "p50_us": 42.841
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "DynamicQuant",
+          "contract": [
+            "dynamic_quant_active",
+            "DynamicQuant",
+            [
+              [
+                12,
+                6144
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [
+                12,
+                6144
+              ],
+              "int8",
+              "ND"
+            ],
+            [
+              [
+                12
+              ],
+              "fp32",
+              "ND"
+            ]
+          ],
+          "observed_calls_per_forward": 153.0,
+          "declared_calls": 156,
+          "observed_us": {
+            "count": 6732,
+            "mean_us": 4.9827606951871655,
+            "p50_us": 4.761
+          },
+          "reason": "declared_population_differs"
+        },
+        {
+          "native_operator_type": "AddRmsNormBias",
+          "contract": [
+            "native_tensor_abi",
+            "AddRmsNormBias",
+            [
+              [
+                [
+                  12,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  12,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ]
+            ],
+            [
+              [
+                [
+                  12,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  12,
+                  1
+                ],
+                "fp32",
+                "ND"
+              ],
+              [
+                [
+                  12,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ]
+            ]
+          ],
+          "observed_calls_per_forward": 152.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 6688,
+            "mean_us": 5.336382924641149,
+            "p50_us": 5.32
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "MatMulV2",
+          "contract": [
+            "matrix",
+            [
+              12,
+              160,
+              6144
+            ],
+            "bf16",
+            "bf16",
+            "bf16",
+            [],
+            ""
+          ],
+          "observed_calls_per_forward": 21.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 924,
+            "mean_us": 15.586020562770564,
+            "p50_us": 15.541
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "MoeGatingTopK",
+          "contract": [
+            "router_selection_active",
+            "MoeGatingTopK",
+            "score_topk",
+            [
+              [
+                1,
+                256
+              ],
+              "fp32",
+              "ND"
+            ],
+            [
+              [
+                1,
+                8
+              ],
+              "fp32",
+              "ND"
+            ],
+            [
+              [
+                1,
+                8
+              ],
+              "int32",
+              "ND"
+            ]
+          ],
+          "observed_calls_per_forward": 75.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 3300,
+            "mean_us": 4.071187272727273,
+            "p50_us": 4.0
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "ScatterNdUpdateSk",
+          "contract": [
+            "native_tensor_abi",
+            "ScatterNdUpdateSk",
+            [
+              [
+                [
+                  543744,
+                  128
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  12,
+                  1
+                ],
+                "int32",
+                "ND"
+              ],
+              [
+                [
+                  12,
+                  128
+                ],
+                "bf16",
+                "ND"
+              ]
+            ],
+            [
+              [
+                [
+                  543744,
+                  128
+                ],
+                "bf16",
+                "ND"
+              ]
+            ]
+          ],
+          "observed_calls_per_forward": 21.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 924,
+            "mean_us": 10.574059523809522,
+            "p50_us": 10.4
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "Slice",
+          "contract": [
+            "slice_copy",
+            [
+              12,
+              160
+            ],
+            [
+              12,
+              128
+            ],
+            "bf16",
+            "bf16"
+          ],
+          "observed_calls_per_forward": 21.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 924,
+            "mean_us": 2.555892857142857,
+            "p50_us": 2.56
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "Slice",
+          "contract": [
+            "slice_copy",
+            [
+              12,
+              160
+            ],
+            [
+              12,
+              32
+            ],
+            "bf16",
+            "bf16"
+          ],
+          "observed_calls_per_forward": 21.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 924,
+            "mean_us": 2.162577922077922,
+            "p50_us": 2.16
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "AddRmsNormDynamicQuant",
+          "contract": [
+            "add_rmsnorm_dynamic_quant_active",
+            "AddRmsNormDynamicQuant",
+            [
+              [
+                [
+                  12,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  12,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ]
+            ],
+            [
+              [
+                [
+                  12,
+                  6144
+                ],
+                "int8",
+                "ND"
+              ],
+              [
+                [
+                  12,
+                  6144
+                ],
+                "bf16",
+                "ND"
+              ],
+              [
+                [
+                  12
+                ],
+                "fp32",
+                "ND"
+              ]
+            ]
+          ],
+          "observed_calls_per_forward": 3.0,
+          "declared_calls": 0,
+          "observed_us": {
+            "count": 132,
+            "mean_us": 7.625022727272727,
+            "p50_us": 7.5105
+          },
+          "reason": "no_exact_declared_contract"
+        },
+        {
+          "native_operator_type": "RmsNorm",
+          "contract": [
+            "rmsnorm",
+            [
+              12,
+              6144
+            ],
+            "bf16",
+            true
+          ],
+          "observed_calls_per_forward": 1.0,
+          "declared_calls": 156,
+          "observed_us": {
+            "count": 44,
+            "mean_us": 7.148795454545455,
+            "p50_us": 7.14
+          },
+          "reason": "declared_population_differs"
+        }
+      ]
+    }
+  ],
+  "raw_reads": 0,
+  "cost_predictions": 0
+}

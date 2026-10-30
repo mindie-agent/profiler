@@ -8,11 +8,12 @@
 """
 from collections import Counter
 from copy import deepcopy
+import argparse
 
 from build_qwen_a3_service_cases import OUT, identity, physical_ops, read, write
 
 
-def build():
+def build(captured_grid=False):
     from mindie_sim.prediction.mla_prolog_packed import LAYOUT, PROFILE
     previous = OUT/'decode-forward-glm78-grouped-service-cases.json'
     manifest = read(previous); rows, receipts = [], []
@@ -23,6 +24,9 @@ def build():
         if native['source_identity']['sha256'] != row['source']['sha256']:
             raise ValueError('native_source_differs')
         rules = deepcopy(case['runtime']['kernels']['service_regimes'])
+        geo = row['replay_input_pins']['primary_geometry']
+        if captured_grid:
+            case['runtime']['graph_capture_keys'] = [geo['query_rows']]
         kernels = case['runtime']['kernels']; lower = kernels['lowerings']
         lower['mla_prolog'] = {'implementation':'vllm_ascend_mla_prolog_v3',
                               'options':{'cache_layout':LAYOUT,'cache_group_size':128}}
@@ -31,7 +35,6 @@ def build():
         fusion['traffic_profile'] = {'mla_prolog': PROFILE}
         kernels['programs']['indexed_attention'] = {
             'kind':'indexed_attention_packed_int8','scratch_policy':'offchip','operand_modes':True}
-        geo = row['replay_input_pins']['primary_geometry']
         _, ops = physical_ops(case, geo)
         prologs = [dict(o.metadata) for o in ops if dict(o.metadata).get('fusion_role') == 'mla_prolog']
         attention = [dict(o.metadata) for o in ops if dict(o.metadata).get('program_kind') == 'indexed_attention']
@@ -79,14 +82,20 @@ def build():
                 'Retained graph-mode declaration pads M12 to16. This source arm preserves that work discrepancy and does not claim the captured prolog ABI is closed.',
             'source_program':'explicit analytic packed prolog plus source-described packed attention pipeline',
             'native_identity':identity(native_path)}
+        if captured_grid:
+            conditions.update(capture_grid_basis='Complete retained native prolog/query M, not measured elapsed.',
+                graph_capture_keys=[geo['query_rows']],
+                separate_ffn_concat_gap='Captured FFN Concat pads M12 to16 before TP/SP on c2; correcting global graph grid does not add that missing explicit caller node.')
         case['runtime']['metadata']['packed_D656_source_condition'] = conditions
         evidence = case['runtime']['metadata']['calibration_evidence']
         evidence['unsupported_native_domains'] = [] if prolog_shape_equal else ['prolog_declared_token_padding_differs_from_capture']
         evidence['packed_source_condition'] = conditions
-        path = OUT/'glm78-packed-source-cases'/f'{cid}-packed-D656-source.json';write(path,case)
+        stem = 'glm78-captured-grid' if captured_grid else 'glm78-packed-source'
+        path = OUT/(stem+'-cases')/f'{cid}-packed-D656-source.json';write(path,case)
         row.update(sim_case_path=str(path),model_declaration=identity(path),
             baseline_grouped_case_identity=identity(old['sim_case_path']),
-            variant_id='glm78-packed-D656-source-a961c114', calibration_evidence=evidence)
+            variant_id='glm78-packed-D656-captured-grid-672a595f' if captured_grid else
+                'glm78-packed-D656-source-a961c114', calibration_evidence=evidence)
         row['replay_input_pins']['case'] = identity(path)
         row.setdefault('scenario_evidence', {})['source_recipe_conditions'] = conditions
         rows.append(row);receipts.append({'case_id':cid,'case_identity':identity(path),
@@ -94,11 +103,13 @@ def build():
             'program_recipe_counts':dict(Counter(o.recipe for o in ops)),
             'source_native_calls_per_forward':{k:v/native['forward_count'] for k,v in count.items()},
             'whole_model_layers':78,'observed_forward_count':native['forward_count']})
-    write(OUT/'decode-forward-glm78-packed-source-cases.json', {
+    write(OUT/('decode-forward-'+stem+'-cases.json'), {
         'schema_version':manifest['schema_version'],'cases':rows,'not_new_live_collection':True,
-        'baseline_identity':identity(previous),'variant_id':'glm78-packed-D656-source-a961c114'})
-    write(OUT/'glm78-packed-source-preflight.json', {'cases':receipts,'raw_reads':0,'new_predictions':0})
+        'baseline_identity':identity(previous),'variant_id':rows[0]['variant_id']})
+    write(OUT/(stem+'-preflight.json'), {'cases':receipts,'raw_reads':0,'new_predictions':0})
 
 
 if __name__ == '__main__':
-    build()
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--captured-grid',action='store_true')
+    build(parser.parse_args().captured_grid)
