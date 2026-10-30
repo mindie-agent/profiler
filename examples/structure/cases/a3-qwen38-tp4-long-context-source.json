@@ -1,0 +1,408 @@
+{
+  "name": "qwen38_27b_tp4_128k_20261030-source-analytic",
+  "machine": {
+    "backend": "ascend",
+    "sku": "Ascend910_9362",
+    "num_devices": 4,
+    "ranks_per_node": 4
+  },
+  "model": {
+    "catalog_key": "qwen3.8-27b",
+    "quantization": "w8a8_dynamic",
+    "quant": {
+      "name": "W8A8_DYNAMIC",
+      "weight_format": "int8",
+      "native_format": "bf16",
+      "activation_format": "int8",
+      "expert_weight_format": "int8",
+      "weight_block": [
+        1,
+        1
+      ],
+      "expert_block": 1,
+      "scale_format": "fp32",
+      "scale_bytes": 4.0,
+      "kv_dtype": "bf16",
+      "index_dtype": "bf16",
+      "index_scale_dtype": "none",
+      "exclusions": [
+        "mtp",
+        "norm",
+        "lm_head",
+        "embedding",
+        "vision",
+        "projector",
+        "conv_weight_f32",
+        "conv_weight_bf16"
+      ],
+      "engram_table_mode": "device_bf16",
+      "activation_group_size": 0,
+      "activation_scale_format": "",
+      "activation_scale_pack": 1,
+      "category_overrides": {
+        "gdn.beta_alpha": {
+          "weight_format": "bf16",
+          "activation_format": "bf16"
+        },
+        "gdn.o": {
+          "weight_format": "bf16",
+          "activation_format": "bf16"
+        },
+        "attn.qkv": {
+          "scale_format": "bf16",
+          "scale_bytes": 2.0,
+          "activation_scale_format": "fp32"
+        },
+        "attn.o": {
+          "scale_format": "bf16",
+          "scale_bytes": 2.0,
+          "activation_scale_format": "fp32"
+        },
+        "gdn.qkvz": {
+          "scale_format": "bf16",
+          "scale_bytes": 2.0,
+          "activation_scale_format": "fp32"
+        },
+        "dense_mlp": {
+          "scale_format": "bf16",
+          "scale_bytes": 2.0,
+          "activation_scale_format": "fp32"
+        }
+      },
+      "source": {
+        "kind": "representation_preset",
+        "preset": "w8a8_dynamic",
+        "checkpoint_identity": "not_verified_from_capture_config"
+      },
+      "notes": [
+        "Declared representation template; retained tensor samples establish selected contracts separately."
+      ]
+    }
+  },
+  "runtime": {
+    "tp": 4,
+    "dp": 1,
+    "ep": 1,
+    "pp": 1,
+    "max_model_len": 131072,
+    "max_num_seqs": 96,
+    "max_num_batched_tokens": 8192,
+    "gpu_memory_utilization": 0.9,
+    "kv_block_size": 128,
+    "enable_chunked_prefill": true,
+    "graph_mode": "auto",
+    "graph_capture_mode": "full",
+    "graph_capture_keys": [
+      4,
+      8,
+      12,
+      16,
+      24,
+      32,
+      48,
+      64,
+      96,
+      128,
+      192,
+      256
+    ],
+    "metadata": {
+      "source_template_identity": {
+        "path": "/Users/maoxx241/code/sim-serving-host-io-20261030/examples/cases/longctx-decode-20261030/qwen38-a3-tp4.json",
+        "sha256": "9567c873f7fd1d382082b05ea5d58fc8985b65a2281d99d886630ed5e65c624d",
+        "size_bytes": 4234
+      },
+      "deployment_log_identity": {
+        "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen38_27b_tp4_128k_20261030/logs/vllm.log",
+        "sha256": "c6657fcd7c6e4887f7c8ce5a9610d38e1d0616903aafacc171e68d4413778723",
+        "size_bytes": 442309
+      },
+      "resolved_line": 63,
+      "launch_line": 23,
+      "checkpoint": "/mnt/weight/Qwen3.8-27B-w8a8",
+      "captured_execution_mode": "FULL_DECODE_ONLY",
+      "draft_proposal_tokens": 3,
+      "speculation": {
+        "enabled": true,
+        "method": "mtp",
+        "num_speculative_tokens": 3,
+        "draft_enforce_eager": true,
+        "rejection_sample_method": "synthetic",
+        "synthetic_acceptance_rates": [
+          0.8,
+          0.64,
+          0.512
+        ],
+        "source_observed_acceptance_rate": null
+      },
+      "force_eplb": {
+        "enabled": false,
+        "basis": "new launch additional_config; actual routed count values not exported"
+      },
+      "flashcomm1": false,
+      "calibration_origin": "not_declared",
+      "new_timing_fit": false,
+      "point_service_rules_inherited": false,
+      "geometry_policy": "physical array extent is not proof of active requests; derive every target geometry from complete topology and retain output rows separately",
+      "source_metadata": {
+        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/qwen38_27b_tp4_128k_20261030-source-metadata.json",
+        "sha256": "edb3ac42a4f821954cacde39813249ae4614866a36bbfa738efb627bb9acd4af",
+        "size_bytes": 150132
+      },
+      "hybrid_cache_allocation": {
+        "allocation_block_tokens": 896,
+        "native_fia_page_block_size": 128,
+        "basis": "new resolved allocator log plus native K/V axis128 in both complete probes"
+      },
+      "native_source_mechanisms": {
+        "shared_expert_bf16": "not applicable: dense FFN",
+        "ffn_tp_reduction": "ordinary dense TP reduction from model",
+        "gdn_recurrent": "A3 analytical recurrent path retained; no unsupported arch35 kernel copied",
+        "fia": "native seven-slot GQA descriptors; source-oracle branch selection retained, no error-driven kernel choice",
+        "page_domain": "runtime.kv_block_size128 is native K/V axis; allocator LCM640/896 retained separately"
+      },
+      "native_representation_correction": {
+        "basis": "retained complete low/high concurrency Body tensor ABI only; no timing or prediction used",
+        "evidence_identity": {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/qwen38_27b_tp4_128k_20261030-source-metadata.json",
+          "sha256": "edb3ac42a4f821954cacde39813249ae4614866a36bbfa738efb627bb9acd4af",
+          "size_bytes": 150132
+        },
+        "evidence_groups": [
+          {
+            "json_pointer": "/bounded_first_body_probes/0/full_abi_groups/3",
+            "native_kind": "QuantBatchMatmulV3",
+            "count": 48,
+            "locators": [
+              {
+                "csv_line": 120,
+                "name": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "device_id": "10",
+                "task_id": "2",
+                "stream_id": "92"
+              },
+              {
+                "csv_line": 153,
+                "name": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "device_id": "10",
+                "task_id": "37",
+                "stream_id": "92"
+              }
+            ]
+          },
+          {
+            "json_pointer": "/bounded_first_body_probes/0/full_abi_groups/21",
+            "native_kind": "QuantBatchMatmulV3",
+            "count": 64,
+            "locators": [
+              {
+                "csv_line": 144,
+                "name": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "device_id": "10",
+                "task_id": "28",
+                "stream_id": "92"
+              },
+              {
+                "csv_line": 176,
+                "name": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "device_id": "10",
+                "task_id": "63",
+                "stream_id": "92"
+              }
+            ]
+          },
+          {
+            "json_pointer": "/bounded_first_body_probes/0/full_abi_groups/24",
+            "native_kind": "QuantBatchMatmulV3",
+            "count": 64,
+            "locators": [
+              {
+                "csv_line": 147,
+                "name": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "device_id": "10",
+                "task_id": "31",
+                "stream_id": "92"
+              },
+              {
+                "csv_line": 179,
+                "name": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "device_id": "10",
+                "task_id": "66",
+                "stream_id": "92"
+              }
+            ]
+          },
+          {
+            "json_pointer": "/bounded_first_body_probes/0/full_abi_groups/25",
+            "native_kind": "QuantBatchMatmulV3",
+            "count": 16,
+            "locators": [
+              {
+                "csv_line": 218,
+                "name": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "device_id": "10",
+                "task_id": "107",
+                "stream_id": "92"
+              },
+              {
+                "csv_line": 343,
+                "name": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "device_id": "10",
+                "task_id": "250",
+                "stream_id": "92"
+              }
+            ]
+          },
+          {
+            "json_pointer": "/bounded_first_body_probes/0/full_abi_groups/36",
+            "native_kind": "QuantBatchMatmulV3",
+            "count": 16,
+            "locators": [
+              {
+                "csv_line": 233,
+                "name": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "device_id": "10",
+                "task_id": "130",
+                "stream_id": "92"
+              },
+              {
+                "csv_line": 358,
+                "name": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "device_id": "10",
+                "task_id": "273",
+                "stream_id": "92"
+              }
+            ]
+          },
+          {
+            "json_pointer": "/bounded_first_body_probes/1/full_abi_groups/3",
+            "native_kind": "QuantBatchMatmulV3",
+            "count": 48,
+            "locators": [
+              {
+                "csv_line": 3038,
+                "name": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "device_id": "11",
+                "task_id": "2",
+                "stream_id": "137"
+              },
+              {
+                "csv_line": 3072,
+                "name": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "device_id": "11",
+                "task_id": "38",
+                "stream_id": "137"
+              }
+            ]
+          },
+          {
+            "json_pointer": "/bounded_first_body_probes/1/full_abi_groups/22",
+            "native_kind": "QuantBatchMatmulV3",
+            "count": 64,
+            "locators": [
+              {
+                "csv_line": 3063,
+                "name": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "device_id": "11",
+                "task_id": "29",
+                "stream_id": "137"
+              },
+              {
+                "csv_line": 3099,
+                "name": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "device_id": "11",
+                "task_id": "65",
+                "stream_id": "137"
+              }
+            ]
+          },
+          {
+            "json_pointer": "/bounded_first_body_probes/1/full_abi_groups/25",
+            "native_kind": "QuantBatchMatmulV3",
+            "count": 64,
+            "locators": [
+              {
+                "csv_line": 3067,
+                "name": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "device_id": "11",
+                "task_id": "32",
+                "stream_id": "137"
+              },
+              {
+                "csv_line": 3102,
+                "name": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "device_id": "11",
+                "task_id": "68",
+                "stream_id": "137"
+              }
+            ]
+          },
+          {
+            "json_pointer": "/bounded_first_body_probes/1/full_abi_groups/26",
+            "native_kind": "QuantBatchMatmulV3",
+            "count": 16,
+            "locators": [
+              {
+                "csv_line": 3144,
+                "name": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "device_id": "11",
+                "task_id": "110",
+                "stream_id": "137"
+              },
+              {
+                "csv_line": 3310,
+                "name": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "device_id": "11",
+                "task_id": "256",
+                "stream_id": "137"
+              }
+            ]
+          },
+          {
+            "json_pointer": "/bounded_first_body_probes/1/full_abi_groups/37",
+            "native_kind": "QuantBatchMatmulV3",
+            "count": 16,
+            "locators": [
+              {
+                "csv_line": 3186,
+                "name": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "device_id": "11",
+                "task_id": "133",
+                "stream_id": "137"
+              },
+              {
+                "csv_line": 3353,
+                "name": "aclnnQuantMatmulWeightNz_QuantBatchMatmulV3_QuantBatchMatmulV3",
+                "device_id": "11",
+                "task_id": "279",
+                "stream_id": "137"
+              }
+            ]
+          }
+        ],
+        "ordinary_qbmm": {
+          "column_scale_dtype": "bf16",
+          "column_scale_bytes": 2,
+          "activation_row_scale_dtype": "fp32"
+        },
+        "router_dtype": "not_applicable_dense",
+        "routed_grouped_scales": null,
+        "native_scale_storage_vs_contract": "Matrix active-geometry contract does not compare weight scale storage representation; this correction does not promote to full native ABI.",
+        "previous_model_identity": {
+          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/b715d649812af9179138ad12830f2774e829917162ea72b792a72f8081046f49.json",
+          "sha256": "b715d649812af9179138ad12830f2774e829917162ea72b792a72f8081046f49",
+          "size_bytes": 4825
+        }
+      }
+    }
+  },
+  "workload": {
+    "requests": [
+      {
+        "id": "placeholder",
+        "prompt_tokens": 1,
+        "output_tokens": 1
+      }
+    ]
+  }
+}

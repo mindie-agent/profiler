@@ -51,6 +51,10 @@
         "gdn.o": {
           "weight_format": "bf16",
           "activation_format": "bf16"
+        },
+        "shared_expert": {
+          "weight_format": "bf16",
+          "activation_format": "bf16"
         }
       },
       "source": {
@@ -82,8 +86,21 @@
       "draft_proposal_tokens": 1,
       "physical_geometry_policy": "captured tensor q/B supplied by profiler; graph padding is not re-applied to physical rows",
       "new_latency_parameter_fit": false,
-      "runtime_recipe_basis": "uncalibrated catalog baseline; no high-concurrency EP/MC2 policy transferred"
-    }
+      "runtime_recipe_basis": "uncalibrated catalog baseline; no high-concurrency EP/MC2 policy transferred",
+      "ffn_source_contract": {
+        "evidence": {
+          "path": "/Users/maoxx241/code/sim-serving-host-io-20261030/tests/fixtures/verification/qwen35-a3-ffn-contract.json",
+          "sha256": "c42b158e6f7bda51edd3fe607355a1a37633e920c35fd1be51cb75ebfb579f1a"
+        },
+        "shared_precision": "BF16 activation and weight in both low and high row captures",
+        "reduction_boundary": "one TP sum after routed unpermute and shared gated join",
+        "grouped_execution": "analytical decomposition; retained arch22 fusion is not modeled or replaced by arch35",
+        "source_commit": "de8e7c6c9fb524df88effcd8cdabc0bfa824cd2a",
+        "source_case": "examples/cases/longctx-decode-20261030/qwen35-35b-a3-tp4.json",
+        "change_scope": "shared_expert BF16 activation/weight and final TP joined reduction; existing service parameters unchanged"
+      }
+    },
+    "moe_recipe": "tp_join_reduce"
   },
   "workload": {
     "requests": [
