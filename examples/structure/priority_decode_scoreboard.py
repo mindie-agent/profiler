@@ -247,9 +247,11 @@ def body_history_row(row):
                 "sha256": hashlib.sha256(json.dumps(layers, sort_keys=True).encode()).hexdigest()}}
 
 
-def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), invalidation_paths=()):
+def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), invalidation_paths=(),
+          operator_supplement_paths=(), controller_overlay_paths=()):
     bodies, families, cohorts, references, inputs = [], [], [], [], []
     invalidations = {}
+    operator_cases = {}
     for path in invalidation_paths:
         receipt, identity = _read(path)
         inputs.append(identity)
@@ -276,6 +278,8 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
         for key, case in _receipt_parts(path):
             if key != "case":
                 continue
+            operator_cases[(identity["sha256"], case["case_id"])] = {
+                "actual_identity": case.get("actual_identity"), "forward_count": case["forward_count"]}
             actual, compared = operator_rows({**receipt, "cases": [case]}, identity)
             families.extend(actual)
             cohorts.extend(compared)
@@ -349,10 +353,83 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
         return (row["receipt"]["sha256"], row["case_id"]) == selected[1:]
     current_families = [row for row in families if selected_operator(row)]
     current_cohorts = [row for row in cohorts if selected_operator(row)]
-    operator_runtimes = {
-        _population(row): row["runtime_identity"]["recorded_sim_file_map_sha256"] or "unknown"
-        for row in current_families
-    }
+    supplement_applications = []
+    seen_supplement_receipts = set()
+    from operator_family_supplements import checked_actual, validate as validate_supplement
+    for path in operator_supplement_paths:
+        receipt, identity = _read(path)
+        if receipt.get("schema_version") != "mindie-operator-family-supplement/1":
+            raise ValueError("operator_supplement_schema_required")
+        if identity["sha256"] in seen_supplement_receipts:
+            continue
+        seen_supplement_receipts.add(identity["sha256"])
+        inputs.append(identity)
+        for case in receipt["cases"]:
+            population = _population(case)
+            if population not in operator_selection:
+                raise ValueError("operator_supplement_requires_existing_source_population")
+            selected = operator_selection[population]
+            base_case = operator_cases[selected[1:]]
+            baseline = checked_actual(base_case["actual_identity"])
+            proof = validate_supplement(case, base_case, baseline_actual=baseline)
+            del baseline
+            kinds = set(case["native_operator_types"])
+            before_rows = [r for r in current_families if _population(r) == population
+                           and r["native_operator_type"] in kinds]
+            if set(r["native_operator_type"] for r in before_rows) != kinds:
+                raise ValueError("supplement_native_family_missing_from_current_population")
+            new_families, new_cohorts = operator_rows({**receipt,"cases":[case]}, identity)
+            for row in [*new_families,*new_cohorts]:
+                row["operator_origin"] = "native_family_supplement"
+            current_families = [r for r in current_families if not
+                               (_population(r)==population and r["native_operator_type"] in kinds)] + new_families
+            current_cohorts = [r for r in current_cohorts if not
+                              (_population(r)==population and r["native_operator_type"] in kinds)] + new_cohorts
+            families.extend(new_families);cohorts.extend(new_cohorts)
+            supplement_applications.append({"receipt":identity,"case_id":case["case_id"],
+                "source_identity":case["source_identity"],"geometry":case["geometry"],
+                "forward_count":case["forward_count"],"native_operator_types":sorted(kinds),
+                "replaced_rows":[{"receipt":r["receipt"],"case_id":r["case_id"],
+                    "native_operator_type":r["native_operator_type"],"declared_role":r["declared_role"]} for r in before_rows],
+                "native_population_evidence":proof})
+    for path in controller_overlay_paths:
+        audited, audit_identity = _read(path)
+        if audited.get("schema_version") != "mindie-controller-operator-population-review/1" or audited.get("failures"):
+            raise ValueError("controller_overlay_requires_successful_population_audit")
+        inputs.append(audit_identity)
+        for i,pop in enumerate(audited["populations"]):
+            if (pop["strict_event_count"] or pop["reference_event_count"]
+                    or not pop["full_histogram_matches_typed_controller_evidence"]):
+                raise ValueError("controller_overlay_requires_unscored_complete_typed_histogram")
+            exact={(o["operator_receipt_identity"]["sha256"],o["report_case_id"],tuple(o["family_key"]))
+                   for o in pop["matched_operator_occurrences"]}
+            for row in current_families:
+                if (_population(row)!=_population(pop) or row["native_operator_type"]!=pop["native_operator_type"]):
+                    continue
+                key=(row["receipt"]["sha256"],row["case_id"],(row["native_operator_type"],row["declared_role"]))
+                basis="exact_audited_operator_occurrence"
+                if key not in exact:
+                    original=operator_cases.get((row["receipt"]["sha256"],row["case_id"]),{})
+                    pin=original.get("actual_identity") or {}
+                    if pin.get("sha256")!=pop["actual_identity"]["sha256"]:
+                        continue
+                    basis="same_audited_actual_population_new_program_receipt"
+                if (row["scored_event_count"] or row["status"]!="unresolved"
+                        or row["forward_count"]!=pop["forward_count"]
+                        or row["observed_us"]["count"]!=pop["observed_event_count"]
+                        or abs(row["observed_us"]["mean"]*1000*pop["observed_event_count"]-pop["observed_activity_sum_ns"])>1e-3):
+                    raise ValueError("controller_overlay_current_population_changed")
+                row["controller_overlay"]={"audit_identity":audit_identity,"population_index":i,
+                    "basis":basis,"physical_service_comparable":False,
+                    "raw_population_and_strict_denominators_unchanged":True}
+    controller_rows=[r for r in current_families if r.get("controller_overlay")]
+    current_cohorts.sort(key=lambda row: row["absolute_activity_residual_ms_per_forward"], reverse=True)
+    runtime_sets = {}
+    for row in current_families:
+        runtime_sets.setdefault(_population(row),set()).add(
+            row["runtime_identity"]["recorded_sim_file_map_sha256"] or "unknown")
+    operator_runtimes = {key: next(iter(value)) if len(value)==1 else "mixed_native_family_runtimes"
+                         for key,value in runtime_sets.items()}
     current_references = select_references(references, operator_selection)
     native_references = [row for row in current_references
                          if row.get("reference_origin") == "external_native_partition"]
@@ -389,6 +466,9 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
             "latest_body_attempts": [body_history_row(row) for row in latest_attempts.values()],
             "body_failed_attempts": [row for row in history if row["comparison"]["status"] == "failed"],
             "current_operator_families": current_families, "current_operator_cohorts": current_cohorts,
+            "operator_supplement_applications": supplement_applications,
+            "current_controller_overlays": controller_rows,
+            "operator_supplement_selection_policy": "last complete native-family supplement per measured source/geometry/native operator; other families and their runtimes remain unchanged",
             "current_selection_policy": "last compared input receipt per source and measured geometry; prior arms retained",
             "source_role_references": references,
             "current_source_role_references": current_references,
@@ -411,6 +491,10 @@ def build(body_paths, operator_paths, reference_paths=(), evidence_paths=(), inv
                         "operator_accuracy_by_tier": tiers,
                         "current_operator_source_populations": len(operator_selection),
                         "current_operator_runtime_populations": dict(Counter(operator_runtimes.values())),
+                        "operator_supplement_applications": len(supplement_applications),
+                        "current_controller_overlay_rows": len(controller_rows),
+                        "current_controller_overlay_events": sum(r["observed_us"]["count"] for r in controller_rows),
+                        "current_mixed_operator_runtime_populations": sum(len(v)>1 for v in runtime_sets.values()),
                         "current_operator_scored_events": sum(row.get("scored_event_count") or 0 for row in current_families),
                         "current_operator_body_events": sum(row["observed_us"]["count"] for row in current_families),
                         "current_external_native_reference_groups": len(native_references),
@@ -448,11 +532,12 @@ def render(report):
              f"{summary['unique_observed_forward_count']} unique complete Forwards (includes deferred populations).", "",
              f"Invalidated prediction rows: **{summary['invalidated_body_prediction_arms']}**. Their measured populations remain; "
              "superseded predictions and layer errors are excluded from accuracy statistics.", "",
-             "Current operator strict accuracy (latest input receipt per source/geometry): " + "; ".join(f"{key}: **{value['passed']}/{value['compared']}**"
+             "Current operator strict accuracy (latest whole-source receipt plus complete native-family supplements): " + "; ".join(f"{key}: **{value['passed']}/{value['compared']}**"
                  for key, value in summary["operator_accuracy_by_tier"].items()) + ". Conditional references are excluded.", "",
              "Operator runtime coverage (recorded Sim file-map hash → source/geometry populations): " + "; ".join(
                  f"`{digest[:12]}` → {count}" for digest, count in summary["current_operator_runtime_populations"].items())
-                 + ". Scores retain the latest available receipt for each population; this aggregate can contain different runtimes.", "",
+                 + ". Mixed populations retain each family’s own runtime after scoped supplements; this aggregate can contain different runtimes.", "",
+             f"Native-family supplement applications: **{summary.get('operator_supplement_applications',0)}**; only the complete named family is replaced, never the source’s other operator rows.", "",
              f"Strict event coverage: **{summary['current_operator_scored_events']:,}/{summary['current_operator_body_events']:,}** "
              f"events across {summary['current_operator_source_populations']} measured source/geometry populations. "
              "A high pass rate within this subset does not establish whole-model accuracy.", "",
@@ -512,11 +597,17 @@ def render(report):
     lines += ["", "## Highest unscored activity — coverage gaps, not zero predictions", "",
               "| Case | Operator / role | Unscored calls | Unscored observed activity ms / Forward | Status |",
               "|---|---|---:|---:|---|"]
-    gaps = sorted((item for item in report["current_operator_families"] if item.get("unscored_event_count")),
+    gaps = sorted((item for item in report["current_operator_families"] if item.get("unscored_event_count") and not item.get("controller_overlay")),
                   key=lambda row: row["unscored_activity_ms_per_forward"], reverse=True)
     for row in gaps[:40]:
         lines.append(f"| {row['case_id']} | {row['native_operator_type']} / {row['declared_role']} | "
                      f"{row['unscored_event_count']} | {row['unscored_activity_ms_per_forward']:.3f} | {row['status']} |")
+    if report.get("current_controller_overlays"):
+        lines += ["", "## Audited controller overlays — not physical-service gaps", "",
+                  "These exact audited AI_CPU populations retain their original calls and strict denominator. Their elapsed is not a missing device program cost.", "",
+                  "| Case | Controller | Calls | Observed Mean us | Evidence |", "|---|---|---:|---:|---|"]
+        for row in report["current_controller_overlays"]:
+            lines.append(f"| {row['case_id']} | {row['native_operator_type']} | {row['observed_us']['count']} | {row['observed_us']['mean']:.3f} | {row['controller_overlay']['basis']} |")
     lines += ["", "## Source-role references — already costed work is not an extra budget", "",
               "Reference differences have distinct evidence and are excluded from strict cohort accuracy counts.", "",
               "External references are selected independently by measured source/geometry, operator, role, layer set and retained observation identity. Complete native ABI, normalized contract and source-symbol evidence stay distinct. Each row retains its own histogram P50; rows are not averaged.", "",
@@ -551,6 +642,8 @@ def main():
                         help="Ordered body/operators/references/evidence receipt lists; CLI inputs append")
     parser.add_argument("--body", type=Path, action="append", default=[])
     parser.add_argument("--operators", type=Path, action="append", default=[])
+    parser.add_argument("--controller-overlays", type=Path, action="append", default=[])
+    parser.add_argument("--operator-supplements", type=Path, action="append", default=[])
     parser.add_argument("--references", type=Path, action="append", default=[])
     parser.add_argument("--evidence", type=Path, action="append", default=[])
     parser.add_argument("--invalidations", type=Path, action="append", default=[])
@@ -559,11 +652,11 @@ def main():
     manifest_identity = None
     if args.input_manifest:
         manifest, manifest_identity = _read(args.input_manifest)
-        for key in ("body", "operators", "references", "evidence", "invalidations"):
+        for key in ("body", "operators", "references", "evidence", "invalidations", "operator_supplements", "controller_overlays"):
             paths = [Path(value) for value in manifest.get(key, [])]
             paths = [path if path.is_absolute() else args.input_manifest.parent / path for path in paths]
             setattr(args, key, paths + getattr(args, key))
-    report = build(args.body, args.operators, args.references, args.evidence, args.invalidations)
+    report = build(args.body, args.operators, args.references, args.evidence, args.invalidations, args.operator_supplements, args.controller_overlays)
     if manifest_identity:
         report["input_manifest_identity"] = manifest_identity
     peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss

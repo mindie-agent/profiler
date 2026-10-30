@@ -146,7 +146,8 @@ def review(path):
     seen_body, seen_family, seen_cohort = set(), set(), set()
     current_body, current_operator, populations, latest_attempts = {}, {}, {}, {}
     invalidations = {}
-    body_order, operator_order = [], []
+    body_order, operator_order, supplement_order = [], [], []
+    supplement_cases, operator_actuals, controller_audits = [], {}, []
     corrected_quant_cases = 0
     historical_case_resolutions = []
     expected_references = Counter()
@@ -221,6 +222,8 @@ def review(path):
         source_path = item["path"]
         check(digest(source_path) == item["sha256"], f"Input SHA: {source_path}")
         source = receipt_metadata(source_path)
+        if source.get("schema_version") == "mindie-controller-operator-population-review/1":
+            controller_audits.append((item,read(source_path)))
         for invalid in source.get("invalidated_body_receipts", []):
             check(digest(invalid["path"]) == invalid["sha256"], "Invalidated original receipt remains intact")
             invalidations[invalid["sha256"]] = {"receipt": item,
@@ -320,9 +323,14 @@ def review(path):
                 else:
                     check(all(shown.get(field) is None for field in ("predicted_ms", "relative_error", "passed")), f"Unscored body is not zero: {key}")
             elif "families" in case:
-                if source_path not in operator_order:
-                    operator_order.append(source_path)
-                current_operator[population(case)] = (source_path, case["case_id"])
+                is_supplement = source.get("schema_version") == "mindie-operator-family-supplement/1"
+                if is_supplement:
+                    if source_path not in supplement_order: supplement_order.append(source_path)
+                    supplement_cases.append((item, case))
+                else:
+                    if source_path not in operator_order: operator_order.append(source_path)
+                    current_operator[population(case)] = (source_path, case["case_id"])
+                    operator_actuals[population(case)] = case.get("actual_identity")
                 count = case["forward_count"]
                 check(count > 0, f"Positive operator denominator: {key}")
                 for original in case["families"]:
@@ -389,6 +397,68 @@ def review(path):
         if current_operator[population(row)] == (row["receipt"]["path"], row["case_id"])]
     expected_current_cohorts = [row for row in cohort.values()
         if current_operator[population(row)] == (row["receipt"]["path"], row["case_id"])]
+    expected_applications = []
+    def native_hist(value, native):
+        h = Counter()
+        for f in value["families"]:
+            if f["native_operator_type"] == native:
+                for ns,n in f["duration_ns_counter"]: h[int(ns)] += int(n)
+        return sorted(h.items())
+    for pin, case in supplement_cases:
+        pk = population(case); kinds = set(case["native_operator_types"])
+        check(pk in current_operator, "Supplement requires existing source/geometry")
+        actual_pin = operator_actuals[pk]
+        for identity in (actual_pin,case["actual_identity"]):
+            check(digest(identity["path"])==identity["sha256"], "Supplement actual identity")
+        baseline=read(actual_pin["path"]);retained=read(case["actual_identity"]["path"])
+        for field in ("source_identity","geometry","forward_count","body_acceptance_identity"):
+            check(case[field]==baseline[field]==retained[field], "Supplement exact population "+field)
+        check(kinds=={f["native_operator_type"] for f in case["families"]}, "Supplement exact named-family scope")
+        for native in kinds:
+            hist=native_hist(baseline,native)
+            check(bool(hist) and hist==native_hist(case,native)==native_hist(retained,native), "Supplement full native histogram")
+            proof={"event_count":sum(n for _,n in hist),"duration_ns_histogram_sha256":
+                hashlib.sha256(json.dumps(hist,separators=(",",":")).encode()).hexdigest()}
+            check(proof==case["native_population_evidence"][native], "Supplement histogram content proof")
+        before=[r for r in expected_current_families if population(r)==pk and r["native_operator_type"] in kinds]
+        expected_current_families=[r for r in expected_current_families if not (population(r)==pk and r["native_operator_type"] in kinds)] + [
+            r for r in family.values() if r["receipt"]["path"]==pin["path"] and r["case_id"]==case["case_id"]]
+        expected_current_cohorts=[r for r in expected_current_cohorts if not (population(r)==pk and r["native_operator_type"] in kinds)] + [
+            r for r in cohort.values() if r["receipt"]["path"]==pin["path"] and r["case_id"]==case["case_id"]]
+        expected_applications.append({"receipt":pin,"case_id":case["case_id"],"source_identity":case["source_identity"],
+            "geometry":case["geometry"],"forward_count":case["forward_count"],"native_operator_types":sorted(kinds),
+            "native_population_evidence":case["native_population_evidence"],
+            "replaced_rows":[{"receipt":r["receipt"],"case_id":r["case_id"],"native_operator_type":r["native_operator_type"],
+                              "declared_role":r["declared_role"]} for r in before]})
+        del baseline,retained
+    check(report.get("operator_supplement_applications",[])==expected_applications,"Native supplements replace only the audited family")
+    expected_overlays={}
+    def controller_key(row):
+        return row["receipt"]["sha256"],row["case_id"],row["native_operator_type"],row["declared_role"]
+    for pin,audit in controller_audits:
+        check(audit["status"]=="passed" and not audit["failures"], "Controller audit passed")
+        for position,item in enumerate(audit["populations"]):
+            check(item["strict_event_count"]==item["reference_event_count"]==0 and item["full_histogram_matches_typed_controller_evidence"], "Controller audited type/histogram boundary")
+            for row in expected_current_families:
+                if population(item)!=population(row) or item["native_operator_type"]!=row["native_operator_type"]:
+                    continue
+                exact=any(o["operator_receipt_identity"]["sha256"]==row["receipt"]["sha256"] and o["report_case_id"]==row["case_id"]
+                          and o["family_key"]==[row["native_operator_type"],row["declared_role"]] for o in item["matched_operator_occurrences"])
+                actual=operator_actuals.get(population(row)) or {}
+                if not exact and actual.get("sha256")!=item["actual_identity"]["sha256"]:
+                    continue
+                check(row["status"]=="unresolved" and row["scored_event_count"]==0, "Controller remains unscored")
+                check(row["forward_count"]==item["forward_count"] and row["observed_us"]["count"]==item["observed_event_count"], "Controller complete population preserved")
+                check(near(row["observed_us"]["mean"]*1000*item["observed_event_count"],item["observed_activity_sum_ns"]), "Controller exact activity preserved")
+                expected_overlays[controller_key(row)]={"audit_identity":pin,"population_index":position,
+                    "basis":"exact_audited_operator_occurrence" if exact else "same_audited_actual_population_new_program_receipt",
+                    "physical_service_comparable":False,"raw_population_and_strict_denominators_unchanged":True}
+    controller_rows=[]
+    for row in expected_current_families:
+        expected=expected_overlays.get(controller_key(row))
+        check(row.get("controller_overlay")==expected,"Controller audited current population overlay complete")
+        if expected is not None:controller_rows.append(row)
+    check(Counter(canonical(r) for r in report.get("current_controller_overlays",[]))==Counter(canonical(r) for r in controller_rows),"Controller display overlay preserves original rows")
     check(Counter(canonical(row) for row in report["current_operator_families"]) ==
           Counter(canonical(row) for row in expected_current_families), "Current operator families use latest receipt")
     check(Counter(canonical(row) for row in report["current_operator_cohorts"]) ==
@@ -414,12 +484,11 @@ def review(path):
         check(Counter(canonical(row) for row in report["current_source_role_references"]) ==
               Counter(canonical(row) for row in expected_current_references),
               "Current references use their own population/role/layer/observation-domain generation; embedded references follow operator generation")
-    current_runtime_populations = {}
+    runtime_sets = {}
     for row in expected_current_families:
-        key, value = population(row), row["runtime_identity"]["recorded_sim_file_map_sha256"]
-        if key in current_runtime_populations:
-            check(current_runtime_populations[key] == value, "Every current population has one recorded runtime")
-        current_runtime_populations[key] = value
+        runtime_sets.setdefault(population(row),set()).add(row["runtime_identity"]["recorded_sim_file_map_sha256"] or "unknown")
+    current_runtime_populations={key:next(iter(values)) if len(values)==1 else "mixed_native_family_runtimes"
+                                 for key,values in runtime_sets.items()}
     summary = report["summary"]
     if "latest_body_attempts" in report:
         check(Counter(canonical(row) for row in report["latest_body_attempts"]) ==
@@ -445,6 +514,12 @@ def review(path):
         "current_operator_scored_events": sum(row["scored_event_count"] for row in expected_current_families),
         "current_operator_body_events": sum(row["observed_us"]["count"] for row in expected_current_families),
         "heavy_cohorts": sum(row["heavy_call"] for row in cohort.values())}
+    if "operator_supplement_applications" in summary:
+        expected_summary["operator_supplement_applications"]=len(expected_applications)
+        expected_summary["current_mixed_operator_runtime_populations"]=sum(len(v)>1 for v in runtime_sets.values())
+    if "current_controller_overlay_rows" in summary:
+        expected_summary["current_controller_overlay_rows"]=len(controller_rows)
+        expected_summary["current_controller_overlay_events"]=sum(r["observed_us"]["count"] for r in controller_rows)
     if "body_failed_attempts" in summary:
         expected_summary["body_failed_attempts"] = len(failed_rows)
     for key, value in expected_summary.items():
@@ -469,6 +544,8 @@ def review(path):
         declared = read(manifest)
         check(body_order == declared["body"], "Explicit body input order")
         check(operator_order == declared["operators"], "Explicit operator input order")
+        check(supplement_order == declared.get("operator_supplements",[]), "Explicit supplement input order")
+        check([pin["path"] for pin,_ in controller_audits] == declared.get("controller_overlays",[]), "Explicit controller audit inputs")
     for item in report["additional_evidence"]:
         check(digest(item["path"]) == item["sha256"], f"Additional evidence SHA: {item['path']}")
     check(digest(path) == initial_sha, "Scoreboard unchanged during independent review")

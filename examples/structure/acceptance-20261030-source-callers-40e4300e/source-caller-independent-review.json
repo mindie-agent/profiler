@@ -1,0 +1,103 @@
+{
+  "schema_version": "mindie-source-caller-independent-review/1",
+  "status": "passed",
+  "checks": 958,
+  "failures": [],
+  "reference_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-source-callers-40e4300e/source-caller-reference-scoreboard.json",
+    "sha256": "c7933dab65d84fe65b280322db05324385e372b396580370338e2ca693dfcc7a",
+    "size_bytes": 718511
+  },
+  "supplement_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-source-callers-40e4300e/routing-operator-supplement.json",
+    "sha256": "3cf2d3a75137ca3d7953eef898362ec01b275b87a31099f87eedb6b5700c7818",
+    "size_bytes": 804225
+  },
+  "current_reference_identity": {
+    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-source-callers-40e4300e/source-caller-current-reference-scoreboard.json",
+    "sha256": "d0c1e1c8873de9b9788a3242313fe36e92ef6b28718562e5e6541ad50ec3083d",
+    "size_bytes": 1812151
+  },
+  "reference_cases": [
+    {
+      "case_id": "qwen36-a5-tp2-c1-hccl-source",
+      "forwards": 85,
+      "groups": 6,
+      "events": 10880
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c12-hccl-source",
+      "forwards": 55,
+      "groups": 6,
+      "events": 7040
+    },
+    {
+      "case_id": "qwen36-a5-tp2-c96-hccl-source",
+      "forwards": 24,
+      "groups": 6,
+      "events": 3072
+    },
+    {
+      "case_id": "glmflash-a5-c16-copy-routing",
+      "forwards": 30,
+      "groups": 3,
+      "events": 3300
+    },
+    {
+      "case_id": "glmflash-a5-c32-copy-routing",
+      "forwards": 31,
+      "groups": 3,
+      "events": 3410
+    },
+    {
+      "case_id": "glmflash-a5-c64-copy-routing",
+      "forwards": 31,
+      "groups": 3,
+      "events": 3410
+    }
+  ],
+  "scoped_strict_cases": [
+    {
+      "case_id": "a5_glm53flash_tp8_c16_p4k",
+      "forwards": 30,
+      "events": 1260,
+      "real_us": 23.010918253968256,
+      "sim_us": 1.312,
+      "pass": false
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c32_p4k",
+      "forwards": 31,
+      "events": 1302,
+      "real_us": 24.68482411674347,
+      "sim_us": 1.7558194242424239,
+      "pass": false
+    },
+    {
+      "case_id": "a5_glm53flash_tp8_c64_p4k",
+      "forwards": 31,
+      "events": 1302,
+      "real_us": 28.767923963133644,
+      "sim_us": 3.2753542121212122,
+      "pass": false
+    }
+  ],
+  "historical_reference_events": 31112,
+  "current_reference_events": 27248,
+  "current_reference_groups": 21,
+  "strict_events": 3864,
+  "strict_cohorts": 3,
+  "strict_passed": 0,
+  "source_forwards": 256,
+  "strict_subset_forwards": 92,
+  "max_prediction_rss_bytes": 231211008,
+  "review_peak_rss_bytes": 92733440,
+  "raw_capture_reads": 0,
+  "new_predictions": 0,
+  "limitations": [
+    "No raw or physical cost recomputation; checks retained complete histograms, source/case/Body identity, saved weighted program costs and residual arithmetic.",
+    "References are source-symbol conditional programs with no full-native-ABI or occurrence binding. HCCL engine/template/payload evidence stays explicit; pooled copy directions are not individually inferred.",
+    "Routing strict is bounded to complete active BF16/INT32 plus four MX outputs; sort/expert-ID values and binary dispatch remain unobserved conditions.",
+    "Current projection removes exactly the same routing histogram from references before adding scoped strict; whole-family canonical is not replaced."
+  ]
+}

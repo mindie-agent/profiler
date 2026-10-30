@@ -291,3 +291,80 @@ def test_latest_v41_reference_keeps_distinct_source_symbol_groups_without_null_a
     shared_layer_set = [{**row, "layer_ids": symbol[0]["layer_ids"]} for row in symbol]
     assert len(module.select_references(shared_layer_set, {})) == 3
     assert len({row["observation_identity_sha256"] for row in symbol}) == 3
+
+
+def test_complete_routing_supplement_replaces_only_its_native_family(monkeypatch,tmp_path):
+    root=Path(__file__).resolve().parents[1];monkeypatch.syspath_prepend(str(root/'examples/structure'))
+    module=importlib.import_module('priority_decode_scoreboard')
+    reviewer=importlib.import_module('review_priority_decode_scoreboard')
+    supplement=root/'examples/structure/acceptance-20261030-source-callers-40e4300e/routing-operator-supplement.json'
+    base=root/'examples/structure/acceptance-20261030-glm-source-complete-operators/body-operator-family-scoreboard.json'
+    before=module.build([], [base]);after=module.build([], [base],operator_supplement_paths=[supplement])
+    unaffected=lambda r:r['native_operator_type']!='MoeInitRoutingV3'
+    assert [r for r in after['current_operator_families'] if unaffected(r)]==[r for r in before['current_operator_families'] if unaffected(r)]
+    assert after['summary']['current_operator_body_events']==before['summary']['current_operator_body_events']
+    assert after['summary']['current_operator_scored_events']==before['summary']['current_operator_scored_events']+3864
+    assert after['summary']['current_mixed_operator_runtime_populations']==3
+    assert after['summary']['operator_accuracy_by_tier']['micro_absolute_15us']['compared']==before['summary']['operator_accuracy_by_tier']['micro_absolute_15us']['compared']+3
+    repeated=module.build([], [base],operator_supplement_paths=[supplement,supplement])
+    assert repeated['current_operator_families']==after['current_operator_families']
+    assert repeated['current_operator_cohorts']==after['current_operator_cohorts']
+    out=tmp_path/'scoped.json';out.write_text(json.dumps(after));review=reviewer.review(out)
+    assert review['status']=='passed',review['failures']
+
+
+def test_routing_supplement_rejects_partial_native_population(monkeypatch,tmp_path):
+    root=Path(__file__).resolve().parents[1];monkeypatch.syspath_prepend(str(root/'examples/structure'))
+    module=importlib.import_module('priority_decode_scoreboard')
+    source=root/'examples/structure/acceptance-20261030-source-callers-40e4300e/routing-operator-supplement.json'
+    value=json.loads(source.read_text());value['cases'][0]['families'][0]['duration_ns_counter'].pop()
+    altered=tmp_path/'partial.json';altered.write_text(json.dumps(value))
+    base=root/'examples/structure/acceptance-20261030-glm-source-complete-operators/body-operator-family-scoreboard.json'
+    with pytest.raises(ValueError,match='complete_native_histogram'):
+        module.build([], [base],operator_supplement_paths=[altered])
+
+
+def test_routing_reference_supersession_preserves_other_full_histograms(monkeypatch,tmp_path):
+    root=Path(__file__).resolve().parents[1];monkeypatch.syspath_prepend(str(root/'examples/structure'))
+    helper=importlib.import_module('operator_family_supplements')
+    module=importlib.import_module('priority_decode_scoreboard');reviewer=importlib.import_module('review_priority_decode_scoreboard')
+    directory=root/'examples/structure/acceptance-20261030-source-callers-40e4300e'
+    historical=json.loads((directory/'source-caller-reference-scoreboard.json').read_text())
+    current_path=directory/'source-caller-current-reference-scoreboard.json'
+    current=json.loads(current_path.read_text());supplement=json.loads((directory/'routing-operator-supplement.json').read_text())
+    expected=[g for c in historical['cases'] for g in c['groups'] if g['native_operator_type']!='MoeInitRoutingV3']
+    assert [g for c in current['cases'] for g in c['groups']]==expected
+    assert len(expected)==21 and sum(g['observed_us']['count'] for g in expected)==27248
+    assert sum(p['observed_event_count'] for p in current['superseded_reference_populations'])==3864
+    altered=json.loads(json.dumps(historical));altered['cases'][-1]['groups'][0]['duration_ns_counter'].pop()
+    with pytest.raises(ValueError,match='reference_supplement_histogram_differs'):
+        helper.project_references(altered,supplement,reference_identity={},supplement_identity={})
+    report=module.build([],[],[current_path]);out=tmp_path/'current-reference.json';out.write_text(json.dumps(report))
+    check=reviewer.review(out)
+    assert check['status']=='passed',check['failures']
+
+
+def test_audited_controller_population_is_separate_display_not_removed_events(monkeypatch,tmp_path):
+    root=Path(__file__).resolve().parents[1];monkeypatch.syspath_prepend(str(root/'examples/structure'))
+    module=importlib.import_module('priority_decode_scoreboard');reviewer=importlib.import_module('review_priority_decode_scoreboard')
+    audit=root/'examples/structure/acceptance-20261030-controller-alias/operator-population-review.json'
+    evidence=json.loads(audit.read_text());paths=[Path(x['path']) for x in evidence['operator_receipts']]
+    before=module.build([],paths);after=module.build([],paths,controller_overlay_paths=[audit])
+    assert len(after['current_controller_overlays'])==10
+    assert after['summary']['current_operator_body_events']==before['summary']['current_operator_body_events']
+    assert after['summary']['current_operator_scored_events']==before['summary']['current_operator_scored_events']
+    assert after['current_operator_cohorts']==before['current_operator_cohorts']
+    assert all(r['native_operator_type']=='reduce_scatterAicpuKernel' for r in after['current_controller_overlays'])
+    rendered=module.render(after);gap_section=rendered.split('## Highest unscored activity')[1].split('## Audited controller')[0]
+    assert 'reduce_scatterAicpuKernel' not in gap_section
+    out=tmp_path/'controllers.json';out.write_text(json.dumps(after));review=reviewer.review(out)
+    assert review['status']=='passed',review['failures']
+    # Removing every display annotation must not erase the audit's obligation.
+    for key in ('operator_families','current_operator_families'):
+        for row in after[key]:row.pop('controller_overlay',None)
+    after['current_controller_overlays']=[]
+    after['summary']['current_controller_overlay_rows']=0
+    after['summary']['current_controller_overlay_events']=0
+    out.write_text(json.dumps(after));review=reviewer.review(out)
+    assert review['status']=='failed'
+    assert 'Controller audited current population overlay complete' in review['failures']
