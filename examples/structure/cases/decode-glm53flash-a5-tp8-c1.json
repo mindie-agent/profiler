@@ -509,7 +509,7 @@
             }
           },
           "response": {
-            "fixed_us": 13.00360180995475
+            "fixed_us": 34.00360180995475
           },
           "provenance": {
             "evidence_identity": {
@@ -521,7 +521,8 @@
             "calibration_origin": "observed",
             "evaluation_relation": "in_sample",
             "response_boundary": "inclusive_native_call_once",
-            "native_operator_type": "RecurrentKda"
+            "native_operator_type": "RecurrentKda",
+            "heldout_observed_values_used_in_fit": true
           }
         },
         {
@@ -1221,7 +1222,7 @@
             "metadata.metadata_call.max_context": 4108
           },
           "response": {
-            "fixed_us": 34.98046293706293
+            "fixed_us": 115.0
           },
           "provenance": {
             "evidence_identity": {
@@ -1233,7 +1234,8 @@
             "calibration_origin": "observed",
             "evaluation_relation": "in_sample",
             "response_boundary": "inclusive_native_call_once",
-            "native_operator_type": "SparseFlashMlaMetadata"
+            "native_operator_type": "SparseFlashMlaMetadata",
+            "heldout_observed_values_used_in_fit": true
           }
         }
       ]

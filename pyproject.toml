@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mindie-profiler"
-version = "0.5.3"
+version = "0.5.4"
 description = "Ascend NPU profiling collection, in-place inventory/analyze/correlate/compare/sql analysis, and memory/online evidence"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "mindie-sim @ git+https://github.com/mindie-agent/sim.git@f842e7c0ebbfabae836534152af39665419e7908",
+    "mindie-sim @ git+https://github.com/mindie-agent/sim.git@e404fb10477ca9ca5f8a143f569be99679e06c9e",
 ]
 
 [project.optional-dependencies]

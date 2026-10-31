@@ -21,7 +21,7 @@ from .events import ProfilerUsageError
 from .forward_spans import _statistics
 from .normalized import shapes, row_from_event
 from .body_attention_contracts import fia_block_table_slot
-from .communication_bounds import padded_hidden_consumer
+from .communication_bounds import dual_stream_moe_hidden_consumer, padded_hidden_consumer
 
 _MATRICES = {"MatMul", "MatMulV2", "MatMulV3", "QuantBatchMatmulV3",
              "QuantBatchMatmulV4", "TransposeBatchMatMul", "BatchMatMulV2"}
@@ -221,6 +221,14 @@ def _communication_bounds(rows, hidden, norm_indices, head, *, tp=1):
                     and row.kind.replace("_", "").casefold() == "hcomreducescatter"):
                 chain = padded_hidden_consumer(
                     rows, previous_index, norm_indices[norm_cursor], hidden, tp, _MATRICES)
+            moe_chain = None
+            if (chain is None and consumer is not None
+                    and row.kind.replace("_", "").casefold() in {"hcomallreduce", "hcomallgather"}):
+                moe_chain = dual_stream_moe_hidden_consumer(
+                    rows, index, norm_indices[norm_cursor], hidden, tp, _MATRICES)
+                if moe_chain is not None:
+                    producer = moe_chain["producer"]
+                    chain = moe_chain["evidence"]
             direct_hidden = (producer is not None
                              and (producer.kind in _MATRICES or _fused_ffn(producer)
                                   or producer.kind.startswith("GroupedMatmul")
@@ -234,7 +242,7 @@ def _communication_bounds(rows, hidden, norm_indices, head, *, tp=1):
                     and (direct_hidden or chain is not None)
                     and producer.event.device_id == consumer.event.device_id == event.device_id
                     and producer.event.rank_id == consumer.event.rank_id == event.rank_id
-                    and producer.event.stream_id == consumer.event.stream_id
+                    and (producer.event.stream_id == consumer.event.stream_id or moe_chain is not None)
                     and consumer.event.core in compute_cores
                     and consumer.event.task_id not in missing
                     and producer.event.end_ns <= event.start_ns < consumer.event.start_ns):

@@ -113,7 +113,65 @@
     "routing": {
       "policy": "balanced"
     },
-    "moe_recipe": "tp_join_reduce"
+    "moe_recipe": "tp_join_reduce",
+    "kernels": {
+      "service_regimes": [
+        {
+          "id": "recurrent_scan-observed-0",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "decode_recurrent_scan",
+            "phase": "decode",
+            "dtype": "bf16",
+            "layout": "contiguous",
+            "local_shape": [
+              640,
+              8,
+              128,
+              128
+            ]
+          },
+          "coordinates": {},
+          "domain": {},
+          "response": {
+            "fixed_us": 816.0
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": true
+          }
+        },
+        {
+          "id": "fa_decode-observed-0",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "flash_attention_decode",
+            "phase": "decode",
+            "dtype": "bf16",
+            "layout": "contiguous",
+            "local_shape": [
+              640,
+              657280,
+              4,
+              256
+            ]
+          },
+          "coordinates": {},
+          "domain": {},
+          "response": {
+            "fixed_us": 816.0
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": true
+          }
+        }
+      ]
+    }
   },
   "workload": {
     "requests": [

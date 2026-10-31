@@ -69,3 +69,79 @@ def padded_hidden_consumer(rows, producer_index, consumer_index, hidden, tp, mat
         "following_hidden_matrix_locator": following.event.locator,
         "tensor_identity_observed": False,
     }
+
+
+def dual_stream_moe_hidden_consumer(rows, summary_index, consumer_index, hidden, tp, matrix_types):
+    """Verify dual-stream shared-expert + routed-expert merge into ForeachAddList -> HcPost -> HcPre -> RmsNorm."""
+    summary, consumer = rows[summary_index].event, rows[consumer_index]
+    if (tp <= 1 or not consumer.inputs or len(consumer.inputs[0]) != 2
+            or consumer.inputs[0][1] != hidden):
+        return None
+    m_rows = consumer.inputs[0][0]
+    if m_rows <= 0 or m_rows % tp != 0:
+        return None
+    missing = {"", "N/A", "NA", "None"}
+    cores = {"AI_CORE", "AI_VECTOR_CORE", "MIX_AIC", "MIX_AIV"}
+    c_ev = consumer.event
+    if c_ev.core not in cores or c_ev.task_id in missing or c_ev.stream_id in missing:
+        return None
+    window_before = [r for r in rows[max(0, summary_index - 10):summary_index]
+                     if r.event.core in cores and r.event.task_id not in missing
+                     and r.event.stream_id not in missing
+                     and (r.event.device_id, r.event.rank_id) == (c_ev.device_id, c_ev.rank_id)
+                     and r.event.end_ns <= summary.start_ns]
+    combine = next((r for r in reversed(window_before)
+                    if r.event.stream_id == c_ev.stream_id
+                    and any(tok in r.kind for tok in ("DistributeCombine", "Unpermute", "FinalizeRouting"))
+                    and r.outputs and r.outputs[0] in {(m_rows // tp, hidden), (m_rows, hidden)}), None)
+    shared = next((r for r in reversed(window_before)
+                   if r.kind in matrix_types and r.outputs and r.outputs[0] == (m_rows, hidden)), None)
+    if combine is None or shared is None:
+        return None
+    window_after = [r for r in rows[summary_index + 1:consumer_index]
+                    if r.event.core in cores and r.event.stream_id == c_ev.stream_id
+                    and (r.event.device_id, r.event.rank_id) == (c_ev.device_id, c_ev.rank_id)
+                    and summary.start_ns < r.event.start_ns <= c_ev.start_ns]
+    if any(r.event.task_id in missing for r in window_after
+           if "ForeachAdd" in r.kind or r.kind in {"HcPost", "HcPre"}):
+        return None
+    add_op = next((r for r in window_after
+                   if "ForeachAdd" in r.kind and r.inputs and r.inputs[:2] == ((m_rows, hidden), (m_rows, hidden))
+                   and r.outputs == ((m_rows, hidden),)), None)
+    hc_post = next((r for r in window_after
+                    if r.kind == "HcPost" and r.inputs and r.outputs and len(r.inputs) >= 2
+                    and r.inputs[0] in {(m_rows, hidden), (1, m_rows, hidden)}
+                    and len(r.inputs[1]) >= 3 and r.inputs[1][-3] == m_rows
+                    and r.inputs[1][-2] >= 2 and r.inputs[1][-1] == hidden
+                    and r.outputs == (r.inputs[1],)), None)
+    hc_pre = next((r for r in window_after
+                   if r.kind == "HcPre" and r.inputs and r.outputs and hc_post is not None
+                   and r.inputs[0] == hc_post.outputs[0][-3:]
+                   and r.outputs[0] == (m_rows, hidden)), None)
+    if (add_op is None or hc_post is None or hc_pre is None
+            or not (add_op.event.end_ns <= hc_post.event.start_ns
+                    and hc_post.event.end_ns <= hc_pre.event.start_ns
+                    and hc_pre.event.end_ns <= c_ev.start_ns)):
+        return None
+    added, posted, prepped = (row_from_event(r.event) for r in (add_op, hc_post, hc_pre))
+    if (added.input_dtypes[:2] != ("DT_BF16", "DT_BF16") or added.output_dtypes != ("DT_BF16",)
+            or posted.input_dtypes[:2] != ("DT_BF16", "DT_BF16") or posted.output_dtypes != ("DT_BF16",)
+            or prepped.input_dtypes[:1] != ("DT_BF16",) or prepped.output_dtypes[:1] != ("DT_BF16",)):
+        return None
+    producer = shared if shared.event.end_ns >= combine.event.end_ns else combine
+    return {
+        "producer": producer,
+        "evidence": {
+            "basis": "captured_dual_stream_moe_foreach_add_mhc_norm_chain",
+            "declared_tp": tp,
+            "merged_hidden_shape": [m_rows, hidden],
+            "mhc_stream_shape": list(hc_post.outputs[0][-3:]),
+            "routed_combine_shape": list(combine.outputs[0]),
+            "routed_combine_locator": combine.event.locator,
+            "shared_projection_locator": shared.event.locator,
+            "foreach_add_locator": add_op.event.locator,
+            "hc_post_locator": hc_post.event.locator,
+            "hc_pre_locator": hc_pre.event.locator,
+            "tensor_identity_observed": False,
+        },
+    }

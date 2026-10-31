@@ -120,7 +120,65 @@
             }
           }
         }
-      }
+      },
+      "service_regimes": [
+        {
+          "id": "kda_arch22-observed-0",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "vllm_ascend_recurrent_kda_arch22",
+            "phase": "decode",
+            "dtype": "bf16",
+            "layout": "TND",
+            "local_shape": [
+              48,
+              4,
+              128,
+              128
+            ]
+          },
+          "coordinates": {},
+          "domain": {},
+          "response": {
+            "fixed_us": 115.0
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": true
+          }
+        },
+        {
+          "id": "latent_attn-observed-0",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "latent_attention_batch",
+            "phase": "decode",
+            "dtype": "bf16",
+            "layout": "contiguous",
+            "local_shape": [
+              8,
+              48,
+              4102,
+              4,
+              512,
+              512
+            ]
+          },
+          "coordinates": {},
+          "domain": {},
+          "response": {
+            "fixed_us": 450.0
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": true
+          }
+        }
+      ]
     },
     "metadata": {
       "input_boundary": "full 45-layer target body; placeholder workload is not serving replay",

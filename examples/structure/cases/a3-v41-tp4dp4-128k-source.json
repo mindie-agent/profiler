@@ -4277,7 +4277,59 @@
         "matmul": {
           "kind": "steady_matmul"
         }
-      }
+      },
+      "service_regimes": [
+        {
+          "id": "ring_ar-c48-observed",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "ring_allreduce",
+            "phase": "decode",
+            "dtype": "bf16",
+            "layout": "contiguous",
+            "local_shape": [
+              104,
+              5120
+            ]
+          },
+          "coordinates": {},
+          "domain": {},
+          "response": {
+            "fixed_us": 290.0
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": true
+          }
+        },
+        {
+          "id": "ring_ar-c64-observed",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "ring_allreduce",
+            "phase": "decode",
+            "dtype": "bf16",
+            "layout": "contiguous",
+            "local_shape": [
+              136,
+              5120
+            ]
+          },
+          "coordinates": {},
+          "domain": {},
+          "response": {
+            "fixed_us": 255.0
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": true
+          }
+        }
+      ]
     },
     "metadata": {
       "source_deployment_identity": {

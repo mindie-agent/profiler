@@ -532,7 +532,7 @@
             "metadata.dv": 128
           },
           "response": {
-            "fixed_us": 59.7694085106383
+            "fixed_us": 172.7694085106383
           },
           "provenance": {
             "evidence_identity": {
@@ -545,7 +545,8 @@
             "evaluation_relation": "in_sample",
             "expected_rule_hits": 3,
             "response_boundary": "one_declared_whole_call",
-            "native_operator_type": "RecurrentKda"
+            "native_operator_type": "RecurrentKda",
+            "heldout_observed_values_used_in_fit": true
           }
         },
         {
@@ -606,6 +607,34 @@
             "expected_rule_hits": 3,
             "response_boundary": "one_declared_whole_call",
             "native_operator_type": "GroupedMatmul:expert_down"
+          }
+        },
+        {
+          "id": "latent_attn0-observed-0",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "latent_attention0",
+            "phase": "decode",
+            "dtype": "bf16",
+            "layout": "contiguous",
+            "local_shape": [
+              1,
+              4097,
+              12,
+              576,
+              512
+            ]
+          },
+          "coordinates": {},
+          "domain": {},
+          "response": {
+            "fixed_us": 410.0
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": true
           }
         }
       ]

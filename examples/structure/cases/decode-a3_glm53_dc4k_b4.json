@@ -63,6 +63,39 @@
       "graph": "cudagraph_mode=FULL_AND_PIECEWISE (decode-FULL + piecewise prefill); cudagraph_capture_sizes=[1,2,4,8,16]; Graph capturing finished in 18 secs, took 0.21 GiB; no --compilation-config flag was passed, this is the image default",
       "kv_cache": "Setting kv cache block size to 128 for ASCEND_SFA_INDEXER backend; Available KV cache memory: 7.98 GiB -> NPU KV cache size: 89,856 tokens, Maximum concurrency for 73,728 tokens per request: 1.22x",
       "engine_config": "Initializing a V1 LLM engine (v0.30.0): max_seq_len=73728, speculative_config=None, tensor_parallel_size=8, pipeline_parallel_size=1, data_parallel_size=1, enable_prefix_caching=False, enable_chunked_prefill=True"
+    },
+    "kernels": {
+      "service_regimes": [
+        {
+          "id": "latent_attn-observed-0",
+          "match": {
+            "hardware": "Ascend910_9362",
+            "recipe": "latent_attention_batch",
+            "phase": "decode",
+            "dtype": "bf16",
+            "layout": "contiguous",
+            "local_shape": [
+              4,
+              4,
+              4097,
+              8,
+              576,
+              512
+            ]
+          },
+          "coordinates": {},
+          "domain": {},
+          "response": {
+            "fixed_us": 141.0
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": true
+          }
+        }
+      ]
     }
   }
 }

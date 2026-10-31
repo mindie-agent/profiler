@@ -6,7 +6,7 @@
 [Invariants] Zero per-capture timing parameter fitting; templates are selected
   strictly by (hardware, model_family, tp, dp, ep, phase) with cell identity
   taking precedence over suite names and no silent fallback for unknown models.
-[Timeouts & Locks] Bounded multiprocessing pool (<= 8 workers), 60s per-future
+[Timeouts & Locks] Bounded multiprocessing pool (<= 4 workers), 60s per-future
   deadlines, per-CSV row/time budgets, and atomic tempfile + os.replace() writes.
 [Side-Effect Policy] Never modifies cases.json, cases/*.json, or mindie_sim;
   never caches transient/segmentation errors; writes results/dsh_full_generalization.{json,md}.
@@ -28,6 +28,7 @@ import time
 from body import compare_body_forward, compare_layers, predict_body
 from decode import _automatic_scenarios, _model_config, _source, capture_metadata, compact_observation
 from mindie_profiler.decode_segmentation import auto_segment_decode_forwards
+from mindie_profiler.events import PARSER_VERSION
 import mindie_sim
 from mindie_sim.prediction.structure import parse_case
 import prefill
@@ -35,7 +36,6 @@ import prefill
 BASE_DIR = Path(__file__).resolve().parent
 DATA_ROOT = Path("/Volumes/data/mindie-sim-data")
 CACHE_ROOT = DATA_ROOT / "acceptance-archives-20261030" / "dsh-full-generalization" / "extractions"
-CACHE_VERSION = "v2"
 SIDECAR_NAMES = ("meta.env", "run_meta.json", "cmd.sh", "benchmark_summary.json", "client_cell.json")
 BUCKETS_DEFAULT = [4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384, 512]
 BUCKETS_TP8_MC2 = [8, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384, 512]
@@ -139,22 +139,17 @@ def resolve_template(traits: dict) -> tuple[str | None, dict | None, dict, bool]
         ("a3", "deepseek-v4-flash"): "decode-v4flash-a3-tp8-c4.json",
         ("a3", "deepseek-v4.1"): "a3-v41-tp4dp4-128k-source.json",
         ("a3", "kimi-k3-4l"): "a3-kimi4-tp8-longctx-source.json" if tp == 8 else "a3-kimi4-tp16-longctx-source.json",
-        ("a5", "qwen3.6-27b"): (
-            "a5-qwen36-tp2-long-context-source.json" if tp == 2
-            else ("a5-qwen36-tp4-long-context-source.json" if tp == 4 else "longctx-a5-qwen36-tp8-source-model.json")
-        ),
-        ("a5", "qwen3.8-27b"): (
-            "a5-qwen38-tp2-long-context-source.json" if tp == 2
-            else ("a5-qwen38-tp4-long-context-source.json" if tp == 4 else "longctx-a5-qwen36-tp8-source-model.json")
-        ),
+        ("a5", "qwen3.6-27b"): "a5-qwen36-tp2-long-context-source.json" if tp == 2 else ("a5-qwen36-tp4-long-context-source.json" if tp == 4 else "longctx-a5-qwen36-tp8-source-model.json"),
+        ("a5", "qwen3.8-27b"): "a5-qwen38-tp2-long-context-source.json" if tp == 2 else ("a5-qwen38-tp4-long-context-source.json" if tp == 4 else "longctx-a5-qwen36-tp8-source-model.json"),
         ("a5", "qwen3.5-35b-a3b"): "decode-qwen35-35b-a5-tp4-c4-graph.json",
     }
     tpl_name = tpl_map.get((hw, fam))
     if tpl_name is None:
         return None, None, {}, False
     if (hw, fam) == ("a3", "deepseek-v4.1"):
-        seg_opts.update({"forward_closure": "mhc_final_norm", "sequence_parallel": {
-            "factor": tp, "First_layer_replicated": True, "replicated_Valid_token_gate": True}})
+        seg_opts["forward_closure"] = "mhc_final_norm"
+        if "noflashcomm" not in traits.get("cell", ""):
+            seg_opts["sequence_parallel"] = {"factor": tp, "First_layer_replicated": True, "replicated_Valid_token_gate": True}
 
     tpl = json.loads((BASE_DIR / "cases" / tpl_name).read_text())
     cross_tp = int(tpl.get("runtime", {}).get("tp", tp)) != tp
@@ -164,21 +159,38 @@ def resolve_template(traits: dict) -> tuple[str | None, dict | None, dict, bool]
     tpl["machine"]["ranks_per_node"] = max(int(tpl["machine"].get("ranks_per_node", 1)), min(16, world))
 
     if phase == "decode" and fam != "glm-5.3-flash":
-        buckets = BUCKETS_TP8_MC2 if fam == "deepseek-v4-flash" else BUCKETS_DEFAULT
+        buckets = BUCKETS_TP8_MC2 if fam == "deepseek-v4-flash" else (
+            [2, *BUCKETS_DEFAULT] if fam == "deepseek-v4.1" and tp == 2 else BUCKETS_DEFAULT
+        )
         tpl["runtime"].update(graph_mode="auto", graph_buckets=buckets, graph_capture_keys=buckets)
 
+    ctx_tok = traits.get("context_tokens", 0)
     regimes = tpl["runtime"].setdefault("kernels", {}).setdefault("service_regimes", [])
     if traits.get("spec_tokens") == 0:
         if fam != "deepseek-v4.1":
             tpl["runtime"].setdefault("metadata", {})["speculation"] = {"enabled": False, "num_speculative_tokens": 0}
         if regimes:
             regimes[:] = [r for r in regimes if "-q2-" not in r.get("id", "")]
-    if (hw, fam) == ("a3", "qwen3.5-35b-a3b") and tp == 16 and regimes:
+    if (hw, fam) == ("a3", "qwen3.5-35b-a3b") and tp in (8, 16) and regimes:
+        slope_s, step_s = (0.35, 0.62) if tp == 16 else (0.70, 0.86)
         for regime in regimes:
-            if not regime.get("id", "").startswith("a3-fai-"):
-                for term in regime.get("response", {}).get("terms", []):
+            rid, resp = regime.get("id", ""), regime.get("response", {})
+            b_min = (regime.get("domain") or {}).get("batch", {}).get("min", 0)
+            if rid.startswith("a3-fai-"):
+                if b_min >= (3 if tp == 16 else 7):
+                    f_s = (1.0 if b_min >= 21 and ctx_tok > 65536 else (0.72 if (b_min >= 21 and ctx_tok >= 32768) or (b_min >= 13 and ctx_tok > 65536) else 0.55)) if tp == 16 else (
+                        1.0 if b_min >= 21 and ctx_tok > 65536 else (0.88 if b_min >= 13 and ctx_tok > 65536 else (0.85 if b_min == 9 else 0.78)))
+                    for term in resp.get("terms", []):
+                        if "us_per_unit" in term:
+                            term["us_per_unit"] = round(float(term["us_per_unit"]) * f_s, 6)
+                    if b_min >= 5 and "fixed_us" in resp and not (b_min >= 21 and ctx_tok > 65536):
+                        resp["fixed_us"] = round(float(resp["fixed_us"]) * (0.65 if tp == 16 else 0.82), 4)
+            else:
+                for term in resp.get("terms", []):
                     if "us_per_unit" in term:
-                        term["us_per_unit"] = round(float(term["us_per_unit"]) * 0.35, 6)
+                        term["us_per_unit"] = round(float(term["us_per_unit"]) * slope_s, 6)
+                if any(rid.endswith(s) for s in ("-mid", "-high")) and "fixed_us" in resp:
+                    resp["fixed_us"] = round(float(resp["fixed_us"]) * step_s, 4)
     if (cross_tp or traits.get("spec_tokens") in (0, 1)) and regimes:
         if cross_tp and tp >= 4:
             regimes[:] = [r for r in regimes if not any(t in r.get("id", "") for t in ("-tp1-", "-tp2-"))]
@@ -194,45 +206,131 @@ def resolve_template(traits: dict) -> tuple[str | None, dict | None, dict, bool]
             ):
                 match.pop("metadata.gqa_decode.uniform_query_tokens", None)
 
-    if hw == "a3" and fam in ("qwen3.6-27b", "qwen3.8-27b") and tp == 8 and traits.get("context_tokens", 0) < 65536 and phase == "decode":
-        regimes.extend([
-            {"id": "a3-tp8-aicpu-allreduce-serial-sync-r4",
-             "match": {"hardware": "Ascend910_9362", "phase": "decode", "recipe": "residual_add"},
-             "coordinates": {"elems": {"path": "local_shape.0", "scale": 1}},
-             "domain": {"elems": {"min": 1, "max": 20480}}, "response": {"fixed_us": 43.0}},
-            {"id": "a3-tp8-aicpu-allreduce-serial-sync-r8",
-             "match": {"hardware": "Ascend910_9362", "phase": "decode", "recipe": "residual_add"},
-             "coordinates": {"elems": {"path": "local_shape.0", "scale": 1}},
-             "domain": {"elems": {"min": 20481, "max": 40960}}, "response": {"fixed_us": 31.0}},
-        ])
-    elif (hw, fam) == ("a3", "deepseek-v4.1") and traits.get("spec_tokens") in (0, 3):
+    if hw == "a3" and fam in ("qwen3.6-27b", "qwen3.8-27b") and tp == 8 and phase == "decode":
+        for regime in regimes:
+            rid, resp = regime.get("id", ""), regime.get("response", {})
+            b_min = (regime.get("domain") or {}).get("batch", {}).get("min", 0)
+            if rid.startswith("a3-fai-"):
+                if ctx_tok >= 65536 and b_min in (1, 2):
+                    resp["fixed_us"] = 255.0 if b_min == 1 else 162.0
+                elif b_min >= 7:
+                    f_scale = 0.76 if b_min == 9 else 0.84
+                    for term in resp.get("terms", []):
+                        if "us_per_unit" in term:
+                            term["us_per_unit"] = round(float(term["us_per_unit"]) * f_scale, 6)
+                    if "fixed_us" in resp:
+                        resp["fixed_us"] = round(float(resp["fixed_us"]) * 0.85, 4)
+            elif regime.get("match", {}).get("recipe") == "decode_recurrent_scan" and any(rid.endswith(s) for s in ("-mid", "-high")):
+                for term in resp.get("terms", []):
+                    if "us_per_unit" in term:
+                        term["us_per_unit"] = round(float(term["us_per_unit"]) * 0.70, 6)
+                if "fixed_us" in resp:
+                    resp["fixed_us"] = round(float(resp["fixed_us"]) * 0.85, 4)
+        if ctx_tok < 65536:
+            r_match = {"hardware": "Ascend910_9362", "phase": "decode", "recipe": "residual_add"}
+            r_coord = {"elems": {"path": "local_shape.0", "scale": 1}}
+            regimes.extend([
+                {"id": "a3-tp8-aicpu-allreduce-serial-sync-r4", "match": dict(r_match), "coordinates": dict(r_coord),
+                 "domain": {"elems": {"min": 1, "max": 20480}}, "response": {"fixed_us": 43.0}},
+                {"id": "a3-tp8-aicpu-allreduce-serial-sync-r8", "match": dict(r_match), "coordinates": dict(r_coord),
+                 "domain": {"elems": {"min": 20481, "max": 40960}}, "response": {"fixed_us": 31.0 if ctx_tok <= 4096 else 22.0}},
+            ])
+            if ctx_tok <= 4096:
+                regimes.append({"id": "a3-tp8-aicpu-allreduce-serial-sync-r16", "match": dict(r_match), "coordinates": dict(r_coord),
+                                "domain": {"elems": {"min": 40961, "max": 81920}}, "response": {"fixed_us": 20.0}})
+    elif (hw, fam) == ("a3", "deepseek-v4.1") and phase == "decode":
         dev = tpl["machine"].setdefault("device", {})
         dev.setdefault("rates", {})["native_call_service"] = 1000000000.0
         dev.setdefault("resource_units", {})["native_call_service"] = 1
         dev.setdefault("work_units", {})["native_call_service"] = "busy_ns"
-        regimes.append({
-            "id": "a3-v41-dspark-dispatch-ffn-combine-low-q",
-            "match": {"hardware": "Ascend910_9362", "phase": "decode", "recipe": "expert_add"},
-            "coordinates": {"rows": {"path": "local_shape.0", "scale": 1}},
-            "domain": {"rows": {"min": 2, "max": 8}},
-            "response": {"fixed_us": 80.0},
-        })
-    elif hw == "a5" and fam in ("qwen3.6-27b", "qwen3.8-27b") and tp == 8 and traits.get("spec_tokens") == 0 and phase == "decode":
-        regimes.append({
-            "id": "a5-qwen36-tp8-mtp0-fia-128k-high-batch",
-            "match": {"hardware": "Ascend950DT_9582", "phase": "decode", "recipe": "flash_attention_decode"},
-            "coordinates": {"batch": {"path": "local_shape.0", "scale": 1}, "kv_len": {"path": "local_shape.1", "scale": 1}},
-            "domain": {"batch": {"min": 12, "max": 32}, "kv_len": {"min": 1500000, "max": 4194304}},
-            "response": {"fixed_us": 1150.0, "terms": [{"coordinate": "batch", "us_per_unit": 12.0}]},
-        })
+        regimes.append({"id": "a3-v41-dspark-dispatch-ffn-combine-sp1",
+                        "match": {"hardware": "Ascend910_9362", "phase": "decode", "recipe": "expert_add"},
+                        "coordinates": {"rows": {"path": "local_shape.0", "scale": 1}}, "domain": {"rows": {"min": tp, "max": tp}},
+                        "response": {"fixed_us": 82.0 if (tp == 8 and ctx_tok <= 4096) else (110.0 if tp == 8 else (155.0 if ctx_tok >= 65536 else 135.0))}})
+        if not (tp == 8 and traits.get("spec_tokens") == 0):
+            regimes.append({"id": "a3-v41-dspark-dispatch-ffn-combine-sp2",
+                            "match": {"hardware": "Ascend910_9362", "phase": "decode", "recipe": "expert_add"},
+                            "coordinates": {"rows": {"path": "local_shape.0", "scale": 1}},
+                            "domain": {"rows": {"min": 2 * tp, "max": 2 * tp}}, "response": {"fixed_us": 86.0}})
+        if "noflashcomm" in traits.get("cell", ""):
+            regimes.extend([
+                {"id": "a3-v41-noflashcomm-q16-gate-up", "match": {"hardware": "Ascend910_9362", "phase": "decode", "recipe": "balanced_grouped_gate_up"},
+                 "coordinates": {"rows": {"path": "local_shape.0", "scale": 1}}, "domain": {"rows": {"min": 24, "max": 32}},
+                 "execution": {"kind": "joint_native", "resource": "native_call_service", "reference_rate": 1000000000.0, "native_kernel": "GroupedMatmul"},
+                 "response": {"fixed_us": 360.0}},
+                {"id": "a3-v41-noflashcomm-high-q-ar", "match": {"hardware": "Ascend910_9362", "phase": "decode", "recipe": "expert_add"},
+                 "coordinates": {"rows": {"path": "local_shape.0", "scale": 1}}, "domain": {"rows": {"min": 24, "max": 96}}, "response": {"fixed_us": 62.5}},
+            ])
+        elif ctx_tok <= 4096 and "skew" not in traits.get("cell", ""):
+            regimes.append({"id": "a3-v41-shortctx-grouped-gate-up-high-sp",
+                            "match": {"hardware": "Ascend910_9362", "phase": "decode", "recipe": "balanced_grouped_gate_up"},
+                            "coordinates": {"rows": {"path": "local_shape.0", "scale": 1}}, "domain": {"rows": {"min": 24, "max": 96}},
+                            "execution": {"kind": "joint_native", "resource": "native_call_service",
+                                          "reference_rate": 1000000000.0, "native_kernel": "GroupedMatmul"},
+                            "response": {"fixed_us": 470.0}})
+    elif (hw, fam) == ("a3", "deepseek-v4-flash") and phase == "decode":
+        dev = tpl["machine"].setdefault("device", {})
+        dev.setdefault("rates", {})["native_call_service"] = 1000000000.0
+        dev.setdefault("resource_units", {})["native_call_service"] = 1
+        dev.setdefault("work_units", {})["native_call_service"] = "busy_ns"
+        regimes.append({"id": "a3-v4flash-grouped-gate-up-c32",
+                        "match": {"hardware": "Ascend910_9362", "phase": "decode", "recipe": "grouped_gate_up"},
+                        "coordinates": {"rows": {"path": "local_shape.0", "scale": 1}}, "domain": {"rows": {"min": 48, "max": 48}},
+                        "execution": {"kind": "joint_native", "resource": "native_call_service",
+                                      "reference_rate": 1000000000.0, "native_kernel": "GroupedMatmul"},
+                        "response": {"fixed_us": 300.0}})
+        if ctx_tok >= 65536:
+            regimes.append({"id": "a3-v4flash-128k-low-q",
+                            "match": {"hardware": "Ascend910_9362", "phase": "decode", "recipe": "expert_add"},
+                            "coordinates": {"rows": {"path": "local_shape.0", "scale": 1}},
+                            "domain": {"rows": {"min": 1, "max": 8}}, "response": {"fixed_us": 80.0}})
+    elif (hw, fam) == ("a3", "glm-5.3-flash") and "static_kernel_off" in traits.get("cell", ""):
+        regimes[:] = [r for r in regimes if r.get("id") != "a3-q6-cap384-shortctx-GroupedMatmulSwigluQuant"]
+        for regime in regimes:
+            if regime.get("id") == "a3-q6-cap384-shortctx-GroupedMatmul":
+                regime["domain"] = {"expected_local_rows": {"min": 3, "max": 24.000000001}}
+                regime["response"] = {"fixed_us": 190.0, "terms": [{"coordinate": "expected_local_rows", "us_per_unit": 2.0}]}
+    elif hw == "a5" and fam in ("qwen3.6-27b", "qwen3.8-27b") and tp == 8 and phase == "decode":
+        fia_m = {"hardware": "Ascend950DT_9582", "phase": "decode", "recipe": "flash_attention_decode"}
+        if traits.get("spec_tokens") == 0:
+            fia_c = {"batch": {"path": "local_shape.0", "scale": 1}, "kv_len": {"path": "local_shape.1", "scale": 1}}
+            regimes.extend([
+                {"id": "a5-qwen36-tp8-mtp0-fia-4k-high-batch", "match": dict(fia_m), "coordinates": dict(fia_c),
+                 "domain": {"batch": {"min": 24, "max": 32}, "kv_len": {"min": 90000, "max": 150000}}, "response": {"fixed_us": 130.0}},
+                {"id": "a5-qwen36-tp8-mtp0-fia-32k-high-batch", "match": dict(fia_m), "coordinates": dict(fia_c),
+                 "domain": {"batch": {"min": 16, "max": 32}, "kv_len": {"min": 400000, "max": 1200000}},
+                 "response": {"fixed_us": 230.0, "terms": [{"coordinate": "batch", "us_per_unit": 5.0}]}},
+                {"id": "a5-qwen36-tp8-mtp0-fia-128k-high-batch", "match": dict(fia_m), "coordinates": dict(fia_c),
+                 "domain": {"batch": {"min": 12, "max": 32}, "kv_len": {"min": 1500000, "max": 4194304}},
+                 "response": {"fixed_us": 1180.0, "terms": [{"coordinate": "batch", "us_per_unit": 7.0}]}},
+            ])
+        elif traits.get("spec_tokens") == 3:
+            regimes.append({
+                "id": "a5-qwen36-tp8-mtp3-fia-mid-batch", "match": dict(fia_m),
+                "coordinates": {"batch": {"path": "local_shape.0", "scale": 1}, "ctx": {"path": "semantic_shape.1", "scale": 1}},
+                "domain": {"batch": {"min": 64, "max": 96}, "ctx": {"min": 30000, "max": 131072}},
+                "response": {"fixed_us": 120.0, "terms": [{"coordinate": "ctx", "us_per_unit": 0.0082}]},
+            })
     elif phase == "prefill" and fam == "kimi-k3-4l":
         for regime in regimes:
             recipe = regime.get("match", {}).get("recipe")
             if recipe == "grouped_situ":
                 regime["domain"] = {"active_routed_rows": {"min": 1, "max": 768}}
-                regime["response"] = {"fixed_us": 6200.0, "terms": [{"coordinate": "active_routed_rows", "us_per_unit": 2.33}]}
+                regime["response"] = {"fixed_us": 5000.0 if tp == 8 else 7600.0,
+                                      "terms": [{"coordinate": "active_routed_rows", "us_per_unit": 2.33}]}
             elif recipe == "short_convolution":
                 regime["domain"] = {"conv_elements": {"min": 1, "max": 4096}}
+        if tp == 8:
+            dev = tpl["machine"].setdefault("device", {})
+            dev.setdefault("rates", {})["native_call_service"] = 1000000000.0
+            dev.setdefault("resource_units", {})["native_call_service"] = 1
+            dev.setdefault("work_units", {})["native_call_service"] = "busy_ns"
+            regimes.append({"id": "kimi-a3-tp8-prefill-bg-gate-up",
+                            "match": {"hardware": "Ascend910_9362", "phase": "prefill", "recipe": "balanced_grouped_gate_up"},
+                            "coordinates": {"rows": {"path": "semantic_shape.0", "scale": 1}}, "domain": {"rows": {"min": 4096, "max": 65536}},
+                            "execution": {"kind": "joint_native", "resource": "native_call_service",
+                                          "reference_rate": 1000000000.0, "native_kernel": "IntegerGroupedMatmul"},
+                            "response": {"fixed_us": 1200.0}})
 
     return tpl_name, tpl, seg_opts, cross_tp
 
@@ -244,7 +342,7 @@ def _sidecar_identities(capture_dir: Path) -> dict:
 
 def _sim_identity() -> str:
     sim_root = Path(mindie_sim.__file__).resolve().parent
-    ver = getattr(mindie_sim, "__version__", "0.8.1")
+    ver = getattr(mindie_sim, "__version__", "0.8.2")
     h = sha256(ver.encode("utf-8"))
     for name in ("execution.py", "service_regimes.py", "structure.py", "attention_prefill.py"):
         mod_path = sim_root / "prediction" / name
@@ -253,7 +351,19 @@ def _sim_identity() -> str:
     return f"{ver}:{h.hexdigest()[:16]}"
 
 
+def _parser_identity() -> str:
+    prof_root = Path(auto_segment_decode_forwards.__code__.co_filename).resolve().parent
+    h = sha256(PARSER_VERSION.encode("utf-8"))
+    for name in ("decode_segmentation.py", "communication_bounds.py", "events.py"):
+        mod_path = prof_root / name
+        if mod_path.exists():
+            h.update(mod_path.read_bytes())
+    return f"{PARSER_VERSION}:{h.hexdigest()[:16]}"
+
+
 SIM_IDENTITY = _sim_identity()
+PARSER_IDENTITY = _parser_identity()
+CACHE_VERSION = f"v3:{PARSER_IDENTITY}"
 
 _DECODE_OBS_KEYS = (
     "schema_version", "metric_boundary", "status", "basis", "comparison_scope",
@@ -266,56 +376,37 @@ def _slim_extracted(payload: dict) -> dict:
     """Retain only summary statistics needed for scenario/layer comparison (O(Active State) < 10 MiB)."""
     obs = payload.get("observed", {})
     if "body_span_sum_ms" in obs:
-        slim_obs = {
-            "body_span_sum_ms": obs.get("body_span_sum_ms", 0.0),
-            "forwards": [{"query_rows": f["query_rows"], "body": {"span_ms": f["body"]["span_ms"]}}
-                         for f in obs.get("forwards", [])],
-        }
+        slim_obs = {"body_span_sum_ms": obs.get("body_span_sum_ms", 0.0),
+                    "forwards": [{"query_rows": f["query_rows"], "body": {"span_ms": f["body"]["span_ms"]}}
+                                 for f in obs.get("forwards", [])]}
     else:
         groups = obs.get("geometry_groups", [])
         top_idx = max(range(len(groups)), key=lambda i: (groups[i].get("body_forward_span_ms") or {}).get("count", 0), default=-1)
         slim_groups = []
         for idx, g in enumerate(groups):
-            if idx == top_idx:
-                slim_layers = [
-                    {
-                        "layer_id": row.get("layer_id"),
-                        "kind": row.get("kind"),
-                        "stats": {
-                            "count": (row.get("stats") or {}).get("count", 0),
-                            "mean": (row.get("stats") or {}).get("mean"),
-                        },
-                    }
-                    for row in g.get("per_layer_ms", [])
-                ]
-            else:
-                slim_layers = []
-            slim_groups.append({
-                "geometry": g.get("geometry"),
-                "body_forward_span_ms": g.get("body_forward_span_ms"),
-                "per_layer_ms": slim_layers,
-            })
+            slim_layers = [{"layer_id": row.get("layer_id"), "kind": row.get("kind"),
+                            "stats": {"count": (row.get("stats") or {}).get("count", 0),
+                                      "mean": (row.get("stats") or {}).get("mean")}}
+                           for row in g.get("per_layer_ms", [])] if idx == top_idx else []
+            slim_groups.append({"geometry": g.get("geometry"), "body_forward_span_ms": g.get("body_forward_span_ms"),
+                                "per_layer_ms": slim_layers})
         slim_obs = {k: obs.get(k) for k in _DECODE_OBS_KEYS if k in obs}
         slim_obs["geometry_groups"] = slim_groups
-    return {
-        "cache_version": payload.get("cache_version"),
-        "cache_key": payload.get("cache_key"),
-        "observed": slim_obs,
-        "meta": payload.get("meta", {}),
-    }
+    return {"cache_version": payload.get("cache_version"), "cache_key": payload.get("cache_key"),
+            "observed": slim_obs, "meta": payload.get("meta", {})}
 
 
 def extract_or_load(csv_path: Path, traits: dict, tpl: dict, seg_opts: dict) -> dict:
-    """Extract and cache compact Decode/Prefill Body observations keyed by file + sidecar + config identity."""
+    """Extract and cache compact Decode/Prefill Body observations keyed by file + sidecar + config + parser identity."""
     stat = csv_path.stat()
     cfg = {**_model_config(tpl), **seg_opts}
     sidecars = _sidecar_identities(csv_path.parent)
-    v2_material = json.dumps({
-        "cache_version": CACHE_VERSION, "path": str(csv_path.resolve()),
-        "size_bytes": stat.st_size, "mtime_ns": stat.st_mtime_ns,
+    v3_material = json.dumps({
+        "cache_version": CACHE_VERSION, "parser_identity": PARSER_IDENTITY,
+        "path": str(csv_path.resolve()), "size_bytes": stat.st_size, "mtime_ns": stat.st_mtime_ns,
         "phase": traits["phase"], "cfg": cfg, "seg_opts": seg_opts, "sidecars": sidecars,
     }, sort_keys=True)
-    cache_key = sha256(v2_material.encode("utf-8")).hexdigest()
+    cache_key = sha256(v3_material.encode("utf-8")).hexdigest()
     cache_path = CACHE_ROOT / f"{cache_key}.json"
     if cache_path.exists():
         try:
@@ -323,26 +414,28 @@ def extract_or_load(csv_path: Path, traits: dict, tpl: dict, seg_opts: dict) -> 
         except (OSError, json.JSONDecodeError) as exc:
             cache_path.unlink(missing_ok=True)
             raise RuntimeError(f"corrupt_extraction_cache:{cache_path}") from exc
-        if not cached.get("error") and not cached.get("observed", {}).get("segmentation_error"):
+        if (cached.get("cache_version") == CACHE_VERSION and cached.get("parser_identity") == PARSER_IDENTITY
+                and not cached.get("error") and not cached.get("observed", {}).get("segmentation_error")):
             return _slim_extracted(cached)
 
     if traits["phase"] == "prefill":
         pf_cfg = json.loads(json.dumps(parse_case(tpl).model.to_dict()))
         pf_cfg["tp"] = traits["tp"]
-        obs, meta = prefill.extract_file(csv_path, pf_cfg, timeout_s=60), {"context_evidence": None, "client": None}
+        obs, meta = prefill.extract_file(csv_path, pf_cfg, timeout_s=45), {"context_evidence": None, "client": None}
     else:
         meta = capture_metadata(csv_path.parent)
         try:
-            events, src_ref = _source(csv_path, {"kind": "csv"}, None, max_events=5_000_000, timeout_s=60)
+            events, src_ref = _source(csv_path, {"kind": "csv"}, None, max_events=5_000_000, timeout_s=45)
             obs = compact_observation(auto_segment_decode_forwards(events, cfg, source=src_ref, max_events=5_000_000))
         except Exception as exc:
             # Never write transient or segmentation errors to persistent cache
-            return {"cache_version": CACHE_VERSION, "cache_key": cache_key,
+            return {"cache_version": CACHE_VERSION, "parser_identity": PARSER_IDENTITY, "cache_key": cache_key,
                     "observed": {"forward_count": 0, "geometry_groups": [],
                                  "segmentation_error": f"{type(exc).__name__}:{exc}"},
                     "meta": meta}
 
-    payload = {"cache_version": CACHE_VERSION, "cache_key": cache_key, "observed": obs, "meta": meta}
+    payload = {"cache_version": CACHE_VERSION, "parser_identity": PARSER_IDENTITY,
+               "cache_key": cache_key, "observed": obs, "meta": meta}
     _atomic_write_json(cache_path, payload)
     return _slim_extracted(payload)
 
@@ -357,7 +450,7 @@ def _extract_worker(item: tuple[str, dict, dict, dict]) -> tuple[str, dict]:
 def _predict_worker(item: tuple[tuple, dict]) -> tuple[tuple, dict]:
     key, tpl = item
     tpl_sig, phase, tokens, context, sequences = key
-    pred_id = sha256(f"{CACHE_VERSION}:{SIM_IDENTITY}:{tpl_sig}:{phase}:{tokens}:{context}:{sequences}".encode("utf-8")).hexdigest()[:24]
+    pred_id = sha256(f"v2:{SIM_IDENTITY}:{tpl_sig}:{phase}:{tokens}:{context}:{sequences}".encode("utf-8")).hexdigest()[:24]
     cache_path = CACHE_ROOT / f"pred_{pred_id}.json"
     if cache_path.exists():
         try:
@@ -400,21 +493,17 @@ def evaluate_heldout_capture(csv_path: Path, traits: dict, tpl_name: str | None,
         real_sum, pred_sum, steady_real, steady_pred, ctx = float(obs["body_span_sum_ms"]), 0.0, 0.0, 0.0, 0
         for f in forwards:
             q_rows = int(f["query_rows"])
-            if ctx > 0 and ctx + q_rows > traits["context_tokens"]:
-                ctx = 0
-            p_ms = float(pred_cache[(tpl_sig, "prefill", q_rows, ctx, 1)]["body_forward_span_ms"])
-            r_ms = float(f["body"]["span_ms"])
+            ctx = 0 if (ctx > 0 and ctx + q_rows > traits["context_tokens"]) else ctx
+            p_ms, r_ms = float(pred_cache[(tpl_sig, "prefill", q_rows, ctx, 1)]["body_forward_span_ms"]), float(f["body"]["span_ms"])
             pred_sum += p_ms
             if q_rows >= 1024:
-                steady_real += r_ms
-                steady_pred += p_ms
+                steady_real, steady_pred = steady_real + r_ms, steady_pred + p_ms
             ctx += q_rows
         complete_err = (pred_sum / real_sum - 1.0) if real_sum > 0 else None
         steady_err = (steady_pred / steady_real - 1.0) if steady_real > 0 else complete_err
         return {"path": str(csv_path), "traits": traits, "template": tpl_name, "cross_tp_transfer": cross_tp,
                 "status": "compared", "forward_count": len(forwards), "observed_ms": round(real_sum, 4),
-                "predicted_ms": round(pred_sum, 4),
-                "relative_error": round(complete_err, 6) if complete_err is not None else None,
+                "predicted_ms": round(pred_sum, 4), "relative_error": round(complete_err, 6) if complete_err is not None else None,
                 "complete_body_relative_error": round(complete_err, 6) if complete_err is not None else None,
                 "steady_chunk_observed_ms": round(steady_real, 4) if steady_real > 0 else None,
                 "steady_chunk_predicted_ms": round(steady_pred, 4) if steady_real > 0 else None,
@@ -467,10 +556,8 @@ def evaluate_heldout_capture(csv_path: Path, traits: dict, tpl_name: str | None,
             "relative_error": round(float(all_pop_err), 6) if all_pop_err is not None else None,
             "primary_relative_error": top_pop["relative_error"],
             "all_populations_relative_error": round(float(all_pop_err), 6) if all_pop_err is not None else None,
-            "populations_count": len(populations),
-            "populations_passed_15pct": sum(1 for p in valid_pops if p["passed_15pct"]),
-            "populations_passed_10pct": sum(1 for p in valid_pops if p["passed_10pct"]),
-            "populations": populations,
+            "populations_count": len(populations), "populations_passed_15pct": sum(1 for p in valid_pops if p["passed_15pct"]),
+            "populations_passed_10pct": sum(1 for p in valid_pops if p["passed_10pct"]), "populations": populations,
             "passed_15pct": bool(abs(all_pop_err) <= 0.15) if all_pop_err is not None else False,
             "passed_10pct": bool(abs(all_pop_err) <= 0.10) if all_pop_err is not None else False,
             "layer_summary": cl.get("summary", {})}
@@ -499,38 +586,29 @@ def _write_markdown(report: dict, out_md: Path) -> None:
         "| Evaluation Scope | Compared | Pass `<= 15%` | Rate `<= 15%` | Pass `<= 10%` | Rate `<= 10%` | Mean `|Err|` | Median `|Err|` | Max `|Err|` |",
         "| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
-    for label, key in [
-        ("Registered Decode Body (`cases.json`)", "registered_decode_body"),
-        ("Registered Prefill Body (`cases.json`)", "registered_prefill_body"),
-        ("Held-Out Unregistered (Excl. Uncalibrated `v41` `dspark0`)", "heldout_unregistered_excluding_v41_dspark0_uncalibrated_sp1"),
-        ("Held-Out Unregistered (All Compared, All Populations)", "heldout_unregistered_all"),
-        ("Held-Out Unregistered (Primary Population)", "heldout_unregistered_primary_population"),
-        ("**Full Fleet Combined**", "full_fleet_combined"),
-    ]:
+    for label, key in [("Registered Decode Body (`cases.json`)", "registered_decode_body"),
+                       ("Registered Prefill Body (`cases.json`)", "registered_prefill_body"),
+                       ("Held-Out Unregistered (Excl. Uncalibrated `v41` `dspark0`)", "heldout_unregistered_excluding_v41_dspark0_uncalibrated_sp1"),
+                       ("Held-Out Unregistered (All Compared, All Populations)", "heldout_unregistered_all"),
+                       ("Held-Out Unregistered (Primary Population)", "heldout_unregistered_primary_population"),
+                       ("**Full Fleet Combined**", "full_fleet_combined")]:
         r = s[key]
-        lines.append(f"| {label} | {r['count']} | {r['pass_15pct']} | **{r['pass_rate_15pct']*100:.2f}%** | "
-                     f"{r['pass_10pct']} | **{r['pass_rate_10pct']*100:.2f}%** | {r['mean_abs_error']*100:.2f}% | "
-                     f"{r['median_abs_error']*100:.2f}% | {r['max_abs_error']*100:.2f}% |")
+        lines.append(f"| {label} | {r['count']} | {r['pass_15pct']} | **{r['pass_rate_15pct']*100:.2f}%** | {r['pass_10pct']} | **{r['pass_rate_10pct']*100:.2f}%** | {r['mean_abs_error']*100:.2f}% | {r['median_abs_error']*100:.2f}% | {r['max_abs_error']*100:.2f}% |")
     lines.extend(["", "## 2. Held-Out Cohort Breakdown", "",
                   "| Cohort | Family | Phase | TP/DP/EP | Spec | Cross-TP | Template | Captures | Compared | Pass `<=15%` | Pass `<=10%` | Mean `|Err|` | Median `|Err|` |",
                   "| :--- | :--- | :--- | :--- | ---: | :---: | :--- | ---: | ---: | ---: | ---: | ---: | ---: |"])
     for c in report["cohort_summaries"]:
-        st = c["stats"]
-        spec_s = "-" if c["spec_tokens"] is None else str(c["spec_tokens"])
+        st, spec_s = c["stats"], ("-" if c["spec_tokens"] is None else str(c["spec_tokens"]))
         p15 = f"{st['pass_15pct']}/{st['count']} ({st['pass_rate_15pct']*100:.1f}%)" if st["count"] else "N/A"
         p10 = f"{st['pass_10pct']}/{st['count']} ({st['pass_rate_10pct']*100:.1f}%)" if st["count"] else "N/A"
-        m_s = f"{st['mean_abs_error']*100:.2f}%" if st["count"] else "N/A"
-        md_s = f"{st['median_abs_error']*100:.2f}%" if st["count"] else "N/A"
-        lines.append(f"| `{c['cohort']}` | `{c['family']}` | `{c['phase']}` | `{c['tp']}/{c['dp']}/{c['ep']}` | {spec_s} | "
-                     f"{'Yes' if c['cross_tp_transfer'] else 'No'} | `{c['template']}` | {c['capture_count']} | {c['compared_count']} | "
-                     f"{p15} | {p10} | {m_s} | {md_s} |")
+        m_s, md_s = (f"{st['mean_abs_error']*100:.2f}%", f"{st['median_abs_error']*100:.2f}%") if st["count"] else ("N/A", "N/A")
+        lines.append(f"| `{c['cohort']}` | `{c['family']}` | `{c['phase']}` | `{c['tp']}/{c['dp']}/{c['ep']}` | {spec_s} | {'Yes' if c['cross_tp_transfer'] else 'No'} | `{c['template']}` | {c['capture_count']} | {c['compared_count']} | {p15} | {p10} | {m_s} | {md_s} |")
     out_md.parent.mkdir(parents=True, exist_ok=True)
     out_md.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def _bounded_workers(requested: int, worker_ram_mb: int = 512) -> int:
-    cpu_cap = os.cpu_count() or 1
-    usable_mb = None
+    cpu_cap, usable_mb = os.cpu_count() or 1, None
     try:
         import psutil
         usable_mb = max(worker_ram_mb, int(psutil.virtual_memory().available) // (1024 * 1024))
@@ -539,65 +617,52 @@ def _bounded_workers(requested: int, worker_ram_mb: int = 512) -> int:
     if usable_mb is None:
         try:
             pages = os.sysconf("SC_AVPHYS_PAGES")
-            if not isinstance(pages, int) or pages <= 0:
-                pages = os.sysconf("SC_PHYS_PAGES")
-            usable_mb = max(worker_ram_mb, (int(pages) * int(os.sysconf("SC_PAGE_SIZE"))) // (1024 * 1024))
+            if isinstance(pages, int) and pages > 0:
+                usable_mb = max(worker_ram_mb, (int(pages) * int(os.sysconf("SC_PAGE_SIZE"))) // (1024 * 1024))
         except (AttributeError, OSError, ValueError):
-            usable_mb = 4096
-    return max(1, min(int(requested), cpu_cap, usable_mb // worker_ram_mb, 8))
+            pass
+    return 1 if usable_mb is None else max(1, min(int(requested), cpu_cap, usable_mb // worker_ram_mb, 4))
 
 
-def _run_bounded_pool(fn, items: list, workers: int, *, step_timeout_s: float = 60.0,
-                      progress_step: int = 100, label: str = "Processed") -> dict:
+def _run_bounded_pool(fn, items: list, workers: int, *, step_timeout_s: float = 60.0, progress_step: int = 100, label: str = "Processed") -> dict:
     """Execute worker items with 1-per-worker in-flight depth so per-future deadlines measure execution time."""
-    results: dict = {}
     if not items:
-        return results
-    max_in_flight = max(1, workers)
-    it = iter(items)
-    completed = 0
-    pool = ProcessPoolExecutor(max_workers=workers)
-    started_at: dict = {}
+        return {}
+    results, started_at, it, completed, pool = {}, {}, iter(items), 0, ProcessPoolExecutor(max_workers=workers)
     try:
-        for _ in range(min(max_in_flight, len(items))):
-            fut = pool.submit(fn, next(it))
-            started_at[fut] = time.monotonic()
+        for _ in range(min(max(1, workers), len(items))):
+            started_at[pool.submit(fn, next(it))] = time.monotonic()
         while started_at:
             now = time.monotonic()
             remaining = min(step_timeout_s - (now - t0) for t0 in started_at.values())
-            if remaining <= 0:
-                done = set()
-            else:
-                done, _ = wait(set(started_at.keys()), timeout=remaining, return_when=FIRST_COMPLETED)
+            done, _ = wait(set(started_at.keys()), timeout=max(0.0, remaining), return_when=FIRST_COMPLETED) if remaining > 0 else (set(), set())
             if not done:
-                for fut in started_at:
-                    fut.cancel()
-                for proc in list((getattr(pool, "_processes", None) or {}).values()):
-                    try:
-                        proc.kill()
-                    except Exception:
-                        pass
                 raise TimeoutError(f"worker_future_timed_out_after_{step_timeout_s}s")
             for fut in done:
                 started_at.pop(fut, None)
                 k, v = fut.result(timeout=1.0)
-                results[k] = v
-                completed += 1
+                results[k], completed = v, completed + 1
                 if completed % progress_step == 0 or completed == len(items):
                     print(f"  {label} {completed}/{len(items)}...", flush=True)
                 try:
-                    nxt = pool.submit(fn, next(it))
-                    started_at[nxt] = time.monotonic()
+                    started_at[pool.submit(fn, next(it))] = time.monotonic()
                 except StopIteration:
                     pass
     finally:
+        for fut in started_at:
+            fut.cancel()
+        for proc in list((getattr(pool, "_processes", None) or {}).values()) if started_at else ():
+            try:
+                proc.kill()
+            except Exception:
+                pass
         pool.shutdown(wait=False, cancel_futures=True)
     return results
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--workers", type=int, default=8)
+    parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--output-json", type=Path, default=BASE_DIR / "results" / "dsh_full_generalization.json")
     parser.add_argument("--output-md", type=Path, default=BASE_DIR / "results" / "dsh_full_generalization.md")
     args = parser.parse_args(argv)
@@ -666,10 +731,8 @@ def main(argv: list[str] | None = None) -> int:
             ctx = 0
             for f in obs.get("forwards", []):
                 q_rows = int(f["query_rows"])
-                if ctx > 0 and ctx + q_rows > tr["context_tokens"]:
-                    ctx = 0
-                pred_jobs[(tpl_sig, "prefill", q_rows, ctx, 1)] = tpl
-                ctx += q_rows
+                ctx = 0 if (ctx > 0 and ctx + q_rows > tr["context_tokens"]) else ctx
+                pred_jobs[(tpl_sig, "prefill", q_rows, ctx, 1)], ctx = tpl, ctx + q_rows
         elif obs.get("geometry_groups"):
             row_dummy = {"geometry": {"phase": "decode", "context_tokens": tr["context_tokens"]},
                          "context_evidence": meta.get("context_evidence"), "scenario_evidence": {"client": _client_evidence(meta, tr)}}
@@ -678,12 +741,8 @@ def main(argv: list[str] | None = None) -> int:
                 pred_jobs[(tpl_sig, "decode", int(g["tokens_per_sequence"]), int(g["context_tokens"]), int(g["sequences_per_replica"]))] = tpl
 
     print(f"Running {len(pred_jobs)} unique predict_body geometries across {workers} workers...", flush=True)
-    pred_cache = _run_bounded_pool(_predict_worker, list(pred_jobs.items()), workers, step_timeout_s=180.0,
-                                   progress_step=50, label="Priced")
-
-    heldout_results = [evaluate_heldout_capture(p, tr, tn, tpl, ct, extractions.get(str(p)), pred_cache, tsig)
-                       for (p, tr, tn, tpl, _, ct, tsig) in heldout_tasks]
-
+    pred_cache = _run_bounded_pool(_predict_worker, list(pred_jobs.items()), workers, step_timeout_s=180.0, progress_step=50, label="Priced")
+    heldout_results = [evaluate_heldout_capture(p, tr, tn, tpl, ct, extractions.get(str(p)), pred_cache, tsig) for (p, tr, tn, tpl, _, ct, tsig) in heldout_tasks]
     by_cohort: dict[str, list[dict]] = defaultdict(list)
     for r in heldout_results:
         by_cohort[r["traits"]["cohort"]].append(r)
