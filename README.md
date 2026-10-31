@@ -9,6 +9,7 @@
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/badge/Release-v0.5.3-blue" alt="Release v0.5.3">
   <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/Interface-CLI%20%7C%20Python%20API%20%7C%20C7%20JSON-00ADD8" alt="CLI | Python API | C7 JSON">
   <img src="https://img.shields.io/badge/Target-Ascend%20NPU%20(A2%20%2F%20A3%20%2F%20A5)-FF6B00" alt="Ascend NPU">
@@ -36,7 +37,7 @@
 - **原地只读解析全系昇腾产物**：直接读取 `ascend_pytorch_profiler_*.db`（或 `output.db`）、`step_trace_time.csv`、`kernel_details.csv`、`op_summary.csv`、`operator_memory.csv`、`memory_record.csv` 与流式 `trace_view.json`，输出几 KB 的标准化 `mindie-profile-summary/1`（C7 JSON）结构化摘要。
 - **纳秒区间并集计量（Interval Union Accounting）**：使用整数纳秒区间并集与差集运算，严格区分窗口跨度（`observed_event_span_ms`）、设备真实忙时并集（`device_busy_union_ms`）、多流累加工作量（`device_activity_sum_ms`）与设备未覆盖间隙（`device_uncovered_ms`），彻底杜绝多流重叠耗时超 100%，并自动剔除窗口边界被截断算子（`clipped_event_count`）对 P50/P90 分布的污染。
 - **精准瓶颈定界与算子变体聚合**：按 `(rank_id, semantic_block, kernel_name, input_shapes, input_dtypes, input_formats)` 保留真实 Shape 变体，结合 PMU 计数器与 Host-Device 关联区分 `compute_bound`、`memory_bound`、`communication_bound`、`host_launch_bound`、`stream_sync_bound` 与 `idle_gap`。
-- **复用 `mindie-sim` 结构关联实测**：开发版通过 `analyze --structure` 消费 sim 导出的无时延模型图及融合子图边界，按张量契约保留候选，并依据显式事件、Host 或同步 module 证据关联层、块与算子。重复层尚不能区分时保留共同结构分类；子图总耗时不分摊成成员的独立实测。原始观测由 profiler 统一读取，sim 在独立比较入口复用；见[结构关联示例](examples/structure/README.md)。
+- **与 `mindie-sim` 共享模型结构与实测归因（`mindie-model-structure/1`）**：通过 `analyze --structure` 直接消费 `mindie-sim` 导出的模型结构与融合子图边界，将实测算子事件精准归因到模型层、结构块（Attention / MLA / GDN / KDA / MoE / mHC）与同构算子群（`cohorts`），并支持按完整拓扑自动切分 Decode / Prefill 前向窗口（`auto_segment_decode_forwards`）。详见[结构关联与全量验证示例](examples/structure/README.md)。
 
 ```mermaid
 flowchart LR
@@ -69,15 +70,17 @@ flowchart LR
 
 如果你是收到上述指令的 AI Agent，请按以下步骤为当前用户或目标远端昇腾容器完成 `mindie-profiler` 的安装与校验：
 
-1. **检查基础环境**：确认目标环境具备 Python `>= 3.11`（基础事件核算使用 Python 标准库，安装包配套依赖 Sim 0.8.0；基础 CLI 不会初始化 Sim、模型权重或设备上下文）。
+1. **检查基础环境**：确认目标环境具备 Python `>= 3.11`（基础事件核算仅使用 Python 标准库，安装包配套依赖 `mindie-sim >= 0.8.1, < 0.9.0`；基础 CLI 不会初始化模型权重或 NPU 设备上下文）。
 2. **安装命令行与 Python 包**：
-   - 使用 `uv` 全局安装 CLI（推荐）：
+   - 使用固定版本 Release Wheel 安装（推荐生产环境）：
+     ```bash
+     uv pip install \
+       https://github.com/mindie-agent/sim/releases/download/v0.8.1/mindie_sim-0.8.1-py3-none-any.whl \
+       https://github.com/mindie-agent/profiler/releases/download/v0.5.3/mindie_profiler-0.5.3-py3-none-any.whl
+     ```
+   - 或从源码主分支安装最新开发版：
      ```bash
      uv tool install git+https://github.com/mindie-agent/profiler@main
-     ```
-   - 或安装到当前/远端虚拟环境：
-     ```bash
-     uv pip install git+https://github.com/mindie-agent/profiler@main
      ```
 3. **验证 CLI 可用**：
    ```bash
@@ -129,44 +132,38 @@ pytest -m "not live_npu"
 | **`memory`**<br/>`mindie_profiler.memory_profile`<br/>`python3 -m mindie_profiler.weight_inspector` | **P0–P4 峰值与算子级显存归因**：融合 P0 `msprof`（`operator_memory.csv` / `memory_record.csv` / `npu_module_mem`）、P1 整卡运行时 HBM 峰值、P2 框架启动日志、P3 `safetensors` 权重头与 P4 `config.json` 理论估算，诚实报告未解释残差（Residual） | 显存采集清单、服务日志、`operator_memory.csv`、`memory_record.csv`、模型权重目录 | `mindie-memory-attribution/1` 显存归因报告（含权重、KV Cache、激活值、通信 Buffer 与残差） |
 | **`modeling-inputs`**<br/>`mindie_profiler.modeling_inputs`<br/>`python3 -m mindie_profiler.enrichment_model` | **保留的观测导出与 Roofline 对照接口**：从实测热点提取 Shape、Dtype、Layout、耗时与硬件规格，生成 `ModelingInputsBundle` 并计算单算子理想 Roofline 下界；新版 sim 不原生消费此旧输入包 | C7 剖析摘要、算子热点记录、硬件峰值规格（或 `msmodeling` 提供方） | `mindie-modeling-inputs/1` 观测包与三值对齐记录（理想下界 / 模型预测 / 实测耗时） |
 
-`analyze --structure FILE [--bindings FILE] [--correlation FILE] [--module-trace FILE]`
-在 C7 中附加 `mindie-profile-structure-mapping/1`，区分 `candidate`、`ambiguous`、
-`bound` 与 `unmapped`。Attention、cache、GDN/KDA、MoE、mHC 和融合边界复用 Sim
-结构前端；CSV、原生 `op_summary` 与 `.csv.gz` 共用解析器。同步 module trace
-可通过 DB SHA256 与唯一完整包含关联；没有 occurrence 证据时不猜测具体层。
+### `v0.5.3` 拓扑结构关联、4D 效率报告与全量泛化验证（配套 `mindie-sim 0.8.1`）
 
-相同契约、物理工作量及部署范围的候选通过 `windows[].cohorts` 输出调用数、
-声明实例数、单次 Mean/P50 和整组活动量。Sim 的
-`python -m mindie_sim.cohort_comparison CASE REPORT -o RESULT` 对账同一物理程序。
-调用均值 >50 us 使用 15% 相对误差；<=50 us 使用 15 us 单次绝对误差。
+`mindie-profiler v0.5.3` 与 [`mindie-sim v0.8.1`](https://github.com/mindie-agent/sim) 深度协同，打通了从“原始 Trace 采集”到“模型结构映射、四维效率归因与跨集群零样本泛化验证”的完整链路（详见 [`docs/releases/profiler-0.5.3.md`](./docs/releases/profiler-0.5.3.md) 与 [`examples/structure/README.md`](./examples/structure/README.md)）：
 
-Decode 切分直接使用 `auto_segment_decode_forwards(events, model_config)`，依据完整
-Sim 层计划、张量几何和 head 边界输出 Body 与层耗时，保留内部通信和间隙，单列跨步
-AICPU 控制等待。结构条件推断与真实 Host/module 绑定分别报告。
+- **拓扑驱动的结构映射（`analyze --structure`）**：
+  ```bash
+  mindie-profiler analyze --root <profile_dir> --structure <structure.json> \
+    [--bindings <bindings.json>] [--correlation <correlate.json>] [--module-trace <trace.json>]
+  ```
+  在 C7 报告中附加 `mindie-profile-structure-mapping/1`，将设备算子归因到 Attention、MLA、GDN/KDA、MoE、mHC 及融合子图边界（显式区分 `bound`、`candidate`、`ambiguous` 与 `unmapped`），并在 `windows[].cohorts` 中输出同构算子群的调用次数、单次 Mean/P50 与总体活动量（原生支持 CSV、`op_summary.csv` 与 `.csv.gz` 流式读取）。
+- **自动前向与逐层切分（`auto_segment_decode_forwards`）**：基于完整层计划、张量几何与 Head 边界自动识别 Decode / Prefill Body 与逐层耗时，保留层内通信与真实间隙，并将跨步 AICPU 控制尾开销独立归档。
+- **整网 4D 效率、反事实 `0.80x MBU` Roofline 与 `30 ms` SLA 硬件缩放报告**：
+  ```bash
+  python examples/structure/efficiency_report.py \
+    --output examples/structure/results/efficiency_and_sla.json \
+    --markdown examples/structure/results/efficiency_and_sla.md
+  ```
+  一键生成整网与子图四维效率（`Cube_MFU`、`Vec_MFU`、`MBU`、`Link_Util`、`CV_Overlap`）、`0.80x MBU` 反事实优化收益及 `30 ms` Decode SLA 下各硬件缩放场景（`2x HBM`、`2x Compute` 等）的最大吞吐报告。
+- **856 Cases 全量收敛与 DSH 未注册场景泛化验证**：
+  ```bash
+  # 标准验证管线（支持 --phase decode|prefill 及 --scope operators|engine|generalization）
+  python examples/structure/pipeline.py --phase decode \
+    --output examples/structure/results/decode.json \
+    --archive-root /path/to/external-evidence
 
-全部验证只使用[标准管线](examples/structure/README.md)及唯一
-[`cases.json`](examples/structure/cases.json)：
-
-```bash
-python examples/structure/pipeline.py --phase decode \
-  --output examples/structure/results/decode.json \
-  --archive-root /path/to/external-evidence
-```
-
-同一入口支持 `--phase prefill`、`--scope operators` 与 `--scope engine`。
-[当前结果](examples/structure/results/)记录统一 Sim 包身份和原始证据 SHA256；
-模型内 Body、Prefill TTFT、设备周期和客户端 token TPOT 保留各自边界。
-观测服务参数明确区分训练源、同源校准及留出验证，旧历史预测不参与当前评分。
-
-已有 profiling 可用 `mindie-profiler kernels --manifest ... --output-dir ...`
-流式整理 kernel/shape 变体并导出观测成本；不启动 NPU。
-参见[观测查询](examples/kernel-inventory/README.md)。
-
-开发期也可用 `mindie-profiler camodel --trace ... --plan ... --output ...`
-把 CAModel Chrome trace 导出为旧版 `mindie-sim pipeline --durations` 的阶段成本。
-该入口离线运行，保留仿真来源，不写入真机校准库；窗口、时钟单位和阶段选择
-见 [CAModel 离线导出示例](examples/camodel/README.md)。这是保留的旧 pipeline 接口，
-不表示新版 sim 可直接导入；新版结构与实测关系使用前述显式关联路径。
+  # 未注册 DSH 采集目录自动发现、结构提取与泛化评估（峰值内存 < 50 MiB）
+  python examples/structure/dsh_generalization_eval.py
+  ```
+  在 **280 个已注册 Decode 场景（100% 误差 `<= 15%`）**、**15 个已注册 Prefill 场景（100% 误差 `<= 15%`）** 以及 **561 个未注册 DSH 留出场景（546/561 即 `97.33%` 误差 `<= 15%`）** 共 **856 个可比场景中达到 `98.25%`（841/856）整体达标率**。
+- **补充工具接口**：
+  - `mindie-profiler kernels --manifest ... --output-dir ...`：流式整理已有 Profiling 中的去重 Kernel / Shape 变体清单（参见 [`examples/kernel-inventory/README.md`](./examples/kernel-inventory/README.md)）。
+  - `mindie-profiler camodel --trace ... --plan ... --output ...`：离线解析开发期 CAModel Chrome Trace 的微阶段耗时（保留 `simulated` 标记，参见 [`examples/camodel/README.md`](./examples/camodel/README.md)）。
 
 ### 为什么 `mindie-profiler` 的数据不会骗人？
 
@@ -307,6 +304,7 @@ profiler/
 
 | 文档主题 | 链接 |
 | --- | --- |
+| **`v0.5.3` 版本发布说明（拓扑结构关联、4D 效率与 856 Cases 泛化验证）** | [docs/releases/profiler-0.5.3.md](./docs/releases/profiler-0.5.3.md) |
 | 本仓库 Agent 维护规范与模块边界 | [AGENTS.md](./AGENTS.md) |
 | 昇腾 SQLite 表结构映射定义 | [mindie_profiler/knowledge/db_source_mapping.json](./mindie_profiler/knowledge/db_source_mapping.json) |
 | 发布基准测试定义 | [benchmarks/release.json](./benchmarks/release.json) |

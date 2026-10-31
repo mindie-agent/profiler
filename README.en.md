@@ -9,6 +9,7 @@
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/badge/Release-v0.5.3-blue" alt="Release v0.5.3">
   <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/Interface-CLI%20%7C%20Python%20API%20%7C%20C7%20JSON-00ADD8" alt="CLI | Python API | C7 JSON">
   <img src="https://img.shields.io/badge/Target-Ascend%20NPU%20(A2%20%2F%20A3%20%2F%20A5)-FF6B00" alt="Ascend NPU">
@@ -36,7 +37,7 @@ When tuning LLM inference (`vLLM-Ascend`, `MindIE` multi-node `DP × TP × EP`) 
 - **In-place read-only analysis of all Ascend profiler artifacts**: Directly inspects `ascend_pytorch_profiler_*.db` (`output.db`), `step_trace_time.csv`, `kernel_details.csv`, `op_summary.csv`, `operator_memory.csv`, `memory_record.csv`, and streaming `trace_view.json` without uploading gigabytes of raw trace files into the LLM context window.
 - **Nanosecond Interval Union Accounting**: Computes exact integer-nanosecond interval unions and differences to separate window span (`observed_event_span_ms`), true union device busy time (`device_busy_union_ms`), summed stream activity (`device_activity_sum_ms`), and uncovered gaps (`device_uncovered_ms`) — preventing multi-stream overlap from exceeding 100% of wall time and excluding boundary-clipped kernels (`clipped_event_count`) from single-call P50/P90/Max distributions.
 - **Shape-Preserving Hotspots & Dominant Bottleneck Classification**: Aggregates hotspots by `(rank_id, semantic_block, kernel_name, input_shapes, input_dtypes, input_formats)` and classifies dominant bottlenecks into `compute_bound`, `memory_bound`, `communication_bound`, `host_launch_bound`, `stream_sync_bound`, and `idle_gap`.
-- **Shared `mindie-sim` Structure and Measured Attribution**: The development `analyze --structure` path consumes sim's duration-free model graph and fused subgraph boundaries, retains tensor candidates, and associates layers, blocks and operators using explicit events, Host connections or synchronized module evidence. Common structural classification remains available when repeated layers are unresolved; composite time is not split into separately measured member timings. Sim reuses profiler's raw observations for independent comparison. See the [structure example](examples/structure/README.md).
+- **Shared `mindie-sim` Structure Mapping & Automatic Forward Segmentation (`mindie-model-structure/1`)**: Consumes `mindie-sim`'s model graph and fused subgraph boundaries via `analyze --structure` to map measured device events onto model layers, structural blocks (Attention / MLA / GDN / KDA / MoE / mHC), and isomorphic operator cohorts (`cohorts`), while automatically segmenting Decode and Prefill forward passes (`auto_segment_decode_forwards`). See the [Structure Attribution & Validation Guide](examples/structure/README.md).
 
 ```mermaid
 flowchart LR
@@ -69,15 +70,17 @@ Please install and configure https://github.com/mindie-agent/profiler for me
 
 If you are an AI Agent receiving the prompt above, follow these steps to install and verify `mindie-profiler` on the local machine or target remote Ascend container:
 
-1. **Check Prerequisites**: Confirm Python `>= 3.11` is available. Basic event accounting uses the standard library; the distribution also installs the paired Sim 0.8.0 package. Basic CLI commands do not initialize Sim, model weights or a device context.
+1. **Check Prerequisites**: Confirm Python `>= 3.11` is available. Basic event accounting uses only the Python standard library, and the package installs paired with `mindie-sim >= 0.8.1, < 0.9.0`; basic CLI commands never initialize model weights or an NPU device context.
 2. **Install the CLI and Package**:
-   - Install globally as a CLI tool via `uv` (recommended):
+   - Install the pinned release wheels (recommended for production):
+     ```bash
+     uv pip install \
+       https://github.com/mindie-agent/sim/releases/download/v0.8.1/mindie_sim-0.8.1-py3-none-any.whl \
+       https://github.com/mindie-agent/profiler/releases/download/v0.5.3/mindie_profiler-0.5.3-py3-none-any.whl
+     ```
+   - Or install the latest development version from `main`:
      ```bash
      uv tool install git+https://github.com/mindie-agent/profiler@main
-     ```
-   - Or install into the active/remote virtual environment:
-     ```bash
-     uv pip install git+https://github.com/mindie-agent/profiler@main
      ```
 3. **Verify the Installation**:
    ```bash
@@ -129,36 +132,38 @@ pytest -m "not live_npu"
 | **`memory`**<br/>`mindie_profiler.memory_profile`<br/>`python3 -m mindie_profiler.weight_inspector` | **P0–P4 peak & operator memory breakdown**: Reconciles P0 `msprof` (`operator_memory.csv` / `memory_record.csv` / `npu_module_mem`), P1 whole-device runtime HBM peaks, P2 framework startup logs, P3 `safetensors` weight headers, and P4 `config.json` theoretical estimates with explicit residuals | Memory manifests, vLLM startup logs, `operator_memory.csv`, `memory_record.csv`, model weight dir | `mindie-memory-attribution/1` JSON report (weights, KV cache, activations, communication buffers, and uninvented residual) |
 | **`modeling-inputs`**<br/>`mindie_profiler.modeling_inputs`<br/>`python3 -m mindie_profiler.enrichment_model` | **Retained observation export and Roofline comparison**: Extracts shapes, dtypes, layouts, durations and hardware peaks into `ModelingInputsBundle` and computes single-kernel ideal lower bounds; rewritten sim does not natively consume this legacy bundle | C7 summary JSON, hotspot records, and raw physical hardware peaks | `mindie-modeling-inputs/1` observation bundle and 3-value alignment (`ideal_hardware_lower_bound_ms`, `model_predicted_ms`, `measured_device_ms`) |
 
-`analyze --structure FILE [--bindings FILE] [--correlation FILE] [--module-trace FILE]`
-adds `mindie-profile-structure-mapping/1` to C7. It separates candidates, ambiguity,
-proven bindings and missing matches. Attention, cache, GDN/KDA, MoE, mHC and fusion
-boundaries reuse the Sim frontend. CSV, native `op_summary` and `.csv.gz` share one
-parser; operator names alone never prove a layer occurrence.
+### `v0.5.3` Topology-Guided Structure Attribution, 4D Efficiency Reports & Full-Fleet Generalization (Paired with `mindie-sim 0.8.1`)
 
-Equal contracts, physical work and placement form cohorts with observed calls,
-declared instances and per-call Mean/P50. Sim consumes them with
-`python -m mindie_sim.cohort_comparison CASE REPORT -o RESULT`. Calls above 50 us
-use 15% relative tolerance; smaller calls use 15 us absolute tolerance.
+`mindie-profiler v0.5.3` works seamlessly with [`mindie-sim v0.8.1`](https://github.com/mindie-agent/sim) to bridge raw profiler captures with model structure attribution, 4D hardware efficiency analysis, and zero-shot cross-fleet generalization (see [`docs/releases/profiler-0.5.3.md`](./docs/releases/profiler-0.5.3.md) and [`examples/structure/README.md`](./examples/structure/README.md)):
 
-`auto_segment_decode_forwards(events, model_config)` uses complete layer plans,
-tensor geometry and head boundaries to measure Body and layers. It retains
-internal communication and gaps, and separates crossing AICPU control tails.
-Topology-based inference remains distinct from Host/module occurrence binding.
+- **Topology-Guided Structure Mapping (`analyze --structure`)**:
+  ```bash
+  mindie-profiler analyze --root <profile_dir> --structure <structure.json> \
+    [--bindings <bindings.json>] [--correlation <correlate.json>] [--module-trace <trace.json>]
+  ```
+  Embeds `mindie-profile-structure-mapping/1` into the C7 summary, attributing kernels across Attention, MLA, GDN/KDA, MoE, mHC, and fused subgraph boundaries (`bound`, `candidate`, `ambiguous`, `unmapped`) and grouping isomorphic calls into `windows[].cohorts` with call counts, per-call Mean/P50, and total activity across CSV, `op_summary.csv`, and `.csv.gz` sources.
+- **Automatic Forward & Layer Segmentation (`auto_segment_decode_forwards`)**: Segments Decode and Prefill forward passes directly from complete layer plans, tensor geometry, and head boundaries while preserving internal communication/gaps and isolating cross-step AICPU control tails.
+- **Whole-Network 4D Efficiency, `0.80x MBU` Counterfactual Roofline & `30 ms` SLA Scaling Reports**:
+  ```bash
+  python examples/structure/efficiency_report.py \
+    --output examples/structure/results/efficiency_and_sla.json \
+    --markdown examples/structure/results/efficiency_and_sla.md
+  ```
+  Generates whole-network and subgraph 4D efficiency (`Cube_MFU`, `Vec_MFU`, `MBU`, `Link_Util`, `CV_Overlap`), counterfactual `0.80x MBU` speedup projections, and `30 ms` Decode SLA throughput ceilings across `2x HBM` and `2x Compute` scaling scenarios.
+- **Full-Fleet 856-Case Convergence & Unregistered DSH Generalization**:
+  ```bash
+  # Standard validation pipeline (--phase decode|prefill and --scope operators|engine|generalization)
+  python examples/structure/pipeline.py --phase decode \
+    --output examples/structure/results/decode.json \
+    --archive-root /path/to/external-evidence
 
-The [single validation pipeline](examples/structure/README.md) uses one
-[`cases.json`](examples/structure/cases.json) registry:
-
-```bash
-python examples/structure/pipeline.py --phase decode \
-  --output examples/structure/results/decode.json \
-  --archive-root /path/to/external-evidence
-```
-
-Use `--phase prefill`, `--scope operators` or `--scope engine` for the other
-boundaries. [Current results](examples/structure/results/) record one Sim package
-identity and source SHA256 pins. Device Body, client TTFT, device cycles and client
-token TPOT have separate denominators. Training, in-sample calibration and held-out
-validation remain explicit; historical predictions do not enter current scores.
+  # Automated discovery, structural extraction, and evaluation over unregistered DSH captures (< 50 MiB RSS)
+  python examples/structure/dsh_generalization_eval.py
+  ```
+  Achieves **100% (280/280)** within `<= 15%` error on registered Decode cases (`2.15%` mean error), **100% (15/15)** within `<= 15%` error on registered Prefill cases (`2.21%` mean error), and **97.33% (546/561)** within `<= 15%` error on unregistered DSH heldout captures — **98.25% (841/856) overall accuracy within 15%** with a `< 50 MiB` peak memory footprint.
+- **Additional Export Utilities**:
+  - `mindie-profiler kernels --manifest ... --output-dir ...`: Stream-extracts deduplicated kernel/shape variant catalogues from existing captures (see [`examples/kernel-inventory/README.md`](./examples/kernel-inventory/README.md)).
+  - `mindie-profiler camodel --trace ... --plan ... --output ...`: Offline extractor for CAModel Chrome trace micro-stage durations (tagged as `simulated`; see [`examples/camodel/README.md`](./examples/camodel/README.md)).
 
 ### Key Accounting & Classification Guarantees
 
@@ -303,6 +308,7 @@ profiler/
 
 | Topic | Link |
 | --- | --- |
+| **`v0.5.3` Release Notes (Topology Attribution, 4D Efficiency & 856-Case Generalization)** | [docs/releases/profiler-0.5.3.md](./docs/releases/profiler-0.5.3.md) |
 | Repository Agent Guidelines & Invariants | [AGENTS.md](./AGENTS.md) |
 | Ascend SQLite Table & Column Mapping Dictionary | [mindie_profiler/knowledge/db_source_mapping.json](./mindie_profiler/knowledge/db_source_mapping.json) |
 | Release Benchmark Suite Definition | [benchmarks/release.json](./benchmarks/release.json) |

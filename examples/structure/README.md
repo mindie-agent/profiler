@@ -121,10 +121,21 @@ python examples/structure/pipeline.py \
 
 ## 当前结果
 
-- [Decode](results/decode.md)
-- [Prefill Body 与 TTFT](results/prefill.md)
+- [Decode（280 cases 全量 `<= 15%` 达标）](results/decode.md)
+- [Prefill Body 与 TTFT（15 cases 全量 `<= 15%` 达标）](results/prefill.md)
 - [Engine 与客户端边界](results/engine.md)
 - [物理服务域留出验证](results/generalization.md)
+- [未注册 DSH 全量泛化评估（561 heldout cases，97.33% `<= 15%` 达标）](results/dsh_generalization.md)
+- [整网 4D 效率、0.80x MBU 反事实拟合与 30ms SLA 硬件缩放报告](results/efficiency_and_sla.md)
+
+生成或刷新 4D 效率与 DSH 泛化报告：
+
+```bash
+python examples/structure/efficiency_report.py \
+  --output examples/structure/results/efficiency_and_sla.json \
+  --markdown examples/structure/results/efficiency_and_sla.md
+
+python examples/structure/dsh_generalization_eval.py
+```
 
 JSON 小于 5 MB，逐源完整分层与预测详情可由其 SHA256 证据指针取回。
-同源校准的通过率不等于盲测泛化；执行成功也不等于精度通过。
