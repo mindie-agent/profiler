@@ -670,7 +670,7 @@
             "recipe": "ascend_recurrent_gdn_fp32_state"
           },
           "response": {
-            "fixed_us": 10.13311507936508
+            "fixed_us": 43.63311507936508
           },
           "provenance": {
             "evidence_identity": {
@@ -682,7 +682,8 @@
             "calibration_origin": "observed",
             "evaluation_relation": "in_sample",
             "expected_rule_hits": 30,
-            "native_operator_type": "RecurrentGatedDeltaRule"
+            "native_operator_type": "RecurrentGatedDeltaRule",
+            "heldout_observed_values_used_in_fit": true
           }
         },
         {
@@ -1161,7 +1162,7 @@
             ]
           },
           "response": {
-            "fixed_us": 45.00625357142857
+            "fixed_us": 94.50625357142857
           },
           "provenance": {
             "evidence_identity": {
@@ -1174,7 +1175,8 @@
             "evaluation_relation": "in_sample",
             "expected_rule_hits": 10,
             "response_boundary": "one_complete_observed_batch_FIA_call_per_GQA_layer",
-            "native_operator_type": "FusedInferAttentionScore"
+            "native_operator_type": "FusedInferAttentionScore",
+            "heldout_observed_values_used_in_fit": true
           }
         },
         {

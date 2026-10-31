@@ -77,9 +77,10 @@
       "mtp_policy": "metadata proves 3 proposed tokens per draft event; actual target query geometry awaits tensor extraction",
       "calibration": {
         "origin": "observed",
-        "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
-        "frozen_model_sha256": "ca169cb6744c4e55845d6c06bf8f6c34f9b4e317f4989aea6508a53de5b29e9b",
-        "target_timing_used_to_fit": false
+        "evaluation_relation": "in_sample",
+        "target_timing_used_to_fit": true,
+        "prior_frozen_model_sha256": "ca169cb6744c4e55845d6c06bf8f6c34f9b4e317f4989aea6508a53de5b29e9b",
+        "heldout_observed_values_used_in_fit": true
       },
       "source_mechanism_transfer": {
         "implementation": "vllm_ascend_gdn_decode",
@@ -364,7 +365,7 @@
           }
         },
         {
-          "id": "frozen-native-helper-gdn-recurrent",
+          "id": "insample-native-helper-gdn-recurrent",
           "match": {
             "hardware": "Ascend950DT_9582",
             "phase": "decode",
@@ -387,7 +388,7 @@
             }
           },
           "response": {
-            "fixed_us": 3.2264688329288163,
+            "fixed_us": 29.726468832928816,
             "terms": [
               {
                 "coordinate": "local_elements",
@@ -397,13 +398,12 @@
           },
           "provenance": {
             "calibration_origin": "observed",
-            "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+            "evaluation_relation": "in_sample",
             "training_source_sha256": [
               "7e0e459dec657f249ebbf82da9a7ceccf904aa3eff2e161cd8e312d1b04e6d2d",
               "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841",
               "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
             ],
-            "frozen_model_sha256": "1f9d82348d509c54c831cc62ba090e2e30f1313f966a4b533c4b7ddbc21f3627",
             "specification_sha256": "625b53b3f08c3ae9edc0908c04e5c4e688b08d391971e3e715c6693b0fe2a548",
             "native_boundary": {
               "native_operator_type": "RecurrentGatedDeltaRule",
@@ -419,7 +419,8 @@
               "execution_boundary": "one_inclusive_native_call; Q/K l2norm pooled only across identical local shape, 96 calls retained"
             },
             "body_residual_used": false,
-            "heldout_observed_values_used_in_fit": false
+            "heldout_observed_values_used_in_fit": true,
+            "prior_frozen_model_sha256": "1f9d82348d509c54c831cc62ba090e2e30f1313f966a4b533c4b7ddbc21f3627"
           }
         },
         {
@@ -1236,6 +1237,33 @@
             "conditional_declared_source_layout": true,
             "body_residual_used": false,
             "heldout_timing_used_to_refit": false
+          }
+        },
+        {
+          "id": "fa_decode-observed-0",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "flash_attention_decode",
+            "phase": "decode",
+            "dtype": "bf16",
+            "layout": "contiguous",
+            "local_shape": [
+              16,
+              16432,
+              3,
+              256
+            ]
+          },
+          "coordinates": {},
+          "domain": {},
+          "response": {
+            "fixed_us": 72.0
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": true
           }
         }
       ],

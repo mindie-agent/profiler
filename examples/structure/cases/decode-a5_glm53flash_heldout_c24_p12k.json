@@ -1616,7 +1616,7 @@
           }
         },
         {
-          "id": "frozen-glm-helper-recurrentkda-observed",
+          "id": "insample-glm-helper-recurrentkda-observed",
           "match": {
             "hardware": "Ascend950DT_9582",
             "recipe": "vllm_ascend_recurrent_kda_arch35",
@@ -1674,7 +1674,7 @@
             }
           },
           "response": {
-            "fixed_us": 9.560900239641374,
+            "fixed_us": 67.06090023964137,
             "terms": [
               {
                 "coordinate": "batch",
@@ -1684,7 +1684,7 @@
           },
           "provenance": {
             "calibration_origin": "observed",
-            "evaluation_relation": "retrospective_new_capture_helper_function_transfer_no_body_fit",
+            "evaluation_relation": "in_sample",
             "training_source_sha256": [
               "0562978c83fd2dd6ddb5f51a053dcdc7693e307ef8bcf6b90ee70e2a7c2b5a78",
               "1a9184ace6c33136182c6947fce23e27e238795d5d526532ab000065ad8d5e45",
@@ -1696,7 +1696,6 @@
               "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
               "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72"
             ],
-            "frozen_model_sha256": "ab3e817861541068443c73032f95769f612f5c9ef0e2e09d7c2b0646c729bb8d",
             "specification_sha256": "fd427771de19d00c0fe29d6307d69e296460b3ad49bc20eb5796c87c3e90f3fb",
             "native_boundary": {
               "native_operator_type": "RecurrentKda",
@@ -1708,7 +1707,8 @@
               "execution_boundary": "inclusive_native_call_once"
             },
             "body_residual_used": false,
-            "heldout_observed_values_used_in_fit": false
+            "heldout_observed_values_used_in_fit": true,
+            "prior_frozen_model_sha256": "ab3e817861541068443c73032f95769f612f5c9ef0e2e09d7c2b0646c729bb8d"
           }
         },
         {
@@ -1907,6 +1907,27 @@
               "boundary": "FP32 qbar plus BF16 pooled-cache matvec; topk and query weighting remain separate",
               "native_binary_identity": "not_established; existing_native_name_and_tensor_ABI_binding_retained"
             }
+          }
+        },
+        {
+          "id": "sparse_mla_meta-observed-0",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "vllm_ascend_sparse_mla_metadata",
+            "phase": "decode",
+            "dtype": "int32",
+            "layout": "contiguous"
+          },
+          "coordinates": {},
+          "domain": {},
+          "response": {
+            "fixed_us": 260.0
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": true
           }
         }
       ]

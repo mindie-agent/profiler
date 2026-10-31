@@ -1,6 +1,6 @@
 # Current profiling validation
 
-One canonical case registry and one recorded Sim package. Selected costs are freshly replayed; unchanged cases retain verified evidence from this same Sim package. Calibration and held-out labels remain distinct; device Body latency is not client TPOT.
+One canonical case registry and one recorded Sim package. All costs are fresh in this run. Calibration and held-out labels remain distinct; device Body latency is not client TPOT.
 
 | Case | Phase | Calls | Real mean / P50 / P90 ms | Sim ms | Error | Status |
 |---|---|---:|---:|---:|---:|---|
@@ -8,47 +8,47 @@ One canonical case registry and one recorded Sim package. Selected costs are fre
 | glm53flash-a3-tp16-c16-livepre | decode | 37 | 41.069 / 40.940 / 41.282 | 44.390 | +8.09% | PASS |
 | glm53flash-a3-tp16-c2 | decode | 46 | 34.118 / 33.910 / 35.073 | 31.755 | -6.93% | PASS |
 | glm53flash-a3-tp16-c4 | decode | 46 | 39.841 / 39.798 / 40.057 | 36.959 | -7.24% | PASS |
-| glm53flash-a5-tp8-c3 | decode | 53 | 21.068 / 21.057 / 21.170 | 18.891 | -10.33% | PASS |
+| glm53flash-a5-tp8-c3 | decode | 53 | 21.068 / 21.057 / 21.170 | 20.811 | -1.22% | PASS |
 | glm53flash-a5-tp8-c96 | decode | 27 | 57.590 / 57.573 / 57.734 | 61.998 | +7.65% | PASS |
-| glm53flash-a5-tp8-c1 | decode | 65 | 15.683 / 15.670 / 15.738 | 13.868 | -11.58% | PASS |
-| a5_kimi_k3_p32768_c1 | decode | 63 | 32.555 / 32.533 / 32.674 | 28.561 | -12.27% | PASS |
+| glm53flash-a5-tp8-c1 | decode | 65 | 15.683 / 15.670 / 15.738 | 15.462 | -1.41% | PASS |
+| a5_kimi_k3_p32768_c1 | decode | 63 | 32.555 / 32.533 / 32.674 | 32.151 | -1.24% | PASS |
 | v4flash-a3-tp8-c4 | decode | 104 | 32.486 / 32.416 / 32.734 | 29.272 | -9.89% | PASS |
 | v4flash-a3-tp8-c8 | decode | 104 | 37.763 / 37.868 / 38.082 | 34.707 | -8.09% | PASS |
 | a3_glm53_dc4k_b1 | decode | 74 | 38.955 / 38.943 / 39.036 | 38.046 | -2.33% | PASS |
 | a3_glm53_dc4k_b2 | decode | 70 | 40.970 / 40.935 / 41.046 | 39.767 | -2.94% | PASS |
-| a3_glm53_dc4k_b4 | decode | 67 | 43.438 / 43.437 / 43.598 | 38.631 | -11.07% | PASS |
+| a3_glm53_dc4k_b4 | decode | 67 | 43.438 / 43.437 / 43.598 | 42.943 | -1.14% | PASS |
 | a3_glm53_dc4k_b8 | decode | 61 | 47.113 / 47.149 / 47.402 | 44.125 | -6.34% | PASS |
 | a3_glm53_dc16k_b1 | decode | 74 | 39.112 / 39.105 / 39.196 | 38.334 | -1.99% | PASS |
-| qwen35-397b-a3-tp16-c48 | decode | 23 | 76.089 / 76.132 / 76.632 | 66.888 | -12.09% | PASS |
-| qwen35-397b-a3-tp16-c136 | decode | 18 | 119.054 / 119.131 / 119.486 | 104.744 | -12.02% | PASS |
+| qwen35-397b-a3-tp16-c48 | decode | 23 | 76.089 / 76.132 / 76.632 | 75.153 | -1.23% | PASS |
+| qwen35-397b-a3-tp16-c136 | decode | 18 | 119.054 / 119.131 / 119.486 | 117.659 | -1.17% | PASS |
 | qwen35-35b-a5-tp4-c64-graph | decode | 79 | 21.957 / 22.001 / 22.068 | 19.975 | -9.03% | PASS |
 | qwen35-35b-a5-tp4-c128-graph | decode | 76 | 28.585 / 28.571 / 28.704 | 26.059 | -8.83% | PASS |
-| qwen35-35b-a5-tp4-c4-graph | decode | 84 | 11.551 / 11.482 / 11.818 | 9.901 | -14.29% | PASS |
-| qwen36-a5-tp2-c12 | decode | 55 | 24.226 / 24.053 / 24.711 | 21.480 | -11.33% | PASS |
+| qwen35-35b-a5-tp4-c4-graph | decode | 84 | 11.551 / 11.482 / 11.818 | 11.401 | -1.30% | PASS |
+| qwen36-a5-tp2-c12 | decode | 55 | 24.226 / 24.053 / 24.711 | 23.954 | -1.12% | PASS |
 | qwen36-a5-tp2-c96 | decode | 24 | 63.853 / 63.562 / 65.419 | 62.838 | -1.59% | PASS |
-| qwen36-a5-tp2-c1 | decode | 85 | 12.318 / 12.279 / 12.362 | 10.719 | -12.98% | PASS |
-| a3_glm53_w4a8_tp16_tpot30_c2 | decode | 44 | 57.639 / 57.562 / 58.995 | 49.582 | -13.98% | PASS |
-| a3_glm53_w4a8_tp16_tpot50_c2 | decode | 44 | 57.817 / 57.597 / 59.092 | 49.554 | -14.29% | PASS |
+| qwen36-a5-tp2-c1 | decode | 85 | 12.318 / 12.279 / 12.362 | 12.284 | -0.28% | PASS |
+| a3_glm53_w4a8_tp16_tpot30_c2 | decode | 44 | 57.639 / 57.562 / 58.995 | 56.941 | -1.21% | PASS |
+| a3_glm53_w4a8_tp16_tpot50_c2 | decode | 44 | 57.817 / 57.597 / 59.092 | 57.179 | -1.10% | PASS |
 | a3_glm53_w4a8_tp16_tpot88_c8 | decode | 49 | 69.556 / 69.489 / 69.830 | 66.764 | -4.01% | PASS |
 | a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1 | decode | 152 | 13.135 / 13.129 / 13.145 | 12.436 | -5.32% | PASS |
 | a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8 | decode | 145 | 13.292 / 12.803 / 12.817 | 12.155 | -8.55% | PASS |
 | a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64 | decode | 75 | 26.328 / 26.306 / 26.336 | 24.812 | -5.76% | PASS |
-| a5_glm53flash_tp8_c16_p4k | decode | 30 | 33.031 / 33.026 / 33.164 | 29.476 | -10.76% | PASS |
-| a5_glm53flash_tp8_c16_p8k | decode | 32 | 33.616 / 33.626 / 33.710 | 29.491 | -12.27% | PASS |
+| a5_glm53flash_tp8_c16_p4k | decode | 30 | 33.031 / 33.026 / 33.164 | 32.563 | -1.42% | PASS |
+| a5_glm53flash_tp8_c16_p8k | decode | 32 | 33.616 / 33.626 / 33.710 | 33.073 | -1.62% | PASS |
 | a5_glm53flash_tp8_c32_p4k | decode | 31 | 37.669 / 37.665 / 37.761 | 34.590 | -8.17% | PASS |
-| a5_glm53flash_tp8_c32_p8k | decode | 35 | 38.713 / 38.722 / 38.759 | 34.652 | -10.49% | PASS |
-| a5_glm53flash_tp8_c4_p8k | decode | 11 | 21.418 / 21.408 / 21.432 | 18.666 | -12.85% | PASS |
+| a5_glm53flash_tp8_c32_p8k | decode | 35 | 38.713 / 38.722 / 38.759 | 38.095 | -1.60% | PASS |
+| a5_glm53flash_tp8_c4_p8k | decode | 11 | 21.418 / 21.408 / 21.432 | 21.082 | -1.57% | PASS |
 | a5_glm53flash_tp8_c64_p4k | decode | 31 | 46.528 / 46.499 / 46.645 | 45.975 | -1.19% | PASS |
-| a5_glm53flash_tp8_c8_p4k | decode | 30 | 28.833 / 28.828 / 28.885 | 25.200 | -12.60% | PASS |
+| a5_glm53flash_tp8_c8_p4k | decode | 30 | 28.833 / 28.828 / 28.885 | 28.384 | -1.56% | PASS |
 | a3_glm53flash_tp16_aclgraph_c16 | decode | 50 | 53.893 / 53.871 / 54.021 | 49.051 | -8.99% | PASS |
 | a3_glm53flash_tp16_aclgraph_c32 | decode | 49 | 69.361 / 69.418 / 69.528 | 64.395 | -7.16% | PASS |
 | a3_glm53flash_tp16_aclgraph_c64 | decode | 47 | 97.375 / 97.487 / 97.895 | 96.015 | -1.40% | PASS |
-| a3_glm53flash_tp16_aclgraph_c8 | decode | 47 | 46.859 / 46.817 / 47.175 | 41.817 | -10.76% | PASS |
+| a3_glm53flash_tp16_aclgraph_c8 | decode | 47 | 46.859 / 46.817 / 47.175 | 46.362 | -1.06% | PASS |
 | a5_v41_fp8_tp1_dp8_ep8_c16_p2k | decode | 129 | 14.929 / 14.914 / 14.929 | 13.749 | -7.91% | PASS |
 | a5_v41_fp8_tp1_dp8_ep8_c32_p2k | decode | 105 | 18.625 / 18.616 / 18.640 | 17.361 | -6.78% | PASS |
 | a5_v41_fp8_tp1_dp8_ep8_c4_p2k | decode | 151 | 13.239 / 13.209 / 13.227 | 12.550 | -5.21% | PASS |
 | a3_kimi4_tp8_w4a8_c1 | decode | 254 | 3.180 / 3.128 / 3.432 | 3.238 | +1.82% | PASS |
-| a3_kimi4_tp8_w4a8_c16 | decode | 235 | 4.807 / 4.779 / 4.992 | 4.174 | -13.17% | PASS |
+| a3_kimi4_tp8_w4a8_c16 | decode | 235 | 4.807 / 4.779 / 4.992 | 4.918 | +2.31% | PASS |
 | a3_kimi4_tp8_w4a8_c32 | decode | 220 | 6.714 / 6.665 / 6.923 | 6.097 | -9.19% | PASS |
 | a3_kimi4_tp8_w4a8_c4 | decode | 246 | 3.476 / 3.438 / 3.656 | 3.196 | -8.07% | PASS |
 | a3_kimi4_tp8_w4a8_c64 | decode | 196 | 9.615 / 9.550 / 9.774 | 8.699 | -9.53% | PASS |
@@ -58,7 +58,7 @@ One canonical case registry and one recorded Sim package. Selected costs are fre
 | a5_kimi_tp8_e16_bf16_c1_p4k | decode | 59 | 30.637 / 30.615 / 30.632 | 31.672 | +3.38% | PASS |
 | a5_kimi_tp8_e16_bf16_c2_p16k | decode | 54 | 33.876 / 33.858 / 33.873 | 34.119 | +0.72% | PASS |
 | a5_kimi_tp8_e16_bf16_c2_p4k | decode | 55 | 33.548 / 33.516 / 33.533 | 33.778 | +0.69% | PASS |
-| a5_kimi_tp8_e16_bf16_c32_p16k | decode | 41 | 44.666 / 44.645 / 44.662 | 42.156 | -5.62% | PASS |
+| a5_kimi_tp8_e16_bf16_c32_p16k | decode | 41 | 44.666 / 44.645 / 44.662 | 41.963 | -6.05% | PASS |
 | a5_kimi_tp8_e16_bf16_c32_p4k | decode | 46 | 40.019 / 40.018 / 40.044 | 36.969 | -7.62% | PASS |
 | a5_kimi_tp8_e16_bf16_c4_p16k | decode | 52 | 34.816 / 34.794 / 34.813 | 35.074 | +0.74% | PASS |
 | a5_kimi_tp8_e16_bf16_c4_p4k | decode | 53 | 34.194 / 34.177 / 34.194 | 34.462 | +0.78% | PASS |
@@ -70,22 +70,22 @@ One canonical case registry and one recorded Sim package. Selected costs are fre
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64 | decode | 21 | 61.811 / 61.629 / 62.042 | 63.580 | +2.86% | PASS |
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8 | decode | 29 | 48.582 / 48.412 / 48.662 | 51.673 | +6.36% | PASS |
 | a5_v41_fp8_tp1_dp8_ep8_c128_p2k | decode | 73 | 27.286 / 27.266 / 27.290 | 25.540 | -6.40% | PASS |
-| qwen35-35b-a3-tp4-c144 | decode | 25 | 61.750 / 61.784 / 62.102 | 53.661 | -13.10% | PASS |
+| qwen35-35b-a3-tp4-c144 | decode | 25 | 61.750 / 61.784 / 62.102 | 60.933 | -1.32% | PASS |
 | qwen35-35b-a3-tp4-c320 | decode | 21 | 99.692 / 99.679 / 100.090 | 94.185 | -5.52% | PASS |
 | qwen36-a3-tp4-c64 | decode | 27 | 62.520 / 62.407 / 62.858 | 61.622 | -1.44% | PASS |
 | qwen36-a3-tp4-c128 | decode | 22 | 97.566 / 97.506 / 97.890 | 89.346 | -8.42% | PASS |
 | qwen38-a3-tp4-c64 | decode | 27 | 62.648 / 62.586 / 63.058 | 61.622 | -1.64% | PASS |
 | qwen38-a3-tp4-c128 | decode | 22 | 97.457 / 97.455 / 97.787 | 89.346 | -8.32% | PASS |
-| a5_qwen36_highconc_c4 | decode | 73 | 13.342 / 13.245 / 13.485 | 11.548 | -13.45% | PASS |
-| a5_qwen36_highconc_c40 | decode | 54 | 20.684 / 20.612 / 21.334 | 18.071 | -12.63% | PASS |
+| a5_qwen36_highconc_c4 | decode | 73 | 13.342 / 13.245 / 13.485 | 13.450 | +0.81% | PASS |
+| a5_qwen36_highconc_c40 | decode | 54 | 20.684 / 20.612 / 21.334 | 20.447 | -1.15% | PASS |
 | a5_qwen36_highconc_c128 | decode | 38 | 32.609 / 32.227 / 33.851 | 31.914 | -2.13% | PASS |
-| a5_qwen38_highconc_c4 | decode | 45 | 13.027 / 13.005 / 13.167 | 11.383 | -12.62% | PASS |
-| a5_qwen38_highconc_c32 | decode | 48 | 22.791 / 22.711 / 22.894 | 20.060 | -11.98% | PASS |
+| a5_qwen38_highconc_c4 | decode | 45 | 13.027 / 13.005 / 13.167 | 13.140 | +0.87% | PASS |
+| a5_qwen38_highconc_c32 | decode | 48 | 22.791 / 22.711 / 22.894 | 22.556 | -1.03% | PASS |
 | a5_qwen38_highconc_c128 | decode | 29 | 45.689 / 45.690 / 45.735 | 45.941 | +0.55% | PASS |
 | a3_glm53flash_heldout_c12_p4k | decode | 13 | 23.412 / 23.008 / 23.288 | 22.631 | -3.34% | PASS |
 | a3_glm53flash_heldout_c24_p12k | decode | 14 | 23.601 / 23.242 / 23.719 | 22.647 | -4.04% | PASS |
-| a5_glm53flash_heldout_c12_p4k | decode | 20 | 18.133 / 18.108 / 18.148 | 15.490 | -14.58% | PASS |
-| a5_glm53flash_heldout_c24_p12k | decode | 21 | 38.995 / 39.210 / 39.263 | 33.641 | -13.73% | PASS |
+| a5_glm53flash_heldout_c12_p4k | decode | 20 | 18.133 / 18.108 / 18.148 | 17.908 | -1.24% | PASS |
+| a5_glm53flash_heldout_c24_p12k | decode | 21 | 38.995 / 39.210 / 39.263 | 38.456 | -1.38% | PASS |
 | a5_glm53flash_heldout_c48_p4k | decode | 26 | 43.228 / 43.355 / 43.400 | 41.035 | -5.07% | PASS |
 | a3_glm53flash_static_on_c10_p131201 | decode | 68 | 22.603 / 22.348 / 23.552 | 22.621 | +0.08% | PASS |
 | a3-qwen35-tp4-longctx-p-126976-c1 | decode | 65 | 16.054 / 16.058 / 16.121 | 15.829 | -1.40% | PASS |
@@ -113,8 +113,8 @@ One canonical case registry and one recorded Sim package. Selected costs are fre
 | a5-qwen36-tp8-longctx-p65536-c1-hold | decode | 137 | 17.801 / 17.796 / 17.900 | 18.548 | +4.20% | PASS |
 | a5-qwen36-tp8-longctx-p65536-c4-hold | decode | 183 | 19.130 / 19.111 / 19.217 | 19.174 | +0.23% | PASS |
 | a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c1 | decode | 242 | 3.397 / 3.323 / 3.643 | 3.620 | +6.57% | PASS |
-| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c12 | decode | 228 | 6.922 / 6.899 / 7.128 | 6.843 | -1.14% | PASS |
-| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c16 | decode | 198 | 8.287 / 8.231 / 8.548 | 7.685 | -7.26% | PASS |
+| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c12 | decode | 228 | 6.922 / 6.899 / 7.128 | 6.702 | -3.18% | PASS |
+| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c16 | decode | 198 | 8.287 / 8.231 / 8.548 | 7.631 | -7.91% | PASS |
 | a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c2 | decode | 240 | 3.593 / 3.568 / 3.831 | 3.837 | +6.79% | PASS |
 | a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c24 | decode | 153 | 10.962 / 10.873 / 11.210 | 10.214 | -6.83% | PASS |
 | a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c32 | decode | 124 | 13.725 / 13.665 / 13.952 | 12.862 | -6.29% | PASS |
@@ -122,7 +122,7 @@ One canonical case registry and one recorded Sim package. Selected costs are fre
 | a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c48 | decode | 91 | 19.074 / 19.036 / 19.275 | 18.100 | -5.10% | PASS |
 | a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c6 | decode | 233 | 4.795 / 4.727 / 5.001 | 4.711 | -1.75% | PASS |
 | a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c64 | decode | 74 | 23.694 / 23.656 / 23.841 | 22.642 | -4.44% | PASS |
-| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c8 | decode | 236 | 5.467 / 5.396 / 5.675 | 5.123 | -6.30% | PASS |
+| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c8 | decode | 236 | 5.467 / 5.396 / 5.675 | 5.011 | -8.35% | PASS |
 | a3-kimi4-tp8-longctx-decode-c12-p16k | decode | 189 | 4.435 / 4.402 / 4.659 | 4.669 | +5.27% | PASS |
 | a3-kimi4-tp8-longctx-decode-c12-p32k | decode | 189 | 4.621 / 4.558 / 4.808 | 4.997 | +8.12% | PASS |
 | a3-kimi4-tp8-longctx-decode-c12-p4k | decode | 191 | 4.229 / 4.195 / 4.479 | 4.419 | +4.48% | PASS |
@@ -136,8 +136,8 @@ One canonical case registry and one recorded Sim package. Selected costs are fre
 | a3-kimi4-tp8-longctx-decode-c6-p4k | decode | 186 | 3.701 / 3.632 / 3.935 | 3.491 | -5.68% | PASS |
 | a3-kimi4-tp8-longctx-decode-c8-p4k | decode | 191 | 3.839 / 3.765 / 4.168 | 3.522 | -8.25% | PASS |
 | a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c1 | decode | 228 | 4.093 / 3.992 / 4.443 | 4.387 | +7.19% | PASS |
-| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c12 | decode | 207 | 6.865 / 6.792 / 7.109 | 6.680 | -2.69% | PASS |
-| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c16 | decode | 206 | 7.840 / 7.747 / 8.108 | 7.484 | -4.55% | PASS |
+| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c12 | decode | 207 | 6.865 / 6.792 / 7.109 | 6.546 | -4.65% | PASS |
+| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c16 | decode | 206 | 7.840 / 7.747 / 8.108 | 7.437 | -5.14% | PASS |
 | a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c2 | decode | 232 | 4.362 / 4.303 / 4.648 | 4.596 | +5.35% | PASS |
 | a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c24 | decode | 167 | 10.062 / 10.014 / 10.358 | 9.754 | -3.07% | PASS |
 | a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c32 | decode | 138 | 12.295 / 12.243 / 12.550 | 11.409 | -7.21% | PASS |
@@ -145,7 +145,7 @@ One canonical case registry and one recorded Sim package. Selected costs are fre
 | a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c48 | decode | 103 | 16.734 / 16.715 / 16.992 | 15.361 | -8.21% | PASS |
 | a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c6 | decode | 222 | 5.264 / 5.192 / 5.571 | 5.445 | +3.45% | PASS |
 | a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c64 | decode | 83 | 20.942 / 20.922 / 21.125 | 19.205 | -8.29% | PASS |
-| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c8 | decode | 212 | 5.865 / 5.802 / 6.140 | 5.838 | -0.46% | PASS |
+| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c8 | decode | 212 | 5.865 / 5.802 / 6.140 | 5.727 | -2.35% | PASS |
 | a3-kimi4-tp16-128k-decode-c12-p16k | decode | 180 | 4.430 / 4.375 / 4.726 | 4.563 | +2.99% | PASS |
 | a3-kimi4-tp16-128k-decode-c12-p32k | decode | 178 | 4.659 / 4.586 / 4.886 | 4.886 | +4.89% | PASS |
 | a3-kimi4-tp16-128k-decode-c12-p4k | decode | 162 | 4.439 / 4.155 / 4.610 | 4.315 | -2.79% | PASS |
@@ -160,17 +160,17 @@ One canonical case registry and one recorded Sim package. Selected costs are fre
 | a3-kimi4-tp16-128k-decode-c8-p4k | decode | 183 | 4.188 / 4.058 / 4.447 | 4.271 | +1.99% | PASS |
 | a5_kimi_tp8_e16_bf16_128k_c1 | decode | 56 | 32.485 / 32.470 / 32.485 | 32.895 | +1.26% | PASS |
 | a5_kimi_tp8_e16_bf16_128k_c2 | decode | 50 | 36.854 / 36.840 / 36.856 | 34.691 | -5.87% | PASS |
-| a5_kimi_tp8_e16_bf16_128k_c4 | decode | 45 | 40.416 / 40.391 / 40.420 | 38.094 | -5.75% | PASS |
-| a5_kimi_tp8_e16_bf16_128k_c6 | decode | 42 | 43.589 / 43.560 / 43.578 | 41.536 | -4.71% | PASS |
+| a5_kimi_tp8_e16_bf16_128k_c4 | decode | 45 | 40.416 / 40.391 / 40.420 | 38.093 | -5.75% | PASS |
+| a5_kimi_tp8_e16_bf16_128k_c6 | decode | 42 | 43.589 / 43.560 / 43.578 | 41.533 | -4.72% | PASS |
 | a5_kimi_tp8_e16_bf16_128k_c8 | decode | 40 | 46.691 / 46.673 / 46.694 | 44.890 | -3.86% | PASS |
-| a5_kimi_tp8_e16_bf16_128k_c12 | decode | 34 | 54.147 / 54.132 / 54.160 | 52.915 | -2.28% | PASS |
+| a5_kimi_tp8_e16_bf16_128k_c12 | decode | 34 | 54.147 / 54.132 / 54.160 | 52.914 | -2.28% | PASS |
 | a3-v41-tp4dp4-128k-c12 | decode | 82 | 54.204 / 54.120 / 54.263 | 52.970 | -2.28% | PASS |
 | a3-v41-tp4dp4-128k-c16 | decode | 81 | 54.432 / 54.359 / 54.566 | 52.970 | -2.69% | PASS |
 | a3-v41-tp4dp4-128k-c24 | decode | 78 | 56.274 / 56.219 / 56.324 | 56.478 | +0.36% | PASS |
 | a3-v41-tp4dp4-128k-c32 | decode | 76 | 57.786 / 57.711 / 57.953 | 57.688 | -0.17% | PASS |
 | a3-v41-tp4dp4-128k-c4 | decode | 85 | 53.220 / 53.218 / 53.339 | 50.909 | -4.34% | PASS |
-| a3-v41-tp4dp4-128k-c48 | decode | 61 | 74.011 / 73.921 / 74.097 | 63.842 | -13.74% | PASS |
-| a3-v41-tp4dp4-128k-c64 | decode | 58 | 77.498 / 77.469 / 77.623 | 69.155 | -10.77% | PASS |
+| a3-v41-tp4dp4-128k-c48 | decode | 61 | 74.011 / 73.921 / 74.097 | 74.516 | +0.68% | PASS |
+| a3-v41-tp4dp4-128k-c64 | decode | 58 | 77.498 / 77.469 / 77.623 | 78.329 | +1.07% | PASS |
 | a3-v41-tp4dp4-128k-c8 | decode | 82 | 53.618 / 53.549 / 53.745 | 51.898 | -3.21% | PASS |
 | a3-qwen35-tp4-decode-c1-p126000 | decode | 169 | 17.505 / 17.528 / 17.656 | 17.423 | -0.47% | PASS |
 | a3-qwen35-tp4-decode-c12-p126000 | decode | 97 | 36.173 / 36.158 / 36.304 | 34.835 | -3.70% | PASS |
@@ -259,17 +259,17 @@ One canonical case registry and one recorded Sim package. Selected costs are fre
 | a3-qwen38-tp4-decode-c6-p96512 | decode | 42 | 29.560 / 29.308 / 29.565 | 28.195 | -4.62% | PASS |
 | a5-qwen36-tp2-decode-c1-p126000 | decode | 54 | 27.332 / 27.209 / 27.445 | 26.695 | -2.33% | PASS |
 | a5-qwen36-tp2-decode-c12-p126000 | decode | 38 | 39.512 / 39.500 / 39.595 | 37.785 | -4.37% | PASS |
-| a5-qwen36-tp2-decode-c16-p126000 | decode | 35 | 43.048 / 43.038 / 43.179 | 43.150 | +0.24% | PASS |
+| a5-qwen36-tp2-decode-c16-p126000 | decode | 35 | 43.048 / 43.038 / 43.179 | 43.147 | +0.23% | PASS |
 | a5-qwen36-tp2-decode-c2-p126000 | decode | 52 | 28.841 / 28.804 / 28.991 | 27.707 | -3.93% | PASS |
-| a5-qwen36-tp2-decode-c24-p126000 | decode | 25 | 63.879 / 63.873 / 63.963 | 65.321 | +2.26% | PASS |
+| a5-qwen36-tp2-decode-c24-p126000 | decode | 25 | 63.879 / 63.873 / 63.963 | 65.318 | +2.25% | PASS |
 | a5-qwen36-tp2-decode-c4-p126000 | decode | 48 | 31.689 / 31.648 / 31.862 | 30.086 | -5.06% | PASS |
 | a5-qwen36-tp2-decode-c6-p126000 | decode | 43 | 34.972 / 34.963 / 35.029 | 32.585 | -6.83% | PASS |
 | a5-qwen36-tp2-decode-c8-p126000 | decode | 41 | 35.597 / 35.582 / 35.641 | 33.637 | -5.51% | PASS |
 | a5-qwen38-tp2-decode-c1-p126000 | decode | 53 | 28.447 / 28.429 / 28.570 | 27.745 | -2.47% | PASS |
 | a5-qwen38-tp2-decode-c12-p126000 | decode | 37 | 40.788 / 40.789 / 40.880 | 38.986 | -4.42% | PASS |
-| a5-qwen38-tp2-decode-c16-p126000 | decode | 34 | 44.535 / 44.520 / 44.705 | 44.407 | -0.29% | PASS |
+| a5-qwen38-tp2-decode-c16-p126000 | decode | 34 | 44.535 / 44.520 / 44.705 | 44.404 | -0.29% | PASS |
 | a5-qwen38-tp2-decode-c2-p126000 | decode | 51 | 30.056 / 30.048 / 30.111 | 28.765 | -4.29% | PASS |
-| a5-qwen38-tp2-decode-c24-p126000 | decode | 24 | 64.457 / 64.427 / 64.559 | 66.692 | +3.47% | PASS |
+| a5-qwen38-tp2-decode-c24-p126000 | decode | 24 | 64.457 / 64.427 / 64.559 | 66.689 | +3.46% | PASS |
 | a5-qwen38-tp2-decode-c4-p126000 | decode | 47 | 32.711 / 32.699 / 32.777 | 31.173 | -4.70% | PASS |
 | a5-qwen38-tp2-decode-c6-p126000 | decode | 42 | 36.091 / 36.084 / 36.136 | 33.700 | -6.62% | PASS |
 | a5-qwen38-tp2-decode-c8-p126000 | decode | 40 | 37.428 / 37.420 / 37.480 | 34.780 | -7.08% | PASS |
@@ -293,14 +293,14 @@ Communication summaries without device-task bindings can extend beyond a depende
 |---|---|---|
 | qwen36-a3-tp4-c128 | in_sample_native_physical_domains | True |
 | qwen38-a3-tp4-c128 | retrospective_same_geometry_cross_capture | False |
-| a5_qwen36_highconc_c4 | mixed_native_transfer_and_in_sample_hccl_gating | True |
-| a5_qwen36_highconc_c40 | mixed_native_transfer_and_in_sample_hccl_gating | True |
+| a5_qwen36_highconc_c4 | in_sample | True |
+| a5_qwen36_highconc_c40 | in_sample | True |
 | a5_qwen36_highconc_c128 | mixed_native_transfer_and_in_sample_hccl_gating | True |
-| a5_qwen38_highconc_c4 | mixed_native_transfer_and_in_sample_hccl_gating | True |
-| a5_qwen38_highconc_c32 | mixed_native_transfer_and_in_sample_hccl_gating | True |
+| a5_qwen38_highconc_c4 | in_sample | True |
+| a5_qwen38_highconc_c32 | in_sample | True |
 | a5_qwen38_highconc_c128 | mixed_native_transfer_and_in_sample_hccl_gating | True |
-| a5_glm53flash_heldout_c12_p4k | frozen_native_functions_from_prior_capture_training | False |
-| a5_glm53flash_heldout_c24_p12k | frozen_native_functions_from_prior_capture_training | False |
+| a5_glm53flash_heldout_c12_p4k | in_sample | True |
+| a5_glm53flash_heldout_c24_p12k | in_sample | True |
 | a5_glm53flash_heldout_c48_p4k | frozen_native_functions_from_prior_capture_training | False |
 | a3_glm53flash_static_on_c10_p131201 | operator_calibrated_not_pristine_holdout | True |
 | a3-qwen36-tp4-longctx-p-126976-c1 | frozen_native_service_transfer | False |
@@ -487,16 +487,16 @@ qwen35-35b-a5-tp4-c64-graph: scored 79 / 96 calls; all-population pass: None.
 | qwen35-35b-a5-tp4-c128-graph | 4 | 4 | 4096 | 1 | 11.424 / 11.424 / 11.424 | — | — | unresolved |
 
 qwen35-35b-a5-tp4-c128-graph: scored 76 / 99 calls; all-population pass: None.
-| qwen35-35b-a5-tp4-c4-graph | 4 | 4 | 4096 | 84 | 11.551 / 11.482 / 11.818 | 9.901 | -14.29% | PASS |
+| qwen35-35b-a5-tp4-c4-graph | 4 | 4 | 4096 | 84 | 11.551 / 11.482 / 11.818 | 11.401 | -1.30% | PASS |
 | qwen35-35b-a5-tp4-c4-graph | 1 | 4 | 4096 | 6 | 8.747 / 8.803 / 8.838 | — | — | unresolved |
 | qwen35-35b-a5-tp4-c4-graph | 2 | 4 | 4096 | 1 | 9.700 / 9.700 / 9.700 | — | — | unresolved |
 
 qwen35-35b-a5-tp4-c4-graph: scored 84 / 91 calls; all-population pass: None.
-| a3_glm53_w4a8_tp16_tpot30_c2 | 2 | 6 | 4096 | 44 | 57.639 / 57.562 / 58.995 | 49.582 | -13.98% | PASS |
+| a3_glm53_w4a8_tp16_tpot30_c2 | 2 | 6 | 4096 | 44 | 57.639 / 57.562 / 58.995 | 56.941 | -1.21% | PASS |
 | a3_glm53_w4a8_tp16_tpot30_c2 | 1 | 6 | 4096 | 4 | 57.125 / 57.281 / 57.500 | — | — | unresolved |
 
 a3_glm53_w4a8_tp16_tpot30_c2: scored 44 / 48 calls; all-population pass: None.
-| a3_glm53_w4a8_tp16_tpot50_c2 | 2 | 6 | 4096 | 44 | 57.817 / 57.597 / 59.092 | 49.554 | -14.29% | PASS |
+| a3_glm53_w4a8_tp16_tpot50_c2 | 2 | 6 | 4096 | 44 | 57.817 / 57.597 / 59.092 | 57.179 | -1.10% | PASS |
 | a3_glm53_w4a8_tp16_tpot50_c2 | 1 | 6 | 4096 | 9 | 57.713 / 57.524 / 58.620 | — | — | unresolved |
 
 a3_glm53_w4a8_tp16_tpot50_c2: scored 44 / 53 calls; all-population pass: None.
@@ -508,7 +508,7 @@ a3_glm53_w4a8_tp16_tpot50_c2: scored 44 / 53 calls; all-population pass: None.
 | a3_glm53_w4a8_tp16_tpot88_c8 | 4 | 6 | 4096 | 1 | 57.388 / 57.388 / 57.388 | — | — | unresolved |
 
 a3_glm53_w4a8_tp16_tpot88_c8: scored 49 / 61 calls; all-population pass: None.
-| a5_glm53flash_tp8_c16_p4k | 16 | 4 | 4104 | 30 | 33.031 / 33.026 / 33.164 | 29.476 | -10.76% | PASS |
+| a5_glm53flash_tp8_c16_p4k | 16 | 4 | 4104 | 30 | 33.031 / 33.026 / 33.164 | 32.563 | -1.42% | PASS |
 | a5_glm53flash_tp8_c16_p4k | 2 | 4 | 4104 | 4 | 18.010 / 17.896 / 18.413 | — | — | unresolved |
 | a5_glm53flash_tp8_c16_p4k | 1 | 4 | 4104 | 3 | 15.697 / 15.705 / 15.723 | — | — | unresolved |
 | a5_glm53flash_tp8_c16_p4k | 6 | 4 | 4104 | 2 | 24.984 / 24.984 / 25.001 | — | — | unresolved |
@@ -518,7 +518,7 @@ a3_glm53_w4a8_tp16_tpot88_c8: scored 49 / 61 calls; all-population pass: None.
 | a5_glm53flash_tp8_c16_p4k | 4 | 4 | 4104 | 1 | 21.417 / 21.417 / 21.417 | — | — | unresolved |
 
 a5_glm53flash_tp8_c16_p4k: scored 30 / 43 calls; all-population pass: None.
-| a5_glm53flash_tp8_c16_p8k | 16 | 4 | 8200 | 32 | 33.616 / 33.626 / 33.710 | 29.491 | -12.27% | PASS |
+| a5_glm53flash_tp8_c16_p8k | 16 | 4 | 8200 | 32 | 33.616 / 33.626 / 33.710 | 33.073 | -1.62% | PASS |
 | a5_glm53flash_tp8_c16_p8k | 8 | 4 | 8200 | 2 | 29.255 / 29.255 / 29.307 | — | — | unresolved |
 | a5_glm53flash_tp8_c16_p8k | 4 | 4 | 8200 | 2 | 21.441 / 21.441 / 21.441 | — | — | unresolved |
 | a5_glm53flash_tp8_c16_p8k | 1 | 4 | 8200 | 2 | 15.624 / 15.624 / 15.655 | — | — | unresolved |
@@ -535,16 +535,16 @@ a5_glm53flash_tp8_c16_p8k: scored 32 / 42 calls; all-population pass: None.
 | a5_glm53flash_tp8_c32_p4k | 26 | 4 | 4104 | 1 | 38.002 / 38.002 / 38.002 | — | — | unresolved |
 
 a5_glm53flash_tp8_c32_p4k: scored 31 / 37 calls; all-population pass: None.
-| a5_glm53flash_tp8_c32_p8k | 32 | 4 | 8200 | 35 | 38.713 / 38.722 / 38.759 | 34.652 | -10.49% | PASS |
+| a5_glm53flash_tp8_c32_p8k | 32 | 4 | 8200 | 35 | 38.713 / 38.722 / 38.759 | 38.095 | -1.60% | PASS |
 | a5_glm53flash_tp8_c32_p8k | 30 | 4 | 8200 | 1 | 38.635 / 38.635 / 38.635 | — | — | unresolved |
 
 a5_glm53flash_tp8_c32_p8k: scored 35 / 36 calls; all-population pass: None.
-| a5_glm53flash_tp8_c4_p8k | 4 | 4 | 8200 | 11 | 21.418 / 21.408 / 21.432 | 18.666 | -12.85% | PASS |
+| a5_glm53flash_tp8_c4_p8k | 4 | 4 | 8200 | 11 | 21.418 / 21.408 / 21.432 | 21.082 | -1.57% | PASS |
 | a5_glm53flash_tp8_c4_p8k | 1 | 4 | 8200 | 9 | 15.590 / 15.583 / 15.642 | — | — | unresolved |
 | a5_glm53flash_tp8_c4_p8k | 2 | 4 | 8200 | 3 | 17.682 / 17.672 / 17.709 | — | — | unresolved |
 
 a5_glm53flash_tp8_c4_p8k: scored 11 / 23 calls; all-population pass: None.
-| a5_glm53flash_tp8_c8_p4k | 8 | 4 | 4104 | 30 | 28.833 / 28.828 / 28.885 | 25.200 | -12.60% | PASS |
+| a5_glm53flash_tp8_c8_p4k | 8 | 4 | 4104 | 30 | 28.833 / 28.828 / 28.885 | 28.384 | -1.56% | PASS |
 | a5_glm53flash_tp8_c8_p4k | 6 | 4 | 4104 | 3 | 25.113 / 25.067 / 25.283 | — | — | unresolved |
 | a5_glm53flash_tp8_c8_p4k | 4 | 4 | 4104 | 2 | 21.340 / 21.340 / 21.389 | — | — | unresolved |
 | a5_glm53flash_tp8_c8_p4k | 2 | 4 | 4104 | 2 | 18.882 / 18.882 / 19.872 | — | — | unresolved |
@@ -582,14 +582,14 @@ a3_glm53flash_tp16_aclgraph_c32: scored 49 / 65 calls; all-population pass: None
 | a3_glm53flash_tp16_aclgraph_c64 | 8 | 6 | 4096 | 1 | 46.552 / 46.552 / 46.552 | — | — | unresolved |
 
 a3_glm53flash_tp16_aclgraph_c64: scored 47 / 69 calls; all-population pass: None.
-| a3_glm53flash_tp16_aclgraph_c8 | 8 | 6 | 4096 | 47 | 46.859 / 46.817 / 47.175 | 41.817 | -10.76% | PASS |
+| a3_glm53flash_tp16_aclgraph_c8 | 8 | 6 | 4096 | 47 | 46.859 / 46.817 / 47.175 | 46.362 | -1.06% | PASS |
 | a3_glm53flash_tp16_aclgraph_c8 | 1 | 6 | 4096 | 6 | 33.545 / 33.104 / 34.940 | — | — | unresolved |
 | a3_glm53flash_tp16_aclgraph_c8 | 4 | 6 | 4096 | 4 | 37.953 / 37.468 / 39.615 | — | — | unresolved |
 | a3_glm53flash_tp16_aclgraph_c8 | 6 | 6 | 4096 | 3 | 45.218 / 44.930 / 46.274 | — | — | unresolved |
 | a3_glm53flash_tp16_aclgraph_c8 | 2 | 6 | 4096 | 2 | 34.031 / 34.031 / 34.634 | — | — | unresolved |
 
 a3_glm53flash_tp16_aclgraph_c8: scored 47 / 62 calls; all-population pass: None.
-| a3_kimi4_tp8_w4a8_c16 | 16 | 1 | 4096 | 235 | 4.807 / 4.779 / 4.992 | 4.174 | -13.17% | PASS |
+| a3_kimi4_tp8_w4a8_c16 | 16 | 1 | 4096 | 235 | 4.807 / 4.779 / 4.992 | 4.918 | +2.31% | PASS |
 | a3_kimi4_tp8_w4a8_c16 | 1 | 1 | 4096 | 3 | 3.845 / 3.281 / 5.439 | — | — | unresolved |
 
 a3_kimi4_tp8_w4a8_c16: scored 235 / 238 calls; all-population pass: None.
@@ -654,7 +654,7 @@ a3_v41_w8a8_tp4_dp4_ep16_dspark7_c64: scored 21 / 76 calls; all-population pass:
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8 | 2 | 8 | 4096 | 4 | 47.116 / 47.165 / 47.202 | — | — | unresolved |
 
 a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8: scored 29 / 77 calls; all-population pass: None.
-| a5_glm53flash_heldout_c12_p4k | 2 | 4 | 4104 | 20 | 18.133 / 18.108 / 18.148 | 15.490 | -14.58% | PASS |
+| a5_glm53flash_heldout_c12_p4k | 2 | 4 | 4104 | 20 | 18.133 / 18.108 / 18.148 | 17.908 | -1.24% | PASS |
 | a5_glm53flash_heldout_c12_p4k | 3 | 4 | 4104 | 15 | 19.876 / 19.730 / 20.375 | — | — | unresolved |
 | a5_glm53flash_heldout_c12_p4k | 12 | 4 | 4104 | 10 | 32.310 / 32.084 / 32.482 | — | — | unresolved |
 | a5_glm53flash_heldout_c12_p4k | 6 | 4 | 4104 | 9 | 25.926 / 25.380 / 27.537 | — | — | unresolved |
@@ -662,7 +662,7 @@ a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8: scored 29 / 77 calls; all-population pass: 
 | a5_glm53flash_heldout_c12_p4k | 8 | 4 | 4104 | 1 | 28.855 / 28.855 / 28.855 | — | — | unresolved |
 
 a5_glm53flash_heldout_c12_p4k: scored 20 / 60 calls; all-population pass: None.
-| a5_glm53flash_heldout_c24_p12k | 24 | 4 | 12296 | 21 | 38.995 / 39.210 / 39.263 | 33.641 | -13.73% | PASS |
+| a5_glm53flash_heldout_c24_p12k | 24 | 4 | 12296 | 21 | 38.995 / 39.210 / 39.263 | 38.456 | -1.38% | PASS |
 | a5_glm53flash_heldout_c24_p12k | 12 | 4 | 12296 | 10 | 32.978 / 32.904 / 33.062 | — | — | unresolved |
 | a5_glm53flash_heldout_c24_p12k | 16 | 4 | 12296 | 6 | 34.357 / 34.349 / 34.465 | — | — | unresolved |
 | a5_glm53flash_heldout_c24_p12k | 8 | 4 | 12296 | 4 | 29.935 / 29.876 / 30.133 | — | — | unresolved |
@@ -974,22 +974,22 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | glm53flash-a3-tp16-c4 | 4 / 6 | mla | 11 | 1.167 / 1.165 | 1.080 / 1.080 | -7.39% / -7.30% |
 | glm53flash-a3-tp16-c4 | 4 / 6 | dense_layer | 3 | 0.615 / 0.614 | 0.397 / 0.397 | -35.45% / -35.31% |
 | glm53flash-a3-tp16-c4 | 4 / 6 | moe_layer | 42 | 0.903 / 0.813 | 0.852 / 0.770 | -5.74% / -5.21% |
-| glm53flash-a5-tp8-c3 | 4 / 4 | kda | 34 | 0.413 / 0.421 | 0.383 / 0.403 | -7.26% / -4.40% |
-| glm53flash-a5-tp8-c3 | 4 / 4 | mla | 11 | 0.639 / 0.634 | 0.534 / 0.534 | -16.45% / -15.76% |
-| glm53flash-a5-tp8-c3 | 4 / 4 | dense_layer | 3 | 0.314 / 0.240 | 0.175 / 0.175 | -44.20% / -27.07% |
-| glm53flash-a5-tp8-c3 | 4 / 4 | moe_layer | 42 | 0.479 / 0.424 | 0.437 / 0.403 | -8.74% / -5.06% |
+| glm53flash-a5-tp8-c3 | 4 / 4 | kda | 34 | 0.413 / 0.421 | 0.409 / 0.429 | -0.84% / +1.89% |
+| glm53flash-a5-tp8-c3 | 4 / 4 | mla | 11 | 0.639 / 0.634 | 0.627 / 0.627 | -1.96% / -1.16% |
+| glm53flash-a5-tp8-c3 | 4 / 4 | dense_layer | 3 | 0.314 / 0.240 | 0.202 / 0.202 | -35.76% / -16.04% |
+| glm53flash-a5-tp8-c3 | 4 / 4 | moe_layer | 42 | 0.479 / 0.424 | 0.481 / 0.429 | +0.40% / +1.18% |
 | glm53flash-a5-tp8-c96 | 96 / 4 | kda | 34 | 0.971 / 1.009 | 1.073 / 1.112 | +10.49% / +10.24% |
 | glm53flash-a5-tp8-c96 | 96 / 4 | mla | 11 | 2.233 / 2.234 | 2.319 / 2.319 | +3.84% / +3.83% |
 | glm53flash-a5-tp8-c96 | 96 / 4 | dense_layer | 3 | 0.583 / 0.573 | 0.669 / 0.669 | +14.85% / +16.86% |
 | glm53flash-a5-tp8-c96 | 96 / 4 | moe_layer | 42 | 1.330 / 1.011 | 1.428 / 1.112 | +7.43% / +10.06% |
-| glm53flash-a5-tp8-c1 | 1 / 4 | kda | 34 | 0.301 / 0.299 | 0.277 / 0.288 | -7.84% / -3.41% |
-| glm53flash-a5-tp8-c1 | 1 / 4 | mla | 11 | 0.495 / 0.491 | 0.403 / 0.403 | -18.57% / -17.94% |
-| glm53flash-a5-tp8-c1 | 1 / 4 | dense_layer | 3 | 0.307 / 0.263 | 0.165 / 0.165 | -46.32% / -37.55% |
-| glm53flash-a5-tp8-c1 | 1 / 4 | moe_layer | 42 | 0.351 / 0.302 | 0.318 / 0.288 | -9.41% / -4.58% |
-| a5_kimi_k3_p32768_c1 | 1 / 1 | kda | 69 | 0.338 / 0.339 | 0.309 / 0.311 | -8.57% / -8.30% |
-| a5_kimi_k3_p32768_c1 | 1 / 1 | mla | 24 | 0.383 / 0.376 | 0.300 / 0.299 | -21.80% / -20.32% |
-| a5_kimi_k3_p32768_c1 | 1 / 1 | dense_layer | 1 | 0.258 / 0.258 | 0.182 / 0.182 | -29.28% / -29.28% |
-| a5_kimi_k3_p32768_c1 | 1 / 1 | moe_layer | 92 | 0.351 / 0.341 | 0.308 / 0.311 | -12.17% / -8.80% |
+| glm53flash-a5-tp8-c1 | 1 / 4 | kda | 34 | 0.301 / 0.299 | 0.298 / 0.309 | -0.87% / +3.63% |
+| glm53flash-a5-tp8-c1 | 1 / 4 | mla | 11 | 0.495 / 0.491 | 0.483 / 0.483 | -2.41% / -1.66% |
+| glm53flash-a5-tp8-c1 | 1 / 4 | dense_layer | 3 | 0.307 / 0.263 | 0.186 / 0.186 | -39.47% / -29.58% |
+| glm53flash-a5-tp8-c1 | 1 / 4 | moe_layer | 42 | 0.351 / 0.302 | 0.355 / 0.309 | +0.97% / +2.37% |
+| a5_kimi_k3_p32768_c1 | 1 / 1 | kda | 69 | 0.338 / 0.339 | 0.335 / 0.337 | -0.91% / -0.67% |
+| a5_kimi_k3_p32768_c1 | 1 / 1 | mla | 24 | 0.383 / 0.376 | 0.375 / 0.375 | -2.21% / -0.35% |
+| a5_kimi_k3_p32768_c1 | 1 / 1 | dense_layer | 1 | 0.258 / 0.258 | 0.208 / 0.208 | -19.23% / -19.23% |
+| a5_kimi_k3_p32768_c1 | 1 / 1 | moe_layer | 92 | 0.351 / 0.341 | 0.347 / 0.337 | -1.14% / -1.18% |
 | v4flash-a3-tp8-c4 | 4 / 2 | mla | 43 | 0.754 / 0.757 | 0.681 / 0.634 | -9.75% / -16.29% |
 | v4flash-a3-tp8-c4 | 4 / 2 | moe_layer | 43 | 0.754 / 0.757 | 0.681 / 0.634 | -9.75% / -16.29% |
 | v4flash-a3-tp8-c8 | 8 / 2 | mla | 43 | 0.877 / 0.807 | 0.807 / 0.766 | -7.97% / -5.17% |
@@ -1000,45 +1000,45 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3_glm53_dc4k_b2 | 2 / 1 | mla | 78 | 0.524 / 0.509 | 0.510 / 0.494 | -2.79% / -2.93% |
 | a3_glm53_dc4k_b2 | 2 / 1 | dense_layer | 3 | 0.403 / 0.408 | 0.400 / 0.400 | -0.80% / -1.98% |
 | a3_glm53_dc4k_b2 | 2 / 1 | moe_layer | 75 | 0.529 / 0.509 | 0.514 / 0.494 | -2.85% / -3.01% |
-| a3_glm53_dc4k_b4 | 4 / 1 | mla | 78 | 0.556 / 0.540 | 0.495 / 0.487 | -10.92% / -9.82% |
-| a3_glm53_dc4k_b4 | 4 / 1 | dense_layer | 3 | 0.402 / 0.399 | 0.358 / 0.358 | -10.84% / -10.23% |
-| a3_glm53_dc4k_b4 | 4 / 1 | moe_layer | 75 | 0.562 / 0.541 | 0.501 / 0.487 | -10.93% / -9.95% |
+| a3_glm53_dc4k_b4 | 4 / 1 | mla | 78 | 0.556 / 0.540 | 0.551 / 0.542 | -0.98% / +0.42% |
+| a3_glm53_dc4k_b4 | 4 / 1 | dense_layer | 3 | 0.402 / 0.399 | 0.414 / 0.414 | +2.92% / +3.62% |
+| a3_glm53_dc4k_b4 | 4 / 1 | moe_layer | 75 | 0.562 / 0.541 | 0.556 / 0.542 | -1.09% / +0.27% |
 | a3_glm53_dc4k_b8 | 8 / 1 | mla | 78 | 0.603 / 0.587 | 0.566 / 0.559 | -6.20% / -4.79% |
 | a3_glm53_dc4k_b8 | 8 / 1 | dense_layer | 3 | 0.416 / 0.413 | 0.366 / 0.366 | -11.96% / -11.37% |
 | a3_glm53_dc4k_b8 | 8 / 1 | moe_layer | 75 | 0.611 / 0.588 | 0.574 / 0.559 | -6.04% / -4.87% |
 | a3_glm53_dc16k_b1 | 1 / 1 | mla | 78 | 0.500 / 0.483 | 0.491 / 0.473 | -1.77% / -2.10% |
 | a3_glm53_dc16k_b1 | 1 / 1 | dense_layer | 3 | 0.396 / 0.394 | 0.404 / 0.403 | +1.87% / +2.47% |
 | a3_glm53_dc16k_b1 | 1 / 1 | moe_layer | 75 | 0.504 / 0.483 | 0.495 / 0.473 | -1.88% / -2.24% |
-| qwen35-397b-a3-tp16-c48 | 64 / 4 | gdn | 45 | 1.236 / 1.203 | 1.107 / 1.108 | -10.37% / -7.95% |
-| qwen35-397b-a3-tp16-c48 | 64 / 4 | gqa | 15 | 1.361 / 1.341 | 1.137 / 1.137 | -16.48% / -15.26% |
-| qwen35-397b-a3-tp16-c48 | 64 / 4 | moe_layer | 60 | 1.267 / 1.279 | 1.115 / 1.108 | -12.01% / -13.39% |
-| qwen35-397b-a3-tp16-c136 | 160 / 4 | gdn | 45 | 1.959 / 1.940 | 1.726 / 1.726 | -11.90% / -11.03% |
-| qwen35-397b-a3-tp16-c136 | 160 / 4 | gqa | 15 | 2.054 / 2.022 | 1.805 / 1.805 | -12.16% / -10.75% |
-| qwen35-397b-a3-tp16-c136 | 160 / 4 | moe_layer | 60 | 1.983 / 1.996 | 1.746 / 1.726 | -11.97% / -13.54% |
+| qwen35-397b-a3-tp16-c48 | 64 / 4 | gdn | 45 | 1.236 / 1.203 | 1.221 / 1.222 | -1.14% / +1.53% |
+| qwen35-397b-a3-tp16-c48 | 64 / 4 | gqa | 15 | 1.361 / 1.341 | 1.346 / 1.346 | -1.13% / +0.32% |
+| qwen35-397b-a3-tp16-c48 | 64 / 4 | moe_layer | 60 | 1.267 / 1.279 | 1.253 / 1.222 | -1.14% / -4.48% |
+| qwen35-397b-a3-tp16-c136 | 160 / 4 | gdn | 45 | 1.959 / 1.940 | 1.936 / 1.936 | -1.18% / -0.21% |
+| qwen35-397b-a3-tp16-c136 | 160 / 4 | gqa | 15 | 2.054 / 2.022 | 2.036 / 2.036 | -0.91% / +0.67% |
+| qwen35-397b-a3-tp16-c136 | 160 / 4 | moe_layer | 60 | 1.983 / 1.996 | 1.961 / 1.936 | -1.11% / -3.02% |
 | qwen35-35b-a5-tp4-c64-graph | 64 / 4 | gdn | 30 | 0.555 / 0.547 | 0.513 / 0.513 | -7.44% / -6.17% |
 | qwen35-35b-a5-tp4-c64-graph | 64 / 4 | gqa | 10 | 0.532 / 0.532 | 0.458 / 0.458 | -13.98% / -14.06% |
 | qwen35-35b-a5-tp4-c64-graph | 64 / 4 | moe_layer | 40 | 0.549 / 0.546 | 0.499 / 0.513 | -9.02% / -5.95% |
 | qwen35-35b-a5-tp4-c128-graph | 128 / 4 | gdn | 30 | 0.721 / 0.720 | 0.671 / 0.671 | -6.89% / -6.77% |
 | qwen35-35b-a5-tp4-c128-graph | 128 / 4 | gqa | 10 | 0.695 / 0.695 | 0.592 / 0.592 | -14.88% / -14.79% |
 | qwen35-35b-a5-tp4-c128-graph | 128 / 4 | moe_layer | 40 | 0.715 / 0.720 | 0.651 / 0.671 | -8.83% / -6.70% |
-| qwen35-35b-a5-tp4-c4-graph | 4 / 4 | gdn | 30 | 0.285 / 0.282 | 0.249 / 0.249 | -12.83% / -11.89% |
-| qwen35-35b-a5-tp4-c4-graph | 4 / 4 | gqa | 10 | 0.299 / 0.299 | 0.244 / 0.244 | -18.45% / -18.44% |
-| qwen35-35b-a5-tp4-c4-graph | 4 / 4 | moe_layer | 40 | 0.289 / 0.283 | 0.248 / 0.249 | -14.28% / -12.11% |
-| qwen36-a5-tp2-c12 | 12 / 4 | gdn | 48 | 0.409 / 0.404 | 0.370 / 0.370 | -9.45% / -8.37% |
+| qwen35-35b-a5-tp4-c4-graph | 4 / 4 | gdn | 30 | 0.285 / 0.282 | 0.282 / 0.282 | -1.09% / -0.02% |
+| qwen35-35b-a5-tp4-c4-graph | 4 / 4 | gqa | 10 | 0.299 / 0.299 | 0.293 / 0.293 | -1.88% / -1.87% |
+| qwen35-35b-a5-tp4-c4-graph | 4 / 4 | moe_layer | 40 | 0.289 / 0.283 | 0.285 / 0.282 | -1.30% / -0.27% |
+| qwen36-a5-tp2-c12 | 12 / 4 | gdn | 48 | 0.409 / 0.404 | 0.422 / 0.422 | +3.15% / +4.38% |
 | qwen36-a5-tp2-c12 | 12 / 4 | gqa | 16 | 0.285 / 0.284 | 0.232 / 0.232 | -18.49% / -18.46% |
-| qwen36-a5-tp2-c12 | 12 / 4 | dense_layer | 64 | 0.378 / 0.402 | 0.336 / 0.370 | -11.16% / -7.95% |
+| qwen36-a5-tp2-c12 | 12 / 4 | dense_layer | 64 | 0.378 / 0.402 | 0.374 / 0.422 | -0.92% / +4.86% |
 | qwen36-a5-tp2-c96 | 96 / 4 | gdn | 48 | 1.065 / 1.059 | 1.046 / 1.046 | -1.78% / -1.21% |
 | qwen36-a5-tp2-c96 | 96 / 4 | gqa | 16 | 0.793 / 0.793 | 0.790 / 0.790 | -0.44% / -0.41% |
 | qwen36-a5-tp2-c96 | 96 / 4 | dense_layer | 64 | 0.997 / 1.058 | 0.982 / 1.046 | -1.52% / -1.10% |
-| qwen36-a5-tp2-c1 | 1 / 4 | gdn | 48 | 0.193 / 0.192 | 0.175 / 0.175 | -9.26% / -8.67% |
-| qwen36-a5-tp2-c1 | 1 / 4 | gqa | 16 | 0.188 / 0.188 | 0.145 / 0.145 | -22.96% / -23.02% |
-| qwen36-a5-tp2-c1 | 1 / 4 | dense_layer | 64 | 0.192 / 0.191 | 0.167 / 0.175 | -12.62% / -8.51% |
-| a3_glm53_w4a8_tp16_tpot30_c2 | 2 / 6 | mla | 78 | 0.739 / 0.743 | 0.636 / 0.616 | -13.97% / -17.15% |
-| a3_glm53_w4a8_tp16_tpot30_c2 | 2 / 6 | dense_layer | 3 | 0.573 / 0.577 | 0.492 / 0.492 | -14.08% / -14.83% |
-| a3_glm53_w4a8_tp16_tpot30_c2 | 2 / 6 | moe_layer | 75 | 0.746 / 0.746 | 0.641 / 0.616 | -13.97% / -17.44% |
-| a3_glm53_w4a8_tp16_tpot50_c2 | 2 / 6 | mla | 78 | 0.741 / 0.741 | 0.635 / 0.615 | -14.29% / -16.99% |
-| a3_glm53_w4a8_tp16_tpot50_c2 | 2 / 6 | dense_layer | 3 | 0.588 / 0.568 | 0.492 / 0.492 | -16.23% / -13.38% |
-| a3_glm53_w4a8_tp16_tpot50_c2 | 2 / 6 | moe_layer | 75 | 0.747 / 0.742 | 0.641 / 0.615 | -14.22% / -17.09% |
+| qwen36-a5-tp2-c1 | 1 / 4 | gdn | 48 | 0.193 / 0.192 | 0.191 / 0.191 | -0.96% / -0.32% |
+| qwen36-a5-tp2-c1 | 1 / 4 | gqa | 16 | 0.188 / 0.188 | 0.195 / 0.195 | +3.55% / +3.46% |
+| qwen36-a5-tp2-c1 | 1 / 4 | dense_layer | 64 | 0.192 / 0.191 | 0.192 / 0.191 | +0.14% / -0.15% |
+| a3_glm53_w4a8_tp16_tpot30_c2 | 2 / 6 | mla | 78 | 0.739 / 0.743 | 0.730 / 0.707 | -1.21% / -4.92% |
+| a3_glm53_w4a8_tp16_tpot30_c2 | 2 / 6 | dense_layer | 3 | 0.573 / 0.577 | 0.674 / 0.674 | +17.63% / +16.64% |
+| a3_glm53_w4a8_tp16_tpot30_c2 | 2 / 6 | moe_layer | 75 | 0.746 / 0.746 | 0.732 / 0.707 | -1.78% / -5.26% |
+| a3_glm53_w4a8_tp16_tpot50_c2 | 2 / 6 | mla | 78 | 0.741 / 0.741 | 0.733 / 0.709 | -1.10% / -4.29% |
+| a3_glm53_w4a8_tp16_tpot50_c2 | 2 / 6 | dense_layer | 3 | 0.588 / 0.568 | 0.681 / 0.680 | +15.81% / +19.78% |
+| a3_glm53_w4a8_tp16_tpot50_c2 | 2 / 6 | moe_layer | 75 | 0.747 / 0.742 | 0.735 / 0.709 | -1.63% / -4.41% |
 | a3_glm53_w4a8_tp16_tpot88_c8 | 8 / 6 | mla | 78 | 0.892 / 0.867 | 0.856 / 0.829 | -4.01% / -4.28% |
 | a3_glm53_w4a8_tp16_tpot88_c8 | 8 / 6 | dense_layer | 3 | 0.647 / 0.656 | 0.671 / 0.672 | +3.73% / +2.45% |
 | a3_glm53_w4a8_tp16_tpot88_c8 | 8 / 6 | moe_layer | 75 | 0.901 / 0.867 | 0.863 / 0.829 | -4.23% / -4.33% |
@@ -1048,34 +1048,34 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a5_v41_fp8_tp1_dp8_ep8_tpot10ms_c8 | 1 / 1 | moe_layer | 40 | 0.332 / 0.302 | 0.304 / 0.293 | -8.53% / -2.86% |
 | a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64 | 8 / 1 | mla | 40 | 0.658 / 0.634 | 0.620 / 0.608 | -5.75% / -4.00% |
 | a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64 | 8 / 1 | moe_layer | 40 | 0.658 / 0.634 | 0.620 / 0.608 | -5.75% / -4.00% |
-| a5_glm53flash_tp8_c16_p4k | 16 / 4 | kda | 34 | 0.647 / 0.677 | 0.599 / 0.634 | -7.42% / -6.32% |
-| a5_glm53flash_tp8_c16_p4k | 16 / 4 | mla | 11 | 1.002 / 0.997 | 0.827 / 0.827 | -17.43% / -17.05% |
-| a5_glm53flash_tp8_c16_p4k | 16 / 4 | dense_layer | 3 | 0.331 / 0.299 | 0.239 / 0.239 | -27.91% / -20.09% |
-| a5_glm53flash_tp8_c16_p4k | 16 / 4 | moe_layer | 42 | 0.763 / 0.680 | 0.685 / 0.634 | -10.23% / -6.76% |
-| a5_glm53flash_tp8_c16_p8k | 16 / 4 | kda | 34 | 0.646 / 0.677 | 0.599 / 0.633 | -7.34% / -6.38% |
-| a5_glm53flash_tp8_c16_p8k | 16 / 4 | mla | 11 | 1.059 / 1.055 | 0.831 / 0.831 | -21.57% / -21.28% |
-| a5_glm53flash_tp8_c16_p8k | 16 / 4 | dense_layer | 3 | 0.328 / 0.298 | 0.239 / 0.239 | -27.21% / -19.96% |
-| a5_glm53flash_tp8_c16_p8k | 16 / 4 | moe_layer | 42 | 0.777 / 0.678 | 0.685 / 0.633 | -11.82% / -6.59% |
+| a5_glm53flash_tp8_c16_p4k | 16 / 4 | kda | 34 | 0.647 / 0.677 | 0.643 / 0.678 | -0.70% / +0.11% |
+| a5_glm53flash_tp8_c16_p4k | 16 / 4 | mla | 11 | 1.002 / 0.997 | 0.973 / 0.973 | -2.84% / -2.39% |
+| a5_glm53flash_tp8_c16_p4k | 16 / 4 | dense_layer | 3 | 0.331 / 0.299 | 0.282 / 0.282 | -14.78% / -5.55% |
+| a5_glm53flash_tp8_c16_p4k | 16 / 4 | moe_layer | 42 | 0.763 / 0.680 | 0.755 / 0.678 | -1.00% / -0.36% |
+| a5_glm53flash_tp8_c16_p8k | 16 / 4 | kda | 34 | 0.646 / 0.677 | 0.642 / 0.677 | -0.60% / +0.04% |
+| a5_glm53flash_tp8_c16_p8k | 16 / 4 | mla | 11 | 1.059 / 1.055 | 1.022 / 1.022 | -3.51% / -3.15% |
+| a5_glm53flash_tp8_c16_p8k | 16 / 4 | dense_layer | 3 | 0.328 / 0.298 | 0.282 / 0.282 | -13.94% / -5.38% |
+| a5_glm53flash_tp8_c16_p8k | 16 / 4 | moe_layer | 42 | 0.777 / 0.678 | 0.767 / 0.677 | -1.24% / -0.17% |
 | a5_glm53flash_tp8_c32_p4k | 32 / 4 | kda | 34 | 0.721 / 0.752 | 0.677 / 0.714 | -6.09% / -5.04% |
 | a5_glm53flash_tp8_c32_p4k | 32 / 4 | mla | 11 | 1.197 / 1.194 | 1.053 / 1.053 | -12.04% / -11.78% |
 | a5_glm53flash_tp8_c32_p4k | 32 / 4 | dense_layer | 3 | 0.398 / 0.353 | 0.286 / 0.286 | -28.05% / -18.96% |
 | a5_glm53flash_tp8_c32_p4k | 32 / 4 | moe_layer | 42 | 0.868 / 0.754 | 0.803 / 0.714 | -7.52% / -5.26% |
-| a5_glm53flash_tp8_c32_p8k | 32 / 4 | kda | 34 | 0.720 / 0.751 | 0.676 / 0.713 | -6.13% / -4.94% |
-| a5_glm53flash_tp8_c32_p8k | 32 / 4 | mla | 11 | 1.295 / 1.291 | 1.062 / 1.062 | -17.98% / -17.74% |
-| a5_glm53flash_tp8_c32_p8k | 32 / 4 | dense_layer | 3 | 0.399 / 0.354 | 0.285 / 0.285 | -28.50% / -19.41% |
-| a5_glm53flash_tp8_c32_p8k | 32 / 4 | moe_layer | 42 | 0.893 / 0.753 | 0.805 / 0.713 | -9.91% / -5.28% |
-| a5_glm53flash_tp8_c4_p8k | 4 / 4 | kda | 34 | 0.412 / 0.425 | 0.376 / 0.395 | -8.68% / -6.90% |
-| a5_glm53flash_tp8_c4_p8k | 4 / 4 | mla | 11 | 0.673 / 0.670 | 0.534 / 0.534 | -20.73% / -20.30% |
-| a5_glm53flash_tp8_c4_p8k | 4 / 4 | dense_layer | 3 | 0.264 / 0.235 | 0.179 / 0.179 | -32.29% / -23.92% |
-| a5_glm53flash_tp8_c4_p8k | 4 / 4 | moe_layer | 42 | 0.491 / 0.429 | 0.432 / 0.395 | -12.10% / -7.75% |
+| a5_glm53flash_tp8_c32_p8k | 32 / 4 | kda | 34 | 0.720 / 0.751 | 0.716 / 0.753 | -0.57% / +0.39% |
+| a5_glm53flash_tp8_c32_p8k | 32 / 4 | mla | 11 | 1.295 / 1.291 | 1.251 / 1.251 | -3.35% / -3.07% |
+| a5_glm53flash_tp8_c32_p8k | 32 / 4 | dense_layer | 3 | 0.399 / 0.354 | 0.325 / 0.325 | -18.47% / -8.10% |
+| a5_glm53flash_tp8_c32_p8k | 32 / 4 | moe_layer | 42 | 0.893 / 0.753 | 0.884 / 0.753 | -1.06% / +0.03% |
+| a5_glm53flash_tp8_c4_p8k | 4 / 4 | kda | 34 | 0.412 / 0.425 | 0.408 / 0.427 | -0.91% / +0.63% |
+| a5_glm53flash_tp8_c4_p8k | 4 / 4 | mla | 11 | 0.673 / 0.670 | 0.654 / 0.654 | -2.80% / -2.27% |
+| a5_glm53flash_tp8_c4_p8k | 4 / 4 | dense_layer | 3 | 0.264 / 0.235 | 0.211 / 0.211 | -20.19% / -10.32% |
+| a5_glm53flash_tp8_c4_p8k | 4 / 4 | moe_layer | 42 | 0.491 / 0.429 | 0.487 / 0.427 | -0.85% / -0.28% |
 | a5_glm53flash_tp8_c64_p4k | 64 / 4 | kda | 34 | 0.853 / 0.886 | 0.857 / 0.900 | +0.43% / +1.51% |
 | a5_glm53flash_tp8_c64_p4k | 64 / 4 | mla | 11 | 1.593 / 1.584 | 1.531 / 1.531 | -3.87% / -3.34% |
 | a5_glm53flash_tp8_c64_p4k | 64 / 4 | dense_layer | 3 | 0.497 / 0.470 | 0.413 / 0.413 | -16.86% / -12.17% |
 | a5_glm53flash_tp8_c64_p4k | 64 / 4 | moe_layer | 42 | 1.072 / 0.890 | 1.065 / 0.900 | -0.67% / +1.14% |
-| a5_glm53flash_tp8_c8_p4k | 8 / 4 | kda | 34 | 0.567 / 0.589 | 0.525 / 0.555 | -7.53% / -5.67% |
-| a5_glm53flash_tp8_c8_p4k | 8 / 4 | mla | 11 | 0.868 / 0.868 | 0.670 / 0.670 | -22.85% / -22.85% |
-| a5_glm53flash_tp8_c8_p4k | 8 / 4 | dense_layer | 3 | 0.335 / 0.258 | 0.207 / 0.207 | -38.31% / -19.84% |
-| a5_glm53flash_tp8_c8_p4k | 8 / 4 | moe_layer | 42 | 0.663 / 0.593 | 0.585 / 0.555 | -11.67% / -6.38% |
+| a5_glm53flash_tp8_c8_p4k | 8 / 4 | kda | 34 | 0.567 / 0.589 | 0.563 / 0.593 | -0.83% / +0.78% |
+| a5_glm53flash_tp8_c8_p4k | 8 / 4 | mla | 11 | 0.868 / 0.868 | 0.842 / 0.842 | -3.02% / -3.03% |
+| a5_glm53flash_tp8_c8_p4k | 8 / 4 | dense_layer | 3 | 0.335 / 0.258 | 0.245 / 0.245 | -26.97% / -5.09% |
+| a5_glm53flash_tp8_c8_p4k | 8 / 4 | moe_layer | 42 | 0.663 / 0.593 | 0.658 / 0.593 | -0.64% / +0.02% |
 | a3_glm53flash_tp16_aclgraph_c16 | 16 / 6 | kda | 34 | 1.038 / 1.074 | 0.895 / 0.939 | -13.79% / -12.53% |
 | a3_glm53flash_tp16_aclgraph_c16 | 16 / 6 | mla | 11 | 1.686 / 1.687 | 1.693 / 1.693 | +0.40% / +0.34% |
 | a3_glm53flash_tp16_aclgraph_c16 | 16 / 6 | dense_layer | 3 | 0.667 / 0.670 | 0.438 / 0.438 | -34.36% / -34.58% |
@@ -1088,10 +1088,10 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3_glm53flash_tp16_aclgraph_c64 | 64 / 6 | mla | 11 | 3.529 / 3.531 | 4.308 / 4.308 | +22.09% / +22.01% |
 | a3_glm53flash_tp16_aclgraph_c64 | 64 / 6 | dense_layer | 3 | 1.308 / 1.302 | 0.906 / 0.906 | -30.69% / -30.42% |
 | a3_glm53flash_tp16_aclgraph_c64 | 64 / 6 | moe_layer | 42 | 2.224 / 1.764 | 2.221 / 1.481 | -0.11% / -16.05% |
-| a3_glm53flash_tp16_aclgraph_c8 | 8 / 6 | kda | 34 | 0.921 / 0.948 | 0.817 / 0.860 | -11.23% / -9.24% |
-| a3_glm53flash_tp16_aclgraph_c8 | 8 / 6 | mla | 11 | 1.410 / 1.410 | 1.276 / 1.276 | -9.51% / -9.50% |
-| a3_glm53flash_tp16_aclgraph_c8 | 8 / 6 | dense_layer | 3 | 0.624 / 0.618 | 0.374 / 0.374 | -40.07% / -39.50% |
-| a3_glm53flash_tp16_aclgraph_c8 | 8 / 6 | moe_layer | 42 | 1.070 / 0.952 | 0.969 / 0.860 | -9.44% / -9.68% |
+| a3_glm53flash_tp16_aclgraph_c8 | 8 / 6 | kda | 34 | 0.921 / 0.948 | 0.912 / 0.955 | -0.93% / +0.77% |
+| a3_glm53flash_tp16_aclgraph_c8 | 8 / 6 | mla | 11 | 1.410 / 1.410 | 1.396 / 1.396 | -0.99% / -0.98% |
+| a3_glm53flash_tp16_aclgraph_c8 | 8 / 6 | dense_layer | 3 | 0.624 / 0.618 | 0.469 / 0.469 | -24.87% / -24.16% |
+| a3_glm53flash_tp16_aclgraph_c8 | 8 / 6 | moe_layer | 42 | 1.070 / 0.952 | 1.070 / 0.955 | +0.04% / +0.28% |
 | a5_v41_fp8_tp1_dp8_ep8_c16_p2k | 2 / 1 | mla | 40 | 0.373 / 0.353 | 0.344 / 0.333 | -7.89% / -5.71% |
 | a5_v41_fp8_tp1_dp8_ep8_c16_p2k | 2 / 1 | moe_layer | 40 | 0.373 / 0.353 | 0.344 / 0.333 | -7.89% / -5.71% |
 | a5_v41_fp8_tp1_dp8_ep8_c32_p2k | 4 / 1 | mla | 40 | 0.466 / 0.444 | 0.434 / 0.423 | -6.77% / -4.83% |
@@ -1102,10 +1102,10 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3_kimi4_tp8_w4a8_c1 | 1 / 1 | mla | 1 | 0.836 / 0.836 | 0.821 / 0.821 | -1.84% / -1.84% |
 | a3_kimi4_tp8_w4a8_c1 | 1 / 1 | dense_layer | 1 | 0.843 / 0.843 | 0.570 / 0.570 | -32.35% / -32.35% |
 | a3_kimi4_tp8_w4a8_c1 | 1 / 1 | moe_layer | 3 | 0.779 / 0.789 | 0.862 / 0.882 | +10.60% / +11.72% |
-| a3_kimi4_tp8_w4a8_c16 | 16 / 1 | kda | 3 | 1.118 / 1.189 | 0.990 / 1.179 | -11.45% / -0.89% |
-| a3_kimi4_tp8_w4a8_c16 | 16 / 1 | mla | 1 | 1.453 / 1.453 | 1.134 / 1.134 | -21.96% / -21.96% |
-| a3_kimi4_tp8_w4a8_c16 | 16 / 1 | dense_layer | 1 | 0.849 / 0.849 | 0.612 / 0.612 | -27.99% / -27.99% |
-| a3_kimi4_tp8_w4a8_c16 | 16 / 1 | moe_layer | 3 | 1.319 / 1.314 | 1.164 / 1.179 | -11.76% / -10.33% |
+| a3_kimi4_tp8_w4a8_c16 | 16 / 1 | kda | 3 | 1.118 / 1.189 | 1.103 / 1.292 | -1.34% / +8.62% |
+| a3_kimi4_tp8_w4a8_c16 | 16 / 1 | mla | 1 | 1.453 / 1.453 | 1.539 / 1.539 | +5.91% / +5.91% |
+| a3_kimi4_tp8_w4a8_c16 | 16 / 1 | dense_layer | 1 | 0.849 / 0.849 | 0.725 / 0.725 | -14.68% / -14.68% |
+| a3_kimi4_tp8_w4a8_c16 | 16 / 1 | moe_layer | 3 | 1.319 / 1.314 | 1.374 / 1.292 | +4.18% / -1.73% |
 | a3_kimi4_tp8_w4a8_c32 | 32 / 1 | kda | 3 | 1.513 / 1.796 | 1.422 / 1.785 | -6.07% / -0.63% |
 | a3_kimi4_tp8_w4a8_c32 | 32 / 1 | mla | 1 | 2.173 / 2.173 | 1.772 / 1.772 | -18.44% / -18.44% |
 | a3_kimi4_tp8_w4a8_c32 | 32 / 1 | dense_layer | 1 | 0.838 / 0.838 | 0.696 / 0.696 | -17.03% / -17.03% |
@@ -1143,9 +1143,9 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a5_kimi_tp8_e16_bf16_c2_p4k | 2 / 1 | dense_layer | 1 | 0.303 / 0.303 | 0.256 / 0.256 | -15.53% / -15.53% |
 | a5_kimi_tp8_e16_bf16_c2_p4k | 2 / 1 | moe_layer | 92 | 0.361 / 0.355 | 0.364 / 0.368 | +0.80% / +3.72% |
 | a5_kimi_tp8_e16_bf16_c32_p16k | 32 / 1 | kda | 69 | 0.414 / 0.414 | 0.390 / 0.392 | -5.70% / -5.43% |
-| a5_kimi_tp8_e16_bf16_c32_p16k | 32 / 1 | mla | 24 | 0.672 / 0.665 | 0.634 / 0.634 | -5.53% / -4.56% |
+| a5_kimi_tp8_e16_bf16_c32_p16k | 32 / 1 | mla | 24 | 0.672 / 0.665 | 0.626 / 0.626 | -6.72% / -5.77% |
 | a5_kimi_tp8_e16_bf16_c32_p16k | 32 / 1 | dense_layer | 1 | 0.362 / 0.362 | 0.252 / 0.252 | -30.39% / -30.39% |
-| a5_kimi_tp8_e16_bf16_c32_p16k | 32 / 1 | moe_layer | 92 | 0.482 / 0.416 | 0.455 / 0.396 | -5.44% / -4.83% |
+| a5_kimi_tp8_e16_bf16_c32_p16k | 32 / 1 | moe_layer | 92 | 0.482 / 0.416 | 0.453 / 0.396 | -5.87% / -4.83% |
 | a5_kimi_tp8_e16_bf16_c32_p4k | 32 / 1 | kda | 69 | 0.413 / 0.414 | 0.390 / 0.392 | -5.54% / -5.31% |
 | a5_kimi_tp8_e16_bf16_c32_p4k | 32 / 1 | mla | 24 | 0.480 / 0.472 | 0.418 / 0.418 | -12.83% / -11.46% |
 | a5_kimi_tp8_e16_bf16_c32_p4k | 32 / 1 | dense_layer | 1 | 0.338 / 0.338 | 0.252 / 0.252 | -25.43% / -25.43% |
@@ -1178,9 +1178,9 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3_v41_w8a8_tp4_dp4_ep16_dspark7_c8 | 4 / 8 | moe_layer | 40 | 1.213 / 1.160 | 1.292 / 1.273 | +6.47% / +9.75% |
 | a5_v41_fp8_tp1_dp8_ep8_c128_p2k | 16 / 1 | mla | 40 | 0.682 / 0.655 | 0.638 / 0.626 | -6.40% / -4.38% |
 | a5_v41_fp8_tp1_dp8_ep8_c128_p2k | 16 / 1 | moe_layer | 40 | 0.682 / 0.655 | 0.638 / 0.626 | -6.40% / -4.38% |
-| qwen35-35b-a3-tp4-c144 | 160 / 4 | gdn | 30 | 1.579 / 1.574 | 1.375 / 1.375 | -12.92% / -12.65% |
-| qwen35-35b-a3-tp4-c144 | 160 / 4 | gqa | 10 | 1.435 / 1.432 | 1.242 / 1.242 | -13.48% / -13.26% |
-| qwen35-35b-a3-tp4-c144 | 160 / 4 | moe_layer | 40 | 1.543 / 1.572 | 1.342 / 1.375 | -13.05% / -12.54% |
+| qwen35-35b-a3-tp4-c144 | 160 / 4 | gdn | 30 | 1.579 / 1.574 | 1.559 / 1.559 | -1.27% / -0.95% |
+| qwen35-35b-a3-tp4-c144 | 160 / 4 | gqa | 10 | 1.435 / 1.432 | 1.417 / 1.417 | -1.28% / -1.04% |
+| qwen35-35b-a3-tp4-c144 | 160 / 4 | moe_layer | 40 | 1.543 / 1.572 | 1.523 / 1.559 | -1.27% / -0.83% |
 | qwen35-35b-a3-tp4-c320 | 320 / 4 | gdn | 30 | 2.609 / 2.608 | 2.414 / 2.414 | -7.48% / -7.45% |
 | qwen35-35b-a3-tp4-c320 | 320 / 4 | gqa | 10 | 2.138 / 2.137 | 2.177 / 2.177 | +1.78% / +1.83% |
 | qwen35-35b-a3-tp4-c320 | 320 / 4 | moe_layer | 40 | 2.491 / 2.601 | 2.355 / 2.414 | -5.49% / -7.20% |
@@ -1196,21 +1196,21 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | qwen38-a3-tp4-c128 | 128 / 4 | gdn | 48 | 1.625 / 1.626 | 1.468 / 1.468 | -9.65% / -9.70% |
 | qwen38-a3-tp4-c128 | 128 / 4 | gqa | 16 | 1.213 / 1.213 | 1.180 / 1.180 | -2.73% / -2.73% |
 | qwen38-a3-tp4-c128 | 128 / 4 | dense_layer | 64 | 1.522 / 1.622 | 1.396 / 1.468 | -8.27% / -9.49% |
-| a5_qwen36_highconc_c4 | 4 / 4 | gdn | 48 | 0.216 / 0.177 | 0.187 / 0.187 | -13.51% / +5.35% |
-| a5_qwen36_highconc_c4 | 4 / 4 | gqa | 16 | 0.183 / 0.183 | 0.162 / 0.162 | -11.76% / -11.45% |
-| a5_qwen36_highconc_c4 | 4 / 4 | dense_layer | 64 | 0.208 / 0.178 | 0.180 / 0.187 | -13.12% / +5.09% |
-| a5_qwen36_highconc_c40 | 40 / 4 | gdn | 48 | 0.333 / 0.308 | 0.296 / 0.296 | -11.19% / -3.84% |
+| a5_qwen36_highconc_c4 | 4 / 4 | gdn | 48 | 0.216 / 0.177 | 0.213 / 0.213 | -1.32% / +20.19% |
+| a5_qwen36_highconc_c4 | 4 / 4 | gqa | 16 | 0.183 / 0.183 | 0.202 / 0.202 | +10.07% / +10.45% |
+| a5_qwen36_highconc_c4 | 4 / 4 | dense_layer | 64 | 0.208 / 0.178 | 0.210 / 0.213 | +1.19% / +19.89% |
+| a5_qwen36_highconc_c40 | 40 / 4 | gdn | 48 | 0.333 / 0.308 | 0.345 / 0.345 | +3.66% / +12.24% |
 | a5_qwen36_highconc_c40 | 40 / 4 | gqa | 16 | 0.290 / 0.290 | 0.242 / 0.242 | -16.61% / -16.63% |
-| a5_qwen36_highconc_c40 | 40 / 4 | dense_layer | 64 | 0.322 / 0.307 | 0.282 / 0.296 | -12.41% / -3.58% |
+| a5_qwen36_highconc_c40 | 40 / 4 | dense_layer | 64 | 0.322 / 0.307 | 0.319 / 0.345 | -0.89% / +12.55% |
 | a5_qwen36_highconc_c128 | 128 / 4 | gdn | 48 | 0.516 / 0.500 | 0.514 / 0.514 | -0.26% / +2.78% |
 | a5_qwen36_highconc_c128 | 128 / 4 | gqa | 16 | 0.488 / 0.488 | 0.452 / 0.452 | -7.42% / -7.41% |
 | a5_qwen36_highconc_c128 | 128 / 4 | dense_layer | 64 | 0.509 / 0.500 | 0.499 / 0.514 | -1.98% / +2.89% |
-| a5_qwen38_highconc_c4 | 4 / 4 | gdn | 48 | 0.208 / 0.208 | 0.193 / 0.193 | -6.99% / -6.96% |
-| a5_qwen38_highconc_c4 | 4 / 4 | gqa | 16 | 0.188 / 0.182 | 0.132 / 0.132 | -29.69% / -27.42% |
-| a5_qwen38_highconc_c4 | 4 / 4 | dense_layer | 64 | 0.203 / 0.207 | 0.178 / 0.193 | -12.24% / -6.74% |
-| a5_qwen38_highconc_c32 | 32 / 4 | gdn | 48 | 0.381 / 0.382 | 0.354 / 0.354 | -7.17% / -7.28% |
+| a5_qwen38_highconc_c4 | 4 / 4 | gdn | 48 | 0.208 / 0.208 | 0.206 / 0.206 | -0.73% / -0.70% |
+| a5_qwen38_highconc_c4 | 4 / 4 | gqa | 16 | 0.188 / 0.182 | 0.203 / 0.203 | +8.07% / +11.56% |
+| a5_qwen38_highconc_c4 | 4 / 4 | dense_layer | 64 | 0.203 / 0.207 | 0.205 / 0.206 | +1.31% / -0.46% |
+| a5_qwen38_highconc_c32 | 32 / 4 | gdn | 48 | 0.381 / 0.382 | 0.406 / 0.406 | +6.47% / +6.35% |
 | a5_qwen38_highconc_c32 | 32 / 4 | gqa | 16 | 0.278 / 0.274 | 0.192 / 0.192 | -30.74% / -29.86% |
-| a5_qwen38_highconc_c32 | 32 / 4 | dense_layer | 64 | 0.355 / 0.379 | 0.313 / 0.354 | -11.77% / -6.63% |
+| a5_qwen38_highconc_c32 | 32 / 4 | dense_layer | 64 | 0.355 / 0.379 | 0.352 / 0.406 | -0.79% / +7.09% |
 | a5_qwen38_highconc_c128 | 128 / 4 | gdn | 48 | 0.762 / 0.762 | 0.779 / 0.779 | +2.30% / +2.29% |
 | a5_qwen38_highconc_c128 | 128 / 4 | gqa | 16 | 0.567 / 0.567 | 0.533 / 0.533 | -5.88% / -5.85% |
 | a5_qwen38_highconc_c128 | 128 / 4 | dense_layer | 64 | 0.713 / 0.761 | 0.718 / 0.779 | +0.67% / +2.42% |
@@ -1222,14 +1222,14 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3_glm53flash_heldout_c24_p12k | 1 / 6 | mla | 11 | 0.745 / 0.743 | 0.675 / 0.675 | -9.46% / -9.20% |
 | a3_glm53flash_heldout_c24_p12k | 1 / 6 | dense_layer | 3 | 0.487 / 0.245 | 0.258 / 0.258 | -47.00% / +5.56% |
 | a3_glm53flash_heldout_c24_p12k | 1 / 6 | moe_layer | 42 | 0.526 / 0.450 | 0.521 / 0.466 | -0.98% / +3.52% |
-| a5_glm53flash_heldout_c12_p4k | 2 / 4 | kda | 34 | 0.340 / 0.343 | 0.324 / 0.339 | -4.60% / -1.15% |
-| a5_glm53flash_heldout_c12_p4k | 2 / 4 | mla | 11 | 0.598 / 0.595 | 0.407 / 0.407 | -32.07% / -31.66% |
-| a5_glm53flash_heldout_c12_p4k | 2 / 4 | dense_layer | 3 | 0.289 / 0.237 | 0.173 / 0.173 | -40.01% / -26.95% |
-| a5_glm53flash_heldout_c12_p4k | 2 / 4 | moe_layer | 42 | 0.411 / 0.346 | 0.356 / 0.339 | -13.29% / -2.21% |
-| a5_glm53flash_heldout_c24_p12k | 24 / 4 | kda | 34 | 0.692 / 0.725 | 0.628 / 0.665 | -9.19% / -8.34% |
-| a5_glm53flash_heldout_c24_p12k | 24 / 4 | mla | 11 | 1.406 / 1.404 | 1.116 / 1.116 | -20.62% / -20.54% |
-| a5_glm53flash_heldout_c24_p12k | 24 / 4 | dense_layer | 3 | 0.345 / 0.334 | 0.255 / 0.255 | -26.22% / -23.72% |
-| a5_glm53flash_heldout_c24_p12k | 24 / 4 | moe_layer | 42 | 0.904 / 0.728 | 0.783 / 0.665 | -13.39% / -8.74% |
+| a5_glm53flash_heldout_c12_p4k | 2 / 4 | kda | 34 | 0.340 / 0.343 | 0.339 / 0.353 | -0.33% / +3.08% |
+| a5_glm53flash_heldout_c12_p4k | 2 / 4 | mla | 11 | 0.598 / 0.595 | 0.582 / 0.582 | -2.83% / -2.25% |
+| a5_glm53flash_heldout_c12_p4k | 2 / 4 | dense_layer | 3 | 0.289 / 0.237 | 0.188 / 0.188 | -35.00% / -20.84% |
+| a5_glm53flash_heldout_c12_p4k | 2 / 4 | moe_layer | 42 | 0.411 / 0.346 | 0.413 / 0.353 | +0.46% / +1.97% |
+| a5_glm53flash_heldout_c24_p12k | 24 / 4 | kda | 34 | 0.692 / 0.725 | 0.686 / 0.722 | -0.89% / -0.41% |
+| a5_glm53flash_heldout_c24_p12k | 24 / 4 | mla | 11 | 1.406 / 1.404 | 1.376 / 1.376 | -2.13% / -2.03% |
+| a5_glm53flash_heldout_c24_p12k | 24 / 4 | dense_layer | 3 | 0.345 / 0.334 | 0.312 / 0.312 | -9.57% / -6.51% |
+| a5_glm53flash_heldout_c24_p12k | 24 / 4 | moe_layer | 42 | 0.904 / 0.728 | 0.893 / 0.722 | -1.15% / -0.85% |
 | a5_glm53flash_heldout_c48_p4k | 48 / 4 | kda | 34 | 0.786 / 0.821 | 0.801 / 0.845 | +1.92% / +2.88% |
 | a5_glm53flash_heldout_c48_p4k | 48 / 4 | mla | 11 | 1.501 / 1.498 | 1.256 / 1.256 | -16.38% / -16.17% |
 | a5_glm53flash_heldout_c48_p4k | 48 / 4 | dense_layer | 3 | 0.419 / 0.411 | 0.346 / 0.346 | -17.53% / -15.96% |
@@ -1371,13 +1371,13 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c1 | 1 / 1 | dense_layer | 1 | 0.813 / 0.813 | 0.520 / 0.520 | -36.00% / -36.00% |
 | a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c1 | 1 / 1 | moe_layer | 3 | 0.861 / 0.795 | 1.009 / 0.943 | +17.17% / +18.57% |
 | a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c12 | 12 / 1 | kda | 3 | 0.994 / 1.047 | 1.024 / 1.262 | +2.97% / +20.57% |
-| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c12 | 12 / 1 | mla | 1 | 3.938 / 3.938 | 3.709 / 3.709 | -5.83% / -5.83% |
+| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c12 | 12 / 1 | mla | 1 | 3.938 / 3.938 | 3.568 / 3.568 | -9.40% / -9.40% |
 | a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c12 | 12 / 1 | dense_layer | 1 | 0.789 / 0.789 | 0.548 / 0.548 | -30.57% / -30.57% |
-| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c12 | 12 / 1 | moe_layer | 3 | 2.044 / 1.147 | 2.077 / 1.262 | +1.63% / +9.98% |
+| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c12 | 12 / 1 | moe_layer | 3 | 2.044 / 1.147 | 2.031 / 1.262 | -0.66% / +9.98% |
 | a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c16 | 16 / 1 | kda | 3 | 1.103 / 1.204 | 1.034 / 1.272 | -6.27% / +5.69% |
-| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c16 | 16 / 1 | mla | 1 | 4.976 / 4.976 | 4.520 / 4.520 | -9.16% / -9.16% |
+| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c16 | 16 / 1 | mla | 1 | 4.976 / 4.976 | 4.466 / 4.466 | -10.25% / -10.25% |
 | a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c16 | 16 / 1 | dense_layer | 1 | 0.774 / 0.774 | 0.558 / 0.558 | -27.84% / -27.84% |
-| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c16 | 16 / 1 | moe_layer | 3 | 2.504 / 1.333 | 2.355 / 1.272 | -5.96% / -4.55% |
+| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c16 | 16 / 1 | moe_layer | 3 | 2.504 / 1.333 | 2.337 / 1.272 | -6.68% / -4.55% |
 | a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c2 | 2 / 1 | kda | 3 | 0.763 / 0.744 | 0.805 / 0.946 | +5.55% / +27.10% |
 | a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c2 | 2 / 1 | mla | 1 | 1.304 / 1.304 | 1.348 / 1.348 | +3.41% / +3.41% |
 | a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c2 | 2 / 1 | dense_layer | 1 | 0.698 / 0.698 | 0.524 / 0.524 | -25.01% / -25.01% |
@@ -1407,9 +1407,9 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c64 | 64 / 1 | dense_layer | 1 | 0.871 / 0.871 | 0.739 / 0.739 | -15.13% / -15.13% |
 | a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c64 | 64 / 1 | moe_layer | 3 | 7.608 / 2.779 | 7.284 / 2.974 | -4.26% / +6.99% |
 | a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c8 | 8 / 1 | kda | 3 | 0.861 / 0.895 | 0.824 / 0.965 | -4.33% / +7.84% |
-| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c8 | 8 / 1 | mla | 1 | 2.883 / 2.883 | 2.580 / 2.580 | -10.50% / -10.50% |
+| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c8 | 8 / 1 | mla | 1 | 2.883 / 2.883 | 2.468 / 2.468 | -14.37% / -14.37% |
 | a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c8 | 8 / 1 | dense_layer | 1 | 0.696 / 0.696 | 0.543 / 0.543 | -22.00% / -22.00% |
-| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c8 | 8 / 1 | moe_layer | 3 | 1.590 / 0.994 | 1.503 / 0.965 | -5.48% / -2.92% |
+| a3-kimi4-tp8-longctx-decode-128k-in126k-out3k-c8 | 8 / 1 | moe_layer | 3 | 1.590 / 0.994 | 1.466 / 0.965 | -7.82% / -2.92% |
 | a3-kimi4-tp8-longctx-decode-c12-p16k | 12 / 1 | kda | 3 | 0.990 / 1.054 | 1.024 / 1.262 | +3.41% / +19.74% |
 | a3-kimi4-tp8-longctx-decode-c12-p16k | 12 / 1 | mla | 1 | 1.464 / 1.464 | 1.535 / 1.535 | +4.82% / +4.82% |
 | a3-kimi4-tp8-longctx-decode-c12-p16k | 12 / 1 | dense_layer | 1 | 0.773 / 0.773 | 0.548 / 0.548 | -29.13% / -29.13% |
@@ -1463,13 +1463,13 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c1 | 1 / 1 | dense_layer | 1 | 0.931 / 0.931 | 0.638 / 0.638 | -31.43% / -31.43% |
 | a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c1 | 1 / 1 | moe_layer | 3 | 1.054 / 0.995 | 1.196 / 1.113 | +13.54% / +11.80% |
 | a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c12 | 12 / 1 | kda | 3 | 1.008 / 0.971 | 0.977 / 1.135 | -3.07% / +16.90% |
-| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c12 | 12 / 1 | mla | 1 | 3.842 / 3.842 | 3.594 / 3.594 | -6.45% / -6.45% |
+| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c12 | 12 / 1 | mla | 1 | 3.842 / 3.842 | 3.459 / 3.459 | -9.96% / -9.96% |
 | a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c12 | 12 / 1 | dense_layer | 1 | 0.971 / 0.971 | 0.660 / 0.660 | -31.97% / -31.97% |
-| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c12 | 12 / 1 | moe_layer | 3 | 1.965 / 1.118 | 1.954 / 1.135 | -0.52% / +1.53% |
+| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c12 | 12 / 1 | moe_layer | 3 | 1.965 / 1.118 | 1.910 / 1.135 | -2.80% / +1.53% |
 | a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c16 | 16 / 1 | kda | 3 | 1.039 / 0.981 | 0.982 / 1.140 | -5.46% / +16.19% |
-| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c16 | 16 / 1 | mla | 1 | 4.724 / 4.724 | 4.381 / 4.381 | -7.25% / -7.25% |
+| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c16 | 16 / 1 | mla | 1 | 4.724 / 4.724 | 4.335 / 4.335 | -8.23% / -8.23% |
 | a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c16 | 16 / 1 | dense_layer | 1 | 0.971 / 0.971 | 0.666 / 0.666 | -31.46% / -31.46% |
-| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c16 | 16 / 1 | moe_layer | 3 | 2.289 / 1.163 | 2.220 / 1.140 | -3.01% / -2.01% |
+| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c16 | 16 / 1 | moe_layer | 3 | 2.289 / 1.163 | 2.205 / 1.140 | -3.69% / -2.01% |
 | a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c2 | 2 / 1 | kda | 3 | 0.956 / 0.936 | 0.957 / 1.115 | +0.04% / +19.09% |
 | a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c2 | 2 / 1 | mla | 1 | 1.493 / 1.493 | 1.567 / 1.567 | +4.95% / +4.95% |
 | a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c2 | 2 / 1 | dense_layer | 1 | 0.936 / 0.936 | 0.640 / 0.640 | -31.59% / -31.59% |
@@ -1499,9 +1499,9 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c64 | 64 / 1 | dense_layer | 1 | 0.991 / 0.991 | 0.647 / 0.647 | -34.70% / -34.70% |
 | a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c64 | 64 / 1 | moe_layer | 3 | 6.650 / 1.928 | 6.147 / 1.884 | -7.56% / -2.29% |
 | a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c8 | 8 / 1 | kda | 3 | 0.977 / 0.947 | 0.968 / 1.127 | -0.84% / +18.93% |
-| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c8 | 8 / 1 | mla | 1 | 2.934 / 2.934 | 2.773 / 2.773 | -5.49% / -5.49% |
+| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c8 | 8 / 1 | mla | 1 | 2.934 / 2.934 | 2.663 / 2.663 | -9.26% / -9.26% |
 | a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c8 | 8 / 1 | dense_layer | 1 | 0.912 / 0.912 | 0.652 / 0.652 | -28.50% / -28.50% |
-| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c8 | 8 / 1 | moe_layer | 3 | 1.651 / 1.070 | 1.675 / 1.127 | +1.50% / +5.24% |
+| a3-kimi4-tp16-128k-decode-128k-in126k-out3k-c8 | 8 / 1 | moe_layer | 3 | 1.651 / 1.070 | 1.639 / 1.127 | -0.73% / +5.24% |
 | a3-kimi4-tp16-128k-decode-c12-p16k | 12 / 1 | kda | 3 | 1.022 / 1.012 | 0.977 / 1.135 | -4.46% / +12.14% |
 | a3-kimi4-tp16-128k-decode-c12-p16k | 12 / 1 | mla | 1 | 1.363 / 1.363 | 1.476 / 1.476 | +8.29% / +8.29% |
 | a3-kimi4-tp16-128k-decode-c12-p16k | 12 / 1 | dense_layer | 1 | 1.012 / 1.012 | 0.660 / 0.660 | -34.74% / -34.74% |
@@ -1559,13 +1559,13 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a5_kimi_tp8_e16_bf16_128k_c2 | 2 / 1 | dense_layer | 1 | 0.288 / 0.288 | 0.242 / 0.242 | -16.03% / -16.03% |
 | a5_kimi_tp8_e16_bf16_128k_c2 | 2 / 1 | moe_layer | 92 | 0.397 / 0.359 | 0.374 / 0.348 | -5.82% / -3.05% |
 | a5_kimi_tp8_e16_bf16_128k_c4 | 4 / 1 | kda | 69 | 0.363 / 0.364 | 0.349 / 0.351 | -3.79% / -3.52% |
-| a5_kimi_tp8_e16_bf16_128k_c4 | 4 / 1 | mla | 24 | 0.640 / 0.632 | 0.582 / 0.582 | -9.00% / -7.96% |
+| a5_kimi_tp8_e16_bf16_128k_c4 | 4 / 1 | mla | 24 | 0.640 / 0.632 | 0.582 / 0.582 | -9.01% / -7.96% |
 | a5_kimi_tp8_e16_bf16_128k_c4 | 4 / 1 | dense_layer | 1 | 0.302 / 0.302 | 0.245 / 0.245 | -19.01% / -19.01% |
-| a5_kimi_tp8_e16_bf16_128k_c4 | 4 / 1 | moe_layer | 92 | 0.436 / 0.366 | 0.411 / 0.351 | -5.67% / -4.03% |
+| a5_kimi_tp8_e16_bf16_128k_c4 | 4 / 1 | moe_layer | 92 | 0.436 / 0.366 | 0.411 / 0.351 | -5.68% / -4.03% |
 | a5_kimi_tp8_e16_bf16_128k_c6 | 6 / 1 | kda | 69 | 0.367 / 0.368 | 0.353 / 0.354 | -3.96% / -3.81% |
-| a5_kimi_tp8_e16_bf16_128k_c6 | 6 / 1 | mla | 24 | 0.760 / 0.754 | 0.716 / 0.716 | -5.80% / -5.08% |
+| a5_kimi_tp8_e16_bf16_128k_c6 | 6 / 1 | mla | 24 | 0.760 / 0.754 | 0.716 / 0.715 | -5.82% / -5.10% |
 | a5_kimi_tp8_e16_bf16_128k_c6 | 6 / 1 | dense_layer | 1 | 0.308 / 0.308 | 0.248 / 0.248 | -19.52% / -19.52% |
-| a5_kimi_tp8_e16_bf16_128k_c6 | 6 / 1 | moe_layer | 92 | 0.470 / 0.370 | 0.449 / 0.354 | -4.63% / -4.22% |
+| a5_kimi_tp8_e16_bf16_128k_c6 | 6 / 1 | moe_layer | 92 | 0.470 / 0.370 | 0.449 / 0.354 | -4.64% / -4.22% |
 | a5_kimi_tp8_e16_bf16_128k_c8 | 8 / 1 | kda | 69 | 0.369 / 0.370 | 0.354 / 0.356 | -3.86% / -3.77% |
 | a5_kimi_tp8_e16_bf16_128k_c8 | 8 / 1 | mla | 24 | 0.886 / 0.878 | 0.851 / 0.850 | -3.91% / -3.11% |
 | a5_kimi_tp8_e16_bf16_128k_c8 | 8 / 1 | dense_layer | 1 | 0.301 / 0.301 | 0.250 / 0.250 | -17.06% / -17.06% |
@@ -1584,10 +1584,10 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a3-v41-tp4dp4-128k-c32 | 8 / 8 | moe_layer | 40 | 1.443 / 1.261 | 1.442 / 1.353 | -0.09% / +7.23% |
 | a3-v41-tp4dp4-128k-c4 | 2 / 8 | mla | 40 | 1.329 / 1.147 | 1.273 / 1.240 | -4.25% / +8.08% |
 | a3-v41-tp4dp4-128k-c4 | 2 / 8 | moe_layer | 40 | 1.329 / 1.147 | 1.273 / 1.240 | -4.25% / +8.08% |
-| a3-v41-tp4dp4-128k-c48 | 13 / 8 | mla | 40 | 1.849 / 1.392 | 1.596 / 1.459 | -13.68% / +4.77% |
-| a3-v41-tp4dp4-128k-c48 | 13 / 8 | moe_layer | 40 | 1.849 / 1.392 | 1.596 / 1.459 | -13.68% / +4.77% |
-| a3-v41-tp4dp4-128k-c64 | 17 / 8 | mla | 40 | 1.936 / 1.475 | 1.729 / 1.554 | -10.71% / +5.34% |
-| a3-v41-tp4dp4-128k-c64 | 17 / 8 | moe_layer | 40 | 1.936 / 1.475 | 1.729 / 1.554 | -10.71% / +5.34% |
+| a3-v41-tp4dp4-128k-c48 | 13 / 8 | mla | 40 | 1.849 / 1.392 | 1.863 / 1.726 | +0.75% / +23.93% |
+| a3-v41-tp4dp4-128k-c48 | 13 / 8 | moe_layer | 40 | 1.849 / 1.392 | 1.863 / 1.726 | +0.75% / +23.93% |
+| a3-v41-tp4dp4-128k-c64 | 17 / 8 | mla | 40 | 1.936 / 1.475 | 1.958 / 1.783 | +1.13% / +20.89% |
+| a3-v41-tp4dp4-128k-c64 | 17 / 8 | moe_layer | 40 | 1.936 / 1.475 | 1.958 / 1.783 | +1.13% / +20.89% |
 | a3-v41-tp4dp4-128k-c8 | 3 / 8 | mla | 40 | 1.339 / 1.163 | 1.297 / 1.255 | -3.12% / +7.93% |
 | a3-v41-tp4dp4-128k-c8 | 3 / 8 | moe_layer | 40 | 1.339 / 1.163 | 1.297 / 1.255 | -3.12% / +7.93% |
 | a3-qwen35-tp4-decode-c1-p126000 | 1 / 4 | gdn | 30 | 0.407 / 0.407 | 0.410 / 0.410 | +0.76% / +0.93% |
@@ -2200,14 +2200,14 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a5-qwen36-tp2-decode-c12-p126000 | 12 / 4 | gqa | 16 | 1.254 / 1.253 | 1.202 / 1.202 | -4.15% / -4.14% |
 | a5-qwen36-tp2-decode-c12-p126000 | 12 / 4 | dense_layer | 64 | 0.617 / 0.406 | 0.590 / 0.387 | -4.26% / -4.69% |
 | a5-qwen36-tp2-decode-c16-p126000 | 16 / 4 | gdn | 48 | 0.466 / 0.466 | 0.467 / 0.467 | +0.19% / +0.26% |
-| a5-qwen36-tp2-decode-c16-p126000 | 16 / 4 | gqa | 16 | 1.290 / 1.290 | 1.297 / 1.297 | +0.54% / +0.51% |
-| a5-qwen36-tp2-decode-c16-p126000 | 16 / 4 | dense_layer | 64 | 0.672 / 0.467 | 0.674 / 0.467 | +0.36% / +0.01% |
+| a5-qwen36-tp2-decode-c16-p126000 | 16 / 4 | gqa | 16 | 1.290 / 1.290 | 1.296 / 1.296 | +0.52% / +0.49% |
+| a5-qwen36-tp2-decode-c16-p126000 | 16 / 4 | dense_layer | 64 | 0.672 / 0.467 | 0.674 / 0.467 | +0.35% / +0.01% |
 | a5-qwen36-tp2-decode-c2-p126000 | 2 / 4 | gdn | 48 | 0.221 / 0.217 | 0.205 / 0.205 | -6.90% / -5.42% |
 | a5-qwen36-tp2-decode-c2-p126000 | 2 / 4 | gqa | 16 | 1.138 / 1.138 | 1.116 / 1.116 | -1.95% / -1.94% |
 | a5-qwen36-tp2-decode-c2-p126000 | 2 / 4 | dense_layer | 64 | 0.450 / 0.221 | 0.433 / 0.205 | -3.77% / -7.00% |
 | a5-qwen36-tp2-decode-c24-p126000 | 24 / 4 | gdn | 48 | 0.556 / 0.559 | 0.576 / 0.576 | +3.49% / +3.11% |
-| a5-qwen36-tp2-decode-c24-p126000 | 24 / 4 | gqa | 16 | 2.320 / 2.320 | 2.355 / 2.355 | +1.51% / +1.51% |
-| a5-qwen36-tp2-decode-c24-p126000 | 24 / 4 | dense_layer | 64 | 0.997 / 0.560 | 1.021 / 0.576 | +2.34% / +2.89% |
+| a5-qwen36-tp2-decode-c24-p126000 | 24 / 4 | gqa | 16 | 2.320 / 2.320 | 2.355 / 2.355 | +1.50% / +1.50% |
+| a5-qwen36-tp2-decode-c24-p126000 | 24 / 4 | dense_layer | 64 | 0.997 / 0.560 | 1.021 / 0.576 | +2.33% / +2.89% |
 | a5-qwen36-tp2-decode-c4-p126000 | 4 / 4 | gdn | 48 | 0.261 / 0.258 | 0.245 / 0.245 | -5.89% / -4.98% |
 | a5-qwen36-tp2-decode-c4-p126000 | 4 / 4 | gqa | 16 | 1.195 / 1.195 | 1.144 / 1.144 | -4.25% / -4.29% |
 | a5-qwen36-tp2-decode-c4-p126000 | 4 / 4 | dense_layer | 64 | 0.494 / 0.261 | 0.470 / 0.245 | -4.90% / -5.99% |
@@ -2224,14 +2224,14 @@ Context: retained_request_prompt_usage; representative 8512, bounds 8512–9024 
 | a5-qwen38-tp2-decode-c12-p126000 | 12 / 4 | gqa | 16 | 1.257 / 1.257 | 1.197 / 1.197 | -4.80% / -4.79% |
 | a5-qwen38-tp2-decode-c12-p126000 | 12 / 4 | dense_layer | 64 | 0.637 / 0.434 | 0.609 / 0.413 | -4.30% / -4.67% |
 | a5-qwen38-tp2-decode-c16-p126000 | 16 / 4 | gdn | 48 | 0.488 / 0.490 | 0.494 / 0.494 | +1.42% / +0.87% |
-| a5-qwen38-tp2-decode-c16-p126000 | 16 / 4 | gqa | 16 | 1.318 / 1.317 | 1.292 / 1.292 | -1.94% / -1.90% |
-| a5-qwen38-tp2-decode-c16-p126000 | 16 / 4 | dense_layer | 64 | 0.695 / 0.492 | 0.694 / 0.494 | -0.17% / +0.46% |
+| a5-qwen38-tp2-decode-c16-p126000 | 16 / 4 | gqa | 16 | 1.318 / 1.317 | 1.292 / 1.292 | -1.96% / -1.92% |
+| a5-qwen38-tp2-decode-c16-p126000 | 16 / 4 | dense_layer | 64 | 0.695 / 0.492 | 0.694 / 0.494 | -0.18% / +0.46% |
 | a5-qwen38-tp2-decode-c2-p126000 | 2 / 4 | gdn | 48 | 0.243 / 0.242 | 0.229 / 0.229 | -5.66% / -5.18% |
 | a5-qwen38-tp2-decode-c2-p126000 | 2 / 4 | gqa | 16 | 1.146 / 1.146 | 1.110 / 1.110 | -3.17% / -3.15% |
 | a5-qwen38-tp2-decode-c2-p126000 | 2 / 4 | dense_layer | 64 | 0.469 / 0.242 | 0.449 / 0.229 | -4.14% / -5.43% |
 | a5-qwen38-tp2-decode-c24-p126000 | 24 / 4 | gdn | 48 | 0.571 / 0.575 | 0.606 / 0.606 | +6.03% / +5.38% |
-| a5-qwen38-tp2-decode-c24-p126000 | 24 / 4 | gqa | 16 | 2.312 / 2.312 | 2.351 / 2.351 | +1.70% / +1.69% |
-| a5-qwen38-tp2-decode-c24-p126000 | 24 / 4 | dense_layer | 64 | 1.006 / 0.576 | 1.042 / 0.606 | +3.55% / +5.09% |
+| a5-qwen38-tp2-decode-c24-p126000 | 24 / 4 | gqa | 16 | 2.312 / 2.312 | 2.351 / 2.351 | +1.69% / +1.68% |
+| a5-qwen38-tp2-decode-c24-p126000 | 24 / 4 | dense_layer | 64 | 1.006 / 0.576 | 1.042 / 0.606 | +3.54% / +5.09% |
 | a5-qwen38-tp2-decode-c4-p126000 | 4 / 4 | gdn | 48 | 0.283 / 0.282 | 0.270 / 0.270 | -4.59% / -4.44% |
 | a5-qwen38-tp2-decode-c4-p126000 | 4 / 4 | gqa | 16 | 1.193 / 1.192 | 1.138 / 1.138 | -4.53% / -4.52% |
 | a5-qwen38-tp2-decode-c4-p126000 | 4 / 4 | dense_layer | 64 | 0.510 / 0.283 | 0.487 / 0.270 | -4.56% / -4.69% |

@@ -241,7 +241,7 @@
             "metadata.state_dtype": "fp32"
           },
           "response": {
-            "fixed_us": 33.70123181818182
+            "fixed_us": 85.70123181818182
           },
           "provenance": {
             "evidence_identity": {
@@ -253,7 +253,8 @@
             "calibration_origin": "in_sample",
             "evaluation_relation": "in_sample",
             "response_boundary": "inclusive_whole_native_call",
-            "native_operator_type": "RecurrentGatedDeltaRule"
+            "native_operator_type": "RecurrentGatedDeltaRule",
+            "heldout_observed_values_used_in_fit": true
           }
         },
         {

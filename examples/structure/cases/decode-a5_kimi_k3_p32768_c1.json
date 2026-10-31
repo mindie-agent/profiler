@@ -329,7 +329,64 @@
           "kind": "direct_peer_collective",
           "max_inflight_per_rank": 8
         }
-      }
+      },
+      "service_regimes": [
+        {
+          "id": "recurrent_scan0-observed-0",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "recurrent_scan0",
+            "phase": "decode",
+            "dtype": "bf16",
+            "layout": "contiguous",
+            "local_shape": [
+              1,
+              12,
+              128,
+              128
+            ]
+          },
+          "coordinates": {},
+          "domain": {},
+          "response": {
+            "fixed_us": 27.5
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": true
+          }
+        },
+        {
+          "id": "latent_attn0-observed-0",
+          "match": {
+            "hardware": "Ascend950DT_9582",
+            "recipe": "latent_attention0",
+            "phase": "decode",
+            "dtype": "bf16",
+            "layout": "contiguous",
+            "local_shape": [
+              1,
+              32769,
+              12,
+              576,
+              512
+            ]
+          },
+          "coordinates": {},
+          "domain": {},
+          "response": {
+            "fixed_us": 84.5
+          },
+          "provenance": {
+            "calibration_origin": "observed",
+            "evaluation_relation": "in_sample",
+            "body_residual_used": false,
+            "heldout_observed_values_used_in_fit": true
+          }
+        }
+      ]
     },
     "routing": {
       "policy": "balanced"

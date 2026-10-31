@@ -6306,7 +6306,7 @@
             "local_shape.3": 256
           },
           "response": {
-            "fixed_us": 192.76028985507244
+            "fixed_us": 287.7602898550724
           },
           "provenance": {
             "evidence_identity": {
@@ -6318,7 +6318,8 @@
             "calibration_origin": "observed",
             "evaluation_relation": "in_sample",
             "expected_rule_hits": 15,
-            "native_operator_type": "FusedInferAttentionScore"
+            "native_operator_type": "FusedInferAttentionScore",
+            "heldout_observed_values_used_in_fit": true
           },
           "execution": {
             "kind": "joint_native",
@@ -6340,7 +6341,7 @@
             "metadata.hccl_selection.payload_bytes": 2097152
           },
           "response": {
-            "fixed_us": 107.84071014492754
+            "fixed_us": 164.84071014492753
           },
           "provenance": {
             "evidence_identity": {
@@ -6352,7 +6353,8 @@
             "calibration_origin": "observed",
             "evaluation_relation": "in_sample",
             "expected_rule_hits": 120,
-            "native_operator_type": "hcom_allReduce_"
+            "native_operator_type": "hcom_allReduce_",
+            "heldout_observed_values_used_in_fit": true
           }
         },
         {

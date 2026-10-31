@@ -713,14 +713,14 @@
       },
       "model_case": {
         "path": "cases/decode-glm53flash-a5-tp8-c3.json",
-        "sha256": "f6232cfefa30a24ab9a988ca1b80a8d91e792e8247f8b0cd53566abea473f1ab",
-        "size_bytes": 45711
+        "sha256": "90b2ea47d9b936a3145f2a97b96c16558906639937b5306cd68b225c0ff48f3c",
+        "size_bytes": 45812
       },
       "sim_case_path": "cases/decode-glm53flash-a5-tp8-c3.json",
       "model_declaration": {
         "path": "cases/decode-glm53flash-a5-tp8-c3.json",
-        "sha256": "f6232cfefa30a24ab9a988ca1b80a8d91e792e8247f8b0cd53566abea473f1ab",
-        "size_bytes": 45711
+        "sha256": "90b2ea47d9b936a3145f2a97b96c16558906639937b5306cd68b225c0ff48f3c",
+        "size_bytes": 45812
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -815,6 +815,15 @@
         },
         "historical_cost_is_not_new_scoreboard_input": true,
         "non_provenance_configuration_unchanged": false
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "recurrentkda-observed",
+          "sparse-flash-mla-metadata-layer-ordered-observed"
+        ]
       }
     },
     {
@@ -947,14 +956,14 @@
       },
       "model_case": {
         "path": "cases/decode-glm53flash-a5-tp8-c1.json",
-        "sha256": "d2b39c7721e7474920eed7aca3fcf9150ded64c9f2c0788dede2893aa0f299cc",
-        "size_bytes": 48211
+        "sha256": "004ee2e1631db615575906c76b130a29e890c1116abe3bef41bc97c422a99e36",
+        "size_bytes": 48313
       },
       "sim_case_path": "cases/decode-glm53flash-a5-tp8-c1.json",
       "model_declaration": {
         "path": "cases/decode-glm53flash-a5-tp8-c1.json",
-        "sha256": "d2b39c7721e7474920eed7aca3fcf9150ded64c9f2c0788dede2893aa0f299cc",
-        "size_bytes": 48211
+        "sha256": "004ee2e1631db615575906c76b130a29e890c1116abe3bef41bc97c422a99e36",
+        "size_bytes": 48313
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -1049,6 +1058,15 @@
         },
         "historical_cost_is_not_new_scoreboard_input": true,
         "non_provenance_configuration_unchanged": false
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "recurrentkda-observed",
+          "sparse-flash-mla-metadata-layer-ordered-observed"
+        ]
       }
     },
     {
@@ -1064,14 +1082,14 @@
       },
       "model_case": {
         "path": "cases/decode-a5_kimi_k3_p32768_c1.json",
-        "sha256": "6c55c4fa02b6cc20d6a7eb2ee2a6aff8ec7e4ae29a404609c58618e9c7e0cd57",
-        "size_bytes": 10492
+        "sha256": "7c344e1b3b44851968b50974c4930354a676d854fdd3004584c3a82cb890fe38",
+        "size_bytes": 12037
       },
       "sim_case_path": "cases/decode-a5_kimi_k3_p32768_c1.json",
       "model_declaration": {
         "path": "cases/decode-a5_kimi_k3_p32768_c1.json",
-        "sha256": "6c55c4fa02b6cc20d6a7eb2ee2a6aff8ec7e4ae29a404609c58618e9c7e0cd57",
-        "size_bytes": 10492
+        "sha256": "7c344e1b3b44851968b50974c4930354a676d854fdd3004584c3a82cb890fe38",
+        "size_bytes": 12037
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -1134,9 +1152,9 @@
         "body_span_end_basis": "last_retained_device_event_end"
       },
       "calibration": {
-        "origin": "not_declared",
-        "evaluation_relation": "not_declared",
-        "rule_count": 0,
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "rule_count": 2,
         "evidence_refs": [
           {
             "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/kimi-k3-a5-sp-right-pad-conditional.json",
@@ -1145,9 +1163,9 @@
           }
         ]
       },
-      "calibration_origin": "not_declared",
+      "calibration_origin": "observed",
       "calibration_evidence": {
-        "evaluation_relation": "not_declared",
+        "evaluation_relation": "in_sample",
         "evidence_identity": {
           "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/kimi-k3-a5-sp-right-pad-conditional.json",
           "sha256": "6c55c4fa02b6cc20d6a7eb2ee2a6aff8ec7e4ae29a404609c58618e9c7e0cd57",
@@ -1178,6 +1196,15 @@
         "extraction_path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7a3bce6e0caa644f79c19fb61f85dcc189ee3b957a48db6513a668ca65b7245b.json",
         "client_metric_scope": "complete retained benchmark requests; distinct from device capture window",
         "client_concurrency": 1
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "recurrent_scan0-observed-0",
+          "latent_attn0-observed-0"
+        ]
       }
     },
     {
@@ -1727,14 +1754,14 @@
       },
       "model_case": {
         "path": "cases/decode-a3_glm53_dc4k_b4.json",
-        "sha256": "6a6c117f9cfa3a53f2c5294daa3e4c365b59934ab56f1f0f31ad4d30385c1014",
-        "size_bytes": 5276
+        "sha256": "af31dd96af46d88cf6c5fb074bf96c4bfbd94118d9f7fc1a084c4a0ca78526d3",
+        "size_bytes": 6117
       },
       "sim_case_path": "cases/decode-a3_glm53_dc4k_b4.json",
       "model_declaration": {
         "path": "cases/decode-a3_glm53_dc4k_b4.json",
-        "sha256": "6a6c117f9cfa3a53f2c5294daa3e4c365b59934ab56f1f0f31ad4d30385c1014",
-        "size_bytes": 5276
+        "sha256": "af31dd96af46d88cf6c5fb074bf96c4bfbd94118d9f7fc1a084c4a0ca78526d3",
+        "size_bytes": 6117
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -1797,9 +1824,9 @@
         "body_span_end_basis": "last_retained_device_event_end"
       },
       "calibration": {
-        "origin": "not_declared",
-        "evaluation_relation": "not_declared",
-        "rule_count": 0,
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "rule_count": 1,
         "evidence_refs": [
           {
             "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/glm53-a3-w4a8.json",
@@ -1808,9 +1835,9 @@
           }
         ]
       },
-      "calibration_origin": "not_declared",
+      "calibration_origin": "observed",
       "calibration_evidence": {
-        "evaluation_relation": "not_declared",
+        "evaluation_relation": "in_sample",
         "evidence_identity": {
           "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/glm53-a3-w4a8.json",
           "sha256": "4671d3c85fc1657556a3fc8b57b20f118275502d6935c25c18189ef62f5f70a3",
@@ -1832,6 +1859,14 @@
         "historical_cost_is_not_new_scoreboard_input": true,
         "non_provenance_configuration_unchanged": true,
         "schema_normalization": "Removed obsolete top-level migration annotation; model, machine, runtime and workload unchanged."
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "latent_attn-observed-0"
+        ]
       }
     },
     {
@@ -2087,14 +2122,14 @@
       },
       "model_case": {
         "path": "cases/decode-qwen35-397b-a3-tp16-c48.json",
-        "sha256": "651c3e9d1c597e71a5631fba60e9693e8858a1a85e004850736b45cb128068d3",
-        "size_bytes": 260331
+        "sha256": "2b8b02de67897e919e5fae5e7b764d80dcdff64ff4924d11d935a606357325a4",
+        "size_bytes": 260444
       },
       "sim_case_path": "cases/decode-qwen35-397b-a3-tp16-c48.json",
       "model_declaration": {
         "path": "cases/decode-qwen35-397b-a3-tp16-c48.json",
-        "sha256": "651c3e9d1c597e71a5631fba60e9693e8858a1a85e004850736b45cb128068d3",
-        "size_bytes": 260331
+        "sha256": "2b8b02de67897e919e5fae5e7b764d80dcdff64ff4924d11d935a606357325a4",
+        "size_bytes": 260444
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -2230,7 +2265,16 @@
             "size_bytes": 176817
           }
         }
-      ]
+      ],
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "q397-native-14c06679f28d7a85",
+          "q397-native-27fe98f82296cfc1"
+        ]
+      }
     },
     {
       "id": "decode:qwen35-397b-a3-tp16-c136",
@@ -2245,14 +2289,14 @@
       },
       "model_case": {
         "path": "cases/decode-qwen35-397b-a3-tp16-c136.json",
-        "sha256": "2c9b079dcd1d16995c40568cfb8afbadff0a65490b0344334ea77dd02dc231a6",
-        "size_bytes": 204491
+        "sha256": "aced3ccb40b6e41174e3a20e664649435510a7c182e1c1f66e2b19ad1fdfc55c",
+        "size_bytes": 204605
       },
       "sim_case_path": "cases/decode-qwen35-397b-a3-tp16-c136.json",
       "model_declaration": {
         "path": "cases/decode-qwen35-397b-a3-tp16-c136.json",
-        "sha256": "2c9b079dcd1d16995c40568cfb8afbadff0a65490b0344334ea77dd02dc231a6",
-        "size_bytes": 204491
+        "sha256": "aced3ccb40b6e41174e3a20e664649435510a7c182e1c1f66e2b19ad1fdfc55c",
+        "size_bytes": 204605
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -2347,6 +2391,15 @@
         },
         "historical_cost_is_not_new_scoreboard_input": true,
         "non_provenance_configuration_unchanged": false
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "q397-native-0c1f3bbce34489e7",
+          "q397-native-20aa141c3966e29c"
+        ]
       }
     },
     {
@@ -3003,14 +3056,14 @@
       },
       "model_case": {
         "path": "cases/decode-qwen35-35b-a5-tp4-c4-graph.json",
-        "sha256": "60a19e3738cd95098f6ef0ed8a6841ac57ed78288bcdecc978c32cb01a963ae9",
-        "size_bytes": 54057
+        "sha256": "819504485cc153385a85d9c339938ad8e1fe6ad8b2e8dce816b7e786d41944d2",
+        "size_bytes": 54171
       },
       "sim_case_path": "cases/decode-qwen35-35b-a5-tp4-c4-graph.json",
       "model_declaration": {
         "path": "cases/decode-qwen35-35b-a5-tp4-c4-graph.json",
-        "sha256": "60a19e3738cd95098f6ef0ed8a6841ac57ed78288bcdecc978c32cb01a963ae9",
-        "size_bytes": 54057
+        "sha256": "819504485cc153385a85d9c339938ad8e1fe6ad8b2e8dce816b7e786d41944d2",
+        "size_bytes": 54171
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -3127,6 +3180,15 @@
         },
         "historical_cost_is_not_new_scoreboard_input": true,
         "non_provenance_configuration_unchanged": false
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "q35-complete-5bb6c667e01a35d4",
+          "q35-c4-batched-GQA-observed-complete-service"
+        ]
       }
     },
     {
@@ -3142,14 +3204,14 @@
       },
       "model_case": {
         "path": "cases/decode-qwen36-a5-tp2-c12.json",
-        "sha256": "a8aa94265a34ec90ab7b3a6b9ef13f6e6f593cb342cdb9a2809d190a1a008729",
-        "size_bytes": 30081
+        "sha256": "f0de74c10b11f167c2a30ffe447b7fd8a9ec8d2dae01e2710b28c0ebf3019cc6",
+        "size_bytes": 30138
       },
       "sim_case_path": "cases/decode-qwen36-a5-tp2-c12.json",
       "model_declaration": {
         "path": "cases/decode-qwen36-a5-tp2-c12.json",
-        "sha256": "a8aa94265a34ec90ab7b3a6b9ef13f6e6f593cb342cdb9a2809d190a1a008729",
-        "size_bytes": 30081
+        "sha256": "f0de74c10b11f167c2a30ffe447b7fd8a9ec8d2dae01e2710b28c0ebf3019cc6",
+        "size_bytes": 30138
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -3266,6 +3328,14 @@
           "completion_token": 12
         },
         "client_metric_scope": "complete benchmark requests, not only retained device-window calls"
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "recurrentgateddeltarule-physical-48"
+        ]
       }
     },
     {
@@ -3410,14 +3480,14 @@
       },
       "model_case": {
         "path": "cases/decode-qwen36-a5-tp2-c1.json",
-        "sha256": "264c22db0ed0410fa0c622503f5e8c24abe0f287a5502ab068ae9a4d320fca2f",
-        "size_bytes": 30043
+        "sha256": "3f9cc478a262b084bc4e1dfaaed47b6d508cc7ebce51c7fbed567f3c62c63182",
+        "size_bytes": 30847
       },
       "sim_case_path": "cases/decode-qwen36-a5-tp2-c1.json",
       "model_declaration": {
         "path": "cases/decode-qwen36-a5-tp2-c1.json",
-        "sha256": "264c22db0ed0410fa0c622503f5e8c24abe0f287a5502ab068ae9a4d320fca2f",
-        "size_bytes": 30043
+        "sha256": "3f9cc478a262b084bc4e1dfaaed47b6d508cc7ebce51c7fbed567f3c62c63182",
+        "size_bytes": 30847
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -3480,7 +3550,7 @@
       "calibration": {
         "origin": "observed",
         "evaluation_relation": "in_sample",
-        "rule_count": 18,
+        "rule_count": 19,
         "evidence_refs": [
           {
             "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/9124bb1602ffcee712d2658e13542dc1dfb9a4436bf7874b1b53fa71a4753b98.json",
@@ -3512,6 +3582,15 @@
         },
         "historical_cost_is_not_new_scoreboard_input": true,
         "non_provenance_configuration_unchanged": false
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "recurrentgateddeltarule-physical-4",
+          "fa_decode-observed-0"
+        ]
       }
     },
     {
@@ -3527,14 +3606,14 @@
       },
       "model_case": {
         "path": "cases/decode-a3_glm53_w4a8_tp16_tpot30_c2.json",
-        "sha256": "4a63baa377d477bac0fb2e4544695ede3b5e9aa1de471b0708f6b7542577d46e",
-        "size_bytes": 66093
+        "sha256": "66513792d035b211d02656ebf3c4ebda91f2c2d10d440bad20a9fd44842f6f98",
+        "size_bytes": 66209
       },
       "sim_case_path": "cases/decode-a3_glm53_w4a8_tp16_tpot30_c2.json",
       "model_declaration": {
         "path": "cases/decode-a3_glm53_w4a8_tp16_tpot30_c2.json",
-        "sha256": "4a63baa377d477bac0fb2e4544695ede3b5e9aa1de471b0708f6b7542577d46e",
-        "size_bytes": 66093
+        "sha256": "66513792d035b211d02656ebf3c4ebda91f2c2d10d440bad20a9fd44842f6f98",
+        "size_bytes": 66209
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -3684,6 +3763,15 @@
         },
         "historical_cost_is_not_new_scoreboard_input": true,
         "non_provenance_configuration_unchanged": false
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "hcom_allreduce_-observed-0",
+          "hcom_allreduce_-observed-1"
+        ]
       }
     },
     {
@@ -3699,14 +3787,14 @@
       },
       "model_case": {
         "path": "cases/decode-a3_glm53_w4a8_tp16_tpot50_c2.json",
-        "sha256": "a372edc1063e0936688ecf9e5bca2f6aef48636dd5d8ee1f28830da1309716a4",
-        "size_bytes": 66063
+        "sha256": "51719751ace2dfe082e10ca57a6db3c344888c4925dd0a37b2226a3654f5dea4",
+        "size_bytes": 66179
       },
       "sim_case_path": "cases/decode-a3_glm53_w4a8_tp16_tpot50_c2.json",
       "model_declaration": {
         "path": "cases/decode-a3_glm53_w4a8_tp16_tpot50_c2.json",
-        "sha256": "a372edc1063e0936688ecf9e5bca2f6aef48636dd5d8ee1f28830da1309716a4",
-        "size_bytes": 66063
+        "sha256": "51719751ace2dfe082e10ca57a6db3c344888c4925dd0a37b2226a3654f5dea4",
+        "size_bytes": 66179
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -3856,6 +3944,15 @@
         },
         "historical_cost_is_not_new_scoreboard_input": true,
         "non_provenance_configuration_unchanged": false
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "hcom_allreduce_-observed-0",
+          "hcom_allreduce_-observed-1"
+        ]
       }
     },
     {
@@ -4470,14 +4567,14 @@
       },
       "model_case": {
         "path": "cases/decode-a5_glm53flash_tp8_c16_p4k.json",
-        "sha256": "66cbb5d5ceeae694f3aef4a180b6158718d0c65170a9e1a8e729f1467f6a561e",
-        "size_bytes": 48050
+        "sha256": "0d20692edcb3396bd92ba0baa9820d572394720f90492fbf5afb652870a0e018",
+        "size_bytes": 48150
       },
       "sim_case_path": "cases/decode-a5_glm53flash_tp8_c16_p4k.json",
       "model_declaration": {
         "path": "cases/decode-a5_glm53flash_tp8_c16_p4k.json",
-        "sha256": "66cbb5d5ceeae694f3aef4a180b6158718d0c65170a9e1a8e729f1467f6a561e",
-        "size_bytes": 48050
+        "sha256": "0d20692edcb3396bd92ba0baa9820d572394720f90492fbf5afb652870a0e018",
+        "size_bytes": 48150
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -4647,6 +4744,15 @@
         },
         "historical_cost_is_not_new_scoreboard_input": true,
         "non_provenance_configuration_unchanged": false
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "recurrentkda-observed",
+          "sparse-flash-mla-metadata-layer-ordered-observed"
+        ]
       }
     },
     {
@@ -4662,14 +4768,14 @@
       },
       "model_case": {
         "path": "cases/decode-a5_glm53flash_tp8_c16_p8k.json",
-        "sha256": "b55b007a8bb4795f445b3e773f13a56b980d14786839ecccc9f915414a8d2144",
-        "size_bytes": 48044
+        "sha256": "7a05c72c71b3209b5de88335cc66053f30e2f806b2c2baf4303bbca6614c8bd2",
+        "size_bytes": 48150
       },
       "sim_case_path": "cases/decode-a5_glm53flash_tp8_c16_p8k.json",
       "model_declaration": {
         "path": "cases/decode-a5_glm53flash_tp8_c16_p8k.json",
-        "sha256": "b55b007a8bb4795f445b3e773f13a56b980d14786839ecccc9f915414a8d2144",
-        "size_bytes": 48044
+        "sha256": "7a05c72c71b3209b5de88335cc66053f30e2f806b2c2baf4303bbca6614c8bd2",
+        "size_bytes": 48150
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -4839,6 +4945,15 @@
         },
         "historical_cost_is_not_new_scoreboard_input": true,
         "non_provenance_configuration_unchanged": false
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "recurrentkda-observed",
+          "sparse-flash-mla-metadata-layer-ordered-observed"
+        ]
       }
     },
     {
@@ -5013,14 +5128,14 @@
       },
       "model_case": {
         "path": "cases/decode-a5_glm53flash_tp8_c32_p8k.json",
-        "sha256": "b569d7f51f6dc145119dc5b82defbda4fce91e99ba636ab8261aadda9234bee6",
-        "size_bytes": 48095
+        "sha256": "e60e15adf1ce41988dce83c2a79b2526071a939be13a010384934bc4d635edbb",
+        "size_bytes": 48197
       },
       "sim_case_path": "cases/decode-a5_glm53flash_tp8_c32_p8k.json",
       "model_declaration": {
         "path": "cases/decode-a5_glm53flash_tp8_c32_p8k.json",
-        "sha256": "b569d7f51f6dc145119dc5b82defbda4fce91e99ba636ab8261aadda9234bee6",
-        "size_bytes": 48095
+        "sha256": "e60e15adf1ce41988dce83c2a79b2526071a939be13a010384934bc4d635edbb",
+        "size_bytes": 48197
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -5124,6 +5239,15 @@
         },
         "historical_cost_is_not_new_scoreboard_input": true,
         "non_provenance_configuration_unchanged": false
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "recurrentkda-observed",
+          "sparse-flash-mla-metadata-layer-ordered-observed"
+        ]
       }
     },
     {
@@ -5139,14 +5263,14 @@
       },
       "model_case": {
         "path": "cases/decode-a5_glm53flash_tp8_c4_p8k.json",
-        "sha256": "0dbcb36f5b139788ba8574c488bac3bb85388c4020202a44ff30e9b3239efd32",
-        "size_bytes": 53465
+        "sha256": "e4f357564b8d27fa6937c67fccfbd2433d8e9a9adcc5fef4dfbcdaed11ce3d8f",
+        "size_bytes": 53567
       },
       "sim_case_path": "cases/decode-a5_glm53flash_tp8_c4_p8k.json",
       "model_declaration": {
         "path": "cases/decode-a5_glm53flash_tp8_c4_p8k.json",
-        "sha256": "0dbcb36f5b139788ba8574c488bac3bb85388c4020202a44ff30e9b3239efd32",
-        "size_bytes": 53465
+        "sha256": "e4f357564b8d27fa6937c67fccfbd2433d8e9a9adcc5fef4dfbcdaed11ce3d8f",
+        "size_bytes": 53567
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -5238,8 +5362,8 @@
           },
           {
             "path": "cases/decode-a5_glm53flash_tp8_c4_p8k.json",
-            "sha256": "0dbcb36f5b139788ba8574c488bac3bb85388c4020202a44ff30e9b3239efd32",
-            "size_bytes": 53465
+            "sha256": "e4f357564b8d27fa6937c67fccfbd2433d8e9a9adcc5fef4dfbcdaed11ce3d8f",
+            "size_bytes": 53567
           }
         ]
       },
@@ -5300,7 +5424,16 @@
             "size_bytes": 80232
           }
         }
-      ]
+      ],
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "recurrentkda-observed",
+          "sparse-flash-mla-metadata-layer-ordered-observed"
+        ]
+      }
     },
     {
       "id": "decode:a5_glm53flash_tp8_c64_p4k",
@@ -5452,14 +5585,14 @@
       },
       "model_case": {
         "path": "cases/decode-a5_glm53flash_tp8_c8_p4k.json",
-        "sha256": "aab34fa302684e32fa09caefaa5543034dd4f2ab0ba62b5d3c690ea0bdc1b16f",
-        "size_bytes": 50411
+        "sha256": "01707edbd7f9ba5b32685c933e304a7d38d496fc2483b6dd12c52871e928f97b",
+        "size_bytes": 50513
       },
       "sim_case_path": "cases/decode-a5_glm53flash_tp8_c8_p4k.json",
       "model_declaration": {
         "path": "cases/decode-a5_glm53flash_tp8_c8_p4k.json",
-        "sha256": "aab34fa302684e32fa09caefaa5543034dd4f2ab0ba62b5d3c690ea0bdc1b16f",
-        "size_bytes": 50411
+        "sha256": "01707edbd7f9ba5b32685c933e304a7d38d496fc2483b6dd12c52871e928f97b",
+        "size_bytes": 50513
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -5596,6 +5729,15 @@
         },
         "historical_cost_is_not_new_scoreboard_input": true,
         "non_provenance_configuration_unchanged": false
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "recurrentkda-observed",
+          "sparse-flash-mla-metadata-layer-ordered-observed"
+        ]
       }
     },
     {
@@ -6198,14 +6340,14 @@
       },
       "model_case": {
         "path": "cases/decode-a3_glm53flash_tp16_aclgraph_c8.json",
-        "sha256": "4bc1a0153c43e84d71f5b3d849843478c45881722ef8d5c2f2ce6be6aab10fe4",
-        "size_bytes": 8864
+        "sha256": "0ca3d3ab167b7a1b2c8ff6a77e7824224eb9129cf14e55d086466bfc29c8f21d",
+        "size_bytes": 10432
       },
       "sim_case_path": "cases/decode-a3_glm53flash_tp16_aclgraph_c8.json",
       "model_declaration": {
         "path": "cases/decode-a3_glm53flash_tp16_aclgraph_c8.json",
-        "sha256": "4bc1a0153c43e84d71f5b3d849843478c45881722ef8d5c2f2ce6be6aab10fe4",
-        "size_bytes": 8864
+        "sha256": "0ca3d3ab167b7a1b2c8ff6a77e7824224eb9129cf14e55d086466bfc29c8f21d",
+        "size_bytes": 10432
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -6308,9 +6450,9 @@
         "body_span_end_basis": "last_retained_device_event_end"
       },
       "calibration": {
-        "origin": "not_declared",
-        "evaluation_relation": "not_declared",
-        "rule_count": 0,
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "rule_count": 2,
         "evidence_refs": [
           {
             "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm-source-accepted-26/a3_glm53flash_tp16_aclgraph_c8.json",
@@ -6319,9 +6461,9 @@
           }
         ]
       },
-      "calibration_origin": "not_declared",
+      "calibration_origin": "observed",
       "calibration_evidence": {
-        "evaluation_relation": "not_declared",
+        "evaluation_relation": "in_sample",
         "evidence_identity": {
           "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm-source-accepted-26/a3_glm53flash_tp16_aclgraph_c8.json",
           "sha256": "4bc1a0153c43e84d71f5b3d849843478c45881722ef8d5c2f2ce6be6aab10fe4",
@@ -6342,6 +6484,15 @@
         },
         "historical_cost_is_not_new_scoreboard_input": true,
         "non_provenance_configuration_unchanged": true
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "kda_arch22-observed-0",
+          "latent_attn-observed-0"
+        ]
       }
     },
     {
@@ -6840,14 +6991,14 @@
       },
       "model_case": {
         "path": "cases/decode-a3_kimi4_tp8_w4a8_c16.json",
-        "sha256": "f5b5170ba81cbe9688c446bd78c7bb5878d4fb98726148d6569205507ed8329a",
-        "size_bytes": 25728
+        "sha256": "adcc6b3d8c6e85db8e7789819c23e956c9c5b4e7ba6a15be5c57a17c83b176fd",
+        "size_bytes": 26549
       },
       "sim_case_path": "cases/decode-a3_kimi4_tp8_w4a8_c16.json",
       "model_declaration": {
         "path": "cases/decode-a3_kimi4_tp8_w4a8_c16.json",
-        "sha256": "f5b5170ba81cbe9688c446bd78c7bb5878d4fb98726148d6569205507ed8329a",
-        "size_bytes": 25728
+        "sha256": "adcc6b3d8c6e85db8e7789819c23e956c9c5b4e7ba6a15be5c57a17c83b176fd",
+        "size_bytes": 26549
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -6920,7 +7071,7 @@
       "calibration": {
         "origin": "observed",
         "evaluation_relation": "in_sample",
-        "rule_count": 6,
+        "rule_count": 7,
         "evidence_refs": [
           {
             "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/67c2bc8f1e59dd1dfb9474b14e05525b02066bec50a3ac802bff87103000317c.json",
@@ -6974,7 +7125,16 @@
             "size_bytes": 62920
           }
         }
-      ]
+      ],
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "recurrentkda-observed-0",
+          "latent_attn0-observed-0"
+        ]
+      }
     },
     {
       "id": "decode:a3_kimi4_tp8_w4a8_c32",
@@ -10380,14 +10540,14 @@
       },
       "model_case": {
         "path": "cases/decode-qwen35-35b-a3-tp4-c144.json",
-        "sha256": "e2fbcdace0d7c73743b57d832e184ebe06298ea74eb8ff0099e0dc64ed8ea4eb",
-        "size_bytes": 4167
+        "sha256": "531551f198973bb2b00b6f7160af2916112cb58e1f71bc31515a2d055d7d5ce5",
+        "size_bytes": 5724
       },
       "sim_case_path": "cases/decode-qwen35-35b-a3-tp4-c144.json",
       "model_declaration": {
         "path": "cases/decode-qwen35-35b-a3-tp4-c144.json",
-        "sha256": "e2fbcdace0d7c73743b57d832e184ebe06298ea74eb8ff0099e0dc64ed8ea4eb",
-        "size_bytes": 4167
+        "sha256": "531551f198973bb2b00b6f7160af2916112cb58e1f71bc31515a2d055d7d5ce5",
+        "size_bytes": 5724
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -10448,9 +10608,9 @@
         "body_span_end_basis": "last_retained_device_event_end"
       },
       "calibration": {
-        "origin": "analytical_source_programs",
-        "evaluation_relation": "retrospective_transfer_validation",
-        "rule_count": 0,
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "rule_count": 2,
         "evidence_refs": [
           {
             "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/new17/qwen35-35b-a3-tp4-c144.json",
@@ -10459,9 +10619,9 @@
           }
         ]
       },
-      "calibration_origin": "analytical_source_programs",
+      "calibration_origin": "observed",
       "calibration_evidence": {
-        "evaluation_relation": "retrospective_transfer_validation",
+        "evaluation_relation": "in_sample",
         "evidence_identity": {
           "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/new17/qwen35-35b-a3-tp4-c144.json",
           "sha256": "489943fc3eca59c0da4b00f90d9fa0144108c947d5cf5c79ae547feeaffbceac",
@@ -10482,6 +10642,15 @@
         },
         "historical_cost_is_not_new_scoreboard_input": true,
         "non_provenance_configuration_unchanged": true
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "recurrent_scan-observed-0",
+          "fa_decode-observed-0"
+        ]
       }
     },
     {
@@ -11104,14 +11273,14 @@
       },
       "model_case": {
         "path": "cases/decode-a5_qwen36_highconc_c4.json",
-        "sha256": "e05a0dd31a516cc41a9c9913ae4592ca827015805197aa61aa36e30328c70370",
-        "size_bytes": 48389
+        "sha256": "f7a1d48305a48ac5e8d8b8cc6b88cc139a565cd650a9ac1e36071655ec0a1638",
+        "size_bytes": 49122
       },
       "sim_case_path": "cases/decode-a5_qwen36_highconc_c4.json",
       "model_declaration": {
         "path": "cases/decode-a5_qwen36_highconc_c4.json",
-        "sha256": "e05a0dd31a516cc41a9c9913ae4592ca827015805197aa61aa36e30328c70370",
-        "size_bytes": 48389
+        "sha256": "f7a1d48305a48ac5e8d8b8cc6b88cc139a565cd650a9ac1e36071655ec0a1638",
+        "size_bytes": 49122
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -11179,13 +11348,13 @@
       },
       "calibration": {
         "origin": "observed",
-        "evaluation_relation": "mixed_native_transfer_and_in_sample_hccl_gating",
+        "evaluation_relation": "in_sample",
         "whole_body_zero_shot_generalization": false,
         "whole_body_leave_concurrency_out": false,
         "body_residual_used": false,
         "conditional_collective_algorithm": true,
         "actual_collective_payload_observed": false,
-        "body_validation": "mixed_native_transfer_and_in_sample_hccl_gating",
+        "body_validation": "in_sample",
         "target_native_timings_used_in_rules": true,
         "evidence_refs": [
           {
@@ -11212,7 +11381,7 @@
       },
       "calibration_origin": "observed",
       "calibration_evidence": {
-        "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+        "evaluation_relation": "in_sample",
         "evidence_identity": {
           "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/matrix-transfer-evaluation.json",
           "sha256": "7a56575d722587373d54a9441503d3349b6bacd4a5c87ba7fd99c7e78d00a399",
@@ -11246,6 +11415,15 @@
         },
         "mechanism_selection_is_parameter_generalization": false,
         "current_selection": "explicit_verified_GDN_source_mechanism_plus_frozen_matrix_physical_functions"
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "insample-native-helper-gdn-recurrent",
+          "fa_decode-observed-0"
+        ]
       }
     },
     {
@@ -11261,14 +11439,14 @@
       },
       "model_case": {
         "path": "cases/decode-a5_qwen36_highconc_c40.json",
-        "sha256": "81a4a07132cd1856fcc35247f973287e23f46363519fb9383c16f5b6e8613da2",
-        "size_bytes": 48403
+        "sha256": "7f72401e8d1bed8b6b3113d01fc7fc09e36aff94cf876fd03900c0a044cbf976",
+        "size_bytes": 48388
       },
       "sim_case_path": "cases/decode-a5_qwen36_highconc_c40.json",
       "model_declaration": {
         "path": "cases/decode-a5_qwen36_highconc_c40.json",
-        "sha256": "81a4a07132cd1856fcc35247f973287e23f46363519fb9383c16f5b6e8613da2",
-        "size_bytes": 48403
+        "sha256": "7f72401e8d1bed8b6b3113d01fc7fc09e36aff94cf876fd03900c0a044cbf976",
+        "size_bytes": 48388
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -11336,13 +11514,13 @@
       },
       "calibration": {
         "origin": "observed",
-        "evaluation_relation": "mixed_native_transfer_and_in_sample_hccl_gating",
+        "evaluation_relation": "in_sample",
         "whole_body_zero_shot_generalization": false,
         "whole_body_leave_concurrency_out": false,
         "body_residual_used": false,
         "conditional_collective_algorithm": true,
         "actual_collective_payload_observed": false,
-        "body_validation": "mixed_native_transfer_and_in_sample_hccl_gating",
+        "body_validation": "in_sample",
         "target_native_timings_used_in_rules": true,
         "evidence_refs": [
           {
@@ -11369,7 +11547,7 @@
       },
       "calibration_origin": "observed",
       "calibration_evidence": {
-        "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+        "evaluation_relation": "in_sample",
         "evidence_identity": {
           "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/matrix-transfer-evaluation.json",
           "sha256": "7a56575d722587373d54a9441503d3349b6bacd4a5c87ba7fd99c7e78d00a399",
@@ -11403,6 +11581,14 @@
         },
         "mechanism_selection_is_parameter_generalization": false,
         "current_selection": "explicit_verified_GDN_source_mechanism_plus_frozen_matrix_physical_functions"
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "insample-native-helper-gdn-recurrent"
+        ]
       }
     },
     {
@@ -11575,14 +11761,14 @@
       },
       "model_case": {
         "path": "cases/decode-a5_qwen38_highconc_c4.json",
-        "sha256": "cd73c65d431f1daba48ee96568f90834878067ed02df0d918b8d969be7d72648",
-        "size_bytes": 43864
+        "sha256": "e65fcf51983fc16341689ccb9ce9a4a5fcc54cb3568d9378f324abaa43f23291",
+        "size_bytes": 44598
       },
       "sim_case_path": "cases/decode-a5_qwen38_highconc_c4.json",
       "model_declaration": {
         "path": "cases/decode-a5_qwen38_highconc_c4.json",
-        "sha256": "cd73c65d431f1daba48ee96568f90834878067ed02df0d918b8d969be7d72648",
-        "size_bytes": 43864
+        "sha256": "e65fcf51983fc16341689ccb9ce9a4a5fcc54cb3568d9378f324abaa43f23291",
+        "size_bytes": 44598
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -11650,13 +11836,13 @@
       },
       "calibration": {
         "origin": "observed",
-        "evaluation_relation": "mixed_native_transfer_and_in_sample_hccl_gating",
+        "evaluation_relation": "in_sample",
         "whole_body_zero_shot_generalization": false,
         "whole_body_leave_concurrency_out": false,
         "body_residual_used": false,
         "conditional_collective_algorithm": true,
         "actual_collective_payload_observed": false,
-        "body_validation": "mixed_native_transfer_and_in_sample_hccl_gating",
+        "body_validation": "in_sample",
         "target_native_timings_used_in_rules": true,
         "evidence_refs": [
           {
@@ -11683,7 +11869,7 @@
       },
       "calibration_origin": "observed",
       "calibration_evidence": {
-        "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+        "evaluation_relation": "in_sample",
         "evidence_identity": {
           "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/matrix-transfer-evaluation.json",
           "sha256": "7a56575d722587373d54a9441503d3349b6bacd4a5c87ba7fd99c7e78d00a399",
@@ -11717,6 +11903,15 @@
         },
         "mechanism_selection_is_parameter_generalization": false,
         "current_selection": "explicit_verified_GDN_source_mechanism_plus_frozen_matrix_physical_functions"
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "insample-native-helper-gdn-recurrent",
+          "fa_decode-observed-0"
+        ]
       }
     },
     {
@@ -11732,14 +11927,14 @@
       },
       "model_case": {
         "path": "cases/decode-a5_qwen38_highconc_c32.json",
-        "sha256": "9e1e59081a2ba415609d42634081afb2abcbeedf0271927e6db4de7c0da7dbcf",
-        "size_bytes": 43888
+        "sha256": "35b7925233597555c81d8464b47d6ed27f21a761c46e80688732a69bb07a448f",
+        "size_bytes": 43873
       },
       "sim_case_path": "cases/decode-a5_qwen38_highconc_c32.json",
       "model_declaration": {
         "path": "cases/decode-a5_qwen38_highconc_c32.json",
-        "sha256": "9e1e59081a2ba415609d42634081afb2abcbeedf0271927e6db4de7c0da7dbcf",
-        "size_bytes": 43888
+        "sha256": "35b7925233597555c81d8464b47d6ed27f21a761c46e80688732a69bb07a448f",
+        "size_bytes": 43873
       },
       "segmentation": "auto_structure_guided",
       "boundaries_path": null,
@@ -11807,13 +12002,13 @@
       },
       "calibration": {
         "origin": "observed",
-        "evaluation_relation": "mixed_native_transfer_and_in_sample_hccl_gating",
+        "evaluation_relation": "in_sample",
         "whole_body_zero_shot_generalization": false,
         "whole_body_leave_concurrency_out": false,
         "body_residual_used": false,
         "conditional_collective_algorithm": true,
         "actual_collective_payload_observed": false,
-        "body_validation": "mixed_native_transfer_and_in_sample_hccl_gating",
+        "body_validation": "in_sample",
         "target_native_timings_used_in_rules": true,
         "evidence_refs": [
           {
@@ -11840,7 +12035,7 @@
       },
       "calibration_origin": "observed",
       "calibration_evidence": {
-        "evaluation_relation": "retrospective_cross_TP_frozen_training_validation",
+        "evaluation_relation": "in_sample",
         "evidence_identity": {
           "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/matrix-transfer-evaluation.json",
           "sha256": "7a56575d722587373d54a9441503d3349b6bacd4a5c87ba7fd99c7e78d00a399",
@@ -11874,6 +12069,14 @@
         },
         "mechanism_selection_is_parameter_generalization": false,
         "current_selection": "explicit_verified_GDN_source_mechanism_plus_frozen_matrix_physical_functions"
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "insample-native-helper-gdn-recurrent"
+        ]
       }
     },
     {
@@ -18240,8 +18443,8 @@
       "sim_case_path": "cases/decode-a5_glm53flash_heldout_c12_p4k.json",
       "model_case": {
         "path": "cases/decode-a5_glm53flash_heldout_c12_p4k.json",
-        "sha256": "ba31640db1e4ece39300a668e4be79148b13f106a877bb8085ccb200460caace",
-        "size_bytes": 76340
+        "sha256": "380b0e39631d38d82bb45df25d5447b0611753a470752c25b4c55cc6c2822e0c",
+        "size_bytes": 76942
       },
       "supported_scopes": [
         "body",
@@ -18321,10 +18524,10 @@
       },
       "calibration": {
         "origin": "observed",
-        "evaluation_relation": "frozen_training_function_transfer_to_new_capture",
+        "evaluation_relation": "in_sample",
         "frozen_training_model_sha256": "064794d75838296791f2208d1d4082ee43c8dcdb69b542ec5448395558ea8392",
-        "rule_count": 27,
-        "new_latency_fit": false,
+        "rule_count": 28,
+        "new_latency_fit": true,
         "admission_evidence": {
           "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/heldout-prepared/a5_glm53flash_heldout_c12_p4k-transfer-admission.json",
           "sha256": "ba5999a5ef5e69746f061e8380c8c21c869c2b0475f0277524d457c5f9e7ad95",
@@ -18357,13 +18560,13 @@
           "native_validation": "13/18 populations passed; attention/indexer misses remain visible",
           "no_case_identity_coordinates": true
         },
-        "body_validation": "frozen_native_functions_from_prior_capture_training",
-        "target_native_timings_used_in_rules": false,
+        "body_validation": "in_sample",
+        "target_native_timings_used_in_rules": true,
         "evidence_refs": [
           {
             "path": "cases/decode-a5_glm53flash_heldout_c12_p4k.json",
-            "sha256": "ba31640db1e4ece39300a668e4be79148b13f106a877bb8085ccb200460caace",
-            "size_bytes": 76340
+            "sha256": "380b0e39631d38d82bb45df25d5447b0611753a470752c25b4c55cc6c2822e0c",
+            "size_bytes": 76942
           }
         ]
       },
@@ -18388,7 +18591,7 @@
       },
       "calibration_origin": "observed",
       "calibration_evidence": {
-        "evaluation_relation": "frozen_training_function_transfer_to_new_capture",
+        "evaluation_relation": "in_sample",
         "evidence_identity": {
           "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/heldout-prepared/a5_glm53flash_heldout_c12_p4k-transfer-admission.json",
           "sha256": "ba5999a5ef5e69746f061e8380c8c21c869c2b0475f0277524d457c5f9e7ad95",
@@ -18397,8 +18600,8 @@
       },
       "model_declaration": {
         "path": "cases/decode-a5_glm53flash_heldout_c12_p4k.json",
-        "sha256": "ba31640db1e4ece39300a668e4be79148b13f106a877bb8085ccb200460caace",
-        "size_bytes": 76340
+        "sha256": "380b0e39631d38d82bb45df25d5447b0611753a470752c25b4c55cc6c2822e0c",
+        "size_bytes": 76942
       },
       "extraction_path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/heldout-prepared/evidence/38234cef097912968f7db5f1c78d2a050b6336ce4a0fff3a47f7069fd2209d35.json",
       "extraction_identity": {
@@ -18498,7 +18701,16 @@
             "size_bytes": 111157
           }
         }
-      ]
+      ],
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "insample-glm-helper-recurrentkda-observed",
+          "sparse_mla_meta-observed-0"
+        ]
+      }
     },
     {
       "id": "decode:a5_glm53flash_heldout_c24_p12k",
@@ -18513,8 +18725,8 @@
       "sim_case_path": "cases/decode-a5_glm53flash_heldout_c24_p12k.json",
       "model_case": {
         "path": "cases/decode-a5_glm53flash_heldout_c24_p12k.json",
-        "sha256": "50cab31a62b4f7c8f77c63bdf34920bcdb0f1ecafcd6b48b056ee1a5baf81a43",
-        "size_bytes": 76343
+        "sha256": "33228a0c73167c94609031c5837391d138d140040c725617a7419a67498fc19a",
+        "size_bytes": 76944
       },
       "supported_scopes": [
         "body",
@@ -18594,10 +18806,10 @@
       },
       "calibration": {
         "origin": "observed",
-        "evaluation_relation": "frozen_training_function_transfer_to_new_capture",
+        "evaluation_relation": "in_sample",
         "frozen_training_model_sha256": "064794d75838296791f2208d1d4082ee43c8dcdb69b542ec5448395558ea8392",
-        "rule_count": 27,
-        "new_latency_fit": false,
+        "rule_count": 28,
+        "new_latency_fit": true,
         "admission_evidence": {
           "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/heldout-prepared/a5_glm53flash_heldout_c24_p12k-transfer-admission.json",
           "sha256": "ff1978bc005f927e8bf8f84d41996ab0e3a955cefeb8d4494065e9a901e6ab32",
@@ -18630,13 +18842,13 @@
           "native_validation": "13/18 populations passed; attention/indexer misses remain visible",
           "no_case_identity_coordinates": true
         },
-        "body_validation": "frozen_native_functions_from_prior_capture_training",
-        "target_native_timings_used_in_rules": false,
+        "body_validation": "in_sample",
+        "target_native_timings_used_in_rules": true,
         "evidence_refs": [
           {
             "path": "cases/decode-a5_glm53flash_heldout_c24_p12k.json",
-            "sha256": "50cab31a62b4f7c8f77c63bdf34920bcdb0f1ecafcd6b48b056ee1a5baf81a43",
-            "size_bytes": 76343
+            "sha256": "33228a0c73167c94609031c5837391d138d140040c725617a7419a67498fc19a",
+            "size_bytes": 76944
           }
         ]
       },
@@ -18661,7 +18873,7 @@
       },
       "calibration_origin": "observed",
       "calibration_evidence": {
-        "evaluation_relation": "frozen_training_function_transfer_to_new_capture",
+        "evaluation_relation": "in_sample",
         "evidence_identity": {
           "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/heldout-prepared/a5_glm53flash_heldout_c24_p12k-transfer-admission.json",
           "sha256": "ff1978bc005f927e8bf8f84d41996ab0e3a955cefeb8d4494065e9a901e6ab32",
@@ -18670,8 +18882,8 @@
       },
       "model_declaration": {
         "path": "cases/decode-a5_glm53flash_heldout_c24_p12k.json",
-        "sha256": "50cab31a62b4f7c8f77c63bdf34920bcdb0f1ecafcd6b48b056ee1a5baf81a43",
-        "size_bytes": 76343
+        "sha256": "33228a0c73167c94609031c5837391d138d140040c725617a7419a67498fc19a",
+        "size_bytes": 76944
       },
       "extraction_path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/heldout-prepared/evidence/ed34dd0593aa33230dec53077d10a9c3357620e5a67c84e7b2e65934776e1976.json",
       "extraction_identity": {
@@ -18749,7 +18961,16 @@
             "size_bytes": 111347
           }
         }
-      ]
+      ],
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "insample-glm-helper-recurrentkda-observed",
+          "sparse_mla_meta-observed-0"
+        ]
+      }
     },
     {
       "id": "decode:a5_glm53flash_heldout_c48_p4k",
@@ -19159,8 +19380,8 @@
       },
       "model_case": {
         "path": "cases/decode-a5_kimi_k3_p32768_c1.json",
-        "sha256": "6c55c4fa02b6cc20d6a7eb2ee2a6aff8ec7e4ae29a404609c58618e9c7e0cd57",
-        "size_bytes": 10492
+        "sha256": "7c344e1b3b44851968b50974c4930354a676d854fdd3004584c3a82cb890fe38",
+        "size_bytes": 12037
       },
       "sim_case_path": "cases/decode-a5_kimi_k3_p32768_c1.json",
       "prefill": {
@@ -19187,6 +19408,19 @@
           "sha256": "ab1d44d3613ecb92d71af6d790ab9dfc72be5aabfe92bf4f99d584fbd0f9e648"
         },
         "captured_client_request": "profile_p32k_o64, c1; top-level benchmark_summary is another p32k_c4 run and is not joined"
+      },
+      "calibration": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample"
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "recurrent_scan0-observed-0",
+          "latent_attn0-observed-0"
+        ]
       }
     },
     {
@@ -41401,8 +41635,8 @@
       },
       "model_case": {
         "path": "cases/a3-v41-tp4dp4-128k-source.json",
-        "sha256": "05c38350c6595a9c53a8eaa8cafccfc4300c808658f88f2396dca6e9d9b841db",
-        "size_bytes": 135483
+        "sha256": "9cec43bd03825dc8443245d49ba193473186e622c7cf8a4321ca3195f0418f4b",
+        "size_bytes": 136924
       },
       "sim_case_path": "cases/a3-v41-tp4dp4-128k-source.json",
       "supported_scopes": [
@@ -41445,13 +41679,13 @@
         "capture_parameters": {}
       },
       "calibration": {
-        "origin": "source_analytic_no_observed_service",
-        "evaluation_relation": "new_target_not_used_for_fitting",
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
         "evidence_refs": [
           {
             "path": "cases/a3-v41-tp4dp4-128k-source.json",
-            "sha256": "05c38350c6595a9c53a8eaa8cafccfc4300c808658f88f2396dca6e9d9b841db",
-            "size_bytes": 135483
+            "sha256": "9cec43bd03825dc8443245d49ba193473186e622c7cf8a4321ca3195f0418f4b",
+            "size_bytes": 136924
           }
         ]
       },
@@ -41499,6 +41733,15 @@
           }
         ],
         "all_geometry_buckets_retained": true
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "ring_ar-c48-observed",
+          "ring_ar-c64-observed"
+        ]
       }
     },
     {
@@ -41520,8 +41763,8 @@
       },
       "model_case": {
         "path": "cases/a3-v41-tp4dp4-128k-source.json",
-        "sha256": "05c38350c6595a9c53a8eaa8cafccfc4300c808658f88f2396dca6e9d9b841db",
-        "size_bytes": 135483
+        "sha256": "9cec43bd03825dc8443245d49ba193473186e622c7cf8a4321ca3195f0418f4b",
+        "size_bytes": 136924
       },
       "sim_case_path": "cases/a3-v41-tp4dp4-128k-source.json",
       "supported_scopes": [
@@ -41564,13 +41807,13 @@
         "capture_parameters": {}
       },
       "calibration": {
-        "origin": "source_analytic_no_observed_service",
-        "evaluation_relation": "new_target_not_used_for_fitting",
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
         "evidence_refs": [
           {
             "path": "cases/a3-v41-tp4dp4-128k-source.json",
-            "sha256": "05c38350c6595a9c53a8eaa8cafccfc4300c808658f88f2396dca6e9d9b841db",
-            "size_bytes": 135483
+            "sha256": "9cec43bd03825dc8443245d49ba193473186e622c7cf8a4321ca3195f0418f4b",
+            "size_bytes": 136924
           }
         ]
       },
@@ -41619,6 +41862,15 @@
           }
         ],
         "all_geometry_buckets_retained": true
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "ring_ar-c48-observed",
+          "ring_ar-c64-observed"
+        ]
       }
     },
     {
@@ -41640,8 +41892,8 @@
       },
       "model_case": {
         "path": "cases/a3-v41-tp4dp4-128k-source.json",
-        "sha256": "05c38350c6595a9c53a8eaa8cafccfc4300c808658f88f2396dca6e9d9b841db",
-        "size_bytes": 135483
+        "sha256": "9cec43bd03825dc8443245d49ba193473186e622c7cf8a4321ca3195f0418f4b",
+        "size_bytes": 136924
       },
       "sim_case_path": "cases/a3-v41-tp4dp4-128k-source.json",
       "supported_scopes": [
@@ -41684,13 +41936,13 @@
         "capture_parameters": {}
       },
       "calibration": {
-        "origin": "source_analytic_no_observed_service",
-        "evaluation_relation": "new_target_not_used_for_fitting",
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
         "evidence_refs": [
           {
             "path": "cases/a3-v41-tp4dp4-128k-source.json",
-            "sha256": "05c38350c6595a9c53a8eaa8cafccfc4300c808658f88f2396dca6e9d9b841db",
-            "size_bytes": 135483
+            "sha256": "9cec43bd03825dc8443245d49ba193473186e622c7cf8a4321ca3195f0418f4b",
+            "size_bytes": 136924
           }
         ]
       },
@@ -41739,6 +41991,15 @@
           }
         ],
         "all_geometry_buckets_retained": true
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "ring_ar-c48-observed",
+          "ring_ar-c64-observed"
+        ]
       }
     },
     {
@@ -41760,8 +42021,8 @@
       },
       "model_case": {
         "path": "cases/a3-v41-tp4dp4-128k-source.json",
-        "sha256": "05c38350c6595a9c53a8eaa8cafccfc4300c808658f88f2396dca6e9d9b841db",
-        "size_bytes": 135483
+        "sha256": "9cec43bd03825dc8443245d49ba193473186e622c7cf8a4321ca3195f0418f4b",
+        "size_bytes": 136924
       },
       "sim_case_path": "cases/a3-v41-tp4dp4-128k-source.json",
       "supported_scopes": [
@@ -41804,13 +42065,13 @@
         "capture_parameters": {}
       },
       "calibration": {
-        "origin": "source_analytic_no_observed_service",
-        "evaluation_relation": "new_target_not_used_for_fitting",
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
         "evidence_refs": [
           {
             "path": "cases/a3-v41-tp4dp4-128k-source.json",
-            "sha256": "05c38350c6595a9c53a8eaa8cafccfc4300c808658f88f2396dca6e9d9b841db",
-            "size_bytes": 135483
+            "sha256": "9cec43bd03825dc8443245d49ba193473186e622c7cf8a4321ca3195f0418f4b",
+            "size_bytes": 136924
           }
         ]
       },
@@ -41859,6 +42120,15 @@
           }
         ],
         "all_geometry_buckets_retained": true
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "ring_ar-c48-observed",
+          "ring_ar-c64-observed"
+        ]
       }
     },
     {
@@ -41880,8 +42150,8 @@
       },
       "model_case": {
         "path": "cases/a3-v41-tp4dp4-128k-source.json",
-        "sha256": "05c38350c6595a9c53a8eaa8cafccfc4300c808658f88f2396dca6e9d9b841db",
-        "size_bytes": 135483
+        "sha256": "9cec43bd03825dc8443245d49ba193473186e622c7cf8a4321ca3195f0418f4b",
+        "size_bytes": 136924
       },
       "sim_case_path": "cases/a3-v41-tp4dp4-128k-source.json",
       "supported_scopes": [
@@ -41924,13 +42194,13 @@
         "capture_parameters": {}
       },
       "calibration": {
-        "origin": "source_analytic_no_observed_service",
-        "evaluation_relation": "new_target_not_used_for_fitting",
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
         "evidence_refs": [
           {
             "path": "cases/a3-v41-tp4dp4-128k-source.json",
-            "sha256": "05c38350c6595a9c53a8eaa8cafccfc4300c808658f88f2396dca6e9d9b841db",
-            "size_bytes": 135483
+            "sha256": "9cec43bd03825dc8443245d49ba193473186e622c7cf8a4321ca3195f0418f4b",
+            "size_bytes": 136924
           }
         ]
       },
@@ -41979,6 +42249,15 @@
           }
         ],
         "all_geometry_buckets_retained": true
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "ring_ar-c48-observed",
+          "ring_ar-c64-observed"
+        ]
       }
     },
     {
@@ -42000,8 +42279,8 @@
       },
       "model_case": {
         "path": "cases/a3-v41-tp4dp4-128k-source.json",
-        "sha256": "05c38350c6595a9c53a8eaa8cafccfc4300c808658f88f2396dca6e9d9b841db",
-        "size_bytes": 135483
+        "sha256": "9cec43bd03825dc8443245d49ba193473186e622c7cf8a4321ca3195f0418f4b",
+        "size_bytes": 136924
       },
       "sim_case_path": "cases/a3-v41-tp4dp4-128k-source.json",
       "supported_scopes": [
@@ -42044,13 +42323,13 @@
         "capture_parameters": {}
       },
       "calibration": {
-        "origin": "source_analytic_no_observed_service",
-        "evaluation_relation": "new_target_not_used_for_fitting",
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
         "evidence_refs": [
           {
             "path": "cases/a3-v41-tp4dp4-128k-source.json",
-            "sha256": "05c38350c6595a9c53a8eaa8cafccfc4300c808658f88f2396dca6e9d9b841db",
-            "size_bytes": 135483
+            "sha256": "9cec43bd03825dc8443245d49ba193473186e622c7cf8a4321ca3195f0418f4b",
+            "size_bytes": 136924
           }
         ]
       },
@@ -42099,6 +42378,15 @@
           }
         ],
         "all_geometry_buckets_retained": true
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "ring_ar-c48-observed",
+          "ring_ar-c64-observed"
+        ]
       }
     },
     {
@@ -42120,8 +42408,8 @@
       },
       "model_case": {
         "path": "cases/a3-v41-tp4dp4-128k-source.json",
-        "sha256": "05c38350c6595a9c53a8eaa8cafccfc4300c808658f88f2396dca6e9d9b841db",
-        "size_bytes": 135483
+        "sha256": "9cec43bd03825dc8443245d49ba193473186e622c7cf8a4321ca3195f0418f4b",
+        "size_bytes": 136924
       },
       "sim_case_path": "cases/a3-v41-tp4dp4-128k-source.json",
       "supported_scopes": [
@@ -42164,13 +42452,13 @@
         "capture_parameters": {}
       },
       "calibration": {
-        "origin": "source_analytic_no_observed_service",
-        "evaluation_relation": "new_target_not_used_for_fitting",
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
         "evidence_refs": [
           {
             "path": "cases/a3-v41-tp4dp4-128k-source.json",
-            "sha256": "05c38350c6595a9c53a8eaa8cafccfc4300c808658f88f2396dca6e9d9b841db",
-            "size_bytes": 135483
+            "sha256": "9cec43bd03825dc8443245d49ba193473186e622c7cf8a4321ca3195f0418f4b",
+            "size_bytes": 136924
           }
         ]
       },
@@ -42219,6 +42507,15 @@
           }
         ],
         "all_geometry_buckets_retained": true
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "ring_ar-c48-observed",
+          "ring_ar-c64-observed"
+        ]
       }
     },
     {
@@ -42240,8 +42537,8 @@
       },
       "model_case": {
         "path": "cases/a3-v41-tp4dp4-128k-source.json",
-        "sha256": "05c38350c6595a9c53a8eaa8cafccfc4300c808658f88f2396dca6e9d9b841db",
-        "size_bytes": 135483
+        "sha256": "9cec43bd03825dc8443245d49ba193473186e622c7cf8a4321ca3195f0418f4b",
+        "size_bytes": 136924
       },
       "sim_case_path": "cases/a3-v41-tp4dp4-128k-source.json",
       "supported_scopes": [
@@ -42284,13 +42581,13 @@
         "capture_parameters": {}
       },
       "calibration": {
-        "origin": "source_analytic_no_observed_service",
-        "evaluation_relation": "new_target_not_used_for_fitting",
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
         "evidence_refs": [
           {
             "path": "cases/a3-v41-tp4dp4-128k-source.json",
-            "sha256": "05c38350c6595a9c53a8eaa8cafccfc4300c808658f88f2396dca6e9d9b841db",
-            "size_bytes": 135483
+            "sha256": "9cec43bd03825dc8443245d49ba193473186e622c7cf8a4321ca3195f0418f4b",
+            "size_bytes": 136924
           }
         ]
       },
@@ -42339,6 +42636,15 @@
           }
         ],
         "all_geometry_buckets_retained": true
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "ring_ar-c48-observed",
+          "ring_ar-c64-observed"
+        ]
       }
     },
     {
@@ -59644,8 +59950,8 @@
       },
       "model_case": {
         "path": "cases/a3-v41-tp4dp4-128k-source.json",
-        "sha256": "05c38350c6595a9c53a8eaa8cafccfc4300c808658f88f2396dca6e9d9b841db",
-        "size_bytes": 135483
+        "sha256": "9cec43bd03825dc8443245d49ba193473186e622c7cf8a4321ca3195f0418f4b",
+        "size_bytes": 136924
       },
       "sim_case_path": "cases/a3-v41-tp4dp4-128k-source.json",
       "supported_scopes": [
@@ -59688,13 +59994,13 @@
         "capture_parameters": {}
       },
       "calibration": {
-        "origin": "source_analytic_no_observed_service",
-        "evaluation_relation": "new_target_not_used_for_fitting",
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
         "evidence_refs": [
           {
             "path": "cases/a3-v41-tp4dp4-128k-source.json",
-            "sha256": "05c38350c6595a9c53a8eaa8cafccfc4300c808658f88f2396dca6e9d9b841db",
-            "size_bytes": 135483
+            "sha256": "9cec43bd03825dc8443245d49ba193473186e622c7cf8a4321ca3195f0418f4b",
+            "size_bytes": 136924
           },
           {
             "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/v41-8k-discovery.json",
@@ -59765,6 +60071,15 @@
             },
             "forward_count": 28
           }
+        ]
+      },
+      "calibration_provenance": {
+        "origin": "observed",
+        "evaluation_relation": "in_sample",
+        "heldout_observed_values_used_in_fit": true,
+        "modified_in_sample_rule_ids": [
+          "ring_ar-c48-observed",
+          "ring_ar-c64-observed"
         ]
       }
     }
