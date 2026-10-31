@@ -57,9 +57,7 @@ flowchart LR
 
 ## 快速开始
 
-### 方式一：直接把链接发给你的 Agent 自动安装（推荐）
-
-复制下面这句话发给你的 Claude Code、Codex、Kimi Code 或 Cursor，让它自动完成安装与环境验证：
+直接复制下面这句话发给你的 Claude Code、Codex、Kimi Code 或 DeepSeek Harness（DSH），由 AI Agent 自动完成安装与环境验证：
 
 ```text
 帮我安装并配置 https://github.com/mindie-agent/profiler
@@ -68,7 +66,7 @@ flowchart LR
 <details>
 <summary>🤖 <b>AI Agent 自动安装与使用协议（Instructions for AI Agents）</b></summary>
 
-如果你是收到上述指令的 AI Agent，请按以下步骤为当前用户或目标远端昇腾容器完成 `mindie-profiler` 的安装与校验：
+如果你是收到上述指令的 AI Agent，请按以下步骤为当前环境或目标远端昇腾容器完成 `mindie-profiler` 的安装与校验：
 
 1. **检查基础环境**：确认目标环境具备 Python `>= 3.11`（基础事件核算仅使用 Python 标准库，安装包配套依赖 `mindie-sim >= 0.8.1, < 0.9.0`；基础 CLI 不会初始化模型权重或 NPU 设备上下文）。
 2. **安装命令行与 Python 包**：
@@ -93,27 +91,6 @@ flowchart LR
    - 告知用户安装已完成，随时可以提供昇腾 Profiling 产物目录进行瓶颈分析或跨版本对比。
 
 </details>
-
-### 方式二：终端手动一行安装（适合人类开发者）
-
-只要环境中有 Python `>= 3.11` 和 `uv`（或 `pip`），一行命令即可完成安装：
-
-```bash
-# 安装为全局 CLI 工具
-uv tool install git+https://github.com/mindie-agent/profiler@main
-
-# 或安装到当前 Python 环境
-uv pip install git+https://github.com/mindie-agent/profiler@main
-```
-
-如果你想克隆源码在本地运行测试套件：
-
-```bash
-git clone https://github.com/mindie-agent/profiler.git
-cd profiler
-uv pip install -e ".[test]"
-pytest -m "not live_npu"
-```
 
 ---
 
@@ -161,9 +138,10 @@ pytest -m "not live_npu"
   python examples/structure/dsh_generalization_eval.py
   ```
   在 **280 个已注册 Decode 场景（100% 误差 `<= 15%`）**、**15 个已注册 Prefill 场景（100% 误差 `<= 15%`）** 以及 **561 个未注册 DSH 留出场景（546/561 即 `97.33%` 误差 `<= 15%`）** 共 **856 个可比场景中达到 `98.25%`（841/856）整体达标率**。
-- **补充工具接口**：
+- **补充工具与专家诊断接口**：
   - `mindie-profiler kernels --manifest ... --output-dir ...`：流式整理已有 Profiling 中的去重 Kernel / Shape 变体清单（参见 [`examples/kernel-inventory/README.md`](./examples/kernel-inventory/README.md)）。
   - `mindie-profiler camodel --trace ... --plan ... --output ...`：离线解析开发期 CAModel Chrome Trace 的微阶段耗时（保留 `simulated` 标记，参见 [`examples/camodel/README.md`](./examples/camodel/README.md)）。
+  - **算子调优规则、跨卡慢卡与显存取证 Python API**：内置 `evaluate_advisor_rules`（扫描 AICPU 回退、UB/MTE 对齐争用、可融合算子序列、Host 同步/GC 卡顿）、`attribute_cluster_stragglers_and_links` / `evaluate_ep_load_balance`（跨 Rank 慢卡与 MoE EP 负载均衡诊断）以及 `run_memory_forensics` / `detect_step_monotonic_leaks`（Step 单调显存泄漏与碎片取证）。
 
 ### 为什么 `mindie-profiler` 的数据不会骗人？
 
@@ -279,15 +257,16 @@ print(bundle.schema_version, bound.as_dict())
 ```text
 profiler/
 ├── mindie_profiler/                 # 核心 Python 包（基础核算可隔离导入，结构预测复用 Sim）
-│   ├── __main__.py / cli.py         # mindie-profiler CLI 入口（inventory / analyze / correlate / compare / sql）
+│   ├── __main__.py / cli.py         # mindie-profiler CLI 入口（inventory / analyze / correlate / compare / sql / camodel / kernels）
 │   ├── inventory.py / segment.py    # Rank 目录发现、DB/CSV/Trace 候选扫描与显式 Step/时间窗口解析
 │   ├── analyze.py / accounting.py   # 纳秒区间并集计量、窗口边界裁剪保护与 C7 JSON 生成
-│   ├── classify.py / cross_rank.py  # 执行引擎与语义块分类、变体聚合与跨 Rank 慢卡/P50 统计
+│   ├── classify.py / cross_rank.py  # 执行引擎与语义块分类、变体聚合与跨 Rank 慢卡/EP 负载均衡统计
+│   ├── advisor_rules.py             # AICPU 回退、对齐/MTE 争用、可融合序列与 Host GC 卡顿诊断规则
 │   ├── correlate.py                 # Host (PYTORCH_API/CANN_API) -> Device (TASK) 异步下发关联与 ACLGraph 检测
 │   ├── compare.py / cli_compare.py  # 跨运行 A/B 可比性校验与差异回执生成
 │   ├── sql.py / sources_*.py        # 只读 SQLite (mode=ro) 查询器、CSV 扫描器与流式 JSON Trace 索引
 │   ├── collect.py / framework_capture.py # 在线 /start_profile & /stop_profile 窗口控制与受控采集计划
-│   ├── memory_*.py / weight_inspector.py # P0-P4 多源峰值显存归因与 safetensors 权重分片检查器
+│   ├── memory_*.py / weight_inspector.py # P0-P4 多源峰值显存归因、显存泄漏取证与 safetensors 权重分片检查器
 │   ├── normalized.py / tensor_contracts.py # 共享原始观测与保守张量契约
 │   ├── structure_mapping.py        # 声明图与具体事件关联、层块区间核算
 │   ├── modeling_inputs.py / theoretical_model.py # 保留的观测导出与单算子理想 Roofline 下界

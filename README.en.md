@@ -57,9 +57,7 @@ flowchart LR
 
 ## Quick Start
 
-### Option 1: One-Sentence Agent-Native Install (Recommended)
-
-Copy and paste this prompt into Claude Code, Codex, Kimi Code, or Cursor to let your agent install and verify `mindie-profiler` automatically:
+Copy and paste this prompt into Claude Code, Codex, Kimi Code, or DeepSeek Harness (DSH) so your AI Agent installs and verifies `mindie-profiler` automatically:
 
 ```text
 Please install and configure https://github.com/mindie-agent/profiler for me
@@ -93,27 +91,6 @@ If you are an AI Agent receiving the prompt above, follow these steps to install
    - Inform the user that installation is complete and you are ready to analyze any Ascend profiler directory.
 
 </details>
-
-### Option 2: One-Line Terminal Install for Humans
-
-With Python `>= 3.11` and `uv` (or `pip`), install `mindie-profiler` in one line:
-
-```bash
-# Install globally as a CLI tool
-uv tool install git+https://github.com/mindie-agent/profiler@main
-
-# Or install into your current Python environment
-uv pip install git+https://github.com/mindie-agent/profiler@main
-```
-
-For local development and running the test suite from a Git checkout:
-
-```bash
-git clone https://github.com/mindie-agent/profiler.git
-cd profiler
-uv pip install -e ".[test]"
-pytest -m "not live_npu"
-```
 
 ---
 
@@ -161,9 +138,10 @@ pytest -m "not live_npu"
   python examples/structure/dsh_generalization_eval.py
   ```
   Achieves **100% (280/280)** within `<= 15%` error on registered Decode cases (`2.15%` mean error), **100% (15/15)** within `<= 15%` error on registered Prefill cases (`2.21%` mean error), and **97.33% (546/561)** within `<= 15%` error on unregistered DSH heldout captures — **98.25% (841/856) overall accuracy within 15%** with a `< 50 MiB` peak memory footprint.
-- **Additional Export Utilities**:
+- **Additional Export & Expert Diagnostic APIs**:
   - `mindie-profiler kernels --manifest ... --output-dir ...`: Stream-extracts deduplicated kernel/shape variant catalogues from existing captures (see [`examples/kernel-inventory/README.md`](./examples/kernel-inventory/README.md)).
   - `mindie-profiler camodel --trace ... --plan ... --output ...`: Offline extractor for CAModel Chrome trace micro-stage durations (tagged as `simulated`; see [`examples/camodel/README.md`](./examples/camodel/README.md)).
+  - **Advisor Rules, Cross-Rank Stragglers & Memory Forensics Python APIs**: Provides `evaluate_advisor_rules` (detecting AICPU fallbacks, UB/MTE alignment contention, fusible operator sequences, and host sync/GC freezes), `attribute_cluster_stragglers_and_links` / `evaluate_ep_load_balance` (cluster straggler and MoE EP load-balance diagnostics), and `run_memory_forensics` / `detect_step_monotonic_leaks` (step-monotonic memory leak and fragmentation forensics).
 
 ### Key Accounting & Classification Guarantees
 
@@ -282,16 +260,17 @@ print(bundle.schema_version, bound.as_dict())
 
 ```text
 profiler/
-├── mindie_profiler/                 # Core Python package (zero 3rd-party runtime deps, python -I clean)
-│   ├── __main__.py / cli.py         # mindie-profiler CLI entrypoint (inventory / analyze / correlate / compare / sql)
+├── mindie_profiler/                 # Core Python package (isolated basic accounting, paired with mindie-sim for structure)
+│   ├── __main__.py / cli.py         # mindie-profiler CLI entrypoint (inventory / analyze / correlate / compare / sql / camodel / kernels)
 │   ├── inventory.py / segment.py    # Rank discovery, DB/CSV/Trace scanning, explicit step/time window parsing
 │   ├── analyze.py / accounting.py   # Nanosecond interval union accounting, boundary clipping guard & C7 JSON
-│   ├── classify.py / cross_rank.py  # Execution engine & semantic block classification, variant grouping & cross-rank stats
+│   ├── classify.py / cross_rank.py  # Execution engine & semantic block classification, variant grouping & cross-rank/EP stats
+│   ├── advisor_rules.py             # AICPU fallback, alignment/MTE contention, fusible sequence & host GC freeze rules
 │   ├── correlate.py                 # Host (PYTORCH_API/CANN_API) -> Device (TASK) correlation & ACLGraph detection
 │   ├── compare.py / cli_compare.py  # Cross-run A/B comparability checks and diff receipt generation
 │   ├── sql.py / sources_*.py        # Read-only SQLite (mode=ro) runner, CSV reader & streaming JSON Trace index
 │   ├── collect.py / framework_capture.py # Online /start_profile & /stop_profile window controller & bounded capture plans
-│   ├── memory_*.py / weight_inspector.py # P0-P4 multi-source peak memory attribution & safetensors weight inspector
+│   ├── memory_*.py / weight_inspector.py # P0-P4 multi-source peak memory attribution, leak forensics & safetensors weight inspector
 │   ├── normalized.py / tensor_contracts.py # Shared raw observations & conservative tensor contracts
 │   ├── structure_mapping.py        # Declared graph/event association & layer/block interval accounting
 │   ├── modeling_inputs.py / theoretical_model.py # Retained observation export & ideal Roofline lower bound
