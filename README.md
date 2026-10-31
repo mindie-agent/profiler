@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/mindie-agent/mindie-agent/main/assets/brand/mindie-agent-logo.png" alt="MindIE Agent logo" width="128" height="128">
+  <img src="assets/brand/profiler-logo.png" alt="mindie-profiler logo" width="128" height="128">
 </p>
 
 <h1 align="center">MindIE Agent Profiler (<code>mindie-profiler</code>)</h1>
@@ -57,7 +57,7 @@ flowchart LR
 
 ## 快速开始
 
-直接复制下面这句话发给你的 Claude Code、Codex、Kimi Code 或 DeepSeek Harness（DSH），由 AI Agent 自动完成安装与环境验证：
+直接复制下面这句话发给你的 Claude Code、Codex、Kimi Code、DeepSeek Harness（DSH）或 Google Antigravity（AGY），由 AI Agent 自动完成安装与环境验证：
 
 ```text
 帮我安装并配置 https://github.com/mindie-agent/profiler

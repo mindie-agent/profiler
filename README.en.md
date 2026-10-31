@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/mindie-agent/mindie-agent/main/assets/brand/mindie-agent-logo.png" alt="MindIE Agent logo" width="128" height="128">
+  <img src="assets/brand/profiler-logo.png" alt="mindie-profiler logo" width="128" height="128">
 </p>
 
 <h1 align="center">MindIE Agent Profiler (<code>mindie-profiler</code>)</h1>
@@ -57,7 +57,7 @@ flowchart LR
 
 ## Quick Start
 
-Copy and paste this prompt into Claude Code, Codex, Kimi Code, or DeepSeek Harness (DSH) so your AI Agent installs and verifies `mindie-profiler` automatically:
+Copy and paste this prompt into Claude Code, Codex, Kimi Code, DeepSeek Harness (DSH), or Google Antigravity (AGY) so your AI Agent installs and verifies `mindie-profiler` automatically:
 
 ```text
 Please install and configure https://github.com/mindie-agent/profiler for me
