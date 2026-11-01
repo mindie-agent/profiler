@@ -20,8 +20,9 @@
 from __future__ import annotations
 
 from .__main__ import main
+from .sim_bridge import export_sim_case
 
-__all__ = ["main"]
+__all__ = ["export_sim_case", "main"]
 
 
 if __name__ == "__main__":

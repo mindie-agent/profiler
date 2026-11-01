@@ -57,6 +57,7 @@ from .memory_forensics import (
     detect_step_monotonic_leaks,
     run_memory_forensics,
 )
+from .sim_bridge import export_sim_case
 from .segment import (
     discover_rank_sources,
     find_csv_candidates,
@@ -98,6 +99,7 @@ __all__ = [
     "discover_rank_sources",
     "evaluate_advisor_rules",
     "evaluate_ep_load_balance",
+    "export_sim_case",
     "find_csv_candidates",
     "find_db_candidates",
     "find_trace_candidates",
