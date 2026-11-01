@@ -26,8 +26,8 @@ from .communication_bounds import dual_stream_moe_hidden_consumer, padded_hidden
 _MATRICES = {"MatMul", "MatMulV2", "MatMulV3", "QuantBatchMatmulV3",
              "QuantBatchMatmulV4", "TransposeBatchMatMul", "BatchMatMulV2"}
 _NORMS = {"RmsNorm", "RmsNormCast", "GemmaRmsNorm", "AddRmsNorm", "AddRmsNormBias",
-          "AddRmsNormDynamicQuant", "AddRmsNormDynamicMxQuant", "RmsNormQuant",
-          "RmsNormDynamicQuant", "RmsNormDynamicMxQuant"}
+          "AddRmsNormQuant", "AddRmsNormDynamicQuant", "AddRmsNormDynamicMxQuant",
+          "RmsNormQuant", "RmsNormDynamicQuant", "RmsNormDynamicMxQuant"}
 _ACTIVATIONS = {"SwiGlu", "SwiGLU", "DequantSwigluQuant", "SwigluQuant",
                 "GroupedMatmulSwigluQuant", "GroupedMatmulSwigluQuantV2",
                 "GroupedMatmulSwigluQuantWeightNz", "MoeInitRoutingV3",

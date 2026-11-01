@@ -19,7 +19,7 @@ import time
 
 from mindie_profiler.decode_segmentation import (
     _Row, _norm, _norm_start, _head, _body_end, _scope, _activation,
-    _MATRICES, _fused_ffn,
+    _MATRICES, _ANCHORS, _PREFILL_ANCHORS, _fused_ffn,
 )
 from mindie_profiler.normalized import kernel_rows
 
@@ -37,7 +37,8 @@ def anchor(row, config=None):
     if row.kind in {'ChunkFwdH','ChunkGatedDeltaRuleFwd'}:
         return 'gdn'
     if row.kind=='ChunkKdaFwd': return 'kda'
-    if row.kind=='SparseAttnSharedkv' and shape and shape[0]>16: return 'mla'
+    if row.kind in {'SparseAttnSharedkv','SparseFlashAttention','SparseFlashMla'} and shape and shape[0]>16:
+        return 'mla'
     if row.kind=='FusedInferAttentionScore':
         q=shape[2] if len(shape)==4 else shape[0] if len(shape)==3 else None
         kinds={p['attention'] for p in (config or {}).get('layer_plans',[])}
@@ -50,6 +51,8 @@ def _attention_query_rows(row):
     shape=row.inputs[0]
     if row.kind=='ChunkKdaFwd' and len(shape)==4:
         return shape[0]*shape[1]  # BSND, independently cross-checked with FIA TND.
+    if row.kind in {'SparseAttnSharedkv','SparseFlashAttention','SparseFlashMla'} and shape:
+        return shape[0]
     if row.kind=='FusedInferAttentionScore':
         return shape[0]*shape[2] if len(shape)==4 else shape[0] if len(shape)==3 else None
     return None
@@ -120,6 +123,70 @@ def _anchor_groups(rows, config):
     return merged
 
 
+def _prefill_head(row, config):
+    hidden=config.get('hidden_size')
+    return _head(row,config) or (
+        row.kind=='Index' and row.inputs==((1,hidden),(1,),(2,),(1,))
+        and row.outputs==((1,hidden),))
+
+
+def _dp_partner_align(rows, config, ordinal, err):
+    mla=[i for i,r in enumerate(rows) if r.kind in {'SparseFlashMla','SparseFlashAttention','SparseAttnSharedkv'}]
+    mla_set=set(mla)
+    other_attn=any(r.kind in _ANCHORS or r.kind in _PREFILL_ANCHORS for i,r in enumerate(rows) if i not in mla_set)
+    plans=config.get('layer_plans',[])
+    if not plans or other_attn or [p.get('attention') for p in plans]!=['mla']*len(mla):
+        return None,err
+    routed=[r for r in rows if r.kind=='MoeInitRoutingV3' and r.inputs and r.inputs[0] and r.inputs[0][0]>64]
+    bcast=[r for r in rows[:mla[0]] if r.kind=='BroadcastTo' and r.inputs==((1,),(1,))
+           and r.outputs and r.outputs[0] and r.outputs[0][0]>=63]
+    if len(routed)!=sum(1 for p in plans if p.get('ffn')=='moe') or not bcast:
+        return None,err
+    query=int(bcast[-1].outputs[0][0])+1; hidden=config['hidden_size']
+    norms=[i for i,r in enumerate(rows) if _norm(r,hidden)]
+    starts=[]; prev=-1
+    for idx in mla:
+        choices=[i for i in norms if prev<i<idx]
+        if not choices: return None,err
+        starts.append(_norm_start(rows,choices[-1],hidden)); prev=idx
+    finals=[i for i in norms if i>mla[-1]]
+    if len(finals)<2: return None,err
+    final=_norm_start(rows,finals[-1],hidden)
+    end=_body_end(rows,final,mla[-1],plans[-1],1,hidden)
+    if end is None: return None,err
+    successor=rows[end if end<final else finals[-1]]
+    layers=[]
+    for i,(s,e,attn,p) in enumerate(zip(starts,[*starts[1:],end],mla,plans)):
+        ffn=[idx for idx in norms if attn<idx<e]
+        if not ffn: return None,err
+        rem=rows[ffn[0]+1:e]
+        acts=[idx for idx,r in enumerate(rem) if _activation(r)]
+        if not acts: return None,err
+        has_gmm=any(r.kind.startswith('GroupedMatmul') for r in rem) if p.get('ffn')=='moe' else True
+        has_swiglu=any('Swi' in r.kind or 'swiglu' in r.kind.lower() for r in rem)
+        fused=rem[acts[0]]
+        returned=(_fused_ffn(fused) and fused.outputs[0][-1]==hidden) or any(
+            r.outputs and r.outputs[0] and r.outputs[0][-1]==hidden
+            and (r.kind in _MATRICES or r.kind.startswith('GroupedMatmul')
+                 or any(k in r.kind for k in ('Unpermute','FinalizeRouting','DistributeCombine')))
+            for r in rem[acts[0]+1:])
+        if not (has_gmm and has_swiglu and returned): return None,err
+        nxt=rows[starts[i+1]] if i+1<len(plans) else successor
+        layers.append(_scope(rows[s:e],'moe_layer' if p['ffn']=='moe' else 'dense_layer',
+                             f'prefill:{ordinal}/layer:{i}',layer=i,plan=p,successor=nxt))
+    compact_layers=[{key:value for key,value in layer.items() if key in (
+        'layer_id','attention','start_ns','end_ns','span_ms','device_activity_union_ms',
+        'internal_uncovered_gap_ms','event_count','excluded_tail_wait_events','excluded_tail_wait_activity_ms')}
+        | {'first_csv_line':layer['evidence']['first_locator'].get('csv_line'),
+           'last_csv_line':layer['evidence']['last_locator'].get('csv_line')} for layer in layers]
+    return {'forward_id':f'prefill:{ordinal}','phase':'prefill','query_rows':query,
+            'dp_partner_prefill':True,
+            'basis':'dp_partner_ep_alltoall_prefill_chunk_with_engram_mask_query_rows',
+            'body':_scope(rows[starts[0]:end],'target_body',f'prefill:{ordinal}',successor=successor),
+            'layers':compact_layers,'head':_scope(rows[-1:],'lm_head',f'head:{ordinal}'),
+            'matched_layer_count':len(layers),'body_includes_mtp':False},None
+
+
 def align(rows, config, ordinal):
     hidden=config['hidden_size']; plans=config['layer_plans']
     groups=_anchor_groups(rows,config)
@@ -127,8 +194,9 @@ def align(rows, config, ordinal):
     actual=[kind for _,kind in anchors]
     expected=[p['attention'] for p in plans]
     if actual!=expected:
-        return None,{'reason':'ordered_prefill_layer_plan_mismatch','anchor_count':len(actual),
-                     'expected_layers':len(expected),'head_locator':rows[-1].event.locator}
+        return _dp_partner_align(rows,config,ordinal,
+            {'reason':'ordered_prefill_layer_plan_mismatch','anchor_count':len(actual),
+             'expected_layers':len(expected),'head_locator':rows[-1].event.locator})
     norms=[i for i,r in enumerate(rows) if _norm(r,hidden)]
     starts=[]; inputs=[]; prev=-1
     for index,_ in anchors:
@@ -209,7 +277,7 @@ def extract_events(events, config, *, max_active_events=25000):
             if anchor(row,config) is not None:
                 raise ValueError('unclosed_prefill_segment_exceeds_bound')
             counts['unclosed_non_prefill_events']+=1
-            if _head(row,config):discard_non_prefill=False
+            if _prefill_head(row,config):discard_non_prefill=False
             continue
         active.append(row)
         has_prefill=has_prefill or anchor(row,config) is not None
@@ -219,7 +287,7 @@ def extract_events(events, config, *, max_active_events=25000):
             counts['unclosed_non_prefill_segments']+=1
             active=[];discard_non_prefill=True
             continue
-        if not _head(row,config):continue
+        if not _prefill_head(row,config):continue
         result,error=align(active,config,len(forwards))
         if result:
             forwards.append(result);counts['selected_body_events']+=result['body']['event_count']
