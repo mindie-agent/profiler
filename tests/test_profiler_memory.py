@@ -13,6 +13,7 @@ from mindie_profiler.memory_profile import (
     attribute_memory,
     compare_peaks,
     parse_vllm_logs,
+    parse_xllm_logs,
     to_bytes,
 )
 from mindie_profiler.weight_inspector import (
@@ -363,3 +364,48 @@ def test_default_residual_target_uses_strict_decimal_megabytes(residual, accepte
     result = attribute_memory(manifest)
     assert result["devices"][0]["residual"]["bytes"] == residual
     assert result["target_met"] is accepted
+
+
+def test_parse_xllm_logs_extracts_xtensor_vmm_watermarks_and_profile_manager_steps():
+    log_text = (
+        "I20261102 12:00:01.000 shared_vmm_allocator.cpp:142] "
+        "shared_vmm_allocator: allocated_pages=384, high_watermark_pages=512, total_pages=1024, page_size=2097152\n"
+        "I20261102 12:00:02.000 xtensor_kv_cache.cpp:88] "
+        "xTensor KV cache: used=12.5 GiB, peak=14.0 GiB, reserved=16.0 GiB\n"
+        "I20261102 12:00:03.000 profile_manager.cpp:64] "
+        "ProfileManager: step=10 mode=prefill batch_size=4 token_latency_ms=10.5 step_latency_ms=42.5\n"
+        "I20261102 12:00:03.100 profile_manager.cpp:64] "
+        "ProfileManager: step=11 mode=decode batch_size=4 token_latency_ms=2.8 step_latency_ms=11.25\n"
+    )
+    parsed = parse_xllm_logs(log_text)
+    assert parsed["xtensor_allocated_pages"] == 384
+    assert parsed["xtensor_high_watermark_pages"] == 512
+    assert parsed["xtensor_total_pages"] == 1024
+    assert parsed["xtensor_page_size_bytes"] == 2097152
+    assert parsed["xtensor_high_watermark_bytes"] == 512 * 2097152
+    assert parsed["xtensor_kv_used_gib"] == 12.5
+    assert parsed["xtensor_kv_peak_gib"] == 14.0
+    assert parsed["xtensor_kv_reserved_gib"] == 16.0
+    assert parsed["profile_manager_steps"] == [
+        {"step": 10, "mode": "prefill", "batch_size": 4, "token_latency_ms": 10.5, "step_latency_ms": 42.5},
+        {"step": 11, "mode": "decode", "batch_size": 4, "token_latency_ms": 2.8, "step_latency_ms": 11.25},
+    ]
+    assert parsed["profile_manager_step_count"] == 2
+    assert parsed["profile_manager_max_step_latency_ms"] == 42.5
+
+    # Verify attribute_memory with xllm_log attributes xTensor KV cache without reporting kv_cache_missing
+    manifest = _manifest_full()
+    manifest.pop("vllm_info")
+    manifest["xllm_log"] = (
+        "Loading model weights took 2.0 GB\n"
+        "xTensor KV cache: used=1.0 GB, peak=1.2 GB, reserved=2.0 GB\n"
+    )
+    attr = attribute_memory(manifest)
+    dev0 = attr["devices"][0]
+    comps = _components(dev0)
+    assert "kv_cache" in comps
+    assert comps["kv_cache"]["source"]["kind"] == "xllm_xtensor_log"
+    assert comps["kv_cache"]["bytes"] == 1 * GB
+    assert "kv_cache_missing" not in {item["code"] for item in dev0["missing_sources"]}
+
+

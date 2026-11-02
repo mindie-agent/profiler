@@ -29,7 +29,7 @@ from __future__ import annotations
 from typing import Any, Iterable, Mapping
 
 from .memory_compare import compare_peaks
-from .memory_logs import parse_vllm_logs
+from .memory_logs import parse_mindie_sd_logs, parse_vllm_logs, parse_xllm_logs, resolve_kv_log_measurement
 from .memory_p0 import npu_mem_candidates, op_memory_candidates
 from .memory_peak import baseline_and_allocator_candidates, peak_wall_interval
 from .memory_units import UNIT_FACTORS, _is_number, to_bytes
@@ -279,22 +279,12 @@ def _weight_candidates(*, vllm: Mapping[str, Any], weight_manifest: Mapping[str,
     return candidates, limitations
 
 def _kv_candidate(vllm: Mapping[str, Any], *, device_id: int) -> dict[str, Any] | None:
-    if _is_number(vllm.get("kv_cache_current_bytes")):
-        value, unit, raw = float(vllm["kv_cache_current_bytes"]), "B", vllm["kv_cache_current_bytes"]
-        ref = "vllm log: Current KV cache memory"
-    elif _is_number(vllm.get("kv_cache_current_gib")):
-        value, unit, raw = to_bytes(vllm["kv_cache_current_gib"], "GiB"), "GiB", vllm["kv_cache_current_gib"]
-        ref = "vllm log: Current KV cache memory"
-    elif _is_number(vllm.get("kv_cache_current_gb")):
-        value, unit, raw = to_bytes(vllm["kv_cache_current_gb"], "GB"), "GB", vllm["kv_cache_current_gb"]
-        ref = "vllm log: Current KV cache memory"
-    elif _is_number(vllm.get("kv_cache_bytes")):
-        value, unit, raw = float(vllm["kv_cache_bytes"]), "B", vllm["kv_cache_bytes"]
-        ref = "vllm log: kv_cache_bytes"
-    else:
+    resolved = resolve_kv_log_measurement(vllm)
+    if resolved is None:
         return None
+    value, unit, raw, kind, ref = resolved
     return _candidate(key="kv_cache", label="KV cache reservation", byte_value=value, priority="P2",
-                      kind="vllm_log", ref=ref, phase="ready",
+                      kind=kind, ref=ref, phase="ready",
                       device_id=device_id, scope_kind="device", unit=unit, raw=raw,
                       evidence="explicit current KV cache memory; Available KV cache memory is only a budget", exact=unit == "B")
 
@@ -702,10 +692,13 @@ def attribute_memory(manifest: Mapping[str, Any], *, residual_target_bytes: floa
     if not isinstance(manifest, Mapping):
         raise TypeError("manifest must be a mapping")
     vllm: dict[str, Any] = {}
-    log_text = manifest.get("vllm_log") or manifest.get("log_text")
+    log_text = manifest.get("vllm_log") or manifest.get("xllm_log") or manifest.get("mindie_sd_log") or manifest.get("log_text")
     if isinstance(log_text, str):
         vllm.update(parse_vllm_logs(log_text))
-    for mapping in (manifest.get("vllm_info"), vllm_info):
+        sd_parsed = parse_mindie_sd_logs(log_text)
+        if manifest.get("mindie_sd_log") or len(sd_parsed) > 2:
+            vllm.update(sd_parsed)
+    for mapping in (manifest.get("vllm_info"), manifest.get("xllm_info"), manifest.get("mindie_sd_info"), vllm_info):
         if isinstance(mapping, Mapping):
             vllm.update(dict(mapping))
     weights = weight_manifest if weight_manifest is not None else manifest.get("weight_manifest")
@@ -786,6 +779,6 @@ from .memory_forensics import (  # noqa: E402
 __all__ = [
     "DEFAULT_RESIDUAL_TARGET_BYTES", "MEMORY_FORENSICS_SCHEMA", "PRIORITIES", "SCHEMA_VERSION",
     "analyze_memory_inefficiencies", "attribute_device", "attribute_memory", "compare_peaks",
-    "detect_step_monotonic_leaks", "estimate_weights_from_config", "parse_vllm_logs",
-    "run_memory_forensics", "to_bytes",
+    "detect_step_monotonic_leaks", "estimate_weights_from_config", "parse_mindie_sd_logs",
+    "parse_vllm_logs", "parse_xllm_logs", "run_memory_forensics", "to_bytes",
 ]

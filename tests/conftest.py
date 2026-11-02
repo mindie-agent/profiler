@@ -20,6 +20,8 @@ def isolated_runtime(tmp_path, monkeypatch):
         ('XDG_CONFIG_HOME', 'xdg-config'),
         ('XDG_STATE_HOME', 'xdg-state'),
         ('LOCALAPPDATA', 'local-app-data'),
+        ('MINDIE_CONFIG_HOME', 'mindie-config'),
+        ('MINDIE_DATA_HOME', 'mindie-data'),
     ):
         monkeypatch.setenv(key, str(root / name))
     monkeypatch.setenv('MINDIE_DIAGNOSTICS_ROOT', str(root / 'isolated-diagnostics'))

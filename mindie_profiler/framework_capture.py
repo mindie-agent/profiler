@@ -57,11 +57,13 @@ EXPERIMENTAL_CONFIG = {
 ACTIVITIES = ("CPU", "NPU")
 ARTIFACT_PATTERNS = {
     "db": "ascend_pytorch_profiler*.db",
+    "msprof_db": "msprof_*.db",
     "kernel_details": "kernel_details.csv",
     "trace_view": "trace_view.json",
     "npu_module_mem": "npu_module_mem_*.csv",
     "memory_record": "memory_record*.csv",
 }
+SUPPORTED_CAPTURE_FRAMEWORKS = ("torch_npu", "vllm", "xllm", "mindie-sd")
 
 
 class ProfileWindowError(ValueError):
@@ -87,11 +89,34 @@ def _integer(value: Any, field: str) -> int:
     return value
 
 
-def build_capture_plan(start_step: int, end_step: int, *, repeat: int = 1) -> dict[str, Any]:
-    """Map caller bounds to the exact torch_npu schedule and prove containment."""
+def build_xllm_capture_plan(
+    start_step: int,
+    end_step: int,
+    *,
+    command: list[str] | tuple[str, ...] | None = None,
+    output_dir: str | Path = "./xllm_profile",
+) -> dict[str, Any]:
+    """Build an xLLM capture plan using USE_MSPTI=1, LLM_MSTX_RANGE, and msprof wrapping."""
+    base = build_capture_plan(start_step, end_step, framework="xllm", command=command, output_dir=output_dir)
+    return base
+
+
+def build_capture_plan(
+    start_step: int,
+    end_step: int,
+    *,
+    repeat: int = 1,
+    framework: str = "torch_npu",
+    command: list[str] | tuple[str, ...] | None = None,
+    output_dir: str | Path | None = None,
+) -> dict[str, Any]:
+    """Map caller bounds to the exact torch_npu or xLLM MSPTI/msprof schedule and prove containment."""
     start_step = _integer(start_step, "start_step")
     end_step = _integer(end_step, "end_step")
     repeat = _integer(repeat, "repeat")
+    fw = str(framework or "torch_npu").strip().lower()
+    if fw not in SUPPORTED_CAPTURE_FRAMEWORKS:
+        raise ProfileWindowError("unsupported_framework", f"unsupported framework {framework!r}", {"framework": framework})
     if start_step < 0:
         raise ProfileWindowError("invalid_step", "start_step must be non-negative", {"start_step": start_step})
     if end_step <= start_step:
@@ -135,8 +160,9 @@ def build_capture_plan(start_step: int, end_step: int, *, repeat: int = 1) -> di
     if not inequality["satisfied"]:
         raise ProfileWindowError("window_crosses_bounds",
                                  "derived schedule escapes the caller-declared window", inequality)
-    return {
+    plan: dict[str, Any] = {
         "schema_version": PLAN_SCHEMA,
+        "framework": fw,
         "caller_window": {
             "start_step": start_step,
             "end_step": end_step,
@@ -165,6 +191,27 @@ def build_capture_plan(start_step: int, end_step: int, *, repeat: int = 1) -> di
         "experimental_config": dict(EXPERIMENTAL_CONFIG),
         "activities": list(ACTIVITIES),
     }
+    if fw == "xllm":
+        out_str = str(output_dir or "./xllm_profile")
+        app_argv = [str(x) for x in (command or ("xllm",))]
+        plan["xllm_capture"] = {
+            "profiler_backend": "mspti_msprof",
+            "env": {
+                "USE_MSPTI": "1",
+                "LLM_MSTX_RANGE": f"{start_step}:{end_step}",
+            },
+            "output_dir": out_str,
+            "application_argv": app_argv,
+            "msprof_argv": [
+                "msprof",
+                f"--output={out_str}",
+                "--mstx=on",
+                "--aic-metrics=PipeUtilization",
+                "--sys-hardware-mem=on",
+                "--application=" + " ".join(app_argv),
+            ],
+        }
+    return plan
 
 
 def validate_window_inequality(start_step: int, end_step: int, *, repeat: int = 1) -> dict[str, Any]:
@@ -368,7 +415,7 @@ def evaluate_capture_success(
 ) -> dict[str, Any]:
     """Gate success on a real, non-empty DB export and contained active timing."""
     non_empty = [item for item in artifacts.get("artifacts", []) if item.get("non_empty")]
-    db_non_empty = [item for item in non_empty if item.get("kind") == "db"]
+    db_non_empty = [item for item in non_empty if item.get("kind") in ("db", "msprof_db")]
     requirements = {
         "stop_acknowledged": bool(stop_acknowledged),
         "artifact_scan_ok": bool(artifacts.get("ok")),
@@ -685,8 +732,10 @@ __all__ = [
     "EXPERIMENTAL_CONFIG",
     "FrameworkCaptureUnavailable",
     "ProfileWindowError",
+    "SUPPORTED_CAPTURE_FRAMEWORKS",
     "assert_plan_satisfied",
     "build_capture_plan",
+    "build_xllm_capture_plan",
     "evaluate_capture_success",
     "export_budget_exceeded",
     "run_framework_capture",

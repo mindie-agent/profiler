@@ -128,27 +128,15 @@ def profile_window_from_serve_args(
             config = json.loads(config_text)
         except json.JSONDecodeError as exc:
             return ProfileWindowInjection(
-                enabled=False,
-                framework="vllm",
-                profiler="torch",
-                profile_dir="",
-                endpoint=endpoint,
-                execution_id=execution_id,
-                api_server_count=None,
-                source="serve_args_invalid",
-                detail=f"invalid --profiler-config JSON: {exc}",
+                enabled=False, framework="vllm", profiler="torch", profile_dir="",
+                endpoint=endpoint, execution_id=execution_id, api_server_count=None,
+                source="serve_args_invalid", detail=f"invalid --profiler-config JSON: {exc}",
             )
         if not isinstance(config, Mapping):
             return ProfileWindowInjection(
-                enabled=False,
-                framework="vllm",
-                profiler="torch",
-                profile_dir="",
-                endpoint=endpoint,
-                execution_id=execution_id,
-                api_server_count=None,
-                source="serve_args_invalid",
-                detail="--profiler-config is not an object",
+                enabled=False, framework="vllm", profiler="torch", profile_dir="",
+                endpoint=endpoint, execution_id=execution_id, api_server_count=None,
+                source="serve_args_invalid", detail="--profiler-config is not an object",
             )
         count = _arg_value(argv, "--api-server-count")
         try:
@@ -156,42 +144,66 @@ def profile_window_from_serve_args(
         except ValueError:
             api_server_count = None
         raw_export = config.get("export_type")
-        if isinstance(raw_export, (list, tuple)):
-            export_type = ",".join(str(item) for item in raw_export)
-        else:
-            export_type = str(raw_export) if raw_export is not None else None
+        export_type = (
+            ",".join(str(item) for item in raw_export)
+            if isinstance(raw_export, (list, tuple))
+            else (str(raw_export) if raw_export is not None else None)
+        )
         return ProfileWindowInjection(
-            enabled=True,
-            framework="vllm",
-            profiler=str(config.get("profiler") or "torch"),
-            profile_dir=str(config.get("torch_profiler_dir") or ""),
-            endpoint=endpoint,
-            execution_id=execution_id,
-            api_server_count=api_server_count,
-            export_type=export_type,
-            source="serve_args",
+            enabled=True, framework="vllm", profiler=str(config.get("profiler") or "torch"),
+            profile_dir=str(config.get("torch_profiler_dir") or ""), endpoint=endpoint,
+            execution_id=execution_id, api_server_count=api_server_count,
+            export_type=export_type, source="serve_args",
+        )
+    cmd_head = os.path.basename(argv[0]) if argv else ""
+    fw_flag = (_arg_value(argv, "--framework") or "").strip().lower()
+    is_sd_cmd = (
+        fw_flag in {"mindie-sd", "mindiesd", "mindie_sd"}
+        or cmd_head in {"mindiesd", "mindie-sd", "mindie_sd", "mindie_bench.py", "xpu-perf-plugin"}
+        or any(os.path.basename(tok) in {"mindie_bench.py", "xpu-perf-plugin"} or "mindiesd" in tok for tok in argv[:3])
+    )
+    sd_enable = str(env.get("MINDIE_SD_PROFILER_ENABLE") or "").strip().lower() in {"1", "true", "yes"}
+    sd_env_dir = str(env.get("MINDIE_SD_PROFILE_DIR") or "").strip()
+    if is_sd_cmd or sd_enable or sd_env_dir:
+        sd_dir = str(_arg_value(argv, "--profile_dir") or sd_env_dir or "./mindie_sd_profile").strip()
+        if isinstance(environ, dict):
+            environ.setdefault("MINDIE_SD_PROFILER_ENABLE", "1")
+            environ.setdefault("MINDIE_SD_PROFILER_WARMUP_STEPS", "2")
+        warmup = str(env.get("MINDIE_SD_PROFILER_WARMUP_STEPS") or "2").strip()
+        return ProfileWindowInjection(
+            enabled=True, framework="mindie-sd", profiler="torch",
+            profile_dir=sd_dir, endpoint=endpoint, execution_id=execution_id,
+            api_server_count=1, export_type="db", source="mindie_sd_env_or_args",
+            detail=f"MINDIE_SD_PROFILER_ENABLE=1,MINDIE_SD_PROFILER_WARMUP_STEPS={warmup}",
+        )
+    is_xllm_cmd = cmd_head in {"xllm", "xllm-service", "xllm_service"} or any(
+        tok in {"--enable_mspti", "--mstx_range"} for tok in argv
+    )
+    use_mspti = str(env.get("USE_MSPTI") or "").strip().lower() in {"1", "true", "yes"}
+    mstx_range = str(env.get("LLM_MSTX_RANGE") or _arg_value(argv, "--mstx_range") or "").strip()
+    xllm_prof_dir = str(
+        _arg_value(argv, "--profile_dir") or _arg_value(argv, "--profiler_dir")
+        or env.get("XLLM_PROFILER_DIR") or env.get("MSPROF_OUTPUT_DIR") or ""
+    ).strip()
+    if is_xllm_cmd or use_mspti or mstx_range or xllm_prof_dir:
+        enabled = bool(use_mspti or mstx_range or xllm_prof_dir or "--enable_mspti" in argv)
+        return ProfileWindowInjection(
+            enabled=enabled, framework="xllm",
+            profiler="mspti" if (use_mspti or mstx_range or "--enable_mspti" in argv) else "msprof",
+            profile_dir=xllm_prof_dir or ("./xllm_profile" if enabled else ""),
+            endpoint=endpoint, execution_id=execution_id, api_server_count=1, export_type="db",
+            source="xllm_env_or_args" if enabled else "absent",
+            detail=f"LLM_MSTX_RANGE={mstx_range}" if mstx_range else "",
         )
     env_dir = str(env.get("VLLM_TORCH_PROFILER_DIR") or "")
     if env_dir:
         return ProfileWindowInjection(
-            enabled=True,
-            framework="vllm",
-            profiler="torch",
-            profile_dir=env_dir,
-            endpoint=endpoint,
-            execution_id=execution_id,
-            api_server_count=None,
-            source="environment",
+            enabled=True, framework="vllm", profiler="torch", profile_dir=env_dir,
+            endpoint=endpoint, execution_id=execution_id, api_server_count=None, source="environment",
         )
     return ProfileWindowInjection(
-        enabled=False,
-        framework="vllm",
-        profiler="torch",
-        profile_dir="",
-        endpoint=endpoint,
-        execution_id=execution_id,
-        api_server_count=None,
-        source="absent",
+        enabled=False, framework="vllm", profiler="torch", profile_dir="",
+        endpoint=endpoint, execution_id=execution_id, api_server_count=None, source="absent",
     )
 
 
@@ -247,20 +259,12 @@ def check_profile_window(injection: ProfileWindowInjection | Mapping[str, Any]) 
     issues: list[dict[str, str]] = []
     warnings: list[dict[str, str]] = []
     if not window.enabled:
-        issues.append({
-            "code": "window_not_enabled",
-            "message": "no framework-injected profiler window is enabled",
-        })
-    if window.framework != "vllm":
-        issues.append({
-            "code": "framework_unsupported",
-            "message": f"framework {window.framework!r} does not provide these endpoints",
-        })
-    if window.profiler != "torch":
-        issues.append({
-            "code": "profiler_unsupported",
-            "message": f"profiler {window.profiler!r} is not the torch endpoint contract",
-        })
+        issues.append({"code": "window_not_enabled", "message": "no framework-injected profiler window is enabled"})
+    if window.framework not in ("vllm", "xllm", "mindie-sd"):
+        issues.append({"code": "framework_unsupported", "message": f"framework {window.framework!r} does not provide these endpoints"})
+    allowed_profilers = ("torch", "mspti", "msprof") if window.framework in ("xllm", "mindie-sd") else ("torch",)
+    if window.profiler not in allowed_profilers:
+        issues.append({"code": "profiler_unsupported", "message": f"profiler {window.profiler!r} is not supported for {window.framework}"})
     if not window.profile_dir.strip() or "\n" in window.profile_dir or "\x00" in window.profile_dir:
         issues.append({"code": "profile_dir_missing", "message": "profile output directory is empty or invalid"})
     if not window.execution_id.strip():
@@ -765,17 +769,10 @@ def main(argv: list[str] | None = None) -> int:
         )
     else:
         injection = ProfileWindowInjection(
-            enabled=True,
-            framework="vllm",
-            profiler="torch",
-            profile_dir=args.profile_dir,
-            endpoint=args.endpoint,
-            execution_id=args.execution_id,
-            source="cli",
+            enabled=True, framework="vllm", profiler="torch", profile_dir=args.profile_dir,
+            endpoint=args.endpoint, execution_id=args.execution_id, source="cli",
         )
-    controller = ProfileController(
-        injection, timeout=args.timeout, receipt_path=args.receipt
-    )
+    controller = ProfileController(injection, timeout=args.timeout, receipt_path=args.receipt)
     result = controller.start() if args.action == "start_profile" else controller.stop()
     print(json.dumps(result, ensure_ascii=False))
     return 0 if result["status"] == "ok" else 1
@@ -786,14 +783,7 @@ if __name__ == "__main__":
 
 
 __all__ = [
-    "ALLOWED_ACTIONS",
-    "CONTROL_SCHEMA",
-    "ProfileController",
-    "ProfileWindowInjection",
-    "check_profile_window",
-    "load_receipt",
-    "post_profile_action",
-    "profile_window_from_serve_args",
-    "start_profile",
-    "stop_profile",
+    "ALLOWED_ACTIONS", "CONTROL_SCHEMA", "ProfileController", "ProfileWindowInjection",
+    "check_profile_window", "load_receipt", "post_profile_action",
+    "profile_window_from_serve_args", "start_profile", "stop_profile",
 ]

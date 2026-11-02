@@ -280,3 +280,37 @@ def test_framework_injection_is_derived_from_serve_args_and_environment(monkeypa
     absent = profile_window_from_serve_args([], endpoint=endpoint, execution_id="exec-none", environ={})
     assert absent.enabled is False
     assert check_profile_window(absent)["issues"][0]["code"] == "window_not_enabled"
+
+
+def test_xllm_profile_window_detection_from_serve_args_and_mspti_env():
+    endpoint = "http://127.0.0.1:9999"
+    xllm_env = {
+        "USE_MSPTI": "1",
+        "LLM_MSTX_RANGE": "forward_step",
+        "XLLM_PROFILER_DIR": "/tmp/xllm_mspti_traces",
+    }
+    inj = profile_window_from_serve_args(
+        ["xllm", "--model", "/models/DeepSeek-R1"],
+        endpoint=endpoint,
+        execution_id="exec-xllm",
+        environ=xllm_env,
+    )
+    assert inj.enabled is True
+    assert inj.framework == "xllm"
+    assert inj.profiler == "mspti"
+    assert inj.profile_dir == "/tmp/xllm_mspti_traces"
+    assert inj.export_type == "db"
+    assert check_profile_window(inj)["ok"] is True
+
+    # Non-executable path arguments like --model /data/xllm do not hijack vLLM commands
+    vllm_with_xllm_path = profile_window_from_serve_args(
+        ["vllm", "serve", "--model", "/data/xllm", "--profiler-config", '{"profiler":"torch","torch_profiler_dir":"./vllm_prof"}'],
+        endpoint=endpoint,
+        execution_id="exec-vllm-path",
+        environ={},
+    )
+    assert vllm_with_xllm_path.framework == "vllm"
+    assert vllm_with_xllm_path.enabled is True
+    assert vllm_with_xllm_path.profile_dir == "./vllm_prof"
+
+

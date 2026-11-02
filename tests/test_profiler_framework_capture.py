@@ -14,6 +14,7 @@ from mindie_profiler.framework_capture import (
     EXPERIMENTAL_CONFIG,
     ProfileWindowError,
     build_capture_plan,
+    build_xllm_capture_plan,
     evaluate_capture_success,
     export_budget_exceeded,
     run_framework_capture,
@@ -206,3 +207,35 @@ def test_live_online_cycle_refuses_without_workload_command():
     payload = json.loads(completed.stdout)
     assert payload["status"] == "failed"
     assert "--workload-command" in payload["error"]
+
+
+def test_xllm_capture_plan_wraps_msprof_with_mspti_and_mstx_env(tmp_path: Path):
+    plan = build_xllm_capture_plan(
+        1,
+        4,
+        command=["xllm", "--model", "/models/Qwen3-8B"],
+        output_dir="/tmp/xllm_prof",
+    )
+    assert plan["framework"] == "xllm"
+    assert plan["schedule"]["active"] == 3
+    xllm_cap = plan["xllm_capture"]
+    assert xllm_cap["profiler_backend"] == "mspti_msprof"
+    assert xllm_cap["env"] == {"USE_MSPTI": "1", "LLM_MSTX_RANGE": "1:4"}
+    assert xllm_cap["msprof_argv"][:2] == ["msprof", "--output=/tmp/xllm_prof"]
+    assert "--mstx=on" in xllm_cap["msprof_argv"]
+    assert "--application=xllm --model /models/Qwen3-8B" in xllm_cap["msprof_argv"]
+
+    # msprof_*.db satisfies evaluate_capture_success
+    msprof_dir = tmp_path / "xllm_msprof_out"
+    msprof_dir.mkdir(parents=True)
+    (msprof_dir / "msprof_20261102.db").write_bytes(b"sqlite3-msprof-db")
+    msprof_scan = scan_capture_artifacts(msprof_dir)
+    assert msprof_scan["by_kind"].get("msprof_db") == 1
+    msprof_decision = evaluate_capture_success(
+        msprof_scan, stop_acknowledged=True, capture_contains_active=True, export_within_budget=True,
+    )
+    assert msprof_decision["status"] == "ok"
+
+    with pytest.raises(ProfileWindowError, match="unsupported framework"):
+        build_capture_plan(0, 2, framework="unknown_fw")
+
