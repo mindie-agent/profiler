@@ -226,7 +226,7 @@ def test_wave5_aggregation_derives_topology_and_discloses_provenance() -> None:
 
 def test_release_workflow_and_notes_point_to_0_5_5() -> None:
     wf = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
-    notes_path = ROOT / "docs" / "releases" / "profiler-0.5.5.md"
-    assert "release-notes-path: docs/releases/profiler-0.5.5.md" in wf
+    notes_path = ROOT / "docs" / "releases" / "profiler-0.5.6.md"
+    assert "release-notes-path: docs/releases/profiler-0.5.6.md" in wf
     assert notes_path.is_file()
-    assert "# mindie-profiler 0.5.5" in notes_path.read_text(encoding="utf-8")
+    assert "# mindie-profiler 0.5.6" in notes_path.read_text(encoding="utf-8")
