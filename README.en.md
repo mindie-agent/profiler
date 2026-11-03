@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Release-v0.5.3-blue" alt="Release v0.5.3">
+  <img src="https://img.shields.io/badge/Release-v0.5.6-blue" alt="Release v0.5.6">
   <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/Interface-CLI%20%7C%20Python%20API%20%7C%20C7%20JSON-00ADD8" alt="CLI | Python API | C7 JSON">
   <img src="https://img.shields.io/badge/Target-Ascend%20NPU%20(A2%20%2F%20A3%20%2F%20A5)-FF6B00" alt="Ascend NPU">
@@ -68,13 +68,13 @@ Please install and configure https://github.com/mindie-agent/profiler for me
 
 If you are an AI Agent receiving the prompt above, follow these steps to install and verify `mindie-profiler` on the local machine or target remote Ascend container:
 
-1. **Check Prerequisites**: Confirm Python `>= 3.11` is available. Basic event accounting uses only the Python standard library, and the package installs paired with `mindie-sim >= 0.8.1, < 0.9.0`; basic CLI commands never initialize model weights or an NPU device context.
+1. **Check Prerequisites**: Confirm Python `>= 3.11` is available. Basic event accounting uses only the Python standard library, and the package installs paired with `mindie-sim >= 0.9.3`; basic CLI commands never initialize model weights or an NPU device context.
 2. **Install the CLI and Package**:
    - Install the pinned release wheels (recommended for production):
      ```bash
      uv pip install \
-       https://github.com/mindie-agent/sim/releases/download/v0.8.1/mindie_sim-0.8.1-py3-none-any.whl \
-       https://github.com/mindie-agent/profiler/releases/download/v0.5.3/mindie_profiler-0.5.3-py3-none-any.whl
+       https://github.com/mindie-agent/sim/releases/download/v0.9.3/mindie_sim-0.9.3-py3-none-any.whl \
+       https://github.com/mindie-agent/profiler/releases/download/v0.5.6/mindie_profiler-0.5.6-py3-none-any.whl
      ```
    - Or install the latest development version from `main`:
      ```bash
@@ -109,9 +109,9 @@ If you are an AI Agent receiving the prompt above, follow these steps to install
 | **`memory`**<br/>`mindie_profiler.memory_profile`<br/>`python3 -m mindie_profiler.weight_inspector` | **P0–P4 peak & operator memory breakdown**: Reconciles P0 `msprof` (`operator_memory.csv` / `memory_record.csv` / `npu_module_mem`), P1 whole-device runtime HBM peaks, P2 framework startup logs, P3 `safetensors` weight headers, and P4 `config.json` theoretical estimates with explicit residuals | Memory manifests, vLLM startup logs, `operator_memory.csv`, `memory_record.csv`, model weight dir | `mindie-memory-attribution/1` JSON report (weights, KV cache, activations, communication buffers, and uninvented residual) |
 | **`modeling-inputs`**<br/>`mindie_profiler.modeling_inputs`<br/>`python3 -m mindie_profiler.enrichment_model` | **Retained observation export and Roofline comparison**: Extracts shapes, dtypes, layouts, durations and hardware peaks into `ModelingInputsBundle` and computes single-kernel ideal lower bounds; rewritten sim does not natively consume this legacy bundle | C7 summary JSON, hotspot records, and raw physical hardware peaks | `mindie-modeling-inputs/1` observation bundle and 3-value alignment (`ideal_hardware_lower_bound_ms`, `model_predicted_ms`, `measured_device_ms`) |
 
-### `v0.5.3` Topology-Guided Structure Attribution, 4D Efficiency Reports & Full-Fleet Generalization (Paired with `mindie-sim 0.8.1`)
+### `v0.5.6` Topology-Guided Structure Attribution, 4D Efficiency Reports & Full-Fleet Generalization (Paired with `mindie-sim 0.9.3`)
 
-`mindie-profiler v0.5.3` works seamlessly with [`mindie-sim v0.8.1`](https://github.com/mindie-agent/sim) to bridge raw profiler captures with model structure attribution, 4D hardware efficiency analysis, and zero-shot cross-fleet generalization (see [`docs/releases/profiler-0.5.3.md`](./docs/releases/profiler-0.5.3.md) and [`examples/structure/README.md`](./examples/structure/README.md)):
+`mindie-profiler v0.5.6` works seamlessly with [`mindie-sim v0.9.3`](https://github.com/mindie-agent/sim) to bridge raw profiler captures with model structure attribution, 4D hardware efficiency analysis, and zero-shot cross-fleet generalization (see [`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md), [`docs/releases/profiler-0.5.3.md`](./docs/releases/profiler-0.5.3.md), and [`examples/structure/README.md`](./examples/structure/README.md)):
 
 - **Topology-Guided Structure Mapping (`analyze --structure`)**:
   ```bash
@@ -287,7 +287,7 @@ profiler/
 
 | Topic | Link |
 | --- | --- |
-| **`v0.5.3` Release Notes (Topology Attribution, 4D Efficiency & 856-Case Generalization)** | [docs/releases/profiler-0.5.3.md](./docs/releases/profiler-0.5.3.md) |
+| **`v0.5.6` / `v0.5.3` Release Notes (Topology Attribution, 4D Efficiency & 856-Case Generalization)** | [docs/releases/profiler-0.5.6.md](./docs/releases/profiler-0.5.6.md) · [docs/releases/profiler-0.5.3.md](./docs/releases/profiler-0.5.3.md) |
 | Repository Agent Guidelines & Invariants | [AGENTS.md](./AGENTS.md) |
 | Ascend SQLite Table & Column Mapping Dictionary | [mindie_profiler/knowledge/db_source_mapping.json](./mindie_profiler/knowledge/db_source_mapping.json) |
 | Release Benchmark Suite Definition | [benchmarks/release.json](./benchmarks/release.json) |
