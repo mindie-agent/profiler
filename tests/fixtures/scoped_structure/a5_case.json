@@ -1,0 +1,56 @@
+{
+ "name": "scoped-a5-qwen30b-e16k4-tp4",
+ "machine": {
+  "backend": "ascend",
+  "sku": "Ascend950DT_9582",
+  "num_devices": 4,
+  "ranks_per_node": 8,
+  "device": {
+   "rates": {
+    "scalar_store_issue": 5657458563.535912
+   },
+   "resource_units": {
+    "scalar_store_issue": 64
+   }
+  }
+ },
+ "model": {
+  "layers": 8,
+  "hidden_size": 2048,
+  "num_heads": 32,
+  "num_kv_heads": 4,
+  "head_dim": 128,
+  "intermediate_size": 768,
+  "vocab_size": 151936,
+  "attention": "gqa",
+  "ffn": "moe",
+  "activation_dtype": "bf16",
+  "weight_dtype": "bf16",
+  "kv_dtype": "bf16",
+  "compute_dtype": "bf16",
+  "quantization": "none",
+  "num_experts": 16,
+  "top_k": 4,
+  "moe_intermediate_size": 768,
+  "num_shared_experts": 0
+ },
+ "runtime": {
+  "tp": 4,
+  "dp": 1,
+  "ep": 4,
+  "pp": 1,
+  "max_num_seqs": 8,
+  "max_num_batched_tokens": 8192,
+  "max_model_len": 131072,
+  "kernels": {}
+ },
+ "workload": {
+  "requests": [
+   {
+    "id": "scoped-a5",
+    "prompt_tokens": 4096,
+    "output_tokens": 1
+   }
+  ]
+ }
+}

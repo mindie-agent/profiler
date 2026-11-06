@@ -4,6 +4,11 @@
 每一轮从同一个固定的 Sim 包重新预测，记录包内容 SHA256 和已安装源码提交，不按误差选择旧结果。
 原始采集、逐源完整报告及训练证据保留在仓库外，以 SHA256 指针关联。
 
+历史 Wave5/DSH 回放的原生校准、物理适用域及首次执行等待的边界见
+[`NATIVE_OBSERVATIONS.md`](NATIVE_OBSERVATIONS.md)。算子校准和完整 Body 精度分别验收。
+显式 opt-in 的冻结 A2/A5 qualified 校准及其真实分母见
+[`QUALIFIED_NATIVE_CALIBRATION.md`](QUALIFIED_NATIVE_CALIBRATION.md)；默认回放不变。
+
 ## 运行
 
 在安装本项目测试依赖和配套 Sim 后，从仓库根目录执行：

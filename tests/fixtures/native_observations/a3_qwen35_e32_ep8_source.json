@@ -1,0 +1,1988 @@
+{
+  "schema_version": "mindie-profiler.capture-deployment-fixture/1",
+  "basis": "retained A3 E32 command and complete Q35 source model; runtime metadata removed and 46 verbatim service rules reduced to one; topology is not selected by timing",
+  "source_capture": {
+    "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/synth_qwen35_L8_E32_K2_tp8ep8_decode_256k_c1/kernel_details.csv",
+    "sha256": "bdd6a2022358f29c60b586da3f17ab0c677df0fed10734219e40d091cf0933e1",
+    "size_bytes": 14602114
+  },
+  "source_command": {
+    "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/synth_qwen35_L8_E32_K2_tp8ep8_decode_256k_c1/cmd.sh",
+    "sha256": "dda2cdc32a526c279b66b84b069024be6fe5a515cf126ba3f78722d19afc21a0",
+    "size_bytes": 741
+  },
+  "source_diagnosis": {
+    "path": "/tmp/mindie-accuracy-audit-20261106/a3_policy_residual/diagnosis.json",
+    "sha256": "dd1c0971af9fe60ba36b3730ba15fa28eb330079d4d9f174ec204e7f62908085",
+    "size_bytes": 6372799,
+    "case": "synth_qwen35_L8_E32_K2_tp8ep8_decode_256k_c1",
+    "json_pointer": "/cases/1/old_input_current_engine/input"
+  },
+  "source_rows": [
+    {
+      "csv_line": 80,
+      "Type": "MatMulV3",
+      "Input Shapes": "\"1,2048;32,2048\"",
+      "Input Data Types": "DT_BF16;DT_BF16",
+      "Input Formats": "ND;ND",
+      "Output Shapes": "\"1,32\"",
+      "Output Data Types": "FLOAT",
+      "Output Formats": "ND"
+    },
+    {
+      "csv_line": 82,
+      "Type": "PadV3",
+      "Input Shapes": "\"1,2048;4;\"",
+      "Input Data Types": "DT_BF16;INT32;DT_BF16",
+      "Input Formats": "ND;ND;ND",
+      "Output Shapes": "\"8,2048\"",
+      "Output Data Types": "DT_BF16",
+      "Output Formats": "ND"
+    },
+    {
+      "csv_line": 84,
+      "Type": "PadV3",
+      "Input Shapes": "\"1,32;4;\"",
+      "Input Data Types": "FLOAT;INT32;FLOAT",
+      "Input Formats": "ND;ND;ND",
+      "Output Shapes": "\"8,32\"",
+      "Output Data Types": "FLOAT",
+      "Output Formats": "ND"
+    },
+    {
+      "csv_line": 86,
+      "Type": "MoeDistributeDispatchV2",
+      "Input Shapes": "\"1,2048;1,2;;1;;;\"",
+      "Input Data Types": "DT_BF16;INT32;DT_UNDEFINED;BOOL;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED",
+      "Input Formats": "ND;ND;NULL;ND;NULL;NULL;NULL",
+      "Output Shapes": "\"16,2048;16;2048;4;32;1;16\"",
+      "Output Data Types": "INT8;FLOAT;INT32;INT64;INT32;INT32;FLOAT",
+      "Output Formats": "ND;ND;ND;ND;ND;ND;ND"
+    },
+    {
+      "csv_line": 87,
+      "Type": "GroupedMatmulSwigluQuant",
+      "Input Shapes": "\"16,2048;4,32,128,16,32;4,1024;16;4\"",
+      "Input Data Types": "INT8;INT8;FLOAT;FLOAT;INT64",
+      "Input Formats": "ND;FRACTAL_NZ;ND;ND;ND",
+      "Output Shapes": "\"16,512;16\"",
+      "Output Data Types": "INT8;FLOAT",
+      "Output Formats": "ND;ND"
+    },
+    {
+      "csv_line": 88,
+      "Type": "GroupedMatmul",
+      "Input Shapes": "\"16,512;4,512,2048;;4,2048;;;;4;16\"",
+      "Input Data Types": "INT8;INT8;INT32;DT_BF16;FLOAT;FLOAT16;FLOAT16;INT64;FLOAT",
+      "Input Formats": "ND;FRACTAL_NZ;ND;ND;ND;ND;ND;ND;ND",
+      "Output Shapes": "\"16,2048\"",
+      "Output Data Types": "DT_BF16",
+      "Output Formats": "ND"
+    },
+    {
+      "csv_line": 89,
+      "Type": "MoeDistributeCombineV2",
+      "Input Shapes": "\"16,2048;1,2;2048;32;1,2;1;1;;;;16;;;;;;;\"",
+      "Input Data Types": "DT_BF16;INT32;INT32;INT32;FLOAT;INT32;BOOL;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;FLOAT;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED",
+      "Input Formats": "ND;ND;ND;ND;ND;ND;ND;NULL;NULL;NULL;ND;NULL;NULL;NULL;NULL;NULL;NULL;NULL",
+      "Output Shapes": "\"1,2048\"",
+      "Output Data Types": "DT_BF16",
+      "Output Formats": "ND"
+    }
+  ],
+  "derived_changes": {
+    "runtime.metadata": "removed; contained template/log identity paths and non-topology metadata",
+    "runtime.kernels.service_regimes": "reduced from 46 verbatim A3 rules to the unrelated a3-native-rmsnorm-2048 rule plus the six verbatim routed-FFN rules (three up, three down) used by the bounded legacy-response guard test",
+    "runtime.kernels.recipes": "retained verbatim",
+    "timing_values_used_for_topology": false
+  },
+  "geometry": {
+    "phase": "decode",
+    "tokens": 1,
+    "context": 262144,
+    "sequences": 1
+  },
+  "raw": {
+    "name": "qwen35_35b_tp4_128k_20261030-source-analytic",
+    "machine": {
+      "backend": "ascend",
+      "sku": "Ascend910_9362",
+      "num_devices": 8,
+      "ranks_per_node": 8,
+      "device": {
+        "rates": {
+          "native_call_service": 1000000000.0
+        },
+        "resource_units": {
+          "native_call_service": 1
+        },
+        "work_units": {
+          "native_call_service": "busy_ns"
+        }
+      }
+    },
+    "model": {
+      "name": "qwen3.5-35b-a3b",
+      "layers": 8,
+      "hidden_size": 2048,
+      "num_heads": 16,
+      "head_dim": 256,
+      "intermediate_size": 512,
+      "vocab_size": 248320,
+      "attention": "gdn",
+      "ffn": "moe",
+      "num_kv_heads": 2,
+      "activation_dtype": "bf16",
+      "weight_dtype": "int8",
+      "kv_dtype": "bf16",
+      "compute_dtype": "bf16",
+      "norm_eps": 1e-06,
+      "quantization": "W8A8_DYNAMIC",
+      "num_experts": 32,
+      "top_k": 2,
+      "moe_intermediate_size": 512,
+      "num_shared_experts": 0,
+      "expert_routing": [],
+      "expert_routing_source": "declared",
+      "mla": null,
+      "tie_word_embeddings": false,
+      "layer_plans": [
+        {
+          "index": 0,
+          "attention": "gdn",
+          "ffn": "moe",
+          "compress_ratio": 0,
+          "indexer": false,
+          "window": 0,
+          "num_heads": 16,
+          "num_kv_heads": 2,
+          "head_dim": 256,
+          "q_lora_rank": 0,
+          "kv_lora_rank": 0,
+          "qk_nope_head_dim": 0,
+          "qk_rope_head_dim": 0,
+          "v_head_dim": 0,
+          "intermediate_size": 0,
+          "num_experts": 32,
+          "top_k": 2,
+          "moe_intermediate_size": 512,
+          "num_shared_experts": 1,
+          "linear_heads": 32,
+          "linear_head_dim": 128,
+          "conv_kernel": 4,
+          "state_bytes": 2146304.0,
+          "mtp": false,
+          "architecture": "gdn",
+          "indexer_type": "none",
+          "candidate_filter": false,
+          "o_lora_rank": 0,
+          "o_groups": 0,
+          "mla_variant": "none",
+          "mla_output_gate": false,
+          "q_output_gate": true,
+          "noncausal_attention": false,
+          "expert_latent_size": 0,
+          "expert_latent_norm_position": "pre",
+          "router_input_size": 2048,
+          "router_mode": "sigmoid",
+          "router_dtype": "fp32",
+          "router_output_dtype": "",
+          "router_precast_weight_copy": false,
+          "router_norm_topk": false,
+          "router_groups": 0,
+          "router_group_topk": 0,
+          "shared_intermediate_size": 512,
+          "shared_expert_gate": true,
+          "linear_key_heads": 16,
+          "linear_key_head_dim": 128,
+          "linear_value_heads": 32,
+          "packed_input_projection": false,
+          "gate_rank": 0,
+          "projection_dtype": "",
+          "conv_width": 8192,
+          "recurrent_state_elements": 524288,
+          "recurrent_state_dtype": "fp32",
+          "conv_state_elements": 24576,
+          "conv_state_dtype": "bf16",
+          "kv_cache_elements": 0,
+          "kv_owner_layer_id": 0,
+          "owns_long_kv": false,
+          "index_k_owner_layer_id": -1,
+          "owns_index_k": false,
+          "topk_owner_layer_id": -1,
+          "owns_topk": false,
+          "owns_candidate_blocks": false,
+          "candidate_source_layer_id": -1,
+          "index_source_layer_id": -1,
+          "index_source_status": "exact",
+          "engram": false,
+          "hyper_connections": false,
+          "hc_mult": 0,
+          "hc_sinkhorn_iters": 0,
+          "residual_block_size": 0,
+          "native_layer_id": 0,
+          "scope": "body",
+          "cache_kind": "dense",
+          "compressor_kind": "none",
+          "compressor_width": 1,
+          "compressor_state_rows": 0,
+          "compressor_norm_dtype": "bf16",
+          "index_input": "hidden",
+          "index_query_per_layer": false,
+          "index_heads": 0,
+          "index_dim": 0,
+          "index_topk": 0,
+          "index_kpool": 1,
+          "index_kpool_compress": false,
+          "index_kpool_always_select_tail": false,
+          "candidate_block_size": 8,
+          "candidate_topk_blocks": 2048,
+          "qk_norm": false,
+          "ffn_activation": "silu",
+          "activation_situ_beta": 1.0,
+          "activation_situ_linear_beta": null
+        },
+        {
+          "index": 1,
+          "attention": "gdn",
+          "ffn": "moe",
+          "compress_ratio": 0,
+          "indexer": false,
+          "window": 0,
+          "num_heads": 16,
+          "num_kv_heads": 2,
+          "head_dim": 256,
+          "q_lora_rank": 0,
+          "kv_lora_rank": 0,
+          "qk_nope_head_dim": 0,
+          "qk_rope_head_dim": 0,
+          "v_head_dim": 0,
+          "intermediate_size": 0,
+          "num_experts": 32,
+          "top_k": 2,
+          "moe_intermediate_size": 512,
+          "num_shared_experts": 1,
+          "linear_heads": 32,
+          "linear_head_dim": 128,
+          "conv_kernel": 4,
+          "state_bytes": 2146304.0,
+          "mtp": false,
+          "architecture": "gdn",
+          "indexer_type": "none",
+          "candidate_filter": false,
+          "o_lora_rank": 0,
+          "o_groups": 0,
+          "mla_variant": "none",
+          "mla_output_gate": false,
+          "q_output_gate": true,
+          "noncausal_attention": false,
+          "expert_latent_size": 0,
+          "expert_latent_norm_position": "pre",
+          "router_input_size": 2048,
+          "router_mode": "sigmoid",
+          "router_dtype": "fp32",
+          "router_output_dtype": "",
+          "router_precast_weight_copy": false,
+          "router_norm_topk": false,
+          "router_groups": 0,
+          "router_group_topk": 0,
+          "shared_intermediate_size": 512,
+          "shared_expert_gate": true,
+          "linear_key_heads": 16,
+          "linear_key_head_dim": 128,
+          "linear_value_heads": 32,
+          "packed_input_projection": false,
+          "gate_rank": 0,
+          "projection_dtype": "",
+          "conv_width": 8192,
+          "recurrent_state_elements": 524288,
+          "recurrent_state_dtype": "fp32",
+          "conv_state_elements": 24576,
+          "conv_state_dtype": "bf16",
+          "kv_cache_elements": 0,
+          "kv_owner_layer_id": 1,
+          "owns_long_kv": false,
+          "index_k_owner_layer_id": -1,
+          "owns_index_k": false,
+          "topk_owner_layer_id": -1,
+          "owns_topk": false,
+          "owns_candidate_blocks": false,
+          "candidate_source_layer_id": -1,
+          "index_source_layer_id": -1,
+          "index_source_status": "exact",
+          "engram": false,
+          "hyper_connections": false,
+          "hc_mult": 0,
+          "hc_sinkhorn_iters": 0,
+          "residual_block_size": 0,
+          "native_layer_id": 1,
+          "scope": "body",
+          "cache_kind": "dense",
+          "compressor_kind": "none",
+          "compressor_width": 1,
+          "compressor_state_rows": 0,
+          "compressor_norm_dtype": "bf16",
+          "index_input": "hidden",
+          "index_query_per_layer": false,
+          "index_heads": 0,
+          "index_dim": 0,
+          "index_topk": 0,
+          "index_kpool": 1,
+          "index_kpool_compress": false,
+          "index_kpool_always_select_tail": false,
+          "candidate_block_size": 8,
+          "candidate_topk_blocks": 2048,
+          "qk_norm": false,
+          "ffn_activation": "silu",
+          "activation_situ_beta": 1.0,
+          "activation_situ_linear_beta": null
+        },
+        {
+          "index": 2,
+          "attention": "gdn",
+          "ffn": "moe",
+          "compress_ratio": 0,
+          "indexer": false,
+          "window": 0,
+          "num_heads": 16,
+          "num_kv_heads": 2,
+          "head_dim": 256,
+          "q_lora_rank": 0,
+          "kv_lora_rank": 0,
+          "qk_nope_head_dim": 0,
+          "qk_rope_head_dim": 0,
+          "v_head_dim": 0,
+          "intermediate_size": 0,
+          "num_experts": 32,
+          "top_k": 2,
+          "moe_intermediate_size": 512,
+          "num_shared_experts": 1,
+          "linear_heads": 32,
+          "linear_head_dim": 128,
+          "conv_kernel": 4,
+          "state_bytes": 2146304.0,
+          "mtp": false,
+          "architecture": "gdn",
+          "indexer_type": "none",
+          "candidate_filter": false,
+          "o_lora_rank": 0,
+          "o_groups": 0,
+          "mla_variant": "none",
+          "mla_output_gate": false,
+          "q_output_gate": true,
+          "noncausal_attention": false,
+          "expert_latent_size": 0,
+          "expert_latent_norm_position": "pre",
+          "router_input_size": 2048,
+          "router_mode": "sigmoid",
+          "router_dtype": "fp32",
+          "router_output_dtype": "",
+          "router_precast_weight_copy": false,
+          "router_norm_topk": false,
+          "router_groups": 0,
+          "router_group_topk": 0,
+          "shared_intermediate_size": 512,
+          "shared_expert_gate": true,
+          "linear_key_heads": 16,
+          "linear_key_head_dim": 128,
+          "linear_value_heads": 32,
+          "packed_input_projection": false,
+          "gate_rank": 0,
+          "projection_dtype": "",
+          "conv_width": 8192,
+          "recurrent_state_elements": 524288,
+          "recurrent_state_dtype": "fp32",
+          "conv_state_elements": 24576,
+          "conv_state_dtype": "bf16",
+          "kv_cache_elements": 0,
+          "kv_owner_layer_id": 2,
+          "owns_long_kv": false,
+          "index_k_owner_layer_id": -1,
+          "owns_index_k": false,
+          "topk_owner_layer_id": -1,
+          "owns_topk": false,
+          "owns_candidate_blocks": false,
+          "candidate_source_layer_id": -1,
+          "index_source_layer_id": -1,
+          "index_source_status": "exact",
+          "engram": false,
+          "hyper_connections": false,
+          "hc_mult": 0,
+          "hc_sinkhorn_iters": 0,
+          "residual_block_size": 0,
+          "native_layer_id": 2,
+          "scope": "body",
+          "cache_kind": "dense",
+          "compressor_kind": "none",
+          "compressor_width": 1,
+          "compressor_state_rows": 0,
+          "compressor_norm_dtype": "bf16",
+          "index_input": "hidden",
+          "index_query_per_layer": false,
+          "index_heads": 0,
+          "index_dim": 0,
+          "index_topk": 0,
+          "index_kpool": 1,
+          "index_kpool_compress": false,
+          "index_kpool_always_select_tail": false,
+          "candidate_block_size": 8,
+          "candidate_topk_blocks": 2048,
+          "qk_norm": false,
+          "ffn_activation": "silu",
+          "activation_situ_beta": 1.0,
+          "activation_situ_linear_beta": null
+        },
+        {
+          "index": 3,
+          "attention": "gqa",
+          "ffn": "moe",
+          "compress_ratio": 0,
+          "indexer": false,
+          "window": 0,
+          "num_heads": 16,
+          "num_kv_heads": 2,
+          "head_dim": 256,
+          "q_lora_rank": 0,
+          "kv_lora_rank": 0,
+          "qk_nope_head_dim": 0,
+          "qk_rope_head_dim": 0,
+          "v_head_dim": 0,
+          "intermediate_size": 0,
+          "num_experts": 32,
+          "top_k": 2,
+          "moe_intermediate_size": 512,
+          "num_shared_experts": 1,
+          "linear_heads": 0,
+          "linear_head_dim": 0,
+          "conv_kernel": 0,
+          "state_bytes": 0.0,
+          "mtp": false,
+          "architecture": "gated_gqa",
+          "indexer_type": "none",
+          "candidate_filter": false,
+          "o_lora_rank": 0,
+          "o_groups": 0,
+          "mla_variant": "none",
+          "mla_output_gate": false,
+          "q_output_gate": true,
+          "noncausal_attention": false,
+          "expert_latent_size": 0,
+          "expert_latent_norm_position": "pre",
+          "router_input_size": 2048,
+          "router_mode": "sigmoid",
+          "router_dtype": "fp32",
+          "router_output_dtype": "",
+          "router_precast_weight_copy": false,
+          "router_norm_topk": false,
+          "router_groups": 0,
+          "router_group_topk": 0,
+          "shared_intermediate_size": 512,
+          "shared_expert_gate": true,
+          "linear_key_heads": 0,
+          "linear_key_head_dim": 0,
+          "linear_value_heads": 0,
+          "packed_input_projection": false,
+          "gate_rank": 0,
+          "projection_dtype": "",
+          "conv_width": 0,
+          "recurrent_state_elements": 0,
+          "recurrent_state_dtype": "fp32",
+          "conv_state_elements": 0,
+          "conv_state_dtype": "bf16",
+          "kv_cache_elements": 1024,
+          "kv_owner_layer_id": 3,
+          "owns_long_kv": false,
+          "index_k_owner_layer_id": -1,
+          "owns_index_k": false,
+          "topk_owner_layer_id": -1,
+          "owns_topk": false,
+          "owns_candidate_blocks": false,
+          "candidate_source_layer_id": -1,
+          "index_source_layer_id": -1,
+          "index_source_status": "exact",
+          "engram": false,
+          "hyper_connections": false,
+          "hc_mult": 0,
+          "hc_sinkhorn_iters": 0,
+          "residual_block_size": 0,
+          "native_layer_id": 3,
+          "scope": "body",
+          "cache_kind": "dense",
+          "compressor_kind": "none",
+          "compressor_width": 1,
+          "compressor_state_rows": 0,
+          "compressor_norm_dtype": "bf16",
+          "index_input": "hidden",
+          "index_query_per_layer": false,
+          "index_heads": 0,
+          "index_dim": 0,
+          "index_topk": 0,
+          "index_kpool": 1,
+          "index_kpool_compress": false,
+          "index_kpool_always_select_tail": false,
+          "candidate_block_size": 8,
+          "candidate_topk_blocks": 2048,
+          "qk_norm": true,
+          "ffn_activation": "silu",
+          "activation_situ_beta": 1.0,
+          "activation_situ_linear_beta": null
+        },
+        {
+          "index": 4,
+          "attention": "gdn",
+          "ffn": "moe",
+          "compress_ratio": 0,
+          "indexer": false,
+          "window": 0,
+          "num_heads": 16,
+          "num_kv_heads": 2,
+          "head_dim": 256,
+          "q_lora_rank": 0,
+          "kv_lora_rank": 0,
+          "qk_nope_head_dim": 0,
+          "qk_rope_head_dim": 0,
+          "v_head_dim": 0,
+          "intermediate_size": 0,
+          "num_experts": 32,
+          "top_k": 2,
+          "moe_intermediate_size": 512,
+          "num_shared_experts": 1,
+          "linear_heads": 32,
+          "linear_head_dim": 128,
+          "conv_kernel": 4,
+          "state_bytes": 2146304.0,
+          "mtp": false,
+          "architecture": "gdn",
+          "indexer_type": "none",
+          "candidate_filter": false,
+          "o_lora_rank": 0,
+          "o_groups": 0,
+          "mla_variant": "none",
+          "mla_output_gate": false,
+          "q_output_gate": true,
+          "noncausal_attention": false,
+          "expert_latent_size": 0,
+          "expert_latent_norm_position": "pre",
+          "router_input_size": 2048,
+          "router_mode": "sigmoid",
+          "router_dtype": "fp32",
+          "router_output_dtype": "",
+          "router_precast_weight_copy": false,
+          "router_norm_topk": false,
+          "router_groups": 0,
+          "router_group_topk": 0,
+          "shared_intermediate_size": 512,
+          "shared_expert_gate": true,
+          "linear_key_heads": 16,
+          "linear_key_head_dim": 128,
+          "linear_value_heads": 32,
+          "packed_input_projection": false,
+          "gate_rank": 0,
+          "projection_dtype": "",
+          "conv_width": 8192,
+          "recurrent_state_elements": 524288,
+          "recurrent_state_dtype": "fp32",
+          "conv_state_elements": 24576,
+          "conv_state_dtype": "bf16",
+          "kv_cache_elements": 0,
+          "kv_owner_layer_id": 4,
+          "owns_long_kv": false,
+          "index_k_owner_layer_id": -1,
+          "owns_index_k": false,
+          "topk_owner_layer_id": -1,
+          "owns_topk": false,
+          "owns_candidate_blocks": false,
+          "candidate_source_layer_id": -1,
+          "index_source_layer_id": -1,
+          "index_source_status": "exact",
+          "engram": false,
+          "hyper_connections": false,
+          "hc_mult": 0,
+          "hc_sinkhorn_iters": 0,
+          "residual_block_size": 0,
+          "native_layer_id": 4,
+          "scope": "body",
+          "cache_kind": "dense",
+          "compressor_kind": "none",
+          "compressor_width": 1,
+          "compressor_state_rows": 0,
+          "compressor_norm_dtype": "bf16",
+          "index_input": "hidden",
+          "index_query_per_layer": false,
+          "index_heads": 0,
+          "index_dim": 0,
+          "index_topk": 0,
+          "index_kpool": 1,
+          "index_kpool_compress": false,
+          "index_kpool_always_select_tail": false,
+          "candidate_block_size": 8,
+          "candidate_topk_blocks": 2048,
+          "qk_norm": false,
+          "ffn_activation": "silu",
+          "activation_situ_beta": 1.0,
+          "activation_situ_linear_beta": null
+        },
+        {
+          "index": 5,
+          "attention": "gdn",
+          "ffn": "moe",
+          "compress_ratio": 0,
+          "indexer": false,
+          "window": 0,
+          "num_heads": 16,
+          "num_kv_heads": 2,
+          "head_dim": 256,
+          "q_lora_rank": 0,
+          "kv_lora_rank": 0,
+          "qk_nope_head_dim": 0,
+          "qk_rope_head_dim": 0,
+          "v_head_dim": 0,
+          "intermediate_size": 0,
+          "num_experts": 32,
+          "top_k": 2,
+          "moe_intermediate_size": 512,
+          "num_shared_experts": 1,
+          "linear_heads": 32,
+          "linear_head_dim": 128,
+          "conv_kernel": 4,
+          "state_bytes": 2146304.0,
+          "mtp": false,
+          "architecture": "gdn",
+          "indexer_type": "none",
+          "candidate_filter": false,
+          "o_lora_rank": 0,
+          "o_groups": 0,
+          "mla_variant": "none",
+          "mla_output_gate": false,
+          "q_output_gate": true,
+          "noncausal_attention": false,
+          "expert_latent_size": 0,
+          "expert_latent_norm_position": "pre",
+          "router_input_size": 2048,
+          "router_mode": "sigmoid",
+          "router_dtype": "fp32",
+          "router_output_dtype": "",
+          "router_precast_weight_copy": false,
+          "router_norm_topk": false,
+          "router_groups": 0,
+          "router_group_topk": 0,
+          "shared_intermediate_size": 512,
+          "shared_expert_gate": true,
+          "linear_key_heads": 16,
+          "linear_key_head_dim": 128,
+          "linear_value_heads": 32,
+          "packed_input_projection": false,
+          "gate_rank": 0,
+          "projection_dtype": "",
+          "conv_width": 8192,
+          "recurrent_state_elements": 524288,
+          "recurrent_state_dtype": "fp32",
+          "conv_state_elements": 24576,
+          "conv_state_dtype": "bf16",
+          "kv_cache_elements": 0,
+          "kv_owner_layer_id": 5,
+          "owns_long_kv": false,
+          "index_k_owner_layer_id": -1,
+          "owns_index_k": false,
+          "topk_owner_layer_id": -1,
+          "owns_topk": false,
+          "owns_candidate_blocks": false,
+          "candidate_source_layer_id": -1,
+          "index_source_layer_id": -1,
+          "index_source_status": "exact",
+          "engram": false,
+          "hyper_connections": false,
+          "hc_mult": 0,
+          "hc_sinkhorn_iters": 0,
+          "residual_block_size": 0,
+          "native_layer_id": 5,
+          "scope": "body",
+          "cache_kind": "dense",
+          "compressor_kind": "none",
+          "compressor_width": 1,
+          "compressor_state_rows": 0,
+          "compressor_norm_dtype": "bf16",
+          "index_input": "hidden",
+          "index_query_per_layer": false,
+          "index_heads": 0,
+          "index_dim": 0,
+          "index_topk": 0,
+          "index_kpool": 1,
+          "index_kpool_compress": false,
+          "index_kpool_always_select_tail": false,
+          "candidate_block_size": 8,
+          "candidate_topk_blocks": 2048,
+          "qk_norm": false,
+          "ffn_activation": "silu",
+          "activation_situ_beta": 1.0,
+          "activation_situ_linear_beta": null
+        },
+        {
+          "index": 6,
+          "attention": "gdn",
+          "ffn": "moe",
+          "compress_ratio": 0,
+          "indexer": false,
+          "window": 0,
+          "num_heads": 16,
+          "num_kv_heads": 2,
+          "head_dim": 256,
+          "q_lora_rank": 0,
+          "kv_lora_rank": 0,
+          "qk_nope_head_dim": 0,
+          "qk_rope_head_dim": 0,
+          "v_head_dim": 0,
+          "intermediate_size": 0,
+          "num_experts": 32,
+          "top_k": 2,
+          "moe_intermediate_size": 512,
+          "num_shared_experts": 1,
+          "linear_heads": 32,
+          "linear_head_dim": 128,
+          "conv_kernel": 4,
+          "state_bytes": 2146304.0,
+          "mtp": false,
+          "architecture": "gdn",
+          "indexer_type": "none",
+          "candidate_filter": false,
+          "o_lora_rank": 0,
+          "o_groups": 0,
+          "mla_variant": "none",
+          "mla_output_gate": false,
+          "q_output_gate": true,
+          "noncausal_attention": false,
+          "expert_latent_size": 0,
+          "expert_latent_norm_position": "pre",
+          "router_input_size": 2048,
+          "router_mode": "sigmoid",
+          "router_dtype": "fp32",
+          "router_output_dtype": "",
+          "router_precast_weight_copy": false,
+          "router_norm_topk": false,
+          "router_groups": 0,
+          "router_group_topk": 0,
+          "shared_intermediate_size": 512,
+          "shared_expert_gate": true,
+          "linear_key_heads": 16,
+          "linear_key_head_dim": 128,
+          "linear_value_heads": 32,
+          "packed_input_projection": false,
+          "gate_rank": 0,
+          "projection_dtype": "",
+          "conv_width": 8192,
+          "recurrent_state_elements": 524288,
+          "recurrent_state_dtype": "fp32",
+          "conv_state_elements": 24576,
+          "conv_state_dtype": "bf16",
+          "kv_cache_elements": 0,
+          "kv_owner_layer_id": 6,
+          "owns_long_kv": false,
+          "index_k_owner_layer_id": -1,
+          "owns_index_k": false,
+          "topk_owner_layer_id": -1,
+          "owns_topk": false,
+          "owns_candidate_blocks": false,
+          "candidate_source_layer_id": -1,
+          "index_source_layer_id": -1,
+          "index_source_status": "exact",
+          "engram": false,
+          "hyper_connections": false,
+          "hc_mult": 0,
+          "hc_sinkhorn_iters": 0,
+          "residual_block_size": 0,
+          "native_layer_id": 6,
+          "scope": "body",
+          "cache_kind": "dense",
+          "compressor_kind": "none",
+          "compressor_width": 1,
+          "compressor_state_rows": 0,
+          "compressor_norm_dtype": "bf16",
+          "index_input": "hidden",
+          "index_query_per_layer": false,
+          "index_heads": 0,
+          "index_dim": 0,
+          "index_topk": 0,
+          "index_kpool": 1,
+          "index_kpool_compress": false,
+          "index_kpool_always_select_tail": false,
+          "candidate_block_size": 8,
+          "candidate_topk_blocks": 2048,
+          "qk_norm": false,
+          "ffn_activation": "silu",
+          "activation_situ_beta": 1.0,
+          "activation_situ_linear_beta": null
+        },
+        {
+          "index": 7,
+          "attention": "gqa",
+          "ffn": "moe",
+          "compress_ratio": 0,
+          "indexer": false,
+          "window": 0,
+          "num_heads": 16,
+          "num_kv_heads": 2,
+          "head_dim": 256,
+          "q_lora_rank": 0,
+          "kv_lora_rank": 0,
+          "qk_nope_head_dim": 0,
+          "qk_rope_head_dim": 0,
+          "v_head_dim": 0,
+          "intermediate_size": 0,
+          "num_experts": 32,
+          "top_k": 2,
+          "moe_intermediate_size": 512,
+          "num_shared_experts": 1,
+          "linear_heads": 0,
+          "linear_head_dim": 0,
+          "conv_kernel": 0,
+          "state_bytes": 0.0,
+          "mtp": false,
+          "architecture": "gated_gqa",
+          "indexer_type": "none",
+          "candidate_filter": false,
+          "o_lora_rank": 0,
+          "o_groups": 0,
+          "mla_variant": "none",
+          "mla_output_gate": false,
+          "q_output_gate": true,
+          "noncausal_attention": false,
+          "expert_latent_size": 0,
+          "expert_latent_norm_position": "pre",
+          "router_input_size": 2048,
+          "router_mode": "sigmoid",
+          "router_dtype": "fp32",
+          "router_output_dtype": "",
+          "router_precast_weight_copy": false,
+          "router_norm_topk": false,
+          "router_groups": 0,
+          "router_group_topk": 0,
+          "shared_intermediate_size": 512,
+          "shared_expert_gate": true,
+          "linear_key_heads": 0,
+          "linear_key_head_dim": 0,
+          "linear_value_heads": 0,
+          "packed_input_projection": false,
+          "gate_rank": 0,
+          "projection_dtype": "",
+          "conv_width": 0,
+          "recurrent_state_elements": 0,
+          "recurrent_state_dtype": "fp32",
+          "conv_state_elements": 0,
+          "conv_state_dtype": "bf16",
+          "kv_cache_elements": 1024,
+          "kv_owner_layer_id": 7,
+          "owns_long_kv": false,
+          "index_k_owner_layer_id": -1,
+          "owns_index_k": false,
+          "topk_owner_layer_id": -1,
+          "owns_topk": false,
+          "owns_candidate_blocks": false,
+          "candidate_source_layer_id": -1,
+          "index_source_layer_id": -1,
+          "index_source_status": "exact",
+          "engram": false,
+          "hyper_connections": false,
+          "hc_mult": 0,
+          "hc_sinkhorn_iters": 0,
+          "residual_block_size": 0,
+          "native_layer_id": 7,
+          "scope": "body",
+          "cache_kind": "dense",
+          "compressor_kind": "none",
+          "compressor_width": 1,
+          "compressor_state_rows": 0,
+          "compressor_norm_dtype": "bf16",
+          "index_input": "hidden",
+          "index_query_per_layer": false,
+          "index_heads": 0,
+          "index_dim": 0,
+          "index_topk": 0,
+          "index_kpool": 1,
+          "index_kpool_compress": false,
+          "index_kpool_always_select_tail": false,
+          "candidate_block_size": 8,
+          "candidate_topk_blocks": 2048,
+          "qk_norm": true,
+          "ffn_activation": "silu",
+          "activation_situ_beta": 1.0,
+          "activation_situ_linear_beta": null
+        }
+      ],
+      "state_bytes_per_request": 64389120.0,
+      "catalog_facts": {
+        "architectures": [
+          "Qwen3_5MoeForConditionalGeneration"
+        ],
+        "attention_types": {
+          "gdn": 30,
+          "gated_gqa": 10
+        },
+        "auxiliary": {
+          "mtp": {
+            "kind": "mtp",
+            "layers": 1,
+            "hidden_size": 2048,
+            "intermediate_size": 512,
+            "attention_kind": "gqa",
+            "num_heads": 16,
+            "num_kv_heads": 2,
+            "head_dim": 256,
+            "q_width": 8192,
+            "kv_width": 512,
+            "q_lora_rank": 0,
+            "kv_lora_rank": 0,
+            "qk_nope_head_dim": 0,
+            "qk_rope_head_dim": 0,
+            "v_head_dim": 0,
+            "o_lora_rank": 0,
+            "o_groups": 0,
+            "num_experts": 256,
+            "top_k": 8,
+            "expert_intermediate_size": 512,
+            "num_shared_experts": 1,
+            "target_layer_ids": [],
+            "block_size": 1,
+            "markov_rank": 0,
+            "confidence_enabled": false,
+            "confidence_executes": false,
+            "confidence_input_width": 0,
+            "target_shared_embedding": true,
+            "target_shared_lm_head": true,
+            "base_logits": true,
+            "markov_replicated": true,
+            "noncausal_query_block": false,
+            "pp_capability": [
+              1
+            ],
+            "input_width": 4096,
+            "proposal_tokens": 1,
+            "vocab_size": 248320,
+            "activation_dtype": "bf16",
+            "source": {
+              "kind": "qwen_mtp"
+            },
+            "notes": [
+              "Qwen body excludes the optional MTP layer"
+            ]
+          },
+          "dspark": null,
+          "external_draft_key": "",
+          "standalone_draft": false,
+          "include_vision_weights": true,
+          "notes": [
+            "qwen_mtp_is_optional"
+          ]
+        },
+        "body_layers": 40,
+        "cache_row_bytes_by_layer": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            3,
+            2048
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            6,
+            0
+          ],
+          [
+            7,
+            2048
+          ],
+          [
+            8,
+            0
+          ],
+          [
+            9,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            11,
+            2048
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            13,
+            0
+          ],
+          [
+            14,
+            0
+          ],
+          [
+            15,
+            2048
+          ],
+          [
+            16,
+            0
+          ],
+          [
+            17,
+            0
+          ],
+          [
+            18,
+            0
+          ],
+          [
+            19,
+            2048
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            23,
+            2048
+          ],
+          [
+            24,
+            0
+          ],
+          [
+            25,
+            0
+          ],
+          [
+            26,
+            0
+          ],
+          [
+            27,
+            2048
+          ],
+          [
+            28,
+            0
+          ],
+          [
+            29,
+            0
+          ],
+          [
+            30,
+            0
+          ],
+          [
+            31,
+            2048
+          ],
+          [
+            32,
+            0
+          ],
+          [
+            33,
+            0
+          ],
+          [
+            34,
+            0
+          ],
+          [
+            35,
+            2048
+          ],
+          [
+            36,
+            0
+          ],
+          [
+            37,
+            0
+          ],
+          [
+            38,
+            0
+          ],
+          [
+            39,
+            2048
+          ]
+        ],
+        "candidate_block_size": 0,
+        "candidate_source_layer_id": -1,
+        "candidate_topk_blocks": 0,
+        "compress_ratios": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "dense_layers": 0,
+        "dspark_block_size": 0,
+        "dspark_layers": 0,
+        "dspark_markov_rank": 0,
+        "dspark_n_routed_experts": 0,
+        "dspark_num_experts_per_tok": 0,
+        "dspark_target_layer_ids": [],
+        "engram_layer_ids": [],
+        "engram_runtime_row_bytes": 0,
+        "engram_source_row_bytes": 0,
+        "engram_storage_mode": "",
+        "engram_tables": 0,
+        "external_shared_parameters": 0,
+        "external_shared_weight_bytes": 0.0,
+        "ffn_types": {
+          "moe": 40
+        },
+        "gdn_layers": 30,
+        "gqa_layers": 10,
+        "hc_mult": 0,
+        "hc_sinkhorn_iters": 0,
+        "hyper_connections": false,
+        "index_head_dim": 0,
+        "index_n_heads": 0,
+        "index_source_layer_ids": [],
+        "index_topk": 0,
+        "indexer_full_layers": 0,
+        "indexer_layers": 0,
+        "indexer_shared_layers": 0,
+        "indexer_types": [],
+        "kda_layers": 0,
+        "kv_source_layer_ids": [],
+        "latent_moe_layers": 0,
+        "layer_types": [
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention",
+          "linear_attention",
+          "linear_attention",
+          "linear_attention",
+          "full_attention"
+        ],
+        "linear_layers": 30,
+        "mla_layers": 0,
+        "mlp_layer_types": [],
+        "model_type": "qwen3_5_moe_text",
+        "moe_layers": 40,
+        "mtp_layers": 1,
+        "native_one_based_attention": false,
+        "norm_eps": 1e-06,
+        "normalization": {
+          "norm_weight_offset": 1.0,
+          "norm_multiply_before_output_cast": true,
+          "source": {
+            "repository": "vllm",
+            "revision": "752a3a504485790a2e8491cacbb35c137339ad34",
+            "model_path": "vllm/model_executor/models/qwen3_5.py",
+            "model_sha256": "5f47ae4f4a08d0a78dd681d58b290f3298744c73a82f1349f3e2853469ef73e6",
+            "model_lines": "39,165-170,248",
+            "normalization_path": "vllm/model_executor/layers/layernorm.py",
+            "normalization_sha256": "696615d858292fea7a2942480803cd4c7d2d1e88d818bfe5cd9d695ac464f37c",
+            "normalization_lines": "129-157",
+            "boundary": "declared_model_semantics; not_capture_binary_identity"
+          }
+        },
+        "num_hash_layers": 0,
+        "num_nextn_predict_layers": 0,
+        "o_groups": 0,
+        "o_lora_rank": 0,
+        "optional_draft_weight_bytes": 1689269248.0,
+        "parameter_count_body": 35106928256.0,
+        "parameter_count_optional_draft": 844634624.0,
+        "profile": "qwen",
+        "quantization": {
+          "name": "bf16_qwen",
+          "weight_format": "bf16",
+          "native_format": "bf16",
+          "activation_format": "bf16",
+          "expert_weight_format": "bf16",
+          "weight_block": [
+            0,
+            0
+          ],
+          "expert_block": 32,
+          "scale_format": "fp32",
+          "scale_bytes": 4.0,
+          "kv_dtype": "bf16",
+          "index_dtype": "bf16",
+          "index_scale_dtype": "none",
+          "exclusions": [],
+          "engram_table_mode": "device_bf16",
+          "activation_group_size": 0,
+          "activation_scale_format": "",
+          "activation_scale_pack": 1,
+          "category_overrides": {},
+          "source": {
+            "quantization": "none"
+          },
+          "notes": [
+            "no weight quantization declared; compute and activation are BF16"
+          ]
+        },
+        "resident_weight_bytes_body": 70213856512.0,
+        "residual_block_size": 0,
+        "sliding_window": 0,
+        "source_scope": "structural_config_no_latency_labels",
+        "state_bytes_per_request": 64389120.0,
+        "state_bytes_per_request_unsharded": 64389120.0,
+        "vision": {
+          "kind": "qwen3_5",
+          "layers": 27,
+          "hidden_size": 1152,
+          "intermediate_size": 4304,
+          "num_heads": 16,
+          "head_dim": 72,
+          "query_width": 1152,
+          "qkv_width": 3456,
+          "qkv_packed_rows": 3456,
+          "patch_size": 16,
+          "in_channels": 3,
+          "temporal_patch": 2,
+          "merge_area": 4,
+          "downsample_ratio": 1,
+          "out_hidden_size": 2048,
+          "aligner_hidden_size": 0,
+          "aligner_input_width": 4608,
+          "patch_input_width": 1536,
+          "pos_embed_tokens": 2304,
+          "deepstack": false,
+          "gated_mlp": false,
+          "activation": "gelu",
+          "norm_type": "layernorm",
+          "norm_eps": 1e-06,
+          "bias": false,
+          "image_token_id": 248056,
+          "video_token_id": 248057,
+          "source": {
+            "vision_config": "qwen3_5_vision"
+          }
+        },
+        "vision_config": {
+          "deepstack_visual_indexes": [],
+          "depth": 27,
+          "hidden_act": "gelu_pytorch_tanh",
+          "hidden_size": 1152,
+          "in_channels": 3,
+          "initializer_range": 0.02,
+          "intermediate_size": 4304,
+          "model_type": "qwen3_5_moe",
+          "num_heads": 16,
+          "num_position_embeddings": 2304,
+          "out_hidden_size": 2048,
+          "patch_size": 16,
+          "spatial_merge_size": 2,
+          "temporal_patch_size": 2
+        },
+        "vision_present": true
+      },
+      "metadata": {
+        "declared_quantization": {},
+        "degraded_submodules": [],
+        "model_coverage": "partial",
+        "source_model_type": "qwen3_5_moe_text",
+        "unconsumed_config_fields": {},
+        "unmodeled_features": [
+          "unrecognized_config_field:full_attention_interval",
+          "unrecognized_config_field:mamba_ssm_dtype",
+          "unrecognized_config_field:mtp_use_dedicated_embeddings",
+          "unrecognized_config_field:rope_parameters",
+          "unrecognized_config_field:vision_end_token_id",
+          "unrecognized_config_field:vision_start_token_id"
+        ],
+        "unrecognized_config_fields": {
+          "full_attention_interval": 4,
+          "mamba_ssm_dtype": "float32",
+          "mtp_use_dedicated_embeddings": false,
+          "rope_parameters": {
+            "mrope_interleaved": true,
+            "mrope_section": [
+              11,
+              11,
+              10
+            ],
+            "rope_type": "default",
+            "rope_theta": 10000000,
+            "partial_rotary_factor": 0.25
+          },
+          "vision_end_token_id": 248054,
+          "vision_start_token_id": 248053
+        }
+      },
+      "quant": {
+        "name": "W8A8_DYNAMIC",
+        "weight_format": "int8",
+        "activation_format": "int8",
+        "expert_weight_format": "int8",
+        "weight_block": [
+          1,
+          1
+        ],
+        "expert_block": 1,
+        "scale_format": "fp32",
+        "scale_bytes": 4.0,
+        "kv_dtype": "bf16",
+        "index_dtype": "bf16",
+        "index_scale_dtype": "none",
+        "exclusions": [
+          "mtp",
+          "norm",
+          "lm_head",
+          "embedding",
+          "vision",
+          "projector",
+          "conv_weight_f32",
+          "conv_weight_bf16"
+        ],
+        "engram_table_mode": "device_bf16",
+        "source": [
+          [
+            "checkpoint_identity",
+            "not_verified_from_capture_config"
+          ],
+          [
+            "kind",
+            "representation_preset"
+          ],
+          [
+            "preset",
+            "w8a8_dynamic"
+          ]
+        ],
+        "notes": [
+          "Declared representation template; retained tensor samples establish selected contracts separately."
+        ],
+        "activation_group_size": 0,
+        "activation_scale_format": "",
+        "activation_scale_pack": 1,
+        "category_overrides": [
+          [
+            "attn.o",
+            [
+              [
+                "activation_format",
+                "bf16"
+              ],
+              [
+                "weight_format",
+                "bf16"
+              ]
+            ]
+          ],
+          [
+            "attn.qkv",
+            [
+              [
+                "activation_scale_format",
+                "fp32"
+              ],
+              [
+                "scale_bytes",
+                2.0
+              ],
+              [
+                "scale_format",
+                "bf16"
+              ]
+            ]
+          ],
+          [
+            "gdn.beta_alpha",
+            [
+              [
+                "activation_format",
+                "bf16"
+              ],
+              [
+                "weight_format",
+                "bf16"
+              ]
+            ]
+          ],
+          [
+            "gdn.o",
+            [
+              [
+                "activation_format",
+                "bf16"
+              ],
+              [
+                "weight_format",
+                "bf16"
+              ]
+            ]
+          ],
+          [
+            "gdn.qkvz",
+            [
+              [
+                "activation_format",
+                "bf16"
+              ],
+              [
+                "weight_format",
+                "bf16"
+              ]
+            ]
+          ],
+          [
+            "routed_expert",
+            [
+              [
+                "activation_scale_format",
+                "fp32"
+              ],
+              [
+                "scale_bytes",
+                4.0
+              ],
+              [
+                "scale_format",
+                "fp32"
+              ]
+            ]
+          ],
+          [
+            "shared_expert",
+            [
+              [
+                "activation_format",
+                "bf16"
+              ],
+              [
+                "weight_format",
+                "bf16"
+              ]
+            ]
+          ]
+        ],
+        "native_format": "bf16"
+      },
+      "vision": {
+        "kind": "qwen3_5",
+        "layers": 27,
+        "hidden_size": 1152,
+        "intermediate_size": 4304,
+        "num_heads": 16,
+        "qkv_width": 3456,
+        "patch_size": 16,
+        "in_channels": 3,
+        "temporal_patch": 2,
+        "merge_area": 4,
+        "downsample_ratio": 1,
+        "out_hidden_size": 2048,
+        "aligner_hidden_size": 0,
+        "pos_embed_tokens": 2304,
+        "deepstack": false,
+        "gated_mlp": false,
+        "activation": "gelu",
+        "norm_type": "layernorm",
+        "norm_eps": 1e-06,
+        "bias": false,
+        "image_token_id": 248056,
+        "video_token_id": 248057,
+        "source": [
+          [
+            "vision_config",
+            "qwen3_5_vision"
+          ]
+        ]
+      },
+      "engram": null,
+      "auxiliary": null,
+      "body_layers": 8
+    },
+    "runtime": {
+      "tp": 8,
+      "dp": 1,
+      "ep": 1,
+      "pp": 1,
+      "max_model_len": 131072,
+      "max_num_seqs": 96,
+      "max_num_batched_tokens": 8192,
+      "gpu_memory_utilization": 0.9,
+      "kv_block_size": 128,
+      "enable_chunked_prefill": true,
+      "graph_mode": "auto",
+      "graph_capture_mode": "full",
+      "graph_capture_keys": [
+        4,
+        8,
+        12,
+        16,
+        24,
+        32,
+        48,
+        64,
+        96,
+        128,
+        192,
+        256,
+        384,
+        512
+      ],
+      "moe_recipe": "tp_join_reduce",
+      "routing": {
+        "policy": "balanced"
+      },
+      "graph_buckets": [
+        4,
+        8,
+        12,
+        16,
+        24,
+        32,
+        48,
+        64,
+        96,
+        128,
+        192,
+        256,
+        384,
+        512
+      ],
+      "metadata": {},
+      "kernels": {
+        "recipes": {
+          "flash_attention_decode": {
+            "kind": "staged_gqa_decode",
+            "target_cores": 20,
+            "query_tile": 64,
+            "key_tile": 128,
+            "slots": 2,
+            "kv_mapping": "fai_host"
+          }
+        },
+        "service_regimes": [
+          {
+            "id": "a3-native-rmsnorm-2048",
+            "match": {
+              "hardware": "Ascend910_9362",
+              "phase": "decode",
+              "recipe": "rmsnorm",
+              "dtype": "bf16"
+            },
+            "coordinates": {
+              "rows": {
+                "path": "local_shape.0",
+                "scale": 1
+              }
+            },
+            "domain": {
+              "rows": {
+                "min": 1,
+                "max": 256
+              }
+            },
+            "response": {
+              "fixed_us": 3.0,
+              "terms": [
+                {
+                  "coordinate": "rows",
+                  "us_per_unit": 0.013475
+                }
+              ]
+            },
+            "provenance": {
+              "kind": "operator_response_calibration",
+              "parameter_boundary": "inclusive native kernel duration, not a body residual",
+              "limitations": [
+                "capture binary not reconstructed",
+                "routing distribution not identified by grouped tensor ABI"
+              ]
+            }
+          },
+          {
+            "id": "a3-native-expert-down-2048-low",
+            "match": {
+              "hardware": "Ascend910_9362",
+              "phase": "decode",
+              "recipe": "balanced_grouped_down",
+              "dtype": "int8"
+            },
+            "coordinates": {
+              "rows": {
+                "path": "local_shape.0",
+                "scale": 1
+              }
+            },
+            "domain": {
+              "rows": {
+                "min": 1,
+                "max": 128
+              }
+            },
+            "response": {
+              "fixed_us": 29.24,
+              "terms": [
+                {
+                  "coordinate": "rows",
+                  "us_per_unit": 0.01344
+                }
+              ]
+            },
+            "provenance": {
+              "kind": "operator_response_calibration",
+              "parameter_boundary": "inclusive native kernel duration, not a body residual",
+              "limitations": [
+                "capture binary not reconstructed",
+                "routing distribution not identified by grouped tensor ABI"
+              ]
+            }
+          },
+          {
+            "id": "a3-native-expert-down-2048-mid",
+            "match": {
+              "hardware": "Ascend910_9362",
+              "phase": "decode",
+              "recipe": "balanced_grouped_down",
+              "dtype": "int8"
+            },
+            "coordinates": {
+              "rows": {
+                "path": "local_shape.0",
+                "scale": 1
+              }
+            },
+            "domain": {
+              "rows": {
+                "min": 129,
+                "max": 384
+              }
+            },
+            "response": {
+              "fixed_us": 39.7664,
+              "terms": [
+                {
+                  "coordinate": "rows",
+                  "us_per_unit": 0.00546
+                }
+              ]
+            },
+            "provenance": {
+              "kind": "operator_response_calibration",
+              "parameter_boundary": "inclusive native kernel duration, not a body residual",
+              "limitations": [
+                "capture binary not reconstructed",
+                "routing distribution not identified by grouped tensor ABI"
+              ]
+            }
+          },
+          {
+            "id": "a3-native-expert-down-2048-high",
+            "match": {
+              "hardware": "Ascend910_9362",
+              "phase": "decode",
+              "recipe": "balanced_grouped_down",
+              "dtype": "int8"
+            },
+            "coordinates": {
+              "rows": {
+                "path": "local_shape.0",
+                "scale": 1
+              }
+            },
+            "domain": {
+              "rows": {
+                "min": 385,
+                "max": 2048
+              }
+            },
+            "response": {
+              "fixed_us": 53.8016,
+              "terms": [
+                {
+                  "coordinate": "rows",
+                  "us_per_unit": 0.00042
+                }
+              ]
+            },
+            "provenance": {
+              "kind": "operator_response_calibration",
+              "parameter_boundary": "inclusive native kernel duration, not a body residual",
+              "limitations": [
+                "capture binary not reconstructed",
+                "routing distribution not identified by grouped tensor ABI"
+              ]
+            }
+          },
+          {
+            "id": "a3-native-expert-up-2048-low",
+            "match": {
+              "hardware": "Ascend910_9362",
+              "phase": "decode",
+              "recipe": "balanced_grouped_gate_up",
+              "dtype": "int8"
+            },
+            "coordinates": {
+              "rows": {
+                "path": "local_shape.0",
+                "scale": 1
+              }
+            },
+            "domain": {
+              "rows": {
+                "min": 1,
+                "max": 128
+              }
+            },
+            "response": {
+              "fixed_us": 29.92,
+              "terms": [
+                {
+                  "coordinate": "rows",
+                  "us_per_unit": 0.02352
+                }
+              ]
+            },
+            "provenance": {
+              "kind": "operator_response_calibration",
+              "parameter_boundary": "inclusive native kernel duration, not a body residual",
+              "limitations": [
+                "capture binary not reconstructed",
+                "routing distribution not identified by grouped tensor ABI"
+              ]
+            }
+          },
+          {
+            "id": "a3-native-expert-up-2048-mid",
+            "match": {
+              "hardware": "Ascend910_9362",
+              "phase": "decode",
+              "recipe": "balanced_grouped_gate_up",
+              "dtype": "int8"
+            },
+            "coordinates": {
+              "rows": {
+                "path": "local_shape.0",
+                "scale": 1
+              }
+            },
+            "domain": {
+              "rows": {
+                "min": 129,
+                "max": 384
+              }
+            },
+            "response": {
+              "fixed_us": 45.6144,
+              "terms": [
+                {
+                  "coordinate": "rows",
+                  "us_per_unit": 0.01092
+                }
+              ]
+            },
+            "provenance": {
+              "kind": "operator_response_calibration",
+              "parameter_boundary": "inclusive native kernel duration, not a body residual",
+              "limitations": [
+                "capture binary not reconstructed",
+                "routing distribution not identified by grouped tensor ABI"
+              ]
+            }
+          },
+          {
+            "id": "a3-native-expert-up-2048-high",
+            "match": {
+              "hardware": "Ascend910_9362",
+              "phase": "decode",
+              "recipe": "balanced_grouped_gate_up",
+              "dtype": "int8"
+            },
+            "coordinates": {
+              "rows": {
+                "path": "local_shape.0",
+                "scale": 1
+              }
+            },
+            "domain": {
+              "rows": {
+                "min": 385,
+                "max": 2048
+              }
+            },
+            "response": {
+              "fixed_us": 73.1,
+              "terms": [
+                {
+                  "coordinate": "rows",
+                  "us_per_unit": 0.00126
+                }
+              ]
+            },
+            "provenance": {
+              "kind": "operator_response_calibration",
+              "parameter_boundary": "inclusive native kernel duration, not a body residual",
+              "limitations": [
+                "capture binary not reconstructed",
+                "routing distribution not identified by grouped tensor ABI"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "workload": {
+      "requests": [
+        {
+          "id": "placeholder",
+          "prompt_tokens": 1,
+          "output_tokens": 1
+        }
+      ]
+    }
+  },
+  "expected": {
+    "before": {
+      "tp": 8,
+      "dp": 1,
+      "ep": 1,
+      "moe_recipe": "tp_join_reduce",
+      "graph_capture_keys": [
+        4,
+        8,
+        12,
+        16,
+        24,
+        32,
+        48,
+        64,
+        96,
+        128,
+        192,
+        256,
+        384,
+        512
+      ]
+    },
+    "after": {
+      "tp": 8,
+      "dp": 1,
+      "ep": 8,
+      "moe_recipe": "alltoall",
+      "graph_capture_keys": [
+        1,
+        2,
+        4,
+        8,
+        16,
+        32
+      ]
+    },
+    "local_experts": 4,
+    "expert_width": 512,
+    "grouped_gate_up_shape": [
+      1,
+      1024,
+      2048
+    ],
+    "grouped_down_shape": [
+      1,
+      2048,
+      512
+    ],
+    "service_regime_id": "a3-native-rmsnorm-2048"
+  },
+  "structural_fixture": {
+    "csv": "a3_qwen35_e32_ep8_structural.csv",
+    "sidecar": "a3_qwen35_e32_ep8_structural.json",
+    "note": "verbatim header plus actual source lines 80,82,84,86,87,88,89,90; the sidecar preserves the original source hash and line mapping"
+  }
+}

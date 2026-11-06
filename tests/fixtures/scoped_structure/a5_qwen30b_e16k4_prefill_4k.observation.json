@@ -1,0 +1,91 @@
+{
+ "schema_version": "mindie-scoped-structure-window/1",
+ "derivation": {
+  "kind": "genuine_minimized_line_subset",
+  "source": {
+   "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen30b_L8_E16_K4_tp4ep4_prefill_4k_c1/kernel_details.csv",
+   "sha256": "bac97a21d4699c2619123453797ebcebd201eee0199fa4824c60330816ea6d84"
+  },
+  "timing_values_modified": false,
+  "line_numbers_renumbered_in_fixture": true
+ },
+ "forwards": [
+  {
+   "forward_id": "prefill:0",
+   "phase": "prefill",
+   "query_rows": 4096,
+   "tokens_per_sequence": 4096,
+   "sequences": 1,
+   "context": 0,
+   "body": {
+    "start_ns": 1793476880767061906,
+    "end_ns": 1793476880787775810,
+    "first_csv_line": 2,
+    "last_csv_line": 89
+   },
+   "layers": [
+    {
+     "layer_id": 0,
+     "start_ns": 1793476880767061906,
+     "end_ns": 1793476880776261630,
+     "first_csv_line": 2,
+     "last_csv_line": 12
+    },
+    {
+     "layer_id": 1,
+     "start_ns": 1793476880776262431,
+     "end_ns": 1793476880778018509,
+     "first_csv_line": 13,
+     "last_csv_line": 23
+    },
+    {
+     "layer_id": 2,
+     "start_ns": 1793476880778019496,
+     "end_ns": 1793476880779669518,
+     "first_csv_line": 24,
+     "last_csv_line": 34
+    },
+    {
+     "layer_id": 3,
+     "start_ns": 1793476880779670282,
+     "end_ns": 1793476880781319864,
+     "first_csv_line": 35,
+     "last_csv_line": 45
+    },
+    {
+     "layer_id": 4,
+     "start_ns": 1793476880781320634,
+     "end_ns": 1793476880782916451,
+     "first_csv_line": 46,
+     "last_csv_line": 56
+    },
+    {
+     "layer_id": 5,
+     "start_ns": 1793476880782917420,
+     "end_ns": 1793476880784612336,
+     "first_csv_line": 57,
+     "last_csv_line": 67
+    },
+    {
+     "layer_id": 6,
+     "start_ns": 1793476880784613122,
+     "end_ns": 1793476880786165841,
+     "first_csv_line": 68,
+     "last_csv_line": 78
+    },
+    {
+     "layer_id": 7,
+     "start_ns": 1793476880786166685,
+     "end_ns": 1793476880787775810,
+     "first_csv_line": 79,
+     "last_csv_line": 89
+    }
+   ]
+  }
+ ],
+ "source_identity": {
+  "path": "/Volumes/data/code/mindie-release-20261014/profiler/tests/fixtures/scoped_structure/a5_qwen30b_e16k4_prefill_4k.csv",
+  "sha256": "f28e083da7764f44368299fe14c9f3112d2b216c9212105d6657a9a7562ee3cc",
+  "size_bytes": 32254
+ }
+}

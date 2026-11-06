@@ -111,7 +111,9 @@ flowchart LR
 
 ### 当前兼容组合：拓扑结构关联与 4D 效率报告（配套 `mindie-sim 0.9.4`）
 
-当前安装组合为 `mindie-profiler v0.5.6` 与 [`mindie-sim v0.9.4`](https://github.com/mindie-agent/sim)，提供从原始 Trace 到模型结构映射及四维效率归因的接口。历史全量泛化验证的数据与采样版本仍以原始记录为准（[`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md)、[`docs/releases/profiler-0.5.3.md`](./docs/releases/profiler-0.5.3.md) 与 [`examples/structure/README.md`](./examples/structure/README.md)），本次文档同步不重新标注历史实验：
+当前安装组合为 `mindie-profiler v0.5.6` 与 [`mindie-sim v0.9.4`](https://github.com/mindie-agent/sim)，提供从原始 Trace 到模型结构映射及四维效率归因的接口。历史全量泛化验证的数据与采样版本仍以原始记录为准（[`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md)、[`docs/releases/profiler-0.5.3.md`](./docs/releases/profiler-0.5.3.md) 与 [`examples/structure/README.md`](./examples/structure/README.md)），本次文档同步不重新标注历史实验。
+
+Wave5 报告使用样本内校准，不能称为独立零样本验证。当前开发版评估缓存使用完整 sim Python/JSON 内容身份；聚合旧报告时明确保留缺失或过期身份，不将其重标为当前版本结果。
 
 - **拓扑驱动的结构映射（`analyze --structure`）**：
   ```bash

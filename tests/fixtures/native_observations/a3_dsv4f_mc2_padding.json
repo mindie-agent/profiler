@@ -1,0 +1,1203 @@
+{
+  "fixture_scope": "retained model declaration with timing regimes removed; native first-layer shape evidence",
+  "declaration_derivation": {
+    "input_sha256": "d06a8bec07e9539f0fa00d7d9aff7ef713894a6fd7ae56737583691e1a26aafd",
+    "removed": [
+      "runtime.metadata",
+      "runtime.kernels.service_regimes"
+    ],
+    "layer_plan_defaults_omitted_without_semantic_change": true
+  },
+  "raw": {
+    "name": "v4flash-a3-tp8-c4-caller-bf16",
+    "machine": {
+      "backend": "ascend",
+      "sku": "Ascend910_9362",
+      "num_devices": 8,
+      "ranks_per_node": 16,
+      "device": {
+        "rates": {
+          "native_call_service": 1000000000.0
+        },
+        "resource_units": {
+          "native_call_service": 1
+        },
+        "work_units": {
+          "native_call_service": "busy_ns"
+        }
+      }
+    },
+    "model": {
+      "name": "deepseek-v4-flash-0731",
+      "layers": 8,
+      "hidden_size": 4096,
+      "num_heads": 64,
+      "head_dim": 512,
+      "intermediate_size": 2048,
+      "vocab_size": 129280,
+      "attention": "mla",
+      "ffn": "moe",
+      "num_kv_heads": 1,
+      "activation_dtype": "bf16",
+      "weight_dtype": "int8",
+      "kv_dtype": "bf16",
+      "compute_dtype": "bf16",
+      "norm_eps": 1e-06,
+      "quantization": "W8A8_DYNAMIC",
+      "num_experts": 16,
+      "top_k": 2,
+      "moe_intermediate_size": 2048,
+      "num_shared_experts": 1,
+      "expert_routing": [],
+      "expert_routing_source": "declared",
+      "mla": {
+        "q_lora_rank": 1024,
+        "kv_lora_rank": 512,
+        "qk_nope_head_dim": 448,
+        "qk_rope_head_dim": 64,
+        "v_head_dim": 512,
+        "o_lora_rank": 0,
+        "o_groups": 0,
+        "index_topk": 0,
+        "index_head_dim": 0,
+        "index_n_heads": 0,
+        "compress_ratio": 0,
+        "sliding_window": 0
+      },
+      "tie_word_embeddings": false,
+      "layer_plans": [
+        {
+          "index": 0,
+          "attention": "mla",
+          "ffn": "moe",
+          "window": 128,
+          "num_heads": 64,
+          "num_kv_heads": 1,
+          "head_dim": 512,
+          "q_lora_rank": 1024,
+          "kv_lora_rank": 512,
+          "qk_nope_head_dim": 448,
+          "qk_rope_head_dim": 64,
+          "v_head_dim": 512,
+          "num_experts": 16,
+          "top_k": 2,
+          "moe_intermediate_size": 2048,
+          "num_shared_experts": 1,
+          "architecture": "swa_only",
+          "o_lora_rank": 1024,
+          "o_groups": 8,
+          "mla_variant": "latent_mqa",
+          "mla_output_gate": true,
+          "router_input_size": 4096,
+          "router_mode": "hash",
+          "router_dtype": "fp32",
+          "router_precast_weight_copy": true,
+          "router_norm_topk": true,
+          "kv_cache_elements": 512,
+          "index_source_status": "exact_native_compression_schedule",
+          "hyper_connections": true,
+          "hc_mult": 4,
+          "hc_sinkhorn_iters": 20,
+          "native_layer_id": 0,
+          "cache_kind": "window_compressed",
+          "index_heads": 64,
+          "index_dim": 128,
+          "index_topk": 512,
+          "candidate_block_size": 8,
+          "candidate_topk_blocks": 2048
+        },
+        {
+          "index": 1,
+          "attention": "mla",
+          "ffn": "moe",
+          "window": 128,
+          "num_heads": 64,
+          "num_kv_heads": 1,
+          "head_dim": 512,
+          "q_lora_rank": 1024,
+          "kv_lora_rank": 512,
+          "qk_nope_head_dim": 448,
+          "qk_rope_head_dim": 64,
+          "v_head_dim": 512,
+          "num_experts": 16,
+          "top_k": 2,
+          "moe_intermediate_size": 2048,
+          "num_shared_experts": 1,
+          "architecture": "swa_only",
+          "o_lora_rank": 1024,
+          "o_groups": 8,
+          "mla_variant": "latent_mqa",
+          "mla_output_gate": true,
+          "router_input_size": 4096,
+          "router_mode": "hash",
+          "router_dtype": "fp32",
+          "router_precast_weight_copy": true,
+          "router_norm_topk": true,
+          "kv_cache_elements": 512,
+          "index_source_status": "exact_native_compression_schedule",
+          "hyper_connections": true,
+          "hc_mult": 4,
+          "hc_sinkhorn_iters": 20,
+          "native_layer_id": 1,
+          "cache_kind": "window_compressed",
+          "index_heads": 64,
+          "index_dim": 128,
+          "index_topk": 512,
+          "candidate_block_size": 8,
+          "candidate_topk_blocks": 2048
+        },
+        {
+          "index": 2,
+          "attention": "mla",
+          "ffn": "moe",
+          "compress_ratio": 4,
+          "indexer": true,
+          "window": 128,
+          "num_heads": 64,
+          "num_kv_heads": 1,
+          "head_dim": 512,
+          "q_lora_rank": 1024,
+          "kv_lora_rank": 512,
+          "qk_nope_head_dim": 448,
+          "qk_rope_head_dim": 64,
+          "v_head_dim": 512,
+          "num_experts": 16,
+          "top_k": 2,
+          "moe_intermediate_size": 2048,
+          "num_shared_experts": 1,
+          "architecture": "dsa_compressed_4",
+          "indexer_type": "c4",
+          "o_lora_rank": 1024,
+          "o_groups": 8,
+          "mla_variant": "latent_mqa",
+          "mla_output_gate": true,
+          "router_input_size": 4096,
+          "router_mode": "hash",
+          "router_dtype": "fp32",
+          "router_precast_weight_copy": true,
+          "router_norm_topk": true,
+          "kv_cache_elements": 512,
+          "kv_owner_layer_id": 2,
+          "owns_long_kv": true,
+          "index_k_owner_layer_id": 2,
+          "owns_index_k": true,
+          "topk_owner_layer_id": 2,
+          "owns_topk": true,
+          "index_source_layer_id": 2,
+          "index_source_status": "exact_native_compression_schedule",
+          "hyper_connections": true,
+          "hc_mult": 4,
+          "hc_sinkhorn_iters": 20,
+          "native_layer_id": 2,
+          "cache_kind": "window_compressed",
+          "compressor_kind": "weighted_pool",
+          "compressor_width": 2,
+          "compressor_state_rows": 8,
+          "index_heads": 64,
+          "index_dim": 128,
+          "index_topk": 512,
+          "candidate_block_size": 8,
+          "candidate_topk_blocks": 2048
+        },
+        {
+          "index": 3,
+          "attention": "mla",
+          "ffn": "moe",
+          "compress_ratio": 128,
+          "window": 128,
+          "num_heads": 64,
+          "num_kv_heads": 1,
+          "head_dim": 512,
+          "q_lora_rank": 1024,
+          "kv_lora_rank": 512,
+          "qk_nope_head_dim": 448,
+          "qk_rope_head_dim": 64,
+          "v_head_dim": 512,
+          "num_experts": 16,
+          "top_k": 2,
+          "moe_intermediate_size": 2048,
+          "num_shared_experts": 1,
+          "architecture": "dsa_compressed_128",
+          "o_lora_rank": 1024,
+          "o_groups": 8,
+          "mla_variant": "latent_mqa",
+          "mla_output_gate": true,
+          "router_input_size": 4096,
+          "router_mode": "sqrtsoftplus",
+          "router_dtype": "fp32",
+          "router_precast_weight_copy": true,
+          "router_norm_topk": true,
+          "kv_cache_elements": 512,
+          "kv_owner_layer_id": 3,
+          "owns_long_kv": true,
+          "index_k_owner_layer_id": 3,
+          "index_source_status": "exact_native_compression_schedule",
+          "hyper_connections": true,
+          "hc_mult": 4,
+          "hc_sinkhorn_iters": 20,
+          "native_layer_id": 3,
+          "cache_kind": "window_compressed",
+          "compressor_kind": "weighted_pool",
+          "compressor_state_rows": 128,
+          "index_heads": 64,
+          "index_dim": 128,
+          "index_topk": 512,
+          "candidate_block_size": 8,
+          "candidate_topk_blocks": 2048
+        },
+        {
+          "index": 4,
+          "attention": "mla",
+          "ffn": "moe",
+          "compress_ratio": 4,
+          "indexer": true,
+          "window": 128,
+          "num_heads": 64,
+          "num_kv_heads": 1,
+          "head_dim": 512,
+          "q_lora_rank": 1024,
+          "kv_lora_rank": 512,
+          "qk_nope_head_dim": 448,
+          "qk_rope_head_dim": 64,
+          "v_head_dim": 512,
+          "num_experts": 16,
+          "top_k": 2,
+          "moe_intermediate_size": 2048,
+          "num_shared_experts": 1,
+          "architecture": "dsa_compressed_4",
+          "indexer_type": "c4",
+          "o_lora_rank": 1024,
+          "o_groups": 8,
+          "mla_variant": "latent_mqa",
+          "mla_output_gate": true,
+          "router_input_size": 4096,
+          "router_mode": "sqrtsoftplus",
+          "router_dtype": "fp32",
+          "router_precast_weight_copy": true,
+          "router_norm_topk": true,
+          "kv_cache_elements": 512,
+          "kv_owner_layer_id": 4,
+          "owns_long_kv": true,
+          "index_k_owner_layer_id": 4,
+          "owns_index_k": true,
+          "topk_owner_layer_id": 4,
+          "owns_topk": true,
+          "index_source_layer_id": 4,
+          "index_source_status": "exact_native_compression_schedule",
+          "hyper_connections": true,
+          "hc_mult": 4,
+          "hc_sinkhorn_iters": 20,
+          "native_layer_id": 4,
+          "cache_kind": "window_compressed",
+          "compressor_kind": "weighted_pool",
+          "compressor_width": 2,
+          "compressor_state_rows": 8,
+          "index_heads": 64,
+          "index_dim": 128,
+          "index_topk": 512,
+          "candidate_block_size": 8,
+          "candidate_topk_blocks": 2048
+        },
+        {
+          "index": 5,
+          "attention": "mla",
+          "ffn": "moe",
+          "compress_ratio": 128,
+          "window": 128,
+          "num_heads": 64,
+          "num_kv_heads": 1,
+          "head_dim": 512,
+          "q_lora_rank": 1024,
+          "kv_lora_rank": 512,
+          "qk_nope_head_dim": 448,
+          "qk_rope_head_dim": 64,
+          "v_head_dim": 512,
+          "num_experts": 16,
+          "top_k": 2,
+          "moe_intermediate_size": 2048,
+          "num_shared_experts": 1,
+          "architecture": "dsa_compressed_128",
+          "o_lora_rank": 1024,
+          "o_groups": 8,
+          "mla_variant": "latent_mqa",
+          "mla_output_gate": true,
+          "router_input_size": 4096,
+          "router_mode": "sqrtsoftplus",
+          "router_dtype": "fp32",
+          "router_precast_weight_copy": true,
+          "router_norm_topk": true,
+          "kv_cache_elements": 512,
+          "kv_owner_layer_id": 5,
+          "owns_long_kv": true,
+          "index_k_owner_layer_id": 5,
+          "index_source_status": "exact_native_compression_schedule",
+          "hyper_connections": true,
+          "hc_mult": 4,
+          "hc_sinkhorn_iters": 20,
+          "native_layer_id": 5,
+          "cache_kind": "window_compressed",
+          "compressor_kind": "weighted_pool",
+          "compressor_state_rows": 128,
+          "index_heads": 64,
+          "index_dim": 128,
+          "index_topk": 512,
+          "candidate_block_size": 8,
+          "candidate_topk_blocks": 2048
+        },
+        {
+          "index": 6,
+          "attention": "mla",
+          "ffn": "moe",
+          "compress_ratio": 4,
+          "indexer": true,
+          "window": 128,
+          "num_heads": 64,
+          "num_kv_heads": 1,
+          "head_dim": 512,
+          "q_lora_rank": 1024,
+          "kv_lora_rank": 512,
+          "qk_nope_head_dim": 448,
+          "qk_rope_head_dim": 64,
+          "v_head_dim": 512,
+          "num_experts": 16,
+          "top_k": 2,
+          "moe_intermediate_size": 2048,
+          "num_shared_experts": 1,
+          "architecture": "dsa_compressed_4",
+          "indexer_type": "c4",
+          "o_lora_rank": 1024,
+          "o_groups": 8,
+          "mla_variant": "latent_mqa",
+          "mla_output_gate": true,
+          "router_input_size": 4096,
+          "router_mode": "sqrtsoftplus",
+          "router_dtype": "fp32",
+          "router_precast_weight_copy": true,
+          "router_norm_topk": true,
+          "kv_cache_elements": 512,
+          "kv_owner_layer_id": 6,
+          "owns_long_kv": true,
+          "index_k_owner_layer_id": 6,
+          "owns_index_k": true,
+          "topk_owner_layer_id": 6,
+          "owns_topk": true,
+          "index_source_layer_id": 6,
+          "index_source_status": "exact_native_compression_schedule",
+          "hyper_connections": true,
+          "hc_mult": 4,
+          "hc_sinkhorn_iters": 20,
+          "native_layer_id": 6,
+          "cache_kind": "window_compressed",
+          "compressor_kind": "weighted_pool",
+          "compressor_width": 2,
+          "compressor_state_rows": 8,
+          "index_heads": 64,
+          "index_dim": 128,
+          "index_topk": 512,
+          "candidate_block_size": 8,
+          "candidate_topk_blocks": 2048
+        },
+        {
+          "index": 7,
+          "attention": "mla",
+          "ffn": "moe",
+          "compress_ratio": 128,
+          "window": 128,
+          "num_heads": 64,
+          "num_kv_heads": 1,
+          "head_dim": 512,
+          "q_lora_rank": 1024,
+          "kv_lora_rank": 512,
+          "qk_nope_head_dim": 448,
+          "qk_rope_head_dim": 64,
+          "v_head_dim": 512,
+          "num_experts": 16,
+          "top_k": 2,
+          "moe_intermediate_size": 2048,
+          "num_shared_experts": 1,
+          "architecture": "dsa_compressed_128",
+          "o_lora_rank": 1024,
+          "o_groups": 8,
+          "mla_variant": "latent_mqa",
+          "mla_output_gate": true,
+          "router_input_size": 4096,
+          "router_mode": "sqrtsoftplus",
+          "router_dtype": "fp32",
+          "router_precast_weight_copy": true,
+          "router_norm_topk": true,
+          "kv_cache_elements": 512,
+          "kv_owner_layer_id": 7,
+          "owns_long_kv": true,
+          "index_k_owner_layer_id": 7,
+          "index_source_status": "exact_native_compression_schedule",
+          "hyper_connections": true,
+          "hc_mult": 4,
+          "hc_sinkhorn_iters": 20,
+          "native_layer_id": 7,
+          "cache_kind": "window_compressed",
+          "compressor_kind": "weighted_pool",
+          "compressor_state_rows": 128,
+          "index_heads": 64,
+          "index_dim": 128,
+          "index_topk": 512,
+          "candidate_block_size": 8,
+          "candidate_topk_blocks": 2048
+        }
+      ],
+      "state_bytes_per_request": 0.0,
+      "catalog_facts": {
+        "architectures": [
+          "DeepseekV4ForCausalLM"
+        ],
+        "attention_types": {
+          "swa_only": 2,
+          "dsa_compressed_4": 21,
+          "dsa_compressed_128": 20
+        },
+        "auxiliary": {
+          "mtp": {
+            "kind": "mtp_dspark",
+            "layers": 3,
+            "hidden_size": 4096,
+            "intermediate_size": 2048,
+            "attention_kind": "mla",
+            "num_heads": 64,
+            "num_kv_heads": 1,
+            "head_dim": 512,
+            "q_width": 32768,
+            "kv_width": 512,
+            "q_lora_rank": 1024,
+            "kv_lora_rank": 512,
+            "qk_nope_head_dim": 448,
+            "qk_rope_head_dim": 64,
+            "v_head_dim": 512,
+            "o_lora_rank": 1024,
+            "o_groups": 8,
+            "num_experts": 256,
+            "top_k": 6,
+            "expert_intermediate_size": 2048,
+            "num_shared_experts": 1,
+            "target_layer_ids": [
+              40,
+              41,
+              42
+            ],
+            "block_size": 5,
+            "markov_rank": 256,
+            "confidence_enabled": true,
+            "confidence_executes": false,
+            "confidence_input_width": 4352,
+            "target_shared_embedding": true,
+            "target_shared_lm_head": true,
+            "base_logits": true,
+            "markov_replicated": true,
+            "noncausal_query_block": true,
+            "pp_capability": [
+              1
+            ],
+            "input_width": 12288,
+            "proposal_tokens": 5,
+            "vocab_size": 129280,
+            "activation_dtype": "bf16",
+            "source": {
+              "kind": "native_mtp_dspark_selected"
+            },
+            "notes": [
+              "native se-tools MTP uses dspark expert geometry; one selected mode"
+            ]
+          },
+          "dspark": null,
+          "external_draft_key": "",
+          "standalone_draft": false,
+          "include_vision_weights": true,
+          "notes": [
+            "mtp_and_dspark_names_do_not_prove_two_modes"
+          ]
+        },
+        "body_layers": 43,
+        "cache_row_bytes_by_layer": [
+          [
+            0,
+            1024
+          ],
+          [
+            1,
+            1024
+          ],
+          [
+            2,
+            1024
+          ],
+          [
+            3,
+            1024
+          ],
+          [
+            4,
+            1024
+          ],
+          [
+            5,
+            1024
+          ],
+          [
+            6,
+            1024
+          ],
+          [
+            7,
+            1024
+          ],
+          [
+            8,
+            1024
+          ],
+          [
+            9,
+            1024
+          ],
+          [
+            10,
+            1024
+          ],
+          [
+            11,
+            1024
+          ],
+          [
+            12,
+            1024
+          ],
+          [
+            13,
+            1024
+          ],
+          [
+            14,
+            1024
+          ],
+          [
+            15,
+            1024
+          ],
+          [
+            16,
+            1024
+          ],
+          [
+            17,
+            1024
+          ],
+          [
+            18,
+            1024
+          ],
+          [
+            19,
+            1024
+          ],
+          [
+            20,
+            1024
+          ],
+          [
+            21,
+            1024
+          ],
+          [
+            22,
+            1024
+          ],
+          [
+            23,
+            1024
+          ],
+          [
+            24,
+            1024
+          ],
+          [
+            25,
+            1024
+          ],
+          [
+            26,
+            1024
+          ],
+          [
+            27,
+            1024
+          ],
+          [
+            28,
+            1024
+          ],
+          [
+            29,
+            1024
+          ],
+          [
+            30,
+            1024
+          ],
+          [
+            31,
+            1024
+          ],
+          [
+            32,
+            1024
+          ],
+          [
+            33,
+            1024
+          ],
+          [
+            34,
+            1024
+          ],
+          [
+            35,
+            1024
+          ],
+          [
+            36,
+            1024
+          ],
+          [
+            37,
+            1024
+          ],
+          [
+            38,
+            1024
+          ],
+          [
+            39,
+            1024
+          ],
+          [
+            40,
+            1024
+          ],
+          [
+            41,
+            1024
+          ],
+          [
+            42,
+            1024
+          ]
+        ],
+        "candidate_block_size": 0,
+        "candidate_source_layer_id": -1,
+        "candidate_topk_blocks": 0,
+        "compress_ratios": [
+          0,
+          0,
+          4,
+          128,
+          4,
+          128,
+          4,
+          128,
+          4,
+          128,
+          4,
+          128,
+          4,
+          128,
+          4,
+          128,
+          4,
+          128,
+          4,
+          128,
+          4,
+          128,
+          4,
+          128,
+          4,
+          128,
+          4,
+          128,
+          4,
+          128,
+          4,
+          128,
+          4,
+          128,
+          4,
+          128,
+          4,
+          128,
+          4,
+          128,
+          4,
+          128,
+          4
+        ],
+        "dense_layers": 0,
+        "dspark_block_size": 5,
+        "dspark_layers": 0,
+        "dspark_markov_rank": 256,
+        "dspark_n_routed_experts": 0,
+        "dspark_num_experts_per_tok": 0,
+        "dspark_target_layer_ids": [
+          40,
+          41,
+          42
+        ],
+        "engram_layer_ids": [],
+        "engram_runtime_row_bytes": 0,
+        "engram_source_row_bytes": 0,
+        "engram_storage_mode": "",
+        "engram_tables": 0,
+        "external_shared_parameters": 0,
+        "external_shared_weight_bytes": 0.0,
+        "ffn_types": {
+          "moe": 43
+        },
+        "gdn_layers": 0,
+        "gqa_layers": 0,
+        "hc_mult": 4,
+        "hc_sinkhorn_iters": 20,
+        "hyper_connections": true,
+        "index_head_dim": 128,
+        "index_n_heads": 64,
+        "index_source_layer_ids": [],
+        "index_topk": 512,
+        "indexer_full_layers": 21,
+        "indexer_layers": 21,
+        "indexer_shared_layers": 0,
+        "indexer_types": [],
+        "kda_layers": 0,
+        "kv_source_layer_ids": [],
+        "latent_moe_layers": 0,
+        "layer_types": [],
+        "linear_layers": 0,
+        "mla_layers": 43,
+        "mlp_layer_types": [],
+        "model_type": "deepseek_v4",
+        "moe_layers": 43,
+        "mtp_layers": 3,
+        "native_one_based_attention": false,
+        "norm_eps": 1e-06,
+        "normalization": {},
+        "num_hash_layers": 3,
+        "num_nextn_predict_layers": 1,
+        "o_groups": 8,
+        "o_lora_rank": 1024,
+        "optional_draft_weight_bytes": 10879404296.0,
+        "parameter_count_body": 284332227479.0,
+        "parameter_count_optional_draft": 19829031586.0,
+        "profile": "deepseek_v4",
+        "quantization": {
+          "name": "fp8_dynamic+mxfp4_experts",
+          "weight_format": "fp8_e4m3",
+          "native_format": "bf16",
+          "activation_format": "fp8_e4m3",
+          "expert_weight_format": "mxfp4",
+          "weight_block": [
+            128,
+            128
+          ],
+          "expert_block": 32,
+          "scale_format": "fp8_e8m0",
+          "scale_bytes": 1.0,
+          "kv_dtype": "bf16",
+          "index_dtype": "int8",
+          "index_scale_dtype": "fp16",
+          "exclusions": [
+            "router",
+            "lm_head",
+            "embedding",
+            "norm",
+            "mhc",
+            "compressor",
+            "vision",
+            "projector",
+            "engram_gate"
+          ],
+          "engram_table_mode": "device_bf16",
+          "activation_group_size": 128,
+          "activation_scale_format": "fp8_e8m0",
+          "activation_scale_pack": 2,
+          "category_overrides": {},
+          "source": {
+            "expert_dtype": "fp4",
+            "quant_method": "fp8",
+            "scale_fmt": "ue8m0",
+            "weight_block_size": "(128, 128)"
+          },
+          "notes": [
+            "ordinary linears use FP8 weights with the declared block scales; routed experts use FP4 group32 with E8M0 scales",
+            "activation_scheme=dynamic is a kernel path, not a global model dtype"
+          ]
+        },
+        "resident_weight_bytes_body": 156177384924.0,
+        "residual_block_size": 0,
+        "sliding_window": 128,
+        "source_scope": "structural_config_no_latency_labels",
+        "state_bytes_per_request": 0.0,
+        "state_bytes_per_request_unsharded": 0.0,
+        "vision": null,
+        "vision_config": {},
+        "vision_present": false
+      },
+      "metadata": {
+        "declared_quantization": {
+          "activation_scheme": "dynamic",
+          "fmt": "e4m3",
+          "quant_method": "fp8",
+          "scale_fmt": "ue8m0",
+          "weight_block_size": [
+            128,
+            128
+          ]
+        },
+        "degraded_submodules": [],
+        "model_coverage": "partial",
+        "source_model_type": "deepseek_v4",
+        "unconsumed_config_fields": {
+          "rope_scaling": {
+            "beta_fast": 32,
+            "beta_slow": 1,
+            "factor": 16,
+            "original_max_position_embeddings": 65536,
+            "type": "yarn"
+          }
+        },
+        "unmodeled_features": [
+          "rope_scaling_variant",
+          "unrecognized_config_field:compress_rope_theta",
+          "unrecognized_config_field:dspark_noise_token_id",
+          "unrecognized_config_field:hc_eps",
+          "unrecognized_config_field:swiglu_limit"
+        ],
+        "unrecognized_config_fields": {
+          "compress_rope_theta": 160000,
+          "dspark_noise_token_id": 128799,
+          "hc_eps": 1e-06,
+          "swiglu_limit": 10
+        }
+      },
+      "quant": {
+        "name": "W8A8_DYNAMIC",
+        "weight_format": "int8",
+        "activation_format": "int8",
+        "expert_weight_format": "int8",
+        "weight_block": [
+          1,
+          1
+        ],
+        "expert_block": 1,
+        "scale_format": "fp32",
+        "scale_bytes": 4.0,
+        "kv_dtype": "bf16",
+        "index_dtype": "bf16",
+        "index_scale_dtype": "none",
+        "exclusions": [
+          "mtp",
+          "norm",
+          "lm_head",
+          "embedding",
+          "vision",
+          "projector",
+          "conv_weight_f32",
+          "conv_weight_bf16"
+        ],
+        "engram_table_mode": "device_bf16",
+        "source": [
+          [
+            "checkpoint_identity",
+            "not_verified_from_capture_config"
+          ],
+          [
+            "kind",
+            "representation_preset"
+          ],
+          [
+            "preset",
+            "w8a8_dynamic"
+          ]
+        ],
+        "notes": [
+          "Declared representation template; retained tensor samples establish selected contracts separately."
+        ],
+        "activation_group_size": 0,
+        "activation_scale_format": "",
+        "activation_scale_pack": 1,
+        "category_overrides": [
+          [
+            "mla.o_a",
+            [
+              [
+                "activation_format",
+                "bf16"
+              ],
+              [
+                "weight_format",
+                "bf16"
+              ]
+            ]
+          ]
+        ],
+        "native_format": "bf16"
+      },
+      "vision": null,
+      "engram": null,
+      "auxiliary": null,
+      "body_layers": 8
+    },
+    "runtime": {
+      "tp": 8,
+      "dp": 1,
+      "ep": 8,
+      "pp": 1,
+      "graph_mode": "auto",
+      "kernels": {
+        "moe_token_partition": {
+          "kind": "vllm_ascend_mc2_tp_slice"
+        }
+      },
+      "graph_buckets": [
+        8,
+        16,
+        24,
+        32,
+        48,
+        64,
+        96,
+        128,
+        192,
+        256,
+        384,
+        512
+      ],
+      "graph_capture_keys": [
+        8,
+        16,
+        24,
+        32,
+        48,
+        64,
+        96,
+        128,
+        192,
+        256,
+        384,
+        512
+      ]
+    },
+    "workload": {
+      "requests": [
+        {
+          "id": "analysis-placeholder",
+          "prompt_tokens": 4096,
+          "output_tokens": 96
+        }
+      ]
+    }
+  },
+  "captures": [
+    {
+      "geometry": {
+        "phase": "decode",
+        "tokens": 1,
+        "context": 4096,
+        "sequences": 1
+      },
+      "source_csv": {
+        "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/synth_dsv4f_L8_E16_K2_tp8ep8_decode_4k_c1/kernel_details.csv",
+        "sha256": "7255664cfc2065728f41de96d6394860e498dbdb3aae040031e8326e4f3fed3d"
+      },
+      "source_command": {
+        "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/synth_dsv4f_L8_E16_K2_tp8ep8_decode_4k_c1/cmd.sh",
+        "sha256": "303ae663b6af940dacbf51c4ec417c503ad6467311fc5bb33a7b677fbae769bd"
+      },
+      "native_row_evidence": [
+        {
+          "csv_line": 155,
+          "Type": "MatMulV2",
+          "Input Shapes": "\"1,4096;16,4096\"",
+          "Input Data Types": "FLOAT;FLOAT",
+          "Input Formats": "ND;ND",
+          "Output Shapes": "\"1,16\"",
+          "Output Data Types": "FLOAT",
+          "Output Formats": "ND",
+          "Model ID": "44"
+        },
+        {
+          "csv_line": 157,
+          "Type": "PadV3",
+          "Input Shapes": "\"1,4096;4;\"",
+          "Input Data Types": "DT_BF16;INT32;DT_BF16",
+          "Input Formats": "ND;ND;ND",
+          "Output Shapes": "\"8,4096\"",
+          "Output Data Types": "DT_BF16",
+          "Output Formats": "ND",
+          "Model ID": "44"
+        },
+        {
+          "csv_line": 159,
+          "Type": "PadV3",
+          "Input Shapes": "\"1,16;4;\"",
+          "Input Data Types": "FLOAT;INT32;FLOAT",
+          "Input Formats": "ND;ND;ND",
+          "Output Shapes": "\"8,16\"",
+          "Output Data Types": "FLOAT",
+          "Output Formats": "ND",
+          "Model ID": "44"
+        },
+        {
+          "csv_line": 171,
+          "Type": "MoeDistributeDispatchV2",
+          "Input Shapes": "\"1,4096;1,2;;1;;;\"",
+          "Input Data Types": "DT_BF16;INT32;DT_UNDEFINED;BOOL;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED",
+          "Input Formats": "ND;ND;NULL;ND;NULL;NULL;NULL",
+          "Output Shapes": "\"16,4096;16;2048;2;16;1;16\"",
+          "Output Data Types": "INT8;FLOAT;INT32;INT64;INT32;INT32;FLOAT",
+          "Output Formats": "ND;ND;ND;ND;ND;ND;ND",
+          "Model ID": "44"
+        },
+        {
+          "csv_line": 174,
+          "Type": "MoeDistributeCombineV2",
+          "Input Shapes": "\"16,4096;1,2;2048;16;1,2;1;1;;;;16;;;;;;;\"",
+          "Input Data Types": "DT_BF16;INT32;INT32;INT32;FLOAT;INT32;BOOL;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;FLOAT;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED",
+          "Input Formats": "ND;ND;ND;ND;ND;ND;ND;NULL;NULL;NULL;ND;NULL;NULL;NULL;NULL;NULL;NULL;NULL",
+          "Output Shapes": "\"1,4096\"",
+          "Output Data Types": "DT_BF16",
+          "Output Formats": "ND",
+          "Model ID": "44"
+        },
+        {
+          "csv_line": 175,
+          "Type": "hcom_allGather_",
+          "Input Shapes": "N/A",
+          "Input Data Types": "N/A",
+          "Input Formats": "N/A",
+          "Output Shapes": "N/A",
+          "Output Data Types": "N/A",
+          "Output Formats": "N/A",
+          "Model ID": "44"
+        },
+        {
+          "csv_line": 178,
+          "Type": "QuantBatchMatmulV3",
+          "Input Shapes": "\"1,4096;16,256,16,32;512\"",
+          "Input Data Types": "INT8;INT8;DT_BF16",
+          "Input Formats": "ND;FRACTAL_NZ;ND",
+          "Output Shapes": "\"1,512\"",
+          "Output Data Types": "INT32",
+          "Output Formats": "ND",
+          "Model ID": "44"
+        }
+      ]
+    },
+    {
+      "geometry": {
+        "phase": "decode",
+        "tokens": 1,
+        "context": 4096,
+        "sequences": 4
+      },
+      "source_csv": {
+        "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/synth_dsv4f_L8_E16_K2_tp8ep8_decode_4k_c4/kernel_details.csv",
+        "sha256": "98e10982e0e3fa7228da6c0fe7563eaf6f5d72901634a9ad38f3cde65c95f6b3"
+      },
+      "source_command": {
+        "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/synth_dsv4f_L8_E16_K2_tp8ep8_decode_4k_c4/cmd.sh",
+        "sha256": "1fd86caa273b9661c642288edd49ce73ac856a764ead39928d709effb3bf7565"
+      },
+      "native_row_evidence": [
+        {
+          "csv_line": 161,
+          "Type": "MatMulV2",
+          "Input Shapes": "\"4,4096;16,4096\"",
+          "Input Data Types": "FLOAT;FLOAT",
+          "Input Formats": "ND;ND",
+          "Output Shapes": "\"4,16\"",
+          "Output Data Types": "FLOAT",
+          "Output Formats": "ND",
+          "Model ID": "46"
+        },
+        {
+          "csv_line": 163,
+          "Type": "PadV3",
+          "Input Shapes": "\"4,4096;4;\"",
+          "Input Data Types": "DT_BF16;INT32;DT_BF16",
+          "Input Formats": "ND;ND;ND",
+          "Output Shapes": "\"8,4096\"",
+          "Output Data Types": "DT_BF16",
+          "Output Formats": "ND",
+          "Model ID": "46"
+        },
+        {
+          "csv_line": 165,
+          "Type": "PadV3",
+          "Input Shapes": "\"4,16;4;\"",
+          "Input Data Types": "FLOAT;INT32;FLOAT",
+          "Input Formats": "ND;ND;ND",
+          "Output Shapes": "\"8,16\"",
+          "Output Data Types": "FLOAT",
+          "Output Formats": "ND",
+          "Model ID": "46"
+        },
+        {
+          "csv_line": 177,
+          "Type": "MoeDistributeDispatchV2",
+          "Input Shapes": "\"1,4096;1,2;;1;;;\"",
+          "Input Data Types": "DT_BF16;INT32;DT_UNDEFINED;BOOL;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED",
+          "Input Formats": "ND;ND;NULL;ND;NULL;NULL;NULL",
+          "Output Shapes": "\"16,4096;16;2048;2;16;1;16\"",
+          "Output Data Types": "INT8;FLOAT;INT32;INT64;INT32;INT32;FLOAT",
+          "Output Formats": "ND;ND;ND;ND;ND;ND;ND",
+          "Model ID": "46"
+        },
+        {
+          "csv_line": 180,
+          "Type": "MoeDistributeCombineV2",
+          "Input Shapes": "\"16,4096;1,2;2048;16;1,2;1;1;;;;16;;;;;;;\"",
+          "Input Data Types": "DT_BF16;INT32;INT32;INT32;FLOAT;INT32;BOOL;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;FLOAT;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED",
+          "Input Formats": "ND;ND;ND;ND;ND;ND;ND;NULL;NULL;NULL;ND;NULL;NULL;NULL;NULL;NULL;NULL;NULL",
+          "Output Shapes": "\"1,4096\"",
+          "Output Data Types": "DT_BF16",
+          "Output Formats": "ND",
+          "Model ID": "46"
+        },
+        {
+          "csv_line": 181,
+          "Type": "hcom_allGather_",
+          "Input Shapes": "N/A",
+          "Input Data Types": "N/A",
+          "Input Formats": "N/A",
+          "Output Shapes": "N/A",
+          "Output Data Types": "N/A",
+          "Output Formats": "N/A",
+          "Model ID": "46"
+        },
+        {
+          "csv_line": 184,
+          "Type": "QuantBatchMatmulV3",
+          "Input Shapes": "\"4,4096;16,256,16,32;512\"",
+          "Input Data Types": "INT8;INT8;DT_BF16",
+          "Input Formats": "ND;FRACTAL_NZ;ND",
+          "Output Shapes": "\"4,512\"",
+          "Output Data Types": "INT32",
+          "Output Formats": "ND",
+          "Model ID": "46"
+        }
+      ]
+    }
+  ],
+  "source_revision": "8c30e4f491f73cba737a1dacc522894e437cdf3d",
+  "source_binary_identity": "unknown",
+  "expected": {
+    "tp": 8,
+    "moe_allocated_rows": 8,
+    "moe_rank_rows": 1,
+    "full_graph_rows": "unchanged literal capture size: 1 or 4"
+  }
+}

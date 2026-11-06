@@ -1,0 +1,50 @@
+{
+  "name": "qualified-a2-qwen36-27b-tp4",
+  "machine": {
+    "backend": "ascend",
+    "sku": "Ascend910B4",
+    "hardware_key": "Ascend910B4",
+    "num_devices": 4,
+    "ranks_per_node": 4
+  },
+  "model": {
+    "catalog_key": "qwen3.6-27b",
+    "quantization": "W8A8_DYNAMIC",
+    "quant": {
+      "name": "W8A8_DYNAMIC",
+      "weight_format": "int8",
+      "activation_format": "int8",
+      "int8_weight_metadata": "scale_only",
+      "scale_format": "fp32",
+      "kv_dtype": "bf16"
+    }
+  },
+  "workload": {
+    "requests": [
+      {
+        "id": "r0",
+        "prompt_tokens": 8,
+        "output_tokens": 1
+      }
+    ]
+  },
+  "runtime": {
+    "tp": 4,
+    "dp": 1,
+    "ep": 1,
+    "pp": 1,
+    "max_num_seqs": 8,
+    "graph_mode": "none",
+    "kv_block_size": 128,
+    "kernels": {
+      "recipes": {
+        "flash_attention_prefill": {
+          "kind": "staged_gqa_prefill",
+          "query_tile": 64,
+          "key_tile": 128,
+          "slots": 2
+        }
+      }
+    }
+  }
+}

@@ -111,7 +111,9 @@ If you are an AI Agent receiving the prompt above, follow these steps to install
 
 ### Current Compatible Combination: Structure Attribution and 4D Efficiency Reports (Paired with `mindie-sim 0.9.4`)
 
-The current installation pairs `mindie-profiler v0.5.6` with [`mindie-sim v0.9.4`](https://github.com/mindie-agent/sim) for interfaces from raw captures to model structure attribution and 4D hardware efficiency reports. Historical full-fleet measurements retain their original data and sampled versions in [`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md), [`docs/releases/profiler-0.5.3.md`](./docs/releases/profiler-0.5.3.md), and [`examples/structure/README.md`](./examples/structure/README.md); this documentation update does not relabel those experiments:
+The current installation pairs `mindie-profiler v0.5.6` with [`mindie-sim v0.9.4`](https://github.com/mindie-agent/sim) for interfaces from raw captures to model structure attribution and 4D hardware efficiency reports. Historical full-fleet measurements retain their original data and sampled versions in [`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md), [`docs/releases/profiler-0.5.3.md`](./docs/releases/profiler-0.5.3.md), and [`examples/structure/README.md`](./examples/structure/README.md); this documentation update does not relabel those experiments.
+
+Wave5 uses in-sample calibration and cannot certify independent zero-shot accuracy. Evaluation caches in the current development version identify the complete sim Python/JSON content; aggregation preserves missing or stale source identities instead of relabeling old predictions as current results.
 
 - **Topology-Guided Structure Mapping (`analyze --structure`)**:
   ```bash

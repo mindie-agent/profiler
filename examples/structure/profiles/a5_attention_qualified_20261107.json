@@ -1,0 +1,1286 @@
+{
+  "schema": "mindie-profiler-qualified-native-calibration/1",
+  "id": "a5-attention-qualified-20261107",
+  "label": "A5 attention prefill D128/D256 + GDN ChunkFwdH qualified/experimental native calibration",
+  "status": "qualified_experimental",
+  "activation": "explicit_opt_in_named_profile_only",
+  "hardware": "Ascend950DT_9582",
+  "parallel": {
+    "cp": 1,
+    "pcp": 1
+  },
+  "runtime": {
+    "torch_npu": "CANN9.2",
+    "cann": "9.2",
+    "vllm": "unknown"
+  },
+  "families": [
+    "attention_prefill_D128",
+    "attention_prefill_D256",
+    "ChunkFwdH"
+  ],
+  "train_only_families": [],
+  "source_queues": {
+    "attention_prefill_D128": "native_local_service",
+    "attention_prefill_D256": "native_local_service",
+    "ChunkFwdH": "native_local_service"
+  },
+  "projection": {
+    "families": {
+      "attention_prefill_D128": {
+        "target_recipes": [
+          "flash_attention_prefill"
+        ],
+        "remove_match": [
+          "runtime",
+          "revision",
+          "format",
+          "implementation",
+          "kernel"
+        ],
+        "remove_match_prefixes": [
+          "implementation.",
+          "metadata.native_abi.",
+          "metadata.implementation.",
+          "metadata.service_identity.",
+          "metadata.native_runtime.",
+          "metadata.attention_tensor_view."
+        ]
+      },
+      "attention_prefill_D256": {
+        "target_recipes": [
+          "flash_attention_prefill"
+        ],
+        "remove_match": [
+          "runtime",
+          "revision",
+          "format",
+          "implementation",
+          "kernel"
+        ],
+        "remove_match_prefixes": [
+          "implementation.",
+          "metadata.native_abi.",
+          "metadata.implementation.",
+          "metadata.service_identity.",
+          "metadata.native_runtime.",
+          "metadata.attention_tensor_view."
+        ]
+      },
+      "ChunkFwdH": {
+        "target_recipes": [
+          "chunk_fwd_h"
+        ],
+        "remove_match": [
+          "runtime",
+          "revision",
+          "format",
+          "implementation",
+          "kernel"
+        ],
+        "remove_match_prefixes": [
+          "implementation.",
+          "metadata.native_abi.",
+          "metadata.implementation.",
+          "metadata.service_identity.",
+          "metadata.native_runtime.",
+          "metadata.attention_tensor_view."
+        ]
+      }
+    },
+    "queue": {
+      "resource": "native_local_service",
+      "reference_rate": 1000000000.0,
+      "work_unit": "busy_ns",
+      "units": 1
+    },
+    "reason": "Ordinary Sim emits the declared gqa/head geometry but no analysis-adapter native_abi. Every removed selector is verified against the caller-declared actual ABI; no physical axis, domain or coefficient is removed."
+  },
+  "rules": [
+    {
+      "id": "a5-train85-attention_prefill_d128-8-1-128-prefill",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "flash_attention_prefill",
+        "family": "attention",
+        "phase": "prefill",
+        "dtype": "bf16",
+        "layout": "contiguous",
+        "metadata.native_abi.api": "torch_npu.npu_fused_infer_attention_score",
+        "metadata.native_abi.native_kernel": "FusedInferAttentionScore",
+        "metadata.native_abi.runtime": "torch_npu=CANN9.2",
+        "metadata.native_abi.implementation": "arch35_fia_noquant_gqa",
+        "metadata.native_abi.composite": false,
+        "local_shape.2": 8,
+        "local_shape.3": 128,
+        "metadata.gqa_prefill.query_heads": 8,
+        "metadata.gqa_prefill.kv_heads": 1,
+        "metadata.gqa_prefill.head_dim": 128,
+        "metadata.gqa_prefill.query_dtype": "bf16",
+        "metadata.gqa_prefill.kv_dtype": "bf16",
+        "metadata.gqa_prefill.causal": true,
+        "metadata.gqa_prefill.window": 0,
+        "metadata.gqa_prefill.cp": 1,
+        "metadata.native_abi.kv_storage": "dense",
+        "metadata.native_abi.causal": true
+      },
+      "coordinates": {
+        "executed_flops": {
+          "path": "work.cube"
+        },
+        "q": {
+          "path": "local_shape.0"
+        },
+        "batch": {
+          "path": "metadata.gqa_prefill.requests",
+          "reduce": "len"
+        }
+      },
+      "domain": {
+        "executed_flops": {
+          "min": 138462363648.0,
+          "max": 13285407588352.0
+        },
+        "q": {
+          "min": 1,
+          "max": 32768
+        },
+        "batch": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "response": {
+        "kind": "affine",
+        "fixed_us": 34.35695741701669,
+        "terms": [
+          {
+            "coordinate": "executed_flops",
+            "us_per_unit": 2.7234652330292416e-09
+          }
+        ]
+      },
+      "execution": {
+        "kind": "joint_native",
+        "native_kernel": "FusedInferAttentionScore",
+        "resource": "native_local_service",
+        "reference_rate": 1000000000.0
+      },
+      "provenance": {
+        "basis": "observed_single_local_native_kernel_train85",
+        "boundary": "device_kernel",
+        "n_train": 6,
+        "n_family": 6,
+        "source": "kernel_details.csv Duration(us); median of 3 admitted TRAIN reps",
+        "dense_kv": true,
+        "paged_kv": false,
+        "heldout_eval": false,
+        "not_pipe_rate": true,
+        "source_limit": "single local kernel; no composite GDN/HCCL/multicard; dense KV only for attention",
+        "dispatch_scope": "A5 9582 bf16 TP-local single-sequence; actual op geometry guard; no paged KV",
+        "profile_family": "attention_prefill_D128",
+        "source_rule_sha256": "2f57555e3c0ae73ffd70a0a3489988eb06ac22dccd3cf2bde1aff6d1cab5403b",
+        "qualification": "train_and_first_heldout_priority_domain_pass"
+      }
+    },
+    {
+      "id": "a5-train85-attention_prefill_d256-4-1-256-prefill",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "flash_attention_prefill",
+        "family": "attention",
+        "phase": "prefill",
+        "dtype": "bf16",
+        "layout": "contiguous",
+        "metadata.native_abi.api": "torch_npu.npu_fused_infer_attention_score",
+        "metadata.native_abi.native_kernel": "FusedInferAttentionScore",
+        "metadata.native_abi.runtime": "torch_npu=CANN9.2",
+        "metadata.native_abi.implementation": "arch35_fia_noquant_gqa",
+        "metadata.native_abi.composite": false,
+        "local_shape.2": 4,
+        "local_shape.3": 256,
+        "metadata.gqa_prefill.query_heads": 4,
+        "metadata.gqa_prefill.kv_heads": 1,
+        "metadata.gqa_prefill.head_dim": 256,
+        "metadata.gqa_prefill.query_dtype": "bf16",
+        "metadata.gqa_prefill.kv_dtype": "bf16",
+        "metadata.gqa_prefill.causal": true,
+        "metadata.gqa_prefill.window": 0,
+        "metadata.gqa_prefill.cp": 1,
+        "metadata.native_abi.kv_storage": "dense",
+        "metadata.native_abi.causal": true
+      },
+      "coordinates": {
+        "executed_flops": {
+          "path": "work.cube"
+        },
+        "q": {
+          "path": "local_shape.0"
+        },
+        "batch": {
+          "path": "metadata.gqa_prefill.requests",
+          "reduce": "len"
+        }
+      },
+      "domain": {
+        "executed_flops": {
+          "min": 103846772736.0,
+          "max": 19928111382528.0
+        },
+        "q": {
+          "min": 1,
+          "max": 32768
+        },
+        "batch": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "response": {
+        "kind": "affine",
+        "fixed_us": 68.8437641225434,
+        "terms": [
+          {
+            "coordinate": "executed_flops",
+            "us_per_unit": 3.5502822845501126e-09
+          }
+        ]
+      },
+      "execution": {
+        "kind": "joint_native",
+        "native_kernel": "FusedInferAttentionScore",
+        "resource": "native_local_service",
+        "reference_rate": 1000000000.0
+      },
+      "provenance": {
+        "basis": "observed_single_local_native_kernel_train85",
+        "boundary": "device_kernel",
+        "n_train": 6,
+        "n_family": 18,
+        "source": "kernel_details.csv Duration(us); median of 3 admitted TRAIN reps",
+        "dense_kv": true,
+        "paged_kv": false,
+        "heldout_eval": false,
+        "not_pipe_rate": true,
+        "source_limit": "single local kernel; no composite GDN/HCCL/multicard; dense KV only for attention",
+        "dispatch_scope": "A5 9582 bf16 TP-local single-sequence; actual op geometry guard; no paged KV",
+        "profile_family": "attention_prefill_D256",
+        "source_rule_sha256": "e3eca6799e9a5c70a293ed1a48e111c747b11dee11eb227e5b5c4bf0c6d04f89",
+        "qualification": "train_and_first_heldout_priority_domain_pass"
+      }
+    },
+    {
+      "id": "a5-train85-attention_prefill_d256-3-1-256-prefill",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "flash_attention_prefill",
+        "family": "attention",
+        "phase": "prefill",
+        "dtype": "bf16",
+        "layout": "contiguous",
+        "metadata.native_abi.api": "torch_npu.npu_fused_infer_attention_score",
+        "metadata.native_abi.native_kernel": "FusedInferAttentionScore",
+        "metadata.native_abi.runtime": "torch_npu=CANN9.2",
+        "metadata.native_abi.implementation": "arch35_fia_noquant_gqa",
+        "metadata.native_abi.composite": false,
+        "local_shape.2": 3,
+        "local_shape.3": 256,
+        "metadata.gqa_prefill.query_heads": 3,
+        "metadata.gqa_prefill.kv_heads": 1,
+        "metadata.gqa_prefill.head_dim": 256,
+        "metadata.gqa_prefill.query_dtype": "bf16",
+        "metadata.gqa_prefill.kv_dtype": "bf16",
+        "metadata.gqa_prefill.causal": true,
+        "metadata.gqa_prefill.window": 0,
+        "metadata.gqa_prefill.cp": 1,
+        "metadata.native_abi.kv_storage": "dense",
+        "metadata.native_abi.causal": true
+      },
+      "coordinates": {
+        "executed_flops": {
+          "path": "work.cube"
+        },
+        "q": {
+          "path": "local_shape.0"
+        },
+        "batch": {
+          "path": "metadata.gqa_prefill.requests",
+          "reduce": "len"
+        }
+      },
+      "domain": {
+        "executed_flops": {
+          "min": 103846772736.0,
+          "max": 19928111382528.0
+        },
+        "q": {
+          "min": 1,
+          "max": 32768
+        },
+        "batch": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "response": {
+        "kind": "affine",
+        "fixed_us": 68.8437641225434,
+        "terms": [
+          {
+            "coordinate": "executed_flops",
+            "us_per_unit": 3.5502822845501126e-09
+          }
+        ]
+      },
+      "execution": {
+        "kind": "joint_native",
+        "native_kernel": "FusedInferAttentionScore",
+        "resource": "native_local_service",
+        "reference_rate": 1000000000.0
+      },
+      "provenance": {
+        "basis": "observed_single_local_native_kernel_train85",
+        "boundary": "device_kernel",
+        "n_train": 6,
+        "n_family": 18,
+        "source": "kernel_details.csv Duration(us); median of 3 admitted TRAIN reps",
+        "dense_kv": true,
+        "paged_kv": false,
+        "heldout_eval": false,
+        "not_pipe_rate": true,
+        "source_limit": "single local kernel; no composite GDN/HCCL/multicard; dense KV only for attention",
+        "dispatch_scope": "A5 9582 bf16 TP-local single-sequence; actual op geometry guard; no paged KV",
+        "profile_family": "attention_prefill_D256",
+        "source_rule_sha256": "c0b37b3e35487eb88d4c0baf00ba937a29b6e4a13361b171b909c96dfe5650a3",
+        "qualification": "train_and_first_heldout_priority_domain_pass"
+      }
+    },
+    {
+      "id": "a5-train85-attention_prefill_d256-6-1-256-prefill",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "flash_attention_prefill",
+        "family": "attention",
+        "phase": "prefill",
+        "dtype": "bf16",
+        "layout": "contiguous",
+        "metadata.native_abi.api": "torch_npu.npu_fused_infer_attention_score",
+        "metadata.native_abi.native_kernel": "FusedInferAttentionScore",
+        "metadata.native_abi.runtime": "torch_npu=CANN9.2",
+        "metadata.native_abi.implementation": "arch35_fia_noquant_gqa",
+        "metadata.native_abi.composite": false,
+        "local_shape.2": 6,
+        "local_shape.3": 256,
+        "metadata.gqa_prefill.query_heads": 6,
+        "metadata.gqa_prefill.kv_heads": 1,
+        "metadata.gqa_prefill.head_dim": 256,
+        "metadata.gqa_prefill.query_dtype": "bf16",
+        "metadata.gqa_prefill.kv_dtype": "bf16",
+        "metadata.gqa_prefill.causal": true,
+        "metadata.gqa_prefill.window": 0,
+        "metadata.gqa_prefill.cp": 1,
+        "metadata.native_abi.kv_storage": "dense",
+        "metadata.native_abi.causal": true
+      },
+      "coordinates": {
+        "executed_flops": {
+          "path": "work.cube"
+        },
+        "q": {
+          "path": "local_shape.0"
+        },
+        "batch": {
+          "path": "metadata.gqa_prefill.requests",
+          "reduce": "len"
+        }
+      },
+      "domain": {
+        "executed_flops": {
+          "min": 103846772736.0,
+          "max": 19928111382528.0
+        },
+        "q": {
+          "min": 1,
+          "max": 32768
+        },
+        "batch": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "response": {
+        "kind": "affine",
+        "fixed_us": 68.8437641225434,
+        "terms": [
+          {
+            "coordinate": "executed_flops",
+            "us_per_unit": 3.5502822845501126e-09
+          }
+        ]
+      },
+      "execution": {
+        "kind": "joint_native",
+        "native_kernel": "FusedInferAttentionScore",
+        "resource": "native_local_service",
+        "reference_rate": 1000000000.0
+      },
+      "provenance": {
+        "basis": "observed_single_local_native_kernel_train85",
+        "boundary": "device_kernel",
+        "n_train": 6,
+        "n_family": 18,
+        "source": "kernel_details.csv Duration(us); median of 3 admitted TRAIN reps",
+        "dense_kv": true,
+        "paged_kv": false,
+        "heldout_eval": false,
+        "not_pipe_rate": true,
+        "source_limit": "single local kernel; no composite GDN/HCCL/multicard; dense KV only for attention",
+        "dispatch_scope": "A5 9582 bf16 TP-local single-sequence; actual op geometry guard; no paged KV",
+        "profile_family": "attention_prefill_D256",
+        "source_rule_sha256": "285948ec64dd49542cb4077d67cf4d26047f193731bffcd11554a044efc64e20",
+        "qualification": "train_and_first_heldout_priority_domain_pass"
+      }
+    },
+    {
+      "id": "a5-train85-chunkfwdh-4-8",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "chunk_fwd_h",
+        "family": "gdn_state",
+        "phase": "prefill",
+        "dtype": "bf16",
+        "layout": "BNSD",
+        "metadata.native_abi.api": "aclnnChunkGatedDeltaRuleFwd",
+        "metadata.native_abi.native_kernel": "ChunkFwdH",
+        "metadata.native_abi.runtime": "torch_npu=CANN9.2",
+        "metadata.native_abi.implementation": "arch35_chunk_fwd_h",
+        "metadata.native_abi.composite": false,
+        "metadata.heads": 8,
+        "metadata.key_heads": 4,
+        "local_shape.3": 128,
+        "metadata.native_abi.Hk": 4,
+        "metadata.native_abi.Hv": 8,
+        "metadata.native_abi.D": 128,
+        "metadata.use_exp2": true,
+        "metadata.state_v_first": true,
+        "metadata.use_initial_state": true,
+        "metadata.output_final_state": true
+      },
+      "coordinates": {
+        "tokens": {
+          "path": "metadata.lengths",
+          "reduce": "sum"
+        },
+        "batch": {
+          "path": "metadata.lengths",
+          "reduce": "len"
+        }
+      },
+      "domain": {
+        "tokens": {
+          "min": 2048.0,
+          "max": 32768.0
+        },
+        "batch": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "response": {
+        "kind": "affine",
+        "fixed_us": 1.9991305517710205,
+        "terms": [
+          {
+            "coordinate": "tokens",
+            "us_per_unit": 0.048813473087329265
+          }
+        ]
+      },
+      "execution": {
+        "kind": "joint_native",
+        "native_kernel": "ChunkFwdH",
+        "resource": "native_local_service",
+        "reference_rate": 1000000000.0
+      },
+      "provenance": {
+        "basis": "observed_single_local_native_kernel_train85",
+        "boundary": "device_kernel",
+        "n_train": 4,
+        "n_family": 12,
+        "source": "kernel_details.csv Duration(us); median of 3 admitted TRAIN reps",
+        "dense_kv": false,
+        "paged_kv": null,
+        "heldout_eval": false,
+        "not_pipe_rate": true,
+        "source_limit": "single local kernel; no composite GDN/HCCL/multicard; dense KV only for attention",
+        "dispatch_scope": "A5 9582 bf16 TP-local single-sequence; actual op geometry guard; no paged KV",
+        "profile_family": "ChunkFwdH",
+        "source_rule_sha256": "e1867a47acfba3933707a07750661e6c07ad654a78c8883e22944bc311ebc9e9",
+        "qualification": "train_and_first_heldout_priority_domain_pass"
+      }
+    },
+    {
+      "id": "a5-train85-chunkfwdh-2-6",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "chunk_fwd_h",
+        "family": "gdn_state",
+        "phase": "prefill",
+        "dtype": "bf16",
+        "layout": "BNSD",
+        "metadata.native_abi.api": "aclnnChunkGatedDeltaRuleFwd",
+        "metadata.native_abi.native_kernel": "ChunkFwdH",
+        "metadata.native_abi.runtime": "torch_npu=CANN9.2",
+        "metadata.native_abi.implementation": "arch35_chunk_fwd_h",
+        "metadata.native_abi.composite": false,
+        "metadata.heads": 6,
+        "metadata.key_heads": 2,
+        "local_shape.3": 128,
+        "metadata.native_abi.Hk": 2,
+        "metadata.native_abi.Hv": 6,
+        "metadata.native_abi.D": 128,
+        "metadata.use_exp2": true,
+        "metadata.state_v_first": true,
+        "metadata.use_initial_state": true,
+        "metadata.output_final_state": true
+      },
+      "coordinates": {
+        "tokens": {
+          "path": "metadata.lengths",
+          "reduce": "sum"
+        },
+        "batch": {
+          "path": "metadata.lengths",
+          "reduce": "len"
+        }
+      },
+      "domain": {
+        "tokens": {
+          "min": 2048.0,
+          "max": 32768.0
+        },
+        "batch": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "response": {
+        "kind": "affine",
+        "fixed_us": 1.9991305517710205,
+        "terms": [
+          {
+            "coordinate": "tokens",
+            "us_per_unit": 0.048813473087329265
+          }
+        ]
+      },
+      "execution": {
+        "kind": "joint_native",
+        "native_kernel": "ChunkFwdH",
+        "resource": "native_local_service",
+        "reference_rate": 1000000000.0
+      },
+      "provenance": {
+        "basis": "observed_single_local_native_kernel_train85",
+        "boundary": "device_kernel",
+        "n_train": 4,
+        "n_family": 12,
+        "source": "kernel_details.csv Duration(us); median of 3 admitted TRAIN reps",
+        "dense_kv": false,
+        "paged_kv": null,
+        "heldout_eval": false,
+        "not_pipe_rate": true,
+        "source_limit": "single local kernel; no composite GDN/HCCL/multicard; dense KV only for attention",
+        "dispatch_scope": "A5 9582 bf16 TP-local single-sequence; actual op geometry guard; no paged KV",
+        "profile_family": "ChunkFwdH",
+        "source_rule_sha256": "960a261122e1811f53c4d7a8cfebf8dfdf011b49d60d61e35abe329eeca4fabd",
+        "qualification": "train_and_first_heldout_priority_domain_pass"
+      }
+    },
+    {
+      "id": "a5-train85-chunkfwdh-4-12",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "recipe": "chunk_fwd_h",
+        "family": "gdn_state",
+        "phase": "prefill",
+        "dtype": "bf16",
+        "layout": "BNSD",
+        "metadata.native_abi.api": "aclnnChunkGatedDeltaRuleFwd",
+        "metadata.native_abi.native_kernel": "ChunkFwdH",
+        "metadata.native_abi.runtime": "torch_npu=CANN9.2",
+        "metadata.native_abi.implementation": "arch35_chunk_fwd_h",
+        "metadata.native_abi.composite": false,
+        "metadata.heads": 12,
+        "metadata.key_heads": 4,
+        "local_shape.3": 128,
+        "metadata.native_abi.Hk": 4,
+        "metadata.native_abi.Hv": 12,
+        "metadata.native_abi.D": 128,
+        "metadata.use_exp2": true,
+        "metadata.state_v_first": true,
+        "metadata.use_initial_state": true,
+        "metadata.output_final_state": true
+      },
+      "coordinates": {
+        "tokens": {
+          "path": "metadata.lengths",
+          "reduce": "sum"
+        },
+        "batch": {
+          "path": "metadata.lengths",
+          "reduce": "len"
+        }
+      },
+      "domain": {
+        "tokens": {
+          "min": 2048.0,
+          "max": 32768.0
+        },
+        "batch": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "response": {
+        "kind": "affine",
+        "fixed_us": 1.9991305517710205,
+        "terms": [
+          {
+            "coordinate": "tokens",
+            "us_per_unit": 0.048813473087329265
+          }
+        ]
+      },
+      "execution": {
+        "kind": "joint_native",
+        "native_kernel": "ChunkFwdH",
+        "resource": "native_local_service",
+        "reference_rate": 1000000000.0
+      },
+      "provenance": {
+        "basis": "observed_single_local_native_kernel_train85",
+        "boundary": "device_kernel",
+        "n_train": 4,
+        "n_family": 12,
+        "source": "kernel_details.csv Duration(us); median of 3 admitted TRAIN reps",
+        "dense_kv": false,
+        "paged_kv": null,
+        "heldout_eval": false,
+        "not_pipe_rate": true,
+        "source_limit": "single local kernel; no composite GDN/HCCL/multicard; dense KV only for attention",
+        "dispatch_scope": "A5 9582 bf16 TP-local single-sequence; actual op geometry guard; no paged KV",
+        "profile_family": "ChunkFwdH",
+        "source_rule_sha256": "1fb3d6042e0f02f7d9b44fff186ab4d552ef96a56eefa179d0ddf610cca9f0e8",
+        "qualification": "train_and_first_heldout_priority_domain_pass"
+      }
+    }
+  ],
+  "train_only_rules": [],
+  "abi": {
+    "attention_prefill_D128": {
+      "fixed": {
+        "api": "torch_npu.npu_fused_infer_attention_score",
+        "kernel_type": "FusedInferAttentionScore",
+        "kernel_name": "FusedInferAttentionScore",
+        "runtime": {
+          "torch_npu": "CANN9.2",
+          "cann": "9.2",
+          "vllm": "unknown"
+        },
+        "hardware": "Ascend950DT_9582",
+        "implementation": "arch35_fia_noquant_gqa",
+        "input_dtypes": [
+          "DT_BF16",
+          "DT_BF16",
+          "DT_BF16"
+        ],
+        "kv_view": {
+          "kind": "continuous_tnd",
+          "kv_storage": "dense",
+          "paged": false,
+          "causal": true
+        },
+        "control_flags": {
+          "causal": true,
+          "mask": "present"
+        }
+      },
+      "geometry": {
+        "query_heads": 8,
+        "kv_heads": 1,
+        "head_dim": 128
+      },
+      "input_slots": [
+        {
+          "index": 0,
+          "shape": [
+            "q",
+            "hq",
+            "d"
+          ],
+          "dtype": "DT_BF16",
+          "format": "ND"
+        },
+        {
+          "index": 1,
+          "shape": [
+            "kv_native",
+            "hkv",
+            "d"
+          ],
+          "dtype": "DT_BF16",
+          "format": "ND"
+        },
+        {
+          "index": 2,
+          "shape": [
+            "kv_native",
+            "hkv",
+            "d"
+          ],
+          "dtype": "DT_BF16",
+          "format": "ND"
+        },
+        {
+          "index": 3,
+          "absent": true,
+          "dtype": "DT_UNDEFINED",
+          "format": "NULL"
+        },
+        {
+          "index": 4,
+          "shape": [
+            2048,
+            2048
+          ],
+          "dtype": "BOOL",
+          "format": "ND"
+        },
+        {
+          "index": 5,
+          "shape": [
+            1
+          ],
+          "dtype": "INT64",
+          "format": "ND"
+        },
+        {
+          "index": 6,
+          "shape": [
+            1
+          ],
+          "dtype": "INT64",
+          "format": "ND"
+        },
+        {
+          "indices": [
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30
+          ],
+          "absent": true,
+          "dtype": "DT_UNDEFINED",
+          "format": "NULL"
+        }
+      ],
+      "output_slots": [
+        {
+          "index": 0,
+          "shape": [
+            "q",
+            "hq",
+            "d"
+          ],
+          "dtype": "DT_BF16",
+          "format": "ND"
+        },
+        {
+          "index": 1,
+          "empty": true,
+          "dtype": "FLOAT",
+          "format": "ND"
+        }
+      ],
+      "caller_view": {
+        "query_shape": [
+          "q",
+          "hq",
+          "d"
+        ],
+        "key_shape": [
+          "kv_total",
+          "hkv",
+          "d"
+        ],
+        "value_shape": [
+          "kv_total",
+          "hkv",
+          "d"
+        ],
+        "output_shape": [
+          "q",
+          "hq",
+          "d"
+        ],
+        "query_dtype": "bf16",
+        "key_dtype": "bf16",
+        "value_dtype": "bf16",
+        "output_dtype": "bf16",
+        "logical_layout": "TND",
+        "kv_storage": [
+          "dense",
+          "contiguous"
+        ]
+      }
+    },
+    "attention_prefill_D256": {
+      "fixed": {
+        "api": "torch_npu.npu_fused_infer_attention_score",
+        "kernel_type": "FusedInferAttentionScore",
+        "kernel_name": "FusedInferAttentionScore",
+        "runtime": {
+          "torch_npu": "CANN9.2",
+          "cann": "9.2",
+          "vllm": "unknown"
+        },
+        "hardware": "Ascend950DT_9582",
+        "implementation": "arch35_fia_noquant_gqa",
+        "input_dtypes": [
+          "DT_BF16",
+          "DT_BF16",
+          "DT_BF16"
+        ],
+        "kv_view": {
+          "kind": "continuous_tnd",
+          "kv_storage": "dense",
+          "paged": false,
+          "causal": true
+        },
+        "control_flags": {
+          "causal": true,
+          "mask": "present"
+        }
+      },
+      "geometry": {
+        "query_heads": "rule_declared_3_4_or_6",
+        "kv_heads": 1,
+        "head_dim": 256
+      },
+      "input_slots": [
+        {
+          "index": 0,
+          "shape": [
+            "q",
+            "hq",
+            "d"
+          ],
+          "dtype": "DT_BF16",
+          "format": "ND"
+        },
+        {
+          "index": 1,
+          "shape": [
+            "kv_native",
+            "hkv",
+            "d"
+          ],
+          "dtype": "DT_BF16",
+          "format": "ND"
+        },
+        {
+          "index": 2,
+          "shape": [
+            "kv_native",
+            "hkv",
+            "d"
+          ],
+          "dtype": "DT_BF16",
+          "format": "ND"
+        },
+        {
+          "index": 3,
+          "absent": true,
+          "dtype": "DT_UNDEFINED",
+          "format": "NULL"
+        },
+        {
+          "index": 4,
+          "shape": [
+            2048,
+            2048
+          ],
+          "dtype": "BOOL",
+          "format": "ND"
+        },
+        {
+          "index": 5,
+          "shape": [
+            1
+          ],
+          "dtype": "INT64",
+          "format": "ND"
+        },
+        {
+          "index": 6,
+          "shape": [
+            1
+          ],
+          "dtype": "INT64",
+          "format": "ND"
+        },
+        {
+          "indices": [
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30
+          ],
+          "absent": true,
+          "dtype": "DT_UNDEFINED",
+          "format": "NULL"
+        }
+      ],
+      "output_slots": [
+        {
+          "index": 0,
+          "shape": [
+            "q",
+            "hq",
+            "d"
+          ],
+          "dtype": "DT_BF16",
+          "format": "ND"
+        },
+        {
+          "index": 1,
+          "empty": true,
+          "dtype": "FLOAT",
+          "format": "ND"
+        }
+      ],
+      "caller_view": {
+        "query_shape": [
+          "q",
+          "hq",
+          "d"
+        ],
+        "key_shape": [
+          "kv_total",
+          "hkv",
+          "d"
+        ],
+        "value_shape": [
+          "kv_total",
+          "hkv",
+          "d"
+        ],
+        "output_shape": [
+          "q",
+          "hq",
+          "d"
+        ],
+        "query_dtype": "bf16",
+        "key_dtype": "bf16",
+        "value_dtype": "bf16",
+        "output_dtype": "bf16",
+        "logical_layout": "TND",
+        "kv_storage": [
+          "dense",
+          "contiguous"
+        ]
+      }
+    },
+    "ChunkFwdH": {
+      "fixed": {
+        "api": "aclnnChunkGatedDeltaRuleFwd",
+        "kernel_type": "ChunkFwdH",
+        "kernel_name": "ChunkFwdH",
+        "runtime": {
+          "torch_npu": "CANN9.2",
+          "cann": "9.2",
+          "vllm": "unknown"
+        },
+        "hardware": "Ascend950DT_9582",
+        "implementation": "arch35_chunk_fwd_h",
+        "input_dtypes": [
+          "DT_BF16",
+          "DT_BF16",
+          "DT_BF16",
+          "FLOAT",
+          "DT_BF16",
+          "INT64",
+          "INT64"
+        ],
+        "control_flags": {
+          "use_exp2": true,
+          "state_v_first": true,
+          "use_initial_state": true,
+          "output_final_state": true
+        }
+      },
+      "geometry": {
+        "heads": "rule_declared_6_8_or_12",
+        "key_heads": "rule_declared_2_or_4",
+        "head_dim": 128
+      },
+      "input_slots": [
+        {
+          "index": 0,
+          "shape": [
+            1,
+            "key_heads",
+            "tokens",
+            128
+          ],
+          "dtype": "DT_BF16",
+          "format": "ND"
+        },
+        {
+          "index": 1,
+          "shape": [
+            1,
+            "heads",
+            "tokens",
+            128
+          ],
+          "dtype": "DT_BF16",
+          "format": "ND"
+        },
+        {
+          "index": 2,
+          "shape": [
+            1,
+            "heads",
+            "tokens",
+            128
+          ],
+          "dtype": "DT_BF16",
+          "format": "ND"
+        },
+        {
+          "index": 3,
+          "shape": [
+            1,
+            "heads",
+            "tokens"
+          ],
+          "dtype": "FLOAT",
+          "format": "ND"
+        },
+        {
+          "index": 4,
+          "shape": [
+            1,
+            "heads",
+            128,
+            128
+          ],
+          "dtype": "DT_BF16",
+          "format": "NCHW"
+        },
+        {
+          "index": 5,
+          "shape": [
+            2
+          ],
+          "dtype": "INT64",
+          "format": "ND"
+        },
+        {
+          "index": 6,
+          "shape": [
+            "double_chunks"
+          ],
+          "dtype": "INT64",
+          "format": "ND"
+        }
+      ],
+      "output_slots": [
+        {
+          "index": 0,
+          "shape": [
+            1,
+            "chunks",
+            "heads",
+            128,
+            128
+          ],
+          "dtype": "DT_BF16",
+          "format": "ND"
+        },
+        {
+          "index": 1,
+          "shape": [
+            1,
+            "heads",
+            "tokens",
+            128
+          ],
+          "dtype": "DT_BF16",
+          "format": "ND"
+        },
+        {
+          "index": 2,
+          "shape": [
+            "heads_d2"
+          ],
+          "dtype": "DT_BF16",
+          "format": "NCHW"
+        }
+      ]
+    }
+  },
+  "provenance": {
+    "source_files": {
+      "fit_v3.py": {
+        "path": "/tmp/mindie-calibration-20261107/a5-attention-native/analysis/train/v3/fit_v3.py",
+        "sha256": "c5d2358bab16d8ef5adf3b78a5a50297674c696e26358223a7077828865715a9"
+      },
+      "v3_candidate_parameters.json": {
+        "path": "/tmp/mindie-calibration-20261107/a5-attention-native/analysis/train/v3/v3_candidate_parameters.json",
+        "sha256": "f1c428a228f6e0ba9b95ec62bfaf4dd2bf4006e2921545543f969fb3c62c1476"
+      },
+      "v3_service_regimes.json": {
+        "path": "/tmp/mindie-calibration-20261107/a5-attention-native/analysis/train/v3/v3_service_regimes.json",
+        "sha256": "26988b1989cd37b7afd208963db0748f24e84c04f768bd570ce3c2df49e3af18"
+      },
+      "v3_frozen_family_parameters.json": {
+        "path": "/tmp/mindie-calibration-20261107/a5-attention-native/analysis/train/v3/v3_frozen_family_parameters.json",
+        "sha256": "94f2214f8ab18ee271ca147e3f47fd6f6e675594155df1b42f83ad80377d2992"
+      },
+      "v3_raw_abi_evidence.json": {
+        "path": "/tmp/mindie-calibration-20261107/a5-attention-native/analysis/train/v3/v3_raw_abi_evidence.json",
+        "sha256": "4f42c1b8487974265ce25a62cf150907c88739d521f365d001eaa4df2d1f47d9"
+      },
+      "raw/merged/native_kernels.jsonl": {
+        "path": "/tmp/mindie-calibration-20261107/a5-attention-native/raw/merged/native_kernels.jsonl",
+        "sha256": "83275383d52fbb218561f6d42f39680f68af351b9c550b78b65bd6a9387ef67c"
+      },
+      "raw/merged/native_abi_sidecar.jsonl": {
+        "path": "/tmp/mindie-calibration-20261107/a5-attention-native/raw/merged/native_abi_sidecar.jsonl",
+        "sha256": "f59fad90f9f4c45d1805dfaab209bff5dd472f3a14e9e1264d40ef6a748ed3a0"
+      }
+    },
+    "source_control": {
+      "a5-attention-v3-narrow-independent.txt": {
+        "path": "/Volumes/data/mindie-sim-data/calibration-20261107/control/a5-attention-v3-narrow-independent.txt",
+        "sha256": "014584a78d21dfe1f81ef6ddfe962434b6ce95d87e73b1645a38678a81ab9184"
+      },
+      "a5-attention-v3-heldout-independent.txt": {
+        "path": "/Volumes/data/mindie-sim-data/calibration-20261107/control/a5-attention-v3-heldout-independent.txt",
+        "sha256": "159bca47bb09fb27f23c9b27b7d0344a51801155ffaac87d0965c59c91a7813c"
+      },
+      "a5-attention-v3-parent-freeze.json": {
+        "path": "/Volumes/data/mindie-sim-data/calibration-20261107/control/a5-attention-v3-parent-freeze.json",
+        "sha256": "2df2c2fce11c29f8d329ec2a2f9f71432711581d41a57d7cfdd8da16ed8d2e79"
+      }
+    },
+    "source_rule_sha256": {
+      "a5-train85-attention_prefill_d128-8-1-128-prefill": "2f57555e3c0ae73ffd70a0a3489988eb06ac22dccd3cf2bde1aff6d1cab5403b",
+      "a5-train85-attention_prefill_d256-4-1-256-prefill": "e3eca6799e9a5c70a293ed1a48e111c747b11dee11eb227e5b5c4bf0c6d04f89",
+      "a5-train85-attention_prefill_d256-3-1-256-prefill": "c0b37b3e35487eb88d4c0baf00ba937a29b6e4a13361b171b909c96dfe5650a3",
+      "a5-train85-attention_prefill_d256-6-1-256-prefill": "285948ec64dd49542cb4077d67cf4d26047f193731bffcd11554a044efc64e20",
+      "a5-train85-chunkfwdh-4-8": "e1867a47acfba3933707a07750661e6c07ad654a78c8883e22944bc311ebc9e9",
+      "a5-train85-chunkfwdh-2-6": "960a261122e1811f53c4d7a8cfebf8dfdf011b49d60d61e35abe329eeca4fabd",
+      "a5-train85-chunkfwdh-4-12": "1fb3d6042e0f02f7d9b44fff186ab4d552ef96a56eefa179d0ddf610cca9f0e8"
+    },
+    "candidate": {
+      "candidate_file_sha256": "f1c428a228f6e0ba9b95ec62bfaf4dd2bf4006e2921545543f969fb3c62c1476",
+      "canonical_candidate_sha256": "70b894d7accb24e78f7cf18442decc3d06c3e82b94ff6db685015e2c65898779",
+      "fit_hash": "ac0ea25c22d19aa1b861a841612868f13d6bc73d6cd3b4a07098886449d22f51",
+      "parent_freeze_sha256": "2df2c2fce11c29f8d329ec2a2f9f71432711581d41a57d7cfdd8da16ed8d2e79"
+    },
+    "denominators": {
+      "priority_domain_points": 8,
+      "priority_domain_points_pass": 8,
+      "chunked_attention_bound_points": 5,
+      "chunk_fwd_h_T12288_bound_points": 3,
+      "pure_prefill_1536_65536": "predeclared_outside_domain",
+      "whole_a5_rows": 87,
+      "whole_a5_joint_rows": 54,
+      "whole_a5_fallback_rows": 33,
+      "whole_a5_joint_within_10pct": 37,
+      "whole_a5_within_10pct": 39,
+      "whole_a5_weighted_absolute_relative": 0.6100263465228096,
+      "whole_a5_weighted_signed_relative": 0.5762312387072469,
+      "priority_train_max_relative": {
+        "attention_prefill_D128": 0.01223992468405477,
+        "attention_prefill_D256": 0.05716158420056394,
+        "ChunkFwdH": 0.008661059356199208
+      },
+      "priority_train_native_time_share": 0.924741
+    },
+    "qualification": {
+      "priority_families_pass": true,
+      "whole_a5_pass": false,
+      "all_ten_families_imported": false,
+      "attention_decode_D256_promoted": false,
+      "attention_decode_D128_supported": false,
+      "minor_roles_imported": false,
+      "no_domain_expansion": true,
+      "no_heldout_tuning": true,
+      "no_refit": true,
+      "d256_decode_note": "6/6 heldout but TRAIN 29/30 max 11.312%; not promoted."
+    },
+    "heldout": {
+      "conditions": 33,
+      "frozen_files_checked": 67,
+      "source_result_sha256": "e8f751d81f17835ace906ef250dc3f7f06fdecb34e0375296d599f85152a39ed"
+    },
+    "limits": [
+      "Only the three predeclared priority families are imported; Cast/Transpose/Prepare/ChunkFwdO/conv and D256 decode stay analytical.",
+      "Pure-prefill q1536/q65536 and H T1536/T49152 are predeclared outside; their fallback residuals remain visible.",
+      "Attention is dense-KV single-local-kernel evidence; no paged KV, composite GDN/HCCL or multicard claim.",
+      "Whole-A5 heldout is 37/54 joint rows within 10% and 61.0026% weighted absolute error; no all-pass claim.",
+      "Unknown vLLM and compiled-binary identity remain unknown.",
+      "A5 attention and ChunkFwdH output dtype/layout/shape are asserted from the retained native TRAIN slots."
+    ]
+  },
+  "limitations": [
+    "Explicit opt-in named profile only; no automatic family/role promotion.",
+    "The caller must declare the actual native ABI; the profile never assigns its labels to an incompatible input.",
+    "Eight priority heldout domain points pass, not all A5 roles or all prefill shapes."
+  ]
+}

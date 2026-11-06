@@ -1,11 +1,12 @@
-"""Full-fleet DSH capture parsing and zero-shot template generalization evaluator.
+"""Full-fleet DSH capture parsing and historical-template replay evaluator.
 
 [Role] Parse all DSH 2026-10-30 held-out NPU captures, cache segmented Body
-  observations, and evaluate zero-shot mindie_sim Body generalization alongside
+  observations, and evaluate mindie_sim Body predictions alongside
   the registered Decode and Prefill validation scoreboards.
 [Invariants] Zero per-capture timing parameter fitting; templates are selected
   strictly by (hardware, model_family, tp, dp, ep, phase) with cell identity
   taking precedence over suite names and no silent fallback for unknown models.
+  Historical regime provenance does not establish independent heldout accuracy.
 [Timeouts & Locks] Bounded multiprocessing pool (<= 4 workers), 60s per-future
   deadlines, per-CSV row/time budgets, and atomic tempfile + os.replace() writes.
 [Side-Effect Policy] Never modifies cases.json, cases/*.json, or mindie_sim;
@@ -22,16 +23,21 @@ import os
 from pathlib import Path
 import re
 from statistics import median
-import tempfile
 import time
 
-from body import compare_body_forward, compare_layers, predict_body
+from body import compare_body_forward, compare_layers
+from native_observations import native_observation_identity, predict_body
+from dsh_scoped_prefill import (
+    materialize_scoped_jobs, price_legacy_prediction, score_prefill_capture,
+    unpadded_scenarios)
 from decode import _automatic_scenarios, _model_config, _source, capture_metadata, compact_observation
 from mindie_profiler.decode_segmentation import auto_segment_decode_forwards
 from mindie_profiler.events import PARSER_VERSION
 import mindie_sim
 from mindie_sim.prediction.structure import parse_case
 import prefill
+from runtime_identity import prediction_report_identity, simulator_identity
+from evaluation_io import atomic_write_json as _atomic_write_json
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_ROOT = Path("/Volumes/data/mindie-sim-data")
@@ -49,20 +55,6 @@ FAMILY_TOKENS = (
     (("dsv41", "v41"), "deepseek-v4.1"),
     (("kimi_k3_w4a8_4layer", "kimi4"), "kimi-k3-4l"),
 )
-
-
-def _atomic_write_json(path: Path, payload: dict, *, indent: int | None = None) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fd, tmp_name = tempfile.mkstemp(prefix=".dsh-eval-", suffix=".json", dir=path.parent)
-    tmp_path = Path(tmp_name)
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as handle:
-            json.dump(payload, handle, indent=indent, separators=None if indent else (",", ":"), allow_nan=False)
-            handle.write("\n")
-        os.replace(tmp_path, path)
-    finally:
-        if tmp_path.exists():
-            tmp_path.unlink(missing_ok=True)
 
 
 def _match_family(text: str) -> str | None:
@@ -341,14 +333,7 @@ def _sidecar_identities(capture_dir: Path) -> dict:
 
 
 def _sim_identity() -> str:
-    sim_root = Path(mindie_sim.__file__).resolve().parent
-    ver = getattr(mindie_sim, "__version__", "0.8.2")
-    h = sha256(ver.encode("utf-8"))
-    for name in ("execution.py", "service_regimes.py", "structure.py", "attention_prefill.py"):
-        mod_path = sim_root / "prediction" / name
-        if mod_path.exists():
-            h.update(mod_path.read_bytes())
-    return f"{ver}:{h.hexdigest()[:16]}"
+    return simulator_identity(mindie_sim)
 
 
 def _parser_identity() -> str:
@@ -362,6 +347,7 @@ def _parser_identity() -> str:
 
 
 SIM_IDENTITY = _sim_identity()
+NATIVE_OBSERVATION_IDENTITY = native_observation_identity()
 PARSER_IDENTITY = _parser_identity()
 CACHE_VERSION = f"v3:{PARSER_IDENTITY}"
 
@@ -372,13 +358,24 @@ _DECODE_OBS_KEYS = (
 )
 
 
-def _slim_extracted(payload: dict) -> dict:
-    """Retain only summary statistics needed for scenario/layer comparison (O(Active State) < 10 MiB)."""
+def _slim_extracted(payload: dict, full_cache_path: Path | None = None) -> dict:
+    """Retain only summary statistics needed for scenario/layer comparison (O(Active State) < 10 MiB).
+
+    The full retained payload stays on disk; ``full_cache_path`` is a location,
+    never a selector. Scoped callers verify its source identity before use.
+    """
     obs = payload.get("observed", {})
     if "body_span_sum_ms" in obs:
+        slim_forwards = []
+        for forward in obs.get("forwards", []):
+            row = {"query_rows": forward["query_rows"],
+                   "body": {"span_ms": forward["body"]["span_ms"]}}
+            for name in ("context", "context_tokens"):
+                if name in forward:
+                    row[name] = forward[name]
+            slim_forwards.append(row)
         slim_obs = {"body_span_sum_ms": obs.get("body_span_sum_ms", 0.0),
-                    "forwards": [{"query_rows": f["query_rows"], "body": {"span_ms": f["body"]["span_ms"]}}
-                                 for f in obs.get("forwards", [])]}
+                    "forwards": slim_forwards}
     else:
         groups = obs.get("geometry_groups", [])
         top_idx = max(range(len(groups)), key=lambda i: (groups[i].get("body_forward_span_ms") or {}).get("count", 0), default=-1)
@@ -392,8 +389,11 @@ def _slim_extracted(payload: dict) -> dict:
                                 "per_layer_ms": slim_layers})
         slim_obs = {k: obs.get(k) for k in _DECODE_OBS_KEYS if k in obs}
         slim_obs["geometry_groups"] = slim_groups
-    return {"cache_version": payload.get("cache_version"), "cache_key": payload.get("cache_key"),
-            "observed": slim_obs, "meta": payload.get("meta", {})}
+    return {"cache_version": payload.get("cache_version"),
+            "parser_identity": payload.get("parser_identity"),
+            "cache_key": payload.get("cache_key"),
+            "observed": slim_obs, "meta": payload.get("meta", {}),
+            "full_cache_path": str(full_cache_path) if full_cache_path else None}
 
 
 def extract_or_load(csv_path: Path, traits: dict, tpl: dict, seg_opts: dict) -> dict:
@@ -416,7 +416,7 @@ def extract_or_load(csv_path: Path, traits: dict, tpl: dict, seg_opts: dict) -> 
             raise RuntimeError(f"corrupt_extraction_cache:{cache_path}") from exc
         if (cached.get("cache_version") == CACHE_VERSION and cached.get("parser_identity") == PARSER_IDENTITY
                 and not cached.get("error") and not cached.get("observed", {}).get("segmentation_error")):
-            return _slim_extracted(cached)
+            return _slim_extracted(cached, cache_path)
 
     if traits["phase"] == "prefill":
         pf_cfg = json.loads(json.dumps(parse_case(tpl).model.to_dict()))
@@ -437,7 +437,7 @@ def extract_or_load(csv_path: Path, traits: dict, tpl: dict, seg_opts: dict) -> 
     payload = {"cache_version": CACHE_VERSION, "parser_identity": PARSER_IDENTITY,
                "cache_key": cache_key, "observed": obs, "meta": meta}
     _atomic_write_json(cache_path, payload)
-    return _slim_extracted(payload)
+    return _slim_extracted(payload, cache_path)
 
 
 def _extract_worker(item: tuple[str, dict, dict, dict]) -> tuple[str, dict]:
@@ -448,37 +448,15 @@ def _extract_worker(item: tuple[str, dict, dict, dict]) -> tuple[str, dict]:
 
 
 def _predict_worker(item: tuple[tuple, dict]) -> tuple[tuple, dict]:
-    key, tpl = item
-    tpl_sig, phase, tokens, context, sequences = key
-    pred_id = sha256(f"v2:{SIM_IDENTITY}:{tpl_sig}:{phase}:{tokens}:{context}:{sequences}".encode("utf-8")).hexdigest()[:24]
-    cache_path = CACHE_ROOT / f"pred_{pred_id}.json"
-    if cache_path.exists():
-        try:
-            cached = json.loads(cache_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as exc:
-            cache_path.unlink(missing_ok=True)
-            raise RuntimeError(f"corrupt_prediction_cache:{cache_path}") from exc
-        if cached.get("status") == "modeled":
-            return key, cached
-    res = predict_body(tpl, tokens=int(tokens), context=int(context), sequences=int(sequences), phase=phase)
-    res.pop("parameters", None)
-    res.pop("scheduled_operator_summary", None)
-    _atomic_write_json(cache_path, res)
-    return key, res
-
-
-def _unpadded_scenarios(row_dummy: dict, obs: dict, tpl: dict) -> list[dict]:
-    scenarios = _automatic_scenarios(row_dummy, obs, tpl) if obs.get("geometry_groups") else []
-    for s in scenarios:
-        g = s["geometry"]
-        out_q, q, tok = g.get("output_query_rows"), g.get("query_rows", 0), g.get("tokens_per_sequence", 1)
-        if out_q and tok > 1 and out_q < q and out_q % tok == 0:
-            g.update(physical_query_rows=q, query_rows=out_q, sequences_per_replica=out_q // tok)
-    return scenarios
+    return price_legacy_prediction(
+        item, predict_fn=predict_body, sim_identity=SIM_IDENTITY,
+        native_identity=NATIVE_OBSERVATION_IDENTITY, cache_root=CACHE_ROOT,
+        writer=_atomic_write_json)
 
 
 def evaluate_heldout_capture(csv_path: Path, traits: dict, tpl_name: str | None, tpl: dict | None,
-                             cross_tp: bool, extracted: dict | None, pred_cache: dict, tpl_sig: str) -> dict:
+                             cross_tp: bool, extracted: dict | None, pred_cache: dict, tpl_sig: str,
+                             scope_plan: dict | None = None) -> dict:
     """Compare all extracted Decode/Prefill Body populations against pre-computed predict_body results."""
     if tpl_name is None or tpl is None or extracted is None:
         return {"path": str(csv_path), "traits": traits, "template": None, "cross_tp_transfer": False,
@@ -486,36 +464,13 @@ def evaluate_heldout_capture(csv_path: Path, traits: dict, tpl_name: str | None,
 
     obs, meta = extracted["observed"], extracted["meta"]
     if traits["phase"] == "prefill":
-        forwards = obs.get("forwards", [])
-        if not forwards:
-            return {"path": str(csv_path), "traits": traits, "template": tpl_name,
-                    "cross_tp_transfer": cross_tp, "status": "unresolved", "reason": "no_prefill_forwards"}
-        real_sum, pred_sum, steady_real, steady_pred, ctx = float(obs["body_span_sum_ms"]), 0.0, 0.0, 0.0, 0
-        for f in forwards:
-            q_rows = int(f["query_rows"])
-            ctx = 0 if (ctx > 0 and ctx + q_rows > traits["context_tokens"]) else ctx
-            p_ms, r_ms = float(pred_cache[(tpl_sig, "prefill", q_rows, ctx, 1)]["body_forward_span_ms"]), float(f["body"]["span_ms"])
-            pred_sum += p_ms
-            if q_rows >= 1024:
-                steady_real, steady_pred = steady_real + r_ms, steady_pred + p_ms
-            ctx += q_rows
-        complete_err = (pred_sum / real_sum - 1.0) if real_sum > 0 else None
-        steady_err = (steady_pred / steady_real - 1.0) if steady_real > 0 else complete_err
-        return {"path": str(csv_path), "traits": traits, "template": tpl_name, "cross_tp_transfer": cross_tp,
-                "status": "compared", "forward_count": len(forwards), "observed_ms": round(real_sum, 4),
-                "predicted_ms": round(pred_sum, 4), "relative_error": round(complete_err, 6) if complete_err is not None else None,
-                "complete_body_relative_error": round(complete_err, 6) if complete_err is not None else None,
-                "steady_chunk_observed_ms": round(steady_real, 4) if steady_real > 0 else None,
-                "steady_chunk_predicted_ms": round(steady_pred, 4) if steady_real > 0 else None,
-                "steady_chunk_relative_error": round(steady_err, 6) if steady_err is not None else None,
-                "passed_15pct": bool(abs(complete_err) <= 0.15) if complete_err is not None else False,
-                "passed_10pct": bool(abs(complete_err) <= 0.10) if complete_err is not None else False,
-                "steady_chunk_passed_15pct": bool(abs(steady_err) <= 0.15) if steady_err is not None else False,
-                "steady_chunk_passed_10pct": bool(abs(steady_err) <= 0.10) if steady_err is not None else False}
+        return score_prefill_capture(
+            csv_path, traits, tpl_name, cross_tp, extracted, pred_cache,
+            tpl_sig, scope_plan=scope_plan)
 
     row_dummy = {"geometry": {"phase": "decode", "context_tokens": traits["context_tokens"]},
                  "context_evidence": meta.get("context_evidence"), "scenario_evidence": {"client": _client_evidence(meta, traits)}}
-    scenarios = _unpadded_scenarios(row_dummy, obs, tpl)
+    scenarios = unpadded_scenarios(row_dummy, obs, tpl, _automatic_scenarios)
     if not scenarios:
         return {"path": str(csv_path), "traits": traits, "template": tpl_name, "cross_tp_transfer": cross_tp,
                 "status": "unresolved", "reason": obs.get("segmentation_error") or "no_automatic_decode_scenarios"}
@@ -576,25 +531,27 @@ def _summarize_errors(errors: list[float]) -> dict:
 def _write_markdown(report: dict, out_md: Path) -> None:
     inv, s = report["inventory"], report["summary"]
     lines = [
-        "# MindIE-Sim Full-Fleet DSH Capture Parsing & Zero-Shot Generalization Report", "",
+        "# MindIE-Sim Full-Fleet DSH Historical-Template Replay Report", "",
+        "Existing template regimes are not certified independent heldout calibration. Registered scoreboard comparisons retain their source runtime metadata; explicit missing-case recomputations are recorded separately from the new DSH predictions.", "",
+        f"- **All contributing runtime identities verified against the current runtime**: `{report['sim_identity_matches_current']}`",
         "## 1. Executive Summary & Fleet Inventory", "",
         f"- **DSH `2026-10-30` Total `kernel_details.csv` Captures**: `{inv['dsh_20261030_total_csvs']}`",
         f"  - **Registered in `cases.json` (`body` scope)**: `{inv['dsh_20261030_registered_body_csvs']}`",
         f"  - **Excluded Pure Decode-Eager Captures**: `{inv['dsh_20261030_eager_excluded_csvs']}`",
-        f"  - **Unregistered Held-Out Captures Evaluated**: `{inv['dsh_20261030_unregistered_heldout_csvs']}` across `{len(report['cohort_summaries'])}` cohorts",
-        f"- **Total Evaluated Body Captures (Registered + Held-Out)**: `{inv['total_evaluated_body_cases']}` (`{s['full_fleet_combined']['count']}` compared)", "",
+        f"  - **Unregistered Captures Evaluated**: `{inv['dsh_20261030_unregistered_heldout_csvs']}` across `{len(report['cohort_summaries'])}` cohorts",
+        f"- **Total Evaluated Body Captures (Registered + Unregistered)**: `{inv['total_evaluated_body_cases']}` (`{s['full_fleet_combined']['count']}` compared)", "",
         "| Evaluation Scope | Compared | Pass `<= 15%` | Rate `<= 15%` | Pass `<= 10%` | Rate `<= 10%` | Mean `|Err|` | Median `|Err|` | Max `|Err|` |",
         "| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for label, key in [("Registered Decode Body (`cases.json`)", "registered_decode_body"),
                        ("Registered Prefill Body (`cases.json`)", "registered_prefill_body"),
-                       ("Held-Out Unregistered (Excl. Uncalibrated `v41` `dspark0`)", "heldout_unregistered_excluding_v41_dspark0_uncalibrated_sp1"),
-                       ("Held-Out Unregistered (All Compared, All Populations)", "heldout_unregistered_all"),
-                       ("Held-Out Unregistered (Primary Population)", "heldout_unregistered_primary_population"),
+                       ("Unregistered (Excl. Uncalibrated `v41` `dspark0`)", "heldout_unregistered_excluding_v41_dspark0_uncalibrated_sp1"),
+                       ("Unregistered (All Compared, All Populations)", "heldout_unregistered_all"),
+                       ("Unregistered (Primary Population)", "heldout_unregistered_primary_population"),
                        ("**Full Fleet Combined**", "full_fleet_combined")]:
         r = s[key]
         lines.append(f"| {label} | {r['count']} | {r['pass_15pct']} | **{r['pass_rate_15pct']*100:.2f}%** | {r['pass_10pct']} | **{r['pass_rate_10pct']*100:.2f}%** | {r['mean_abs_error']*100:.2f}% | {r['median_abs_error']*100:.2f}% | {r['max_abs_error']*100:.2f}% |")
-    lines.extend(["", "## 2. Held-Out Cohort Breakdown", "",
+    lines.extend(["", "## 2. Unregistered Cohort Breakdown", "",
                   "| Cohort | Family | Phase | TP/DP/EP | Spec | Cross-TP | Template | Captures | Compared | Pass `<=15%` | Pass `<=10%` | Mean `|Err|` | Median `|Err|` |",
                   "| :--- | :--- | :--- | :--- | ---: | :---: | :--- | ---: | ---: | ---: | ---: | ---: | ---: |"])
     for c in report["cohort_summaries"]:
@@ -604,7 +561,7 @@ def _write_markdown(report: dict, out_md: Path) -> None:
         m_s, md_s = (f"{st['mean_abs_error']*100:.2f}%", f"{st['median_abs_error']*100:.2f}%") if st["count"] else ("N/A", "N/A")
         lines.append(f"| `{c['cohort']}` | `{c['family']}` | `{c['phase']}` | `{c['tp']}/{c['dp']}/{c['ep']}` | {spec_s} | {'Yes' if c['cross_tp_transfer'] else 'No'} | `{c['template']}` | {c['capture_count']} | {c['compared_count']} | {p15} | {p10} | {m_s} | {md_s} |")
     out_md.parent.mkdir(parents=True, exist_ok=True)
-    out_md.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    out_md.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 
 
 def _bounded_workers(requested: int, worker_ram_mb: int = 512) -> int:
@@ -675,7 +632,7 @@ def main(argv: list[str] | None = None) -> int:
     decode_sb = json.loads((BASE_DIR / "results" / "decode.json").read_text())
     prefill_sb = json.loads((BASE_DIR / "results" / "prefill.json").read_text())
 
-    reg_decode_errs = []
+    reg_decode_errs, registered_recomputations = [], {}
     for c in decode_sb["cases"]:
         rel_e = (c.get("comparison") or {}).get("relative_error")
         if rel_e is None and c.get("id") in ("decode:a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64", "decode:a5_v41_fp8_tp1_dp8_ep8_c128_p2k"):
@@ -690,6 +647,7 @@ def main(argv: list[str] | None = None) -> int:
             scens = _automatic_scenarios(reg_row, obs_d, tpl_d)
             scens.sort(key=lambda s: -s["observed"]["body_forward_span_ms"]["count"])
             rel_e = compare_body_forward(pred, scens[0]["observed"])["relative_error"]
+            registered_recomputations[c["id"]] = {"sim_identity": SIM_IDENTITY, "relative_error": rel_e}
         if rel_e is not None:
             reg_decode_errs.append(float(rel_e))
     reg_prefill_errs = [float(c["comparison"]["relative_error"]) for c in prefill_sb["cases"]
@@ -722,27 +680,47 @@ def main(argv: list[str] | None = None) -> int:
     extractions = _run_bounded_pool(_extract_worker, worker_items, workers, step_timeout_s=60.0,
                                     progress_step=100, label="Extracted")
 
-    pred_jobs: dict[tuple, dict] = {}
-    for p, tr, _, tpl, _, _, tpl_sig in heldout_tasks:
-        if tpl is None:
-            continue
-        obs, meta = extractions[str(p)]["observed"], extractions[str(p)]["meta"]
-        if tr["phase"] == "prefill":
-            ctx = 0
-            for f in obs.get("forwards", []):
-                q_rows = int(f["query_rows"])
-                ctx = 0 if (ctx > 0 and ctx + q_rows > tr["context_tokens"]) else ctx
-                pred_jobs[(tpl_sig, "prefill", q_rows, ctx, 1)], ctx = tpl, ctx + q_rows
-        elif obs.get("geometry_groups"):
-            row_dummy = {"geometry": {"phase": "decode", "context_tokens": tr["context_tokens"]},
-                         "context_evidence": meta.get("context_evidence"), "scenario_evidence": {"client": _client_evidence(meta, tr)}}
-            for s in _unpadded_scenarios(row_dummy, obs, tpl):
-                g = s["geometry"]
-                pred_jobs[(tpl_sig, "decode", int(g["tokens_per_sequence"]), int(g["context_tokens"]), int(g["sequences_per_replica"]))] = tpl
+    def run_scoped_pool(fn, items, pool_workers):
+        return _run_bounded_pool(
+            fn, items, pool_workers, step_timeout_s=600.0,
+            progress_step=10, label="Scoped prefill")
 
-    print(f"Running {len(pred_jobs)} unique predict_body geometries across {workers} workers...", flush=True)
-    pred_cache = _run_bounded_pool(_predict_worker, list(pred_jobs.items()), workers, step_timeout_s=180.0, progress_step=50, label="Priced")
-    heldout_results = [evaluate_heldout_capture(p, tr, tn, tpl, ct, extractions.get(str(p)), pred_cache, tsig) for (p, tr, tn, tpl, _, ct, tsig) in heldout_tasks]
+    unscoped_prefill, scoped_results, scoped_predictions = (
+        materialize_scoped_jobs(
+            heldout_tasks=heldout_tasks, extractions=extractions,
+            workers=workers, sim_identity=SIM_IDENTITY,
+            native_identity=NATIVE_OBSERVATION_IDENTITY,
+            cache_root=CACHE_ROOT, run_pool=run_scoped_pool))
+    pred_jobs: dict[tuple, dict] = dict(unscoped_prefill)
+    for p, tr, _, tpl, _, _, tpl_sig in heldout_tasks:
+        if tpl is None or tr["phase"] != "decode":
+            continue
+        extracted = extractions[str(p)]
+        obs, meta = extracted["observed"], extracted["meta"]
+        if not obs.get("geometry_groups"):
+            continue
+        row_dummy = {
+            "geometry": {"phase": "decode",
+                         "context_tokens": tr["context_tokens"]},
+            "context_evidence": meta.get("context_evidence"),
+            "scenario_evidence": {"client": _client_evidence(meta, tr)}}
+        for s in unpadded_scenarios(row_dummy, obs, tpl, _automatic_scenarios):
+            g = s["geometry"]
+            pred_jobs[(tpl_sig, "decode", int(g["tokens_per_sequence"]),
+                       int(g["context_tokens"]),
+                       int(g["sequences_per_replica"]))] = tpl
+
+    print(f"Running {len(pred_jobs)} unique unscoped predict_body geometries "
+          f"across {workers} workers...", flush=True)
+    pred_cache = (_run_bounded_pool(
+        _predict_worker, list(pred_jobs.items()), workers,
+        step_timeout_s=180.0, progress_step=50, label="Priced")
+        if pred_jobs else {})
+    pred_cache.update(scoped_predictions)
+    heldout_results = [evaluate_heldout_capture(
+        p, tr, tn, tpl, ct, extractions.get(str(p)), pred_cache, tsig,
+        scope_plan=scoped_results.get(str(p)))
+        for (p, tr, tn, tpl, _, ct, tsig) in heldout_tasks]
     by_cohort: dict[str, list[dict]] = defaultdict(list)
     for r in heldout_results:
         by_cohort[r["traits"]["cohort"]].append(r)
@@ -762,8 +740,34 @@ def main(argv: list[str] | None = None) -> int:
                            and not (r["traits"]["family"] == "deepseek-v4.1" and r["traits"]["spec_tokens"] == 0)]
     all_fleet_errs = reg_decode_errs + reg_prefill_errs + heldout_errs
 
+    scoped_status = defaultdict(int)
+    scoped_geometries = 0
+    for plan in scoped_results.values():
+        for row in plan["provenance"]:
+            scoped_status[row.get("status") or "unknown"] += 1
+            scoped_geometries += 1
+
     report = {
         "schema_version": "mindie-dsh-full-generalization/2", "elapsed_seconds": round(time.monotonic() - started, 2),
+        **prediction_report_identity({"registered_decode": decode_sb, "registered_prefill": prefill_sb,
+                                      "dsh_predictions": {"sim_identity": SIM_IDENTITY}}, SIM_IDENTITY),
+        "registered_recomputations": registered_recomputations,
+        "dsh_native_observation_identity": NATIVE_OBSERVATION_IDENTITY,
+        "dsh_prediction_arm": "observed_native",
+        "dsh_scoped_native_replay": {
+            "captures": len(scoped_results),
+            "geometries": scoped_geometries,
+            "status_counts": dict(sorted(scoped_status.items())),
+            "order": "capture_scoped_caller_before_native_observations",
+            "archive_template_replacement": False,
+            "prediction_identity": "final_physical_raw_plus_geometry_plus_sim_and_native_identity",
+            "prepared_state": "one_capture_reused_per_geometry_released_after_jobs_materialized",
+        },
+        "calibration_provenance": {
+            "evaluation_relation": "historical_model_conditioned_regimes_not_certified_heldout",
+            "independent_heldout": False, "input_conditioned_regime_overrides": True,
+            "prior_fit_capture_membership": "not_established",
+            "registered_comparisons": "retained_source_reports_except_explicit_missing_case_recomputations"},
         "inventory": {
             "dsh_20261030_total_csvs": len(all_dsh_csvs), "dsh_20261030_registered_body_csvs": len(registered_in_dsh),
             "dsh_20261030_eager_excluded_csvs": len(eager_excluded), "dsh_20261030_unregistered_heldout_csvs": len(heldout_tasks),
