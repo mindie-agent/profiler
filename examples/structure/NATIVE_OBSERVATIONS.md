@@ -37,6 +37,12 @@ Wave5 重跑入口和 DSH 新预测使用这个适配器；聚合已有报告不
   不根据模型名或观察耗时猜捕获桶；未声明字段保留为 `not_provided`。
   A3 中已有 188 个 capture 的旧模板桶与真实命令不同，例如实际 q=1
   卷积/递归输入仅一行，旧模板却从另一部署继承了最小 4/8 行捕获桶。
+  对已经选择 `vllm_ascend_mc2_tp_slice`、但未声明 padding 的调用者，
+  同时按固定源码版本补齐 `right_to_tp`，并单独记为 source condition。
+  这是 router 之后的 MoE 局部对齐，不改变字面量图捕获槽位：A3 实际
+  q=1/4 的 router 和 shared 均保持 1/4 行，prepare 扩为 8 行后按 TP8
+  切成每 rank 1 行，finalize 再裁回原行数。显式 padding 和非 MC2 调用保留。
+  原始 PadV3 与所选源码的物化算子只核对输入/输出行边界，未声称二进制相同。
 
 ## 为什么整网总误差不能替代逐群验收
 

@@ -46,7 +46,8 @@ def test_retained_literal_policy_restores_q12_and_excludes_q64_graph_capture(tmp
 
 
 def test_missing_capture_fields_are_unprovided_and_do_not_guess_policy(tmp_path):
-    raw = {"runtime": {"graph_mode": "none", "graph_capture_keys": [4, 8]}}
+    raw = {"runtime": {"graph_mode": "none", "graph_capture_keys": [4, 8],
+                       "kernels": {"moe_token_partition": {"kind": "vllm_ascend_mc2_tp_slice"}}}}
     capture = tmp_path / "capture" / "kernel_details.csv"
     result, provenance = import_capture_policy(raw, capture_path=capture)
     assert result == raw and provenance["status"] == "not_provided"
@@ -120,7 +121,8 @@ def test_literal_caller_conditions_do_not_invent_missing_graph_fields(tmp_path):
     command = tmp_path / "cmd.sh"
     command.write_text("vllm serve retained-model --additional-config "
                        "'{\"enable_force_eplb\":false}'\n")
-    raw = {"runtime": {"graph_mode": "none", "graph_capture_keys": [4, 8]}}
+    raw = {"runtime": {"graph_mode": "none", "graph_capture_keys": [4, 8],
+                       "kernels": {"moe_token_partition": {"kind": "vllm_ascend_mc2_tp_slice"}}}}
     result, provenance = import_capture_policy(raw, capture_path=command)
     assert result["runtime"]["graph_mode"] == "none"
     assert result["runtime"]["graph_capture_keys"] == [4, 8]
@@ -128,3 +130,73 @@ def test_literal_caller_conditions_do_not_invent_missing_graph_fields(tmp_path):
     assert provenance["status"] == "partially_provided"
     assert provenance["provided_fields"] == ["additional_config"]
     assert provenance["missing_fields"] == ["cudagraph_capture_sizes", "cudagraph_mode"]
+    assert result["runtime"]["kernels"] == raw["runtime"]["kernels"]
+    assert "source_conditions" not in provenance
+
+
+@pytest.mark.parametrize("capture_index", [0, 1], ids=["q1", "q4"])
+def test_retained_a3_mc2_alignment_is_local_to_prepare(tmp_path, capture_index):
+    from mindie_sim import target_operators
+
+    fixture = json.loads((FIXTURES / "a3_dsv4f_mc2_padding.json").read_text())
+    capture = fixture["captures"][capture_index]
+    raw = fixture["raw"]
+    original = deepcopy(raw)
+    command = tmp_path / "cmd.sh"
+    command.write_bytes((FIXTURES / "a3_dsv4f_mc2_cmd.sh").read_bytes())
+    result, provenance = import_capture_policy(raw, capture_path=command)
+    assert raw == original
+    assert result["model"] == original["model"]
+    assert result["runtime"]["graph_capture_keys"] == [1, 2, 4, 8, 16, 32]
+    assert result["runtime"]["kernels"]["moe_token_partition"]["padding"] == "right_to_tp"
+    assert provenance["command_sha256"] == fixture["captures"][0]["source_command"]["sha256"]
+    condition, = provenance["source_conditions"]
+    assert condition["source"]["revision"] == fixture["source_revision"]
+    assert condition["source"]["capture_binary_identity"] == "unknown"
+    assert set(provenance["captured_fields"]) == {"cudagraph_mode", "cudagraph_capture_sizes"}
+
+    def shapes(row, key):
+        return tuple(tuple(int(n) for n in item.split(",")) if item else ()
+                     for item in row[key].strip('"').split(";"))
+
+    # Retained PadV3 and the source-selected generic materialization have the
+    # same row boundary; this does not assert binary/kernel equivalence.
+    evidence = capture["native_row_evidence"]
+    native_router = next(row for row in evidence if row["Type"] == "MatMulV2")
+    native_shared = next(row for row in evidence if row["Type"] == "QuantBatchMatmulV3")
+    native_dispatch = next(row for row in evidence if row["Type"] == "MoeDistributeDispatchV2")
+    native_pads = [row for row in evidence if row["Type"] == "PadV3"]
+    ops = [op for op in target_operators(result, **capture["geometry"]) if op.layer == 0]
+    by_recipe = {op.recipe: op for op in ops}
+    rows = capture["geometry"]["sequences"]
+    assert shapes(native_router, "Input Shapes")[0][0] == rows
+    assert by_recipe["router"].local_shape[0] == rows
+    assert by_recipe["dense_gate_up"].local_shape[0] == shapes(native_shared, "Input Shapes")[0][0] == rows
+    assert {dict(op.metadata)["graph_physical_query_rows"] for op in ops} == {rows}
+    pads = [op for op in ops if op.recipe == "tensor_concat"]
+    assert len(pads) == len(native_pads) == 2
+    for op, native in zip(pads, native_pads):
+        assert dict(op.metadata)["input_shapes"][0] == shapes(native, "Input Shapes")[0]
+        assert op.local_shape == shapes(native, "Output Shapes")[0]
+        assert op.local_shape[0] == fixture["expected"]["moe_allocated_rows"]
+    partition = dict(by_recipe["route_pack"].metadata)["moe_token_partition"]
+    assert partition["full_rows"] == partition["valid_rows"] == rows
+    assert partition["allocated_rows"] == 8
+    assert partition["local_rows"] == shapes(native_dispatch, "Input Shapes")[0][0] == 1
+    assert partition["valid_rows_per_rank"] == (1,) * rows + (0,) * (8 - rows)
+
+
+@pytest.mark.parametrize("caller", [
+    None,
+    {"kind": "vllm_ascend_alltoall_tp_slice"},
+    {"kind": "vllm_ascend_mc2_tp_slice", "padding": "none"},
+    {"kind": "vllm_ascend_mc2_tp_slice", "padding": "right_to_tp"},
+])
+def test_captured_graph_fields_preserve_explicit_or_other_caller_alignment(tmp_path, caller):
+    command = tmp_path / "cmd.sh"
+    command.write_bytes((FIXTURES / "a3_dsv4f_mc2_cmd.sh").read_bytes())
+    kernels = {"moe_token_partition": caller} if caller is not None else {}
+    raw = {"runtime": {"kernels": kernels}}
+    result, provenance = import_capture_policy(raw, capture_path=command)
+    assert result["runtime"]["kernels"] == kernels
+    assert "source_conditions" not in provenance

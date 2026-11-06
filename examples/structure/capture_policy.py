@@ -2,7 +2,8 @@
 
 [Role] Read compilation and additional config from caller-selected cmd.sh.
 [Invariants] Command text is never executed; model names and timings never
-  select a capture policy. Missing fields remain explicitly unprovided.
+  select a capture policy. Missing graph fields remain explicitly unprovided.
+  A selected MC2 caller aligns locally without changing the full-graph rows.
 [Timeouts & Locks] One small local command file; no subprocesses or locks.
 [Side-Effect Policy] Return copied input and source provenance; no file writes.
 """
@@ -11,6 +12,36 @@ from hashlib import sha256
 import json
 from pathlib import Path
 import shlex
+
+
+MC2_ALIGNMENT_SOURCE = {
+    "repository": "vllm-ascend",
+    "revision": "8c30e4f491f73cba737a1dacc522894e437cdf3d",
+    "forward_context": {
+        "repository_path": "vllm_ascend/ascend_forward_context.py", "lines": [216, 226],
+        "sha256": "ab5110b44b2b951f0f55d09fcc90c316f6515bb8d085a5fdd0ac1b1b1dcd099e",
+    },
+    "prepare_finalize": {
+        "repository_path": "vllm_ascend/ops/fused_moe/prepare_finalize.py", "lines": [291, 325],
+        "sha256": "41dc995d6a8b2ec714733eb229803ad45e6ed0f09d40a531bd764ac794f2b902",
+    },
+    "formula": "ceil(max_tokens_across_dp / tp_world_size) * tp_world_size",
+    "scope": "MC2 prepare padding and TP slicing; finalize trims to original rows",
+    "capture_binary_identity": "unknown",
+}
+
+
+def _complete_mc2_alignment(runtime):
+    caller = runtime.get("kernels", {}).get("moe_token_partition")
+    if (not isinstance(caller, dict) or caller.get("kind") != "vllm_ascend_mc2_tp_slice"
+            or "padding" in caller):
+        return None
+    # MC2 pads after the full-row router, then slices across TP. Captured graph
+    # keys govern attention/shared rows and must not absorb this local padding.
+    caller["padding"] = "right_to_tp"
+    return {"field": "runtime.kernels.moe_token_partition.padding",
+            "value": "right_to_tp", "basis": "already_selected_mc2_caller_source_semantics",
+            "source": deepcopy(MC2_ALIGNMENT_SOURCE)}
 
 
 def _literal_config(tokens, option):
@@ -93,6 +124,10 @@ def import_capture_policy(raw: dict, *, capture_path: str | Path) -> tuple[dict,
             runtime["graph_buckets"] = sizes
         if selected == "piecewise":
             runtime["piecewise_capture_keys"] = sizes
+    if fields:
+        alignment = _complete_mc2_alignment(runtime)
+        if alignment is not None:
+            provenance["source_conditions"] = [alignment]
     provenance["changed_fields"] = sorted(key for key in runtime if before.get(key) != runtime[key])
     provenance.update(status="applied" if not provenance["missing_fields"] else "partially_provided",
                       reason="literal_captured_compilation_fields_imported")
