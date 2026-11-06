@@ -32,6 +32,7 @@ from mindie_profiler.events import PARSER_VERSION
 import mindie_sim
 from mindie_sim.prediction.structure import parse_case
 import prefill
+from runtime_identity import simulator_identity
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_ROOT = Path("/Volumes/data/mindie-sim-data")
@@ -341,14 +342,7 @@ def _sidecar_identities(capture_dir: Path) -> dict:
 
 
 def _sim_identity() -> str:
-    sim_root = Path(mindie_sim.__file__).resolve().parent
-    ver = getattr(mindie_sim, "__version__", "0.8.2")
-    h = sha256(ver.encode("utf-8"))
-    for name in ("execution.py", "service_regimes.py", "structure.py", "attention_prefill.py"):
-        mod_path = sim_root / "prediction" / name
-        if mod_path.exists():
-            h.update(mod_path.read_bytes())
-    return f"{ver}:{h.hexdigest()[:16]}"
+    return simulator_identity(mindie_sim)
 
 
 def _parser_identity() -> str:

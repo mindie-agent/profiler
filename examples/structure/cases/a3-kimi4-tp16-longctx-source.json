@@ -593,7 +593,19 @@
                   "rank": 15
                 }
               ],
-              "ranks_per_node": 16
+              "ranks_per_node": 16,
+              "collective": "allgather",
+              "group_axis": "tp",
+              "parallel": {
+                "cp": 1,
+                "dp": 1,
+                "ep": 16,
+                "pcp": 1,
+                "pp": 1,
+                "sp": false,
+                "tp": 16
+              },
+              "steps": 15
             }
           },
           "coordinates": {
@@ -838,7 +850,19 @@
                   "rank": 15
                 }
               ],
-              "ranks_per_node": 16
+              "ranks_per_node": 16,
+              "collective": "reduce_scatter",
+              "group_axis": "tp",
+              "parallel": {
+                "cp": 1,
+                "dp": 1,
+                "ep": 16,
+                "pcp": 1,
+                "pp": 1,
+                "sp": false,
+                "tp": 16
+              },
+              "steps": 15
             }
           },
           "coordinates": {

@@ -73,7 +73,7 @@ If you are an AI Agent receiving the prompt above, follow these steps to install
    - Install the pinned release wheels (recommended for production):
      ```bash
      uv pip install \
-       https://github.com/mindie-agent/sim/releases/download/v0.9.3/mindie_sim-0.9.3-py3-none-any.whl \
+       https://github.com/mindie-agent/sim/releases/download/v0.9.4/mindie_sim-0.9.4-py3-none-any.whl \
        https://github.com/mindie-agent/profiler/releases/download/v0.5.6/mindie_profiler-0.5.6-py3-none-any.whl
      ```
    - Or install the latest development version from `main`:
@@ -109,9 +109,9 @@ If you are an AI Agent receiving the prompt above, follow these steps to install
 | **`memory`**<br/>`mindie_profiler.memory_profile`<br/>`python3 -m mindie_profiler.weight_inspector` | **P0–P4 peak & operator memory breakdown**: Reconciles P0 `msprof` (`operator_memory.csv` / `memory_record.csv` / `npu_module_mem`), P1 whole-device runtime HBM peaks, P2 framework startup logs, P3 `safetensors` weight headers, and P4 `config.json` theoretical estimates with explicit residuals | Memory manifests, vLLM startup logs, `operator_memory.csv`, `memory_record.csv`, model weight dir | `mindie-memory-attribution/1` JSON report (weights, KV cache, activations, communication buffers, and uninvented residual) |
 | **`modeling-inputs`**<br/>`mindie_profiler.modeling_inputs`<br/>`python3 -m mindie_profiler.enrichment_model` | **Retained observation export and Roofline comparison**: Extracts shapes, dtypes, layouts, durations and hardware peaks into `ModelingInputsBundle` and computes single-kernel ideal lower bounds; rewritten sim does not natively consume this legacy bundle | C7 summary JSON, hotspot records, and raw physical hardware peaks | `mindie-modeling-inputs/1` observation bundle and 3-value alignment (`ideal_hardware_lower_bound_ms`, `model_predicted_ms`, `measured_device_ms`) |
 
-### `v0.5.6` Topology-Guided Structure Attribution, 4D Efficiency Reports & Full-Fleet Generalization (Paired with `mindie-sim 0.9.3`)
+### `v0.5.6` Topology-Guided Structure Attribution, 4D Efficiency Reports & Full-Fleet Generalization (Paired with `mindie-sim 0.9.4`)
 
-`mindie-profiler v0.5.6` works seamlessly with [`mindie-sim v0.9.3`](https://github.com/mindie-agent/sim) to bridge raw profiler captures with model structure attribution, 4D hardware efficiency analysis, and zero-shot cross-fleet generalization (see [`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md), [`docs/releases/profiler-0.5.3.md`](./docs/releases/profiler-0.5.3.md), and [`examples/structure/README.md`](./examples/structure/README.md)):
+`mindie-profiler v0.5.6` works with [`mindie-sim v0.9.4`](https://github.com/mindie-agent/sim) to connect raw captures with model structure attribution, 4D hardware efficiency analysis, and cross-fleet prediction comparisons (see [`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md), [`docs/releases/profiler-0.5.3.md`](./docs/releases/profiler-0.5.3.md), and [`examples/structure/README.md`](./examples/structure/README.md)). Wave5 uses in-sample calibration and cannot certify independent zero-shot accuracy. Evaluation caches now identify the complete sim Python/JSON content; aggregation preserves missing or stale source identities instead of relabeling old predictions as current results.
 
 - **Topology-Guided Structure Mapping (`analyze --structure`)**:
   ```bash

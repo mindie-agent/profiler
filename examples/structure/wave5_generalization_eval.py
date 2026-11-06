@@ -9,17 +9,22 @@
   or mutated. Service-regime calibration provenance (including A3 input-conditioned
   cohort:context_tokens:concurrency overrides vs A2/A5 cohort-phase templates) is
   explicitly disclosed in JSON and Markdown reports.
-[Timeouts & Locks] Subprocess chip runs use bounded worker pools (<= 4 workers,
-  default 3) and explicit timeouts; outputs use atomic tempfile + os.replace().
-[Side-Effect Policy] Writes wave5_full_generalization.{json,md}; does not mutate
-  cases.json, cases/*.json, or dsh_generalization_eval.py.
+[Timeouts & Locks] Sequential offline CPU chip runs allow 3600s each (10800s
+  total), with bounded worker pools (<= 4 workers, default 3) and archived
+  per-future deadlines. Outputs use atomic tempfile + os.replace().
+[Side-Effect Policy] Writes reports and fresh chip caches beside the requested
+  output. Historical archives, source cases and captures stay read-only.
 """
 from __future__ import annotations
 
 from collections import defaultdict
+from concurrent.futures import ProcessPoolExecutor
 import argparse
+from functools import partial
 from hashlib import sha256
+import importlib
 import json
+import multiprocessing
 import os
 from pathlib import Path
 from statistics import median
@@ -31,12 +36,15 @@ import time
 from mindie_profiler import decode_segmentation
 from mindie_profiler.events import PARSER_VERSION
 import mindie_sim
+from runtime_identity import simulator_identity
+from wave5_regime_import import import_a3_regime_catalog
 
 STRUCT_DIR = Path(__file__).resolve().parent
 DEFAULT_ARCHIVE_ROOT = Path("/Volumes/data/mindie-sim-data/acceptance-archives-20261030/wave5-eval")
 DEFAULT_OUT_JSON = STRUCT_DIR / "results" / "wave5_full_generalization.json"
 DEFAULT_OUT_MD = STRUCT_DIR / "results" / "wave5_full_generalization.md"
 MAX_WORKERS = 4
+CHIP_TIMEOUT_SECONDS = 3600
 
 CALIBRATION_PROVENANCE = {
     "evaluation_relation": "in_sample_regime_calibration",
@@ -77,14 +85,7 @@ def _parser_identity() -> str:
 
 
 def _sim_identity() -> str:
-    sim_root = Path(mindie_sim.__file__).resolve().parent
-    ver = getattr(mindie_sim, "__version__", "0.8.2")
-    digest = sha256(ver.encode("utf-8"))
-    for name in ("execution.py", "service_regimes.py", "structure.py", "attention_prefill.py"):
-        mod_path = sim_root / "prediction" / name
-        if mod_path.exists():
-            digest.update(mod_path.read_bytes())
-    return f"mindie_sim/{ver}:{digest.hexdigest()[:16]}"
+    return simulator_identity(mindie_sim)
 
 
 PARSER_IDENTITY = _parser_identity()
@@ -234,7 +235,12 @@ def aggregate_chip_reports(a2_report: dict, a3_report: dict, a5_report: dict) ->
         chip_identities[hw] = {
             "schema_version": rep.get("schema_version"),
             "parser_identity": rep_parser,
-            "sim_identity": rep.get("sim_identity", SIM_IDENTITY),
+            "sim_identity": rep.get("sim_identity"),
+            "sim_identity_status": (
+                "missing" if rep.get("sim_identity") is None else
+                "matches_current" if rep["sim_identity"] == SIM_IDENTITY else "differs_from_current"
+            ),
+            "input_provenance": rep.get("input_provenance"),
         }
         norm_cases = [_normalize_case(hw, c) for c in raw_cases]
         by_cohort: dict[str, list[dict]] = defaultdict(list)
@@ -277,10 +283,14 @@ def aggregate_chip_reports(a2_report: dict, a3_report: dict, a5_report: dict) ->
             _errs(lambda c: int(c.get("context_tokens") or 0) >= 196608)
         ),
     }
+    current_sim = all(row["sim_identity_status"] == "matches_current"
+                      for row in chip_identities.values())
     return {
         "schema_version": "mindie-wave5-full-generalization/1",
         "parser_identity": PARSER_IDENTITY,
-        "sim_identity": SIM_IDENTITY,
+        "sim_identity": SIM_IDENTITY if current_sim else None,
+        "evaluator_sim_identity": SIM_IDENTITY,
+        "sim_identity_matches_current": current_sim,
         "chip_report_identities": chip_identities,
         "calibration_provenance": CALIBRATION_PROVENANCE,
         "inventory": {
@@ -307,7 +317,8 @@ def render_markdown(report: dict) -> str:
         "## 1. Executive Summary & Provenance",
         "",
         f"- **Parser Identity**: `{report['parser_identity']}`",
-        f"- **Simulator Identity**: `{report['sim_identity']}`",
+        f"- **Simulator Identity**: `{report['sim_identity'] or 'unconfirmed'}`",
+        f"- **All chip predictions verified against the current simulator**: `{report['sim_identity_matches_current']}`",
         f"- **Evaluation Relation**: `{prov['evaluation_relation']}` "
         f"(`target_timing_used_to_fit={prov['target_timing_used_to_fit']}`, "
         f"`heldout_observed_values_used_in_fit={prov['heldout_observed_values_used_in_fit']}`, "
@@ -358,6 +369,66 @@ def render_markdown(report: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _configure_chip(hw: str, archive_root: Path, cache_root: Path, sim_identity: str):
+    """Apply the same explicit inputs to the parent and every spawned worker."""
+    script = archive_root / hw / f"eval_{hw}_wave5.py"
+    module_dir = str(script.parent)
+    if module_dir not in sys.path:
+        sys.path.insert(0, module_dir)
+    previous_bytecode_setting = sys.dont_write_bytecode
+    sys.dont_write_bytecode = True
+    try:
+        module = importlib.import_module(script.stem)
+    finally:
+        sys.dont_write_bytecode = previous_bytecode_setting
+    if Path(module.__file__).resolve() != script.resolve():
+        raise ValueError(f"chip_evaluator_module_conflict:{script}")
+    if SIM_IDENTITY != sim_identity:
+        raise ValueError(f"chip_worker_sim_identity_mismatch:{SIM_IDENTITY}!={sim_identity}")
+    module.SIM_IDENTITY = sim_identity
+    module.CACHE_ROOT = cache_root
+    provenance = None
+    if hw == "a2":
+        # The archived A2 evaluator also emits derived templates during main().
+        module.TEMPLATES_DIR = cache_root / "templates"
+    elif hw == "a3":
+        module._REGIME_CATALOG, provenance = import_a3_regime_catalog(archive_root)
+        module._COHORT_TEMPLATES = {
+            path.name: json.loads(path.read_text(encoding="utf-8"))
+            for path in (archive_root / "a3" / "templates").glob("a3__*.json")
+        }
+    module.ProcessPoolExecutor = partial(
+        ProcessPoolExecutor, mp_context=multiprocessing.get_context("spawn"),
+        initializer=_configure_chip, initargs=(hw, archive_root, cache_root, sim_identity),
+    )
+    return module, provenance
+
+
+def _run_chip(hw: str, archive_root: Path, output_json: Path, output_md: Path, workers: int) -> int:
+    cache_root = output_json.parent / f"{output_json.stem}-cache"
+    for path in (output_json, output_md, cache_root):
+        if path.resolve().is_relative_to(archive_root.resolve()):
+            raise ValueError(f"wave5_output_must_be_outside_archive:{path}")
+    module, regime_import = _configure_chip(hw, archive_root, cache_root, SIM_IDENTITY)
+    result = module.main([
+        "--workers", str(workers), "--output-json", str(output_json), "--output-md", str(output_md),
+    ])
+    if result:
+        return result
+    report = json.loads(output_json.read_text(encoding="utf-8"))
+    script = archive_root / hw / f"eval_{hw}_wave5.py"
+    report["input_provenance"] = {
+        "evaluator": {"path": str(script), "sha256": sha256(script.read_bytes()).hexdigest()},
+        "sim_identity": SIM_IDENTITY,
+        "cache_root": str(cache_root),
+        "cache_policy": "separate_output_directory_with_parser_and_sim_identity_keys",
+        "archive_extraction_cache_reused": False,
+        "regime_catalog_import": regime_import,
+    }
+    _atomic_write_json(output_json, report)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--archive-root", type=Path, default=DEFAULT_ARCHIVE_ROOT)
@@ -365,21 +436,31 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output-md", type=Path, default=DEFAULT_OUT_MD)
     parser.add_argument("--workers", type=int, default=3)
     parser.add_argument("--rerun-chips", action="store_true")
+    parser.add_argument("--run-chip", choices=("a2", "a3", "a5"), help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
 
     workers = _bounded_workers(args.workers)
     archive_root = args.archive_root.resolve()
     started = time.monotonic()
+    if args.run_chip:
+        return _run_chip(args.run_chip, archive_root, args.output_json, args.output_md, workers)
 
+    reports_root = archive_root
     if args.rerun_chips:
-        env = {**os.environ, "PYTHONPATH": str(STRUCT_DIR)}
+        reports_root = args.output_json.parent / f"{args.output_json.stem}-chips"
+        env = {**os.environ, "PYTHONPATH": os.pathsep.join(filter(None, (str(STRUCT_DIR), os.environ.get("PYTHONPATH"))))}
         for hw in ("a2", "a3", "a5"):
-            script = archive_root / hw / f"eval_{hw}_wave5.py"
-            subprocess.run([sys.executable, str(script), "--workers", str(workers)], env=env, check=True, timeout=600)
+            subprocess.run([
+                sys.executable, str(Path(__file__).resolve()), "--run-chip", hw,
+                "--archive-root", str(archive_root), "--workers", str(workers),
+                "--output-json", str(reports_root / f"{hw}_wave5_eval.json"),
+                "--output-md", str(reports_root / f"{hw}_wave5_eval.md"),
+            ], env=env, check=True, timeout=CHIP_TIMEOUT_SECONDS,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
 
-    a2_report = json.loads((archive_root / "a2_wave5_eval.json").read_text(encoding="utf-8"))
-    a3_report = json.loads((archive_root / "a3_wave5_eval.json").read_text(encoding="utf-8"))
-    a5_report = json.loads((archive_root / "a5_wave5_eval.json").read_text(encoding="utf-8"))
+    a2_report = json.loads((reports_root / "a2_wave5_eval.json").read_text(encoding="utf-8"))
+    a3_report = json.loads((reports_root / "a3_wave5_eval.json").read_text(encoding="utf-8"))
+    a5_report = json.loads((reports_root / "a5_wave5_eval.json").read_text(encoding="utf-8"))
 
     report = aggregate_chip_reports(a2_report, a3_report, a5_report)
     report["elapsed_seconds"] = round(time.monotonic() - started, 2)
