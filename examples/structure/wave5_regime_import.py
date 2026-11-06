@@ -1,10 +1,10 @@
-"""Explicit import of retained Wave 5 transport declarations.
+"""Explicit qualification of retained Wave 5 calibration declarations.
 
-[Role] Read the historical A3 catalog and bind legacy Kimi HCCL declarations to
-  the same transport recorded by the maintained source cases.
-[Invariants] Only missing categorical transport fields are imported. Rule IDs,
-  implementations, existing physical fields, response knots and observations
-  stay unchanged. The current cohort source must generate that exact transport.
+[Role] Reject known capture-selected A3 AllReduce responses, then bind legacy
+  Kimi HCCL declarations to the transport in maintained source cases.
+[Invariants] Rejection requires the exact retained physical payload. Foreign
+  responses remain caller declarations. Retained response values and all source
+  files/observations stay unchanged; ordinary analytic predictions stay scored.
 [Timeouts & Locks] Local JSON reads and bounded four-layer source graph creation;
   no subprocesses, network, locks or fitting.
 [Side-Effect Policy] Returns an in-memory catalog and hashed provenance. Never
@@ -21,10 +21,13 @@ from mindie_sim import target_operators
 from mindie_sim.prediction.services import service_identity
 from mindie_sim.prediction.structure import parse_case
 
+from prefill_native_observations import PROFILE_PATH
+
 
 _CASES = Path(__file__).resolve().parent / "cases"
 _REFERENCES = tuple(_CASES / f"a3-kimi4-tp{tp}-longctx-source.json" for tp in (8, 16))
 _LEGACY_FIELDS = frozenset({"links", "placements", "ranks_per_node", "dies_per_package"})
+_RULE_FIELDS = ("id", "match", "coordinates", "domain", "response", "execution")
 
 
 def _read_source(path: Path) -> tuple[dict, dict]:
@@ -52,10 +55,50 @@ def _source_transports(raw: dict) -> dict[str, dict]:
     return identities
 
 
+def _rule_payload(rule: dict) -> str:
+    return json.dumps({name: rule.get(name) for name in _RULE_FIELDS},
+                      sort_keys=True, separators=(",", ":"), allow_nan=False)
+
+
+def _reject_capture_selected_responses(catalog: dict) -> dict:
+    """Reject the enumerated archive responses, not arbitrary caller rules.
+
+    The old catalog selects these phase/family-only constants by capture cohort,
+    requested context and concurrency. They are not a transferable AllReduce
+    service. The native profile already enumerates their exact physical variants;
+    its replacement remains independently subject to its own physical domain.
+    """
+    profile, source = _read_source(PROFILE_PATH)
+    known = {_rule_payload(rule) for rule in profile["replaced_regime_contracts"]}
+    rejected = []
+    for key, entry in catalog.items():
+        retained = []
+        for rule in entry["service_regimes"]:
+            if _rule_payload(rule) in known:
+                rejected.append({
+                    "key": key, "cohort_file": entry["cohort_file"],
+                    "rule": rule,
+                })
+            else:
+                retained.append(rule)
+        entry["service_regimes"] = retained
+    return {
+        "status": "rejected_calibration" if rejected else "unchanged",
+        "reason": "historical_capture_selected_allreduce_response_has_no_physical_call_domain"
+        if rejected else "no_known_unqualified_archive_response",
+        "contract_source": source,
+        "rejected_rule_count": len(rejected),
+        "rejected_rules": rejected,
+        "prediction_policy": "ordinary_analytic_recipe_remains_scored",
+        "observations_modified": False,
+        "replacement_response_fitted": False,
+    }
+
+
 def import_a3_regime_catalog(
     archive_root: Path, *, reference_paths: tuple[Path, ...] | None = None,
 ) -> tuple[dict, dict]:
-    """Return an explicitly imported catalog plus source hashes and changed IDs.
+    """Return a qualified catalog plus rejection and transport provenance.
 
     An already current declaration is unchanged. A legacy declaration must have
     exactly the four historical physical fields and equal the maintained rule
@@ -63,6 +106,7 @@ def import_a3_regime_catalog(
     """
     templates_dir = Path(archive_root) / "a3" / "templates"
     catalog, catalog_source = _read_source(templates_dir / "_regime_catalog.json")
+    rejection = _reject_capture_selected_responses(catalog)
     references, reference_sources = {}, []
     for path in _REFERENCES if reference_paths is None else reference_paths:
         raw, source = _read_source(Path(path))
@@ -115,12 +159,13 @@ def import_a3_regime_catalog(
 
     provenance = {
         "schema_version": "mindie-wave5-regime-import/1",
-        "operation": "import_retained_source_transport_identity",
+        "operation": "qualify_retained_calibration_and_transport_identity",
         "catalog": catalog_source,
         "reference_cases": reference_sources,
         "cohort_templates": [cohort_sources[name] for name in sorted(cohort_sources)],
         "changed_entries": changes,
         "changed_rule_count": sum(len(entry["rules"]) for entry in changes),
+        "rejected_calibration": rejection,
         "responses_modified": False,
         "observations_modified": False,
         "imported_catalog_sha256": sha256(json.dumps(

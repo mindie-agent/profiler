@@ -24,6 +24,8 @@ PROFILE_FILES = (
     "capture_scoped_evidence.py", "capture_scoped_geometry.py",
     # A3 prefill FlashAttention/AllReduce native responses and their builder.
     "prefill_native_observations.py", "prefill_native_builder.py",
+    # Archive calibration qualification changes the input before native replay.
+    "wave5_regime_import.py",
     # Shared C-before-B per-capture replay integration.
     "scoped_native_replay.py", "dsh_scoped_prefill.py",
     # Explicit-qualified A2/A5 calibration arm; data and selector semantics.
