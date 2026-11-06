@@ -1,0 +1,170 @@
+{
+  "qwen35_tp4_h4": {
+    "name": "qualified-a5-qwen3.5-35b-a3b-tp4",
+    "machine": {
+      "backend": "ascend",
+      "sku": "Ascend950DT_9582",
+      "hardware_key": "Ascend950DT_9582",
+      "num_devices": 4,
+      "ranks_per_node": 4
+    },
+    "model": {
+      "catalog_key": "qwen3.5-35b-a3b",
+      "quantization": "W8A8_DYNAMIC"
+    },
+    "workload": {
+      "requests": [
+        {
+          "id": "r0",
+          "prompt_tokens": 8,
+          "output_tokens": 1
+        }
+      ]
+    },
+    "runtime": {
+      "tp": 4,
+      "dp": 1,
+      "ep": 1,
+      "pp": 1,
+      "max_num_seqs": 8,
+      "graph_mode": "none",
+      "kv_block_size": 128,
+      "kernels": {
+        "recipes": {
+          "flash_attention_prefill": {
+            "kind": "staged_gqa_prefill",
+            "query_tile": 64,
+            "key_tile": 128,
+            "slots": 2
+          }
+        }
+      }
+    }
+  },
+  "qwen30_tp4_h8": {
+    "name": "qualified-a5-qwen3-30b-a3b-tp4",
+    "machine": {
+      "backend": "ascend",
+      "sku": "Ascend950DT_9582",
+      "hardware_key": "Ascend950DT_9582",
+      "num_devices": 4,
+      "ranks_per_node": 4
+    },
+    "model": {
+      "catalog_key": "qwen3-30b-a3b",
+      "quantization": "W8A8_DYNAMIC"
+    },
+    "workload": {
+      "requests": [
+        {
+          "id": "r0",
+          "prompt_tokens": 8,
+          "output_tokens": 1
+        }
+      ]
+    },
+    "runtime": {
+      "tp": 4,
+      "dp": 1,
+      "ep": 1,
+      "pp": 1,
+      "max_num_seqs": 8,
+      "graph_mode": "none",
+      "kv_block_size": 128,
+      "kernels": {
+        "recipes": {
+          "flash_attention_prefill": {
+            "kind": "staged_gqa_prefill",
+            "query_tile": 64,
+            "key_tile": 128,
+            "slots": 2
+          }
+        }
+      }
+    }
+  },
+  "qwen36_tp4_h6": {
+    "name": "qualified-a5-qwen3.6-27b-tp4",
+    "machine": {
+      "backend": "ascend",
+      "sku": "Ascend950DT_9582",
+      "hardware_key": "Ascend950DT_9582",
+      "num_devices": 4,
+      "ranks_per_node": 4
+    },
+    "model": {
+      "catalog_key": "qwen3.6-27b",
+      "quantization": "W8A8_DYNAMIC"
+    },
+    "workload": {
+      "requests": [
+        {
+          "id": "r0",
+          "prompt_tokens": 8,
+          "output_tokens": 1
+        }
+      ]
+    },
+    "runtime": {
+      "tp": 4,
+      "dp": 1,
+      "ep": 1,
+      "pp": 1,
+      "max_num_seqs": 8,
+      "graph_mode": "none",
+      "kv_block_size": 128,
+      "kernels": {
+        "recipes": {
+          "flash_attention_prefill": {
+            "kind": "staged_gqa_prefill",
+            "query_tile": 64,
+            "key_tile": 128,
+            "slots": 2
+          }
+        }
+      }
+    }
+  },
+  "qwen36_tp8_h3": {
+    "name": "qualified-a5-qwen3.6-27b-tp8",
+    "machine": {
+      "backend": "ascend",
+      "sku": "Ascend950DT_9582",
+      "hardware_key": "Ascend950DT_9582",
+      "num_devices": 8,
+      "ranks_per_node": 8
+    },
+    "model": {
+      "catalog_key": "qwen3.6-27b",
+      "quantization": "W8A8_DYNAMIC"
+    },
+    "workload": {
+      "requests": [
+        {
+          "id": "r0",
+          "prompt_tokens": 8,
+          "output_tokens": 1
+        }
+      ]
+    },
+    "runtime": {
+      "tp": 8,
+      "dp": 1,
+      "ep": 1,
+      "pp": 1,
+      "max_num_seqs": 8,
+      "graph_mode": "none",
+      "kv_block_size": 128,
+      "kernels": {
+        "recipes": {
+          "flash_attention_prefill": {
+            "kind": "staged_gqa_prefill",
+            "query_tile": 64,
+            "key_tile": 128,
+            "slots": 2
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,763 @@
+{
+  "qwen35_tp4_h4": {
+    "attention_prefill_D256": {
+      "api": "torch_npu.npu_fused_infer_attention_score",
+      "kernel_type": "FusedInferAttentionScore",
+      "kernel_name": "FusedInferAttentionScore",
+      "runtime": {
+        "torch_npu": "CANN9.2",
+        "cann": "9.2",
+        "vllm": "unknown"
+      },
+      "hardware": "Ascend950DT_9582",
+      "implementation": "arch35_fia_noquant_gqa",
+      "input_shapes": [
+        "8192,4,256",
+        "32768,1,256",
+        "32768,1,256",
+        null,
+        "2048,2048",
+        "1",
+        "1",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "DT_BF16",
+        "DT_BF16",
+        "DT_UNDEFINED",
+        "BOOL",
+        "INT64",
+        "INT64",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED"
+      ],
+      "input_formats": [
+        "ND",
+        "ND",
+        "ND",
+        "NULL",
+        "ND",
+        "ND",
+        "ND",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL"
+      ],
+      "output_shapes": [
+        "8192,4,256",
+        null
+      ],
+      "output_dtypes": [
+        "DT_BF16",
+        "FLOAT"
+      ],
+      "output_formats": [
+        "ND",
+        "ND"
+      ],
+      "kv_view": {
+        "kind": "continuous_tnd",
+        "kv_storage": "dense",
+        "paged": false,
+        "causal": true
+      },
+      "control_flags": {
+        "causal": true,
+        "mask": "present"
+      },
+      "geometry": {
+        "query_heads": 4,
+        "kv_heads": 1,
+        "head_dim": 256
+      }
+    }
+  },
+  "qwen30_tp4_h8": {
+    "attention_prefill_D128": {
+      "api": "torch_npu.npu_fused_infer_attention_score",
+      "kernel_type": "FusedInferAttentionScore",
+      "kernel_name": "FusedInferAttentionScore",
+      "runtime": {
+        "torch_npu": "CANN9.2",
+        "cann": "9.2",
+        "vllm": "unknown"
+      },
+      "hardware": "Ascend950DT_9582",
+      "implementation": "arch35_fia_noquant_gqa",
+      "input_shapes": [
+        "8192,8,128",
+        "32768,1,128",
+        "32768,1,128",
+        null,
+        "2048,2048",
+        "1",
+        "1",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "DT_BF16",
+        "DT_BF16",
+        "DT_UNDEFINED",
+        "BOOL",
+        "INT64",
+        "INT64",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED"
+      ],
+      "input_formats": [
+        "ND",
+        "ND",
+        "ND",
+        "NULL",
+        "ND",
+        "ND",
+        "ND",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL"
+      ],
+      "output_shapes": [
+        "8192,8,128",
+        null
+      ],
+      "output_dtypes": [
+        "DT_BF16",
+        "FLOAT"
+      ],
+      "output_formats": [
+        "ND",
+        "ND"
+      ],
+      "kv_view": {
+        "kind": "continuous_tnd",
+        "kv_storage": "dense",
+        "paged": false,
+        "causal": true
+      },
+      "control_flags": {
+        "causal": true,
+        "mask": "present"
+      },
+      "geometry": {
+        "query_heads": 8,
+        "kv_heads": 1,
+        "head_dim": 128
+      }
+    }
+  },
+  "qwen36_tp4_h6": {
+    "attention_prefill_D256": {
+      "api": "torch_npu.npu_fused_infer_attention_score",
+      "kernel_type": "FusedInferAttentionScore",
+      "kernel_name": "FusedInferAttentionScore",
+      "runtime": {
+        "torch_npu": "CANN9.2",
+        "cann": "9.2",
+        "vllm": "unknown"
+      },
+      "hardware": "Ascend950DT_9582",
+      "implementation": "arch35_fia_noquant_gqa",
+      "input_shapes": [
+        "8192,6,256",
+        "32768,1,256",
+        "32768,1,256",
+        null,
+        "2048,2048",
+        "1",
+        "1",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "DT_BF16",
+        "DT_BF16",
+        "DT_UNDEFINED",
+        "BOOL",
+        "INT64",
+        "INT64",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED"
+      ],
+      "input_formats": [
+        "ND",
+        "ND",
+        "ND",
+        "NULL",
+        "ND",
+        "ND",
+        "ND",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL"
+      ],
+      "output_shapes": [
+        "8192,6,256",
+        null
+      ],
+      "output_dtypes": [
+        "DT_BF16",
+        "FLOAT"
+      ],
+      "output_formats": [
+        "ND",
+        "ND"
+      ],
+      "kv_view": {
+        "kind": "continuous_tnd",
+        "kv_storage": "dense",
+        "paged": false,
+        "causal": true
+      },
+      "control_flags": {
+        "causal": true,
+        "mask": "present"
+      },
+      "geometry": {
+        "query_heads": 6,
+        "kv_heads": 1,
+        "head_dim": 256
+      }
+    }
+  },
+  "qwen36_tp8_h3": {
+    "attention_prefill_D256": {
+      "api": "torch_npu.npu_fused_infer_attention_score",
+      "kernel_type": "FusedInferAttentionScore",
+      "kernel_name": "FusedInferAttentionScore",
+      "runtime": {
+        "torch_npu": "CANN9.2",
+        "cann": "9.2",
+        "vllm": "unknown"
+      },
+      "hardware": "Ascend950DT_9582",
+      "implementation": "arch35_fia_noquant_gqa",
+      "input_shapes": [
+        "8192,3,256",
+        "32768,1,256",
+        "32768,1,256",
+        null,
+        "2048,2048",
+        "1",
+        "1",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "DT_BF16",
+        "DT_BF16",
+        "DT_UNDEFINED",
+        "BOOL",
+        "INT64",
+        "INT64",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED",
+        "DT_UNDEFINED"
+      ],
+      "input_formats": [
+        "ND",
+        "ND",
+        "ND",
+        "NULL",
+        "ND",
+        "ND",
+        "ND",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL"
+      ],
+      "output_shapes": [
+        "8192,3,256",
+        null
+      ],
+      "output_dtypes": [
+        "DT_BF16",
+        "FLOAT"
+      ],
+      "output_formats": [
+        "ND",
+        "ND"
+      ],
+      "kv_view": {
+        "kind": "continuous_tnd",
+        "kv_storage": "dense",
+        "paged": false,
+        "causal": true
+      },
+      "control_flags": {
+        "causal": true,
+        "mask": "present"
+      },
+      "geometry": {
+        "query_heads": 3,
+        "kv_heads": 1,
+        "head_dim": 256
+      }
+    }
+  },
+  "chunk_h8": {
+    "ChunkFwdH": {
+      "api": "aclnnChunkGatedDeltaRuleFwd",
+      "kernel_type": "ChunkFwdH",
+      "kernel_name": "ChunkFwdH",
+      "runtime": {
+        "torch_npu": "CANN9.2",
+        "cann": "9.2",
+        "vllm": "unknown"
+      },
+      "hardware": "Ascend950DT_9582",
+      "implementation": "arch35_chunk_fwd_h",
+      "input_shapes": [
+        "1,4,12288,128",
+        "1,8,12288,128",
+        "1,8,12288,128",
+        "1,8,12288",
+        "1,8,128,128",
+        "2",
+        "384"
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "DT_BF16",
+        "DT_BF16",
+        "FLOAT",
+        "DT_BF16",
+        "INT64",
+        "INT64"
+      ],
+      "input_formats": [
+        "ND",
+        "ND",
+        "ND",
+        "ND",
+        "NCHW",
+        "ND",
+        "ND"
+      ],
+      "output_shapes": [
+        "1,192,8,128,128",
+        "1,8,12288,128",
+        "131072"
+      ],
+      "output_dtypes": [
+        "DT_BF16",
+        "DT_BF16",
+        "DT_BF16"
+      ],
+      "output_formats": [
+        "ND",
+        "ND",
+        "NCHW"
+      ],
+      "control_flags": {
+        "use_exp2": true,
+        "state_v_first": true,
+        "use_initial_state": true,
+        "output_final_state": true
+      },
+      "geometry": {
+        "heads": 8,
+        "key_heads": 4,
+        "head_dim": 128
+      }
+    }
+  },
+  "chunk_h6": {
+    "ChunkFwdH": {
+      "api": "aclnnChunkGatedDeltaRuleFwd",
+      "kernel_type": "ChunkFwdH",
+      "kernel_name": "ChunkFwdH",
+      "runtime": {
+        "torch_npu": "CANN9.2",
+        "cann": "9.2",
+        "vllm": "unknown"
+      },
+      "hardware": "Ascend950DT_9582",
+      "implementation": "arch35_chunk_fwd_h",
+      "input_shapes": [
+        "1,2,12288,128",
+        "1,6,12288,128",
+        "1,6,12288,128",
+        "1,6,12288",
+        "1,6,128,128",
+        "2",
+        "384"
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "DT_BF16",
+        "DT_BF16",
+        "FLOAT",
+        "DT_BF16",
+        "INT64",
+        "INT64"
+      ],
+      "input_formats": [
+        "ND",
+        "ND",
+        "ND",
+        "ND",
+        "NCHW",
+        "ND",
+        "ND"
+      ],
+      "output_shapes": [
+        "1,192,6,128,128",
+        "1,6,12288,128",
+        "98304"
+      ],
+      "output_dtypes": [
+        "DT_BF16",
+        "DT_BF16",
+        "DT_BF16"
+      ],
+      "output_formats": [
+        "ND",
+        "ND",
+        "NCHW"
+      ],
+      "control_flags": {
+        "use_exp2": true,
+        "state_v_first": true,
+        "use_initial_state": true,
+        "output_final_state": true
+      },
+      "geometry": {
+        "heads": 6,
+        "key_heads": 2,
+        "head_dim": 128
+      }
+    }
+  },
+  "chunk_h12": {
+    "ChunkFwdH": {
+      "api": "aclnnChunkGatedDeltaRuleFwd",
+      "kernel_type": "ChunkFwdH",
+      "kernel_name": "ChunkFwdH",
+      "runtime": {
+        "torch_npu": "CANN9.2",
+        "cann": "9.2",
+        "vllm": "unknown"
+      },
+      "hardware": "Ascend950DT_9582",
+      "implementation": "arch35_chunk_fwd_h",
+      "input_shapes": [
+        "1,4,12288,128",
+        "1,12,12288,128",
+        "1,12,12288,128",
+        "1,12,12288",
+        "1,12,128,128",
+        "2",
+        "384"
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "DT_BF16",
+        "DT_BF16",
+        "FLOAT",
+        "DT_BF16",
+        "INT64",
+        "INT64"
+      ],
+      "input_formats": [
+        "ND",
+        "ND",
+        "ND",
+        "ND",
+        "NCHW",
+        "ND",
+        "ND"
+      ],
+      "output_shapes": [
+        "1,192,12,128,128",
+        "1,12,12288,128",
+        "196608"
+      ],
+      "output_dtypes": [
+        "DT_BF16",
+        "DT_BF16",
+        "DT_BF16"
+      ],
+      "output_formats": [
+        "ND",
+        "ND",
+        "NCHW"
+      ],
+      "control_flags": {
+        "use_exp2": true,
+        "state_v_first": true,
+        "use_initial_state": true,
+        "output_final_state": true
+      },
+      "geometry": {
+        "heads": 12,
+        "key_heads": 4,
+        "head_dim": 128
+      }
+    }
+  }
+}

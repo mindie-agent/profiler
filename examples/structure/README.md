@@ -6,6 +6,8 @@
 
 历史 Wave5/DSH 回放的原生校准、物理适用域及首次执行等待的边界见
 [`NATIVE_OBSERVATIONS.md`](NATIVE_OBSERVATIONS.md)。算子校准和完整 Body 精度分别验收。
+显式 opt-in 的冻结 A2/A5 qualified 校准及其真实分母见
+[`QUALIFIED_NATIVE_CALIBRATION.md`](QUALIFIED_NATIVE_CALIBRATION.md)；默认回放不变。
 
 ## 运行
 

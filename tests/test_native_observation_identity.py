@@ -27,7 +27,11 @@ from tests.sim_fixtures import case_path
     "capture_scoped_evidence.py", "capture_scoped_geometry.py",
     "prefill_native_observations.py",
     "prefill_native_builder.py", "scoped_native_replay.py",
-    "dsh_scoped_prefill.py", "profiles/a2_native_20261031.json",
+    "dsh_scoped_prefill.py", "qualified_native_calibration.py",
+    "qualified_native_abi.py",
+    "profiles/a2_native_20261031.json",
+    "profiles/a2_fia_dense_qualified_20261107.json",
+    "profiles/a5_attention_qualified_20261107.json",
     "profiles/a5_gdn_decode_native_20261106.json",
     "profiles/prefill_native_20261106.json",
 ))

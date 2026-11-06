@@ -1,0 +1,1194 @@
+{
+  "schema": "mindie-profiler-qualified-native-calibration/1",
+  "id": "a2-fia-dense-qualified-20261107",
+  "label": "A2 FIA + W8A8 dense qualified/experimental native calibration",
+  "status": "qualified_experimental",
+  "activation": "explicit_opt_in_named_profile_only",
+  "hardware": "Ascend910B4",
+  "parallel": {
+    "tp": 4,
+    "dp": 1,
+    "ep": 1,
+    "pp": 1,
+    "cp": 1,
+    "pcp": 1
+  },
+  "runtime": {
+    "torch_npu": "2.10.0.post7",
+    "cann": "9.2.1",
+    "vllm": "unknown"
+  },
+  "source_contract": {
+    "quant": {
+      "weight_format": "int8",
+      "activation_format": "int8",
+      "int8_weight_metadata": "scale_only",
+      "scale_format": "fp32",
+      "kv_dtype": "bf16"
+    }
+  },
+  "families": [
+    "fused_attention",
+    "dense_matmul"
+  ],
+  "train_only_families": [
+    "gdn_gating"
+  ],
+  "source_queues": {
+    "fused_attention": "joint_fia_service",
+    "dense_matmul": "joint_dense_service",
+    "gdn_gating": "joint_gating_service"
+  },
+  "projection": {
+    "families": {
+      "fused_attention": {
+        "target_recipes": [
+          "flash_attention",
+          "flash_attention_prefill",
+          "flash_attention_decode"
+        ],
+        "remove_match": [
+          "runtime",
+          "revision",
+          "format",
+          "implementation",
+          "kernel",
+          "layout"
+        ],
+        "remove_match_prefixes": [
+          "implementation.",
+          "metadata.native_abi.",
+          "metadata.implementation.",
+          "metadata.service_identity.",
+          "metadata.native_runtime.",
+          "metadata.attention_tensor_view."
+        ],
+        "remove_match_exact": [
+          "metadata.gqa_decode.attention_tensor_view",
+          "metadata.gqa_decode.implementation",
+          "metadata.gqa_decode.paged",
+          "metadata.gqa_prefill.attention_tensor_view",
+          "metadata.gqa_prefill.implementation",
+          "metadata.gqa_prefill.paged"
+        ],
+        "coordinate_overrides": {
+          "kv_rows": {
+            "path": "local_shape.1",
+            "scale": 0.001
+          },
+          "prefix": {
+            "path": "local_shape.1"
+          }
+        }
+      },
+      "dense_matmul": {
+        "target_recipes": [
+          "linear_qkvz",
+          "qkv_projection",
+          "dense_gate_up",
+          "dense_down"
+        ],
+        "remove_match": [
+          "runtime",
+          "revision",
+          "format",
+          "implementation",
+          "kernel"
+        ],
+        "remove_match_prefixes": [
+          "implementation.",
+          "metadata.native_abi.",
+          "metadata.implementation.",
+          "metadata.service_identity.",
+          "metadata.native_runtime."
+        ],
+        "family_variants": [
+          "gemm",
+          "gate_up_projection",
+          "down_projection",
+          "qkv_projection"
+        ]
+      },
+      "gdn_gating": {
+        "remove_match": [
+          "runtime",
+          "revision",
+          "format",
+          "implementation",
+          "kernel"
+        ],
+        "remove_match_prefixes": [
+          "implementation.",
+          "metadata.native_abi.",
+          "metadata.implementation.",
+          "metadata.service_identity.",
+          "metadata.native_runtime."
+        ]
+      }
+    },
+    "queue": {
+      "resource": "qualified_native_service",
+      "reference_rate": 1000000000.0,
+      "work_unit": "busy_ns",
+      "units": 1
+    },
+    "reason": "Ordinary Sim emits no analysis-adapter native_abi identity and no product queue. Every removed selector is verified against the caller-declared actual ABI before import; kv_rows/prefix coordinate projection uses the declared attention local shape."
+  },
+  "rules": [
+    {
+      "id": "a2-fia-decode-nomask-q1",
+      "match": {
+        "hardware": "Ascend910B4",
+        "family": "attention",
+        "kernel": "aclnnFusedInferAttentionScoreV3_FusedInferAttentionScore_FusedInferAttentionScore",
+        "dtype": "bf16",
+        "layout": "ND",
+        "runtime": "host-unknown",
+        "revision": "unknown",
+        "format": "native_kernel",
+        "metadata.native_abi.attention_tensor_view": "continuous_tnd",
+        "metadata.native_abi.paged": false,
+        "metadata.native_abi.strides": "contiguous",
+        "metadata.attention_tensor_view.kind": "continuous_tnd",
+        "metadata.attention_tensor_view.kv_storage": "dense",
+        "metadata.implementation.kv_storage": "dense",
+        "metadata.implementation.torch_npu_version": "2.10.0.post7",
+        "metadata.implementation.cann_version": "9.2.1",
+        "metadata.service_identity.implementation.kv_storage": "dense",
+        "implementation.kv_storage": "dense",
+        "implementation.torch_npu_version": "2.10.0.post7",
+        "implementation.cann_version": "9.2.1",
+        "metadata.native_abi.hq": 6,
+        "metadata.native_abi.hkv": 1,
+        "metadata.native_abi.d": 256,
+        "metadata.native_abi.causal": true,
+        "metadata.native_runtime.torch_npu": "2.10.0.post7",
+        "metadata.native_runtime.cann": "9.2.1",
+        "phase": "decode",
+        "metadata.gqa_decode.kv_dtype": "bf16",
+        "metadata.gqa_decode.query_heads": 6,
+        "metadata.gqa_decode.kv_heads": 1,
+        "metadata.gqa_decode.head_dim": 256,
+        "metadata.gqa_decode.causal": true,
+        "metadata.gqa_decode.attention_tensor_view": "continuous_tnd",
+        "metadata.gqa_decode.implementation": "native_fia_continuous_tnd",
+        "metadata.gqa_decode.paged": false,
+        "metadata.native_abi.mask": "none"
+      },
+      "coordinates": {
+        "q": {
+          "path": "local_shape.0"
+        },
+        "kv_rows": {
+          "path": "metadata.native_abi.kv",
+          "scale": 0.001
+        },
+        "prefix": {
+          "path": "metadata.native_abi.prefix"
+        },
+        "work_hbm": {
+          "path": "work.hbm",
+          "scale": 1e-06
+        }
+      },
+      "domain": {
+        "q": {
+          "min": 1,
+          "max": 1
+        },
+        "kv_rows": {
+          "min": 0.001,
+          "max": 400.0
+        },
+        "prefix": {
+          "min": 0,
+          "max": 400000
+        }
+      },
+      "response": {
+        "kind": "affine",
+        "fixed_us": 26.83059574542758,
+        "terms": [
+          {
+            "coordinate": "work_hbm",
+            "us_per_unit": 0.4495911143584332
+          },
+          {
+            "coordinate": "kv_rows",
+            "us_per_unit": 10.621196528467568
+          }
+        ]
+      },
+      "provenance": {
+        "basis": "TRAIN per-kernel Duration(us); adapter from admitted ABI",
+        "native_api": "aclnnFusedInferAttentionScoreV3",
+        "native_kernel_type": "FusedInferAttentionScore",
+        "native_kernel_name": "aclnnFusedInferAttentionScoreV3_FusedInferAttentionScore_FusedInferAttentionScore",
+        "native_runtime": "torch_npu 2.10.0.post7; CANN 9.2.1; vLLM unknown",
+        "strides": "contiguous",
+        "native_layout": "ND",
+        "dense_kv": true,
+        "kv_rows_proxy": "metadata.native_abi.kv is explicit geometric proxy; work_hbm includes Hq/causal",
+        "response_interpretation": "observed startup+work; not pure bandwidth/pipe occupancy",
+        "profile_family": "fused_attention",
+        "qualification": "qualified_experimental_not_universal_10pct",
+        "source_rule_sha256": "efae663a7c24b7666be9625bae58f943ca9a835b709ec5bc3e743fb42f77507d"
+      },
+      "execution": {
+        "kind": "joint_native",
+        "resource": "joint_fia_service",
+        "reference_rate": 1000000000.0,
+        "native_kernel": "aclnnFusedInferAttentionScoreV3_FusedInferAttentionScore_FusedInferAttentionScore"
+      }
+    },
+    {
+      "id": "a2-fia-decode-mask-q8",
+      "match": {
+        "hardware": "Ascend910B4",
+        "family": "attention",
+        "kernel": "aclnnFusedInferAttentionScoreV3_FusedInferAttentionScore_FusedInferAttentionScore",
+        "dtype": "bf16",
+        "layout": "ND",
+        "runtime": "host-unknown",
+        "revision": "unknown",
+        "format": "native_kernel",
+        "metadata.native_abi.attention_tensor_view": "continuous_tnd",
+        "metadata.native_abi.paged": false,
+        "metadata.native_abi.strides": "contiguous",
+        "metadata.attention_tensor_view.kind": "continuous_tnd",
+        "metadata.attention_tensor_view.kv_storage": "dense",
+        "metadata.implementation.kv_storage": "dense",
+        "metadata.implementation.torch_npu_version": "2.10.0.post7",
+        "metadata.implementation.cann_version": "9.2.1",
+        "metadata.service_identity.implementation.kv_storage": "dense",
+        "implementation.kv_storage": "dense",
+        "implementation.torch_npu_version": "2.10.0.post7",
+        "implementation.cann_version": "9.2.1",
+        "metadata.native_abi.hq": 6,
+        "metadata.native_abi.hkv": 1,
+        "metadata.native_abi.d": 256,
+        "metadata.native_abi.causal": true,
+        "metadata.native_runtime.torch_npu": "2.10.0.post7",
+        "metadata.native_runtime.cann": "9.2.1",
+        "phase": "decode",
+        "metadata.gqa_decode.kv_dtype": "bf16",
+        "metadata.gqa_decode.query_heads": 6,
+        "metadata.gqa_decode.kv_heads": 1,
+        "metadata.gqa_decode.head_dim": 256,
+        "metadata.gqa_decode.causal": true,
+        "metadata.gqa_decode.attention_tensor_view": "continuous_tnd",
+        "metadata.gqa_decode.implementation": "native_fia_continuous_tnd",
+        "metadata.gqa_decode.paged": false,
+        "metadata.native_abi.mask": "present"
+      },
+      "coordinates": {
+        "q": {
+          "path": "local_shape.0"
+        },
+        "kv_rows": {
+          "path": "metadata.native_abi.kv",
+          "scale": 0.001
+        },
+        "prefix": {
+          "path": "metadata.native_abi.prefix"
+        },
+        "work_hbm": {
+          "path": "work.hbm",
+          "scale": 1e-06
+        }
+      },
+      "domain": {
+        "q": {
+          "min": 8,
+          "max": 8
+        },
+        "kv_rows": {
+          "min": 0.001,
+          "max": 400.0
+        },
+        "prefix": {
+          "min": 0,
+          "max": 400000
+        }
+      },
+      "response": {
+        "kind": "affine",
+        "fixed_us": 26.83059574542758,
+        "terms": [
+          {
+            "coordinate": "work_hbm",
+            "us_per_unit": 0.4495911143584332
+          },
+          {
+            "coordinate": "kv_rows",
+            "us_per_unit": 10.621196528467568
+          }
+        ]
+      },
+      "provenance": {
+        "basis": "TRAIN per-kernel Duration(us); adapter from admitted ABI",
+        "native_api": "aclnnFusedInferAttentionScoreV3",
+        "native_kernel_type": "FusedInferAttentionScore",
+        "native_kernel_name": "aclnnFusedInferAttentionScoreV3_FusedInferAttentionScore_FusedInferAttentionScore",
+        "native_runtime": "torch_npu 2.10.0.post7; CANN 9.2.1; vLLM unknown",
+        "strides": "contiguous",
+        "native_layout": "ND",
+        "dense_kv": true,
+        "kv_rows_proxy": "metadata.native_abi.kv is explicit geometric proxy; work_hbm includes Hq/causal",
+        "response_interpretation": "observed startup+work; not pure bandwidth/pipe occupancy",
+        "profile_family": "fused_attention",
+        "qualification": "qualified_experimental_not_universal_10pct",
+        "source_rule_sha256": "ad76f0bf027a851abeed9f53d66d281b7f702b31a94be3d37db4309b757d4bf0"
+      },
+      "execution": {
+        "kind": "joint_native",
+        "resource": "joint_fia_service",
+        "reference_rate": 1000000000.0,
+        "native_kernel": "aclnnFusedInferAttentionScoreV3_FusedInferAttentionScore_FusedInferAttentionScore"
+      }
+    },
+    {
+      "id": "a2-fia-prefill-mask",
+      "match": {
+        "hardware": "Ascend910B4",
+        "family": "attention",
+        "kernel": "aclnnFusedInferAttentionScoreV3_FusedInferAttentionScore_FusedInferAttentionScore",
+        "dtype": "bf16",
+        "layout": "ND",
+        "runtime": "host-unknown",
+        "revision": "unknown",
+        "format": "native_kernel",
+        "metadata.native_abi.attention_tensor_view": "continuous_tnd",
+        "metadata.native_abi.paged": false,
+        "metadata.native_abi.strides": "contiguous",
+        "metadata.attention_tensor_view.kind": "continuous_tnd",
+        "metadata.attention_tensor_view.kv_storage": "dense",
+        "metadata.implementation.kv_storage": "dense",
+        "metadata.implementation.torch_npu_version": "2.10.0.post7",
+        "metadata.implementation.cann_version": "9.2.1",
+        "metadata.service_identity.implementation.kv_storage": "dense",
+        "implementation.kv_storage": "dense",
+        "implementation.torch_npu_version": "2.10.0.post7",
+        "implementation.cann_version": "9.2.1",
+        "metadata.native_abi.hq": 6,
+        "metadata.native_abi.hkv": 1,
+        "metadata.native_abi.d": 256,
+        "metadata.native_abi.causal": true,
+        "metadata.native_runtime.torch_npu": "2.10.0.post7",
+        "metadata.native_runtime.cann": "9.2.1",
+        "phase": "prefill",
+        "metadata.gqa_prefill.kv_dtype": "bf16",
+        "metadata.gqa_prefill.query_heads": 6,
+        "metadata.gqa_prefill.kv_heads": 1,
+        "metadata.gqa_prefill.head_dim": 256,
+        "metadata.gqa_prefill.causal": true,
+        "metadata.gqa_prefill.attention_tensor_view": "continuous_tnd",
+        "metadata.gqa_prefill.implementation": "native_fia_continuous_tnd",
+        "metadata.gqa_prefill.paged": false,
+        "metadata.native_abi.mask": "present"
+      },
+      "coordinates": {
+        "q": {
+          "path": "local_shape.0"
+        },
+        "kv_rows": {
+          "path": "metadata.native_abi.kv",
+          "scale": 0.001
+        },
+        "prefix": {
+          "path": "metadata.native_abi.prefix"
+        },
+        "work_hbm": {
+          "path": "work.hbm",
+          "scale": 1e-06
+        }
+      },
+      "domain": {
+        "q": {
+          "min": 64,
+          "max": 2048
+        },
+        "kv_rows": {
+          "min": 0.001,
+          "max": 400.0
+        },
+        "prefix": {
+          "min": 0,
+          "max": 400000
+        }
+      },
+      "response": {
+        "kind": "affine",
+        "fixed_us": 26.83059574542758,
+        "terms": [
+          {
+            "coordinate": "work_hbm",
+            "us_per_unit": 0.4495911143584332
+          },
+          {
+            "coordinate": "kv_rows",
+            "us_per_unit": 10.621196528467568
+          }
+        ]
+      },
+      "provenance": {
+        "basis": "TRAIN per-kernel Duration(us); adapter from admitted ABI",
+        "native_api": "aclnnFusedInferAttentionScoreV3",
+        "native_kernel_type": "FusedInferAttentionScore",
+        "native_kernel_name": "aclnnFusedInferAttentionScoreV3_FusedInferAttentionScore_FusedInferAttentionScore",
+        "native_runtime": "torch_npu 2.10.0.post7; CANN 9.2.1; vLLM unknown",
+        "strides": "contiguous",
+        "native_layout": "ND",
+        "dense_kv": true,
+        "kv_rows_proxy": "metadata.native_abi.kv is explicit geometric proxy; work_hbm includes Hq/causal",
+        "response_interpretation": "observed startup+work; not pure bandwidth/pipe occupancy",
+        "profile_family": "fused_attention",
+        "qualification": "qualified_experimental_not_universal_10pct",
+        "source_rule_sha256": "9c1990f4f382b288939102f983f4ee97a8156d0a3827cc575aee872125ea9e49"
+      },
+      "execution": {
+        "kind": "joint_native",
+        "resource": "joint_fia_service",
+        "reference_rate": 1000000000.0,
+        "native_kernel": "aclnnFusedInferAttentionScoreV3_FusedInferAttentionScore_FusedInferAttentionScore"
+      }
+    },
+    {
+      "id": "a2-w8a8-dense-kernel-v2",
+      "match": {
+        "hardware": "Ascend910B4",
+        "family": "gemm",
+        "recipe": "gemm",
+        "kernel": "aclnnQuantMatmulV5_QuantBatchMatmulV3_QuantBatchMatmulV3",
+        "dtype": "int8",
+        "layout": "int8_per_channel",
+        "runtime": "host-unknown",
+        "revision": "unknown",
+        "format": "native_kernel",
+        "metadata.native_abi.scale_only": true,
+        "metadata.native_abi.a_dtype": "INT8",
+        "metadata.native_abi.b_dtype": "INT8",
+        "metadata.implementation.kv_storage": "dense",
+        "metadata.implementation.torch_npu_version": "2.10.0.post7",
+        "metadata.implementation.cann_version": "9.2.1",
+        "implementation.kv_storage": "dense",
+        "implementation.torch_npu_version": "2.10.0.post7",
+        "implementation.cann_version": "9.2.1",
+        "metadata.int8_weight_metadata": "scale_only",
+        "metadata.activation_format": "int8",
+        "metadata.output_format": "bf16",
+        "metadata.native_abi.column_scale_dtype": "FLOAT",
+        "metadata.native_abi.row_scale_dtype": "FLOAT",
+        "metadata.native_abi.output_dtype": "DT_BF16",
+        "metadata.native_abi.native_layout": "ND",
+        "metadata.native_abi.strides": "contiguous",
+        "metadata.native_runtime.torch_npu": "2.10.0.post7",
+        "metadata.native_runtime.cann": "9.2.1"
+      },
+      "coordinates": {
+        "m": {
+          "path": "local_shape.0",
+          "scale": 0.001
+        },
+        "n": {
+          "path": "local_shape.1",
+          "scale": 0.001
+        },
+        "k": {
+          "path": "local_shape.2",
+          "scale": 0.001
+        },
+        "work_cube": {
+          "path": "work.cube",
+          "scale": 1e-09
+        },
+        "work_hbm": {
+          "path": "work.hbm",
+          "scale": 1e-06
+        }
+      },
+      "domain": {
+        "m": {
+          "min": 0.001,
+          "max": 65.536
+        },
+        "n": {
+          "min": 3.584,
+          "max": 8.704
+        },
+        "k": {
+          "min": 1.536,
+          "max": 5.12
+        }
+      },
+      "response": {
+        "kind": "affine",
+        "fixed_us": 0.0,
+        "terms": [
+          {
+            "coordinate": "work_cube",
+            "us_per_unit": 2.8583461604253246
+          },
+          {
+            "coordinate": "work_hbm",
+            "us_per_unit": 0.8676450426650527
+          },
+          {
+            "coordinate": "m",
+            "us_per_unit": 1.6748022638569409
+          },
+          {
+            "coordinate": "k",
+            "us_per_unit": 5.561237464510273
+          }
+        ]
+      },
+      "provenance": {
+        "basis": "TRAIN per-kernel Duration(us); adapter from admitted ABI",
+        "native_api": "aclnnQuantMatmulV5",
+        "native_kernel_type": "QuantBatchMatmulV3",
+        "native_kernel_name": "aclnnQuantMatmulV5_QuantBatchMatmulV3_QuantBatchMatmulV3",
+        "native_runtime": "torch_npu 2.10.0.post7; CANN 9.2.1; vLLM unknown",
+        "strides": "contiguous",
+        "native_layout": "ND",
+        "scale_only": true,
+        "column_scale": "fp32[N] only",
+        "row_scale": "fp32[M]",
+        "output": "bf16",
+        "response_interpretation": "observed startup+work; not pure bandwidth/pipe occupancy",
+        "profile_family": "dense_matmul",
+        "qualification": "qualified_experimental_not_universal_10pct",
+        "source_rule_sha256": "0d9f9cb352c93ce9dbe2a8360b5a382bc59885c68af601a5baaaf79fd8c5ce64"
+      },
+      "execution": {
+        "kind": "joint_native",
+        "resource": "joint_dense_service",
+        "reference_rate": 1000000000.0,
+        "native_kernel": "aclnnQuantMatmulV5_QuantBatchMatmulV3_QuantBatchMatmulV3"
+      }
+    }
+  ],
+  "train_only_rules": [
+    {
+      "id": "a2-gating-kernel-v2",
+      "match": {
+        "hardware": "Ascend910B4",
+        "family": "gdn_gating",
+        "recipe": "ascend_gdn_decode_gating",
+        "kernel": "fused_gdn_gating_kernel",
+        "dtype": "fp32",
+        "layout": "contiguous",
+        "runtime": "host-unknown",
+        "revision": "unknown",
+        "format": "native_kernel",
+        "metadata.native_abi.g_dtype": "FLOAT",
+        "metadata.native_abi.beta_dtype": "DT_BF16",
+        "metadata.implementation.kv_storage": "dense",
+        "metadata.implementation.torch_npu_version": "2.10.0.post7",
+        "metadata.implementation.cann_version": "9.2.1",
+        "implementation.kv_storage": "dense",
+        "implementation.torch_npu_version": "2.10.0.post7",
+        "implementation.cann_version": "9.2.1",
+        "metadata.gating.g_dtype": "FLOAT",
+        "metadata.gating.beta_dtype": "DT_BF16",
+        "metadata.gating.input_dtypes": "FLOAT,DT_BF16,DT_BF16",
+        "metadata.gating.output_dtypes": "FLOAT,DT_BF16",
+        "metadata.gating.traffic": "full_10TH",
+        "metadata.gating.native_layout": "ND",
+        "metadata.gating.strides": "contiguous",
+        "metadata.native_abi.input_dtypes": "FLOAT,DT_BF16,DT_BF16",
+        "metadata.native_abi.output_dtypes": "FLOAT,DT_BF16",
+        "metadata.native_abi.traffic": "full_10TH",
+        "metadata.native_abi.native_layout": "ND",
+        "metadata.native_abi.strides": "contiguous",
+        "metadata.native_runtime.torch_npu": "2.10.0.post7",
+        "metadata.native_runtime.cann": "9.2.1"
+      },
+      "coordinates": {
+        "t": {
+          "path": "local_shape.0"
+        },
+        "h": {
+          "path": "local_shape.1"
+        },
+        "work_hbm": {
+          "path": "work.hbm",
+          "scale": 1e-06
+        }
+      },
+      "domain": {
+        "t": {
+          "min": 1,
+          "max": 65536
+        },
+        "h": {
+          "min": 12,
+          "max": 12
+        }
+      },
+      "response": {
+        "kind": "affine",
+        "fixed_us": 7.525842912263725,
+        "terms": [
+          {
+            "coordinate": "work_hbm",
+            "us_per_unit": 39.2126916855557
+          }
+        ]
+      },
+      "provenance": {
+        "basis": "TRAIN per-kernel Duration(us); adapter from admitted ABI",
+        "native_kernel": "fused_gdn_gating_kernel",
+        "native_runtime": "torch_npu 2.10.0.post7; CANN 9.2.1; vLLM unknown",
+        "strides": "contiguous",
+        "native_layout": "ND",
+        "traffic": "full 10TH (4TH reads +6TH writes) in prepared work.hbm",
+        "response_interpretation": "observed startup+work; not pure bandwidth/pipe occupancy",
+        "profile_family": "gdn_gating",
+        "qualification": "train_only_exploratory",
+        "source_rule_sha256": "2ea751c3098c4163ee1007e629f922eafff599deca13651f6c4776853add33b6"
+      },
+      "execution": {
+        "kind": "joint_native",
+        "resource": "joint_gating_service",
+        "reference_rate": 1000000000.0,
+        "native_kernel": "fused_gdn_gating_kernel"
+      }
+    }
+  ],
+  "abi": {
+    "fused_attention": {
+      "fixed": {
+        "api": "aclnnFusedInferAttentionScoreV3",
+        "kernel_type": "FusedInferAttentionScore",
+        "kernel_name": "aclnnFusedInferAttentionScoreV3_FusedInferAttentionScore_FusedInferAttentionScore",
+        "runtime": {
+          "torch_npu": "2.10.0.post7",
+          "cann": "9.2.1",
+          "vllm": "unknown"
+        },
+        "hardware": "Ascend910B4",
+        "input_dtypes": [
+          "DT_BF16",
+          "DT_BF16",
+          "DT_BF16"
+        ],
+        "input_formats": [
+          "ND",
+          "ND",
+          "ND"
+        ],
+        "output_dtypes": [
+          "DT_BF16",
+          "FLOAT"
+        ],
+        "output_formats": [
+          "ND",
+          "ND"
+        ],
+        "kv_view": {
+          "kind": "continuous_tnd",
+          "kv_storage": "dense",
+          "paged": false,
+          "causal": true
+        },
+        "native_layout": "ND",
+        "strides": "contiguous"
+      },
+      "geometry": {
+        "query_heads": 6,
+        "kv_heads": 1,
+        "head_dim": 256
+      },
+      "mask_by_rule": {
+        "a2-fia-decode-nomask-q1": "none",
+        "a2-fia-decode-mask-q8": "present",
+        "a2-fia-prefill-mask": "present"
+      },
+      "input_slots_by_rule": {
+        "a2-fia-decode-nomask-q1": [
+          {
+            "index": 0,
+            "shape": [
+              "q",
+              "hq",
+              "d"
+            ],
+            "dtype": "DT_BF16",
+            "format": "ND"
+          },
+          {
+            "index": 1,
+            "shape": [
+              "kv_total",
+              "hkv",
+              "d"
+            ],
+            "dtype": "DT_BF16",
+            "format": "ND"
+          },
+          {
+            "index": 2,
+            "shape": [
+              "kv_total",
+              "hkv",
+              "d"
+            ],
+            "dtype": "DT_BF16",
+            "format": "ND"
+          },
+          {
+            "index": 3,
+            "shape": [
+              1
+            ],
+            "dtype": "INT64",
+            "format": "ND"
+          },
+          {
+            "index": 4,
+            "shape": [
+              1
+            ],
+            "dtype": "INT64",
+            "format": "ND"
+          }
+        ],
+        "a2-fia-decode-mask-q8": [
+          {
+            "index": 0,
+            "shape": [
+              "q",
+              "hq",
+              "d"
+            ],
+            "dtype": "DT_BF16",
+            "format": "ND"
+          },
+          {
+            "index": 1,
+            "shape": [
+              "kv_total",
+              "hkv",
+              "d"
+            ],
+            "dtype": "DT_BF16",
+            "format": "ND"
+          },
+          {
+            "index": 2,
+            "shape": [
+              "kv_total",
+              "hkv",
+              "d"
+            ],
+            "dtype": "DT_BF16",
+            "format": "ND"
+          },
+          {
+            "index": 3,
+            "shape": [
+              2048,
+              2048
+            ],
+            "dtype": "BOOL",
+            "format": "ND"
+          },
+          {
+            "index": 4,
+            "shape": [
+              1
+            ],
+            "dtype": "INT64",
+            "format": "ND"
+          },
+          {
+            "index": 5,
+            "shape": [
+              1
+            ],
+            "dtype": "INT64",
+            "format": "ND"
+          }
+        ],
+        "a2-fia-prefill-mask": [
+          {
+            "index": 0,
+            "shape": [
+              "q",
+              "hq",
+              "d"
+            ],
+            "dtype": "DT_BF16",
+            "format": "ND"
+          },
+          {
+            "index": 1,
+            "shape": [
+              "kv_total",
+              "hkv",
+              "d"
+            ],
+            "dtype": "DT_BF16",
+            "format": "ND"
+          },
+          {
+            "index": 2,
+            "shape": [
+              "kv_total",
+              "hkv",
+              "d"
+            ],
+            "dtype": "DT_BF16",
+            "format": "ND"
+          },
+          {
+            "index": 3,
+            "shape": [
+              2048,
+              2048
+            ],
+            "dtype": "BOOL",
+            "format": "ND"
+          },
+          {
+            "index": 4,
+            "shape": [
+              1
+            ],
+            "dtype": "INT64",
+            "format": "ND"
+          },
+          {
+            "index": 5,
+            "shape": [
+              1
+            ],
+            "dtype": "INT64",
+            "format": "ND"
+          }
+        ]
+      },
+      "output_slots": [
+        {
+          "index": 0,
+          "shape": [
+            "q",
+            "hq",
+            "d"
+          ],
+          "dtype": "DT_BF16",
+          "format": "ND"
+        },
+        {
+          "index": 1,
+          "empty": true,
+          "dtype": "FLOAT",
+          "format": "ND"
+        }
+      ],
+      "caller_view": {
+        "query_shape": [
+          "q",
+          "hq",
+          "d"
+        ],
+        "key_shape": [
+          "kv_total",
+          "hkv",
+          "d"
+        ],
+        "value_shape": [
+          "kv_total",
+          "hkv",
+          "d"
+        ],
+        "output_shape": [
+          "q",
+          "hq",
+          "d"
+        ],
+        "query_dtype": "bf16",
+        "key_dtype": "bf16",
+        "value_dtype": "bf16",
+        "output_dtype": "bf16",
+        "logical_layout": "TND",
+        "kv_storage": [
+          "dense",
+          "contiguous"
+        ]
+      }
+    },
+    "dense_matmul": {
+      "fixed": {
+        "api": "aclnnQuantMatmulV5",
+        "kernel_type": "QuantBatchMatmulV3",
+        "kernel_name": "aclnnQuantMatmulV5_QuantBatchMatmulV3_QuantBatchMatmulV3",
+        "runtime": {
+          "torch_npu": "2.10.0.post7",
+          "cann": "9.2.1",
+          "vllm": "unknown"
+        },
+        "hardware": "Ascend910B4",
+        "input_dtypes": [
+          "INT8",
+          "INT8",
+          "FLOAT",
+          "FLOAT"
+        ],
+        "input_formats": [
+          "ND",
+          "ND",
+          "ND",
+          "ND"
+        ],
+        "output_dtypes": [
+          "DT_BF16"
+        ],
+        "output_formats": [
+          "ND"
+        ],
+        "control_flags": {
+          "scale_only": true
+        },
+        "native_layout": "ND",
+        "strides": "contiguous"
+      },
+      "geometry": {
+        "kind": "dense"
+      },
+      "input_slots": [
+        {
+          "index": 0,
+          "shape": [
+            "m",
+            "k"
+          ],
+          "dtype": "INT8",
+          "format": "ND"
+        },
+        {
+          "index": 1,
+          "shape": [
+            "k",
+            "n"
+          ],
+          "dtype": "INT8",
+          "format": "ND"
+        },
+        {
+          "index": 2,
+          "shape": [
+            "n"
+          ],
+          "dtype": "FLOAT",
+          "format": "ND"
+        },
+        {
+          "index": 3,
+          "shape": [
+            "m"
+          ],
+          "dtype": "FLOAT",
+          "format": "ND"
+        }
+      ],
+      "output_slots": [
+        {
+          "index": 0,
+          "shape": [
+            "m",
+            "n"
+          ],
+          "dtype": "DT_BF16",
+          "format": "ND"
+        }
+      ]
+    },
+    "gdn_gating": {
+      "fixed": {
+        "kernel_type": "fused_gdn_gating_kernel",
+        "kernel_name": "fused_gdn_gating_kernel",
+        "runtime": {
+          "torch_npu": "2.10.0.post7",
+          "cann": "9.2.1",
+          "vllm": "unknown"
+        },
+        "hardware": "Ascend910B4",
+        "input_dtypes": [
+          "FLOAT",
+          "DT_BF16",
+          "DT_BF16"
+        ],
+        "input_formats": [
+          "ND",
+          "ND",
+          "ND"
+        ],
+        "output_dtypes": [
+          "FLOAT",
+          "DT_BF16"
+        ],
+        "output_formats": [
+          "ND",
+          "ND"
+        ],
+        "control_flags": {
+          "traffic": "full_10TH",
+          "g_dtype": "FLOAT",
+          "beta_dtype": "DT_BF16",
+          "native_layout": "ND",
+          "strides": "contiguous"
+        }
+      },
+      "geometry": {
+        "heads": 12
+      },
+      "input_slots": [
+        {
+          "index": 0,
+          "shape": [
+            "h"
+          ],
+          "dtype": "FLOAT",
+          "format": "ND"
+        },
+        {
+          "index": 1,
+          "shape": [
+            1,
+            "h"
+          ],
+          "dtype": "DT_BF16",
+          "format": "ND"
+        },
+        {
+          "index": 2,
+          "shape": [
+            1,
+            "h"
+          ],
+          "dtype": "DT_BF16",
+          "format": "ND"
+        }
+      ],
+      "output_slots": [
+        {
+          "index": 0,
+          "shape": [
+            1,
+            1,
+            "h"
+          ],
+          "dtype": "FLOAT",
+          "format": "ND"
+        },
+        {
+          "index": 1,
+          "shape": [
+            1,
+            1,
+            "h"
+          ],
+          "dtype": "DT_BF16",
+          "format": "ND"
+        }
+      ]
+    }
+  },
+  "provenance": {
+    "source_files": {
+      "native_adapter.py": {
+        "path": "/tmp/mindie-calibration-20261107/a2-native/modeling-service/native_adapter.py",
+        "sha256": "ecf8d5bb57130a86e79f13e5af53e8b8acaa09df298024dff1098de2acbca54e"
+      },
+      "joint-service-arm.json": {
+        "path": "/tmp/mindie-calibration-20261107/a2-native/modeling-service/joint-service-arm.json",
+        "sha256": "e9ac91391de3d4bcd43954ab11eb9b328f65e0fa0e66f29ad69d3cc94c0cf34f"
+      },
+      "frozen-regime-params.json": {
+        "path": "/tmp/mindie-calibration-20261107/a2-native/modeling-service/frozen-regime-params.json",
+        "sha256": "c72ea4a8a519cda9431888040089532ab3bbddc89acf601716c5de5db3db14f1"
+      },
+      "native-identity.json": {
+        "path": "/tmp/mindie-calibration-20261107/a2-native/modeling-service/native-identity.json",
+        "sha256": "87b85b23ccd66739a1487da9d9073026bfc2b8d2f9dc4f9a1048d60b2f095c34"
+      },
+      "train-fixture.json": {
+        "path": "/tmp/mindie-calibration-20261107/a2-native/modeling-service/train-fixture.json",
+        "sha256": "f97f7339116730306ea4584532e85e2f531e23bbc023c9533e0b5d0ff9b07113"
+      },
+      "per-kernel-train.json": {
+        "path": "/tmp/mindie-calibration-20261107/a2-native/modeling-service/per-kernel-train.json",
+        "sha256": "4c42ae0d532b05b5896206b18ce6bef530f1429635b4dd059d8a12099443e47a"
+      }
+    },
+    "source_control": {
+      "a2-response-physical-fix-independent.txt": {
+        "path": "/Volumes/data/mindie-sim-data/calibration-20261107/control/a2-response-physical-fix-independent.txt",
+        "sha256": "809b3a8138189de003c9af73968711814ecd74a8e8dc9456e12826c2022a2e3a"
+      },
+      "a2-response-first-heldout-independent.txt": {
+        "path": "/Volumes/data/mindie-sim-data/calibration-20261107/control/a2-response-first-heldout-independent.txt",
+        "sha256": "d8eb9cc88d00e2008d034ece6b271a4eb20bffa5201146e3d66e86f749c64ad1"
+      },
+      "a2-response-parent-freeze.json": {
+        "path": "/Volumes/data/mindie-sim-data/calibration-20261107/control/a2-response-parent-freeze.json",
+        "sha256": "3b17b1f6353b5a72be9459c2e76c6dbbb708dfbe611429759d19a62795bcfcce"
+      }
+    },
+    "source_rule_sha256": {
+      "a2-fia-decode-nomask-q1": "efae663a7c24b7666be9625bae58f943ca9a835b709ec5bc3e743fb42f77507d",
+      "a2-fia-decode-mask-q8": "ad76f0bf027a851abeed9f53d66d281b7f702b31a94be3d37db4309b757d4bf0",
+      "a2-fia-prefill-mask": "9c1990f4f382b288939102f983f4ee97a8156d0a3827cc575aee872125ea9e49",
+      "a2-w8a8-dense-kernel-v2": "0d9f9cb352c93ce9dbe2a8360b5a382bc59885c68af601a5baaaf79fd8c5ce64",
+      "a2-gating-kernel-v2": "2ea751c3098c4163ee1007e629f922eafff599deca13651f6c4776853add33b6"
+    },
+    "denominators": {
+      "joint_calls": 114,
+      "joint_within_10pct": 96,
+      "joint_failures": 18,
+      "numerically_predicted_calls": 120,
+      "admitted_denominator": 123,
+      "fia_analytical_domain_misses": 6,
+      "gdr_unsupported": 3,
+      "gating_heldout_rows": 0,
+      "joint_wape": 0.042732,
+      "joint_wape_including_six_analytical": 0.043461,
+      "fia_joint_wape": 0.033559,
+      "dense_joint_wape": 0.052626
+    },
+    "qualification": {
+      "universal_per_call_10pct_gate": false,
+      "fia_and_dense_heldout_accounted": true,
+      "gating_heldout_validated": false,
+      "gating_status": "train_only_exploratory",
+      "short_prefill_failures_retained": [
+        "q127/KV127",
+        "q1023/KV1023"
+      ],
+      "masked_decode_q2_q7_outside_frozen_q8_domain": true,
+      "no_domain_trimming": true,
+      "no_heldout_tuning": true,
+      "no_refit": true
+    },
+    "heldout": {
+      "run_sha256": "318ea003927e0d0cfe7c902534f04a8bfeffb71b11b4bfe006afde49a104d378",
+      "parent_freeze_sha256": "3b17b1f6353b5a72be9459c2e76c6dbbb708dfbe611429759d19a62795bcfcce"
+    },
+    "limits": [
+      "Only the observed FIA, W8A8 dense and (train-only) gating native kernels are represented.",
+      "No Body residual, end-to-end latency, HCCL or whole-model accuracy claim is made.",
+      "FIA is dense continuous-TND KV only; paged or segmented KV never selects this response.",
+      "Dense is INT8 x INT8 with FP32 column+row scales, scale_only output BF16.",
+      "Unknown vLLM and compiled-binary identity remain unknown.",
+      "A5 attention and ChunkFwdH output dtype/layout/shape are asserted from the retained native TRAIN slots."
+    ]
+  },
+  "limitations": [
+    "Explicit opt-in named profile only; applying it does not change archived native profiles or default Sim.",
+    "The caller must declare the actual native ABI; the profile never assigns its labels to an incompatible input.",
+    "18 of 114 joint heldout calls exceed 10%; the profile is qualified/experimental, not a universal accuracy pass.",
+    "gdn_gating has zero heldout rows and is excluded unless the caller explicitly requests train-only rules."
+  ]
+}

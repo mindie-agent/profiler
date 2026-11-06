@@ -1,0 +1,390 @@
+{
+  "q1": {
+    "fused_attention": {
+      "api": "aclnnFusedInferAttentionScoreV3",
+      "kernel_type": "FusedInferAttentionScore",
+      "kernel_name": "aclnnFusedInferAttentionScoreV3_FusedInferAttentionScore_FusedInferAttentionScore",
+      "runtime": {
+        "torch_npu": "2.10.0.post7",
+        "cann": "9.2.1",
+        "vllm": "unknown"
+      },
+      "hardware": "Ascend910B4",
+      "input_shapes": [
+        "1,6,256",
+        "8193,1,256",
+        "8193,1,256",
+        "1",
+        "1"
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "DT_BF16",
+        "DT_BF16",
+        "INT64",
+        "INT64"
+      ],
+      "input_formats": [
+        "ND",
+        "ND",
+        "ND",
+        "ND",
+        "ND"
+      ],
+      "output_shapes": [
+        "1,6,256",
+        ""
+      ],
+      "output_dtypes": [
+        "DT_BF16",
+        "FLOAT"
+      ],
+      "output_formats": [
+        "ND",
+        "ND"
+      ],
+      "kv_view": {
+        "kind": "continuous_tnd",
+        "kv_storage": "dense",
+        "paged": false,
+        "causal": true
+      },
+      "native_layout": "ND",
+      "strides": "contiguous",
+      "control_flags": {
+        "mask": "none"
+      },
+      "geometry": {
+        "query_heads": 6,
+        "kv_heads": 1,
+        "head_dim": 256
+      }
+    },
+    "dense_matmul": {
+      "api": "aclnnQuantMatmulV5",
+      "kernel_type": "QuantBatchMatmulV3",
+      "kernel_name": "aclnnQuantMatmulV5_QuantBatchMatmulV3_QuantBatchMatmulV3",
+      "runtime": {
+        "torch_npu": "2.10.0.post7",
+        "cann": "9.2.1",
+        "vllm": "unknown"
+      },
+      "hardware": "Ascend910B4",
+      "input_shapes": [
+        "1,5120",
+        "5120,4096",
+        "4096",
+        "1"
+      ],
+      "input_dtypes": [
+        "INT8",
+        "INT8",
+        "FLOAT",
+        "FLOAT"
+      ],
+      "input_formats": [
+        "ND",
+        "ND",
+        "ND",
+        "ND"
+      ],
+      "output_shapes": [
+        "1,4096"
+      ],
+      "output_dtypes": [
+        "DT_BF16"
+      ],
+      "output_formats": [
+        "ND"
+      ],
+      "control_flags": {
+        "scale_only": true
+      },
+      "native_layout": "ND",
+      "strides": "contiguous",
+      "geometry": {
+        "kind": "dense",
+        "m": 1,
+        "n": 4096,
+        "k": 5120
+      }
+    }
+  },
+  "q8": {
+    "fused_attention": {
+      "api": "aclnnFusedInferAttentionScoreV3",
+      "kernel_type": "FusedInferAttentionScore",
+      "kernel_name": "aclnnFusedInferAttentionScoreV3_FusedInferAttentionScore_FusedInferAttentionScore",
+      "runtime": {
+        "torch_npu": "2.10.0.post7",
+        "cann": "9.2.1",
+        "vllm": "unknown"
+      },
+      "hardware": "Ascend910B4",
+      "input_shapes": [
+        "8,6,256",
+        "8200,1,256",
+        "8200,1,256",
+        "2048,2048",
+        "1",
+        "1"
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "DT_BF16",
+        "DT_BF16",
+        "BOOL",
+        "INT64",
+        "INT64"
+      ],
+      "input_formats": [
+        "ND",
+        "ND",
+        "ND",
+        "ND",
+        "ND",
+        "ND"
+      ],
+      "output_shapes": [
+        "8,6,256",
+        ""
+      ],
+      "output_dtypes": [
+        "DT_BF16",
+        "FLOAT"
+      ],
+      "output_formats": [
+        "ND",
+        "ND"
+      ],
+      "kv_view": {
+        "kind": "continuous_tnd",
+        "kv_storage": "dense",
+        "paged": false,
+        "causal": true
+      },
+      "native_layout": "ND",
+      "strides": "contiguous",
+      "control_flags": {
+        "mask": "present"
+      },
+      "geometry": {
+        "query_heads": 6,
+        "kv_heads": 1,
+        "head_dim": 256
+      }
+    },
+    "dense_matmul": {
+      "api": "aclnnQuantMatmulV5",
+      "kernel_type": "QuantBatchMatmulV3",
+      "kernel_name": "aclnnQuantMatmulV5_QuantBatchMatmulV3_QuantBatchMatmulV3",
+      "runtime": {
+        "torch_npu": "2.10.0.post7",
+        "cann": "9.2.1",
+        "vllm": "unknown"
+      },
+      "hardware": "Ascend910B4",
+      "input_shapes": [
+        "8,5120",
+        "5120,4096",
+        "4096",
+        "8"
+      ],
+      "input_dtypes": [
+        "INT8",
+        "INT8",
+        "FLOAT",
+        "FLOAT"
+      ],
+      "input_formats": [
+        "ND",
+        "ND",
+        "ND",
+        "ND"
+      ],
+      "output_shapes": [
+        "8,4096"
+      ],
+      "output_dtypes": [
+        "DT_BF16"
+      ],
+      "output_formats": [
+        "ND"
+      ],
+      "control_flags": {
+        "scale_only": true
+      },
+      "native_layout": "ND",
+      "strides": "contiguous",
+      "geometry": {
+        "kind": "dense",
+        "m": 8,
+        "n": 4096,
+        "k": 5120
+      }
+    }
+  },
+  "prefill": {
+    "fused_attention": {
+      "api": "aclnnFusedInferAttentionScoreV3",
+      "kernel_type": "FusedInferAttentionScore",
+      "kernel_name": "aclnnFusedInferAttentionScoreV3_FusedInferAttentionScore_FusedInferAttentionScore",
+      "runtime": {
+        "torch_npu": "2.10.0.post7",
+        "cann": "9.2.1",
+        "vllm": "unknown"
+      },
+      "hardware": "Ascend910B4",
+      "input_shapes": [
+        "2048,6,256",
+        "2048,1,256",
+        "2048,1,256",
+        "2048,2048",
+        "1",
+        "1"
+      ],
+      "input_dtypes": [
+        "DT_BF16",
+        "DT_BF16",
+        "DT_BF16",
+        "BOOL",
+        "INT64",
+        "INT64"
+      ],
+      "input_formats": [
+        "ND",
+        "ND",
+        "ND",
+        "ND",
+        "ND",
+        "ND"
+      ],
+      "output_shapes": [
+        "2048,6,256",
+        ""
+      ],
+      "output_dtypes": [
+        "DT_BF16",
+        "FLOAT"
+      ],
+      "output_formats": [
+        "ND",
+        "ND"
+      ],
+      "kv_view": {
+        "kind": "continuous_tnd",
+        "kv_storage": "dense",
+        "paged": false,
+        "causal": true
+      },
+      "native_layout": "ND",
+      "strides": "contiguous",
+      "control_flags": {
+        "mask": "present"
+      },
+      "geometry": {
+        "query_heads": 6,
+        "kv_heads": 1,
+        "head_dim": 256
+      }
+    },
+    "dense_matmul": {
+      "api": "aclnnQuantMatmulV5",
+      "kernel_type": "QuantBatchMatmulV3",
+      "kernel_name": "aclnnQuantMatmulV5_QuantBatchMatmulV3_QuantBatchMatmulV3",
+      "runtime": {
+        "torch_npu": "2.10.0.post7",
+        "cann": "9.2.1",
+        "vllm": "unknown"
+      },
+      "hardware": "Ascend910B4",
+      "input_shapes": [
+        "2048,5120",
+        "5120,4096",
+        "4096",
+        "2048"
+      ],
+      "input_dtypes": [
+        "INT8",
+        "INT8",
+        "FLOAT",
+        "FLOAT"
+      ],
+      "input_formats": [
+        "ND",
+        "ND",
+        "ND",
+        "ND"
+      ],
+      "output_shapes": [
+        "2048,4096"
+      ],
+      "output_dtypes": [
+        "DT_BF16"
+      ],
+      "output_formats": [
+        "ND"
+      ],
+      "control_flags": {
+        "scale_only": true
+      },
+      "native_layout": "ND",
+      "strides": "contiguous",
+      "geometry": {
+        "kind": "dense",
+        "m": 2048,
+        "n": 4096,
+        "k": 5120
+      }
+    }
+  },
+  "gating": {
+    "gdn_gating": {
+      "kernel_type": "fused_gdn_gating_kernel",
+      "kernel_name": "fused_gdn_gating_kernel",
+      "runtime": {
+        "torch_npu": "2.10.0.post7",
+        "cann": "9.2.1",
+        "vllm": "unknown"
+      },
+      "hardware": "Ascend910B4",
+      "input_shapes": [
+        "12",
+        "1,12",
+        "1,12"
+      ],
+      "input_dtypes": [
+        "FLOAT",
+        "DT_BF16",
+        "DT_BF16"
+      ],
+      "input_formats": [
+        "ND",
+        "ND",
+        "ND"
+      ],
+      "output_shapes": [
+        "1,1,12",
+        "1,1,12"
+      ],
+      "output_dtypes": [
+        "FLOAT",
+        "DT_BF16"
+      ],
+      "output_formats": [
+        "ND",
+        "ND"
+      ],
+      "control_flags": {
+        "traffic": "full_10TH",
+        "g_dtype": "FLOAT",
+        "beta_dtype": "DT_BF16"
+      },
+      "native_layout": "ND",
+      "strides": "contiguous",
+      "geometry": {
+        "heads": 12
+      }
+    }
+  }
+}
