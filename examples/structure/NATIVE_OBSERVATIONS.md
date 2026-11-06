@@ -30,12 +30,18 @@ Wave5 重跑入口和 DSH 新预测使用这个适配器；聚合已有报告不
   GEMM 按有效行执行，SwiGlu/量化扫描完整容量，并保留 FP32 router 及
   FP32→BF16 权重 scale Cast。导入要求实际命令声明 force-EPLB 开启、
   GMMSwiGLUQuant 融合关闭，显式冲突保留原输入。
-  q=1 的三个 L8 物理域使用独立 profile，与 q=4 的 E256 数据分开：
-  E32/K2/B4、E32/K4/B1、E64/K4/B4 的有效专家行数分别为 2/1/4，
-  分配容量分别为 8/16/16。19 个参数只由三个 4K capture 的完整原生
-  kernel 均值赋值；三个 64K capture 整体留出，24 个原生均值均在 10%
-  内，最大误差 6.0802%。同物理 ABI 共用响应，KV context 不选择这些
-  局部 MoE 算子的参数；没有按 Body 残差或 capture 名称选择曲线。
+  q=1 的六个 L8 物理域使用独立 profile，与 q=4 的 E256 数据分开：
+  E32/K2/B4、E32/K4/B1、E64/K4/B4，以及 E32/K2、E48/K2、E48/K4
+  的 B16。34 个参数只由六个 4K capture 的 66,176 次完整原生调用按
+  count/sum 池化赋值；六个 64K capture 的 60,096 次调用仅用于验证。
+  这六个验证 capture 中实际应用的 48 个原生边界均值均在 10% 内；
+  12 个训练/验证 capture 的 15 个 population 及各 capture 加权均值也
+  均在 10% 内。E48/K2/B16 的 64K capture 同时含有效 B13/B15/B12，
+  这些 population 不在整套 profile 的适用域，完整输入和预测保留原样。
+  B15 的局部 GMM 形状虽与 B16 兼容，也不据此扩大整套适用域。
+  同物理 ABI 共用响应，KV context 不选择这些局部 MoE 算子的参数；
+  没有按 Body 残差或 capture 名称选择曲线。64K 只对本次八条原生响应
+  整体留出，底层历史校准仍属 in-sample，不能据此宣称整模型独立泛化。
 - 图捕获描述符区分有效 query 行与捕获的物理行。完整图中的 GDN 拷贝、
   gating 和 Q/K normalization 保留物理缓冲区；重复的末尾序列偏移表示
   零长度槽位，不产生额外卷积或递归状态工作。

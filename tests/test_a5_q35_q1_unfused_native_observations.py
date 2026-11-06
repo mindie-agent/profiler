@@ -22,49 +22,81 @@ from a5_native_observations import apply_a5_native_observations
 from a5_q35_unfused_native_observations import Q1_PROFILE_PATH, apply_a5_q35_unfused_native_observations
 
 
+FIXTURE_PATH = ROOT / "tests/fixtures/native_observations/a5_q35_q1_unfused_heldout.json"
+
+
 def fixtures():
-    path = ROOT / "tests/fixtures/native_observations/a5_q35_q1_unfused_heldout.json"
-    return json.loads(path.read_text())["cases"]
+    return json.loads(FIXTURE_PATH.read_text())["cases"]
 
 
 def declared(fixture):
     return apply_a5_native_observations(fixture["raw_case"], **fixture["geometry"])[0]
 
 
-@pytest.mark.parametrize("index", range(3))
+@pytest.mark.parametrize("index", range(6))
 def test_entire_held_context_native_boundaries_and_body(index):
     fixture = fixtures()[index]
-    raw, geometry = declared(fixture), fixture["geometry"]
-    original = deepcopy(raw)
-    result, provenance = apply_a5_q35_unfused_native_observations(raw, **geometry)
-    assert provenance["status"] == "applied" and raw == original
-    assert len(provenance["matched_domains"]) == 8
-    assert all(row["occurrences"] == 8 for row in provenance["matched_domains"])
     profile = json.loads(Q1_PROFILE_PATH.read_text())
-    held = {row["recipe"]: row for row in profile["native_validation"]
-            if row["id"] == fixture["source_case_id"]}
-    seen = set()
-    for op in target_operators(result, **geometry):
-        if op.recipe not in held or op.recipe in seen:
-            continue
-        if op.recipe == "dynamic_quantize" and "mc2_unfused_storage" not in dict(op.metadata):
-            continue
-        seen.add(op.recipe)
-        row = held[op.recipe]
-        measured = graph_costs(result, (op,), isolated=False,
-                               external_inputs={dependency: 0 for dependency in op.deps})
-        predicted_us = measured["duration_ms"] * 1000
-        assert predicted_us == pytest.approx(row["predicted_mean_us"])
-        assert abs(predicted_us / row["mean_us"] - 1) < 0.1
-    assert len(seen) == 8
-    prediction = predict(result, scope="body", event_limit=0, **geometry)
-    body = prediction["complete_ms"] - min(
-        row["ready_ms"] for row in prediction["timeline"] if row["family"] != "barrier")
-    expected = next(row for row in profile["body_validation"] if row["id"] == fixture["source_case_id"])
-    assert body == pytest.approx(expected["predicted_body_ms"])
-    assert abs(body / fixture["observed_body_ms"] - 1) < 0.1
-    again, _ = apply_a5_q35_unfused_native_observations(result, **geometry)
-    assert again == result
+    held = [row for row in profile["native_validation"]
+            if row["id"] == fixture["source_case_id"]]
+    expected = next(row for row in profile["body_validation"]
+                    if row["id"] == fixture["source_case_id"])
+    estimates, observations, counts = [], [], []
+    for population in fixture["populations"]:
+        source_geometry = population["geometry"]
+        geometry = {"phase": "decode", "tokens": source_geometry["tokens_per_sequence"],
+                    "context": source_geometry["context_tokens"],
+                    "sequences": source_geometry["sequences_per_replica"]}
+        raw = apply_a5_native_observations(fixture["raw_case"], **geometry)[0]
+        original = deepcopy(raw)
+        result, provenance = apply_a5_q35_unfused_native_observations(raw, **geometry)
+        assert raw == original
+        population_native = {row["recipe"]: row for row in held
+                             if row["active_query_rows"] == geometry["sequences"]}
+        supported = population_native["balanced_grouped_gate_up"]["response_validation_supported"]
+        expected_part = next(row for row in expected["populations"] if row["geometry"] == geometry)
+        if supported:
+            assert provenance["status"] == "applied"
+            assert len(provenance["matched_domains"]) == 8
+            assert all(row["occurrences"] == 8 for row in provenance["matched_domains"])
+            seen = set()
+            for op in target_operators(result, **geometry):
+                if op.recipe not in population_native or op.recipe in seen:
+                    continue
+                if op.recipe == "dynamic_quantize" and "mc2_unfused_storage" not in dict(op.metadata):
+                    continue
+                seen.add(op.recipe)
+                row = population_native[op.recipe]
+                measured = graph_costs(result, (op,), isolated=False,
+                                       external_inputs={dependency: 0 for dependency in op.deps})
+                predicted_us = measured["duration_ms"] * 1000
+                assert predicted_us == pytest.approx(row["predicted_mean_us"])
+                assert abs(predicted_us / row["mean_us"] - 1) < 0.1
+            assert len(seen) == 8
+            again, _ = apply_a5_q35_unfused_native_observations(result, **geometry)
+            assert again == result
+        else:
+            # Retain every undeclared active caller population in the whole capture.
+            assert provenance["status"] == "not_applicable"
+            assert provenance["reason"] == "source_geometry_outside_observed_native_profile"
+            assert result == raw
+            for recipe in ("balanced_grouped_gate_up", "balanced_grouped_down"):
+                assert population_native[recipe]["predicted_mean_us"] is None
+        prediction = predict(result, scope="body", event_limit=0, **geometry)
+        body = prediction["complete_ms"] - min(
+            row["ready_ms"] for row in prediction["timeline"] if row["family"] != "barrier")
+        assert body == pytest.approx(expected_part["predicted_ms"])
+        if not supported:
+            assert body == pytest.approx(expected_part["baseline_ms"])
+        assert abs(body / population["observed_ms"] - 1) < 0.1
+        estimates.append(body)
+        observations.append(population["observed_ms"])
+        counts.append(population["forward_count"])
+    weighted_body = sum(value * count for value, count in zip(estimates, counts)) / sum(counts)
+    weighted_observed = sum(value * count for value, count in zip(observations, counts)) / sum(counts)
+    assert weighted_body == pytest.approx(expected["predicted_body_ms"])
+    assert weighted_observed == pytest.approx(expected["observed_body_ms"])
+    assert abs(weighted_body / weighted_observed - 1) < 0.1
 
 
 def test_parameters_recompute_from_only_complete_training_native_calls():
