@@ -73,7 +73,7 @@ flowchart LR
    - 使用固定版本 Release Wheel 安装（推荐生产环境）：
      ```bash
      uv pip install \
-       https://github.com/mindie-agent/sim/releases/download/v0.9.3/mindie_sim-0.9.3-py3-none-any.whl \
+       https://github.com/mindie-agent/sim/releases/download/v0.9.4/mindie_sim-0.9.4-py3-none-any.whl \
        https://github.com/mindie-agent/profiler/releases/download/v0.5.6/mindie_profiler-0.5.6-py3-none-any.whl
      ```
    - 或从源码主分支安装最新开发版：
@@ -109,9 +109,9 @@ flowchart LR
 | **`memory`**<br/>`mindie_profiler.memory_profile`<br/>`python3 -m mindie_profiler.weight_inspector` | **P0–P4 峰值与算子级显存归因**：融合 P0 `msprof`（`operator_memory.csv` / `memory_record.csv` / `npu_module_mem`）、P1 整卡运行时 HBM 峰值、P2 框架启动日志、P3 `safetensors` 权重头与 P4 `config.json` 理论估算，诚实报告未解释残差（Residual） | 显存采集清单、服务日志、`operator_memory.csv`、`memory_record.csv`、模型权重目录 | `mindie-memory-attribution/1` 显存归因报告（含权重、KV Cache、激活值、通信 Buffer 与残差） |
 | **`modeling-inputs`**<br/>`mindie_profiler.modeling_inputs`<br/>`python3 -m mindie_profiler.enrichment_model` | **保留的观测导出与 Roofline 对照接口**：从实测热点提取 Shape、Dtype、Layout、耗时与硬件规格，生成 `ModelingInputsBundle` 并计算单算子理想 Roofline 下界；新版 sim 不原生消费此旧输入包 | C7 剖析摘要、算子热点记录、硬件峰值规格（或 `msmodeling` 提供方） | `mindie-modeling-inputs/1` 观测包与三值对齐记录（理想下界 / 模型预测 / 实测耗时） |
 
-### `v0.5.6` 拓扑结构关联、4D 效率报告与全量泛化验证（配套 `mindie-sim 0.9.3`）
+### 当前兼容组合：拓扑结构关联与 4D 效率报告（配套 `mindie-sim 0.9.4`）
 
-`mindie-profiler v0.5.6` 与 [`mindie-sim v0.9.3`](https://github.com/mindie-agent/sim) 深度协同，打通了从“原始 Trace 采集”到“模型结构映射、四维效率归因与跨集群零样本泛化验证”的完整链路（详见 [`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md)、[`docs/releases/profiler-0.5.3.md`](./docs/releases/profiler-0.5.3.md) 与 [`examples/structure/README.md`](./examples/structure/README.md)）：
+当前安装组合为 `mindie-profiler v0.5.6` 与 [`mindie-sim v0.9.4`](https://github.com/mindie-agent/sim)，提供从原始 Trace 到模型结构映射及四维效率归因的接口。历史全量泛化验证的数据与采样版本仍以原始记录为准（[`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md)、[`docs/releases/profiler-0.5.3.md`](./docs/releases/profiler-0.5.3.md) 与 [`examples/structure/README.md`](./examples/structure/README.md)），本次文档同步不重新标注历史实验：
 
 - **拓扑驱动的结构映射（`analyze --structure`）**：
   ```bash
