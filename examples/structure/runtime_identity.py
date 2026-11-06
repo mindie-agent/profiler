@@ -1,8 +1,9 @@
 """Content identity for the simulator used by offline evaluation caches.
 
-[Role] Fingerprint installed simulator source and runtime data at evaluator startup.
+[Role] Fingerprint simulator content and retain source identities in mixed reports.
 [Invariants] Relative paths and file contents determine identity, independently of
   checkout location, traversal order, timestamps and Python bytecode caches.
+  Combining reports never assigns today's identity to unidentified old results.
 [Timeouts & Locks] One package traversal; files stream in bounded 1 MiB chunks.
 [Side-Effect Policy] Read-only package access; no device, network or capture reads.
 """
@@ -36,3 +37,26 @@ def simulator_identity(module) -> str:
                 content.update(chunk)
         digest.update(content.digest())
     return f"mindie_sim/{version}:{digest.hexdigest()}"
+
+
+def prediction_report_identity(reports: dict, current: str) -> dict:
+    """An aggregate is current only when every contributing source says so."""
+    sources = {}
+    for name, report in reports.items():
+        identity = report.get("sim_identity")
+        sources[name] = {
+            "schema_version": report.get("schema_version"),
+            "sim_identity": identity,
+            "reported_runtime": report.get("runtime"),
+            "sim_identity_status": (
+                "unverified_runtime_format" if identity is None and report.get("runtime") is not None else
+                "missing" if identity is None else
+                "matches_current" if identity == current else "differs_from_current"
+            ),
+        }
+    matches = bool(sources) and all(
+        row["sim_identity_status"] == "matches_current" for row in sources.values())
+    return {"sim_identity": current if matches else None,
+            "evaluator_sim_identity": current,
+            "sim_identity_matches_current": matches,
+            "source_report_identities": sources}

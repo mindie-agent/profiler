@@ -1,11 +1,12 @@
-"""Full-fleet DSH capture parsing and zero-shot template generalization evaluator.
+"""Full-fleet DSH capture parsing and historical-template replay evaluator.
 
 [Role] Parse all DSH 2026-10-30 held-out NPU captures, cache segmented Body
-  observations, and evaluate zero-shot mindie_sim Body generalization alongside
+  observations, and evaluate mindie_sim Body predictions alongside
   the registered Decode and Prefill validation scoreboards.
 [Invariants] Zero per-capture timing parameter fitting; templates are selected
   strictly by (hardware, model_family, tp, dp, ep, phase) with cell identity
   taking precedence over suite names and no silent fallback for unknown models.
+  Historical regime provenance does not establish independent heldout accuracy.
 [Timeouts & Locks] Bounded multiprocessing pool (<= 4 workers), 60s per-future
   deadlines, per-CSV row/time budgets, and atomic tempfile + os.replace() writes.
 [Side-Effect Policy] Never modifies cases.json, cases/*.json, or mindie_sim;
@@ -32,7 +33,7 @@ from mindie_profiler.events import PARSER_VERSION
 import mindie_sim
 from mindie_sim.prediction.structure import parse_case
 import prefill
-from runtime_identity import simulator_identity
+from runtime_identity import prediction_report_identity, simulator_identity
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_ROOT = Path("/Volumes/data/mindie-sim-data")
@@ -570,25 +571,27 @@ def _summarize_errors(errors: list[float]) -> dict:
 def _write_markdown(report: dict, out_md: Path) -> None:
     inv, s = report["inventory"], report["summary"]
     lines = [
-        "# MindIE-Sim Full-Fleet DSH Capture Parsing & Zero-Shot Generalization Report", "",
+        "# MindIE-Sim Full-Fleet DSH Historical-Template Replay Report", "",
+        "Existing template regimes are not certified independent heldout calibration. Registered scoreboard comparisons retain their source runtime metadata; explicit missing-case recomputations are recorded separately from the new DSH predictions.", "",
+        f"- **All contributing runtime identities verified against the current runtime**: `{report['sim_identity_matches_current']}`",
         "## 1. Executive Summary & Fleet Inventory", "",
         f"- **DSH `2026-10-30` Total `kernel_details.csv` Captures**: `{inv['dsh_20261030_total_csvs']}`",
         f"  - **Registered in `cases.json` (`body` scope)**: `{inv['dsh_20261030_registered_body_csvs']}`",
         f"  - **Excluded Pure Decode-Eager Captures**: `{inv['dsh_20261030_eager_excluded_csvs']}`",
-        f"  - **Unregistered Held-Out Captures Evaluated**: `{inv['dsh_20261030_unregistered_heldout_csvs']}` across `{len(report['cohort_summaries'])}` cohorts",
-        f"- **Total Evaluated Body Captures (Registered + Held-Out)**: `{inv['total_evaluated_body_cases']}` (`{s['full_fleet_combined']['count']}` compared)", "",
+        f"  - **Unregistered Captures Evaluated**: `{inv['dsh_20261030_unregistered_heldout_csvs']}` across `{len(report['cohort_summaries'])}` cohorts",
+        f"- **Total Evaluated Body Captures (Registered + Unregistered)**: `{inv['total_evaluated_body_cases']}` (`{s['full_fleet_combined']['count']}` compared)", "",
         "| Evaluation Scope | Compared | Pass `<= 15%` | Rate `<= 15%` | Pass `<= 10%` | Rate `<= 10%` | Mean `|Err|` | Median `|Err|` | Max `|Err|` |",
         "| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for label, key in [("Registered Decode Body (`cases.json`)", "registered_decode_body"),
                        ("Registered Prefill Body (`cases.json`)", "registered_prefill_body"),
-                       ("Held-Out Unregistered (Excl. Uncalibrated `v41` `dspark0`)", "heldout_unregistered_excluding_v41_dspark0_uncalibrated_sp1"),
-                       ("Held-Out Unregistered (All Compared, All Populations)", "heldout_unregistered_all"),
-                       ("Held-Out Unregistered (Primary Population)", "heldout_unregistered_primary_population"),
+                       ("Unregistered (Excl. Uncalibrated `v41` `dspark0`)", "heldout_unregistered_excluding_v41_dspark0_uncalibrated_sp1"),
+                       ("Unregistered (All Compared, All Populations)", "heldout_unregistered_all"),
+                       ("Unregistered (Primary Population)", "heldout_unregistered_primary_population"),
                        ("**Full Fleet Combined**", "full_fleet_combined")]:
         r = s[key]
         lines.append(f"| {label} | {r['count']} | {r['pass_15pct']} | **{r['pass_rate_15pct']*100:.2f}%** | {r['pass_10pct']} | **{r['pass_rate_10pct']*100:.2f}%** | {r['mean_abs_error']*100:.2f}% | {r['median_abs_error']*100:.2f}% | {r['max_abs_error']*100:.2f}% |")
-    lines.extend(["", "## 2. Held-Out Cohort Breakdown", "",
+    lines.extend(["", "## 2. Unregistered Cohort Breakdown", "",
                   "| Cohort | Family | Phase | TP/DP/EP | Spec | Cross-TP | Template | Captures | Compared | Pass `<=15%` | Pass `<=10%` | Mean `|Err|` | Median `|Err|` |",
                   "| :--- | :--- | :--- | :--- | ---: | :---: | :--- | ---: | ---: | ---: | ---: | ---: | ---: |"])
     for c in report["cohort_summaries"]:
@@ -598,7 +601,7 @@ def _write_markdown(report: dict, out_md: Path) -> None:
         m_s, md_s = (f"{st['mean_abs_error']*100:.2f}%", f"{st['median_abs_error']*100:.2f}%") if st["count"] else ("N/A", "N/A")
         lines.append(f"| `{c['cohort']}` | `{c['family']}` | `{c['phase']}` | `{c['tp']}/{c['dp']}/{c['ep']}` | {spec_s} | {'Yes' if c['cross_tp_transfer'] else 'No'} | `{c['template']}` | {c['capture_count']} | {c['compared_count']} | {p15} | {p10} | {m_s} | {md_s} |")
     out_md.parent.mkdir(parents=True, exist_ok=True)
-    out_md.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    out_md.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 
 
 def _bounded_workers(requested: int, worker_ram_mb: int = 512) -> int:
@@ -669,7 +672,7 @@ def main(argv: list[str] | None = None) -> int:
     decode_sb = json.loads((BASE_DIR / "results" / "decode.json").read_text())
     prefill_sb = json.loads((BASE_DIR / "results" / "prefill.json").read_text())
 
-    reg_decode_errs = []
+    reg_decode_errs, registered_recomputations = [], {}
     for c in decode_sb["cases"]:
         rel_e = (c.get("comparison") or {}).get("relative_error")
         if rel_e is None and c.get("id") in ("decode:a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64", "decode:a5_v41_fp8_tp1_dp8_ep8_c128_p2k"):
@@ -684,6 +687,7 @@ def main(argv: list[str] | None = None) -> int:
             scens = _automatic_scenarios(reg_row, obs_d, tpl_d)
             scens.sort(key=lambda s: -s["observed"]["body_forward_span_ms"]["count"])
             rel_e = compare_body_forward(pred, scens[0]["observed"])["relative_error"]
+            registered_recomputations[c["id"]] = {"sim_identity": SIM_IDENTITY, "relative_error": rel_e}
         if rel_e is not None:
             reg_decode_errs.append(float(rel_e))
     reg_prefill_errs = [float(c["comparison"]["relative_error"]) for c in prefill_sb["cases"]
@@ -758,6 +762,14 @@ def main(argv: list[str] | None = None) -> int:
 
     report = {
         "schema_version": "mindie-dsh-full-generalization/2", "elapsed_seconds": round(time.monotonic() - started, 2),
+        **prediction_report_identity({"registered_decode": decode_sb, "registered_prefill": prefill_sb,
+                                      "dsh_predictions": {"sim_identity": SIM_IDENTITY}}, SIM_IDENTITY),
+        "registered_recomputations": registered_recomputations,
+        "calibration_provenance": {
+            "evaluation_relation": "historical_model_conditioned_regimes_not_certified_heldout",
+            "independent_heldout": False, "input_conditioned_regime_overrides": True,
+            "prior_fit_capture_membership": "not_established",
+            "registered_comparisons": "retained_source_reports_except_explicit_missing_case_recomputations"},
         "inventory": {
             "dsh_20261030_total_csvs": len(all_dsh_csvs), "dsh_20261030_registered_body_csvs": len(registered_in_dsh),
             "dsh_20261030_eager_excluded_csvs": len(eager_excluded), "dsh_20261030_unregistered_heldout_csvs": len(heldout_tasks),

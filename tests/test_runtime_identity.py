@@ -18,7 +18,7 @@ sys.path.insert(0, str(ROOT / "examples" / "structure"))
 
 import dsh_generalization_eval as dsh_eval
 import wave5_generalization_eval as wave5_eval
-from runtime_identity import simulator_identity
+from runtime_identity import prediction_report_identity, simulator_identity
 from tests.sim_fixtures import case_path
 
 
@@ -112,3 +112,26 @@ def test_wave5_aggregation_preserves_missing_or_stale_prediction_identity():
     confirmed = wave5_eval.aggregate_chip_reports(*(report(current) for _ in range(3)))
     assert confirmed["sim_identity"] == current
     assert confirmed["sim_identity_matches_current"] is True
+
+
+def test_registered_scoreboards_cannot_inherit_the_new_dsh_runtime_identity():
+    current = dsh_eval.SIM_IDENTITY
+    reports = {"registered_decode": {"sim_identity": "earlier-sim"},
+               "registered_prefill": {}, "dsh_predictions": {"sim_identity": current}}
+    mixed = prediction_report_identity(reports, current)
+    assert mixed["sim_identity"] is None and not mixed["sim_identity_matches_current"]
+    assert mixed["evaluator_sim_identity"] == current
+    sources = mixed["source_report_identities"]
+    assert sources["registered_decode"]["sim_identity"] == "earlier-sim"
+    assert sources["registered_prefill"]["sim_identity_status"] == "missing"
+    assert sources["dsh_predictions"]["sim_identity_status"] == "matches_current"
+    legacy_runtime = {"algorithm": "older-package-hash", "package_sha256": "original-content-hash"}
+    reports["registered_prefill"]["runtime"] = legacy_runtime
+    legacy = prediction_report_identity(reports, current)["source_report_identities"]["registered_prefill"]
+    assert legacy["reported_runtime"] == legacy_runtime
+    assert legacy["sim_identity"] is None and legacy["sim_identity_status"] == "unverified_runtime_format"
+    for source in reports.values():
+        source["sim_identity"] = current
+    confirmed = prediction_report_identity(reports, current)
+    assert confirmed["sim_identity"] == current and confirmed["sim_identity_matches_current"]
+    assert not prediction_report_identity({}, current)["sim_identity_matches_current"]
