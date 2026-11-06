@@ -22,6 +22,7 @@ PROFILE_FILES = (
     "profiles/a2_native_20261031.json", "profiles/a2_decode_native_20261031.json",
     "profiles/a5_gdn_decode_native_20261106.json", "profiles/a5_mtp_native_20261106.json",
     "profiles/a5_q35_unfused_native_20261106.json",
+    "profiles/a5_q35_q1_unfused_native_20261106.json",
 )
 
 

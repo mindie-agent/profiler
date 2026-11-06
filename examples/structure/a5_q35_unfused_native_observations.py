@@ -23,6 +23,7 @@ from a5_native_observations import _matches, _operator_axes, _physical_contract,
 
 
 PROFILE_PATH = Path(__file__).with_name("profiles") / "a5_q35_unfused_native_20261106.json"
+Q1_PROFILE_PATH = PROFILE_PATH.with_name("a5_q35_q1_unfused_native_20261106.json")
 CALLER = {"implementation": "vllm_ascend_mc2_unfused_w8a8", "options": {"global_bs": 0}}
 MASK = {"kind": "vllm_ascend_mc2_tp", "global_bs": 0}
 QUEUE = "native_call_service"
@@ -129,10 +130,11 @@ def _caller_input(raw, parsed):
 
 def apply_a5_q35_unfused_native_observations(
     raw: dict, *, phase: str, tokens: int, context: int, sequences: int,
-    profile_path: Path = PROFILE_PATH,
+    profile_path: Path | None = None,
 ) -> tuple[dict, dict]:
     """Import all eight exact native domains atomically, or retain the input."""
-    profile, identity = _read_profile(Path(profile_path))
+    selected_path = profile_path if profile_path is not None else (Q1_PROFILE_PATH if tokens == 1 else PROFILE_PATH)
+    profile, identity = _read_profile(Path(selected_path))
     provenance = {"schema_version": "mindie-profiler-native-observation-import/1",
                   "profile": identity, "status": "not_applicable", "matched_domains": [],
                   "geometry": {"phase": phase, "tokens": tokens, "context": context,
@@ -143,7 +145,7 @@ def apply_a5_q35_unfused_native_observations(
     def miss(reason):
         return deepcopy(raw), {**provenance, "reason": reason}
 
-    if phase != "decode" or tokens != 4 or sequences * tokens > 32:
+    if phase != "decode" or tokens != profile.get("tokens_per_sequence", 4) or sequences * tokens > 32:
         return miss("sequence_partition_outside_mc2_observed_domain")
     parsed = parse_case(raw)
     contract = profile["source_contract"]
@@ -159,6 +161,12 @@ def apply_a5_q35_unfused_native_observations(
                 any(getattr(plan, key) != value for key, value in contract["layer"].items())
                 for plan in parsed.model.layer_plans)):
         return miss("model_geometry_outside_observed_domain")
+    domains = profile.get("geometry_domains")
+    if domains is not None and not any(
+            sequences == domain["sequences"] and all(
+                all(getattr(plan, key) == value for key, value in domain["layer"].items())
+                for plan in parsed.model.layer_plans) for domain in domains):
+        return miss("source_geometry_outside_observed_native_profile")
     result, reason = _caller_input(raw, parsed)
     if reason:
         return miss(reason)

@@ -30,6 +30,12 @@ Wave5 重跑入口和 DSH 新预测使用这个适配器；聚合已有报告不
   GEMM 按有效行执行，SwiGlu/量化扫描完整容量，并保留 FP32 router 及
   FP32→BF16 权重 scale Cast。导入要求实际命令声明 force-EPLB 开启、
   GMMSwiGLUQuant 融合关闭，显式冲突保留原输入。
+  q=1 的三个 L8 物理域使用独立 profile，与 q=4 的 E256 数据分开：
+  E32/K2/B4、E32/K4/B1、E64/K4/B4 的有效专家行数分别为 2/1/4，
+  分配容量分别为 8/16/16。19 个参数只由三个 4K capture 的完整原生
+  kernel 均值赋值；三个 64K capture 整体留出，24 个原生均值均在 10%
+  内，最大误差 6.0802%。同物理 ABI 共用响应，KV context 不选择这些
+  局部 MoE 算子的参数；没有按 Body 残差或 capture 名称选择曲线。
 - 图捕获描述符区分有效 query 行与捕获的物理行。完整图中的 GDN 拷贝、
   gating 和 Q/K normalization 保留物理缓冲区；重复的末尾序列偏移表示
   零长度槽位，不产生额外卷积或递归状态工作。
@@ -69,6 +75,20 @@ SHA256 仍相同：`11c9b780614a562a0a761978b11f0f60a419365fe366a7fd8e784be76a41
 
 验收同时保留 capture 加权误差、主 population 误差和每个 population/chunk。
 算子均值校准通过不代表每次原语调用、全部 Body 或独立泛化已经通过。
+
+## 尚未修复的 A3 模板与服务边界
+
+A3 `synth_qwen35_L8_E32_K2_tp8ep8_decode_256k_c1` 的历史模板仍使用
+EP1、32 个本地专家和 64 维分片中间层；实际命令和 CSV 则是 EP8、
+4 个本地专家、完整 512 维中间层，并有 MC2 Dispatch/Combine/AllGather。
+现有 `arch22_v2_caller` 能表达源拓扑的逻辑工作下界，但单 rank CSV
+不能确定 peer window 或真实路由分布。四个未经校准的源拓扑情景为
+2.6015–2.9036 ms，均低于实测 3.5675 ms；构图成功不能证明精度通过。
+
+该 capture 的首个 AllReduce 平均 520.378 µs，其余调用平均 9.196 µs，
+等待来源尚未识别，不能添加固定首层补偿。DSV4F 的真实 graph1 与 MC2
+局部 pad8 也暴露了原生输出投影、SFA、MC2 欠算和其他算子高估；旧 graph8
+曾用额外工作量抵消这些差异。两类失败继续计入完整验收分母。
 
 ## 尚未覆盖的 eager 调用与等待状态
 
