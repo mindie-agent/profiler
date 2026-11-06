@@ -1,0 +1,44 @@
+{
+ "name": "scoped-a3-qwen35-tp8-source-model",
+ "machine": {
+  "backend": "ascend",
+  "sku": "Ascend910_9362",
+  "num_devices": 8,
+  "ranks_per_node": 16,
+  "device": {
+   "rates": {
+    "native_call_service": 1000000000.0
+   },
+   "resource_units": {
+    "native_call_service": 1
+   },
+   "work_units": {
+    "native_call_service": "busy_ns"
+   }
+  }
+ },
+ "model": {
+  "catalog_key": "qwen3.5-35b-a3b",
+  "quantization": "w8a8_dynamic"
+ },
+ "runtime": {
+  "tp": 8,
+  "dp": 1,
+  "ep": 8,
+  "pp": 1,
+  "moe_recipe": "alltoall",
+  "max_num_seqs": 8,
+  "max_num_batched_tokens": 8192,
+  "max_model_len": 131072,
+  "kernels": {}
+ },
+ "workload": {
+  "requests": [
+   {
+    "id": "scoped-a3",
+    "prompt_tokens": 8064,
+    "output_tokens": 1
+   }
+  ]
+ }
+}

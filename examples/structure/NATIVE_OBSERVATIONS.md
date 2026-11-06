@@ -136,3 +136,43 @@ Dispatch/Combine。因此这些 capture 不套用上述 MC2 profile，但仍在�
 固定开销。保留的 API 表只有累计时间/次数，没有 timestamp、thread 或关联 ID；
 host AllReduce 计数为每 forward 90 次，而 target Body 原生调用为 80 次，
 因此也不能把该表总时长直接加进每个 target Body。
+
+## 捕获级 scope 与原生算子的共享集成
+
+`scoped_native_replay.py` 为单个 capture 保存一次 prepared scope，并按每个实际
+几何分别执行 C（`capture_scoped_structure` 的 caller 声明）再执行 B
+（`prefill_native_observations` 的 FlashAttention/AllReduce 响应）。同一 capture
+的 full q8064/context0 与 tail q256/context399744 各自保留自己的
+`gather_output_materialization`（`per_rank_copy` 与 `view`），不会把某个窗口的
+声明提升到整份 capture。观察值、forward 数、context 和计时边界都不改写；
+prepare 只做一次，jobs materialise 后释放。
+
+A5 截断 prefill 的 `context_offset` 仅在 forward 没有显式 context 时按
+`requested_context - sum(query_rows)` 推导；显式观察到的 context 永不平移。
+当权威 slim 证据显式给出 context/context_tokens、phase 或 sequences 时，必须与
+prepared geometry 一致；不一致在定价前报错，绝不用 full scope 覆盖原分区。
+缺失 capture/observation 是诚实的 `not_provided`/`unbound`，不冒充成功；
+stale parser/config 的完整 extraction、超界读取和解析错误分别保留为
+`stale`/显式失败/异常，不会被吞成“没有证据”。完整 extraction 的读取上限为
+16 MiB，先做有界投影再做 JSON 解析，不保留 bulk 字段。
+
+Wave5 当前入口在调用归档 evaluator 前运行 maintained per-capture driver：
+复用归档 `extract_or_load` 的当前 parser/config 全量 observation，对每个
+prefill forward 分别 C→B、计算最终物理 raw 的 cache key 并单独定价；归档
+main 的 report/cohort 汇总仍由原脚本完成，scoped capture 的 prefill 结果按
+path 替换。显式 scope plan 的 forward 数、每个 (tokens, context) 和签名必须与
+观察分区完全一致，否则报错，不再静默回退到旧 `tpl_sig`。DSH 维护入口同样
+按 capture 复用一次 prepared scope，并把每个几何的声明、native profile 与
+最终 identity 记录在 sidecar。
+
+`native_observations.PROFILE_FILES` 现在覆盖 C 的三个模块、B 的 adapter/builder/
+profile、共享 replay helper 和 DSH scoped driver，因此这些语义或数据变化会
+使 native identity 失效；`pyproject.toml` 的 mindie-sim 依赖固定到
+`dccea42b086fa5abd315c44dded188ed1e0347f8`。C 的生成图校验只把 Sim 实际产生的
+`balanced_grouped_gate_up`/`balanced_grouped_down` 映射为同一语义 grouped 角色，
+其余 recipe 名称不做前缀兜底；分组形状、专家 bank、hidden/intermediate 等物理维度
+仍逐层核对，维度不一致继续拒绝。真实 A3 混合 fixture 的 full chunk 现在 C 与 B
+同时 applied，A5 归档模板的继承 `alltoall` 在显式 `archive_template=True` 下替换为
+`local_expert_reduce` 并 applied。仍有明确限制：A2 不在 scoped caller 适用域；
+原生命令二进制、group-list 值、逐 forward 精度和独立泛化仍未证明；本适配器只选择
+caller/native 物理响应，不做 Body 拟合或精度宣称。

@@ -19,6 +19,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
+from copy import deepcopy
 import argparse
 from functools import partial
 from hashlib import sha256
@@ -40,6 +41,10 @@ from runtime_identity import simulator_identity
 from wave5_regime_import import import_a3_regime_catalog
 from native_observations import native_observation_identity, predict_body as native_predict_body
 from capture_policy import import_capture_policy
+from scoped_native_replay import (
+    compact_scope_sidecar, load_verified_extraction, prefill_geometries,
+    prediction_identity, prepare_scoped_replay, price_declared_prediction)
+from dsh_scoped_prefill import load_scoped_predictions, score_prefill_capture
 
 STRUCT_DIR = Path(__file__).resolve().parent
 DEFAULT_ARCHIVE_ROOT = Path("/Volumes/data/mindie-sim-data/acceptance-archives-20261030/wave5-eval")
@@ -377,6 +382,262 @@ def _capture_traits(hw, csv_path):
     return {**module._unadapted_parse_capture_traits(csv_path), "capture_path": str(csv_path)}
 
 
+def _capture_paths(hw, module):
+    root = (getattr(module, "WAVE5_A3_ROOT", None)
+            or getattr(module, "A2_WAVE5_ROOT", None)
+            or getattr(module, "DATA_ROOT", None))
+    if root is None:
+        raise ValueError(f"wave5_capture_root_missing:{hw}")
+    return sorted(path.resolve() for path in Path(root).rglob("kernel_details.csv")
+                  if path.exists())
+
+
+def _scoped_prefill_capture_worker(item):
+    """Prepare one capture once and price every retained prefill geometry."""
+    (hw, path_str, traits, tpl_name, template, seg_opts, _cross_tp) = item
+    module = importlib.import_module(f"eval_{hw}_wave5")
+    slim = module.extract_or_load(Path(path_str), traits, template, seg_opts)
+    observed = slim.get("observed") or {}
+    cache_key = slim.get("cache_key")
+    if not observed.get("forwards") or not cache_key:
+        return path_str, {"status": "not_applicable",
+                          "reason": "no_retained_prefill_forwards"}
+    expected = {"cache_version": slim.get("cache_version"),
+                "parser_identity": module.PARSER_IDENTITY,
+                "cache_key": cache_key}
+    full_path = Path(module.CACHE_ROOT) / f"{cache_key}.json"
+    full_observed, _evidence = load_verified_extraction(
+        full_path, capture_path=path_str, expected=expected)
+    if full_observed is not None:
+        prepared = prepare_scoped_replay(
+            template, capture_path=path_str, observation=full_observed,
+            requested_context=traits.get("context_tokens"),
+            archive_template=True, extract_missing=False,
+            max_rows=5_000_000, timeout_s=60.0)
+        source_observed = full_observed
+    else:
+        prepared = prepare_scoped_replay(
+            template, capture_path=path_str, extraction_path=full_path,
+            expected_extraction=expected,
+            requested_context=traits.get("context_tokens"),
+            archive_template=True, extract_missing=True,
+            max_rows=5_000_000, timeout_s=60.0)
+        source_observed = observed
+    prefill_forwards = [
+        forward for forward in (source_observed.get("forwards") or [])
+        if forward.get("phase") in (None, "prefill")]
+    computed = prefill_geometries(
+        {"forwards": prefill_forwards}, traits["context_tokens"],
+        context_offset=prepared.context_offset)
+    prepared_index = {
+        (int(row["tokens"]), int(row["context"])): row
+        for row in prepared.geometries()
+        if row.get("phase") == "prefill"
+        and row.get("tokens") == row.get("query_rows")}
+    ordered = []
+    for geometry in computed:
+        key = (int(geometry["tokens"]), int(geometry["context"]))
+        row = prepared_index.get(key)
+        if row is None:
+            prepared.release()
+            raise ValueError(f"wave5_scoped_geometry_not_prepared:{key}")
+        ordered.append(row)
+    slim_forwards = observed.get("forwards") or []
+    if len(slim_forwards) != len(ordered):
+        prepared.release()
+        raise ValueError("wave5_scoped_forward_partition_mismatch:"
+                         f"{len(slim_forwards)}!={len(ordered)}")
+    score_forwards = []
+    for index, (slim_forward, geometry) in enumerate(
+            zip(slim_forwards, ordered)):
+        if int(slim_forward["query_rows"]) != int(geometry["query_rows"]):
+            prepared.release()
+            raise ValueError("wave5_scoped_forward_partition_mismatch:"
+                             "query_rows")
+        explicit_phase = slim_forward.get("phase")
+        if (explicit_phase is not None
+                and explicit_phase != geometry.get("phase")):
+            prepared.release()
+            raise ValueError("wave5_scoped_explicit_phase_mismatch:"
+                             f"{index}:{explicit_phase}!="
+                             f"{geometry.get('phase')}")
+        explicit_sequences = slim_forward.get("sequences")
+        if (explicit_sequences is not None
+                and int(explicit_sequences) != int(geometry["sequences"])):
+            prepared.release()
+            raise ValueError("wave5_scoped_explicit_sequences_mismatch:"
+                             f"{index}:{explicit_sequences}!="
+                             f"{geometry['sequences']}")
+        explicit_contexts = [
+            int(slim_forward[name]) for name in ("context", "context_tokens")
+            if slim_forward.get(name) is not None]
+        if explicit_contexts and any(
+                value != int(geometry["context"])
+                for value in explicit_contexts):
+            prepared.release()
+            raise ValueError("wave5_scoped_explicit_context_mismatch:"
+                             f"{index}:{explicit_contexts}!="
+                             f"{int(geometry['context'])}")
+        if "span_ms" not in (slim_forward.get("body") or {}):
+            prepared.release()
+            raise ValueError("wave5_scoped_observed_span_missing")
+        score_forwards.append({
+            "query_rows": int(geometry["query_rows"]),
+            "context": int(geometry["context"]),
+            "body": {"span_ms": slim_forward["body"]["span_ms"]},
+        })
+    observed_for_score = {
+        "body_span_sum_ms": observed.get("body_span_sum_ms"),
+        "forwards": score_forwards,
+    }
+    tpl_sig = sha256(json.dumps(template, sort_keys=True).encode("utf-8")).hexdigest()[:16]
+    if not any(row.get("status") == "ok" for row in ordered):
+        sidecar = [{"geometry": {"phase": "prefill",
+                                 "tokens": int(geometry["tokens"]),
+                                 "context": int(geometry["context"]),
+                                 "sequences": 1},
+                    "status": "unbound",
+                    "scope_status": geometry.get("status"),
+                    "scope_reason": geometry.get("reason"),
+                    "native_status": "deferred_to_baseline"}
+                   for geometry in ordered]
+        prepared.release()
+        return path_str, {"status": "unbound", "tpl_sig": tpl_sig,
+                          "observed": observed_for_score,
+                          "context_offset": prepared.context_offset,
+                          "signatures": [], "provenance": sidecar}
+    prefix = "wave5_v1" if hw == "a5" else "v2"
+    signatures, sidecar = [], []
+    try:
+        for geometry in ordered:
+            tokens, context = int(geometry["tokens"]), int(geometry["context"])
+            base_id = sha256(
+                f"{prefix}:{SIM_IDENTITY}:{tpl_sig}:prefill:"
+                f"{tokens}:{context}:1".encode("utf-8")).hexdigest()[:24]
+            base_path = Path(module.CACHE_ROOT) / f"pred_{base_id}.json"
+            if not base_path.exists():
+                base = module.predict_body(
+                    template, phase="prefill", tokens=tokens,
+                    context=context, sequences=1)
+                base.pop("parameters", None)
+                base.pop("scheduled_operator_summary", None)
+                module._atomic_write_json(base_path, base)
+            declared, provenance = prepared.apply(
+                template, phase="prefill", tokens=tokens, context=context,
+                sequences=1)
+            key = prediction_identity(
+                declared, phase="prefill", tokens=tokens, context=context,
+                sequences=1, sim_identity=SIM_IDENTITY,
+                native_identity=NATIVE_OBSERVATION_IDENTITY)
+            price_declared_prediction(
+                key, declared, phase="prefill", tokens=tokens,
+                context=context, sequences=1, cache_root=module.CACHE_ROOT,
+                writer=module._atomic_write_json)
+            signatures.append({"tokens": tokens, "context": context,
+                               "key": key})
+            sidecar.append(compact_scope_sidecar(provenance))
+    finally:
+        prepared.release()
+    return path_str, {"status": "scoped", "observed": observed_for_score,
+                      "tpl_sig": tpl_sig, "signatures": signatures,
+                      "context_offset": prepared.context_offset,
+                      "provenance": sidecar}
+
+
+def _scoped_evaluate(module, csv_path, traits, tpl_name, tpl, cross_tp,
+                     extracted, pred_cache, tpl_sig):
+    """Return a pre-materialised per-geometry capture result when supplied."""
+    key = str(Path(csv_path).resolve())
+    result = getattr(module, "_scoped_results", {}).get(key)
+    if result is not None:
+        return deepcopy(result)
+    return module._unadapted_evaluate_heldout_capture(
+        csv_path, traits, tpl_name, tpl, cross_tp, extracted, pred_cache,
+        tpl_sig)
+
+
+def _scoped_evaluate_capture(module, csv_path, traits, tpl_name, tpl,
+                             extracted, pred_cache, tpl_sig):
+    """A5 archived entry point: return a pre-materialised scoped result."""
+    key = str(Path(csv_path).resolve())
+    result = getattr(module, "_scoped_results", {}).get(key)
+    if result is not None:
+        return deepcopy(result)
+    return module._unadapted_evaluate_capture(
+        csv_path, traits, tpl_name, tpl, extracted, pred_cache, tpl_sig)
+
+
+def _materialize_scoped_prefill(module, hw, workers):
+    """Run the maintained per-capture driver before the archived main loop."""
+    module._scoped_capture_imports = {}
+    module._scoped_results = {}
+    if hw == "a2":
+        module._scoped_capture_imports["_chip"] = {
+            "status": "not_applicable",
+            "reason": "scoped_adapter_supports_a3_a5_only"}
+        return
+    tasks = []
+    for path in _capture_paths(hw, module):
+        traits = module.parse_capture_traits(path)
+        if traits.get("phase") != "prefill":
+            continue
+        resolved = list(module._unadapted_resolve_template(traits))
+        if resolved[1] is None:
+            continue
+        template, policy = import_capture_policy(
+            resolved[1], capture_path=path)
+        module._capture_policy_imports[str(path)] = policy
+        seg_opts = resolved[2] if len(resolved) > 2 else {}
+        cross_tp = resolved[3] if len(resolved) > 3 else False
+        tasks.append((hw, str(path), traits, resolved[0], template, seg_opts,
+                      cross_tp))
+    if not tasks:
+        return
+    results = module._run_bounded_pool(
+        _scoped_prefill_capture_worker, tasks, workers,
+        step_timeout_s=900.0, progress_step=10, label="Scoped prefill")
+    for path, payload in results.items():
+        module._scoped_capture_imports[path] = {
+            "status": payload.get("status"),
+            "reason": payload.get("reason"),
+            "tpl_sig": payload.get("tpl_sig"),
+            "geometries": len(payload.get("provenance") or []),
+            "status_counts": _status_counts(payload.get("provenance") or []),
+            "scope_reasons": sorted({
+                row.get("scope_reason")
+                for row in (payload.get("provenance") or [])
+                if row.get("scope_reason")}),
+        }
+        if payload.get("status") != "scoped":
+            continue
+        applied = any(row.get("status") in {"applied", "applied_scope_only"}
+                      for row in payload["provenance"])
+        module._scoped_capture_imports[path]["capture_replaced"] = applied
+        if not applied:
+            continue
+        signatures = payload["signatures"]
+        observed = payload["observed"]
+        task = next(item for item in tasks if item[1] == path)
+        pred_cache = load_scoped_predictions(
+            {"signatures": signatures}, module.CACHE_ROOT)
+        result = score_prefill_capture(
+            Path(path), task[2], task[3], task[6],
+            {"observed": observed, "meta": {}}, pred_cache, "scoped",
+            scope_plan={"signatures": signatures,
+                        "provenance": payload["provenance"],
+                        "context_offset": payload.get("context_offset", 0)})
+        result["scoped_native_replay"]["capture_replaced"] = True
+        module._scoped_results[path] = result
+
+
+def _status_counts(provenance):
+    counts = {}
+    for row in provenance:
+        status = row.get("status") or "unknown"
+        counts[status] = counts.get(status, 0) + 1
+    return dict(sorted(counts.items()))
+
+
 def _resolve_capture_template(hw, traits):
     module = importlib.import_module(f"eval_{hw}_wave5")
     resolved = list(module._unadapted_resolve_template(traits))
@@ -425,6 +686,16 @@ def _configure_chip(hw: str, archive_root: Path, cache_root: Path, sim_identity:
         module._unadapted_resolve_template = module.resolve_template
         module._unadapted_parse_capture_traits = module.parse_capture_traits
     module._capture_policy_imports = {}
+    module._scoped_capture_imports = {}
+    module._scoped_results = {}
+    if hasattr(module, "evaluate_heldout_capture"):
+        if not hasattr(module, "_unadapted_evaluate_heldout_capture"):
+            module._unadapted_evaluate_heldout_capture = module.evaluate_heldout_capture
+        module.evaluate_heldout_capture = partial(_scoped_evaluate, module)
+    if hasattr(module, "evaluate_capture"):
+        if not hasattr(module, "_unadapted_evaluate_capture"):
+            module._unadapted_evaluate_capture = module.evaluate_capture
+        module.evaluate_capture = partial(_scoped_evaluate_capture, module)
     module.parse_capture_traits = partial(_capture_traits, hw)
     module.resolve_template = partial(_resolve_capture_template, hw)
     module.ProcessPoolExecutor = partial(
@@ -441,6 +712,7 @@ def _run_chip(hw: str, archive_root: Path, output_json: Path, output_md: Path, w
         if path.resolve().is_relative_to(archive_root.resolve()):
             raise ValueError(f"wave5_output_must_be_outside_archive:{path}")
     module, regime_import = _configure_chip(hw, archive_root, cache_root, SIM_IDENTITY)
+    _materialize_scoped_prefill(module, hw, workers)
     result = module.main([
         "--workers", str(workers), "--output-json", str(output_json), "--output-md", str(output_md),
     ])
@@ -458,6 +730,18 @@ def _run_chip(hw: str, archive_root: Path, output_json: Path, output_md: Path, w
         "archive_extraction_cache_reused": False,
         "regime_catalog_import": regime_import,
         "capture_policy_imports": getattr(module, "_capture_policy_imports", {}),
+        "scoped_native_replay_imports": getattr(module, "_scoped_capture_imports", {}),
+        "scoped_native_replay_results": len(getattr(module, "_scoped_results", {})),
+        "scoped_native_replay_policy": {
+            "order": "capture_scoped_caller_then_per_geometry_native_observations",
+            "scope_applied_to": "per_geometry_final_raw",
+            "scope_declaration_identity": "per_geometry_not_promoted_to_capture",
+            "prepared_state": "one_capture_reused_per_geometry_released_after_materialization",
+            "scope_plan_validation": "exact_forward_count_and_every_geometry",
+            "archive_template_replacement": True,
+            "reason": "archived Wave 5 templates inherit tp_join_reduce and are "
+                      "not the caller evidence; only the retained capture window selects it",
+        },
     }
     _atomic_write_json(output_json, report)
     return 0

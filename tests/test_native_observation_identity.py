@@ -23,8 +23,12 @@ from tests.sim_fixtures import case_path
 
 @pytest.mark.parametrize("relative", (
     "a5_native_observations.py", "capture_structure.py", "capture_ffn_guard.py",
-    "profiles/a2_native_20261031.json",
+    "capture_scoped_structure.py", "capture_scoped_contracts.py",
+    "capture_scoped_evidence.py", "prefill_native_observations.py",
+    "prefill_native_builder.py", "scoped_native_replay.py",
+    "dsh_scoped_prefill.py", "profiles/a2_native_20261031.json",
     "profiles/a5_gdn_decode_native_20261106.json",
+    "profiles/prefill_native_20261106.json",
 ))
 def test_profile_semantics_and_data_invalidate_actual_prediction_cache(tmp_path, monkeypatch, relative):
     source = ROOT / "examples" / "structure"

@@ -1,0 +1,2568 @@
+{
+  "schema": "mindie-profiler-prefill-native-observation-profile/1",
+  "id": "a3-qwen35-prefill-native-20261106",
+  "phase": "prefill",
+  "physical_domain": {
+    "sequences": 1,
+    "query_rows": 8064,
+    "context_min": 0,
+    "context_max": 387072,
+    "kv_rows": {
+      "min": 8064,
+      "max": 395136
+    },
+    "calls_per_forward": {
+      "flash_attention": 10,
+      "linear_reduce": 30,
+      "catalog_tp_allreduce": 10,
+      "ring_allreduce": 40
+    }
+  },
+  "source_contract": {
+    "hardware": "Ascend910_9362",
+    "parallel": {
+      "dp": 1,
+      "tp": 8,
+      "ep": 8,
+      "pp": 1,
+      "cp": 1,
+      "pcp": 1,
+      "cp_plan": "none"
+    },
+    "physical": {
+      "machine": {
+        "name": "Ascend910_9362",
+        "architecture": "A3",
+        "hardware_key": "",
+        "sku": "Ascend910_9362",
+        "devices": [
+          {
+            "rank": 0,
+            "memory_bytes": 68719476736,
+            "compute_peaks": {
+              "bf16": 270336000000000.0,
+              "fp16": 270336000000000.0,
+              "fp32": 67584000000000.0,
+              "hf32": 135168000000000.0,
+              "int4": 1081344000000000.0,
+              "int8": 540672000000000.0
+            },
+            "rates": {
+              "fixpipe": 4224000000000.0,
+              "hbm": 1200000000000.0,
+              "mte1": 4224000000000.0,
+              "mte2_aic": 1056000000000.0,
+              "mte2_aiv": 2112000000000.0,
+              "mte3": 4224000000000.0,
+              "native_call_service": 1000000000.0,
+              "vector": 2112000000000.0
+            },
+            "buffers": {
+              "l0a": 65536,
+              "l0b": 65536,
+              "l0c": 131072,
+              "l1": 524288,
+              "ub": 196608
+            },
+            "compute_units": 20,
+            "launch_us": 0.0,
+            "node": 0,
+            "package": 0,
+            "resource_units": {
+              "fixpipe": 20,
+              "mte1": 20,
+              "mte2_aic": 20,
+              "mte2_aiv": 40,
+              "mte3": 40,
+              "native_call_service": 1,
+              "vector": 40
+            },
+            "buffer_units": {
+              "l0a": 20,
+              "l0b": 20,
+              "l0c": 20,
+              "l1": 20,
+              "ub": 40
+            },
+            "service_modes": {
+              "mte1_l0a": {
+                "resource": "mte1",
+                "rate": 8448000000000.0
+              },
+              "mte1_l0b": {
+                "resource": "mte1",
+                "rate": 4224000000000.0
+              }
+            },
+            "work_units": {
+              "native_call_service": "busy_ns"
+            },
+            "kernel_invocations": {
+              "cube": {
+                "startup_ms": 0.0,
+                "minimum_ms": 0.005,
+                "provenance": {
+                  "basis": "user_reported_experience",
+                  "reported_us": [
+                    5,
+                    5
+                  ],
+                  "declared_on": "2026-10-29",
+                  "boundary": "device_kernel_completion",
+                  "scope": "ordinary_work_kernel_class; not measured empty-kernel dispatch",
+                  "selection": "reported approximate value"
+                }
+              },
+              "vector": {
+                "startup_ms": 0.0,
+                "minimum_ms": 0.0025,
+                "provenance": {
+                  "basis": "user_reported_experience",
+                  "reported_us": [
+                    2,
+                    3
+                  ],
+                  "declared_on": "2026-10-29",
+                  "boundary": "device_kernel_completion",
+                  "scope": "ordinary_work_kernel_class; not measured empty-kernel dispatch",
+                  "selection": "midpoint of reported range"
+                }
+              }
+            }
+          },
+          {
+            "rank": 1,
+            "memory_bytes": 68719476736,
+            "compute_peaks": {
+              "bf16": 270336000000000.0,
+              "fp16": 270336000000000.0,
+              "fp32": 67584000000000.0,
+              "hf32": 135168000000000.0,
+              "int4": 1081344000000000.0,
+              "int8": 540672000000000.0
+            },
+            "rates": {
+              "fixpipe": 4224000000000.0,
+              "hbm": 1200000000000.0,
+              "mte1": 4224000000000.0,
+              "mte2_aic": 1056000000000.0,
+              "mte2_aiv": 2112000000000.0,
+              "mte3": 4224000000000.0,
+              "native_call_service": 1000000000.0,
+              "vector": 2112000000000.0
+            },
+            "buffers": {
+              "l0a": 65536,
+              "l0b": 65536,
+              "l0c": 131072,
+              "l1": 524288,
+              "ub": 196608
+            },
+            "compute_units": 20,
+            "launch_us": 0.0,
+            "node": 0,
+            "package": 0,
+            "resource_units": {
+              "fixpipe": 20,
+              "mte1": 20,
+              "mte2_aic": 20,
+              "mte2_aiv": 40,
+              "mte3": 40,
+              "native_call_service": 1,
+              "vector": 40
+            },
+            "buffer_units": {
+              "l0a": 20,
+              "l0b": 20,
+              "l0c": 20,
+              "l1": 20,
+              "ub": 40
+            },
+            "service_modes": {
+              "mte1_l0a": {
+                "resource": "mte1",
+                "rate": 8448000000000.0
+              },
+              "mte1_l0b": {
+                "resource": "mte1",
+                "rate": 4224000000000.0
+              }
+            },
+            "work_units": {
+              "native_call_service": "busy_ns"
+            },
+            "kernel_invocations": {
+              "cube": {
+                "startup_ms": 0.0,
+                "minimum_ms": 0.005,
+                "provenance": {
+                  "basis": "user_reported_experience",
+                  "reported_us": [
+                    5,
+                    5
+                  ],
+                  "declared_on": "2026-10-29",
+                  "boundary": "device_kernel_completion",
+                  "scope": "ordinary_work_kernel_class; not measured empty-kernel dispatch",
+                  "selection": "reported approximate value"
+                }
+              },
+              "vector": {
+                "startup_ms": 0.0,
+                "minimum_ms": 0.0025,
+                "provenance": {
+                  "basis": "user_reported_experience",
+                  "reported_us": [
+                    2,
+                    3
+                  ],
+                  "declared_on": "2026-10-29",
+                  "boundary": "device_kernel_completion",
+                  "scope": "ordinary_work_kernel_class; not measured empty-kernel dispatch",
+                  "selection": "midpoint of reported range"
+                }
+              }
+            }
+          },
+          {
+            "rank": 2,
+            "memory_bytes": 68719476736,
+            "compute_peaks": {
+              "bf16": 270336000000000.0,
+              "fp16": 270336000000000.0,
+              "fp32": 67584000000000.0,
+              "hf32": 135168000000000.0,
+              "int4": 1081344000000000.0,
+              "int8": 540672000000000.0
+            },
+            "rates": {
+              "fixpipe": 4224000000000.0,
+              "hbm": 1200000000000.0,
+              "mte1": 4224000000000.0,
+              "mte2_aic": 1056000000000.0,
+              "mte2_aiv": 2112000000000.0,
+              "mte3": 4224000000000.0,
+              "native_call_service": 1000000000.0,
+              "vector": 2112000000000.0
+            },
+            "buffers": {
+              "l0a": 65536,
+              "l0b": 65536,
+              "l0c": 131072,
+              "l1": 524288,
+              "ub": 196608
+            },
+            "compute_units": 20,
+            "launch_us": 0.0,
+            "node": 0,
+            "package": 1,
+            "resource_units": {
+              "fixpipe": 20,
+              "mte1": 20,
+              "mte2_aic": 20,
+              "mte2_aiv": 40,
+              "mte3": 40,
+              "native_call_service": 1,
+              "vector": 40
+            },
+            "buffer_units": {
+              "l0a": 20,
+              "l0b": 20,
+              "l0c": 20,
+              "l1": 20,
+              "ub": 40
+            },
+            "service_modes": {
+              "mte1_l0a": {
+                "resource": "mte1",
+                "rate": 8448000000000.0
+              },
+              "mte1_l0b": {
+                "resource": "mte1",
+                "rate": 4224000000000.0
+              }
+            },
+            "work_units": {
+              "native_call_service": "busy_ns"
+            },
+            "kernel_invocations": {
+              "cube": {
+                "startup_ms": 0.0,
+                "minimum_ms": 0.005,
+                "provenance": {
+                  "basis": "user_reported_experience",
+                  "reported_us": [
+                    5,
+                    5
+                  ],
+                  "declared_on": "2026-10-29",
+                  "boundary": "device_kernel_completion",
+                  "scope": "ordinary_work_kernel_class; not measured empty-kernel dispatch",
+                  "selection": "reported approximate value"
+                }
+              },
+              "vector": {
+                "startup_ms": 0.0,
+                "minimum_ms": 0.0025,
+                "provenance": {
+                  "basis": "user_reported_experience",
+                  "reported_us": [
+                    2,
+                    3
+                  ],
+                  "declared_on": "2026-10-29",
+                  "boundary": "device_kernel_completion",
+                  "scope": "ordinary_work_kernel_class; not measured empty-kernel dispatch",
+                  "selection": "midpoint of reported range"
+                }
+              }
+            }
+          },
+          {
+            "rank": 3,
+            "memory_bytes": 68719476736,
+            "compute_peaks": {
+              "bf16": 270336000000000.0,
+              "fp16": 270336000000000.0,
+              "fp32": 67584000000000.0,
+              "hf32": 135168000000000.0,
+              "int4": 1081344000000000.0,
+              "int8": 540672000000000.0
+            },
+            "rates": {
+              "fixpipe": 4224000000000.0,
+              "hbm": 1200000000000.0,
+              "mte1": 4224000000000.0,
+              "mte2_aic": 1056000000000.0,
+              "mte2_aiv": 2112000000000.0,
+              "mte3": 4224000000000.0,
+              "native_call_service": 1000000000.0,
+              "vector": 2112000000000.0
+            },
+            "buffers": {
+              "l0a": 65536,
+              "l0b": 65536,
+              "l0c": 131072,
+              "l1": 524288,
+              "ub": 196608
+            },
+            "compute_units": 20,
+            "launch_us": 0.0,
+            "node": 0,
+            "package": 1,
+            "resource_units": {
+              "fixpipe": 20,
+              "mte1": 20,
+              "mte2_aic": 20,
+              "mte2_aiv": 40,
+              "mte3": 40,
+              "native_call_service": 1,
+              "vector": 40
+            },
+            "buffer_units": {
+              "l0a": 20,
+              "l0b": 20,
+              "l0c": 20,
+              "l1": 20,
+              "ub": 40
+            },
+            "service_modes": {
+              "mte1_l0a": {
+                "resource": "mte1",
+                "rate": 8448000000000.0
+              },
+              "mte1_l0b": {
+                "resource": "mte1",
+                "rate": 4224000000000.0
+              }
+            },
+            "work_units": {
+              "native_call_service": "busy_ns"
+            },
+            "kernel_invocations": {
+              "cube": {
+                "startup_ms": 0.0,
+                "minimum_ms": 0.005,
+                "provenance": {
+                  "basis": "user_reported_experience",
+                  "reported_us": [
+                    5,
+                    5
+                  ],
+                  "declared_on": "2026-10-29",
+                  "boundary": "device_kernel_completion",
+                  "scope": "ordinary_work_kernel_class; not measured empty-kernel dispatch",
+                  "selection": "reported approximate value"
+                }
+              },
+              "vector": {
+                "startup_ms": 0.0,
+                "minimum_ms": 0.0025,
+                "provenance": {
+                  "basis": "user_reported_experience",
+                  "reported_us": [
+                    2,
+                    3
+                  ],
+                  "declared_on": "2026-10-29",
+                  "boundary": "device_kernel_completion",
+                  "scope": "ordinary_work_kernel_class; not measured empty-kernel dispatch",
+                  "selection": "midpoint of reported range"
+                }
+              }
+            }
+          },
+          {
+            "rank": 4,
+            "memory_bytes": 68719476736,
+            "compute_peaks": {
+              "bf16": 270336000000000.0,
+              "fp16": 270336000000000.0,
+              "fp32": 67584000000000.0,
+              "hf32": 135168000000000.0,
+              "int4": 1081344000000000.0,
+              "int8": 540672000000000.0
+            },
+            "rates": {
+              "fixpipe": 4224000000000.0,
+              "hbm": 1200000000000.0,
+              "mte1": 4224000000000.0,
+              "mte2_aic": 1056000000000.0,
+              "mte2_aiv": 2112000000000.0,
+              "mte3": 4224000000000.0,
+              "native_call_service": 1000000000.0,
+              "vector": 2112000000000.0
+            },
+            "buffers": {
+              "l0a": 65536,
+              "l0b": 65536,
+              "l0c": 131072,
+              "l1": 524288,
+              "ub": 196608
+            },
+            "compute_units": 20,
+            "launch_us": 0.0,
+            "node": 0,
+            "package": 2,
+            "resource_units": {
+              "fixpipe": 20,
+              "mte1": 20,
+              "mte2_aic": 20,
+              "mte2_aiv": 40,
+              "mte3": 40,
+              "native_call_service": 1,
+              "vector": 40
+            },
+            "buffer_units": {
+              "l0a": 20,
+              "l0b": 20,
+              "l0c": 20,
+              "l1": 20,
+              "ub": 40
+            },
+            "service_modes": {
+              "mte1_l0a": {
+                "resource": "mte1",
+                "rate": 8448000000000.0
+              },
+              "mte1_l0b": {
+                "resource": "mte1",
+                "rate": 4224000000000.0
+              }
+            },
+            "work_units": {
+              "native_call_service": "busy_ns"
+            },
+            "kernel_invocations": {
+              "cube": {
+                "startup_ms": 0.0,
+                "minimum_ms": 0.005,
+                "provenance": {
+                  "basis": "user_reported_experience",
+                  "reported_us": [
+                    5,
+                    5
+                  ],
+                  "declared_on": "2026-10-29",
+                  "boundary": "device_kernel_completion",
+                  "scope": "ordinary_work_kernel_class; not measured empty-kernel dispatch",
+                  "selection": "reported approximate value"
+                }
+              },
+              "vector": {
+                "startup_ms": 0.0,
+                "minimum_ms": 0.0025,
+                "provenance": {
+                  "basis": "user_reported_experience",
+                  "reported_us": [
+                    2,
+                    3
+                  ],
+                  "declared_on": "2026-10-29",
+                  "boundary": "device_kernel_completion",
+                  "scope": "ordinary_work_kernel_class; not measured empty-kernel dispatch",
+                  "selection": "midpoint of reported range"
+                }
+              }
+            }
+          },
+          {
+            "rank": 5,
+            "memory_bytes": 68719476736,
+            "compute_peaks": {
+              "bf16": 270336000000000.0,
+              "fp16": 270336000000000.0,
+              "fp32": 67584000000000.0,
+              "hf32": 135168000000000.0,
+              "int4": 1081344000000000.0,
+              "int8": 540672000000000.0
+            },
+            "rates": {
+              "fixpipe": 4224000000000.0,
+              "hbm": 1200000000000.0,
+              "mte1": 4224000000000.0,
+              "mte2_aic": 1056000000000.0,
+              "mte2_aiv": 2112000000000.0,
+              "mte3": 4224000000000.0,
+              "native_call_service": 1000000000.0,
+              "vector": 2112000000000.0
+            },
+            "buffers": {
+              "l0a": 65536,
+              "l0b": 65536,
+              "l0c": 131072,
+              "l1": 524288,
+              "ub": 196608
+            },
+            "compute_units": 20,
+            "launch_us": 0.0,
+            "node": 0,
+            "package": 2,
+            "resource_units": {
+              "fixpipe": 20,
+              "mte1": 20,
+              "mte2_aic": 20,
+              "mte2_aiv": 40,
+              "mte3": 40,
+              "native_call_service": 1,
+              "vector": 40
+            },
+            "buffer_units": {
+              "l0a": 20,
+              "l0b": 20,
+              "l0c": 20,
+              "l1": 20,
+              "ub": 40
+            },
+            "service_modes": {
+              "mte1_l0a": {
+                "resource": "mte1",
+                "rate": 8448000000000.0
+              },
+              "mte1_l0b": {
+                "resource": "mte1",
+                "rate": 4224000000000.0
+              }
+            },
+            "work_units": {
+              "native_call_service": "busy_ns"
+            },
+            "kernel_invocations": {
+              "cube": {
+                "startup_ms": 0.0,
+                "minimum_ms": 0.005,
+                "provenance": {
+                  "basis": "user_reported_experience",
+                  "reported_us": [
+                    5,
+                    5
+                  ],
+                  "declared_on": "2026-10-29",
+                  "boundary": "device_kernel_completion",
+                  "scope": "ordinary_work_kernel_class; not measured empty-kernel dispatch",
+                  "selection": "reported approximate value"
+                }
+              },
+              "vector": {
+                "startup_ms": 0.0,
+                "minimum_ms": 0.0025,
+                "provenance": {
+                  "basis": "user_reported_experience",
+                  "reported_us": [
+                    2,
+                    3
+                  ],
+                  "declared_on": "2026-10-29",
+                  "boundary": "device_kernel_completion",
+                  "scope": "ordinary_work_kernel_class; not measured empty-kernel dispatch",
+                  "selection": "midpoint of reported range"
+                }
+              }
+            }
+          },
+          {
+            "rank": 6,
+            "memory_bytes": 68719476736,
+            "compute_peaks": {
+              "bf16": 270336000000000.0,
+              "fp16": 270336000000000.0,
+              "fp32": 67584000000000.0,
+              "hf32": 135168000000000.0,
+              "int4": 1081344000000000.0,
+              "int8": 540672000000000.0
+            },
+            "rates": {
+              "fixpipe": 4224000000000.0,
+              "hbm": 1200000000000.0,
+              "mte1": 4224000000000.0,
+              "mte2_aic": 1056000000000.0,
+              "mte2_aiv": 2112000000000.0,
+              "mte3": 4224000000000.0,
+              "native_call_service": 1000000000.0,
+              "vector": 2112000000000.0
+            },
+            "buffers": {
+              "l0a": 65536,
+              "l0b": 65536,
+              "l0c": 131072,
+              "l1": 524288,
+              "ub": 196608
+            },
+            "compute_units": 20,
+            "launch_us": 0.0,
+            "node": 0,
+            "package": 3,
+            "resource_units": {
+              "fixpipe": 20,
+              "mte1": 20,
+              "mte2_aic": 20,
+              "mte2_aiv": 40,
+              "mte3": 40,
+              "native_call_service": 1,
+              "vector": 40
+            },
+            "buffer_units": {
+              "l0a": 20,
+              "l0b": 20,
+              "l0c": 20,
+              "l1": 20,
+              "ub": 40
+            },
+            "service_modes": {
+              "mte1_l0a": {
+                "resource": "mte1",
+                "rate": 8448000000000.0
+              },
+              "mte1_l0b": {
+                "resource": "mte1",
+                "rate": 4224000000000.0
+              }
+            },
+            "work_units": {
+              "native_call_service": "busy_ns"
+            },
+            "kernel_invocations": {
+              "cube": {
+                "startup_ms": 0.0,
+                "minimum_ms": 0.005,
+                "provenance": {
+                  "basis": "user_reported_experience",
+                  "reported_us": [
+                    5,
+                    5
+                  ],
+                  "declared_on": "2026-10-29",
+                  "boundary": "device_kernel_completion",
+                  "scope": "ordinary_work_kernel_class; not measured empty-kernel dispatch",
+                  "selection": "reported approximate value"
+                }
+              },
+              "vector": {
+                "startup_ms": 0.0,
+                "minimum_ms": 0.0025,
+                "provenance": {
+                  "basis": "user_reported_experience",
+                  "reported_us": [
+                    2,
+                    3
+                  ],
+                  "declared_on": "2026-10-29",
+                  "boundary": "device_kernel_completion",
+                  "scope": "ordinary_work_kernel_class; not measured empty-kernel dispatch",
+                  "selection": "midpoint of reported range"
+                }
+              }
+            }
+          },
+          {
+            "rank": 7,
+            "memory_bytes": 68719476736,
+            "compute_peaks": {
+              "bf16": 270336000000000.0,
+              "fp16": 270336000000000.0,
+              "fp32": 67584000000000.0,
+              "hf32": 135168000000000.0,
+              "int4": 1081344000000000.0,
+              "int8": 540672000000000.0
+            },
+            "rates": {
+              "fixpipe": 4224000000000.0,
+              "hbm": 1200000000000.0,
+              "mte1": 4224000000000.0,
+              "mte2_aic": 1056000000000.0,
+              "mte2_aiv": 2112000000000.0,
+              "mte3": 4224000000000.0,
+              "native_call_service": 1000000000.0,
+              "vector": 2112000000000.0
+            },
+            "buffers": {
+              "l0a": 65536,
+              "l0b": 65536,
+              "l0c": 131072,
+              "l1": 524288,
+              "ub": 196608
+            },
+            "compute_units": 20,
+            "launch_us": 0.0,
+            "node": 0,
+            "package": 3,
+            "resource_units": {
+              "fixpipe": 20,
+              "mte1": 20,
+              "mte2_aic": 20,
+              "mte2_aiv": 40,
+              "mte3": 40,
+              "native_call_service": 1,
+              "vector": 40
+            },
+            "buffer_units": {
+              "l0a": 20,
+              "l0b": 20,
+              "l0c": 20,
+              "l1": 20,
+              "ub": 40
+            },
+            "service_modes": {
+              "mte1_l0a": {
+                "resource": "mte1",
+                "rate": 8448000000000.0
+              },
+              "mte1_l0b": {
+                "resource": "mte1",
+                "rate": 4224000000000.0
+              }
+            },
+            "work_units": {
+              "native_call_service": "busy_ns"
+            },
+            "kernel_invocations": {
+              "cube": {
+                "startup_ms": 0.0,
+                "minimum_ms": 0.005,
+                "provenance": {
+                  "basis": "user_reported_experience",
+                  "reported_us": [
+                    5,
+                    5
+                  ],
+                  "declared_on": "2026-10-29",
+                  "boundary": "device_kernel_completion",
+                  "scope": "ordinary_work_kernel_class; not measured empty-kernel dispatch",
+                  "selection": "reported approximate value"
+                }
+              },
+              "vector": {
+                "startup_ms": 0.0,
+                "minimum_ms": 0.0025,
+                "provenance": {
+                  "basis": "user_reported_experience",
+                  "reported_us": [
+                    2,
+                    3
+                  ],
+                  "declared_on": "2026-10-29",
+                  "boundary": "device_kernel_completion",
+                  "scope": "ordinary_work_kernel_class; not measured empty-kernel dispatch",
+                  "selection": "midpoint of reported range"
+                }
+              }
+            }
+          }
+        ],
+        "links": [
+          {
+            "name": "d2d_intra_package:0",
+            "capacity_bytes_per_ms": 448000000.0,
+            "members": [
+              0,
+              1
+            ],
+            "latency_us": 0.8,
+            "channel": "d2d_intra_package",
+            "semantics": "per_port"
+          },
+          {
+            "name": "d2d_intra_package:2",
+            "capacity_bytes_per_ms": 448000000.0,
+            "members": [
+              2,
+              3
+            ],
+            "latency_us": 0.8,
+            "channel": "d2d_intra_package",
+            "semantics": "per_port"
+          },
+          {
+            "name": "d2d_intra_package:4",
+            "capacity_bytes_per_ms": 448000000.0,
+            "members": [
+              4,
+              5
+            ],
+            "latency_us": 0.8,
+            "channel": "d2d_intra_package",
+            "semantics": "per_port"
+          },
+          {
+            "name": "d2d_intra_package:6",
+            "capacity_bytes_per_ms": 448000000.0,
+            "members": [
+              6,
+              7
+            ],
+            "latency_us": 0.8,
+            "channel": "d2d_intra_package",
+            "semantics": "per_port"
+          },
+          {
+            "name": "d2d_intra_node:0",
+            "capacity_bytes_per_ms": 196000000.0,
+            "members": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "latency_us": 2.5,
+            "channel": "d2d_intra_node",
+            "semantics": "per_port"
+          }
+        ],
+        "ranks_per_node": 8,
+        "dies_per_package": 2,
+        "assumptions": {
+          "accuracy": "nominal analytical resource profile; no accuracy claim",
+          "clock_provenance": "configured 1650 MHz is retained; the read-only CANN 9.2.0 platform ini cube_freq 1500 MHz is not substituted.",
+          "fixpipe": "128 B/cycle*20*1.65 GHz=4.224e12 B/s. Generic use for GM destinations is an explicit analytical assumption; the pinned instruction table directly establishes L0C->L1 BF16/FP16 at 128 B/cycle and INT8 output at 64 B/cycle, not universal 128 B/cycle.",
+          "kernel_invocations": "A3 user-reported device Vector 2-3us (midpoint 2.5), Cube about 5us; completion minimum, independent of host launch",
+          "launch_us": "host submission is undeclared, so launch_us=0 is the device-path baseline, not a measured host launch; runtime.submission.kernel_launch_ms or an explicit device.launch_us can declare host submission; an empty-task duration is not used as a host parameter",
+          "memory_path": "one shared HBM at 1.2e12 B/s; AIC/AIV split read roles are local path supplies and actual GM transfers also charge shared HBM; no pair-shared private AIC/AIV rate is declared",
+          "mte1": "one physical MTE1 resource with 20 AIC owners; generic aggregate supply 128 B/cycle*20*1.65 GHz=4.224e12 B/s is a conservative undifferentiated A/B supply. mte1_l0a and mte1_l0b both bind to this same resource and owner set: L1->L0A 256 B/cycle*20=8.448e12 B/s and L1->L0B 128 B/cycle*20=4.224e12 B/s. No independent mte1_a/mte1_b resources.",
+          "mte2": "AIC read 32 B/cycle*20*1.65 GHz=1.056e12 B/s; AIV read 32 B/cycle*40*1.65 GHz=2.112e12 B/s. The AIV 32 B/cycle is an explicit analytical per-owner mapping of the platform memory-path ddr_read_rate scalar, not a measured physical instruction peak. No generic third mte2 read pipe is declared; split roles are local supplies.",
+          "mte3": "AIV-owned UB->GM 64 B/cycle*40*1.65 GHz=4.224e12 B/s. No additional AIC MTE3 pipe is fabricated.",
+          "pipeline_provenance": "asc-devkit pinned revision 56500ea0dc219380f50f4a17ce73ef5264f830fc: npu_arch_2201.md SHA d16edc43d897cc4eba425802e0b7d1f61b1bc76fb50768f336d458ddd4927994 (AIC:AIV 1:2, independent cores, GM communication, PIPE_MTE1 256/128 B/cycle); cube_instruction_theoretical_perf_summary.md SHA 3a249d10fb6b794849d15f66208e43fa27ccd5edc6b635418911ebf11020f728 (table 3 direction rates, table 7 Fixpipe L0C->L1 BF16/FP16 128 B/cycle and INT8 64 B/cycle). The read-only sim-runner CANN 9.2.0 ini SHA ffd0e8d061db7fa8b3877bcbaf8151edac77abcf3a50df95b42b21e2332a9ca3 confirms 20 AIC/40 AIV, 64 GiB, ddr_read 32, ub_to_ddr 64, cube_freq 1500 and has only AICoreMemoryRates, with no AIV-specific rates; the retained CANN 9.1beta1 ini SHA 5135cf6bc5e2eb56811917c9010341eb3946b5a3c2b51baab7fa775ffffc315c is preserved in data/verification/a3-9362-platform-metadata-20261029.json.",
+          "pipeline_rates": "nominal analytical supply from the configured 1.65 GHz clock and pinned public instruction tables; these are not measured peaks, do not replace the configured clock with the platform ini 1500 MHz, and are not fitted from observed model gaps",
+          "profile": "registered SKU geometry and nominal rates",
+          "source_discrepancy": "the read-only CANN 9.2.0 ini reports only AICoreMemoryRates l1_to_l0_a/l1_to_l0_b at 512/256 B/cycle, while the pinned public instruction table documents 256/128 B/cycle. The profile chooses the documented instruction 256/128 and preserves this discrepancy; no measurement is implied.",
+          "topology_tiers": "topology_preset supplies defaults only for fields not set explicitly; 4P/8P subgroups and SuperPod domains are structural link boundaries, and bandwidth utilization scales the declared peak into service capacity",
+          "transfer_bandwidth_precedence": "explicit machine.links > explicit transfer_channels channel bandwidth > convenience bytes_per_s > same-layer Gb/s > profile effective; within a channel explicit effective > explicit calibrated > explicit derived > explicit uni_peak, and null preserves unknown/disabled semantics",
+          "transfer_bandwidth_units": "inter_node_bw_gbps/intra_node_bw_gbps are decimal Gb/s and divided by 8 unless a topology_preset is selected; preset bandwidths, intra_package_bw_gbps, intra_bw_4p/8p_gbps, superpod_bw_gbps and inter_pod_bw_gbps are GB/s; inter_node_bw_bytes_per_s/ intra_node_bw_bytes_per_s are B/s and win over same-layer Gb/s; transfer_channels.*_bw_gbps and Link.capacity_gbps keep the historical GB/s meaning",
+          "transfer_channel_scope": "Only d2d_intra_package, d2d_intra_node and d2d_inter_node generate device graph links. Other registered channels remain metadata; they do not override host/offload services or the P/D connector. Generated links retain per_port capacity unless semantics is explicitly declared.",
+          "vector_issue": "one FP32 lane operation per cycle unless explicitly overridden"
+        }
+      },
+      "parallel": {
+        "dp": 1,
+        "tp": 8,
+        "ep": 8,
+        "pp": 1,
+        "cp": 1,
+        "pcp": 1,
+        "cp_plan": "none"
+      }
+    },
+    "model": {
+      "layers": 40,
+      "hidden_size": 2048,
+      "num_heads": 16,
+      "num_kv_heads": 2,
+      "head_dim": 256,
+      "num_experts": 256,
+      "top_k": 8,
+      "moe_intermediate_size": 512,
+      "activation_dtype": "bf16",
+      "kv_dtype": "bf16",
+      "weight_dtype": "int8",
+      "quantization": "W8A8_DYNAMIC",
+      "attention": "gdn",
+      "ffn": "moe"
+    },
+    "layer_fields": [
+      "attention",
+      "ffn",
+      "num_heads",
+      "num_kv_heads",
+      "head_dim",
+      "num_experts",
+      "top_k",
+      "moe_intermediate_size",
+      "num_shared_experts",
+      "conv_kernel",
+      "linear_heads",
+      "linear_head_dim",
+      "indexer",
+      "window",
+      "compress_ratio",
+      "router_dtype",
+      "ffn_activation",
+      "architecture"
+    ],
+    "layer_groups": [
+      {
+        "count": 30,
+        "values": [
+          "gdn",
+          "moe",
+          16,
+          2,
+          256,
+          256,
+          8,
+          512,
+          1,
+          4,
+          32,
+          128,
+          false,
+          0,
+          0,
+          "fp32",
+          "silu",
+          "gdn"
+        ]
+      },
+      {
+        "count": 10,
+        "values": [
+          "gqa",
+          "moe",
+          16,
+          2,
+          256,
+          256,
+          8,
+          512,
+          1,
+          0,
+          0,
+          0,
+          false,
+          0,
+          0,
+          "fp32",
+          "silu",
+          "gated_gqa"
+        ]
+      }
+    ],
+    "quant": {
+      "weight_format": "int8",
+      "activation_format": "int8",
+      "expert_weight_format": "int8",
+      "scale_format": "fp32",
+      "scale_bytes": 4.0,
+      "kv_dtype": "bf16"
+    },
+    "quant_categories": {
+      "routed_expert": {
+        "scale_format": "fp32",
+        "scale_bytes": 4.0,
+        "activation_scale_format": "fp32"
+      }
+    },
+    "runtime": {
+      "vllm_impl": "",
+      "vllm_version": "",
+      "kernel_format": "",
+      "moe_recipe": "alltoall",
+      "routing": {
+        "policy": "balanced"
+      }
+    },
+    "lowering_passes": [
+      "activation_quantization"
+    ]
+  },
+  "native_observations": {
+    "flash_attention": {
+      "recipe": "flash_attention",
+      "native_type": "FusedInferAttentionScore",
+      "calls_per_forward": 10,
+      "call_count": 730,
+      "response_unit": "us_per_complete_native_call",
+      "tensor_abi": [
+        {
+          "kv_layout": "dense",
+          "kind": "FusedInferAttentionScore",
+          "inputs": [
+            [
+              [
+                8064,
+                2,
+                256
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [
+                8064,
+                1,
+                256
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [
+                8064,
+                1,
+                256
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [
+                2048,
+                2048
+              ],
+              "int8",
+              "ND"
+            ],
+            [
+              [
+                1
+              ],
+              "int64",
+              "ND"
+            ],
+            [
+              [
+                1
+              ],
+              "int64",
+              "ND"
+            ]
+          ],
+          "outputs": [
+            [
+              [
+                8064,
+                2,
+                256
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [],
+              "fp32",
+              "ND"
+            ]
+          ]
+        },
+        {
+          "kv_layout": "paged",
+          "kind": "FusedInferAttentionScore",
+          "inputs": [
+            [
+              [
+                8064,
+                2,
+                256
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [
+                34605,
+                128,
+                256
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [
+                34605,
+                128,
+                256
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [
+                2048,
+                2048
+              ],
+              "int8",
+              "ND"
+            ],
+            [
+              [
+                1
+              ],
+              "int64",
+              "ND"
+            ],
+            [
+              [
+                1
+              ],
+              "int64",
+              "ND"
+            ],
+            [
+              [
+                1,
+                3201
+              ],
+              "int32",
+              "ND"
+            ]
+          ],
+          "outputs": [
+            [
+              [
+                8064,
+                2,
+                256
+              ],
+              "bf16",
+              "ND"
+            ],
+            [
+              [],
+              "fp32",
+              "ND"
+            ]
+          ]
+        }
+      ],
+      "knots": [
+        [
+          8064,
+          468.041
+        ],
+        [
+          16128,
+          1294.045
+        ],
+        [
+          24192,
+          2180.607
+        ],
+        [
+          32256,
+          2981.213
+        ],
+        [
+          40320,
+          3884.935
+        ],
+        [
+          48384,
+          4666.003
+        ],
+        [
+          56448,
+          5634.236
+        ],
+        [
+          64512,
+          6730.453
+        ],
+        [
+          72576,
+          7980.89
+        ],
+        [
+          80640,
+          9360.072
+        ],
+        [
+          88704,
+          10609.52
+        ],
+        [
+          96768,
+          11803.968
+        ],
+        [
+          104832,
+          12838.643
+        ],
+        [
+          112896,
+          13924.357
+        ],
+        [
+          120960,
+          14910.668
+        ],
+        [
+          129024,
+          15996.334
+        ],
+        [
+          137088,
+          16983.693
+        ],
+        [
+          145152,
+          18142.473
+        ],
+        [
+          153216,
+          19328.743
+        ],
+        [
+          161280,
+          20843.546
+        ],
+        [
+          169344,
+          22311.884
+        ],
+        [
+          177408,
+          23961.232
+        ],
+        [
+          185472,
+          25371.311
+        ],
+        [
+          193536,
+          26883.355
+        ],
+        [
+          201600,
+          27931.518
+        ],
+        [
+          209664,
+          29219.936
+        ],
+        [
+          217728,
+          30419.088
+        ],
+        [
+          225792,
+          31528.3
+        ],
+        [
+          233856,
+          32572.773
+        ],
+        [
+          241920,
+          33854.35
+        ],
+        [
+          249984,
+          35053.87
+        ],
+        [
+          258048,
+          36115.856
+        ],
+        [
+          266112,
+          37141.782
+        ],
+        [
+          274176,
+          38468.815
+        ],
+        [
+          282240,
+          39648.294
+        ],
+        [
+          290304,
+          40721.374
+        ],
+        [
+          298368,
+          41793.719
+        ],
+        [
+          306432,
+          43073.659
+        ],
+        [
+          314496,
+          44261.776
+        ],
+        [
+          322560,
+          45411.145
+        ],
+        [
+          330624,
+          46393.183
+        ],
+        [
+          338688,
+          47683.829
+        ],
+        [
+          346752,
+          48890.121
+        ],
+        [
+          354816,
+          50030.151
+        ],
+        [
+          362880,
+          51018.755
+        ],
+        [
+          370944,
+          52345.724
+        ],
+        [
+          379008,
+          53530.515
+        ],
+        [
+          387072,
+          54676.611
+        ],
+        [
+          395136,
+          55589.867
+        ]
+      ],
+      "cross_capture_spread_max": 0.017566679078660347,
+      "calibration": "anchor_per_observed_full_chunk_state"
+    },
+    "allreduce": {
+      "recipes": {
+        "linear_reduce": 30,
+        "catalog_tp_allreduce": 10,
+        "ring_allreduce": 40
+      },
+      "calls_per_forward": 80,
+      "call_count": 5840,
+      "response_unit": "us_per_complete_native_call",
+      "us_per_call": 679.134,
+      "per_call_identification": "cohort pooled 80-call native mean per forward; the three recipe classes are reported separately but their per-call intervals overlap",
+      "per_recipe_measurement": {
+        "linear_reduce": {
+          "count": 2190,
+          "mean_us": 672.009008219178,
+          "median_us": 651.807,
+          "min_us": 392.192,
+          "max_us": 5686.386,
+          "p10_us": 485.991,
+          "p90_us": 824.883
+        },
+        "catalog_tp_allreduce": {
+          "count": 730,
+          "mean_us": 767.2925164383562,
+          "median_us": 588.998,
+          "min_us": 387.212,
+          "max_us": 2912.702,
+          "p10_us": 402.172,
+          "p90_us": 1417.192
+        },
+        "ring_allreduce": {
+          "count": 2920,
+          "mean_us": 662.4385982876712,
+          "median_us": 661.447,
+          "min_us": 397.192,
+          "max_us": 3248.235,
+          "p10_us": 573.688,
+          "p90_us": 738.825
+        }
+      },
+      "per_forward_total": {
+        "count": 73,
+        "mean_us": 54330.73934246576,
+        "median_us": 54437.191999999995,
+        "min_us": 46869.024000000005,
+        "max_us": 60378.494,
+        "p10_us": 49566.611000000004,
+        "p90_us": 58477.289000000004
+      },
+      "collective_tensor_abi": "not_provided_by_source",
+      "heterogeneity": "Per-call durations and per-forward sums differ across captures at identical physical states; the response reproduces the cohort mean forward sum."
+    }
+  },
+  "replaced_regime_ids": [
+    "qwen35-a3-tp8-prefill-allreduce"
+  ],
+  "replaced_regime_contracts": [
+    {
+      "id": "qwen35-a3-tp8-prefill-allreduce",
+      "match": {
+        "phase": "prefill",
+        "family": "allreduce"
+      },
+      "coordinates": null,
+      "domain": null,
+      "response": {
+        "fixed_us": 2500.0
+      }
+    },
+    {
+      "id": "qwen35-a3-tp8-prefill-allreduce",
+      "match": {
+        "phase": "prefill",
+        "family": "allreduce"
+      },
+      "coordinates": null,
+      "domain": null,
+      "response": {
+        "fixed_us": 2781.8
+      }
+    },
+    {
+      "id": "qwen35-a3-tp8-prefill-allreduce",
+      "match": {
+        "phase": "prefill",
+        "family": "allreduce"
+      },
+      "coordinates": null,
+      "domain": null,
+      "response": {
+        "fixed_us": 3063.6
+      }
+    },
+    {
+      "id": "qwen35-a3-tp8-prefill-allreduce",
+      "match": {
+        "phase": "prefill",
+        "family": "allreduce"
+      },
+      "coordinates": null,
+      "domain": null,
+      "response": {
+        "fixed_us": 3374.6
+      }
+    },
+    {
+      "id": "qwen35-a3-tp8-prefill-allreduce",
+      "match": {
+        "phase": "prefill",
+        "family": "allreduce"
+      },
+      "coordinates": null,
+      "domain": null,
+      "response": {
+        "fixed_us": 3700.0
+      }
+    },
+    {
+      "id": "qwen35-a3-tp8-prefill-allreduce",
+      "match": {
+        "phase": "prefill",
+        "family": "allreduce"
+      },
+      "coordinates": null,
+      "domain": null,
+      "response": {
+        "fixed_us": 92000.0
+      }
+    },
+    {
+      "id": "qwen35-a3-tp8-prefill-allreduce",
+      "match": {
+        "phase": "prefill",
+        "family": "allreduce"
+      },
+      "coordinates": null,
+      "domain": null,
+      "response": {
+        "fixed_us": 2320.0
+      }
+    },
+    {
+      "id": "qwen35-a3-tp8-prefill-allreduce",
+      "match": {
+        "phase": "prefill",
+        "family": "allreduce"
+      },
+      "coordinates": null,
+      "domain": null,
+      "response": {
+        "fixed_us": 4350.0
+      }
+    },
+    {
+      "id": "qwen35-a3-tp8-prefill-allreduce",
+      "match": {
+        "phase": "prefill",
+        "family": "allreduce"
+      },
+      "coordinates": null,
+      "domain": null,
+      "response": {
+        "fixed_us": 3400.0
+      }
+    },
+    {
+      "id": "qwen35-a3-tp8-prefill-allreduce",
+      "match": {
+        "phase": "prefill",
+        "family": "allreduce"
+      },
+      "coordinates": null,
+      "domain": null,
+      "response": {
+        "fixed_us": 2020.0
+      }
+    },
+    {
+      "id": "qwen35-a3-tp8-prefill-allreduce",
+      "match": {
+        "phase": "prefill",
+        "family": "allreduce"
+      },
+      "coordinates": null,
+      "domain": null,
+      "response": {
+        "fixed_us": 4000.0
+      }
+    }
+  ],
+  "replaced_regime_contract_source": {
+    "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/wave5-eval/a3/templates/_regime_catalog.json",
+    "sha256": "9c55e69da7752cb1a6bd1a7668c23555def9734fb774d6099c09433f259b4083"
+  },
+  "calibration": {
+    "selection": "declared_capture_coverage_before_pooling_after_exploratory_native_review",
+    "exploratory_native_review_before_split": true,
+    "split_declared_before_coefficients": true,
+    "selection_rationale": "Training uses the production MTP3 captures at the shortest and longest declared input lengths (192K, 400K) because MTP0 and MTP3 share the same target body; the MTP module only adds draft-state work outside the audited body. No Body outcome was inspected before choosing captures or pooling coefficients.",
+    "training_capture_ids": [
+      "qwen35_tp8_ep8_mtp3_prefill_192k_c1",
+      "qwen35_tp8_ep8_mtp3_prefill_400k_c1"
+    ],
+    "validation_capture_ids": [
+      "qwen35_tp8_ep8_mtp0_prefill_192k_c1",
+      "qwen35_tp8_ep8_mtp0_prefill_256k_c1",
+      "qwen35_tp8_ep8_mtp0_prefill_320k_c1",
+      "qwen35_tp8_ep8_mtp0_prefill_400k_c1",
+      "qwen35_tp8_ep8_mtp3_prefill_256k_c1",
+      "qwen35_tp8_ep8_mtp3_prefill_320k_c1"
+    ],
+    "training_declared_context_lengths": [
+      196608,
+      400000
+    ],
+    "validation_declared_context_lengths": [
+      196608,
+      262144,
+      327680,
+      400000
+    ],
+    "validation_context_lengths_outside_training": [
+      262144,
+      327680
+    ],
+    "heldout_relation": "repeat_geometry_cross_capture",
+    "heldout_context_generalization": false,
+    "heldout_note": "validation captures repeat training chunk contexts; they test separate runs, not unseen chunk geometry or unseen context lengths",
+    "in_sample_history": "The replaced A3 rule was fitted on these capture families during Wave5; the native response is rebuilt from complete kernel count/sum only.",
+    "body_error_used_for_selection": false,
+    "case_identity_used_in_predictor": false
+  },
+  "training_sources": [
+    {
+      "id": "qwen35_tp8_ep8_mtp3_prefill_192k_c1",
+      "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/qwen35_tp8_ep8_mtp3_prefill_192k_c1/kernel_details.csv",
+      "sha256": "4aa10745632586a3d7604bd6944ecb400a1e291f527f5821e3800d8ba1257a23"
+    },
+    {
+      "id": "qwen35_tp8_ep8_mtp3_prefill_400k_c1",
+      "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/qwen35_tp8_ep8_mtp3_prefill_400k_c1/kernel_details.csv",
+      "sha256": "adb0cc7a1efe56f1faddeb04093548427541e862f0a9303481de8fbd53e699fc"
+    }
+  ],
+  "validation_sources": [
+    {
+      "id": "qwen35_tp8_ep8_mtp3_prefill_256k_c1",
+      "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/qwen35_tp8_ep8_mtp3_prefill_256k_c1/kernel_details.csv",
+      "sha256": "213902fc1d814a011bee9252e12240f7a024e045f3f4469712134a1c72f08b06"
+    },
+    {
+      "id": "qwen35_tp8_ep8_mtp3_prefill_320k_c1",
+      "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/qwen35_tp8_ep8_mtp3_prefill_320k_c1/kernel_details.csv",
+      "sha256": "d2d443fbb79bfc2dbde25482570269b7580322b89a7f351f6149a8e2825e2b00"
+    },
+    {
+      "id": "qwen35_tp8_ep8_mtp0_prefill_192k_c1",
+      "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/qwen35_tp8_ep8_mtp0_prefill_192k_c1/kernel_details.csv",
+      "sha256": "39baf8e5c57a666e071d406742ef0a5f9c31055236edf0d0a501d7be92548307"
+    },
+    {
+      "id": "qwen35_tp8_ep8_mtp0_prefill_256k_c1",
+      "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/qwen35_tp8_ep8_mtp0_prefill_256k_c1/kernel_details.csv",
+      "sha256": "777dde1bb14baae0f5903ffe672b951fc625a434c11963c2302665b503d83625"
+    },
+    {
+      "id": "qwen35_tp8_ep8_mtp0_prefill_320k_c1",
+      "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/qwen35_tp8_ep8_mtp0_prefill_320k_c1/kernel_details.csv",
+      "sha256": "ad0bc0de5d5f3f8cb823618ad77960c474fe75c135339f549200ecceab61cc81"
+    },
+    {
+      "id": "qwen35_tp8_ep8_mtp0_prefill_400k_c1",
+      "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/qwen35_tp8_ep8_mtp0_prefill_400k_c1/kernel_details.csv",
+      "sha256": "b12ddd923e90e94738cfa1ef7ef3881c5c2b719bae171d81e24995adce226ba4"
+    }
+  ],
+  "limitations": [
+    "Only full 8064-row chunks are bound. Tail chunks keep the caller's prior response unchanged (including a legacy capture-selected floor if the caller has one); they are not converted to analytic.",
+    "Per-call allreduce durations and per-forward sums are state dependent; the response reproduces the cohort mean forward sum, not each measured forward sum or an individual wait.",
+    "The source does not export collective tensor slots; the allreduce response is identified by declared shape, transport and layer order, not by a captured payload descriptor.",
+    "The first chunk's dense-KV attention anchor and the paged continuation are distinguished only by kv rows; a paged zero-context caller is outside the observed ABI.",
+    "The retained captures do not identify the compiler binary, so source equivalence of the observed kernels is not claimed.",
+    "Only A3 Q35 TP8 EP8 W8A8-DYNAMIC with the observed GDN/GQA topology, device service rates, links and placements is inside the guard."
+  ],
+  "service_regimes": [
+    {
+      "id": "a3-qwen35-prefill-native-fai-q8064",
+      "match": {
+        "hardware": "Ascend910_9362",
+        "dtype": "bf16",
+        "layout": "contiguous",
+        "replay_scope": "none",
+        "implementation": {},
+        "runtime": "",
+        "revision": "",
+        "format": "",
+        "family": "attention",
+        "physical_rates": {
+          "resources": {
+            "fixpipe": 4224000000000.0,
+            "hbm": 1200000000000.0,
+            "mte1": 4224000000000.0,
+            "mte2_aic": 1056000000000.0,
+            "mte2_aiv": 2112000000000.0,
+            "mte3": 4224000000000.0,
+            "native_call_service": 1000000000.0,
+            "vector": 2112000000000.0,
+            "cube": 1000,
+            "host": 1000
+          },
+          "compute_peaks": {
+            "bf16": 270336000000000.0,
+            "fp16": 270336000000000.0,
+            "fp32": 67584000000000.0,
+            "hf32": 135168000000000.0,
+            "int4": 1081344000000000.0,
+            "int8": 540672000000000.0
+          },
+          "service_modes": {
+            "mte1_l0a": [
+              "mte1",
+              8448000000000.0
+            ],
+            "mte1_l0b": [
+              "mte1",
+              4224000000000.0
+            ]
+          }
+        },
+        "recipe": "flash_attention",
+        "phase": "prefill",
+        "metadata.gqa_prefill.query_heads": 2,
+        "metadata.gqa_prefill.kv_heads": 1,
+        "metadata.gqa_prefill.head_dim": 256,
+        "metadata.gqa_prefill.query_dtype": "bf16",
+        "metadata.gqa_prefill.kv_dtype": "bf16",
+        "metadata.gqa_prefill.causal": true,
+        "metadata.gqa_prefill.window": 0,
+        "metadata.gqa_prefill.cp": 1,
+        "metadata.query_tile": 128,
+        "metadata.kv_streams": 1
+      },
+      "coordinates": {
+        "kv_rows": {
+          "path": "local_shape.1"
+        },
+        "query": {
+          "path": "local_shape.0"
+        }
+      },
+      "domain": {
+        "query": {
+          "min": 8064,
+          "max": 8064
+        },
+        "kv_rows": {
+          "min": 8064,
+          "max": 395136
+        }
+      },
+      "response": {
+        "kind": "piecewise_linear",
+        "coordinate": "kv_rows",
+        "knots": [
+          [
+            8064,
+            468.041
+          ],
+          [
+            16128,
+            1294.045
+          ],
+          [
+            24192,
+            2180.607
+          ],
+          [
+            32256,
+            2981.213
+          ],
+          [
+            40320,
+            3884.935
+          ],
+          [
+            48384,
+            4666.003
+          ],
+          [
+            56448,
+            5634.236
+          ],
+          [
+            64512,
+            6730.453
+          ],
+          [
+            72576,
+            7980.89
+          ],
+          [
+            80640,
+            9360.072
+          ],
+          [
+            88704,
+            10609.52
+          ],
+          [
+            96768,
+            11803.968
+          ],
+          [
+            104832,
+            12838.643
+          ],
+          [
+            112896,
+            13924.357
+          ],
+          [
+            120960,
+            14910.668
+          ],
+          [
+            129024,
+            15996.334
+          ],
+          [
+            137088,
+            16983.693
+          ],
+          [
+            145152,
+            18142.473
+          ],
+          [
+            153216,
+            19328.743
+          ],
+          [
+            161280,
+            20843.546
+          ],
+          [
+            169344,
+            22311.884
+          ],
+          [
+            177408,
+            23961.232
+          ],
+          [
+            185472,
+            25371.311
+          ],
+          [
+            193536,
+            26883.355
+          ],
+          [
+            201600,
+            27931.518
+          ],
+          [
+            209664,
+            29219.936
+          ],
+          [
+            217728,
+            30419.088
+          ],
+          [
+            225792,
+            31528.3
+          ],
+          [
+            233856,
+            32572.773
+          ],
+          [
+            241920,
+            33854.35
+          ],
+          [
+            249984,
+            35053.87
+          ],
+          [
+            258048,
+            36115.856
+          ],
+          [
+            266112,
+            37141.782
+          ],
+          [
+            274176,
+            38468.815
+          ],
+          [
+            282240,
+            39648.294
+          ],
+          [
+            290304,
+            40721.374
+          ],
+          [
+            298368,
+            41793.719
+          ],
+          [
+            306432,
+            43073.659
+          ],
+          [
+            314496,
+            44261.776
+          ],
+          [
+            322560,
+            45411.145
+          ],
+          [
+            330624,
+            46393.183
+          ],
+          [
+            338688,
+            47683.829
+          ],
+          [
+            346752,
+            48890.121
+          ],
+          [
+            354816,
+            50030.151
+          ],
+          [
+            362880,
+            51018.755
+          ],
+          [
+            370944,
+            52345.724
+          ],
+          [
+            379008,
+            53530.515
+          ],
+          [
+            387072,
+            54676.611
+          ],
+          [
+            395136,
+            55589.867
+          ]
+        ],
+        "outside": "analytic"
+      },
+      "provenance": {
+        "profile_id": "a3-qwen35-prefill-native-20261106",
+        "native_boundary": "FusedInferAttentionScore",
+        "calls_per_forward": 10,
+        "call_count": 730,
+        "response_unit": "us_per_complete_native_call",
+        "training_source_ids": [
+          "qwen35_tp8_ep8_mtp3_prefill_192k_c1",
+          "qwen35_tp8_ep8_mtp3_prefill_400k_c1"
+        ]
+      }
+    },
+    {
+      "id": "a3-qwen35-prefill-native-ar-linear-reduce",
+      "match": {
+        "hardware": "Ascend910_9362",
+        "dtype": "bf16",
+        "layout": "contiguous",
+        "replay_scope": "none",
+        "implementation": {},
+        "runtime": "",
+        "revision": "",
+        "format": "",
+        "family": "allreduce",
+        "physical_rates": {
+          "resources": {
+            "fixpipe": 4224000000000.0,
+            "hbm": 1200000000000.0,
+            "mte1": 4224000000000.0,
+            "mte2_aic": 1056000000000.0,
+            "mte2_aiv": 2112000000000.0,
+            "mte3": 4224000000000.0,
+            "native_call_service": 1000000000.0,
+            "vector": 2112000000000.0,
+            "cube": 1000,
+            "host": 1000
+          },
+          "compute_peaks": {
+            "bf16": 270336000000000.0,
+            "fp16": 270336000000000.0,
+            "fp32": 67584000000000.0,
+            "hf32": 135168000000000.0,
+            "int4": 1081344000000000.0,
+            "int8": 540672000000000.0
+          },
+          "service_modes": {
+            "mte1_l0a": [
+              "mte1",
+              8448000000000.0
+            ],
+            "mte1_l0b": [
+              "mte1",
+              4224000000000.0
+            ]
+          }
+        },
+        "recipe": "linear_reduce",
+        "phase": "prefill",
+        "local_shape": [
+          57802752.0
+        ],
+        "padded_shape": [
+          57802752.0
+        ],
+        "transport": {
+          "collective": "allreduce",
+          "dies_per_package": 2,
+          "group_axis": "tp",
+          "links": [
+            {
+              "capacity_bytes_per_ms": 448000000.0,
+              "channel": "d2d_intra_package",
+              "latency_us": 0.8,
+              "members": [
+                0,
+                1
+              ],
+              "name": "d2d_intra_package:0",
+              "semantics": "per_port"
+            },
+            {
+              "capacity_bytes_per_ms": 448000000.0,
+              "channel": "d2d_intra_package",
+              "latency_us": 0.8,
+              "members": [
+                2,
+                3
+              ],
+              "name": "d2d_intra_package:2",
+              "semantics": "per_port"
+            },
+            {
+              "capacity_bytes_per_ms": 448000000.0,
+              "channel": "d2d_intra_package",
+              "latency_us": 0.8,
+              "members": [
+                4,
+                5
+              ],
+              "name": "d2d_intra_package:4",
+              "semantics": "per_port"
+            },
+            {
+              "capacity_bytes_per_ms": 448000000.0,
+              "channel": "d2d_intra_package",
+              "latency_us": 0.8,
+              "members": [
+                6,
+                7
+              ],
+              "name": "d2d_intra_package:6",
+              "semantics": "per_port"
+            },
+            {
+              "capacity_bytes_per_ms": 196000000.0,
+              "channel": "d2d_intra_node",
+              "latency_us": 2.5,
+              "members": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+              ],
+              "name": "d2d_intra_node:0",
+              "semantics": "per_port"
+            }
+          ],
+          "parallel": {
+            "cp": 1,
+            "dp": 1,
+            "ep": 8,
+            "pcp": 1,
+            "pp": 1,
+            "sp": false,
+            "tp": 8
+          },
+          "placements": [
+            {
+              "node": 0,
+              "package": 0,
+              "rank": 0
+            },
+            {
+              "node": 0,
+              "package": 0,
+              "rank": 1
+            },
+            {
+              "node": 0,
+              "package": 1,
+              "rank": 2
+            },
+            {
+              "node": 0,
+              "package": 1,
+              "rank": 3
+            },
+            {
+              "node": 0,
+              "package": 2,
+              "rank": 4
+            },
+            {
+              "node": 0,
+              "package": 2,
+              "rank": 5
+            },
+            {
+              "node": 0,
+              "package": 3,
+              "rank": 6
+            },
+            {
+              "node": 0,
+              "package": 3,
+              "rank": 7
+            }
+          ],
+          "ranks_per_node": 8
+        },
+        "metadata.group_axis": "tp"
+      },
+      "coordinates": {
+        "rows": {
+          "path": "metadata.graph_active_query_rows"
+        }
+      },
+      "domain": {
+        "rows": {
+          "min": 8064,
+          "max": 8064
+        }
+      },
+      "response": {
+        "fixed_us": 679.134
+      },
+      "provenance": {
+        "profile_id": "a3-qwen35-prefill-native-20261106",
+        "native_boundary": "hcom_allReduce_",
+        "calls_per_forward": 30,
+        "call_count": 2190,
+        "response_unit": "us_per_complete_native_call",
+        "native_class": "gdn_attention",
+        "native_class_mean_us": 672.009,
+        "response_basis": "cohort pooled 80-call native mean; reproduces the cohort mean forward sum, not each measured sum",
+        "per_call_interval_us": [
+          392.192,
+          5686.386
+        ],
+        "collective_tensor_abi": "not_provided_by_source",
+        "training_source_ids": [
+          "qwen35_tp8_ep8_mtp3_prefill_192k_c1",
+          "qwen35_tp8_ep8_mtp3_prefill_400k_c1"
+        ]
+      }
+    },
+    {
+      "id": "a3-qwen35-prefill-native-ar-catalog-tp-allreduce",
+      "match": {
+        "hardware": "Ascend910_9362",
+        "dtype": "bf16",
+        "layout": "contiguous",
+        "replay_scope": "none",
+        "implementation": {},
+        "runtime": "",
+        "revision": "",
+        "format": "",
+        "family": "allreduce",
+        "physical_rates": {
+          "resources": {
+            "fixpipe": 4224000000000.0,
+            "hbm": 1200000000000.0,
+            "mte1": 4224000000000.0,
+            "mte2_aic": 1056000000000.0,
+            "mte2_aiv": 2112000000000.0,
+            "mte3": 4224000000000.0,
+            "native_call_service": 1000000000.0,
+            "vector": 2112000000000.0,
+            "cube": 1000,
+            "host": 1000
+          },
+          "compute_peaks": {
+            "bf16": 270336000000000.0,
+            "fp16": 270336000000000.0,
+            "fp32": 67584000000000.0,
+            "hf32": 135168000000000.0,
+            "int4": 1081344000000000.0,
+            "int8": 540672000000000.0
+          },
+          "service_modes": {
+            "mte1_l0a": [
+              "mte1",
+              8448000000000.0
+            ],
+            "mte1_l0b": [
+              "mte1",
+              4224000000000.0
+            ]
+          }
+        },
+        "recipe": "catalog_tp_allreduce",
+        "phase": "prefill",
+        "local_shape": [
+          8064,
+          2048
+        ],
+        "padded_shape": [
+          8064,
+          2048
+        ],
+        "transport": {
+          "collective": "allreduce",
+          "dies_per_package": 2,
+          "group_axis": "tp",
+          "links": [
+            {
+              "capacity_bytes_per_ms": 448000000.0,
+              "channel": "d2d_intra_package",
+              "latency_us": 0.8,
+              "members": [
+                0,
+                1
+              ],
+              "name": "d2d_intra_package:0",
+              "semantics": "per_port"
+            },
+            {
+              "capacity_bytes_per_ms": 448000000.0,
+              "channel": "d2d_intra_package",
+              "latency_us": 0.8,
+              "members": [
+                2,
+                3
+              ],
+              "name": "d2d_intra_package:2",
+              "semantics": "per_port"
+            },
+            {
+              "capacity_bytes_per_ms": 448000000.0,
+              "channel": "d2d_intra_package",
+              "latency_us": 0.8,
+              "members": [
+                4,
+                5
+              ],
+              "name": "d2d_intra_package:4",
+              "semantics": "per_port"
+            },
+            {
+              "capacity_bytes_per_ms": 448000000.0,
+              "channel": "d2d_intra_package",
+              "latency_us": 0.8,
+              "members": [
+                6,
+                7
+              ],
+              "name": "d2d_intra_package:6",
+              "semantics": "per_port"
+            },
+            {
+              "capacity_bytes_per_ms": 196000000.0,
+              "channel": "d2d_intra_node",
+              "latency_us": 2.5,
+              "members": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+              ],
+              "name": "d2d_intra_node:0",
+              "semantics": "per_port"
+            }
+          ],
+          "parallel": {
+            "cp": 1,
+            "dp": 1,
+            "ep": 8,
+            "pcp": 1,
+            "pp": 1,
+            "sp": false,
+            "tp": 8
+          },
+          "placements": [
+            {
+              "node": 0,
+              "package": 0,
+              "rank": 0
+            },
+            {
+              "node": 0,
+              "package": 0,
+              "rank": 1
+            },
+            {
+              "node": 0,
+              "package": 1,
+              "rank": 2
+            },
+            {
+              "node": 0,
+              "package": 1,
+              "rank": 3
+            },
+            {
+              "node": 0,
+              "package": 2,
+              "rank": 4
+            },
+            {
+              "node": 0,
+              "package": 2,
+              "rank": 5
+            },
+            {
+              "node": 0,
+              "package": 3,
+              "rank": 6
+            },
+            {
+              "node": 0,
+              "package": 3,
+              "rank": 7
+            }
+          ],
+          "ranks_per_node": 8,
+          "steps": 14
+        },
+        "metadata.group_axis": "tp",
+        "metadata.steps": 14
+      },
+      "coordinates": {
+        "rows": {
+          "path": "metadata.graph_active_query_rows"
+        }
+      },
+      "domain": {
+        "rows": {
+          "min": 8064,
+          "max": 8064
+        }
+      },
+      "response": {
+        "fixed_us": 679.134
+      },
+      "provenance": {
+        "profile_id": "a3-qwen35-prefill-native-20261106",
+        "native_boundary": "hcom_allReduce_",
+        "calls_per_forward": 10,
+        "call_count": 730,
+        "response_unit": "us_per_complete_native_call",
+        "native_class": "gqa_attention",
+        "native_class_mean_us": 767.293,
+        "response_basis": "cohort pooled 80-call native mean; reproduces the cohort mean forward sum, not each measured sum",
+        "per_call_interval_us": [
+          387.212,
+          2912.702
+        ],
+        "collective_tensor_abi": "not_provided_by_source",
+        "training_source_ids": [
+          "qwen35_tp8_ep8_mtp3_prefill_192k_c1",
+          "qwen35_tp8_ep8_mtp3_prefill_400k_c1"
+        ]
+      }
+    },
+    {
+      "id": "a3-qwen35-prefill-native-ar-ring-allreduce",
+      "match": {
+        "hardware": "Ascend910_9362",
+        "dtype": "bf16",
+        "layout": "contiguous",
+        "replay_scope": "none",
+        "implementation": {},
+        "runtime": "",
+        "revision": "",
+        "format": "",
+        "family": "allreduce",
+        "physical_rates": {
+          "resources": {
+            "fixpipe": 4224000000000.0,
+            "hbm": 1200000000000.0,
+            "mte1": 4224000000000.0,
+            "mte2_aic": 1056000000000.0,
+            "mte2_aiv": 2112000000000.0,
+            "mte3": 4224000000000.0,
+            "native_call_service": 1000000000.0,
+            "vector": 2112000000000.0,
+            "cube": 1000,
+            "host": 1000
+          },
+          "compute_peaks": {
+            "bf16": 270336000000000.0,
+            "fp16": 270336000000000.0,
+            "fp32": 67584000000000.0,
+            "hf32": 135168000000000.0,
+            "int4": 1081344000000000.0,
+            "int8": 540672000000000.0
+          },
+          "service_modes": {
+            "mte1_l0a": [
+              "mte1",
+              8448000000000.0
+            ],
+            "mte1_l0b": [
+              "mte1",
+              4224000000000.0
+            ]
+          }
+        },
+        "recipe": "ring_allreduce",
+        "phase": "prefill",
+        "local_shape": [
+          8064,
+          2048
+        ],
+        "padded_shape": [
+          8064,
+          2048
+        ],
+        "transport": {
+          "collective": "allreduce",
+          "dies_per_package": 2,
+          "group_axis": "tp",
+          "links": [
+            {
+              "capacity_bytes_per_ms": 448000000.0,
+              "channel": "d2d_intra_package",
+              "latency_us": 0.8,
+              "members": [
+                0,
+                1
+              ],
+              "name": "d2d_intra_package:0",
+              "semantics": "per_port"
+            },
+            {
+              "capacity_bytes_per_ms": 448000000.0,
+              "channel": "d2d_intra_package",
+              "latency_us": 0.8,
+              "members": [
+                2,
+                3
+              ],
+              "name": "d2d_intra_package:2",
+              "semantics": "per_port"
+            },
+            {
+              "capacity_bytes_per_ms": 448000000.0,
+              "channel": "d2d_intra_package",
+              "latency_us": 0.8,
+              "members": [
+                4,
+                5
+              ],
+              "name": "d2d_intra_package:4",
+              "semantics": "per_port"
+            },
+            {
+              "capacity_bytes_per_ms": 448000000.0,
+              "channel": "d2d_intra_package",
+              "latency_us": 0.8,
+              "members": [
+                6,
+                7
+              ],
+              "name": "d2d_intra_package:6",
+              "semantics": "per_port"
+            },
+            {
+              "capacity_bytes_per_ms": 196000000.0,
+              "channel": "d2d_intra_node",
+              "latency_us": 2.5,
+              "members": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+              ],
+              "name": "d2d_intra_node:0",
+              "semantics": "per_port"
+            }
+          ],
+          "parallel": {
+            "cp": 1,
+            "dp": 1,
+            "ep": 8,
+            "pcp": 1,
+            "pp": 1,
+            "sp": false,
+            "tp": 8
+          },
+          "placements": [
+            {
+              "node": 0,
+              "package": 0,
+              "rank": 0
+            },
+            {
+              "node": 0,
+              "package": 0,
+              "rank": 1
+            },
+            {
+              "node": 0,
+              "package": 1,
+              "rank": 2
+            },
+            {
+              "node": 0,
+              "package": 1,
+              "rank": 3
+            },
+            {
+              "node": 0,
+              "package": 2,
+              "rank": 4
+            },
+            {
+              "node": 0,
+              "package": 2,
+              "rank": 5
+            },
+            {
+              "node": 0,
+              "package": 3,
+              "rank": 6
+            },
+            {
+              "node": 0,
+              "package": 3,
+              "rank": 7
+            }
+          ],
+          "ranks_per_node": 8,
+          "steps": 14
+        },
+        "metadata.group_axis": "tp",
+        "metadata.steps": 14
+      },
+      "coordinates": {
+        "rows": {
+          "path": "metadata.graph_active_query_rows"
+        }
+      },
+      "domain": {
+        "rows": {
+          "min": 8064,
+          "max": 8064
+        }
+      },
+      "response": {
+        "fixed_us": 679.134
+      },
+      "provenance": {
+        "profile_id": "a3-qwen35-prefill-native-20261106",
+        "native_boundary": "hcom_allReduce_",
+        "calls_per_forward": 40,
+        "call_count": 2920,
+        "response_unit": "us_per_complete_native_call",
+        "native_class": "moe",
+        "native_class_mean_us": 662.439,
+        "response_basis": "cohort pooled 80-call native mean; reproduces the cohort mean forward sum, not each measured sum",
+        "per_call_interval_us": [
+          397.192,
+          3248.235
+        ],
+        "collective_tensor_abi": "not_provided_by_source",
+        "training_source_ids": [
+          "qwen35_tp8_ep8_mtp3_prefill_192k_c1",
+          "qwen35_tp8_ep8_mtp3_prefill_400k_c1"
+        ]
+      }
+    }
+  ]
+}

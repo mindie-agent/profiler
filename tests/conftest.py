@@ -3,7 +3,17 @@
 [Timeouts & Locks] No locks, timers, sleeps, or background services.
 [Side-Effect Policy] Monkeypatches process environment only; writes no files.
 """
+import os
+import sys
+
 import pytest
+
+
+_SIM_SOURCE = os.environ.get("MINDIE_SIM_SOURCE")
+if _SIM_SOURCE and _SIM_SOURCE not in sys.path:
+    # Apply the supported source environment before any test imports mindie_sim,
+    # so parent collectors and spawned evaluator workers resolve one identity.
+    sys.path.insert(0, _SIM_SOURCE)
 
 
 @pytest.fixture(autouse=True)

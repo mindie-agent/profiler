@@ -1,0 +1,926 @@
+{
+ "schema_version": "mindie-scoped-structure-window/1",
+ "derivation": {
+  "kind": "genuine_minimized_line_subset",
+  "prefill_source": {
+   "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/qwen35_tp8_ep8_mtp0_prefill_400k_c1/kernel_details.csv",
+   "sha256": "b12ddd923e90e94738cfa1ef7ef3881c5c2b719bae171d81e24995adce226ba4",
+   "windows": [
+    "prefill:0",
+    "prefill:50"
+   ],
+   "original_lines": [
+    [
+     89,
+     3406
+    ],
+    [
+     170878,
+     173796
+    ]
+   ]
+  },
+  "decode_source": {
+   "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/qwen35_tp8_ep8_mtp0_decode_192k_c1/kernel_details.csv",
+   "sha256": "5d33988ccb23d87d955b387de99c82387970f7231345da8260f36afc2b4f4dcf",
+   "window": "decode:0 first 40 layers"
+  },
+  "timing_values_modified": false,
+  "line_numbers_renumbered_in_fixture": true
+ },
+ "forwards": [
+  {
+   "forward_id": "prefill:0",
+   "phase": "prefill",
+   "query_rows": 8064,
+   "tokens_per_sequence": 8064,
+   "sequences": 1,
+   "context": 0,
+   "body": {
+    "start_ns": 1793469956370170568,
+    "end_ns": 1793469956633888079,
+    "first_csv_line": 2,
+    "last_csv_line": 1041
+   },
+   "layers": [
+    {
+     "layer_id": 0,
+     "start_ns": 1793469956370170568,
+     "end_ns": 1793469956383704978,
+     "first_csv_line": 2,
+     "last_csv_line": 27
+    },
+    {
+     "layer_id": 1,
+     "start_ns": 1793469956383704998,
+     "end_ns": 1793469956390352725,
+     "first_csv_line": 28,
+     "last_csv_line": 53
+    },
+    {
+     "layer_id": 2,
+     "start_ns": 1793469956390352745,
+     "end_ns": 1793469956396823196,
+     "first_csv_line": 54,
+     "last_csv_line": 79
+    },
+    {
+     "layer_id": 3,
+     "start_ns": 1793469956396823216,
+     "end_ns": 1793469956402664559,
+     "first_csv_line": 80,
+     "last_csv_line": 105
+    },
+    {
+     "layer_id": 4,
+     "start_ns": 1793469956402664599,
+     "end_ns": 1793469956409093350,
+     "first_csv_line": 106,
+     "last_csv_line": 131
+    },
+    {
+     "layer_id": 5,
+     "start_ns": 1793469956409093370,
+     "end_ns": 1793469956415580521,
+     "first_csv_line": 132,
+     "last_csv_line": 157
+    },
+    {
+     "layer_id": 6,
+     "start_ns": 1793469956415580541,
+     "end_ns": 1793469956422118990,
+     "first_csv_line": 158,
+     "last_csv_line": 183
+    },
+    {
+     "layer_id": 7,
+     "start_ns": 1793469956422119010,
+     "end_ns": 1793469956428016472,
+     "first_csv_line": 184,
+     "last_csv_line": 209
+    },
+    {
+     "layer_id": 8,
+     "start_ns": 1793469956428016492,
+     "end_ns": 1793469956434892055,
+     "first_csv_line": 210,
+     "last_csv_line": 235
+    },
+    {
+     "layer_id": 9,
+     "start_ns": 1793469956434892075,
+     "end_ns": 1793469956441240848,
+     "first_csv_line": 236,
+     "last_csv_line": 261
+    },
+    {
+     "layer_id": 10,
+     "start_ns": 1793469956441240888,
+     "end_ns": 1793469956447725878,
+     "first_csv_line": 262,
+     "last_csv_line": 287
+    },
+    {
+     "layer_id": 11,
+     "start_ns": 1793469956447725918,
+     "end_ns": 1793469956453607601,
+     "first_csv_line": 288,
+     "last_csv_line": 313
+    },
+    {
+     "layer_id": 12,
+     "start_ns": 1793469956453607621,
+     "end_ns": 1793469956460044032,
+     "first_csv_line": 314,
+     "last_csv_line": 339
+    },
+    {
+     "layer_id": 13,
+     "start_ns": 1793469956460044052,
+     "end_ns": 1793469956466495783,
+     "first_csv_line": 340,
+     "last_csv_line": 365
+    },
+    {
+     "layer_id": 14,
+     "start_ns": 1793469956466495803,
+     "end_ns": 1793469956473022713,
+     "first_csv_line": 366,
+     "last_csv_line": 391
+    },
+    {
+     "layer_id": 15,
+     "start_ns": 1793469956473022733,
+     "end_ns": 1793469956478770438,
+     "first_csv_line": 392,
+     "last_csv_line": 417
+    },
+    {
+     "layer_id": 16,
+     "start_ns": 1793469956478770458,
+     "end_ns": 1793469956485504584,
+     "first_csv_line": 418,
+     "last_csv_line": 443
+    },
+    {
+     "layer_id": 17,
+     "start_ns": 1793469956485504604,
+     "end_ns": 1793469956491867457,
+     "first_csv_line": 444,
+     "last_csv_line": 469
+    },
+    {
+     "layer_id": 18,
+     "start_ns": 1793469956491867477,
+     "end_ns": 1793469956498379506,
+     "first_csv_line": 470,
+     "last_csv_line": 495
+    },
+    {
+     "layer_id": 19,
+     "start_ns": 1793469956498379526,
+     "end_ns": 1793469956504226670,
+     "first_csv_line": 496,
+     "last_csv_line": 521
+    },
+    {
+     "layer_id": 20,
+     "start_ns": 1793469956504226710,
+     "end_ns": 1793469956510738080,
+     "first_csv_line": 522,
+     "last_csv_line": 547
+    },
+    {
+     "layer_id": 21,
+     "start_ns": 1793469956510738100,
+     "end_ns": 1793469956517265409,
+     "first_csv_line": 548,
+     "last_csv_line": 573
+    },
+    {
+     "layer_id": 22,
+     "start_ns": 1793469956517265429,
+     "end_ns": 1793469956523869417,
+     "first_csv_line": 574,
+     "last_csv_line": 599
+    },
+    {
+     "layer_id": 23,
+     "start_ns": 1793469956523869437,
+     "end_ns": 1793469956529665921,
+     "first_csv_line": 600,
+     "last_csv_line": 625
+    },
+    {
+     "layer_id": 24,
+     "start_ns": 1793469956529665941,
+     "end_ns": 1793469956536204651,
+     "first_csv_line": 626,
+     "last_csv_line": 651
+    },
+    {
+     "layer_id": 25,
+     "start_ns": 1793469956536204671,
+     "end_ns": 1793469956542910537,
+     "first_csv_line": 652,
+     "last_csv_line": 677
+    },
+    {
+     "layer_id": 26,
+     "start_ns": 1793469956542910577,
+     "end_ns": 1793469956549609623,
+     "first_csv_line": 678,
+     "last_csv_line": 703
+    },
+    {
+     "layer_id": 27,
+     "start_ns": 1793469956549609643,
+     "end_ns": 1793469956555551664,
+     "first_csv_line": 704,
+     "last_csv_line": 729
+    },
+    {
+     "layer_id": 28,
+     "start_ns": 1793469956555551684,
+     "end_ns": 1793469956562082694,
+     "first_csv_line": 730,
+     "last_csv_line": 755
+    },
+    {
+     "layer_id": 29,
+     "start_ns": 1793469956562082714,
+     "end_ns": 1793469956568640083,
+     "first_csv_line": 756,
+     "last_csv_line": 781
+    },
+    {
+     "layer_id": 30,
+     "start_ns": 1793469956568640103,
+     "end_ns": 1793469956575152732,
+     "first_csv_line": 782,
+     "last_csv_line": 807
+    },
+    {
+     "layer_id": 31,
+     "start_ns": 1793469956575152752,
+     "end_ns": 1793469956581366488,
+     "first_csv_line": 808,
+     "last_csv_line": 833
+    },
+    {
+     "layer_id": 32,
+     "start_ns": 1793469956581366508,
+     "end_ns": 1793469956588398588,
+     "first_csv_line": 834,
+     "last_csv_line": 859
+    },
+    {
+     "layer_id": 33,
+     "start_ns": 1793469956588398608,
+     "end_ns": 1793469956594972816,
+     "first_csv_line": 860,
+     "last_csv_line": 885
+    },
+    {
+     "layer_id": 34,
+     "start_ns": 1793469956594972836,
+     "end_ns": 1793469956601668503,
+     "first_csv_line": 886,
+     "last_csv_line": 911
+    },
+    {
+     "layer_id": 35,
+     "start_ns": 1793469956601668543,
+     "end_ns": 1793469956607630944,
+     "first_csv_line": 912,
+     "last_csv_line": 937
+    },
+    {
+     "layer_id": 36,
+     "start_ns": 1793469956607630984,
+     "end_ns": 1793469956614330210,
+     "first_csv_line": 938,
+     "last_csv_line": 963
+    },
+    {
+     "layer_id": 37,
+     "start_ns": 1793469956614330230,
+     "end_ns": 1793469956621138514,
+     "first_csv_line": 964,
+     "last_csv_line": 989
+    },
+    {
+     "layer_id": 38,
+     "start_ns": 1793469956621138534,
+     "end_ns": 1793469956628026996,
+     "first_csv_line": 990,
+     "last_csv_line": 1015
+    },
+    {
+     "layer_id": 39,
+     "start_ns": 1793469956628027016,
+     "end_ns": 1793469956633888079,
+     "first_csv_line": 1016,
+     "last_csv_line": 1041
+    }
+   ]
+  },
+  {
+   "forward_id": "prefill:50",
+   "phase": "prefill",
+   "query_rows": 256,
+   "tokens_per_sequence": 256,
+   "sequences": 1,
+   "context": 399744,
+   "body": {
+    "start_ns": 1793469983775696386,
+    "end_ns": 1793469984079109123,
+    "first_csv_line": 1042,
+    "last_csv_line": 1611
+   },
+   "layers": [
+    {
+     "layer_id": 0,
+     "start_ns": 1793469983775696386,
+     "end_ns": 1793469983782899702,
+     "first_csv_line": 1042,
+     "last_csv_line": 1055
+    },
+    {
+     "layer_id": 1,
+     "start_ns": 1793469983782899722,
+     "end_ns": 1793469983789421631,
+     "first_csv_line": 1056,
+     "last_csv_line": 1069
+    },
+    {
+     "layer_id": 2,
+     "start_ns": 1793469983789421651,
+     "end_ns": 1793469983795936761,
+     "first_csv_line": 1070,
+     "last_csv_line": 1083
+    },
+    {
+     "layer_id": 3,
+     "start_ns": 1793469983795936781,
+     "end_ns": 1793469983806665107,
+     "first_csv_line": 1084,
+     "last_csv_line": 1098
+    },
+    {
+     "layer_id": 4,
+     "start_ns": 1793469983806665127,
+     "end_ns": 1793469983813078959,
+     "first_csv_line": 1099,
+     "last_csv_line": 1112
+    },
+    {
+     "layer_id": 5,
+     "start_ns": 1793469983813078999,
+     "end_ns": 1793469983819641528,
+     "first_csv_line": 1113,
+     "last_csv_line": 1126
+    },
+    {
+     "layer_id": 6,
+     "start_ns": 1793469983819641548,
+     "end_ns": 1793469983826223976,
+     "first_csv_line": 1127,
+     "last_csv_line": 1140
+    },
+    {
+     "layer_id": 7,
+     "start_ns": 1793469983826223996,
+     "end_ns": 1793469983836965281,
+     "first_csv_line": 1141,
+     "last_csv_line": 1155
+    },
+    {
+     "layer_id": 8,
+     "start_ns": 1793469983836965301,
+     "end_ns": 1793469983843393493,
+     "first_csv_line": 1156,
+     "last_csv_line": 1169
+    },
+    {
+     "layer_id": 9,
+     "start_ns": 1793469983843393513,
+     "end_ns": 1793469983849884243,
+     "first_csv_line": 1170,
+     "last_csv_line": 1183
+    },
+    {
+     "layer_id": 10,
+     "start_ns": 1793469983849884263,
+     "end_ns": 1793469983856443892,
+     "first_csv_line": 1184,
+     "last_csv_line": 1197
+    },
+    {
+     "layer_id": 11,
+     "start_ns": 1793469983856443912,
+     "end_ns": 1793469983867051500,
+     "first_csv_line": 1198,
+     "last_csv_line": 1212
+    },
+    {
+     "layer_id": 12,
+     "start_ns": 1793469983867051540,
+     "end_ns": 1793469983873588750,
+     "first_csv_line": 1213,
+     "last_csv_line": 1226
+    },
+    {
+     "layer_id": 13,
+     "start_ns": 1793469983873588770,
+     "end_ns": 1793469983880144439,
+     "first_csv_line": 1227,
+     "last_csv_line": 1240
+    },
+    {
+     "layer_id": 14,
+     "start_ns": 1793469983880144459,
+     "end_ns": 1793469983886677668,
+     "first_csv_line": 1241,
+     "last_csv_line": 1254
+    },
+    {
+     "layer_id": 15,
+     "start_ns": 1793469983886677688,
+     "end_ns": 1793469983897653449,
+     "first_csv_line": 1255,
+     "last_csv_line": 1269
+    },
+    {
+     "layer_id": 16,
+     "start_ns": 1793469983897653469,
+     "end_ns": 1793469983904247337,
+     "first_csv_line": 1270,
+     "last_csv_line": 1283
+    },
+    {
+     "layer_id": 17,
+     "start_ns": 1793469983904247377,
+     "end_ns": 1793469983910762847,
+     "first_csv_line": 1284,
+     "last_csv_line": 1297
+    },
+    {
+     "layer_id": 18,
+     "start_ns": 1793469983910762867,
+     "end_ns": 1793469983917243038,
+     "first_csv_line": 1298,
+     "last_csv_line": 1311
+    },
+    {
+     "layer_id": 19,
+     "start_ns": 1793469983917243058,
+     "end_ns": 1793469983927765267,
+     "first_csv_line": 1312,
+     "last_csv_line": 1326
+    },
+    {
+     "layer_id": 20,
+     "start_ns": 1793469983927765287,
+     "end_ns": 1793469983934240618,
+     "first_csv_line": 1327,
+     "last_csv_line": 1340
+    },
+    {
+     "layer_id": 21,
+     "start_ns": 1793469983934240638,
+     "end_ns": 1793469983940747128,
+     "first_csv_line": 1341,
+     "last_csv_line": 1354
+    },
+    {
+     "layer_id": 22,
+     "start_ns": 1793469983940747148,
+     "end_ns": 1793469983947248098,
+     "first_csv_line": 1355,
+     "last_csv_line": 1368
+    },
+    {
+     "layer_id": 23,
+     "start_ns": 1793469983947248118,
+     "end_ns": 1793469983958360036,
+     "first_csv_line": 1369,
+     "last_csv_line": 1383
+    },
+    {
+     "layer_id": 24,
+     "start_ns": 1793469983958360056,
+     "end_ns": 1793469983964889386,
+     "first_csv_line": 1384,
+     "last_csv_line": 1397
+    },
+    {
+     "layer_id": 25,
+     "start_ns": 1793469983964889406,
+     "end_ns": 1793469983971361836,
+     "first_csv_line": 1398,
+     "last_csv_line": 1411
+    },
+    {
+     "layer_id": 26,
+     "start_ns": 1793469983971361856,
+     "end_ns": 1793469983977831187,
+     "first_csv_line": 1412,
+     "last_csv_line": 1425
+    },
+    {
+     "layer_id": 27,
+     "start_ns": 1793469983977831207,
+     "end_ns": 1793469983988380476,
+     "first_csv_line": 1426,
+     "last_csv_line": 1440
+    },
+    {
+     "layer_id": 28,
+     "start_ns": 1793469983988380496,
+     "end_ns": 1793469983994866627,
+     "first_csv_line": 1441,
+     "last_csv_line": 1454
+    },
+    {
+     "layer_id": 29,
+     "start_ns": 1793469983994866647,
+     "end_ns": 1793469984001311138,
+     "first_csv_line": 1455,
+     "last_csv_line": 1468
+    },
+    {
+     "layer_id": 30,
+     "start_ns": 1793469984001311158,
+     "end_ns": 1793469984007629252,
+     "first_csv_line": 1469,
+     "last_csv_line": 1482
+    },
+    {
+     "layer_id": 31,
+     "start_ns": 1793469984007629292,
+     "end_ns": 1793469984018125002,
+     "first_csv_line": 1483,
+     "last_csv_line": 1497
+    },
+    {
+     "layer_id": 32,
+     "start_ns": 1793469984018125042,
+     "end_ns": 1793469984024686091,
+     "first_csv_line": 1498,
+     "last_csv_line": 1511
+    },
+    {
+     "layer_id": 33,
+     "start_ns": 1793469984024686111,
+     "end_ns": 1793469984031163581,
+     "first_csv_line": 1512,
+     "last_csv_line": 1525
+    },
+    {
+     "layer_id": 34,
+     "start_ns": 1793469984031163601,
+     "end_ns": 1793469984037620252,
+     "first_csv_line": 1526,
+     "last_csv_line": 1539
+    },
+    {
+     "layer_id": 35,
+     "start_ns": 1793469984037620272,
+     "end_ns": 1793469984048236240,
+     "first_csv_line": 1540,
+     "last_csv_line": 1554
+    },
+    {
+     "layer_id": 36,
+     "start_ns": 1793469984048236280,
+     "end_ns": 1793469984054693871,
+     "first_csv_line": 1555,
+     "last_csv_line": 1568
+    },
+    {
+     "layer_id": 37,
+     "start_ns": 1793469984054693911,
+     "end_ns": 1793469984061158442,
+     "first_csv_line": 1569,
+     "last_csv_line": 1582
+    },
+    {
+     "layer_id": 38,
+     "start_ns": 1793469984061158462,
+     "end_ns": 1793469984067632833,
+     "first_csv_line": 1583,
+     "last_csv_line": 1596
+    },
+    {
+     "layer_id": 39,
+     "start_ns": 1793469984067632873,
+     "end_ns": 1793469984079109123,
+     "first_csv_line": 1597,
+     "last_csv_line": 1611
+    }
+   ]
+  },
+  {
+   "forward_id": "decode:0",
+   "phase": "decode",
+   "query_rows": 1,
+   "tokens_per_sequence": 1,
+   "sequences": 1,
+   "context": 192000,
+   "body": {
+    "start_ns": 1793470162581420032,
+    "end_ns": 1793470162597837448,
+    "first_csv_line": 1612,
+    "last_csv_line": 1902
+   },
+   "layers": [
+    {
+     "layer_id": 0,
+     "start_ns": 1793470162581420032,
+     "end_ns": 1793470162581708348,
+     "first_csv_line": 1612,
+     "last_csv_line": 1618
+    },
+    {
+     "layer_id": 1,
+     "start_ns": 1793470162581756416,
+     "end_ns": 1793470162582051508,
+     "first_csv_line": 1619,
+     "last_csv_line": 1625
+    },
+    {
+     "layer_id": 2,
+     "start_ns": 1793470162582099456,
+     "end_ns": 1793470162582609036,
+     "first_csv_line": 1626,
+     "last_csv_line": 1633
+    },
+    {
+     "layer_id": 3,
+     "start_ns": 1793470162582656256,
+     "end_ns": 1793470162582958852,
+     "first_csv_line": 1634,
+     "last_csv_line": 1640
+    },
+    {
+     "layer_id": 4,
+     "start_ns": 1793470162583006464,
+     "end_ns": 1793470162583292895,
+     "first_csv_line": 1641,
+     "last_csv_line": 1647
+    },
+    {
+     "layer_id": 5,
+     "start_ns": 1793470162583342080,
+     "end_ns": 1793470162583637924,
+     "first_csv_line": 1648,
+     "last_csv_line": 1654
+    },
+    {
+     "layer_id": 6,
+     "start_ns": 1793470162583686656,
+     "end_ns": 1793470162584184948,
+     "first_csv_line": 1655,
+     "last_csv_line": 1662
+    },
+    {
+     "layer_id": 7,
+     "start_ns": 1793470162584239872,
+     "end_ns": 1793470162584538788,
+     "first_csv_line": 1663,
+     "last_csv_line": 1669
+    },
+    {
+     "layer_id": 8,
+     "start_ns": 1793470162584586496,
+     "end_ns": 1793470162584889812,
+     "first_csv_line": 1670,
+     "last_csv_line": 1676
+    },
+    {
+     "layer_id": 9,
+     "start_ns": 1793470162584936960,
+     "end_ns": 1793470162585241715,
+     "first_csv_line": 1677,
+     "last_csv_line": 1683
+    },
+    {
+     "layer_id": 10,
+     "start_ns": 1793470162585289472,
+     "end_ns": 1793470162585786760,
+     "first_csv_line": 1684,
+     "last_csv_line": 1691
+    },
+    {
+     "layer_id": 11,
+     "start_ns": 1793470162585835008,
+     "end_ns": 1793470162586143243,
+     "first_csv_line": 1692,
+     "last_csv_line": 1698
+    },
+    {
+     "layer_id": 12,
+     "start_ns": 1793470162586191104,
+     "end_ns": 1793470162586490596,
+     "first_csv_line": 1699,
+     "last_csv_line": 1705
+    },
+    {
+     "layer_id": 13,
+     "start_ns": 1793470162586540032,
+     "end_ns": 1793470162586834732,
+     "first_csv_line": 1706,
+     "last_csv_line": 1712
+    },
+    {
+     "layer_id": 14,
+     "start_ns": 1793470162586883840,
+     "end_ns": 1793470162587381348,
+     "first_csv_line": 1713,
+     "last_csv_line": 1720
+    },
+    {
+     "layer_id": 15,
+     "start_ns": 1793470162587428608,
+     "end_ns": 1793470162587729396,
+     "first_csv_line": 1721,
+     "last_csv_line": 1727
+    },
+    {
+     "layer_id": 16,
+     "start_ns": 1793470162587777024,
+     "end_ns": 1793470162588064420,
+     "first_csv_line": 1728,
+     "last_csv_line": 1734
+    },
+    {
+     "layer_id": 17,
+     "start_ns": 1793470162588113664,
+     "end_ns": 1793470162588411636,
+     "first_csv_line": 1735,
+     "last_csv_line": 1741
+    },
+    {
+     "layer_id": 18,
+     "start_ns": 1793470162588460544,
+     "end_ns": 1793470162588961664,
+     "first_csv_line": 1742,
+     "last_csv_line": 1749
+    },
+    {
+     "layer_id": 19,
+     "start_ns": 1793470162589015296,
+     "end_ns": 1793470162589316836,
+     "first_csv_line": 1750,
+     "last_csv_line": 1756
+    },
+    {
+     "layer_id": 20,
+     "start_ns": 1793470162589362944,
+     "end_ns": 1793470162589655968,
+     "first_csv_line": 1757,
+     "last_csv_line": 1763
+    },
+    {
+     "layer_id": 21,
+     "start_ns": 1793470162589707520,
+     "end_ns": 1793470162589996115,
+     "first_csv_line": 1764,
+     "last_csv_line": 1770
+    },
+    {
+     "layer_id": 22,
+     "start_ns": 1793470162590045184,
+     "end_ns": 1793470162590548555,
+     "first_csv_line": 1771,
+     "last_csv_line": 1778
+    },
+    {
+     "layer_id": 23,
+     "start_ns": 1793470162590596608,
+     "end_ns": 1793470162590893360,
+     "first_csv_line": 1779,
+     "last_csv_line": 1785
+    },
+    {
+     "layer_id": 24,
+     "start_ns": 1793470162590941440,
+     "end_ns": 1793470162591232944,
+     "first_csv_line": 1786,
+     "last_csv_line": 1792
+    },
+    {
+     "layer_id": 25,
+     "start_ns": 1793470162591288320,
+     "end_ns": 1793470162591587104,
+     "first_csv_line": 1793,
+     "last_csv_line": 1799
+    },
+    {
+     "layer_id": 26,
+     "start_ns": 1793470162591634432,
+     "end_ns": 1793470162592148711,
+     "first_csv_line": 1800,
+     "last_csv_line": 1807
+    },
+    {
+     "layer_id": 27,
+     "start_ns": 1793470162592195840,
+     "end_ns": 1793470162592499735,
+     "first_csv_line": 1808,
+     "last_csv_line": 1814
+    },
+    {
+     "layer_id": 28,
+     "start_ns": 1793470162592547584,
+     "end_ns": 1793470162592849103,
+     "first_csv_line": 1815,
+     "last_csv_line": 1821
+    },
+    {
+     "layer_id": 29,
+     "start_ns": 1793470162592898304,
+     "end_ns": 1793470162593190348,
+     "first_csv_line": 1822,
+     "last_csv_line": 1828
+    },
+    {
+     "layer_id": 30,
+     "start_ns": 1793470162593239040,
+     "end_ns": 1793470162593742824,
+     "first_csv_line": 1829,
+     "last_csv_line": 1836
+    },
+    {
+     "layer_id": 31,
+     "start_ns": 1793470162593791232,
+     "end_ns": 1793470162594088476,
+     "first_csv_line": 1837,
+     "last_csv_line": 1843
+    },
+    {
+     "layer_id": 32,
+     "start_ns": 1793470162594136576,
+     "end_ns": 1793470162594426144,
+     "first_csv_line": 1844,
+     "last_csv_line": 1850
+    },
+    {
+     "layer_id": 33,
+     "start_ns": 1793470162594473472,
+     "end_ns": 1793470162594771268,
+     "first_csv_line": 1851,
+     "last_csv_line": 1857
+    },
+    {
+     "layer_id": 34,
+     "start_ns": 1793470162594820096,
+     "end_ns": 1793470162595325160,
+     "first_csv_line": 1858,
+     "last_csv_line": 1865
+    },
+    {
+     "layer_id": 35,
+     "start_ns": 1793470162595373312,
+     "end_ns": 1793470162595682452,
+     "first_csv_line": 1866,
+     "last_csv_line": 1872
+    },
+    {
+     "layer_id": 36,
+     "start_ns": 1793470162595729408,
+     "end_ns": 1793470162596024336,
+     "first_csv_line": 1873,
+     "last_csv_line": 1879
+    },
+    {
+     "layer_id": 37,
+     "start_ns": 1793470162596073728,
+     "end_ns": 1793470162596359603,
+     "first_csv_line": 1880,
+     "last_csv_line": 1886
+    },
+    {
+     "layer_id": 38,
+     "start_ns": 1793470162596408320,
+     "end_ns": 1793470162596903679,
+     "first_csv_line": 1887,
+     "last_csv_line": 1894
+    },
+    {
+     "layer_id": 39,
+     "start_ns": 1793470162596952576,
+     "end_ns": 1793470162597837448,
+     "first_csv_line": 1895,
+     "last_csv_line": 1902
+    }
+   ]
+  }
+ ],
+ "source_identity": {
+  "path": "/Volumes/data/code/mindie-release-20261014/profiler/tests/fixtures/scoped_structure/a3_qwen35_tp8_prefill_full_tail_decode_mixed.csv",
+  "sha256": "9c6b4e57625980f84be6c1cd2de1d466b11b3497b75712cc512358b3a4f71fe6",
+  "size_bytes": 650457
+ }
+}
