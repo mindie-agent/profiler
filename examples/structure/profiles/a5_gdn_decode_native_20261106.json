@@ -1,0 +1,3888 @@
+{
+  "schema_version": "mindie-profiler-native-observation-profile/1",
+  "id": "a5_gdn_decode_native_20261106",
+  "hardware": "Ascend950DT_9582",
+  "phase": "decode",
+  "parallel": {
+    "tp": 4,
+    "dp": 1,
+    "ep": 4,
+    "pp": 1,
+    "cp": 1,
+    "pcp": 1
+  },
+  "sequence_partition": {
+    "tokens_per_sequence": 1,
+    "sequences_per_replica": [
+      1,
+      4,
+      16
+    ]
+  },
+  "caller_implementation": {
+    "name": "vllm_ascend_gdn_decode",
+    "required_options": {
+      "recurrent_implementation": "arch35_fp32",
+      "cache_index_row_stride": 4
+    }
+  },
+  "scope": "Explicit observed native-service responses for five complete local GDN/projection kernels; no automatic source implementation selection.",
+  "calibration": {
+    "parameter_assignment": "Sample-count-weighted mean of complete native kernel durations pooled by active ABI.",
+    "evaluation_relation": "in_sample_operator_capture",
+    "body_residual_used": false,
+    "native_binary_source_identity_verified": false,
+    "storage_capacity_policy": "Preserve every full ABI and its capacity provenance. Capacity is not an active-row coordinate.",
+    "unobserved_conditions": [
+      "capture_binary_to_source_revision_identity",
+      "original_caller_table_stride",
+      "cache_hit_state_and_selected_state_slot_addresses"
+    ],
+    "declared_source_conditions": [
+      "Existing vllm_ascend_gdn_decode caller remains explicitly selected.",
+      "Source cache-index row stride is fixed at 4; this is not an observed capture stride.",
+      "Convolution source revision, recurrent source hash and declared Q/K/V views are fixed in each rule."
+    ],
+    "outside_domain": "Do not alter the input; return not_applicable provenance and continue the original prediction."
+  },
+  "sources": [
+    {
+      "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+      "sha256": "46f5f8512d807b5d7a6d8d6be81a4c5cff4fad2de42d4ca88183d464877d59b4",
+      "case_id": "a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4",
+      "command": {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/cmd.sh",
+        "sha256": "feb93691be1e9a41e7b691a62ee086ddf3affb01918219839bd87a28b2217e2e"
+      },
+      "full_decode_graph_mode_declared": true,
+      "native_binary_source_identity_verified": false
+    },
+    {
+      "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4/kernel_details.csv",
+      "sha256": "df2dad6d6e7d8e50cc9025e85508874bebb045fe475eb315af9c946c076a13a5",
+      "case_id": "a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4",
+      "command": {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4/cmd.sh",
+        "sha256": "eba5abd6384ae02c14afcd701a9b34dd421949178d986a0311ca62956858095c"
+      },
+      "full_decode_graph_mode_declared": true,
+      "native_binary_source_identity_verified": false
+    },
+    {
+      "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+      "sha256": "ed6d092300b75ccd8c6a10b7b33aaf1093d23d1e1b17fceb19f3844df71aa0c3",
+      "case_id": "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16",
+      "command": {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/cmd.sh",
+        "sha256": "f4a0f39d21c32c0100309f7a2a1a51893ae5cdee8f88eac02f3144ecfd9f40fe"
+      },
+      "full_decode_graph_mode_declared": true,
+      "native_binary_source_identity_verified": false
+    },
+    {
+      "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+      "sha256": "a7f6c2bb53ad703501d8937190df84e490fa6a1cbeaa58f86c368fe0ba47b695",
+      "case_id": "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4",
+      "command": {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4/cmd.sh",
+        "sha256": "132f1d9e3d6db00c14a43099f9c525fac52669763dbfb33eee0073971fc9d93e"
+      },
+      "full_decode_graph_mode_declared": true,
+      "native_binary_source_identity_verified": false
+    },
+    {
+      "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+      "sha256": "3fce860a6c2f9240c19f4d143e5696cbf79e05c943c76153407fa25ab80bc644",
+      "case_id": "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1",
+      "command": {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/cmd.sh",
+        "sha256": "33edbbecadc4d979738941da2da2d6da57529c8543423bb44011860862bb6c58"
+      },
+      "full_decode_graph_mode_declared": true,
+      "native_binary_source_identity_verified": false
+    },
+    {
+      "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+      "sha256": "4b10d8de8e793085fbad7d378e882b2f396c2cbd52a7ede8c68f7b6588ee1598",
+      "case_id": "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4",
+      "command": {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4/cmd.sh",
+        "sha256": "8a0f54f924cadd836312cd2feedd80860596b0b4b6697651269c7c645cc7244d"
+      },
+      "full_decode_graph_mode_declared": true,
+      "native_binary_source_identity_verified": false
+    }
+  ],
+  "observations": [
+    {
+      "recipe": "linear_qkvz",
+      "local_shape": [
+        4,
+        3072,
+        2048
+      ],
+      "count": 4410,
+      "mean_us": 7.4499494331065765,
+      "min_us": 6.53,
+      "max_us": 9.183,
+      "p50_us": 7.433,
+      "p90_us": 7.947,
+      "source_counts": {
+        "a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4": 1122,
+        "a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4": 1104,
+        "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4": 1128,
+        "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
+      },
+      "example": {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "row": 56,
+        "native_type": "MatMulV3",
+        "input_shapes": "\"4,2048;3072,2048\"",
+        "input_dtypes": "DT_BF16;DT_BF16",
+        "output_shapes": "\"4,3072\"",
+        "output_dtypes": "DT_BF16"
+      },
+      "full_abi_variants": [
+        {
+          "abi": {
+            "Type": "MatMulV3",
+            "Accelerator Core": "AI_CORE",
+            "Input Shapes": "\"4,2048;3072,2048\"",
+            "Input Data Types": "DT_BF16;DT_BF16",
+            "Output Shapes": "\"4,3072\"",
+            "Output Data Types": "DT_BF16"
+          },
+          "count": 4410,
+          "source_counts": {
+            "a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4": 1122,
+            "a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4": 1104,
+            "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4": 1128,
+            "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
+          },
+          "example": {
+            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "row": 56
+          }
+        }
+      ],
+      "pooling_basis": "Same active tensor geometry, dtype and complete native boundary; full storage capacities remain explicit provenance, not assumed identical.",
+      "native_binary_source_identity_verified": false
+    },
+    {
+      "recipe": "linear_beta_alpha",
+      "local_shape": [
+        4,
+        16,
+        2048
+      ],
+      "count": 4410,
+      "mean_us": 2.963240589569161,
+      "min_us": 2.457,
+      "max_us": 8.221,
+      "p50_us": 2.998,
+      "p90_us": 3.208,
+      "source_counts": {
+        "a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4": 1122,
+        "a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4": 1104,
+        "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4": 1128,
+        "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
+      },
+      "example": {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "row": 57,
+        "native_type": "MatMulV3",
+        "input_shapes": "\"4,2048;16,2048\"",
+        "input_dtypes": "DT_BF16;DT_BF16",
+        "output_shapes": "\"4,16\"",
+        "output_dtypes": "DT_BF16"
+      },
+      "full_abi_variants": [
+        {
+          "abi": {
+            "Type": "MatMulV3",
+            "Accelerator Core": "AI_CORE",
+            "Input Shapes": "\"4,2048;16,2048\"",
+            "Input Data Types": "DT_BF16;DT_BF16",
+            "Output Shapes": "\"4,16\"",
+            "Output Data Types": "DT_BF16"
+          },
+          "count": 4410,
+          "source_counts": {
+            "a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4": 1122,
+            "a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4": 1104,
+            "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4": 1128,
+            "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
+          },
+          "example": {
+            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "row": 57
+          }
+        }
+      ],
+      "pooling_basis": "Same active tensor geometry, dtype and complete native boundary; full storage capacities remain explicit provenance, not assumed identical.",
+      "native_binary_source_identity_verified": false
+    },
+    {
+      "recipe": "ascend_causal_conv1d_update",
+      "local_shape": [
+        4,
+        2048
+      ],
+      "count": 4410,
+      "mean_us": 4.580990249433107,
+      "min_us": 4.12,
+      "max_us": 5.305,
+      "p50_us": 4.568,
+      "p90_us": 4.785,
+      "source_counts": {
+        "a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4": 1122,
+        "a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4": 1104,
+        "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4": 1128,
+        "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
+      },
+      "example": {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "row": 62,
+        "native_type": "CausalConv1d",
+        "input_shapes": "\"4,2048;4,2048;;62438,3,2048;5;4;;;;;;\"",
+        "input_dtypes": "DT_BF16;DT_BF16;DT_UNDEFINED;DT_BF16;INT32;INT32;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED",
+        "output_shapes": "\"4,2048\"",
+        "output_dtypes": "DT_BF16"
+      },
+      "full_abi_variants": [
+        {
+          "abi": {
+            "Type": "CausalConv1d",
+            "Accelerator Core": "MIX_AIV",
+            "Input Shapes": "\"4,2048;4,2048;;62438,3,2048;5;4;;;;;;\"",
+            "Input Data Types": "DT_BF16;DT_BF16;DT_UNDEFINED;DT_BF16;INT32;INT32;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED",
+            "Output Shapes": "\"4,2048\"",
+            "Output Data Types": "DT_BF16"
+          },
+          "count": 1122,
+          "source_counts": {
+            "a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4": 1122
+          },
+          "example": {
+            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "row": 62
+          }
+        },
+        {
+          "abi": {
+            "Type": "CausalConv1d",
+            "Accelerator Core": "MIX_AIV",
+            "Input Shapes": "\"4,2048;4,2048;;62495,3,2048;5;4;;;;;;\"",
+            "Input Data Types": "DT_BF16;DT_BF16;DT_UNDEFINED;DT_BF16;INT32;INT32;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED",
+            "Output Shapes": "\"4,2048\"",
+            "Output Data Types": "DT_BF16"
+          },
+          "count": 1104,
+          "source_counts": {
+            "a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4": 1104
+          },
+          "example": {
+            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "row": 62
+          }
+        },
+        {
+          "abi": {
+            "Type": "CausalConv1d",
+            "Accelerator Core": "MIX_AIV",
+            "Input Shapes": "\"4,2048;4,2048;;62282,3,2048;5;4;;;;;;\"",
+            "Input Data Types": "DT_BF16;DT_BF16;DT_UNDEFINED;DT_BF16;INT32;INT32;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED",
+            "Output Shapes": "\"4,2048\"",
+            "Output Data Types": "DT_BF16"
+          },
+          "count": 1128,
+          "source_counts": {
+            "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4": 1128
+          },
+          "example": {
+            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "row": 62
+          }
+        },
+        {
+          "abi": {
+            "Type": "CausalConv1d",
+            "Accelerator Core": "MIX_AIV",
+            "Input Shapes": "\"4,2048;4,2048;;62203,3,2048;5;4;;;;;;\"",
+            "Input Data Types": "DT_BF16;DT_BF16;DT_UNDEFINED;DT_BF16;INT32;INT32;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED",
+            "Output Shapes": "\"4,2048\"",
+            "Output Data Types": "DT_BF16"
+          },
+          "count": 1056,
+          "source_counts": {
+            "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
+          },
+          "example": {
+            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "row": 62
+          }
+        }
+      ],
+      "pooling_basis": "Same active tensor geometry, dtype and complete native boundary; full storage capacities remain explicit provenance, not assumed identical.",
+      "native_binary_source_identity_verified": false
+    },
+    {
+      "recipe": "ascend_recurrent_gdn_fp32_state",
+      "local_shape": [
+        4,
+        8,
+        128,
+        128
+      ],
+      "count": 4410,
+      "mean_us": 6.57620612244898,
+      "min_us": 5.884,
+      "max_us": 8.407,
+      "p50_us": 6.556,
+      "p90_us": 6.887,
+      "source_counts": {
+        "a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4": 1122,
+        "a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4": 1104,
+        "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4": 1128,
+        "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
+      },
+      "example": {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "row": 70,
+        "native_type": "RecurrentGatedDeltaRule",
+        "input_shapes": "\"4,4,128;4,4,128;4,8,128;4,8;62438,8,128,128;5;4;4,8\"",
+        "input_dtypes": "DT_BF16;DT_BF16;DT_BF16;DT_BF16;FLOAT;INT32;INT32;FLOAT",
+        "output_shapes": "\"4,8,128;62438,8,128,128\"",
+        "output_dtypes": "DT_BF16;FLOAT"
+      },
+      "full_abi_variants": [
+        {
+          "abi": {
+            "Type": "RecurrentGatedDeltaRule",
+            "Accelerator Core": "AI_VECTOR_CORE",
+            "Input Shapes": "\"4,4,128;4,4,128;4,8,128;4,8;62438,8,128,128;5;4;4,8\"",
+            "Input Data Types": "DT_BF16;DT_BF16;DT_BF16;DT_BF16;FLOAT;INT32;INT32;FLOAT",
+            "Output Shapes": "\"4,8,128;62438,8,128,128\"",
+            "Output Data Types": "DT_BF16;FLOAT"
+          },
+          "count": 1122,
+          "source_counts": {
+            "a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4": 1122
+          },
+          "example": {
+            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "row": 70
+          }
+        },
+        {
+          "abi": {
+            "Type": "RecurrentGatedDeltaRule",
+            "Accelerator Core": "AI_VECTOR_CORE",
+            "Input Shapes": "\"4,4,128;4,4,128;4,8,128;4,8;62495,8,128,128;5;4;4,8\"",
+            "Input Data Types": "DT_BF16;DT_BF16;DT_BF16;DT_BF16;FLOAT;INT32;INT32;FLOAT",
+            "Output Shapes": "\"4,8,128;62495,8,128,128\"",
+            "Output Data Types": "DT_BF16;FLOAT"
+          },
+          "count": 1104,
+          "source_counts": {
+            "a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4": 1104
+          },
+          "example": {
+            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "row": 70
+          }
+        },
+        {
+          "abi": {
+            "Type": "RecurrentGatedDeltaRule",
+            "Accelerator Core": "AI_VECTOR_CORE",
+            "Input Shapes": "\"4,4,128;4,4,128;4,8,128;4,8;62282,8,128,128;5;4;4,8\"",
+            "Input Data Types": "DT_BF16;DT_BF16;DT_BF16;DT_BF16;FLOAT;INT32;INT32;FLOAT",
+            "Output Shapes": "\"4,8,128;62282,8,128,128\"",
+            "Output Data Types": "DT_BF16;FLOAT"
+          },
+          "count": 1128,
+          "source_counts": {
+            "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4": 1128
+          },
+          "example": {
+            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "row": 70
+          }
+        },
+        {
+          "abi": {
+            "Type": "RecurrentGatedDeltaRule",
+            "Accelerator Core": "AI_VECTOR_CORE",
+            "Input Shapes": "\"4,4,128;4,4,128;4,8,128;4,8;62203,8,128,128;5;4;4,8\"",
+            "Input Data Types": "DT_BF16;DT_BF16;DT_BF16;DT_BF16;FLOAT;INT32;INT32;FLOAT",
+            "Output Shapes": "\"4,8,128;62203,8,128,128\"",
+            "Output Data Types": "DT_BF16;FLOAT"
+          },
+          "count": 1056,
+          "source_counts": {
+            "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
+          },
+          "example": {
+            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "row": 70
+          }
+        }
+      ],
+      "pooling_basis": "Same active tensor geometry, dtype and complete native boundary; full storage capacities remain explicit provenance, not assumed identical.",
+      "native_binary_source_identity_verified": false
+    },
+    {
+      "recipe": "linear_output",
+      "local_shape": [
+        4,
+        2048,
+        1024
+      ],
+      "count": 5880,
+      "mean_us": 4.963906972789116,
+      "min_us": 4.282,
+      "max_us": 6.084,
+      "p50_us": 4.95,
+      "p90_us": 5.308,
+      "source_counts": {
+        "a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4": 1496,
+        "a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4": 1472,
+        "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4": 1504,
+        "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1408
+      },
+      "example": {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "row": 73,
+        "native_type": "MatMulV3",
+        "input_shapes": "\"4,1024;2048,1024\"",
+        "input_dtypes": "DT_BF16;DT_BF16",
+        "output_shapes": "\"4,2048\"",
+        "output_dtypes": "DT_BF16"
+      },
+      "full_abi_variants": [
+        {
+          "abi": {
+            "Type": "MatMulV3",
+            "Accelerator Core": "AI_CORE",
+            "Input Shapes": "\"4,1024;2048,1024\"",
+            "Input Data Types": "DT_BF16;DT_BF16",
+            "Output Shapes": "\"4,2048\"",
+            "Output Data Types": "DT_BF16"
+          },
+          "count": 5880,
+          "source_counts": {
+            "a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4": 1496,
+            "a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4": 1472,
+            "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4": 1504,
+            "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1408
+          },
+          "example": {
+            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "row": 73
+          }
+        }
+      ],
+      "pooling_basis": "Same active tensor geometry, dtype and complete native boundary; full storage capacities remain explicit provenance, not assumed identical.",
+      "native_binary_source_identity_verified": false
+    },
+    {
+      "recipe": "linear_qkvz",
+      "local_shape": [
+        16,
+        3072,
+        2048
+      ],
+      "count": 1050,
+      "mean_us": 8.340752380952381,
+      "min_us": 7.776,
+      "max_us": 9.197,
+      "p50_us": 8.299,
+      "p90_us": 8.743,
+      "source_counts": {
+        "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
+      },
+      "example": {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "row": 56,
+        "native_type": "MatMulV3",
+        "input_shapes": "\"16,2048;3072,2048\"",
+        "input_dtypes": "DT_BF16;DT_BF16",
+        "output_shapes": "\"16,3072\"",
+        "output_dtypes": "DT_BF16"
+      },
+      "full_abi_variants": [
+        {
+          "abi": {
+            "Type": "MatMulV3",
+            "Accelerator Core": "AI_CORE",
+            "Input Shapes": "\"16,2048;3072,2048\"",
+            "Input Data Types": "DT_BF16;DT_BF16",
+            "Output Shapes": "\"16,3072\"",
+            "Output Data Types": "DT_BF16"
+          },
+          "count": 1050,
+          "source_counts": {
+            "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
+          },
+          "example": {
+            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "row": 56
+          }
+        }
+      ],
+      "pooling_basis": "Same active tensor geometry, dtype and complete native boundary; full storage capacities remain explicit provenance, not assumed identical.",
+      "native_binary_source_identity_verified": false
+    },
+    {
+      "recipe": "linear_beta_alpha",
+      "local_shape": [
+        16,
+        16,
+        2048
+      ],
+      "count": 1050,
+      "mean_us": 3.339002857142857,
+      "min_us": 3.085,
+      "max_us": 3.724,
+      "p50_us": 3.347,
+      "p90_us": 3.523,
+      "source_counts": {
+        "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
+      },
+      "example": {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "row": 57,
+        "native_type": "MatMulV3",
+        "input_shapes": "\"16,2048;16,2048\"",
+        "input_dtypes": "DT_BF16;DT_BF16",
+        "output_shapes": "\"16,16\"",
+        "output_dtypes": "DT_BF16"
+      },
+      "full_abi_variants": [
+        {
+          "abi": {
+            "Type": "MatMulV3",
+            "Accelerator Core": "AI_CORE",
+            "Input Shapes": "\"16,2048;16,2048\"",
+            "Input Data Types": "DT_BF16;DT_BF16",
+            "Output Shapes": "\"16,16\"",
+            "Output Data Types": "DT_BF16"
+          },
+          "count": 1050,
+          "source_counts": {
+            "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
+          },
+          "example": {
+            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "row": 57
+          }
+        }
+      ],
+      "pooling_basis": "Same active tensor geometry, dtype and complete native boundary; full storage capacities remain explicit provenance, not assumed identical.",
+      "native_binary_source_identity_verified": false
+    },
+    {
+      "recipe": "ascend_causal_conv1d_update",
+      "local_shape": [
+        16,
+        2048
+      ],
+      "count": 1050,
+      "mean_us": 6.5230219047619045,
+      "min_us": 5.623,
+      "max_us": 8.129,
+      "p50_us": 6.218500000000001,
+      "p90_us": 7.439,
+      "source_counts": {
+        "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
+      },
+      "example": {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "row": 62,
+        "native_type": "CausalConv1d",
+        "input_shapes": "\"16,2048;4,2048;;62416,3,2048;17;16;;;;;;\"",
+        "input_dtypes": "DT_BF16;DT_BF16;DT_UNDEFINED;DT_BF16;INT32;INT32;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED",
+        "output_shapes": "\"16,2048\"",
+        "output_dtypes": "DT_BF16"
+      },
+      "full_abi_variants": [
+        {
+          "abi": {
+            "Type": "CausalConv1d",
+            "Accelerator Core": "MIX_AIV",
+            "Input Shapes": "\"16,2048;4,2048;;62416,3,2048;17;16;;;;;;\"",
+            "Input Data Types": "DT_BF16;DT_BF16;DT_UNDEFINED;DT_BF16;INT32;INT32;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED",
+            "Output Shapes": "\"16,2048\"",
+            "Output Data Types": "DT_BF16"
+          },
+          "count": 1050,
+          "source_counts": {
+            "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
+          },
+          "example": {
+            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "row": 62
+          }
+        }
+      ],
+      "pooling_basis": "Same active tensor geometry, dtype and complete native boundary; full storage capacities remain explicit provenance, not assumed identical.",
+      "native_binary_source_identity_verified": false
+    },
+    {
+      "recipe": "ascend_recurrent_gdn_fp32_state",
+      "local_shape": [
+        16,
+        8,
+        128,
+        128
+      ],
+      "count": 1050,
+      "mean_us": 12.306108571428572,
+      "min_us": 11.347,
+      "max_us": 16.791,
+      "p50_us": 12.178,
+      "p90_us": 13.013,
+      "source_counts": {
+        "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
+      },
+      "example": {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "row": 70,
+        "native_type": "RecurrentGatedDeltaRule",
+        "input_shapes": "\"16,4,128;16,4,128;16,8,128;16,8;62416,8,128,128;17;16;16,8\"",
+        "input_dtypes": "DT_BF16;DT_BF16;DT_BF16;DT_BF16;FLOAT;INT32;INT32;FLOAT",
+        "output_shapes": "\"16,8,128;62416,8,128,128\"",
+        "output_dtypes": "DT_BF16;FLOAT"
+      },
+      "full_abi_variants": [
+        {
+          "abi": {
+            "Type": "RecurrentGatedDeltaRule",
+            "Accelerator Core": "AI_VECTOR_CORE",
+            "Input Shapes": "\"16,4,128;16,4,128;16,8,128;16,8;62416,8,128,128;17;16;16,8\"",
+            "Input Data Types": "DT_BF16;DT_BF16;DT_BF16;DT_BF16;FLOAT;INT32;INT32;FLOAT",
+            "Output Shapes": "\"16,8,128;62416,8,128,128\"",
+            "Output Data Types": "DT_BF16;FLOAT"
+          },
+          "count": 1050,
+          "source_counts": {
+            "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
+          },
+          "example": {
+            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "row": 70
+          }
+        }
+      ],
+      "pooling_basis": "Same active tensor geometry, dtype and complete native boundary; full storage capacities remain explicit provenance, not assumed identical.",
+      "native_binary_source_identity_verified": false
+    },
+    {
+      "recipe": "linear_output",
+      "local_shape": [
+        16,
+        2048,
+        1024
+      ],
+      "count": 1400,
+      "mean_us": 5.160401428571428,
+      "min_us": 4.651,
+      "max_us": 5.959,
+      "p50_us": 5.135,
+      "p90_us": 5.487,
+      "source_counts": {
+        "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1400
+      },
+      "example": {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "row": 73,
+        "native_type": "MatMulV3",
+        "input_shapes": "\"16,1024;2048,1024\"",
+        "input_dtypes": "DT_BF16;DT_BF16",
+        "output_shapes": "\"16,2048\"",
+        "output_dtypes": "DT_BF16"
+      },
+      "full_abi_variants": [
+        {
+          "abi": {
+            "Type": "MatMulV3",
+            "Accelerator Core": "AI_CORE",
+            "Input Shapes": "\"16,1024;2048,1024\"",
+            "Input Data Types": "DT_BF16;DT_BF16",
+            "Output Shapes": "\"16,2048\"",
+            "Output Data Types": "DT_BF16"
+          },
+          "count": 1400,
+          "source_counts": {
+            "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1400
+          },
+          "example": {
+            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "row": 73
+          }
+        }
+      ],
+      "pooling_basis": "Same active tensor geometry, dtype and complete native boundary; full storage capacities remain explicit provenance, not assumed identical.",
+      "native_binary_source_identity_verified": false
+    },
+    {
+      "recipe": "linear_qkvz",
+      "local_shape": [
+        1,
+        3072,
+        2048
+      ],
+      "count": 1176,
+      "mean_us": 6.6653988095238095,
+      "min_us": 6.057,
+      "max_us": 7.909,
+      "p50_us": 6.6215,
+      "p90_us": 7.071,
+      "source_counts": {
+        "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
+      },
+      "example": {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "row": 56,
+        "native_type": "MatMulV3",
+        "input_shapes": "\"1,2048;3072,2048\"",
+        "input_dtypes": "DT_BF16;DT_BF16",
+        "output_shapes": "\"1,3072\"",
+        "output_dtypes": "DT_BF16"
+      },
+      "full_abi_variants": [
+        {
+          "abi": {
+            "Type": "MatMulV3",
+            "Accelerator Core": "AI_CORE",
+            "Input Shapes": "\"1,2048;3072,2048\"",
+            "Input Data Types": "DT_BF16;DT_BF16",
+            "Output Shapes": "\"1,3072\"",
+            "Output Data Types": "DT_BF16"
+          },
+          "count": 1176,
+          "source_counts": {
+            "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
+          },
+          "example": {
+            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+            "row": 56
+          }
+        }
+      ],
+      "pooling_basis": "Same active tensor geometry, dtype and complete native boundary; full storage capacities remain explicit provenance, not assumed identical.",
+      "native_binary_source_identity_verified": false
+    },
+    {
+      "recipe": "linear_beta_alpha",
+      "local_shape": [
+        1,
+        16,
+        2048
+      ],
+      "count": 1176,
+      "mean_us": 2.739855442176871,
+      "min_us": 2.176,
+      "max_us": 3.371,
+      "p50_us": 2.718,
+      "p90_us": 3.09,
+      "source_counts": {
+        "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
+      },
+      "example": {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "row": 57,
+        "native_type": "MatMulV3",
+        "input_shapes": "\"1,2048;16,2048\"",
+        "input_dtypes": "DT_BF16;DT_BF16",
+        "output_shapes": "\"1,16\"",
+        "output_dtypes": "DT_BF16"
+      },
+      "full_abi_variants": [
+        {
+          "abi": {
+            "Type": "MatMulV3",
+            "Accelerator Core": "AI_CORE",
+            "Input Shapes": "\"1,2048;16,2048\"",
+            "Input Data Types": "DT_BF16;DT_BF16",
+            "Output Shapes": "\"1,16\"",
+            "Output Data Types": "DT_BF16"
+          },
+          "count": 1176,
+          "source_counts": {
+            "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
+          },
+          "example": {
+            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+            "row": 57
+          }
+        }
+      ],
+      "pooling_basis": "Same active tensor geometry, dtype and complete native boundary; full storage capacities remain explicit provenance, not assumed identical.",
+      "native_binary_source_identity_verified": false
+    },
+    {
+      "recipe": "ascend_causal_conv1d_update",
+      "local_shape": [
+        1,
+        2048
+      ],
+      "count": 1176,
+      "mean_us": 4.305445578231292,
+      "min_us": 3.764,
+      "max_us": 5.062,
+      "p50_us": 4.29,
+      "p90_us": 4.528,
+      "source_counts": {
+        "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
+      },
+      "example": {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "row": 59,
+        "native_type": "CausalConv1d",
+        "input_shapes": "\"1,2048;4,2048;;62338,3,2048;2;1;;;;;;\"",
+        "input_dtypes": "DT_BF16;DT_BF16;DT_UNDEFINED;DT_BF16;INT32;INT32;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED",
+        "output_shapes": "\"1,2048\"",
+        "output_dtypes": "DT_BF16"
+      },
+      "full_abi_variants": [
+        {
+          "abi": {
+            "Type": "CausalConv1d",
+            "Accelerator Core": "MIX_AIV",
+            "Input Shapes": "\"1,2048;4,2048;;62338,3,2048;2;1;;;;;;\"",
+            "Input Data Types": "DT_BF16;DT_BF16;DT_UNDEFINED;DT_BF16;INT32;INT32;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED",
+            "Output Shapes": "\"1,2048\"",
+            "Output Data Types": "DT_BF16"
+          },
+          "count": 1176,
+          "source_counts": {
+            "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
+          },
+          "example": {
+            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+            "row": 59
+          }
+        }
+      ],
+      "pooling_basis": "Same active tensor geometry, dtype and complete native boundary; full storage capacities remain explicit provenance, not assumed identical.",
+      "native_binary_source_identity_verified": false
+    },
+    {
+      "recipe": "ascend_recurrent_gdn_fp32_state",
+      "local_shape": [
+        1,
+        8,
+        128,
+        128
+      ],
+      "count": 1176,
+      "mean_us": 5.177812925170068,
+      "min_us": 4.712,
+      "max_us": 5.635,
+      "p50_us": 5.173500000000001,
+      "p90_us": 5.364,
+      "source_counts": {
+        "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
+      },
+      "example": {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "row": 64,
+        "native_type": "RecurrentGatedDeltaRule",
+        "input_shapes": "\"1,4,128;1,4,128;1,8,128;1,8;62338,8,128,128;2;1;1,8\"",
+        "input_dtypes": "DT_BF16;DT_BF16;DT_BF16;DT_BF16;FLOAT;INT32;INT32;FLOAT",
+        "output_shapes": "\"1,8,128;62338,8,128,128\"",
+        "output_dtypes": "DT_BF16;FLOAT"
+      },
+      "full_abi_variants": [
+        {
+          "abi": {
+            "Type": "RecurrentGatedDeltaRule",
+            "Accelerator Core": "AI_VECTOR_CORE",
+            "Input Shapes": "\"1,4,128;1,4,128;1,8,128;1,8;62338,8,128,128;2;1;1,8\"",
+            "Input Data Types": "DT_BF16;DT_BF16;DT_BF16;DT_BF16;FLOAT;INT32;INT32;FLOAT",
+            "Output Shapes": "\"1,8,128;62338,8,128,128\"",
+            "Output Data Types": "DT_BF16;FLOAT"
+          },
+          "count": 1176,
+          "source_counts": {
+            "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
+          },
+          "example": {
+            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+            "row": 64
+          }
+        }
+      ],
+      "pooling_basis": "Same active tensor geometry, dtype and complete native boundary; full storage capacities remain explicit provenance, not assumed identical.",
+      "native_binary_source_identity_verified": false
+    },
+    {
+      "recipe": "linear_output",
+      "local_shape": [
+        1,
+        2048,
+        1024
+      ],
+      "count": 1568,
+      "mean_us": 4.8995969387755105,
+      "min_us": 4.138,
+      "max_us": 5.835,
+      "p50_us": 4.8785,
+      "p90_us": 5.283,
+      "source_counts": {
+        "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1568
+      },
+      "example": {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "row": 66,
+        "native_type": "MatMulV3",
+        "input_shapes": "\"1,1024;2048,1024\"",
+        "input_dtypes": "DT_BF16;DT_BF16",
+        "output_shapes": "\"1,2048\"",
+        "output_dtypes": "DT_BF16"
+      },
+      "full_abi_variants": [
+        {
+          "abi": {
+            "Type": "MatMulV3",
+            "Accelerator Core": "AI_CORE",
+            "Input Shapes": "\"1,1024;2048,1024\"",
+            "Input Data Types": "DT_BF16;DT_BF16",
+            "Output Shapes": "\"1,2048\"",
+            "Output Data Types": "DT_BF16"
+          },
+          "count": 1568,
+          "source_counts": {
+            "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1568
+          },
+          "example": {
+            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+            "row": 66
+          }
+        }
+      ],
+      "pooling_basis": "Same active tensor geometry, dtype and complete native boundary; full storage capacities remain explicit provenance, not assumed identical.",
+      "native_binary_source_identity_verified": false
+    }
+  ],
+  "rules": [
+    {
+      "id": "a5-observed-native-20261106-linear_qkvz-4x3072x2048",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "phase": "decode",
+        "recipe": "linear_qkvz",
+        "family": "gemm",
+        "dtype": "bf16",
+        "layout": "bf16",
+        "replay_scope": "full",
+        "metadata.weight_dtype": "bf16",
+        "metadata.input_format": "bf16",
+        "metadata.output_format": "bf16",
+        "core_count": 32,
+        "metadata.graph_captured": true,
+        "metadata.graph_replay_scope": "full",
+        "metadata.activation_format": "bf16",
+        "metadata.compute_format": "bf16",
+        "metadata.weight_format": "bf16",
+        "metadata.quant_category": "gdn.qkvz",
+        "metadata.matrix_groups": 1,
+        "metadata.program_kind": "matmul",
+        "physical_rates": {
+          "resources": {
+            "fixpipe": 6758400000000.0,
+            "hbm": 4000000000000.0,
+            "mte1": 13516800000000.0,
+            "mte2_aic": 4224000000000.0,
+            "mte2_aiv": 4224000000000.0,
+            "mte3": 13516800000000.0,
+            "reg_alu_lanes": 13516800000000.0,
+            "reg_data_writes": 211200000000.0,
+            "reg_reduce_lanes": 6758400000000.0,
+            "reg_shuffle_lanes": 6758400000000.0,
+            "reg_special_lanes": 3379200000000.0,
+            "reg_ub_accesses": 211200000000.0,
+            "reg_ub_stores": 105600000000.0,
+            "scalar_store_issue": 5657458563.535912,
+            "vector": 6758400000000.0,
+            "cube": 1000,
+            "host": 1000
+          },
+          "compute_peaks": {
+            "bf16": 432537600000000.0,
+            "fp16": 432537600000000.0,
+            "fp32": 27033600000000.0,
+            "fp8_e4m3": 865075200000000.0,
+            "fp8_e5m2": 865075200000000.0,
+            "hf32": 216268800000000.0,
+            "int8": 865075200000000.0
+          },
+          "service_modes": {
+            "reg_issue_slots": [
+              "vector",
+              211200000000.0
+            ],
+            "ub_copy": [
+              "vector",
+              27033600000000.0
+            ]
+          }
+        },
+        "resource_units": {
+          "fixpipe": 32,
+          "hbm": 32,
+          "mte1": 32,
+          "mte2_aic": 32,
+          "mte2_aiv": 64,
+          "mte3": 64,
+          "reg_alu_lanes": 64,
+          "reg_data_writes": 64,
+          "reg_reduce_lanes": 64,
+          "reg_shuffle_lanes": 64,
+          "reg_special_lanes": 64,
+          "reg_ub_accesses": 64,
+          "reg_ub_stores": 64,
+          "scalar_store_issue": 64,
+          "vector": 64,
+          "cube": 32,
+          "host": 32
+        },
+        "runtime": "",
+        "revision": "",
+        "format": "",
+        "implementation": {},
+        "metadata.graph_active_query_rows": 4,
+        "metadata.graph_physical_query_rows": 4,
+        "padded_shape": [
+          16,
+          3072,
+          2048
+        ]
+      },
+      "coordinates": {
+        "shape0": {
+          "path": "local_shape.0"
+        },
+        "shape1": {
+          "path": "local_shape.1"
+        },
+        "shape2": {
+          "path": "local_shape.2"
+        }
+      },
+      "domain": {
+        "shape0": {
+          "min": 4,
+          "max": 4
+        },
+        "shape1": {
+          "min": 3072,
+          "max": 3072
+        },
+        "shape2": {
+          "min": 2048,
+          "max": 2048
+        }
+      },
+      "response": {
+        "fixed_us": 7.4499494331065765
+      },
+      "provenance": {
+        "evaluation_relation": "in_sample_operator_capture",
+        "response_boundary": "one_complete_local_native_kernel",
+        "native_type": "MatMulV3",
+        "source_counts": {
+          "a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4": 1122,
+          "a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4": 1104,
+          "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4": 1128,
+          "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
+        },
+        "example": {
+          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "row": 56,
+          "native_type": "MatMulV3",
+          "input_shapes": "\"4,2048;3072,2048\"",
+          "input_dtypes": "DT_BF16;DT_BF16",
+          "output_shapes": "\"4,3072\"",
+          "output_dtypes": "DT_BF16"
+        },
+        "capture_binary_source_identity_verified": false,
+        "body_timing_used_for_parameters": false,
+        "profile_id": "a5_gdn_decode_native_20261106",
+        "calibration_origin": "observed",
+        "body_residual_used": false,
+        "active_abi": [
+          4,
+          3072,
+          2048
+        ],
+        "state_capacity_role": "storage_capacity_not_active_work",
+        "source_condition_basis": "Explicit caller-selected source implementation; source revision does not identify the captured binary.",
+        "original_caller_table_stride_observed": false,
+        "observation_samples": 4410,
+        "observation_mean_us": 7.4499494331065765
+      }
+    },
+    {
+      "id": "a5-observed-native-20261106-linear_beta_alpha-4x16x2048",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "phase": "decode",
+        "recipe": "linear_beta_alpha",
+        "family": "gemm",
+        "dtype": "bf16",
+        "layout": "bf16",
+        "replay_scope": "full",
+        "metadata.weight_dtype": "bf16",
+        "metadata.input_format": "bf16",
+        "metadata.output_format": "bf16",
+        "core_count": 32,
+        "metadata.graph_captured": true,
+        "metadata.graph_replay_scope": "full",
+        "metadata.activation_format": "bf16",
+        "metadata.compute_format": "bf16",
+        "metadata.weight_format": "bf16",
+        "metadata.quant_category": "gdn.beta_alpha",
+        "metadata.matrix_groups": 1,
+        "metadata.program_kind": "matmul",
+        "physical_rates": {
+          "resources": {
+            "fixpipe": 6758400000000.0,
+            "hbm": 4000000000000.0,
+            "mte1": 13516800000000.0,
+            "mte2_aic": 4224000000000.0,
+            "mte2_aiv": 4224000000000.0,
+            "mte3": 13516800000000.0,
+            "reg_alu_lanes": 13516800000000.0,
+            "reg_data_writes": 211200000000.0,
+            "reg_reduce_lanes": 6758400000000.0,
+            "reg_shuffle_lanes": 6758400000000.0,
+            "reg_special_lanes": 3379200000000.0,
+            "reg_ub_accesses": 211200000000.0,
+            "reg_ub_stores": 105600000000.0,
+            "scalar_store_issue": 5657458563.535912,
+            "vector": 6758400000000.0,
+            "cube": 1000,
+            "host": 1000
+          },
+          "compute_peaks": {
+            "bf16": 432537600000000.0,
+            "fp16": 432537600000000.0,
+            "fp32": 27033600000000.0,
+            "fp8_e4m3": 865075200000000.0,
+            "fp8_e5m2": 865075200000000.0,
+            "hf32": 216268800000000.0,
+            "int8": 865075200000000.0
+          },
+          "service_modes": {
+            "reg_issue_slots": [
+              "vector",
+              211200000000.0
+            ],
+            "ub_copy": [
+              "vector",
+              27033600000000.0
+            ]
+          }
+        },
+        "resource_units": {
+          "fixpipe": 32,
+          "hbm": 32,
+          "mte1": 32,
+          "mte2_aic": 32,
+          "mte2_aiv": 64,
+          "mte3": 64,
+          "reg_alu_lanes": 64,
+          "reg_data_writes": 64,
+          "reg_reduce_lanes": 64,
+          "reg_shuffle_lanes": 64,
+          "reg_special_lanes": 64,
+          "reg_ub_accesses": 64,
+          "reg_ub_stores": 64,
+          "scalar_store_issue": 64,
+          "vector": 64,
+          "cube": 32,
+          "host": 32
+        },
+        "runtime": "",
+        "revision": "",
+        "format": "",
+        "implementation": {},
+        "metadata.graph_active_query_rows": 4,
+        "metadata.graph_physical_query_rows": 4,
+        "padded_shape": [
+          16,
+          16,
+          2048
+        ]
+      },
+      "coordinates": {
+        "shape0": {
+          "path": "local_shape.0"
+        },
+        "shape1": {
+          "path": "local_shape.1"
+        },
+        "shape2": {
+          "path": "local_shape.2"
+        }
+      },
+      "domain": {
+        "shape0": {
+          "min": 4,
+          "max": 4
+        },
+        "shape1": {
+          "min": 16,
+          "max": 16
+        },
+        "shape2": {
+          "min": 2048,
+          "max": 2048
+        }
+      },
+      "response": {
+        "fixed_us": 2.963240589569161
+      },
+      "provenance": {
+        "evaluation_relation": "in_sample_operator_capture",
+        "response_boundary": "one_complete_local_native_kernel",
+        "native_type": "MatMulV3",
+        "source_counts": {
+          "a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4": 1122,
+          "a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4": 1104,
+          "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4": 1128,
+          "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
+        },
+        "example": {
+          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "row": 57,
+          "native_type": "MatMulV3",
+          "input_shapes": "\"4,2048;16,2048\"",
+          "input_dtypes": "DT_BF16;DT_BF16",
+          "output_shapes": "\"4,16\"",
+          "output_dtypes": "DT_BF16"
+        },
+        "capture_binary_source_identity_verified": false,
+        "body_timing_used_for_parameters": false,
+        "profile_id": "a5_gdn_decode_native_20261106",
+        "calibration_origin": "observed",
+        "body_residual_used": false,
+        "active_abi": [
+          4,
+          16,
+          2048
+        ],
+        "state_capacity_role": "storage_capacity_not_active_work",
+        "source_condition_basis": "Explicit caller-selected source implementation; source revision does not identify the captured binary.",
+        "original_caller_table_stride_observed": false,
+        "observation_samples": 4410,
+        "observation_mean_us": 2.963240589569161
+      }
+    },
+    {
+      "id": "a5-observed-native-20261106-ascend_causal_conv1d_update-4x2048",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "phase": "decode",
+        "recipe": "ascend_causal_conv1d_update",
+        "family": "short_convolution",
+        "dtype": "bf16",
+        "layout": "contiguous",
+        "replay_scope": "full",
+        "metadata.kernel_width": 4,
+        "metadata.state_history_slots": 3,
+        "metadata.cache_index_row_stride": 4,
+        "metadata.bias": false,
+        "metadata.sequence_tokens": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+        "core_count": 32,
+        "metadata.graph_captured": true,
+        "metadata.graph_replay_scope": "full",
+        "metadata.speculative": false,
+        "metadata.cache_index_dtype": "int32",
+        "metadata.source.revision": "a4a795857868729fbdbb0118c1e06c8655a7b31b",
+        "physical_rates": {
+          "resources": {
+            "fixpipe": 6758400000000.0,
+            "hbm": 4000000000000.0,
+            "mte1": 13516800000000.0,
+            "mte2_aic": 4224000000000.0,
+            "mte2_aiv": 4224000000000.0,
+            "mte3": 13516800000000.0,
+            "reg_alu_lanes": 13516800000000.0,
+            "reg_data_writes": 211200000000.0,
+            "reg_reduce_lanes": 6758400000000.0,
+            "reg_shuffle_lanes": 6758400000000.0,
+            "reg_special_lanes": 3379200000000.0,
+            "reg_ub_accesses": 211200000000.0,
+            "reg_ub_stores": 105600000000.0,
+            "scalar_store_issue": 5657458563.535912,
+            "vector": 6758400000000.0,
+            "cube": 1000,
+            "host": 1000
+          },
+          "compute_peaks": {
+            "bf16": 432537600000000.0,
+            "fp16": 432537600000000.0,
+            "fp32": 27033600000000.0,
+            "fp8_e4m3": 865075200000000.0,
+            "fp8_e5m2": 865075200000000.0,
+            "hf32": 216268800000000.0,
+            "int8": 865075200000000.0
+          },
+          "service_modes": {
+            "reg_issue_slots": [
+              "vector",
+              211200000000.0
+            ],
+            "ub_copy": [
+              "vector",
+              27033600000000.0
+            ]
+          }
+        },
+        "resource_units": {
+          "fixpipe": 32,
+          "hbm": 32,
+          "mte1": 32,
+          "mte2_aic": 32,
+          "mte2_aiv": 64,
+          "mte3": 64,
+          "reg_alu_lanes": 64,
+          "reg_data_writes": 64,
+          "reg_reduce_lanes": 64,
+          "reg_shuffle_lanes": 64,
+          "reg_special_lanes": 64,
+          "reg_ub_accesses": 64,
+          "reg_ub_stores": 64,
+          "scalar_store_issue": 64,
+          "vector": 64,
+          "cube": 32,
+          "host": 32
+        },
+        "runtime": "",
+        "revision": "",
+        "format": "",
+        "implementation": {},
+        "metadata.graph_active_query_rows": 4,
+        "metadata.graph_physical_query_rows": 4,
+        "metadata.physical_query_rows": 4,
+        "metadata.physical_sequence_tokens": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "padded_shape": [
+          4,
+          2048
+        ]
+      },
+      "coordinates": {
+        "shape0": {
+          "path": "local_shape.0"
+        },
+        "shape1": {
+          "path": "local_shape.1"
+        }
+      },
+      "domain": {
+        "shape0": {
+          "min": 4,
+          "max": 4
+        },
+        "shape1": {
+          "min": 2048,
+          "max": 2048
+        }
+      },
+      "response": {
+        "fixed_us": 4.580990249433107
+      },
+      "provenance": {
+        "evaluation_relation": "in_sample_operator_capture",
+        "response_boundary": "one_complete_local_native_kernel",
+        "native_type": "CausalConv1d",
+        "source_counts": {
+          "a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4": 1122,
+          "a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4": 1104,
+          "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4": 1128,
+          "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
+        },
+        "example": {
+          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "row": 62,
+          "native_type": "CausalConv1d",
+          "input_shapes": "\"4,2048;4,2048;;62438,3,2048;5;4;;;;;;\"",
+          "input_dtypes": "DT_BF16;DT_BF16;DT_UNDEFINED;DT_BF16;INT32;INT32;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED",
+          "output_shapes": "\"4,2048\"",
+          "output_dtypes": "DT_BF16"
+        },
+        "capture_binary_source_identity_verified": false,
+        "body_timing_used_for_parameters": false,
+        "profile_id": "a5_gdn_decode_native_20261106",
+        "calibration_origin": "observed",
+        "body_residual_used": false,
+        "active_abi": [
+          4,
+          2048
+        ],
+        "state_capacity_role": "storage_capacity_not_active_work",
+        "source_condition_basis": "Explicit caller-selected source implementation; source revision does not identify the captured binary.",
+        "original_caller_table_stride_observed": false,
+        "observation_samples": 4410,
+        "observation_mean_us": 4.580990249433107
+      }
+    },
+    {
+      "id": "a5-observed-native-20261106-ascend_recurrent_gdn_fp32_state-4x8x128x128",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "phase": "decode",
+        "recipe": "ascend_recurrent_gdn_fp32_state",
+        "family": "recurrent_vector",
+        "dtype": "bf16",
+        "layout": "contiguous",
+        "replay_scope": "full",
+        "metadata.heads": 8,
+        "metadata.key_heads": 4,
+        "metadata.dk": 128,
+        "metadata.dv": 128,
+        "metadata.state_dtype": "fp32",
+        "metadata.state_checkpoints": 4,
+        "metadata.sequence_tokens": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+        "core_count": 32,
+        "metadata.graph_captured": true,
+        "metadata.graph_replay_scope": "full",
+        "metadata.tokens": 4,
+        "metadata.state_element_bytes": 4.0,
+        "metadata.source_layouts": [
+          {
+            "shape": [
+              1,
+              4,
+              4,
+              128
+            ],
+            "strides": [
+              2048,
+              512,
+              128,
+              1
+            ],
+            "offset": 0,
+            "storage_shape": [
+              8192
+            ]
+          },
+          {
+            "shape": [
+              1,
+              4,
+              4,
+              128
+            ],
+            "strides": [
+              2048,
+              512,
+              128,
+              1
+            ],
+            "offset": 2048,
+            "storage_shape": [
+              8192
+            ]
+          },
+          {
+            "shape": [
+              1,
+              4,
+              8,
+              128
+            ],
+            "strides": [
+              4096,
+              1024,
+              128,
+              1
+            ],
+            "offset": 4096,
+            "storage_shape": [
+              8192
+            ]
+          }
+        ],
+        "metadata.recurrence_selection": "arch35_fp32",
+        "metadata.implementation_scope": "source_resident_qkv_and_state_pipeline",
+        "metadata.source.sha256": "5590f9a236f83660df7b216af2d535c4cb07a8ccd96fa07ebc6be3f78c9a03c2",
+        "physical_rates": {
+          "resources": {
+            "fixpipe": 6758400000000.0,
+            "hbm": 4000000000000.0,
+            "mte1": 13516800000000.0,
+            "mte2_aic": 4224000000000.0,
+            "mte2_aiv": 4224000000000.0,
+            "mte3": 13516800000000.0,
+            "reg_alu_lanes": 13516800000000.0,
+            "reg_data_writes": 211200000000.0,
+            "reg_reduce_lanes": 6758400000000.0,
+            "reg_shuffle_lanes": 6758400000000.0,
+            "reg_special_lanes": 3379200000000.0,
+            "reg_ub_accesses": 211200000000.0,
+            "reg_ub_stores": 105600000000.0,
+            "scalar_store_issue": 5657458563.535912,
+            "vector": 6758400000000.0,
+            "cube": 1000,
+            "host": 1000
+          },
+          "compute_peaks": {
+            "bf16": 432537600000000.0,
+            "fp16": 432537600000000.0,
+            "fp32": 27033600000000.0,
+            "fp8_e4m3": 865075200000000.0,
+            "fp8_e5m2": 865075200000000.0,
+            "hf32": 216268800000000.0,
+            "int8": 865075200000000.0
+          },
+          "service_modes": {
+            "reg_issue_slots": [
+              "vector",
+              211200000000.0
+            ],
+            "ub_copy": [
+              "vector",
+              27033600000000.0
+            ]
+          }
+        },
+        "resource_units": {
+          "fixpipe": 32,
+          "hbm": 32,
+          "mte1": 32,
+          "mte2_aic": 32,
+          "mte2_aiv": 64,
+          "mte3": 64,
+          "reg_alu_lanes": 64,
+          "reg_data_writes": 64,
+          "reg_reduce_lanes": 64,
+          "reg_shuffle_lanes": 64,
+          "reg_special_lanes": 64,
+          "reg_ub_accesses": 64,
+          "reg_ub_stores": 64,
+          "scalar_store_issue": 64,
+          "vector": 64,
+          "cube": 32,
+          "host": 32
+        },
+        "runtime": "",
+        "revision": "",
+        "format": "",
+        "implementation": {},
+        "metadata.graph_active_query_rows": 4,
+        "metadata.graph_physical_query_rows": 4,
+        "metadata.physical_query_rows": 4,
+        "metadata.physical_sequence_tokens": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "padded_shape": [
+          4,
+          8,
+          128,
+          128
+        ]
+      },
+      "coordinates": {
+        "shape0": {
+          "path": "local_shape.0"
+        },
+        "shape1": {
+          "path": "local_shape.1"
+        },
+        "shape2": {
+          "path": "local_shape.2"
+        },
+        "shape3": {
+          "path": "local_shape.3"
+        }
+      },
+      "domain": {
+        "shape0": {
+          "min": 4,
+          "max": 4
+        },
+        "shape1": {
+          "min": 8,
+          "max": 8
+        },
+        "shape2": {
+          "min": 128,
+          "max": 128
+        },
+        "shape3": {
+          "min": 128,
+          "max": 128
+        }
+      },
+      "response": {
+        "fixed_us": 6.57620612244898
+      },
+      "provenance": {
+        "evaluation_relation": "in_sample_operator_capture",
+        "response_boundary": "one_complete_local_native_kernel",
+        "native_type": "RecurrentGatedDeltaRule",
+        "source_counts": {
+          "a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4": 1122,
+          "a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4": 1104,
+          "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4": 1128,
+          "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
+        },
+        "example": {
+          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "row": 70,
+          "native_type": "RecurrentGatedDeltaRule",
+          "input_shapes": "\"4,4,128;4,4,128;4,8,128;4,8;62438,8,128,128;5;4;4,8\"",
+          "input_dtypes": "DT_BF16;DT_BF16;DT_BF16;DT_BF16;FLOAT;INT32;INT32;FLOAT",
+          "output_shapes": "\"4,8,128;62438,8,128,128\"",
+          "output_dtypes": "DT_BF16;FLOAT"
+        },
+        "capture_binary_source_identity_verified": false,
+        "body_timing_used_for_parameters": false,
+        "profile_id": "a5_gdn_decode_native_20261106",
+        "calibration_origin": "observed",
+        "body_residual_used": false,
+        "active_abi": [
+          4,
+          8,
+          128,
+          128
+        ],
+        "state_capacity_role": "storage_capacity_not_active_work",
+        "source_condition_basis": "Explicit caller-selected source implementation; source revision does not identify the captured binary.",
+        "original_caller_table_stride_observed": false,
+        "observation_samples": 4410,
+        "observation_mean_us": 6.57620612244898
+      }
+    },
+    {
+      "id": "a5-observed-native-20261106-linear_output-4x2048x1024",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "phase": "decode",
+        "recipe": "linear_output",
+        "family": "gemm",
+        "dtype": "bf16",
+        "layout": "bf16",
+        "replay_scope": "full",
+        "metadata.weight_dtype": "bf16",
+        "metadata.input_format": "bf16",
+        "metadata.output_format": "bf16",
+        "core_count": 32,
+        "metadata.graph_captured": true,
+        "metadata.graph_replay_scope": "full",
+        "metadata.activation_format": "bf16",
+        "metadata.compute_format": "bf16",
+        "metadata.weight_format": "bf16",
+        "metadata.quant_category": "gdn.o",
+        "metadata.matrix_groups": 1,
+        "metadata.program_kind": "matmul",
+        "physical_rates": {
+          "resources": {
+            "fixpipe": 6758400000000.0,
+            "hbm": 4000000000000.0,
+            "mte1": 13516800000000.0,
+            "mte2_aic": 4224000000000.0,
+            "mte2_aiv": 4224000000000.0,
+            "mte3": 13516800000000.0,
+            "reg_alu_lanes": 13516800000000.0,
+            "reg_data_writes": 211200000000.0,
+            "reg_reduce_lanes": 6758400000000.0,
+            "reg_shuffle_lanes": 6758400000000.0,
+            "reg_special_lanes": 3379200000000.0,
+            "reg_ub_accesses": 211200000000.0,
+            "reg_ub_stores": 105600000000.0,
+            "scalar_store_issue": 5657458563.535912,
+            "vector": 6758400000000.0,
+            "cube": 1000,
+            "host": 1000
+          },
+          "compute_peaks": {
+            "bf16": 432537600000000.0,
+            "fp16": 432537600000000.0,
+            "fp32": 27033600000000.0,
+            "fp8_e4m3": 865075200000000.0,
+            "fp8_e5m2": 865075200000000.0,
+            "hf32": 216268800000000.0,
+            "int8": 865075200000000.0
+          },
+          "service_modes": {
+            "reg_issue_slots": [
+              "vector",
+              211200000000.0
+            ],
+            "ub_copy": [
+              "vector",
+              27033600000000.0
+            ]
+          }
+        },
+        "resource_units": {
+          "fixpipe": 32,
+          "hbm": 32,
+          "mte1": 32,
+          "mte2_aic": 32,
+          "mte2_aiv": 64,
+          "mte3": 64,
+          "reg_alu_lanes": 64,
+          "reg_data_writes": 64,
+          "reg_reduce_lanes": 64,
+          "reg_shuffle_lanes": 64,
+          "reg_special_lanes": 64,
+          "reg_ub_accesses": 64,
+          "reg_ub_stores": 64,
+          "scalar_store_issue": 64,
+          "vector": 64,
+          "cube": 32,
+          "host": 32
+        },
+        "runtime": "",
+        "revision": "",
+        "format": "",
+        "implementation": {},
+        "metadata.graph_active_query_rows": 4,
+        "metadata.graph_physical_query_rows": 4,
+        "padded_shape": [
+          16,
+          2048,
+          1024
+        ]
+      },
+      "coordinates": {
+        "shape0": {
+          "path": "local_shape.0"
+        },
+        "shape1": {
+          "path": "local_shape.1"
+        },
+        "shape2": {
+          "path": "local_shape.2"
+        }
+      },
+      "domain": {
+        "shape0": {
+          "min": 4,
+          "max": 4
+        },
+        "shape1": {
+          "min": 2048,
+          "max": 2048
+        },
+        "shape2": {
+          "min": 1024,
+          "max": 1024
+        }
+      },
+      "response": {
+        "fixed_us": 4.963906972789116
+      },
+      "provenance": {
+        "evaluation_relation": "in_sample_operator_capture",
+        "response_boundary": "one_complete_local_native_kernel",
+        "native_type": "MatMulV3",
+        "source_counts": {
+          "a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4": 1496,
+          "a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4": 1472,
+          "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4": 1504,
+          "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1408
+        },
+        "example": {
+          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "row": 73,
+          "native_type": "MatMulV3",
+          "input_shapes": "\"4,1024;2048,1024\"",
+          "input_dtypes": "DT_BF16;DT_BF16",
+          "output_shapes": "\"4,2048\"",
+          "output_dtypes": "DT_BF16"
+        },
+        "capture_binary_source_identity_verified": false,
+        "body_timing_used_for_parameters": false,
+        "profile_id": "a5_gdn_decode_native_20261106",
+        "calibration_origin": "observed",
+        "body_residual_used": false,
+        "active_abi": [
+          4,
+          2048,
+          1024
+        ],
+        "state_capacity_role": "storage_capacity_not_active_work",
+        "source_condition_basis": "Explicit caller-selected source implementation; source revision does not identify the captured binary.",
+        "original_caller_table_stride_observed": false,
+        "observation_samples": 5880,
+        "observation_mean_us": 4.963906972789116
+      }
+    },
+    {
+      "id": "a5-observed-native-20261106-linear_qkvz-16x3072x2048",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "phase": "decode",
+        "recipe": "linear_qkvz",
+        "family": "gemm",
+        "dtype": "bf16",
+        "layout": "bf16",
+        "replay_scope": "full",
+        "metadata.weight_dtype": "bf16",
+        "metadata.input_format": "bf16",
+        "metadata.output_format": "bf16",
+        "core_count": 32,
+        "metadata.graph_captured": true,
+        "metadata.graph_replay_scope": "full",
+        "metadata.activation_format": "bf16",
+        "metadata.compute_format": "bf16",
+        "metadata.weight_format": "bf16",
+        "metadata.quant_category": "gdn.qkvz",
+        "metadata.matrix_groups": 1,
+        "metadata.program_kind": "matmul",
+        "physical_rates": {
+          "resources": {
+            "fixpipe": 6758400000000.0,
+            "hbm": 4000000000000.0,
+            "mte1": 13516800000000.0,
+            "mte2_aic": 4224000000000.0,
+            "mte2_aiv": 4224000000000.0,
+            "mte3": 13516800000000.0,
+            "reg_alu_lanes": 13516800000000.0,
+            "reg_data_writes": 211200000000.0,
+            "reg_reduce_lanes": 6758400000000.0,
+            "reg_shuffle_lanes": 6758400000000.0,
+            "reg_special_lanes": 3379200000000.0,
+            "reg_ub_accesses": 211200000000.0,
+            "reg_ub_stores": 105600000000.0,
+            "scalar_store_issue": 5657458563.535912,
+            "vector": 6758400000000.0,
+            "cube": 1000,
+            "host": 1000
+          },
+          "compute_peaks": {
+            "bf16": 432537600000000.0,
+            "fp16": 432537600000000.0,
+            "fp32": 27033600000000.0,
+            "fp8_e4m3": 865075200000000.0,
+            "fp8_e5m2": 865075200000000.0,
+            "hf32": 216268800000000.0,
+            "int8": 865075200000000.0
+          },
+          "service_modes": {
+            "reg_issue_slots": [
+              "vector",
+              211200000000.0
+            ],
+            "ub_copy": [
+              "vector",
+              27033600000000.0
+            ]
+          }
+        },
+        "resource_units": {
+          "fixpipe": 32,
+          "hbm": 32,
+          "mte1": 32,
+          "mte2_aic": 32,
+          "mte2_aiv": 64,
+          "mte3": 64,
+          "reg_alu_lanes": 64,
+          "reg_data_writes": 64,
+          "reg_reduce_lanes": 64,
+          "reg_shuffle_lanes": 64,
+          "reg_special_lanes": 64,
+          "reg_ub_accesses": 64,
+          "reg_ub_stores": 64,
+          "scalar_store_issue": 64,
+          "vector": 64,
+          "cube": 32,
+          "host": 32
+        },
+        "runtime": "",
+        "revision": "",
+        "format": "",
+        "implementation": {},
+        "metadata.graph_active_query_rows": 16,
+        "metadata.graph_physical_query_rows": 16,
+        "padded_shape": [
+          16,
+          3072,
+          2048
+        ]
+      },
+      "coordinates": {
+        "shape0": {
+          "path": "local_shape.0"
+        },
+        "shape1": {
+          "path": "local_shape.1"
+        },
+        "shape2": {
+          "path": "local_shape.2"
+        }
+      },
+      "domain": {
+        "shape0": {
+          "min": 16,
+          "max": 16
+        },
+        "shape1": {
+          "min": 3072,
+          "max": 3072
+        },
+        "shape2": {
+          "min": 2048,
+          "max": 2048
+        }
+      },
+      "response": {
+        "fixed_us": 8.340752380952381
+      },
+      "provenance": {
+        "evaluation_relation": "in_sample_operator_capture",
+        "response_boundary": "one_complete_local_native_kernel",
+        "native_type": "MatMulV3",
+        "source_counts": {
+          "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
+        },
+        "example": {
+          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "row": 56,
+          "native_type": "MatMulV3",
+          "input_shapes": "\"16,2048;3072,2048\"",
+          "input_dtypes": "DT_BF16;DT_BF16",
+          "output_shapes": "\"16,3072\"",
+          "output_dtypes": "DT_BF16"
+        },
+        "capture_binary_source_identity_verified": false,
+        "body_timing_used_for_parameters": false,
+        "profile_id": "a5_gdn_decode_native_20261106",
+        "calibration_origin": "observed",
+        "body_residual_used": false,
+        "active_abi": [
+          16,
+          3072,
+          2048
+        ],
+        "state_capacity_role": "storage_capacity_not_active_work",
+        "source_condition_basis": "Explicit caller-selected source implementation; source revision does not identify the captured binary.",
+        "original_caller_table_stride_observed": false,
+        "observation_samples": 1050,
+        "observation_mean_us": 8.340752380952381
+      }
+    },
+    {
+      "id": "a5-observed-native-20261106-linear_beta_alpha-16x16x2048",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "phase": "decode",
+        "recipe": "linear_beta_alpha",
+        "family": "gemm",
+        "dtype": "bf16",
+        "layout": "bf16",
+        "replay_scope": "full",
+        "metadata.weight_dtype": "bf16",
+        "metadata.input_format": "bf16",
+        "metadata.output_format": "bf16",
+        "core_count": 32,
+        "metadata.graph_captured": true,
+        "metadata.graph_replay_scope": "full",
+        "metadata.activation_format": "bf16",
+        "metadata.compute_format": "bf16",
+        "metadata.weight_format": "bf16",
+        "metadata.quant_category": "gdn.beta_alpha",
+        "metadata.matrix_groups": 1,
+        "metadata.program_kind": "matmul",
+        "physical_rates": {
+          "resources": {
+            "fixpipe": 6758400000000.0,
+            "hbm": 4000000000000.0,
+            "mte1": 13516800000000.0,
+            "mte2_aic": 4224000000000.0,
+            "mte2_aiv": 4224000000000.0,
+            "mte3": 13516800000000.0,
+            "reg_alu_lanes": 13516800000000.0,
+            "reg_data_writes": 211200000000.0,
+            "reg_reduce_lanes": 6758400000000.0,
+            "reg_shuffle_lanes": 6758400000000.0,
+            "reg_special_lanes": 3379200000000.0,
+            "reg_ub_accesses": 211200000000.0,
+            "reg_ub_stores": 105600000000.0,
+            "scalar_store_issue": 5657458563.535912,
+            "vector": 6758400000000.0,
+            "cube": 1000,
+            "host": 1000
+          },
+          "compute_peaks": {
+            "bf16": 432537600000000.0,
+            "fp16": 432537600000000.0,
+            "fp32": 27033600000000.0,
+            "fp8_e4m3": 865075200000000.0,
+            "fp8_e5m2": 865075200000000.0,
+            "hf32": 216268800000000.0,
+            "int8": 865075200000000.0
+          },
+          "service_modes": {
+            "reg_issue_slots": [
+              "vector",
+              211200000000.0
+            ],
+            "ub_copy": [
+              "vector",
+              27033600000000.0
+            ]
+          }
+        },
+        "resource_units": {
+          "fixpipe": 32,
+          "hbm": 32,
+          "mte1": 32,
+          "mte2_aic": 32,
+          "mte2_aiv": 64,
+          "mte3": 64,
+          "reg_alu_lanes": 64,
+          "reg_data_writes": 64,
+          "reg_reduce_lanes": 64,
+          "reg_shuffle_lanes": 64,
+          "reg_special_lanes": 64,
+          "reg_ub_accesses": 64,
+          "reg_ub_stores": 64,
+          "scalar_store_issue": 64,
+          "vector": 64,
+          "cube": 32,
+          "host": 32
+        },
+        "runtime": "",
+        "revision": "",
+        "format": "",
+        "implementation": {},
+        "metadata.graph_active_query_rows": 16,
+        "metadata.graph_physical_query_rows": 16,
+        "padded_shape": [
+          16,
+          16,
+          2048
+        ]
+      },
+      "coordinates": {
+        "shape0": {
+          "path": "local_shape.0"
+        },
+        "shape1": {
+          "path": "local_shape.1"
+        },
+        "shape2": {
+          "path": "local_shape.2"
+        }
+      },
+      "domain": {
+        "shape0": {
+          "min": 16,
+          "max": 16
+        },
+        "shape1": {
+          "min": 16,
+          "max": 16
+        },
+        "shape2": {
+          "min": 2048,
+          "max": 2048
+        }
+      },
+      "response": {
+        "fixed_us": 3.339002857142857
+      },
+      "provenance": {
+        "evaluation_relation": "in_sample_operator_capture",
+        "response_boundary": "one_complete_local_native_kernel",
+        "native_type": "MatMulV3",
+        "source_counts": {
+          "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
+        },
+        "example": {
+          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "row": 57,
+          "native_type": "MatMulV3",
+          "input_shapes": "\"16,2048;16,2048\"",
+          "input_dtypes": "DT_BF16;DT_BF16",
+          "output_shapes": "\"16,16\"",
+          "output_dtypes": "DT_BF16"
+        },
+        "capture_binary_source_identity_verified": false,
+        "body_timing_used_for_parameters": false,
+        "profile_id": "a5_gdn_decode_native_20261106",
+        "calibration_origin": "observed",
+        "body_residual_used": false,
+        "active_abi": [
+          16,
+          16,
+          2048
+        ],
+        "state_capacity_role": "storage_capacity_not_active_work",
+        "source_condition_basis": "Explicit caller-selected source implementation; source revision does not identify the captured binary.",
+        "original_caller_table_stride_observed": false,
+        "observation_samples": 1050,
+        "observation_mean_us": 3.339002857142857
+      }
+    },
+    {
+      "id": "a5-observed-native-20261106-ascend_causal_conv1d_update-16x2048",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "phase": "decode",
+        "recipe": "ascend_causal_conv1d_update",
+        "family": "short_convolution",
+        "dtype": "bf16",
+        "layout": "contiguous",
+        "replay_scope": "full",
+        "metadata.kernel_width": 4,
+        "metadata.state_history_slots": 3,
+        "metadata.cache_index_row_stride": 4,
+        "metadata.bias": false,
+        "metadata.sequence_tokens": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+        "core_count": 32,
+        "metadata.graph_captured": true,
+        "metadata.graph_replay_scope": "full",
+        "metadata.speculative": false,
+        "metadata.cache_index_dtype": "int32",
+        "metadata.source.revision": "a4a795857868729fbdbb0118c1e06c8655a7b31b",
+        "physical_rates": {
+          "resources": {
+            "fixpipe": 6758400000000.0,
+            "hbm": 4000000000000.0,
+            "mte1": 13516800000000.0,
+            "mte2_aic": 4224000000000.0,
+            "mte2_aiv": 4224000000000.0,
+            "mte3": 13516800000000.0,
+            "reg_alu_lanes": 13516800000000.0,
+            "reg_data_writes": 211200000000.0,
+            "reg_reduce_lanes": 6758400000000.0,
+            "reg_shuffle_lanes": 6758400000000.0,
+            "reg_special_lanes": 3379200000000.0,
+            "reg_ub_accesses": 211200000000.0,
+            "reg_ub_stores": 105600000000.0,
+            "scalar_store_issue": 5657458563.535912,
+            "vector": 6758400000000.0,
+            "cube": 1000,
+            "host": 1000
+          },
+          "compute_peaks": {
+            "bf16": 432537600000000.0,
+            "fp16": 432537600000000.0,
+            "fp32": 27033600000000.0,
+            "fp8_e4m3": 865075200000000.0,
+            "fp8_e5m2": 865075200000000.0,
+            "hf32": 216268800000000.0,
+            "int8": 865075200000000.0
+          },
+          "service_modes": {
+            "reg_issue_slots": [
+              "vector",
+              211200000000.0
+            ],
+            "ub_copy": [
+              "vector",
+              27033600000000.0
+            ]
+          }
+        },
+        "resource_units": {
+          "fixpipe": 32,
+          "hbm": 32,
+          "mte1": 32,
+          "mte2_aic": 32,
+          "mte2_aiv": 64,
+          "mte3": 64,
+          "reg_alu_lanes": 64,
+          "reg_data_writes": 64,
+          "reg_reduce_lanes": 64,
+          "reg_shuffle_lanes": 64,
+          "reg_special_lanes": 64,
+          "reg_ub_accesses": 64,
+          "reg_ub_stores": 64,
+          "scalar_store_issue": 64,
+          "vector": 64,
+          "cube": 32,
+          "host": 32
+        },
+        "runtime": "",
+        "revision": "",
+        "format": "",
+        "implementation": {},
+        "metadata.graph_active_query_rows": 16,
+        "metadata.graph_physical_query_rows": 16,
+        "metadata.physical_query_rows": 16,
+        "metadata.physical_sequence_tokens": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "padded_shape": [
+          16,
+          2048
+        ]
+      },
+      "coordinates": {
+        "shape0": {
+          "path": "local_shape.0"
+        },
+        "shape1": {
+          "path": "local_shape.1"
+        }
+      },
+      "domain": {
+        "shape0": {
+          "min": 16,
+          "max": 16
+        },
+        "shape1": {
+          "min": 2048,
+          "max": 2048
+        }
+      },
+      "response": {
+        "fixed_us": 6.5230219047619045
+      },
+      "provenance": {
+        "evaluation_relation": "in_sample_operator_capture",
+        "response_boundary": "one_complete_local_native_kernel",
+        "native_type": "CausalConv1d",
+        "source_counts": {
+          "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
+        },
+        "example": {
+          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "row": 62,
+          "native_type": "CausalConv1d",
+          "input_shapes": "\"16,2048;4,2048;;62416,3,2048;17;16;;;;;;\"",
+          "input_dtypes": "DT_BF16;DT_BF16;DT_UNDEFINED;DT_BF16;INT32;INT32;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED",
+          "output_shapes": "\"16,2048\"",
+          "output_dtypes": "DT_BF16"
+        },
+        "capture_binary_source_identity_verified": false,
+        "body_timing_used_for_parameters": false,
+        "profile_id": "a5_gdn_decode_native_20261106",
+        "calibration_origin": "observed",
+        "body_residual_used": false,
+        "active_abi": [
+          16,
+          2048
+        ],
+        "state_capacity_role": "storage_capacity_not_active_work",
+        "source_condition_basis": "Explicit caller-selected source implementation; source revision does not identify the captured binary.",
+        "original_caller_table_stride_observed": false,
+        "observation_samples": 1050,
+        "observation_mean_us": 6.5230219047619045
+      }
+    },
+    {
+      "id": "a5-observed-native-20261106-ascend_recurrent_gdn_fp32_state-16x8x128x128",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "phase": "decode",
+        "recipe": "ascend_recurrent_gdn_fp32_state",
+        "family": "recurrent_vector",
+        "dtype": "bf16",
+        "layout": "contiguous",
+        "replay_scope": "full",
+        "metadata.heads": 8,
+        "metadata.key_heads": 4,
+        "metadata.dk": 128,
+        "metadata.dv": 128,
+        "metadata.state_dtype": "fp32",
+        "metadata.state_checkpoints": 16,
+        "metadata.sequence_tokens": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+        "core_count": 32,
+        "metadata.graph_captured": true,
+        "metadata.graph_replay_scope": "full",
+        "metadata.tokens": 16,
+        "metadata.state_element_bytes": 4.0,
+        "metadata.source_layouts": [
+          {
+            "shape": [
+              1,
+              16,
+              4,
+              128
+            ],
+            "strides": [
+              8192,
+              512,
+              128,
+              1
+            ],
+            "offset": 0,
+            "storage_shape": [
+              32768
+            ]
+          },
+          {
+            "shape": [
+              1,
+              16,
+              4,
+              128
+            ],
+            "strides": [
+              8192,
+              512,
+              128,
+              1
+            ],
+            "offset": 8192,
+            "storage_shape": [
+              32768
+            ]
+          },
+          {
+            "shape": [
+              1,
+              16,
+              8,
+              128
+            ],
+            "strides": [
+              16384,
+              1024,
+              128,
+              1
+            ],
+            "offset": 16384,
+            "storage_shape": [
+              32768
+            ]
+          }
+        ],
+        "metadata.recurrence_selection": "arch35_fp32",
+        "metadata.implementation_scope": "source_resident_qkv_and_state_pipeline",
+        "metadata.source.sha256": "5590f9a236f83660df7b216af2d535c4cb07a8ccd96fa07ebc6be3f78c9a03c2",
+        "physical_rates": {
+          "resources": {
+            "fixpipe": 6758400000000.0,
+            "hbm": 4000000000000.0,
+            "mte1": 13516800000000.0,
+            "mte2_aic": 4224000000000.0,
+            "mte2_aiv": 4224000000000.0,
+            "mte3": 13516800000000.0,
+            "reg_alu_lanes": 13516800000000.0,
+            "reg_data_writes": 211200000000.0,
+            "reg_reduce_lanes": 6758400000000.0,
+            "reg_shuffle_lanes": 6758400000000.0,
+            "reg_special_lanes": 3379200000000.0,
+            "reg_ub_accesses": 211200000000.0,
+            "reg_ub_stores": 105600000000.0,
+            "scalar_store_issue": 5657458563.535912,
+            "vector": 6758400000000.0,
+            "cube": 1000,
+            "host": 1000
+          },
+          "compute_peaks": {
+            "bf16": 432537600000000.0,
+            "fp16": 432537600000000.0,
+            "fp32": 27033600000000.0,
+            "fp8_e4m3": 865075200000000.0,
+            "fp8_e5m2": 865075200000000.0,
+            "hf32": 216268800000000.0,
+            "int8": 865075200000000.0
+          },
+          "service_modes": {
+            "reg_issue_slots": [
+              "vector",
+              211200000000.0
+            ],
+            "ub_copy": [
+              "vector",
+              27033600000000.0
+            ]
+          }
+        },
+        "resource_units": {
+          "fixpipe": 32,
+          "hbm": 32,
+          "mte1": 32,
+          "mte2_aic": 32,
+          "mte2_aiv": 64,
+          "mte3": 64,
+          "reg_alu_lanes": 64,
+          "reg_data_writes": 64,
+          "reg_reduce_lanes": 64,
+          "reg_shuffle_lanes": 64,
+          "reg_special_lanes": 64,
+          "reg_ub_accesses": 64,
+          "reg_ub_stores": 64,
+          "scalar_store_issue": 64,
+          "vector": 64,
+          "cube": 32,
+          "host": 32
+        },
+        "runtime": "",
+        "revision": "",
+        "format": "",
+        "implementation": {},
+        "metadata.graph_active_query_rows": 16,
+        "metadata.graph_physical_query_rows": 16,
+        "metadata.physical_query_rows": 16,
+        "metadata.physical_sequence_tokens": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "padded_shape": [
+          16,
+          8,
+          128,
+          128
+        ]
+      },
+      "coordinates": {
+        "shape0": {
+          "path": "local_shape.0"
+        },
+        "shape1": {
+          "path": "local_shape.1"
+        },
+        "shape2": {
+          "path": "local_shape.2"
+        },
+        "shape3": {
+          "path": "local_shape.3"
+        }
+      },
+      "domain": {
+        "shape0": {
+          "min": 16,
+          "max": 16
+        },
+        "shape1": {
+          "min": 8,
+          "max": 8
+        },
+        "shape2": {
+          "min": 128,
+          "max": 128
+        },
+        "shape3": {
+          "min": 128,
+          "max": 128
+        }
+      },
+      "response": {
+        "fixed_us": 12.306108571428572
+      },
+      "provenance": {
+        "evaluation_relation": "in_sample_operator_capture",
+        "response_boundary": "one_complete_local_native_kernel",
+        "native_type": "RecurrentGatedDeltaRule",
+        "source_counts": {
+          "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
+        },
+        "example": {
+          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "row": 70,
+          "native_type": "RecurrentGatedDeltaRule",
+          "input_shapes": "\"16,4,128;16,4,128;16,8,128;16,8;62416,8,128,128;17;16;16,8\"",
+          "input_dtypes": "DT_BF16;DT_BF16;DT_BF16;DT_BF16;FLOAT;INT32;INT32;FLOAT",
+          "output_shapes": "\"16,8,128;62416,8,128,128\"",
+          "output_dtypes": "DT_BF16;FLOAT"
+        },
+        "capture_binary_source_identity_verified": false,
+        "body_timing_used_for_parameters": false,
+        "profile_id": "a5_gdn_decode_native_20261106",
+        "calibration_origin": "observed",
+        "body_residual_used": false,
+        "active_abi": [
+          16,
+          8,
+          128,
+          128
+        ],
+        "state_capacity_role": "storage_capacity_not_active_work",
+        "source_condition_basis": "Explicit caller-selected source implementation; source revision does not identify the captured binary.",
+        "original_caller_table_stride_observed": false,
+        "observation_samples": 1050,
+        "observation_mean_us": 12.306108571428572
+      }
+    },
+    {
+      "id": "a5-observed-native-20261106-linear_output-16x2048x1024",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "phase": "decode",
+        "recipe": "linear_output",
+        "family": "gemm",
+        "dtype": "bf16",
+        "layout": "bf16",
+        "replay_scope": "full",
+        "metadata.weight_dtype": "bf16",
+        "metadata.input_format": "bf16",
+        "metadata.output_format": "bf16",
+        "core_count": 32,
+        "metadata.graph_captured": true,
+        "metadata.graph_replay_scope": "full",
+        "metadata.activation_format": "bf16",
+        "metadata.compute_format": "bf16",
+        "metadata.weight_format": "bf16",
+        "metadata.quant_category": "gdn.o",
+        "metadata.matrix_groups": 1,
+        "metadata.program_kind": "matmul",
+        "physical_rates": {
+          "resources": {
+            "fixpipe": 6758400000000.0,
+            "hbm": 4000000000000.0,
+            "mte1": 13516800000000.0,
+            "mte2_aic": 4224000000000.0,
+            "mte2_aiv": 4224000000000.0,
+            "mte3": 13516800000000.0,
+            "reg_alu_lanes": 13516800000000.0,
+            "reg_data_writes": 211200000000.0,
+            "reg_reduce_lanes": 6758400000000.0,
+            "reg_shuffle_lanes": 6758400000000.0,
+            "reg_special_lanes": 3379200000000.0,
+            "reg_ub_accesses": 211200000000.0,
+            "reg_ub_stores": 105600000000.0,
+            "scalar_store_issue": 5657458563.535912,
+            "vector": 6758400000000.0,
+            "cube": 1000,
+            "host": 1000
+          },
+          "compute_peaks": {
+            "bf16": 432537600000000.0,
+            "fp16": 432537600000000.0,
+            "fp32": 27033600000000.0,
+            "fp8_e4m3": 865075200000000.0,
+            "fp8_e5m2": 865075200000000.0,
+            "hf32": 216268800000000.0,
+            "int8": 865075200000000.0
+          },
+          "service_modes": {
+            "reg_issue_slots": [
+              "vector",
+              211200000000.0
+            ],
+            "ub_copy": [
+              "vector",
+              27033600000000.0
+            ]
+          }
+        },
+        "resource_units": {
+          "fixpipe": 32,
+          "hbm": 32,
+          "mte1": 32,
+          "mte2_aic": 32,
+          "mte2_aiv": 64,
+          "mte3": 64,
+          "reg_alu_lanes": 64,
+          "reg_data_writes": 64,
+          "reg_reduce_lanes": 64,
+          "reg_shuffle_lanes": 64,
+          "reg_special_lanes": 64,
+          "reg_ub_accesses": 64,
+          "reg_ub_stores": 64,
+          "scalar_store_issue": 64,
+          "vector": 64,
+          "cube": 32,
+          "host": 32
+        },
+        "runtime": "",
+        "revision": "",
+        "format": "",
+        "implementation": {},
+        "metadata.graph_active_query_rows": 16,
+        "metadata.graph_physical_query_rows": 16,
+        "padded_shape": [
+          16,
+          2048,
+          1024
+        ]
+      },
+      "coordinates": {
+        "shape0": {
+          "path": "local_shape.0"
+        },
+        "shape1": {
+          "path": "local_shape.1"
+        },
+        "shape2": {
+          "path": "local_shape.2"
+        }
+      },
+      "domain": {
+        "shape0": {
+          "min": 16,
+          "max": 16
+        },
+        "shape1": {
+          "min": 2048,
+          "max": 2048
+        },
+        "shape2": {
+          "min": 1024,
+          "max": 1024
+        }
+      },
+      "response": {
+        "fixed_us": 5.160401428571428
+      },
+      "provenance": {
+        "evaluation_relation": "in_sample_operator_capture",
+        "response_boundary": "one_complete_local_native_kernel",
+        "native_type": "MatMulV3",
+        "source_counts": {
+          "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1400
+        },
+        "example": {
+          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "row": 73,
+          "native_type": "MatMulV3",
+          "input_shapes": "\"16,1024;2048,1024\"",
+          "input_dtypes": "DT_BF16;DT_BF16",
+          "output_shapes": "\"16,2048\"",
+          "output_dtypes": "DT_BF16"
+        },
+        "capture_binary_source_identity_verified": false,
+        "body_timing_used_for_parameters": false,
+        "profile_id": "a5_gdn_decode_native_20261106",
+        "calibration_origin": "observed",
+        "body_residual_used": false,
+        "active_abi": [
+          16,
+          2048,
+          1024
+        ],
+        "state_capacity_role": "storage_capacity_not_active_work",
+        "source_condition_basis": "Explicit caller-selected source implementation; source revision does not identify the captured binary.",
+        "original_caller_table_stride_observed": false,
+        "observation_samples": 1400,
+        "observation_mean_us": 5.160401428571428
+      }
+    },
+    {
+      "id": "a5-observed-native-20261106-linear_qkvz-1x3072x2048",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "phase": "decode",
+        "recipe": "linear_qkvz",
+        "family": "gemm",
+        "dtype": "bf16",
+        "layout": "bf16",
+        "replay_scope": "full",
+        "metadata.weight_dtype": "bf16",
+        "metadata.input_format": "bf16",
+        "metadata.output_format": "bf16",
+        "core_count": 32,
+        "metadata.graph_captured": true,
+        "metadata.graph_replay_scope": "full",
+        "metadata.activation_format": "bf16",
+        "metadata.compute_format": "bf16",
+        "metadata.weight_format": "bf16",
+        "metadata.quant_category": "gdn.qkvz",
+        "metadata.matrix_groups": 1,
+        "metadata.program_kind": "matmul",
+        "physical_rates": {
+          "resources": {
+            "fixpipe": 6758400000000.0,
+            "hbm": 4000000000000.0,
+            "mte1": 13516800000000.0,
+            "mte2_aic": 4224000000000.0,
+            "mte2_aiv": 4224000000000.0,
+            "mte3": 13516800000000.0,
+            "reg_alu_lanes": 13516800000000.0,
+            "reg_data_writes": 211200000000.0,
+            "reg_reduce_lanes": 6758400000000.0,
+            "reg_shuffle_lanes": 6758400000000.0,
+            "reg_special_lanes": 3379200000000.0,
+            "reg_ub_accesses": 211200000000.0,
+            "reg_ub_stores": 105600000000.0,
+            "scalar_store_issue": 5657458563.535912,
+            "vector": 6758400000000.0,
+            "cube": 1000,
+            "host": 1000
+          },
+          "compute_peaks": {
+            "bf16": 432537600000000.0,
+            "fp16": 432537600000000.0,
+            "fp32": 27033600000000.0,
+            "fp8_e4m3": 865075200000000.0,
+            "fp8_e5m2": 865075200000000.0,
+            "hf32": 216268800000000.0,
+            "int8": 865075200000000.0
+          },
+          "service_modes": {
+            "reg_issue_slots": [
+              "vector",
+              211200000000.0
+            ],
+            "ub_copy": [
+              "vector",
+              27033600000000.0
+            ]
+          }
+        },
+        "resource_units": {
+          "fixpipe": 32,
+          "hbm": 32,
+          "mte1": 32,
+          "mte2_aic": 32,
+          "mte2_aiv": 64,
+          "mte3": 64,
+          "reg_alu_lanes": 64,
+          "reg_data_writes": 64,
+          "reg_reduce_lanes": 64,
+          "reg_shuffle_lanes": 64,
+          "reg_special_lanes": 64,
+          "reg_ub_accesses": 64,
+          "reg_ub_stores": 64,
+          "scalar_store_issue": 64,
+          "vector": 64,
+          "cube": 32,
+          "host": 32
+        },
+        "runtime": "",
+        "revision": "",
+        "format": "",
+        "implementation": {},
+        "metadata.graph_active_query_rows": 1,
+        "metadata.graph_physical_query_rows": 1,
+        "padded_shape": [
+          16,
+          3072,
+          2048
+        ]
+      },
+      "coordinates": {
+        "shape0": {
+          "path": "local_shape.0"
+        },
+        "shape1": {
+          "path": "local_shape.1"
+        },
+        "shape2": {
+          "path": "local_shape.2"
+        }
+      },
+      "domain": {
+        "shape0": {
+          "min": 1,
+          "max": 1
+        },
+        "shape1": {
+          "min": 3072,
+          "max": 3072
+        },
+        "shape2": {
+          "min": 2048,
+          "max": 2048
+        }
+      },
+      "response": {
+        "fixed_us": 6.6653988095238095
+      },
+      "provenance": {
+        "evaluation_relation": "in_sample_operator_capture",
+        "response_boundary": "one_complete_local_native_kernel",
+        "native_type": "MatMulV3",
+        "source_counts": {
+          "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
+        },
+        "example": {
+          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+          "row": 56,
+          "native_type": "MatMulV3",
+          "input_shapes": "\"1,2048;3072,2048\"",
+          "input_dtypes": "DT_BF16;DT_BF16",
+          "output_shapes": "\"1,3072\"",
+          "output_dtypes": "DT_BF16"
+        },
+        "capture_binary_source_identity_verified": false,
+        "body_timing_used_for_parameters": false,
+        "profile_id": "a5_gdn_decode_native_20261106",
+        "calibration_origin": "observed",
+        "body_residual_used": false,
+        "active_abi": [
+          1,
+          3072,
+          2048
+        ],
+        "state_capacity_role": "storage_capacity_not_active_work",
+        "source_condition_basis": "Explicit caller-selected source implementation; source revision does not identify the captured binary.",
+        "original_caller_table_stride_observed": false,
+        "observation_samples": 1176,
+        "observation_mean_us": 6.6653988095238095
+      }
+    },
+    {
+      "id": "a5-observed-native-20261106-linear_beta_alpha-1x16x2048",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "phase": "decode",
+        "recipe": "linear_beta_alpha",
+        "family": "gemm",
+        "dtype": "bf16",
+        "layout": "bf16",
+        "replay_scope": "full",
+        "metadata.weight_dtype": "bf16",
+        "metadata.input_format": "bf16",
+        "metadata.output_format": "bf16",
+        "core_count": 32,
+        "metadata.graph_captured": true,
+        "metadata.graph_replay_scope": "full",
+        "metadata.activation_format": "bf16",
+        "metadata.compute_format": "bf16",
+        "metadata.weight_format": "bf16",
+        "metadata.quant_category": "gdn.beta_alpha",
+        "metadata.matrix_groups": 1,
+        "metadata.program_kind": "matmul",
+        "physical_rates": {
+          "resources": {
+            "fixpipe": 6758400000000.0,
+            "hbm": 4000000000000.0,
+            "mte1": 13516800000000.0,
+            "mte2_aic": 4224000000000.0,
+            "mte2_aiv": 4224000000000.0,
+            "mte3": 13516800000000.0,
+            "reg_alu_lanes": 13516800000000.0,
+            "reg_data_writes": 211200000000.0,
+            "reg_reduce_lanes": 6758400000000.0,
+            "reg_shuffle_lanes": 6758400000000.0,
+            "reg_special_lanes": 3379200000000.0,
+            "reg_ub_accesses": 211200000000.0,
+            "reg_ub_stores": 105600000000.0,
+            "scalar_store_issue": 5657458563.535912,
+            "vector": 6758400000000.0,
+            "cube": 1000,
+            "host": 1000
+          },
+          "compute_peaks": {
+            "bf16": 432537600000000.0,
+            "fp16": 432537600000000.0,
+            "fp32": 27033600000000.0,
+            "fp8_e4m3": 865075200000000.0,
+            "fp8_e5m2": 865075200000000.0,
+            "hf32": 216268800000000.0,
+            "int8": 865075200000000.0
+          },
+          "service_modes": {
+            "reg_issue_slots": [
+              "vector",
+              211200000000.0
+            ],
+            "ub_copy": [
+              "vector",
+              27033600000000.0
+            ]
+          }
+        },
+        "resource_units": {
+          "fixpipe": 32,
+          "hbm": 32,
+          "mte1": 32,
+          "mte2_aic": 32,
+          "mte2_aiv": 64,
+          "mte3": 64,
+          "reg_alu_lanes": 64,
+          "reg_data_writes": 64,
+          "reg_reduce_lanes": 64,
+          "reg_shuffle_lanes": 64,
+          "reg_special_lanes": 64,
+          "reg_ub_accesses": 64,
+          "reg_ub_stores": 64,
+          "scalar_store_issue": 64,
+          "vector": 64,
+          "cube": 32,
+          "host": 32
+        },
+        "runtime": "",
+        "revision": "",
+        "format": "",
+        "implementation": {},
+        "metadata.graph_active_query_rows": 1,
+        "metadata.graph_physical_query_rows": 1,
+        "padded_shape": [
+          16,
+          16,
+          2048
+        ]
+      },
+      "coordinates": {
+        "shape0": {
+          "path": "local_shape.0"
+        },
+        "shape1": {
+          "path": "local_shape.1"
+        },
+        "shape2": {
+          "path": "local_shape.2"
+        }
+      },
+      "domain": {
+        "shape0": {
+          "min": 1,
+          "max": 1
+        },
+        "shape1": {
+          "min": 16,
+          "max": 16
+        },
+        "shape2": {
+          "min": 2048,
+          "max": 2048
+        }
+      },
+      "response": {
+        "fixed_us": 2.739855442176871
+      },
+      "provenance": {
+        "evaluation_relation": "in_sample_operator_capture",
+        "response_boundary": "one_complete_local_native_kernel",
+        "native_type": "MatMulV3",
+        "source_counts": {
+          "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
+        },
+        "example": {
+          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+          "row": 57,
+          "native_type": "MatMulV3",
+          "input_shapes": "\"1,2048;16,2048\"",
+          "input_dtypes": "DT_BF16;DT_BF16",
+          "output_shapes": "\"1,16\"",
+          "output_dtypes": "DT_BF16"
+        },
+        "capture_binary_source_identity_verified": false,
+        "body_timing_used_for_parameters": false,
+        "profile_id": "a5_gdn_decode_native_20261106",
+        "calibration_origin": "observed",
+        "body_residual_used": false,
+        "active_abi": [
+          1,
+          16,
+          2048
+        ],
+        "state_capacity_role": "storage_capacity_not_active_work",
+        "source_condition_basis": "Explicit caller-selected source implementation; source revision does not identify the captured binary.",
+        "original_caller_table_stride_observed": false,
+        "observation_samples": 1176,
+        "observation_mean_us": 2.739855442176871
+      }
+    },
+    {
+      "id": "a5-observed-native-20261106-ascend_causal_conv1d_update-1x2048",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "phase": "decode",
+        "recipe": "ascend_causal_conv1d_update",
+        "family": "short_convolution",
+        "dtype": "bf16",
+        "layout": "contiguous",
+        "replay_scope": "full",
+        "metadata.kernel_width": 4,
+        "metadata.state_history_slots": 3,
+        "metadata.cache_index_row_stride": 4,
+        "metadata.bias": false,
+        "metadata.sequence_tokens": [
+          1
+        ],
+        "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+        "core_count": 32,
+        "metadata.graph_captured": true,
+        "metadata.graph_replay_scope": "full",
+        "metadata.speculative": false,
+        "metadata.cache_index_dtype": "int32",
+        "metadata.source.revision": "a4a795857868729fbdbb0118c1e06c8655a7b31b",
+        "physical_rates": {
+          "resources": {
+            "fixpipe": 6758400000000.0,
+            "hbm": 4000000000000.0,
+            "mte1": 13516800000000.0,
+            "mte2_aic": 4224000000000.0,
+            "mte2_aiv": 4224000000000.0,
+            "mte3": 13516800000000.0,
+            "reg_alu_lanes": 13516800000000.0,
+            "reg_data_writes": 211200000000.0,
+            "reg_reduce_lanes": 6758400000000.0,
+            "reg_shuffle_lanes": 6758400000000.0,
+            "reg_special_lanes": 3379200000000.0,
+            "reg_ub_accesses": 211200000000.0,
+            "reg_ub_stores": 105600000000.0,
+            "scalar_store_issue": 5657458563.535912,
+            "vector": 6758400000000.0,
+            "cube": 1000,
+            "host": 1000
+          },
+          "compute_peaks": {
+            "bf16": 432537600000000.0,
+            "fp16": 432537600000000.0,
+            "fp32": 27033600000000.0,
+            "fp8_e4m3": 865075200000000.0,
+            "fp8_e5m2": 865075200000000.0,
+            "hf32": 216268800000000.0,
+            "int8": 865075200000000.0
+          },
+          "service_modes": {
+            "reg_issue_slots": [
+              "vector",
+              211200000000.0
+            ],
+            "ub_copy": [
+              "vector",
+              27033600000000.0
+            ]
+          }
+        },
+        "resource_units": {
+          "fixpipe": 32,
+          "hbm": 32,
+          "mte1": 32,
+          "mte2_aic": 32,
+          "mte2_aiv": 64,
+          "mte3": 64,
+          "reg_alu_lanes": 64,
+          "reg_data_writes": 64,
+          "reg_reduce_lanes": 64,
+          "reg_shuffle_lanes": 64,
+          "reg_special_lanes": 64,
+          "reg_ub_accesses": 64,
+          "reg_ub_stores": 64,
+          "scalar_store_issue": 64,
+          "vector": 64,
+          "cube": 32,
+          "host": 32
+        },
+        "runtime": "",
+        "revision": "",
+        "format": "",
+        "implementation": {},
+        "metadata.graph_active_query_rows": 1,
+        "metadata.graph_physical_query_rows": 1,
+        "metadata.physical_query_rows": 1,
+        "metadata.physical_sequence_tokens": [
+          1
+        ],
+        "padded_shape": [
+          1,
+          2048
+        ]
+      },
+      "coordinates": {
+        "shape0": {
+          "path": "local_shape.0"
+        },
+        "shape1": {
+          "path": "local_shape.1"
+        }
+      },
+      "domain": {
+        "shape0": {
+          "min": 1,
+          "max": 1
+        },
+        "shape1": {
+          "min": 2048,
+          "max": 2048
+        }
+      },
+      "response": {
+        "fixed_us": 4.305445578231292
+      },
+      "provenance": {
+        "evaluation_relation": "in_sample_operator_capture",
+        "response_boundary": "one_complete_local_native_kernel",
+        "native_type": "CausalConv1d",
+        "source_counts": {
+          "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
+        },
+        "example": {
+          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+          "row": 59,
+          "native_type": "CausalConv1d",
+          "input_shapes": "\"1,2048;4,2048;;62338,3,2048;2;1;;;;;;\"",
+          "input_dtypes": "DT_BF16;DT_BF16;DT_UNDEFINED;DT_BF16;INT32;INT32;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED;DT_UNDEFINED",
+          "output_shapes": "\"1,2048\"",
+          "output_dtypes": "DT_BF16"
+        },
+        "capture_binary_source_identity_verified": false,
+        "body_timing_used_for_parameters": false,
+        "profile_id": "a5_gdn_decode_native_20261106",
+        "calibration_origin": "observed",
+        "body_residual_used": false,
+        "active_abi": [
+          1,
+          2048
+        ],
+        "state_capacity_role": "storage_capacity_not_active_work",
+        "source_condition_basis": "Explicit caller-selected source implementation; source revision does not identify the captured binary.",
+        "original_caller_table_stride_observed": false,
+        "observation_samples": 1176,
+        "observation_mean_us": 4.305445578231292
+      }
+    },
+    {
+      "id": "a5-observed-native-20261106-ascend_recurrent_gdn_fp32_state-1x8x128x128",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "phase": "decode",
+        "recipe": "ascend_recurrent_gdn_fp32_state",
+        "family": "recurrent_vector",
+        "dtype": "bf16",
+        "layout": "contiguous",
+        "replay_scope": "full",
+        "metadata.heads": 8,
+        "metadata.key_heads": 4,
+        "metadata.dk": 128,
+        "metadata.dv": 128,
+        "metadata.state_dtype": "fp32",
+        "metadata.state_checkpoints": 1,
+        "metadata.sequence_tokens": [
+          1
+        ],
+        "metadata.caller_implementation": "vllm_ascend_gdn_decode",
+        "core_count": 32,
+        "metadata.graph_captured": true,
+        "metadata.graph_replay_scope": "full",
+        "metadata.tokens": 1,
+        "metadata.state_element_bytes": 4.0,
+        "metadata.source_layouts": [
+          {
+            "shape": [
+              1,
+              1,
+              4,
+              128
+            ],
+            "strides": [
+              512,
+              512,
+              128,
+              1
+            ],
+            "offset": 0,
+            "storage_shape": [
+              2048
+            ]
+          },
+          {
+            "shape": [
+              1,
+              1,
+              4,
+              128
+            ],
+            "strides": [
+              512,
+              512,
+              128,
+              1
+            ],
+            "offset": 512,
+            "storage_shape": [
+              2048
+            ]
+          },
+          {
+            "shape": [
+              1,
+              1,
+              8,
+              128
+            ],
+            "strides": [
+              1024,
+              1024,
+              128,
+              1
+            ],
+            "offset": 1024,
+            "storage_shape": [
+              2048
+            ]
+          }
+        ],
+        "metadata.recurrence_selection": "arch35_fp32",
+        "metadata.implementation_scope": "source_resident_qkv_and_state_pipeline",
+        "metadata.source.sha256": "5590f9a236f83660df7b216af2d535c4cb07a8ccd96fa07ebc6be3f78c9a03c2",
+        "physical_rates": {
+          "resources": {
+            "fixpipe": 6758400000000.0,
+            "hbm": 4000000000000.0,
+            "mte1": 13516800000000.0,
+            "mte2_aic": 4224000000000.0,
+            "mte2_aiv": 4224000000000.0,
+            "mte3": 13516800000000.0,
+            "reg_alu_lanes": 13516800000000.0,
+            "reg_data_writes": 211200000000.0,
+            "reg_reduce_lanes": 6758400000000.0,
+            "reg_shuffle_lanes": 6758400000000.0,
+            "reg_special_lanes": 3379200000000.0,
+            "reg_ub_accesses": 211200000000.0,
+            "reg_ub_stores": 105600000000.0,
+            "scalar_store_issue": 5657458563.535912,
+            "vector": 6758400000000.0,
+            "cube": 1000,
+            "host": 1000
+          },
+          "compute_peaks": {
+            "bf16": 432537600000000.0,
+            "fp16": 432537600000000.0,
+            "fp32": 27033600000000.0,
+            "fp8_e4m3": 865075200000000.0,
+            "fp8_e5m2": 865075200000000.0,
+            "hf32": 216268800000000.0,
+            "int8": 865075200000000.0
+          },
+          "service_modes": {
+            "reg_issue_slots": [
+              "vector",
+              211200000000.0
+            ],
+            "ub_copy": [
+              "vector",
+              27033600000000.0
+            ]
+          }
+        },
+        "resource_units": {
+          "fixpipe": 32,
+          "hbm": 32,
+          "mte1": 32,
+          "mte2_aic": 32,
+          "mte2_aiv": 64,
+          "mte3": 64,
+          "reg_alu_lanes": 64,
+          "reg_data_writes": 64,
+          "reg_reduce_lanes": 64,
+          "reg_shuffle_lanes": 64,
+          "reg_special_lanes": 64,
+          "reg_ub_accesses": 64,
+          "reg_ub_stores": 64,
+          "scalar_store_issue": 64,
+          "vector": 64,
+          "cube": 32,
+          "host": 32
+        },
+        "runtime": "",
+        "revision": "",
+        "format": "",
+        "implementation": {},
+        "metadata.graph_active_query_rows": 1,
+        "metadata.graph_physical_query_rows": 1,
+        "metadata.physical_query_rows": 1,
+        "metadata.physical_sequence_tokens": [
+          1
+        ],
+        "padded_shape": [
+          1,
+          8,
+          128,
+          128
+        ]
+      },
+      "coordinates": {
+        "shape0": {
+          "path": "local_shape.0"
+        },
+        "shape1": {
+          "path": "local_shape.1"
+        },
+        "shape2": {
+          "path": "local_shape.2"
+        },
+        "shape3": {
+          "path": "local_shape.3"
+        }
+      },
+      "domain": {
+        "shape0": {
+          "min": 1,
+          "max": 1
+        },
+        "shape1": {
+          "min": 8,
+          "max": 8
+        },
+        "shape2": {
+          "min": 128,
+          "max": 128
+        },
+        "shape3": {
+          "min": 128,
+          "max": 128
+        }
+      },
+      "response": {
+        "fixed_us": 5.177812925170068
+      },
+      "provenance": {
+        "evaluation_relation": "in_sample_operator_capture",
+        "response_boundary": "one_complete_local_native_kernel",
+        "native_type": "RecurrentGatedDeltaRule",
+        "source_counts": {
+          "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
+        },
+        "example": {
+          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+          "row": 64,
+          "native_type": "RecurrentGatedDeltaRule",
+          "input_shapes": "\"1,4,128;1,4,128;1,8,128;1,8;62338,8,128,128;2;1;1,8\"",
+          "input_dtypes": "DT_BF16;DT_BF16;DT_BF16;DT_BF16;FLOAT;INT32;INT32;FLOAT",
+          "output_shapes": "\"1,8,128;62338,8,128,128\"",
+          "output_dtypes": "DT_BF16;FLOAT"
+        },
+        "capture_binary_source_identity_verified": false,
+        "body_timing_used_for_parameters": false,
+        "profile_id": "a5_gdn_decode_native_20261106",
+        "calibration_origin": "observed",
+        "body_residual_used": false,
+        "active_abi": [
+          1,
+          8,
+          128,
+          128
+        ],
+        "state_capacity_role": "storage_capacity_not_active_work",
+        "source_condition_basis": "Explicit caller-selected source implementation; source revision does not identify the captured binary.",
+        "original_caller_table_stride_observed": false,
+        "observation_samples": 1176,
+        "observation_mean_us": 5.177812925170068
+      }
+    },
+    {
+      "id": "a5-observed-native-20261106-linear_output-1x2048x1024",
+      "match": {
+        "hardware": "Ascend950DT_9582",
+        "phase": "decode",
+        "recipe": "linear_output",
+        "family": "gemm",
+        "dtype": "bf16",
+        "layout": "bf16",
+        "replay_scope": "full",
+        "metadata.weight_dtype": "bf16",
+        "metadata.input_format": "bf16",
+        "metadata.output_format": "bf16",
+        "core_count": 32,
+        "metadata.graph_captured": true,
+        "metadata.graph_replay_scope": "full",
+        "metadata.activation_format": "bf16",
+        "metadata.compute_format": "bf16",
+        "metadata.weight_format": "bf16",
+        "metadata.quant_category": "gdn.o",
+        "metadata.matrix_groups": 1,
+        "metadata.program_kind": "matmul",
+        "physical_rates": {
+          "resources": {
+            "fixpipe": 6758400000000.0,
+            "hbm": 4000000000000.0,
+            "mte1": 13516800000000.0,
+            "mte2_aic": 4224000000000.0,
+            "mte2_aiv": 4224000000000.0,
+            "mte3": 13516800000000.0,
+            "reg_alu_lanes": 13516800000000.0,
+            "reg_data_writes": 211200000000.0,
+            "reg_reduce_lanes": 6758400000000.0,
+            "reg_shuffle_lanes": 6758400000000.0,
+            "reg_special_lanes": 3379200000000.0,
+            "reg_ub_accesses": 211200000000.0,
+            "reg_ub_stores": 105600000000.0,
+            "scalar_store_issue": 5657458563.535912,
+            "vector": 6758400000000.0,
+            "cube": 1000,
+            "host": 1000
+          },
+          "compute_peaks": {
+            "bf16": 432537600000000.0,
+            "fp16": 432537600000000.0,
+            "fp32": 27033600000000.0,
+            "fp8_e4m3": 865075200000000.0,
+            "fp8_e5m2": 865075200000000.0,
+            "hf32": 216268800000000.0,
+            "int8": 865075200000000.0
+          },
+          "service_modes": {
+            "reg_issue_slots": [
+              "vector",
+              211200000000.0
+            ],
+            "ub_copy": [
+              "vector",
+              27033600000000.0
+            ]
+          }
+        },
+        "resource_units": {
+          "fixpipe": 32,
+          "hbm": 32,
+          "mte1": 32,
+          "mte2_aic": 32,
+          "mte2_aiv": 64,
+          "mte3": 64,
+          "reg_alu_lanes": 64,
+          "reg_data_writes": 64,
+          "reg_reduce_lanes": 64,
+          "reg_shuffle_lanes": 64,
+          "reg_special_lanes": 64,
+          "reg_ub_accesses": 64,
+          "reg_ub_stores": 64,
+          "scalar_store_issue": 64,
+          "vector": 64,
+          "cube": 32,
+          "host": 32
+        },
+        "runtime": "",
+        "revision": "",
+        "format": "",
+        "implementation": {},
+        "metadata.graph_active_query_rows": 1,
+        "metadata.graph_physical_query_rows": 1,
+        "padded_shape": [
+          16,
+          2048,
+          1024
+        ]
+      },
+      "coordinates": {
+        "shape0": {
+          "path": "local_shape.0"
+        },
+        "shape1": {
+          "path": "local_shape.1"
+        },
+        "shape2": {
+          "path": "local_shape.2"
+        }
+      },
+      "domain": {
+        "shape0": {
+          "min": 1,
+          "max": 1
+        },
+        "shape1": {
+          "min": 2048,
+          "max": 2048
+        },
+        "shape2": {
+          "min": 1024,
+          "max": 1024
+        }
+      },
+      "response": {
+        "fixed_us": 4.8995969387755105
+      },
+      "provenance": {
+        "evaluation_relation": "in_sample_operator_capture",
+        "response_boundary": "one_complete_local_native_kernel",
+        "native_type": "MatMulV3",
+        "source_counts": {
+          "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1568
+        },
+        "example": {
+          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+          "row": 66,
+          "native_type": "MatMulV3",
+          "input_shapes": "\"1,1024;2048,1024\"",
+          "input_dtypes": "DT_BF16;DT_BF16",
+          "output_shapes": "\"1,2048\"",
+          "output_dtypes": "DT_BF16"
+        },
+        "capture_binary_source_identity_verified": false,
+        "body_timing_used_for_parameters": false,
+        "profile_id": "a5_gdn_decode_native_20261106",
+        "calibration_origin": "observed",
+        "body_residual_used": false,
+        "active_abi": [
+          1,
+          2048,
+          1024
+        ],
+        "state_capacity_role": "storage_capacity_not_active_work",
+        "source_condition_basis": "Explicit caller-selected source implementation; source revision does not identify the captured binary.",
+        "original_caller_table_stride_observed": false,
+        "observation_samples": 1568,
+        "observation_mean_us": 4.8995969387755105
+      }
+    }
+  ],
+  "validation": {
+    "comparison": "Six different 64k captures; same measured active shapes, not unseen-shape or blind validation.",
+    "native_primitive_groups": 15,
+    "native_primitive_groups_pass10": 15,
+    "native_max_abs_error": 0.053538039990208564,
+    "control_sources": [
+      {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "sha256": "0367980a274743c171d58c0324ab4aeabdcfc62d6732a11123c7c5fa84b93e8e",
+        "case_id": "a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_64k_c4",
+        "command": {
+          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_64k_c4/cmd.sh",
+          "sha256": "a226269431042a72d892ee22af10295244f0e386be2d3acae50af0be26723089"
+        },
+        "full_decode_graph_mode_declared": true,
+        "native_binary_source_identity_verified": false
+      },
+      {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "sha256": "42dc4c38355cbd29fdc7e43942419e6996fbfcdc00704c491bebc8f52b96d588",
+        "case_id": "a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_64k_c4",
+        "command": {
+          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_64k_c4/cmd.sh",
+          "sha256": "85270ad5aac8d34838c182ec91ad5df133f08a5a7931673b151d5071af248e58"
+        },
+        "full_decode_graph_mode_declared": true,
+        "native_binary_source_identity_verified": false
+      },
+      {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "sha256": "ce264b46ffad23f1095194aa684b8be5420284d306c56f0c21c792e8a48f0fc9",
+        "case_id": "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c16",
+        "command": {
+          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c16/cmd.sh",
+          "sha256": "8136e8eaa87795f8969d311202e804a46fa7b8b2024a394c685c6c5a750be0b5"
+        },
+        "full_decode_graph_mode_declared": true,
+        "native_binary_source_identity_verified": false
+      },
+      {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "sha256": "d1e8f6e70ac56151e6177fac8e763505c03878bdc518f39f4e4216122bc68890",
+        "case_id": "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c4",
+        "command": {
+          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c4/cmd.sh",
+          "sha256": "0cc4ef825787c89d26a637510d5fe9dd4f57a37df8c9fb9820ef7f6f9641dc85"
+        },
+        "full_decode_graph_mode_declared": true,
+        "native_binary_source_identity_verified": false
+      },
+      {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
+        "sha256": "5df5f9858193119d1a5edf3255b2d2eeed27db06b2cff489981824b83945607b",
+        "case_id": "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c1",
+        "command": {
+          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c1/cmd.sh",
+          "sha256": "78c7a1441691bb06cb35736b0024d75f93dafa3ae6b7e32a4cf8c40b352a0829"
+        },
+        "full_decode_graph_mode_declared": true,
+        "native_binary_source_identity_verified": false
+      },
+      {
+        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "sha256": "632a5fcd168b69d1c4d7d88acf097583fc1d3f1105c9b0023743948cf7889172",
+        "case_id": "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_64k_c4",
+        "command": {
+          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_64k_c4/cmd.sh",
+          "sha256": "9b856cbb444197c34500eefd4a8a74837e0bf8617ad85591a6edb6b5922813f8"
+        },
+        "full_decode_graph_mode_declared": true,
+        "native_binary_source_identity_verified": false
+      }
+    ]
+  },
+  "source_contract": {
+    "runtime": {
+      "vllm_impl": "",
+      "vllm_version": "",
+      "kernel_format": ""
+    },
+    "devices": [
+      {
+        "compute_units": 32,
+        "rates": {
+          "fixpipe": 6758400000000.0,
+          "hbm": 4000000000000.0,
+          "mte1": 13516800000000.0,
+          "mte2_aic": 4224000000000.0,
+          "mte2_aiv": 4224000000000.0,
+          "mte3": 13516800000000.0,
+          "reg_alu_lanes": 13516800000000.0,
+          "reg_data_writes": 211200000000.0,
+          "reg_reduce_lanes": 6758400000000.0,
+          "reg_shuffle_lanes": 6758400000000.0,
+          "reg_special_lanes": 3379200000000.0,
+          "reg_ub_accesses": 211200000000.0,
+          "reg_ub_stores": 105600000000.0,
+          "scalar_store_issue": 5657458563.535912,
+          "vector": 6758400000000.0
+        },
+        "compute_peaks": {
+          "bf16": 432537600000000.0,
+          "fp16": 432537600000000.0,
+          "fp32": 27033600000000.0,
+          "fp8_e4m3": 865075200000000.0,
+          "fp8_e5m2": 865075200000000.0,
+          "hf32": 216268800000000.0,
+          "int8": 865075200000000.0
+        },
+        "service_modes": {
+          "reg_issue_slots": [
+            "vector",
+            211200000000.0
+          ],
+          "ub_copy": [
+            "vector",
+            27033600000000.0
+          ]
+        },
+        "resource_units": {
+          "fixpipe": 32,
+          "mte1": 32,
+          "mte2_aic": 32,
+          "mte2_aiv": 64,
+          "mte3": 64,
+          "reg_alu_lanes": 64,
+          "reg_data_writes": 64,
+          "reg_reduce_lanes": 64,
+          "reg_shuffle_lanes": 64,
+          "reg_special_lanes": 64,
+          "reg_ub_accesses": 64,
+          "reg_ub_stores": 64,
+          "scalar_store_issue": 64,
+          "vector": 64
+        }
+      },
+      {
+        "compute_units": 32,
+        "rates": {
+          "fixpipe": 6758400000000.0,
+          "hbm": 4000000000000.0,
+          "mte1": 13516800000000.0,
+          "mte2_aic": 4224000000000.0,
+          "mte2_aiv": 4224000000000.0,
+          "mte3": 13516800000000.0,
+          "reg_alu_lanes": 13516800000000.0,
+          "reg_data_writes": 211200000000.0,
+          "reg_reduce_lanes": 6758400000000.0,
+          "reg_shuffle_lanes": 6758400000000.0,
+          "reg_special_lanes": 3379200000000.0,
+          "reg_ub_accesses": 211200000000.0,
+          "reg_ub_stores": 105600000000.0,
+          "scalar_store_issue": 5657458563.535912,
+          "vector": 6758400000000.0
+        },
+        "compute_peaks": {
+          "bf16": 432537600000000.0,
+          "fp16": 432537600000000.0,
+          "fp32": 27033600000000.0,
+          "fp8_e4m3": 865075200000000.0,
+          "fp8_e5m2": 865075200000000.0,
+          "hf32": 216268800000000.0,
+          "int8": 865075200000000.0
+        },
+        "service_modes": {
+          "reg_issue_slots": [
+            "vector",
+            211200000000.0
+          ],
+          "ub_copy": [
+            "vector",
+            27033600000000.0
+          ]
+        },
+        "resource_units": {
+          "fixpipe": 32,
+          "mte1": 32,
+          "mte2_aic": 32,
+          "mte2_aiv": 64,
+          "mte3": 64,
+          "reg_alu_lanes": 64,
+          "reg_data_writes": 64,
+          "reg_reduce_lanes": 64,
+          "reg_shuffle_lanes": 64,
+          "reg_special_lanes": 64,
+          "reg_ub_accesses": 64,
+          "reg_ub_stores": 64,
+          "scalar_store_issue": 64,
+          "vector": 64
+        }
+      },
+      {
+        "compute_units": 32,
+        "rates": {
+          "fixpipe": 6758400000000.0,
+          "hbm": 4000000000000.0,
+          "mte1": 13516800000000.0,
+          "mte2_aic": 4224000000000.0,
+          "mte2_aiv": 4224000000000.0,
+          "mte3": 13516800000000.0,
+          "reg_alu_lanes": 13516800000000.0,
+          "reg_data_writes": 211200000000.0,
+          "reg_reduce_lanes": 6758400000000.0,
+          "reg_shuffle_lanes": 6758400000000.0,
+          "reg_special_lanes": 3379200000000.0,
+          "reg_ub_accesses": 211200000000.0,
+          "reg_ub_stores": 105600000000.0,
+          "scalar_store_issue": 5657458563.535912,
+          "vector": 6758400000000.0
+        },
+        "compute_peaks": {
+          "bf16": 432537600000000.0,
+          "fp16": 432537600000000.0,
+          "fp32": 27033600000000.0,
+          "fp8_e4m3": 865075200000000.0,
+          "fp8_e5m2": 865075200000000.0,
+          "hf32": 216268800000000.0,
+          "int8": 865075200000000.0
+        },
+        "service_modes": {
+          "reg_issue_slots": [
+            "vector",
+            211200000000.0
+          ],
+          "ub_copy": [
+            "vector",
+            27033600000000.0
+          ]
+        },
+        "resource_units": {
+          "fixpipe": 32,
+          "mte1": 32,
+          "mte2_aic": 32,
+          "mte2_aiv": 64,
+          "mte3": 64,
+          "reg_alu_lanes": 64,
+          "reg_data_writes": 64,
+          "reg_reduce_lanes": 64,
+          "reg_shuffle_lanes": 64,
+          "reg_special_lanes": 64,
+          "reg_ub_accesses": 64,
+          "reg_ub_stores": 64,
+          "scalar_store_issue": 64,
+          "vector": 64
+        }
+      },
+      {
+        "compute_units": 32,
+        "rates": {
+          "fixpipe": 6758400000000.0,
+          "hbm": 4000000000000.0,
+          "mte1": 13516800000000.0,
+          "mte2_aic": 4224000000000.0,
+          "mte2_aiv": 4224000000000.0,
+          "mte3": 13516800000000.0,
+          "reg_alu_lanes": 13516800000000.0,
+          "reg_data_writes": 211200000000.0,
+          "reg_reduce_lanes": 6758400000000.0,
+          "reg_shuffle_lanes": 6758400000000.0,
+          "reg_special_lanes": 3379200000000.0,
+          "reg_ub_accesses": 211200000000.0,
+          "reg_ub_stores": 105600000000.0,
+          "scalar_store_issue": 5657458563.535912,
+          "vector": 6758400000000.0
+        },
+        "compute_peaks": {
+          "bf16": 432537600000000.0,
+          "fp16": 432537600000000.0,
+          "fp32": 27033600000000.0,
+          "fp8_e4m3": 865075200000000.0,
+          "fp8_e5m2": 865075200000000.0,
+          "hf32": 216268800000000.0,
+          "int8": 865075200000000.0
+        },
+        "service_modes": {
+          "reg_issue_slots": [
+            "vector",
+            211200000000.0
+          ],
+          "ub_copy": [
+            "vector",
+            27033600000000.0
+          ]
+        },
+        "resource_units": {
+          "fixpipe": 32,
+          "mte1": 32,
+          "mte2_aic": 32,
+          "mte2_aiv": 64,
+          "mte3": 64,
+          "reg_alu_lanes": 64,
+          "reg_data_writes": 64,
+          "reg_reduce_lanes": 64,
+          "reg_shuffle_lanes": 64,
+          "reg_special_lanes": 64,
+          "reg_ub_accesses": 64,
+          "reg_ub_stores": 64,
+          "scalar_store_issue": 64,
+          "vector": 64
+        }
+      }
+    ]
+  }
+}

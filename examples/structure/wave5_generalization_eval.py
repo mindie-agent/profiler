@@ -38,6 +38,8 @@ from mindie_profiler.events import PARSER_VERSION
 import mindie_sim
 from runtime_identity import simulator_identity
 from wave5_regime_import import import_a3_regime_catalog
+from native_observations import native_observation_identity, predict_body as native_predict_body
+from a5_capture_policy import import_a5_capture_policy
 
 STRUCT_DIR = Path(__file__).resolve().parent
 DEFAULT_ARCHIVE_ROOT = Path("/Volumes/data/mindie-sim-data/acceptance-archives-20261030/wave5-eval")
@@ -90,6 +92,7 @@ def _sim_identity() -> str:
 
 PARSER_IDENTITY = _parser_identity()
 SIM_IDENTITY = _sim_identity()
+NATIVE_OBSERVATION_IDENTITY = native_observation_identity()
 
 
 def _atomic_write_text(path: Path, content: str) -> None:
@@ -369,7 +372,17 @@ def render_markdown(report: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
-def _configure_chip(hw: str, archive_root: Path, cache_root: Path, sim_identity: str):
+def _resolve_a5_template(traits):
+    module = importlib.import_module("eval_a5_wave5")
+    name, raw, segmentation = module._unadapted_resolve_template(traits)
+    raw, provenance = import_a5_capture_policy(
+        raw, capture_path=module.DATA_ROOT / traits["cell"] / "kernel_details.csv")
+    module._capture_policy_imports[traits["cell"]] = provenance
+    return name, raw, segmentation
+
+
+def _configure_chip(hw: str, archive_root: Path, cache_root: Path, sim_identity: str,
+                    observation_identity: str = NATIVE_OBSERVATION_IDENTITY):
     """Apply the same explicit inputs to the parent and every spawned worker."""
     script = archive_root / hw / f"eval_{hw}_wave5.py"
     module_dir = str(script.parent)
@@ -385,8 +398,11 @@ def _configure_chip(hw: str, archive_root: Path, cache_root: Path, sim_identity:
         raise ValueError(f"chip_evaluator_module_conflict:{script}")
     if SIM_IDENTITY != sim_identity:
         raise ValueError(f"chip_worker_sim_identity_mismatch:{SIM_IDENTITY}!={sim_identity}")
+    if NATIVE_OBSERVATION_IDENTITY != observation_identity:
+        raise ValueError("chip_worker_native_observation_identity_mismatch")
     module.SIM_IDENTITY = sim_identity
-    module.CACHE_ROOT = cache_root
+    module.CACHE_ROOT = cache_root / f"native-{observation_identity}"
+    module.predict_body = native_predict_body
     provenance = None
     if hw == "a2":
         # The archived A2 evaluator also emits derived templates during main().
@@ -397,9 +413,15 @@ def _configure_chip(hw: str, archive_root: Path, cache_root: Path, sim_identity:
             path.name: json.loads(path.read_text(encoding="utf-8"))
             for path in (archive_root / "a3" / "templates").glob("a3__*.json")
         }
+    elif hw == "a5":
+        if not hasattr(module, "_unadapted_resolve_template"):
+            module._unadapted_resolve_template = module.resolve_template
+        module._capture_policy_imports = {}
+        module.resolve_template = _resolve_a5_template
     module.ProcessPoolExecutor = partial(
         ProcessPoolExecutor, mp_context=multiprocessing.get_context("spawn"),
-        initializer=_configure_chip, initargs=(hw, archive_root, cache_root, sim_identity),
+        initializer=_configure_chip,
+        initargs=(hw, archive_root, cache_root, sim_identity, observation_identity),
     )
     return module, provenance
 
@@ -420,10 +442,13 @@ def _run_chip(hw: str, archive_root: Path, output_json: Path, output_md: Path, w
     report["input_provenance"] = {
         "evaluator": {"path": str(script), "sha256": sha256(script.read_bytes()).hexdigest()},
         "sim_identity": SIM_IDENTITY,
-        "cache_root": str(cache_root),
-        "cache_policy": "separate_output_directory_with_parser_and_sim_identity_keys",
+        "native_observation_identity": NATIVE_OBSERVATION_IDENTITY,
+        "prediction_arm": "observed_native",
+        "cache_root": str(module.CACHE_ROOT),
+        "cache_policy": "separate_output_directory_with_parser_sim_and_native_observation_identities",
         "archive_extraction_cache_reused": False,
         "regime_catalog_import": regime_import,
+        "capture_policy_imports": getattr(module, "_capture_policy_imports", {}),
     }
     _atomic_write_json(output_json, report)
     return 0

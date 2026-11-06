@@ -42,9 +42,10 @@ def test_archived_workers_use_imported_catalog_current_identity_and_separate_cac
     assert returned_key == key
     assert predicted["status"] == "modeled"
     material = f"v2:{wave5.SIM_IDENTITY}:{key[0]}:decode:1:512:1"
-    prediction_path = cache / f"pred_{sha256(material.encode()).hexdigest()[:24]}.json"
+    prediction_path = module.CACHE_ROOT / f"pred_{sha256(material.encode()).hexdigest()[:24]}.json"
     assert json.loads(prediction_path.read_text()) == json.loads(json.dumps(predicted))
-    assert (cache / f"{extracted['cache_key']}.json").is_file()
+    assert (module.CACHE_ROOT / f"{extracted['cache_key']}.json").is_file()
+    assert predicted["native_observation_provenance"]["arm"] == "observed_native"
     catalog_path = wave5.DEFAULT_ARCHIVE_ROOT / "a3" / "templates" / "_regime_catalog.json"
     assert sha256(catalog_path.read_bytes()).hexdigest() == provenance["catalog"]["sha256"]
     assert archive_files == {

@@ -26,7 +26,8 @@ from statistics import median
 import tempfile
 import time
 
-from body import compare_body_forward, compare_layers, predict_body
+from body import compare_body_forward, compare_layers
+from native_observations import native_observation_identity, predict_body
 from decode import _automatic_scenarios, _model_config, _source, capture_metadata, compact_observation
 from mindie_profiler.decode_segmentation import auto_segment_decode_forwards
 from mindie_profiler.events import PARSER_VERSION
@@ -357,6 +358,7 @@ def _parser_identity() -> str:
 
 
 SIM_IDENTITY = _sim_identity()
+NATIVE_OBSERVATION_IDENTITY = native_observation_identity()
 PARSER_IDENTITY = _parser_identity()
 CACHE_VERSION = f"v3:{PARSER_IDENTITY}"
 
@@ -445,7 +447,7 @@ def _extract_worker(item: tuple[str, dict, dict, dict]) -> tuple[str, dict]:
 def _predict_worker(item: tuple[tuple, dict]) -> tuple[tuple, dict]:
     key, tpl = item
     tpl_sig, phase, tokens, context, sequences = key
-    pred_id = sha256(f"v2:{SIM_IDENTITY}:{tpl_sig}:{phase}:{tokens}:{context}:{sequences}".encode("utf-8")).hexdigest()[:24]
+    pred_id = sha256(f"v3:{SIM_IDENTITY}:{NATIVE_OBSERVATION_IDENTITY}:{tpl_sig}:{phase}:{tokens}:{context}:{sequences}".encode("utf-8")).hexdigest()[:24]
     cache_path = CACHE_ROOT / f"pred_{pred_id}.json"
     if cache_path.exists():
         try:
@@ -765,6 +767,8 @@ def main(argv: list[str] | None = None) -> int:
         **prediction_report_identity({"registered_decode": decode_sb, "registered_prefill": prefill_sb,
                                       "dsh_predictions": {"sim_identity": SIM_IDENTITY}}, SIM_IDENTITY),
         "registered_recomputations": registered_recomputations,
+        "dsh_native_observation_identity": NATIVE_OBSERVATION_IDENTITY,
+        "dsh_prediction_arm": "observed_native",
         "calibration_provenance": {
             "evaluation_relation": "historical_model_conditioned_regimes_not_certified_heldout",
             "independent_heldout": False, "input_conditioned_regime_overrides": True,
