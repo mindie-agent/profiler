@@ -17,9 +17,11 @@ ROOT = Path(__file__).resolve().parent
 PROFILE_FILES = (
     "native_observations.py", "a2_native_observations.py", "a5_native_observations.py",
     "a5_mtp_native_observations.py",
-    "a5_capture_policy.py",
+    "a5_q35_unfused_native_observations.py",
+    "capture_policy.py",
     "profiles/a2_native_20261031.json", "profiles/a2_decode_native_20261031.json",
     "profiles/a5_gdn_decode_native_20261106.json", "profiles/a5_mtp_native_20261106.json",
+    "profiles/a5_q35_unfused_native_20261106.json",
 )
 
 
@@ -41,12 +43,14 @@ def apply_native_observations(raw, *, phase, tokens, context, sequences=1):
     from a2_native_observations import apply_a2_native_observations
     from a5_native_observations import apply_a5_native_observations
     from a5_mtp_native_observations import apply_a5_mtp_native_observations
+    from a5_q35_unfused_native_observations import apply_a5_q35_unfused_native_observations
 
     geometry = dict(phase=phase, tokens=tokens, context=context, sequences=sequences)
     result, a2 = apply_a2_native_observations(raw, **geometry)
     result, a5 = apply_a5_native_observations(result, **geometry)
     result, mtp = apply_a5_mtp_native_observations(result, **geometry)
-    return result, {"arm": "observed_native", "profiles": [a2, a5, mtp],
+    result, unfused = apply_a5_q35_unfused_native_observations(result, **geometry)
+    return result, {"arm": "observed_native", "profiles": [a2, a5, mtp, unfused],
                     "observations_modified": False, "body_total_fitting": False}
 
 

@@ -39,7 +39,7 @@ import mindie_sim
 from runtime_identity import simulator_identity
 from wave5_regime_import import import_a3_regime_catalog
 from native_observations import native_observation_identity, predict_body as native_predict_body
-from a5_capture_policy import import_a5_capture_policy
+from capture_policy import import_capture_policy
 
 STRUCT_DIR = Path(__file__).resolve().parent
 DEFAULT_ARCHIVE_ROOT = Path("/Volumes/data/mindie-sim-data/acceptance-archives-20261030/wave5-eval")
@@ -372,13 +372,21 @@ def render_markdown(report: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
-def _resolve_a5_template(traits):
-    module = importlib.import_module("eval_a5_wave5")
-    name, raw, segmentation = module._unadapted_resolve_template(traits)
-    raw, provenance = import_a5_capture_policy(
-        raw, capture_path=module.DATA_ROOT / traits["cell"] / "kernel_details.csv")
-    module._capture_policy_imports[traits["cell"]] = provenance
-    return name, raw, segmentation
+def _capture_traits(hw, csv_path):
+    module = importlib.import_module(f"eval_{hw}_wave5")
+    return {**module._unadapted_parse_capture_traits(csv_path), "capture_path": str(csv_path)}
+
+
+def _resolve_capture_template(hw, traits):
+    module = importlib.import_module(f"eval_{hw}_wave5")
+    resolved = list(module._unadapted_resolve_template(traits))
+    path = traits.get("capture_path")
+    if resolved[1] is not None and path:
+        resolved[1], provenance = import_capture_policy(resolved[1], capture_path=path)
+    else:
+        provenance = {"status": "not_provided", "reason": "capture_path_or_template_not_provided"}
+    module._capture_policy_imports[path or traits.get("cell", "unspecified")] = provenance
+    return tuple(resolved)
 
 
 def _configure_chip(hw: str, archive_root: Path, cache_root: Path, sim_identity: str,
@@ -413,11 +421,12 @@ def _configure_chip(hw: str, archive_root: Path, cache_root: Path, sim_identity:
             path.name: json.loads(path.read_text(encoding="utf-8"))
             for path in (archive_root / "a3" / "templates").glob("a3__*.json")
         }
-    elif hw == "a5":
-        if not hasattr(module, "_unadapted_resolve_template"):
-            module._unadapted_resolve_template = module.resolve_template
-        module._capture_policy_imports = {}
-        module.resolve_template = _resolve_a5_template
+    if not hasattr(module, "_unadapted_resolve_template"):
+        module._unadapted_resolve_template = module.resolve_template
+        module._unadapted_parse_capture_traits = module.parse_capture_traits
+    module._capture_policy_imports = {}
+    module.parse_capture_traits = partial(_capture_traits, hw)
+    module.resolve_template = partial(_resolve_capture_template, hw)
     module.ProcessPoolExecutor = partial(
         ProcessPoolExecutor, mp_context=multiprocessing.get_context("spawn"),
         initializer=_configure_chip,

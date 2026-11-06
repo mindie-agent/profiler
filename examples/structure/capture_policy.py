@@ -1,6 +1,6 @@
-"""Import a retained capture's literal graph policy into its replay declaration.
+"""Import retained literal graph and caller conditions into replay declarations.
 
-[Role] Read compilation fields from the caller-selected capture cmd.sh.
+[Role] Read compilation and additional config from caller-selected cmd.sh.
 [Invariants] Command text is never executed; model names and timings never
   select a capture policy. Missing fields remain explicitly unprovided.
 [Timeouts & Locks] One small local command file; no subprocesses or locks.
@@ -13,8 +13,31 @@ from pathlib import Path
 import shlex
 
 
-def import_a5_capture_policy(raw: dict, *, capture_path: str | Path) -> tuple[dict, dict]:
-    """Apply only literal compilation fields present in the selected source."""
+def _literal_config(tokens, option):
+    values = []
+    error_prefix = "capture_" + option.removeprefix("--").replace("-", "_")
+    for index, token in enumerate(tokens):
+        if token == option:
+            if index + 1 >= len(tokens):
+                raise ValueError(error_prefix + "_missing_value")
+            values.append(tokens[index + 1])
+        elif token.startswith(option + "="):
+            values.append(token.split("=", 1)[1])
+    if not values:
+        return None
+    if len(values) != 1:
+        raise ValueError(error_prefix + "_ambiguous_multiple_declarations")
+    try:
+        config = json.loads(values[0])
+    except json.JSONDecodeError as error:
+        raise ValueError(error_prefix + "_requires_literal_json") from error
+    if not isinstance(config, dict):
+        raise ValueError(error_prefix + "_requires_object")
+    return config
+
+
+def import_capture_policy(raw: dict, *, capture_path: str | Path) -> tuple[dict, dict]:
+    """Apply literal graph fields and retain caller conditions without guessing."""
     source = Path(capture_path)
     command = source if source.name == "cmd.sh" else (
         source / "cmd.sh" if source.is_dir() else source.parent / "cmd.sh")
@@ -29,29 +52,18 @@ def import_a5_capture_policy(raw: dict, *, capture_path: str | Path) -> tuple[di
         return result, {**provenance, "reason": "capture_command_not_present"}
     provenance["command_sha256"] = sha256(data).hexdigest()
     tokens = shlex.split(data.decode("utf-8"), comments=True, posix=True)
-    values = []
-    for index, token in enumerate(tokens):
-        if token == "--compilation-config":
-            if index + 1 >= len(tokens):
-                raise ValueError("capture_compilation_config_missing_value")
-            values.append(tokens[index + 1])
-        elif token.startswith("--compilation-config="):
-            values.append(token.split("=", 1)[1])
-    if not values:
+    config = _literal_config(tokens, "--compilation-config")
+    additional = _literal_config(tokens, "--additional-config")
+    if config is None and additional is None:
         return result, {**provenance, "reason": "compilation_config_not_declared"}
-    if len(values) != 1:
-        raise ValueError("capture_compilation_config_ambiguous_multiple_declarations")
-    try:
-        config = json.loads(values[0])
-    except json.JSONDecodeError as error:
-        raise ValueError("capture_compilation_config_requires_literal_json") from error
-    if not isinstance(config, dict):
-        raise ValueError("capture_compilation_config_requires_object")
-    fields = {name: config[name] for name in ("cudagraph_mode", "cudagraph_capture_sizes") if name in config}
-    if not fields:
+    fields = {name: config[name] for name in ("cudagraph_mode", "cudagraph_capture_sizes")
+              if config is not None and name in config}
+    if not fields and additional is None:
         return result, {**provenance, "reason": "graph_policy_fields_not_declared"}
-    provenance["provided_fields"] = sorted(fields)
+    provenance["provided_fields"] = sorted([*fields, *(["additional_config"] if additional is not None else [])])
     provenance["captured_fields"] = deepcopy(fields)
+    if additional is not None:
+        provenance["captured_fields"]["additional_config"] = deepcopy(additional)
     provenance["missing_fields"] = sorted({"cudagraph_mode", "cudagraph_capture_sizes"} - fields.keys())
     mode = fields.get("cudagraph_mode")
     if mode is not None and mode not in {"NONE", "FULL_DECODE_ONLY"}:
@@ -62,6 +74,8 @@ def import_a5_capture_policy(raw: dict, *, capture_path: str | Path) -> tuple[di
         raise ValueError("capture_graph_sizes_require_unique_positive_integers")
     runtime = result.setdefault("runtime", {})
     before = deepcopy(runtime)
+    if additional is not None:
+        runtime.setdefault("metadata", {})["captured_additional_config"] = deepcopy(additional)
     if mode is not None:
         runtime["graph_mode"] = "none" if mode == "NONE" else "auto"
         runtime["graph_capture_mode"] = "none" if mode == "NONE" else "full"
