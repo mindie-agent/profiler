@@ -1,0 +1,53 @@
+{
+  "schema_version": "mindie-profiler.capture-structure-fixture/1",
+  "source": {
+    "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/synth_qwen35_L8_E32_K2_tp8ep8_decode_256k_c1/kernel_details.csv",
+    "sha256": "bdd6a2022358f29c60b586da3f17ab0c677df0fed10734219e40d091cf0933e1",
+    "size_bytes": 14602114
+  },
+  "fixture_file": "a3_qwen35_e32_ep8_structural.csv",
+  "fixture_sha256": "1b70af6c997989e7972ab028f2af8d4cdc667ed1f7ca30248be011aeb858c04c",
+  "rows": [
+    {
+      "fixture_line": 2,
+      "source_line": 80
+    },
+    {
+      "fixture_line": 3,
+      "source_line": 82
+    },
+    {
+      "fixture_line": 4,
+      "source_line": 84
+    },
+    {
+      "fixture_line": 5,
+      "source_line": 86
+    },
+    {
+      "fixture_line": 6,
+      "source_line": 87
+    },
+    {
+      "fixture_line": 7,
+      "source_line": 88
+    },
+    {
+      "fixture_line": 8,
+      "source_line": 89
+    },
+    {
+      "fixture_line": 9,
+      "source_line": 90
+    }
+  ],
+  "source_counts": {
+    "dispatch": 944,
+    "combine": 944,
+    "gate": 944,
+    "down": 944,
+    "pad": 1888,
+    "allgather": 2124
+  },
+  "notes": "Verbatim header and eight actual rows from the E32 Q35 capture; source counts are whole-window counts."
+}

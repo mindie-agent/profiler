@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Cell: synth_dsv4f_L8_E16_K2_tp8ep8_decode_4k_c4
+vllm serve /work/wave5_20261031/synth_models/dsv4f_w8a8_L8_E16_K2 --served-model-name dsv4f_e16k2 --host 0.0.0.0 --port 18951 --tensor-parallel-size 8 --data-parallel-size 1 --enable-expert-parallel --max-model-len 409600 --max-num-seqs 32 --max-num-batched-tokens 8192 --gpu-memory-utilization 0.88 --block-size 128 --trust-remote-code --enable-prefix-caching --enable-chunked-prefill --quantization ascend --dtype bfloat16 --compilation-config '{"cudagraph_mode":"FULL_DECODE_ONLY","cudagraph_capture_sizes":[1,2,4,8,16,32]}' --profiler-config '{"profiler":"torch","torch_profiler_dir":"/work/wave5_20261031/laneB/raw_profiles","torch_profiler_with_stack":false}'

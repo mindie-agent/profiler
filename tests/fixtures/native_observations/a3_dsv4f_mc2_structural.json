@@ -1,0 +1,57 @@
+{
+  "schema_version": "mindie-profiler.capture-structure-fixture/1",
+  "source": {
+    "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/synth_dsv4f_L8_E16_K2_tp8ep8_decode_4k_c1/kernel_details.csv",
+    "sha256": "7255664cfc2065728f41de96d6394860e498dbdb3aae040031e8326e4f3fed3d",
+    "size_bytes": 24784662
+  },
+  "fixture_file": "a3_dsv4f_mc2_structural.csv",
+  "fixture_sha256": "4e6982268d5de6f21d92c9a30dcca0fd051f859be8ad439e2a030c9e987c8177",
+  "rows": [
+    {
+      "fixture_line": 2,
+      "source_line": 155
+    },
+    {
+      "fixture_line": 3,
+      "source_line": 157
+    },
+    {
+      "fixture_line": 4,
+      "source_line": 159
+    },
+    {
+      "fixture_line": 5,
+      "source_line": 171
+    },
+    {
+      "fixture_line": 6,
+      "source_line": 172
+    },
+    {
+      "fixture_line": 7,
+      "source_line": 173
+    },
+    {
+      "fixture_line": 8,
+      "source_line": 174
+    },
+    {
+      "fixture_line": 9,
+      "source_line": 175
+    },
+    {
+      "fixture_line": 10,
+      "source_line": 178
+    }
+  ],
+  "source_counts": {
+    "pad": 1840,
+    "dispatch": 920,
+    "gate": 920,
+    "down": 920,
+    "combine": 920,
+    "allgather": 2070
+  },
+  "notes": "Verbatim header and nine actual rows from the DSV4F capture; source counts are whole-window counts."
+}

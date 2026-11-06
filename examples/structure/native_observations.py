@@ -18,7 +18,7 @@ PROFILE_FILES = (
     "native_observations.py", "a2_native_observations.py", "a5_native_observations.py",
     "a5_mtp_native_observations.py",
     "a5_q35_unfused_native_observations.py",
-    "capture_policy.py",
+    "capture_policy.py", "capture_structure.py", "capture_ffn_guard.py",
     "profiles/a2_native_20261031.json", "profiles/a2_decode_native_20261031.json",
     "profiles/a5_gdn_decode_native_20261106.json", "profiles/a5_mtp_native_20261106.json",
     "profiles/a5_q35_unfused_native_20261106.json",
@@ -26,12 +26,29 @@ PROFILE_FILES = (
 )
 
 
-def native_observation_identity(root=ROOT):
-    """Include adapter semantics and response data, independently of Sim code."""
+PROFILER_SOURCE_FILES = (
+    "normalized.py", "sources_csv.py", "sources_db.py", "events.py",
+    "native_tensor_abi.py", "body_moe_contracts.py", "body_matrix_contracts.py",
+    "knowledge/db_source_mapping.json",
+)
+
+
+def native_observation_identity(root=ROOT, source_root=None):
+    """Include adapter semantics, reused decoders and response data."""
     digest = sha256(b"mindie-profiler-native-observations/1\0")
     for relative in PROFILE_FILES:
         digest.update(relative.encode("utf-8") + b"\0")
         with (Path(root) / relative).open("rb") as handle:
+            content = sha256()
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                content.update(chunk)
+        digest.update(content.digest())
+    if source_root is None:
+        import mindie_profiler
+        source_root = Path(mindie_profiler.__file__).resolve().parent
+    for relative in PROFILER_SOURCE_FILES:
+        digest.update(b"profiler-source\0" + relative.encode("utf-8") + b"\0")
+        with (Path(source_root) / relative).open("rb") as handle:
             content = sha256()
             for chunk in iter(lambda: handle.read(1024 * 1024), b""):
                 content.update(chunk)

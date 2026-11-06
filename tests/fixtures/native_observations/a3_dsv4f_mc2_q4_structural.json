@@ -1,0 +1,56 @@
+{
+  "schema_version": "mindie-profiler.capture-structure-fixture/1",
+  "source": {
+    "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/synth_dsv4f_L8_E16_K2_tp8ep8_decode_4k_c4/kernel_details.csv",
+    "sha256": "98e10982e0e3fa7228da6c0fe7563eaf6f5d72901634a9ad38f3cde65c95f6b3",
+    "size_bytes": 23334624
+  },
+  "source_command": {
+    "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/synth_dsv4f_L8_E16_K2_tp8ep8_decode_4k_c4/cmd.sh",
+    "sha256": "1fd86caa273b9661c642288edd49ce73ac856a764ead39928d709effb3bf7565",
+    "size_bytes": 736
+  },
+  "fixture_file": "a3_dsv4f_mc2_q4_structural.csv",
+  "fixture_sha256": "9827047a721d96bd8c0ea81ac7b6709429ca87ca009d8b47a4a038b4d2ec2cb0",
+  "command_file": "a3_dsv4f_mc2_q4_cmd.sh",
+  "command_sha256": "1fd86caa273b9661c642288edd49ce73ac856a764ead39928d709effb3bf7565",
+  "rows": [
+    {
+      "fixture_line": 2,
+      "source_line": 163
+    },
+    {
+      "fixture_line": 3,
+      "source_line": 165
+    },
+    {
+      "fixture_line": 4,
+      "source_line": 177
+    },
+    {
+      "fixture_line": 5,
+      "source_line": 178
+    },
+    {
+      "fixture_line": 6,
+      "source_line": 179
+    },
+    {
+      "fixture_line": 7,
+      "source_line": 180
+    },
+    {
+      "fixture_line": 8,
+      "source_line": 181
+    }
+  ],
+  "source_counts": {
+    "pad": 1712,
+    "dispatch": 856,
+    "gate": 856,
+    "down": 856,
+    "combine": 856,
+    "allgather": 1926
+  },
+  "notes": "Verbatim header and seven actual q4 rows; pad input4 output8; source counts are whole-window counts."
+}

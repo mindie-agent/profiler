@@ -66,8 +66,10 @@ Wave5 重跑入口和 DSH 新预测使用这个适配器；聚合已有报告不
 保留数据还存在相同预测输入、不同运行状态的情况。A3
 `qwen38_tp8_mtp3_prefill_192k_c1` 与 `qwen38_tp8_mtp3_prefill_256k_c1`
 的第一块均为 q=8192/context=0。两份真实命令均声明完整 Decode 捕获及
-`[1,2,4,8,12,16,24,32]` 槽位；导入这些字段后，完整模板与预测几何的
-SHA256 仍相同：`11c9b780614a562a0a761978b11f0f60a419365fe366a7fd8e784be76a41b15b`。
+`[1,2,4,8,12,16,24,32]` 槽位。在仅导入图字段的历史基线中，完整模板与
+预测几何的 SHA256 均为
+`11c9b780614a562a0a761978b11f0f60a419365fe366a7fd8e784be76a41b15b`；
+后续输入修正以每轮全量回放记录的完整输入身份重新检查。
 
 | 保留观测 | Body wall (ms) | 设备活动并集 (ms) | 内部空窗 (ms) |
 | --- | ---: | ---: | ---: |
@@ -82,14 +84,39 @@ SHA256 仍相同：`11c9b780614a562a0a761978b11f0f60a419365fe366a7fd8e784be76a41
 验收同时保留 capture 加权误差、主 population 误差和每个 population/chunk。
 算子均值校准通过不代表每次原语调用、全部 Body 或独立泛化已经通过。
 
-## 尚未修复的 A3 模板与服务边界
+## A3 部署输入修正与尚未覆盖的服务边界
 
-A3 `synth_qwen35_L8_E32_K2_tp8ep8_decode_256k_c1` 的历史模板仍使用
+A3 `synth_qwen35_L8_E32_K2_tp8ep8_decode_256k_c1` 的历史模板使用
 EP1、32 个本地专家和 64 维分片中间层；实际命令和 CSV 则是 EP8、
 4 个本地专家、完整 512 维中间层，并有 MC2 Dispatch/Combine/AllGather。
-现有 `arch22_v2_caller` 能表达源拓扑的逻辑工作下界，但单 rank CSV
-不能确定 peer window 或真实路由分布。四个未经校准的源拓扑情景为
-2.6015–2.9036 ms，均低于实测 3.5675 ms；构图成功不能证明精度通过。
+`capture_policy.py` 现在导入命令中明确声明的 TP、DP 和 EP 开关，仅在
+DP1、TP>1、启用 EP 且 MoE 拓扑受支持时推导 EP=TP，并替换继承的
+`tp_join_reduce`。声明、推导、缺失字段和前后值分别记录；重复或动态参数
+报错，显式不兼容 caller 保留并报告冲突。普通预测不要求采集证据。
+
+对上述 EP1 模板修正，`capture_structure.py` 流式核对选定 CSV 中的
+Dispatch/Combine、分组矩阵和 prepare 边界；只有受支持且一致的描述符才
+绑定现有 MC2 TP slice caller。q1/q4 的完整图仍为 1/4 行，局部 prepare
+按 `ceil(rows / TP) * TP` 扩到 8 行，再切成每 rank 1 行。已有 caller
+保留，并用最终返回图核对；仅作用于 draft 的声明不能证明 Body caller
+一致。版本化 routing/finalize 和 token permutation 等其他 caller 混入
+窗口时拒绝绑定。混合或未覆盖 ABI 不变成成功匹配，读取、解析或预算错误
+直接传播。
+
+原生 GMM 的 16 行只表示分配容量，不能作为真实 routed token 数，也不要求
+解析模型的工作行数与之相同。整份 E32 CSV 的 2,124 次 AllGather 不全部
+归给 MoE；对账保留窗口计数和未归属边界。描述符一致不代表原生 kernel、
+融合时序或二进制等价，peer window 与 group-list 值仍未观测。
+
+`capture_ffn_guard.py` 比较修正前后实际生成的专家矩阵静态维度，只停用
+适用范围已失效且缺少相应维度约束的 routed FFN 规则；无 CSV 的命令导入
+也执行这一检查。其他响应及所有保留参数值不变，不增加耗时拟合或 Body
+补偿。源路径、哈希和 CSV 行号只进入 provenance，不进入物理预测输入。
+
+现有 `arch22_v2_caller` 能表达源拓扑的逻辑工作下界，但需要独立声明
+peer window，本适配器不替它填默认值。此前四个未经校准的源拓扑情景为
+2.6015–2.9036 ms，均低于实测 3.5675 ms；这些是历史反事实结果，不能
+替代当前代码的全量回放，也不能把构图成功当作精度通过。
 
 该 capture 的首个 AllReduce 平均 520.378 µs，其余调用平均 9.196 µs，
 等待来源尚未识别，不能添加固定首层补偿。DSV4F 的真实 graph1 与 MC2
