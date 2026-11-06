@@ -55,10 +55,17 @@ context. The resolver selects exactly one by requested context; other contexts
 are unavailable rather than silently reusing the first row shape.
 
 The A5 native grouped descriptor M is the allocated `q*top_k` buffer, not the
-valid local-assignment count. The projection keeps that allocation, the
-source-declared/expected local-valid rows `ceil(q*top_k/EP)`, and the unmasked
-SwiGlu full-capacity rows separate; it does not require the Sim graph to copy
-the captured buffer extent as matrix work.
+valid local-assignment count. The projection keeps that allocation separate
+from the declared-policy local-bank valid rows and the unmasked SwiGlu
+full-capacity rows; it does not require the Sim graph to copy the captured
+buffer extent as matrix work. For `balanced` routing the local bank is the
+forced integer ledger, so E48 q4096/K4 expects 4104 rows rather than the
+uniform rank average 4096; the uniform average is retained only as an explicit
+reference field. For the four historical 20261031 E48 captures, balanced
+routing is inherited from the archived template contract; the generic
+`routing_basis` label only says `declared_balanced_integer_ledger` and does not
+infer that origin for other explicit raws. Those commands contain no force-EPLB
+literal, so this is not a native force-EPLB observation.
 
 `a3_case.json` / `a5_case.json` are minimal source-model declarations for
 descriptor validation. They contain no capture path, hash or measured value.

@@ -317,6 +317,24 @@ def test_a3_format_dtype_row_and_order_negatives(tmp_path):
         assert new == a3_raw()
 
 
+def test_a5_explicit_balanced_raw_uses_generic_basis_without_archive_origin():
+    if not sim_recipe_available():
+        pytest.skip("Track A local_expert_reduce is not installed in this interpreter")
+    raw = a5_raw(routing={"policy": "balanced"})
+    new, provenance = call(
+        raw, csv_path=A5_4K_CSV, observation=A5_4K_OBS,
+        phase="prefill", tokens=4096, context=0, archive_template=False)
+    assert provenance["status"] == "applied", provenance
+    allocation = provenance["analysis"]["allocation"]
+    assert allocation["expected_local_valid_rows"] == 4096
+    assert allocation["uniform_rank_average_rows"] == 4096
+    assert allocation["routing_basis"] == (
+        "declared_balanced_integer_ledger; not_native_force_eplb")
+    assert "archived_template" not in allocation["routing_basis"]
+    assert new["runtime"]["moe_recipe"] == LOCAL_EXPERT_RECIPE
+    assert new["runtime"]["routing"] == {"policy": "balanced"}
+
+
 def test_a5_capacity_and_expected_valid_rows_are_separate():
     new, provenance = call(a5_raw(), csv_path=A5_4K_CSV,
                            observation=A5_4K_OBS, phase="prefill",

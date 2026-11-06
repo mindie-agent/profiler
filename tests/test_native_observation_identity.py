@@ -24,7 +24,8 @@ from tests.sim_fixtures import case_path
 @pytest.mark.parametrize("relative", (
     "a5_native_observations.py", "capture_structure.py", "capture_ffn_guard.py",
     "capture_scoped_structure.py", "capture_scoped_contracts.py",
-    "capture_scoped_evidence.py", "prefill_native_observations.py",
+    "capture_scoped_evidence.py", "capture_scoped_geometry.py",
+    "prefill_native_observations.py",
     "prefill_native_builder.py", "scoped_native_replay.py",
     "dsh_scoped_prefill.py", "profiles/a2_native_20261031.json",
     "profiles/a5_gdn_decode_native_20261106.json",
@@ -61,6 +62,46 @@ def test_profile_semantics_and_data_invalidate_actual_prediction_cache(tmp_path,
     second = dsh._predict_worker(item)[1]
     assert second["body_forward_span_ms"] == first["body_forward_span_ms"]
     assert len(calls) == 2 and len(list(dsh.CACHE_ROOT.glob("pred_*.json"))) == 2
+
+
+def test_scoped_geometry_semantics_invalidate_actual_prediction_cache(
+        tmp_path, monkeypatch):
+    """A semantic helper change must select a new prediction cache namespace."""
+    source = ROOT / "examples" / "structure"
+    for name in PROFILE_FILES:
+        destination = tmp_path / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source / name, destination)
+    before = native_observation_identity(tmp_path)
+    monkeypatch.setattr(dsh, "NATIVE_OBSERVATION_IDENTITY", before)
+    monkeypatch.setattr(dsh, "CACHE_ROOT", tmp_path / "cache")
+    raw = json.loads(case_path("quickstart.json").read_text())
+    raw["model"]["layers"] = 1
+    item = (("fixed-input", "decode", 1, 64, 1), raw)
+    calls = []
+    actual = dsh.predict_body
+
+    def counted(*args, **kwargs):
+        calls.append(1)
+        return actual(*args, **kwargs)
+
+    monkeypatch.setattr(dsh, "predict_body", counted)
+    first = dsh._predict_worker(item)[1]
+    assert dsh._predict_worker(item)[1] == json.loads(json.dumps(first))
+    assert len(calls) == 1
+    helper = tmp_path / "capture_scoped_geometry.py"
+    original = helper.read_text()
+    mutated = original.replace(
+        "return bank * base + min(remainder, bank)", "return bank * base")
+    assert mutated != original
+    helper.write_text(mutated)
+    after = native_observation_identity(tmp_path)
+    assert before != after
+    monkeypatch.setattr(dsh, "NATIVE_OBSERVATION_IDENTITY", after)
+    second = dsh._predict_worker(item)[1]
+    assert second["body_forward_span_ms"] == first["body_forward_span_ms"]
+    assert len(calls) == 2
+    assert len(list(dsh.CACHE_ROOT.glob("pred_*.json"))) == 2
 
 
 @pytest.mark.parametrize("relative", (

@@ -165,14 +165,18 @@ path 替换。显式 scope plan 的 forward 数、每个 (tokens, context) 和�
 按 capture 复用一次 prepared scope，并把每个几何的声明、native profile 与
 最终 identity 记录在 sidecar。
 
-`native_observations.PROFILE_FILES` 现在覆盖 C 的三个模块、B 的 adapter/builder/
-profile、共享 replay helper 和 DSH scoped driver，因此这些语义或数据变化会
-使 native identity 失效；`pyproject.toml` 的 mindie-sim 依赖固定到
+`native_observations.PROFILE_FILES` 现在覆盖 C 的三个模块（含
+`capture_scoped_geometry.py`）、B 的 adapter/builder/profile、共享 replay helper
+和 DSH scoped driver，因此这些语义或数据变化会使 native identity 失效；
+`pyproject.toml` 的 mindie-sim 依赖固定到
 `dccea42b086fa5abd315c44dded188ed1e0347f8`。C 的生成图校验只把 Sim 实际产生的
 `balanced_grouped_gate_up`/`balanced_grouped_down` 映射为同一语义 grouped 角色，
 其余 recipe 名称不做前缀兜底；分组形状、专家 bank、hidden/intermediate 等物理维度
 仍逐层核对，维度不一致继续拒绝。真实 A3 混合 fixture 的 full chunk 现在 C 与 B
 同时 applied，A5 归档模板的继承 `alltoall` 在显式 `archive_template=True` 下替换为
-`local_expert_reduce` 并 applied。仍有明确限制：A2 不在 scoped caller 适用域；
+`local_expert_reduce` 并 applied。`routing_basis` 只表达 raw 声明的
+`declared_balanced_integer_ledger` 或 probability moments；四个历史 E48 capture 的
+archived-template 继承来源记录在 handoff/capture provenance，不由 adapter 推断，
+也不声称 native force-EPLB。仍有明确限制：A2 不在 scoped caller 适用域；
 原生命令二进制、group-list 值、逐 forward 精度和独立泛化仍未证明；本适配器只选择
 caller/native 物理响应，不做 Body 拟合或精度宣称。

@@ -17,6 +17,7 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import dataclass
 from math import ceil
+from capture_scoped_geometry import local_expert_rows, routing_basis
 from mindie_profiler.body_matrix_contracts import observed_matrix_contract
 from mindie_profiler.body_moe_contracts import moe_fusion_contract
 from mindie_profiler.native_tensor_abi import (
@@ -481,7 +482,7 @@ def validate_a3(window, evidence_layers, *, tp, ep, hidden, experts, top_k,
     }
 
 def validate_a5(window, evidence_layers, *, tp, ep, hidden, experts, top_k,
-                intermediate):
+                intermediate, routing_policy=None):
     """Validate every repeated A5 eager layer without inventing valid rows."""
     layers = []
     for index, layer in enumerate(evidence_layers):
@@ -501,7 +502,7 @@ def validate_a5(window, evidence_layers, *, tp, ep, hidden, experts, top_k,
                              role=forbidden)
         query_rows = window.query_rows
         allocation = query_rows * top_k
-        expected_valid = _expected_local_valid(query_rows, top_k, ep)
+        expected_valid = local_expert_rows(query_rows, top_k, experts, ep, routing_policy)
         router, router_issue = _router(layer, query_rows, hidden, experts)
         if router is None:
             return _fail(router_issue, layer=lid)
@@ -604,8 +605,9 @@ def validate_a5(window, evidence_layers, *, tp, ep, hidden, experts, top_k,
             "query_rows": query_rows,
             "init_routing_allocation_rows": query_rows * top_k,
             "native_gmm_rows": query_rows * top_k,
-            "expected_local_valid_rows": _expected_local_valid(
-                query_rows, top_k, ep),
+            "expected_local_valid_rows": expected_valid,
+            "uniform_rank_average_rows": _expected_local_valid(query_rows, top_k, ep),
+            "routing_basis": routing_basis(routing_policy),
             "gmm_row_axis_role": "allocated_capacity_including_unselected_slots",
             "gmm_rows_compared_to_generated": False,
             "valid_routed_rows": "unobserved",
@@ -649,7 +651,7 @@ def _comm_items(summary, recipe):
     return [entry for entry in summary["metadata"] if entry[0] == recipe]
 
 def generated_mismatches(family, ops, *, window, tp, ep, hidden, experts,
-                         top_k, intermediate, material):
+                         top_k, intermediate, material, routing=None):
     if ops is None:
         return [{"field": "generated_graph", "reason": "unavailable"}]
     layers = _op_summary(ops)
@@ -751,7 +753,8 @@ def generated_mismatches(family, ops, *, window, tp, ep, hidden, experts,
             if len(route_pack) != 1 or route_pack[0][2][:2] != (
                     window.query_rows, top_k):
                 bad.append({"field": "route_pack", "layer": layer_id})
-            expected_valid = _expected_local_valid(window.query_rows, top_k, ep)
+            expected_valid = local_expert_rows(
+                window.query_rows, top_k, experts, ep, routing)
             allocation = window.query_rows * top_k
             gate = next((entry for entry in item["grouped"]
                          if entry["recipe"] == "grouped_gate_up"), None)

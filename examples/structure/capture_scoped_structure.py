@@ -196,7 +196,8 @@ def _topology(parsed):
             "pcp": parallel.pcp, "layers": model.layers,
             "hidden_size": model.hidden_size,
             "num_experts": model.num_experts, "top_k": model.top_k,
-            "moe_intermediate_size": model.moe_intermediate_size}
+            "moe_intermediate_size": model.moe_intermediate_size,
+            "routing": deepcopy(getattr(parsed.runtime, "routing", {}))}
 
 
 def _topology_matches(stored, parsed):
@@ -262,7 +263,8 @@ def _sim_validate(candidate, *, family, window, tp, ep, hidden, experts, top_k,
     mismatches = generated_mismatches(
         family, ops, window=window, tp=tp, ep=ep, hidden=hidden,
         experts=experts, top_k=top_k, intermediate=intermediate,
-        material=material)
+        material=material,
+        routing=(candidate.get("runtime") or {}).get("routing"))
     return {"supported": not mismatches,
             "reason": ("generated_graph_matched" if not mismatches
                        else "generated_graph_mismatch"),

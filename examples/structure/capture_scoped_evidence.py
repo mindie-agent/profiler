@@ -296,7 +296,8 @@ def _contract_for_window(evidence, topology):
             window, layers, tp=topology["tp"], ep=topology["ep"],
             hidden=topology["hidden_size"], experts=topology["num_experts"],
             top_k=topology["top_k"],
-            intermediate=topology["moe_intermediate_size"])
+            intermediate=topology["moe_intermediate_size"],
+            routing_policy=topology.get("routing"))
     else:
         return {"ok": False, "reason": "no_supported_scoped_caller"}
     if result.get("ok"):
@@ -460,7 +461,8 @@ def _topology(parsed):
             "pcp": parallel.pcp, "layers": model.layers,
             "hidden_size": model.hidden_size,
             "num_experts": model.num_experts, "top_k": model.top_k,
-            "moe_intermediate_size": model.moe_intermediate_size}
+            "moe_intermediate_size": model.moe_intermediate_size,
+            "routing": deepcopy(getattr(parsed.runtime, "routing", {}))}
 
 
 def _topology_supported(topology):

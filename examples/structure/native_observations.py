@@ -21,7 +21,7 @@ PROFILE_FILES = (
     "capture_policy.py", "capture_structure.py", "capture_ffn_guard.py",
     # Phase/geometry-scoped caller projection and its source/tensor validators.
     "capture_scoped_structure.py", "capture_scoped_contracts.py",
-    "capture_scoped_evidence.py",
+    "capture_scoped_evidence.py", "capture_scoped_geometry.py",
     # A3 prefill FlashAttention/AllReduce native responses and their builder.
     "prefill_native_observations.py", "prefill_native_builder.py",
     # Shared C-before-B per-capture replay integration.
