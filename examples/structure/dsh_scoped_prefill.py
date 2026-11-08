@@ -19,6 +19,7 @@ from hashlib import sha256
 import json
 from pathlib import Path
 
+from service_response_acceptance import evaluate_acceptance
 from scoped_native_replay import (
     compact_scope_sidecar,
     is_a5_machine,
@@ -168,6 +169,7 @@ def score_prefill_capture(csv_path, traits, tpl_name, cross_tp, extracted,
                     or row.get("geometry", {}).get("context") != geometry["context"]):
                 raise ValueError(f"scoped_plan_provenance_geometry_mismatch:{index}")
     real_sum, pred_sum, steady_real, steady_pred = float(obs["body_span_sum_ms"]), 0.0, 0.0, 0.0
+    ordered_parts = []
     for index, (forward, geometry) in enumerate(zip(forwards, geometries)):
         q_rows, context = geometry["tokens"], geometry["context"]
         key = signatures[index]["key"] if signatures is not None else tpl_sig
@@ -175,6 +177,8 @@ def score_prefill_capture(csv_path, traits, tpl_name, cross_tp, extracted,
             "body_forward_span_ms"]
         observed = float(forward["body"]["span_ms"])
         pred_sum += float(predicted)
+        ordered_parts.append({"observed_ms": observed, "predicted_ms": float(predicted),
+                              "count": 1, "id": f"prefill:{index}"})
         if q_rows >= 1024:
             steady_real += observed
             steady_pred += float(predicted)
@@ -194,6 +198,9 @@ def score_prefill_capture(csv_path, traits, tpl_name, cross_tp, extracted,
         "passed_10pct": bool(abs(complete_err) <= 0.10) if complete_err is not None else False,
         "steady_chunk_passed_15pct": bool(abs(steady_err) <= 0.15) if steady_err is not None else False,
         "steady_chunk_passed_10pct": bool(abs(steady_err) <= 0.10) if steady_err is not None else False,
+        "ordered_parts": ordered_parts,
+        "uncancelled_acceptance": evaluate_acceptance(
+            ordered_parts, tolerance=0.10, label=str(csv_path)),
     }
     if signatures is not None:
         counts = {}
@@ -223,9 +230,13 @@ def price_legacy_prediction(item, *, predict_fn, sim_identity,
     if cache_path.exists():
         try:
             cached = json.loads(cache_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as exc:
+        except TimeoutError:
+            raise
+        except json.JSONDecodeError as exc:
             cache_path.unlink(missing_ok=True)
             raise RuntimeError(f"corrupt_prediction_cache:{cache_path}") from exc
+        except OSError as exc:
+            raise RuntimeError(f"unreadable_prediction_cache:{cache_path}") from exc
         if cached.get("status") == "modeled":
             return key, cached
     result = predict_fn(template, tokens=int(tokens), context=int(context),

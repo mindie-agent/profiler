@@ -34,11 +34,22 @@ def test_archived_workers_use_imported_catalog_current_identity_and_separate_cac
     _, template, _, _ = module.resolve_template(traits)
     key = (sha256(json.dumps(template, sort_keys=True).encode()).hexdigest()[:16], "decode", 1, 512, 1)
     capture = ROOT / "tests" / "fixtures" / "profiler_core" / "real_a3_wait_pmu" / "kernel_details.csv"
-    with module.ProcessPoolExecutor(max_workers=1) as pool:
+    pool = module.ProcessPoolExecutor(max_workers=1)
+    procs = []
+    try:
         returned_key, predicted = pool.submit(module._predict_worker, (key, template)).result(timeout=10)
         _, extracted = pool.submit(module._extract_worker, (
             str(capture), {"phase": "prefill", "tp": 8}, template, {},
         )).result(timeout=10)
+        procs = list((getattr(pool, "_processes", None) or {}).values())
+    finally:
+        if not procs:
+            procs = list((getattr(pool, "_processes", None) or {}).values())
+        pool.shutdown(wait=False, cancel_futures=True)
+        for proc in procs:
+            if proc.is_alive():
+                proc.terminate()
+            proc.join(timeout=2)
     assert returned_key == key
     assert predicted["status"] == "modeled"
     material = f"v2:{wave5.SIM_IDENTITY}:{key[0]}:decode:1:512:1"

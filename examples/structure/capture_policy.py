@@ -530,7 +530,13 @@ def import_capture_policy(raw: dict, *, capture_path: str | Path,
         }
     provenance["native_structure"] = native_structure
     provenance["legacy_ffn_guard"] = legacy_guard
+    from capture_mla_structure import apply_captured_mla_structure
+    mla_structure = ({"status": "not_evaluated", "reason": "deployment_conflict"}
+                     if deployment["status"] == "conflict" else
+                     apply_captured_mla_structure(result, capture_path=source))
+    provenance["mla_structure"] = mla_structure
     top_changed = set(graph_changed)
+    top_changed.update(mla_structure.get("changed_fields", ()))
     for field in deployment["changed_fields"]:
         parts = field.split(".")
         if len(parts) >= 2 and parts[0] == "runtime":
@@ -543,7 +549,9 @@ def import_capture_policy(raw: dict, *, capture_path: str | Path,
 
     provenance["graph_status"] = graph_status
     provenance["graph_reason"] = graph_reason
-    if native_structure.get("status") == "conflict":
+    if mla_structure.get("status") == "conflict":
+        status, reason = "conflict", mla_structure["reason"]
+    elif native_structure.get("status") == "conflict":
         status, reason = "conflict", native_structure.get("reason")
     elif deployment["status"] == "conflict":
         status, reason = "conflict", deployment["reason"]

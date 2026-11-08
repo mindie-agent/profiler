@@ -467,7 +467,7 @@ def _generated_descriptors(case, *, tokens):
                          "hidden": local[1], "width": local[2],
                          "local_shape": local, "padded_shape": padded}
             roles.setdefault(role, shape)
-        if op.recipe == "tensor_concat":
+        if op.recipe in {"tensor_concat", "tensor_pad"}:
             pads.add(int(op.local_shape[0]))
             if metadata.get("moe_token_partition"):
                 partition = metadata["moe_token_partition"]
@@ -512,6 +512,8 @@ def _compare(evidence, generated):
         ("prepare_allocation_rows", evidence["prepare"]["output_rows"],
          (generated["partition"] or {}).get("allocated_rows")),
         ("generated_padding", "right_to_tp", (generated["partition"] or {}).get("padding")),
+        ("padding_implementation", "pad_v3",
+         (generated["partition"] or {}).get("padding_implementation", "concat")),
         ("finalize_rows", evidence["combine"]["output_shapes"][0][0],
          generated["finalize_rows"][0] if generated["finalize_rows"] else None),
     ]
@@ -593,10 +595,13 @@ def apply_captured_structure(result, *, before_case, capture_path, command_sha25
             caller_conflict = "explicit_caller_not_mc2"
         elif existing.get("padding") not in (None, MC2_PADDING):
             caller_conflict = "explicit_mc2_padding_incompatible"
+        elif existing.get("padding_implementation") not in (None, "pad_v3"):
+            caller_conflict = "explicit_padding_implementation_disagrees_with_pad_v3"
 
     tokens = (evidence.get("prepare") or {}).get("input_rows") or 1
     if existing is None:
-        completion = {"kind": MC2_KIND, "padding": MC2_PADDING}
+        completion = {"kind": MC2_KIND, "padding": MC2_PADDING,
+                      "padding_implementation": "pad_v3"}
         completion_action = "bind"
     elif not isinstance(existing, dict):
         completion = None
@@ -607,13 +612,18 @@ def apply_captured_structure(result, *, before_case, capture_path, command_sha25
     elif existing.get("padding") not in (None, MC2_PADDING):
         completion = deepcopy(existing)
         completion_action = "conflict"
+    elif existing.get("padding_implementation") not in (None, "pad_v3"):
+        completion = deepcopy(existing)
+        completion_action = "conflict"
     else:
         completion = deepcopy(existing)
         scopes = completion.get("layer_scopes")
         body_selected = (scopes is None
                          or (isinstance(scopes, (list, tuple)) and "body" in scopes))
-        if completion.get("padding") is None and body_selected:
+        if body_selected and (completion.get("padding") is None
+                              or completion.get("padding_implementation") is None):
             completion["padding"] = MC2_PADDING
+            completion["padding_implementation"] = "pad_v3"
             completion_action = "complete_padding"
         else:
             completion_action = "preserve"
@@ -646,8 +656,10 @@ def apply_captured_structure(result, *, before_case, capture_path, command_sha25
                 action = "bound"
         elif completion_action == "complete_padding":
             if bind_caller:
-                existing["padding"] = MC2_PADDING
-                applied_fields.append("runtime.kernels.moe_token_partition.padding")
+                for field in ("padding", "padding_implementation"):
+                    if existing.get(field) != completion[field]:
+                        existing[field] = completion[field]
+                        applied_fields.append("runtime.kernels.moe_token_partition." + field)
                 action = "completed_padding"
         else:
             action = "preserved_existing"

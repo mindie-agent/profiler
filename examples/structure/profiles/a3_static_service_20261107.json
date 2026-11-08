@@ -1,0 +1,316 @@
+{
+ "schema_version": "mindie-profiler-static-service-profile/1",
+ "id": "a3_static_service_20261107",
+ "hardware": "Ascend910_9362",
+ "calibration": {
+  "role": "TRAIN",
+  "response_boundary": "one_complete_native_kernel",
+  "body_total_used": false,
+  "current_validation_timings_used": false,
+  "native_binary_identity": "unknown"
+ },
+ "groups": [
+  {
+   "id": "a3_dsv4f_wave5_native",
+   "requires_rule_ids": [
+    "a3-v4flash-grouped-gate-up-c32",
+    "a3-retained-call-13d2f9a1640e2aa2"
+   ],
+   "replace_rule_ids": [
+    "a3-retained-call-8d059020c17f3e0d",
+    "a3-retained-call-4e1ce6f5eaf4f3aa"
+   ],
+   "supersedes": {
+    "a3-retained-call-8d059020c17f3e0d": [
+     "ba5dd38d4b3902a969c361cf67ba956d9750dba6812bcadf6eefb04d3a392c42"
+    ],
+    "a3-retained-call-4e1ce6f5eaf4f3aa": [
+     "ac1d83a09a655d949cfaf4985bea20623584641fc83b168642e12c8c910dee30"
+    ]
+   },
+   "rules": [
+    {
+     "id": "a3-sharedkv-mla-attn0-native-m1-4",
+     "match": {
+      "hardware": "Ascend910_9362",
+      "phase": "decode",
+      "recipe": "latent_attention0",
+      "family": "attention",
+      "dtype": "bf16",
+      "layout": "contiguous",
+      "local_shape.2": 8,
+      "local_shape.3": 512,
+      "local_shape.4": 512
+     },
+     "coordinates": {
+      "m": {
+       "path": "local_shape.0"
+      }
+     },
+     "domain": {
+      "m": {
+       "min": 1,
+       "max": 4
+      }
+     },
+     "response": {
+      "fixed_us": 26.8
+     },
+     "execution": {
+      "kind": "joint_native",
+      "resource": "native_call_service",
+      "reference_rate": 1000000000.0,
+      "native_kernel": "FusedInferAttentionScore"
+     }
+    },
+    {
+     "id": "a3-sharedkv-mla-qa-native-m1-8",
+     "match": {
+      "hardware": "Ascend910_9362",
+      "phase": "decode",
+      "recipe": "q_a",
+      "family": "gemm",
+      "dtype": "int8",
+      "layout": "int8_per_channel",
+      "local_shape.1": 1024,
+      "local_shape.2": 4096
+     },
+     "coordinates": {
+      "m": {
+       "path": "local_shape.0"
+      }
+     },
+     "domain": {
+      "m": {
+       "min": 1,
+       "max": 4
+      }
+     },
+     "response": {
+      "fixed_us": 19.639
+     },
+     "execution": {
+      "kind": "joint_native",
+      "resource": "native_call_service",
+      "reference_rate": 1000000000.0,
+      "native_kernel": "QuantBatchMatmulV3"
+     }
+    },
+    {
+     "id": "a3-sharedkv-mla-kva-native-m1-8",
+     "match": {
+      "hardware": "Ascend910_9362",
+      "phase": "decode",
+      "recipe": "kv_a",
+      "family": "gemm",
+      "dtype": "int8",
+      "layout": "int8_per_channel",
+      "local_shape.1": 512,
+      "local_shape.2": 4096
+     },
+     "coordinates": {
+      "m": {
+       "path": "local_shape.0"
+      }
+     },
+     "domain": {
+      "m": {
+       "min": 1,
+       "max": 4
+      }
+     },
+     "response": {
+      "fixed_us": 16.019
+     },
+     "execution": {
+      "kind": "joint_native",
+      "resource": "native_call_service",
+      "reference_rate": 1000000000.0,
+      "native_kernel": "QuantBatchMatmulV3"
+     }
+    },
+    {
+     "id": "a3-sharedkv-mla-qb-native-m1-8",
+     "match": {
+      "hardware": "Ascend910_9362",
+      "phase": "decode",
+      "recipe": "q_b",
+      "family": "gemm",
+      "dtype": "int8",
+      "layout": "int8_per_channel",
+      "local_shape.1": 4096,
+      "local_shape.2": 1024
+     },
+     "coordinates": {
+      "m": {
+       "path": "local_shape.0"
+      }
+     },
+     "domain": {
+      "m": {
+       "min": 1,
+       "max": 4
+      }
+     },
+     "response": {
+      "fixed_us": 13.7
+     },
+     "execution": {
+      "kind": "joint_native",
+      "resource": "native_call_service",
+      "reference_rate": 1000000000.0,
+      "native_kernel": "QuantBatchMatmulV3"
+     }
+    },
+    {
+     "id": "a3-sharedkv-output-b-native-m1-8",
+     "match": {
+      "hardware": "Ascend910_9362",
+      "phase": "decode",
+      "recipe": "grouped_output_b",
+      "family": "gemm",
+      "dtype": "int8",
+      "layout": "int8_per_channel",
+      "local_shape.1": 4096,
+      "local_shape.2": 1024
+     },
+     "coordinates": {
+      "m": {
+       "path": "local_shape.0"
+      }
+     },
+     "domain": {
+      "m": {
+       "min": 1,
+       "max": 4
+      }
+     },
+     "response": {
+      "fixed_us": 19.659
+     },
+     "execution": {
+      "kind": "joint_native",
+      "resource": "native_call_service",
+      "reference_rate": 1000000000.0,
+      "native_kernel": "MatMulV2"
+     }
+    },
+    {
+     "id": "a3-sharedkv-moe-gate-up-native-m1-8",
+     "match": {
+      "hardware": "Ascend910_9362",
+      "phase": "decode",
+      "recipe": "grouped_gate_up",
+      "family": "grouped_gemm",
+      "dtype": "int8",
+      "layout": "int8_per_channel",
+      "local_shape.1": 4096,
+      "local_shape.2": 4096
+     },
+     "coordinates": {
+      "m": {
+       "path": "local_shape.0"
+      }
+     },
+     "domain": {
+      "m": {
+       "min": 1,
+       "max": 4
+      }
+     },
+     "response": {
+      "fixed_us": 36.0
+     },
+     "execution": {
+      "kind": "joint_native",
+      "resource": "native_call_service",
+      "reference_rate": 1000000000.0,
+      "native_kernel": "GroupedMatmul"
+     }
+    },
+    {
+     "id": "a3-sharedkv-moe-down-native-m1-8",
+     "match": {
+      "hardware": "Ascend910_9362",
+      "phase": "decode",
+      "recipe": "grouped_down",
+      "family": "grouped_gemm",
+      "dtype": "int8",
+      "layout": "int8_per_channel",
+      "local_shape.1": 4096,
+      "local_shape.2": 2048
+     },
+     "coordinates": {
+      "m": {
+       "path": "local_shape.0"
+      }
+     },
+     "domain": {
+      "m": {
+       "min": 1,
+       "max": 4
+      }
+     },
+     "response": {
+      "fixed_us": 26.0
+     },
+     "execution": {
+      "kind": "joint_native",
+      "resource": "native_call_service",
+      "reference_rate": 1000000000.0,
+      "native_kernel": "GroupedMatmul"
+     }
+    }
+   ]
+  },
+  {
+   "id": "v4flash_mla_64k_continuous",
+   "requires_rule_ids": [
+    "v4flash-synth-prefill-mla-64k"
+   ],
+   "supersedes": {
+    "v4flash-synth-prefill-mla-64k": [
+     "38b69331bb1a305c2a96c3e13306c33b44651ddb1e6b8ed1757a13c565f0bbb7",
+     "7cf7f6f3abb3714189eb76fd2a2ecb2963dd5bc1522888c400d6fdf6c3efaebc",
+     "9a5f2550b14036d1945da4f42dd971d8ab3d756fb164dfe3bc77092169a825b5"
+    ]
+   },
+   "rules": [
+    {
+     "id": "v4flash-synth-prefill-mla-64k",
+     "match": {
+      "phase": "prefill",
+      "recipe": "latent_attention0"
+     },
+     "coordinates": {
+      "kv_len": {
+       "path": "local_shape.1",
+       "scale": 1
+      }
+     },
+     "domain": {
+      "kv_len": {
+       "min": 4097,
+       "max": 65536
+      }
+     },
+     "execution": {
+      "kind": "joint_native",
+      "resource": "native_call_service",
+      "reference_rate": 1000000000.0,
+      "native_kernel": "FlashAttentionScore"
+     },
+     "response": {
+      "fixed_us": 850.0,
+      "terms": [
+       {
+        "coordinate": "kv_len",
+        "us_per_unit": 0.068
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

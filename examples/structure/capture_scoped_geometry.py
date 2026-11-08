@@ -37,5 +37,3 @@ def routing_basis(routing):
     if routing == {"policy": "balanced"}:
         return "declared_balanced_integer_ledger; not_native_force_eplb"
     return "declared_probability_moments_or_default; not_native_force_eplb"
-
-

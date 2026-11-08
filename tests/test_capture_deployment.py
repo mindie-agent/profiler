@@ -265,7 +265,8 @@ def test_retained_e32_structural_evidence_binds_mc2_and_guards_legacy_ffn(tmp_pa
     assert imported["runtime"]["kernels"]["service_regimes"][0]["id"] == (
         "a3-native-rmsnorm-2048")
     assert imported["runtime"]["kernels"]["moe_token_partition"] == {
-        "kind": "vllm_ascend_mc2_tp_slice", "padding": "right_to_tp"}
+        "kind": "vllm_ascend_mc2_tp_slice", "padding": "right_to_tp",
+        "padding_implementation": "pad_v3"}
     assert "native_moe_protocol" not in imported["runtime"]["kernels"]
     assert "kernels" in provenance["changed_fields"]
     assert str(tmp_path / "kernel_details.csv") not in json.dumps(imported)
@@ -282,8 +283,10 @@ def test_retained_e32_structural_evidence_binds_mc2_and_guards_legacy_ffn(tmp_pa
     assert dict(gate.metadata)["matrix_weight_bank_groups"] == 4
     assert dict(gate.metadata)["graph_physical_query_rows"] == 1
     assert gate.padded_shape[0] == 16
-    assert len(by_recipe["tensor_concat"]) == 2
-    assert {op.local_shape[0] for op in by_recipe["tensor_concat"]} == {8}
+    assert len(by_recipe["tensor_pad"]) == 2
+    assert {op.local_shape[0] for op in by_recipe["tensor_pad"]} == {8}
+    for pad in by_recipe["tensor_pad"]:
+        assert pad.mte2_bytes * 8 == pad.mte3_bytes
     partition = dict(by_recipe["route_pack"][0].metadata)["moe_token_partition"]
     assert partition["full_rows"] == partition["valid_rows"] == 1
     assert partition["local_rows"] == 1
@@ -342,7 +345,7 @@ def test_body_layer_scope_caller_completes_padding_and_matches_actual_graph(tmp_
     returned = imported["runtime"]["kernels"]["moe_token_partition"]
     assert returned == {
         "kind": "vllm_ascend_mc2_tp_slice", "padding": "right_to_tp",
-        "layer_scopes": ["body"]}
+        "layer_scopes": ["body"], "padding_implementation": "pad_v3"}
     assert structure["generated"]["partition"]["allocated_rows"] == 8
     ops = [op for op in target_operators(
         imported, phase="decode", tokens=1, context=262144, sequences=1)
@@ -396,7 +399,7 @@ def test_nested_parallel_representation_binds_identically_to_flat(tmp_path):
         return ({
             "gate": by_recipe["balanced_grouped_gate_up"][0].local_shape,
             "down": by_recipe["balanced_grouped_down"][0].local_shape,
-            "tensor_concat": [op.local_shape for op in by_recipe["tensor_concat"]],
+            "tensor_pad": [op.local_shape for op in by_recipe["tensor_pad"]],
             "route_pack": (partition["full_rows"], partition["local_rows"],
                            partition["allocated_rows"], partition["padding"]),
             "route_unpack": by_recipe["route_unpack"][0].local_shape,
@@ -573,12 +576,14 @@ def test_already_ep8_dsv4f_explicit_reconciliation_preserves_existing_caller(tmp
     assert structure["evidence"]["grouped"]["gate"]["hidden"] == 4096
     assert structure["evidence"]["grouped"]["gate"]["width"] == 2048
     assert structure["comparison"]["mismatches"] == []
-    assert structure["caller"]["action"] == "preserved_existing"
-    assert structure["caller"]["applied_fields"] == []
+    assert structure["caller"]["action"] == "completed_padding"
+    assert structure["caller"]["applied_fields"] == [
+        "runtime.kernels.moe_token_partition.padding_implementation"]
     assert provenance["legacy_ffn_guard"]["status"] == "unchanged"
     assert provenance["legacy_ffn_guard"]["reason"] == "matrix_physical_boundary_unchanged"
     assert imported["runtime"]["kernels"]["moe_token_partition"] == {
-        "kind": "vllm_ascend_mc2_tp_slice", "padding": "right_to_tp"}
+        "kind": "vllm_ascend_mc2_tp_slice", "padding": "right_to_tp",
+        "padding_implementation": "pad_v3"}
 
     capture = fixture["captures"][0]
     ops = [op for op in target_operators(imported, **capture["geometry"]) if op.layer == 0]
@@ -648,7 +653,7 @@ def test_dsv4_q4_structural_evidence_pads_four_to_eight(tmp_path):
     assert structure["candidate"]["selected"] is True
     assert structure["generated"]["roles"]["gate_up"]["banks"] == 2
     assert structure["generated"]["roles"]["gate_up"]["width"] == 2048
-    assert structure["caller"]["action"] == "preserved_existing"
+    assert structure["caller"]["action"] == "completed_padding"
     assert provenance["legacy_ffn_guard"]["status"] == "unchanged"
 
     ops = [op for op in target_operators(
@@ -662,7 +667,7 @@ def test_dsv4_q4_structural_evidence_pads_four_to_eight(tmp_path):
     assert partition["local_rows"] == 1
     assert partition["allocated_rows"] == 8
     assert partition["padding"] == "right_to_tp"
-    assert {op.local_shape[0] for op in by_recipe["tensor_concat"]} == {8}
+    assert {op.local_shape[0] for op in by_recipe["tensor_pad"]} == {8}
     assert {dict(op.metadata)["graph_physical_query_rows"]
             for op in ops} == {4}
 
@@ -705,7 +710,28 @@ def test_gzip_structural_source_is_used_when_plain_csv_is_absent(tmp_path):
     assert structure["status"] == "consistent"
     assert structure["source"]["path"].endswith("kernel_details.csv.gz")
     assert imported["runtime"]["kernels"]["moe_token_partition"] == {
-        "kind": "vllm_ascend_mc2_tp_slice", "padding": "right_to_tp"}
+        "kind": "vllm_ascend_mc2_tp_slice", "padding": "right_to_tp",
+        "padding_implementation": "pad_v3"}
+
+
+def test_explicit_concat_is_preserved_and_conflicts_with_retained_pad_v3(tmp_path):
+    from mindie_sim import target_operators
+
+    fixture = json.loads(E32.read_text())
+    raw = deepcopy(fixture["raw"])
+    caller = {"kind": "vllm_ascend_mc2_tp_slice", "padding": "right_to_tp",
+              "padding_implementation": "concat"}
+    raw["runtime"]["kernels"]["moe_token_partition"] = caller
+    command = _command(tmp_path, E32_COMMAND, E32_STRUCTURAL)
+    imported, provenance = import_capture_policy(raw, capture_path=command)
+    assert imported["runtime"]["kernels"]["moe_token_partition"] == caller
+    structure = provenance["native_structure"]
+    assert structure["status"] == "conflict"
+    assert structure["reason"] == "explicit_padding_implementation_disagrees_with_pad_v3"
+    pads = [op for op in target_operators(imported, **fixture["geometry"])
+            if op.layer == 0 and op.recipe == "tensor_concat"]
+    assert len(pads) == 2
+    assert all(op.mte2_bytes == op.mte3_bytes for op in pads)
 
 
 def test_single_matching_axis_is_not_a_complete_ffn_domain_guard(tmp_path):
@@ -1188,7 +1214,7 @@ def test_compatible_existing_mc2_caller_remains_usable(tmp_path):
     assert deployment["status"] == "applied"
     assert "preserved_conflicts" not in deployment
     assert provenance["native_structure"]["status"] == "consistent"
-    assert provenance["native_structure"]["caller"]["action"] == "preserved_existing"
+    assert provenance["native_structure"]["caller"]["action"] == "completed_padding"
     preserved, = deployment["preserved_explicit"]
     assert preserved["field"] == "runtime.kernels.moe_token_partition"
     runtime = imported["runtime"]

@@ -397,7 +397,7 @@ def apply_qualified_native_observations(
     specs = loaded.data["projection"]["families"]
     matches, counts = [], Counter()
     observed, candidates = Counter(), Counter()
-    unmatched = []
+    unmatched, axes_cache = [], {}
     for op in operators:
         candidate_rules = []
         for family in families:
@@ -414,7 +414,10 @@ def apply_qualified_native_observations(
             continue
         candidates.update(rule["provenance"]["profile_family"]
                           for rule in candidate_rules)
-        axes = _operator_axes(execution, op)
+        op_key = (op.family, op.recipe, op.phase, op.local_shape, op.dtype, repr(op.metadata))
+        axes = axes_cache.get(op_key)
+        if axes is None:
+            axes = axes_cache.setdefault(op_key, _operator_axes(execution, op))
         hits = [rule for rule in candidate_rules if _matches(axes, rule)]
         if len(hits) > 1:
             raise QualifiedProfileError(

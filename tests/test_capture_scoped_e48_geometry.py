@@ -200,4 +200,3 @@ def test_a5_analysis_reports_declared_local_rows_and_uniform_reference():
     assert probability["allocation"]["expected_local_valid_rows"] == 4096
     assert probability["allocation"]["routing_basis"] == (
         "declared_probability_moments_or_default; not_native_force_eplb")
-

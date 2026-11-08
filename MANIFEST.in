@@ -4,7 +4,7 @@ include README.en.md
 include AGENTS.md
 recursive-include mindie_profiler *.py *.json
 recursive-include benchmarks *.py *.json
-recursive-include tests *.py *.json *.csv *.txt *.db *.h *.cpp *.log *.md
+recursive-include tests *.py *.json *.csv *.txt *.db *.h *.cpp *.log *.md *.sh
 recursive-include examples *.py *.json *.md *.csv
 recursive-include docs/releases *.md
 global-exclude __pycache__ *.py[cod]

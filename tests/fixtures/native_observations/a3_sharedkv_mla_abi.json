@@ -1,0 +1,11 @@
+{
+  "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/synth_dsv4f_L8_E16_K2_tp8ep8_decode_4k_c1/kernel_details.csv",
+  "source_sha256": "7255664cfc2065728f41de96d6394860e498dbdb3aae040031e8326e4f3fed3d",
+  "csv_lines": [
+    148,
+    149,
+    270
+  ],
+  "scope": "Three retained native descriptors; timestamps/durations retained but not used for structural conditions or response fitting.",
+  "fixture_sha256": "a90534ca9ccfafc4082be833a2a7b0cc7a9de9e55063bdb69d8c1520ea1026d2"
+}

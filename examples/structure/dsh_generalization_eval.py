@@ -25,6 +25,7 @@ import re
 from statistics import median
 import time
 
+from service_response_acceptance import evaluate_acceptance
 from body import compare_body_forward, compare_layers
 from native_observations import native_observation_identity, predict_body
 from dsh_scoped_prefill import (
@@ -411,9 +412,13 @@ def extract_or_load(csv_path: Path, traits: dict, tpl: dict, seg_opts: dict) -> 
     if cache_path.exists():
         try:
             cached = json.loads(cache_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as exc:
+        except TimeoutError:
+            raise
+        except json.JSONDecodeError as exc:
             cache_path.unlink(missing_ok=True)
             raise RuntimeError(f"corrupt_extraction_cache:{cache_path}") from exc
+        except OSError as exc:
+            raise RuntimeError(f"unreadable_extraction_cache:{cache_path}") from exc
         if (cached.get("cache_version") == CACHE_VERSION and cached.get("parser_identity") == PARSER_IDENTITY
                 and not cached.get("error") and not cached.get("observed", {}).get("segmentation_error")):
             return _slim_extracted(cached, cache_path)
@@ -503,8 +508,21 @@ def evaluate_heldout_capture(csv_path: Path, traits: dict, tpl_name: str | None,
     else:
         w_obs, w_pred, all_pop_err = top_pop["observed_ms"], top_pop["predicted_ms"], top_pop["relative_error"]
 
+    ordered_parts = [{"observed_ms": p["observed_ms"],
+                      "predicted_ms": (p["predicted_ms"]
+                                       if p.get("relative_error") is not None
+                                       and p.get("status") == "compared"
+                                       else None),
+                      "status": p.get("status"),
+                      "count": p["forward_count"], "id": p["geometry"]}
+                     for p in populations
+                     if p.get("observed_ms") is not None
+                     and int(p.get("forward_count") or 0) > 0]
     return {"path": str(csv_path), "traits": traits, "template": tpl_name, "cross_tp_transfer": cross_tp,
             "status": top_pop["status"], "forward_count": tot_fwds or top_pop["forward_count"],
+            "ordered_parts": ordered_parts,
+            "uncancelled_acceptance": evaluate_acceptance(
+                ordered_parts, tolerance=0.10, label=str(csv_path)),
             "primary_forward_count": top_pop["forward_count"], "geometry": top_pop["geometry"],
             "observed_ms": round(float(w_obs), 4) if w_obs is not None else None,
             "predicted_ms": round(float(w_pred), 4) if w_pred is not None else None,
@@ -685,42 +703,32 @@ def main(argv: list[str] | None = None) -> int:
             fn, items, pool_workers, step_timeout_s=600.0,
             progress_step=10, label="Scoped prefill")
 
-    unscoped_prefill, scoped_results, scoped_predictions = (
-        materialize_scoped_jobs(
-            heldout_tasks=heldout_tasks, extractions=extractions,
-            workers=workers, sim_identity=SIM_IDENTITY,
-            native_identity=NATIVE_OBSERVATION_IDENTITY,
-            cache_root=CACHE_ROOT, run_pool=run_scoped_pool))
+    unscoped_prefill, scoped_results, scoped_predictions = materialize_scoped_jobs(
+        heldout_tasks=heldout_tasks, extractions=extractions, workers=workers,
+        sim_identity=SIM_IDENTITY, native_identity=NATIVE_OBSERVATION_IDENTITY,
+        cache_root=CACHE_ROOT, run_pool=run_scoped_pool)
     pred_jobs: dict[tuple, dict] = dict(unscoped_prefill)
     for p, tr, _, tpl, _, _, tpl_sig in heldout_tasks:
         if tpl is None or tr["phase"] != "decode":
             continue
-        extracted = extractions[str(p)]
-        obs, meta = extracted["observed"], extracted["meta"]
+        obs, meta = extractions[str(p)]["observed"], extractions[str(p)]["meta"]
         if not obs.get("geometry_groups"):
             continue
-        row_dummy = {
-            "geometry": {"phase": "decode",
-                         "context_tokens": tr["context_tokens"]},
-            "context_evidence": meta.get("context_evidence"),
-            "scenario_evidence": {"client": _client_evidence(meta, tr)}}
+        row_dummy = {"geometry": {"phase": "decode", "context_tokens": tr["context_tokens"]},
+                     "context_evidence": meta.get("context_evidence"),
+                     "scenario_evidence": {"client": _client_evidence(meta, tr)}}
         for s in unpadded_scenarios(row_dummy, obs, tpl, _automatic_scenarios):
             g = s["geometry"]
             pred_jobs[(tpl_sig, "decode", int(g["tokens_per_sequence"]),
-                       int(g["context_tokens"]),
-                       int(g["sequences_per_replica"]))] = tpl
+                       int(g["context_tokens"]), int(g["sequences_per_replica"]))] = tpl
 
-    print(f"Running {len(pred_jobs)} unique unscoped predict_body geometries "
-          f"across {workers} workers...", flush=True)
-    pred_cache = (_run_bounded_pool(
-        _predict_worker, list(pred_jobs.items()), workers,
-        step_timeout_s=180.0, progress_step=50, label="Priced")
-        if pred_jobs else {})
+    print(f"Running {len(pred_jobs)} unique unscoped predict_body geometries across {workers} workers...", flush=True)
+    pred_cache = (_run_bounded_pool(_predict_worker, list(pred_jobs.items()), workers,
+                                    step_timeout_s=180.0, progress_step=50, label="Priced") if pred_jobs else {})
     pred_cache.update(scoped_predictions)
-    heldout_results = [evaluate_heldout_capture(
-        p, tr, tn, tpl, ct, extractions.get(str(p)), pred_cache, tsig,
-        scope_plan=scoped_results.get(str(p)))
-        for (p, tr, tn, tpl, _, ct, tsig) in heldout_tasks]
+    heldout_results = [evaluate_heldout_capture(p, tr, tn, tpl, ct, extractions.get(str(p)), pred_cache, tsig,
+                                                scope_plan=scoped_results.get(str(p)))
+                       for (p, tr, tn, tpl, _, ct, tsig) in heldout_tasks]
     by_cohort: dict[str, list[dict]] = defaultdict(list)
     for r in heldout_results:
         by_cohort[r["traits"]["cohort"]].append(r)

@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Release-v0.5.6-blue" alt="Release v0.5.6">
+  <img src="https://img.shields.io/badge/Release-v0.5.7-blue" alt="Release v0.5.7">
   <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/Interface-CLI%20%7C%20Python%20API%20%7C%20C7%20JSON-00ADD8" alt="CLI | Python API | C7 JSON">
   <img src="https://img.shields.io/badge/Target-Ascend%20NPU%20(A2%20%2F%20A3%20%2F%20A5)-FF6B00" alt="Ascend NPU">
@@ -73,8 +73,8 @@ flowchart LR
    - 使用固定版本 Release Wheel 安装（推荐生产环境）：
      ```bash
      uv pip install \
-       https://github.com/mindie-agent/sim/releases/download/v0.9.4/mindie_sim-0.9.4-py3-none-any.whl \
-       https://github.com/mindie-agent/profiler/releases/download/v0.5.6/mindie_profiler-0.5.6-py3-none-any.whl
+       https://github.com/mindie-agent/sim/releases/download/v0.9.5/mindie_sim-0.9.5-py3-none-any.whl \
+       https://github.com/mindie-agent/profiler/releases/download/v0.5.7/mindie_profiler-0.5.7-py3-none-any.whl
      ```
    - 或从源码主分支安装最新开发版：
      ```bash
@@ -109,9 +109,9 @@ flowchart LR
 | **`memory`**<br/>`mindie_profiler.memory_profile`<br/>`python3 -m mindie_profiler.weight_inspector` | **P0–P4 峰值与算子级显存归因**：融合 P0 `msprof`（`operator_memory.csv` / `memory_record.csv` / `npu_module_mem`）、P1 整卡运行时 HBM 峰值、P2 框架启动日志、P3 `safetensors` 权重头与 P4 `config.json` 理论估算，诚实报告未解释残差（Residual） | 显存采集清单、服务日志、`operator_memory.csv`、`memory_record.csv`、模型权重目录 | `mindie-memory-attribution/1` 显存归因报告（含权重、KV Cache、激活值、通信 Buffer 与残差） |
 | **`modeling-inputs`**<br/>`mindie_profiler.modeling_inputs`<br/>`python3 -m mindie_profiler.enrichment_model` | **保留的观测导出与 Roofline 对照接口**：从实测热点提取 Shape、Dtype、Layout、耗时与硬件规格，生成 `ModelingInputsBundle` 并计算单算子理想 Roofline 下界；新版 sim 不原生消费此旧输入包 | C7 剖析摘要、算子热点记录、硬件峰值规格（或 `msmodeling` 提供方） | `mindie-modeling-inputs/1` 观测包与三值对齐记录（理想下界 / 模型预测 / 实测耗时） |
 
-### 当前兼容组合：拓扑结构关联与 4D 效率报告（配套 `mindie-sim 0.9.4`）
+### 当前兼容组合：拓扑结构关联与 4D 效率报告（配套 `mindie-sim 0.9.5`）
 
-当前安装组合为 `mindie-profiler v0.5.6` 与 [`mindie-sim v0.9.4`](https://github.com/mindie-agent/sim)，提供从原始 Trace 到模型结构映射及四维效率归因的接口。历史全量泛化验证的数据与采样版本仍以原始记录为准（[`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md)、[`docs/releases/profiler-0.5.3.md`](./docs/releases/profiler-0.5.3.md) 与 [`examples/structure/README.md`](./examples/structure/README.md)），本次文档同步不重新标注历史实验。
+当前安装组合为 `mindie-profiler v0.5.7` 与 [`mindie-sim v0.9.5`](https://github.com/mindie-agent/sim)，提供从原始 Trace 到模型结构映射及四维效率归因的接口。历史全量泛化验证的数据与采样版本仍以原始记录为准（[`docs/releases/profiler-0.5.7.md`](./docs/releases/profiler-0.5.7.md)、[`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md) 与 [`examples/structure/README.md`](./examples/structure/README.md)），本次文档同步不重新标注历史实验。
 
 Wave5 报告使用样本内校准，不能称为独立零样本验证。当前开发版评估缓存使用完整 sim Python/JSON 内容身份；聚合旧报告时明确保留缺失或过期身份，不将其重标为当前版本结果。
 
@@ -285,7 +285,7 @@ profiler/
 
 | 文档主题 | 链接 |
 | --- | --- |
-| **`v0.5.6` / `v0.5.3` 版本发布说明（拓扑结构关联、4D 效率与 856 Cases 泛化验证）** | [docs/releases/profiler-0.5.6.md](./docs/releases/profiler-0.5.6.md) · [docs/releases/profiler-0.5.3.md](./docs/releases/profiler-0.5.3.md) |
+| **`v0.5.7` / `v0.5.6` 版本发布说明（四级分段连续物理验证、拓扑结构关联与 4D 效率）** | [docs/releases/profiler-0.5.7.md](./docs/releases/profiler-0.5.7.md) · [docs/releases/profiler-0.5.6.md](./docs/releases/profiler-0.5.6.md) |
 | 本仓库 Agent 维护规范与模块边界 | [AGENTS.md](./AGENTS.md) |
 | 昇腾 SQLite 表结构映射定义 | [mindie_profiler/knowledge/db_source_mapping.json](./mindie_profiler/knowledge/db_source_mapping.json) |
 | 发布基准测试定义 | [benchmarks/release.json](./benchmarks/release.json) |

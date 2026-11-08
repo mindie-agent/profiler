@@ -16,9 +16,10 @@ from body import predict_body as _predict_body
 ROOT = Path(__file__).resolve().parent
 PROFILE_FILES = (
     "native_observations.py", "a2_native_observations.py", "a5_native_observations.py",
+    "a3_mla_native_observations.py", "profiles/a3_sharedkv_output_a_20261107.json",
     "a5_mtp_native_observations.py",
     "a5_q35_unfused_native_observations.py",
-    "capture_policy.py", "capture_structure.py", "capture_ffn_guard.py",
+    "capture_policy.py", "capture_structure.py", "capture_ffn_guard.py", "capture_mla_structure.py",
     # Phase/geometry-scoped caller projection and its source/tensor validators.
     "capture_scoped_structure.py", "capture_scoped_contracts.py",
     "capture_scoped_evidence.py", "capture_scoped_geometry.py",
@@ -26,8 +27,11 @@ PROFILE_FILES = (
     "prefill_native_observations.py", "prefill_native_builder.py",
     # Archive calibration qualification changes the input before native replay.
     "wave5_regime_import.py",
-    # Shared C-before-B per-capture replay integration.
+    # Shared C-before-B per-capture replay integration and uncancelled gates.
     "scoped_native_replay.py", "dsh_scoped_prefill.py",
+    "service_response_acceptance.py",
+    "dsh_generalization_eval.py", "wave5_generalization_eval.py",
+    "profiles/a3_static_service_20261107.json",
     # Explicit-qualified A2/A5 calibration arm; data and selector semantics.
     "qualified_native_calibration.py", "qualified_native_abi.py",
     "profiles/a2_fia_dense_qualified_20261107.json",
@@ -81,6 +85,7 @@ def apply_native_observations(raw, *, phase, tokens, context, sequences=1,
     ordinary modeling; an out-of-domain adapter is a copied no-op with a reason.
     """
     from a2_native_observations import apply_a2_native_observations
+    from a3_mla_native_observations import apply_a3_mla_native_observations
     from a5_native_observations import apply_a5_native_observations
     from a5_mtp_native_observations import apply_a5_mtp_native_observations
     from a5_q35_unfused_native_observations import apply_a5_q35_unfused_native_observations
@@ -93,13 +98,14 @@ def apply_native_observations(raw, *, phase, tokens, context, sequences=1,
     result, mtp = apply_a5_mtp_native_observations(result, **geometry)
     result, unfused = apply_a5_q35_unfused_native_observations(result, **geometry)
     result, prefill = apply_prefill_native_observations(result, **geometry)
+    result, a3_mla = apply_a3_mla_native_observations(result, **geometry)
     qualified_results = []
     for name, abi in qualified:
         result, selected = apply_qualified_native_observations(
             result, profile=name, native_abi=abi, **geometry)
         qualified_results.append(selected)
     return result, {"arm": "observed_native",
-                    "profiles": [a2, a5, mtp, unfused, prefill],
+                    "profiles": [a2, a5, mtp, unfused, prefill, a3_mla],
                     "prefill_native": prefill,
                     "qualified_profiles": qualified_results,
                     "observations_modified": False, "body_total_fitting": False}

@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Release-v0.5.6-blue" alt="Release v0.5.6">
+  <img src="https://img.shields.io/badge/Release-v0.5.7-blue" alt="Release v0.5.7">
   <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/Interface-CLI%20%7C%20Python%20API%20%7C%20C7%20JSON-00ADD8" alt="CLI | Python API | C7 JSON">
   <img src="https://img.shields.io/badge/Target-Ascend%20NPU%20(A2%20%2F%20A3%20%2F%20A5)-FF6B00" alt="Ascend NPU">
@@ -73,8 +73,8 @@ If you are an AI Agent receiving the prompt above, follow these steps to install
    - Install the pinned release wheels (recommended for production):
      ```bash
      uv pip install \
-       https://github.com/mindie-agent/sim/releases/download/v0.9.4/mindie_sim-0.9.4-py3-none-any.whl \
-       https://github.com/mindie-agent/profiler/releases/download/v0.5.6/mindie_profiler-0.5.6-py3-none-any.whl
+       https://github.com/mindie-agent/sim/releases/download/v0.9.5/mindie_sim-0.9.5-py3-none-any.whl \
+       https://github.com/mindie-agent/profiler/releases/download/v0.5.7/mindie_profiler-0.5.7-py3-none-any.whl
      ```
    - Or install the latest development version from `main`:
      ```bash
@@ -109,9 +109,9 @@ If you are an AI Agent receiving the prompt above, follow these steps to install
 | **`memory`**<br/>`mindie_profiler.memory_profile`<br/>`python3 -m mindie_profiler.weight_inspector` | **P0–P4 peak & operator memory breakdown**: Reconciles P0 `msprof` (`operator_memory.csv` / `memory_record.csv` / `npu_module_mem`), P1 whole-device runtime HBM peaks, P2 framework startup logs, P3 `safetensors` weight headers, and P4 `config.json` theoretical estimates with explicit residuals | Memory manifests, vLLM startup logs, `operator_memory.csv`, `memory_record.csv`, model weight dir | `mindie-memory-attribution/1` JSON report (weights, KV cache, activations, communication buffers, and uninvented residual) |
 | **`modeling-inputs`**<br/>`mindie_profiler.modeling_inputs`<br/>`python3 -m mindie_profiler.enrichment_model` | **Retained observation export and Roofline comparison**: Extracts shapes, dtypes, layouts, durations and hardware peaks into `ModelingInputsBundle` and computes single-kernel ideal lower bounds; rewritten sim does not natively consume this legacy bundle | C7 summary JSON, hotspot records, and raw physical hardware peaks | `mindie-modeling-inputs/1` observation bundle and 3-value alignment (`ideal_hardware_lower_bound_ms`, `model_predicted_ms`, `measured_device_ms`) |
 
-### Current Compatible Combination: Structure Attribution and 4D Efficiency Reports (Paired with `mindie-sim 0.9.4`)
+### Current Compatible Combination: Structure Attribution and 4D Efficiency Reports (Paired with `mindie-sim 0.9.5`)
 
-The current installation pairs `mindie-profiler v0.5.6` with [`mindie-sim v0.9.4`](https://github.com/mindie-agent/sim) for interfaces from raw captures to model structure attribution and 4D hardware efficiency reports. Historical full-fleet measurements retain their original data and sampled versions in [`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md), [`docs/releases/profiler-0.5.3.md`](./docs/releases/profiler-0.5.3.md), and [`examples/structure/README.md`](./examples/structure/README.md); this documentation update does not relabel those experiments.
+The current installation pairs `mindie-profiler v0.5.7` with [`mindie-sim v0.9.5`](https://github.com/mindie-agent/sim) for interfaces from raw captures to model structure attribution and 4D hardware efficiency reports. Historical full-fleet measurements retain their original data and sampled versions in [`docs/releases/profiler-0.5.7.md`](./docs/releases/profiler-0.5.7.md), [`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md), and [`examples/structure/README.md`](./examples/structure/README.md); this documentation update does not relabel those experiments.
 
 Wave5 uses in-sample calibration and cannot certify independent zero-shot accuracy. Evaluation caches in the current development version identify the complete sim Python/JSON content; aggregation preserves missing or stale source identities instead of relabeling old predictions as current results.
 
@@ -289,7 +289,7 @@ profiler/
 
 | Topic | Link |
 | --- | --- |
-| **`v0.5.6` / `v0.5.3` Release Notes (Topology Attribution, 4D Efficiency & 856-Case Generalization)** | [docs/releases/profiler-0.5.6.md](./docs/releases/profiler-0.5.6.md) · [docs/releases/profiler-0.5.3.md](./docs/releases/profiler-0.5.3.md) |
+| **`v0.5.7` / `v0.5.6` Release Notes (Four-Level Piecewise Validation, Topology Attribution & 4D Efficiency)** | [docs/releases/profiler-0.5.7.md](./docs/releases/profiler-0.5.7.md) · [docs/releases/profiler-0.5.6.md](./docs/releases/profiler-0.5.6.md) |
 | Repository Agent Guidelines & Invariants | [AGENTS.md](./AGENTS.md) |
 | Ascend SQLite Table & Column Mapping Dictionary | [mindie_profiler/knowledge/db_source_mapping.json](./mindie_profiler/knowledge/db_source_mapping.json) |
 | Release Benchmark Suite Definition | [benchmarks/release.json](./benchmarks/release.json) |

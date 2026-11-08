@@ -105,8 +105,9 @@ def _replace_rule(profile, rule_id):
 def _joint_rows(applied, *, phase, tokens, context, recipes):
     operators = target_operators(applied, phase=phase, tokens=tokens,
                                  context=context, sequences=1)
-    selected = tuple(op for op in operators if op.recipe in recipes)
-    parsed = consume_target_declaration(parse_case(applied), operators)
+    seen = set()
+    selected = tuple(op for op in operators if op.recipe in recipes and not (op.recipe in seen or seen.add(op.recipe)))
+    parsed = consume_target_declaration(parse_case(applied), selected)
     rows = operator_costs(parsed, selected, replay_scope="none")["operators"]
     return {row["operator"]["recipe"]: row for row in rows}
 

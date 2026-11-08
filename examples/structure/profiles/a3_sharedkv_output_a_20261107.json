@@ -1,0 +1,138 @@
+{
+  "schema_version": "mindie-profiler-native-response/1",
+  "id": "a3_sharedkv_output_a_20261107",
+  "hardware": "Ascend910_9362",
+  "native_kind": "TransposeBatchMatMul",
+  "calibration": {
+    "role": "TRAIN",
+    "response_boundary": "one_complete_native_kernel",
+    "fit": "one complete-kernel fixed response; equal weight per observed M geometry, no body loss",
+    "fixed_us": 54.359,
+    "body_total_used": false,
+    "current_validation_timings_used": false,
+    "native_binary_identity": "unknown",
+    "historical_context": "Original 2026-10-23 campaign used these captures for admission/serving calibration; no claim of pristine new collection. Not in current 2523 capture scoring set."
+  },
+  "source_manifest_sha256": "f18c3581f22d1ec7ddb470d4f416c32f58db7a23c466abb873058e3b7cdb3b44",
+  "sources": [
+    {
+      "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4f-c4-admission/raw/c4p4096.kernel_details.csv",
+      "sha256": "d6fcb1b6b7cfb83e06010beda16a50839658ab259cad0d24dda01fd47957f835",
+      "size_bytes": 5973264
+    },
+    {
+      "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4f-c4-admission/raw/c4p16384.kernel_details.csv",
+      "sha256": "bdaf3827f722d7846f36ce6d448fb73e8f116b276bda1ee3eca22658dcd4b265",
+      "size_bytes": 156917819
+    }
+  ],
+  "train_geometries": [
+    {
+      "m": 2,
+      "count": 88,
+      "median_us": 53.748999999999995,
+      "mean_us": 53.95004545454545,
+      "min_us": 51.219,
+      "max_us": 57.979
+    },
+    {
+      "m": 6,
+      "count": 44,
+      "median_us": 54.0385,
+      "mean_us": 54.04347727272727,
+      "min_us": 51.799,
+      "max_us": 56.239
+    },
+    {
+      "m": 8,
+      "count": 7348,
+      "median_us": 54.359,
+      "mean_us": 54.4354388949374,
+      "min_us": 50.659,
+      "max_us": 58.839
+    },
+    {
+      "m": 12,
+      "count": 44,
+      "median_us": 54.429,
+      "mean_us": 54.60302272727273,
+      "min_us": 52.299,
+      "max_us": 58.398
+    },
+    {
+      "m": 18,
+      "count": 44,
+      "median_us": 55.2685,
+      "mean_us": 55.186113636363636,
+      "min_us": 52.799,
+      "max_us": 57.798
+    }
+  ],
+  "train_invocations": 7568,
+  "rules": [
+    {
+      "id": "a3-sharedkv-output-a-native-m2-18",
+      "match": {
+        "hardware": "Ascend910_9362",
+        "phase": "decode",
+        "recipe": "grouped_output_a",
+        "family": "gemm",
+        "dtype": "bf16",
+        "layout": "bf16",
+        "metadata.weight_dtype": "bf16",
+        "metadata.activation_format": "bf16",
+        "metadata.output_format": "bf16",
+        "metadata.quant_category": "mla.o_a",
+        "metadata.matrix_groups": 1,
+        "metadata.native_tensor_view.kind": "transpose_batchmatmul",
+        "metadata.native_tensor_view.batch": 1,
+        "metadata.native_tensor_view.n": 1024,
+        "metadata.native_tensor_view.k": 4096,
+        "metadata.native_tensor_view.role": "grouped_output",
+        "metadata.graph_captured": true
+      },
+      "coordinates": {
+        "m": {
+          "path": "local_shape.0"
+        },
+        "n": {
+          "path": "local_shape.1"
+        },
+        "k": {
+          "path": "local_shape.2"
+        }
+      },
+      "domain": {
+        "m": {
+          "min": 2,
+          "max": 18
+        },
+        "n": {
+          "min": 1024,
+          "max": 1024
+        },
+        "k": {
+          "min": 4096,
+          "max": 4096
+        }
+      },
+      "response": {
+        "fixed_us": 54.359
+      },
+      "execution": {
+        "kind": "joint_native",
+        "resource": "native_call_service",
+        "reference_rate": 1000000000.0,
+        "native_kernel": "TransposeBatchMatMul"
+      },
+      "provenance": {
+        "calibration_origin": "observed",
+        "response_boundary": "one_complete_native_kernel",
+        "body_residual_used": false,
+        "training_manifest_sha256": "f18c3581f22d1ec7ddb470d4f416c32f58db7a23c466abb873058e3b7cdb3b44",
+        "unseen_m1": "analytic; not extrapolated",
+        "binary_equivalence": "unknown"
+      }
+    }
+  ]
+}

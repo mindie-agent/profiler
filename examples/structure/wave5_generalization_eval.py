@@ -16,6 +16,7 @@
   output. Historical archives, source cases and captures stay read-only.
 """
 from __future__ import annotations
+from service_response_acceptance import evaluate_acceptance
 
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
@@ -58,11 +59,7 @@ CALIBRATION_PROVENANCE = {
     "target_timing_used_to_fit": True,
     "heldout_observed_values_used_in_fit": True,
     "observed_spans_untrimmed": True,
-    "input_conditioned_regime_overrides_by_hw": {
-        "a2": False,
-        "a3": True,
-        "a5": False,
-    },
+    "input_conditioned_regime_overrides_by_hw": {"a2": False, "a3": True, "a5": False},
     "calibration_scope": (
         "In-sample service_regimes calibration on Wave 5 (heldout_engine_20261031) "
         "captures across A2, A3, and A5. A2 and A5 select regimes strictly by "
@@ -80,12 +77,8 @@ def _bounded_workers(value: int) -> int:
 def _parser_identity() -> str:
     prof_root = Path(decode_segmentation.__file__).resolve().parent
     digest = sha256(PARSER_VERSION.encode("utf-8"))
-    for mod_path in (
-        prof_root / "decode_segmentation.py",
-        prof_root / "communication_bounds.py",
-        prof_root / "events.py",
-        STRUCT_DIR / "prefill.py",
-    ):
+    for mod_path in (prof_root / "decode_segmentation.py", prof_root / "communication_bounds.py",
+                     prof_root / "events.py", STRUCT_DIR / "prefill.py"):
         if mod_path.exists():
             digest.update(mod_path.read_bytes())
     return f"{PARSER_VERSION}:{digest.hexdigest()[:16]}"
@@ -160,31 +153,41 @@ def _normalize_case(hw: str, raw: dict) -> dict:
     if hw == "a5" and cohort and not cohort.endswith(f"_{phase}"):
         cohort = f"a5/{cohort}_{phase}"
     rec = {
-        "path": raw.get("path"),
-        "hw": hw,
-        "cohort": cohort,
-        "cell": tr.get("cell"),
-        "family": tr.get("family"),
-        "phase": phase,
-        "tp": tr.get("tp"),
-        "dp": tr.get("dp", 1),
-        "ep": tr.get("ep", 1),
-        "num_layers": num_layers,
-        "num_experts": tr.get("num_experts"),
-        "top_k": tr.get("top_k"),
-        "spec_tokens": tr.get("spec_tokens", 0),
-        "context_tokens": tr.get("context_tokens"),
-        "concurrency": tr.get("concurrency"),
-        "template": raw.get("template"),
-        "status": raw.get("status"),
-        "forward_count": raw.get("forward_count"),
-        "observed_ms": raw.get("observed_ms"),
-        "predicted_ms": raw.get("predicted_ms"),
-        "relative_error": raw.get("relative_error"),
-        "passed_15pct": bool(raw.get("passed_15pct")),
-        "passed_10pct": bool(raw.get("passed_10pct")),
+        "path": raw.get("path"), "hw": hw, "cohort": cohort, "cell": tr.get("cell"),
+        "family": tr.get("family"), "phase": phase, "tp": tr.get("tp"), "dp": tr.get("dp", 1),
+        "ep": tr.get("ep", 1), "num_layers": num_layers, "num_experts": tr.get("num_experts"),
+        "top_k": tr.get("top_k"), "spec_tokens": tr.get("spec_tokens", 0),
+        "context_tokens": tr.get("context_tokens"), "concurrency": tr.get("concurrency"),
+        "template": raw.get("template"), "status": raw.get("status"),
+        "forward_count": raw.get("forward_count"), "observed_ms": raw.get("observed_ms"),
+        "predicted_ms": raw.get("predicted_ms"), "relative_error": raw.get("relative_error"),
+        "passed_15pct": bool(raw.get("passed_15pct")), "passed_10pct": bool(raw.get("passed_10pct")),
     }
     rec["track"] = _classify_track(rec)
+    if raw.get("ordered_parts"):
+        ordered_parts = [dict(part) for part in raw["ordered_parts"]]
+    else:
+        populations = raw.get("populations") or []
+        ordered_parts = [{"observed_ms": p.get("observed_ms"),
+                          "predicted_ms": (p.get("predicted_ms")
+                                           if p.get("relative_error") is not None
+                                           and p.get("status") in (None, "compared", "completed", "ok")
+                                           else None),
+                          "status": p.get("status"),
+                          "count": p.get("forward_count", 1),
+                          "id": p.get("geometry")}
+                         for p in populations
+                         if isinstance(p, dict)
+                         and int(p.get("forward_count") or 0) > 0]
+    if ordered_parts:
+        rec["ordered_parts"] = ordered_parts
+        rec["uncancelled_acceptance"] = (
+            dict(raw["uncancelled_acceptance"])
+            if isinstance(raw.get("uncancelled_acceptance"), dict)
+            else evaluate_acceptance(ordered_parts, tolerance=0.10, label=rec.get("cell"))
+        )
+    elif isinstance(raw.get("uncancelled_acceptance"), dict):
+        rec["uncancelled_acceptance"] = dict(raw["uncancelled_acceptance"])
     return rec
 
 
@@ -768,27 +771,21 @@ def main(argv: list[str] | None = None) -> int:
         reports_root = args.output_json.parent / f"{args.output_json.stem}-chips"
         env = {**os.environ, "PYTHONPATH": os.pathsep.join(filter(None, (str(STRUCT_DIR), os.environ.get("PYTHONPATH"))))}
         for hw in ("a2", "a3", "a5"):
-            subprocess.run([
-                sys.executable, str(Path(__file__).resolve()), "--run-chip", hw,
-                "--archive-root", str(archive_root), "--workers", str(workers),
-                "--output-json", str(reports_root / f"{hw}_wave5_eval.json"),
-                "--output-md", str(reports_root / f"{hw}_wave5_eval.md"),
-            ], env=env, check=True, timeout=CHIP_TIMEOUT_SECONDS,
-                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+            cmd = [sys.executable, str(Path(__file__).resolve()), "--run-chip", hw, "--archive-root", str(archive_root),
+                   "--workers", str(workers), "--output-json", str(reports_root / f"{hw}_wave5_eval.json"),
+                   "--output-md", str(reports_root / f"{hw}_wave5_eval.md")]
+            subprocess.run(cmd, env=env, check=True, timeout=CHIP_TIMEOUT_SECONDS,
+                           creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
 
-    a2_report = json.loads((reports_root / "a2_wave5_eval.json").read_text(encoding="utf-8"))
-    a3_report = json.loads((reports_root / "a3_wave5_eval.json").read_text(encoding="utf-8"))
-    a5_report = json.loads((reports_root / "a5_wave5_eval.json").read_text(encoding="utf-8"))
-
+    a2_report, a3_report, a5_report = (
+        json.loads((reports_root / f"{hw}_wave5_eval.json").read_text(encoding="utf-8")) for hw in ("a2", "a3", "a5"))
     report = aggregate_chip_reports(a2_report, a3_report, a5_report)
     report["elapsed_seconds"] = round(time.monotonic() - started, 2)
     _atomic_write_json(args.output_json, report)
     _atomic_write_text(args.output_md, render_markdown(report))
     s = report["summary"]["wave5_all"]
-    print(
-        f"Wave 5 Full Generalization: {s['pass_10pct']}/{s['count']} ({s['pass_rate_10pct']*100:.2f}%) <= 10%, "
-        f"mean={s['mean_abs_error']*100:.2f}%, median={s['median_abs_error']*100:.2f}%, max={s['max_abs_error']*100:.2f}%"
-    )
+    print(f"Wave 5 Full Generalization: {s['pass_10pct']}/{s['count']} ({s['pass_rate_10pct']*100:.2f}%) <= 10%, "
+          f"mean={s['mean_abs_error']*100:.2f}%, median={s['median_abs_error']*100:.2f}%, max={s['max_abs_error']*100:.2f}%")
     return 0
 
 

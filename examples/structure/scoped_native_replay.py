@@ -30,6 +30,11 @@ from capture_scoped_evidence import MAX_SCAN_ROWS, SCAN_TIMEOUT_S
 from capture_scoped_structure import prepare_scoped_capture
 
 
+# Native profile/compiler identity covers every file that can change a final
+# physical declaration. Re-exported here so replay and acceptance consumers use
+# one maintained inventory rather than a second local list.
+from native_observations import PROFILE_FILES  # noqa: E402
+
 SCHEMA = "mindie-profiler-scoped-native-replay/1"
 PREDICTION_SCHEMA = "mindie-profiler-final-prediction-input/1"
 MAX_OBSERVATION_BYTES = 32 * 1024 * 1024
@@ -643,9 +648,13 @@ def read_prediction_cache(key, cache_root):
         return None
     try:
         cached = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
+    except TimeoutError:
+        raise
+    except json.JSONDecodeError as exc:
         path.unlink(missing_ok=True)
         raise RuntimeError(f"corrupt_prediction_cache:{path}") from exc
+    except OSError as exc:
+        raise RuntimeError(f"unreadable_prediction_cache:{path}") from exc
     if cached.get("status") != "modeled":
         return None
     recorded = cached.get("prediction_identity")
