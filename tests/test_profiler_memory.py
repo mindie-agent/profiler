@@ -202,6 +202,7 @@ def test_known_qwen_tensors_keep_explicit_shard_rules(tmp_path: Path):
     dt_bias = "model.layers.0.linear_attn.dt_bias"
     la_norm = "model.layers.0.linear_attn.norm.weight"
     in_proj_a = "model.layers.0.linear_attn.in_proj_a.weight"
+    in_proj_b = "model.layers.0.linear_attn.in_proj_b.weight"
     mtp_fc = "mtp.fc.weight"
     assert classify_tensor(q_norm) == "norm"
     assert classify_shard_strategy(q_norm, "norm") == "replicated"
@@ -213,6 +214,8 @@ def test_known_qwen_tensors_keep_explicit_shard_rules(tmp_path: Path):
     assert classify_shard_strategy(la_norm, "linear_attn_param") == "replicated"
     assert classify_tensor(in_proj_a) == "linear_attn_qkv"
     assert classify_shard_strategy(in_proj_a, "linear_attn_qkv") == "col_parallel"
+    assert classify_tensor(in_proj_b) == "linear_attn_qkv"
+    assert classify_shard_strategy(in_proj_b, "linear_attn_qkv") == "col_parallel"
     assert classify_tensor(mtp_fc) == "mtp_fc"
     assert classify_shard_strategy(mtp_fc, "mtp_fc") == "col_parallel"
 
@@ -222,12 +225,13 @@ def test_known_qwen_tensors_keep_explicit_shard_rules(tmp_path: Path):
         (a_log, "F32", [4], 16),
         (la_norm, "F16", [8], 16),
         (in_proj_a, "F16", [4, 2], 16),
+        (in_proj_b, "F16", [4, 2], 16),
         (mtp_fc, "F16", [4, 2], 16),
     ])
     result = inspect_weights(tmp_path, tp=4)
     assert result["status"] == "ok"
-    # q_norm 16 + A_log 16 + linear_attn.norm 16 replicated + in_proj_a 16/4 + mtp.fc 16/4
-    assert result["per_device_bytes"] == 56.0
+    # q_norm 16 + A_log 16 + linear_attn.norm 16 replicated + in_proj_a/b 16/4 each + mtp.fc 16/4
+    assert result["per_device_bytes"] == 60.0
 
 
 def test_projection_name_boundaries_do_not_forge_per_device_bytes(tmp_path: Path):
@@ -253,6 +257,8 @@ def test_vision_projection_names_use_path_segments_not_substrings(tmp_path: Path
     fake_proj = "visual.encoder.not_q_proj.weight"
     real_qkv = "visual.attn.qkv.weight"
     real_proj = "visual.attn.proj.weight"
+    norm1 = "visual.blocks.0.norm1.weight"
+    norm2 = "visual.blocks.0.norm2.weight"
     assert classify_tensor(qkv_buffer) == "vision"
     assert classify_tensor(fake_proj) == "vision"
     with pytest.raises(UnresolvedShardError):
@@ -261,8 +267,10 @@ def test_vision_projection_names_use_path_segments_not_substrings(tmp_path: Path
         classify_shard_strategy(fake_proj, "vision")
     assert classify_shard_strategy(real_qkv, "vision") == "col_parallel"
     assert classify_shard_strategy(real_proj, "vision") == "row_parallel"
+    assert classify_shard_strategy(norm1, "vision") == "replicated"
+    assert classify_shard_strategy(norm2, "vision") == "replicated"
 
-    path = tmp_path / "model.safetensors"
+    path = tmp_path / "forged.safetensors"
     _write_safetensors(path, [
         (qkv_buffer, "F16", [8], 16),
         (fake_proj, "F16", [8], 16),
@@ -271,6 +279,47 @@ def test_vision_projection_names_use_path_segments_not_substrings(tmp_path: Path
     assert result["status"] == "error"
     assert "per_device_bytes" not in result
     assert result["unresolved_shard_tensors"] == [qkv_buffer, fake_proj]
+
+    ok_dir = tmp_path / "ok"
+    ok_dir.mkdir()
+    _write_safetensors(ok_dir / "model.safetensors", [
+        (norm1, "F16", [8], 16),
+        (norm2, "F16", [8], 16),
+        (real_qkv, "F16", [4, 2], 16),
+    ])
+    ok = inspect_weights(ok_dir, tp=4)
+    assert ok["status"] == "ok"
+    # two ViT norms 16 each replicated + qkv 16/4
+    assert ok["per_device_bytes"] == 36.0
+
+
+def test_deepseek_mla_known_tensors_are_not_fatal_unresolved(tmp_path: Path):
+    q_a_ln = "model.layers.0.self_attn.q_a_layernorm.weight"
+    kv_a_mqa = "model.layers.0.self_attn.kv_a_proj_with_mqa.weight"
+    kv_a = "model.layers.0.self_attn.kv_a_proj.weight"
+    kv_b = "model.layers.0.self_attn.kv_b_proj.weight"
+    q_a = "model.layers.0.self_attn.q_a_proj.weight"
+    assert classify_tensor(q_a_ln) == "norm"
+    assert classify_shard_strategy(q_a_ln, "norm") == "replicated"
+    assert classify_tensor(kv_a_mqa) == "attn_kv_compress"
+    assert classify_shard_strategy(kv_a_mqa, "attn_kv_compress") == "col_parallel"
+    assert classify_tensor(kv_a) == "attn_kv_compress"
+    assert classify_shard_strategy(kv_a, "attn_kv_compress") == "col_parallel"
+    assert classify_tensor(kv_b) == "attn_kv_compress"
+    assert classify_shard_strategy(kv_b, "attn_kv_compress") == "col_parallel"
+    assert classify_shard_strategy(q_a, "attn_q") == "col_parallel"
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [
+        (q_a_ln, "F16", [8], 16),
+        (kv_a_mqa, "F16", [4, 2], 16),
+        (kv_a, "F16", [4, 2], 16),
+    ])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "ok"
+    assert "per_device_bytes" in result
+    # q_a_layernorm 16 replicated + two MLA compress 16/4 each
+    assert result["per_device_bytes"] == 24.0
 
 
 def test_p0_p4_priority_containers_overlap_and_residual_target():

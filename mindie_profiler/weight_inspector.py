@@ -16,9 +16,10 @@ The manifest is consumed by the P3 weight source in ``memory_profile.py``.
 - Catch-all categories (``other`` / ``attn_other`` / ``moe_other`` /
   ``mtp_other``) have no shard rule; they raise instead of guessing.
   Projection names match dotted path segments (``q_proj``, not
-  ``not_q_proj``), including vision.  Known Qwen names ``q_norm`` /
-  ``k_norm`` / ``A_log`` / ``dt_bias`` / ``in_proj_a`` / ``linear_attn.norm`` /
-  ``mtp.fc.weight`` keep explicit shard rules; other wide leftovers still raise.
+  ``not_q_proj``), including vision.  Known Qwen / MLA / ViT names
+  (``in_proj_a`` / ``in_proj_b``, ``norm1`` / ``norm2``, ``q_a_layernorm``,
+  ``kv_a_proj_with_mqa``) keep explicit shard rules; other wide leftovers
+  still raise.
 
 [Timeouts & Locks]
 No subprocess, network, lock, sleep, or unbounded read.  At most
@@ -140,7 +141,10 @@ _O_PROJ_PARTS = ("o_proj", "out_proj")
 _COL_FFN_PARTS = ("gate_proj", "up_proj", "w1", "w3")
 _ROW_FFN_PARTS = ("down_proj", "w2")
 _LINEAR_ATTN_REPLICATED_PARTS = ("a_log", "dt_bias")
-_ATTN_NORM_PARTS = ("q_norm", "k_norm")
+_ATTN_NORM_PARTS = ("q_norm", "k_norm", "q_a_layernorm")
+_MLA_COMPRESS_PARTS = ("kv_a_layernorm", "kv_b_proj", "kv_a_proj", "kv_a_proj_with_mqa")
+_LINEAR_ATTN_IN_PROJ_PARTS = ("in_proj_qkv", "in_proj_a", "in_proj_b")
+_EXACT_NORM_PARTS = frozenset({"norm", "layernorm", "layer_norm", "rmsnorm"})
 
 
 def _name_parts(name: str) -> tuple[str, ...]:
@@ -150,6 +154,20 @@ def _name_parts(name: str) -> tuple[str, ...]:
 def _has_part(name: str, *tokens: str) -> bool:
     parts = set(_name_parts(name))
     return any(token in parts for token in tokens)
+
+
+def _is_norm_segment(part: str) -> bool:
+    if part in _EXACT_NORM_PARTS:
+        return True
+    if part.startswith("norm") and part[4:].isdigit():
+        return True
+    if part.startswith("ln_") and part[3:].isdigit():
+        return True
+    return False
+
+
+def _has_norm_segment(name: str) -> bool:
+    return any(_is_norm_segment(part) for part in _name_parts(name))
 
 
 def _is_int(value: Any) -> bool:
@@ -315,7 +333,7 @@ def classify_tensor(name: str) -> str:
     if "lm_head" in lowered:
         return "lm_head"
     if ".linear_attn." in lowered:
-        if _has_part(name, "in_proj_qkv", "in_proj_a"):
+        if _has_part(name, *_LINEAR_ATTN_IN_PROJ_PARTS):
             return "linear_attn_qkv"
         if _has_part(name, "in_proj_z", "out_proj"):
             return "linear_attn_proj"
@@ -333,7 +351,7 @@ def classify_tensor(name: str) -> str:
             return "attn_o"
         if _has_part(name, "conv", "conv1d"):
             return "attn_conv"
-        if _has_part(name, "kv_a_layernorm", "kv_b_proj"):
+        if _has_part(name, *_MLA_COMPRESS_PARTS):
             return "attn_kv_compress"
         if _has_part(name, *_ATTN_NORM_PARTS):
             return "norm"
@@ -378,7 +396,7 @@ def classify_shard_strategy(name: str, category: str) -> str:
             raise UnresolvedShardError([name], categories={name: category})
         return SHARD_COL_PARALLEL
     if category == "attn_kv_compress":
-        if not _has_part(name, "kv_a_layernorm", "kv_b_proj"):
+        if not _has_part(name, *_MLA_COMPRESS_PARTS):
             raise UnresolvedShardError([name], categories={name: category})
         return SHARD_COL_PARALLEL
     if category == "attn_o":
@@ -392,7 +410,7 @@ def classify_shard_strategy(name: str, category: str) -> str:
     if category == "linear_attn_conv":
         return SHARD_COL_PARALLEL
     if category == "linear_attn_param":
-        if _has_part(name, *_LINEAR_ATTN_REPLICATED_PARTS, "norm"):
+        if _has_part(name, *_LINEAR_ATTN_REPLICATED_PARTS) or _has_norm_segment(name):
             return SHARD_REPLICATED
         raise UnresolvedShardError([name], categories={name: category})
     if category in ("ffn", "moe_shared_expert", "mtp_shared_expert", "mtp_fc"):
@@ -408,7 +426,7 @@ def classify_shard_strategy(name: str, category: str) -> str:
         return SHARD_COL_PARALLEL
     if category == "vision":
         parts = _name_parts(name)
-        if _has_part(name, "norm", "patch_embed", "pos_embed"):
+        if _has_norm_segment(name) or _has_part(name, "patch_embed", "pos_embed"):
             return SHARD_REPLICATED
         if _has_part(name, "qkv", "linear_fc1", "gate_up"):
             return SHARD_COL_PARALLEL
