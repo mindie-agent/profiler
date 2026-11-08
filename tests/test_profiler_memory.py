@@ -172,6 +172,30 @@ def test_unresolved_weight_tensors_do_not_guess_shard_strategy(tmp_path: Path):
     assert compute_caught.value.names == ["mystery.weight", "mtp.layers.0.foo.weight"]
 
 
+def test_wide_mtp_attn_does_not_guess_col_parallel_per_device_bytes(tmp_path: Path):
+    rotary = "model.layers.0.mtp.self_attn.rotary_emb.inv_freq"
+    assert classify_tensor(rotary) == "mtp_other"
+    with pytest.raises(UnresolvedShardError, match="rotary_emb"):
+        classify_shard_strategy(rotary, "mtp_attn")
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy("model.layers.0.linear_attn.mystery", "linear_attn_param")
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy("model.layers.0.mlp.foo.weight", "ffn")
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy("model.layers.0.mtp.fc.mystery", "mtp_fc")
+
+    q_proj = "model.layers.0.mtp.self_attn.q_proj.weight"
+    assert classify_tensor(q_proj) == "mtp_attn"
+    assert classify_shard_strategy(q_proj, "mtp_attn") == "col_parallel"
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [(rotary, "F16", [8], 16)])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "error"
+    assert "per_device_bytes" not in result
+    assert result["unresolved_shard_tensors"] == [rotary]
+
+
 def test_p0_p4_priority_containers_overlap_and_residual_target():
     result = attribute_memory(_manifest_full(), residual_target_bytes=200 * 1024 * 1024)
     assert result["status"] == "ok"

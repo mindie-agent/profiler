@@ -255,10 +255,34 @@ def test_dsh_evaluator_worker_bounds_and_parser_versioned_cache(tmp_path, monkey
     assert extracted["observed"]["geometry_groups"][0]["body_forward_span_ms"]["mean"] == 51.346
 
 
-def test_capture_path_text_normalizes_windows_separators():
-    assert dsh_eval._capture_path_text(
-        r"\Volumes\data\mindie-sim-data\a3\heldout_engine_20261030\qwen36_tp4\cell\kernel_details.csv"
-    ) == "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_tp4/cell/kernel_details.csv"
+def test_hardware_uses_real_path_components_not_slash_folding():
+    posix_literal = (
+        Path("/Volumes/data/mindie-sim-data/a5/heldout_engine_20261030/qwen36_tp4")
+        / r"foo\a3\cell"
+        / "kernel_details.csv"
+    )
+    posix_traits = dsh_eval.parse_capture_traits(posix_literal)
+    assert posix_traits["hw"] == "a5"
+    assert posix_traits["tp"] == 4
+
+    later_a3 = Path(
+        "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261030/qwen36_tp4/a3/kernel_details.csv"
+    )
+    later_traits = dsh_eval.parse_capture_traits(later_a3)
+    assert later_traits["hw"] == "a5"
+    assert later_traits["tp"] == 4
+
+    assert dsh_eval._hardware_from_capture_path(
+        r"\\a3\share\mindie-sim-data\a5\heldout_engine_20261030\qwen36_tp4\cell\kernel_details.csv"
+    ) == "a5"
+    assert dsh_eval._hardware_from_capture_path(
+        r"C:\Volumes\data\mindie-sim-data\a5\heldout_engine_20261030\qwen36_tp4\cell\kernel_details.csv"
+    ) == "a5"
+    assert dsh_eval._hardware_from_capture_path(
+        r"C:\Volumes\data\mindie-sim-data\a3\heldout_engine_20261030\qwen36_tp4\cell\kernel_details.csv"
+    ) == "a3"
+    with pytest.raises(ValueError, match="ambiguous hardware"):
+        dsh_eval._hardware_from_capture_path("/tmp/a5/other/a3/qwen36_tp4/kernel_details.csv")
 
 
 def test_parse_capture_traits_rejects_unknown_family_missing_tp_and_hardware():
@@ -301,14 +325,35 @@ def test_parse_capture_traits_reads_path_topology_and_glm_documented_tp16():
     assert glm_traits["ep"] == 16
     assert glm_traits["hw"] == "a3"
 
-    eager = Path(
+    mtp_over_suite = Path(
+        "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261030/"
+        "qwen36_tp8/qwen3_6_mtp1_c4/kernel_details.csv"
+    )
+    mtp_traits = dsh_eval.parse_capture_traits(mtp_over_suite)
+    assert mtp_traits["tp"] == 8
+    assert mtp_traits["spec_tokens"] == 1
+    assert mtp_traits["family"] == "qwen3.6-27b"
+
+    forged_mtp_tp = Path(
+        "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/"
+        "qwen36_graph/qwen3_6_mtp3_c4/kernel_details.csv"
+    )
+    with pytest.raises(ValueError, match="missing tp token"):
+        dsh_eval.parse_capture_traits(forged_mtp_tp)
+
+    heldout_eager = Path(
+        "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261030/"
+        "qwen36_eager/cell_c4/kernel_details.csv"
+    )
+    with pytest.raises(ValueError, match="missing tp token"):
+        dsh_eval.parse_capture_traits(heldout_eager)
+
+    top_level_eager = Path(
         "/Volumes/data/mindie-sim-data/a5/"
         "qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c32_20261030/kernel_details.csv"
     )
-    eager_traits = dsh_eval.parse_capture_traits(eager)
-    assert eager_traits["is_eager"] is True
-    assert eager_traits["family"] == "qwen3.5-35b-a3b"
-    assert eager_traits["tp"] is None
+    with pytest.raises(ValueError, match="missing tp token"):
+        dsh_eval.parse_capture_traits(top_level_eager)
 
 
 def test_extract_or_load_does_not_turn_timeout_or_parse_errors_into_empty_geometry(tmp_path, monkeypatch):

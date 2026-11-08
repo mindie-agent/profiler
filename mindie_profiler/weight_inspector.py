@@ -14,8 +14,10 @@ The manifest is consumed by the P3 weight source in ``memory_profile.py``.
 - Per-device sizes are rule-based sharding inference for col/row/expert
   parallel tensors.  They are labelled as inference, not hardware measurement.
 - Catch-all categories (``other`` / ``attn_other`` / ``moe_other`` /
-  ``mtp_other``) have no shard rule; they raise instead of guessing
-  replicated or column-parallel placement.
+  ``mtp_other`` / ``linear_attn_param``) have no shard rule; they raise
+  instead of guessing.  Wide leftovers in ``mtp_attn`` / ``mtp_fc`` /
+  ``ffn`` / ``vision`` / ``moe_shared_expert`` / ``mtp_shared_expert``
+  likewise require an explicit proj token.
 
 [Timeouts & Locks]
 No subprocess, network, lock, sleep, or unbounded read.  At most
@@ -127,7 +129,9 @@ class UnresolvedShardError(ValueError):
         self.categories = dict(categories or {})
 
 
-_UNRESOLVED_SHARD_CATEGORIES = frozenset({"other", "attn_other", "moe_other", "mtp_other"})
+_UNRESOLVED_SHARD_CATEGORIES = frozenset({
+    "other", "attn_other", "moe_other", "mtp_other", "linear_attn_param",
+})
 
 
 def _is_int(value: Any) -> bool:
@@ -282,7 +286,14 @@ def classify_tensor(name: str) -> str:
         if "norm" in lowered:
             return "mtp_norm"
         if ".self_attn." in lowered or ".attention." in lowered:
-            return "mtp_attn"
+            if any(token in lowered for token in (
+                "q_proj", "q_a_proj", "q_b_proj",
+                "k_proj", "k_a_proj", "k_b_proj",
+                "v_proj", "v_a_proj", "v_b_proj",
+                "o_proj", "out_proj", "kv_b_proj",
+            )):
+                return "mtp_attn"
+            return "mtp_other"
         if ".fc." in lowered:
             return "mtp_fc"
         return "mtp_other"
@@ -347,15 +358,15 @@ def classify_shard_strategy(name: str, category: str) -> str:
         return SHARD_COL_PARALLEL
     if category == "linear_attn_proj":
         return SHARD_ROW_PARALLEL if "out_proj" in name.lower() else SHARD_COL_PARALLEL
-    if category in ("linear_attn_conv", "linear_attn_param"):
+    if category == "linear_attn_conv":
         return SHARD_COL_PARALLEL
-    if category in ("ffn", "moe_shared_expert"):
+    if category in ("ffn", "moe_shared_expert", "mtp_shared_expert", "mtp_fc"):
         lowered = name.lower()
         if "gate_proj" in lowered or "up_proj" in lowered or "w1" in lowered or "w3" in lowered:
             return SHARD_COL_PARALLEL
         if "down_proj" in lowered or "w2" in lowered:
             return SHARD_ROW_PARALLEL
-        return SHARD_COL_PARALLEL
+        raise UnresolvedShardError([name], categories={name: category})
     if category in ("embedding", "lm_head"):
         return SHARD_COL_PARALLEL
     if category == "vision":
@@ -366,17 +377,23 @@ def classify_shard_strategy(name: str, category: str) -> str:
             return SHARD_COL_PARALLEL
         if "proj.weight" in lowered or "proj.bias" in lowered or "linear_fc2" in lowered or "down_proj" in lowered:
             return SHARD_ROW_PARALLEL
-        return SHARD_COL_PARALLEL
+        raise UnresolvedShardError([name], categories={name: category})
     if category == "mtp_expert":
         return SHARD_EXPERT_PARALLEL
-    if category == "mtp_shared_expert":
-        return SHARD_ROW_PARALLEL if "down_proj" in name.lower() or "w2" in name.lower() else SHARD_COL_PARALLEL
     if category in ("mtp_gate", "mtp_norm"):
         return SHARD_REPLICATED
     if category == "mtp_attn":
-        return SHARD_ROW_PARALLEL if "o_proj" in name.lower() or "out_proj" in name.lower() else SHARD_COL_PARALLEL
-    if category == "mtp_fc":
-        return SHARD_COL_PARALLEL
+        lowered = name.lower()
+        if "o_proj" in lowered or "out_proj" in lowered:
+            return SHARD_ROW_PARALLEL
+        if any(token in lowered for token in (
+            "q_proj", "q_a_proj", "q_b_proj",
+            "k_proj", "k_a_proj", "k_b_proj",
+            "v_proj", "v_a_proj", "v_b_proj",
+            "kv_b_proj",
+        )):
+            return SHARD_COL_PARALLEL
+        raise UnresolvedShardError([name], categories={name: category})
     raise UnresolvedShardError([name], categories={name: category})
 
 

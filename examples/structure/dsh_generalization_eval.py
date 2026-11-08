@@ -20,7 +20,7 @@ from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
 from hashlib import sha256
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 import re
 from statistics import median
 import time
@@ -56,15 +56,68 @@ FAMILY_TOKENS = (
     (("dsv41", "v41"), "deepseek-v4.1"),
     (("kimi_k3_w4a8_4layer", "kimi4"), "kimi-k3-4l"),
 )
+_HW_COMPONENTS = frozenset({"a3", "a5"})
+_TP_TOKEN = re.compile(r"(?<![a-z0-9])tp(\d+)")
 
 
 def _match_family(text: str) -> str | None:
     return next((fam for tokens, fam in FAMILY_TOKENS if any(tok in text for tok in tokens)), None)
 
 
-def _capture_path_text(csv_path: Path | str) -> str:
-    """Match capture tokens with POSIX separators; Windows Path.str() uses backslashes."""
-    return str(csv_path).replace("\\", "/")
+def _looks_like_windows_path(text: str) -> bool:
+    if text.startswith("\\\\") or text.startswith("//"):
+        return True
+    if len(text) >= 3 and text[0].isalpha() and text[1] == ":" and text[2] in "\\/":
+        return True
+    return os.name == "nt"
+
+
+def _clean_path_components(parts: tuple[str, ...]) -> tuple[str, ...]:
+    cleaned: list[str] = []
+    for part in parts:
+        if part in ("/", "\\", ""):
+            continue
+        if len(part) == 2 and part[1] == ":":
+            continue
+        if part.startswith("\\\\"):
+            continue
+        cleaned.append(part)
+    return tuple(cleaned)
+
+
+def _path_dir_components(csv_path: Path | str) -> tuple[str, ...]:
+    """Split a capture path into directory components using that path's own separator semantics.
+
+    POSIX paths split only on ``/``; a literal backslash stays inside one filename.
+    Windows and UNC paths split on ``\\`` / ``/``; the UNC ``\\\\server\\share`` root is
+    not a hardware token.
+    """
+    if isinstance(csv_path, str):
+        flavor = PureWindowsPath if _looks_like_windows_path(csv_path) else PurePosixPath
+        parts = flavor(csv_path).parts
+    else:
+        parts = Path(csv_path).parts
+    return _clean_path_components(parts)
+
+
+def _hardware_from_capture_path(csv_path: Path | str) -> str:
+    """Identify a3/a5 from real path components, never from slash-folded substrings."""
+    components = _path_dir_components(csv_path)
+    root = _clean_path_components(DATA_ROOT.parts)
+    n = len(root)
+    if n and n < len(components):
+        for index in range(len(components) - n):
+            if components[index:index + n] == root:
+                child = components[index + n]
+                if child in _HW_COMPONENTS:
+                    return child
+                raise ValueError(f"unrecognized hardware in capture path: {csv_path}")
+    found = [part for part in components if part in _HW_COMPONENTS]
+    if len(found) == 1:
+        return found[0]
+    if len(found) > 1:
+        raise ValueError(f"ambiguous hardware in capture path: {csv_path}")
+    raise ValueError(f"unrecognized hardware in capture path: {csv_path}")
 
 
 def parse_capture_traits(csv_path: Path) -> dict:
@@ -73,18 +126,13 @@ def parse_capture_traits(csv_path: Path) -> dict:
     Cell-level tokens always take precedence over suite directory names so composite suites
     never misclassify the capture's own model family or tensor parallelism.
     """
-    path_str = _capture_path_text(csv_path)
-    if "/a3/" in path_str:
-        hw = "a3"
-    elif "/a5/" in path_str:
-        hw = "a5"
-    else:
-        raise ValueError(f"unrecognized hardware in capture path: {csv_path}")
-    if "heldout_engine_20261030" in path_str:
-        rel = csv_path.relative_to(DATA_ROOT / hw / "heldout_engine_20261030")
+    hw = _hardware_from_capture_path(csv_path)
+    components = _path_dir_components(csv_path)
+    if "heldout_engine_20261030" in components:
+        rel = Path(csv_path).relative_to(DATA_ROOT / hw / "heldout_engine_20261030")
         suite, cell = rel.parts[0], (rel.parts[-2] if len(rel.parts) > 2 else rel.parts[0])
     else:
-        suite, cell = "top_level_20261030", csv_path.parent.name
+        suite, cell = "top_level_20261030", Path(csv_path).parent.name
     cell_low, suite_low = cell.lower(), suite.lower()
     low = f"{suite_low}/{cell_low}"
     is_eager = "eager" in low or suite == "top_level_20261030"
@@ -96,14 +144,11 @@ def parse_capture_traits(csv_path: Path) -> dict:
 
     dp = int(m.group(1)) if (m := re.search(r"dp(\d+)", cell_low) or re.search(r"dp(\d+)", suite_low)) else 1
     ep = int(m.group(1)) if (m := re.search(r"ep(\d+)", cell_low) or re.search(r"ep(\d+)", suite_low)) else 1
-    tp_match = re.search(r"tp(\d+)", cell_low) or re.search(r"tp(\d+)", suite_low)
+    tp_match = _TP_TOKEN.search(cell_low) or _TP_TOKEN.search(suite_low)
     if tp_match:
         tp = int(tp_match.group(1))
-    elif family == "glm-5.3-flash" and hw == "a3" and "tp" not in low:
+    elif family == "glm-5.3-flash" and hw == "a3" and _TP_TOKEN.search(low) is None:
         tp, ep = 16, 16
-    elif is_eager:
-        # Eager/top-level captures are excluded from scoring; do not invent tp=1.
-        tp = None
     else:
         raise ValueError(f"missing tp token in capture path: {csv_path}")
 
