@@ -255,6 +255,12 @@ def test_dsh_evaluator_worker_bounds_and_parser_versioned_cache(tmp_path, monkey
     assert extracted["observed"]["geometry_groups"][0]["body_forward_span_ms"]["mean"] == 51.346
 
 
+def test_capture_path_text_normalizes_windows_separators():
+    assert dsh_eval._capture_path_text(
+        r"\Volumes\data\mindie-sim-data\a3\heldout_engine_20261030\qwen36_tp4\cell\kernel_details.csv"
+    ) == "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_tp4/cell/kernel_details.csv"
+
+
 def test_parse_capture_traits_rejects_unknown_family_missing_tp_and_hardware():
     unknown = Path("/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/mystery_suite/cell_c4/kernel_details.csv")
     with pytest.raises(ValueError, match="unrecognized model family"):

@@ -62,13 +62,18 @@ def _match_family(text: str) -> str | None:
     return next((fam for tokens, fam in FAMILY_TOKENS if any(tok in text for tok in tokens)), None)
 
 
+def _capture_path_text(csv_path: Path | str) -> str:
+    """Match capture tokens with POSIX separators; Windows Path.str() uses backslashes."""
+    return str(csv_path).replace("\\", "/")
+
+
 def parse_capture_traits(csv_path: Path) -> dict:
     """Derive hardware, suite, cell, model family, phase, TP/DP/EP, MTP/DSpark, and context from path.
 
     Cell-level tokens always take precedence over suite directory names so composite suites
     never misclassify the capture's own model family or tensor parallelism.
     """
-    path_str = str(csv_path)
+    path_str = _capture_path_text(csv_path)
     if "/a3/" in path_str:
         hw = "a3"
     elif "/a5/" in path_str:
