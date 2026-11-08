@@ -13,6 +13,9 @@ The manifest is consumed by the P3 weight source in ``memory_profile.py``.
   silently treated as two bytes.
 - Per-device sizes are rule-based sharding inference for col/row/expert
   parallel tensors.  They are labelled as inference, not hardware measurement.
+- Catch-all categories (``other`` / ``attn_other`` / ``moe_other`` /
+  ``mtp_other``) have no shard rule; they raise instead of guessing
+  replicated or column-parallel placement.
 
 [Timeouts & Locks]
 No subprocess, network, lock, sleep, or unbounded read.  At most
@@ -112,6 +115,19 @@ CATEGORY_ORDER = [
 
 class SafetensorsError(ValueError):
     """A safetensors header or range is structurally invalid."""
+
+
+class UnresolvedShardError(ValueError):
+    """A tensor name has no explicit sharding rule."""
+
+    def __init__(self, names: list[str], *, categories: Mapping[str, str] | None = None) -> None:
+        listed = ", ".join(repr(name) for name in names)
+        super().__init__(f"unresolved shard strategy for tensors: {listed}")
+        self.names = list(names)
+        self.categories = dict(categories or {})
+
+
+_UNRESOLVED_SHARD_CATEGORIES = frozenset({"other", "attn_other", "moe_other", "mtp_other"})
 
 
 def _is_int(value: Any) -> bool:
@@ -317,7 +333,9 @@ def classify_tensor(name: str) -> str:
 
 def classify_shard_strategy(name: str, category: str) -> str:
     """Rule-based shard inference; this is not a hardware measurement."""
-    if category in ("norm", "quant_param", "moe_gate", "attn_conv", "attn_other"):
+    if category in _UNRESOLVED_SHARD_CATEGORIES:
+        raise UnresolvedShardError([name], categories={name: category})
+    if category in ("norm", "quant_param", "moe_gate", "attn_conv"):
         return SHARD_REPLICATED
     if category == "moe_expert":
         return SHARD_EXPERT_PARALLEL
@@ -357,9 +375,9 @@ def classify_shard_strategy(name: str, category: str) -> str:
         return SHARD_REPLICATED
     if category == "mtp_attn":
         return SHARD_ROW_PARALLEL if "o_proj" in name.lower() or "out_proj" in name.lower() else SHARD_COL_PARALLEL
-    if category in ("mtp_fc", "mtp_other"):
+    if category == "mtp_fc":
         return SHARD_COL_PARALLEL
-    return SHARD_REPLICATED
+    raise UnresolvedShardError([name], categories={name: category})
 
 
 def compute_per_device_bytes(
@@ -378,13 +396,30 @@ def compute_per_device_bytes(
     total = 0.0
     per_device = 0.0
     categories: dict[str, dict[str, Any]] = {}
+    unresolved: list[str] = []
+    unresolved_categories: dict[str, str] = {}
+    classified: list[tuple[Mapping[str, Any], str, str, float]] = []
     for item in tensors:
         size = item.get("byte_size", 0)
         if not isinstance(size, (int, float)) or isinstance(size, bool) or not math.isfinite(float(size)):
             raise ValueError(f"invalid byte_size for {item.get('name')!r}")
         size = float(size)
-        category = str(item.get("category") or classify_tensor(str(item.get("name", ""))))
-        strategy = str(item.get("shard_strategy") or classify_shard_strategy(str(item.get("name", "")), category))
+        name = str(item.get("name", ""))
+        category = str(item.get("category") or classify_tensor(name))
+        provided = item.get("shard_strategy")
+        if provided:
+            strategy = str(provided)
+        else:
+            try:
+                strategy = classify_shard_strategy(name, category)
+            except UnresolvedShardError:
+                unresolved.append(name)
+                unresolved_categories[name] = category
+                continue
+        classified.append((item, category, strategy, size))
+    if unresolved:
+        raise UnresolvedShardError(unresolved, categories=unresolved_categories)
+    for item, category, strategy, size in classified:
         if strategy in (SHARD_COL_PARALLEL, SHARD_ROW_PARALLEL):
             device_size = size / tp
         elif strategy == SHARD_EXPERT_PARALLEL:
@@ -478,6 +513,8 @@ def inspect_weights(
         files = files[:max_files]
 
     all_tensors: list[dict[str, Any]] = []
+    unresolved_names: list[str] = []
+    unresolved_categories: dict[str, str] = {}
     total_header_bytes = 0
     total_payload_bytes = 0
     for file_path in files:
@@ -494,7 +531,12 @@ def inspect_weights(
             for item in tensors:
                 item["source_file"] = file_path.name
                 item["category"] = classify_tensor(item["name"])
-                item["shard_strategy"] = classify_shard_strategy(item["name"], item["category"])
+                try:
+                    item["shard_strategy"] = classify_shard_strategy(item["name"], item["category"])
+                except UnresolvedShardError:
+                    item["shard_strategy"] = None
+                    unresolved_names.append(item["name"])
+                    unresolved_categories[item["name"]] = item["category"]
                 if item["bytes_per_element"] is None:
                     result["limitations"].append({
                         "code": "unknown_dtype",
@@ -528,6 +570,12 @@ def inspect_weights(
 
     if not all_tensors:
         result["error"] = "no readable safetensors headers"
+        return result
+    if unresolved_names:
+        result["status"] = "error"
+        result["error"] = str(UnresolvedShardError(unresolved_names, categories=unresolved_categories))
+        result["unresolved_shard_tensors"] = unresolved_names
+        result["tensors"] = all_tensors if include_tensors else []
         return result
 
     per_device = compute_per_device_bytes(
@@ -584,6 +632,7 @@ if __name__ == "__main__":
 __all__ = [
     "DTYPE_SIZES",
     "SafetensorsError",
+    "UnresolvedShardError",
     "classify_shard_strategy",
     "classify_tensor",
     "compute_per_device_bytes",

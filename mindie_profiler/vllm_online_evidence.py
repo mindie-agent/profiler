@@ -45,6 +45,13 @@ TINY_MODEL_SCHEMA = "mindie-tiny-llama-model/1"
 ARTIFACT_SCHEMA = "mindie-vllm-profile-artifacts/1"
 DB_EXPORT_SCHEMA = "mindie-vllm-db-export/1"
 MAX_ARTIFACT_FILES = 20_000
+_CREATE_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+
+
+def _no_window_kwargs() -> dict[str, int]:
+    if os.name != "nt":
+        return {}
+    return {"creationflags": _CREATE_NO_WINDOW}
 
 
 class OnlineEvidenceError(RuntimeError):
@@ -660,6 +667,7 @@ def export_db_for_roots(
                 check=False,
                 cwd=str(cwd) if cwd is not None else None,
                 env=os.environ.copy(),
+                **_no_window_kwargs(),
             )
             receipt.update({
                 "returncode": completed.returncode,

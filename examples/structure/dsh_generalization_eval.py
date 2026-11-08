@@ -69,7 +69,12 @@ def parse_capture_traits(csv_path: Path) -> dict:
     never misclassify the capture's own model family or tensor parallelism.
     """
     path_str = str(csv_path)
-    hw = "a3" if "/a3/" in path_str else "a5"
+    if "/a3/" in path_str:
+        hw = "a3"
+    elif "/a5/" in path_str:
+        hw = "a5"
+    else:
+        raise ValueError(f"unrecognized hardware in capture path: {csv_path}")
     if "heldout_engine_20261030" in path_str:
         rel = csv_path.relative_to(DATA_ROOT / hw / "heldout_engine_20261030")
         suite, cell = rel.parts[0], (rel.parts[-2] if len(rel.parts) > 2 else rel.parts[0])
@@ -80,15 +85,28 @@ def parse_capture_traits(csv_path: Path) -> dict:
     is_eager = "eager" in low or suite == "top_level_20261030"
     phase = "prefill" if "prefill" in cell_low else "decode"
 
-    tp = int(m.group(1)) if (m := re.search(r"tp(\d+)", cell_low) or re.search(r"tp(\d+)", suite_low)) else 1
+    family = _match_family(cell_low) or _match_family(suite_low)
+    if family is None:
+        raise ValueError(f"unrecognized model family in capture path: {csv_path}")
+
     dp = int(m.group(1)) if (m := re.search(r"dp(\d+)", cell_low) or re.search(r"dp(\d+)", suite_low)) else 1
     ep = int(m.group(1)) if (m := re.search(r"ep(\d+)", cell_low) or re.search(r"ep(\d+)", suite_low)) else 1
-
-    family = _match_family(cell_low) or _match_family(suite_low) or "unknown"
-    if family in ("deepseek-v4-flash", "deepseek-v4.1", "kimi-k3-4l") or (family == "qwen3.5-35b-a3b" and hw == "a5"):
-        ep = max(ep, tp * dp)
+    tp_match = re.search(r"tp(\d+)", cell_low) or re.search(r"tp(\d+)", suite_low)
+    if tp_match:
+        tp = int(tp_match.group(1))
     elif family == "glm-5.3-flash" and hw == "a3" and "tp" not in low:
         tp, ep = 16, 16
+    elif is_eager:
+        # Eager/top-level captures are excluded from scoring; do not invent tp=1.
+        tp = None
+    else:
+        raise ValueError(f"missing tp token in capture path: {csv_path}")
+
+    if tp is not None and (
+        family in ("deepseek-v4-flash", "deepseek-v4.1", "kimi-k3-4l")
+        or (family == "qwen3.5-35b-a3b" and hw == "a5")
+    ):
+        ep = max(ep, tp * dp)
 
     ctx_tokens = 4096
     for pat, mult in ((r"_(128|96|64|32|24|16|8|4)k", 1024), (r"_p(\d+)k", 1024), (r"_p(\d{4,6})(?:_|\b)", 1)):
@@ -429,15 +447,8 @@ def extract_or_load(csv_path: Path, traits: dict, tpl: dict, seg_opts: dict) -> 
         obs, meta = prefill.extract_file(csv_path, pf_cfg, timeout_s=45), {"context_evidence": None, "client": None}
     else:
         meta = capture_metadata(csv_path.parent)
-        try:
-            events, src_ref = _source(csv_path, {"kind": "csv"}, None, max_events=5_000_000, timeout_s=45)
-            obs = compact_observation(auto_segment_decode_forwards(events, cfg, source=src_ref, max_events=5_000_000))
-        except Exception as exc:
-            # Never write transient or segmentation errors to persistent cache
-            return {"cache_version": CACHE_VERSION, "parser_identity": PARSER_IDENTITY, "cache_key": cache_key,
-                    "observed": {"forward_count": 0, "geometry_groups": [],
-                                 "segmentation_error": f"{type(exc).__name__}:{exc}"},
-                    "meta": meta}
+        events, src_ref = _source(csv_path, {"kind": "csv"}, None, max_events=5_000_000, timeout_s=45)
+        obs = compact_observation(auto_segment_decode_forwards(events, cfg, source=src_ref, max_events=5_000_000))
 
     payload = {"cache_version": CACHE_VERSION, "parser_identity": PARSER_IDENTITY,
                "cache_key": cache_key, "observed": obs, "meta": meta}

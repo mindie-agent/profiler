@@ -111,6 +111,60 @@ def test_inventory_lists_tables_native_windows_and_capture_span(tmp_path):
     assert db["capture_span"]["end_ns"] == 90_000
 
 
+def test_inventory_sqlite_query_error_is_db_query_failed_not_empty_windows(tmp_path, monkeypatch):
+    db_path = build_correlate_db(tmp_path / "rank_0" / "ASCEND_PROFILER_OUTPUT" / "ascend_pytorch_profiler_0.db")
+    from mindie_profiler import inventory as inventory_mod
+
+    original_open = inventory_mod.open_readonly
+
+    class _FailingQueryConnection:
+        def __init__(self, real):
+            self._real = real
+
+        def execute(self, sql, *args, **kwargs):
+            text = sql if isinstance(sql, str) else str(sql)
+            if any(token in text for token in ("FROM STRING_IDS", "FROM PYTORCH_API", "FROM MSTX_EVENTS")):
+                raise sqlite3.DatabaseError("disk I/O error")
+            return self._real.execute(sql, *args, **kwargs)
+
+        def set_progress_handler(self, *args, **kwargs):
+            return self._real.set_progress_handler(*args, **kwargs)
+
+        def close(self):
+            return self._real.close()
+
+    def open_readonly(path, **kwargs):
+        return _FailingQueryConnection(original_open(path, **kwargs))
+
+    monkeypatch.setattr(inventory_mod, "open_readonly", open_readonly)
+    result = inventory_profile(db_path.parent.parent)
+    db = result["ranks"][0]["files"][0]
+    codes = [item["code"] for item in db["limitations"]]
+    assert "db_query_failed" in codes
+    assert "native_windows_unavailable" not in codes
+    assert any("disk I/O error" in str(item.get("detail", "")) for item in db["limitations"])
+    assert db["native_step_windows"] == []
+    assert db["mstx_windows"] == []
+
+
+def test_inventory_true_empty_windows_still_reports_native_windows_unavailable(tmp_path):
+    db_path = build_correlate_db(tmp_path / "rank_0" / "ASCEND_PROFILER_OUTPUT" / "ascend_pytorch_profiler_0.db")
+    con = sqlite3.connect(db_path)
+    try:
+        con.execute("DELETE FROM PYTORCH_API WHERE id = 3")
+        con.execute("DELETE FROM MSTX_EVENTS")
+        con.commit()
+    finally:
+        con.close()
+    result = inventory_profile(db_path.parent.parent)
+    db = result["ranks"][0]["files"][0]
+    codes = [item["code"] for item in db["limitations"]]
+    assert "native_windows_unavailable" in codes
+    assert "db_query_failed" not in codes
+    assert db["native_step_windows"] == []
+    assert db["mstx_windows"] == []
+
+
 def test_correlate_builds_host_stack_dispatch_gap_and_unmatched_ratio(tmp_path):
     db_path = build_correlate_db(tmp_path / "rank_0" / "ASCEND_PROFILER_OUTPUT" / "ascend_pytorch_profiler_0.db")
     result = correlate_profile(

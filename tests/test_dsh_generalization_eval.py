@@ -17,6 +17,8 @@ import json
 from pathlib import Path
 import sys
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT / "examples" / "structure") not in sys.path:
     sys.path.insert(0, str(ROOT / "examples" / "structure"))
@@ -251,3 +253,102 @@ def test_dsh_evaluator_worker_bounds_and_parser_versioned_cache(tmp_path, monkey
 
     extracted = dsh_eval.extract_or_load(csv_file, traits, tpl, seg)
     assert extracted["observed"]["geometry_groups"][0]["body_forward_span_ms"]["mean"] == 51.346
+
+
+def test_parse_capture_traits_rejects_unknown_family_missing_tp_and_hardware():
+    unknown = Path("/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/mystery_suite/cell_c4/kernel_details.csv")
+    with pytest.raises(ValueError, match="unrecognized model family"):
+        dsh_eval.parse_capture_traits(unknown)
+
+    missing_tp = Path(
+        "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_graph/cell_c4/kernel_details.csv"
+    )
+    with pytest.raises(ValueError, match="missing tp token"):
+        dsh_eval.parse_capture_traits(missing_tp)
+
+    no_hw = Path("/tmp/other/qwen36_tp4/kernel_details.csv")
+    with pytest.raises(ValueError, match="unrecognized hardware"):
+        dsh_eval.parse_capture_traits(no_hw)
+
+
+def test_parse_capture_traits_reads_path_topology_and_glm_documented_tp16():
+    path = Path(
+        "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261030/"
+        "qwen35_tp4_dp2_ep8/qwen3_5_tp4_64k_c8/kernel_details.csv"
+    )
+    traits = dsh_eval.parse_capture_traits(path)
+    assert traits["hw"] == "a5"
+    assert traits["family"] == "qwen3.5-35b-a3b"
+    assert traits["tp"] == 4
+    assert traits["dp"] == 2
+    assert traits["ep"] == 8
+    assert traits["context_tokens"] == 65536
+    assert traits["concurrency"] == 8
+
+    glm = Path(
+        "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/"
+        "glm5_3_flash_static/glm53flash_c10/kernel_details.csv"
+    )
+    glm_traits = dsh_eval.parse_capture_traits(glm)
+    assert glm_traits["family"] == "glm-5.3-flash"
+    assert glm_traits["tp"] == 16
+    assert glm_traits["ep"] == 16
+    assert glm_traits["hw"] == "a3"
+
+    eager = Path(
+        "/Volumes/data/mindie-sim-data/a5/"
+        "qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c32_20261030/kernel_details.csv"
+    )
+    eager_traits = dsh_eval.parse_capture_traits(eager)
+    assert eager_traits["is_eager"] is True
+    assert eager_traits["family"] == "qwen3.5-35b-a3b"
+    assert eager_traits["tp"] is None
+
+
+def test_extract_or_load_does_not_turn_timeout_or_parse_errors_into_empty_geometry(tmp_path, monkeypatch):
+    csv_file = tmp_path / "kernel_details.csv"
+    csv_file.write_text("Name,Type,Start Time(us),Duration(us)\n", encoding="utf-8")
+    traits = {"phase": "decode", "tp": 8}
+    tpl = json.loads((ROOT / "examples" / "structure" / "cases" / "decode-v4flash-a3-tp8-c4.json").read_text())
+    monkeypatch.setattr(dsh_eval, "CACHE_ROOT", tmp_path)
+    monkeypatch.setattr(dsh_eval, "capture_metadata", lambda _path: {"context_evidence": None, "client": None})
+
+    monkeypatch.setattr(dsh_eval, "_source", lambda *a, **kw: (_ for _ in ()).throw(TimeoutError("csv_read_deadline")))
+    with pytest.raises(TimeoutError, match="csv_read_deadline"):
+        dsh_eval.extract_or_load(csv_file, traits, tpl, {})
+
+    monkeypatch.setattr(dsh_eval, "_source", lambda *a, **kw: (_ for _ in ()).throw(ValueError("malformed kernel row")))
+    with pytest.raises(ValueError, match="malformed kernel row"):
+        dsh_eval.extract_or_load(csv_file, traits, tpl, {})
+
+    stat = csv_file.stat()
+    cfg = {**dsh_eval._model_config(tpl), **{}}
+    sidecars = dsh_eval._sidecar_identities(csv_file.parent)
+    cache_key = sha256(
+        json.dumps(
+            {
+                "cache_version": dsh_eval.CACHE_VERSION,
+                "parser_identity": dsh_eval.PARSER_IDENTITY,
+                "path": str(csv_file.resolve()),
+                "size_bytes": stat.st_size,
+                "mtime_ns": stat.st_mtime_ns,
+                "phase": traits["phase"],
+                "cfg": cfg,
+                "seg_opts": {},
+                "sidecars": sidecars,
+            },
+            sort_keys=True,
+        ).encode("utf-8")
+    ).hexdigest()
+    cache_path = tmp_path / f"{cache_key}.json"
+    cache_path.write_text("{}\n", encoding="utf-8")
+    original_read = Path.read_text
+
+    def read_text(self, *args, **kwargs):
+        if self == cache_path:
+            raise TimeoutError("cache_read_deadline")
+        return original_read(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", read_text)
+    with pytest.raises(TimeoutError, match="cache_read_deadline"):
+        dsh_eval.extract_or_load(csv_file, traits, tpl, {})

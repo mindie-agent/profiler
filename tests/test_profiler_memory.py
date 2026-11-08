@@ -18,6 +18,10 @@ from mindie_profiler.memory_profile import (
 )
 from mindie_profiler.weight_inspector import (
     SafetensorsError,
+    UnresolvedShardError,
+    classify_shard_strategy,
+    classify_tensor,
+    compute_per_device_bytes,
     inspect_weights,
     parse_tensor_info,
     read_safetensors_header,
@@ -127,6 +131,45 @@ def test_safetensors_invalid_ranges_and_truncation_are_explicit(tmp_path: Path):
     empty = tmp_path / "empty"
     empty.mkdir()
     assert inspect_weights(empty)["status"] == "error"
+
+
+def test_unresolved_weight_tensors_do_not_guess_shard_strategy(tmp_path: Path):
+    assert classify_tensor("mystery.weight") == "other"
+    assert classify_tensor("model.layers.0.self_attn.rotary_emb.inv_freq") == "attn_other"
+    assert classify_tensor("model.layers.0.block_sparse_moe.extra.weight") == "moe_other"
+    assert classify_tensor("mtp.layers.0.foo.weight") == "mtp_other"
+    with pytest.raises(UnresolvedShardError, match="mystery.weight") as caught:
+        classify_shard_strategy("mystery.weight", "other")
+    assert caught.value.names == ["mystery.weight"]
+    with pytest.raises(UnresolvedShardError, match="rotary_emb"):
+        classify_shard_strategy("model.layers.0.self_attn.rotary_emb.inv_freq", "attn_other")
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [
+        ("model.embed_tokens.weight", "F16", [4, 2], 16),
+        ("model.layers.0.self_attn.rotary_emb.inv_freq", "F32", [2], 8),
+        ("mystery.weight", "F16", [4, 2], 16),
+    ])
+    result = inspect_weights(tmp_path, tp=2)
+    assert result["status"] == "error"
+    assert "per_device_bytes" not in result
+    assert result["unresolved_shard_tensors"] == [
+        "model.layers.0.self_attn.rotary_emb.inv_freq",
+        "mystery.weight",
+    ]
+    assert "rotary_emb.inv_freq" in result["error"]
+    assert "mystery.weight" in result["error"]
+
+    with pytest.raises(UnresolvedShardError) as compute_caught:
+        compute_per_device_bytes(
+            [
+                {"name": "model.embed_tokens.weight", "byte_size": 16, "category": "embedding"},
+                {"name": "mystery.weight", "byte_size": 16},
+                {"name": "mtp.layers.0.foo.weight", "byte_size": 8},
+            ],
+            tp=2,
+        )
+    assert compute_caught.value.names == ["mystery.weight", "mtp.layers.0.foo.weight"]
 
 
 def test_p0_p4_priority_containers_overlap_and_residual_target():
