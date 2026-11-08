@@ -382,6 +382,59 @@ def test_parse_capture_traits_reads_path_topology_and_glm_documented_tp16():
         dsh_eval.parse_capture_traits(tp4x)
 
 
+def test_compact_tp4dp4_is_cell_topology_not_missing_or_suite_tp():
+    registered = Path(
+        "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/"
+        "dsv41_tp4dp4_128k_decode_20261030/prof/decode_128k_in126k_out3k_c12/kernel_details.csv"
+    )
+    traits = dsh_eval.parse_capture_traits(registered)
+    assert traits["family"] == "deepseek-v4.1"
+    assert (traits["tp"], traits["dp"], traits["ep"]) == (4, 4, 16)
+
+    cell_overrides_suite = Path(
+        "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/"
+        "dsv41_tp8/tp4dp4_ep16_c4/kernel_details.csv"
+    )
+    cell_traits = dsh_eval.parse_capture_traits(cell_overrides_suite)
+    assert cell_traits["family"] == "deepseek-v4.1"
+    assert (cell_traits["tp"], cell_traits["dp"], cell_traits["ep"]) == (4, 4, 16)
+
+
+def test_inventory_skips_registered_kimi_and_unknown_family_eager_before_topology():
+    cases = json.loads((ROOT / "examples" / "structure" / "cases.json").read_text())["cases"]
+    kimi = next(
+        c for c in cases
+        if (c.get("source") or {}).get("path", "").endswith(
+            "kimi_k3_w4a8_4layer_tp8_high_conc_decode_c4_20261030/ranks/tp0/kernel_details.csv.gz"
+        )
+    )
+    reg_by_path = {
+        Path(c["source"]["path"]).resolve(): c
+        for c in cases
+        if c.get("source", {}).get("path") and c.get("supported_scopes") != ["engine"]
+    }
+    kimi_path = Path(kimi["source"]["path"]).resolve()
+    bucket, traits = dsh_eval.inventory_capture(kimi_path, reg_by_path)
+    assert bucket == "registered"
+    assert traits is None
+
+    unknown_eager = Path(
+        "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261030/"
+        "mystery_eager/cell_c4/kernel_details.csv"
+    )
+    eager_bucket, eager_traits = dsh_eval.inventory_capture(unknown_eager, {})
+    assert eager_bucket == "eager"
+    assert eager_traits["is_eager"] is True
+    assert eager_traits["family"] is None
+    assert eager_traits["tp"] is None
+
+    unknown_heldout = Path(
+        "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/mystery_suite/cell_c4/kernel_details.csv"
+    )
+    with pytest.raises(ValueError, match="unrecognized model family"):
+        dsh_eval.inventory_capture(unknown_heldout, {})
+
+
 def test_extract_or_load_does_not_turn_timeout_or_parse_errors_into_empty_geometry(tmp_path, monkeypatch):
     csv_file = tmp_path / "kernel_details.csv"
     csv_file.write_text("Name,Type,Start Time(us),Duration(us)\n", encoding="utf-8")

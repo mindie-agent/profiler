@@ -16,9 +16,9 @@ The manifest is consumed by the P3 weight source in ``memory_profile.py``.
 - Catch-all categories (``other`` / ``attn_other`` / ``moe_other`` /
   ``mtp_other``) have no shard rule; they raise instead of guessing.
   Projection names match dotted path segments (``q_proj``, not
-  ``not_q_proj``).  Known Qwen names ``q_norm`` / ``k_norm`` / ``A_log`` /
-  ``dt_bias`` / ``mtp.fc.weight`` keep explicit shard rules; other wide
-  leftovers still raise.
+  ``not_q_proj``), including vision.  Known Qwen names ``q_norm`` /
+  ``k_norm`` / ``A_log`` / ``dt_bias`` / ``in_proj_a`` / ``linear_attn.norm`` /
+  ``mtp.fc.weight`` keep explicit shard rules; other wide leftovers still raise.
 
 [Timeouts & Locks]
 No subprocess, network, lock, sleep, or unbounded read.  At most
@@ -315,7 +315,7 @@ def classify_tensor(name: str) -> str:
     if "lm_head" in lowered:
         return "lm_head"
     if ".linear_attn." in lowered:
-        if _has_part(name, "in_proj_qkv"):
+        if _has_part(name, "in_proj_qkv", "in_proj_a"):
             return "linear_attn_qkv"
         if _has_part(name, "in_proj_z", "out_proj"):
             return "linear_attn_proj"
@@ -392,7 +392,7 @@ def classify_shard_strategy(name: str, category: str) -> str:
     if category == "linear_attn_conv":
         return SHARD_COL_PARALLEL
     if category == "linear_attn_param":
-        if _has_part(name, *_LINEAR_ATTN_REPLICATED_PARTS):
+        if _has_part(name, *_LINEAR_ATTN_REPLICATED_PARTS, "norm"):
             return SHARD_REPLICATED
         raise UnresolvedShardError([name], categories={name: category})
     if category in ("ffn", "moe_shared_expert", "mtp_shared_expert", "mtp_fc"):
@@ -407,12 +407,14 @@ def classify_shard_strategy(name: str, category: str) -> str:
     if category in ("embedding", "lm_head"):
         return SHARD_COL_PARALLEL
     if category == "vision":
-        lowered = name.lower()
-        if "norm" in lowered or "patch_embed" in lowered or "pos_embed" in lowered:
+        parts = _name_parts(name)
+        if _has_part(name, "norm", "patch_embed", "pos_embed"):
             return SHARD_REPLICATED
-        if "qkv" in lowered or "linear_fc1" in lowered or "gate_up" in lowered:
+        if _has_part(name, "qkv", "linear_fc1", "gate_up"):
             return SHARD_COL_PARALLEL
-        if "proj.weight" in lowered or "proj.bias" in lowered or "linear_fc2" in lowered or "down_proj" in lowered:
+        if _has_part(name, "linear_fc2") or _has_part(name, *_ROW_FFN_PARTS):
+            return SHARD_ROW_PARALLEL
+        if "proj" in parts and parts[-1] in ("weight", "bias"):
             return SHARD_ROW_PARALLEL
         raise UnresolvedShardError([name], categories={name: category})
     if category == "mtp_expert":

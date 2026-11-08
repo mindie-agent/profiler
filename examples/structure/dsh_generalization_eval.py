@@ -57,7 +57,8 @@ FAMILY_TOKENS = (
     (("kimi_k3_w4a8_4layer", "kimi4"), "kimi-k3-4l"),
 )
 _HW_COMPONENTS = frozenset({"a3", "a5"})
-_TP_TOKEN = re.compile(r"(?<![a-z0-9])tp(\d+)(?![a-z0-9])")
+# Compact topology `tp4dp4` is legal; `tp4x` and `mtp1` are not TP tokens.
+_TP_TOKEN = re.compile(r"(?<![a-z0-9])tp(\d+)(?=$|[^a-z0-9]|dp|ep)")
 
 
 def _match_family(text: str) -> str | None:
@@ -146,6 +147,8 @@ def parse_capture_traits(csv_path: Path) -> dict:
 
     family = _match_family(cell_low) or _match_family(suite_low)
     if family is None:
+        family = next((found for part in components if (found := _match_family(part.lower()))), None)
+    if family is None and not is_eager:
         raise ValueError(f"unrecognized model family in capture path: {csv_path}")
 
     dp = int(m.group(1)) if (m := re.search(r"dp(\d+)", cell_low) or re.search(r"dp(\d+)", suite_low)) else 1
@@ -185,6 +188,21 @@ def parse_capture_traits(csv_path: Path) -> dict:
     return {"hw": hw, "suite": suite, "cell": cell, "cohort": f"{hw}/{suite}/{prefix}", "family": family,
             "phase": phase, "tp": tp, "dp": dp, "ep": ep, "context_tokens": ctx_tokens,
             "spec_tokens": spec_tokens, "concurrency": conc, "is_eager": is_eager}
+
+
+def inventory_capture(csv_path: Path, reg_by_path: dict) -> tuple[str, dict | None]:
+    """Bucket a capture as registered, eager-excluded, or held-out before topology scoring.
+
+    Registered paths are identified from cases.json and never parsed for family/TP.
+    Eager captures are identified even when family is unknown.  Only remaining
+    held-out captures require a recognized family and TP token.
+    """
+    if csv_path in reg_by_path:
+        return "registered", None
+    traits = parse_capture_traits(csv_path)
+    if traits["is_eager"]:
+        return "eager", traits
+    return "heldout", traits
 
 
 def _client_evidence(meta: dict, traits: dict) -> dict | None:
@@ -750,15 +768,16 @@ def main(argv: list[str] | None = None) -> int:
 
     eager_excluded, heldout_tasks, registered_in_dsh = [], [], []
     for csv_path in all_dsh_csvs:
-        traits = parse_capture_traits(csv_path)
-        if traits["is_eager"]:
-            eager_excluded.append({"path": str(csv_path), "traits": traits, "reason": "decode_eager_excluded"})
-        elif csv_path in reg_by_path:
+        bucket, traits = inventory_capture(csv_path, reg_by_path)
+        if bucket == "registered":
             registered_in_dsh.append(str(csv_path))
-        else:
-            tpl_name, tpl, seg_opts, cross_tp = resolve_template(traits)
-            tpl_sig = sha256(json.dumps(tpl, sort_keys=True).encode("utf-8")).hexdigest()[:16] if tpl else "unsupported"
-            heldout_tasks.append((csv_path, traits, tpl_name, tpl, seg_opts, cross_tp, tpl_sig))
+            continue
+        if bucket == "eager":
+            eager_excluded.append({"path": str(csv_path), "traits": traits, "reason": "decode_eager_excluded"})
+            continue
+        tpl_name, tpl, seg_opts, cross_tp = resolve_template(traits)
+        tpl_sig = sha256(json.dumps(tpl, sort_keys=True).encode("utf-8")).hexdigest()[:16] if tpl else "unsupported"
+        heldout_tasks.append((csv_path, traits, tpl_name, tpl, seg_opts, cross_tp, tpl_sig))
 
     print(f"Inventory: total_dsh={len(all_dsh_csvs)} | registered={len(registered_in_dsh)} "
           f"| eager_excluded={len(eager_excluded)} | heldout={len(heldout_tasks)}", flush=True)
