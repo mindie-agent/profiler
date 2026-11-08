@@ -202,8 +202,8 @@ _CASE_LAYERS: dict[str, int] = {}
 _COMPILED_MODELS: dict[tuple[Any, ...], Any] = {}
 _AGG_CACHE: dict[tuple[Any, ...], Any] = {}
 def _raw_case(spec: CellSpec) -> dict[str, Any]:
-    raw = json.loads(spec.model_case.read_text()) if spec.model_case is not None and spec.model_case.exists() else {}
-    if 'a5' in spec.dataset.lower() and any(t in str(spec.model_case or '').lower() for t in ('a3', 'v4pro', 'v4f')): raw['machine'] = json.loads((CASES_DIR / 'decode-a5_v41_fp8_tp1_dp8_ep8_c4_p2k.json').read_text())['machine']
+    raw = json.loads(spec.model_case.read_text(encoding='utf-8')) if spec.model_case is not None and spec.model_case.exists() else {}
+    if 'a5' in spec.dataset.lower() and any(t in str(spec.model_case or '').lower() for t in ('a3', 'v4pro', 'v4f')): raw['machine'] = json.loads((CASES_DIR / 'decode-a5_v41_fp8_tp1_dp8_ep8_c4_p2k.json').read_text(encoding='utf-8'))['machine']
     if 'GLM-5.1' in spec.model_label or 'GLM-5.3/' in spec.model_label:
         quant = dict(raw.get('model', {}).get('quant', {}))
         if 'W4A4' in spec.model_label: quant.update({'weight_format': 'fp4_e2m1', 'expert_weight_format': 'fp4_e2m1'})
@@ -262,7 +262,7 @@ def measured_subgraph_us(trace: KernelTrace, family: str) -> float:
     if family == 'moe' and trace.by_class.get('moe_grouped', 0.0) > 0.0 and not any(('allreduce' in k.lower() for k in trace.by_name)): return sum((trace.by_class.get(k, 0.0) for k in ('moe_grouped', 'moe_router', 'collective', 'activation')))
     return sum((us for name, us in trace.by_name.items() if _has(name, tokens)))
 def _load_json(path: Path) -> Any:
-    try: return json.loads(path.read_text())
+    try: return json.loads(path.read_text(encoding='utf-8'))
     except TimeoutError: raise
     except (OSError, ValueError): return None
 def _seconds(raw: Mapping[str, Any], *keys: str) -> float | None:
@@ -471,7 +471,7 @@ def load_historical_inventory() -> list[dict[str, Any]]:
     def add(kind: str, path: str, exists: bool) -> None:
         if path and path not in seen: seen.add(path); entries.append({'kind': kind, 'path': path, 'exists': exists})
     for profile in sorted(PROFILES_DIR.glob('*.json')):
-        try: data = json.loads(profile.read_text())
+        try: data = json.loads(profile.read_text(encoding='utf-8'))
         except TimeoutError: raise
         except (OSError, ValueError): continue
         for section in ('training_sources', 'validation_sources'):
@@ -479,7 +479,7 @@ def load_historical_inventory() -> list[dict[str, Any]]:
                 path = str(item.get('path') or ''); add('profile_source', path, Path(path).exists())
     for fixture in sorted(FIXTURES_DIR.rglob('kernel_details*.csv*')): add('fixture', str(fixture), True)
     if CASES_REGISTRY.exists():
-        try: registry = json.loads(CASES_REGISTRY.read_text())
+        try: registry = json.loads(CASES_REGISTRY.read_text(encoding='utf-8'))
         except TimeoutError: raise
         except (OSError, ValueError): registry = {}
         for case in registry.get('cases', ()):
@@ -539,7 +539,8 @@ def _aggregate(unique: Mapping[str, Any], counts: Mapping[str, int], geometry: A
         count, kind = counts[fingerprint], compiled.instance.kind
         if (kind == 'V0' and getattr(geometry, 'media_tokens', 0) == 0) or (kind == 'D0' and not include_draft): continue
         g_use = _selected_geometry(geometry) if kind == 'O0' else geometry; evaluation = compiled.evaluate(g_use, state)
-        fusions = tuple(c.name for c in compiled.instance.template.fusions); serial = evaluate_serial_split(compiled, g_use, state, fusion=fusions) if fusions else evaluation
+        g_for = (lambda op, g=geometry, s=g_use: g if op.name == 'final_norm' and getattr(features, 'final_norm_scope', 'selected') == 'all' else s) if kind == 'O0' else None
+        fusions = tuple(c.name for c in compiled.instance.template.fusions); serial = evaluate_serial_split(compiled, g_use, state, geometry_for=g_for, fusion=fusions) if (fusions or g_for) else evaluation
         by_kind[kind].append((compiled, serial, count)); body += count * float(serial.total_ms)
         for cost in evaluation.operators:
             raw_mech, raw_fam = operator_mechanism(cost, evaluation.kind), subgraph_family(evaluation.kind)
@@ -550,19 +551,19 @@ def _aggregate(unique: Mapping[str, Any], counts: Mapping[str, int], geometry: A
                 subgraphs[family] += row.total_ms
     if features is not None and supply is not None:
         if getattr(features, 'multistream_shared_expert', False) and by_kind['F3'] and by_kind['F4']:
-            sh = [(e, c) for comp, e, c in by_kind['F4'] if str(dict(comp.instance.metadata).get('role', '')) != 'join']
-            rt = [(e, c) for k in ('F2', 'F3') for _, e, c in by_kind[k]]
-            if sh and rt:
-                n = min(c for _, c in sh)
-                r_st, r_ms = [s for e, _ in rt for s in _stages_of(_ops_of(e))], sum(float(e.total_ms) for e, _ in rt)
-                s_st, s_ms = [s for e, _ in sh for s in _stages_of(_ops_of(e))], sum(float(e.total_ms) for e, _ in sh)
-                body += n * (float(contention_envelope({'routed': r_st, 'shared': s_st}, supply).makespan_ms) - (r_ms + s_ms))
+            sh = [e for comp, e, _ in by_kind['F4'] if str(dict(comp.instance.metadata).get('role', '')) != 'join']
+            dp = [e for comp, e, _ in by_kind['F2'] if 'combine' not in str(dict(comp.instance.metadata).get('role', ''))]
+            cb = [e for comp, e, _ in by_kind['F2'] if 'combine' in str(dict(comp.instance.metadata).get('role', ''))]
+            s_st, s_ms = [s for e in sh for s in _stages_of(_ops_of(e))], sum(float(e.total_ms) for e in sh)
+            for _, e3, c3 in by_kind['F3']:
+                rt = dp + [e3] + cb; r_st, r_ms = [s for e in rt for s in _stages_of(_ops_of(e))], sum(float(e.total_ms) for e in rt)
+                if sh: body += c3 * (float(contention_envelope({'routed': r_st, 'shared': s_st}, supply).makespan_ms) - (r_ms + s_ms))
         for flag, kind in (('multistream_kda_proj', 'A3'), ('multistream_kda_proj', 'A4'), ('multistream_window_compressed', 'A2')):
             if getattr(features, flag, False) and by_kind[kind]:
                 for comp, ev, c in by_kind[kind]: body += c * float(evaluate_serial_split(comp, geometry, state).total_ms - ev.total_ms)
         if getattr(features, 'multistream_attention_indexer', False) and by_kind['A1'] and (by_kind['I0'] or by_kind['I1']):
             pro_names = {'q_down', 'q_norm', 'q_up', 'q_direct', 'kv_down', 'kv_norm', 'rotary', 'kv_store', 'fused:mla_prolog'}
-            (_, ea, ca), idx_evs = by_kind['A1'][0], [e for k in ('I0', 'I1') for _, e, _ in by_kind[k]]
+            (_, ea, _), ca, idx_evs = by_kind['A1'][0], sum(c for _, _, c in by_kind['A1']), [by_kind[k][0][1] for k in ('I0', 'I1') if by_kind[k]]
             pro = [op for op in _ops_of(ea) if op.name in pro_names]
             if pro and idx_evs:
                 a_ms, i_ms = sum(float(op.duration_ms) for op in pro), sum(float(e.total_ms) for e in idx_evs)

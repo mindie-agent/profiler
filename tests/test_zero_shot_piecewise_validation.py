@@ -110,14 +110,14 @@ def fake_prediction(row=None):
 
 def test_files_stay_below_eight_hundred_lines_and_declare_header_contract():
     for path in (VALIDATOR, TESTS):
-        lines = path.read_text().splitlines()
+        lines = path.read_text(encoding="utf-8").splitlines()
         assert len(lines) < 800, (path.name, len(lines))
         header = "\n".join(lines[:30])
         for marker in ("[Role]", "[Invariants]", "[Timeouts & Locks]", "[Side-Effect Policy]"):
             assert marker in header, (path.name, marker)
 
 def test_validator_source_has_no_empirical_lookup_import_or_call():
-    tree = ast.parse(VALIDATOR.read_text())
+    tree = ast.parse(VALIDATOR.read_text(encoding="utf-8"))
     modules = []
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
