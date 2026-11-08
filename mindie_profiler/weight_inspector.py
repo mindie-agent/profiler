@@ -17,9 +17,10 @@ The manifest is consumed by the P3 weight source in ``memory_profile.py``.
   ``mtp_other``) have no shard rule; they raise instead of guessing.
   Projection names match dotted path segments (``q_proj``, not
   ``not_q_proj``), including vision.  Known Qwen / MLA / ViT names
-  (``in_proj_a`` / ``in_proj_b``, ``norm1`` / ``norm2``, ``q_a_layernorm``,
-  ``kv_a_proj_with_mqa``) keep explicit shard rules; other wide leftovers
-  still raise.
+  (``in_proj_a`` / ``in_proj_b`` / ``in_proj_qkvz`` / ``in_proj_ba``,
+  ``norm1`` / ``norm2``, ``fc1`` / ``fc2``, ``merger.mlp`` / ``ln_q``,
+  ``q_a_layernorm``, ``kv_a_proj_with_mqa``) keep explicit shard rules;
+  other wide leftovers still raise.
 
 [Timeouts & Locks]
 No subprocess, network, lock, sleep, or unbounded read.  At most
@@ -143,8 +144,12 @@ _ROW_FFN_PARTS = ("down_proj", "w2")
 _LINEAR_ATTN_REPLICATED_PARTS = ("a_log", "dt_bias")
 _ATTN_NORM_PARTS = ("q_norm", "k_norm", "q_a_layernorm")
 _MLA_COMPRESS_PARTS = ("kv_a_layernorm", "kv_b_proj", "kv_a_proj", "kv_a_proj_with_mqa")
-_LINEAR_ATTN_IN_PROJ_PARTS = ("in_proj_qkv", "in_proj_a", "in_proj_b")
-_EXACT_NORM_PARTS = frozenset({"norm", "layernorm", "layer_norm", "rmsnorm"})
+_LINEAR_ATTN_IN_PROJ_PARTS = (
+    "in_proj_qkv", "in_proj_qkvz", "in_proj_a", "in_proj_b", "in_proj_ba",
+)
+_VISION_COL_PARTS = ("qkv", "linear_fc1", "fc1", "c_fc", "gate_up") + _COL_FFN_PARTS
+_VISION_ROW_PARTS = ("linear_fc2", "fc2", "c_proj") + _ROW_FFN_PARTS
+_EXACT_NORM_PARTS = frozenset({"norm", "layernorm", "layer_norm", "rmsnorm", "ln_q"})
 
 
 def _name_parts(name: str) -> tuple[str, ...]:
@@ -168,6 +173,16 @@ def _is_norm_segment(part: str) -> bool:
 
 def _has_norm_segment(name: str) -> bool:
     return any(_is_norm_segment(part) for part in _name_parts(name))
+
+
+def _sequential_linear_index(name: str) -> str | None:
+    """Return the nn.Sequential index for ``mlp.N.weight`` / ``mlp.N.bias``."""
+    parts = _name_parts(name)
+    if len(parts) < 3 or parts[-1] not in ("weight", "bias"):
+        return None
+    if parts[-3] == "mlp" and parts[-2].isdigit():
+        return parts[-2]
+    return None
 
 
 def _is_int(value: Any) -> bool:
@@ -428,10 +443,13 @@ def classify_shard_strategy(name: str, category: str) -> str:
         parts = _name_parts(name)
         if _has_norm_segment(name) or _has_part(name, "patch_embed", "pos_embed"):
             return SHARD_REPLICATED
-        if _has_part(name, "qkv", "linear_fc1", "gate_up"):
+        if _has_part(name, *_VISION_COL_PARTS):
             return SHARD_COL_PARALLEL
-        if _has_part(name, "linear_fc2") or _has_part(name, *_ROW_FFN_PARTS):
+        if _has_part(name, *_VISION_ROW_PARTS):
             return SHARD_ROW_PARALLEL
+        seq = _sequential_linear_index(name)
+        if seq is not None:
+            return SHARD_COL_PARALLEL if seq == "0" else SHARD_ROW_PARALLEL
         if "proj" in parts and parts[-1] in ("weight", "bias"):
             return SHARD_ROW_PARALLEL
         raise UnresolvedShardError([name], categories={name: category})

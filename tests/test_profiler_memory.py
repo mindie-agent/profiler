@@ -322,6 +322,53 @@ def test_deepseek_mla_known_tensors_are_not_fatal_unresolved(tmp_path: Path):
     assert result["per_device_bytes"] == 24.0
 
 
+def test_qwen3_next_fused_in_proj_and_vision_mlp_merger_keep_explicit_shards(tmp_path: Path):
+    qkvz = "model.layers.0.linear_attn.in_proj_qkvz.weight"
+    ba = "model.layers.0.linear_attn.in_proj_ba.weight"
+    fc1 = "visual.blocks.0.mlp.fc1.weight"
+    fc2 = "visual.blocks.0.mlp.fc2.weight"
+    gate = "visual.blocks.0.mlp.gate_proj.weight"
+    merger0 = "visual.merger.mlp.0.weight"
+    merger2 = "visual.merger.mlp.2.weight"
+    ln_q = "visual.merger.ln_q.weight"
+    fake_fc1 = "visual.encoder.not_fc1.weight"
+    assert classify_tensor(qkvz) == "linear_attn_qkv"
+    assert classify_shard_strategy(qkvz, "linear_attn_qkv") == "col_parallel"
+    assert classify_tensor(ba) == "linear_attn_qkv"
+    assert classify_shard_strategy(ba, "linear_attn_qkv") == "col_parallel"
+    assert classify_shard_strategy(fc1, "vision") == "col_parallel"
+    assert classify_shard_strategy(fc2, "vision") == "row_parallel"
+    assert classify_shard_strategy(gate, "vision") == "col_parallel"
+    assert classify_shard_strategy(merger0, "vision") == "col_parallel"
+    assert classify_shard_strategy(merger2, "vision") == "row_parallel"
+    assert classify_shard_strategy(ln_q, "vision") == "replicated"
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(fake_fc1, "vision")
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [
+        (qkvz, "F16", [4, 2], 16),
+        (ba, "F16", [4, 2], 16),
+        (fc1, "F16", [4, 2], 16),
+        (fc2, "F16", [4, 2], 16),
+        (merger0, "F16", [4, 2], 16),
+        (merger2, "F16", [4, 2], 16),
+        (ln_q, "F16", [8], 16),
+    ])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "ok"
+    # six col/row 16/4 + merger ln_q 16 replicated
+    assert result["per_device_bytes"] == 40.0
+
+    forged_dir = tmp_path / "forged"
+    forged_dir.mkdir()
+    _write_safetensors(forged_dir / "model.safetensors", [(fake_fc1, "F16", [8], 16)])
+    forged = inspect_weights(forged_dir, tp=4)
+    assert forged["status"] == "error"
+    assert "per_device_bytes" not in forged
+    assert forged["unresolved_shard_tensors"] == [fake_fc1]
+
+
 def test_p0_p4_priority_containers_overlap_and_residual_target():
     result = attribute_memory(_manifest_full(), residual_target_bytes=200 * 1024 * 1024)
     assert result["status"] == "ok"
