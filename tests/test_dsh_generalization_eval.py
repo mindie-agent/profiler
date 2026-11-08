@@ -284,6 +284,20 @@ def test_hardware_uses_real_path_components_not_slash_folding():
     with pytest.raises(ValueError, match="ambiguous hardware"):
         dsh_eval._hardware_from_capture_path("/tmp/a5/other/a3/qwen36_tp4/kernel_details.csv")
 
+    posix_unc_lookalike = (
+        Path("/Volumes/data/mindie-sim-data/a5/heldout_engine_20261030/qwen36_tp4")
+        / r"\\literal"
+        / "kernel_details.csv"
+    )
+    assert r"\\literal" in dsh_eval._path_dir_components(posix_unc_lookalike)
+    assert dsh_eval.parse_capture_traits(posix_unc_lookalike)["hw"] == "a5"
+
+    with pytest.raises(ValueError, match="ambiguous hardware"):
+        dsh_eval._hardware_from_capture_path(
+            "/tmp/a5/captures/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/"
+            "qwen36_tp4/cell/kernel_details.csv"
+        )
+
 
 def test_parse_capture_traits_rejects_unknown_family_missing_tp_and_hardware():
     unknown = Path("/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/mystery_suite/cell_c4/kernel_details.csv")
@@ -345,15 +359,27 @@ def test_parse_capture_traits_reads_path_topology_and_glm_documented_tp16():
         "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261030/"
         "qwen36_eager/cell_c4/kernel_details.csv"
     )
-    with pytest.raises(ValueError, match="missing tp token"):
-        dsh_eval.parse_capture_traits(heldout_eager)
+    eager_traits = dsh_eval.parse_capture_traits(heldout_eager)
+    assert eager_traits["is_eager"] is True
+    assert eager_traits["family"] == "qwen3.6-27b"
+    assert eager_traits["tp"] is None
+    assert eager_traits["hw"] == "a5"
 
     top_level_eager = Path(
         "/Volumes/data/mindie-sim-data/a5/"
         "qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c32_20261030/kernel_details.csv"
     )
+    top_traits = dsh_eval.parse_capture_traits(top_level_eager)
+    assert top_traits["is_eager"] is True
+    assert top_traits["family"] == "qwen3.5-35b-a3b"
+    assert top_traits["tp"] is None
+
+    tp4x = Path(
+        "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261030/"
+        "qwen36_tp4x/cell_c4/kernel_details.csv"
+    )
     with pytest.raises(ValueError, match="missing tp token"):
-        dsh_eval.parse_capture_traits(top_level_eager)
+        dsh_eval.parse_capture_traits(tp4x)
 
 
 def test_extract_or_load_does_not_turn_timeout_or_parse_errors_into_empty_geometry(tmp_path, monkeypatch):

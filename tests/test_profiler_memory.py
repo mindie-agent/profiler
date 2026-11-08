@@ -196,6 +196,47 @@ def test_wide_mtp_attn_does_not_guess_col_parallel_per_device_bytes(tmp_path: Pa
     assert result["unresolved_shard_tensors"] == [rotary]
 
 
+def test_known_qwen_tensors_keep_explicit_shard_rules(tmp_path: Path):
+    q_norm = "model.layers.0.self_attn.q_norm.weight"
+    a_log = "model.layers.0.linear_attn.A_log"
+    mtp_fc = "mtp.fc.weight"
+    assert classify_tensor(q_norm) == "norm"
+    assert classify_shard_strategy(q_norm, "norm") == "replicated"
+    assert classify_tensor(a_log) == "linear_attn_param"
+    assert classify_shard_strategy(a_log, "linear_attn_param") == "replicated"
+    assert classify_tensor(mtp_fc) == "mtp_fc"
+    assert classify_shard_strategy(mtp_fc, "mtp_fc") == "col_parallel"
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [
+        (q_norm, "F16", [8], 16),
+        (a_log, "F32", [4], 16),
+        (mtp_fc, "F16", [4, 2], 16),
+    ])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "ok"
+    # q_norm 16 replicated + A_log 16 replicated + mtp.fc 16/4 col
+    assert result["per_device_bytes"] == 36.0
+
+
+def test_projection_name_boundaries_do_not_forge_per_device_bytes(tmp_path: Path):
+    fake = "model.layers.0.self_attn.not_q_proj.weight"
+    assert classify_tensor(fake) == "attn_other"
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(fake, "attn_q")
+    assert classify_tensor("model.layers.0.mlp.not_gate_proj.weight") == "ffn"
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy("model.layers.0.mlp.not_gate_proj.weight", "ffn")
+    assert classify_tensor("model.layers.0.mtp.self_attn.not_q_proj.weight") == "mtp_other"
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [(fake, "F16", [8], 16)])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "error"
+    assert "per_device_bytes" not in result
+    assert result["unresolved_shard_tensors"] == [fake]
+
+
 def test_p0_p4_priority_containers_overlap_and_residual_target():
     result = attribute_memory(_manifest_full(), residual_target_bytes=200 * 1024 * 1024)
     assert result["status"] == "ok"

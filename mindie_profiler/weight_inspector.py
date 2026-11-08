@@ -14,10 +14,11 @@ The manifest is consumed by the P3 weight source in ``memory_profile.py``.
 - Per-device sizes are rule-based sharding inference for col/row/expert
   parallel tensors.  They are labelled as inference, not hardware measurement.
 - Catch-all categories (``other`` / ``attn_other`` / ``moe_other`` /
-  ``mtp_other`` / ``linear_attn_param``) have no shard rule; they raise
-  instead of guessing.  Wide leftovers in ``mtp_attn`` / ``mtp_fc`` /
-  ``ffn`` / ``vision`` / ``moe_shared_expert`` / ``mtp_shared_expert``
-  likewise require an explicit proj token.
+  ``mtp_other``) have no shard rule; they raise instead of guessing.
+  Projection names match dotted path segments (``q_proj``, not
+  ``not_q_proj``).  Known Qwen names ``q_norm`` / ``k_norm`` / ``A_log`` /
+  ``dt_bias`` / ``mtp.fc.weight`` keep explicit shard rules; other wide
+  leftovers still raise.
 
 [Timeouts & Locks]
 No subprocess, network, lock, sleep, or unbounded read.  At most
@@ -130,8 +131,25 @@ class UnresolvedShardError(ValueError):
 
 
 _UNRESOLVED_SHARD_CATEGORIES = frozenset({
-    "other", "attn_other", "moe_other", "mtp_other", "linear_attn_param",
+    "other", "attn_other", "moe_other", "mtp_other",
 })
+_Q_PROJ_PARTS = ("q_proj", "q_a_proj", "q_b_proj")
+_K_PROJ_PARTS = ("k_proj", "k_a_proj", "k_b_proj")
+_V_PROJ_PARTS = ("v_proj", "v_a_proj", "v_b_proj")
+_O_PROJ_PARTS = ("o_proj", "out_proj")
+_COL_FFN_PARTS = ("gate_proj", "up_proj", "w1", "w3")
+_ROW_FFN_PARTS = ("down_proj", "w2")
+_LINEAR_ATTN_REPLICATED_PARTS = ("a_log", "dt_bias")
+_ATTN_NORM_PARTS = ("q_norm", "k_norm")
+
+
+def _name_parts(name: str) -> tuple[str, ...]:
+    return tuple(part for part in name.lower().split(".") if part)
+
+
+def _has_part(name: str, *tokens: str) -> bool:
+    parts = set(_name_parts(name))
+    return any(token in parts for token in tokens)
 
 
 def _is_int(value: Any) -> bool:
@@ -286,12 +304,7 @@ def classify_tensor(name: str) -> str:
         if "norm" in lowered:
             return "mtp_norm"
         if ".self_attn." in lowered or ".attention." in lowered:
-            if any(token in lowered for token in (
-                "q_proj", "q_a_proj", "q_b_proj",
-                "k_proj", "k_a_proj", "k_b_proj",
-                "v_proj", "v_a_proj", "v_b_proj",
-                "o_proj", "out_proj", "kv_b_proj",
-            )):
+            if _has_part(name, *_Q_PROJ_PARTS, *_K_PROJ_PARTS, *_V_PROJ_PARTS, *_O_PROJ_PARTS, "kv_b_proj"):
                 return "mtp_attn"
             return "mtp_other"
         if ".fc." in lowered:
@@ -302,26 +315,28 @@ def classify_tensor(name: str) -> str:
     if "lm_head" in lowered:
         return "lm_head"
     if ".linear_attn." in lowered:
-        if "in_proj_qkv" in lowered:
+        if _has_part(name, "in_proj_qkv"):
             return "linear_attn_qkv"
-        if "in_proj_z" in lowered or "out_proj" in lowered:
+        if _has_part(name, "in_proj_z", "out_proj"):
             return "linear_attn_proj"
-        if "conv" in lowered:
+        if _has_part(name, "conv", "conv1d"):
             return "linear_attn_conv"
         return "linear_attn_param"
     if ".self_attn." in lowered or ".attention." in lowered or ".attn." in lowered:
-        if "q_proj" in lowered or "q_a_proj" in lowered or "q_b_proj" in lowered:
+        if _has_part(name, *_Q_PROJ_PARTS):
             return "attn_q"
-        if "k_proj" in lowered or "k_a_proj" in lowered or "k_b_proj" in lowered:
+        if _has_part(name, *_K_PROJ_PARTS):
             return "attn_k"
-        if "v_proj" in lowered or "v_a_proj" in lowered or "v_b_proj" in lowered:
+        if _has_part(name, *_V_PROJ_PARTS):
             return "attn_v"
-        if "o_proj" in lowered or "out_proj" in lowered:
+        if _has_part(name, *_O_PROJ_PARTS):
             return "attn_o"
-        if "conv" in lowered:
+        if _has_part(name, "conv", "conv1d"):
             return "attn_conv"
-        if "kv_a_layernorm" in lowered or "kv_b_proj" in lowered:
+        if _has_part(name, "kv_a_layernorm", "kv_b_proj"):
             return "attn_kv_compress"
+        if _has_part(name, *_ATTN_NORM_PARTS):
+            return "norm"
         return "attn_other"
     if ".mlp." in lowered or ".feed_forward." in lowered or ".ffn." in lowered:
         if "expert" in lowered:
@@ -350,22 +365,44 @@ def classify_shard_strategy(name: str, category: str) -> str:
         return SHARD_REPLICATED
     if category == "moe_expert":
         return SHARD_EXPERT_PARALLEL
-    if category in ("attn_q", "attn_k", "attn_v", "attn_kv_compress"):
+    if category == "attn_q":
+        if not _has_part(name, *_Q_PROJ_PARTS):
+            raise UnresolvedShardError([name], categories={name: category})
+        return SHARD_COL_PARALLEL
+    if category == "attn_k":
+        if not _has_part(name, *_K_PROJ_PARTS):
+            raise UnresolvedShardError([name], categories={name: category})
+        return SHARD_COL_PARALLEL
+    if category == "attn_v":
+        if not _has_part(name, *_V_PROJ_PARTS):
+            raise UnresolvedShardError([name], categories={name: category})
+        return SHARD_COL_PARALLEL
+    if category == "attn_kv_compress":
+        if not _has_part(name, "kv_a_layernorm", "kv_b_proj"):
+            raise UnresolvedShardError([name], categories={name: category})
         return SHARD_COL_PARALLEL
     if category == "attn_o":
+        if not _has_part(name, *_O_PROJ_PARTS):
+            raise UnresolvedShardError([name], categories={name: category})
         return SHARD_ROW_PARALLEL
     if category == "linear_attn_qkv":
         return SHARD_COL_PARALLEL
     if category == "linear_attn_proj":
-        return SHARD_ROW_PARALLEL if "out_proj" in name.lower() else SHARD_COL_PARALLEL
+        return SHARD_ROW_PARALLEL if _has_part(name, "out_proj") else SHARD_COL_PARALLEL
     if category == "linear_attn_conv":
         return SHARD_COL_PARALLEL
+    if category == "linear_attn_param":
+        if _has_part(name, *_LINEAR_ATTN_REPLICATED_PARTS):
+            return SHARD_REPLICATED
+        raise UnresolvedShardError([name], categories={name: category})
     if category in ("ffn", "moe_shared_expert", "mtp_shared_expert", "mtp_fc"):
-        lowered = name.lower()
-        if "gate_proj" in lowered or "up_proj" in lowered or "w1" in lowered or "w3" in lowered:
+        if _has_part(name, *_COL_FFN_PARTS):
             return SHARD_COL_PARALLEL
-        if "down_proj" in lowered or "w2" in lowered:
+        if _has_part(name, *_ROW_FFN_PARTS):
             return SHARD_ROW_PARALLEL
+        parts = _name_parts(name)
+        if category == "mtp_fc" and "fc" in parts and parts[-1] in ("weight", "bias"):
+            return SHARD_COL_PARALLEL
         raise UnresolvedShardError([name], categories={name: category})
     if category in ("embedding", "lm_head"):
         return SHARD_COL_PARALLEL
@@ -383,15 +420,9 @@ def classify_shard_strategy(name: str, category: str) -> str:
     if category in ("mtp_gate", "mtp_norm"):
         return SHARD_REPLICATED
     if category == "mtp_attn":
-        lowered = name.lower()
-        if "o_proj" in lowered or "out_proj" in lowered:
+        if _has_part(name, *_O_PROJ_PARTS):
             return SHARD_ROW_PARALLEL
-        if any(token in lowered for token in (
-            "q_proj", "q_a_proj", "q_b_proj",
-            "k_proj", "k_a_proj", "k_b_proj",
-            "v_proj", "v_a_proj", "v_b_proj",
-            "kv_b_proj",
-        )):
+        if _has_part(name, *_Q_PROJ_PARTS, *_K_PROJ_PARTS, *_V_PROJ_PARTS, "kv_b_proj"):
             return SHARD_COL_PARALLEL
         raise UnresolvedShardError([name], categories={name: category})
     raise UnresolvedShardError([name], categories={name: category})

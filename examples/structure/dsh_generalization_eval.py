@@ -57,7 +57,7 @@ FAMILY_TOKENS = (
     (("kimi_k3_w4a8_4layer", "kimi4"), "kimi-k3-4l"),
 )
 _HW_COMPONENTS = frozenset({"a3", "a5"})
-_TP_TOKEN = re.compile(r"(?<![a-z0-9])tp(\d+)")
+_TP_TOKEN = re.compile(r"(?<![a-z0-9])tp(\d+)(?![a-z0-9])")
 
 
 def _match_family(text: str) -> str | None:
@@ -72,14 +72,14 @@ def _looks_like_windows_path(text: str) -> bool:
     return os.name == "nt"
 
 
-def _clean_path_components(parts: tuple[str, ...]) -> tuple[str, ...]:
+def _clean_path_components(parts: tuple[str, ...], *, drop_unc_root: bool = False) -> tuple[str, ...]:
     cleaned: list[str] = []
     for part in parts:
         if part in ("/", "\\", ""):
             continue
         if len(part) == 2 and part[1] == ":":
             continue
-        if part.startswith("\\\\"):
+        if drop_unc_root and part.startswith("\\\\"):
             continue
         cleaned.append(part)
     return tuple(cleaned)
@@ -93,25 +93,31 @@ def _path_dir_components(csv_path: Path | str) -> tuple[str, ...]:
     not a hardware token.
     """
     if isinstance(csv_path, str):
-        flavor = PureWindowsPath if _looks_like_windows_path(csv_path) else PurePosixPath
-        parts = flavor(csv_path).parts
-    else:
-        parts = Path(csv_path).parts
-    return _clean_path_components(parts)
+        windows = _looks_like_windows_path(csv_path)
+        flavor = PureWindowsPath if windows else PurePosixPath
+        return _clean_path_components(flavor(csv_path).parts, drop_unc_root=windows)
+    return _clean_path_components(Path(csv_path).parts, drop_unc_root=os.name == "nt")
 
 
 def _hardware_from_capture_path(csv_path: Path | str) -> str:
     """Identify a3/a5 from real path components, never from slash-folded substrings."""
+    if isinstance(csv_path, Path):
+        try:
+            rel = csv_path.relative_to(DATA_ROOT)
+        except ValueError:
+            rel = None
+        if rel is not None:
+            if not rel.parts or rel.parts[0] not in _HW_COMPONENTS:
+                raise ValueError(f"unrecognized hardware in capture path: {csv_path}")
+            return rel.parts[0]
     components = _path_dir_components(csv_path)
     root = _clean_path_components(DATA_ROOT.parts)
     n = len(root)
-    if n and n < len(components):
-        for index in range(len(components) - n):
-            if components[index:index + n] == root:
-                child = components[index + n]
-                if child in _HW_COMPONENTS:
-                    return child
-                raise ValueError(f"unrecognized hardware in capture path: {csv_path}")
+    if n and len(components) > n and components[:n] == root:
+        child = components[n]
+        if child in _HW_COMPONENTS:
+            return child
+        raise ValueError(f"unrecognized hardware in capture path: {csv_path}")
     found = [part for part in components if part in _HW_COMPONENTS]
     if len(found) == 1:
         return found[0]
@@ -149,6 +155,8 @@ def parse_capture_traits(csv_path: Path) -> dict:
         tp = int(tp_match.group(1))
     elif family == "glm-5.3-flash" and hw == "a3" and _TP_TOKEN.search(low) is None:
         tp, ep = 16, 16
+    elif is_eager:
+        tp = None
     else:
         raise ValueError(f"missing tp token in capture path: {csv_path}")
 
