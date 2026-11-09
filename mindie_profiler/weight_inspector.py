@@ -19,9 +19,9 @@ The manifest is consumed by the P3 weight source in ``memory_profile.py``.
   ``not_q_proj``), including vision.  Known Qwen / MLA / ViT names
   (``in_proj_a`` / ``in_proj_b`` / ``in_proj_qkvz`` / ``in_proj_ba``,
   ``norm1`` / ``norm2``, ``fc1`` / ``fc2``, ``merger.mlp`` / ``ln_q``,
-  ``q_a_layernorm``, ``kv_a_proj_with_mqa``, ``shared_expert_gate``, dense
-  MTP / CLIP / LLaVA / ViT ``patch_embeddings`` / ``layernorm_before`` /
-  ``layernorm_after``) keep explicit shard rules; other wide leftovers still raise.
+  ``q_a_layernorm``, ``kv_a_proj_with_mqa``, ``shared_expert_gate``,
+  CLIP / LLaVA / ViT ``query`` / ``dense`` / ``cls_token`` /
+  ``position_embeddings``) keep explicit shard rules; other leftovers still raise.
 
 [Timeouts & Locks]
 No subprocess, network, lock, sleep, or unbounded read.  At most
@@ -149,14 +149,14 @@ _LINEAR_ATTN_IN_PROJ_PARTS = (
     "in_proj_qkv", "in_proj_qkvz", "in_proj_a", "in_proj_b", "in_proj_ba",
 )
 _VISION_COL_PARTS = (
-    "qkv", "linear_fc1", "fc1", "c_fc", "gate_up", "linear_1",
+    "qkv", "query", "key", "value", "linear_fc1", "fc1", "c_fc", "gate_up", "linear_1",
 ) + _COL_FFN_PARTS + _Q_PROJ_PARTS + _K_PROJ_PARTS + _V_PROJ_PARTS
 _VISION_ROW_PARTS = (
     "linear_fc2", "fc2", "c_proj", "linear_2",
 ) + _ROW_FFN_PARTS + _O_PROJ_PARTS
 _VISION_REPLICATED_PARTS = (
-    "patch_embed", "pos_embed", "class_embedding",
-    "patch_embedding", "patch_embeddings", "position_embedding",
+    "patch_embed", "pos_embed", "class_embedding", "cls_token",
+    "patch_embedding", "patch_embeddings", "position_embedding", "position_embeddings",
 )
 _EXACT_NORM_PARTS = frozenset({
     "norm", "layernorm", "layer_norm", "rmsnorm", "ln_q",
@@ -477,6 +477,11 @@ def classify_shard_strategy(name: str, category: str) -> str:
             return SHARD_COL_PARALLEL
         if _has_part(name, *_VISION_ROW_PARTS):
             return SHARD_ROW_PARALLEL
+        if _has_part(name, "dense"):
+            return (
+                SHARD_COL_PARALLEL if _has_part(name, "intermediate")
+                else SHARD_ROW_PARALLEL
+            )
         seq = _sequential_linear_index(name)
         if seq is not None:
             return SHARD_COL_PARALLEL if seq == "0" else SHARD_ROW_PARALLEL

@@ -365,7 +365,7 @@ def test_standard_vit_patch_embeddings_and_layernorm_keep_explicit_shards(tmp_pa
     ln_before_b = "vit.encoder.layer.0.layernorm_before.bias"
     ln_after_w = "vit.encoder.layer.0.layernorm_after.weight"
     ln_after_b = "vit.encoder.layer.0.layernorm_after.bias"
-    qkv = "vit.encoder.layer.0.attn.qkv.weight"
+    query = "vit.encoder.layer.0.attention.attention.query.weight"
     fake = "vit.encoder.not_patch_embeddings.weight"
     assert classify_tensor(patch_w) == "vision"
     assert classify_shard_strategy(patch_w, "vision") == "replicated"
@@ -374,7 +374,7 @@ def test_standard_vit_patch_embeddings_and_layernorm_keep_explicit_shards(tmp_pa
     assert classify_shard_strategy(ln_before_b, "vision") == "replicated"
     assert classify_shard_strategy(ln_after_w, "vision") == "replicated"
     assert classify_shard_strategy(ln_after_b, "vision") == "replicated"
-    assert classify_shard_strategy(qkv, "vision") == "col_parallel"
+    assert classify_shard_strategy(query, "vision") == "col_parallel"
     with pytest.raises(UnresolvedShardError):
         classify_shard_strategy(fake, "vision")
 
@@ -386,13 +386,60 @@ def test_standard_vit_patch_embeddings_and_layernorm_keep_explicit_shards(tmp_pa
         (ln_before_b, "F16", [8], 16),
         (ln_after_w, "F16", [8], 16),
         (ln_after_b, "F16", [8], 16),
-        (qkv, "F16", [4, 2], 16),
+        (query, "F16", [4, 2], 16),
     ])
     result = inspect_weights(tmp_path, tp=4)
     assert result["status"] == "ok"
     assert "per_device_bytes" in result
-    # six ViT embed/norm tensors 16 each replicated + attn qkv 16/4
+    # six ViT embed/norm tensors 16 each replicated + attention.query 16/4
     assert result["per_device_bytes"] == 100.0
+
+
+def test_standard_vit_attention_ffn_and_tokens_keep_explicit_shards(tmp_path: Path):
+    query = "vit.encoder.layer.0.attention.attention.query.weight"
+    key = "vit.encoder.layer.0.attention.attention.key.weight"
+    value = "vit.encoder.layer.0.attention.attention.value.weight"
+    attn_dense = "vit.encoder.layer.0.attention.output.dense.weight"
+    ffn_up = "vit.encoder.layer.0.intermediate.dense.weight"
+    ffn_down = "vit.encoder.layer.0.output.dense.weight"
+    cls_token = "vit.embeddings.cls_token"
+    position = "vit.embeddings.position_embeddings"
+    fake_query = "vit.encoder.not_query.weight"
+    fake_dense = "vit.encoder.not_dense.weight"
+    fake_cls = "vit.embeddings.not_cls_token"
+    assert classify_tensor(query) == "vision"
+    assert classify_shard_strategy(query, "vision") == "col_parallel"
+    assert classify_shard_strategy(key, "vision") == "col_parallel"
+    assert classify_shard_strategy(value, "vision") == "col_parallel"
+    assert classify_shard_strategy(attn_dense, "vision") == "row_parallel"
+    assert classify_shard_strategy(ffn_up, "vision") == "col_parallel"
+    assert classify_shard_strategy(ffn_down, "vision") == "row_parallel"
+    assert classify_shard_strategy(cls_token, "vision") == "replicated"
+    assert classify_shard_strategy(position, "vision") == "replicated"
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(fake_query, "vision")
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(fake_dense, "vision")
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(fake_cls, "vision")
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [
+        (cls_token, "F16", [8], 16),
+        (position, "F16", [8], 16),
+        (query, "F16", [4, 2], 16),
+        (key, "F16", [4, 2], 16),
+        (value, "F16", [4, 2], 16),
+        (attn_dense, "F16", [4, 2], 16),
+        (ffn_up, "F16", [4, 2], 16),
+        (ffn_down, "F16", [4, 2], 16),
+    ])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "ok"
+    assert "per_device_bytes" in result
+    # cls_token + position_embeddings 16 each replicated;
+    # query/key/value/intermediate.dense col 16/4; attention/FFN dense row 16/4
+    assert result["per_device_bytes"] == 56.0
 
 
 def test_llava_multi_modal_projector_linear_keeps_explicit_shards(tmp_path: Path):
