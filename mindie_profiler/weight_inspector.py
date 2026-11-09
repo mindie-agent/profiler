@@ -20,7 +20,7 @@ The manifest is consumed by the P3 weight source in ``memory_profile.py``.
   (``in_proj_a`` / ``in_proj_b`` / ``in_proj_qkvz`` / ``in_proj_ba``,
   ``norm1`` / ``norm2``, ``fc1`` / ``fc2``, ``merger.mlp`` / ``ln_q``,
   ``q_a_layernorm``, ``kv_a_proj_with_mqa``, ``shared_expert_gate``,
-  dense MTP FFN, CLIP ``q_proj`` / ``out_proj`` / ``layer_norm1``)
+  dense MTP FFN, CLIP ``q_proj`` / embeddings / ``pre_layrnorm``)
   keep explicit shard rules; other wide leftovers still raise.
 
 [Timeouts & Locks]
@@ -154,7 +154,13 @@ _VISION_COL_PARTS = (
 _VISION_ROW_PARTS = (
     "linear_fc2", "fc2", "c_proj",
 ) + _ROW_FFN_PARTS + _O_PROJ_PARTS
-_EXACT_NORM_PARTS = frozenset({"norm", "layernorm", "layer_norm", "rmsnorm", "ln_q"})
+_VISION_REPLICATED_PARTS = (
+    "patch_embed", "pos_embed", "class_embedding", "patch_embedding", "position_embedding",
+)
+_EXACT_NORM_PARTS = frozenset({
+    "norm", "layernorm", "layer_norm", "rmsnorm", "ln_q",
+    "pre_layrnorm", "post_layrnorm", "pre_layernorm", "post_layernorm",
+})
 
 
 def _name_parts(name: str) -> tuple[str, ...]:
@@ -458,7 +464,7 @@ def classify_shard_strategy(name: str, category: str) -> str:
         return SHARD_COL_PARALLEL
     if category == "vision":
         parts = _name_parts(name)
-        if _has_norm_segment(name) or _has_part(name, "patch_embed", "pos_embed"):
+        if _has_norm_segment(name) or _has_part(name, *_VISION_REPLICATED_PARTS):
             return SHARD_REPLICATED
         if _has_part(name, *_VISION_COL_PARTS):
             return SHARD_COL_PARALLEL

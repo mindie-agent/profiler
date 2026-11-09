@@ -326,6 +326,37 @@ def test_clip_vision_qkv_out_proj_and_layer_norm_keep_explicit_shards(tmp_path: 
     assert result["per_device_bytes"] == 48.0
 
 
+def test_clip_vision_embeddings_and_pre_post_layernorm_keep_explicit_shards(tmp_path: Path):
+    cls = "vision_model.embeddings.class_embedding"
+    patch = "vision_model.embeddings.patch_embedding.weight"
+    pos = "vision_model.embeddings.position_embedding.weight"
+    pre = "vision_model.pre_layrnorm.weight"
+    post = "vision_model.post_layernorm.weight"
+    fake = "visual.encoder.not_class_embedding.weight"
+    assert classify_tensor(cls) == "vision"
+    assert classify_shard_strategy(cls, "vision") == "replicated"
+    assert classify_shard_strategy(patch, "vision") == "replicated"
+    assert classify_shard_strategy(pos, "vision") == "replicated"
+    assert classify_shard_strategy(pre, "vision") == "replicated"
+    assert classify_shard_strategy(post, "vision") == "replicated"
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(fake, "vision")
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [
+        (cls, "F16", [8], 16),
+        (patch, "F16", [8], 16),
+        (pos, "F16", [8], 16),
+        (pre, "F16", [8], 16),
+        (post, "F16", [8], 16),
+    ])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "ok"
+    assert "per_device_bytes" in result
+    # five CLIP embedding/norm tensors 16 each replicated
+    assert result["per_device_bytes"] == 80.0
+
+
 def test_deepseek_mla_known_tensors_are_not_fatal_unresolved(tmp_path: Path):
     q_a_ln = "model.layers.0.self_attn.q_a_layernorm.weight"
     kv_a_mqa = "model.layers.0.self_attn.kv_a_proj_with_mqa.weight"
