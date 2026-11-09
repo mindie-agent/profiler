@@ -61,6 +61,15 @@ _HW_COMPONENTS = frozenset({"a3", "a5"})
 _TP_TOKEN = re.compile(r"(?<![a-z0-9])tp(\d+)(?=$|[^a-z0-9]|dp|ep)")
 
 
+def _malformed_tp_token(text: str) -> bool:
+    """True when a ``tp<digits>`` token exists but is not a legal TP / ``tp4dp4`` form."""
+    for match in re.finditer(r"(?<![a-z0-9])tp\d+", text):
+        rest = text[match.end():]
+        if rest and rest[0].isalnum() and not rest.startswith(("dp", "ep")):
+            return True
+    return False
+
+
 def _match_family(text: str) -> str | None:
     return next((fam for tokens, fam in FAMILY_TOKENS if any(tok in text for tok in tokens)), None)
 
@@ -155,6 +164,8 @@ def parse_capture_traits(csv_path: Path) -> dict:
 
     dp = int(m.group(1)) if (m := re.search(r"dp(\d+)", cell_low) or re.search(r"dp(\d+)", suite_low)) else 1
     ep = int(m.group(1)) if (m := re.search(r"ep(\d+)", cell_low) or re.search(r"ep(\d+)", suite_low)) else 1
+    if _malformed_tp_token(cell_low) or _malformed_tp_token(suite_low):
+        raise ValueError(f"missing tp token in capture path: {csv_path}")
     tp_match = _TP_TOKEN.search(cell_low) or _TP_TOKEN.search(suite_low)
     if tp_match:
         tp = int(tp_match.group(1))

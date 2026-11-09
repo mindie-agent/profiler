@@ -20,7 +20,7 @@ The manifest is consumed by the P3 weight source in ``memory_profile.py``.
   (``in_proj_a`` / ``in_proj_b`` / ``in_proj_qkvz`` / ``in_proj_ba``,
   ``norm1`` / ``norm2``, ``fc1`` / ``fc2``, ``merger.mlp`` / ``ln_q``,
   ``q_a_layernorm``, ``kv_a_proj_with_mqa``, ``shared_expert_gate``,
-  dense MTP FFN, CLIP ``q_proj`` / embeddings / ``pre_layrnorm``)
+  dense MTP FFN, CLIP embeddings, LLaVA ``linear_1`` / ``linear_2``)
   keep explicit shard rules; other wide leftovers still raise.
 
 [Timeouts & Locks]
@@ -142,17 +142,17 @@ _V_PROJ_PARTS = ("v_proj", "v_a_proj", "v_b_proj")
 _O_PROJ_PARTS = ("o_proj", "out_proj")
 _COL_FFN_PARTS = ("gate_proj", "up_proj", "w1", "w3")
 _ROW_FFN_PARTS = ("down_proj", "w2")
-_LINEAR_ATTN_REPLICATED_PARTS = ("a_log", "dt_bias")
+_LINEAR_ATTN_COL_PARTS = ("a_log", "dt_bias")
 _ATTN_NORM_PARTS = ("q_norm", "k_norm", "q_a_layernorm")
 _MLA_COMPRESS_PARTS = ("kv_a_layernorm", "kv_b_proj", "kv_a_proj", "kv_a_proj_with_mqa")
 _LINEAR_ATTN_IN_PROJ_PARTS = (
     "in_proj_qkv", "in_proj_qkvz", "in_proj_a", "in_proj_b", "in_proj_ba",
 )
 _VISION_COL_PARTS = (
-    "qkv", "linear_fc1", "fc1", "c_fc", "gate_up",
+    "qkv", "linear_fc1", "fc1", "c_fc", "gate_up", "linear_1",
 ) + _COL_FFN_PARTS + _Q_PROJ_PARTS + _K_PROJ_PARTS + _V_PROJ_PARTS
 _VISION_ROW_PARTS = (
-    "linear_fc2", "fc2", "c_proj",
+    "linear_fc2", "fc2", "c_proj", "linear_2",
 ) + _ROW_FFN_PARTS + _O_PROJ_PARTS
 _VISION_REPLICATED_PARTS = (
     "patch_embed", "pos_embed", "class_embedding", "patch_embedding", "position_embedding",
@@ -338,7 +338,10 @@ def parse_tensor_info(
 def classify_tensor(name: str) -> str:
     """Classify a tensor name into a component category."""
     lowered = name.lower()
-    if "visual" in lowered or "vision" in lowered or "vit." in lowered or "image_encoder" in lowered:
+    if (
+        "visual" in lowered or "vision" in lowered or "vit." in lowered
+        or "image_encoder" in lowered or _has_part(name, "multi_modal_projector")
+    ):
         return "vision"
     if "mtp" in lowered:
         if _has_part(name, "shared_expert_gate"):
@@ -448,7 +451,9 @@ def classify_shard_strategy(name: str, category: str) -> str:
     if category == "linear_attn_conv":
         return SHARD_COL_PARALLEL
     if category == "linear_attn_param":
-        if _has_part(name, *_LINEAR_ATTN_REPLICATED_PARTS) or _has_norm_segment(name):
+        if _has_part(name, *_LINEAR_ATTN_COL_PARTS):
+            return SHARD_COL_PARALLEL
+        if _has_norm_segment(name):
             return SHARD_REPLICATED
         raise UnresolvedShardError([name], categories={name: category})
     if category in ("ffn", "moe_shared_expert", "mtp_shared_expert", "mtp_fc"):

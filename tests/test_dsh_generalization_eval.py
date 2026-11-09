@@ -390,6 +390,13 @@ def test_parse_capture_traits_reads_path_topology_and_glm_documented_tp16():
     with pytest.raises(ValueError, match="missing tp token"):
         dsh_eval.parse_capture_traits(tp4x)
 
+    glm_tp4x = Path(
+        "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/"
+        "glm53flash_a3_tp4x/cell/kernel_details.csv"
+    )
+    with pytest.raises(ValueError, match="missing tp token"):
+        dsh_eval.parse_capture_traits(glm_tp4x)
+
 
 def test_compact_tp4dp4_is_cell_topology_not_missing_or_suite_tp():
     registered = Path(
