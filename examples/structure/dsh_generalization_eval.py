@@ -70,7 +70,9 @@ def _looks_like_windows_path(text: str) -> bool:
         return True
     if len(text) >= 3 and text[0].isalpha() and text[1] == ":" and text[2] in "\\/":
         return True
-    return os.name == "nt"
+    if text.startswith("/"):
+        return False
+    return "\\" in text or os.name == "nt"
 
 
 def _clean_path_components(parts: tuple[str, ...], *, drop_unc_root: bool = False) -> tuple[str, ...]:

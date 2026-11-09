@@ -284,13 +284,22 @@ def test_hardware_uses_real_path_components_not_slash_folding():
     with pytest.raises(ValueError, match="ambiguous hardware"):
         dsh_eval._hardware_from_capture_path("/tmp/a5/other/a3/qwen36_tp4/kernel_details.csv")
 
+    posix_unc_str = (
+        "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261030/qwen36_tp4/"
+        r"\\literal/kernel_details.csv"
+    )
+    assert r"\\literal" in dsh_eval._path_dir_components(posix_unc_str)
+    assert dsh_eval._hardware_from_capture_path(posix_unc_str) == "a5"
     posix_unc_lookalike = (
         Path("/Volumes/data/mindie-sim-data/a5/heldout_engine_20261030/qwen36_tp4")
         / r"\\literal"
         / "kernel_details.csv"
     )
-    assert r"\\literal" in dsh_eval._path_dir_components(posix_unc_lookalike)
-    assert dsh_eval.parse_capture_traits(posix_unc_lookalike)["hw"] == "a5"
+    # Windows pathlib treats a "\\literal" join as UNC and drops the POSIX parent.
+    # The string form above is the portable invariant; Path join is POSIX-only.
+    if "a5" in posix_unc_lookalike.as_posix():
+        assert r"\\literal" in dsh_eval._path_dir_components(posix_unc_lookalike)
+        assert dsh_eval.parse_capture_traits(posix_unc_lookalike)["hw"] == "a5"
 
     with pytest.raises(ValueError, match="ambiguous hardware"):
         dsh_eval._hardware_from_capture_path(
