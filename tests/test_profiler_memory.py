@@ -442,6 +442,42 @@ def test_standard_vit_attention_ffn_and_tokens_keep_explicit_shards(tmp_path: Pa
     assert result["per_device_bytes"] == 56.0
 
 
+def test_vit_classifier_and_mask_token_keep_explicit_shards(tmp_path: Path):
+    query = "vit.encoder.layer.0.attention.attention.query.weight"
+    cls_w = "classifier.weight"
+    cls_b = "classifier.bias"
+    mask = "vit.embeddings.mask_token"
+    score = "score.weight"
+    fake_cls = "not_classifier.weight"
+    fake_mask = "vit.embeddings.not_mask_token"
+    assert classify_tensor(cls_w) == "lm_head"
+    assert classify_shard_strategy(cls_w, "lm_head") == "replicated"
+    assert classify_tensor(cls_b) == "lm_head"
+    assert classify_shard_strategy(cls_b, "lm_head") == "replicated"
+    assert classify_tensor(score) == "lm_head"
+    assert classify_shard_strategy(score, "lm_head") == "replicated"
+    assert classify_tensor(mask) == "vision"
+    assert classify_shard_strategy(mask, "vision") == "replicated"
+    assert classify_tensor(fake_cls) == "other"
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(fake_cls, "other")
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(fake_mask, "vision")
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [
+        (query, "F16", [4, 2], 16),
+        (cls_w, "F16", [3, 8], 48),
+        (cls_b, "F16", [3], 6),
+        (mask, "F16", [8], 16),
+    ])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "ok"
+    assert "per_device_bytes" in result
+    # encoder query col 16/4 + classifier F16[3,8]+[3] replicated + mask_token 16
+    assert result["per_device_bytes"] == 74.0
+
+
 def test_llava_multi_modal_projector_linear_keeps_explicit_shards(tmp_path: Path):
     linear_1 = "model.multi_modal_projector.linear_1.weight"
     linear_2 = "model.multi_modal_projector.linear_2.weight"

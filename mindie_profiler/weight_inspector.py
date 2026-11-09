@@ -20,8 +20,8 @@ The manifest is consumed by the P3 weight source in ``memory_profile.py``.
   (``in_proj_a`` / ``in_proj_b`` / ``in_proj_qkvz`` / ``in_proj_ba``,
   ``norm1`` / ``norm2``, ``fc1`` / ``fc2``, ``merger.mlp`` / ``ln_q``,
   ``q_a_layernorm``, ``kv_a_proj_with_mqa``, ``shared_expert_gate``,
-  CLIP / LLaVA / ViT ``query`` / ``dense`` / ``cls_token`` /
-  ``position_embeddings``) keep explicit shard rules; other leftovers still raise.
+  CLIP / LLaVA / ViT ``query`` / ``dense`` / ``classifier`` /
+  ``mask_token``) keep explicit shard rules; other leftovers still raise.
 
 [Timeouts & Locks]
 No subprocess, network, lock, sleep, or unbounded read.  At most
@@ -155,8 +155,9 @@ _VISION_ROW_PARTS = (
     "linear_fc2", "fc2", "c_proj", "linear_2",
 ) + _ROW_FFN_PARTS + _O_PROJ_PARTS
 _VISION_REPLICATED_PARTS = (
-    "patch_embed", "pos_embed", "class_embedding", "cls_token",
+    "patch_embed", "pos_embed", "class_embedding", "cls_token", "mask_token",
     "patch_embedding", "patch_embeddings", "position_embedding", "position_embeddings",
+    "classifier", "score",
 )
 _EXACT_NORM_PARTS = frozenset({
     "norm", "layernorm", "layer_norm", "rmsnorm", "ln_q",
@@ -369,7 +370,7 @@ def classify_tensor(name: str) -> str:
         return "mtp_other"
     if "embed_tokens" in lowered or "wte." in lowered:
         return "embedding"
-    if "lm_head" in lowered:
+    if "lm_head" in lowered or _has_part(name, "classifier", "score"):
         return "lm_head"
     if ".linear_attn." in lowered:
         if _has_part(name, *_LINEAR_ATTN_IN_PROJ_PARTS):
@@ -467,7 +468,11 @@ def classify_shard_strategy(name: str, category: str) -> str:
         if category == "mtp_fc" and "fc" in parts and parts[-1] in ("weight", "bias"):
             return SHARD_COL_PARALLEL
         raise UnresolvedShardError([name], categories={name: category})
-    if category in ("embedding", "lm_head"):
+    if category == "embedding":
+        return SHARD_COL_PARALLEL
+    if category == "lm_head":
+        if _has_part(name, "classifier", "score"):
+            return SHARD_REPLICATED
         return SHARD_COL_PARALLEL
     if category == "vision":
         parts = _name_parts(name)
