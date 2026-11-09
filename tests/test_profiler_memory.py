@@ -18,6 +18,10 @@ from mindie_profiler.memory_profile import (
 )
 from mindie_profiler.weight_inspector import (
     SafetensorsError,
+    UnresolvedShardError,
+    classify_shard_strategy,
+    classify_tensor,
+    compute_per_device_bytes,
     inspect_weights,
     parse_tensor_info,
     read_safetensors_header,
@@ -127,6 +131,491 @@ def test_safetensors_invalid_ranges_and_truncation_are_explicit(tmp_path: Path):
     empty = tmp_path / "empty"
     empty.mkdir()
     assert inspect_weights(empty)["status"] == "error"
+
+
+def test_unresolved_weight_tensors_do_not_guess_shard_strategy(tmp_path: Path):
+    assert classify_tensor("mystery.weight") == "other"
+    assert classify_tensor("model.layers.0.self_attn.rotary_emb.inv_freq") == "attn_other"
+    assert classify_tensor("model.layers.0.block_sparse_moe.extra.weight") == "moe_other"
+    assert classify_tensor("mtp.layers.0.foo.weight") == "mtp_other"
+    with pytest.raises(UnresolvedShardError, match="mystery.weight") as caught:
+        classify_shard_strategy("mystery.weight", "other")
+    assert caught.value.names == ["mystery.weight"]
+    with pytest.raises(UnresolvedShardError, match="rotary_emb"):
+        classify_shard_strategy("model.layers.0.self_attn.rotary_emb.inv_freq", "attn_other")
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [
+        ("model.embed_tokens.weight", "F16", [4, 2], 16),
+        ("model.layers.0.self_attn.rotary_emb.inv_freq", "F32", [2], 8),
+        ("mystery.weight", "F16", [4, 2], 16),
+    ])
+    result = inspect_weights(tmp_path, tp=2)
+    assert result["status"] == "error"
+    assert "per_device_bytes" not in result
+    assert result["unresolved_shard_tensors"] == [
+        "model.layers.0.self_attn.rotary_emb.inv_freq",
+        "mystery.weight",
+    ]
+    assert "rotary_emb.inv_freq" in result["error"]
+    assert "mystery.weight" in result["error"]
+
+    with pytest.raises(UnresolvedShardError) as compute_caught:
+        compute_per_device_bytes(
+            [
+                {"name": "model.embed_tokens.weight", "byte_size": 16, "category": "embedding"},
+                {"name": "mystery.weight", "byte_size": 16},
+                {"name": "mtp.layers.0.foo.weight", "byte_size": 8},
+            ],
+            tp=2,
+        )
+    assert compute_caught.value.names == ["mystery.weight", "mtp.layers.0.foo.weight"]
+
+
+def test_wide_mtp_attn_does_not_guess_col_parallel_per_device_bytes(tmp_path: Path):
+    rotary = "model.layers.0.mtp.self_attn.rotary_emb.inv_freq"
+    assert classify_tensor(rotary) == "mtp_other"
+    with pytest.raises(UnresolvedShardError, match="rotary_emb"):
+        classify_shard_strategy(rotary, "mtp_attn")
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy("model.layers.0.linear_attn.mystery", "linear_attn_param")
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy("model.layers.0.mlp.foo.weight", "ffn")
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy("model.layers.0.mtp.fc.mystery", "mtp_fc")
+
+    q_proj = "model.layers.0.mtp.self_attn.q_proj.weight"
+    assert classify_tensor(q_proj) == "mtp_attn"
+    assert classify_shard_strategy(q_proj, "mtp_attn") == "col_parallel"
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [(rotary, "F16", [8], 16)])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "error"
+    assert "per_device_bytes" not in result
+    assert result["unresolved_shard_tensors"] == [rotary]
+
+
+def test_known_qwen_tensors_keep_explicit_shard_rules(tmp_path: Path):
+    q_norm = "model.layers.0.self_attn.q_norm.weight"
+    a_log = "model.layers.0.linear_attn.A_log"
+    dt_bias = "model.layers.0.linear_attn.dt_bias"
+    la_norm = "model.layers.0.linear_attn.norm.weight"
+    in_proj_a = "model.layers.0.linear_attn.in_proj_a.weight"
+    in_proj_b = "model.layers.0.linear_attn.in_proj_b.weight"
+    mtp_fc = "mtp.fc.weight"
+    assert classify_tensor(q_norm) == "norm"
+    assert classify_shard_strategy(q_norm, "norm") == "replicated"
+    assert classify_tensor(a_log) == "linear_attn_param"
+    assert classify_shard_strategy(a_log, "linear_attn_param") == "col_parallel"
+    assert classify_tensor(dt_bias) == "linear_attn_param"
+    assert classify_shard_strategy(dt_bias, "linear_attn_param") == "col_parallel"
+    assert classify_tensor(la_norm) == "linear_attn_param"
+    assert classify_shard_strategy(la_norm, "linear_attn_param") == "replicated"
+    assert classify_tensor(in_proj_a) == "linear_attn_qkv"
+    assert classify_shard_strategy(in_proj_a, "linear_attn_qkv") == "col_parallel"
+    assert classify_tensor(in_proj_b) == "linear_attn_qkv"
+    assert classify_shard_strategy(in_proj_b, "linear_attn_qkv") == "col_parallel"
+    assert classify_tensor(mtp_fc) == "mtp_fc"
+    assert classify_shard_strategy(mtp_fc, "mtp_fc") == "col_parallel"
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [
+        (q_norm, "F16", [8], 16),
+        (a_log, "F32", [4], 16),
+        (dt_bias, "F32", [4], 16),
+        (la_norm, "F16", [8], 16),
+        (in_proj_a, "F16", [4, 2], 16),
+        (in_proj_b, "F16", [4, 2], 16),
+        (mtp_fc, "F16", [4, 2], 16),
+    ])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "ok"
+    # q_norm 16 + linear_attn.norm 16 replicated + A_log/dt_bias/in_proj_a/b/mtp.fc 16/4 each
+    assert result["per_device_bytes"] == 52.0
+
+
+def test_projection_name_boundaries_do_not_forge_per_device_bytes(tmp_path: Path):
+    fake = "model.layers.0.self_attn.not_q_proj.weight"
+    assert classify_tensor(fake) == "attn_other"
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(fake, "attn_q")
+    assert classify_tensor("model.layers.0.mlp.not_gate_proj.weight") == "ffn"
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy("model.layers.0.mlp.not_gate_proj.weight", "ffn")
+    assert classify_tensor("model.layers.0.mtp.self_attn.not_q_proj.weight") == "mtp_other"
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [(fake, "F16", [8], 16)])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "error"
+    assert "per_device_bytes" not in result
+    assert result["unresolved_shard_tensors"] == [fake]
+
+
+def test_vision_projection_names_use_path_segments_not_substrings(tmp_path: Path):
+    qkv_buffer = "visual.encoder.mystery_qkv_buffer"
+    fake_proj = "visual.encoder.not_q_proj.weight"
+    real_qkv = "visual.attn.qkv.weight"
+    real_proj = "visual.attn.proj.weight"
+    norm1 = "visual.blocks.0.norm1.weight"
+    norm2 = "visual.blocks.0.norm2.weight"
+    assert classify_tensor(qkv_buffer) == "vision"
+    assert classify_tensor(fake_proj) == "vision"
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(qkv_buffer, "vision")
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(fake_proj, "vision")
+    assert classify_shard_strategy(real_qkv, "vision") == "col_parallel"
+    assert classify_shard_strategy(real_proj, "vision") == "row_parallel"
+    assert classify_shard_strategy(norm1, "vision") == "replicated"
+    assert classify_shard_strategy(norm2, "vision") == "replicated"
+
+    path = tmp_path / "forged.safetensors"
+    _write_safetensors(path, [
+        (qkv_buffer, "F16", [8], 16),
+        (fake_proj, "F16", [8], 16),
+    ])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "error"
+    assert "per_device_bytes" not in result
+    assert result["unresolved_shard_tensors"] == [qkv_buffer, fake_proj]
+
+    ok_dir = tmp_path / "ok"
+    ok_dir.mkdir()
+    _write_safetensors(ok_dir / "model.safetensors", [
+        (norm1, "F16", [8], 16),
+        (norm2, "F16", [8], 16),
+        (real_qkv, "F16", [4, 2], 16),
+    ])
+    ok = inspect_weights(ok_dir, tp=4)
+    assert ok["status"] == "ok"
+    # two ViT norms 16 each replicated + qkv 16/4
+    assert ok["per_device_bytes"] == 36.0
+
+
+def test_clip_vision_qkv_out_proj_and_layer_norm_keep_explicit_shards(tmp_path: Path):
+    q_proj = "vision_model.encoder.layers.0.self_attn.q_proj.weight"
+    k_proj = "vision_model.encoder.layers.0.self_attn.k_proj.weight"
+    v_proj = "vision_model.encoder.layers.0.self_attn.v_proj.weight"
+    out_proj = "vision_model.encoder.layers.0.self_attn.out_proj.weight"
+    ln1 = "vision_model.encoder.layers.0.layer_norm1.weight"
+    ln2 = "vision_model.encoder.layers.0.layer_norm2.weight"
+    fake = "visual.encoder.not_q_proj.weight"
+    assert classify_tensor(q_proj) == "vision"
+    assert classify_shard_strategy(q_proj, "vision") == "col_parallel"
+    assert classify_shard_strategy(k_proj, "vision") == "col_parallel"
+    assert classify_shard_strategy(v_proj, "vision") == "col_parallel"
+    assert classify_shard_strategy(out_proj, "vision") == "row_parallel"
+    assert classify_shard_strategy(ln1, "vision") == "replicated"
+    assert classify_shard_strategy(ln2, "vision") == "replicated"
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(fake, "vision")
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [
+        (q_proj, "F16", [4, 2], 16),
+        (k_proj, "F16", [4, 2], 16),
+        (v_proj, "F16", [4, 2], 16),
+        (out_proj, "F16", [4, 2], 16),
+        (ln1, "F16", [8], 16),
+        (ln2, "F16", [8], 16),
+    ])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "ok"
+    # q/k/v/out 16/4 each + two CLIP layer_norms 16 replicated
+    assert result["per_device_bytes"] == 48.0
+
+
+def test_clip_vision_embeddings_and_pre_post_layernorm_keep_explicit_shards(tmp_path: Path):
+    cls = "vision_model.embeddings.class_embedding"
+    patch = "vision_model.embeddings.patch_embedding.weight"
+    pos = "vision_model.embeddings.position_embedding.weight"
+    pre = "vision_model.pre_layrnorm.weight"
+    post = "vision_model.post_layernorm.weight"
+    fake = "visual.encoder.not_class_embedding.weight"
+    assert classify_tensor(cls) == "vision"
+    assert classify_shard_strategy(cls, "vision") == "replicated"
+    assert classify_shard_strategy(patch, "vision") == "replicated"
+    assert classify_shard_strategy(pos, "vision") == "replicated"
+    assert classify_shard_strategy(pre, "vision") == "replicated"
+    assert classify_shard_strategy(post, "vision") == "replicated"
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(fake, "vision")
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [
+        (cls, "F16", [8], 16),
+        (patch, "F16", [8], 16),
+        (pos, "F16", [8], 16),
+        (pre, "F16", [8], 16),
+        (post, "F16", [8], 16),
+    ])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "ok"
+    assert "per_device_bytes" in result
+    # five CLIP embedding/norm tensors 16 each replicated
+    assert result["per_device_bytes"] == 80.0
+
+
+def test_standard_vit_patch_embeddings_and_layernorm_keep_explicit_shards(tmp_path: Path):
+    patch_w = "vit.embeddings.patch_embeddings.projection.weight"
+    patch_b = "vit.embeddings.patch_embeddings.projection.bias"
+    ln_before_w = "vit.encoder.layer.0.layernorm_before.weight"
+    ln_before_b = "vit.encoder.layer.0.layernorm_before.bias"
+    ln_after_w = "vit.encoder.layer.0.layernorm_after.weight"
+    ln_after_b = "vit.encoder.layer.0.layernorm_after.bias"
+    query = "vit.encoder.layer.0.attention.attention.query.weight"
+    fake = "vit.encoder.not_patch_embeddings.weight"
+    assert classify_tensor(patch_w) == "vision"
+    assert classify_shard_strategy(patch_w, "vision") == "replicated"
+    assert classify_shard_strategy(patch_b, "vision") == "replicated"
+    assert classify_shard_strategy(ln_before_w, "vision") == "replicated"
+    assert classify_shard_strategy(ln_before_b, "vision") == "replicated"
+    assert classify_shard_strategy(ln_after_w, "vision") == "replicated"
+    assert classify_shard_strategy(ln_after_b, "vision") == "replicated"
+    assert classify_shard_strategy(query, "vision") == "col_parallel"
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(fake, "vision")
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [
+        (patch_w, "F16", [8], 16),
+        (patch_b, "F16", [8], 16),
+        (ln_before_w, "F16", [8], 16),
+        (ln_before_b, "F16", [8], 16),
+        (ln_after_w, "F16", [8], 16),
+        (ln_after_b, "F16", [8], 16),
+        (query, "F16", [4, 2], 16),
+    ])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "ok"
+    assert "per_device_bytes" in result
+    # six ViT embed/norm tensors 16 each replicated + attention.query 16/4
+    assert result["per_device_bytes"] == 100.0
+
+
+def test_standard_vit_attention_ffn_and_tokens_keep_explicit_shards(tmp_path: Path):
+    query = "vit.encoder.layer.0.attention.attention.query.weight"
+    key = "vit.encoder.layer.0.attention.attention.key.weight"
+    value = "vit.encoder.layer.0.attention.attention.value.weight"
+    attn_dense = "vit.encoder.layer.0.attention.output.dense.weight"
+    ffn_up = "vit.encoder.layer.0.intermediate.dense.weight"
+    ffn_down = "vit.encoder.layer.0.output.dense.weight"
+    cls_token = "vit.embeddings.cls_token"
+    position = "vit.embeddings.position_embeddings"
+    fake_query = "vit.encoder.not_query.weight"
+    fake_dense = "vit.encoder.not_dense.weight"
+    fake_cls = "vit.embeddings.not_cls_token"
+    assert classify_tensor(query) == "vision"
+    assert classify_shard_strategy(query, "vision") == "col_parallel"
+    assert classify_shard_strategy(key, "vision") == "col_parallel"
+    assert classify_shard_strategy(value, "vision") == "col_parallel"
+    assert classify_shard_strategy(attn_dense, "vision") == "row_parallel"
+    assert classify_shard_strategy(ffn_up, "vision") == "col_parallel"
+    assert classify_shard_strategy(ffn_down, "vision") == "row_parallel"
+    assert classify_shard_strategy(cls_token, "vision") == "replicated"
+    assert classify_shard_strategy(position, "vision") == "replicated"
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(fake_query, "vision")
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(fake_dense, "vision")
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(fake_cls, "vision")
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [
+        (cls_token, "F16", [8], 16),
+        (position, "F16", [8], 16),
+        (query, "F16", [4, 2], 16),
+        (key, "F16", [4, 2], 16),
+        (value, "F16", [4, 2], 16),
+        (attn_dense, "F16", [4, 2], 16),
+        (ffn_up, "F16", [4, 2], 16),
+        (ffn_down, "F16", [4, 2], 16),
+    ])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "ok"
+    assert "per_device_bytes" in result
+    # cls_token + position_embeddings 16 each replicated;
+    # query/key/value/intermediate.dense col 16/4; attention/FFN dense row 16/4
+    assert result["per_device_bytes"] == 56.0
+
+
+def test_vit_classifier_and_mask_token_keep_explicit_shards(tmp_path: Path):
+    query = "vit.encoder.layer.0.attention.attention.query.weight"
+    cls_w = "classifier.weight"
+    cls_b = "classifier.bias"
+    mask = "vit.embeddings.mask_token"
+    score = "score.weight"
+    fake_cls = "not_classifier.weight"
+    fake_mask = "vit.embeddings.not_mask_token"
+    assert classify_tensor(cls_w) == "lm_head"
+    assert classify_shard_strategy(cls_w, "lm_head") == "replicated"
+    assert classify_tensor(cls_b) == "lm_head"
+    assert classify_shard_strategy(cls_b, "lm_head") == "replicated"
+    assert classify_tensor(score) == "lm_head"
+    assert classify_shard_strategy(score, "lm_head") == "replicated"
+    assert classify_tensor(mask) == "vision"
+    assert classify_shard_strategy(mask, "vision") == "replicated"
+    assert classify_tensor(fake_cls) == "other"
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(fake_cls, "other")
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(fake_mask, "vision")
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [
+        (query, "F16", [4, 2], 16),
+        (cls_w, "F16", [3, 8], 48),
+        (cls_b, "F16", [3], 6),
+        (mask, "F16", [8], 16),
+    ])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "ok"
+    assert "per_device_bytes" in result
+    # encoder query col 16/4 + classifier F16[3,8]+[3] replicated + mask_token 16
+    assert result["per_device_bytes"] == 74.0
+
+
+def test_llava_multi_modal_projector_linear_keeps_explicit_shards(tmp_path: Path):
+    linear_1 = "model.multi_modal_projector.linear_1.weight"
+    linear_2 = "model.multi_modal_projector.linear_2.weight"
+    fake = "model.not_multi_modal_projector.linear_1.weight"
+    assert classify_tensor(linear_1) == "vision"
+    assert classify_shard_strategy(linear_1, "vision") == "col_parallel"
+    assert classify_tensor(linear_2) == "vision"
+    assert classify_shard_strategy(linear_2, "vision") == "row_parallel"
+    assert classify_tensor(fake) == "other"
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(fake, "other")
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [
+        (linear_1, "F16", [4, 2], 16),
+        (linear_2, "F16", [4, 2], 16),
+    ])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "ok"
+    assert "per_device_bytes" in result
+    # linear_1 col 16/4 + linear_2 row 16/4
+    assert result["per_device_bytes"] == 8.0
+
+
+def test_deepseek_mla_known_tensors_are_not_fatal_unresolved(tmp_path: Path):
+    q_a_ln = "model.layers.0.self_attn.q_a_layernorm.weight"
+    kv_a_mqa = "model.layers.0.self_attn.kv_a_proj_with_mqa.weight"
+    kv_a = "model.layers.0.self_attn.kv_a_proj.weight"
+    kv_b = "model.layers.0.self_attn.kv_b_proj.weight"
+    q_a = "model.layers.0.self_attn.q_a_proj.weight"
+    assert classify_tensor(q_a_ln) == "norm"
+    assert classify_shard_strategy(q_a_ln, "norm") == "replicated"
+    assert classify_tensor(kv_a_mqa) == "attn_kv_compress"
+    assert classify_shard_strategy(kv_a_mqa, "attn_kv_compress") == "col_parallel"
+    assert classify_tensor(kv_a) == "attn_kv_compress"
+    assert classify_shard_strategy(kv_a, "attn_kv_compress") == "col_parallel"
+    assert classify_tensor(kv_b) == "attn_kv_compress"
+    assert classify_shard_strategy(kv_b, "attn_kv_compress") == "col_parallel"
+    assert classify_shard_strategy(q_a, "attn_q") == "col_parallel"
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [
+        (q_a_ln, "F16", [8], 16),
+        (kv_a_mqa, "F16", [4, 2], 16),
+        (kv_a, "F16", [4, 2], 16),
+    ])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "ok"
+    assert "per_device_bytes" in result
+    # q_a_layernorm 16 replicated + two MLA compress 16/4 each
+    assert result["per_device_bytes"] == 24.0
+
+
+def test_qwen3_next_fused_in_proj_and_vision_mlp_merger_keep_explicit_shards(tmp_path: Path):
+    qkvz = "model.layers.0.linear_attn.in_proj_qkvz.weight"
+    ba = "model.layers.0.linear_attn.in_proj_ba.weight"
+    fc1 = "visual.blocks.0.mlp.fc1.weight"
+    fc2 = "visual.blocks.0.mlp.fc2.weight"
+    gate = "visual.blocks.0.mlp.gate_proj.weight"
+    merger0 = "visual.merger.mlp.0.weight"
+    merger2 = "visual.merger.mlp.2.weight"
+    ln_q = "visual.merger.ln_q.weight"
+    fake_fc1 = "visual.encoder.not_fc1.weight"
+    assert classify_tensor(qkvz) == "linear_attn_qkv"
+    assert classify_shard_strategy(qkvz, "linear_attn_qkv") == "col_parallel"
+    assert classify_tensor(ba) == "linear_attn_qkv"
+    assert classify_shard_strategy(ba, "linear_attn_qkv") == "col_parallel"
+    assert classify_shard_strategy(fc1, "vision") == "col_parallel"
+    assert classify_shard_strategy(fc2, "vision") == "row_parallel"
+    assert classify_shard_strategy(gate, "vision") == "col_parallel"
+    assert classify_shard_strategy(merger0, "vision") == "col_parallel"
+    assert classify_shard_strategy(merger2, "vision") == "row_parallel"
+    assert classify_shard_strategy(ln_q, "vision") == "replicated"
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(fake_fc1, "vision")
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [
+        (qkvz, "F16", [4, 2], 16),
+        (ba, "F16", [4, 2], 16),
+        (fc1, "F16", [4, 2], 16),
+        (fc2, "F16", [4, 2], 16),
+        (merger0, "F16", [4, 2], 16),
+        (merger2, "F16", [4, 2], 16),
+        (ln_q, "F16", [8], 16),
+    ])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "ok"
+    # six col/row 16/4 + merger ln_q 16 replicated
+    assert result["per_device_bytes"] == 40.0
+
+    forged_dir = tmp_path / "forged"
+    forged_dir.mkdir()
+    _write_safetensors(forged_dir / "model.safetensors", [(fake_fc1, "F16", [8], 16)])
+    forged = inspect_weights(forged_dir, tp=4)
+    assert forged["status"] == "error"
+    assert "per_device_bytes" not in forged
+    assert forged["unresolved_shard_tensors"] == [fake_fc1]
+
+
+def test_shared_expert_gate_and_dense_mtp_ffn_keep_explicit_shards(tmp_path: Path):
+    gate = "model.layers.0.mlp.shared_expert_gate.weight"
+    mtp_gate = "model.layers.0.mtp.mlp.shared_expert_gate.weight"
+    shared_ffn = "model.layers.0.mlp.shared_expert.gate_proj.weight"
+    mtp_g = "mtp.layers.0.mlp.gate_proj.weight"
+    mtp_u = "mtp.layers.0.mlp.up_proj.weight"
+    mtp_d = "mtp.layers.0.mlp.down_proj.weight"
+    mtp_w1 = "model.layers.0.mtp.feed_forward.w1.weight"
+    unknown = "mtp.layers.0.mlp.foo.weight"
+    assert classify_tensor(gate) == "moe_gate"
+    assert classify_shard_strategy(gate, "moe_gate") == "replicated"
+    assert classify_tensor(mtp_gate) == "mtp_gate"
+    assert classify_shard_strategy(mtp_gate, "mtp_gate") == "replicated"
+    assert classify_tensor(shared_ffn) == "moe_shared_expert"
+    assert classify_shard_strategy(shared_ffn, "moe_shared_expert") == "col_parallel"
+    assert classify_tensor(mtp_g) == "ffn"
+    assert classify_shard_strategy(mtp_g, "ffn") == "col_parallel"
+    assert classify_tensor(mtp_u) == "ffn"
+    assert classify_shard_strategy(mtp_u, "ffn") == "col_parallel"
+    assert classify_tensor(mtp_d) == "ffn"
+    assert classify_shard_strategy(mtp_d, "ffn") == "row_parallel"
+    assert classify_tensor(mtp_w1) == "ffn"
+    assert classify_shard_strategy(mtp_w1, "ffn") == "col_parallel"
+    assert classify_tensor(unknown) == "mtp_other"
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(unknown, "mtp_other")
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [
+        (gate, "F16", [8], 16),
+        (mtp_g, "F16", [4, 2], 16),
+        (mtp_u, "F16", [4, 2], 16),
+        (mtp_d, "F16", [4, 2], 16),
+    ])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "ok"
+    # shared_expert_gate 16 replicated + three dense MTP FFN 16/4
+    assert result["per_device_bytes"] == 28.0
 
 
 def test_p0_p4_priority_containers_overlap_and_residual_target():

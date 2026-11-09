@@ -35,6 +35,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import re
 import subprocess
 import sys
@@ -61,6 +62,13 @@ PROBE_SCHEMA = "mindie-profiler-provider-probe/1"
 ACCEPTANCE_SCHEMA = "mindie-profiler-provider-acceptance/1"
 GIT_TIMEOUT_S = 10.0
 GIT_MAX_BYTES = 1_048_576
+_CREATE_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+
+
+def _no_window_kwargs() -> dict[str, int]:
+    if os.name != "nt":
+        return {}
+    return {"creationflags": _CREATE_NO_WINDOW}
 
 _IMPORT_LOCK = threading.Lock()
 _SUPPORTED_LAYOUTS = {"nd", "row_major", "contiguous", "contiguous_row_major"}
@@ -105,6 +113,7 @@ def _run_git(source_path: Path, *arguments: str) -> str:
             text=True,
             timeout=GIT_TIMEOUT_S,
             check=False,
+            **_no_window_kwargs(),
         )
     except TimeoutError:
         raise

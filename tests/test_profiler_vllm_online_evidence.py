@@ -17,8 +17,10 @@ import pytest
 
 from mindie_profiler.vllm_online_evidence import (
     OnlineEvidenceError,
+    _CREATE_NO_WINDOW,
     build_vllm_argv,
     completion_payload,
+    export_db_for_roots,
     find_profile_roots,
     load_source_bundle,
     load_source_pair,
@@ -350,3 +352,27 @@ def test_terminate_process_group_owns_only_its_child():
         if process.poll() is None:
             process.kill()
         process.wait(timeout=2)
+
+
+class _FakeCompleted:
+    returncode = 0
+    stdout = ""
+    stderr = ""
+
+
+def test_export_db_for_roots_sets_create_no_window_only_on_windows(tmp_path, monkeypatch):
+    captured = {}
+
+    def fake_run(*args, **kwargs):
+        captured.clear()
+        captured.update(kwargs)
+        return _FakeCompleted()
+
+    monkeypatch.setattr("mindie_profiler.vllm_online_evidence.subprocess.run", fake_run)
+    monkeypatch.setattr("mindie_profiler.vllm_online_evidence.os.name", "nt")
+    export_db_for_roots([tmp_path / "raw_ascend_pt"], timeout_s=1.0)
+    assert captured["creationflags"] == _CREATE_NO_WINDOW
+
+    monkeypatch.setattr("mindie_profiler.vllm_online_evidence.os.name", "posix")
+    export_db_for_roots([tmp_path / "raw_ascend_pt"], timeout_s=1.0)
+    assert "creationflags" not in captured

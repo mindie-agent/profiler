@@ -10,6 +10,8 @@
   * Multiple DBs in one rank directory are all listed; no newest-mtime source
     is chosen.  The caller must pass an explicit DB before ``analyze``.
   * Missing tables are reported as absent, never fabricated as empty results.
+  * SQLite query failures propagate to ``db_query_failed``; they are never
+    turned into empty STRING_IDS, empty windows, or a missing capture span.
   * Native step/MSTX windows come from real name rows joined through
     STRING_IDS; no window is inferred from kernel periodicity.
   * Every file size/mtime is read from stat; content SHA256 is not computed.
@@ -62,10 +64,7 @@ _TIME_TABLES = ("TASK", "PYTORCH_API", "MSTX_EVENTS", "CANN_API", "COMMUNICATION
 
 
 def _table_columns(con: sqlite3.Connection, table: str) -> set[str]:
-    try:
-        return {str(row[1]) for row in con.execute(f"PRAGMA table_info({table})")}
-    except sqlite3.Error:
-        return set()
+    return {str(row[1]) for row in con.execute(f"PRAGMA table_info({table})")}
 
 
 def _pick(columns: Iterable[str], aliases: Iterable[str]) -> str | None:
@@ -131,13 +130,10 @@ def _discover_rank_dirs(root: Path, *, max_dirs: int) -> list[Path]:
 
 
 def _string_ids(con: sqlite3.Connection) -> dict[int, str]:
-    try:
-        return {
-            int(row[0]): str(row[1]) if row[1] is not None else ""
-            for row in con.execute("SELECT id, value FROM STRING_IDS")
-        }
-    except sqlite3.Error:
-        return {}
+    return {
+        int(row[0]): str(row[1]) if row[1] is not None else ""
+        for row in con.execute("SELECT id, value FROM STRING_IDS")
+    }
 
 
 def _native_windows(
@@ -164,10 +160,7 @@ def _native_windows(
             f"SELECT {name_col}, {start_col}, {end_col}{tid_expr} FROM {table} "
             f"WHERE {end_col} > {start_col} ORDER BY {start_col} LIMIT ?"
         )
-        try:
-            rows = con.execute(sql, (max(1, int(limit)) * 50,)).fetchall()
-        except sqlite3.Error:
-            continue
+        rows = con.execute(sql, (max(1, int(limit)) * 50,)).fetchall()
         for row in rows:
             raw_name = row[0]
             if isinstance(raw_name, int):
@@ -208,10 +201,7 @@ def _capture_span(con: sqlite3.Connection, tables: set[str]) -> dict[str, Any] |
         end_col = _pick(columns, ("endNs", "end_ns"))
         if start_col is None or end_col is None:
             continue
-        try:
-            row = con.execute(f"SELECT MIN({start_col}), MAX({end_col}) FROM {table}").fetchone()
-        except sqlite3.Error:
-            continue
+        row = con.execute(f"SELECT MIN({start_col}), MAX({end_col}) FROM {table}").fetchone()
         if row and row[0] is not None and row[1] is not None:
             lows.append(int(row[0]))
             highs.append(int(row[1]))

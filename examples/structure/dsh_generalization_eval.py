@@ -20,7 +20,7 @@ from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
 from hashlib import sha256
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 import re
 from statistics import median
 import time
@@ -56,10 +56,86 @@ FAMILY_TOKENS = (
     (("dsv41", "v41"), "deepseek-v4.1"),
     (("kimi_k3_w4a8_4layer", "kimi4"), "kimi-k3-4l"),
 )
+_HW_COMPONENTS = frozenset({"a3", "a5"})
+# Compact topology `tp4dp4` is legal; `tp4x` and `mtp1` are not TP tokens.
+_TP_TOKEN = re.compile(r"(?<![a-z0-9])tp(\d+)(?=$|[^a-z0-9]|dp|ep)")
+
+
+def _malformed_tp_token(text: str) -> bool:
+    """True when a ``tp<digits>`` token exists but is not a legal TP / ``tp4dp4`` form."""
+    for match in re.finditer(r"(?<![a-z0-9])tp\d+", text):
+        rest = text[match.end():]
+        if rest and rest[0].isalnum() and not rest.startswith(("dp", "ep")):
+            return True
+    return False
 
 
 def _match_family(text: str) -> str | None:
     return next((fam for tokens, fam in FAMILY_TOKENS if any(tok in text for tok in tokens)), None)
+
+
+def _looks_like_windows_path(text: str) -> bool:
+    if text.startswith("\\\\") or text.startswith("//"):
+        return True
+    if len(text) >= 3 and text[0].isalpha() and text[1] == ":" and text[2] in "\\/":
+        return True
+    if text.startswith("/"):
+        return False
+    return "\\" in text or os.name == "nt"
+
+
+def _clean_path_components(parts: tuple[str, ...], *, drop_unc_root: bool = False) -> tuple[str, ...]:
+    cleaned: list[str] = []
+    for part in parts:
+        if part in ("/", "\\", ""):
+            continue
+        if len(part) == 2 and part[1] == ":":
+            continue
+        if drop_unc_root and part.startswith("\\\\"):
+            continue
+        cleaned.append(part)
+    return tuple(cleaned)
+
+
+def _path_dir_components(csv_path: Path | str) -> tuple[str, ...]:
+    """Split a capture path into directory components using that path's own separator semantics.
+
+    POSIX paths split only on ``/``; a literal backslash stays inside one filename.
+    Windows and UNC paths split on ``\\`` / ``/``; the UNC ``\\\\server\\share`` root is
+    not a hardware token.
+    """
+    if isinstance(csv_path, str):
+        windows = _looks_like_windows_path(csv_path)
+        flavor = PureWindowsPath if windows else PurePosixPath
+        return _clean_path_components(flavor(csv_path).parts, drop_unc_root=windows)
+    return _clean_path_components(Path(csv_path).parts, drop_unc_root=os.name == "nt")
+
+
+def _hardware_from_capture_path(csv_path: Path | str) -> str:
+    """Identify a3/a5 from real path components, never from slash-folded substrings."""
+    if isinstance(csv_path, Path):
+        try:
+            rel = csv_path.relative_to(DATA_ROOT)
+        except ValueError:
+            rel = None
+        if rel is not None:
+            if not rel.parts or rel.parts[0] not in _HW_COMPONENTS:
+                raise ValueError(f"unrecognized hardware in capture path: {csv_path}")
+            return rel.parts[0]
+    components = _path_dir_components(csv_path)
+    root = _clean_path_components(DATA_ROOT.parts)
+    n = len(root)
+    if n and len(components) > n and components[:n] == root:
+        child = components[n]
+        if child in _HW_COMPONENTS:
+            return child
+        raise ValueError(f"unrecognized hardware in capture path: {csv_path}")
+    found = [part for part in components if part in _HW_COMPONENTS]
+    if len(found) == 1:
+        return found[0]
+    if len(found) > 1:
+        raise ValueError(f"ambiguous hardware in capture path: {csv_path}")
+    raise ValueError(f"unrecognized hardware in capture path: {csv_path}")
 
 
 def parse_capture_traits(csv_path: Path) -> dict:
@@ -68,27 +144,43 @@ def parse_capture_traits(csv_path: Path) -> dict:
     Cell-level tokens always take precedence over suite directory names so composite suites
     never misclassify the capture's own model family or tensor parallelism.
     """
-    path_str = str(csv_path)
-    hw = "a3" if "/a3/" in path_str else "a5"
-    if "heldout_engine_20261030" in path_str:
-        rel = csv_path.relative_to(DATA_ROOT / hw / "heldout_engine_20261030")
+    hw = _hardware_from_capture_path(csv_path)
+    components = _path_dir_components(csv_path)
+    if "heldout_engine_20261030" in components:
+        rel = Path(csv_path).relative_to(DATA_ROOT / hw / "heldout_engine_20261030")
         suite, cell = rel.parts[0], (rel.parts[-2] if len(rel.parts) > 2 else rel.parts[0])
     else:
-        suite, cell = "top_level_20261030", csv_path.parent.name
+        suite, cell = "top_level_20261030", Path(csv_path).parent.name
     cell_low, suite_low = cell.lower(), suite.lower()
     low = f"{suite_low}/{cell_low}"
     is_eager = "eager" in low or suite == "top_level_20261030"
     phase = "prefill" if "prefill" in cell_low else "decode"
 
-    tp = int(m.group(1)) if (m := re.search(r"tp(\d+)", cell_low) or re.search(r"tp(\d+)", suite_low)) else 1
+    family = _match_family(cell_low) or _match_family(suite_low)
+    if family is None:
+        family = next((found for part in components if (found := _match_family(part.lower()))), None)
+    if family is None and not is_eager:
+        raise ValueError(f"unrecognized model family in capture path: {csv_path}")
+
     dp = int(m.group(1)) if (m := re.search(r"dp(\d+)", cell_low) or re.search(r"dp(\d+)", suite_low)) else 1
     ep = int(m.group(1)) if (m := re.search(r"ep(\d+)", cell_low) or re.search(r"ep(\d+)", suite_low)) else 1
-
-    family = _match_family(cell_low) or _match_family(suite_low) or "unknown"
-    if family in ("deepseek-v4-flash", "deepseek-v4.1", "kimi-k3-4l") or (family == "qwen3.5-35b-a3b" and hw == "a5"):
-        ep = max(ep, tp * dp)
-    elif family == "glm-5.3-flash" and hw == "a3" and "tp" not in low:
+    if _malformed_tp_token(cell_low) or _malformed_tp_token(suite_low):
+        raise ValueError(f"missing tp token in capture path: {csv_path}")
+    tp_match = _TP_TOKEN.search(cell_low) or _TP_TOKEN.search(suite_low)
+    if tp_match:
+        tp = int(tp_match.group(1))
+    elif family == "glm-5.3-flash" and hw == "a3" and _TP_TOKEN.search(low) is None:
         tp, ep = 16, 16
+    elif is_eager:
+        tp = None
+    else:
+        raise ValueError(f"missing tp token in capture path: {csv_path}")
+
+    if tp is not None and (
+        family in ("deepseek-v4-flash", "deepseek-v4.1", "kimi-k3-4l")
+        or (family == "qwen3.5-35b-a3b" and hw == "a5")
+    ):
+        ep = max(ep, tp * dp)
 
     ctx_tokens = 4096
     for pat, mult in ((r"_(128|96|64|32|24|16|8|4)k", 1024), (r"_p(\d+)k", 1024), (r"_p(\d{4,6})(?:_|\b)", 1)):
@@ -109,6 +201,21 @@ def parse_capture_traits(csv_path: Path) -> dict:
     return {"hw": hw, "suite": suite, "cell": cell, "cohort": f"{hw}/{suite}/{prefix}", "family": family,
             "phase": phase, "tp": tp, "dp": dp, "ep": ep, "context_tokens": ctx_tokens,
             "spec_tokens": spec_tokens, "concurrency": conc, "is_eager": is_eager}
+
+
+def inventory_capture(csv_path: Path, reg_by_path: dict) -> tuple[str, dict | None]:
+    """Bucket a capture as registered, eager-excluded, or held-out before topology scoring.
+
+    Registered paths are identified from cases.json and never parsed for family/TP.
+    Eager captures are identified even when family is unknown.  Only remaining
+    held-out captures require a recognized family and TP token.
+    """
+    if csv_path in reg_by_path:
+        return "registered", None
+    traits = parse_capture_traits(csv_path)
+    if traits["is_eager"]:
+        return "eager", traits
+    return "heldout", traits
 
 
 def _client_evidence(meta: dict, traits: dict) -> dict | None:
@@ -429,15 +536,8 @@ def extract_or_load(csv_path: Path, traits: dict, tpl: dict, seg_opts: dict) -> 
         obs, meta = prefill.extract_file(csv_path, pf_cfg, timeout_s=45), {"context_evidence": None, "client": None}
     else:
         meta = capture_metadata(csv_path.parent)
-        try:
-            events, src_ref = _source(csv_path, {"kind": "csv"}, None, max_events=5_000_000, timeout_s=45)
-            obs = compact_observation(auto_segment_decode_forwards(events, cfg, source=src_ref, max_events=5_000_000))
-        except Exception as exc:
-            # Never write transient or segmentation errors to persistent cache
-            return {"cache_version": CACHE_VERSION, "parser_identity": PARSER_IDENTITY, "cache_key": cache_key,
-                    "observed": {"forward_count": 0, "geometry_groups": [],
-                                 "segmentation_error": f"{type(exc).__name__}:{exc}"},
-                    "meta": meta}
+        events, src_ref = _source(csv_path, {"kind": "csv"}, None, max_events=5_000_000, timeout_s=45)
+        obs = compact_observation(auto_segment_decode_forwards(events, cfg, source=src_ref, max_events=5_000_000))
 
     payload = {"cache_version": CACHE_VERSION, "parser_identity": PARSER_IDENTITY,
                "cache_key": cache_key, "observed": obs, "meta": meta}
@@ -681,15 +781,16 @@ def main(argv: list[str] | None = None) -> int:
 
     eager_excluded, heldout_tasks, registered_in_dsh = [], [], []
     for csv_path in all_dsh_csvs:
-        traits = parse_capture_traits(csv_path)
-        if traits["is_eager"]:
-            eager_excluded.append({"path": str(csv_path), "traits": traits, "reason": "decode_eager_excluded"})
-        elif csv_path in reg_by_path:
+        bucket, traits = inventory_capture(csv_path, reg_by_path)
+        if bucket == "registered":
             registered_in_dsh.append(str(csv_path))
-        else:
-            tpl_name, tpl, seg_opts, cross_tp = resolve_template(traits)
-            tpl_sig = sha256(json.dumps(tpl, sort_keys=True).encode("utf-8")).hexdigest()[:16] if tpl else "unsupported"
-            heldout_tasks.append((csv_path, traits, tpl_name, tpl, seg_opts, cross_tp, tpl_sig))
+            continue
+        if bucket == "eager":
+            eager_excluded.append({"path": str(csv_path), "traits": traits, "reason": "decode_eager_excluded"})
+            continue
+        tpl_name, tpl, seg_opts, cross_tp = resolve_template(traits)
+        tpl_sig = sha256(json.dumps(tpl, sort_keys=True).encode("utf-8")).hexdigest()[:16] if tpl else "unsupported"
+        heldout_tasks.append((csv_path, traits, tpl_name, tpl, seg_opts, cross_tp, tpl_sig))
 
     print(f"Inventory: total_dsh={len(all_dsh_csvs)} | registered={len(registered_in_dsh)} "
           f"| eager_excluded={len(eager_excluded)} | heldout={len(heldout_tasks)}", flush=True)

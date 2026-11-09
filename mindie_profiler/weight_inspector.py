@@ -13,6 +13,15 @@ The manifest is consumed by the P3 weight source in ``memory_profile.py``.
   silently treated as two bytes.
 - Per-device sizes are rule-based sharding inference for col/row/expert
   parallel tensors.  They are labelled as inference, not hardware measurement.
+- Catch-all categories (``other`` / ``attn_other`` / ``moe_other`` /
+  ``mtp_other``) have no shard rule; they raise instead of guessing.
+  Projection names match dotted path segments (``q_proj``, not
+  ``not_q_proj``), including vision.  Known Qwen / MLA / ViT names
+  (``in_proj_a`` / ``in_proj_b`` / ``in_proj_qkvz`` / ``in_proj_ba``,
+  ``norm1`` / ``norm2``, ``fc1`` / ``fc2``, ``merger.mlp`` / ``ln_q``,
+  ``q_a_layernorm``, ``kv_a_proj_with_mqa``, ``shared_expert_gate``,
+  CLIP / LLaVA / ViT ``query`` / ``dense`` / ``classifier`` /
+  ``mask_token``) keep explicit shard rules; other leftovers still raise.
 
 [Timeouts & Locks]
 No subprocess, network, lock, sleep, or unbounded read.  At most
@@ -112,6 +121,84 @@ CATEGORY_ORDER = [
 
 class SafetensorsError(ValueError):
     """A safetensors header or range is structurally invalid."""
+
+
+class UnresolvedShardError(ValueError):
+    """A tensor name has no explicit sharding rule."""
+
+    def __init__(self, names: list[str], *, categories: Mapping[str, str] | None = None) -> None:
+        listed = ", ".join(repr(name) for name in names)
+        super().__init__(f"unresolved shard strategy for tensors: {listed}")
+        self.names = list(names)
+        self.categories = dict(categories or {})
+
+
+_UNRESOLVED_SHARD_CATEGORIES = frozenset({
+    "other", "attn_other", "moe_other", "mtp_other",
+})
+_Q_PROJ_PARTS = ("q_proj", "q_a_proj", "q_b_proj")
+_K_PROJ_PARTS = ("k_proj", "k_a_proj", "k_b_proj")
+_V_PROJ_PARTS = ("v_proj", "v_a_proj", "v_b_proj")
+_O_PROJ_PARTS = ("o_proj", "out_proj")
+_COL_FFN_PARTS = ("gate_proj", "up_proj", "w1", "w3")
+_ROW_FFN_PARTS = ("down_proj", "w2")
+_LINEAR_ATTN_COL_PARTS = ("a_log", "dt_bias")
+_ATTN_NORM_PARTS = ("q_norm", "k_norm", "q_a_layernorm")
+_MLA_COMPRESS_PARTS = ("kv_a_layernorm", "kv_b_proj", "kv_a_proj", "kv_a_proj_with_mqa")
+_LINEAR_ATTN_IN_PROJ_PARTS = (
+    "in_proj_qkv", "in_proj_qkvz", "in_proj_a", "in_proj_b", "in_proj_ba",
+)
+_VISION_COL_PARTS = (
+    "qkv", "query", "key", "value", "linear_fc1", "fc1", "c_fc", "gate_up", "linear_1",
+) + _COL_FFN_PARTS + _Q_PROJ_PARTS + _K_PROJ_PARTS + _V_PROJ_PARTS
+_VISION_ROW_PARTS = (
+    "linear_fc2", "fc2", "c_proj", "linear_2",
+) + _ROW_FFN_PARTS + _O_PROJ_PARTS
+_VISION_REPLICATED_PARTS = (
+    "patch_embed", "pos_embed", "class_embedding", "cls_token", "mask_token",
+    "patch_embedding", "patch_embeddings", "position_embedding", "position_embeddings",
+    "classifier", "score",
+)
+_EXACT_NORM_PARTS = frozenset({
+    "norm", "layernorm", "layer_norm", "rmsnorm", "ln_q",
+    "pre_layrnorm", "post_layrnorm", "pre_layernorm", "post_layernorm",
+    "layernorm_before", "layernorm_after",
+})
+
+
+def _name_parts(name: str) -> tuple[str, ...]:
+    return tuple(part for part in name.lower().split(".") if part)
+
+
+def _has_part(name: str, *tokens: str) -> bool:
+    parts = set(_name_parts(name))
+    return any(token in parts for token in tokens)
+
+
+def _is_norm_segment(part: str) -> bool:
+    if part in _EXACT_NORM_PARTS:
+        return True
+    if part.startswith("norm") and part[4:].isdigit():
+        return True
+    if part.startswith("ln_") and part[3:].isdigit():
+        return True
+    if part.startswith("layer_norm") and part[len("layer_norm"):].isdigit():
+        return True
+    return False
+
+
+def _has_norm_segment(name: str) -> bool:
+    return any(_is_norm_segment(part) for part in _name_parts(name))
+
+
+def _sequential_linear_index(name: str) -> str | None:
+    """Return the nn.Sequential index for ``mlp.N.weight`` / ``mlp.N.bias``."""
+    parts = _name_parts(name)
+    if len(parts) < 3 or parts[-1] not in ("weight", "bias"):
+        return None
+    if parts[-3] == "mlp" and parts[-2].isdigit():
+        return parts[-2]
+    return None
 
 
 def _is_int(value: Any) -> bool:
@@ -254,55 +341,72 @@ def parse_tensor_info(
 def classify_tensor(name: str) -> str:
     """Classify a tensor name into a component category."""
     lowered = name.lower()
-    if "visual" in lowered or "vision" in lowered or "vit." in lowered or "image_encoder" in lowered:
+    if (
+        "visual" in lowered or "vision" in lowered or "vit." in lowered
+        or "image_encoder" in lowered or _has_part(name, "multi_modal_projector")
+    ):
         return "vision"
     if "mtp" in lowered:
+        if _has_part(name, "shared_expert_gate"):
+            return "mtp_gate"
         if ".experts." in lowered and "shared_expert" not in lowered:
             return "mtp_expert"
         if "shared_expert" in lowered:
             return "mtp_shared_expert"
-        if ".gate." in lowered or "shared_expert_gate" in lowered:
+        if ".gate." in lowered:
             return "mtp_gate"
         if "norm" in lowered:
             return "mtp_norm"
         if ".self_attn." in lowered or ".attention." in lowered:
-            return "mtp_attn"
+            if _has_part(name, *_Q_PROJ_PARTS, *_K_PROJ_PARTS, *_V_PROJ_PARTS, *_O_PROJ_PARTS, "kv_b_proj"):
+                return "mtp_attn"
+            return "mtp_other"
         if ".fc." in lowered:
             return "mtp_fc"
+        if ".mlp." in lowered or ".feed_forward." in lowered or ".ffn." in lowered:
+            if _has_part(name, *_COL_FFN_PARTS, *_ROW_FFN_PARTS):
+                return "ffn"
+            return "mtp_other"
         return "mtp_other"
     if "embed_tokens" in lowered or "wte." in lowered:
         return "embedding"
-    if "lm_head" in lowered:
+    if "lm_head" in lowered or _has_part(name, "classifier", "score"):
         return "lm_head"
     if ".linear_attn." in lowered:
-        if "in_proj_qkv" in lowered:
+        if _has_part(name, *_LINEAR_ATTN_IN_PROJ_PARTS):
             return "linear_attn_qkv"
-        if "in_proj_z" in lowered or "out_proj" in lowered:
+        if _has_part(name, "in_proj_z", "out_proj"):
             return "linear_attn_proj"
-        if "conv" in lowered:
+        if _has_part(name, "conv", "conv1d"):
             return "linear_attn_conv"
         return "linear_attn_param"
     if ".self_attn." in lowered or ".attention." in lowered or ".attn." in lowered:
-        if "q_proj" in lowered or "q_a_proj" in lowered or "q_b_proj" in lowered:
+        if _has_part(name, *_Q_PROJ_PARTS):
             return "attn_q"
-        if "k_proj" in lowered or "k_a_proj" in lowered or "k_b_proj" in lowered:
+        if _has_part(name, *_K_PROJ_PARTS):
             return "attn_k"
-        if "v_proj" in lowered or "v_a_proj" in lowered or "v_b_proj" in lowered:
+        if _has_part(name, *_V_PROJ_PARTS):
             return "attn_v"
-        if "o_proj" in lowered or "out_proj" in lowered:
+        if _has_part(name, *_O_PROJ_PARTS):
             return "attn_o"
-        if "conv" in lowered:
+        if _has_part(name, "conv", "conv1d"):
             return "attn_conv"
-        if "kv_a_layernorm" in lowered or "kv_b_proj" in lowered:
+        if _has_part(name, *_MLA_COMPRESS_PARTS):
             return "attn_kv_compress"
+        if _has_part(name, *_ATTN_NORM_PARTS):
+            return "norm"
         return "attn_other"
     if ".mlp." in lowered or ".feed_forward." in lowered or ".ffn." in lowered:
+        if _has_part(name, "shared_expert_gate"):
+            return "moe_gate"
         if "expert" in lowered:
             return "moe_shared_expert" if "shared_expert" in lowered else "moe_expert"
         if "gate" in lowered and not any(token in lowered for token in ("proj", "up", "down")):
             return "moe_gate"
         return "ffn"
     if "block_sparse_moe" in lowered or "moe" in lowered:
+        if _has_part(name, "shared_expert_gate"):
+            return "moe_gate"
         if "expert" in lowered:
             return "moe_shared_expert" if "shared" in lowered else "moe_expert"
         if "gate" in lowered:
@@ -317,49 +421,89 @@ def classify_tensor(name: str) -> str:
 
 def classify_shard_strategy(name: str, category: str) -> str:
     """Rule-based shard inference; this is not a hardware measurement."""
-    if category in ("norm", "quant_param", "moe_gate", "attn_conv", "attn_other"):
+    if category in _UNRESOLVED_SHARD_CATEGORIES:
+        raise UnresolvedShardError([name], categories={name: category})
+    if category in ("norm", "quant_param", "moe_gate", "attn_conv"):
         return SHARD_REPLICATED
     if category == "moe_expert":
         return SHARD_EXPERT_PARALLEL
-    if category in ("attn_q", "attn_k", "attn_v", "attn_kv_compress"):
+    if category == "attn_q":
+        if not _has_part(name, *_Q_PROJ_PARTS):
+            raise UnresolvedShardError([name], categories={name: category})
+        return SHARD_COL_PARALLEL
+    if category == "attn_k":
+        if not _has_part(name, *_K_PROJ_PARTS):
+            raise UnresolvedShardError([name], categories={name: category})
+        return SHARD_COL_PARALLEL
+    if category == "attn_v":
+        if not _has_part(name, *_V_PROJ_PARTS):
+            raise UnresolvedShardError([name], categories={name: category})
+        return SHARD_COL_PARALLEL
+    if category == "attn_kv_compress":
+        if not _has_part(name, *_MLA_COMPRESS_PARTS):
+            raise UnresolvedShardError([name], categories={name: category})
         return SHARD_COL_PARALLEL
     if category == "attn_o":
+        if not _has_part(name, *_O_PROJ_PARTS):
+            raise UnresolvedShardError([name], categories={name: category})
         return SHARD_ROW_PARALLEL
     if category == "linear_attn_qkv":
         return SHARD_COL_PARALLEL
     if category == "linear_attn_proj":
-        return SHARD_ROW_PARALLEL if "out_proj" in name.lower() else SHARD_COL_PARALLEL
-    if category in ("linear_attn_conv", "linear_attn_param"):
+        return SHARD_ROW_PARALLEL if _has_part(name, "out_proj") else SHARD_COL_PARALLEL
+    if category == "linear_attn_conv":
         return SHARD_COL_PARALLEL
-    if category in ("ffn", "moe_shared_expert"):
-        lowered = name.lower()
-        if "gate_proj" in lowered or "up_proj" in lowered or "w1" in lowered or "w3" in lowered:
+    if category == "linear_attn_param":
+        if _has_part(name, *_LINEAR_ATTN_COL_PARTS):
             return SHARD_COL_PARALLEL
-        if "down_proj" in lowered or "w2" in lowered:
+        if _has_norm_segment(name):
+            return SHARD_REPLICATED
+        raise UnresolvedShardError([name], categories={name: category})
+    if category in ("ffn", "moe_shared_expert", "mtp_shared_expert", "mtp_fc"):
+        if _has_part(name, *_COL_FFN_PARTS):
+            return SHARD_COL_PARALLEL
+        if _has_part(name, *_ROW_FFN_PARTS):
             return SHARD_ROW_PARALLEL
+        parts = _name_parts(name)
+        if category == "mtp_fc" and "fc" in parts and parts[-1] in ("weight", "bias"):
+            return SHARD_COL_PARALLEL
+        raise UnresolvedShardError([name], categories={name: category})
+    if category == "embedding":
         return SHARD_COL_PARALLEL
-    if category in ("embedding", "lm_head"):
+    if category == "lm_head":
+        if _has_part(name, "classifier", "score"):
+            return SHARD_REPLICATED
         return SHARD_COL_PARALLEL
     if category == "vision":
-        lowered = name.lower()
-        if "norm" in lowered or "patch_embed" in lowered or "pos_embed" in lowered:
+        parts = _name_parts(name)
+        if _has_norm_segment(name) or _has_part(name, *_VISION_REPLICATED_PARTS):
             return SHARD_REPLICATED
-        if "qkv" in lowered or "linear_fc1" in lowered or "gate_up" in lowered:
+        if _has_part(name, *_VISION_COL_PARTS):
             return SHARD_COL_PARALLEL
-        if "proj.weight" in lowered or "proj.bias" in lowered or "linear_fc2" in lowered or "down_proj" in lowered:
+        if _has_part(name, *_VISION_ROW_PARTS):
             return SHARD_ROW_PARALLEL
-        return SHARD_COL_PARALLEL
+        if _has_part(name, "dense"):
+            return (
+                SHARD_COL_PARALLEL if _has_part(name, "intermediate")
+                else SHARD_ROW_PARALLEL
+            )
+        seq = _sequential_linear_index(name)
+        if seq is not None:
+            return SHARD_COL_PARALLEL if seq == "0" else SHARD_ROW_PARALLEL
+        if "proj" in parts and parts[-1] in ("weight", "bias"):
+            return SHARD_ROW_PARALLEL
+        raise UnresolvedShardError([name], categories={name: category})
     if category == "mtp_expert":
         return SHARD_EXPERT_PARALLEL
-    if category == "mtp_shared_expert":
-        return SHARD_ROW_PARALLEL if "down_proj" in name.lower() or "w2" in name.lower() else SHARD_COL_PARALLEL
     if category in ("mtp_gate", "mtp_norm"):
         return SHARD_REPLICATED
     if category == "mtp_attn":
-        return SHARD_ROW_PARALLEL if "o_proj" in name.lower() or "out_proj" in name.lower() else SHARD_COL_PARALLEL
-    if category in ("mtp_fc", "mtp_other"):
-        return SHARD_COL_PARALLEL
-    return SHARD_REPLICATED
+        if _has_part(name, *_O_PROJ_PARTS):
+            return SHARD_ROW_PARALLEL
+        if _has_part(name, *_Q_PROJ_PARTS, *_K_PROJ_PARTS, *_V_PROJ_PARTS, "kv_b_proj"):
+            return SHARD_COL_PARALLEL
+        raise UnresolvedShardError([name], categories={name: category})
+    raise UnresolvedShardError([name], categories={name: category})
 
 
 def compute_per_device_bytes(
@@ -378,13 +522,30 @@ def compute_per_device_bytes(
     total = 0.0
     per_device = 0.0
     categories: dict[str, dict[str, Any]] = {}
+    unresolved: list[str] = []
+    unresolved_categories: dict[str, str] = {}
+    classified: list[tuple[Mapping[str, Any], str, str, float]] = []
     for item in tensors:
         size = item.get("byte_size", 0)
         if not isinstance(size, (int, float)) or isinstance(size, bool) or not math.isfinite(float(size)):
             raise ValueError(f"invalid byte_size for {item.get('name')!r}")
         size = float(size)
-        category = str(item.get("category") or classify_tensor(str(item.get("name", ""))))
-        strategy = str(item.get("shard_strategy") or classify_shard_strategy(str(item.get("name", "")), category))
+        name = str(item.get("name", ""))
+        category = str(item.get("category") or classify_tensor(name))
+        provided = item.get("shard_strategy")
+        if provided:
+            strategy = str(provided)
+        else:
+            try:
+                strategy = classify_shard_strategy(name, category)
+            except UnresolvedShardError:
+                unresolved.append(name)
+                unresolved_categories[name] = category
+                continue
+        classified.append((item, category, strategy, size))
+    if unresolved:
+        raise UnresolvedShardError(unresolved, categories=unresolved_categories)
+    for item, category, strategy, size in classified:
         if strategy in (SHARD_COL_PARALLEL, SHARD_ROW_PARALLEL):
             device_size = size / tp
         elif strategy == SHARD_EXPERT_PARALLEL:
@@ -478,6 +639,8 @@ def inspect_weights(
         files = files[:max_files]
 
     all_tensors: list[dict[str, Any]] = []
+    unresolved_names: list[str] = []
+    unresolved_categories: dict[str, str] = {}
     total_header_bytes = 0
     total_payload_bytes = 0
     for file_path in files:
@@ -494,7 +657,12 @@ def inspect_weights(
             for item in tensors:
                 item["source_file"] = file_path.name
                 item["category"] = classify_tensor(item["name"])
-                item["shard_strategy"] = classify_shard_strategy(item["name"], item["category"])
+                try:
+                    item["shard_strategy"] = classify_shard_strategy(item["name"], item["category"])
+                except UnresolvedShardError:
+                    item["shard_strategy"] = None
+                    unresolved_names.append(item["name"])
+                    unresolved_categories[item["name"]] = item["category"]
                 if item["bytes_per_element"] is None:
                     result["limitations"].append({
                         "code": "unknown_dtype",
@@ -528,6 +696,12 @@ def inspect_weights(
 
     if not all_tensors:
         result["error"] = "no readable safetensors headers"
+        return result
+    if unresolved_names:
+        result["status"] = "error"
+        result["error"] = str(UnresolvedShardError(unresolved_names, categories=unresolved_categories))
+        result["unresolved_shard_tensors"] = unresolved_names
+        result["tensors"] = all_tensors if include_tensors else []
         return result
 
     per_device = compute_per_device_bytes(
@@ -584,6 +758,7 @@ if __name__ == "__main__":
 __all__ = [
     "DTYPE_SIZES",
     "SafetensorsError",
+    "UnresolvedShardError",
     "classify_shard_strategy",
     "classify_tensor",
     "compute_per_device_bytes",

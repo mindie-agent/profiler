@@ -95,6 +95,30 @@ def test_probe_requires_explicit_source_path():
     assert status.reason == "source_path_not_configured"
 
 
+def test_run_git_sets_create_no_window_only_on_windows(monkeypatch, tmp_path):
+    from mindie_profiler.tensor_cast_provider import _CREATE_NO_WINDOW, _run_git
+
+    captured = {}
+
+    class _Completed:
+        returncode = 0
+        stdout = "ok\n"
+
+    def fake_run(*args, **kwargs):
+        captured.clear()
+        captured.update(kwargs)
+        return _Completed()
+
+    monkeypatch.setattr("mindie_profiler.tensor_cast_provider.subprocess.run", fake_run)
+    monkeypatch.setattr("mindie_profiler.tensor_cast_provider.os.name", "nt")
+    assert _run_git(tmp_path, "rev-parse", "HEAD") == "ok\n"
+    assert captured["creationflags"] == _CREATE_NO_WINDOW
+
+    monkeypatch.setattr("mindie_profiler.tensor_cast_provider.os.name", "posix")
+    _run_git(tmp_path, "rev-parse", "HEAD")
+    assert "creationflags" not in captured
+
+
 def test_probe_and_provider_reject_dirty_tracked_source(tmp_path):
     import shutil
     import subprocess
