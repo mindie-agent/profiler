@@ -19,9 +19,9 @@ The manifest is consumed by the P3 weight source in ``memory_profile.py``.
   ``not_q_proj``), including vision.  Known Qwen / MLA / ViT names
   (``in_proj_a`` / ``in_proj_b`` / ``in_proj_qkvz`` / ``in_proj_ba``,
   ``norm1`` / ``norm2``, ``fc1`` / ``fc2``, ``merger.mlp`` / ``ln_q``,
-  ``q_a_layernorm``, ``kv_a_proj_with_mqa``, ``shared_expert_gate``,
-  dense MTP FFN, CLIP embeddings, LLaVA ``linear_1`` / ``linear_2``)
-  keep explicit shard rules; other wide leftovers still raise.
+  ``q_a_layernorm``, ``kv_a_proj_with_mqa``, ``shared_expert_gate``, dense
+  MTP / CLIP / LLaVA / ViT ``patch_embeddings`` / ``layernorm_before`` /
+  ``layernorm_after``) keep explicit shard rules; other wide leftovers still raise.
 
 [Timeouts & Locks]
 No subprocess, network, lock, sleep, or unbounded read.  At most
@@ -155,11 +155,13 @@ _VISION_ROW_PARTS = (
     "linear_fc2", "fc2", "c_proj", "linear_2",
 ) + _ROW_FFN_PARTS + _O_PROJ_PARTS
 _VISION_REPLICATED_PARTS = (
-    "patch_embed", "pos_embed", "class_embedding", "patch_embedding", "position_embedding",
+    "patch_embed", "pos_embed", "class_embedding",
+    "patch_embedding", "patch_embeddings", "position_embedding",
 )
 _EXACT_NORM_PARTS = frozenset({
     "norm", "layernorm", "layer_norm", "rmsnorm", "ln_q",
     "pre_layrnorm", "post_layrnorm", "pre_layernorm", "post_layernorm",
+    "layernorm_before", "layernorm_after",
 })
 
 

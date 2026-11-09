@@ -358,6 +358,43 @@ def test_clip_vision_embeddings_and_pre_post_layernorm_keep_explicit_shards(tmp_
     assert result["per_device_bytes"] == 80.0
 
 
+def test_standard_vit_patch_embeddings_and_layernorm_keep_explicit_shards(tmp_path: Path):
+    patch_w = "vit.embeddings.patch_embeddings.projection.weight"
+    patch_b = "vit.embeddings.patch_embeddings.projection.bias"
+    ln_before_w = "vit.encoder.layer.0.layernorm_before.weight"
+    ln_before_b = "vit.encoder.layer.0.layernorm_before.bias"
+    ln_after_w = "vit.encoder.layer.0.layernorm_after.weight"
+    ln_after_b = "vit.encoder.layer.0.layernorm_after.bias"
+    qkv = "vit.encoder.layer.0.attn.qkv.weight"
+    fake = "vit.encoder.not_patch_embeddings.weight"
+    assert classify_tensor(patch_w) == "vision"
+    assert classify_shard_strategy(patch_w, "vision") == "replicated"
+    assert classify_shard_strategy(patch_b, "vision") == "replicated"
+    assert classify_shard_strategy(ln_before_w, "vision") == "replicated"
+    assert classify_shard_strategy(ln_before_b, "vision") == "replicated"
+    assert classify_shard_strategy(ln_after_w, "vision") == "replicated"
+    assert classify_shard_strategy(ln_after_b, "vision") == "replicated"
+    assert classify_shard_strategy(qkv, "vision") == "col_parallel"
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(fake, "vision")
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [
+        (patch_w, "F16", [8], 16),
+        (patch_b, "F16", [8], 16),
+        (ln_before_w, "F16", [8], 16),
+        (ln_before_b, "F16", [8], 16),
+        (ln_after_w, "F16", [8], 16),
+        (ln_after_b, "F16", [8], 16),
+        (qkv, "F16", [4, 2], 16),
+    ])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "ok"
+    assert "per_device_bytes" in result
+    # six ViT embed/norm tensors 16 each replicated + attn qkv 16/4
+    assert result["per_device_bytes"] == 100.0
+
+
 def test_llava_multi_modal_projector_linear_keeps_explicit_shards(tmp_path: Path):
     linear_1 = "model.multi_modal_projector.linear_1.weight"
     linear_2 = "model.multi_modal_projector.linear_2.weight"
