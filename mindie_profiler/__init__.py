@@ -58,6 +58,19 @@ from .memory_forensics import (
     run_memory_forensics,
 )
 from .sim_bridge import export_sim_case
+from .structural_inference import (
+    CANONICAL_L1_FAMILIES,
+    STRUCTURAL_INFERENCE_SCHEMA,
+    AgentDecisionItem,
+    BodyTopologyInference,
+    FrameworkEnvelopeInference,
+    FusedCompositeInference,
+    OperatorObservation,
+    SpeculativeModuleInference,
+    StructuralInferenceReport,
+    classify_canonical_l1_family,
+    infer_trace_structure,
+)
 from .segment import (
     discover_rank_sources,
     find_csv_candidates,
@@ -71,28 +84,38 @@ from .segment import (
 from .sources_trace import build_trace_index, iter_trace_events
 from .sql import run_sql
 
-__version__ = "0.5.7"
+__version__ = "0.5.8"
 analyze = analyze_profile
 
 __all__ = [
     "ADVISOR_SCHEMA",
+    "CANONICAL_L1_FAMILIES",
     "FUSION_PATTERN_RULES",
     "FusionPatternRule",
     "MEMORY_FORENSICS_SCHEMA",
     "PARSER_VERSION",
     "REPORT_SCHEMA",
+    "STRUCTURAL_INFERENCE_SCHEMA",
+    "AgentDecisionItem",
+    "BodyTopologyInference",
     "Event",
+    "FrameworkEnvelopeInference",
+    "FusedCompositeInference",
+    "OperatorObservation",
     "ProfilerError",
     "ProfilerQueryError",
     "ProfilerSchemaError",
     "ProfilerUsageError",
     "SourceRef",
+    "SpeculativeModuleInference",
+    "StructuralInferenceReport",
     "Window",
     "analyze",
     "analyze_memory_inefficiencies",
     "analyze_profile",
     "attribute_cluster_stragglers_and_links",
     "build_trace_index",
+    "classify_canonical_l1_family",
     "correlate_profile",
     "cross_rank_stats",
     "detect_step_monotonic_leaks",
@@ -103,6 +126,7 @@ __all__ = [
     "find_csv_candidates",
     "find_db_candidates",
     "find_trace_candidates",
+    "infer_trace_structure",
     "inventory_profile",
     "iter_trace_events",
     "load_steps_file",

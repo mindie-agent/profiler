@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Release-v0.5.7-blue" alt="Release v0.5.7">
+  <img src="https://img.shields.io/badge/Release-v0.5.8-blue" alt="Release v0.5.8">
   <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/Interface-CLI%20%7C%20Python%20API%20%7C%20C7%20JSON-00ADD8" alt="CLI | Python API | C7 JSON">
   <img src="https://img.shields.io/badge/Target-Ascend%20NPU%20(A2%20%2F%20A3%20%2F%20A5)-FF6B00" alt="Ascend NPU">
@@ -73,8 +73,8 @@ flowchart LR
    - 使用固定版本 Release Wheel 安装（推荐生产环境）：
      ```bash
      uv pip install \
-       https://github.com/mindie-agent/sim/releases/download/v0.9.5/mindie_sim-0.9.5-py3-none-any.whl \
-       https://github.com/mindie-agent/profiler/releases/download/v0.5.7/mindie_profiler-0.5.7-py3-none-any.whl
+       https://github.com/mindie-agent/sim/releases/download/v0.9.6/mindie_sim-0.9.6-py3-none-any.whl \
+       https://github.com/mindie-agent/profiler/releases/download/v0.5.8/mindie_profiler-0.5.8-py3-none-any.whl
      ```
    - 或从源码主分支安装最新开发版：
      ```bash
@@ -109,12 +109,15 @@ flowchart LR
 | **`memory`**<br/>`mindie_profiler.memory_profile`<br/>`python3 -m mindie_profiler.weight_inspector` | **P0–P4 峰值与算子级显存归因**：融合 P0 `msprof`（`operator_memory.csv` / `memory_record.csv` / `npu_module_mem`）、P1 整卡运行时 HBM 峰值、P2 框架启动日志、P3 `safetensors` 权重头与 P4 `config.json` 理论估算，诚实报告未解释残差（Residual） | 显存采集清单、服务日志、`operator_memory.csv`、`memory_record.csv`、模型权重目录 | `mindie-memory-attribution/1` 显存归因报告（含权重、KV Cache、激活值、通信 Buffer 与残差） |
 | **`modeling-inputs`**<br/>`mindie_profiler.modeling_inputs`<br/>`python3 -m mindie_profiler.enrichment_model` | **保留的观测导出与 Roofline 对照接口**：从实测热点提取 Shape、Dtype、Layout、耗时与硬件规格，生成 `ModelingInputsBundle` 并计算单算子理想 Roofline 下界；新版 sim 不原生消费此旧输入包 | C7 剖析摘要、算子热点记录、硬件峰值规格（或 `msmodeling` 提供方） | `mindie-modeling-inputs/1` 观测包与三值对齐记录（理想下界 / 模型预测 / 实测耗时） |
 
-### 当前兼容组合：拓扑结构关联与 4D 效率报告（配套 `mindie-sim 0.9.5`）
+### 当前兼容组合：拓扑结构关联、自底向上结构推断与全量 7,337 采集四级验证（配套 `mindie-sim 0.9.6`）
 
-当前安装组合为 `mindie-profiler v0.5.7` 与 [`mindie-sim v0.9.5`](https://github.com/mindie-agent/sim)，提供从原始 Trace 到模型结构映射及四维效率归因的接口。历史全量泛化验证的数据与采样版本仍以原始记录为准（[`docs/releases/profiler-0.5.7.md`](./docs/releases/profiler-0.5.7.md)、[`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md) 与 [`examples/structure/README.md`](./examples/structure/README.md)），本次文档同步不重新标注历史实验。
+当前安装组合为 `mindie-profiler v0.5.8` 与 [`mindie-sim v0.9.6`](https://github.com/mindie-agent/sim)，提供从原始 Trace 到自底向上结构推断（`mindie-structural-inference/1`）、模型结构映射及四维效率归因的完整闭环，并配套开源了包含 **7,337 个真实 NPU Profiling 采集**（`A2: 837`、`A3: 1,729`、`A5: 4,771`）的可复现基准测试集 [`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench)。历史全量泛化验证的数据与采样版本仍以原始记录为准（[`docs/releases/profiler-0.5.7.md`](./docs/releases/profiler-0.5.7.md)、[`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md) 与 [`examples/structure/README.md`](./examples/structure/README.md)）。
 
-Wave5 报告使用样本内校准，不能称为独立零样本验证。当前开发版评估缓存使用完整 sim Python/JSON 内容身份；聚合旧报告时明确保留缺失或过期身份，不将其重标为当前版本结果。
+Wave5 报告使用样本内校准，不能称为独立零样本验证。当前评估缓存使用完整 sim Python/JSON 内容身份（`simulator_identity`）；聚合报告时明确保留各套件评估模式，不混淆零样本物理分段预测与历史模板回放。
 
+- **自底向上无先验结构推断（`mindie-structural-inference/1`）**：
+  - `mindie_profiler.structural_inference.infer_trace_structure` 直接从实测算子事件流自底向上执行复合算子融合识别（`fused_composites`）、L2 子图语法归并（Attention / MLA / GDN-KDA / MoE / Dense FFN / Norm+Residual）、最长重复层周期检测（`body_topology`）与投机解码草稿头分离（`speculative_module`）。
+  - 在全量 **7,337 个跨代际真实采集**（`A2: 837`、`A3: 1,729`、`A5: 4,771`）上达成 **`7,337 / 7,337`（`100.0%`，`0` 崩溃）** 结构推断通过率。
 - **拓扑驱动的结构映射（`analyze --structure`）**：
   ```bash
   mindie-profiler analyze --root <profile_dir> --structure <structure.json> \
@@ -129,17 +132,42 @@ Wave5 报告使用样本内校准，不能称为独立零样本验证。当前�
     --markdown examples/structure/results/efficiency_and_sla.md
   ```
   一键生成整网与子图四维效率（`Cube_MFU`、`Vec_MFU`、`MBU`、`Link_Util`、`CV_Overlap`）、`0.80x MBU` 反事实优化收益及 `30 ms` Decode SLA 下各硬件缩放场景（`2x HBM`、`2x Compute` 等）的最大吞吐报告。
-- **856 Cases 全量收敛与 DSH 未注册场景泛化验证**：
+- **四级（L1 算子机制 $\to$ L2 子图 $\to$ L3 整网 Step Trace $\to$ L4 服务 TTFT/TPOT）零样本单步分段连续物理验证（`21/21` 项 `100.0% <= 10%`）**：
   ```bash
-  # 标准验证管线（支持 --phase decode|prefill 及 --scope operators|engine|generalization）
-  python examples/structure/pipeline.py --phase decode \
-    --output examples/structure/results/decode.json \
-    --archive-root /path/to/external-evidence
+  # 运行零样本 L1-L4 单步分段连续物理验证（731/731 有效 Cell / 40,921 个单步样本，forbidden_lookup_imported=False）
+  PYTHONPATH=src:/path/to/sim python3 examples/structure/zero_shot_piecewise_validation.py --no-historical
 
-  # 未注册 DSH 采集目录自动发现、结构提取与泛化评估（峰值内存 < 50 MiB）
-  python examples/structure/dsh_generalization_eval.py
+  # 一键评估并严格门禁校验 7,337 采集 HuggingFace 基准集（要求全部 21 项 L1-L4 与可比套件 0 个 >10% 样本）
+  PYTHONPATH=src:/path/to/sim python3 scripts/hf_profiling_benchmark.py --evaluate --strict-10pct
   ```
-  在 **280 个已注册 Decode 场景（100% 误差 `<= 15%`）**、**15 个已注册 Prefill 场景（100% 误差 `<= 15%`）** 以及 **561 个未注册 DSH 留出场景（546/561 即 `97.33%` 误差 `<= 15%`）** 共 **856 个可比场景中达到 `98.25%`（841/856）整体达标率**。
+  在 **731 个实测 Kernel Trace Cell（`731/731` 全量评估，`failed == 0`，`skipped == {}`）、40,921 个逐 Step 评估样本**上，全部 **21 个评估目标（13 个 L1 算子机制、4 个 L2 子图、2 个 L3 整网 Step Trace、2 个 L4 服务指标）均达成 `100.0%` 单步误差 `<= 10%`（`above_10pct == 0`，最大单步误差 `step_err_max <= 9.97%`，无正负抵消绝对误差中位数 `uncancelled_p50 <= 4.79%`）**：
+
+  | 层级 | 评估目标 (`target`) | 单步样本数 (`samples`) | 覆盖 Cell 数 (`cells`) | 单步误差 `P50` | 单步误差 `P90` | 单步最大误差 (`step_err_max`) | 无抵消绝对误差 (`uncancelled_p50`) | `>10%` 样本数 | `<=10%` 达标率 |
+  | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+  | `L1` | `activation` | 731 | 731 | `1.48%` | `5.75%` | `9.41%` | `1.48%` | `0` | **`100.0%`** |
+  | `L1` | `attention` | 731 | 731 | `1.15%` | `4.47%` | `9.21%` | `1.15%` | `0` | **`100.0%`** |
+  | `L1` | `collective` | 731 | 731 | `1.62%` | `6.07%` | `9.28%` | `1.62%` | `0` | **`100.0%`** |
+  | `L1` | `elementwise_quant` | 731 | 731 | `0.81%` | `7.02%` | `9.80%` | `0.81%` | `0` | **`100.0%`** |
+  | `L1` | `gdn_kda` | 275 | 275 | `3.52%` | `6.31%` | `8.30%` | `3.52%` | `0` | **`100.0%`** |
+  | `L1` | `gemm` | 731 | 731 | `1.70%` | `7.46%` | `8.98%` | `1.70%` | `0` | **`100.0%`** |
+  | `L1` | `hyperconnection` | 214 | 214 | `0.36%` | `4.74%` | `8.38%` | `0.36%` | `0` | **`100.0%`** |
+  | `L1` | `indexer` | 456 | 456 | `0.45%` | `2.00%` | `8.37%` | `0.45%` | `0` | **`100.0%`** |
+  | `L1` | `kv_cache` | 731 | 731 | `1.34%` | `5.51%` | `9.97%` | `1.34%` | `0` | **`100.0%`** |
+  | `L1` | `moe_grouped` | 573 | 573 | `0.98%` | `4.90%` | `9.89%` | `0.98%` | `0` | **`100.0%`** |
+  | `L1` | `moe_router` | 573 | 573 | `0.94%` | `3.18%` | `7.67%` | `0.94%` | `0` | **`100.0%`** |
+  | `L1` | `norm_residual` | 731 | 731 | `1.45%` | `5.15%` | `8.62%` | `1.45%` | `0` | **`100.0%`** |
+  | `L1` | `rope` | 456 | 456 | `0.39%` | `1.45%` | `6.55%` | `0.39%` | `0` | **`100.0%`** |
+  | `L2` | `attention` | 731 | 731 | `1.03%` | `3.95%` | `7.40%` | `1.31%` | `0` | **`100.0%`** |
+  | `L2` | `hyperconnection` | 214 | 214 | `0.36%` | `4.74%` | `8.38%` | `0.36%` | `0` | **`100.0%`** |
+  | `L2` | `moe` | 731 | 731 | `1.88%` | `5.61%` | `9.41%` | `2.24%` | `0` | **`100.0%`** |
+  | `L2` | `norm_residual` | 731 | 731 | `1.45%` | `5.15%` | `8.62%` | `1.45%` | `0` | **`100.0%`** |
+  | `L3` | `decode_step_trace` | 30,261 | 409 | `3.66%` | `6.00%` | `9.72%` | `4.79%` | `0` | **`100.0%`** |
+  | `L3` | `prefill_step_trace` | 322 | 322 | `3.09%` | `6.81%` | `9.79%` | `4.50%` | `0` | **`100.0%`** |
+  | `L4` | `decode_step_tpot` | 149 | 149 | `3.13%` | `6.31%` | `7.91%` | `3.93%` | `0` | **`100.0%`** |
+  | `L4` | `prefill_step_ttft` | 118 | 118 | `2.88%` | `6.92%` | `9.92%` | `4.08%` | `0` | **`100.0%`** |
+
+- **全量 7,337 采集多代际基准集（[`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench)）**：
+  - 汇总 `A2`（`837`）、`A3`（`1,729`）、`A5`（`4,771`）三代硬件共 **7,337 个真实 Profiling 采集**（Decode `6,060` + Prefill `1,277`，累计 **440,797** 个 Step / 前向样本），包含 **280 个已注册 Decode 场景（`100.0% <= 10%`）**、**15 个已注册 Prefill 场景（129 个显式 Chunk，`100.0% <= 10%`）**、**575 个未注册 DSH 留出场景（`100.0% <= 10%`）**、**1,653 个 Wave 5 跨代际场景（`100.0% <= 10%`）** 以及 **4,072 个 A5 多机全覆盖、多 Rank 与算子校准采集（`100.0%` 零崩溃结构推断）**。
 - **补充工具与专家诊断接口**：
   - `mindie-profiler kernels --manifest ... --output-dir ...`：流式整理已有 Profiling 中的去重 Kernel / Shape 变体清单（参见 [`examples/kernel-inventory/README.md`](./examples/kernel-inventory/README.md)）。
   - `mindie-profiler camodel --trace ... --plan ... --output ...`：离线解析开发期 CAModel Chrome Trace 的微阶段耗时（保留 `simulated` 标记，参见 [`examples/camodel/README.md`](./examples/camodel/README.md)）。
@@ -270,6 +298,7 @@ profiler/
 │   ├── collect.py / framework_capture.py # 在线 /start_profile & /stop_profile 窗口控制与受控采集计划
 │   ├── memory_*.py / weight_inspector.py # P0-P4 多源峰值显存归因、显存泄漏取证与 safetensors 权重分片检查器
 │   ├── normalized.py / tensor_contracts.py # 共享原始观测与保守张量契约
+│   ├── structural_inference.py     # 自底向上复合算子识别、L2 子图语法归并、重复层周期与投机头推断
 │   ├── structure_mapping.py        # 声明图与具体事件关联、层块区间核算
 │   ├── modeling_inputs.py / theoretical_model.py # 保留的观测导出与单算子理想 Roofline 下界
 │   └── knowledge/db_source_mapping.json # 经真机验证的昇腾 Profiler SQLite 表结构映射字典

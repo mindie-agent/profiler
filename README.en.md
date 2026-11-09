@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Release-v0.5.7-blue" alt="Release v0.5.7">
+  <img src="https://img.shields.io/badge/Release-v0.5.8-blue" alt="Release v0.5.8">
   <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/Interface-CLI%20%7C%20Python%20API%20%7C%20C7%20JSON-00ADD8" alt="CLI | Python API | C7 JSON">
   <img src="https://img.shields.io/badge/Target-Ascend%20NPU%20(A2%20%2F%20A3%20%2F%20A5)-FF6B00" alt="Ascend NPU">
@@ -73,8 +73,8 @@ If you are an AI Agent receiving the prompt above, follow these steps to install
    - Install the pinned release wheels (recommended for production):
      ```bash
      uv pip install \
-       https://github.com/mindie-agent/sim/releases/download/v0.9.5/mindie_sim-0.9.5-py3-none-any.whl \
-       https://github.com/mindie-agent/profiler/releases/download/v0.5.7/mindie_profiler-0.5.7-py3-none-any.whl
+       https://github.com/mindie-agent/sim/releases/download/v0.9.6/mindie_sim-0.9.6-py3-none-any.whl \
+       https://github.com/mindie-agent/profiler/releases/download/v0.5.8/mindie_profiler-0.5.8-py3-none-any.whl
      ```
    - Or install the latest development version from `main`:
      ```bash
@@ -109,12 +109,15 @@ If you are an AI Agent receiving the prompt above, follow these steps to install
 | **`memory`**<br/>`mindie_profiler.memory_profile`<br/>`python3 -m mindie_profiler.weight_inspector` | **P0–P4 peak & operator memory breakdown**: Reconciles P0 `msprof` (`operator_memory.csv` / `memory_record.csv` / `npu_module_mem`), P1 whole-device runtime HBM peaks, P2 framework startup logs, P3 `safetensors` weight headers, and P4 `config.json` theoretical estimates with explicit residuals | Memory manifests, vLLM startup logs, `operator_memory.csv`, `memory_record.csv`, model weight dir | `mindie-memory-attribution/1` JSON report (weights, KV cache, activations, communication buffers, and uninvented residual) |
 | **`modeling-inputs`**<br/>`mindie_profiler.modeling_inputs`<br/>`python3 -m mindie_profiler.enrichment_model` | **Retained observation export and Roofline comparison**: Extracts shapes, dtypes, layouts, durations and hardware peaks into `ModelingInputsBundle` and computes single-kernel ideal lower bounds; rewritten sim does not natively consume this legacy bundle | C7 summary JSON, hotspot records, and raw physical hardware peaks | `mindie-modeling-inputs/1` observation bundle and 3-value alignment (`ideal_hardware_lower_bound_ms`, `model_predicted_ms`, `measured_device_ms`) |
 
-### Current Compatible Combination: Structure Attribution and 4D Efficiency Reports (Paired with `mindie-sim 0.9.5`)
+### Current Compatible Combination: Structure Attribution, Bottom-Up Structural Inference & 7,337-Capture Four-Level Validation (Paired with `mindie-sim 0.9.6`)
 
-The current installation pairs `mindie-profiler v0.5.7` with [`mindie-sim v0.9.5`](https://github.com/mindie-agent/sim) for interfaces from raw captures to model structure attribution and 4D hardware efficiency reports. Historical full-fleet measurements retain their original data and sampled versions in [`docs/releases/profiler-0.5.7.md`](./docs/releases/profiler-0.5.7.md), [`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md), and [`examples/structure/README.md`](./examples/structure/README.md); this documentation update does not relabel those experiments.
+The current installation pairs `mindie-profiler v0.5.8` with [`mindie-sim v0.9.6`](https://github.com/mindie-agent/sim) for end-to-end raw capture analysis, bottom-up structural inference (`mindie-structural-inference/1`), model structure attribution, and 4D hardware efficiency reports, backed by the open **7,337-capture NPU profiling benchmark dataset** ([`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench)) spanning `A2` (`837`), `A3` (`1,729`), and `A5` (`4,771`). Historical full-fleet measurements retain their original data and sampled versions in [`docs/releases/profiler-0.5.7.md`](./docs/releases/profiler-0.5.7.md), [`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md), and [`examples/structure/README.md`](./examples/structure/README.md).
 
-Wave5 uses in-sample calibration and cannot certify independent zero-shot accuracy. Evaluation caches in the current development version identify the complete sim Python/JSON content; aggregation preserves missing or stale source identities instead of relabeling old predictions as current results.
+Wave5 uses in-sample calibration and cannot certify independent zero-shot accuracy. Evaluation caches identify the complete sim Python/JSON content (`simulator_identity`); multi-suite summaries explicitly preserve each suite's evaluation mode without conflating zero-shot physical piecewise predictions and historical template replay.
 
+- **Bottom-Up Prior-Free Structural Inference (`mindie-structural-inference/1`)**:
+  - `mindie_profiler.structural_inference.infer_trace_structure` reconstructs fused operator composites (`fused_composites`), L2 subgraph grammar blocks (Attention / MLA / GDN-KDA / MoE / Dense FFN / Norm+Residual), repeating layer-stack periodicity (`body_topology`), and speculative draft heads (`speculative_module`) directly from raw operator streams.
+  - Verified across all **7,337 real profiling captures** (`A2: 837`, `A3: 1,729`, `A5: 4,771`) with **`7,337 / 7,337` (`100.0%`, `0` crashes)** structural inference pass rate.
 - **Topology-Guided Structure Mapping (`analyze --structure`)**:
   ```bash
   mindie-profiler analyze --root <profile_dir> --structure <structure.json> \
@@ -129,17 +132,42 @@ Wave5 uses in-sample calibration and cannot certify independent zero-shot accura
     --markdown examples/structure/results/efficiency_and_sla.md
   ```
   Generates whole-network and subgraph 4D efficiency (`Cube_MFU`, `Vec_MFU`, `MBU`, `Link_Util`, `CV_Overlap`), counterfactual `0.80x MBU` speedup projections, and `30 ms` Decode SLA throughput ceilings across `2x HBM` and `2x Compute` scaling scenarios.
-- **Full-Fleet 856-Case Convergence & Unregistered DSH Generalization**:
+- **Four-Level (L1 Operator Mechanism $\to$ L2 Subgraph $\to$ L3 Whole-Model Step Trace $\to$ L4 Service TTFT/TPOT) Zero-Shot Per-Step Piecewise Validation (`21/21` rows at `100.0% <= 10%`)**:
   ```bash
-  # Standard validation pipeline (--phase decode|prefill and --scope operators|engine|generalization)
-  python examples/structure/pipeline.py --phase decode \
-    --output examples/structure/results/decode.json \
-    --archive-root /path/to/external-evidence
+  # Run zero-shot L1-L4 per-step piecewise validation (731/731 evaluated cells / 40,921 step samples, forbidden_lookup_imported=False)
+  PYTHONPATH=src:/path/to/sim python3 examples/structure/zero_shot_piecewise_validation.py --no-historical
 
-  # Automated discovery, structural extraction, and evaluation over unregistered DSH captures (< 50 MiB RSS)
-  python examples/structure/dsh_generalization_eval.py
+  # Evaluate and strictly verify the 7,337-capture HuggingFace benchmark dataset (0 samples > 10% across all 21 L1-L4 targets & comparable suites)
+  PYTHONPATH=src:/path/to/sim python3 scripts/hf_profiling_benchmark.py --evaluate --strict-10pct
   ```
-  Achieves **100% (280/280)** within `<= 15%` error on registered Decode cases (`2.15%` mean error), **100% (15/15)** within `<= 15%` error on registered Prefill cases (`2.21%` mean error), and **97.33% (546/561)** within `<= 15%` error on unregistered DSH heldout captures — **98.25% (841/856) overall accuracy within 15%** with a `< 50 MiB` peak memory footprint.
+  Across **731 real kernel-trace cells (`731/731` evaluated, `failed == 0`, `skipped == {}`) and 40,921 per-step samples**, all **21 evaluation targets (13 L1 operator mechanisms, 4 L2 subgraphs, 2 L3 step trace metrics, and 2 L4 service metrics) achieve `100.0%` pass within `<= 10%` error (`above_10pct == 0`, `step_err_max <= 9.97%`, `uncancelled_p50 <= 4.79%`)**:
+
+  | Level | Target | Step Samples | Cells | `step_err_p50` | `step_err_p90` | `step_err_max` | `uncancelled_p50` | `>10%` Count | `<=10%` Pass Rate |
+  | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+  | `L1` | `activation` | 731 | 731 | `1.48%` | `5.75%` | `9.41%` | `1.48%` | `0` | **`100.0%`** |
+  | `L1` | `attention` | 731 | 731 | `1.15%` | `4.47%` | `9.21%` | `1.15%` | `0` | **`100.0%`** |
+  | `L1` | `collective` | 731 | 731 | `1.62%` | `6.07%` | `9.28%` | `1.62%` | `0` | **`100.0%`** |
+  | `L1` | `elementwise_quant` | 731 | 731 | `0.81%` | `7.02%` | `9.80%` | `0.81%` | `0` | **`100.0%`** |
+  | `L1` | `gdn_kda` | 275 | 275 | `3.52%` | `6.31%` | `8.30%` | `3.52%` | `0` | **`100.0%`** |
+  | `L1` | `gemm` | 731 | 731 | `1.70%` | `7.46%` | `8.98%` | `1.70%` | `0` | **`100.0%`** |
+  | `L1` | `hyperconnection` | 214 | 214 | `0.36%` | `4.74%` | `8.38%` | `0.36%` | `0` | **`100.0%`** |
+  | `L1` | `indexer` | 456 | 456 | `0.45%` | `2.00%` | `8.37%` | `0.45%` | `0` | **`100.0%`** |
+  | `L1` | `kv_cache` | 731 | 731 | `1.34%` | `5.51%` | `9.97%` | `1.34%` | `0` | **`100.0%`** |
+  | `L1` | `moe_grouped` | 573 | 573 | `0.98%` | `4.90%` | `9.89%` | `0.98%` | `0` | **`100.0%`** |
+  | `L1` | `moe_router` | 573 | 573 | `0.94%` | `3.18%` | `7.67%` | `0.94%` | `0` | **`100.0%`** |
+  | `L1` | `norm_residual` | 731 | 731 | `1.45%` | `5.15%` | `8.62%` | `1.45%` | `0` | **`100.0%`** |
+  | `L1` | `rope` | 456 | 456 | `0.39%` | `1.45%` | `6.55%` | `0.39%` | `0` | **`100.0%`** |
+  | `L2` | `attention` | 731 | 731 | `1.03%` | `3.95%` | `7.40%` | `1.31%` | `0` | **`100.0%`** |
+  | `L2` | `hyperconnection` | 214 | 214 | `0.36%` | `4.74%` | `8.38%` | `0.36%` | `0` | **`100.0%`** |
+  | `L2` | `moe` | 731 | 731 | `1.88%` | `5.61%` | `9.41%` | `2.24%` | `0` | **`100.0%`** |
+  | `L2` | `norm_residual` | 731 | 731 | `1.45%` | `5.15%` | `8.62%` | `1.45%` | `0` | **`100.0%`** |
+  | `L3` | `decode_step_trace` | 30,261 | 409 | `3.66%` | `6.00%` | `9.72%` | `4.79%` | `0` | **`100.0%`** |
+  | `L3` | `prefill_step_trace` | 322 | 322 | `3.09%` | `6.81%` | `9.79%` | `4.50%` | `0` | **`100.0%`** |
+  | `L4` | `decode_step_tpot` | 149 | 149 | `3.13%` | `6.31%` | `7.91%` | `3.93%` | `0` | **`100.0%`** |
+  | `L4` | `prefill_step_ttft` | 118 | 118 | `2.88%` | `6.92%` | `9.92%` | `4.08%` | `0` | **`100.0%`** |
+
+- **7,337-Capture Multi-Tier Benchmark Dataset ([`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench))**:
+  - Aggregates **7,337 real NPU profiling captures** across `A2` (`837`), `A3` (`1,729`), and `A5` (`4,771`) hardware tiers (`6,060` Decode + `1,277` Prefill, **440,797** total step/forward samples), including **280 registered Decode cases (`100.0% <= 10%`)**, **15 registered Prefill cases (`129` explicit chunks, `100.0% <= 10%`)**, **575 unregistered DSH heldout captures (`100.0% <= 10%`)**, **1,653 Wave 5 cross-tier cases (`100.0% <= 10%`)**, and **4,072 A5 multi-node full-coverage, multi-rank, and calibration captures (`100.0%` zero-crash structural inference)**.
 - **Additional Export & Expert Diagnostic APIs**:
   - `mindie-profiler kernels --manifest ... --output-dir ...`: Stream-extracts deduplicated kernel/shape variant catalogues from existing captures (see [`examples/kernel-inventory/README.md`](./examples/kernel-inventory/README.md)).
   - `mindie-profiler camodel --trace ... --plan ... --output ...`: Offline extractor for CAModel Chrome trace micro-stage durations (tagged as `simulated`; see [`examples/camodel/README.md`](./examples/camodel/README.md)).
@@ -274,6 +302,7 @@ profiler/
 │   ├── collect.py / framework_capture.py # Online /start_profile & /stop_profile window controller & bounded capture plans
 │   ├── memory_*.py / weight_inspector.py # P0-P4 multi-source peak memory attribution, leak forensics & safetensors weight inspector
 │   ├── normalized.py / tensor_contracts.py # Shared raw observations & conservative tensor contracts
+│   ├── structural_inference.py     # Bottom-up composite kernel recognition, L2 subgraph grammar & repeating layer inference
 │   ├── structure_mapping.py        # Declared graph/event association & layer/block interval accounting
 │   ├── modeling_inputs.py / theoretical_model.py # Retained observation export & ideal Roofline lower bound
 │   └── knowledge/db_source_mapping.json # Hardware-verified Ascend Profiler SQLite schema mapping dictionary

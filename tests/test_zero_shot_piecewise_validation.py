@@ -129,9 +129,10 @@ def test_validator_source_has_no_empirical_lookup_import_or_call():
                    and node.func.id == "lookup" for node in ast.walk(tree))
 
 def test_prediction_signature_is_measurement_blind():
+    for fn in (z.predict_cell, z._decode_segments, z._mixed_prefill, z._trace_step_count):
+        body = "\n".join(__import__("inspect").getsource(fn).splitlines()[1:])
+        assert "ttft_ms" not in body and "tpot_ms" not in body
     source = __import__("inspect").getsource(z.predict_cell)
-    assert "ttft_ms" not in source
-    assert "tpot_ms" not in source
     assert "step_trace" not in source
     measured = {field.name for field in fields(z.MeasuredCell)}
     blind = {field.name for field in fields(z.CellSpec)}
@@ -301,9 +302,9 @@ def test_trace_step_count_recovers_layer_counts_not_declared_tokens(tmp_path):
 def test_unsegmented_prefill_blob_and_repeated_prefill_passes(tmp_path):
     spec = z.CellSpec("blob", "unit", "decode", MODEL_CASE, "Qwen3.8-27B", 1024, 4, 4, 1, 16, 16, 1)
     path = tmp_path / "kernel_details.csv"
-    write_kernel_csv(path, rows=(("MlaPrologV3", "MlaPrologV3", 23_267_000.0),))
+    write_kernel_csv(path, rows=(("MlaPrologV3", "MlaPrologV3", 23_267_000.0), ("_prepare_prefill_inputs_kernel", "x", 10.0)))
     blob = z.attach_trace(z.MeasuredCell(spec, (path,), None, None, 4993.733, None, 4, True))
-    assert blob.trace_quality == "mixed_prefill" and blob.step_trace_ms == pytest.approx(4993.733)
+    assert blob.trace_quality == "mixed_prefill" and blob.step_trace_ms == 0.0
     assert z._step_series(blob) == ()
     pred = z.Prediction(spec.cell_id, spec.model_label, 64, {"gemm": 1.0}, {}, 1.0, None, None, ())
     assert {"decode_step_trace", "decode_step_tpot"}.isdisjoint({item.target for item in z.compare_cell(blob, pred)})
@@ -366,27 +367,29 @@ def test_mixed_decode_trace_subtracts_prefill_segments(tmp_path):
     trace = z.load_kernel_trace(path)
     spec = z.CellSpec("mixed", "unit", "decode", MODEL_CASE, "Qwen3.8-27B",
                       1024, 2, 4, 4, 1, 1, 1)
-    assert z._trace_step_count(trace, spec, 4, 10.0, None) == 3
-    cell = z.MeasuredCell(spec, (path,), None, None, 10.0, None, 4, True)
+    assert z._trace_step_count(trace, spec, 4, None, None) == 3
+    cell = z.MeasuredCell(spec, (path,), None, None, None, None, 4, True)
     attached = z.attach_trace(cell)
     assert attached.trace_quality == "mixed_prefill"
     assert attached.decode_steps == 3
     assert attached.step_trace_ms == pytest.approx(20.01)
     assert z._step_series(attached) == pytest.approx((20.01, 20.01, 20.01))
 
-def test_decode_step_over_threshold_is_marked_mixed_without_prefill_marker(tmp_path):
-    rows = tuple(item for _ in range(4)
-                 for item in (("MlaPrologV3", "MlaPrologV3", 20000.0),
-                              ("_categorical_sample_kernel",
-                               "_categorical_sample_kernel", 10.0)))
+def test_decode_step_over_threshold_is_retained_without_prefill_marker(tmp_path):
+    rows = (("MlaPrologV3", "MlaPrologV3", 60000.0),
+            ("_categorical_sample_kernel", "_categorical_sample_kernel", 10.0))
+    rows += tuple(item for _ in range(3)
+                  for item in (("MlaPrologV3", "MlaPrologV3", 20000.0),
+                               ("_categorical_sample_kernel",
+                                "_categorical_sample_kernel", 10.0)))
     path = tmp_path / "kernel_details.csv"
     write_kernel_csv(path, rows=rows)
-    trace = z.load_kernel_trace(path)
     spec = z.CellSpec("ratio", "unit", "decode", MODEL_CASE, "Qwen3.8-27B",
                       1024, 2, 4, 4, 1, 1, 1)
-    cell = z.attach_trace(z.MeasuredCell(spec, (path,), None, None, 10.0, None, 4, True))
-    assert cell.trace_quality == "mixed_prefill"
-    assert cell.step_trace_ms == pytest.approx(20.01)
+    cell = z.attach_trace(z.MeasuredCell(spec, (path,), None, None, None, None, 4, True))
+    assert cell.trace_quality == "ok"
+    assert cell.decode_steps == 4
+    assert max(z._step_series(cell)) > 50.0
 
 def test_subgraph_kind_never_overrides_physical_operator_class():
     from types import SimpleNamespace
@@ -697,54 +700,30 @@ def test_aggregate_counts_unmatched_prediction_without_infinite_means():
     valid = z.Comparison("L1", "gemm", "gemm", 1.2, 1.0, "op", "g", "cube", "f", 1)
     unmatched = z.Comparison("L1", "indexer", "indexer", 0.1, 0.0, "missing", "g", "", "", -1)
     rows = z.aggregate((valid, unmatched))
-    row = next(item for item in rows if item["target"] == "gemm")
-    absent = next(item for item in rows if item["target"] == "indexer")
-    assert row["samples"] == 1 and row["unmatched"] == 0
-    assert row["step_err_p50"] == pytest.approx(0.2)
-    assert row["step_err_max"] == pytest.approx(0.2)
-    assert row["signed_p50"] == pytest.approx(0.2)
-    assert row["pass_rate_10pct"] == 0.0
-    assert absent["samples"] == 0 and absent["unmatched"] == 1
-    assert math.isfinite(absent["signed_error_mean"])
-    assert math.isfinite(absent["step_err_p90"])
-
-# ---------------------------------------------------------------------------
-# End-to-end baseline
+    row, absent = next(item for item in rows if item["target"] == "gemm"), next(item for item in rows if item["target"] == "indexer")
+    assert row["samples"] == 1 and row["unmatched"] == 0 and row["pass_rate_10pct"] == 0.0
+    assert row["step_err_p50"] == pytest.approx(0.2) and row["step_err_max"] == pytest.approx(0.2) and row["signed_p50"] == pytest.approx(0.2)
+    assert absent["samples"] == 0 and absent["unmatched"] == 1 and math.isfinite(absent["signed_error_mean"]) and math.isfinite(absent["step_err_p90"])
 
 def test_end_to_end_baseline_runs_over_synthetic_fleet_cell(tmp_path):
     root = make_corpus(tmp_path)
     result = z.run_validation(roots=(root,), include_historical=False)
-    assert result["coverage"]["cells"] == 1
-    assert result["coverage"]["evaluated"] == 1
-    assert result["coverage"]["failed"] == 0
-    assert result["measurement_blind"] is True
-    assert result["levels"]
-    assert result["diagnoses"]
-    assert result["coverage"]["step_samples"] >= 1
-    assert result["step_errors"]
-    assert {"cell", "level", "target", "step", "measured_ms", "predicted_ms",
-            "signed_error"} == set(result["step_errors"][0])
-    assert set(result["diagnosis_counts"]) <= {
-        "confirmed_structural_gap", "mte2_granule_amplification", "tiling_wave_step",
-        "fusion_boundary", "collective_skew"}
+    assert result["coverage"]["cells"] == 1 and result["coverage"]["evaluated"] == 1 and result["coverage"]["failed"] == 0
+    assert result["measurement_blind"] is True and result["levels"] and result["diagnoses"] and result["coverage"]["step_samples"] >= 1 and result["step_errors"]
+    assert {"cell", "level", "target", "step", "measured_ms", "predicted_ms", "signed_error"} == set(result["step_errors"][0])
+    assert set(result["diagnosis_counts"]) <= {"confirmed_structural_gap", "mte2_granule_amplification", "tiling_wave_step", "fusion_boundary", "collective_skew"}
     summary = z.render_markdown(result)
-    assert "Zero-shot piecewise validation baseline" in summary
-    assert "Coverage by level" in summary
-    assert "Physical diagnoses" in summary
-    assert "forbidden lookup imported: False" in summary
+    assert all(s in summary for s in ("Zero-shot piecewise validation baseline", "Coverage by level", "Physical diagnoses", "forbidden lookup imported: False"))
 
 def test_historical_inventory_covers_profiles_fixtures_and_registry():
-    entries = z.load_historical_inventory()
-    kinds = {item["kind"] for item in entries}
-    assert {"profile_source", "fixture", "case_registry"}.issubset(kinds)
-    assert all(isinstance(item["exists"], bool) for item in entries)
+    entries = z.load_historical_inventory(); kinds = {item["kind"] for item in entries}
+    assert {"profile_source", "fixture", "case_registry"}.issubset(kinds) and all(isinstance(item["exists"], bool) for item in entries)
     assert any(item["kind"] == "fixture" and item["exists"] for item in entries)
 
 def test_missing_root_is_an_empty_corpus(tmp_path):
     assert z.discover_workstream(tmp_path / "absent") == []
     result = z.run_validation(roots=(tmp_path / "absent",), include_historical=False)
-    assert result["coverage"]["cells"] == 0
-    assert result["levels"] == []
+    assert result["coverage"]["cells"] == 0 and result["levels"] == []
 
 def test_kv_bf16_is_applied_after_parse_and_ep_cohort_conserves_tokens():
     case, label, _ = z.resolve_model("dsv41_kvbf16")
@@ -757,33 +736,49 @@ def test_kv_bf16_is_applied_after_parse_and_ep_cohort_conserves_tokens():
     assert forced.kv_dtype == "bf16" and forced.quant.kv_dtype == "bf16"
     kept, _notes = z._model_for_instantiation(fp8, replace(spec, model_label="DeepSeek-V4.1-Flash"))
     assert kept.kv_dtype == "fp8_e4m3" and kept.quant.kv_dtype == "fp8_e4m3"
-    assert z._ep_batch(spec) == 4
-    assert z._local_batch(spec) == 1
-    assert z._ep_batch(replace(spec, concurrency=7, dp=8, ep=4)) == 4
+    assert z._ep_batch(spec) == 4 and z._local_batch(spec) == 1 and z._ep_batch(replace(spec, concurrency=7, dp=8, ep=4)) == 4
     assert z._geometry(spec, "decode", batch=z._ep_batch(spec)).batch == 4
     idle = replace(spec, concurrency=1)
-    trace = z.KernelTrace(1000.0, {"collective": 800.0, "moe_grouped": 200.0}, {})
-    cell = z.MeasuredCell(idle, (), trace, None, 1.0, 1.0, 1, True)
+    cell = z.MeasuredCell(idle, (), z.KernelTrace(1000.0, {"collective": 800.0, "moe_grouped": 200.0}, {}), None, 1.0, 1.0, 1, True)
     prediction = z.Prediction("kv", label, 1, {"attention": 3.0, "indexer": 1.0, "rope": 0.5, "kv_cache": 0.5, "collective": 2.0, "moe_grouped": 4.0}, {"attention": 5.0, "moe": 6.0}, 10.0, None, None, ())
     comparisons = z.compare_cell(cell, prediction)
     l1 = {item.target: item.predicted_ms for item in comparisons if item.level == "L1"}
     l2 = {item.target: item.predicted_ms for item in comparisons if item.level == "L2"}
-    assert set(l1) == {"collective"} and l1["collective"] == pytest.approx(2.0)
-    assert l2 == {}
-    assert prediction.per_layer["attention"] == pytest.approx(3.0)
-    assert prediction.per_layer["collective"] == pytest.approx(2.0)
-    assert prediction.subgraphs["moe"] == pytest.approx(6.0)
+    assert set(l1) == {"collective"} and l1["collective"] == pytest.approx(2.0) and l2 == {}
+    assert prediction.per_layer["attention"] == pytest.approx(3.0) and prediction.per_layer["collective"] == pytest.approx(2.0) and prediction.subgraphs["moe"] == pytest.approx(6.0)
     busy = z.MeasuredCell(idle, (), z.KernelTrace(1000.0, {"attention": 10.0, "collective": 10.0}, {}), None, 1.0, 1.0, 1, True)
-    kept_attention = next(item.predicted_ms for item in z.compare_cell(busy, prediction) if item.target == "attention" and item.level == "L1")
-    assert kept_attention == pytest.approx(3.0)
+    assert next(item.predicted_ms for item in z.compare_cell(busy, prediction) if item.target == "attention" and item.level == "L1") == pytest.approx(3.0)
 
 def test_union_duration_cache_normalization_and_blind_order(tmp_path):
     csv_path = tmp_path / "overlap.csv"
-    csv_path.write_text("Name,Type,Start Time(us),Duration(us)\nMatMulV3_1,MatMulV3,100.0,50.0\nMatMulV3_2,MatMulV3,120.0,50.0\nBad,MatMulV3,200.0,nan\n")
+    csv_path.write_text("Name,Type,Start Time(us),Duration(us)\nMatMulV3_1,MatMulV3,100.0,50.0\nMatMulV3_2,MatMulV3,120.0,50.0\n_prepare_dflash_inputs,_prepare_dflash_inputs,150.0,25.0\nBad,MatMulV3,200.0,nan\n")
     trace = z.load_kernel_trace(csv_path)
-    assert trace.duration_us == pytest.approx(100.0) and trace.union_duration_us == pytest.approx(70.0)
+    assert trace.duration_us == pytest.approx(125.0) and trace.union_duration_us == pytest.approx(75.0)
+    assert trace.by_class["gemm"] == pytest.approx(100.0) and trace.by_class["unresolved"] == pytest.approx(25.0)
+    assert z.classify_kernel("UnknownProbe", "UnknownProbe", allow_unresolved=True) == "unresolved"
     z._classify_cached.cache_clear()
-    assert z.classify_kernel("MatMulV3_101", "MatMulV3") == z.classify_kernel("MatMulV3_202", "MatMulV3") == "gemm"
-    assert z._classify_cached.cache_info().currsize == 1
+    assert z.classify_kernel("MatMulV3_101", "MatMulV3") == z.classify_kernel("MatMulV3_202", "MatMulV3") == "gemm" and z._classify_cached.cache_info().currsize == 1
     s1 = z.CellSpec("c", "a5", "decode", MODEL_CASE, "Qwen3.8-27B", 128, 1, 8, 4, 1, 1, 1)
     assert s1.prediction_key() != replace(s1, dataset="a3").prediction_key()
+    assert z.predict_cell(replace(s1, cell_id="qwen38_pd_64k_p8k_c8", prompt_tokens=65536, concurrency=8)).ttft_ms < 0.35 * z.predict_cell(replace(s1, cell_id="qwen38_dc_64k_p8k_c8", prompt_tokens=65536, concurrency=8)).ttft_ms
+    for tag in ("gemma4_26b", "gemma4_31b", "minimax_m31", "minimax", "qwen38_flash", "step5"):
+        mc, ml, notes = z.resolve_model(tag)
+        assert mc is not None and "structural_proxy" not in notes and z.predict_cell(z.CellSpec(tag, "a5", "decode", mc, ml, 512, 4, 8, 4, 1, 4, 1)).body_ms > 0.0
+
+def test_l1_l3_comparisons_invariant_under_ttft_tpot_perturbation(tmp_path):
+    dc_rows = (("MlaPrologV3", "MlaPrologV3", 60000.0), ("_categorical_sample_kernel", "x", 10.0)) + tuple(it for _ in range(3) for it in (("MlaPrologV3", "MlaPrologV3", 20000.0), ("AddRmsNormBias", "AddRmsNormBias", 5000.0), ("_prepare_dflash_inputs", "x", 5.0), ("_categorical_sample_kernel", "x", 10.0)))
+    dc_csv, pf_csv = tmp_path / "dc.csv", tmp_path / "pf.csv"
+    write_kernel_csv(dc_csv, rows=dc_rows); write_kernel_csv(pf_csv, rows=KERNEL_ROWS)
+    for phase, csv_p in (("decode", dc_csv), ("prefill", pf_csv)):
+        spec = z.CellSpec(f"inv_{phase}", "unit", phase, MODEL_CASE, "Qwen3.8-27B", 1024, 2, 4, 4, 1, 1, 1)
+        pred = z.predict_cell(spec)
+        c1 = z.attach_trace(z.MeasuredCell(spec, (csv_p,), None, 120.0, 15.0, None, 4 if phase == "decode" else 1, True))
+        c2 = z.attach_trace(z.MeasuredCell(spec, (csv_p,), None, 9999.0, 888.0, None, 4 if phase == "decode" else 1, True))
+        assert (c1.decode_steps, c1.step_trace_ms, c1.trace_quality) == (c2.decode_steps, c2.step_trace_ms, c2.trace_quality)
+        l13_a = [item for item in z.compare_cell(c1, pred) if item.level in {"L1", "L2", "L3"}]
+        l13_b = [item for item in z.compare_cell(c2, pred) if item.level in {"L1", "L2", "L3"}]
+        assert l13_a and l13_a == l13_b
+    jsonl = tmp_path / "bench.jsonl"
+    jsonl.write_text(json.dumps(z.cell_to_dict(z.attach_trace(z.MeasuredCell(z.CellSpec("inv_dc", "unit", "decode", MODEL_CASE, "Qwen3.8-27B", 1024, 2, 4, 4, 1, 1, 1), (dc_csv,), None, 120.0, 15.0, None, 4, True)))) + "\n", encoding="utf-8")
+    res = z.run_validation(benchmark_jsonl=jsonl, include_historical=False)
+    assert "_prepare_dflash_inputs" in res["unresolved_kernels"] and res["agent_decisions"] and z.main(["--benchmark-jsonl", str(jsonl), "--no-historical", "--json"]) == 1
