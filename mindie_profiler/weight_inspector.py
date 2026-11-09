@@ -20,8 +20,8 @@ The manifest is consumed by the P3 weight source in ``memory_profile.py``.
   (``in_proj_a`` / ``in_proj_b`` / ``in_proj_qkvz`` / ``in_proj_ba``,
   ``norm1`` / ``norm2``, ``fc1`` / ``fc2``, ``merger.mlp`` / ``ln_q``,
   ``q_a_layernorm``, ``kv_a_proj_with_mqa``, ``shared_expert_gate``,
-  dense MTP ``mlp`` / ``ffn``) keep explicit shard rules; other wide
-  leftovers still raise.
+  dense MTP FFN, CLIP ``q_proj`` / ``out_proj`` / ``layer_norm1``)
+  keep explicit shard rules; other wide leftovers still raise.
 
 [Timeouts & Locks]
 No subprocess, network, lock, sleep, or unbounded read.  At most
@@ -148,8 +148,12 @@ _MLA_COMPRESS_PARTS = ("kv_a_layernorm", "kv_b_proj", "kv_a_proj", "kv_a_proj_wi
 _LINEAR_ATTN_IN_PROJ_PARTS = (
     "in_proj_qkv", "in_proj_qkvz", "in_proj_a", "in_proj_b", "in_proj_ba",
 )
-_VISION_COL_PARTS = ("qkv", "linear_fc1", "fc1", "c_fc", "gate_up") + _COL_FFN_PARTS
-_VISION_ROW_PARTS = ("linear_fc2", "fc2", "c_proj") + _ROW_FFN_PARTS
+_VISION_COL_PARTS = (
+    "qkv", "linear_fc1", "fc1", "c_fc", "gate_up",
+) + _COL_FFN_PARTS + _Q_PROJ_PARTS + _K_PROJ_PARTS + _V_PROJ_PARTS
+_VISION_ROW_PARTS = (
+    "linear_fc2", "fc2", "c_proj",
+) + _ROW_FFN_PARTS + _O_PROJ_PARTS
 _EXACT_NORM_PARTS = frozenset({"norm", "layernorm", "layer_norm", "rmsnorm", "ln_q"})
 
 
@@ -168,6 +172,8 @@ def _is_norm_segment(part: str) -> bool:
     if part.startswith("norm") and part[4:].isdigit():
         return True
     if part.startswith("ln_") and part[3:].isdigit():
+        return True
+    if part.startswith("layer_norm") and part[len("layer_norm"):].isdigit():
         return True
     return False
 

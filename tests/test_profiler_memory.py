@@ -293,6 +293,39 @@ def test_vision_projection_names_use_path_segments_not_substrings(tmp_path: Path
     assert ok["per_device_bytes"] == 36.0
 
 
+def test_clip_vision_qkv_out_proj_and_layer_norm_keep_explicit_shards(tmp_path: Path):
+    q_proj = "vision_model.encoder.layers.0.self_attn.q_proj.weight"
+    k_proj = "vision_model.encoder.layers.0.self_attn.k_proj.weight"
+    v_proj = "vision_model.encoder.layers.0.self_attn.v_proj.weight"
+    out_proj = "vision_model.encoder.layers.0.self_attn.out_proj.weight"
+    ln1 = "vision_model.encoder.layers.0.layer_norm1.weight"
+    ln2 = "vision_model.encoder.layers.0.layer_norm2.weight"
+    fake = "visual.encoder.not_q_proj.weight"
+    assert classify_tensor(q_proj) == "vision"
+    assert classify_shard_strategy(q_proj, "vision") == "col_parallel"
+    assert classify_shard_strategy(k_proj, "vision") == "col_parallel"
+    assert classify_shard_strategy(v_proj, "vision") == "col_parallel"
+    assert classify_shard_strategy(out_proj, "vision") == "row_parallel"
+    assert classify_shard_strategy(ln1, "vision") == "replicated"
+    assert classify_shard_strategy(ln2, "vision") == "replicated"
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(fake, "vision")
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [
+        (q_proj, "F16", [4, 2], 16),
+        (k_proj, "F16", [4, 2], 16),
+        (v_proj, "F16", [4, 2], 16),
+        (out_proj, "F16", [4, 2], 16),
+        (ln1, "F16", [8], 16),
+        (ln2, "F16", [8], 16),
+    ])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "ok"
+    # q/k/v/out 16/4 each + two CLIP layer_norms 16 replicated
+    assert result["per_device_bytes"] == 48.0
+
+
 def test_deepseek_mla_known_tensors_are_not_fatal_unresolved(tmp_path: Path):
     q_a_ln = "model.layers.0.self_attn.q_a_layernorm.weight"
     kv_a_mqa = "model.layers.0.self_attn.kv_a_proj_with_mqa.weight"
