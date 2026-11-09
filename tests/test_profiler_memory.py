@@ -369,6 +369,46 @@ def test_qwen3_next_fused_in_proj_and_vision_mlp_merger_keep_explicit_shards(tmp
     assert forged["unresolved_shard_tensors"] == [fake_fc1]
 
 
+def test_shared_expert_gate_and_dense_mtp_ffn_keep_explicit_shards(tmp_path: Path):
+    gate = "model.layers.0.mlp.shared_expert_gate.weight"
+    mtp_gate = "model.layers.0.mtp.mlp.shared_expert_gate.weight"
+    shared_ffn = "model.layers.0.mlp.shared_expert.gate_proj.weight"
+    mtp_g = "mtp.layers.0.mlp.gate_proj.weight"
+    mtp_u = "mtp.layers.0.mlp.up_proj.weight"
+    mtp_d = "mtp.layers.0.mlp.down_proj.weight"
+    mtp_w1 = "model.layers.0.mtp.feed_forward.w1.weight"
+    unknown = "mtp.layers.0.mlp.foo.weight"
+    assert classify_tensor(gate) == "moe_gate"
+    assert classify_shard_strategy(gate, "moe_gate") == "replicated"
+    assert classify_tensor(mtp_gate) == "mtp_gate"
+    assert classify_shard_strategy(mtp_gate, "mtp_gate") == "replicated"
+    assert classify_tensor(shared_ffn) == "moe_shared_expert"
+    assert classify_shard_strategy(shared_ffn, "moe_shared_expert") == "col_parallel"
+    assert classify_tensor(mtp_g) == "ffn"
+    assert classify_shard_strategy(mtp_g, "ffn") == "col_parallel"
+    assert classify_tensor(mtp_u) == "ffn"
+    assert classify_shard_strategy(mtp_u, "ffn") == "col_parallel"
+    assert classify_tensor(mtp_d) == "ffn"
+    assert classify_shard_strategy(mtp_d, "ffn") == "row_parallel"
+    assert classify_tensor(mtp_w1) == "ffn"
+    assert classify_shard_strategy(mtp_w1, "ffn") == "col_parallel"
+    assert classify_tensor(unknown) == "mtp_other"
+    with pytest.raises(UnresolvedShardError):
+        classify_shard_strategy(unknown, "mtp_other")
+
+    path = tmp_path / "model.safetensors"
+    _write_safetensors(path, [
+        (gate, "F16", [8], 16),
+        (mtp_g, "F16", [4, 2], 16),
+        (mtp_u, "F16", [4, 2], 16),
+        (mtp_d, "F16", [4, 2], 16),
+    ])
+    result = inspect_weights(tmp_path, tp=4)
+    assert result["status"] == "ok"
+    # shared_expert_gate 16 replicated + three dense MTP FFN 16/4
+    assert result["per_device_bytes"] == 28.0
+
+
 def test_p0_p4_priority_containers_overlap_and_residual_target():
     result = attribute_memory(_manifest_full(), residual_target_bytes=200 * 1024 * 1024)
     assert result["status"] == "ok"

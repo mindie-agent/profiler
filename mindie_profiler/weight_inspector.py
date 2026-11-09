@@ -19,8 +19,9 @@ The manifest is consumed by the P3 weight source in ``memory_profile.py``.
   ``not_q_proj``), including vision.  Known Qwen / MLA / ViT names
   (``in_proj_a`` / ``in_proj_b`` / ``in_proj_qkvz`` / ``in_proj_ba``,
   ``norm1`` / ``norm2``, ``fc1`` / ``fc2``, ``merger.mlp`` / ``ln_q``,
-  ``q_a_layernorm``, ``kv_a_proj_with_mqa``) keep explicit shard rules;
-  other wide leftovers still raise.
+  ``q_a_layernorm``, ``kv_a_proj_with_mqa``, ``shared_expert_gate``,
+  dense MTP ``mlp`` / ``ffn``) keep explicit shard rules; other wide
+  leftovers still raise.
 
 [Timeouts & Locks]
 No subprocess, network, lock, sleep, or unbounded read.  At most
@@ -328,11 +329,13 @@ def classify_tensor(name: str) -> str:
     if "visual" in lowered or "vision" in lowered or "vit." in lowered or "image_encoder" in lowered:
         return "vision"
     if "mtp" in lowered:
+        if _has_part(name, "shared_expert_gate"):
+            return "mtp_gate"
         if ".experts." in lowered and "shared_expert" not in lowered:
             return "mtp_expert"
         if "shared_expert" in lowered:
             return "mtp_shared_expert"
-        if ".gate." in lowered or "shared_expert_gate" in lowered:
+        if ".gate." in lowered:
             return "mtp_gate"
         if "norm" in lowered:
             return "mtp_norm"
@@ -342,6 +345,10 @@ def classify_tensor(name: str) -> str:
             return "mtp_other"
         if ".fc." in lowered:
             return "mtp_fc"
+        if ".mlp." in lowered or ".feed_forward." in lowered or ".ffn." in lowered:
+            if _has_part(name, *_COL_FFN_PARTS, *_ROW_FFN_PARTS):
+                return "ffn"
+            return "mtp_other"
         return "mtp_other"
     if "embed_tokens" in lowered or "wte." in lowered:
         return "embedding"
@@ -372,12 +379,16 @@ def classify_tensor(name: str) -> str:
             return "norm"
         return "attn_other"
     if ".mlp." in lowered or ".feed_forward." in lowered or ".ffn." in lowered:
+        if _has_part(name, "shared_expert_gate"):
+            return "moe_gate"
         if "expert" in lowered:
             return "moe_shared_expert" if "shared_expert" in lowered else "moe_expert"
         if "gate" in lowered and not any(token in lowered for token in ("proj", "up", "down")):
             return "moe_gate"
         return "ffn"
     if "block_sparse_moe" in lowered or "moe" in lowered:
+        if _has_part(name, "shared_expert_gate"):
+            return "moe_gate"
         if "expert" in lowered:
             return "moe_shared_expert" if "shared" in lowered else "moe_expert"
         if "gate" in lowered:
