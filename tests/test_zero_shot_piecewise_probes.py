@@ -307,7 +307,7 @@ def test_probe_12_acceptance_and_cli_exit_code_enforce_thresholds_and_coverage(t
         }
         for lvl, tgt in z._REQUIRED_BENCH
     ]
-    base = {"coverage": {"failed": 0}, "skipped": {}, "measurement_blind": True, "levels": good_rows}
+    base = {"coverage": {"failed": 0}, "skipped": {}, "measurement_blind": True, "no_empirical_curve_fit": True, "levels": good_rows}
     assert z.acceptance(base, require_all_21=True)["pass"] is True
     assert z.acceptance({**base, "skipped": {"no_kernel_trace": 1}}, require_all_21=True)["pass"] is False
     assert z.acceptance({**base, "measurement_blind": False}, require_all_21=True)["pass"] is False
@@ -450,4 +450,32 @@ def test_probe_18_l3_uses_union_duration_and_roundtrips_span_fields(tmp_path: Pa
     assert l3.measured_ms == pytest.approx(70.0)
     rt = z.cell_from_dict(z.cell_to_dict(cell))
     assert rt.trace is not None and rt.trace.forward_span_us == pytest.approx(70000.0)
+
+
+def test_probe_19_no_empirical_curve_fit_and_conservation_of_time(monkeypatch: pytest.MonkeyPatch) -> None:
+    import inspect, math, mindie_sim.prediction.piecewise.service_span as _sp
+    for fn in (z._raw_case, z._structure_fingerprint, z._model_for_instantiation, z._ep_ranks, z._service_ttft_overhead_ms, z._predict_pd, z._component_errors):
+        assert "model_label" not in inspect.getsource(fn)
+    assert inspect.getsource(z.predict_cell).count("model_label") <= 2
+    orig_lower = _sp.lower_layer_predictions
+    for phase in ("decode", "prefill"):
+        spec = z.CellSpec(f"cons_{phase}", "unit", phase, MODEL_CASE, "Qwen3.8-27B", 1024, 2, 4, 2, 4, 1, 1)
+        pred = z.predict_cell(spec)
+        pred_relabel = z.predict_cell(replace(spec, model_label="Gemma-4-31B"))
+        assert (pred.layers, pred.body_ms, pred.per_layer, pred.subgraphs) == (pred_relabel.layers, pred_relabel.body_ms, pred_relabel.per_layer, pred_relabel.subgraphs)
+        monkeypatch.delattr(_sp, "lower_layer_predictions", raising=False)
+        unlowered = z.predict_cell(replace(spec, cell_id=f"unlow_{phase}"))
+        monkeypatch.setattr(_sp, "lower_layer_predictions", orig_lower, raising=False)
+        assert abs(pred.body_ms - unlowered.body_ms) <= 1e-6
+        assert abs(sum(pred.per_layer.values()) * pred.layers - sum(r.total_ms for r in pred.rows)) <= 1e-5
+        assert z._no_empirical_curve_fit((pred,)) is True
+        assert z._no_empirical_curve_fit((replace(pred, per_layer={k: v * 1.1 for k, v in pred.per_layer.items()}),)) is False
+        assert z._no_empirical_curve_fit((replace(pred, body_ms=pred.body_ms * 1.1),)) is False
+        assert z._no_empirical_curve_fit((replace(pred, layers=0),)) is False
+        assert z._no_empirical_curve_fit((replace(pred, body_ms=math.nan),)) is False
+    verdict = z.acceptance({"coverage": {"failed": 0}, "skipped": {}, "measurement_blind": True, "levels": [{"level": "L1", "target": "gemm", "samples": 1, "unmatched": 0, "step_err_p50": 0.01, "step_err_max": 0.01, "uncancelled_p50": 0.01, "above_10pct": 0}]})
+    assert verdict["pass"] is False and "empirical_curve_fit_detected" in verdict["failures"]
+
+
+
 

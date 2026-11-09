@@ -512,16 +512,16 @@ def test_aivkernel_is_collective_only_with_communication_evidence(tmp_path):
     assert trace.by_class["collective"] == pytest.approx(16.5)
 
 def test_glm53_and_glm53_flash_resolve_to_distinct_model_structures():
-    flash_case, flash_label, _ = z.resolve_model("glm53flash_tp8_c4")
-    glm53_case, glm53_label, _ = z.resolve_model("glm53_dp16tp1ep16")
-    glm51_case, glm51_label, _ = z.resolve_model("glm51_dp16tp1ep16")
+    flash_case, flash_label, flash_notes = z.resolve_model("glm53flash_tp8_c4")
+    glm53_case, glm53_label, glm53_notes = z.resolve_model("glm53_dp16tp1ep16")
+    glm51_case, glm51_label, glm51_notes = z.resolve_model("glm51_dp16tp1ep16")
     assert flash_label == "GLM-5.3-Flash"
     assert glm53_label == "GLM-5.3/W8A8-MXFP8"
     assert glm51_label == "GLM-5.1/W4A4C8"
-    base = z.CellSpec("x", "u", "decode", flash_case, flash_label, 1024, 1, 8, 8, 1, 1, 1)
+    base = z.CellSpec("x", "u", "decode", flash_case, flash_label, 1024, 1, 8, 8, 1, 1, 1, notes=flash_notes)
     assert z._case_layers(base) == 45
-    assert z._case_layers(replace(base, model_case=glm53_case, model_label=glm53_label)) == 78
-    assert z._case_layers(replace(base, model_case=glm51_case, model_label=glm51_label)) == 78
+    assert z._case_layers(replace(base, model_case=glm53_case, model_label=glm53_label, notes=glm53_notes)) == 78
+    assert z._case_layers(replace(base, model_case=glm51_case, model_label=glm51_label, notes=glm51_notes)) == 78
 
 def test_discovery_pairs_each_cell_with_its_own_case_kernel(tmp_path):
     root = tmp_path / "out"
@@ -726,15 +726,15 @@ def test_missing_root_is_an_empty_corpus(tmp_path):
     assert result["coverage"]["cells"] == 0 and result["levels"] == []
 
 def test_kv_bf16_is_applied_after_parse_and_ep_cohort_conserves_tokens():
-    case, label, _ = z.resolve_model("dsv41_kvbf16")
-    spec = z.CellSpec("kv", "unit", "decode", case, label, 128, 4, 8, 1, 8, 8, 1)
-    assert "quant" not in z._raw_case(spec).get("model", {})
+    case, label, notes = z.resolve_model("dsv41_kvbf16")
+    spec = z.CellSpec("kv", "unit", "decode", case, label, 128, 4, 8, 1, 8, 8, 1, notes=notes)
+    assert "quant" not in z._raw_case(spec).get("model", {}) and "kv_bf16" in notes
     from mindie_sim.prediction.structure import parse_case
     parsed = parse_case(z._raw_case(spec))
     fp8 = replace(parsed.model, kv_dtype="fp8_e4m3", quant=replace(parsed.model.quant, kv_dtype="fp8_e4m3"))
     forced, _notes = z._model_for_instantiation(fp8, spec)
     assert forced.kv_dtype == "bf16" and forced.quant.kv_dtype == "bf16"
-    kept, _notes = z._model_for_instantiation(fp8, replace(spec, model_label="DeepSeek-V4.1-Flash"))
+    kept, _notes = z._model_for_instantiation(fp8, replace(spec, notes=()))
     assert kept.kv_dtype == "fp8_e4m3" and kept.quant.kv_dtype == "fp8_e4m3"
     assert z._ep_batch(spec) == 4 and z._local_batch(spec) == 1 and z._ep_batch(replace(spec, concurrency=7, dp=8, ep=4)) == 4
     assert z._geometry(spec, "decode", batch=z._ep_batch(spec)).batch == 4

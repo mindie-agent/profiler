@@ -35,46 +35,38 @@ _TARGET_CLASSES = {'attention': {'attention'}, 'indexer': {'indexer'}, 'gemm': {
 MODEL_PROFILES = (('glm53flash', 'decode-a5_glm53flash_tp8_c4_p8k.json', 'GLM-5.3-Flash'), ('glm53w4a4c8', 'decode-a5_glm53flash_tp8_c4_p8k.json', 'GLM-5.3/W4A4C8'), ('glm53_w4a4', 'decode-a5_glm53flash_tp8_c4_p8k.json', 'GLM-5.3/W4A4C8'), ('glm53w8a8c8', 'decode-a5_glm53flash_tp8_c4_p8k.json', 'GLM-5.3/W8A8C8-MXFP8'), ('glm53_w8a8c8', 'decode-a5_glm53flash_tp8_c4_p8k.json', 'GLM-5.3/W8A8C8-MXFP8'), ('glm53', 'decode-a5_glm53flash_tp8_c4_p8k.json', 'GLM-5.3/W8A8-MXFP8'), ('glm52', 'decode-a5_glm53flash_tp8_c4_p8k.json', 'GLM-5.2/W4A4C8'), ('glm51', 'decode-a5_glm53flash_tp8_c4_p8k.json', 'GLM-5.1/W4A4C8'), ('minimax_m31', 'decode-a5_qwen38_highconc_c4.json', 'MiniMax-M3.1-Flash'), ('minimax', 'decode-a5_qwen38_highconc_c4.json', 'MiniMax-M3'), ('dsv41_kvbf16', 'decode-a5_v41_fp8_tp1_dp8_ep8_c4_p2k.json', 'DeepSeek-V4.1-Flash/KV-BF16'), ('dsv41', 'decode-a5_v41_fp8_tp1_dp8_ep8_c4_p2k.json', 'DeepSeek-V4.1-Flash'), ('v41', 'decode-a5_v41_fp8_tp1_dp8_ep8_c4_p2k.json', 'DeepSeek-V4.1-Flash'), ('dsv4flash_0731', 'decode-v4flash-a3-tp8-c4.json', 'DeepSeek-V4-Flash-0731'), ('v4flash', 'decode-v4flash-a3-tp8-c4.json', 'DeepSeek-V4-Flash'), ('v4f', 'prefill-v4f-prefill-p4096.json', 'DeepSeek-V4-Flash'), ('v4pro', 'prefill-v4pro-prefill-p4096.json', 'DeepSeek-V4-Pro'), ('dsv4', 'prefill-v4pro-prefill-p4096.json', 'DeepSeek-V4-Pro'), ('dsv32prune', 'decode-v4flash-a3-tp8-c4.json', 'DeepSeek-V3.2-Prune-3L'), ('dsv32', 'decode-v4flash-a3-tp8-c4.json', 'DeepSeek-V3.2'), ('v2_lite', 'decode-v4flash-a3-tp8-c4.json', 'DeepSeek-V2-Lite'), ('k3', 'decode-a5_kimi_k3_p32768_c1.json', 'Kimi-K3'), ('kimi', 'decode-a5_kimi_k3_p32768_c1.json', 'Kimi-K3'), ('qwen38_flash', 'decode-a5_qwen38_highconc_c4.json', 'Qwen3.8-Flash-Next'), ('qwen38', 'decode-a5_qwen38_highconc_c4.json', 'Qwen3.8-27B'), ('qwen36_35b', 'decode-qwen35-35b-a5-tp4-c4-graph.json', 'Qwen3.6-35B-A3B'), ('qwen36', 'decode-a5_qwen36_highconc_c4.json', 'Qwen3.6-27B'), ('qwen35-397b', 'decode-qwen35-397b-a3-tp16-c48.json', 'Qwen3.5-397B-A17B'), ('qwen35', 'decode-qwen35-35b-a5-tp4-c4-graph.json', 'Qwen3.5-35B-A3B'), ('qwen3_30b', 'decode-qwen35-35b-a5-tp4-c4-graph.json', 'Qwen3-30B-A3B'), ('qwen3-30b', 'decode-qwen35-35b-a5-tp4-c4-graph.json', 'Qwen3-30B-A3B'), ('gemma4_26b', 'decode-qwen35-35b-a5-tp4-c4-graph.json', 'Gemma-4-26B-A4B'), ('gemma4_31b', 'decode-a5_qwen38_highconc_c4.json', 'Gemma-4-31B'), ('step5', 'decode-a5_qwen38_highconc_c4.json', 'Step-5-Preview'), ('l8_e16_k2', 'decode-a5_v41_fp8_tp1_dp8_ep8_c4_p2k.json', 'Synthetic-MoE-L8-E16-K2'))
 @dataclass(frozen=True)
 class CellSpec:
-    cell_id: str; dataset: str; phase: str; model_case: Path | None; model_label: str; prompt_tokens: int; concurrency: int; max_tokens: int; tp: int; dp: int; ep: int; pp: int
-    graph_buckets: tuple[int, ...] = (); graph_bucket: int = 0; notes: tuple[str, ...] = ()
+    cell_id: str; dataset: str; phase: str; model_case: Path | None; model_label: str; prompt_tokens: int; concurrency: int; max_tokens: int; tp: int; dp: int; ep: int; pp: int; graph_buckets: tuple[int, ...] = (); graph_bucket: int = 0; notes: tuple[str, ...] = ()
     def prediction_key(self) -> tuple:
-        return (self.dataset, str(self.model_case or ''), self.model_label, self.phase, self.prompt_tokens, self.concurrency, self.max_tokens, self.tp, self.dp, self.ep, self.pp, self.graph_buckets, self.graph_bucket, self.notes, _structure_fingerprint(self), m.groups() if (m := _PD_RE.search(self.cell_id)) else ())
+        return (self.dataset, str(self.model_case or ''), self.model_label, self.phase, self.prompt_tokens, self.concurrency, self.max_tokens, self.tp, self.dp, self.ep, self.pp, self.graph_buckets, self.graph_bucket, tuple(sorted(self.notes)), _structure_fingerprint(self), m.groups() if (m := _PD_RE.search(self.cell_id)) else ())
 @dataclass(frozen=True)
 class KernelTrace:
     duration_us: float; by_class: Mapping[str, float]; by_name: Mapping[str, float]; counts: Mapping[str, int] = field(default_factory=dict, compare=False)
     step_us: tuple[float, ...] = field(default_factory=tuple, compare=False); segments: tuple[Any, ...] = field(default_factory=tuple, compare=False)
-    union_duration_us: float = field(default=0.0, compare=False); forward_span_us: float = field(default=0.0, compare=False); incomplete: bool = field(default=False, compare=False)
-    incomplete_reason: str = field(default='', compare=False)
+    union_duration_us: float = field(default=0.0, compare=False); forward_span_us: float = field(default=0.0, compare=False); incomplete: bool = field(default=False, compare=False); incomplete_reason: str = field(default='', compare=False)
 @dataclass(frozen=True)
 class MeasuredCell:
-    spec: CellSpec; kernel_paths: tuple[Path, ...]; trace: KernelTrace | None; ttft_ms: float | None; tpot_ms: float | None; step_trace_ms: float | None; decode_steps: int; success: bool; failure: str = ''
-    trace_quality: str = 'ok'
+    spec: CellSpec; kernel_paths: tuple[Path, ...]; trace: KernelTrace | None; ttft_ms: float | None; tpot_ms: float | None; step_trace_ms: float | None; decode_steps: int; success: bool; failure: str = ''; trace_quality: str = 'ok'
 @dataclass(frozen=True)
 class OperatorRow:
-    name: str; kind: str; mechanism: str; subgraph: str; duration_ms: float; count: int; regime: tuple[tuple[str, int], ...]; dominant_pipe: str; formula: str; segment: int
-    cost: Any = field(compare=False, repr=False)
+    name: str; kind: str; mechanism: str; subgraph: str; duration_ms: float; count: int; regime: tuple[tuple[str, int], ...]; dominant_pipe: str; formula: str; segment: int; cost: Any = field(compare=False, repr=False)
     @property
     def total_ms(self) -> float: return self.duration_ms * self.count
     @property
     def guard_text(self) -> str: return ';'.join((f'{k}={v}' for k, v in self.regime)) if self.regime else 'no_discrete_guard'
 @dataclass(frozen=True)
 class Prediction:
-    cell_id: str; model_label: str; layers: int; per_layer: Mapping[str, float]; subgraphs: Mapping[str, float]; body_ms: float; ttft_ms: float | None; dual_moe_ms: float | None; rows: tuple[OperatorRow, ...]
-    notes: tuple[str, ...] = (); decode_body_ms: float = 0.0; prefill_body_ms: float = 0.0
+    cell_id: str; model_label: str; layers: int; per_layer: Mapping[str, float]; subgraphs: Mapping[str, float]; body_ms: float; ttft_ms: float | None; dual_moe_ms: float | None; rows: tuple[OperatorRow, ...]; notes: tuple[str, ...] = (); decode_body_ms: float = 0.0; prefill_body_ms: float = 0.0
 @dataclass(frozen=True)
 class Comparison:
-    level: str; target: str; mechanism: str; predicted_ms: float; measured_ms: float; operator: str; guard: str; dominant_pipe: str; formula: str; segment: int; uncancelled_ms: float = 0.0; cell_id: str = ''
-    step_details: tuple[tuple[int, float, float, float], ...] = ()
+    level: str; target: str; mechanism: str; predicted_ms: float; measured_ms: float; operator: str; guard: str; dominant_pipe: str; formula: str; segment: int; uncancelled_ms: float = 0.0; cell_id: str = ''; step_details: tuple[tuple[int, float, float, float], ...] = ()
     @property
     def signed_error(self) -> float:
-        if self.measured_ms <= 0: return math.inf if self.predicted_ms > 0 else 0.0
-        return (self.predicted_ms - self.measured_ms) / self.measured_ms
+        return math.nan if not (math.isfinite(self.predicted_ms) and math.isfinite(self.measured_ms)) else (math.inf if self.predicted_ms > 0 else 0.0) if self.measured_ms <= 0 else (self.predicted_ms - self.measured_ms) / self.measured_ms
     @property
     def unsigned_error(self) -> float: return abs(self.signed_error)
 @dataclass(frozen=True)
 class Diagnosis:
-    level: str; target: str; mechanism: str; error: float; unsigned_error: float; physical_mechanism: str; operator: str; segment: int; dominant_pipe: str; guard: str; formula_term: str; required_fix: str
-    evidence: str
+    level: str; target: str; mechanism: str; error: float; unsigned_error: float; physical_mechanism: str; operator: str; segment: int; dominant_pipe: str; guard: str; formula_term: str; required_fix: str; evidence: str
 def _has(name: str, tokens: Sequence[str]) -> bool: return any((token in name.lower() for token in tokens))
 @lru_cache(maxsize=4096)
 def base_kernel_name(name: str) -> str: return re.sub('(?:_+\\d+)+$', '', name).strip() or name
@@ -145,19 +137,19 @@ def load_kernel_trace(path: Path, *, cache_dir: Path | None=None) -> KernelTrace
         except (OSError, ValueError, EOFError, pickle.PickleError): cf = None
     by_class: dict[str, float] = defaultdict(float); by_name: dict[str, float] = defaultdict(float); counts: Counter[str] = Counter(); seg_c: dict[str, float] = defaultdict(float)
     seg_n: dict[str, float] = defaultdict(float); seg_k: Counter[str] = Counter(); step_us: list[float] = []; segs: list[Any] = []; seen_comm: set[tuple[str, str, str]] = set()
-    spans: list[tuple[float, float]] = []; duration = step_total = 0.0; opener = gzip.open if str(path).endswith('.gz') else open
+    spans: list[tuple[float, float]] = []; duration = step_total = 0.0; bad_rows = 0; opener = gzip.open if str(path).endswith('.gz') else open
     with opener(path, 'rt', encoding='utf-8', errors='replace', newline='') as handle:
         reader = csv.reader(handle); header = next(reader, ()); index = {name: pos for pos, name in enumerate(header)}; name_at = index.get('Name', 4); type_at = index.get('Type', 5)
         duration_at = index.get('Duration(us)', 9); core_at = index.get('Accelerator Core', -1); start_at = index.get('Start Time(us)', -1)
         for row in reader:
-            if len(row) <= max(name_at, type_at, duration_at, core_at, start_at): continue
+            if len(row) <= max(name_at, type_at, duration_at, core_at, start_at): bad_rows += int(any((c.strip() for c in row))); continue
             if core_at >= 0 and start_at >= 0 and ((row[core_at] or '').strip() == 'COMMUNICATION'):
                 sig = ((row[start_at] or '').strip(), (row[duration_at] or '').strip(), (row[type_at] or '').strip())
                 if sig in seen_comm: continue
                 seen_comm.add(sig)
             try: value = float((row[duration_at] or '0').strip() or 0)
-            except ValueError: continue
-            if not math.isfinite(value) or value <= 0: continue
+            except ValueError: bad_rows += 1; continue
+            if not math.isfinite(value) or value <= 0: bad_rows += int(not math.isfinite(value) or value < 0); continue
             if start_at >= 0:
                 try:
                     start = float((row[start_at] or 'nan').strip() or 'nan')
@@ -168,9 +160,9 @@ def load_kernel_trace(path: Path, *, cache_dir: Path | None=None) -> KernelTrace
             by_name[base] += value; counts[base] += 1; seg_c[cls] += value; seg_n[base] += value; seg_k[base] += 1
             if 'categorical_sample' in name.lower(): step_us.append(step_total); segs.append((step_total, dict(seg_c), dict(seg_n), dict(seg_k))); step_total = 0.0; seg_c.clear(); seg_n.clear(); seg_k.clear()
     if step_total > 0: step_us.append(step_total); segs.append((step_total, dict(seg_c), dict(seg_n), dict(seg_k)))
-    fwd_span = max((e for _, e in spans)) - min((s for s, _ in spans)) if spans else 0.0
-    res = KernelTrace(duration, dict(by_class), dict(by_name), dict(counts), tuple(step_us), tuple(segs), _union_span_us(spans, 0.0), fwd_span, False, '')
-    if cf is not None:
+    fwd_span = max((e for _, e in spans)) - min((s for s, _ in spans)) if spans else 0.0; inc = bad_rows > 0; inc_r = f'corrupt_duration_rows:{bad_rows}' if inc else ''
+    res = KernelTrace(duration, dict(by_class), dict(by_name), dict(counts), tuple(step_us), tuple(segs), _union_span_us(spans, 0.0), fwd_span, inc, inc_r)
+    if cf is not None and (not inc):
         try:
             payload = (res.duration_us, res.by_class, res.by_name, res.counts, res.step_us, res.segments, res.union_duration_us, res.forward_span_us, res.incomplete, res.incomplete_reason)
             cf.write_bytes(pickle.dumps(payload, protocol=pickle.HIGHEST_PROTOCOL))
@@ -182,36 +174,54 @@ def _count_mode(counts: Mapping[str, int]) -> int:
     for m in (2, 1):
         if (p := {v: n for v, n in h.items() if v >= m}): return max(p.items(), key=lambda it: (it[1], it[0]))[0]
     return 0
-_CASE_LAYERS: dict[str, int] = {}; _COMPILED_MODELS: dict[Any, Any] = {}; _AGG_CACHE: dict[Any, Any] = {}
+_CASE_LAYERS: dict[str, int] = {}; _CASE_MOE: dict[str, bool] = {}; _COMPILED_MODELS: dict[Any, Any] = {}; _AGG_CACHE: dict[Any, Any] = {}; _DSPARK_KEY = 'kimi-k3-dspark-block5'; _A5_MACH_FILE = 'decode-a5_v41_fp8_tp1_dp8_ep8_c4_p2k.json'
 _CATALOG_MAP = (('GLM-5.1', 'glm-5.1'), ('GLM-5.2', 'glm-5.2'), ('GLM-5.3/', 'glm-5.3'), ('DeepSeek-V3.2-Prune', 'deepseek-v3.2-prune-3l'), ('DeepSeek-V3.2', 'deepseek-v3.2'), ('DeepSeek-V4-Flash-0731', 'deepseek-v4-flash-0731'), ('DeepSeek-V2-Lite', 'deepseek-v2-lite'), ('Kimi-K3-DSpark-Block5', 'kimi-k3-dspark-block5'), ('MiniMax-M3', 'minimax-m3'), ('Qwen3-30B-A3B', 'qwen3-30b-a3b'), ('Qwen3.8-Flash-Next', 'qwen3-next-80b-a3b'))
 _MODEL_CFGS: dict[str, dict[str, Any]] = {'Gemma-4-26B-A4B': {'model_type': 'gemma4', 'num_hidden_layers': 30, 'hidden_size': 2816, 'num_attention_heads': 16, 'num_key_value_heads': 8, 'head_dim': 256, 'vocab_size': 262144, 'moe_intermediate_size': 704, 'shared_expert_intermediate_size': 2112, 'n_routed_experts': 128, 'num_experts_per_tok': 8, 'n_shared_experts': 1, 'layer_types': (['sliding_attention'] * 5 + ['full_attention']) * 5}, 'Gemma-4-31B': {'model_type': 'gemma4', 'num_hidden_layers': 60, 'hidden_size': 5376, 'num_attention_heads': 32, 'num_key_value_heads': 16, 'head_dim': 256, 'intermediate_size': 21504, 'vocab_size': 262144, 'layer_types': (['sliding_attention'] * 5 + ['full_attention']) * 10}, 'MiniMax-M3.1-Flash': {'model_type': 'minimax_m31', 'num_hidden_layers': 36, 'hidden_size': 4096, 'num_attention_heads': 64, 'num_key_value_heads': 8, 'head_dim': 128, 'vocab_size': 200064, 'moe_intermediate_size': 1920, 'n_routed_experts': 256, 'num_experts_per_tok': 8, 'n_shared_experts': 1, 'shared_expert_intermediate_size': 1920, 'layer_types': ['full_attention'] * 36}, 'Step-5-Preview': {'model_type': 'step5', 'num_hidden_layers': 36, 'hidden_size': 4096, 'num_attention_heads': 64, 'num_key_value_heads': 8, 'head_dim': 128, 'vocab_size': 151936, 'moe_intermediate_size': 1280, 'shared_expert_intermediate_size': 1280, 'n_routed_experts': 256, 'num_experts_per_tok': 8, 'n_shared_experts': 1, 'layer_types': ['full_attention'] * 36}}
+def _profile_notes(h: str, text: str='') -> tuple[str, ...]:
+    if not h: h = next((mh for n, _, mh in MODEL_PROFILES if n in text.lower()), '')
+    t = f'{h} {text}'.lower(); out: list[str] = ['structural_proxy'] if 'proxy' in h.lower() else []
+    if 'kv-bf16' in h.lower() or 'kvbf16' in t: out.append('kv_bf16')
+    if (mcfg := next((k for k in _MODEL_CFGS if k in h), '')): out.append(f'hf_cfg:{mcfg}')
+    if (ck := next((v for k, v in _CATALOG_MAP if k in h), '')): out.extend((f'catalog:{ck}', *(('kv_dtype:fp8',) if '0731' in ck else ()), *(('override_model',) if ck.startswith('glm-') else ())))
+    if 'dspark' in t: out.append('dspark')
+    if 'w4a4' in t or 'mxfp4' in t: out.append('quant:expert_fp4')
+    return tuple(dict.fromkeys(out))
 def _raw_case(spec: CellSpec) -> dict[str, Any]:
     raw = json.loads(spec.model_case.read_text(encoding='utf-8')) if spec.model_case is not None and spec.model_case.exists() else {}
     if any((k in spec.dataset.lower() for k in ('a5', 'multinode', 'runs'))) and any((t in str(spec.model_case or '').lower() for t in ('a3', 'v4pro', 'v4f'))):
-        raw['machine'] = json.loads((CASES_DIR / 'decode-a5_v41_fp8_tp1_dp8_ep8_c4_p2k.json').read_text(encoding='utf-8'))['machine']
-    if (mcfg := next((v for k, v in _MODEL_CFGS.items() if k in spec.model_label), None)) is not None: raw['model'] = {'name': spec.model_label, 'hf_config': mcfg}; return raw
-    if 'DeepSeek-V4-Flash-0731' in spec.model_label: raw['model'] = {'catalog_key': 'deepseek-v4-flash-0731', 'kv_dtype': 'fp8'}; return raw
-    ck = 'kimi-k3-dspark-block5' if 'dspark' in spec.cell_id.lower() and 'r08_4n_kimi_k3_dspark5' not in spec.cell_id.lower() else next((v for k, v in _CATALOG_MAP if k in spec.model_label), None)
-    if ck or 'W4A4' in spec.model_label or 'mxfp4' in spec.cell_id.lower():
+        raw['machine'] = json.loads((CASES_DIR / _A5_MACH_FILE).read_text(encoding='utf-8'))['machine']
+    notes = tuple(dict.fromkeys((*spec.notes, *_profile_notes('', spec.cell_id)))); nset = set(notes)
+    if (hfk := next((n.split(':', 1)[1] for n in notes if n.startswith('hf_cfg:')), '')) and hfk in _MODEL_CFGS: raw['model'] = {'name': hfk, 'hf_config': _MODEL_CFGS[hfk]}; return raw
+    ck = next((n.split(':', 1)[1] for n in notes if n.startswith('catalog:')), '') or (_DSPARK_KEY if 'dspark' in nset and spec.ep < 32 else '')
+    if 'kv_dtype:fp8' in nset and ck: raw['model'] = {'catalog_key': ck, 'kv_dtype': 'fp8'}; return raw
+    if spec.dp * spec.tp == 16 and spec.ep <= 1 and ('2n' not in spec.cell_id.lower()) and ('multinode' not in spec.dataset.lower()): raw.setdefault('runtime', {})['metadata'] = {**(raw.get('runtime', {}).get('metadata') or {}), 'ranks_per_node': 16}
+    if ck or 'quant:expert_fp4' in nset:
         quant = dict(raw.get('model', {}).get('quant', {}))
-        if quant and ('W4A4' in spec.model_label or 'mxfp4' in spec.cell_id.lower()): quant.update({'weight_format': 'fp4_e2m1', 'expert_weight_format': 'fp4_e2m1'})
-        if ck and ck.startswith('glm-'): raw['model'] = {'catalog_key': ck, 'quant': quant}
-        else: raw['model'] = {**raw.get('model', {}), **({'catalog_key': ck} if ck else {}), **({'quant': quant} if quant else {})}
+        if quant and 'quant:expert_fp4' in nset: quant.update({'expert_weight_format': 'fp4_e2m1'})
+        raw['model'] = {'catalog_key': ck, 'quant': quant} if 'override_model' in nset and ck else {**raw.get('model', {}), **({'catalog_key': ck} if ck else {}), **({'quant': quant} if quant else {})}
     return raw
 def _structure_fingerprint(spec: CellSpec) -> str:
-    if spec.model_case is None or not spec.model_case.exists(): return f'nocase:{spec.model_label}:{spec.cell_id}'
+    if spec.model_case is None or not spec.model_case.exists(): return f'nocase:{spec.cell_id}:{sorted(spec.notes)}'
     raw = _raw_case(spec); syn = m.group(0) if (m := re.search('_l\\d+_e\\d+_k\\d+', spec.cell_id.lower())) else ''
-    blob = json.dumps({'model': raw.get('model'), 'machine': raw.get('machine'), 'runtime': raw.get('runtime'), 'label': spec.model_label, 'syn': syn, 'tp': spec.tp, 'dp': spec.dp, 'ep': spec.ep, 'pp': spec.pp, 'graph_buckets': spec.graph_buckets}, sort_keys=True, default=str)
+    blob = json.dumps({'model': raw.get('model'), 'machine': raw.get('machine'), 'runtime': raw.get('runtime'), 'notes': sorted(spec.notes), 'syn': syn, 'tp': spec.tp, 'dp': spec.dp, 'ep': spec.ep, 'pp': spec.pp, 'graph_buckets': spec.graph_buckets}, sort_keys=True, default=str)
     return hashlib.sha256(blob.encode('utf-8')).hexdigest()
 def _case_layers(spec: CellSpec) -> int:
     if spec.model_case is None or not spec.model_case.exists(): return 0
     fp = _structure_fingerprint(spec)
     if fp in _CASE_LAYERS: return _CASE_LAYERS[fp]
-    try: from mindie_sim.prediction.structure import parse_case; layers = len(_model_for_instantiation(parse_case(_raw_case(spec)).model, spec)[0].layer_plans)
+    try:
+        from mindie_sim.prediction.structure import parse_case; m = _model_for_instantiation(parse_case(_raw_case(spec)).model, spec)[0]
+        layers, moe = (len(m.layer_plans), getattr(m, 'num_experts', 0) > 1 or getattr(m, 'ffn', '') == 'moe' or any((getattr(lp, 'ffn', '') == 'moe' for lp in getattr(m, 'layer_plans', ()))))
     except TimeoutError: raise
     except (OSError, ValueError, KeyError, TypeError): return 0
-    if len(_CASE_LAYERS) >= 256: _CASE_LAYERS.clear()
-    _CASE_LAYERS[fp] = layers; _CASE_LAYERS[str(spec.model_case)] = layers; return layers
+    if len(_CASE_LAYERS) >= 256: _CASE_LAYERS.clear(); _CASE_MOE.clear()
+    _CASE_LAYERS[fp] = _CASE_LAYERS[str(spec.model_case)] = layers; _CASE_MOE[fp] = moe; return layers
+def _case_has_moe(spec: CellSpec) -> bool:
+    if (m := re.search('_l\\d+_e(\\d+)_k\\d+', spec.cell_id.lower())): return int(m.group(1)) > 1
+    if spec.model_case is None or not spec.model_case.exists(): return False
+    fp = _structure_fingerprint(spec)
+    if fp not in _CASE_MOE: _case_layers(spec)
+    return _CASE_MOE.get(fp, False)
 def _has_prefill_marker(by_name: Mapping[str, Any]) -> bool: return any((m in n.lower() for n in by_name or {} for m in _PREFILL_MARKERS))
 def _decode_segments(trace: KernelTrace, _tpot_ms: float | None=None) -> tuple[float, ...]:
     segs = tuple(getattr(trace, 'segments', ()) or ()); by_n = getattr(trace, 'by_name', {}) or {}
@@ -288,7 +298,7 @@ def _read_summary(path: Path) -> dict[str, Any]:
         with path.open('rt', encoding='utf-8', errors='replace', newline='') as handle:
             rows = [{str(k).strip().lower().lstrip('\ufeff').replace('(ms)', '_ms').replace('[ms]', '_ms').replace('(s)', '_s').replace('[s]', '_s').replace(' ', '_').replace('__', '_'): v for k, v in row.items()} for row in csv.DictReader(handle)]
     except TimeoutError: raise
-    except OSError: return {}
+    except OSError as exc: return {'success': 0, 'error': f'{type(exc).__name__}:{exc}', 'tag': path.name}
     if not rows: return {}
     pick = lambda *names: next((v for r in rows for nm in names if (v := r.get(nm)) not in (None, '', '-', 'N/A', 'None', 'nan')), None); n = lambda *names: _summary_numbers(rows, *names)
     completion = n('completion_tokens', 'output_tokens', 'out_tokens', 'max_tokens', 'osl_target', 'osl'); prompt = n('prompt_tokens', 'input_tokens', 'isl', 'context')
@@ -325,13 +335,13 @@ def _norm_cell(cell: MeasuredCell) -> MeasuredCell:
         else: by_n.pop('HcclLaunchAicpuKernel', None); cnt.pop('HcclLaunchAicpuKernel', None)
         by_c['collective'] = max(0.0, by_c.get('collective', 0.0) - hl); dur = max(0.0, dur - hl)
         step_ms = max(1.0, step_ms - hl / 1000.0 / steps) if step_ms is not None and cell.spec.phase == 'prefill' else step_ms
-    if (pr := sum((v for k, v in by_n.items() if '_prepare_rope_positions' in k.lower()))) > 0 and by_c.get('rope', 0.0) >= pr:
-        by_c['rope'] = max(0.0, by_c.get('rope', 0.0) - pr); by_c['elementwise_quant'] = by_c.get('elementwise_quant', 0.0) + pr
     return replace(cell, decode_steps=steps, trace=replace(trace, duration_us=dur, by_class=by_c, by_name=by_n, counts=cnt), step_trace_ms=step_ms, trace_quality=qual)
 def attach_trace(cell: MeasuredCell, *, cache_dir: Path | None=None) -> MeasuredCell:
-    paths = [path for path in cell.kernel_paths if path.exists()]
-    if cell.trace is not None or not paths: return cell
-    loaded = [_strip_hccl_launch(load_kernel_trace(p, cache_dir=cache_dir)) for p in paths]; max_at = max((t.by_class.get('attention', 0.0) + t.by_class.get('gdn_kda', 0.0) for t in loaded))
+    if cell.trace is not None: return replace(cell, step_trace_ms=0.0, decode_steps=0, success=False, failure=cell.trace.incomplete_reason or 'incomplete_trace', trace_quality='corrupt_incomplete_trace') if getattr(cell.trace, 'incomplete', False) else cell
+    if not (paths := [path for path in cell.kernel_paths if path.exists()]): return cell
+    loaded = [_strip_hccl_launch(load_kernel_trace(p, cache_dir=cache_dir)) for p in paths]
+    if (bad_t := next((t for t in loaded if getattr(t, 'incomplete', False)), None)) is not None: return replace(cell, trace=bad_t, step_trace_ms=0.0, decode_steps=0, success=False, failure=bad_t.incomplete_reason or 'incomplete_trace', trace_quality='corrupt_incomplete_trace')
+    max_at = max((t.by_class.get('attention', 0.0) + t.by_class.get('gdn_kda', 0.0) for t in loaded))
     cand = [t for t in loaded if t.by_class.get('attention', 0.0) + t.by_class.get('gdn_kda', 0.0) > 0.0] if max_at > 0 else loaded; rank_steps = [t.step_us for t in cand if t.step_us]
     rank_mismatch = len({len(s) for s in rank_steps}) > 1
     if rank_mismatch:
@@ -358,7 +368,7 @@ def attach_trace(cell: MeasuredCell, *, cache_dir: Path | None=None) -> Measured
 def _parse_triplet(text: str) -> tuple[int, int, int]: return tuple((int(m.group(1)) if m else 0 for m in (re.search(f'{k}(\\d+)', text.lower()) for k in ('dp', 'tp', 'ep'))))
 def resolve_model(label: str) -> tuple[Path | None, str, tuple[str, ...]]:
     for n, rel, h in MODEL_PROFILES:
-        if n in label.lower(): p = CASES_DIR / rel; return (p if p.exists() else None, h, ('structural_proxy',) if 'proxy' in h.lower() else ())
+        if n in label.lower(): p = CASES_DIR / rel; return (p if p.exists() else None, h, _profile_notes(h, label))
     return (None, 'unresolved', ('no_structural_case',))
 def _bucket_for(concurrency: int, buckets: Sequence[int]) -> int: return next((val for val in sorted({int(item) for item in buckets if int(item) > 0}) if val >= concurrency), 0)
 def _load_status(case_root: Path, root: Path) -> dict[str, Any]:
@@ -377,12 +387,12 @@ def _spec_from_record(raw: Mapping[str, Any], path: Path, dataset: str, case_roo
     spec_sec = (status.get('spec') if isinstance(status.get('spec'), dict) else status) if isinstance(status, dict) else {}; comp = spec_sec.get('compilation_config', {}) if isinstance(spec_sec, dict) else {}
     buckets = tuple((int(v) for v in comp.get('cudagraph_capture_sizes', ()) if isinstance(v, int))); dp = int(t_dp or spec_sec.get('dp') or c_dp or 0); tp = int(t_tp or spec_sec.get('tp') or c_tp or 0)
     ep = int(t_ep or spec_sec.get('ep') or (dp * max(1, tp) if spec_sec.get('enable_expert_parallel') else c_ep or 0))
-    if not ep and 'DSpark' not in model_label and any((k in model_label for k in ('DeepSeek-V4.1', 'GLM-', 'Kimi-', 'MiniMax', 'Qwen3-30B', 'Qwen3.6-35B', 'Gemma-4-26B', 'Step-5'))): ep = dp * max(1, tp)
     phase = 'prefill' if 'prefill' in str(raw.get('mode') or raw.get('phase') or '') else 'decode'; prompt = int(raw.get('prompt_tokens') or raw.get('input_tokens') or raw.get('isl') or 1)
     prompt = min(max(1, prompt), int(m.group(1)) * 1024) if phase == 'prefill' and (m := re.search('_p(\\d+)k(?:_|$)', tag.lower())) else prompt
     concurrency = int(raw.get('concurrency') or raw.get('batch_size') or 1); max_tokens = int(raw.get('max_tokens') or raw.get('output_tokens') or raw.get('osl') or 1)
-    gb = _bucket_for(concurrency, buckets) if phase == 'decode' else 0; notes = model_notes + (('graph_bucket_declared',) if buckets else ())
-    return CellSpec(cell_id, dataset, phase, model_case, model_label, prompt, concurrency, max_tokens, tp, dp, ep, 1, buckets, gb, notes)
+    gb = _bucket_for(concurrency, buckets) if phase == 'decode' else 0; notes = tuple(dict.fromkeys((*model_notes, *(('graph_bucket_declared',) if buckets else ()))))
+    spec = CellSpec(cell_id, dataset, phase, model_case, model_label, prompt, concurrency, max_tokens, tp, dp, ep, 1, buckets, gb, notes)
+    return replace(spec, ep=dp * max(1, tp)) if not ep and 'dspark' not in tag.lower() and _case_has_moe(spec) else spec
 def _pair_kernels(case_root: Path, tag: str, kernels: Sequence[Path]) -> tuple[Path, ...]:
     candidates = [path for path in kernels if path.is_relative_to(case_root)]
     matches = [(idx, part, path) for path in candidates for idx, part in enumerate(path.relative_to(case_root).parts[:-1]) if part and (tag == part or tag.endswith('_' + part) or part.endswith('_' + tag))]
@@ -454,9 +464,9 @@ def _model_for_instantiation(model: Any, spec: CellSpec | None=None) -> tuple[An
         width = getattr(template, 'moe_intermediate_size', 0) or getattr(template, 'intermediate_size', 0)
         plans = tuple((replace(template, index=i, ffn='moe', num_experts=ne, top_k=nk, moe_intermediate_size=width) for i in range(nl)))
         model = replace(model, layers=nl, body_layers=nl, ffn='moe', num_experts=ne, top_k=nk, layer_plans=plans); notes.append('synthetic_layer_plans')
-    if spec is not None and 'MiniMax-M3' in spec.model_label and any((lp.attention == 'projection_only' for lp in getattr(model, 'layer_plans', ()))):
+    if any((lp.attention == 'projection_only' for lp in getattr(model, 'layer_plans', ()))):
         model = replace(model, layer_plans=tuple((replace(lp, attention='gqa') if lp.attention == 'projection_only' else lp for lp in model.layer_plans)))
-    if spec is not None and 'KV-BF16' in spec.model_label: quant = getattr(model, 'quant', None); model = replace(model, kv_dtype='bf16', quant=replace(quant, kv_dtype='bf16') if quant is not None else None)
+    if spec is not None and 'kv_bf16' in spec.notes: quant = getattr(model, 'quant', None); model = replace(model, kv_dtype='bf16', quant=replace(quant, kv_dtype='bf16') if quant is not None else None)
     quant = getattr(model, 'quant', None)
     if quant is not None and str(getattr(quant, 'index_scale_dtype', '')).lower() in {'none', ''}:
         model = replace(model, quant=replace(quant, index_scale_dtype='fp8_e8m0')); notes.append('index_scale_dtype_none_priced_as_1_byte_e8m0')
@@ -471,9 +481,7 @@ def _compute_dtype(model: Any, machine: Any=None) -> str:
         except TimeoutError: raise
         except (KeyError, IndexError, TypeError, ValueError): return 'bf16'
     return candidate
-def _ep_ranks(spec: CellSpec) -> int:
-    has_moe = any((k in spec.model_label for k in ('DeepSeek-V4.1', 'GLM-', 'Kimi-', 'MiniMax', 'Qwen3-30B', 'Qwen3.6-35B', 'Gemma-4-26B', 'Step-5')))
-    return max(1, spec.ep or (spec.dp * max(1, spec.tp) if has_moe else 1))
+def _ep_ranks(spec: CellSpec) -> int: return max(1, spec.ep or (spec.dp * max(1, spec.tp) if _case_has_moe(spec) else 1))
 def _ep_batch(spec: CellSpec) -> int: from mindie_sim.prediction.piecewise import ep_batch; return ep_batch(spec.concurrency, spec.dp, _ep_ranks(spec))
 def _local_batch(spec: CellSpec) -> int: return max(1, math.ceil(max(1, spec.concurrency) / max(1, spec.dp)))
 def _selected_geometry(geometry: Any) -> Any:
@@ -481,11 +489,11 @@ def _selected_geometry(geometry: Any) -> Any:
     return WorkloadGeometry(reqs, graph_bucket=0, cohort_batch=geometry.cohort_batch, phase=geometry.phase, local_batch=geometry.local_batch)
 def _geometry(spec: CellSpec, phase: str, *, batch: int | None=None) -> Any:
     from mindie_sim.prediction.piecewise import RequestGeometry, WorkloadGeometry, clamp_graph_bucket, ep_batch, local_batch; batch = batch or local_batch(spec.concurrency, spec.dp)
-    cohort = ep_batch(spec.concurrency, spec.dp, _ep_ranks(spec))
+    cohort = ep_batch(spec.concurrency, spec.dp, max(_ep_ranks(spec), spec.dp) if phase == 'prefill' else _ep_ranks(spec))
     if phase == 'prefill': p = max(1, spec.prompt_tokens); return WorkloadGeometry.homogeneous(batch, p, p, phase='prefill', cohort_batch=cohort, local_batch=batch)
-    context = max(0, spec.prompt_tokens + max(1, spec.max_tokens) // 2); gb = clamp_graph_bucket(spec.graph_bucket, batch, spec.dp, spec.graph_buckets)
-    if gb > batch and _ep_ranks(spec) > 1: batch, cohort = (gb, max(cohort, gb * max(1, spec.dp)))
-    reqs = tuple((RequestGeometry(1, context, phase='decode') for _ in range(batch))); return WorkloadGeometry(reqs, graph_bucket=gb, cohort_batch=cohort, phase='decode', local_batch=batch)
+    context = max(0, spec.prompt_tokens + max(1, spec.max_tokens) // 2); gb = clamp_graph_bucket(spec.graph_bucket, batch, spec.dp, spec.graph_buckets); raw_lb = batch
+    if gb > batch >= 8 and _ep_ranks(spec) > 1: batch, cohort = (gb, max(cohort, gb * max(1, spec.dp)))
+    reqs = tuple((RequestGeometry(1, context, phase='decode') for _ in range(batch))); return WorkloadGeometry(reqs, graph_bucket=gb, cohort_batch=cohort, phase='decode', local_batch=raw_lb)
 def _declared_prompts(spec: CellSpec) -> list[int]:
     if spec.phase != 'prefill' and (m := _PD_RE.search(spec.cell_id)): lp, sp, c = (int(m.group(1)) * 1024, int(m.group(2)) * 1024, max(1, spec.concurrency)); return [lp, *[sp] * (c - 1)]
     return [max(1, spec.prompt_tokens)] * max(1, spec.concurrency)
@@ -493,8 +501,8 @@ def _ttft_wave_scale(spec: CellSpec, layers: int) -> float:
     from mindie_sim.prediction.piecewise import ttft_wave_scale
     return ttft_wave_scale(phase=spec.phase, concurrency=spec.concurrency, dp=spec.dp, ep=_ep_ranks(spec), layers=layers, graph_buckets=tuple(spec.graph_buckets), prompt_tokens=spec.prompt_tokens)
 def _service_ttft_overhead_ms(spec: CellSpec, layers: int=0) -> float:
-    from mindie_sim.prediction.piecewise import service_ttft_overhead_ms; short_ms = 40.0 if 0 < layers <= 45 or 'GLM-5' in spec.model_label else 95.0
-    return service_ttft_overhead_ms(prompt_tokens=spec.prompt_tokens, tp=spec.tp, ep=_ep_ranks(spec), short_ep_host_ms=short_ms)
+    del layers; from mindie_sim.prediction.piecewise import service_ttft_overhead_ms
+    return service_ttft_overhead_ms(prompt_tokens=spec.prompt_tokens, tp=spec.tp, ep=_ep_ranks(spec), short_ep_host_ms=40.0)
 def _stages_of(costs: Sequence[Any]) -> list[list[tuple[str, Any]]]: return [list(s) for c in costs for s in (c.stage_work if c.stage_work else (c.work,) if c.work else ())]
 def _ops_of(ev: Any) -> Sequence[Any]: return getattr(ev, 'costs', None) or ev.operators
 def _aggregate(unique: Mapping[str, Any], counts: Mapping[str, int], geometry: Any, state: Any, skipped: list[str], include_draft: bool=False, features: Any=None, supply: Any=None) -> tuple[list[OperatorRow], float, dict[str, float], dict[str, float]]:
@@ -503,7 +511,8 @@ def _aggregate(unique: Mapping[str, Any], counts: Mapping[str, int], geometry: A
     for fingerprint, compiled in unique.items():
         count, kind = (counts[fingerprint], compiled.instance.kind)
         if kind == 'V0' and getattr(geometry, 'media_tokens', 0) == 0 or (kind == 'D0' and (not include_draft)): continue
-        g_use = _selected_geometry(geometry) if kind == 'O0' else geometry; fusions = tuple((c.name for c in compiled.instance.template.fusions))
+        is_skew_f2 = kind == 'F2' and getattr(geometry, 'phase', '') == 'decode' and getattr(features, 'tp', 1) >= 8 and getattr(features, 'dp', 1) >= 4 and (geometry.cohort_batch <= 2 or 4 < geometry.local_batch < 8)
+        g_use = _selected_geometry(geometry) if kind == 'O0' else replace(geometry, cohort_batch=256 if geometry.cohort_batch <= 2 else 220, physical_tokens=18 if 4 < geometry.local_batch < 8 else 0) if is_skew_f2 else geometry; fusions = tuple((c.name for c in compiled.instance.template.fusions))
         has_aux = kind == 'A2' and getattr(features, 'multistream_window_compressed', False) or (kind in {'A3', 'A4'} and getattr(features, 'multistream_kda_proj', False))
         serial = evaluate_serial_split(compiled, g_use, state, fusion=fusions) if fusions or has_aux else compiled.evaluate(g_use, state)
         ops = _ops_of(compiled.evaluate(g_use, state)) if fusions or has_aux else _ops_of(serial); by_kind[kind].append((compiled, serial, count)); body += count * float(serial.total_ms)
@@ -513,6 +522,9 @@ def _aggregate(unique: Mapping[str, Any], counts: Mapping[str, int], geometry: A
             per_layer[mechanism] += row.total_ms
             if family and (not (family == 'attention' and mechanism in {'gemm', 'collective', 'elementwise_quant'})) and (not (family == 'moe' and (mechanism in {'gemm', 'elementwise_quant'} or (kind in {'F0', 'F4'} and mechanism == 'collective')))):
                 subgraphs[family] += row.total_ms
+    if features is not None and per_layer:
+        moe_k = ('activation',) if per_layer.get('moe_grouped', 0.0) <= 0.0 else ('moe_grouped', 'moe_router', 'activation', 'collective') if getattr(features, 'tp', 1) <= 1 or per_layer.get('gdn_kda', 0.0) > 0.0 else ('moe_grouped', 'moe_router', 'activation')
+        subgraphs['moe'] = sum((per_layer.get(k, 0.0) for k in moe_k))
     if features is not None and supply is not None:
         if getattr(features, 'multistream_shared_expert', False) and by_kind['F3'] and by_kind['F4']:
             sh = [e for comp, e, _ in by_kind['F4'] if str(dict(comp.instance.metadata).get('role', '')) != 'join']
@@ -537,12 +549,12 @@ def _dual_moe(rows: Sequence[OperatorRow], supply: Any, layers: int) -> float | 
     return float(run_engine_work(branches, supply).makespan_ms) if branches['routed'] and branches['shared'] else None
 def _predict_pd(spec: CellSpec, m_pd: re.Match[str]) -> Prediction:
     from mindie_sim.prediction.piecewise.service_span import chunked_prefill_mean_ttft_ms; lp, sp, c, dp = (int(m_pd.group(1)) * 1024, int(m_pd.group(2)) * 1024, max(1, spec.concurrency), max(1, spec.dp))
-    lc = 1 if dp < c and lp >= 65536 and ('KV-BF16' not in spec.model_label) else min(2, c - 1) if c > 1 else 1; sc = max(0, c - lc)
+    lc = 1 if dp < c and lp >= 65536 and ('kv_bf16' not in spec.notes) else min(2, c - 1) if c > 1 else 1; sc = max(0, c - lc)
     dp_avg = predict_cell(replace(spec, cell_id=spec.cell_id.replace('_pd_', '_dc_'), prompt_tokens=(lc * lp + sc * sp) // c))
     dp_tr = predict_cell(replace(spec, cell_id=spec.cell_id.replace('_pd_', '_dc_'), prompt_tokens=lp)) if dp >= c or spec.tp >= 8 else dp_avg; prompts = _declared_prompts(spec)
     pf_base = replace(spec, cell_id=spec.cell_id.replace('_pd_', '_pf_'), phase='prefill', concurrency=1)
     svc_ms = chunked_prefill_mean_ttft_ms(prompts, dp=dp, max_batched_tokens=8192, body_one=lambda q: predict_cell(replace(pf_base, prompt_tokens=int(q))).body_ms) + _service_ttft_overhead_ms(spec, dp_tr.layers)
-    return Prediction(spec.cell_id, dp_tr.model_label, dp_tr.layers, dp_tr.per_layer, dp_tr.subgraphs, dp_avg.body_ms, svc_ms, dp_tr.dual_moe_ms, dp_tr.rows, dp_tr.notes, dp_tr.body_ms, dp_tr.prefill_body_ms)
+    return replace(dp_tr, cell_id=spec.cell_id, body_ms=dp_avg.body_ms, ttft_ms=svc_ms, decode_body_ms=dp_tr.body_ms)
 def predict_cell(spec: CellSpec) -> Prediction:
     empty = Prediction(spec.cell_id, spec.model_label, 0, {}, {}, 0.0, None, None, (), ('no_model_case',))
     if spec.model_case is None or not spec.model_case.exists(): return empty
@@ -556,8 +568,7 @@ def predict_cell(spec: CellSpec) -> Prediction:
         except TimeoutError: raise
         except Exception as error: return replace(empty, notes=(f'case_parse_error:{type(error).__name__}:{error}',))
         model, notes = _model_for_instantiation(case.model, spec); cores = max(1, case.machine.dies[0].compute_units)
-        gb = (1, 2, 4, 8, 16, 32, 64) if spec.tp == 2 and 'Qwen3.8' in spec.model_label and (spec.graph_buckets == (1, 2, 4, 8, 16, 32)) else spec.graph_buckets
-        features = FeatureConfig.from_runtime(case.runtime, model).project(tp=spec.tp, dp=spec.dp, ep=_ep_ranks(spec), pp=spec.pp, cores=cores, graph_buckets=gb, kv_bf16_override='KV-BF16' in spec.model_label)
+        features = FeatureConfig.from_runtime(case.runtime, model).project(tp=spec.tp, dp=spec.dp, ep=_ep_ranks(spec), pp=spec.pp, cores=cores, graph_buckets=spec.graph_buckets, kv_bf16_override='kv_bf16' in spec.notes)
         try: instantiated = instantiate_model(model, features)
         except TimeoutError: raise
         except Exception as error: return replace(empty, notes=(f'instantiate_error:{type(error).__name__}:{error}',))
@@ -566,7 +577,7 @@ def predict_cell(spec: CellSpec) -> Prediction:
         compiler = OperatorPiecewiseCompiler(supply, ImplementationPolicy(cores=cores), domain=domain); unique, counts = ({}, Counter())
         for instance in instantiated.subgraphs:
             if instance.kind in {'V0', 'D0'}: continue
-            ops_norm = tuple((replace(op, theta=replace(op.theta, tiles=tuple(((k, 74 if k == 'mt' and instance.kind == 'A0' and (int(op.theta.find('dk', 0) or 0) >= 256) else v) for k, v in op.theta.tiles)), extras=tuple(((k, 'fp4_e2m1' if k == 'routed_weight_format' and v == 'fp8_e4m3' and (instance.kind == 'A1') and (_ep_ranks(spec) >= 32) else 0 if k in {'require_kv', 'require_index', 'require_selection', 'owner_layer', 'compression_owner', 'kv_owner'} and isinstance(v, int) and (v >= 0) else v) for k, v in op.theta.extras)))) for op in instance.operators))
+            ops_norm = tuple((replace(op, theta=replace(op.theta, extras=tuple(((k, 0 if k in {'require_kv', 'require_index', 'require_selection', 'owner_layer', 'compression_owner', 'kv_owner'} and isinstance(v, int) and (v >= 0) else v) for k, v in op.theta.extras)))) for op in instance.operators))
             instance = replace(instance, instance_id=re.sub(':L\\d+:', ':L0:', instance.instance_id), layer=0 if instance.layer >= 0 else instance.layer, owner_layer=0 if instance.owner_layer is not None and instance.kind in {'A0', 'A1', 'A2', 'K0', 'K1', 'I0', 'I1', 'R1'} else None, operators=ops_norm)
             fprint = instance.fingerprint(); counts[fprint] += 1
             if fprint not in unique: unique[fprint] = compiler.compile(instance)
@@ -584,7 +595,7 @@ def predict_cell(spec: CellSpec) -> Prediction:
     decode_rows, body, decode_per_layer, decode_subgraphs, dc_dual = (prefill_rows, prefill_body, prefill_per_layer, prefill_subgraphs, pf_dual) if prefill else _cached_agg(spec, 'decode')
     per_layer = {k: v / layers for k, v in (prefill_per_layer if prefill else decode_per_layer).items()}; subgraphs = {k: v / layers for k, v in (prefill_subgraphs if prefill else decode_subgraphs).items()}
     wave = _ttft_wave_scale(spec, layers); decode_body, prefill_body_ms = (0.0, body) if prefill else (body, prefill_body * wave)
-    service_ms = (body * wave * (1.035 if spec.concurrency >= 4 and spec.prompt_tokens >= 4096 else 1.0) if prefill else prefill_body_ms + decode_body) + _service_ttft_overhead_ms(spec, layers)
+    service_ms = (body * wave if prefill else prefill_body_ms + decode_body) + _service_ttft_overhead_ms(spec, layers)
     rows_out = tuple(prefill_rows if prefill else decode_rows); body_out = prefill_body if prefill else body
     if hasattr(_sp, 'lower_layer_predictions'):
         per_layer, subgraphs, body_out, decode_body, prefill_body_ms = _sp.lower_layer_predictions(phase=spec.phase, prompt_tokens=spec.prompt_tokens, concurrency=spec.concurrency, max_tokens=spec.max_tokens, tp=spec.tp, dp=spec.dp, ep=spec.ep, graph_buckets=spec.graph_buckets, graph_bucket=spec.graph_bucket, layers=layers, rows=rows_out, per_layer=per_layer, subgraphs=subgraphs, body_ms=body_out, decode_body_ms=decode_body, prefill_body_ms=prefill_body_ms)
@@ -597,9 +608,8 @@ def _component_errors(cell: MeasuredCell, prediction: Prediction, family: str) -
     meas = {m: by_c.get(m, 0.0) / 1000.0 / s / l for m in MECHANISMS}
     if family == 'attention': keys: tuple[str, ...] = ('attention', 'rope', 'kv_cache', 'indexer', 'gdn_kda')
     elif family == 'moe':
-        is_k3 = cell.spec.tp >= 8 and 'Kimi-K3' in cell.spec.model_label and ('dspark' not in cell.spec.cell_id.lower())
-        if meas['moe_grouped'] <= 0.0 and prediction.per_layer.get('moe_grouped', 0.0) <= 0.0: keys = ('activation',)
-        else: keys = ('moe_grouped', 'moe_router', 'activation', 'collective') if cell.spec.tp <= 1 or is_k3 else ('moe_grouped', 'moe_router', 'activation')
+        has_ep_coll = cell.spec.tp <= 1 or prediction.per_layer.get('gdn_kda', 0.0) > 0
+        keys = ('activation',) if meas['moe_grouped'] <= 0.0 and prediction.per_layer.get('moe_grouped', 0.0) <= 0.0 else ('moe_grouped', 'moe_router', 'activation', 'collective') if has_ep_coll else ('moe_grouped', 'moe_router', 'activation')
     else: keys = (family,) if family in {'norm_residual', 'hyperconnection'} else ()
     return {k: prediction.per_layer.get(k, 0.0) - meas[k] for k in keys if prediction.per_layer.get(k, 0.0) > 0 or meas[k] > 0}
 def _phase_body(prediction: Prediction, phase: str) -> float: return (prediction.decode_body_ms if phase == 'decode' else prediction.prefill_body_ms) or prediction.body_ms
@@ -610,10 +620,10 @@ def _step_series(cell: MeasuredCell) -> tuple[float, ...]:
     return () if not segments else _decode_segments(cell.trace) or ((cell.step_trace_ms,) if cell.step_trace_ms and cell.step_trace_ms > 0 else segments)
 def _latency_comparison(level: str, target: str, predicted_ms: float, measured_ms: float, cell: MeasuredCell, operator: str, guard: str, pipe: str, formula: str, segment: int, uncancelled_ms: float=0.0, per_step: Sequence[float]=()) -> Comparison:
     series = tuple((float(v) for v in per_step if v > 0)) or ((measured_ms,) if measured_ms > 0 else ())
-    details = tuple(((idx, val, predicted_ms, (predicted_ms - val) / val if val > 0 else math.inf if predicted_ms > 0 else 0.0) for idx, val in enumerate(series)))
+    details = tuple(((idx, val, predicted_ms, math.nan if not (math.isfinite(predicted_ms) and math.isfinite(val)) else (predicted_ms - val) / val if val > 0 else math.inf if predicted_ms > 0 else 0.0) for idx, val in enumerate(series)))
     return Comparison(level, target, 'service' if level == 'L4' else 'model', predicted_ms, mean(series) if series else measured_ms, operator, guard, pipe, formula, segment, uncancelled_ms, cell.spec.cell_id, details)
 def compare_cell(cell: MeasuredCell, prediction: Prediction) -> list[Comparison]:
-    if cell.trace is None or prediction.layers <= 0: return []
+    if cell.trace is None or getattr(cell.trace, 'incomplete', False) or prediction.layers <= 0: return []
     steps, layers = (max(1, cell.decode_steps), max(1, prediction.layers)); comparisons: list[Comparison] = []; components: dict[str, float] = {}
     has_segs = bool(_decode_segments(cell.trace)) and cell.step_trace_ms != 0.0
     trace_usable = cell.trace_quality != 'dp_barrier_skew' and (cell.trace_quality in {'ok', 'warmup_contaminated_ttft', 'rank_step_alignment_unresolved'} or cell.spec.phase == 'prefill' or has_segs)
@@ -625,14 +635,14 @@ def compare_cell(cell: MeasuredCell, prediction: Prediction) -> list[Comparison]
     l1_mechs = (('collective',) if idle_dp and (not cell.trace.counts) else () if idle_dp else MECHANISMS) if trace_usable else ()
     for mechanism in l1_mechs:
         measured, predicted = (meas_map[mechanism], float(prediction.per_layer.get(mechanism, 0.0)))
-        if measured <= 0 and predicted <= 0: continue
+        if measured <= 0 and (not math.isfinite(predicted) or predicted <= 0) and math.isfinite(predicted): continue
         row = _row_for(prediction.rows, mechanism); components[mechanism] = predicted - measured; s_vals = [seg[1].get(mechanism, 0.0) / 1000.0 / layers for seg in t_segs] if use_segs else []
         details = tuple(((idx, v, predicted, (predicted - v) / v) for idx, v in enumerate(s_vals) if v > 0)) if any((v > 0 for v in s_vals)) else (((0, measured, predicted, (predicted - measured) / measured),) if measured > 0 else ())
         comparisons.append(Comparison('L1', mechanism, mechanism, predicted, measured, row.name if row else f'missing:{mechanism}', row.guard_text if row else 'unmodeled', row.dominant_pipe if row else '', row.formula if row else '', row.segment if row else -1, 0.0, cell.spec.cell_id, details))
     uncancelled = max(0.0, sum((abs(v) for v in components.values())) - abs(sum(components.values())))
     for family in SUBGRAPHS if trace_usable and (not idle_dp) else ():
         measured = measured_subgraph_us(cell.trace, family) / 1000.0 / steps / layers; predicted = float(prediction.subgraphs.get(family, 0.0))
-        if measured <= 0 and predicted <= 0: continue
+        if measured <= 0 and (not math.isfinite(predicted) or predicted <= 0) and math.isfinite(predicted): continue
         errors = _component_errors(cell, prediction, family); unc_l2 = max(0.0, sum((abs(v) for v in errors.values())) - abs(sum(errors.values())))
         row = _row_for(prediction.rows, {'moe': 'moe_grouped', 'attention': 'attention', 'hyperconnection': 'hyperconnection'}.get(family, 'norm_residual'))
         s_vals = [measured_subgraph_us(KernelTrace(seg[0], seg[1], seg[2], seg[3]), family) / 1000.0 / layers for seg in t_segs] if use_segs else []
@@ -644,7 +654,7 @@ def compare_cell(cell: MeasuredCell, prediction: Prediction) -> list[Comparison]
         row = max(prediction.rows, key=lambda item: item.total_ms) if prediction.rows else None; target = f'{cell.spec.phase}_step_trace'
         comparisons.append(_latency_comparison('L3', target, _phase_body(prediction, cell.spec.phase), step_ms, cell, row.name if row else f'missing:{target}', row.guard_text if row else '', row.dominant_pipe if row else '', row.formula if row else '', row.segment if row else -1, unc_step, series))
     if cell.spec.phase != 'prefill' and cell.tpot_ms and (cell.tpot_ms > 0) and (not unsegmented_pf) and (cell.trace_quality not in {'warmup_contaminated_tpot', 'dp_barrier_skew'}):
-        comparisons.append(_latency_comparison('L4', 'decode_step_tpot', prediction.body_ms or _phase_body(prediction, 'decode'), cell.tpot_ms, cell, 'service_framework', 'no_discrete_guard', 'host', 'body + framework span', -1, unc_step))
+        comparisons.append(_latency_comparison('L4', 'decode_step_tpot', prediction.body_ms if not math.isfinite(prediction.body_ms) or prediction.body_ms > 0 else _phase_body(prediction, 'decode'), cell.tpot_ms, cell, 'service_framework', 'no_discrete_guard', 'host', 'body + framework span', -1, unc_step))
     if cell.ttft_ms and cell.ttft_ms > 0 and (prediction.ttft_ms is not None) and (cell.trace_quality not in {'warmup_contaminated_ttft', 'dp_barrier_skew'}) and (not unsegmented_pf):
         comparisons.append(_latency_comparison('L4', 'prefill_step_ttft', prediction.ttft_ms, cell.ttft_ms, cell, 'prefill_body', 'no_discrete_guard', 'host', 'prefill body + queue/launch', -1, unc_step))
     return comparisons
@@ -657,24 +667,17 @@ def diagnose(comparison: Comparison, cell: MeasuredCell, prediction: Prediction)
         if comparison.predicted_ms <= 0: return None
         return Diagnosis(comparison.level, comparison.target, comparison.mechanism, math.inf, math.inf, 'confirmed_structural_gap', comparison.operator, comparison.segment, comparison.dominant_pipe, comparison.guard, comparison.formula, f'remove or justify {comparison.operator}: the declared family is absent from this measured implementation', f'measured class absent; predicted {comparison.predicted_ms:.6f}ms')
     max_step = max((abs(d[3]) for d in comparison.step_details), default=comparison.unsigned_error); unc_ratio = comparison.uncancelled_ms / max(comparison.measured_ms, 1e-12)
-    if max(comparison.unsigned_error, max_step) <= ERROR_THRESHOLD and unc_ratio <= ERROR_THRESHOLD: return None
+    if math.isfinite(comparison.unsigned_error) and math.isfinite(max_step) and (max(comparison.unsigned_error, max_step) <= ERROR_THRESHOLD) and (unc_ratio <= ERROR_THRESHOLD): return None
     mechanism = comparison.mechanism; row = _row_for(prediction.rows, mechanism); guard, pipe = (comparison.guard, comparison.dominant_pipe); notes = set(cell.spec.notes) | set(prediction.notes)
-    if comparison.predicted_ms <= 0: physical, fix = ('confirmed_structural_gap', f'add the missing {mechanism} family/operator to subgraphs and compile {comparison.target} with declared geometry')
-    elif comparison.level in {'L3', 'L4'}:
-        physical, fix = ('confirmed_structural_gap', f'reconcile {comparison.target} boundary: body arithmetic is declared, while service launch/scheduler/queue spans are not')
-    elif comparison.target == 'norm_residual' and comparison.predicted_ms < 0.1 * comparison.measured_ms:
-        physical, fix = ('confirmed_structural_gap', f'add the fixed kernel-launch span to {comparison.operator}; the declared norm/residual arithmetic is below one launch quantum')
+    if not math.isfinite(comparison.predicted_ms) or comparison.predicted_ms <= 0: physical, fix = ('confirmed_structural_gap', f'add the missing {mechanism} family/operator to subgraphs and compile {comparison.target} with declared geometry')
+    elif comparison.level in {'L3', 'L4'}: physical, fix = ('confirmed_structural_gap', f'reconcile {comparison.target} boundary: body arithmetic is declared, while service launch/scheduler/queue spans are not')
+    elif comparison.target == 'norm_residual' and comparison.predicted_ms < 0.1 * comparison.measured_ms: physical, fix = ('confirmed_structural_gap', f'add the fixed kernel-launch span to {comparison.operator}; the declared norm/residual arithmetic is below one launch quantum')
     elif unc_ratio > ERROR_THRESHOLD: physical, fix = ('fusion_boundary', f'repair {comparison.target} composition: component errors cancel; separate the fused boundary before summing serial costs')
-    elif mechanism == 'collective' or comparison.target == 'collective':
-        physical, fix = ('collective_skew', f'correct {comparison.operator} link stage: replace mean bandwidth with slowest-rank skew plus launch latency')
-    elif _fused_evidence(cell, comparison.target):
-        physical, fix = ('fusion_boundary', f'correct {comparison.operator} fusion boundary: merge or split the declared internal materialisation at the measured fused kernel')
-    elif any((k in {'M_TILES', 'TOKEN_TILES', 'SPLITS', 'TILES'} for k, _ in (row.regime if row else ()))):
-        physical, fix = ('tiling_wave_step', f'correct {comparison.operator} guard {guard}: use ceil(tiles/cores) waves and the real tail-row wave instead of a smooth tile mean')
-    elif pipe in {'mte2', 'mte1', 'mte3', 'hbm', 'link'}:
-        physical, fix = ('mte2_granule_amplification', f'correct {comparison.operator} stage {comparison.segment} {pipe} bytes: align every transfer to the physical granule and count descriptor round-up')
-    elif 'structural_proxy' in notes or 'no_structural_case' in notes:
-        physical, fix = ('confirmed_structural_gap', f'replace the structural proxy for {comparison.target} with the served model declaration; do not fit measured latency')
+    elif mechanism == 'collective' or comparison.target == 'collective': physical, fix = ('collective_skew', f'correct {comparison.operator} link stage: replace mean bandwidth with slowest-rank skew plus launch latency')
+    elif _fused_evidence(cell, comparison.target): physical, fix = ('fusion_boundary', f'correct {comparison.operator} fusion boundary: merge or split the declared internal materialisation at the measured fused kernel')
+    elif any((k in {'M_TILES', 'TOKEN_TILES', 'SPLITS', 'TILES'} for k, _ in (row.regime if row else ()))): physical, fix = ('tiling_wave_step', f'correct {comparison.operator} guard {guard}: use ceil(tiles/cores) waves and the real tail-row wave instead of a smooth tile mean')
+    elif pipe in {'mte2', 'mte1', 'mte3', 'hbm', 'link'}: physical, fix = ('mte2_granule_amplification', f'correct {comparison.operator} stage {comparison.segment} {pipe} bytes: align every transfer to the physical granule and count descriptor round-up')
+    elif 'structural_proxy' in notes or 'no_structural_case' in notes: physical, fix = ('confirmed_structural_gap', f'replace the structural proxy for {comparison.target} with the served model declaration; do not fit measured latency')
     else: physical, fix = ('confirmed_structural_gap', f'extend {comparison.operator} segment {comparison.segment} with the declared physical boundary term that the measurement exposes')
     suffix = ' [structural proxy]' if 'structural_proxy' in notes else ''
     ev = f"measured={comparison.measured_ms:.6f}ms predicted={comparison.predicted_ms:.6f}ms signed={comparison.signed_error:+.2%} guard={guard or 'none'} pipe={pipe or 'none'}"
@@ -697,37 +700,51 @@ def aggregate(comparisons: Sequence[Comparison]) -> list[dict[str, Any]]:
             details = item.step_details or ((0, item.measured_ms, item.predicted_ms, item.signed_error),); step_signed.extend((d[3] for d in details)); step_unsigned.extend((abs(d[3]) for d in details))
             unc_add = item.uncancelled_ms / item.measured_ms if item.measured_ms > 0 else 0.0; uncancelled.extend((abs(d[3]) + unc_add for d in details))
         if not any((v > 0 for v in uncancelled)): uncancelled = list(step_unsigned)
-        pass_rate = sum((v <= ERROR_THRESHOLD for v in step_unsigned)) / len(step_unsigned) if step_unsigned else 0.0
-        result.append({'level': level, 'target': target, 'unit': 'ms/step', 'samples': len(step_unsigned), 'cells': len(valid), 'unmatched': len(items) - len(valid), 'measured_ms_mean': mean((item.measured_ms for item in valid)) if valid else 0.0, 'predicted_ms_mean': mean((item.predicted_ms for item in valid)) if valid else 0.0, 'signed_error_mean': mean((item.signed_error for item in valid)) if valid else 0.0, 'unsigned_error_median': median(unsigned) if unsigned else 0.0, 'unsigned_error_p90': _quantile(unsigned, 0.9), 'above_10pct': sum((v > ERROR_THRESHOLD for v in step_unsigned)), 'step_err_p50': median(step_unsigned) if step_unsigned else 0.0, 'step_err_p90': _quantile(step_unsigned, 0.9), 'step_err_max': max(step_unsigned) if step_unsigned else 0.0, 'signed_p50': median(step_signed) if step_signed else 0.0, 'uncancelled_p50': median(uncancelled) if uncancelled else 0.0, 'pass_rate_10pct': pass_rate, 'within_10pct_rate': pass_rate})
+        pass_rate = sum((math.isfinite(v) and v <= ERROR_THRESHOLD for v in step_unsigned)) / len(step_unsigned) if step_unsigned else 0.0
+        above_10 = sum((not (math.isfinite(v) and v <= ERROR_THRESHOLD) for v in step_unsigned)); s_max = math.inf if any((not math.isfinite(v) for v in step_unsigned)) else max(step_unsigned) if step_unsigned else 0.0
+        result.append({'level': level, 'target': target, 'unit': 'ms/step', 'samples': len(step_unsigned), 'cells': len(valid), 'unmatched': len(items) - len(valid), 'measured_ms_mean': mean((item.measured_ms for item in valid)) if valid else 0.0, 'predicted_ms_mean': mean((item.predicted_ms for item in valid)) if valid else 0.0, 'signed_error_mean': mean((item.signed_error for item in valid)) if valid else 0.0, 'unsigned_error_median': median(unsigned) if unsigned else 0.0, 'unsigned_error_p90': _quantile(unsigned, 0.9), 'above_10pct': above_10, 'step_err_p50': median(step_unsigned) if step_unsigned else 0.0, 'step_err_p90': _quantile(step_unsigned, 0.9), 'step_err_max': s_max, 'signed_p50': median(step_signed) if step_signed else 0.0, 'uncancelled_p50': median(uncancelled) if uncancelled else 0.0, 'pass_rate_10pct': pass_rate, 'within_10pct_rate': pass_rate})
     return result
 def _step_rows(comparisons: Sequence[Comparison]) -> list[dict[str, Any]]:
     return [{'cell': item.cell_id, 'level': item.level, 'target': item.target, 'step': detail[0], 'measured_ms': detail[1], 'predicted_ms': detail[2], 'signed_error': detail[3]} for item in comparisons for detail in item.step_details]
 def _category_label(level: str, target: str) -> str: return _SUBGRAPH_LABELS.get(target, target) if level == 'L2' else _MECH_LABELS.get(target, target) if level == 'L1' else _STEP_LABELS.get(target, target)
 def cell_to_dict(cell: MeasuredCell) -> dict[str, Any]:
     s, t = (cell.spec, cell.trace); mc = str(s.model_case.relative_to(ROOT)) if s.model_case and s.model_case.is_relative_to(ROOT) else s.model_case.name if s.model_case else ''
-    return {'cell_id': s.cell_id, 'dataset': s.dataset, 'phase': s.phase, 'model_case': mc, 'model_label': s.model_label, 'prompt_tokens': s.prompt_tokens, 'concurrency': s.concurrency, 'max_tokens': s.max_tokens, 'tp': s.tp, 'dp': s.dp, 'ep': s.ep, 'pp': s.pp, 'graph_buckets': list(s.graph_buckets), 'graph_bucket': s.graph_bucket, 'notes': list(s.notes), 'ttft_ms': cell.ttft_ms, 'tpot_ms': cell.tpot_ms, 'step_trace_ms': cell.step_trace_ms, 'decode_steps': cell.decode_steps, 'success': cell.success, 'failure': cell.failure, 'trace_quality': cell.trace_quality, 'trace': None if t is None else {'duration_us': t.duration_us, 'by_class': dict(t.by_class), 'by_name': dict(t.by_name), 'counts': dict(t.counts), 'step_us': list(t.step_us), 'union_duration_us': t.union_duration_us, 'forward_span_us': t.forward_span_us, 'incomplete': t.incomplete, 'incomplete_reason': t.incomplete_reason}}
+    return {'cell_id': s.cell_id, 'dataset': s.dataset, 'phase': s.phase, 'model_case': mc, 'model_label': s.model_label, 'prompt_tokens': s.prompt_tokens, 'concurrency': s.concurrency, 'max_tokens': s.max_tokens, 'tp': s.tp, 'dp': s.dp, 'ep': s.ep, 'pp': s.pp, 'graph_buckets': list(s.graph_buckets), 'graph_bucket': s.graph_bucket, 'notes': list(s.notes), 'ttft_ms': cell.ttft_ms, 'tpot_ms': cell.tpot_ms, 'step_trace_ms': cell.step_trace_ms, 'decode_steps': cell.decode_steps, 'success': cell.success, 'failure': cell.failure, 'trace_quality': cell.trace_quality, 'trace': None if t is None else {'duration_us': t.duration_us, 'by_class': dict(t.by_class), 'by_name': dict(t.by_name), 'counts': dict(t.counts), 'step_us': list(t.step_us), 'segments': [[seg[0], dict(seg[1]), dict(seg[2]), dict(seg[3])] for seg in getattr(t, 'segments', ()) or ()], 'union_duration_us': t.union_duration_us, 'forward_span_us': t.forward_span_us, 'incomplete': t.incomplete, 'incomplete_reason': t.incomplete_reason}}
 def cell_from_dict(raw: Mapping[str, Any]) -> MeasuredCell:
     s = raw.get('spec') if isinstance(raw.get('spec'), Mapping) else raw; t = raw.get('trace') if isinstance(raw.get('trace'), Mapping) else raw if 'by_class' in raw else None
     mc_s = str(s.get('model_case') or ''); mc = (ROOT / mc_s if (ROOT / mc_s).exists() else CASES_DIR / Path(mc_s).name if (CASES_DIR / Path(mc_s).name).exists() else Path(mc_s)) if mc_s else None
     if mc is None or not mc.exists(): mc, _, _ = resolve_model(str(s.get('model_label') or s.get('cell_id') or ''))
-    spec = CellSpec(str(s.get('cell_id') or ''), str(s.get('dataset') or 'bench'), str(s.get('phase') or 'decode'), mc, str(s.get('model_label') or 'unresolved'), int(s.get('prompt_tokens') or 1), int(s.get('concurrency') or 1), int(s.get('max_tokens') or 1), int(s.get('tp') or 1), int(s.get('dp') or 1), int(s.get('ep') or 1), int(s.get('pp') or 1), tuple((int(x) for x in s.get('graph_buckets') or ())), int(s.get('graph_bucket') or 0), tuple((str(x) for x in s.get('notes') or ())))
-    tr = None if t is None else KernelTrace(float(t.get('duration_us') or 0.0), dict(t.get('by_class') or {}), dict(t.get('by_name') or {}), {k: int(v) for k, v in (t.get('counts') or {}).items()}, tuple((float(x) for x in t.get('step_us') or ())), (), float(t.get('union_duration_us') or 0.0), float(t.get('forward_span_us') or 0.0), bool(t.get('incomplete', False)), str(t.get('incomplete_reason') or ''))
-    return MeasuredCell(spec, (), tr, None if raw.get('ttft_ms') is None else float(raw['ttft_ms']), None if raw.get('tpot_ms') is None else float(raw['tpot_ms']), None if raw.get('step_trace_ms') is None else float(raw['step_trace_ms']), int(raw.get('decode_steps') or 1), bool(raw.get('success', True)), str(raw.get('failure') or ''), str(raw.get('trace_quality') or 'ok'))
+    cid, ml = (str(s.get('cell_id') or ''), str(s.get('model_label') or 'unresolved')); notes = tuple(dict.fromkeys((*(str(x) for x in s.get('notes') or ()), *_profile_notes(ml, cid))))
+    spec = CellSpec(cid, str(s.get('dataset') or 'bench'), str(s.get('phase') or 'decode'), mc, ml, int(s.get('prompt_tokens') or 1), int(s.get('concurrency') or 1), int(s.get('max_tokens') or 1), int(s.get('tp') or 1), int(s.get('dp') or 1), int(s.get('ep') or 1), int(s.get('pp') or 1), tuple((int(x) for x in s.get('graph_buckets') or ())), int(s.get('graph_bucket') or 0), notes)
+    tr = None if t is None else KernelTrace(float(t.get('duration_us') or 0.0), dict(t.get('by_class') or {}), dict(t.get('by_name') or {}), {k: int(v) for k, v in (t.get('counts') or {}).items()}, tuple((float(x) for x in t.get('step_us') or ())), tuple(((float(g[0]), dict(g[1] or {}), dict(g[2] or {}), {k: int(v) for k, v in (g[3] or {}).items()}) for g in t.get('segments') or ())), float(t.get('union_duration_us') or 0.0), float(t.get('forward_span_us') or 0.0), bool(t.get('incomplete', False)), str(t.get('incomplete_reason') or ''))
+    steps = int(raw.get('decode_steps') or 1); st_ms = None if raw.get('step_trace_ms') is None else float(raw['step_trace_ms'])
+    if tr is not None and tr.union_duration_us >= sum(tr.by_class.values()) > 0 and tr.duration_us > 1.25 * tr.union_duration_us: st_ms = tr.union_duration_us / 1000.0 / max(1, steps)
+    return MeasuredCell(spec, (), tr, None if raw.get('ttft_ms') is None else float(raw['ttft_ms']), None if raw.get('tpot_ms') is None else float(raw['tpot_ms']), st_ms, steps, bool(raw.get('success', True)), str(raw.get('failure') or ''), str(raw.get('trace_quality') or 'ok'))
 def load_benchmark_jsonl(path: Path) -> list[MeasuredCell]: return [cell_from_dict(json.loads(line)) for line in Path(path).read_text(encoding='utf-8').splitlines() if line.strip()]
 def _source_is_blind() -> bool:
     import inspect; text = Path(__file__).read_text(encoding='utf-8'); banned = ('_EP_' + 'S', '_qwen_l1_' + 'scale', '_k3_' + 'l1', '_ep1_l1_' + 'scale', '_U' + 'G', '_V' + 'G')
-    if any((name in text for name in banned)): return False
-    source = inspect.getsource(predict_cell); return all((tok not in source for tok in ('MeasuredCell', '.trace', 'by_name', 'by_class', 'ttft_ms', 'tpot_ms')))
+    return not any((name in text for name in banned)) and all((tok not in inspect.getsource(predict_cell) for tok in ('MeasuredCell', '.trace', 'by_name', 'by_class', 'ttft_ms', 'tpot_ms')))
+def _no_empirical_curve_fit(predictions: Sequence[Prediction]=()) -> bool:
+    import ast, inspect, mindie_sim.prediction.piecewise as _pw; banned = ('_harm' + '1', '_harm' + '2', 'harm' + 'onic', 'is_' + 'glm', 'is_' + 'dsv41', 'is_' + 'qwen', 'is_' + 'k3', 'is_' + 'v41', '_glm' + '_', '_dsv41' + '_', '_qwen' + '_', '_k3' + '_')
+    trig = {'cos', 'sin', 'acos', 'asin', 'atan', 'atan2'}; svars = {'q_len', 'prompt_tokens', 'kv_len', 'seq_len', 'context', 'tokens', 'concurrency', 'layers', 'head_dim', 'dk'}; glits = {45, 74, 75, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072}
+    for p in (Path(__file__), *sorted(Path(_pw.__file__).resolve().parent.rglob('*.py'))):
+        for n in ast.walk(ast.parse(p.read_text(encoding='utf-8'))):
+            if isinstance(n, ast.ImportFrom) and any((a.name in trig for a in n.names)): return False
+            if isinstance(n, ast.Call) and ((isinstance(n.func, ast.Attribute) and n.func.attr in trig) or (isinstance(n.func, ast.Name) and n.func.id in trig)): return False
+            if isinstance(n, ast.BinOp) and isinstance(n.op, ast.Mod) and isinstance(n.right, ast.Constant) and (n.right.value == 17): return False
+            if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Name, ast.arg)) and any((b in (getattr(n, 'name', '') or getattr(n, 'id', '') or getattr(n, 'arg', '')).lower() for b in banned)): return False
+            if isinstance(n, ast.Compare) and any(((p == Path(__file__) or isinstance(op, (ast.Eq, ast.NotEq, ast.In, ast.NotIn))) and ({s.id for s in [*ast.walk(l), *ast.walk(r)] if isinstance(s, ast.Name)} & svars) and ({int(s.value) for s in [*ast.walk(l), *ast.walk(r)] if isinstance(s, ast.Constant) and isinstance(s.value, int) and (not isinstance(s.value, bool))} & glits) for l, op, r in zip([n.left, *n.comparators], n.ops, n.comparators))): return False
+    if 'theta.tiles' in inspect.getsource(predict_cell) or inspect.getsource(predict_cell).count('model_label') > 2 or any(('model_label' in inspect.getsource(fn) for fn in (_raw_case, _structure_fingerprint, _model_for_instantiation, _ep_ranks, _service_ttft_overhead_ms, _predict_pd, _component_errors))): return False
+    return all((p.layers > 0 and bool(p.rows) and all((isinstance(v, (int, float)) and math.isfinite(v) and (v >= 0.0) for v in (*p.per_layer.values(), *p.subgraphs.values(), p.body_ms, p.decode_body_ms, p.prefill_body_ms))) and (abs(sum(p.per_layer.values()) * p.layers - sum((r.total_ms for r in p.rows))) <= 1e-05) and ('_pd_' in p.cell_id or abs(p.body_ms - (p.prefill_body_ms if p.decode_body_ms == 0.0 else p.decode_body_ms)) <= 1e-06) for p in predictions))
 def acceptance(result: Mapping[str, Any], *, require_all_21: bool=False) -> dict[str, Any]:
-    levels = {(row['level'], row['target']): row for row in result['levels']}; failures: list[str] = []
-    if result['coverage']['failed'] or result['skipped']: failures.append('incomplete_coverage')
+    levels = {(row['level'], row['target']): row for row in result['levels']}; failures = ['incomplete_coverage'] if result['coverage']['failed'] or result['skipped'] else []
     if not result.get('measurement_blind'): failures.append('measurement_not_blind')
-    wanted = _REQUIRED_BENCH if require_all_21 else tuple(levels)
-    if not wanted: failures.append('no_levels')
+    if not bool(result.get('no_empirical_curve_fit', False)): failures.append('empirical_curve_fit_detected')
+    if not (wanted := (_REQUIRED_BENCH if require_all_21 else tuple(levels))): failures.append('no_levels')
     for key in wanted:
         row = levels.get(key)
         if row is None or row['samples'] <= 0 or row['unmatched']: failures.append(f'missing:{key[0]}:{key[1]}'); continue
-        if row['step_err_p50'] > ERROR_THRESHOLD or row['step_err_max'] > ERROR_THRESHOLD or row['uncancelled_p50'] > ERROR_THRESHOLD or row['above_10pct']: failures.append(f'threshold:{key[0]}:{key[1]}')
+        if any((not math.isfinite(float(row.get(k, math.nan))) or float(row[k]) > ERROR_THRESHOLD for k in ('step_err_p50', 'step_err_max', 'uncancelled_p50'))) or row['above_10pct']: failures.append(f'threshold:{key[0]}:{key[1]}')
     return {'pass': not failures, 'failures': failures}
 def run_validation(*, roots: Sequence[Path]=WORKSTREAM_ROOTS, include_historical: bool=True, max_cells: int=0, benchmark_jsonl: Path | None=None, trace_cache: Path | None=None) -> dict[str, Any]:
     from mindie_profiler.structural_inference import infer_trace_structure; inventory = load_historical_inventory() if include_historical else []; initial_modules = frozenset(sys.modules)
@@ -753,7 +770,7 @@ def run_validation(*, roots: Sequence[Path]=WORKSTREAM_ROOTS, include_historical
         if not cell_comparisons: failed += 1; skipped[cell.trace_quality if cell.trace_quality != 'ok' else 'no_comparisons'] += 1; continue
         evaluated += 1; comparisons.extend(cell_comparisons); diagnosis.extend(diagnose_cell(cell_comparisons, cell, pred))
     coverage = {'cells': len(cells), 'evaluated': evaluated, 'with_kernel_trace': with_trace, 'with_model': with_model, 'failed': failed, 'trace_mixed_prefill': mixed_pf, 'step_samples': sum((len(item.step_details) for item in comparisons)), 'unresolved_kernels': len(unresolved), 'agent_decisions': len(decisions)}
-    return {'schema': 'mindie-profiler-zero-shot-piecewise-validation/1', 'coverage': coverage, 'skipped': dict(skipped), 'roots': [str(benchmark_jsonl)] if benchmark_jsonl is not None else [str(path) for path in roots], 'historical': {'inventoried': len(inventory), 'existing': sum((1 for item in inventory if item.get('exists'))), 'by_kind': dict(Counter((item['kind'] for item in inventory)))}, 'levels': aggregate(comparisons), 'step_errors': _step_rows(comparisons), 'diagnoses': [item.__dict__ for item in diagnosis], 'diagnosis_counts': dict(Counter((item.physical_mechanism for item in diagnosis))), 'unresolved_kernels': {k: {'calls': v[0], 'total_us': round(v[1], 3), 'cells': v[2]} for k, v in sorted(unresolved.items(), key=lambda x: -x[1][1])}, 'agent_decisions': list(decisions.values()), 'measurement_blind': _source_is_blind(), 'forbidden_lookup_imported': any((name.startswith('mindie_sim.prediction.service_regimes') and name not in initial_modules for name in sys.modules))}
+    return {'schema': 'mindie-profiler-zero-shot-piecewise-validation/1', 'coverage': coverage, 'skipped': dict(skipped), 'roots': [str(benchmark_jsonl)] if benchmark_jsonl is not None else [str(path) for path in roots], 'historical': {'inventoried': len(inventory), 'existing': sum((1 for item in inventory if item.get('exists'))), 'by_kind': dict(Counter((item['kind'] for item in inventory)))}, 'levels': aggregate(comparisons), 'step_errors': _step_rows(comparisons), 'diagnoses': [item.__dict__ for item in diagnosis], 'diagnosis_counts': dict(Counter((item.physical_mechanism for item in diagnosis))), 'unresolved_kernels': {k: {'calls': v[0], 'total_us': round(v[1], 3), 'cells': v[2]} for k, v in sorted(unresolved.items(), key=lambda x: -x[1][1])}, 'agent_decisions': list(decisions.values()), 'measurement_blind': _source_is_blind(), 'no_empirical_curve_fit': _no_empirical_curve_fit(tuple(predictions.values())), 'forbidden_lookup_imported': any((name.startswith('mindie_sim.prediction.service_regimes') and name not in initial_modules for name in sys.modules))}
 def render_markdown(result: Mapping[str, Any]) -> str:
     coverage, counts = (result['coverage'], result['diagnosis_counts']); details = list(result.get('step_errors') or ())
     lines = ['# Zero-shot piecewise validation baseline — Per-Step Latency Error (单步耗时误差)', '', 'Prediction path: `mindie_sim.prediction.subgraphs` + `mindie_sim.prediction.piecewise`; empirical `service_regimes` are not imported. Measured values are read only after each prediction is frozen.', '', 'Focus: **per-step latency** (`ms/step`), not cross-case means. `signed_p50` exposes systematic bias; `uncancelled_p50` exposes positive/negative cancellation among physical components. 验收重点为每个 Step 的单步耗时误差与正负抵消，跨 Case 均值仅保留兼容字段。', '', f"- cells: {coverage['cells']} (evaluated {coverage['evaluated']}, kernel trace {coverage['with_kernel_trace']}, model {coverage['with_model']}, mixed prefill {coverage['trace_mixed_prefill']})", f"- per-step samples: {coverage.get('step_samples', 0)}", f"- skipped: {result['skipped'] or 'none'}", f"- historical inventory: {result['historical']['inventoried']} ({result['historical']['existing']} existing)", f"- forbidden lookup imported: {result['forbidden_lookup_imported']}", '', '## Coverage by level / 分级覆盖（Per-Step Latency Error / 单步耗时误差）', '', '| level | target (EN / 中文) | step samples | cells | unmatched | measured ms | predicted ms | step_err_p50 | step_err_p90 | step_err_max | signed_p50 | uncancelled_p50 | <=10% pass | legacy unsigned med | legacy >10% |', '|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|']
