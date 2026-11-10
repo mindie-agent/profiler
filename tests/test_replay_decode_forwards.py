@@ -151,7 +151,9 @@ def test_prediction_worker_has_bounded_receipt_and_reuses_completed_geometry(rep
                 "context_tokens": 16, "sequences_per_replica": 1}
     cache = {}
     first = replay._predict_bounded(path, geometry, cache, timeout_s=10)
-    assert first["status"] == "completed"
+    assert first["status"] == "completed", {
+        key: first.get(key) for key in ("reason", "returncode", "stderr", "execution")
+    }
     assert first["execution"]["peak_rss_bytes"] <= 512 * 1024 ** 2
     assert first["runtime_identity"]["sources_unchanged"]
 

@@ -131,8 +131,12 @@ def test_op_stat_summary_falls_back_to_kernel_details_csv(tmp_path: Path) -> Non
 import math  # noqa: E402
 
 
+@pytest.mark.parametrize("dsh_path", (
+    "a3/heldout_case_1/kernel_details.csv",
+    r"a3\heldout_case_1\kernel_details.csv",
+))
 def test_collect_remaining_physical_captures_dedup_and_pf_phase(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, dsh_path: str
 ) -> None:
     """Verify `Path(dp).parent` deduplication, `/pf_` phase detection, and unique `capture_id`."""
     root1 = tmp_path / "root1"
@@ -155,15 +159,21 @@ def test_collect_remaining_physical_captures_dedup_and_pf_phase(
     pf_dir2.mkdir(parents=True)
     (pf_dir2 / "kernel_details.csv").write_text("Name,Type,Accelerator Core,Duration(us)\nK,MatMul,AI_CORE,25.0\n", encoding="utf-8")
 
+    # A shared text prefix does not make a separate directory a duplicate.
+    sibling = root1 / "a3" / "heldout_case_10" / "pf_4k_c2"
+    sibling.mkdir(parents=True)
+    (sibling / "kernel_details.csv").write_text("Name,Type,Accelerator Core,Duration(us)\nK,MatMul,AI_CORE,30.0\n", encoding="utf-8")
+
     rows = hfb._collect_remaining_physical_captures(
         set(),
-        {"a3/heldout_case_1/kernel_details.csv"},
+        {dsh_path},
         {"A3": 10, "A5": 10},
     )
-    assert len(rows) == 2
+    assert len(rows) == 3
     assert all(r["phase"] == "prefill" for r in rows)
     cids = [r["capture_id"] for r in rows]
-    assert len(set(cids)) == 2
+    assert len(set(cids)) == 3
+    assert any("heldout_case_10/" in cid for cid in cids)
     assert any(cid.endswith("#2") for cid in cids)
 
 

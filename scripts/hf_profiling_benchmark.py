@@ -31,7 +31,7 @@ from __future__ import annotations
 import argparse, base64, csv, gzip, hashlib, json, math, os, re, sys, urllib.request
 from collections import Counter
 from dataclasses import replace
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from statistics import median
 from typing import Any, Mapping, Sequence
 
@@ -325,7 +325,9 @@ def _collect_multinode_20261108() -> list[dict[str, Any]]:
 
 def _collect_remaining_physical_captures(used_zero_shot_paths: set[Path], dsh_paths: set[str], target_hw: Mapping[str, int]) -> list[dict[str, Any]]:
     rows, seen_real, counts, suite_counts, seen_cids = [], set(used_zero_shot_paths), Counter(), Counter(), Counter()
-    dsh_dirs = {str(Path(dp).parent) if dp.endswith((".csv", ".gz")) else dp for dp in dsh_paths if dp}
+    dsh_dirs = {PurePosixPath(dp.replace("\\", "/")).parent
+                if dp.endswith((".csv", ".gz")) else PurePosixPath(dp.replace("\\", "/"))
+                for dp in dsh_paths if dp}
     for root in DATA_ROOTS:
         if not root.exists():
             continue
@@ -337,8 +339,11 @@ def _collect_remaining_physical_captures(used_zero_shot_paths: set[Path], dsh_pa
                 rp = (Path(dirpath) / fn).resolve()
                 if rp in seen_real or any(p in _SKIP_DIRS or p.startswith(("a5-comm", "a5-mc2", "comm-", "hccl")) for p in rp.parts):
                     continue
-                seen_real.add(rp); s = str(rp); rel_id = _clean_text(str(rp.parent))
-                if (rp.parent / "export_summary.json").exists() or any(rel_id.startswith(dp) for dp in dsh_dirs):
+                seen_real.add(rp); s = str(rp)
+                rel_id = _clean_text(Path(dirpath).relative_to(root).as_posix())
+                capture = PurePosixPath(rel_id)
+                if ((rp.parent / "export_summary.json").exists()
+                        or any(capture == dp or dp in capture.parents for dp in dsh_dirs)):
                     continue
                 hw = _hw_tier(dirpath, rel_id)
                 suite = "a5_rack06_rack08_multirank_20261107" if "a5-multinode-fleet-rack0" in s else ("operator_and_kernel_calibration_20261107" if "calibration-20261107" in s else "extended_a3_a5_workstream_captures")

@@ -77,10 +77,20 @@ def _physical_contract(case):
     The complete derived machine declaration (device pipes, compute peaks,
     service modes, links and placements) stays a selectable physical axis.
     """
-    return json.loads(json.dumps({
+    return _physical_values(json.loads(json.dumps({
         "machine": case.machine.to_dict(),
         "parallel": case.runtime.parallel.to_dict(),
-    }))
+    })))
+
+
+def _physical_values(value):
+    """Explanatory provenance cannot change an otherwise identical machine."""
+    if isinstance(value, dict):
+        return {key: _physical_values(item) for key, item in value.items()
+                if key not in {"assumptions", "provenance"}}
+    if isinstance(value, list):
+        return [_physical_values(item) for item in value]
+    return value
 
 
 def _source_domain(case, contract):
@@ -91,7 +101,7 @@ def _source_domain(case, contract):
     parallel = case.runtime.parallel.to_dict()
     if any(parallel.get(name) != value for name, value in contract["parallel"].items()):
         return "parallelism_outside_observed_domain"
-    if _physical_contract(case) != contract["physical"]:
+    if _physical_contract(case) != _physical_values(contract["physical"]):
         return "physical_rates_or_topology_outside_observed_domain"
     if any(getattr(case.model, name) != value for name, value in contract["model"].items()):
         return "model_geometry_outside_observed_domain"
