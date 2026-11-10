@@ -8,13 +8,18 @@ import pytest
 
 STRUCT = Path(__file__).resolve().parents[1] / 'examples' / 'structure'
 sys.path.insert(0, str(STRUCT))
-from a2_native_observations import apply_a2_native_observations
+from a2_native_observations import PROFILE_PATH, apply_a2_native_observations
 
 
 def source_case():
     # The retained capture's normalized geometry, without its model/case labels.
+    profile = json.loads(PROFILE_PATH.read_text())
+    vector = profile["service_regimes"][0]["match"]["physical_rates"]["resources"]["vector"]
     return {
-        'machine': {'backend': 'ascend', 'sku': 'Ascend910B4', 'num_devices': 4, 'ranks_per_node': 4},
+        # Replay the recorded physical declaration even when current SKU
+        # defaults evolve; a new default is not new capture evidence.
+        'machine': {'backend': 'ascend', 'sku': 'Ascend910B4', 'num_devices': 4,
+                    'ranks_per_node': 4, 'device': {'rates': {'vector': vector}}},
         'model': {'name': 'arbitrary-label', 'layers': 3, 'hidden_size': 7168,
             'num_heads': 128, 'num_kv_heads': 1, 'head_dim': 192,
             'intermediate_size': 18432, 'vocab_size': 129280,

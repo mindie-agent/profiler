@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Release-v0.5.10-blue" alt="Release v0.5.10">
+  <img src="https://img.shields.io/badge/Release-v0.5.11-blue" alt="Release v0.5.11">
   <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/Interface-CLI%20%7C%20Python%20API%20%7C%20C7%20JSON-00ADD8" alt="CLI | Python API | C7 JSON">
   <img src="https://img.shields.io/badge/Target-Ascend%20NPU%20(A2%20%2F%20A3%20%2F%20A5)-FF6B00" alt="Ascend NPU">
@@ -74,7 +74,7 @@ flowchart LR
      ```bash
      uv pip install \
        https://github.com/mindie-agent/sim/releases/download/v0.9.9/mindie_sim-0.9.9-py3-none-any.whl \
-       https://github.com/mindie-agent/profiler/releases/download/v0.5.10/mindie_profiler-0.5.10-py3-none-any.whl
+       https://github.com/mindie-agent/profiler/releases/download/v0.5.11/mindie_profiler-0.5.11-py3-none-any.whl
      ```
    - 或从源码主分支安装最新开发版：
      ```bash
@@ -111,7 +111,7 @@ flowchart LR
 
 ### 当前兼容组合：拓扑结构关联、自底向上结构推断与全量 7,337 采集算子级与单步级统一物理验证（配套 `mindie-sim 0.9.9`）
 
-当前安装组合为 `mindie-profiler v0.5.10` 与 [`mindie-sim v0.9.9`](https://github.com/mindie-agent/sim)，提供从原始 Trace 到自底向上结构推断（`mindie-structural-inference/1`）、模型结构映射及四维效率归因的完整闭环，并配套开源了包含 **7,337 个真实 NPU Profiling 采集**（`A2: 837`、`A3: 1,729`、`A5: 4,771`，累计 `436,412` 个单步样本）的可复现基准测试集 [`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench)。历史全量泛化验证的数据与采样版本仍以原始记录为准（[`docs/releases/profiler-0.5.7.md`](./docs/releases/profiler-0.5.7.md)、[`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md) 与 [`examples/structure/README.md`](./examples/structure/README.md)）。
+当前安装组合为 `mindie-profiler v0.5.11` 与 [`mindie-sim v0.9.9`](https://github.com/mindie-agent/sim)，提供从原始 Trace 到自底向上结构推断（`mindie-structural-inference/1`）、模型结构映射及四维效率归因的完整闭环，并配套开源了包含 **7,337 个真实 NPU Profiling 采集**（`A2: 837`、`A3: 1,729`、`A5: 4,771`，累计 `436,412` 个单步样本）的可复现基准测试集 [`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench)。历史全量泛化验证的数据与采样版本仍以原始记录为准（[`docs/releases/profiler-0.5.7.md`](./docs/releases/profiler-0.5.7.md)、[`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md) 与 [`examples/structure/README.md`](./examples/structure/README.md)）。
 
 当前评估缓存使用完整 sim Python/JSON 内容身份（`simulator_identity`）；全量 7,337 采集统一执行无目标耗时泄漏（Measurement-Blind）、零历史预测复用的实时算子级（L1 算子族 + L2 硬件执行引擎）与整网单步级（L3/L4 Step Latency）物理建模重算对比，同时明确保留各套件评估模式。
 

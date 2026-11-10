@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Release-v0.5.10-blue" alt="Release v0.5.10">
+  <img src="https://img.shields.io/badge/Release-v0.5.11-blue" alt="Release v0.5.11">
   <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/Interface-CLI%20%7C%20Python%20API%20%7C%20C7%20JSON-00ADD8" alt="CLI | Python API | C7 JSON">
   <img src="https://img.shields.io/badge/Target-Ascend%20NPU%20(A2%20%2F%20A3%20%2F%20A5)-FF6B00" alt="Ascend NPU">
@@ -74,7 +74,7 @@ If you are an AI Agent receiving the prompt above, follow these steps to install
      ```bash
      uv pip install \
        https://github.com/mindie-agent/sim/releases/download/v0.9.9/mindie_sim-0.9.9-py3-none-any.whl \
-       https://github.com/mindie-agent/profiler/releases/download/v0.5.10/mindie_profiler-0.5.10-py3-none-any.whl
+       https://github.com/mindie-agent/profiler/releases/download/v0.5.11/mindie_profiler-0.5.11-py3-none-any.whl
      ```
    - Or install the latest development version from `main`:
      ```bash
@@ -111,7 +111,7 @@ If you are an AI Agent receiving the prompt above, follow these steps to install
 
 ### Current Compatible Combination: Structure Attribution, Bottom-Up Structural Inference & Unified 7,337-Capture Operator & Step Validation (Paired with `mindie-sim 0.9.9`)
 
-The current installation pairs `mindie-profiler v0.5.10` with [`mindie-sim v0.9.9`](https://github.com/mindie-agent/sim) for end-to-end raw capture analysis, bottom-up structural inference (`mindie-structural-inference/1`), model structure attribution, and 4D hardware efficiency reports, backed by the open **7,337-capture NPU profiling benchmark dataset** ([`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench)) spanning `A2` (`837`), `A3` (`1,729`), and `A5` (`4,771`) (`436,412` step samples). Historical full-fleet measurements retain their original data and sampled versions in [`docs/releases/profiler-0.5.7.md`](./docs/releases/profiler-0.5.7.md), [`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md), and [`examples/structure/README.md`](./examples/structure/README.md).
+The current installation pairs `mindie-profiler v0.5.11` with [`mindie-sim v0.9.9`](https://github.com/mindie-agent/sim) for end-to-end raw capture analysis, bottom-up structural inference (`mindie-structural-inference/1`), model structure attribution, and 4D hardware efficiency reports, backed by the open **7,337-capture NPU profiling benchmark dataset** ([`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench)) spanning `A2` (`837`), `A3` (`1,729`), and `A5` (`4,771`) (`436,412` step samples). Historical full-fleet measurements retain their original data and sampled versions in [`docs/releases/profiler-0.5.7.md`](./docs/releases/profiler-0.5.7.md), [`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md), and [`examples/structure/README.md`](./examples/structure/README.md).
 
 Evaluation caches identify the complete sim Python/JSON content (`simulator_identity`); all 7,337 captures undergo measurement-blind, zero-cached-prediction live operator-level (`L1` operator families + `L2` accelerator engines) and step-level (`L3/L4` step latency) physical modeling recomputation while preserving each suite's evaluation mode.
 
