@@ -607,3 +607,37 @@ def test_unified_7337_scoreboard_in_manifest_and_readme() -> None:
     assert readme.count("| `L1_operator_family` |") == 6 and readme.count("| `L2_accelerator_engine` |") == 4
     assert readme.count("| `L3_L4_step_latency` |") == 3 and readme.count("| `structural_inference` |") == 1
     assert "`7,337`" in readme
+
+
+def test_bogus_predicted_ms_and_historical_decode_json_are_ignored(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A caller-supplied or on-disk `predicted_ms` must not change a live architectural prediction."""
+    fom = _load_fom()
+    cfg = {
+        "capture_id": "model_mtp3_tp8_decode", "suite": "unit", "hardware_tier": "A5", "phase": "decode",
+        "forward_steps": 8, "target_timing_used_to_fit": False,
+        "geometry": {"dp": 1, "ep": 1, "context_tokens": 4096, "concurrency": 4, "active_hbm_mb": 12345.0},
+    }
+    _clear_all_caches(fom)
+    baseline = fom.predict_capture_operators_and_step(cfg)
+    bogus = {**cfg, "predicted_ms": 999999.0, "target_timing_used_to_fit": False}
+    assert fom.predict_capture_operators_and_step(bogus)["predicted_step_ms"] == baseline["predicted_step_ms"]
+    assert baseline["predicted_step_ms"] != 999999.0
+    assert fom._infer_geometry({"capture_id": "model_mtp3_tp8_decode", "phase": "decode", "geometry": {}})["tp"] == 8
+    ks = {"total_kernel_duration_us": 8000.0, "by_accelerator_core": {"AI_VECTOR_CORE": 8000.0}, "top_op_types": [{"type": "Silu", "core": "AI_VECTOR_CORE", "count": 1, "total_us": 8000.0}]}
+    row = {**cfg, "observed_ms": float(baseline["predicted_step_ms"]), "kernel_summary": ks}
+    assert fom.enrich_fleet_capture_with_operator_and_step_modeling({**row, "predicted_ms": 999999.0})["predicted_ms"] == fom.enrich_fleet_capture_with_operator_and_step_modeling(row)["predicted_ms"]
+    tmp_results = tmp_path / "results"
+    tmp_results.mkdir()
+    decode_doc = _load_json(RESULTS_DIR / "decode.json")
+    case = decode_doc["cases"][0]
+    case_id = str(case.get("case_id") or case.get("id"))
+    (tmp_results / "decode.json").write_text(json.dumps(decode_doc), encoding="utf-8")
+    monkeypatch.setattr(fom, "RESULTS_DIR", tmp_results)
+    live_cfg = {"capture_id": f"registered_decode:{case_id}", "suite": "registered_decode", "hardware_tier": "A3", "phase": "decode", "forward_steps": 32, "target_timing_used_to_fit": False, "geometry": dict(case.get("geometry") or {})}
+    _clear_all_caches(fom)
+    before = fom.predict_capture_operators_and_step(live_cfg)
+    mutated = copy.deepcopy(decode_doc)
+    mutated["cases"][0].setdefault("comparison", {})["predicted_ms"] = 999999.0
+    (tmp_results / "decode.json").write_text(json.dumps(mutated), encoding="utf-8")
+    _clear_all_caches(fom)
+    assert fom.predict_capture_operators_and_step({**live_cfg, "predicted_ms": 999999.0, "target_timing_used_to_fit": False}) == before

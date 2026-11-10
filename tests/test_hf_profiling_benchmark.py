@@ -1,7 +1,7 @@
 """Unit and anti-tampering tests for `hf_profiling_benchmark.py`.
 
 [Role]
-  Verify all `Codex Astra max` (`task-1240`) P0/P1 guardrails on
+  Verify all `Codex Astra max` (`task-1240`) P0/P1/P2 guardrails on
   `examples/structure/hf_profiling_benchmark.py` and `scripts/hf_profiling_benchmark.py`:
   1. Unconditional structural rules in `_collect_structure_suites()` (no post-hoc
      `rel_err > 0.10` or path-substring `"mtp"` conditioning) and honest preservation
@@ -13,6 +13,9 @@
      `abs(predicted_ms - observed_ms) / observed_ms` and rejects uncompared suites,
      forged `relative_error=0.0`, `NaN` values, `target_timing_used_to_fit=True`,
      or non-blind Suite 1 validation results.
+  4. Complete operator-family/unified-family maps, recomputed-error write-back into
+     the unified scoreboard, and the in-tree non-timing geometry catalog fallback
+     used when `/tmp` fleet captures are absent.
 
 [Invariants]
   * Strict isolation of `MINDIE_CONFIG_HOME`, `MINDIE_DATA_HOME`,
@@ -27,6 +30,7 @@
 """
 from __future__ import annotations
 
+import copy
 import inspect
 import json
 from pathlib import Path
@@ -163,6 +167,43 @@ def test_collect_remaining_physical_captures_dedup_and_pf_phase(
     assert any(cid.endswith("#2") for cid in cids)
 
 
+def _base_fleet_row() -> dict[str, Any]:
+    """Build a genuine measurement-blind row whose stored predictions match live recomputation."""
+    raw: dict[str, Any] = {
+        "suite": "test_suite",
+        "capture_id": "test_suite:cap1",
+        "hardware_tier": "A5",
+        "phase": "decode",
+        "forward_steps": 10,
+        "target_timing_used_to_fit": False,
+        "source_calibration": {
+            "evaluation_relation": "zero_shot_piecewise_recomputed",
+            "target_timing_used_to_fit": False,
+        },
+        "geometry": {
+            "tp": 8, "dp": 1, "ep": 1, "context_tokens": 4096, "concurrency": 4,
+            "active_hbm_mb": 12345.0,
+        },
+    }
+    predicted = hfb.predict_capture_operators_and_step(raw)
+    observed = round(float(predicted["predicted_step_ms"]) * 1.02, 4)
+    total_us = observed * 1000.0 * raw["forward_steps"]
+    raw["observed_ms"] = observed
+    raw["kernel_summary"] = {
+        "total_kernel_duration_us": total_us,
+        "by_accelerator_core": {"AI_CORE": total_us * 0.60, "AI_VECTOR_CORE": total_us * 0.15, "MIX_AIC": total_us * 0.25},
+        "top_op_types": [
+            {"type": "MatMulV2", "core": "AI_CORE", "count": 1, "total_us": total_us * 0.60},
+            {"type": "IncreFlashAttention", "core": "MIX_AIC", "count": 1, "total_us": total_us * 0.25},
+            {"type": "Silu", "core": "AI_VECTOR_CORE", "count": 1, "total_us": total_us * 0.15},
+        ],
+    }
+    observed_block = hfb.fleet_modeling.extract_capture_observations(raw)
+    weights = observed_block["structural_weights"]
+    raw["geometry"]["structural_weights"] = [w * f for w, f in zip(weights, (1.005, 0.995, 1.01, 0.99, 1.0, 1.0))]
+    return hfb.enrich_fleet_capture_with_operator_and_step_modeling(raw)
+
+
 def _setup_synthetic_dataset(
     base_dir: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -173,41 +214,7 @@ def _setup_synthetic_dataset(
     data_dir = base_dir / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
     zs_row = {"cell_id": "c1", "hardware_tier": "A5", "phase": "decode"}
-    fleet_row: dict[str, Any] = {
-        "suite": "test_suite",
-        "capture_id": "test_suite:cap1",
-        "hardware_tier": "A5",
-        "phase": "decode",
-        "status": "compared",
-        "evaluation_mode": "physical_operator_and_step_modeling",
-        "forward_steps": 10,
-        "observed_ms": 20.0,
-        "predicted_ms": 20.5,
-        "relative_error": 0.025,
-        "passed_10pct": True,
-        "passed_15pct": True,
-        "target_timing_used_to_fit": False,
-        "source_calibration": {
-            "evaluation_relation": "zero_shot_piecewise_recomputed",
-            "target_timing_used_to_fit": False,
-        },
-        "operator_modeling": {
-            "status": "compared",
-            "target_timing_used_to_fit": False,
-            "observed_operator_ms": 20.0,
-            "predicted_operator_ms": 20.5,
-            "operator_relative_error": 0.025,
-            "operator_passed_10pct": True,
-            "families": {
-                "cube_gemm": {"observed_ms": 12.0, "predicted_ms": 12.36, "relative_error": 0.03},
-                "attention_mla": {"observed_ms": 8.0, "predicted_ms": 8.14, "relative_error": 0.0175},
-            },
-            "by_accelerator_core": {
-                "AI_CORE": {"observed_ms": 12.0, "predicted_ms": 12.36, "relative_error": 0.03},
-                "MIX_AIC": {"observed_ms": 8.0, "predicted_ms": 8.14, "relative_error": 0.0175},
-            },
-        },
-    }
+    fleet_row = _base_fleet_row()
     if fleet_row_overrides:
         fleet_row.update(fleet_row_overrides)
     hfb._write_jsonl_gz(data_dir / "zero_shot_l1_l4_cells.jsonl.gz", [zs_row], also_plain=True)
@@ -243,6 +250,60 @@ def _setup_synthetic_dataset(
     return base_dir
 
 
+def _entry(observed: float, predicted: float) -> dict[str, float]:
+    """Build a self-consistent observed/predicted/relative-error group entry."""
+    return {
+        "observed_ms": observed,
+        "predicted_ms": predicted,
+        "relative_error": abs(predicted - observed) / max(observed, 1e-9),
+    }
+
+
+def _op_model(
+    families: dict[str, dict[str, float]] | None = None,
+    cores: dict[str, dict[str, float]] | None = None,
+    *,
+    observed: float = 20.0,
+    predicted: float = 20.5,
+    unified: dict[str, dict[str, float]] | None = None,
+) -> dict[str, Any]:
+    """Build an operator model with default family/core groups and a consistent total error."""
+    fams = {"cube_gemm": _entry(12.0, 12.36), "attention_mla": _entry(8.0, 8.14)} if families is None else families
+    crs = {"AI_CORE": _entry(12.0, 12.36), "MIX_AIC": _entry(8.0, 8.14)} if cores is None else cores
+    err = abs(predicted - observed) / max(observed, 1e-9)
+    model: dict[str, Any] = {
+        "status": "compared",
+        "target_timing_used_to_fit": False,
+        "observed_operator_ms": observed,
+        "predicted_operator_ms": predicted,
+        "operator_relative_error": err,
+        "operator_passed_10pct": err <= 0.10,
+        "families": fams,
+        "by_accelerator_core": crs,
+    }
+    if unified is not None:
+        model["unified_families"] = unified
+    return model
+
+
+def _strict_gate_rejects(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    tag: str,
+    fleet_row_overrides: dict[str, Any] | None = None,
+    zs_overrides: dict[str, Any] | None = None,
+) -> None:
+    """Assert that a synthetic dataset variant fails the strict <=10% gate."""
+    dataset = _setup_synthetic_dataset(
+        tmp_path / tag,
+        monkeypatch,
+        fleet_row_overrides=fleet_row_overrides,
+        zs_overrides=zs_overrides,
+    )
+    with pytest.raises(ValueError, match="Strict <=10% gate failed"):
+        hfb.evaluate_dataset(dataset, strict_10pct=True)
+
+
 def test_evaluate_dataset_strict_10pct_gate_hardening(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -252,268 +313,118 @@ def test_evaluate_dataset_strict_10pct_gate_hardening(
     res = hfb.evaluate_dataset(ok_dir, strict_10pct=True)
     assert res["totals"]["unique_captures"] == 2
 
-    # 1. Inventory-only suite (`compared == 0`) must fail strict_10pct
-    uncomp_dir = _setup_synthetic_dataset(
-        tmp_path / "uncomp",
-        monkeypatch,
-        fleet_row_overrides={"status": "measured_trace_bundle", "predicted_ms": None, "relative_error": None},
+    # 1. Inventory-only suite (`compared == 0`) must fail strict_10pct.
+    _strict_gate_rejects(
+        tmp_path, monkeypatch, "uncomp",
+        {"status": "measured_trace_bundle", "predicted_ms": None, "relative_error": None},
     )
-    with pytest.raises(ValueError, match="Strict <=10% gate failed"):
-        hfb.evaluate_dataset(uncomp_dir, strict_10pct=True)
 
-    # 2. Forged `relative_error = 0.0` with `predicted_ms = 100.0, observed_ms = 20.0` must fail
-    forged_dir = _setup_synthetic_dataset(
-        tmp_path / "forged",
-        monkeypatch,
-        fleet_row_overrides={"observed_ms": 20.0, "predicted_ms": 100.0, "relative_error": 0.0},
+    # 2. Forged `relative_error = 0.0` with `predicted_ms = 100.0, observed_ms = 20.0` must fail.
+    _strict_gate_rejects(
+        tmp_path, monkeypatch, "forged",
+        {"observed_ms": 20.0, "predicted_ms": 100.0, "relative_error": 0.0},
     )
-    with pytest.raises(ValueError, match="Strict <=10% gate failed"):
-        hfb.evaluate_dataset(forged_dir, strict_10pct=True)
 
-    # 3a. Outer `target_timing_used_to_fit = True` must fail
-    leaked_dir = _setup_synthetic_dataset(
-        tmp_path / "leaked",
-        monkeypatch,
-        fleet_row_overrides={"target_timing_used_to_fit": True},
+    # 3a. Outer `target_timing_used_to_fit = True` must fail.
+    _strict_gate_rejects(tmp_path, monkeypatch, "leaked", {"target_timing_used_to_fit": True})
+
+    # 3b. Nested `source_calibration.target_timing_used_to_fit = True` alone must fail.
+    _strict_gate_rejects(
+        tmp_path, monkeypatch, "nested_fit",
+        {"target_timing_used_to_fit": False,
+         "source_calibration": {"evaluation_relation": "zero_shot_piecewise_recomputed", "target_timing_used_to_fit": True}},
     )
-    with pytest.raises(ValueError, match="Strict <=10% gate failed"):
-        hfb.evaluate_dataset(leaked_dir, strict_10pct=True)
 
-    # 3b. Nested `source_calibration.target_timing_used_to_fit = True` alone must fail
-    nested_fit_dir = _setup_synthetic_dataset(
-        tmp_path / "nested_fit",
-        monkeypatch,
-        fleet_row_overrides={
-            "target_timing_used_to_fit": False,
-            "source_calibration": {"evaluation_relation": "zero_shot_piecewise_recomputed", "target_timing_used_to_fit": True},
-        },
+    # 3c. Nested `source_calibration.evaluation_relation = "in_sample..."` alone must fail.
+    _strict_gate_rejects(
+        tmp_path, monkeypatch, "nested_in_sample",
+        {"target_timing_used_to_fit": False,
+         "source_calibration": {"evaluation_relation": "in_sample_regime_calibration", "target_timing_used_to_fit": False}},
     )
-    with pytest.raises(ValueError, match="Strict <=10% gate failed"):
-        hfb.evaluate_dataset(nested_fit_dir, strict_10pct=True)
 
-    # 3c. Nested `source_calibration.evaluation_relation = "in_sample..."` alone must fail
-    nested_in_sample_dir = _setup_synthetic_dataset(
-        tmp_path / "nested_in_sample",
-        monkeypatch,
-        fleet_row_overrides={
-            "target_timing_used_to_fit": False,
-            "source_calibration": {"evaluation_relation": "in_sample_regime_calibration", "target_timing_used_to_fit": False},
-        },
+    # 4a. Missing operator modeling (`operator_compared == 0`) must fail.
+    _strict_gate_rejects(tmp_path, monkeypatch, "no_op", {"operator_modeling": None})
+
+    # 4b. Empty `families` or `by_accelerator_core` breakdown must fail.
+    _strict_gate_rejects(
+        tmp_path, monkeypatch, "empty_fam",
+        {"operator_modeling": _op_model({}, {"AI_CORE": _entry(20.0, 20.5)})},
     )
-    with pytest.raises(ValueError, match="Strict <=10% gate failed"):
-        hfb.evaluate_dataset(nested_in_sample_dir, strict_10pct=True)
-
-    # 4a. Missing operator modeling (`operator_compared == 0`) must fail
-    no_op_dir = _setup_synthetic_dataset(
-        tmp_path / "no_op",
-        monkeypatch,
-        fleet_row_overrides={"operator_modeling": None},
+    _strict_gate_rejects(
+        tmp_path, monkeypatch, "empty_core",
+        {"operator_modeling": _op_model(cores={})},
     )
-    with pytest.raises(ValueError, match="Strict <=10% gate failed"):
-        hfb.evaluate_dataset(no_op_dir, strict_10pct=True)
 
-    # 4b. Empty `families` or `by_accelerator_core` breakdown must fail
-    empty_fam_dir = _setup_synthetic_dataset(
-        tmp_path / "empty_fam",
-        monkeypatch,
-        fleet_row_overrides={
-            "operator_modeling": {
-                "status": "compared",
-                "target_timing_used_to_fit": False,
-                "observed_operator_ms": 20.0,
-                "predicted_operator_ms": 20.5,
-                "operator_relative_error": 0.025,
-                "families": {},
-                "by_accelerator_core": {"AI_CORE": {"observed_ms": 20.0, "predicted_ms": 20.5, "relative_error": 0.025}},
-            }
-        },
+    # 4c. Group total reconciliation mismatch (`1%` > `1e-4`) or NaN in group `predicted_ms` must fail.
+    _strict_gate_rejects(
+        tmp_path, monkeypatch, "reconcile_mismatch",
+        {"operator_modeling": _op_model({"cube_gemm": _entry(11.8, 12.36), "attention_mla": _entry(8.0, 8.14)})},
     )
-    with pytest.raises(ValueError, match="Strict <=10% gate failed"):
-        hfb.evaluate_dataset(empty_fam_dir, strict_10pct=True)
-
-    empty_core_dir = _setup_synthetic_dataset(
-        tmp_path / "empty_core",
-        monkeypatch,
-        fleet_row_overrides={
-            "operator_modeling": {
-                "status": "compared",
-                "target_timing_used_to_fit": False,
-                "observed_operator_ms": 20.0,
-                "predicted_operator_ms": 20.5,
-                "operator_relative_error": 0.025,
-                "families": {
-                    "cube_gemm": {"observed_ms": 12.0, "predicted_ms": 12.36, "relative_error": 0.03},
-                    "attention_mla": {"observed_ms": 8.0, "predicted_ms": 8.14, "relative_error": 0.0175},
-                },
-                "by_accelerator_core": {},
-            }
-        },
+    _strict_gate_rejects(
+        tmp_path, monkeypatch, "nan_group",
+        {"operator_modeling": _op_model({
+            "cube_gemm": {"observed_ms": 12.0, "predicted_ms": float("nan"), "relative_error": 0.03},
+            "attention_mla": _entry(8.0, 8.14),
+        })},
     )
-    with pytest.raises(ValueError, match="Strict <=10% gate failed"):
-        hfb.evaluate_dataset(empty_core_dir, strict_10pct=True)
 
-    # 4c. Group total reconciliation mismatch (`1%` > `1e-4`) or NaN in group `predicted_ms` must fail
-    reconcile_mismatch_dir = _setup_synthetic_dataset(
-        tmp_path / "reconcile_mismatch",
-        monkeypatch,
-        fleet_row_overrides={
-            "operator_modeling": {
-                "status": "compared",
-                "target_timing_used_to_fit": False,
-                "observed_operator_ms": 20.0,
-                "predicted_operator_ms": 20.5,
-                "operator_relative_error": 0.025,
-                "families": {
-                    "cube_gemm": {"observed_ms": 11.8, "predicted_ms": 12.36, "relative_error": 12.36 / 11.8 - 1.0},
-                    "attention_mla": {"observed_ms": 8.0, "predicted_ms": 8.14, "relative_error": 0.0175},
-                },
-                "by_accelerator_core": {
-                    "AI_CORE": {"observed_ms": 12.0, "predicted_ms": 12.36, "relative_error": 0.03},
-                    "MIX_AIC": {"observed_ms": 8.0, "predicted_ms": 8.14, "relative_error": 0.0175},
-                },
-            }
-        },
-    )
-    with pytest.raises(ValueError, match="Strict <=10% gate failed"):
-        hfb.evaluate_dataset(reconcile_mismatch_dir, strict_10pct=True)
-
-    nan_group_dir = _setup_synthetic_dataset(
-        tmp_path / "nan_group",
-        monkeypatch,
-        fleet_row_overrides={
-            "operator_modeling": {
-                "status": "compared",
-                "target_timing_used_to_fit": False,
-                "observed_operator_ms": 20.0,
-                "predicted_operator_ms": 20.5,
-                "operator_relative_error": 0.025,
-                "families": {
-                    "cube_gemm": {"observed_ms": 12.0, "predicted_ms": float("nan"), "relative_error": 0.03},
-                    "attention_mla": {"observed_ms": 8.0, "predicted_ms": 8.14, "relative_error": 0.0175},
-                },
-                "by_accelerator_core": {
-                    "AI_CORE": {"observed_ms": 12.0, "predicted_ms": 12.36, "relative_error": 0.03},
-                    "MIX_AIC": {"observed_ms": 8.0, "predicted_ms": 8.14, "relative_error": 0.0175},
-                },
-            }
-        },
-    )
-    with pytest.raises(ValueError, match="Strict <=10% gate failed"):
-        hfb.evaluate_dataset(nan_group_dir, strict_10pct=True)
-
-    # 5a. Synthetic equal-share operator splits (identical pred/obs ratio or equal shares) must fail
+    # 5a. Synthetic equal-share operator splits (identical pred/obs ratio or equal shares) must fail.
     for tag, fams in (
-        (
-            "equal_share_nonzero",
-            {
-                "cube_gemm": {"observed_ms": 12.0, "predicted_ms": 12.3, "relative_error": 0.025},
-                "attention_mla": {"observed_ms": 8.0, "predicted_ms": 8.2, "relative_error": 0.025},
-            },
-        ),
-        (
-            "equal_share_zero_err",
-            {
-                "cube_gemm": {"observed_ms": 10.0, "predicted_ms": 10.0, "relative_error": 0.0},
-                "attention_mla": {"observed_ms": 10.0, "predicted_ms": 10.0, "relative_error": 0.0},
-            },
-        ),
+        ("equal_share_nonzero", {"cube_gemm": _entry(12.0, 12.3), "attention_mla": _entry(8.0, 8.2)}),
+        ("equal_share_zero_err", {"cube_gemm": _entry(10.0, 10.0), "attention_mla": _entry(10.0, 10.0)}),
     ):
-        eq_dir = _setup_synthetic_dataset(
-            tmp_path / tag,
-            monkeypatch,
-            fleet_row_overrides={
-                "operator_modeling": {
-                    "status": "compared",
-                    "target_timing_used_to_fit": False,
-                    "observed_operator_ms": 20.0,
-                    "predicted_operator_ms": sum(v["predicted_ms"] for v in fams.values()),
-                    "operator_relative_error": abs(sum(v["predicted_ms"] for v in fams.values()) - 20.0) / 20.0,
-                    "families": fams,
-                    "by_accelerator_core": {
-                        "AI_CORE": {"observed_ms": 12.0, "predicted_ms": 12.36, "relative_error": 0.03},
-                        "MIX_AIC": {"observed_ms": 8.0, "predicted_ms": 8.14 if "nonzero" in tag else 7.64, "relative_error": 0.0175 if "nonzero" in tag else 0.045},
-                    },
-                }
-            },
+        cores = {"AI_CORE": _entry(12.0, 12.36), "MIX_AIC": _entry(8.0, 8.14 if "nonzero" in tag else 7.64)}
+        _strict_gate_rejects(
+            tmp_path, monkeypatch, tag,
+            {"operator_modeling": _op_model(fams, cores, predicted=sum(v["predicted_ms"] for v in fams.values()))},
         )
-        with pytest.raises(ValueError, match="Strict <=10% gate failed"):
-            hfb.evaluate_dataset(eq_dir, strict_10pct=True)
 
-    # 5b. Genuine opposite-signed tiny deviations (`12 -> 12.00001` and `8 -> 7.99999`) must be accepted
+    # 5b. Genuine opposite-signed tiny deviations inside the live 1e-3 tolerance must be accepted.
+    valid_base = _base_fleet_row()
+    live = hfb.predict_capture_operators_and_step({k: v for k, v in valid_base.items() if k != "predicted_ms"})
+    step_ms = float(live["predicted_step_ms"])
+    families = {k: {"observed_ms": v, "predicted_ms": v, "relative_error": 0.0} for k, v in live["predicted_by_family_ms"].items()}
+    cores = {k: {"observed_ms": v, "predicted_ms": v, "relative_error": 0.0} for k, v in live["predicted_by_core_ms"].items()}
+    for group in (families, cores):
+        keys = [k for k, entry in group.items() if entry["predicted_ms"] > 1e-6]
+        group[keys[0]]["predicted_ms"] += 1e-5
+        group[keys[1]]["predicted_ms"] -= 1e-5
+        for key in keys[:2]:
+            entry = group[key]
+            entry["relative_error"] = abs(entry["predicted_ms"] - entry["observed_ms"]) / max(entry["observed_ms"], 1e-9)
     opp_tiny_dir = _setup_synthetic_dataset(
-        tmp_path / "opp_tiny",
-        monkeypatch,
+        tmp_path / "opp_tiny", monkeypatch,
         fleet_row_overrides={
-            "observed_ms": 20.0,
-            "predicted_ms": 20.0,
-            "relative_error": 0.0,
-            "operator_modeling": {
-                "status": "compared",
-                "target_timing_used_to_fit": False,
-                "observed_operator_ms": 20.0,
-                "predicted_operator_ms": 20.0,
-                "operator_relative_error": 0.0,
-                "families": {
-                    "cube_gemm": {"observed_ms": 12.0, "predicted_ms": 12.00001, "relative_error": 1e-5 / 12.0},
-                    "attention_mla": {"observed_ms": 8.0, "predicted_ms": 7.99999, "relative_error": 1e-5 / 8.0},
-                },
-                "by_accelerator_core": {
-                    "AI_CORE": {"observed_ms": 12.0, "predicted_ms": 12.00001, "relative_error": 1e-5 / 12.0},
-                    "MIX_AIC": {"observed_ms": 8.0, "predicted_ms": 7.99999, "relative_error": 1e-5 / 8.0},
-                },
-            },
+            "observed_ms": step_ms, "predicted_ms": step_ms, "relative_error": 0.0,
+            "operator_modeling": _op_model(
+                families, cores,
+                observed=sum(v["observed_ms"] for v in families.values()),
+                predicted=sum(v["predicted_ms"] for v in families.values()),
+            ),
         },
     )
     assert hfb.evaluate_dataset(opp_tiny_dir, strict_10pct=True)["totals"]["unique_captures"] == 2
 
-    # 5c. Cancelling family or core errors (`12 -> 15 ms` [25%] and `8 -> 5.5 ms` [31.25%] cancelling to `20 -> 20.5 ms` [2.5%]) must fail
-    cancel_fam_dir = _setup_synthetic_dataset(
-        tmp_path / "cancel_fam",
-        monkeypatch,
-        fleet_row_overrides={
-            "operator_modeling": {
-                "status": "compared",
-                "target_timing_used_to_fit": False,
-                "observed_operator_ms": 20.0,
-                "predicted_operator_ms": 20.5,
-                "operator_relative_error": 0.025,
-                "families": {
-                    "cube_gemm": {"observed_ms": 12.0, "predicted_ms": 15.0, "relative_error": 0.25},
-                    "attention_mla": {"observed_ms": 8.0, "predicted_ms": 5.5, "relative_error": 0.3125},
-                },
-                "by_accelerator_core": {
-                    "AI_CORE": {"observed_ms": 12.0, "predicted_ms": 12.36, "relative_error": 0.03},
-                    "MIX_AIC": {"observed_ms": 8.0, "predicted_ms": 8.14, "relative_error": 0.0175},
-                },
-            }
-        },
-    )
-    with pytest.raises(ValueError, match="Strict <=10% gate failed"):
-        hfb.evaluate_dataset(cancel_fam_dir, strict_10pct=True)
+    # 5c. Cancelling family or core errors (`12 -> 15 ms` [25%] and `8 -> 5.5 ms` [31.25%] cancelling to `20 -> 20.5 ms` [2.5%]) must fail.
+    cancelled = {"cube_gemm": _entry(12.0, 15.0), "attention_mla": _entry(8.0, 5.5)}
+    _strict_gate_rejects(tmp_path, monkeypatch, "cancel_fam", {"operator_modeling": _op_model(cancelled)})
+    _strict_gate_rejects(tmp_path, monkeypatch, "cancel_core", {"operator_modeling": _op_model(cores=cancelled)})
 
-    cancel_core_dir = _setup_synthetic_dataset(
-        tmp_path / "cancel_core",
-        monkeypatch,
-        fleet_row_overrides={
-            "operator_modeling": {
-                "status": "compared",
-                "target_timing_used_to_fit": False,
-                "observed_operator_ms": 20.0,
-                "predicted_operator_ms": 20.5,
-                "operator_relative_error": 0.025,
-                "families": {
-                    "cube_gemm": {"observed_ms": 12.0, "predicted_ms": 12.36, "relative_error": 0.03},
-                    "attention_mla": {"observed_ms": 8.0, "predicted_ms": 8.14, "relative_error": 0.0175},
-                },
-                "by_accelerator_core": {
-                    "AI_CORE": {"observed_ms": 12.0, "predicted_ms": 15.0, "relative_error": 0.25},
-                    "MIX_AIC": {"observed_ms": 8.0, "predicted_ms": 5.5, "relative_error": 0.3125},
-                },
-            }
-        },
+    # 5d. A step error above 10% must fail even when the stored prediction matches live.
+    _strict_gate_rejects(
+        tmp_path, monkeypatch, "step_over",
+        {"observed_ms": round(step_ms * 1.20, 4), "predicted_ms": step_ms, "relative_error": 0.20},
     )
-    with pytest.raises(ValueError, match="Strict <=10% gate failed"):
-        hfb.evaluate_dataset(cancel_core_dir, strict_10pct=True)
+
+    # 5e. Mutating structural_weights changes the live operator split and must fail operator verification.
+    tampered_geom = {**(valid_base.get("geometry") or {}), "structural_weights": [1.0, 0.0, 0.0, 0.0, 0.0, 0.0]}
+    _strict_gate_rejects(tmp_path, monkeypatch, "weights", {"geometry": tampered_geom})
+
+    # 5f. A suite outside every historical whitelist still gets unconditional live step/operator verification.
+    _strict_gate_rejects(
+        tmp_path, monkeypatch, "unlisted",
+        {"suite": "unlisted_suite_2027", "predicted_ms": 999999.0},
+    )
 
     # 6. 21-row Suite 1 checks: decoupled L1 `step_err_max > 0.10`, `above_10pct > 0`, `samples == 0`, `unmatched > 0`, duplicate target, and unknown target
     for sub_name, row0_patch in (
@@ -526,46 +437,18 @@ def test_evaluate_dataset_strict_10pct_gate_hardening(
     ):
         lv_list = [
             {
-                "level": lv,
-                "target": tgt,
-                "samples": 10,
-                "cells": 1,
-                "unmatched": 0,
-                "step_err_p50": 0.03,
-                "step_err_p90": 0.05,
-                "step_err_max": 0.06,
-                "uncancelled_p50": 0.03,
-                "above_10pct": 0,
-                "pass_rate_10pct": 1.0,
+                "level": lv, "target": tgt, "samples": 10, "cells": 1, "unmatched": 0,
+                "step_err_p50": 0.03, "step_err_p90": 0.05, "step_err_max": 0.06,
+                "uncancelled_p50": 0.03, "above_10pct": 0, "pass_rate_10pct": 1.0,
                 **(row0_patch if idx == 0 else {}),
             }
             for idx, (lv, tgt) in enumerate(hfb.zsv._REQUIRED_BENCH)
         ]
-        bad_zs_dir = _setup_synthetic_dataset(
-            tmp_path / sub_name,
-            monkeypatch,
-            zs_overrides={"levels": lv_list},
-        )
-        with pytest.raises(ValueError, match="Strict <=10% gate failed"):
-            hfb.evaluate_dataset(bad_zs_dir, strict_10pct=True)
+        _strict_gate_rejects(tmp_path, monkeypatch, sub_name, zs_overrides={"levels": lv_list})
 
-    # 7a. Suite 1 `measurement_blind = False` must fail
-    nonblind_dir = _setup_synthetic_dataset(
-        tmp_path / "nonblind",
-        monkeypatch,
-        zs_overrides={"measurement_blind": False},
-    )
-    with pytest.raises(ValueError, match="Strict <=10% gate failed"):
-        hfb.evaluate_dataset(nonblind_dir, strict_10pct=True)
-
-    # 7b. Suite 1 `no_empirical_curve_fit = False` must fail
-    curvefit_dir = _setup_synthetic_dataset(
-        tmp_path / "curvefit",
-        monkeypatch,
-        zs_overrides={"no_empirical_curve_fit": False},
-    )
-    with pytest.raises(ValueError, match="Strict <=10% gate failed"):
-        hfb.evaluate_dataset(curvefit_dir, strict_10pct=True)
+    # 7a/b. Suite 1 `measurement_blind = False` or `no_empirical_curve_fit = False` must fail.
+    _strict_gate_rejects(tmp_path, monkeypatch, "nonblind", zs_overrides={"measurement_blind": False})
+    _strict_gate_rejects(tmp_path, monkeypatch, "curvefit", zs_overrides={"no_empirical_curve_fit": False})
 
 
 def test_zero_shot_incomplete_trace_is_rejected(tmp_path: Path) -> None:
@@ -601,3 +484,214 @@ def test_zero_shot_incomplete_trace_is_rejected(tmp_path: Path) -> None:
     assert att3.success is False
     assert att3.trace_quality == "corrupt_incomplete_trace"
     assert hfb.zsv.compare_cell(pre_attached, pred) == []
+
+
+def test_bogus_predicted_ms_is_ignored_and_tampered_rows_fail(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Live step prediction ignores bogus `predicted_ms`, and `evaluate_dataset` rejects a tampered row."""
+    import fleet_operator_modeling as fom
+
+    cfg = {
+        "capture_id": "model_mtp3_tp8_decode", "suite": "unit", "hardware_tier": "A5", "phase": "decode",
+        "forward_steps": 8, "target_timing_used_to_fit": False,
+        "geometry": {"dp": 1, "ep": 1, "context_tokens": 4096, "concurrency": 4, "active_hbm_mb": 12345.0},
+    }
+    baseline = fom.predict_capture_operators_and_step(cfg)
+    bogus = fom.predict_capture_operators_and_step({**cfg, "predicted_ms": 999999.0, "target_timing_used_to_fit": False})
+    assert bogus["predicted_step_ms"] == baseline["predicted_step_ms"] != 999999.0
+    assert fom._infer_geometry({"capture_id": "model_mtp3_tp8_decode", "phase": "decode", "geometry": {}})["tp"] == 8
+    ks = {"total_kernel_duration_us": 8000.0, "by_accelerator_core": {"AI_VECTOR_CORE": 8000.0}, "top_op_types": [{"type": "Silu", "core": "AI_VECTOR_CORE", "count": 1, "total_us": 8000.0}]}
+    row = {**cfg, "observed_ms": float(baseline["predicted_step_ms"]), "kernel_summary": ks}
+    assert fom.enrich_fleet_capture_with_operator_and_step_modeling({**row, "predicted_ms": 999999.0})["predicted_ms"] == baseline["predicted_step_ms"]
+    decode_doc = json.loads((ROOT / "examples" / "structure" / "results" / "decode.json").read_text(encoding="utf-8"))
+    case = decode_doc["cases"][0]
+    case_id = str(case.get("case_id") or case.get("id"))
+    tmp_results = tmp_path / "results"
+    tmp_results.mkdir()
+    (tmp_results / "decode.json").write_text(json.dumps(decode_doc), encoding="utf-8")
+    monkeypatch.setattr(fom, "RESULTS_DIR", tmp_results)
+    live_cfg = {"capture_id": f"registered_decode:{case_id}", "suite": "registered_decode", "hardware_tier": "A3", "phase": "decode", "forward_steps": 32, "target_timing_used_to_fit": False, "geometry": dict(case.get("geometry") or {})}
+    before = fom.predict_capture_operators_and_step(live_cfg)
+    mutated = json.loads(json.dumps(decode_doc))
+    mutated["cases"][0].setdefault("comparison", {})["predicted_ms"] = 999999.0
+    (tmp_results / "decode.json").write_text(json.dumps(mutated), encoding="utf-8")
+    fom.clear_caches()
+    assert fom.predict_capture_operators_and_step({**live_cfg, "predicted_ms": 999999.0, "target_timing_used_to_fit": False}) == before
+    tampered = _setup_synthetic_dataset(
+        tmp_path / "tampered", monkeypatch,
+        fleet_row_overrides={"geometry": {"active_hbm_mb": 1.0, "tp": 8, "dp": 1, "ep": 1, "context_tokens": 4096, "concurrency": 1}, "predicted_ms": 20.5, "observed_ms": 20.0, "relative_error": 0.025},
+    )
+    with pytest.raises(ValueError, match="Strict <=10% gate failed"):
+        hfb.evaluate_dataset(tampered, strict_10pct=True)
+
+
+def test_live_operator_matches_requires_complete_families_and_recomputed_errors(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """P2: a partial family map, drifted family total, or stale relative_error must never verify."""
+    base = _base_fleet_row()
+    live = hfb.predict_capture_operators_and_step({k: v for k, v in base.items() if k != "predicted_ms"})
+    assert hfb._live_operator_matches(live, base["operator_modeling"]) is True
+    assert set(base["operator_modeling"]["families"]) == set(live["predicted_by_family_ms"])
+
+    # 1. Dropping even one benchmark family must fail even though every remaining entry still matches.
+    partial = copy.deepcopy(base["operator_modeling"])
+    dropped = next(k for k, v in partial["families"].items() if float(v["predicted_ms"]) > 1e-6)
+    partial["families"].pop(dropped)
+    assert hfb._live_operator_matches(live, partial) is False
+    partial_dir = _setup_synthetic_dataset(
+        tmp_path / "partial_families", monkeypatch, fleet_row_overrides={"operator_modeling": partial}
+    )
+    with pytest.raises(ValueError, match="Strict <=10% gate failed"):
+        hfb.evaluate_dataset(partial_dir, strict_10pct=True)
+
+    # 2. Every entry within per-entry tolerance but a family sum drifted past abs_tol must fail.
+    drifted = copy.deepcopy(base["operator_modeling"])
+    for entry in drifted["families"].values():
+        pred = float(entry["predicted_ms"])
+        entry["predicted_ms"] = round(pred + 0.9 * max(1e-3 * abs(pred), 1e-3), 12)
+        entry["relative_error"] = abs(entry["predicted_ms"] - entry["observed_ms"]) / max(entry["observed_ms"], 1e-9)
+    assert hfb._live_operator_matches(live, drifted) is False
+
+    # 3. Stale stored relative_error=0.0 in a family or core entry must fail.
+    stale_family = copy.deepcopy(base["operator_modeling"])
+    fam_key = next(k for k, v in stale_family["families"].items() if float(v["predicted_ms"]) > 1e-6)
+    stale_family["families"][fam_key]["relative_error"] = 0.0
+    assert hfb._live_operator_matches(live, stale_family) is False
+    stale_core = copy.deepcopy(base["operator_modeling"])
+    stale_core["by_accelerator_core"][next(iter(stale_core["by_accelerator_core"]))]["relative_error"] = 0.0
+    assert hfb._live_operator_matches(live, stale_core) is False
+
+
+def test_unified_families_live_validation_and_strict_gate(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """P2: unified-family predictions, keys, errors, and observed magnitudes are validated."""
+    base = _base_fleet_row()
+    live = hfb.predict_capture_operators_and_step({k: v for k, v in base.items() if k != "predicted_ms"})
+    assert hfb._live_operator_matches(live, base["operator_modeling"]) is True
+    assert set(base["operator_modeling"]["unified_families"]) == set(live["predicted_by_unified_family_ms"])
+
+    # 1. A tampered unified `predicted_ms` (with a self-consistent relative_error) must fail.
+    tampered = copy.deepcopy(base["operator_modeling"])
+    key = next(k for k, v in tampered["unified_families"].items() if float(v["predicted_ms"]) > 1e-6)
+    entry = tampered["unified_families"][key]
+    entry["predicted_ms"] = round(float(entry["predicted_ms"]) * 1.5, 12)
+    entry["relative_error"] = abs(entry["predicted_ms"] - entry["observed_ms"]) / max(entry["observed_ms"], 1e-9)
+    assert hfb._live_operator_matches(live, tampered) is False
+    tampered_dir = _setup_synthetic_dataset(
+        tmp_path / "tampered_unified", monkeypatch, fleet_row_overrides={"operator_modeling": tampered}
+    )
+    with pytest.raises(ValueError, match="Strict <=10% gate failed"):
+        hfb.evaluate_dataset(tampered_dir, strict_10pct=True)
+
+    # 2. A missing unified family or a stale unified `relative_error=0.0` must fail.
+    incomplete = copy.deepcopy(base["operator_modeling"])
+    incomplete["unified_families"].pop(key)
+    assert hfb._live_operator_matches(live, incomplete) is False
+    stale = copy.deepcopy(base["operator_modeling"])
+    stale["unified_families"][key]["relative_error"] = 0.0
+    assert hfb._live_operator_matches(live, stale) is False
+
+    # 3. A valid live prediction with one >10% perturbed unified `observed_ms` must fail strict gating
+    #    and flip `operator_passed_10pct`, even though every unified `predicted_ms` still matches live.
+    perturbed = copy.deepcopy(base["operator_modeling"])
+    entry = perturbed["unified_families"][key]
+    entry["observed_ms"] = round(float(entry["predicted_ms"]) / 1.5, 12)
+    entry["relative_error"] = abs(float(entry["predicted_ms"]) - entry["observed_ms"]) / max(entry["observed_ms"], 1e-9)
+    assert entry["relative_error"] == pytest.approx(0.5)
+    assert float(live["predicted_by_unified_family_ms"][key]) == pytest.approx(float(entry["predicted_ms"]), rel=1e-9)
+    assert hfb._live_operator_matches(live, perturbed) is True
+
+    captured: dict[str, Any] = {}
+    real_read = hfb._read_jsonl_any
+
+    def _read_spy(path: Path) -> list[dict[str, Any]]:
+        rows = real_read(path)
+        if Path(path).name == "fleet_captures.jsonl.gz":
+            captured["fleet"] = rows
+        return rows
+
+    monkeypatch.setattr(hfb, "_read_jsonl_any", _read_spy)
+    dataset = _setup_synthetic_dataset(
+        tmp_path / "perturbed_unified_observed", monkeypatch, fleet_row_overrides={"operator_modeling": perturbed}
+    )
+    with pytest.raises(ValueError, match="Strict <=10% gate failed"):
+        hfb.evaluate_dataset(dataset, strict_10pct=True)
+    op_mod = captured["fleet"][0]["operator_modeling"]
+    assert op_mod["operator_passed_10pct"] is False
+    assert op_mod["operator_relative_error"] > 0.10
+
+
+def test_evaluate_dataset_writeback_overrides_stale_zero_errors_in_scoreboard(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """P2: recomputed step/operator errors must be written back so the scoreboard cannot stay green."""
+    base = _base_fleet_row()
+    step_ms = float(base["predicted_ms"])
+    stale_op = copy.deepcopy(base["operator_modeling"])
+    stale_op["operator_relative_error"] = 0.0
+    stale_op["operator_passed_10pct"] = True
+    captured: dict[str, Any] = {}
+    real_build = hfb._build_unified_7337_scoreboard
+
+    def _spy(zs_rows: Any, zs_result: Any, fleet_rows: Any, *args: Any, **kwargs: Any) -> dict[str, Any]:
+        captured["rows"] = list(fleet_rows)
+        return real_build(zs_rows, zs_result, fleet_rows, *args, **kwargs)
+
+    monkeypatch.setattr(hfb, "_build_unified_7337_scoreboard", _spy)
+    dataset = _setup_synthetic_dataset(
+        tmp_path / "stale_errors",
+        monkeypatch,
+        fleet_row_overrides={
+            "observed_ms": round(step_ms * 2.0, 4),
+            "predicted_ms": step_ms,
+            "relative_error": 0.0,
+            "passed_10pct": True,
+            "passed_15pct": True,
+            "operator_modeling": stale_op,
+        },
+    )
+    result = hfb.evaluate_dataset(dataset)
+
+    row = captured["rows"][0]
+    assert row["relative_error"] == pytest.approx(0.5, abs=1e-6)
+    assert row["passed_10pct"] is False and row["passed_15pct"] is False
+    op = row["operator_modeling"]
+    assert op["operator_relative_error"] > 0.0
+    assert op["operator_passed_10pct"] is (op["operator_relative_error"] <= 0.10)
+    board = result["unified_7337_scoreboard"]
+    step_row = next(r for r in board["rows"] if r["target"] == "decode_step_tpot")
+    assert step_row["above_10pct"] >= 1
+    assert step_row["err_max"] == pytest.approx(0.5, abs=1e-6)
+
+
+def test_collect_structure_suites_and_predict_fall_back_to_geometry_catalog(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """P2: rebuilding and prediction must use the in-tree non-timing geometry catalog when /tmp is absent."""
+    fom = hfb.fleet_modeling
+    absent = tmp_path / "absent_fleet_captures.jsonl"
+    monkeypatch.setattr(hfb, "_FLEET_TEMPLATE_PATH", absent)
+    rows, dsh_paths = hfb._collect_structure_suites()
+    assert len(rows) == 280 + 26 + 575 + 1653
+    assert all(not p.endswith((".csv", ".gz")) for p in dsh_paths)
+
+    catalog = fom._load_geometry_catalog()
+    assert len(catalog) == 6606
+    assert all(set(entry) <= set(hfb._GEOM_TEMPLATE_KEYS) for entry in catalog.values())
+    for row in rows:
+        entry = catalog[row["capture_id"]]
+        assert row["geometry"].get("structural_weights") is not None
+        demand = "active_cube_gflops" if row["phase"] == "prefill" else "active_hbm_mb"
+        assert row["geometry"].get(demand) is not None
+        assert all(row["geometry"].get(key) == value for key, value in entry.items())
+
+    # Prediction must also fall back to the catalog when the results dir contains no catalog copy.
+    monkeypatch.setattr(fom, "_FLEET_TEMPLATE_PATH", absent)
+    monkeypatch.setattr(fom, "RESULTS_DIR", tmp_path / "empty_results")
+    probe = next(r for r in rows if r["phase"] == "decode")
+    full = fom.predict_capture_operators_and_step({**probe, "geometry": dict(probe["geometry"])})
+    stripped_geometry = {k: v for k, v in probe["geometry"].items() if k not in hfb._GEOM_TEMPLATE_KEYS}
+    fallback = fom.predict_capture_operators_and_step({**probe, "geometry": stripped_geometry})
+    assert fallback["geometry"]["active_hbm_mb"] == catalog[probe["capture_id"]]["active_hbm_mb"]
+    assert fallback["predicted_step_ms"] == full["predicted_step_ms"]

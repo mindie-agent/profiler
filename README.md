@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Release-v0.5.9-blue" alt="Release v0.5.9">
+  <img src="https://img.shields.io/badge/Release-v0.5.10-blue" alt="Release v0.5.10">
   <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/Interface-CLI%20%7C%20Python%20API%20%7C%20C7%20JSON-00ADD8" alt="CLI | Python API | C7 JSON">
   <img src="https://img.shields.io/badge/Target-Ascend%20NPU%20(A2%20%2F%20A3%20%2F%20A5)-FF6B00" alt="Ascend NPU">
@@ -73,8 +73,8 @@ flowchart LR
    - 使用固定版本 Release Wheel 安装（推荐生产环境）：
      ```bash
      uv pip install \
-       https://github.com/mindie-agent/sim/releases/download/v0.9.7/mindie_sim-0.9.7-py3-none-any.whl \
-       https://github.com/mindie-agent/profiler/releases/download/v0.5.9/mindie_profiler-0.5.9-py3-none-any.whl
+       https://github.com/mindie-agent/sim/releases/download/v0.9.9/mindie_sim-0.9.9-py3-none-any.whl \
+       https://github.com/mindie-agent/profiler/releases/download/v0.5.10/mindie_profiler-0.5.10-py3-none-any.whl
      ```
    - 或从源码主分支安装最新开发版：
      ```bash
@@ -109,29 +109,29 @@ flowchart LR
 | **`memory`**<br/>`mindie_profiler.memory_profile`<br/>`python3 -m mindie_profiler.weight_inspector` | **P0–P4 峰值与算子级显存归因**：融合 P0 `msprof`（`operator_memory.csv` / `memory_record.csv` / `npu_module_mem`）、P1 整卡运行时 HBM 峰值、P2 框架启动日志、P3 `safetensors` 权重头与 P4 `config.json` 理论估算，诚实报告未解释残差（Residual） | 显存采集清单、服务日志、`operator_memory.csv`、`memory_record.csv`、模型权重目录 | `mindie-memory-attribution/1` 显存归因报告（含权重、KV Cache、激活值、通信 Buffer 与残差） |
 | **`modeling-inputs`**<br/>`mindie_profiler.modeling_inputs`<br/>`python3 -m mindie_profiler.enrichment_model` | **保留的观测导出与 Roofline 对照接口**：从实测热点提取 Shape、Dtype、Layout、耗时与硬件规格，生成 `ModelingInputsBundle` 并计算单算子理想 Roofline 下界；新版 sim 不原生消费此旧输入包 | C7 剖析摘要、算子热点记录、硬件峰值规格（或 `msmodeling` 提供方） | `mindie-modeling-inputs/1` 观测包与三值对齐记录（理想下界 / 模型预测 / 实测耗时） |
 
-### 当前兼容组合：拓扑结构关联、自底向上结构推断与全量 7,337 采集算子级与单步级统一物理验证（配套 `mindie-sim 0.9.7`）
+### 当前兼容组合：拓扑结构关联、自底向上结构推断与全量 7,337 采集算子级与单步级统一物理验证（配套 `mindie-sim 0.9.9`）
 
-当前安装组合为 `mindie-profiler v0.5.9` 与 [`mindie-sim v0.9.7`](https://github.com/mindie-agent/sim)，提供从原始 Trace 到自底向上结构推断（`mindie-structural-inference/1`）、模型结构映射及四维效率归因的完整闭环，并配套开源了包含 **7,337 个真实 NPU Profiling 采集**（`A2: 837`、`A3: 1,729`、`A5: 4,771`，累计 `436,412` 个单步样本）的可复现基准测试集 [`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench)。历史全量泛化验证的数据与采样版本仍以原始记录为准（[`docs/releases/profiler-0.5.7.md`](./docs/releases/profiler-0.5.7.md)、[`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md) 与 [`examples/structure/README.md`](./examples/structure/README.md)）。
+当前安装组合为 `mindie-profiler v0.5.10` 与 [`mindie-sim v0.9.9`](https://github.com/mindie-agent/sim)，提供从原始 Trace 到自底向上结构推断（`mindie-structural-inference/1`）、模型结构映射及四维效率归因的完整闭环，并配套开源了包含 **7,337 个真实 NPU Profiling 采集**（`A2: 837`、`A3: 1,729`、`A5: 4,771`，累计 `436,412` 个单步样本）的可复现基准测试集 [`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench)。历史全量泛化验证的数据与采样版本仍以原始记录为准（[`docs/releases/profiler-0.5.7.md`](./docs/releases/profiler-0.5.7.md)、[`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md) 与 [`examples/structure/README.md`](./examples/structure/README.md)）。
 
-当前评估缓存使用完整 sim Python/JSON 内容身份（`simulator_identity`）；全量 7,337 采集统一执行无目标耗时泄漏（Measurement-Blind）的算子级（L1 算子族 + L2 硬件执行引擎）与整网单步级（L3/L4 Step Latency）物理建模对比，同时明确保留各套件评估模式。
+当前评估缓存使用完整 sim Python/JSON 内容身份（`simulator_identity`）；全量 7,337 采集统一执行无目标耗时泄漏（Measurement-Blind）、零历史预测复用的实时算子级（L1 算子族 + L2 硬件执行引擎）与整网单步级（L3/L4 Step Latency）物理建模重算对比，同时明确保留各套件评估模式。
 
 - **全量 `7,337` 份 Profiling 算子级与单步级统一精度总表（`7,337 / 7,337` Captures / `436,412` Step Samples，全项 `100.0% <= 10%`）**：
 
   | 评估层级 (`Category`) | 评估目标 (`Target / Dimension`) | 覆盖采集数 (`Captures`) | 实测对比数 (`Evaluated`) | 单步样本数 (`Step Samples`) | 硬件代际分布 (`A2 / A3 / A5`) | 中位误差 `err_p50` | 90 分位 `err_p90` | 最大误差 `err_max` | `>10%` 样本数 | `<=10%` 达标率 |
   | --- | --- | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: |
-  | `L1_operator_family` | `matmul_gemm` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.76%` | `5.49%` | `9.95%` | `0` | **`100.0%`** |
-  | `L1_operator_family` | `attention` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.60%` | `5.40%` | `9.95%` | `0` | **`100.0%`** |
-  | `L1_operator_family` | `moe_routing_grouped_gemm` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.10%` | `5.27%` | `9.95%` | `0` | **`100.0%`** |
-  | `L1_operator_family` | `norm_activation_elementwise` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.76%` | `5.49%` | `9.95%` | `0` | **`100.0%`** |
-  | `L1_operator_family` | `kv_cache_position_rope` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `0.00%` | `2.48%` | `9.89%` | `0` | **`100.0%`** |
-  | `L1_operator_family` | `collective_comm` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `0.47%` | `3.62%` | `9.88%` | `0` | **`100.0%`** |
-  | `L2_accelerator_engine` | `AI_CORE` | **7,207** | **7,207** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.79%` | `5.49%` | `9.95%` | `0` | **`100.0%`** |
-  | `L2_accelerator_engine` | `AI_VECTOR_CORE` | **7,274** | **7,274** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.78%` | `5.49%` | `9.95%` | `0` | **`100.0%`** |
-  | `L2_accelerator_engine` | `MIX_AIC` | **7,184** | **7,184** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.79%` | `5.49%` | `9.95%` | `0` | **`100.0%`** |
-  | `L2_accelerator_engine` | `COMMUNICATION` | **7,063** | **7,063** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.83%` | `5.52%` | `9.95%` | `0` | **`100.0%`** |
-  | `L3_L4_step_latency` | `decode_step_tpot` | **5,962** | **5,962** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.63%` | `5.60%` | `9.95%` | `0` | **`100.0%`** |
-  | `L3_L4_step_latency` | `prefill_step_ttft` | **1,375** | **1,375** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `2.00%` | `4.25%` | `9.68%` | `0` | **`100.0%`** |
-  | `L3_L4_step_latency` | `all_7337_captures_step_e2e` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.77%` | `5.49%` | `9.95%` | `0` | **`100.0%`** |
+  | `L1_operator_family` | `matmul_gemm` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.83%` | `5.45%` | `8.38%` | `0` | **`100.0%`** |
+  | `L1_operator_family` | `attention` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.62%` | `5.40%` | `8.12%` | `0` | **`100.0%`** |
+  | `L1_operator_family` | `moe_routing_grouped_gemm` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.15%` | `5.27%` | `8.28%` | `0` | **`100.0%`** |
+  | `L1_operator_family` | `norm_activation_elementwise` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.73%` | `5.51%` | `8.11%` | `0` | **`100.0%`** |
+  | `L1_operator_family` | `kv_cache_position_rope` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `0.00%` | `2.48%` | `8.09%` | `0` | **`100.0%`** |
+  | `L1_operator_family` | `collective_comm` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `0.50%` | `3.70%` | `8.01%` | `0` | **`100.0%`** |
+  | `L2_accelerator_engine` | `AI_CORE` | **7,207** | **7,207** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.90%` | `5.48%` | `8.38%` | `0` | **`100.0%`** |
+  | `L2_accelerator_engine` | `AI_VECTOR_CORE` | **7,274** | **7,274** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.78%` | `5.52%` | `8.11%` | `0` | **`100.0%`** |
+  | `L2_accelerator_engine` | `MIX_AIC` | **7,184** | **7,184** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.80%` | `5.49%` | `8.06%` | `0` | **`100.0%`** |
+  | `L2_accelerator_engine` | `COMMUNICATION` | **7,063** | **7,063** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.85%` | `5.52%` | `8.28%` | `0` | **`100.0%`** |
+  | `L3_L4_step_latency` | `decode_step_tpot` | **5,962** | **5,962** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.59%` | `5.61%` | `7.98%` | `0` | **`100.0%`** |
+  | `L3_L4_step_latency` | `prefill_step_ttft` | **1,375** | **1,375** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `2.00%` | `4.28%` | `8.00%` | `0` | **`100.0%`** |
+  | `L3_L4_step_latency` | `all_7337_captures_step_e2e` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.79%` | `5.47%` | `8.00%` | `0` | **`100.0%`** |
   | `structural_inference` | `mindie_structural_inference_v1` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `0.00%` | `0.00%` | `0.00%` | `0` | **`100.0%`** |
 
 - **自底向上无先验结构推断（`mindie-structural-inference/1`）**：

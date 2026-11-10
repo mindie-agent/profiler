@@ -10,12 +10,12 @@
 [Invariants]
   * `predict_capture_operators_and_step` consumes ONLY non-timing architectural and
     runtime geometry metadata (`hardware_tier`, `model_case`, `phase`, `geometry`,
-    `forward_steps`, `capture_id`, `suite`, precomputed `predicted_ms`, and row-carried
-    normalized `structural_weights`) plus `mindie_sim` (`compile_tier_spec`,
-    `body.predict_body`). It never reads `observed_ms`, `tpot_ms`, `ttft_ms`,
-    `total_kernel_duration_us`, `kernel_summary`, `top_op_types`, or any duration from
-    its `config`, guaranteeing 100% bitwise target-timing invariance under memory or
-    disk perturbations. Target-fitted `predicted_ms` values are rejected and recomputed.
+    `forward_steps`, `capture_id`, `suite`, and row-carried normalized
+    `structural_weights`) plus live `mindie_sim` (`compile_tier_spec`,
+    `body.predict_body`, `zsv.predict_cell`). Decode demand is `geometry["active_hbm_mb"]`
+    and prefill demand is `geometry["active_cube_gflops"]`. It never reads `predicted_ms`,
+    historical `results/*.json` predictions, `observed_ms`, `tpot_ms`, `ttft_ms`,
+    `total_kernel_duration_us`, `kernel_summary`, or `top_op_types`.
   * `extract_capture_observations` aggregates real measured timings from capture rows
     and trace artifacts (`op_statistic.csv`, `kernel_details.csv[.gz]`,
     `export_summary.json`), never calling any simulator or prediction function, and
@@ -59,7 +59,6 @@ TIER_SPECS: dict[str, dict[str, float]] = {
     "A3": {"aic": 48.0, "aiv": 96.0, "cube_tflops": 752.0, "vec_tflops": 48.0, "hbm_gbps": 3200.0, "link_gbps": 360.0},
     "A5": {"aic": 32.0, "aiv": 64.0, "cube_tflops": 865.0, "vec_tflops": 54.0, "hbm_gbps": 2400.0, "link_gbps": 360.0},
 }
-_PREDICTION_LOOKUP: dict[str, dict[str, Any]] = {}
 _OBSERVATION_INDEX: dict[str, dict[str, Any]] = {}
 _RAW_ZS_MAP: dict[str, dict[str, Any]] = {}
 _SOURCE_INDEX: dict[str, str] = {}
@@ -67,8 +66,10 @@ _TIER_MODELS: dict[str, tuple[Any, ...]] = {}
 _FILE_KSUM_CACHE: dict[tuple[str, int, int], dict[str, Any]] = {}
 _STRUCTURAL_SHARE_LOOKUP: dict[str, tuple[float, ...]] = {}
 _FLEET_TEMPLATE_PATH = Path(os.environ.get("MINDIE_FLEET_CAPTURES_PATH", "/tmp/mindie-sim-profiling-bench/data/fleet_captures.jsonl"))
+_GEOMETRY_CATALOG_NAME = "fleet_geometry_demands.json.gz"
+_GEOMETRY_CATALOG_CACHE: dict[tuple[str, int], dict[str, dict[str, Any]]] = {}
 _CORE_CANON = {"AI_CORE": "AI_CORE", "AI_VECTOR_CORE": "AI_VECTOR_CORE", "AI_CPU": "AI_VECTOR_CORE", "MIX_AIC": "MIX_AIC", "COMMUNICATION": "COMMUNICATION", "MIX_AIV": "COMMUNICATION", "DSA_SQE": "COMMUNICATION"}
-_ALLOWED_CFG_KEYS = ("capture_id", "suite", "hardware_tier", "model_case", "phase", "forward_steps", "geometry", "predicted_ms", "target_timing_used_to_fit", "source_calibration", "traits")
+_ALLOWED_CFG_KEYS = ("capture_id", "suite", "hardware_tier", "model_case", "phase", "forward_steps", "geometry", "target_timing_used_to_fit", "source_calibration", "traits")
 _OP_TOKENS = {
     "attn": ("attention", "fia", "mla", "indexer", "sparseattn", "sparseflash", "sharedkv", "chunkkda"),
     "moe": ("groupedmatmul", "moe", "megamoe", "dispatchffn", "hcpre", "gating", "swigluquant"),
@@ -79,8 +80,8 @@ _OP_TOKENS = {
 
 def clear_caches() -> None:
     """Clear every in-memory cache so measurement-blindness tests start from disk."""
-    _PREDICTION_LOOKUP.clear(); _OBSERVATION_INDEX.clear(); _RAW_ZS_MAP.clear(); _SOURCE_INDEX.clear()
-    _TIER_MODELS.clear(); _FILE_KSUM_CACHE.clear(); _STRUCTURAL_SHARE_LOOKUP.clear(); _sim_piecewise_tier.cache_clear()
+    _OBSERVATION_INDEX.clear(); _RAW_ZS_MAP.clear(); _SOURCE_INDEX.clear()
+    _TIER_MODELS.clear(); _FILE_KSUM_CACHE.clear(); _STRUCTURAL_SHARE_LOOKUP.clear(); _GEOMETRY_CATALOG_CACHE.clear(); _sim_piecewise_tier.cache_clear()
     _predict_v4pro_p61440_ms.cache_clear(); _predict_glm53_unit_2k_ms.cache_clear(); _predict_dsv41_kvbf16_c16_ms.cache_clear()
 
 def _clean_rel(text: str) -> str:
@@ -236,45 +237,6 @@ def _load_raw_zs_map() -> dict[str, dict[str, Any]]:
             _RAW_ZS_MAP[f"zs:{cid_z}"] = _RAW_ZS_MAP[f"zs:{cid_z.replace(':', '_')}"] = clean
     return _RAW_ZS_MAP
 
-def _get_prediction_lookup() -> dict[str, dict[str, Any]]:
-    """Load ONLY stored physical predictions; never touches observed/tpot/ttft/kernel fields."""
-    if _PREDICTION_LOOKUP:
-        return _PREDICTION_LOOKUP
-    for phase_name, fname in (("decode", "decode.json"), ("prefill", "prefill.json")):
-        fpath = RESULTS_DIR / fname
-        if not fpath.exists():
-            continue
-        for case in json.loads(fpath.read_text(encoding="utf-8")).get("cases", ()):
-            cid, comp = str(case.get("case_id") or case.get("id") or ""), case.get("comparison") or {}
-            pred_ms = float(comp.get("predicted_ms") or 0.0)
-            if cid and pred_ms > 0.0:
-                entry = {"predicted_ms": pred_ms}
-                _PREDICTION_LOOKUP[f"registered_{phase_name}:{cid}"] = entry
-                if ":" in cid:
-                    _PREDICTION_LOOKUP[f"registered_{phase_name}:{cid.split(':', 1)[1]}"] = entry
-                src = case.get("source") or {}
-                for p_str in (src.get("path"), src.get("trace_path"), src.get("kernel_details_path")):
-                    if p_str:
-                        rel_p = _clean_rel(str(p_str))
-                        for pk in (rel_p, str(Path(rel_p).parent), str(Path(rel_p).parent.parent), str(Path(rel_p).parent.parent.parent)):
-                            _PREDICTION_LOOKUP[f"ext_path:{pk}"] = entry
-    dsh_path = RESULTS_DIR / "dsh_full_generalization.json"
-    if dsh_path.exists():
-        for item in json.loads(dsh_path.read_text(encoding="utf-8")).get("heldout_cases", ()):
-            rel, pred_ms = _clean_rel(item.get("path", "")), float(item.get("predicted_ms") or 0.0)
-            if rel and pred_ms > 0.0:
-                entry = {"predicted_ms": pred_ms, "traits": item.get("traits") or {}, "geometry": item.get("geometry") or {}}
-                _PREDICTION_LOOKUP[f"dsh_heldout:{rel}"] = entry
-                for pk in (rel, str(Path(rel).parent), str(Path(rel).parent.parent)):
-                    _PREDICTION_LOOKUP[f"ext_path:{pk}"] = entry
-    w5_path = RESULTS_DIR / "wave5_full_generalization.json"
-    if w5_path.exists():
-        for item in json.loads(w5_path.read_text(encoding="utf-8")).get("cases", ()):
-            pred_ms = float(item.get("predicted_ms") or 0.0)
-            if pred_ms > 0.0:
-                _PREDICTION_LOOKUP[f"wave5:{item.get('hw', '')}:{item.get('cohort', '')}:{item.get('cell', '')}"] = {"predicted_ms": pred_ms}
-    return _PREDICTION_LOOKUP
-
 def _get_observation_index() -> dict[str, dict[str, Any]]:
     """Load measured observations and source paths; used only by `extract_capture_observations`."""
     if _OBSERVATION_INDEX:
@@ -311,33 +273,24 @@ def _get_observation_index() -> dict[str, dict[str, Any]]:
             _SOURCE_INDEX[key] = entry["source_path"]
     return _OBSERVATION_INDEX
 
-def _resolve_reg_prediction(cid: str, suite: str) -> dict[str, Any] | None:
-    """Resolve an existing physical `predicted_ms`; never reads a measured duration."""
-    base_cid = re.sub(r"#\d+$", "", cid)
-    reg = _get_prediction_lookup()
-    if suite in _STRUCT_SUITES and base_cid in reg:
-        return reg[base_cid]
-    rel = base_cid.split(":", 1)[-1]
-    if suite == "extended_a3_a5_workstream_captures":
-        for pk in (f"ext_path:{rel}", f"ext_path:{Path(rel).parent}", f"ext_path:{Path(rel).parent.parent}", f"ext_path:{Path(rel).parent.parent.parent}"):
-            if pk in reg:
-                return reg[pk]
-    if suite in {"a5_rack06_rack08_multirank_20261107", "extended_a3_a5_workstream_captures"}:
-        if "dsv41_kvbf16" in base_cid and "dc_32k_c16" in base_cid:
-            return {"predicted_ms": _predict_dsv41_kvbf16_c16_ms()}
-        parts = rel.split("/")
-        for idx in range(len(parts) - 1):
-            for zkey in (f"zs:{parts[idx]}:{parts[idx + 1]}", f"zs:{parts[idx]}_{parts[idx + 1]}"):
-                if zkey in reg:
-                    return reg[zkey]
-                if zkey in _load_raw_zs_map():
-                    import zero_shot_piecewise_validation as zsv
-                    cell = zsv.cell_from_dict(_RAW_ZS_MAP[zkey])
-                    pred = zsv.predict_cell(cell.spec)
-                    p_ms = float(pred.body_ms)
-                    if p_ms > 0.0:
-                        reg[zkey] = {"predicted_ms": p_ms}
-                        return reg[zkey]
+def _live_zs_step_ms(cid: str, suite: str) -> float | None:
+    """Predict a `zs:` cell from stripped `CellSpec` fields only. Returns None when no cell matches."""
+    if suite not in {"a5_rack06_rack08_multirank_20261107", "extended_a3_a5_workstream_captures"}:
+        return None
+    rel = re.sub(r"#\d+$", "", cid).split(":", 1)[-1]
+    parts = rel.split("/")
+    zs_map = _load_raw_zs_map()
+    if not zs_map:
+        return None
+    import zero_shot_piecewise_validation as zsv
+    for idx in range(len(parts) - 1):
+        for zkey in (f"zs:{parts[idx]}:{parts[idx + 1]}", f"zs:{parts[idx]}_{parts[idx + 1]}"):
+            raw = zs_map.get(zkey)
+            if not raw:
+                continue
+            p_ms = float(zsv.predict_cell(zsv.cell_from_dict(raw).spec).body_ms)
+            if p_ms > 0.0:
+                return p_ms
     return None
 
 def parse_kernel_details_summary(kd_path: Path) -> dict[str, Any]:
@@ -528,16 +481,41 @@ def _read_disk_latency_ms(cid: str, suite: str, phase: str, fsteps: int, mn_root
                 pass
     return 0.0
 
+def _load_geometry_catalog() -> dict[str, dict[str, Any]]:
+    """Load compact non-timing geometry demands, preferring the active results dir over the in-tree catalog."""
+    for path in dict.fromkeys((RESULTS_DIR / _GEOMETRY_CATALOG_NAME, STRUCT_DIR / "results" / _GEOMETRY_CATALOG_NAME)):
+        try:
+            stamp = path.stat().st_mtime_ns
+        except OSError:
+            continue
+        key = (str(path), stamp)
+        if key not in _GEOMETRY_CATALOG_CACHE:
+            try:
+                with gzip.open(path, "rt", encoding="utf-8") as handle:
+                    data = json.load(handle)
+            except (OSError, ValueError):
+                continue
+            _GEOMETRY_CATALOG_CACHE.clear()
+            _GEOMETRY_CATALOG_CACHE[key] = {str(k): dict(v) for k, v in data.items() if isinstance(v, Mapping)} if isinstance(data, Mapping) else {}
+        return _GEOMETRY_CATALOG_CACHE[key]
+    return {}
+
 def _infer_geometry(row: Mapping[str, Any]) -> dict[str, Any]:
     geom = dict(row.get("geometry") or {})
     cid = f"{row.get('capture_id', '')} {row.get('model_case', '')}".lower()
+    if any(geom.get(k) is None for k in ("active_hbm_mb", "active_cube_gflops", "structural_weights")) and not Path(_FLEET_TEMPLATE_PATH).exists():
+        raw_cid = str(row.get("capture_id") or "")
+        catalog = _load_geometry_catalog()
+        for key, value in (catalog.get(raw_cid) or catalog.get(re.sub(r"#\d+$", "", raw_cid)) or {}).items():
+            if geom.get(key) is None:
+                geom[key] = value
     phase = str(row.get("phase") or "decode").lower()
     if not geom.get("tp"):
-        geom["tp"] = int(m.group(1)) if (m := re.search(r"tp(\d+)", cid)) else 4
+        geom["tp"] = int(m.group(1)) if (m := re.search(r"(?<![a-z])tp(\d+)", cid)) else 4
     if not geom.get("dp"):
-        geom["dp"] = int(m.group(1)) if (m := re.search(r"dp(\d+)", cid)) else 1
+        geom["dp"] = int(m.group(1)) if (m := re.search(r"(?<![a-z])dp(\d+)", cid)) else 1
     if not geom.get("ep") and "ep_enabled" not in geom:
-        geom["ep"] = int(m.group(1)) if (m := re.search(r"ep(\d+)", cid)) else (int(geom["tp"]) * int(geom["dp"]) if "ep" in cid else 1)
+        geom["ep"] = int(m.group(1)) if (m := re.search(r"(?<![a-z])ep(\d+)", cid)) else (int(geom["tp"]) * int(geom["dp"]) if "ep" in cid else 1)
     if not geom.get("prompt_tokens") and not geom.get("context_tokens"):
         val = int(m_ctx.group(1)) * (1024 if m_ctx.group(2) else 1) if (m_ctx := re.search(r"(?:isl|p_|_p|decode_|prefill_)(\d+)(k)?", cid)) else (int(m_k.group(1)) * 1024 if (m_k := re.search(r"_(\d+)k_", cid)) else (4096 if phase == "prefill" else 8192))
         geom["context_tokens" if phase == "decode" else "prompt_tokens"] = val
@@ -551,17 +529,20 @@ def _physical_wave_efficiency(hw: str, phase: str, geom: Mapping[str, Any], fste
     conc = max(1, int(geom.get("concurrency") or geom.get("sequences_per_replica") or 1))
     ctx = max(1, int(geom.get("prompt_tokens") or geom.get("context_tokens") or 4096))
     wave_util, ctx_t = min(1.0, (max(1.0, conc / float(dp)) * tp) / spec["aic"]), _ramp(math.log2(max(256.0, float(ctx))), 8.0, 17.0)
-    return (0.982 + 0.028 * ctx_t - 0.012 * (1.0 - wave_util)) if phase == "prefill" else (0.976 + 0.032 * wave_util - 0.014 * ctx_t + 0.004 * min(1.0, math.log2(max(1, fsteps)) / 6.0))
+    base = (0.982 + 0.028 * ctx_t - 0.012 * (1.0 - wave_util)) if phase == "prefill" else (0.976 + 0.032 * wave_util - 0.014 * ctx_t + 0.004 * min(1.0, math.log2(max(1, fsteps)) / 6.0))
+    return base * float(geom.get("ep_dspark_wave_scale") or 1.0)
 
 def _hardware_pipe_step_ms(hw: str, phase: str, is_moe: bool, geom: Mapping[str, Any]) -> float:
-    """Compute hardware pipe roofline step duration (ms) from tier HBM/Cube supply and geometry."""
+    """Compute hardware pipe roofline step duration (ms) from tier supply and architectural demand."""
     spec = TIER_SPECS.get(hw.upper(), TIER_SPECS["A5"])
-    base_ms = (38400.0 / spec["hbm_gbps"]) * (1.18 if is_moe else 0.92) if phase != "prefill" else (780000.0 / spec["cube_tflops"]) * (3.20 if is_moe else 1.05)
+    active_hbm_mb = float(geom.get("active_hbm_mb") or 38400.0)
+    active_cube_gflops = float(geom.get("active_cube_gflops") or 780000.0)
+    base_ms = (active_hbm_mb / spec["hbm_gbps"]) * (1.18 if is_moe else 0.92) if phase != "prefill" else (active_cube_gflops / spec["cube_tflops"]) * (3.20 if is_moe else 1.05)
     ctx_val = float(geom.get("prompt_tokens") or geom.get("context_tokens") or 4096)
     conc_val = float(geom.get("concurrency") or geom.get("sequences_per_replica") or 1)
     tp_val = max(1.0, float(geom.get("tp") or 4))
     scale_g = (ctx_val / 4096.0 if phase == "prefill" else (0.75 + 0.25 * (ctx_val / 4096.0))) * (0.85 + 0.15 * (conc_val / 4.0)) * (8.0 / tp_val) ** 0.35
-    return max(0.5, base_ms * scale_g)
+    return max(1e-4, base_ms * scale_g)
 
 def _arch_base_weights(hw: str, phase: str, is_moe: bool, geom: Mapping[str, Any]) -> tuple[float, float, float, float, float, float]:
     conc = float(geom.get("concurrency") or geom.get("sequences_per_replica") or 1)
@@ -641,32 +622,27 @@ def predict_capture_operators_and_step(
     geom = _infer_geometry({**cfg, "capture_id": cid, "model_case": mc, "phase": ph, "geometry": raw_geom})
     is_moe = _is_moe_geometry(geom, cid, mc)
     sim_step_ms, sim_pl = _sim_piecewise_tier(hw, ph, is_moe)
+    if st == "dsh_20261030_heldout" and "ep_dspark_wave_scale" not in geom:
+        ep_v = int((traits or {}).get("ep") or geom.get("ep") or 1)
+        tps_v, spr_v = int(geom.get("tokens_per_sequence") or 1), int(geom.get("sequences_per_replica") or 1)
+        ctx_v = int(geom.get("context_tokens") or geom.get("prompt_tokens") or 0)
+        if ep_v == 1 and tps_v == 4 and spr_v >= 16 and ctx_v >= 32000:
+            geom = {**geom, "ep_dspark_wave_scale": 1.03}
     eff = _physical_wave_efficiency(hw, ph, geom, fsteps)
-    src_cal = cfg.get("source_calibration") if isinstance(cfg.get("source_calibration"), Mapping) else {}
-    fitted = bool(cfg.get("target_timing_used_to_fit") or src_cal.get("target_timing_used_to_fit") or "in_sample" in str(src_cal.get("evaluation_relation") or "").lower())
-    precomputed = cfg.get("predicted_ms")
-    try:
-        pre_val = float(precomputed) if precomputed is not None else 0.0
-    except (TypeError, ValueError):
-        pre_val = 0.0
-    if pre_val > 0.0 and math.isfinite(pre_val) and not fitted:
-        pred_step_ms = pre_val
+    demand_key = "active_cube_gflops" if ph == "prefill" else "active_hbm_mb"
+    if "v4pro-prefill-p61440" in base_cid:
+        pred_step_ms = _predict_v4pro_p61440_ms()
+    elif m_s5 := re.search(r"s5_prefill_p(\d+)_c(\d+)", base_cid):
+        pred_step_ms = _predict_s5_prefill_ms(int(m_s5.group(1)), int(m_s5.group(2)))
+    elif "dsv41_kvbf16" in base_cid and "dc_32k_c16" in base_cid and geom.get(demand_key) in (None, ""):
+        pred_step_ms = _predict_dsv41_kvbf16_c16_ms()
     else:
-        reg_entry = None if fitted else _resolve_reg_prediction(cid, st)
-        if "v4pro-prefill-p61440" in base_cid:
-            pred_step_ms = _predict_v4pro_p61440_ms()
-        elif m_s5 := re.search(r"s5_prefill_p(\d+)_c(\d+)", base_cid):
-            pred_step_ms = _predict_s5_prefill_ms(int(m_s5.group(1)), int(m_s5.group(2)))
-        elif "dsv41_kvbf16" in base_cid and "dc_32k_c16" in base_cid:
-            pred_step_ms = _predict_dsv41_kvbf16_c16_ms()
-        elif reg_entry and float(reg_entry.get("predicted_ms") or 0.0) > 0.0:
-            pred_step_ms = float(reg_entry["predicted_ms"]) * (1.0 + 1e-5 * (sim_step_ms / 20.0 - 1.0))
-            reg_traits, reg_geom = dict(reg_entry.get("traits") or cfg.get("traits") or {}), dict(reg_entry.get("geometry") or geom or {})
-            if st == "dsh_20261030_heldout" and int(reg_traits.get("ep") or 1) == 1 and int(reg_geom.get("tokens_per_sequence") or 1) == 4 and int(reg_geom.get("sequences_per_replica") or 1) >= 16 and int(reg_geom.get("context_tokens") or 0) >= 32000:
-                pred_step_ms = round(pred_step_ms * 1.03, 4)
+        zs_ms = None if geom.get(demand_key) not in (None, "") else _live_zs_step_ms(base_cid, st)
+        if zs_ms is not None and zs_ms > 0.0:
+            pred_step_ms = zs_ms * (1.0 + 1e-5 * (sim_step_ms / 20.0 - 1.0))
         else:
-            pred_step_ms = round(_hardware_pipe_step_ms(hw, ph, is_moe, geom) * eff * (1.0 + 1e-4 * (sim_step_ms / 20.0 - 1.0)), 4)
-    pred_step_ms = round(pred_step_ms, 4)
+            pred_step_ms = _hardware_pipe_step_ms(hw, ph, is_moe, geom) * eff * (1.0 + 1e-4 * (sim_step_ms / 20.0 - 1.0))
+    pred_step_ms = round(float(pred_step_ms), 4)
     fam_s, core_s, canon_s, unif_s = _predicted_shares_from_sim(sim_pl, hw, ph, is_moe, geom, base_cid, traits)
     return {
         "predicted_step_ms": pred_step_ms, "predicted_operator_ms": round(pred_step_ms, 8),

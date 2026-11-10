@@ -84,7 +84,7 @@ from .segment import (
 from .sources_trace import build_trace_index, iter_trace_events
 from .sql import run_sql
 
-__version__ = "0.5.9"
+__version__ = "0.5.10"
 analyze = analyze_profile
 
 __all__ = [
