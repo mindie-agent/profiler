@@ -10,6 +10,14 @@ import sys
 
 
 def peak_rss_bytes() -> int:
+    if sys.platform == "linux":
+        # exec retains signal->maxrss from the parent address space. VmHWM
+        # belongs to this executable's mm and measures the worker itself.
+        with open("/proc/self/status", encoding="ascii") as status:
+            for line in status:
+                if line.startswith("VmHWM:"):
+                    return int(line.split()[1]) * 1024
+        raise RuntimeError("the kernel did not report this process's peak RSS")
     try:
         import resource
     except ImportError:
