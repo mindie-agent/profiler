@@ -5,14 +5,18 @@ only the retained original CSV is hardware acceptance evidence.
 """
 from copy import deepcopy
 from dataclasses import replace
+import inspect
 import json
 from pathlib import Path
 
 import pytest
 
+from mindie_profiler import decode_segmentation
 from mindie_profiler.decode_segmentation import (
-    _Row, _communication_bounds, _norm, _scope, auto_segment_decode_forwards,
+    _FieldShare, _Row, _active_event, _communication_bounds, _head, _norm, _scope,
+    auto_segment_decode_forwards,
 )
+from mindie_profiler.events import ProfilerUsageError
 from mindie_profiler.normalized import kernel_rows, shapes
 
 FIXTURE = Path(__file__).parent / "fixtures/decode_forward"
@@ -442,3 +446,213 @@ def test_same_padded_body_different_output_rows_are_distinct_populations():
     assert report["body_forward_span_ms"]["count"] == 2
     assert {group["geometry"]["output_query_rows"] for group in report["geometry_groups"]} == {6, 8}
     assert all(group["body_forward_span_ms"]["count"] == 1 for group in report["geometry_groups"])
+
+
+def _descriptor_blank(event):
+    missing = {"", "N/A", "NA", "None", "NULL"}
+    return all(value.strip().strip('"') in missing for value in (
+        event.input_shapes, event.output_shapes, event.input_dtypes,
+        event.output_dtypes, event.input_formats, event.output_formats))
+
+
+def test_active_projection_keeps_closure_fields_and_drops_nothing_they_depend_on(cross_head_suffix):
+    events, config, rows, _ = cross_head_suffix
+    share = _FieldShare()
+    for event, row in zip(events, rows):
+        active = _active_event(event, share)
+        assert active.kind == row.kind == event.op_type
+        assert active.inputs == row.inputs
+        assert active.outputs == row.outputs
+        assert active.name == event.name
+        assert active.core == event.core and active.task_type == event.task_type
+        assert active.stream_id == event.stream_id and active.task_id == event.task_id
+        assert active.rank_id == event.rank_id and active.device_id == event.device_id
+        assert active.start_ns == event.start_ns and active.end_ns == event.end_ns
+        assert active.duration_ns == event.duration_ns
+        assert active.block_dim == event.block_dim
+        assert active.mix_block_dim == event.mix_block_dim
+        assert bool(active.pmu) is bool(event.pmu)
+        assert active.input_dtypes == event.input_dtypes
+        assert active.output_dtypes == event.output_dtypes
+        assert active.input_formats == event.input_formats
+        assert active.output_formats == event.output_formats
+        assert shapes(active.input_shapes) == shapes(event.input_shapes)
+        assert shapes(active.output_shapes) == shapes(event.output_shapes)
+        assert active.locator == event.locator
+        assert _descriptor_blank(active) is _descriptor_blank(event)
+        assert _head(active, config) is _head(row, config)
+        assert active.event is active
+
+
+def test_active_cap_keeps_its_closure_meaning(cross_head_suffix):
+    events, config, _, _ = cross_head_suffix
+    report = auto_segment_decode_forwards(iter(events), config)
+    assert report["status"] == "measured"
+    assert report["forwards"]
+    with pytest.raises(ProfilerUsageError, match=r"active forward events exceed 8; no trustworthy head closure"):
+        auto_segment_decode_forwards(iter(events), config, max_forward_events=8)
+    assert inspect.signature(auto_segment_decode_forwards).parameters["max_forward_events"].default == 100_000
+
+
+def test_two_ranks_close_independently_with_the_same_spans(cross_head_suffix):
+    events, config, _, _ = cross_head_suffix
+    shift = 1_000_000_000_000
+    other = [replace(event, rank_id="rank_1", start_ns=event.start_ns + shift,
+                     end_ns=event.end_ns + shift) for event in events]
+    merged = [item for pair in zip(events, other) for item in pair]
+    report = auto_segment_decode_forwards(iter(merged), config)
+    assert [item["rank_id"] for item in report["forwards"]] == [events[0].rank_id, "rank_1"]
+    first, second = report["forwards"]
+    assert second["start_ns"] - first["start_ns"] == shift
+    assert second["end_ns"] - first["end_ns"] == shift
+    assert second["head_start_ns"] - first["head_start_ns"] == shift
+    assert second["head_end_ns"] - first["head_end_ns"] == shift
+    assert first["body_activity_ms"] == second["body_activity_ms"]
+    assert first["body_forward_span_ms"] == second["body_forward_span_ms"]
+    assert first["body_internal_gap_ms"] == second["body_internal_gap_ms"]
+    assert first["query_rows"] == second["query_rows"]
+    assert first["closed_segment_event_count"] == second["closed_segment_event_count"] == len(events)
+    assert [item["raw_duration_ns"] for item in first["communication_envelope_bounds"]] == [
+        item["raw_duration_ns"] for item in second["communication_envelope_bounds"]]
+    for left, right in zip(first["stages"], second["stages"]):
+        assert left["kind"] == right["kind"] and left["layer_id"] == right["layer_id"]
+        assert right["start_ns"] - left["start_ns"] == shift
+        assert right["end_ns"] - left["end_ns"] == shift
+        successor = left["evidence"]["successor_boundary_start_ns"]
+        if successor is None:
+            assert right["evidence"]["successor_boundary_start_ns"] is None
+        else:
+            assert right["evidence"]["successor_boundary_start_ns"] - successor == shift
+
+
+def test_unclosed_scan_does_not_retain_source_payloads():
+    import tracemalloc
+    from mindie_profiler.events import Event
+
+    config = {
+        "layer_plans": [{"attention": "gqa", "ffn": "dense", "index": 0}],
+        "layers": 1, "body_layers": 1, "hidden_size": 16, "vocab_size": 32, "tp": 1,
+    }
+
+    def events():
+        for index in range(200):
+            yield Event(
+                rank_id="0", rank_index=0, name="Add", op_type="Add",
+                task_type="AI_VECTOR_CORE", core="AI_VECTOR_CORE",
+                stream_id="1", task_id=str(index), device_id="0",
+                start_ns=index + 1, end_ns=index + 2,
+                source_kind="csv", table="kernel_details.csv",
+                mapping_rule="u" * 80_000 + str(index),
+                wait_provenance={"blob": "z" * 80_000, "index": index},
+                pmu_provenance={"blob": "q" * 80_000, "index": index},
+                pmu=tuple((f"metric_{item}", 1.0) for item in range(20)),
+                input_shapes="N/A", output_shapes="N/A",
+            )
+
+    tracemalloc.start()
+    tracemalloc.reset_peak()
+    report = auto_segment_decode_forwards(events(), config, max_forward_events=1_000)
+    _, peak = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+    assert report["status"] == "unresolved"
+    assert report["scan_counts"]["trailing_segment_events"] == 200
+    assert report["anomaly_counts"] == {"trailing_segment_without_vocabulary_head": 1}
+    # 200 retained source payloads would be tens of mebibytes.
+    assert peak < 6_000_000
+
+
+def test_closed_windows_drop_high_cardinality_pools(cross_head_suffix):
+    """Many real closures must not retain task ids, locator digits, or shapes."""
+    events, config, _, _ = cross_head_suffix
+    assert len(events) > 10
+    assert len({event.rank_id for event in events}) == 1
+    fixture_rank = events[0].rank_id
+    open_rank, dynamic_rank = "rank_open", "rank_dynamic"
+    assert fixture_rank not in {open_rank, dynamic_rank}
+    assert _head(_active_event(events[-1], _FieldShare()), config)
+    assert not any(_head(_active_event(event, _FieldShare()), config) for event in events[:3])
+    copies = 32
+    shift = events[-1].end_ns - events[0].start_ns + 1_000_000
+
+    def tagged(event, *, rank, start_ns, end_ns, token, input_shapes=None, output_shapes=None):
+        locator = dict(event.locator)
+        locator["row_index"] = str(token)
+        locator["csv_line"] = str(token)
+        locator["task_id"] = f"task-{token}"
+        # Blank task ids mark unlinked communication summaries. A real id is rewritten.
+        missing = {"", "N/A", "NA", "None"}
+        task_id = event.task_id if event.task_id in missing else f"task-{token}"
+        return replace(
+            event, rank_id=rank, task_id=task_id, start_ns=start_ns, end_ns=end_ns,
+            locator=locator,
+            input_shapes=event.input_shapes if input_shapes is None else input_shapes,
+            output_shapes=event.output_shapes if output_shapes is None else output_shapes,
+        )
+
+    open_events = [
+        tagged(event, rank=open_rank, start_ns=event.start_ns, end_ns=event.end_ns, token=f"open-{index}")
+        for index, event in enumerate(events[:3])
+    ]
+    fixture_windows, dynamic_fillers = [], []
+    stream = list(open_events)
+    for copy in range(copies):
+        fillers = []
+        for index in range(4):
+            malformed = index == 3
+            token = f"dyn-{copy}-{index}"
+            fillers.append(tagged(
+                replace(events[0], op_type="Add", name="cardinality-add",
+                        task_type="AI_VECTOR_CORE", core="AI_VECTOR_CORE"),
+                rank=dynamic_rank, start_ns=copy * 100 + index, end_ns=copy * 100 + index + 1,
+                token=token,
+                input_shapes=f"malformed-{copy}-{index}" if malformed else f'"{copy},{index},3"',
+                output_shapes=f'"{copy},{index},1"',
+            ))
+        head = tagged(
+            events[-1], rank=dynamic_rank, start_ns=copy * 100 + 10, end_ns=copy * 100 + 11,
+            token=f"dyn-head-{copy}",
+        )
+        window = [
+            tagged(event, rank=fixture_rank, start_ns=event.start_ns + copy * shift,
+                   end_ns=event.end_ns + copy * shift, token=f"fix-{copy}-{index}")
+            for index, event in enumerate(events)
+        ]
+        dynamic_fillers.append(fillers)
+        fixture_windows.append(window)
+        stream.extend(fillers)
+        stream.extend(window)
+        stream.append(head)
+
+    report = auto_segment_decode_forwards(iter(stream), config)
+    probe = decode_segmentation._LAST_POOL_PROBE
+    assert len(report["forwards"]) == copies
+    assert [item["rank_id"] for item in report["forwards"]] == [fixture_rank] * copies
+    assert report["forwards"][0]["body_forward_span_ms"] == pytest.approx(1.676807)
+    assert report["forwards"][-1]["start_ns"] - report["forwards"][0]["start_ns"] == (copies - 1) * shift
+    blob = json.dumps(report["forwards"][0])
+    assert "fix-0-" in blob and "task-fix-0-" in blob
+    trailing = [item for item in report["anomalies"] if item["reason"] == "trailing_segment_without_vocabulary_head"]
+    assert any(item["rank_id"] == open_rank and item["event_count"] == len(open_events) for item in trailing)
+    assert probe["closed_windows"] == copies * 2
+    assert probe["live_active"] == len(open_events)
+    assert probe["high_active"] == len(events) + 4 + len(open_events)
+
+    share_f, share_d, share_o = _FieldShare(), _FieldShare(), _FieldShare()
+    for event in fixture_windows[0]:
+        _active_event(event, share_f)
+    for event in dynamic_fillers[0]:
+        _active_event(event, share_d)
+    for event in open_events:
+        _active_event(event, share_o)
+    assert probe["high_strings"] == len(share_f.strings) + len(share_d.strings) + len(share_o.strings)
+    assert probe["high_shapes"] == len(share_f.shapes) + len(share_d.shapes) + len(share_o.shapes)
+    assert probe["live_strings"] == len(share_o.strings)
+    assert probe["live_shapes"] == len(share_o.shapes)
+    assert probe["high_strings"] < copies * len(events)
+    assert probe["high_shapes"] < copies * 4
+    assert "task-fix-0-0" not in share_f.strings
+    assert "fix-0-0" not in share_f.strings
+    assert "malformed-0-3" not in share_d.strings
+    assert "cardinality-add" in share_d.strings
+    assert _active_event(dynamic_fillers[0][3], _FieldShare()).input_shapes == "malformed-0-3"
+    assert _active_event(dynamic_fillers[0][0], _FieldShare()).inputs == ((0, 0, 3),)

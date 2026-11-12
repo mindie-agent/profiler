@@ -25,6 +25,7 @@ include = ["mindie_profiler*"]
 pythonpath = ["."]
 markers = [
     "live_npu: standing A2/A3 Ascend NPU non-destructive live integration",
+    "archive_integration: opt-in host fleet archive; skipped unless selected or MINDIE_ARCHIVE_INTEGRATION=1",
 ]
 
 [tool.setuptools.package-data]

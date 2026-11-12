@@ -33,6 +33,7 @@ from .advisor_rules import (
     scan_host_sync_and_gc_freezes,
 )
 from .analyze import analyze_profile
+from .collective_readiness import read_collective_readiness
 from .correlate import correlate_profile
 from .cross_rank import (
     attribute_cluster_stragglers_and_links,

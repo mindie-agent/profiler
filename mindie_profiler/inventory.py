@@ -301,7 +301,7 @@ def _rank_facts(rank_dir: Path, *, ordinal: int, timeout_s: float,
         limitations.append({"code": "no_source_files", "detail": "rank directory has no DB/CSV/trace source"})
     return {
         "rank_id": rank_id,
-        "rank_index": infer_rank_index(rank_dir.name),
+        "rank_index": infer_rank_index(rank_dir),
         "rank_dir": str(rank_dir.resolve()),
         "db_candidates": [str(item.resolve()) for item in db_candidates],
         "csv_candidates": [str(item.resolve()) for item in csv_candidates],

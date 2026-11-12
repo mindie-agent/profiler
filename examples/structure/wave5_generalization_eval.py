@@ -74,13 +74,42 @@ def _bounded_workers(value: int) -> int:
     return max(1, min(int(value), MAX_WORKERS))
 
 
-def _parser_identity() -> str:
-    prof_root = Path(decode_segmentation.__file__).resolve().parent
+# Segmentation, the active-event helper it executes, then the original
+# communication, event, and prefill sources. The first four names keep
+# their previous relative order; the helper is the added dependency.
+_PARSER_SOURCES = (
+    "decode_segmentation.py",
+    "decode_active_event.py",
+    "communication_bounds.py",
+    "events.py",
+    "prefill.py",
+)
+
+
+def _parser_sources(prof_root: Path, struct_dir: Path) -> tuple[Path, ...]:
+    """Return the hashed parser files for one selected source root."""
+    return tuple(
+        (struct_dir if name == "prefill.py" else prof_root) / name
+        for name in _PARSER_SOURCES
+    )
+
+
+def _parser_identity(prof_root: Path | None = None, struct_dir: Path | None = None) -> str:
+    """Hash PARSER_VERSION and the selected parser sources, in canonical order.
+
+    Defaults are the imported checkout. Callers may pass an isolated root.
+    Every listed file is read; a missing or empty file is not skipped.
+    """
+    if prof_root is None:
+        prof_root = Path(decode_segmentation.__file__).resolve().parent
+    if struct_dir is None:
+        struct_dir = STRUCT_DIR
     digest = sha256(PARSER_VERSION.encode("utf-8"))
-    for mod_path in (prof_root / "decode_segmentation.py", prof_root / "communication_bounds.py",
-                     prof_root / "events.py", STRUCT_DIR / "prefill.py"):
-        if mod_path.exists():
-            digest.update(mod_path.read_bytes())
+    for mod_path in _parser_sources(prof_root, struct_dir):
+        payload = mod_path.read_bytes()
+        if not payload:
+            raise ValueError(f"parser source is empty: {mod_path}")
+        digest.update(payload)
     return f"{PARSER_VERSION}:{digest.hexdigest()[:16]}"
 
 

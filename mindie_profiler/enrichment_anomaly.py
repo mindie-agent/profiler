@@ -36,7 +36,15 @@ from .anomaly_discovery import (
     assess_wait_anchor,
 )
 from .events import Event, Observation
-from .pmu_derivation import derive_pmu_evidence, metric_units
+from .pmu_derivation import (
+    SATURATION_THRESHOLD,
+    derive_measured_supply,
+    derive_pmu_evidence,
+    metric_units,
+    summarize_measured_supply,
+    summarize_sparse_mte1,
+    SPARSE_NATIVE_TYPE,
+)
 from .sources_db import load_mapping
 from .wait_provenance import attach_wait_anchor
 
@@ -562,7 +570,46 @@ def underfeed_summary(observations: Sequence[Observation]) -> dict[str, Any]:
     return {"threshold": UNDERFEED_THRESHOLD, "windows": windows, "findings": findings}
 
 
-def _pmu_event_payload(observation: Observation, event: Event) -> dict[str, Any]:
+def _measured_supply_record(observation: Observation, event: Event,
+                            source_identity: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    """One matrix-pipe observation; shape/owner/counter absence stays explicit."""
+    return derive_measured_supply(
+        event.pmu_map(),
+        input_shapes=event.input_shapes,
+        input_dtypes=event.input_dtypes,
+        input_formats=event.input_formats,
+        output_shapes=event.output_shapes,
+        output_dtypes=event.output_dtypes,
+        output_formats=event.output_formats,
+        source_identity=source_identity,
+        block_num=event.block_dim,
+        mix_block_num=event.mix_block_dim,
+        complete_in_window=event.complete_in(
+            observation.window.start_ns, observation.window.end_ns),
+        source=observation.source.path,
+        source_sha256=observation.source.sha256,
+        source_schema=observation.source.schema_version,
+        event_id=event.event_id,
+        row_index=event.locator.get("row_index"),
+        observation_id=observation.identity()["observation_id"],
+        native_call=event.name,
+        native_type=event.op_type,
+        device_id=event.device_id,
+        rank_id=observation.rank_id,
+        rank_index=observation.rank_index,
+        duration_ns=event.duration_ns,
+        physical_owners=None,
+        saturation_threshold=SATURATION_THRESHOLD,
+    )
+
+
+def _is_matrix_supply_event(event: Event) -> bool:
+    folded = f"{event.op_type} {event.name}".lower()
+    return ("matmul" in folded or "gemm" in folded) and "aic_mac_time" in event.pmu_map()
+
+
+def _pmu_event_payload(observation: Observation, event: Event,
+                       source_identity: Mapping[str, Any] | None = None) -> dict[str, Any]:
     complete = event.complete_in(observation.window.start_ns, observation.window.end_ns)
     clipped = event.clipped(observation.window.start_ns, observation.window.end_ns)
     coverage = None
@@ -589,23 +636,32 @@ def _pmu_event_payload(observation: Observation, event: Event) -> dict[str, Any]
         "window_coverage": coverage,
         "counts_are_full_event": True,
         "usable_for_clipped_window": complete,
+        "input_shapes": event.input_shapes,
+        "input_dtypes": event.input_dtypes,
+        "output_shapes": event.output_shapes,
+        "output_dtypes": event.output_dtypes,
+        "block_num": event.block_dim,
+        "mix_block_num": event.mix_block_dim,
         "metrics": metrics,
         "metric_units": metric_units(metrics),
         "metric_count": len(event.pmu),
+        "measured_supply": _measured_supply_record(observation, event, source_identity),
         "derived": derive_pmu_evidence(
             metrics,
             task_type=event.task_type,
             core=event.core,
             complete_in_window=complete,
             source=event.pmu_source or event.table,
-            block_num=None,
+            block_num=event.block_dim,
             export_resolution=event.pmu_provenance.get("export_resolution"),
         ),
         "provenance": provenance,
     }
 
 
-def pmu_summary(observations: Sequence[Observation]) -> dict[str, Any]:
+def pmu_summary(observations: Sequence[Observation], *, physical_owners: int | None = None,
+                source_identity: Mapping[str, Any] | None = None,
+                sparse_geometry: Mapping[str, Any] | None = None) -> dict[str, Any]:
     mapping = load_mapping()
     units = dict(mapping.get("pmu_units", {}))
     metric_unit_map = metric_units(
@@ -624,6 +680,8 @@ def pmu_summary(observations: Sequence[Observation]) -> dict[str, Any]:
         "raw_pmu_rows": 0,
     }
     limitations: list[dict[str, Any]] = []
+    supply_candidates: list[dict[str, Any]] = []
+    sparse_candidates: list[dict[str, Any]] = []
     source_pmu_rows = sum(observation.stats.pmu_rows for observation in observations)
     source_ambiguous_groups = max(
         (observation.stats.ambiguous_groups for observation in observations), default=0
@@ -647,8 +705,36 @@ def pmu_summary(observations: Sequence[Observation]) -> dict[str, Any]:
                 complete = event.complete_in(observation.window.start_ns, observation.window.end_ns)
                 if not complete:
                     counts["clipped_bound_event_count"] += 1
+                if _is_matrix_supply_event(event):
+                    supply_candidates.append(_measured_supply_record(
+                        observation, event, source_identity))
+                if SPARSE_NATIVE_TYPE in f"{event.op_type} {event.name}":
+                    shape = str(event.input_shapes or "").strip('"').split(";")[0]
+                    try:
+                        q_tokens = int(shape.split(",")[0])
+                    except (TypeError, ValueError):
+                        q_tokens = 0
+                    sparse_candidates.append({
+                        "native_type": event.op_type,
+                        "q_tokens": q_tokens,
+                        "dtype": "bf16" if "BF16" in str(event.input_dtypes).upper() else "",
+                        "block_num": event.block_dim,
+                        "mix_block_num": event.mix_block_dim,
+                        "op_state": event.op_state,
+                        "input_formats": event.input_formats,
+                        "output_formats": event.output_formats,
+                        "mte1_us": ((event.pmu_map().get("aic_mte1_time") or 0) / 1000.0
+                                    if event.pmu_map().get("aic_mte1_time") else None),
+                        "elapsed_us": (event.duration_ns / 1000.0
+                                       if event.duration_ns else None),
+                        "source": observation.source.path,
+                        "source_sha256": observation.source.sha256,
+                        "event_id": event.event_id,
+                        "row_index": event.locator.get("row_index"),
+                    })
                 if len(bound_events) < 64:
-                    bound_events.append(_pmu_event_payload(observation, event))
+                    bound_events.append(_pmu_event_payload(
+                        observation, event, source_identity))
             elif event.pmu_status in {
                 "ambiguous_task_occurrence",
                 "duplicate_metric_rows",
@@ -717,6 +803,27 @@ def pmu_summary(observations: Sequence[Observation]) -> dict[str, Any]:
             "No PMU table/columns or bound PMU values were available for the selected events.",
             "medium",
         )
+    resource_services = summarize_sparse_mte1(
+        sparse_candidates, source_identity=source_identity,
+        sparse_geometry=sparse_geometry,
+        hardware=(sparse_geometry or {}).get("hardware"))
+    measured_supply = summarize_measured_supply(
+        supply_candidates, physical_owners=physical_owners,
+        source_identity=source_identity,
+        resource_services=resource_services,
+        saturation_threshold=SATURATION_THRESHOLD)
+    selection_limitations = {
+        "measured_supply_no_matrix_pmu_events",
+        "measured_supply_pair_invalid",
+        "measured_supply_clipped_events_excluded",
+        "measured_supply_physical_owners_not_declared",
+        "measured_supply_no_certified_issue_rule",
+    }
+    for item in measured_supply.get("limitations", []):
+        if isinstance(item, Mapping) and item.get("code") in selection_limitations:
+            add_limitation(
+                limitations, str(item.get("code")), "global",
+                str(item.get("detail") or ""), str(item.get("severity") or "medium"))
     status = "observed" if counts["bound_event_count"] or ambiguous_groups else "not_available"
     if status == "observed" and counts["ambiguous_event_count"]:
         status = "partial"
@@ -738,6 +845,7 @@ def pmu_summary(observations: Sequence[Observation]) -> dict[str, Any]:
         "bound_events": bound_events,
         "bound_events_truncated": counts["bound_event_count"] > len(bound_events),
         "ambiguous_groups": list(ambiguous_groups.values()),
+        "measured_supply": measured_supply,
         "aicpu_counters": {
             "aicpu_event_count": counts["aicpu_event_count"],
             "counter_status": (

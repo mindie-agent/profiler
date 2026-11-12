@@ -109,34 +109,25 @@ If you are an AI Agent receiving the prompt above, follow these steps to install
 | **`memory`**<br/>`mindie_profiler.memory_profile`<br/>`python3 -m mindie_profiler.weight_inspector` | **P0–P4 peak & operator memory breakdown**: Reconciles P0 `msprof` (`operator_memory.csv` / `memory_record.csv` / `npu_module_mem`), P1 whole-device runtime HBM peaks, P2 framework startup logs, P3 `safetensors` weight headers, and P4 `config.json` theoretical estimates with explicit residuals | Memory manifests, vLLM startup logs, `operator_memory.csv`, `memory_record.csv`, model weight dir | `mindie-memory-attribution/1` JSON report (weights, KV cache, activations, communication buffers, and uninvented residual) |
 | **`modeling-inputs`**<br/>`mindie_profiler.modeling_inputs`<br/>`python3 -m mindie_profiler.enrichment_model` | **Retained observation export and Roofline comparison**: Extracts shapes, dtypes, layouts, durations and hardware peaks into `ModelingInputsBundle` and computes single-kernel ideal lower bounds; rewritten sim does not natively consume this legacy bundle | C7 summary JSON, hotspot records, and raw physical hardware peaks | `mindie-modeling-inputs/1` observation bundle and 3-value alignment (`ideal_hardware_lower_bound_ms`, `model_predicted_ms`, `measured_device_ms`) |
 
-### Current Compatible Combination: Structure Attribution, Bottom-Up Structural Inference & Unified 7,337-Capture Operator & Step Validation (Paired with `mindie-sim 0.9.10`)
+### Current Compatible Combination: Structure Attribution, Bottom-Up Structural Inference & Benchmark Evidence Boundary (Paired with `mindie-sim 0.9.10`)
 
-The current installation pairs `mindie-profiler v0.5.11` with [`mindie-sim v0.9.10`](https://github.com/mindie-agent/sim) for end-to-end raw capture analysis, bottom-up structural inference (`mindie-structural-inference/1`), model structure attribution, and 4D hardware efficiency reports, backed by the open **7,337-capture NPU profiling benchmark dataset** ([`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench)) spanning `A2` (`837`), `A3` (`1,729`), and `A5` (`4,771`) (`436,412` step samples). Historical full-fleet measurements retain their original data and sampled versions in [`docs/releases/profiler-0.5.7.md`](./docs/releases/profiler-0.5.7.md), [`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md), and [`examples/structure/README.md`](./examples/structure/README.md).
+The current installation pairs `mindie-profiler v0.5.11` with [`mindie-sim v0.9.10`](https://github.com/mindie-agent/sim) and provides an implemented path from raw traces to bottom-up structural inference (`mindie-structural-inference/1`), model structure attribution, and 4D efficiency reports. These are implemented features; `7,337` is an inventory-record count, not a coverage or comparability count for those features. Installation and compatibility are unchanged; this section corrects benchmark accuracy statements only.
 
-Evaluation caches identify the complete sim Python/JSON content (`simulator_identity`); all 7,337 captures undergo measurement-blind, zero-cached-prediction live operator-level (`L1` operator families + `L2` accelerator engines) and step-level (`L3/L4` step latency) physical modeling recomputation while preserving each suite's evaluation mode.
+**Inventory and original-evidence coverage.** The historical benchmark artifact retains `731` zero-shot inventory records and `6,606` fleet inventory records: `7,337` **inventory records** in total (`A2: 837`, `A3: 1,729`, `A5: 4,771`). All `7,337` records remain in inventory. Original evidence is only partly available: the zero-shot records expose `1,073` candidate rank kernel exports, including `6` unrelated stale windows; these are candidate exports, not verified same-rank matches. Client request records cover `731` zero-shot records. In the fleet, some records retain native physical kernel rows, while others have only op aggregates or client receipts. Missing device evidence stays in inventory and is not filled from neighbor ranks or stored positive `observed_ms`.
 
-- **Unified `7,337`-Capture Operator-Level & Step-Level Master Scoreboard (`7,337 / 7,337` Captures / `436,412` Step Samples, `100.0% <= 10%`)**:
+**Independently checked missing scopes.** Counted by unit: `198` A5 multi-node exports (per export) lack a same-rank full kernel timeline; `27` fleet service cells (per cell) have no successfully completed requests and therefore no completed-request L4 evidence. Both remain in inventory marked as missing evidence; they are not substituted for each other and are not filled from other ranks or stored positive `observed_ms`.
 
-  | Category | Target / Dimension | Profiling Captures | Evaluated | Step Samples | Hardware Tiers | `err_p50` | `err_p90` | `err_max` | `>10%` | `<=10%` Pass Rate |
-  |---|---|---:|---:|---:|---|---:|---:|---:|---:|---:|
-  | `L1_operator_family` | `matmul_gemm` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.83%` | `5.45%` | `8.38%` | `0` | **`100.0%`** |
-  | `L1_operator_family` | `attention` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.62%` | `5.40%` | `8.12%` | `0` | **`100.0%`** |
-  | `L1_operator_family` | `moe_routing_grouped_gemm` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.15%` | `5.27%` | `8.28%` | `0` | **`100.0%`** |
-  | `L1_operator_family` | `norm_activation_elementwise` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.73%` | `5.51%` | `8.11%` | `0` | **`100.0%`** |
-  | `L1_operator_family` | `kv_cache_position_rope` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `0.00%` | `2.48%` | `8.09%` | `0` | **`100.0%`** |
-  | `L1_operator_family` | `collective_comm` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `0.50%` | `3.70%` | `8.01%` | `0` | **`100.0%`** |
-  | `L2_accelerator_engine` | `AI_CORE` | **7,207** | **7,207** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.90%` | `5.48%` | `8.38%` | `0` | **`100.0%`** |
-  | `L2_accelerator_engine` | `AI_VECTOR_CORE` | **7,274** | **7,274** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.78%` | `5.52%` | `8.11%` | `0` | **`100.0%`** |
-  | `L2_accelerator_engine` | `MIX_AIC` | **7,184** | **7,184** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.80%` | `5.49%` | `8.06%` | `0` | **`100.0%`** |
-  | `L2_accelerator_engine` | `COMMUNICATION` | **7,063** | **7,063** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.85%` | `5.52%` | `8.28%` | `0` | **`100.0%`** |
-  | `L3_L4_step_latency` | `decode_step_tpot` | **5,962** | **5,962** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.59%` | `5.61%` | `7.98%` | `0` | **`100.0%`** |
-  | `L3_L4_step_latency` | `prefill_step_ttft` | **1,375** | **1,375** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `2.00%` | `4.28%` | `8.00%` | `0` | **`100.0%`** |
-  | `L3_L4_step_latency` | `all_7337_captures_step_e2e` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.79%` | `5.47%` | `8.00%` | `0` | **`100.0%`** |
-  | `structural_inference` | `mindie_structural_inference_v1` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `0.00%` | `0.00%` | `0.00%` | `0` | **`100.0%`** |
+**Correction of earlier reported values.** Earlier revisions of this README described these records as `7,337` real NPU profiling captures and published all-row `100.0% <= 10%`, `731/731`, and `21/21` tables. The historical artifact's rows contained target-derived predictor inputs: predicted demands, structural weights normalized from observed family shares, cloned operator timings, and duplicated or overlapping capture sources. Those values are historical artifact output, not independent accuracy evidence, and they do not describe current model capability. The former all-100% tables are removed from this section.
+
+**Per-level inputs.** L1 uses same-rank operator rows from `kernel_details.csv` (Name, Type, Accelerator Core, Start/Duration, Shape/Dtype, and per-pipe times). Per-step L2 requires same-rank per-kernel rows grouped by typed operator × native core; the whole-run `op_statistic.csv` aggregates are only a total check and cannot establish per-step L2. Communication is taken only from `kernel_details.csv` rows whose Accelerator Core is `COMMUNICATION` (`op_statistic.csv` omits HCCL). L3 requires an independently matched native rank/forward window, with boundaries taken from kernel Start/End times; sampler markers indicate candidate sample boundaries only and do not establish complete raw per-step boundaries, and `step_trace_time.csv` is aggregate only. Per-forward observations must state whether they are elapsed window spans or additive operator mass; the two are not interchangeable. L4 uses client records at the original producer request scope (SSE `streams[]` from `bin/bench_cell.py`: `ttft_s`, `e2e_s`, `completion_tokens`; `request_summary.csv` for the fleet). The original producer request scope and the independently matched native rank/forward/typed-operator boundaries used by L1-L3 are distinct; without a request-to-forward mapping, do not compare them directly. `kernel_details.csv` / `op_summary.csv` alone are insufficient for L4.
+
+**Publishable independent results.** No independently validated global strict pass currently exists. Independently obtained pass, fail, uncovered, or unknown results are publishable per scope with a retained denominator and failure/missing counts; when input identity or boundaries cannot be independently confirmed, label the result unknown/uncovered rather than inferring a pass. Prediction-derived or timing-proximity diagnostics are not independent results.
+
+**Reproduction entrypoint.** `scripts/hf_profiling_benchmark.py --evaluate --strict-10pct` counts against the original inventory IDs and reads independent observations; `--strict-10pct` denotes strict gating only and is not evidence of a pass. Historical release notes ([`docs/releases/profiler-0.5.7.md`](./docs/releases/profiler-0.5.7.md), [`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md)) keep their original context and values. The replay pipeline and evidence format are documented in [`examples/structure/README.md`](./examples/structure/README.md); its historical/current result summaries are likewise subject to this evidence boundary and cannot stand alone as independent accuracy evidence.
 
 - **Bottom-Up Prior-Free Structural Inference (`mindie-structural-inference/1`)**:
   - `mindie_profiler.structural_inference.infer_trace_structure` reconstructs fused operator composites (`fused_composites`), L2 subgraph grammar blocks (Attention / MLA / GDN-KDA / MoE / Dense FFN / Norm+Residual), repeating layer-stack periodicity (`body_topology`), and speculative draft heads (`speculative_module`) directly from raw operator streams.
-  - Verified across all **7,337 real profiling captures** (`A2: 837`, `A3: 1,729`, `A5: 4,771`) with **`7,337 / 7,337` (`100.0%`, `0` crashes)** structural inference pass rate.
+  - Structural inference is an implemented feature, but its coverage is not the `7,337` inventory records; uncovered records remain in inventory, and pass/zero-crash status cannot inherit the former all-capture `100.0%` value.
 - **Topology-Guided Structure Mapping (`analyze --structure`)**:
   ```bash
   mindie-profiler analyze --root <profile_dir> --structure <structure.json> \
@@ -151,42 +142,18 @@ Evaluation caches identify the complete sim Python/JSON content (`simulator_iden
     --markdown examples/structure/results/efficiency_and_sla.md
   ```
   Generates whole-network and subgraph 4D efficiency (`Cube_MFU`, `Vec_MFU`, `MBU`, `Link_Util`, `CV_Overlap`), counterfactual `0.80x MBU` speedup projections, and `30 ms` Decode SLA throughput ceilings across `2x HBM` and `2x Compute` scaling scenarios.
-- **Four-Level (L1 Operator Mechanism $\to$ L2 Subgraph $\to$ L3 Whole-Model Step Trace $\to$ L4 Service TTFT/TPOT) Zero-Shot Per-Step Piecewise Validation (`21/21` rows at `100.0% <= 10%`)**:
+- **Four-Level (L1 Operator Mechanism $\to$ L2 Subgraph/Engine $\to$ L3 Whole-Model Step Trace $\to$ L4 Service TTFT/TPOT) Zero-Shot Per-Step Validation Entry (no independently validated global pass)**:
   ```bash
-  # Run zero-shot L1-L4 per-step piecewise validation (731/731 evaluated cells / 40,921 step samples, forbidden_lookup_imported=False)
+  # Zero-shot L1-L4 per-step validation entry; runs with the full denominator
   PYTHONPATH=src:/path/to/sim python3 examples/structure/zero_shot_piecewise_validation.py --no-historical
 
-  # Evaluate and strictly verify the 7,337-capture HuggingFace benchmark dataset (0 samples > 10% across all 21 L1-L4 targets & comparable suites)
+  # Strict inventory gate; scores against the original inventory IDs and independent observations
   PYTHONPATH=src:/path/to/sim python3 scripts/hf_profiling_benchmark.py --evaluate --strict-10pct
   ```
-  Across **731 real kernel-trace cells (`731/731` evaluated, `failed == 0`, `skipped == {}`) and 40,921 per-step samples**, all **21 evaluation targets (13 L1 operator mechanisms, 4 L2 subgraphs, 2 L3 step trace metrics, and 2 L4 service metrics) achieve `100.0%` pass within `<= 10%` error (`above_10pct == 0`, `step_err_max <= 9.97%`, `uncancelled_p50 <= 4.79%`)**:
-
-  | Level | Target | Step Samples | Cells | `step_err_p50` | `step_err_p90` | `step_err_max` | `uncancelled_p50` | `>10%` Count | `<=10%` Pass Rate |
-  | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-  | `L1` | `activation` | 731 | 731 | `1.48%` | `5.75%` | `9.41%` | `1.48%` | `0` | **`100.0%`** |
-  | `L1` | `attention` | 731 | 731 | `1.15%` | `4.47%` | `9.21%` | `1.15%` | `0` | **`100.0%`** |
-  | `L1` | `collective` | 731 | 731 | `1.62%` | `6.07%` | `9.28%` | `1.62%` | `0` | **`100.0%`** |
-  | `L1` | `elementwise_quant` | 731 | 731 | `0.81%` | `7.02%` | `9.80%` | `0.81%` | `0` | **`100.0%`** |
-  | `L1` | `gdn_kda` | 275 | 275 | `3.52%` | `6.31%` | `8.30%` | `3.52%` | `0` | **`100.0%`** |
-  | `L1` | `gemm` | 731 | 731 | `1.70%` | `7.46%` | `8.98%` | `1.70%` | `0` | **`100.0%`** |
-  | `L1` | `hyperconnection` | 214 | 214 | `0.36%` | `4.74%` | `8.38%` | `0.36%` | `0` | **`100.0%`** |
-  | `L1` | `indexer` | 456 | 456 | `0.45%` | `2.00%` | `8.37%` | `0.45%` | `0` | **`100.0%`** |
-  | `L1` | `kv_cache` | 731 | 731 | `1.34%` | `5.51%` | `9.97%` | `1.34%` | `0` | **`100.0%`** |
-  | `L1` | `moe_grouped` | 573 | 573 | `0.98%` | `4.90%` | `9.89%` | `0.98%` | `0` | **`100.0%`** |
-  | `L1` | `moe_router` | 573 | 573 | `0.94%` | `3.18%` | `7.67%` | `0.94%` | `0` | **`100.0%`** |
-  | `L1` | `norm_residual` | 731 | 731 | `1.45%` | `5.15%` | `8.62%` | `1.45%` | `0` | **`100.0%`** |
-  | `L1` | `rope` | 456 | 456 | `0.39%` | `1.45%` | `6.55%` | `0.39%` | `0` | **`100.0%`** |
-  | `L2` | `attention` | 731 | 731 | `1.03%` | `3.95%` | `7.40%` | `1.31%` | `0` | **`100.0%`** |
-  | `L2` | `hyperconnection` | 214 | 214 | `0.36%` | `4.74%` | `8.38%` | `0.36%` | `0` | **`100.0%`** |
-  | `L2` | `moe` | 731 | 731 | `1.88%` | `5.61%` | `9.41%` | `2.24%` | `0` | **`100.0%`** |
-  | `L2` | `norm_residual` | 731 | 731 | `1.45%` | `5.15%` | `8.62%` | `1.45%` | `0` | **`100.0%`** |
-  | `L3` | `decode_step_trace` | 30,261 | 409 | `3.66%` | `6.00%` | `9.72%` | `4.79%` | `0` | **`100.0%`** |
-  | `L3` | `prefill_step_trace` | 322 | 322 | `3.09%` | `6.81%` | `9.79%` | `4.50%` | `0` | **`100.0%`** |
-  | `L4` | `decode_step_tpot` | 149 | 149 | `3.13%` | `6.31%` | `7.91%` | `3.93%` | `0` | **`100.0%`** |
-  | `L4` | `prefill_step_ttft` | 118 | 118 | `2.88%` | `6.92%` | `9.92%` | `4.08%` | `0` | **`100.0%`** |
-
-- **7,337-Capture Multi-Tier Benchmark Dataset ([`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench))**:
-  - Aggregates **7,337 real NPU profiling captures** across `A2` (`837`), `A3` (`1,729`), and `A5` (`4,771`) hardware tiers (`6,060` Decode + `1,277` Prefill, **440,797** total step/forward samples), including **280 registered Decode cases (`100.0% <= 10%`)**, **15 registered Prefill cases (`129` explicit chunks, `100.0% <= 10%`)**, **575 unregistered DSH heldout captures (`100.0% <= 10%`)**, **1,653 Wave 5 cross-tier cases (`100.0% <= 10%`)**, and **4,072 A5 multi-node full-coverage, multi-rank, and calibration captures (`100.0%` zero-crash structural inference)**.
+  Earlier revisions reported `731/731`, `21/21`, and maximum per-step error values here. Because of historical artifact dependencies and input-identity issues, those values are not a current pass conclusion. Per-scope results (including fail, uncovered, and unknown) must carry their source, retained denominator, and failure/missing counts; the former detailed table is removed from this section.
+- **`7,337` Inventory Records ([`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench))**:
+  - Contains `731` zero-shot records and `6,606` fleet records (inventory distribution `A2: 837`, `A3: 1,729`, `A5: 4,771`), covering registered Decode/Prefill, DSH heldout, Wave 5, and A5 multi-node suites.
+  - The former `100.0% <= 10%` / `100.0%` zero-crash labels for those suites are historical reported values. Because of same-source trace aliases and target-derived inputs, they are not independent accuracy conclusions.
 - **Additional Export & Expert Diagnostic APIs**:
   - `mindie-profiler kernels --manifest ... --output-dir ...`: Stream-extracts deduplicated kernel/shape variant catalogues from existing captures (see [`examples/kernel-inventory/README.md`](./examples/kernel-inventory/README.md)).
   - `mindie-profiler camodel --trace ... --plan ... --output ...`: Offline extractor for CAModel Chrome trace micro-stage durations (tagged as `simulated`; see [`examples/camodel/README.md`](./examples/camodel/README.md)).

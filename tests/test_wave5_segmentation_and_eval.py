@@ -5,10 +5,13 @@
   _prefill_head / align recognize SparseFlashAttention/SparseFlashMla chunks and
   DP-partner EP all-to-all prefill segments (while rejecting GQA mismatches or missing
   GroupedMatmul/SwiGlu), and wave5_generalization_eval enforces strict parser_identity
-  parity, derives cohort topology from captures, and discloses regime provenance.
+  parity on chip reports it aggregates, derives cohort topology from captures,
+  and discloses regime provenance. The checked-in wave5 artifact is compared
+  to the parser identity recorded when that artifact was produced.
 [Invariants] No host environment pollution; pure in-memory unit tests (< 2s).
 [Timeouts & Locks] Synchronous in-memory checks only.
-[Side-Effect Policy] Read-only against repository reports; no filesystem mutations.
+[Side-Effect Policy] Read-only against repository reports. The helper identity
+  probe writes only under a pytest temp directory.
 """
 from __future__ import annotations
 
@@ -212,9 +215,20 @@ def test_wave5_aggregation_derives_topology_and_discloses_provenance() -> None:
     assert "`4/1/1`" in md
     assert "in_sample_regime_calibration" in md
 
+    # The stored report was produced before decode_active_event.py existed.
+    # Its stamp is the previous four-file hash: frozen decode_segmentation.py
+    # sha256 4eeea7b55840c1841d974ae4e70159c4f2bf96107909de6c1afe0a143eb8d679,
+    # communication_bounds.py, events.py, and prefill.py. That producer stamp
+    # remains mindie_profiler/0.5.5:a6f22482716871f2 on the document, each chip,
+    # and the markdown. Live PARSER_IDENTITY also hashes decode_active_event.py.
+    producing_identity = "mindie_profiler/0.5.5:a6f22482716871f2"
     report_path = ROOT / "examples" / "structure" / "results" / "wave5_full_generalization.json"
     report = json.loads(report_path.read_text(encoding="utf-8"))
-    assert report["parser_identity"] == wave5_eval.PARSER_IDENTITY
+    chips = report["chip_report_identities"]
+    assert report["parser_identity"] == producing_identity
+    assert [chips[name]["parser_identity"] for name in ("a2", "a3", "a5")] == [producing_identity] * 3
+    markdown_lines = (ROOT / "examples" / "structure" / "results" / "wave5_full_generalization.md").read_text(encoding="utf-8").splitlines()
+    assert f"`{producing_identity}`" in markdown_lines[4]
     q36_cohorts = [c for c in report["cohort_summaries"] if "a5_qwen36_tp4_mtp3" in c["cohort"]]
     assert q36_cohorts and all((c["tp"], c["dp"], c["ep"]) == (4, 1, 1) for c in q36_cohorts)
     s = report["summary"]["wave5_all"]
@@ -222,3 +236,50 @@ def test_wave5_aggregation_derives_topology_and_discloses_provenance() -> None:
     assert s["pass_10pct"] == s["count"]
     assert s["pass_rate_10pct"] == 1.0
     assert s["max_abs_error"] <= 0.10
+
+
+def test_helper_mutation_changes_live_parser_identity(tmp_path: Path) -> None:
+    """A nonempty helper edit changes identity only for the selected temp root.
+
+    The helper is the one permitted source this test reads. The other listed
+    files are symlinked, then read once by ``_parser_identity``. The checkout
+    is not copied and is not hashed a second time.
+    """
+    live = wave5_eval.PARSER_IDENTITY
+    assert live != "mindie_profiler/0.5.5:a6f22482716871f2"
+    prof_root = Path(wave5_eval.decode_segmentation.__file__).resolve().parent
+    struct_dir = wave5_eval.STRUCT_DIR
+    names = list(wave5_eval._PARSER_SOURCES)
+    assert names == [
+        "decode_segmentation.py",
+        "decode_active_event.py",
+        "communication_bounds.py",
+        "events.py",
+        "prefill.py",
+    ]
+    helper_name = "decode_active_event.py"
+    original = (prof_root / helper_name).read_bytes()
+    assert original
+    temp_prof = tmp_path / "mindie_profiler"
+    temp_struct = tmp_path / "structure"
+    temp_prof.mkdir()
+    temp_struct.mkdir()
+    for name in names:
+        source = (struct_dir if name == "prefill.py" else prof_root) / name
+        dest = (temp_struct if name == "prefill.py" else temp_prof) / name
+        if name == helper_name:
+            dest.write_bytes(original + b"\n# temp identity probe\n")
+        else:
+            dest.symlink_to(source)
+    mutated = wave5_eval._parser_identity(temp_prof, temp_struct)
+    assert mutated != live
+    assert wave5_eval.PARSER_IDENTITY == live
+    current = {"parser_identity": live}
+    wave5_eval.aggregate_chip_reports(current, dict(current), dict(current))
+    try:
+        wave5_eval.aggregate_chip_reports(
+            {"parser_identity": mutated}, dict(current), dict(current))
+    except ValueError as exc:
+        assert "chip_report_parser_identity_mismatch:a2" in str(exc)
+    else:
+        raise AssertionError("helper-mutated parser identity was accepted")

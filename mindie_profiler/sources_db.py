@@ -557,12 +557,16 @@ class DbSource:
                 for column in ("outputShapes", "outputDataTypes", "outputFormats", "opState")
             ]
             wait_expr = f"c.{self.schema.wait_column}" if self.schema.wait_column else "NULL"
+            task_columns = _columns(con, names["task"])
+            connection_expr = ("t.connectionId" if "connectionId" in task_columns
+                               else "NULL")
             sql = (
                 "SELECT t.globalTaskId, t.startNs, t.endNs, t.deviceId, t.streamId, t.taskId, "
                 "t.modelId, t.contextId, c.name, c.opType, c.taskType, "
                 + ", ".join(shape_exprs)
                 + ", " + wait_expr + " AS wait_ns, " + block + " AS block_dim, " + mix + " AS mix_block_dim, "
-                + ", ".join(output_exprs) + " "
+                + ", ".join(output_exprs)
+                + ", t.connectionId "
                 f"FROM {names['task']} t JOIN {compute} c ON c.globalTaskId = t.globalTaskId "
                 "WHERE t.endNs > ? AND t.startNs < ? ORDER BY t.startNs, t.globalTaskId LIMIT ?"
             )
@@ -634,6 +638,7 @@ class DbSource:
                         "stream_id": _as_text(row[4]),
                         "device_id": _as_text(row[3]),
                         "task_occurrences_full_capture": occurrence_count,
+                        "connection_id": _as_text(row[21]),
                     },
                 )
                 compute_events.append(event)
@@ -682,8 +687,15 @@ class DbSource:
 
             comm = names["comm"]
             if comm in self.schema.tables:
+                comm_columns = _columns(con, comm)
+                optional = {name: (name if name in comm_columns else "NULL")
+                            for name in ("connectionId", "algType", "dataType",
+                                         "count", "groupName", "rankSize")}
                 comm_sql = (
-                    "SELECT rowid, opName, opType, startNs, endNs, deviceId "
+                    "SELECT rowid, opName, opType, startNs, endNs, deviceId, "
+                    f"{optional['connectionId']}, {optional['algType']}, "
+                    f"{optional['dataType']}, {optional['count']}, "
+                    f"{optional['groupName']}, {optional['rankSize']} "
                     f"FROM {comm} WHERE endNs > ? AND startNs < ? ORDER BY startNs, rowid LIMIT ?"
                 )
                 comm_rows = con.execute(comm_sql, (window.start_ns, window.end_ns, max_rows + 1)).fetchall()
@@ -693,10 +705,58 @@ class DbSource:
                         f"{Path(self.schema.path).name}: comm window {window.label or window.step} "
                         f"exceeded row budget {max_rows}"
                     )
+                # COMMUNICATION_OP carries connectionId but not globalTaskId/
+                # stream/task.  TASK carries both.  Join the real relational
+                # key and require exactly one interval-matching TASK row.
+                task_rows = con.execute(
+                    f"SELECT connectionId, deviceId, globalTaskId, streamId, taskId, startNs, endNs "
+                    f"FROM {names['task']} WHERE endNs > ? AND startNs < ?",
+                    (window.start_ns, window.end_ns),
+                ).fetchall()
+                tasks_by_connection: dict[tuple[str, str], list[tuple]] = {}
+                for task in task_rows:
+                    key = (_as_text(task[0]), _as_text(task[1]))
+                    tasks_by_connection.setdefault(key, []).append(task)
                 for row in comm_rows:
                     if row[3] is None or row[4] is None or _as_int(row[4]) <= _as_int(row[3]):
                         stats.bad_rows += 1
                         continue
+                    connection_id = _as_text(row[6])
+                    device_id = _as_text(row[5])
+                    candidates = tasks_by_connection.get((connection_id, device_id), ())
+                    containing = [
+                        task for task in candidates
+                        if _as_int(task[5]) <= _as_int(row[3])
+                        and _as_int(task[6]) >= _as_int(row[4])
+                    ]
+                    exact = [
+                        task for task in containing
+                        if _as_int(task[5]) == _as_int(row[3])
+                        and _as_int(task[6]) == _as_int(row[4])
+                    ]
+                    bound_task = (exact or containing)[0] if len(exact or containing) == 1 else None
+                    global_task_id = _as_text(bound_task[2]) if bound_task else None
+                    stream_id = _as_text(bound_task[3]) if bound_task else ""
+                    task_id = _as_text(bound_task[4]) if bound_task else ""
+                    locator = {
+                        "source": self.schema.path,
+                        "table": comm,
+                        "rowid": _as_optional_int(row[0]),
+                        "device_id": device_id,
+                        "connection_id": connection_id,
+                        "global_task_id": global_task_id,
+                        "stream_id": stream_id,
+                        "task_id": task_id,
+                        "algorithm": _text(strings, row[7], []),
+                        "data_type": _as_optional_int(row[8]),
+                        "count": _as_optional_int(row[9]),
+                        "group_name": _text(strings, row[10], []),
+                        "rank_size": _as_optional_int(row[11]),
+                    }
+                    if bound_task is None:
+                        locator["task_join_status"] = "unresolved_no_unique_connection_task"
+                    else:
+                        locator["task_join_status"] = "connection_and_interval"
                     events.append(
                         Event(
                             rank_id="",
@@ -705,9 +765,9 @@ class DbSource:
                             op_type=_text(strings, row[2], unresolved),
                             task_type="COMMUNICATION",
                             core="COMMUNICATION",
-                            stream_id="",
-                            task_id="",
-                            device_id=_as_text(row[5]),
+                            stream_id=stream_id,
+                            task_id=task_id,
+                            device_id=device_id,
                             start_ns=_as_int(row[3]),
                             end_ns=_as_int(row[4]),
                             source_kind=self.schema.source_kind,
@@ -715,12 +775,7 @@ class DbSource:
                             wait_status="not_applicable",
                             pmu_status="not_applicable",
                             pmu_kind="not_applicable",
-                            locator={
-                                "source": self.schema.path,
-                                "table": comm,
-                                "rowid": _as_optional_int(row[0]),
-                                "device_id": _as_text(row[5]),
-                            },
+                            locator=locator,
                         )
                     )
                 stats.comm_rows = len(comm_rows)

@@ -37,7 +37,7 @@
 - **原地只读解析全系昇腾产物**：直接读取 `ascend_pytorch_profiler_*.db`（或 `output.db`）、`step_trace_time.csv`、`kernel_details.csv`、`op_summary.csv`、`operator_memory.csv`、`memory_record.csv` 与流式 `trace_view.json`，输出几 KB 的标准化 `mindie-profile-summary/1`（C7 JSON）结构化摘要。
 - **纳秒区间并集计量（Interval Union Accounting）**：使用整数纳秒区间并集与差集运算，严格区分窗口跨度（`observed_event_span_ms`）、设备真实忙时并集（`device_busy_union_ms`）、多流累加工作量（`device_activity_sum_ms`）与设备未覆盖间隙（`device_uncovered_ms`），彻底杜绝多流重叠耗时超 100%，并自动剔除窗口边界被截断算子（`clipped_event_count`）对 P50/P90 分布的污染。
 - **精准瓶颈定界与算子变体聚合**：按 `(rank_id, semantic_block, kernel_name, input_shapes, input_dtypes, input_formats)` 保留真实 Shape 变体，结合 PMU 计数器与 Host-Device 关联区分 `compute_bound`、`memory_bound`、`communication_bound`、`host_launch_bound`、`stream_sync_bound` 与 `idle_gap`。
-- **与 `mindie-sim` 共享模型结构与实测归因（`mindie-model-structure/1`）**：通过 `analyze --structure` 直接消费 `mindie-sim` 导出的模型结构与融合子图边界，将实测算子事件精准归因到模型层、结构块（Attention / MLA / GDN / KDA / MoE / mHC）与同构算子群（`cohorts`），并支持按完整拓扑自动切分 Decode / Prefill 前向窗口（`auto_segment_decode_forwards`）。详见[结构关联与全量验证示例](examples/structure/README.md)。
+- **与 `mindie-sim` 共享模型结构与实测归因（`mindie-model-structure/1`）**：通过 `analyze --structure` 直接消费 `mindie-sim` 导出的模型结构与融合子图边界，将实测算子事件精准归因到模型层、结构块（Attention / MLA / GDN / KDA / MoE / mHC）与同构算子群（`cohorts`），并支持按完整拓扑自动切分 Decode / Prefill 前向窗口（`auto_segment_decode_forwards`）。详见[结构关联与验证指南](examples/structure/README.md)。
 
 ```mermaid
 flowchart LR
@@ -109,34 +109,25 @@ flowchart LR
 | **`memory`**<br/>`mindie_profiler.memory_profile`<br/>`python3 -m mindie_profiler.weight_inspector` | **P0–P4 峰值与算子级显存归因**：融合 P0 `msprof`（`operator_memory.csv` / `memory_record.csv` / `npu_module_mem`）、P1 整卡运行时 HBM 峰值、P2 框架启动日志、P3 `safetensors` 权重头与 P4 `config.json` 理论估算，诚实报告未解释残差（Residual） | 显存采集清单、服务日志、`operator_memory.csv`、`memory_record.csv`、模型权重目录 | `mindie-memory-attribution/1` 显存归因报告（含权重、KV Cache、激活值、通信 Buffer 与残差） |
 | **`modeling-inputs`**<br/>`mindie_profiler.modeling_inputs`<br/>`python3 -m mindie_profiler.enrichment_model` | **保留的观测导出与 Roofline 对照接口**：从实测热点提取 Shape、Dtype、Layout、耗时与硬件规格，生成 `ModelingInputsBundle` 并计算单算子理想 Roofline 下界；新版 sim 不原生消费此旧输入包 | C7 剖析摘要、算子热点记录、硬件峰值规格（或 `msmodeling` 提供方） | `mindie-modeling-inputs/1` 观测包与三值对齐记录（理想下界 / 模型预测 / 实测耗时） |
 
-### 当前兼容组合：拓扑结构关联、自底向上结构推断与全量 7,337 采集算子级与单步级统一物理验证（配套 `mindie-sim 0.9.10`）
+### 当前兼容组合：结构关联、自底向上结构推断与基准证据边界（配套 `mindie-sim 0.9.10`）
 
-当前安装组合为 `mindie-profiler v0.5.11` 与 [`mindie-sim v0.9.10`](https://github.com/mindie-agent/sim)，提供从原始 Trace 到自底向上结构推断（`mindie-structural-inference/1`）、模型结构映射及四维效率归因的完整闭环，并配套开源了包含 **7,337 个真实 NPU Profiling 采集**（`A2: 837`、`A3: 1,729`、`A5: 4,771`，累计 `436,412` 个单步样本）的可复现基准测试集 [`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench)。历史全量泛化验证的数据与采样版本仍以原始记录为准（[`docs/releases/profiler-0.5.7.md`](./docs/releases/profiler-0.5.7.md)、[`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md) 与 [`examples/structure/README.md`](./examples/structure/README.md)）。
+当前安装组合为 `mindie-profiler v0.5.11` 与 [`mindie-sim v0.9.10`](https://github.com/mindie-agent/sim)，提供从原始 Trace 到自底向上结构推断（`mindie-structural-inference/1`）、模型结构映射及四维效率归因的实现路径。这些是已实现的功能；`7,337` 是清单记录数，不是这些功能的覆盖数或可比性证明。安装与兼容组合保持不变，本节只更正基准精度表述。
 
-当前评估缓存使用完整 sim Python/JSON 内容身份（`simulator_identity`）；全量 7,337 采集统一执行无目标耗时泄漏（Measurement-Blind）、零历史预测复用的实时算子级（L1 算子族 + L2 硬件执行引擎）与整网单步级（L3/L4 Step Latency）物理建模重算对比，同时明确保留各套件评估模式。
+**清单与原始证据覆盖。** 历史基准工件保留 `731` 条零样本清单记录与 `6,606` 条 fleet 清单记录，合计 `7,337` 条 **inventory records**（`A2: 837`、`A3: 1,729`、`A5: 4,771`）；全部 `7,337` 条记录继续保留。原始证据只部分可用：零样本记录中可见 `1,073` 个候选 Rank kernel 导出，其中 `6` 个是与本次测量无关的陈旧窗口；这些是候选导出，不是已验证的同 Rank 匹配。客户端请求记录覆盖 `731` 条零样本记录。Fleet 记录中，有些保留原生物理 kernel 行，有些只有 op 聚合或客户端回执。缺失的设备证据留在清单中，不用邻居 Rank 或已存正 `observed_ms` 补齐。
 
-- **全量 `7,337` 份 Profiling 算子级与单步级统一精度总表（`7,337 / 7,337` Captures / `436,412` Step Samples，全项 `100.0% <= 10%`）**：
+**已独立核对的缺失范围。** 按各自单位计：`198` 个 A5 多机导出（按每个导出计）没有同 Rank 完整 kernel timeline；fleet 中 `27` 个 service cell（按每个 cell 计）没有成功完成的请求，因而没有 completed-request L4 证据。二者分别留在清单中并标为缺失证据，不互相替代，也不从其它 Rank 或已存正 `observed_ms` 补齐。
 
-  | 评估层级 (`Category`) | 评估目标 (`Target / Dimension`) | 覆盖采集数 (`Captures`) | 实测对比数 (`Evaluated`) | 单步样本数 (`Step Samples`) | 硬件代际分布 (`A2 / A3 / A5`) | 中位误差 `err_p50` | 90 分位 `err_p90` | 最大误差 `err_max` | `>10%` 样本数 | `<=10%` 达标率 |
-  | --- | --- | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: |
-  | `L1_operator_family` | `matmul_gemm` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.83%` | `5.45%` | `8.38%` | `0` | **`100.0%`** |
-  | `L1_operator_family` | `attention` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.62%` | `5.40%` | `8.12%` | `0` | **`100.0%`** |
-  | `L1_operator_family` | `moe_routing_grouped_gemm` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.15%` | `5.27%` | `8.28%` | `0` | **`100.0%`** |
-  | `L1_operator_family` | `norm_activation_elementwise` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.73%` | `5.51%` | `8.11%` | `0` | **`100.0%`** |
-  | `L1_operator_family` | `kv_cache_position_rope` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `0.00%` | `2.48%` | `8.09%` | `0` | **`100.0%`** |
-  | `L1_operator_family` | `collective_comm` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `0.50%` | `3.70%` | `8.01%` | `0` | **`100.0%`** |
-  | `L2_accelerator_engine` | `AI_CORE` | **7,207** | **7,207** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.90%` | `5.48%` | `8.38%` | `0` | **`100.0%`** |
-  | `L2_accelerator_engine` | `AI_VECTOR_CORE` | **7,274** | **7,274** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.78%` | `5.52%` | `8.11%` | `0` | **`100.0%`** |
-  | `L2_accelerator_engine` | `MIX_AIC` | **7,184** | **7,184** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.80%` | `5.49%` | `8.06%` | `0` | **`100.0%`** |
-  | `L2_accelerator_engine` | `COMMUNICATION` | **7,063** | **7,063** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.85%` | `5.52%` | `8.28%` | `0` | **`100.0%`** |
-  | `L3_L4_step_latency` | `decode_step_tpot` | **5,962** | **5,962** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.59%` | `5.61%` | `7.98%` | `0` | **`100.0%`** |
-  | `L3_L4_step_latency` | `prefill_step_ttft` | **1,375** | **1,375** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `2.00%` | `4.28%` | `8.00%` | `0` | **`100.0%`** |
-  | `L3_L4_step_latency` | `all_7337_captures_step_e2e` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `1.79%` | `5.47%` | `8.00%` | `0` | **`100.0%`** |
-  | `structural_inference` | `mindie_structural_inference_v1` | **7,337** | **7,337** | 436,412 | `A2:837, A3:1,729, A5:4,771` | `0.00%` | `0.00%` | `0.00%` | `0` | **`100.0%`** |
+**历史精度数字的更正。** 本 README 早期版本曾把这些清单称为 `7,337` 个真实 NPU Profiling 采集，并发布全项 `100.0% <= 10%`、`731/731` 与 `21/21` 等总表。该历史基准工件的行内包含目标派生输入：预测需求、由实测家族占比归一化得到的结构权重、克隆的算子耗时，以及重复/重叠的采集来源。这些旧数值是历史工件结果，不是独立精度证据，也不代表当前模型能力；上述旧总表已从本节移除。
+
+**按层输入。** L1 使用同 Rank `kernel_details.csv` 的算子行（Name、Type、Accelerator Core、Start/Duration、Shape/Dtype 与 per-pipe 时间）；L2 的逐 Step 归因需使用同 Rank 逐 kernel 行按 typed operator（算子类型）× native core 聚合，`op_statistic.csv` 的整段聚合只能作总量核对，不能据此推导逐 Step L2；通信量只从 `kernel_details.csv` 的 `COMMUNICATION` 行取得（`op_statistic.csv` 不含 HCCL）。L3 需要独立匹配的原生 Rank/forward 窗口，用 kernel Start/End 时间确定边界；sampler marker 只表示候选采样边界，不能证明完整原始逐 Step 边界，`step_trace_time.csv` 也只是聚合；per-forward 观测必须标明是 elapsed 窗口跨度还是 additive 算子质量和，两者不可互换。L4 使用原始 producer 请求范围的客户端记录（`bin/bench_cell.py` 的 SSE `streams[]`：`ttft_s`、`e2e_s`、`completion_tokens`；fleet 使用 `request_summary.csv`）。原始 producer 请求范围与 L1–L3 的独立匹配原生 Rank/forward/typed operator 边界是两套口径；未建立请求到 forward 的映射时不得直接比较。只靠 `kernel_details.csv` / `op_summary.csv` 不足以验证 L4。
+
+**可发布的独立结果。** 当前没有经过独立验证的全局严格通过结果。独立获得的通过、失败、未覆盖或未知结果都可按范围发布，并附保留分母与失败/缺失计数；输入身份或边界无法独立确认时，应标为未知/未覆盖，而不是推断为通过。预测派生或按时序邻近选取的诊断不作为独立结果。
+
+**复现入口。** `scripts/hf_profiling_benchmark.py --evaluate --strict-10pct` 按原始清单 ID 计数并读取独立观测；`--strict-10pct` 只表示严格门禁模式，不构成已通过的证据。历史发布说明（[`docs/releases/profiler-0.5.7.md`](./docs/releases/profiler-0.5.7.md)、[`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md)）保留原始上下文与数值。回放管线与证据格式见 [`examples/structure/README.md`](./examples/structure/README.md)；该文档中的历史/当前结果摘要同样受本节证据边界约束，不能单独作为独立精度证据。
 
 - **自底向上无先验结构推断（`mindie-structural-inference/1`）**：
   - `mindie_profiler.structural_inference.infer_trace_structure` 直接从实测算子事件流自底向上执行复合算子融合识别（`fused_composites`）、L2 子图语法归并（Attention / MLA / GDN-KDA / MoE / Dense FFN / Norm+Residual）、最长重复层周期检测（`body_topology`）与投机解码草稿头分离（`speculative_module`）。
-  - 在全量 **7,337 个跨代际真实采集**（`A2: 837`、`A3: 1,729`、`A5: 4,771`）上达成 **`7,337 / 7,337`（`100.0%`，`0` 崩溃）** 结构推断通过率。
+  - 结构推断是已实现的功能，但其覆盖不等于 `7,337` 条清单记录；未覆盖记录保留在清单中，通过/零崩溃状态不能继承旧的全量 `100.0%` 数字。
 - **拓扑驱动的结构映射（`analyze --structure`）**：
   ```bash
   mindie-profiler analyze --root <profile_dir> --structure <structure.json> \
@@ -151,42 +142,18 @@ flowchart LR
     --markdown examples/structure/results/efficiency_and_sla.md
   ```
   一键生成整网与子图四维效率（`Cube_MFU`、`Vec_MFU`、`MBU`、`Link_Util`、`CV_Overlap`）、`0.80x MBU` 反事实优化收益及 `30 ms` Decode SLA 下各硬件缩放场景（`2x HBM`、`2x Compute` 等）的最大吞吐报告。
-- **四级（L1 算子机制 $\to$ L2 子图 $\to$ L3 整网 Step Trace $\to$ L4 服务 TTFT/TPOT）零样本单步分段连续物理验证（`21/21` 项 `100.0% <= 10%`）**：
+- **四级（L1 算子机制 $\to$ L2 子图/引擎 $\to$ L3 整网 Step Trace $\to$ L4 服务 TTFT/TPOT）零样本单步分段验证入口（尚无独立验证的全局通过）**：
   ```bash
-  # 运行零样本 L1-L4 单步分段连续物理验证（731/731 有效 Cell / 40,921 个单步样本，forbidden_lookup_imported=False）
+  # 零样本 L1-L4 单步分段验证入口；保留完整分母运行
   PYTHONPATH=src:/path/to/sim python3 examples/structure/zero_shot_piecewise_validation.py --no-historical
 
-  # 一键评估并严格门禁校验 7,337 采集 HuggingFace 基准集（要求全部 21 项 L1-L4 与可比套件 0 个 >10% 样本）
+  # 严格清单门禁入口；按原始清单 ID 与独立观测计分
   PYTHONPATH=src:/path/to/sim python3 scripts/hf_profiling_benchmark.py --evaluate --strict-10pct
   ```
-  在 **731 个实测 Kernel Trace Cell（`731/731` 全量评估，`failed == 0`，`skipped == {}`）、40,921 个逐 Step 评估样本**上，全部 **21 个评估目标（13 个 L1 算子机制、4 个 L2 子图、2 个 L3 整网 Step Trace、2 个 L4 服务指标）均达成 `100.0%` 单步误差 `<= 10%`（`above_10pct == 0`，最大单步误差 `step_err_max <= 9.97%`，无正负抵消绝对误差中位数 `uncancelled_p50 <= 4.79%`）**：
-
-  | 层级 | 评估目标 (`target`) | 单步样本数 (`samples`) | 覆盖 Cell 数 (`cells`) | 单步误差 `P50` | 单步误差 `P90` | 单步最大误差 (`step_err_max`) | 无抵消绝对误差 (`uncancelled_p50`) | `>10%` 样本数 | `<=10%` 达标率 |
-  | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-  | `L1` | `activation` | 731 | 731 | `1.48%` | `5.75%` | `9.41%` | `1.48%` | `0` | **`100.0%`** |
-  | `L1` | `attention` | 731 | 731 | `1.15%` | `4.47%` | `9.21%` | `1.15%` | `0` | **`100.0%`** |
-  | `L1` | `collective` | 731 | 731 | `1.62%` | `6.07%` | `9.28%` | `1.62%` | `0` | **`100.0%`** |
-  | `L1` | `elementwise_quant` | 731 | 731 | `0.81%` | `7.02%` | `9.80%` | `0.81%` | `0` | **`100.0%`** |
-  | `L1` | `gdn_kda` | 275 | 275 | `3.52%` | `6.31%` | `8.30%` | `3.52%` | `0` | **`100.0%`** |
-  | `L1` | `gemm` | 731 | 731 | `1.70%` | `7.46%` | `8.98%` | `1.70%` | `0` | **`100.0%`** |
-  | `L1` | `hyperconnection` | 214 | 214 | `0.36%` | `4.74%` | `8.38%` | `0.36%` | `0` | **`100.0%`** |
-  | `L1` | `indexer` | 456 | 456 | `0.45%` | `2.00%` | `8.37%` | `0.45%` | `0` | **`100.0%`** |
-  | `L1` | `kv_cache` | 731 | 731 | `1.34%` | `5.51%` | `9.97%` | `1.34%` | `0` | **`100.0%`** |
-  | `L1` | `moe_grouped` | 573 | 573 | `0.98%` | `4.90%` | `9.89%` | `0.98%` | `0` | **`100.0%`** |
-  | `L1` | `moe_router` | 573 | 573 | `0.94%` | `3.18%` | `7.67%` | `0.94%` | `0` | **`100.0%`** |
-  | `L1` | `norm_residual` | 731 | 731 | `1.45%` | `5.15%` | `8.62%` | `1.45%` | `0` | **`100.0%`** |
-  | `L1` | `rope` | 456 | 456 | `0.39%` | `1.45%` | `6.55%` | `0.39%` | `0` | **`100.0%`** |
-  | `L2` | `attention` | 731 | 731 | `1.03%` | `3.95%` | `7.40%` | `1.31%` | `0` | **`100.0%`** |
-  | `L2` | `hyperconnection` | 214 | 214 | `0.36%` | `4.74%` | `8.38%` | `0.36%` | `0` | **`100.0%`** |
-  | `L2` | `moe` | 731 | 731 | `1.88%` | `5.61%` | `9.41%` | `2.24%` | `0` | **`100.0%`** |
-  | `L2` | `norm_residual` | 731 | 731 | `1.45%` | `5.15%` | `8.62%` | `1.45%` | `0` | **`100.0%`** |
-  | `L3` | `decode_step_trace` | 30,261 | 409 | `3.66%` | `6.00%` | `9.72%` | `4.79%` | `0` | **`100.0%`** |
-  | `L3` | `prefill_step_trace` | 322 | 322 | `3.09%` | `6.81%` | `9.79%` | `4.50%` | `0` | **`100.0%`** |
-  | `L4` | `decode_step_tpot` | 149 | 149 | `3.13%` | `6.31%` | `7.91%` | `3.93%` | `0` | **`100.0%`** |
-  | `L4` | `prefill_step_ttft` | 118 | 118 | `2.88%` | `6.92%` | `9.92%` | `4.08%` | `0` | **`100.0%`** |
-
-- **全量 7,337 采集多代际基准集（[`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench)）**：
-  - 汇总 `A2`（`837`）、`A3`（`1,729`）、`A5`（`4,771`）三代硬件共 **7,337 个真实 Profiling 采集**（Decode `6,060` + Prefill `1,277`，累计 **440,797** 个 Step / 前向样本），包含 **280 个已注册 Decode 场景（`100.0% <= 10%`）**、**15 个已注册 Prefill 场景（129 个显式 Chunk，`100.0% <= 10%`）**、**575 个未注册 DSH 留出场景（`100.0% <= 10%`）**、**1,653 个 Wave 5 跨代际场景（`100.0% <= 10%`）** 以及 **4,072 个 A5 多机全覆盖、多 Rank 与算子校准采集（`100.0%` 零崩溃结构推断）**。
+  早期版本在此报告 `731/731`、`21/21` 与最大单步误差等数值。由于历史工件依赖与输入身份问题，这些数值不构成当前通过结论。按范围发布的结果（包括失败、未覆盖与未知）需附来源、保留分母与失败/缺失计数；原全量明细表已从本节移除。
+- **`7,337` 条清单记录（[`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench)）**：
+  - 包含 `731` 条零样本记录与 `6,606` 条 fleet 记录（`A2: 837`、`A3: 1,729`、`A5: 4,771` 为清单分布），覆盖注册 Decode/Prefill、DSH 留出、Wave 5 与 A5 多机等套件。
+  - 旧版对这些套件分别标注的 `100.0% <= 10%`、`100.0%` 零崩溃等是历史报告值；由于同源 trace 别名与目标派生输入问题，它们不是独立精度结论。
 - **补充工具与专家诊断接口**：
   - `mindie-profiler kernels --manifest ... --output-dir ...`：流式整理已有 Profiling 中的去重 Kernel / Shape 变体清单（参见 [`examples/kernel-inventory/README.md`](./examples/kernel-inventory/README.md)）。
   - `mindie-profiler camodel --trace ... --plan ... --output ...`：离线解析开发期 CAModel Chrome Trace 的微阶段耗时（保留 `simulated` 标记，参见 [`examples/camodel/README.md`](./examples/camodel/README.md)）。

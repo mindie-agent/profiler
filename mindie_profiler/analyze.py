@@ -27,12 +27,16 @@
 
 from __future__ import annotations
 
+import json
 import math
 import time
 from pathlib import Path
-from typing import Any, Iterable, Sequence
+from typing import Any, Iterable, Mapping, Sequence
 
 from .accounting import account_window
+from .pmu_derivation import (
+    R64_IMAGE_SHA, R35_IMAGE_SHA, deployment_source_identity, image_digest,
+)
 from .classify import apply as classify_events
 from .enrichment import enrich_report
 from .events import (
@@ -336,6 +340,43 @@ def _observations_for_rank(
     return source, observations
 
 
+_DEPLOYMENT_STATUS_ANCESTORS = 6
+
+
+def _capture_deployment_image(root: str | Path) -> tuple[str | None, str]:
+    """Read the nearest same-capture status.json prepare record, bounded."""
+    here = Path(root)
+    if here.is_file():
+        here = here.parent
+    for depth, ancestor in enumerate((here, *here.parents)):
+        if depth > _DEPLOYMENT_STATUS_ANCESTORS:
+            break
+        path = ancestor / "status.json"
+        if not path.is_file():
+            continue
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return None, "invalid_capture_status"
+        digests = set()
+        for item in data.get("prepare") or ():
+            if not isinstance(item, dict):
+                continue
+            if item.get("created") is False or item.get("success") is False:
+                continue
+            digest = image_digest(
+                item.get("image_id") or item.get("oci_image_digest")
+                or item.get("deployment_image_id"))
+            if digest:
+                digests.add(digest)
+        if len(digests) == 1:
+            return next(iter(digests)), "capture_status_prepare"
+        if len(digests) > 1:
+            return None, "ambiguous_capture_prepare"
+        return None, "capture_status_without_prepare"
+    return None, "absent"
+
+
 def analyze_profile(
     root: str | Path,
     *,
@@ -350,6 +391,9 @@ def analyze_profile(
     csv_timeout_s: float = 30.0,
     group_by: str = "variant",
     request_wall_ms: float | None = None,
+    aic_count: int | None = None,
+    deployment_image_id: str | None = None,
+    sparse_geometry: Mapping[str, Any] | None = None,
     scene: dict[str, Any] | None = None,
     model_provider: Any | None = None,
     model_inputs: Any | None = None,
@@ -396,6 +440,10 @@ def analyze_profile(
         ):
             raise ProfilerUsageError("request_wall_ms must be a finite non-negative number")
         request_wall_ns = int(round(float(request_wall_ms) * 1_000_000))
+    if aic_count is not None and (
+        isinstance(aic_count, bool) or not isinstance(aic_count, int) or aic_count <= 0
+    ):
+        raise ProfilerUsageError("aic_count must be a positive integer")
     selected_windows = _normalize_windows(windows)
     validate_selection(selected_windows, full_range=full_range)
     requested_steps = sorted({window.step for window in selected_windows if window.step is not None})
@@ -508,6 +556,16 @@ def analyze_profile(
         top_n=top_n,
         group_by=group_by,
     )
+    status_digest, status_basis = _capture_deployment_image(root)
+    if status_digest:
+        source_identity = deployment_source_identity(
+            status_digest, basis=status_basis)
+    elif deployment_image_id:
+        source_identity = deployment_source_identity(
+            deployment_image_id, basis="user_declared")
+    else:
+        source_identity = deployment_source_identity(
+            None, basis=status_basis)
     report = enrich_report(
         report,
         observations=observations,
@@ -517,7 +575,11 @@ def analyze_profile(
         model_inputs=model_inputs,
         model_hardware=model_hardware,
         steady_config=steady_config,
+        physical_owners=aic_count,
+        source_identity=source_identity,
+        sparse_geometry=sparse_geometry,
     )
+    report["enrichment"]["deployment_source"] = dict(source_identity)
     if structure is not None:
         from .structure_mapping import map_structure
 
@@ -528,6 +590,9 @@ def analyze_profile(
             max_events=max_mapping_events,
             phase=(scene or {}).get("phase"),
         )
+    from .collective_readiness import read_collective_readiness
+    report["collective_readiness"] = read_collective_readiness(
+        root, source=source, ranks=[item.rank_id for item in sources])
     if output is not None:
         write_report(report, output)
     return report

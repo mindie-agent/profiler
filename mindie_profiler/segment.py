@@ -60,18 +60,41 @@ class RankSource:
     trace_candidates: tuple[str, ...] = ()
 
 
+def _rank_text(rank_dir: Path) -> str | None:
+    """Find the rank label in the bundle path, not only the profiler leaf.
+
+    Real bundles use ``.../rank0/profile/<export-hash>/ASCEND_PROFILER_OUTPUT``;
+    the leaf and host label are not the physical rank.  The nearest rank-named
+    ancestor (up to three levels) is the bundle's declared rank.
+    """
+    for base in (rank_dir, *list(rank_dir.parents)[:3]):
+        for pattern in _RANK_PATTERNS:
+            match = pattern.search(base.name)
+            if match:
+                return match.group(1)
+    return None
+
+
 def infer_rank_id(rank_dir: Path, ordinal: int = 0) -> str:
-    text = rank_dir.name
+    text = _rank_text(rank_dir) or rank_dir.name
     for pattern in _RANK_PATTERNS:
         match = pattern.search(text)
         if match:
-            return _SAFE_RE.sub("_", match.group(1)).strip("_").lower()
+            value = match.group(1)
+            simple = re.fullmatch(r"(?i)rank[_-]?(\d+)", value)
+            if simple:
+                return f"rank_{int(simple.group(1))}"
+            return _SAFE_RE.sub("_", value).strip("_").lower()
     safe = _SAFE_RE.sub("_", text).strip("_").lower()
     return safe or f"rank_{ordinal}"
 
 
-def infer_rank_index(rank_dir_text: str) -> int | None:
-    matches = _INDEX_RE.findall(rank_dir_text)
+def infer_rank_index(rank_dir_text: str | Path) -> int | None:
+    if isinstance(rank_dir_text, Path):
+        text = _rank_text(rank_dir_text) or rank_dir_text.name
+    else:
+        text = rank_dir_text
+    matches = _INDEX_RE.findall(text)
     return int(matches[-1]) if matches else None
 
 
@@ -140,7 +163,7 @@ def _source_for_dir(
     explicit_file: Path | None = None,
 ) -> RankSource | None:
     rank_id = infer_rank_id(rank_dir, ordinal)
-    rank_index = infer_rank_index(rank_dir.name)
+    rank_index = infer_rank_index(rank_dir)
     db_path, notes, db_candidates = _find_db(rank_dir)
     csv_candidates = find_csv_candidates(rank_dir)
     csv_path = csv_candidates[0] if len(csv_candidates) == 1 else None

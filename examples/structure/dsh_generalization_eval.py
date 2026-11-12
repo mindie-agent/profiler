@@ -444,14 +444,35 @@ def _sim_identity() -> str:
     return simulator_identity(mindie_sim)
 
 
-def _parser_identity() -> str:
-    prof_root = Path(auto_segment_decode_forwards.__code__.co_filename).resolve().parent
-    h = sha256(PARSER_VERSION.encode("utf-8"))
-    for name in ("decode_segmentation.py", "communication_bounds.py", "events.py"):
+# DSH extraction namespace. Segmentation, the active-event helper it executes,
+# then the original communication and event sources. The helper is inserted
+# after decode_segmentation.py so the other names keep their previous order.
+# prefill.py remains in the wave5 identity. This digest stays on serializer v3.
+_PARSER_SOURCES = (
+    "decode_segmentation.py",
+    "decode_active_event.py",
+    "communication_bounds.py",
+    "events.py",
+)
+
+
+def _parser_identity(prof_root: Path | None = None) -> str:
+    """Hash PARSER_VERSION and the DSH parser sources, in canonical order.
+
+    The default root is the file that defines auto_segment_decode_forwards.
+    Callers may pass an isolated root. Each listed file is read once. A missing
+    or empty file is not skipped.
+    """
+    if prof_root is None:
+        prof_root = Path(auto_segment_decode_forwards.__code__.co_filename).resolve().parent
+    digest = sha256(PARSER_VERSION.encode("utf-8"))
+    for name in _PARSER_SOURCES:
         mod_path = prof_root / name
-        if mod_path.exists():
-            h.update(mod_path.read_bytes())
-    return f"{PARSER_VERSION}:{h.hexdigest()[:16]}"
+        payload = mod_path.read_bytes()
+        if not payload:
+            raise ValueError(f"parser source is empty: {mod_path}")
+        digest.update(payload)
+    return f"{PARSER_VERSION}:{digest.hexdigest()[:16]}"
 
 
 SIM_IDENTITY = _sim_identity()

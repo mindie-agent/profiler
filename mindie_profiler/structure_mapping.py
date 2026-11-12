@@ -53,16 +53,132 @@ def _union_ns(intervals):
     return sum(right - left for left, right in merge_intervals(intervals))
 
 
-def _verify_graph_id(structure):
-    payload = {key: value for key, value in structure.items() if key not in {"graph_id", "source"}}
+_DTYPE_TOKENS = {
+    "DT_BF16": "bf16", "DT_FLOAT16": "fp16", "DT_FLOAT": "fp32",
+    "DT_INT8": "int8", "DT_INT32": "int32", "DT_UINT8": "uint8",
+    "DT_UINT32": "uint32", "DT_BOOL": "bool", "DT_DOUBLE": "fp64",
+}
+
+
+def _event_signature(event):
+    """Parsed shape/dtype lanes of a captured/predicted event, or None.
+
+    Used only to stop a declared native call from aliasing an event whose
+    tensor signature disagrees.  It is not occurrence evidence.
+    """
+    def shapes(text):
+        rows = []
+        for part in (text or "").split(";"):
+            part = part.strip()
+            if not part:
+                continue
+            try:
+                rows.append(tuple(int(value) for value in part.split(",") if value.strip()))
+            except ValueError:
+                return None
+        return tuple(rows)
+
+    def dtypes(text):
+        rows = []
+        for part in (text or "").split(";"):
+            part = part.strip()
+            if not part:
+                continue
+            rows.append(_DTYPE_TOKENS.get(part, part.lower().removeprefix("dt_")))
+        return tuple(rows)
+
+    inputs, outputs = shapes(event.input_shapes), shapes(event.output_shapes)
+    input_dtypes, output_dtypes = dtypes(event.input_dtypes), dtypes(event.output_dtypes)
+    if inputs is None or outputs is None or not (inputs or outputs):
+        return None
+    if not (input_dtypes or output_dtypes):
+        return None
+    return (*inputs, *outputs), (*input_dtypes, *output_dtypes)
+
+
+def _event_raw_identity(event):
+    """Signed raw task identity used for one HCCL call's rank-local aliases."""
+    locator = event.locator or {}
+    global_task = locator.get(
+        "global_task_id", locator.get("globalTaskId", locator.get("task_global_id")))
+    connection = locator.get("connection_id", locator.get("connectionId"))
+    if global_task is None or connection is None:
+        return None
+    return (str(event.rank_id), str(global_task), str(event.stream_id),
+            str(event.task_id), str(connection), str(event.device_id),
+            str(event.start_ns), str(event.end_ns))
+
+
+def _event_inputs(event):
+    """First-input role descriptor: dtype/shape of the tensor actually consumed."""
+    raw_shapes = [part.strip() for part in (event.input_shapes or "").split(";")
+                  if part.strip()]
+    raw_dtypes = [part.strip() for part in (event.input_dtypes or "").split(";")
+                  if part.strip()]
+    if not raw_shapes or not raw_dtypes:
+        return None
+    try:
+        shape = tuple(int(value) for value in raw_shapes[0].split(",") if value.strip())
+    except ValueError:
+        return None
+    dtype = _DTYPE_TOKENS.get(raw_dtypes[0],
+                              raw_dtypes[0].lower().removeprefix("dt_"))
+    return shape, dtype
+
+
+def _native_call_signature_match(binding, event):
+    """True/False when an event descriptor exists, None when unavailable."""
+    signature = _event_signature(event)
+    if signature is None:
+        return None
+    shapes, dtypes = signature
+    typed = binding.get("typed") or {}
+    declared_dtype = typed.get("dtype")
+    declared_shapes = [
+        tuple(value) for value in (typed.get("shapes") or {}).values()
+        if isinstance(value, (list, tuple)) and value
+    ]
+    if declared_dtype is not None and declared_dtype not in dtypes:
+        return False
+    if not declared_shapes:
+        return False
+    inputs = _event_inputs(event)
+    if inputs is not None:
+        input_shape, input_dtype = inputs
+        if declared_dtype is not None and input_dtype != declared_dtype:
+            return False
+        # The first consumed tensor role must itself be the declared geometry;
+        # an unrelated tensor that happens to share a shape cannot alias it.
+        return any(declared == input_shape for declared in declared_shapes)
+    # No input role descriptor: only exact shapes may correspond.
+    return any(declared == observed
+               for declared in declared_shapes for observed in shapes)
+
+
+def _seal_digest(payload):
     digest = sha256()
     encoder = json.JSONEncoder(sort_keys=True, separators=(",", ":"), allow_nan=False)
     for chunk in encoder.iterencode(payload):
         digest.update(chunk.encode("utf-8"))
-    expected = "sha256:" + digest.hexdigest()
-    if structure.get("graph_id") != expected:
-        raise ProfilerUsageError("structure graph_id does not match its contents; re-export the structure")
-    return expected
+    return "sha256:" + digest.hexdigest()
+
+
+def _verify_graph_id(structure):
+    declared = structure.get("graph_id")
+    # Current exports exclude derived native-call evidence from the structural
+    # identity.  Older callers sealed every key except source/graph_id; accept
+    # that documented historical seal too instead of rejecting a valid bundle.
+    current = _seal_digest({key: value for key, value in structure.items()
+                            if key not in {"graph_id", "source", "native_calls",
+                                           "native_call_coverage"}})
+    if declared == current:
+        return current
+    legacy = _seal_digest({key: value for key, value in structure.items()
+                           if key not in {"graph_id", "source"}})
+    if declared == legacy:
+        return declared
+    raise ProfilerUsageError(
+        "structure graph_id does not match its contents; re-export the structure")
 
 
 def _task_key(rank, task):
@@ -161,7 +277,9 @@ class StructureMapper:
             self.nodes[node_id] = node
         if not self.nodes:
             raise ProfilerUsageError("structure has no nodes")
-        self.target_index = StructureTargets(self.nodes, self.structure.get("subgraphs", ()))
+        self.target_index = StructureTargets(
+            self.nodes, self.structure.get("subgraphs", ()),
+            self.structure.get("native_calls"))
         self.targets = self.target_index.all
         self.subgraphs = self.target_index.subgraphs
         self.contracts = defaultdict(list)
@@ -179,6 +297,8 @@ class StructureMapper:
         self.diagnostic_counts = Counter()
         self.diagnostics = {}
         self.implementation_correspondences = {}
+        self.hccl_occurrences = {}
+        self.hccl_presentation_counts = Counter()
         self.explicit = {}
         self.host_scopes = defaultdict(set)
         self.module_scopes = {}
@@ -282,14 +402,73 @@ class StructureMapper:
             and (stage is None or str(self.targets[key].get("stage")) == stage)
         ]
 
-    def _implementation_correspondence(self, kind, rank):
-        key = kind, rank
-        if key not in self.implementation_correspondences:
+    def _implementation_correspondence(self, kind, rank, event=None):
+        signature = _event_signature(event) if event is not None else None
+        raw = _event_raw_identity(event) if event is not None else None
+        key = (kind, rank, _freeze(signature) if signature is not None else None,
+               raw)
+        if key in self.implementation_correspondences:
+            return self.implementation_correspondences[key]
+        targets = []
+        basis = "declared_native_implementation"
+        signature_match = None
+        if raw is not None:
+            targets = self._rank_candidates(
+                self.target_index.native_call_observed.get(raw, ()), rank)
+            if targets:
+                basis = "observed_hccl_alias_same_call"
+                signature_match = True
+        if not targets:
             targets = self._rank_candidates(
                 self.target_index.native_implementations.get(kind, ()), rank)
-            self.implementation_correspondences[key] = (
-                self.target_index.describe_implementation(kind, targets) if targets else None)
-        return self.implementation_correspondences[key]
+        if not targets:
+            # BIND1 native-call names (wrapper entry and declared child launch)
+            # resolve through the normal mapper only when the event descriptor
+            # agrees with the declared typed signature.  A name alone is never
+            # enough to make a correspondence.
+            candidates = self._rank_candidates(
+                [*self.target_index.native_call_entries.get(kind, ()),
+                 *self.target_index.native_call_kernels.get(kind, ())], rank)
+            if event is not None:
+                targets = [
+                    node for node in candidates
+                    if _native_call_signature_match(
+                        self.target_index.native_bindings[node], event) is True
+                ]
+                signature_match = bool(targets)
+            else:
+                targets = candidates
+            basis = "declared_native_call_signature" if event is not None else (
+                "declared_native_call_no_event")
+        if targets:
+            description = self.target_index.describe_implementation(kind, targets)
+            description.update(
+                basis=basis,
+                rank=rank,
+                observed_signature=(
+                    {"shapes": [list(shape) for shape in signature[0]],
+                     "dtypes": list(signature[1])} if signature is not None else None),
+                raw_identity=(
+                    {"rank_id": raw[0], "global_task_id": raw[1],
+                     "stream_id": raw[2], "task_id": raw[3],
+                     "connection_id": raw[4], "device_id": raw[5],
+                     "start_ns": raw[6], "end_ns": raw[7]}
+                    if raw is not None else None),
+                signature_match=signature_match,
+                # Raw task identity is occurrence evidence for this signed HCCL
+                # packet; tensor-only correspondence remains non-occurrence and
+                # prepare-only, never a measured hardware proof.
+                observed_proof=(basis == "observed_hccl_alias_same_call"),
+                prepare_only_control=(basis != "observed_hccl_alias_same_call"),
+                occurrence_binding_implied=(basis == "observed_hccl_alias_same_call"),
+            )
+            call = description.get("native_call") or {}
+            if call.get("call_id"):
+                description["call_ids"] = [call["call_id"]]
+        else:
+            description = None
+        self.implementation_correspondences[key] = description
+        return description
 
     def _host_candidates(self, event, source_key):
         scopes = []
@@ -443,6 +622,7 @@ class StructureMapper:
         cohorts = CohortAccumulator(
             self.graph_id, self.target_index, observation,
             execution=self.structure.get("execution"))
+        window_sample = []
         for event in observation.events if events is None else events:
             interval = event.clipped(observation.window.start_ns, observation.window.end_ns)
             if interval is None:
@@ -490,8 +670,37 @@ class StructureMapper:
             if diagnostic is not None:
                 diagnostic_counts[diagnostic["category"]] += 1
                 self.diagnostic_counts[diagnostic["category"]] += 1
+            raw_identity = _event_raw_identity(event)
             correspondence = self._implementation_correspondence(
-                event.op_type, observation.rank_id)
+                event.op_type, observation.rank_id, event=event)
+            native_identity = None
+            if (correspondence is not None
+                    and correspondence.get("basis") == "observed_hccl_alias_same_call"):
+                native_identity = "observed_raw_identity"
+            elif (raw_identity is None
+                    and (event.op_type in self.target_index.native_call_alias_names
+                         or event.name in self.target_index.native_call_alias_names)):
+                native_identity = "unresolved_alias_without_relational_keys"
+            native_occurrence = None
+            if (correspondence is not None
+                    and correspondence.get("basis") == "observed_hccl_alias_same_call"):
+                raw = raw_identity
+                call = correspondence.get("native_call") or {}
+                presentation_id = f"{event.event_id}:{event.op_type}"
+                primary = self.hccl_occurrences.setdefault(raw, presentation_id)
+                presentation = self.hccl_presentation_counts[raw] + 1
+                self.hccl_presentation_counts[raw] = presentation
+                native_occurrence = {
+                    "call_id": call.get("call_id"),
+                    "raw_identity": dict(correspondence.get("raw_identity") or {}),
+                    "charge": "call",
+                    "call_owner": (call.get("timing_owner") or {}).get("op_id"),
+                    "primary_presentation": primary,
+                    "alias_of": None if presentation_id == primary else primary,
+                    "presentation_id": presentation_id,
+                    "presentation_index": presentation,
+                    "occurrence_key": list(raw) if raw is not None else None,
+                }
             operator = operators.setdefault(event.op_type, {
                 "operator_type": event.op_type, "event_count": 0,
                 "activity_sum_ns": 0, "complete_activity_sum_ns": 0,
@@ -588,7 +797,7 @@ class StructureMapper:
                 normalized = row_from_event(event)
                 retain_native = (event.op_type in NATIVE_BODY_TYPES
                                  and (contract is None or contract[0] != "native_tensor_abi"))
-                self.sample.append({
+                row = {
                     "event_id": event.event_id, "rank_id": observation.rank_id,
                     "step": observation.window.step, "window": observation.window.label,
                     "kernel_name": event.name, "operator_type": event.op_type,
@@ -604,13 +813,45 @@ class StructureMapper:
                     "candidate_count": len(candidates), "basis": basis, "evidence": evidence,
                     "candidate_refinement": refinement,
                     "implementation_correspondence": correspondence,
+                    "native_call_identity": native_identity,
+                    "native_call_occurrence": native_occurrence,
                     "structural_classification": classification,
                     "observed_contract": contract,
                     "observed_contract_scope": observed_contract_scope(normalized),
                     "observed_native_tensor_abi": (
                         native_tensor_contract(normalized) if retain_native else None),
                     "diagnostic": diagnostic,
-                })
+                }
+                self.sample.append(row)
+                window_sample.append(row)
+        hccl_groups = defaultdict(list)
+        for row in window_sample:
+            occurrence = row.get("native_call_occurrence")
+            if occurrence and occurrence.get("occurrence_key") is not None:
+                hccl_groups[tuple(occurrence["occurrence_key"])].append(row)
+        native_calls = []
+        for key, rows in hccl_groups.items():
+            presentations = [row["native_call_occurrence"]["presentation_id"]
+                             for row in rows]
+            for row in rows:
+                row["native_call_occurrence"].update(
+                    presentations=presentations,
+                    presentation_count=len(presentations))
+            occurrence = rows[0]["native_call_occurrence"]
+            starts = [row["clipped_start_ns"] for row in rows]
+            ends = [row["clipped_end_ns"] for row in rows]
+            native_calls.append({
+                "call_id": occurrence.get("call_id"),
+                "rank_id": key[0],
+                "raw_identity": occurrence.get("raw_identity"),
+                "charge": "call",
+                "call_owner": occurrence.get("call_owner"),
+                "presentation_count": len(presentations),
+                "presentations": presentations,
+                "representative_event_id": rows[0]["event_id"],
+                "activity_ns": max(ends) - min(starts),
+                "accounting_basis": "one_call_alias_union_not_sum_of_presentations",
+            })
         for record in [*nodes.values(), *subgraphs.values(), *layers.values(), *blocks.values(),
                        *structural_groups.values()]:
             record["busy_union_ns"] = _union_ns(record.pop("_intervals"))
@@ -654,10 +895,16 @@ class StructureMapper:
                 set(self._rank_candidates(self.nodes, observation.rank_id)) - covered_nodes),
             "unobserved_subgraph_ids": sorted(
                 set(self._rank_candidates(self.subgraphs, observation.rank_id)) - set(subgraphs)),
+            "native_calls": native_calls, "native_call_count": len(native_calls),
         }
 
     def finish(self, windows):
         unused = sorted(set(self.explicit) - self.used_bindings)
+        native_calls = [call for window in windows
+                        for call in window.get("native_calls", ())]
+        native_identity_counts = Counter(
+            row.get("native_call_identity") for row in self.sample
+            if row.get("native_call_identity") is not None)
         cohort_count = sum(
             group["event_count"] for window in windows for group in window["cohorts"])
         return {
@@ -676,6 +923,8 @@ class StructureMapper:
             "module_evidence": self.module_evidence.summaries if self.module_evidence else [],
             "event_mappings": self.sample, "retained_event_mappings": len(self.sample),
             "event_mappings_truncated": self.examined > len(self.sample),
+            "native_calls": native_calls, "native_call_count": len(native_calls),
+            "native_call_identity_counts": dict(native_identity_counts),
             "unused_explicit_event_ids": unused,
             "semantics": {
                 "structure": "declared; absence of a measured event does not prove nonexecution",

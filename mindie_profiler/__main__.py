@@ -66,6 +66,14 @@ def _add_analyze_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--hash", action="store_true", help="compute content SHA256 for source identity")
     parser.add_argument("--no-hash", dest="hash", action="store_false", help=argparse.SUPPRESS)
     parser.add_argument("--request-wall-ms", type=float, default=None, help="external request wall time (measured)")
+    parser.add_argument("--aic-count", type=int, default=None,
+                        help="declared physical AIC count (for example 32); not inferred from sampled Block Num")
+    parser.add_argument("--deployment-image-id", default=None,
+                        help="exact deployment OCI image digest for source classification; "
+                             "a same-capture status.json prepare record takes precedence")
+    parser.add_argument("--sparse-geometry", default=None,
+                        help="JSON geometry binding for the saturated sparse SFA MTE1 service "
+                             "(q_len/context/kv_len/causal/owners/g/dq/dv/s2_tile/hardware)")
     parser.add_argument("--mode", choices=("inference", "training", "rl"), default=None, help="explicit workload mode")
     parser.add_argument("--framework", default=None, help="scene framework, e.g. vllm-ascend")
     parser.add_argument("--phase", default=None, help="scene phase, e.g. prefill/decode")
@@ -188,6 +196,14 @@ def _emit(payload: dict, output: str | None, *, summary: dict | None = None) -> 
     return 0
 
 
+def _json_file(path: str | None):
+    if not path:
+        return None
+    import json
+    from pathlib import Path
+    return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
 def _run_analyze(argv: Sequence[str]) -> int:
     args = build_parser().parse_args(argv)
     windows = _collect_windows(args)
@@ -204,6 +220,9 @@ def _run_analyze(argv: Sequence[str]) -> int:
         csv_timeout_s=args.csv_timeout_s,
         group_by=args.group_by,
         request_wall_ms=args.request_wall_ms,
+        aic_count=args.aic_count,
+        deployment_image_id=args.deployment_image_id,
+        sparse_geometry=_json_file(args.sparse_geometry),
         scene=_scene(args),
         structure=args.structure,
         structure_bindings=args.bindings,

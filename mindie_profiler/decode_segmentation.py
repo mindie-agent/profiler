@@ -8,7 +8,8 @@
   between-forward gaps, retain internal communication, and expose AICPU tails.
 [Timeouts & Locks] One bounded chronological scan, one active segment per device;
   bounded result samples. No I/O, locks, model weights or device initialization.
-[Side-Effect Policy] Pure local analysis. Does not change source events or Sim.
+[Side-Effect Policy] Does not change source events, Sim, or the returned report.
+  A process-local pool probe records sizes of shares still owned by open ranks.
 """
 from __future__ import annotations
 
@@ -17,9 +18,10 @@ from dataclasses import asdict, dataclass, is_dataclass
 from math import prod
 
 from .accounting import union_length
+from .decode_active_event import _FieldShare, _active_event, note_pool
 from .events import ProfilerUsageError
 from .forward_spans import _statistics
-from .normalized import shapes, row_from_event
+from .normalized import row_from_event
 from .body_attention_contracts import fia_block_table_slot
 from .communication_bounds import dual_stream_moe_hidden_consumer, padded_hidden_consumer
 
@@ -562,6 +564,9 @@ def _align(rows, config, ordinal, *, terminal_norm=False):
     }, None
 
 
+_LAST_POOL_PROBE = None
+
+
 def auto_segment_decode_forwards(events, model_config, *, source=None, max_events=5_000_000,
                                  max_forward_events=100_000, max_forwards=1024,
                                  max_anomalies=200, max_detailed_forwards=3,
@@ -583,8 +588,19 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
     details are bounded; consumers must not mutate either argument or retain
     unbounded event history. The event tuple includes separate prefix/head work,
     so consumers select the measured body boundaries explicitly.
+    Repeated low-cardinality strings and parsed shapes are shared only inside
+    the rank window that is still open. Closing that rank drops its pool.
     """
+    global _LAST_POOL_PROBE
     config = _model(model_config)
+    pools = {}
+    probe = {
+        "high_strings": 0, "high_shapes": 0, "high_active": 0, "closed_windows": 0,
+        "live_strings": 0, "live_shapes": 0, "live_active": 0,
+    }
+    _LAST_POOL_PROBE = probe
+    # Source objects are part of the on_forward contract. The hot scan does not keep them.
+    sources = defaultdict(list) if on_forward is not None else None
     active, previous = defaultdict(list), {}
     forwards, auxiliaries, auxiliary_values, anomalies, counts = [], [], [], [], Counter()
     auxiliary_occurrences = []
@@ -646,8 +662,14 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
         if event.start_ns < previous.get(key, event.start_ns):
             raise ProfilerUsageError("automatic forward segmentation requires chronological device events")
         previous[key] = event.start_ns
-        row = _Row(event, shapes(event.input_shapes), shapes(event.output_shapes))
+        share = pools.get(key)
+        if share is None:
+            share = pools[key] = _FieldShare()
+        row = _active_event(event, share)
         active[key].append(row)
+        if sources is not None:
+            sources[key].append(event)
+        note_pool(probe, pools, active)
         if sum(map(len, active.values())) > max_forward_events:
             raise ProfilerUsageError(f"active forward events exceed {max_forward_events}; no trustworthy head closure")
         terminal_norm = _terminal_norm(active[key], config)
@@ -667,8 +689,8 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
                     value["raw_duration_ns"] for value in result["communication_envelope_bounds"])
                 counts["bounded_communication_unassigned_suffix_ns"] += sum(
                     value["unassigned_summary_suffix_ns"] for value in result["communication_envelope_bounds"])
-            if on_forward is not None:
-                on_forward(result, tuple(row.event for row in active[key]))
+            if sources is not None:
+                on_forward(result, tuple(sources[key]))
             accumulate_stages(result)
             result["stage_count"] = len(result["stages"])
             result["stage_details_retained"] = len(forwards) < max_detailed_forwards
@@ -691,6 +713,11 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
                 counts["rejected_segment_events"] += len(active[key])
             anomaly({**failure, "event_count": len(active[key]), "rank_id": key[0], "device_id": key[1]})
         active[key].clear()
+        if sources is not None:
+            sources[key].clear()
+        pools.pop(key, None)
+        probe["closed_windows"] += 1
+        note_pool(probe, pools, active)
     for key, rows in active.items():
         if rows:
             counts["trailing_segment_events"] += len(rows)
