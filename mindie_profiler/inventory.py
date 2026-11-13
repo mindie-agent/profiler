@@ -42,6 +42,7 @@ from .segment import (
     infer_rank_id,
     infer_rank_index,
 )
+from .sources_csv import MINDSTUDIO_OUTPUT_DIR, find_mindstudio_csv_candidates
 from .sources_db import probe_db
 from .sql import open_readonly
 
@@ -102,7 +103,19 @@ def _discover_rank_dirs(root: Path, *, max_dirs: int) -> list[Path]:
         has_db = any(name.startswith("ascend_pytorch_profiler") and name.endswith(".db") for name in filenames)
         has_csv = any(name in filenames for name in ("kernel_details.csv", "kernel_details.csv.gz"))
         has_trace = any(name.startswith("trace_view") and name.endswith(".json") for name in filenames)
+        has_mindstudio = MINDSTUDIO_OUTPUT_DIR in dirnames or any(
+            (name.startswith("op_summary_") or name.startswith("task_time_")) and name.endswith(".csv")
+            for name in filenames
+        )
         has_output = _OUTPUT_DIR in dirnames
+        if has_mindstudio:
+            mindstudio = find_mindstudio_csv_candidates(current_path)
+            if mindstudio["op_summary"] or mindstudio["task_time"]:
+                if current_path not in seen:
+                    discovered.append(current_path)
+                    seen.add(current_path)
+                dirnames[:] = []
+                continue
         if has_db or has_csv or has_trace:
             if current_path not in seen:
                 discovered.append(current_path)
@@ -301,7 +314,7 @@ def _rank_facts(rank_dir: Path, *, ordinal: int, timeout_s: float,
         limitations.append({"code": "no_source_files", "detail": "rank directory has no DB/CSV/trace source"})
     return {
         "rank_id": rank_id,
-        "rank_index": infer_rank_index(rank_dir.name),
+        "rank_index": infer_rank_index(rank_dir),
         "rank_dir": str(rank_dir.resolve()),
         "db_candidates": [str(item.resolve()) for item in db_candidates],
         "csv_candidates": [str(item.resolve()) for item in csv_candidates],
@@ -324,11 +337,11 @@ def inventory_profile(
         raise ProfilerError(f"profiling root not found: {path}")
     ranks: list[dict[str, Any]] = []
     if path.is_file():
-        rank_dir = path.parent.parent if path.parent.name == _OUTPUT_DIR else path.parent
+        rank_dir = path.parent.parent if path.parent.name in {_OUTPUT_DIR, MINDSTUDIO_OUTPUT_DIR} else path.parent
         ranks.append(_rank_facts(rank_dir, ordinal=0, timeout_s=timeout_s, explicit_file=path))
     else:
         resolved = path.resolve()
-        if resolved.name == _OUTPUT_DIR:
+        if resolved.name in {_OUTPUT_DIR, MINDSTUDIO_OUTPUT_DIR}:
             resolved = resolved.parent
         own = find_db_candidates(resolved) + find_csv_candidates(resolved) + find_trace_candidates(resolved)
         if own:

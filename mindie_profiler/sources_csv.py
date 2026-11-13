@@ -37,6 +37,41 @@ from typing import Any, Mapping
 from .events import Event, ProfilerQueryError, ProfilerSchemaError, QueryStats, Window
 from .sources_db import load_mapping
 
+MINDSTUDIO_OUTPUT_DIR = "mindstudio_profiler_output"
+_TASK_TIME_ALIASES: dict[str, tuple[str, ...]] = {
+    "name": ("kernel_name",),
+    "core": ("kernel_type",),
+    "type": ("kernel_type",),
+    "start_us": ("task_start(us)", "task_start"),
+    "duration_us": ("task_time(us)", "task_time"),
+    "end_us": ("task_stop(us)", "task_stop"),
+}
+_TASK_TIME_MARKER_TYPES = frozenset({
+    "MODEL_EXECUTE", "MODEL_WAIT_COMPLETE", "EVENT_WAIT", "EVENT_RECORD",
+    "NOTIFY_WAIT", "NOTIFY_RECORD", "PROFILING_ENABLE", "PROFILING_DISABLE",
+    "STREAM_SWITCH", "MAINTENANCE",
+})
+
+
+def find_mindstudio_csv_candidates(root: str | Path) -> dict[str, list[Path]]:
+    """Return native CANN 9.x ``mindstudio_profiler_output`` CSV candidates."""
+    base = Path(root)
+    directories = (
+        [base]
+        if base.name == MINDSTUDIO_OUTPUT_DIR
+        else [base / MINDSTUDIO_OUTPUT_DIR, base]
+    )
+    found: dict[str, set[Path]] = {"op_summary": set(), "task_time": set()}
+    for directory in directories:
+        if not directory.is_dir():
+            continue
+        found["op_summary"].update(directory.glob("op_summary_*.csv"))
+        found["task_time"].update(directory.glob("task_time_*.csv"))
+    return {
+        layout: sorted(paths, key=lambda item: (str(item.parent), item.name))
+        for layout, paths in found.items()
+    }
+
 
 @dataclass(frozen=True, slots=True)
 class CsvSchema:
@@ -53,6 +88,7 @@ class CsvSchema:
     pmu_missing: tuple[str, ...]
     optional_missing: tuple[str, ...]
     size_bytes: int
+    is_task_time: bool = False
 
     @property
     def schema_version(self) -> str:
@@ -111,7 +147,12 @@ def probe_csv(path: str | Path, *, mapping: Mapping[str, Any] | None = None) -> 
     if not header:
         raise ProfilerSchemaError(f"{csv_path.name}: empty CSV (no header)")
     header = tuple(str(name).strip() for name in header)
-    aliases = mapping["csv"]["aliases"]
+    folded_header = {_fold(name) for name in header}
+    is_task_time = "kernel_name" in folded_header or "task_time(us)" in folded_header
+    aliases = {name: list(values) for name, values in mapping["csv"]["aliases"].items()}
+    if is_task_time:
+        for logical, extra in _TASK_TIME_ALIASES.items():
+            aliases[logical] = [*extra, *aliases.get(logical, [])]
     required = mapping["csv"]["required_fields"]
     columns: dict[str, int] = {}
     missing: list[str] = []
@@ -170,6 +211,7 @@ def probe_csv(path: str | Path, *, mapping: Mapping[str, Any] | None = None) -> 
         pmu_missing=tuple(pmu_missing),
         optional_missing=optional_missing,
         size_bytes=csv_path.stat().st_size,
+        is_task_time=is_task_time,
     )
 
 
@@ -237,6 +279,8 @@ def decode_csv_row(row: list[str], row_index: int, schema: CsvSchema, *,
     else:
         wait_ns, wait_status = _us_to_ns(wait_us), "bound"
     core_key = core.upper().replace(" ", "_")
+    if schema.is_task_time and core_key in _TASK_TIME_MARKER_TYPES:
+        return None
     pmu_applicable = not (
         "AI_CPU" in core_key
         or "AICPU" in core_key

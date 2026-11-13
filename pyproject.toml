@@ -28,4 +28,4 @@ markers = [
 ]
 
 [tool.setuptools.package-data]
-mindie_profiler = ["knowledge/*.json"]
+mindie_profiler = ["knowledge/*.json", "_cann9_capture_shim.c", "_cann9_capture_mspti.h"]

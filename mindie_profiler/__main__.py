@@ -36,7 +36,7 @@ from .analyze import analyze_profile
 from .events import ProfilerError, ProfilerUsageError
 from .segment import load_steps_file, parse_step_windows, parse_windows
 
-SUBCOMMANDS = ("inventory", "analyze", "correlate", "compare", "sql", "camodel", "kernels", "export-sim-case")
+SUBCOMMANDS = ("inventory", "analyze", "correlate", "compare", "sql", "camodel", "kernels", "export-sim-case", "capture")
 
 
 def _add_analyze_arguments(parser: argparse.ArgumentParser) -> None:
@@ -339,6 +339,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     command = raw[0] if raw and raw[0] in SUBCOMMANDS else "analyze"
     rest = raw[1:] if raw and raw[0] in SUBCOMMANDS else raw
     try:
+        if command == "capture":
+            from .cli_capture import main as capture_main
+
+            return capture_main(rest)
         if command == "export-sim-case":
             from .sim_bridge import main as export_sim_case_main
 
