@@ -36,6 +36,7 @@ from typing import Any, Iterable
 from .events import ProfilerError
 from .segment import (
     _OUTPUT_DIR,
+    _bundle_root_for_leaf,
     find_csv_candidates,
     find_db_candidates,
     find_trace_candidates,
@@ -268,8 +269,10 @@ def _db_facts(path: Path, *, timeout_s: float) -> dict[str, Any]:
 
 
 def _rank_facts(rank_dir: Path, *, ordinal: int, timeout_s: float,
-                explicit_file: Path | None = None) -> dict[str, Any]:
-    rank_id = infer_rank_id(rank_dir, ordinal)
+                explicit_file: Path | None = None,
+                stop_at: Path | None = None) -> dict[str, Any]:
+    boundary = stop_at if stop_at is not None else _bundle_root_for_leaf(rank_dir)
+    rank_id = infer_rank_id(rank_dir, ordinal, stop_at=boundary)
     db_candidates = find_db_candidates(rank_dir)
     csv_candidates = find_csv_candidates(rank_dir)
     trace_candidates = find_trace_candidates(rank_dir)
@@ -301,7 +304,7 @@ def _rank_facts(rank_dir: Path, *, ordinal: int, timeout_s: float,
         limitations.append({"code": "no_source_files", "detail": "rank directory has no DB/CSV/trace source"})
     return {
         "rank_id": rank_id,
-        "rank_index": infer_rank_index(rank_dir.name),
+        "rank_index": infer_rank_index(rank_dir, stop_at=boundary),
         "rank_dir": str(rank_dir.resolve()),
         "db_candidates": [str(item.resolve()) for item in db_candidates],
         "csv_candidates": [str(item.resolve()) for item in csv_candidates],
@@ -335,7 +338,7 @@ def inventory_profile(
             ranks.append(_rank_facts(resolved, ordinal=0, timeout_s=timeout_s))
         else:
             for ordinal, rank_dir in enumerate(sorted(_discover_rank_dirs(resolved, max_dirs=max_dirs), key=str)):
-                ranks.append(_rank_facts(rank_dir, ordinal=ordinal, timeout_s=timeout_s))
+                ranks.append(_rank_facts(rank_dir, ordinal=ordinal, timeout_s=timeout_s, stop_at=resolved))
     if not ranks:
         raise ProfilerError(f"no rank/source candidates found under {path}")
     limitations: list[dict[str, Any]] = []

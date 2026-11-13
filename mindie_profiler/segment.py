@@ -60,18 +60,79 @@ class RankSource:
     trace_candidates: tuple[str, ...] = ()
 
 
-def infer_rank_id(rank_dir: Path, ordinal: int = 0) -> str:
-    text = rank_dir.name
+def _bundle_root_for_leaf(rank_dir: Path) -> Path:
+    """Return the innermost rank bundle root for a direct file or leaf directory."""
+    current = rank_dir.resolve()
+    if current.name.lower() in {"ascend_profiler_output", "mindstudio_profiler_output"}:
+        current = current.parent
+    if current.parent.name.lower() == "profile" and current.parent.parent != current.parent:
+        current = current.parent.parent
+    return current
+
+
+def _rank_text(
+    rank_dir: Path,
+    *,
+    stop_at: Path | None = None,
+    stop_before: Path | None = None,
+) -> str | None:
+    """Find the rank label in the bundle path, bounded within the caller's root.
+
+    Real bundles use ``.../rank0/profile/<export-hash>/ASCEND_PROFILER_OUTPUT``;
+    the leaf directory is not the physical rank.  Walks at most three parents and
+    stops inclusively at ``stop_at`` (or exclusively at legacy ``stop_before``)
+    so external ancestor names above the caller's root never contaminate rank
+    discovery while preserving a rank label on ``root`` itself.
+    """
+    resolved_dir = rank_dir.resolve()
+    resolved_at = stop_at.resolve() if stop_at is not None else None
+    resolved_before = stop_before.resolve() if stop_before is not None else None
+    for depth, base in enumerate((resolved_dir, *list(resolved_dir.parents)[:3])):
+        if depth > 0 and resolved_before is not None and base == resolved_before:
+            break
+        for pattern in _RANK_PATTERNS:
+            match = pattern.search(base.name)
+            if match:
+                return match.group(1)
+        if resolved_at is not None and base == resolved_at:
+            break
+    return None
+
+
+def infer_rank_id(
+    rank_dir: Path,
+    ordinal: int = 0,
+    *,
+    stop_at: Path | None = None,
+    stop_before: Path | None = None,
+) -> str:
+    text = _rank_text(rank_dir, stop_at=stop_at, stop_before=stop_before) or rank_dir.name
     for pattern in _RANK_PATTERNS:
         match = pattern.search(text)
         if match:
-            return _SAFE_RE.sub("_", match.group(1)).strip("_").lower()
+            value = match.group(1)
+            simple = re.fullmatch(r"(?i)rank[_-]?(\d+)", value)
+            if simple:
+                return f"rank_{int(simple.group(1))}"
+            return _SAFE_RE.sub("_", value).strip("_").lower()
     safe = _SAFE_RE.sub("_", text).strip("_").lower()
     return safe or f"rank_{ordinal}"
 
 
-def infer_rank_index(rank_dir_text: str) -> int | None:
-    matches = _INDEX_RE.findall(rank_dir_text)
+def infer_rank_index(
+    rank_dir_text: str | Path,
+    *,
+    stop_at: Path | None = None,
+    stop_before: Path | None = None,
+) -> int | None:
+    if isinstance(rank_dir_text, Path):
+        text = (
+            _rank_text(rank_dir_text, stop_at=stop_at, stop_before=stop_before)
+            or rank_dir_text.name
+        )
+    else:
+        text = rank_dir_text
+    matches = _INDEX_RE.findall(text)
     return int(matches[-1]) if matches else None
 
 
@@ -138,9 +199,11 @@ def _source_for_dir(
     ordinal: int,
     source: str,
     explicit_file: Path | None = None,
+    stop_at: Path | None = None,
 ) -> RankSource | None:
-    rank_id = infer_rank_id(rank_dir, ordinal)
-    rank_index = infer_rank_index(rank_dir.name)
+    boundary = stop_at if stop_at is not None else _bundle_root_for_leaf(rank_dir)
+    rank_id = infer_rank_id(rank_dir, ordinal, stop_at=boundary)
+    rank_index = infer_rank_index(rank_dir, stop_at=boundary)
     db_path, notes, db_candidates = _find_db(rank_dir)
     csv_candidates = find_csv_candidates(rank_dir)
     csv_path = csv_candidates[0] if len(csv_candidates) == 1 else None
@@ -250,7 +313,12 @@ def discover_rank_sources(
     items = [
         item
         for ordinal, rank_dir in enumerate(sorted(discovered, key=str))
-        if (item := _source_for_dir(rank_dir, ordinal=ordinal, source=source)) is not None
+        if (
+            item := _source_for_dir(
+                rank_dir, ordinal=ordinal, source=source, stop_at=root_path
+            )
+        )
+        is not None
     ]
     if not items:
         raise ProfilerUsageError(

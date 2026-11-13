@@ -657,8 +657,7 @@ def read_prediction_cache(key, cache_root):
         raise RuntimeError(f"unreadable_prediction_cache:{path}") from exc
     if cached.get("status") != "modeled":
         return None
-    recorded = cached.get("prediction_identity")
-    if recorded is not None and recorded != key:
+    if cached.get("prediction_identity") != key:
         return None
     return cached
 

@@ -36,6 +36,13 @@ from .anomaly_discovery import (
     assess_wait_anchor,
 )
 from .events import Event, Observation
+from .measured_supply import (
+    MatrixSupplyAccumulator,
+    SELECTION_LIMITATION_CODES,
+    is_matrix_supply_event,
+    measured_supply_event_record,
+)
+from .measured_supply_sparse import SparseSupplyAccumulator, build_measured_supply_summary
 from .pmu_derivation import derive_pmu_evidence, metric_units
 from .sources_db import load_mapping
 from .wait_provenance import attach_wait_anchor
@@ -562,17 +569,21 @@ def underfeed_summary(observations: Sequence[Observation]) -> dict[str, Any]:
     return {"threshold": UNDERFEED_THRESHOLD, "windows": windows, "findings": findings}
 
 
-def _pmu_event_payload(observation: Observation, event: Event) -> dict[str, Any]:
+def _pmu_event_payload(
+    observation: Observation,
+    event: Event,
+    source_identity: Mapping[str, Any] | None = None,
+    *,
+    physical_owners: int | None = None,
+) -> dict[str, Any]:
     complete = event.complete_in(observation.window.start_ns, observation.window.end_ns)
     clipped = event.clipped(observation.window.start_ns, observation.window.end_ns)
-    coverage = None
-    if clipped is not None and event.duration_ns > 0:
-        coverage = round((clipped[1] - clipped[0]) / event.duration_ns, 6)
-    provenance = {
-        key: value
-        for key, value in event.pmu_provenance.items()
-        if key != "per_metric"
-    }
+    coverage = (
+        round((clipped[1] - clipped[0]) / event.duration_ns, 6)
+        if clipped is not None and event.duration_ns > 0
+        else None
+    )
+    provenance = {key: val for key, val in event.pmu_provenance.items() if key != "per_metric"}
     metrics = event.pmu_map()
     return {
         "rank_id": observation.rank_id,
@@ -589,45 +600,55 @@ def _pmu_event_payload(observation: Observation, event: Event) -> dict[str, Any]
         "window_coverage": coverage,
         "counts_are_full_event": True,
         "usable_for_clipped_window": complete,
+        "input_shapes": event.input_shapes,
+        "input_dtypes": event.input_dtypes,
+        "output_shapes": event.output_shapes,
+        "output_dtypes": event.output_dtypes,
+        "block_num": event.block_dim,
+        "mix_block_num": event.mix_block_dim,
         "metrics": metrics,
         "metric_units": metric_units(metrics),
         "metric_count": len(event.pmu),
+        "measured_supply": measured_supply_event_record(
+            observation, event, source_identity, physical_owners=physical_owners
+        ),
         "derived": derive_pmu_evidence(
             metrics,
             task_type=event.task_type,
             core=event.core,
             complete_in_window=complete,
             source=event.pmu_source or event.table,
-            block_num=None,
+            block_num=event.block_dim,
             export_resolution=event.pmu_provenance.get("export_resolution"),
         ),
         "provenance": provenance,
     }
 
 
-def pmu_summary(observations: Sequence[Observation]) -> dict[str, Any]:
+def pmu_summary(
+    observations: Sequence[Observation],
+    *,
+    physical_owners: int | None = None,
+    source_identity: Mapping[str, Any] | None = None,
+    sparse_geometry: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
     mapping = load_mapping()
     units = dict(mapping.get("pmu_units", {}))
-    metric_unit_map = metric_units(
-        {name: 0.0 for name in mapping.get("pmu_metrics", {})}
-    )
+    metric_unit_map = metric_units({name: 0.0 for name in mapping.get("pmu_metrics", {})})
     bound_events: list[dict[str, Any]] = []
     ambiguous_groups: dict[tuple[str, int], dict[str, Any]] = {}
     counts = {
-        "bound_event_count": 0,
-        "ambiguous_event_count": 0,
-        "clipped_bound_event_count": 0,
-        "absent_event_count": 0,
-        "not_applicable_event_count": 0,
-        "aicpu_event_count": 0,
-        "aicpu_events_with_counters": 0,
-        "raw_pmu_rows": 0,
+        "bound_event_count": 0, "ambiguous_event_count": 0, "clipped_bound_event_count": 0,
+        "absent_event_count": 0, "not_applicable_event_count": 0, "aicpu_event_count": 0,
+        "aicpu_events_with_counters": 0, "raw_pmu_rows": 0,
     }
     limitations: list[dict[str, Any]] = []
-    source_pmu_rows = sum(observation.stats.pmu_rows for observation in observations)
-    source_ambiguous_groups = max(
-        (observation.stats.ambiguous_groups for observation in observations), default=0
+    supply_acc = MatrixSupplyAccumulator(
+        physical_owners=physical_owners, source_identity=source_identity
     )
+    sparse_acc = SparseSupplyAccumulator(sparse_geometry=sparse_geometry)
+    source_pmu_rows = sum(observation.stats.pmu_rows for observation in observations)
+    source_ambiguous_groups = max((observation.stats.ambiguous_groups for observation in observations), default=0)
     for observation in observations:
         for event in observation.events:
             if event.is_aicpu:
@@ -644,37 +665,27 @@ def pmu_summary(observations: Sequence[Observation]) -> dict[str, Any]:
             if event.pmu_status == "bound" and event.pmu:
                 counts["bound_event_count"] += 1
                 counts["raw_pmu_rows"] += int(event.pmu_provenance.get("raw_rows") or len(event.pmu))
-                complete = event.complete_in(observation.window.start_ns, observation.window.end_ns)
-                if not complete:
+                if not event.complete_in(observation.window.start_ns, observation.window.end_ns):
                     counts["clipped_bound_event_count"] += 1
+                if is_matrix_supply_event(event):
+                    supply_acc.add_event(observation, event)
+                sparse_acc.add_event(observation, event)
                 if len(bound_events) < 64:
-                    bound_events.append(_pmu_event_payload(observation, event))
-            elif event.pmu_status in {
-                "ambiguous_task_occurrence",
-                "duplicate_metric_rows",
-                "incomplete_metric_value",
-                "cardinality_unknown",
-            }:
+                    bound_events.append(_pmu_event_payload(observation, event, source_identity, physical_owners=physical_owners))
+            elif event.pmu_status in {"ambiguous_task_occurrence", "duplicate_metric_rows", "incomplete_metric_value", "cardinality_unknown"}:
                 counts["ambiguous_event_count"] += 1
                 provenance = event.pmu_provenance
                 global_id = provenance.get("global_task_id")
                 if isinstance(global_id, int):
                     key = (observation.rank_id, global_id)
-                    group = ambiguous_groups.get(key)
-                    if group is None:
-                        group = {
+                    if key not in ambiguous_groups:
+                        ambiguous_groups[key] = {
                             **provenance,
                             "rank_id": observation.rank_id,
                             "observation_id": observation.identity()["observation_id"],
                             "status": event.pmu_status,
-                            "metric_units": metric_units(
-                                {
-                                    name: 0.0
-                                    for name in (provenance.get("per_metric") or {})
-                                }
-                            ),
+                            "metric_units": metric_units({name: 0.0 for name in (provenance.get("per_metric") or {})}),
                         }
-                        ambiguous_groups[key] = group
                         counts["raw_pmu_rows"] += int(provenance.get("raw_rows") or 0)
             elif event.pmu_status == "absent":
                 counts["absent_event_count"] += 1
@@ -682,41 +693,33 @@ def pmu_summary(observations: Sequence[Observation]) -> dict[str, Any]:
                 counts["not_applicable_event_count"] += 1
     if counts["ambiguous_event_count"]:
         add_limitation(
-            limitations,
-            "pmu_ambiguous_task_occurrence",
-            "global",
-            "One or more selected globalTaskIds repeat across full capture; TASK_PMU_INFO "
-            "rows are group-scoped and were not assigned, summed, averaged, or picked for "
-            "an individual TASK occurrence.",
+            limitations, "pmu_ambiguous_task_occurrence", "global",
+            "One or more selected globalTaskIds repeat across full capture; TASK_PMU_INFO rows are group-scoped and were not assigned, summed, averaged, or picked for an individual TASK occurrence.",
             "high",
         )
     if counts["clipped_bound_event_count"]:
         add_limitation(
-            limitations,
-            "pmu_full_event_values_not_clipped_window",
-            "global",
-            "Some bound PMU values belong to events clipped by the observation window. "
-            "They remain full-event counters and are not relabeled as clipped-window counts.",
+            limitations, "pmu_full_event_values_not_clipped_window", "global",
+            "Some bound PMU values belong to events clipped by the observation window. They remain full-event counters and are not relabeled as clipped-window counts.",
             "medium",
         )
     if counts["aicpu_event_count"] and not counts["aicpu_events_with_counters"]:
         add_limitation(limitations, "aicpu_pmu_counters_missing", "global", PMU_REASON, "medium")
     if not counts["bound_event_count"] and not ambiguous_groups and counts["absent_event_count"]:
-        add_limitation(
-            limitations,
-            "pmu_values_absent",
-            "global",
-            "PMU columns exist but selected events carry no numeric PMU values; counters stay unknown.",
-            "medium",
-        )
+        add_limitation(limitations, "pmu_values_absent", "global", "PMU columns exist but selected events carry no numeric PMU values; counters stay unknown.", "medium")
     if not counts["bound_event_count"] and not ambiguous_groups and not counts["absent_event_count"]:
-        add_limitation(
-            limitations,
-            "pmu_not_available",
-            "global",
-            "No PMU table/columns or bound PMU values were available for the selected events.",
-            "medium",
-        )
+        add_limitation(limitations, "pmu_not_available", "global", "No PMU table/columns or bound PMU values were available for the selected events.", "medium")
+    measured_supply = build_measured_supply_summary(
+        supply_acc, sparse_acc,
+        physical_owners=physical_owners, source_identity=source_identity,
+        sparse_geometry=sparse_geometry,
+    )
+    for item in measured_supply.get("limitations", []):
+        if isinstance(item, Mapping) and item.get("code") in SELECTION_LIMITATION_CODES:
+            add_limitation(
+                limitations, str(item.get("code")), "global",
+                str(item.get("detail") or ""), str(item.get("severity") or "medium"),
+            )
     status = "observed" if counts["bound_event_count"] or ambiguous_groups else "not_available"
     if status == "observed" and counts["ambiguous_event_count"]:
         status = "partial"
@@ -738,6 +741,7 @@ def pmu_summary(observations: Sequence[Observation]) -> dict[str, Any]:
         "bound_events": bound_events,
         "bound_events_truncated": counts["bound_event_count"] > len(bound_events),
         "ambiguous_groups": list(ambiguous_groups.values()),
+        "measured_supply": measured_supply,
         "aicpu_counters": {
             "aicpu_event_count": counts["aicpu_event_count"],
             "counter_status": (
@@ -749,8 +753,6 @@ def pmu_summary(observations: Sequence[Observation]) -> dict[str, Any]:
         },
         "limitations": limitations,
     }
-
-
 
 
 __all__ = [

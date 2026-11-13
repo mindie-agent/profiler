@@ -19,8 +19,14 @@ from typing import Any
 
 from .accounting import merge_intervals
 from .events import ProfilerUsageError
-from .structure_subgraphs import StructureTargets
 from .structure_cohorts import CohortAccumulator
+from .structure_native_calls import (
+    NativeCallGlobalTracker,
+    NativeCallWindowTracker,
+    resolve_implementation_correspondence,
+    verify_graph_id,
+)
+from .structure_subgraphs import StructureTargets
 
 SCHEMA = "mindie-profile-structure-mapping/1"
 MAX_METADATA_BYTES = 32 * 1024 * 1024
@@ -53,16 +59,7 @@ def _union_ns(intervals):
     return sum(right - left for left, right in merge_intervals(intervals))
 
 
-def _verify_graph_id(structure):
-    payload = {key: value for key, value in structure.items() if key not in {"graph_id", "source"}}
-    digest = sha256()
-    encoder = json.JSONEncoder(sort_keys=True, separators=(",", ":"), allow_nan=False)
-    for chunk in encoder.iterencode(payload):
-        digest.update(chunk.encode("utf-8"))
-    expected = "sha256:" + digest.hexdigest()
-    if structure.get("graph_id") != expected:
-        raise ProfilerUsageError("structure graph_id does not match its contents; re-export the structure")
-    return expected
+_verify_graph_id = verify_graph_id
 
 
 def _task_key(rank, task):
@@ -161,7 +158,11 @@ class StructureMapper:
             self.nodes[node_id] = node
         if not self.nodes:
             raise ProfilerUsageError("structure has no nodes")
-        self.target_index = StructureTargets(self.nodes, self.structure.get("subgraphs", ()))
+        self.target_index = StructureTargets(
+            self.nodes,
+            self.structure.get("subgraphs", ()),
+            self.structure.get("native_calls"),
+        )
         self.targets = self.target_index.all
         self.subgraphs = self.target_index.subgraphs
         self.contracts = defaultdict(list)
@@ -179,6 +180,7 @@ class StructureMapper:
         self.diagnostic_counts = Counter()
         self.diagnostics = {}
         self.implementation_correspondences = {}
+        self.native_tracker = NativeCallGlobalTracker()
         self.explicit = {}
         self.host_scopes = defaultdict(set)
         self.module_scopes = {}
@@ -282,14 +284,15 @@ class StructureMapper:
             and (stage is None or str(self.targets[key].get("stage")) == stage)
         ]
 
-    def _implementation_correspondence(self, kind, rank):
-        key = kind, rank
-        if key not in self.implementation_correspondences:
-            targets = self._rank_candidates(
-                self.target_index.native_implementations.get(kind, ()), rank)
-            self.implementation_correspondences[key] = (
-                self.target_index.describe_implementation(kind, targets) if targets else None)
-        return self.implementation_correspondences[key]
+    def _implementation_correspondence(self, kind, rank, event=None):
+        return resolve_implementation_correspondence(
+            self.implementation_correspondences,
+            self.target_index,
+            self._rank_candidates,
+            kind,
+            rank,
+            event=event,
+        )
 
     def _host_candidates(self, event, source_key):
         scopes = []
@@ -443,6 +446,9 @@ class StructureMapper:
         cohorts = CohortAccumulator(
             self.graph_id, self.target_index, observation,
             execution=self.structure.get("execution"))
+        window_calls = NativeCallWindowTracker(
+            self.native_tracker, self.target_index.native_call_alias_names
+        )
         for event in observation.events if events is None else events:
             interval = event.clipped(observation.window.start_ns, observation.window.end_ns)
             if interval is None:
@@ -491,7 +497,11 @@ class StructureMapper:
                 diagnostic_counts[diagnostic["category"]] += 1
                 self.diagnostic_counts[diagnostic["category"]] += 1
             correspondence = self._implementation_correspondence(
-                event.op_type, observation.rank_id)
+                event.op_type, observation.rank_id, event=event
+            )
+            native_identity, native_occurrence = window_calls.observe(
+                event, interval, correspondence
+            )
             operator = operators.setdefault(event.op_type, {
                 "operator_type": event.op_type, "event_count": 0,
                 "activity_sum_ns": 0, "complete_activity_sum_ns": 0,
@@ -604,6 +614,8 @@ class StructureMapper:
                     "candidate_count": len(candidates), "basis": basis, "evidence": evidence,
                     "candidate_refinement": refinement,
                     "implementation_correspondence": correspondence,
+                    "native_call_identity": native_identity,
+                    "native_call_occurrence": native_occurrence,
                     "structural_classification": classification,
                     "observed_contract": contract,
                     "observed_contract_scope": observed_contract_scope(normalized),
@@ -611,6 +623,10 @@ class StructureMapper:
                         native_tensor_contract(normalized) if retain_native else None),
                     "diagnostic": diagnostic,
                 })
+        native_calls = window_calls.finish(
+            window_end_ns=observation.window.end_ns,
+            rank_id=observation.rank_id,
+        )
         for record in [*nodes.values(), *subgraphs.values(), *layers.values(), *blocks.values(),
                        *structural_groups.values()]:
             record["busy_union_ns"] = _union_ns(record.pop("_intervals"))
@@ -654,10 +670,15 @@ class StructureMapper:
                 set(self._rank_candidates(self.nodes, observation.rank_id)) - covered_nodes),
             "unobserved_subgraph_ids": sorted(
                 set(self._rank_candidates(self.subgraphs, observation.rank_id)) - set(subgraphs)),
+            "native_calls": native_calls,
+            "native_call_count": len(native_calls),
         }
 
     def finish(self, windows):
         unused = sorted(set(self.explicit) - self.used_bindings)
+        native_calls = [
+            call for window in windows for call in window.get("native_calls", ())
+        ]
         cohort_count = sum(
             group["event_count"] for window in windows for group in window["cohorts"])
         return {
@@ -676,6 +697,9 @@ class StructureMapper:
             "module_evidence": self.module_evidence.summaries if self.module_evidence else [],
             "event_mappings": self.sample, "retained_event_mappings": len(self.sample),
             "event_mappings_truncated": self.examined > len(self.sample),
+            "native_calls": native_calls,
+            "native_call_count": len(native_calls),
+            "native_call_identity_counts": dict(self.native_tracker.identity_counts),
             "unused_explicit_event_ids": unused,
             "semantics": {
                 "structure": "declared; absence of a measured event does not prove nonexecution",
