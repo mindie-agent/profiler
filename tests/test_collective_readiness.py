@@ -520,3 +520,105 @@ def test_report_wide_budget_chunk_pagination_capped_overlap_and_lock_budget(
     # 4. Sub-3s readiness timeout_s is rejected upfront rather than waiting 3,000ms on SQLite lock!
     with pytest.raises(ProfilerQueryError, match="minimum SQLite lock budget"):
         read_collective_readiness(cap_root, timeout_s=1.0)
+
+
+def test_concurrent_same_connection_op_id_ownership_and_unkeyed_honesty(
+    tmp_path: Path,
+) -> None:
+    meta = json.loads(REAL_A5_PROVENANCE.read_text(encoding="utf-8"))
+    sql_bytes = (REAL_A5_FIXTURE / meta["ranks"]["rank_0"]["sql_relpath"]).read_bytes()
+    overlap_db = (
+        tmp_path
+        / "a5_overlap"
+        / "rank_0"
+        / "ASCEND_PROFILER_OUTPUT"
+        / "ascend_pytorch_profiler_0.db"
+    )
+    overlap_db.parent.mkdir(parents=True)
+    con = sqlite3.connect(overlap_db)
+    con.executescript(sql_bytes.decode("utf-8"))
+    op0 = con.execute(
+        "SELECT startNs, endNs, connectionId FROM COMMUNICATION_OP WHERE opId=0"
+    ).fetchone()
+    op1 = con.execute("SELECT startNs, endNs FROM COMMUNICATION_OP WHERE opId=1").fetchone()
+    assert op0 is not None and op1 is not None
+    shift_ns = (int(op0[0]) + 1_000) - int(op1[0])
+    con.execute(
+        "UPDATE COMMUNICATION_OP SET startNs = startNs + ?, endNs = endNs + ?, connectionId = ? "
+        "WHERE opId = 1",
+        (shift_ns, shift_ns, int(op0[2])),
+    )
+    con.execute(
+        "UPDATE TASK SET startNs = startNs + ?, endNs = endNs + ?, connectionId = ? "
+        "WHERE globalTaskId IN (29, 31)",
+        (shift_ns, shift_ns, int(op0[2])),
+    )
+    con.commit()
+    con.close()
+
+    res = read_collective_readiness(tmp_path / "a5_overlap", source="db")
+    calls_by_op = {c["op_id"]: c for c in res["calls"]}
+    c0, c1 = calls_by_op["0"], calls_by_op["1"]
+    assert [ch["global_task_id"] for ch in c0["service_children"]] == ["4", "6"]
+    assert [w["global_task_id"] for w in c0["waits"]] == ["6"]
+    assert [ch["global_task_id"] for ch in c1["service_children"]] == ["29", "31"]
+    assert [w["global_task_id"] for w in c1["waits"]] == ["31"]
+    assert {"4", "6", "29", "31"} <= {ov["global_task_id"] for ov in c0["observed_overlaps"]}
+    assert all(ov["causal_join"] is False for ov in c0["observed_overlaps"])
+
+    # Unkeyed shared connection (even when call 1 overlaps call 0 outside narrow user window)
+    # must report shared_connection_without_op_id rather than falsely attributing children/waits.
+    unkeyed_root = tmp_path / "unkeyed_shared"
+    unkeyed_db = _create_readiness_db(unkeyed_root, 0, op_count=2)
+    ucon = sqlite3.connect(unkeyed_db)
+    ucon.execute(
+        "UPDATE COMMUNICATION_OP SET startNs = 1500, endNs = 2500, connectionId = 2 WHERE opId = 1"
+    )
+    ucon.execute(
+        "UPDATE TASK SET startNs = 1500, endNs = 2500, connectionId = 2 WHERE globalTaskId = 12"
+    )
+    ucon.commit()
+    ucon.close()
+
+    narrow = read_collective_readiness(unkeyed_root, windows=[(1000, 1100)])
+    assert len(narrow["calls"]) == 1
+    assert "shared_connection_without_op_id" in narrow["limitations"]
+    assert narrow["calls"][0]["observed_context"]["bound_task_global_id"] is None
+    assert narrow["calls"][0]["service_children"] == []
+    assert narrow["calls"][0]["waits"] == []
+
+
+def test_analyze_profile_readiness_timeout_budget_and_failure_degradation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    glm45_db = (
+        Path(__file__).parent
+        / "fixtures"
+        / "profiler_core"
+        / "real_glm45"
+        / "rank_0"
+        / "ASCEND_PROFILER_OUTPUT"
+        / "ascend_pytorch_profiler_0.db"
+    )
+    ok_report = analyze_profile(glm45_db, full_range=True, query_timeout_s=3.0)
+    assert ok_report["collective_readiness"]["schema"] == "mindie-profiler/collective-readiness/1"
+    assert ok_report["collective_readiness"]["status"] != "error"
+
+    def fail_readiness(*_args: object, **_kwargs: object) -> dict[str, object]:
+        raise ProfilerQueryError("simulated readiness lock timeout")
+
+    monkeypatch.setattr(
+        "mindie_profiler.collective_readiness.read_collective_readiness", fail_readiness
+    )
+    out_json = tmp_path / "degraded_report.json"
+    degraded = analyze_profile(
+        glm45_db, full_range=True, query_timeout_s=3.0, output=out_json
+    )
+    assert out_json.is_file()
+    assert degraded["window_accounting"] and degraded["top_hotspot_kernels"]
+    assert degraded["collective_readiness"]["status"] == "error"
+    assert "simulated readiness lock timeout" in degraded["collective_readiness"]["error"]
+    lim_codes = {item["code"] for item in degraded["limitations"]}
+    assert "collective_readiness_failed" in lim_codes
+    saved = json.loads(out_json.read_text(encoding="utf-8"))
+    assert saved["collective_readiness"]["status"] == "error"

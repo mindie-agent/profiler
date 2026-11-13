@@ -242,6 +242,9 @@ def _read_child_table(
         extra = ", opType" if "opType" in cols else ", NULL AS opType"
     elif table == "COMMUNICATION_TASK_INFO":
         extra = ", timestampNs" if "timestampNs" in cols else ", NULL AS timestampNs"
+    has_op_id = "opId" in cols
+    if has_op_id:
+        extra += ", opId"
     seen: set[str] = set()
     out: dict[str, dict[str, Any]] = {}
     for chunk in chunks(unique_ids):
@@ -300,6 +303,8 @@ def _read_child_table(
                 "_name_id": row["name"],
                 "task_type": str(row["taskType"]),
             }
+            if has_op_id and row["opId"] is not None:
+                record["_op_id"] = str(row["opId"])
             if table == "COMPUTE_TASK_INFO":
                 if (sid := int_id(row["opType"])) is not None:
                     string_ids.add(sid)
@@ -642,3 +647,68 @@ def query_windowed_tasks(
                     break
                 cursor = (int(batch[-1]["startNs"]), int(batch[-1]["_rowid"]))
     return task_rows
+
+
+def index_call_ownership(
+    calls: Sequence[sqlite3.Row],
+    *,
+    has_op_id_col: bool,
+    task_by_global: dict[str, sqlite3.Row],
+    compute_raw: dict[str, dict[str, Any]],
+    comm_raw: dict[str, dict[str, Any]],
+    sched_raw: dict[str, dict[str, Any]],
+    ambiguous_globals: set[str],
+    limitations: set[str],
+    concurrency_calls: Sequence[sqlite3.Row] | None = None,
+) -> tuple[set[str], dict[tuple[str, str], list[sqlite3.Row]], set[str]]:
+    """Resolve child opId ownership and detect concurrent same-connection calls."""
+    task_op_owner: dict[str, str] = {}
+    conflicted_op_globals: set[str] = set()
+    if has_op_id_col:
+        for raw_map in (compute_raw, comm_raw, sched_raw):
+            for gid, raw_child in list(raw_map.items()):
+                if gid in ambiguous_globals or (child_op := raw_child.get("_op_id")) is None:
+                    continue
+                prev_op = task_op_owner.get(gid)
+                if prev_op is not None and prev_op != child_op:
+                    conflicted_op_globals.add(gid)
+                    ambiguous_globals.add(gid)
+                    limitations.add("ambiguous_global_task_id")
+                    task_op_owner.pop(gid, None)
+                    compute_raw.pop(gid, None)
+                    comm_raw.pop(gid, None)
+                    sched_raw.pop(gid, None)
+                    task_by_global.pop(gid, None)
+                else:
+                    task_op_owner[gid] = child_op
+    tasks_by_op_id: dict[tuple[str, str], list[sqlite3.Row]] = {}
+    for gid, owner_op in task_op_owner.items():
+        if (owned := task_by_global.get(gid)) is not None and owned["deviceId"] is not None:
+            tasks_by_op_id.setdefault((owner_op, str(owned["deviceId"])), []).append(owned)
+    for owned_list in tasks_by_op_id.values():
+        owned_list.sort(key=lambda r: (int(r["startNs"]), int(r["endNs"]), int(r["globalTaskId"])))
+    calls_by_conn: dict[tuple[str, str], list[tuple[int, int, str]]] = {}
+    for item in concurrency_calls if concurrency_calls is not None else calls:
+        if (
+            item["connectionId"] is None
+            or item["startNs"] is None
+            or item["endNs"] is None
+            or int(item["endNs"]) <= int(item["startNs"])
+        ):
+            continue
+        calls_by_conn.setdefault((str(item["connectionId"]), str(item["deviceId"])), []).append(
+            (int(item["startNs"]), int(item["endNs"]), str(item["opId"]))
+        )
+    shared_conn_ops: set[str] = set()
+    for spans in calls_by_conn.values():
+        if len(spans) < 2:
+            continue
+        spans.sort()
+        active: list[tuple[int, int, str]] = []
+        for s_ns, e_ns, oid in spans:
+            active = [entry for entry in active if entry[1] > s_ns]
+            if active:
+                shared_conn_ops.add(oid)
+                shared_conn_ops.update(prev_oid for _, _, prev_oid in active)
+            active.append((s_ns, e_ns, oid))
+    return set(task_op_owner) | conflicted_op_globals, tasks_by_op_id, shared_conn_ops

@@ -272,3 +272,100 @@ def test_sim_v0911_multi_variant_matmul_and_real_glm45_attention_abi() -> None:
     assert c_down["native_call"]["call_id"] == calls_by_op["l0.down"]["call_id"]
     assert c_attn["signature_match"] is True
     assert c_attn["native_call"]["call_id"] == calls_by_op["l0.attn"]["call_id"]
+
+
+def test_quantized_role_paired_dtype_and_c1hwncoc0_layout_rejection() -> None:
+    sim_ops = pytest.importorskip("mindie_sim.schema.operators")
+    sim_structure = pytest.importorskip("mindie_sim.structure")
+
+    quant_op = sim_ops.OpSpec(
+        op_id="l0.quant_proj",
+        family="matmul",
+        phase="prefill",
+        stage="prefill",
+        layer=0,
+        requests=("r0",),
+        dtype="bf16",
+        semantic_shape=(4, 16),
+        local_shape=(4, 16),
+        padded_shape=(4, 16),
+        launch_shape=(4, 16),
+        metadata={
+            "native_kind": "QuantBatchMatmulV3",
+            "native_tensor_view": {
+                "input_shape": [4, 8],
+                "weight_shape": [8, 16],
+                "output_shape": [4, 16],
+                "weight_dtype": "int8",
+            },
+        },
+    )
+    structure = sim_structure.export_op_structure(
+        [quant_op],
+        model={"num_hidden_layers": 1},
+        execution={"phase": "prefill"},
+        native_evidence=True,
+    )
+    binding = structure["native_calls"][0]
+
+    ev_quant_ok = _ev(
+        "QuantBatchMatmulV3",
+        in_shapes="4,8;8,16",
+        in_dtypes="DT_BF16;DT_INT8",
+        out_shapes="4,16",
+        out_dtypes="DT_BF16",
+        idx=10,
+    )
+    ev_unquant_bad = _ev(
+        "QuantBatchMatmulV3",
+        in_shapes="4,8;8,16",
+        in_dtypes="DT_BF16;DT_BF16",
+        out_shapes="4,16",
+        out_dtypes="DT_BF16",
+        idx=11,
+    )
+    ev_swapped_bad = _ev(
+        "QuantBatchMatmulV3",
+        in_shapes="4,8;8,16",
+        in_dtypes="DT_INT8;DT_BF16",
+        out_shapes="4,16",
+        out_dtypes="DT_BF16",
+        idx=12,
+    )
+    ev_int8_out_bad = _ev(
+        "QuantBatchMatmulV3",
+        in_shapes="4,8;8,16",
+        in_dtypes="DT_BF16;DT_INT8",
+        out_shapes="4,16",
+        out_dtypes="DT_INT8",
+        idx=13,
+    )
+    assert native_call_signature_match(binding, ev_quant_ok) is True
+    assert native_call_signature_match(binding, ev_unquant_bad) is False
+    assert native_call_signature_match(binding, ev_swapped_bad) is False
+    assert native_call_signature_match(binding, ev_int8_out_bad) is False
+
+    # Positional-only inputs without role names reject missing weight_dtype and stay unresolved on mixed slots.
+    positional_binding = {
+        "family": "linear",
+        "typed": {
+            "dtype": "bf16",
+            "shapes": {"inputs": [[4, 8], [8, 16]], "outputs": [[4, 16]]},
+            "attrs": {"weight_dtype": "int8"},
+        },
+    }
+    assert native_call_signature_match(positional_binding, ev_unquant_bad) is False
+    assert native_call_signature_match(positional_binding, ev_quant_ok) is None
+
+    # Contiguous layout rejects mixed-case C1HWNCoC0 after uppercase normalization.
+    ev_c1hwncoc0 = _ev(
+        "QuantBatchMatmulV3",
+        in_shapes="4,8;8,16",
+        in_dtypes="DT_BF16;DT_INT8",
+        in_formats="C1HWNCoC0;ND",
+        out_shapes="4,16",
+        out_dtypes="DT_BF16",
+        out_formats="ND",
+        idx=14,
+    )
+    assert native_call_signature_match(binding, ev_c1hwncoc0) is False

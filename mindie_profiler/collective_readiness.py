@@ -46,6 +46,7 @@ from .collective_readiness_db import (
     enum_map,
     fetch_rows,
     find_ambiguous_task_globals,
+    index_call_ownership,
     int_id,
     load_raw_children,
     normalize_intervals,
@@ -176,8 +177,9 @@ def _call_rows(
             timeout_s=effective_timeout,
         )
 
-        op_id_expr = "opId" if "opId" in cols else "rowid AS opId"
-        order_col = "opId" if "opId" in cols else "rowid"
+        has_op_id_col = "opId" in cols
+        op_id_expr = "opId" if has_op_id_col else "rowid AS opId"
+        order_col = "opId" if has_op_id_col else "rowid"
         selected = ["startNs", "endNs", "connectionId", "deviceId", op_id_expr]
         for optional in (
             "opName",
@@ -218,18 +220,35 @@ def _call_rows(
             "taskId",
             "taskType",
         } <= task_cols
+        windowed = list(intervals) != [(0, MAX_NS)]
+        call_envelopes = [
+            (int(item["startNs"]), int(item["endNs"]))
+            for item in calls
+            if item["startNs"] is not None
+            and item["endNs"] is not None
+            and int(item["endNs"]) > int(item["startNs"])
+        ]
+        envelope_lims: set[str] = set()
+        envelope_calls = (
+            query_windowed_calls(
+                db,
+                db_label,
+                ["startNs", "endNs", "connectionId", "deviceId", op_id_expr],
+                order_col,
+                merge_intervals(call_envelopes),
+                envelope_lims,
+                deadline=deadline,
+                timeout_s=effective_timeout,
+                max_calls=MAX_TOTAL_CALLS * 2,
+            )
+            if windowed and call_envelopes
+            else calls
+        )
         task_rows: list[sqlite3.Row] = []
         if can_query_task:
             devices = sorted(
                 {str(item["deviceId"]) for item in calls if item["deviceId"] is not None}
             )
-            call_envelopes = [
-                (int(item["startNs"]), int(item["endNs"]))
-                for item in calls
-                if item["startNs"] is not None
-                and item["endNs"] is not None
-                and int(item["endNs"]) > int(item["startNs"])
-            ]
             task_intervals = merge_intervals([*intervals, *call_envelopes])
             task_rows = query_windowed_tasks(
                 db,
@@ -293,10 +312,30 @@ def _call_rows(
             timeout_s=effective_timeout,
         )
         referenced_string_ids.update(child_string_ids)
+        claimed_globals, tasks_by_op_id, shared_conn_ops = index_call_ownership(
+            calls,
+            has_op_id_col=has_op_id_col,
+            task_by_global=task_by_global,
+            compute_raw=compute_raw,
+            comm_raw=comm_raw,
+            sched_raw=sched_raw,
+            ambiguous_globals=ambiguous_globals,
+            limitations=limitations,
+            concurrency_calls=envelope_calls,
+        )
+        if "call_row_budget_reached" in envelope_lims:
+            limitations.add("call_row_budget_reached")
+            shared_conn_ops.update(str(item["opId"]) for item in calls)
 
-        windowed = list(intervals) != [(0, MAX_NS)]
         prepared_calls: list[
-            tuple[sqlite3.Row, list[sqlite3.Row], bool, sqlite3.Row | None, sqlite3.Row | None]
+            tuple[
+                sqlite3.Row,
+                list[sqlite3.Row],
+                list[sqlite3.Row],
+                bool,
+                sqlite3.Row | None,
+                sqlite3.Row | None,
+            ]
         ] = []
         for call in calls:
             check_deadline(deadline, db_label, effective_timeout)
@@ -307,11 +346,15 @@ def _call_rows(
             if op_end <= op_start:
                 limitations.add("invalid_communication_op_span")
                 continue
+            call_op_id = str(call["opId"])
+            dev_str = str(call["deviceId"]) if call["deviceId"] is not None else ""
+            explicit_owned = list(tasks_by_op_id.get((call_op_id, dev_str), ()))
             if call["connectionId"] is None:
                 limitations.add("null_connection_id")
-                prepared_calls.append((call, [], False, None, None))
+                bound_null = _bound_task(explicit_owned, op_start, op_end)
+                prepared_calls.append((call, [], explicit_owned, False, bound_null, None))
                 continue
-            conn_key = (str(call["connectionId"]), str(call["deviceId"]))
+            conn_key = (str(call["connectionId"]), dev_str)
             group = task_index.get(conn_key)
             scan_capped = False
             if group is not None:
@@ -320,7 +363,35 @@ def _call_rows(
                     limitations.add("overlap_scan_budget_reached")
             else:
                 related = []
-            bound = None if scan_capped else _bound_task(related, op_start, op_end)
+            seen_owned = {str(t["globalTaskId"]) for t in explicit_owned}
+            owned_tasks = list(explicit_owned)
+            unkeyed_related = [
+                t for t in related if str(t["globalTaskId"]) not in claimed_globals
+            ]
+            if call_op_id in shared_conn_ops:
+                if unkeyed_related:
+                    limitations.add("shared_connection_without_op_id")
+                bound = _bound_task(owned_tasks, op_start, op_end)
+            else:
+                candidates = list(explicit_owned)
+                for t in unkeyed_related:
+                    if str(t["globalTaskId"]) not in seen_owned:
+                        candidates.append(t)
+                bound = None if scan_capped else _bound_task(candidates, op_start, op_end)
+                bound_gid = str(bound["globalTaskId"]) if bound is not None else None
+                if not scan_capped:
+                    for t in unkeyed_related:
+                        gid = str(t["globalTaskId"])
+                        if gid in seen_owned:
+                            continue
+                        if gid == bound_gid or (
+                            op_start <= int(t["startNs"]) and int(t["endNs"]) <= op_end
+                        ):
+                            seen_owned.add(gid)
+                            owned_tasks.append(t)
+            owned_tasks.sort(
+                key=lambda r: (int(r["startNs"]), int(r["endNs"]), str(r["globalTaskId"]))
+            )
             pred: sqlite3.Row | None = None
             if bound is not None:
                 stream = str(bound["streamId"])
@@ -351,7 +422,7 @@ def _call_rows(
                         pred = fallback[0]
                         if (sid := int_id(pred["taskType"])) is not None:
                             referenced_string_ids.add(sid)
-            prepared_calls.append((call, related, scan_capped, bound, pred))
+            prepared_calls.append((call, related, owned_tasks, scan_capped, bound, pred))
 
         strings = resolve_strings(
             db,
@@ -364,29 +435,32 @@ def _call_rows(
         )
 
         result: list[dict[str, Any]] = []
-        for call, related, scan_capped, bound, pred in prepared_calls:
+        for call, related, owned_tasks, scan_capped, bound, pred in prepared_calls:
             check_deadline(deadline, db_label, effective_timeout)
             op_start, op_end = int(call["startNs"]), int(call["endNs"])
+            call_op_id = str(call["opId"])
             device = str(call["deviceId"]) if call["deviceId"] is not None else None
             conn_str = str(call["connectionId"]) if call["connectionId"] is not None else None
             if bound is not None:
                 participants = [bound]
-            elif scan_capped:
-                participants = []
-            else:
+            elif owned_tasks:
                 participants = [
                     task
-                    for task in related
+                    for task in owned_tasks
                     if int(task["startNs"]) == op_start or int(task["endNs"]) == op_end
-                ]
+                ] or list(owned_tasks)
+            else:
+                participants = []
             participant_globals = {str(task["globalTaskId"]) for task in participants}
             service: list[dict[str, Any]] = []
             waits: list[dict[str, Any]] = []
             deps: list[dict[str, Any]] = []
             seen_children: set[tuple[str, str]] = set()
-            had_ambiguous_child = False
+            had_ambiguous_child = any(
+                str(t["globalTaskId"]) in ambiguous_globals for t in (*owned_tasks, *related)
+            )
 
-            for task in related:
+            for task in owned_tasks:
                 global_id = str(task["globalTaskId"])
                 task_type = _text(strings, task["taskType"])
                 if global_id in ambiguous_globals:
@@ -398,6 +472,12 @@ def _call_rows(
                         sched_raw.get(global_id),
                     ):
                         if not raw_child:
+                            continue
+                        if (
+                            has_op_id_col
+                            and raw_child.get("_op_id") is not None
+                            and raw_child["_op_id"] != call_op_id
+                        ):
                             continue
                         key = (raw_child["source_table"], global_id)
                         if key in seen_children:
@@ -616,12 +696,17 @@ def read_collective_readiness(
     end_ns: int | None = None,
     windows: Sequence[tuple[int, int]] | None = None,
     timeout_s: float = 20.0,
+    resolved_sources: Sequence[RankSource] | None = None,
 ) -> dict[str, Any]:
     """Return the public C7 readiness report for a captured bundle."""
     effective_timeout = max(0.1, float(timeout_s))
     deadline = time.monotonic() + effective_timeout
     intervals = normalize_intervals(start_ns, end_ns, windows)
-    sources = resolve_ranks(discover_rank_sources(root, source=source), ranks)
+    sources = (
+        list(resolved_sources)
+        if resolved_sources is not None
+        else resolve_ranks(discover_rank_sources(root, source=source), ranks)
+    )
     calls: list[dict[str, Any]] = []
     limitations: set[str] = set()
     budgets = {"calls": 0, "overlaps": 0, "children": 0, "waits": 0}

@@ -40,6 +40,7 @@ from .enrichment import enrich_report
 from .measured_supply import deployment_source_identity, image_digest
 from .events import (
     Observation,
+    ProfilerError,
     ProfilerUsageError,
     QueryStats,
     SourceRef,
@@ -621,6 +622,52 @@ def analyze_profile(
     else:
         source_identity = deployment_source_identity(None, basis=status_basis)
 
+    from .collective_readiness import (
+        MIN_SQLITE_LOCK_BUDGET_S,
+        SCHEMA as READINESS_SCHEMA,
+        read_collective_readiness,
+    )
+
+    readiness_windows = (
+        None
+        if full_range or not selected_windows
+        else [(w.start_ns, w.end_ns) for w in selected_windows]
+    )
+    db_rank_count = sum(1 for item in sources if item.db_path and source != "csv")
+    readiness_timeout_s = (
+        max(MIN_SQLITE_LOCK_BUDGET_S, float(query_timeout_s)) * max(1, db_rank_count) + 1.0
+    )
+    try:
+        collective_readiness = read_collective_readiness(
+            normalized_root,
+            source=source,
+            ranks=[item.rank_id for item in sources],
+            windows=readiness_windows,
+            timeout_s=readiness_timeout_s,
+            resolved_sources=sources,
+        )
+    except ProfilerError as exc:
+        _add(
+            limitations,
+            "collective_readiness_failed",
+            "global",
+            f"Collective readiness extraction failed after primary profile analysis completed: {exc}",
+            "high",
+        )
+        collective_readiness = {
+            "schema": READINESS_SCHEMA,
+            "status": "error",
+            "error": str(exc),
+            "error_type": type(exc).__name__,
+            "calls": [],
+            "rank_count": len(sources),
+            "clock": {
+                "cross_rank_aligned": False,
+                "basis": "rank-local DB timestamps; no runtime clock correlation",
+            },
+            "limitations": ["collective_readiness_query_failed"],
+        }
+
     elapsed_ms = round((time.perf_counter() - started) * 1000.0, 6)
     report = build_report(
         sources=source_refs,
@@ -660,20 +707,7 @@ def analyze_profile(
             max_events=max_mapping_events,
             phase=(scene or {}).get("phase"),
         )
-    from .collective_readiness import read_collective_readiness
-
-    readiness_windows = (
-        None
-        if full_range or not selected_windows
-        else [(w.start_ns, w.end_ns) for w in selected_windows]
-    )
-    report["collective_readiness"] = read_collective_readiness(
-        normalized_root,
-        source=source,
-        ranks=[item.rank_id for item in sources],
-        windows=readiness_windows,
-        timeout_s=max(0.1, query_timeout_s),
-    )
+    report["collective_readiness"] = collective_readiness
     if output is not None:
         write_report(report, output)
     return report
