@@ -35,7 +35,7 @@ from .measured_supply import (
     R64_IMAGE_SHA,
     SATURATION_THRESHOLD,
     MatrixSupplyAccumulator,
-    _dtype_name,
+    _dtype_slots,
     summarize_measured_supply,
 )
 
@@ -246,9 +246,9 @@ def _candidate_geometry_matches(
     if v_shape is not None and tuple(v_shape) != k_shape:
         return False
     in_dtypes = candidate.get("input_dtypes_slots") or ()
-    if len(in_dtypes) >= 2 and in_dtypes[1] != "fp8_e4m3":
+    if len(in_dtypes) < 2 or in_dtypes[0] != "bf16" or in_dtypes[1] != "fp8_e4m3":
         return False
-    if v_shape is not None and len(in_dtypes) >= 3 and in_dtypes[2] != "fp8_e4m3":
+    if v_shape is not None and (len(in_dtypes) < 3 or in_dtypes[2] != "fp8_e4m3"):
         return False
     index_shape = candidate.get("index_shape")
     if index_shape is not None:
@@ -625,7 +625,16 @@ def summarize_sparse_mte1(
 
 
 def sparse_supply_candidate(observation: Observation, event: Event) -> dict[str, Any] | None:
-    if SPARSE_NATIVE_TYPE not in f"{event.op_type} {event.name}":
+    op_type = str(event.op_type or "").strip()
+    op_name = str(event.name or "").strip()
+    if op_type:
+        if op_type != SPARSE_NATIVE_TYPE:
+            return None
+        if op_name and op_name != SPARSE_NATIVE_TYPE and not op_name.startswith(
+            f"{SPARSE_NATIVE_TYPE}_"
+        ):
+            return None
+    elif op_name != SPARSE_NATIVE_TYPE:
         return None
     if not event.complete_in(observation.window.start_ns, observation.window.end_ns):
         return None
@@ -637,16 +646,12 @@ def sparse_supply_candidate(observation: Observation, event: Event) -> dict[str,
     index_shape = in_slots[3] if len(in_slots) >= 4 else None
     out_shape = out_slots[0] if out_slots and out_slots[0] else ()
     q_tokens = int(q_shape[0]) if len(q_shape) >= 1 else 0
-    in_dtypes = tuple(
-        _dtype_name(part)
-        for part in str(event.input_dtypes or "").strip('"').split(";")[:5]
-    )
+    in_dtypes = _dtype_slots(event.input_dtypes, limit=5)
+    out_dtypes = _dtype_slots(event.output_dtypes, limit=2)
     pmu = event.pmu_map()
     mte1_ns = pmu.get("aic_mte1_time")
     return {
-        "native_type": (
-            event.op_type if event.op_type == SPARSE_NATIVE_TYPE else SPARSE_NATIVE_TYPE
-        ),
+        "native_type": SPARSE_NATIVE_TYPE,
         "rank_id": event.rank_id or observation.rank_id,
         "rank_index": (
             event.rank_index if event.rank_index is not None else observation.rank_index
@@ -660,8 +665,8 @@ def sparse_supply_candidate(observation: Observation, event: Event) -> dict[str,
         "out_shape": out_shape,
         "input_dtypes_slots": in_dtypes,
         "tensor_geometry_parsed": True,
-        "dtype": _dtype_name(event.input_dtypes) or "",
-        "output_dtype": _dtype_name(event.output_dtypes) or "",
+        "dtype": (in_dtypes[0] or "") if in_dtypes else "",
+        "output_dtype": (out_dtypes[0] or "") if out_dtypes else "",
         "block_num": event.block_dim,
         "mix_block_num": event.mix_block_dim,
         "op_state": event.op_state,

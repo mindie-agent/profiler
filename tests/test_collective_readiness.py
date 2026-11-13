@@ -425,3 +425,98 @@ def test_null_connection_id_child_dup_past_truncation_and_segment_tree_speed(
     assert capped is True
     assert len(matched) == 32
     assert elapsed_s < 0.05
+
+
+def test_report_wide_budget_chunk_pagination_capped_overlap_and_lock_budget(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from mindie_profiler.collective_readiness_db import (
+        query_windowed_calls,
+        query_windowed_tasks,
+    )
+
+    # 1. Report-wide MAX_TOTAL_CALLS bounds total retained calls across multiple ranks.
+    multi = tmp_path / "multi_budget"
+    _create_readiness_db(multi, 0, op_count=2)
+    _create_readiness_db(multi, 1, op_count=2)
+    monkeypatch.setattr("mindie_profiler.collective_readiness.MAX_TOTAL_CALLS", 3)
+    capped_report = read_collective_readiness(multi)
+    assert len(capped_report["calls"]) == 3
+    assert "call_row_budget_reached" in capped_report["limitations"]
+    monkeypatch.undo()
+
+    # 2. 65 disjoint windows with spanning rows across chunk boundary return ALL unique rows.
+    chunk_db = tmp_path / "chunk65.db"
+    con = sqlite3.connect(chunk_db)
+    con.row_factory = sqlite3.Row
+    con.execute(
+        "CREATE TABLE COMMUNICATION_OP(opId INT, startNs INT, endNs INT, connectionId INT, deviceId INT)"
+    )
+    con.execute(
+        "CREATE TABLE TASK(startNs INT, endNs INT, connectionId INT, deviceId INT, "
+        "globalTaskId INT, streamId INT, taskId INT, taskType INT)"
+    )
+    # Ops 1..3 span across window 0..64 so chunk 2 sees 3 duplicate spanning rows before op 5!
+    ops_data = [
+        (1, 5, 70_000, 1, 0),
+        (2, 6, 70_000, 2, 0),
+        (3, 7, 70_000, 3, 0),
+        (4, 150, 250, 4, 0),
+        (5, 64_100, 64_200, 5, 0),
+    ]
+    con.executemany("INSERT INTO COMMUNICATION_OP VALUES(?, ?, ?, ?, ?)", ops_data)
+    con.executemany(
+        "INSERT INTO TASK VALUES(?, ?, ?, 0, ?, 1, ?, 10)",
+        [(s, e, cid, cid, cid) for cid, s, e, _, _ in ops_data],
+    )
+    con.commit()
+    windows_65 = [(i * 1_000, i * 1_000 + 500) for i in range(65)]
+    lims: set[str] = set()
+    monkeypatch.setattr("mindie_profiler.collective_readiness_db.MAX_TASKS", 5)
+    got_calls = query_windowed_calls(
+        con,
+        "chunk65.db",
+        ["startNs", "endNs", "connectionId", "deviceId", "opId"],
+        "opId",
+        windows_65,
+        lims,
+        deadline=time.monotonic() + 10.0,
+        timeout_s=10.0,
+        max_calls=5,
+    )
+    got_tasks = query_windowed_tasks(
+        con,
+        "chunk65.db",
+        ["0"],
+        windows_65,
+        lims,
+        deadline=time.monotonic() + 10.0,
+        timeout_s=10.0,
+    )
+    con.close()
+    monkeypatch.undo()
+    assert [int(r["opId"]) for r in got_calls] == [1, 2, 3, 4, 5]
+    assert len(got_tasks) == 5
+    assert lims == set()
+
+    # 3. Capped overlap scan (>256 overlaps) leaves bound_task_global_id unresolved, never fabricated!
+    cap_root = tmp_path / "cap_overlap"
+    cap_db = _create_readiness_db(cap_root, 0, op_count=1)
+    ccon = sqlite3.connect(cap_db)
+    # First call in _create_readiness_db has startNs=1000, endNs=2000, deviceId=0, connectionId=2.
+    # Add 260 non-enclosing overlapping tasks plus a second enclosing task at the end!
+    ccon.executemany(
+        "INSERT INTO TASK VALUES(1500, 1600, 0, 2, ?, 26, ?, 7)",
+        [(5_000 + i, 5_000 + i) for i in range(260)],
+    )
+    ccon.execute("INSERT INTO TASK VALUES(900, 2100, 0, 2, 9999, 26, 9999, 7)")
+    ccon.commit()
+    ccon.close()
+    cap_res = read_collective_readiness(cap_root)
+    assert "overlap_scan_budget_reached" in cap_res["limitations"]
+    assert cap_res["calls"][0]["observed_context"]["bound_task_global_id"] is None
+    assert "call_bound_task_unresolved" in cap_res["calls"][0]["unknowns"]
+
+    # 4. Sub-3s readiness timeout_s is rejected upfront rather than waiting 3,000ms on SQLite lock!
+    with pytest.raises(ProfilerQueryError, match="minimum SQLite lock budget"):
+        read_collective_readiness(cap_root, timeout_s=1.0)

@@ -35,21 +35,31 @@ from typing import Any, Callable, Mapping
 from .accounting import merge_intervals
 from .events import Event, ProfilerUsageError
 
+_MISSING_TEXT = frozenset({"", "N/A", "NULL", "NONE", "UNDEFINED"})
+_UNDEFINED_DTYPES = frozenset({"", "N/A", "NULL", "NONE", "UNDEFINED", "DT_UNDEFINED"})
+_ATTENTION_AUX_DTYPES = frozenset(
+    {"int8", "uint8", "int16", "uint16", "int32", "uint32", "int64", "uint64", "bool"}
+)
 _DTYPE_TOKENS = {
-    "DT_BF16": "bf16",
-    "DT_BFLOAT16": "bf16",
-    "DT_FLOAT16": "fp16",
-    "DT_FLOAT": "fp32",
-    "DT_INT8": "int8",
-    "DT_INT32": "int32",
-    "DT_INT64": "int64",
-    "DT_UINT8": "uint8",
-    "DT_UINT32": "uint32",
-    "DT_BOOL": "bool",
-    "DT_DOUBLE": "fp64",
-    "DT_FLOAT8_E4M3FN": "fp8_e4m3",
-    "DT_FLOAT8_E5M2": "fp8_e5m2",
-    "DT_FLOAT8_E8M0": "fp8_e8m0",
+    **dict.fromkeys(("BF16", "BFP16", "BFLOAT16", "DT_BF16", "DT_BFLOAT16"), "bf16"),
+    **dict.fromkeys(("FP16", "HALF", "FLOAT16", "DT_FLOAT16", "DT_HALF"), "fp16"),
+    **dict.fromkeys(("FP32", "FLOAT", "FLOAT32", "DT_FLOAT", "DT_FLOAT32"), "fp32"),
+    **dict.fromkeys(("FP64", "DOUBLE", "FLOAT64", "DT_DOUBLE", "DT_FLOAT64"), "fp64"),
+    **dict.fromkeys(("INT4", "DT_INT4"), "int4"),
+    **dict.fromkeys(("INT8", "DT_INT8"), "int8"),
+    **dict.fromkeys(("INT16", "DT_INT16"), "int16"),
+    **dict.fromkeys(("INT32", "DT_INT32"), "int32"),
+    **dict.fromkeys(("INT64", "DT_INT64"), "int64"),
+    **dict.fromkeys(("UINT8", "DT_UINT8"), "uint8"),
+    **dict.fromkeys(("UINT16", "DT_UINT16"), "uint16"),
+    **dict.fromkeys(("UINT32", "DT_UINT32"), "uint32"),
+    **dict.fromkeys(("UINT64", "DT_UINT64"), "uint64"),
+    **dict.fromkeys(("BOOL", "DT_BOOL"), "bool"),
+    **dict.fromkeys(("HIF8", "HIFLOAT8", "DT_HIFLOAT8"), "hif8"),
+    **dict.fromkeys(("FP8_E4M3", "FP8_E4M3FN", "FLOAT8_E4M3FN", "DT_FLOAT8_E4M3FN"), "fp8_e4m3"),
+    **dict.fromkeys(("FP8_E5M2", "FLOAT8_E5M2", "DT_FLOAT8_E5M2"), "fp8_e5m2"),
+    **dict.fromkeys(("FP8_E8M0", "FLOAT8_E8M0", "DT_FLOAT8_E8M0"), "fp8_e8m0"),
+    **dict.fromkeys(("MXFP4", "FLOAT4_E2M1", "DT_FLOAT4_E2M1"), "mxfp4"),
 }
 
 
@@ -99,57 +109,75 @@ _NON_CONTIGUOUS_FORMATS = frozenset({"FRACTAL_NZ", "FRACTAL_Z", "NC1HWC0", "C1HW
 
 def _norm_dtype(raw: Any) -> str | None:
     text = str(raw or "").strip().strip('"')
-    if not text or text in {"N/A", "NULL", "None"}:
+    upper = text.upper()
+    if upper in _UNDEFINED_DTYPES:
         return None
-    return _DTYPE_TOKENS.get(text.upper(), text.lower().removeprefix("dt_"))
+    return _DTYPE_TOKENS.get(upper, text.lower().removeprefix("dt_"))
 
 
-def _parse_shape_lanes(text: str | None) -> tuple[tuple[int, ...], ...] | None:
-    rows: list[tuple[int, ...]] = []
-    for part in (text or "").split(";"):
-        cell = part.strip().strip('"')
-        if not cell or cell in {"N/A", "NULL", "None"}:
-            continue
-        try:
-            dims = tuple(int(value) for value in cell.split(",") if value.strip())
-        except ValueError:
-            return None
-        if dims:
-            rows.append(dims)
-    return tuple(rows)
-
-
-def _parse_dtype_lanes(text: str | None) -> tuple[str, ...]:
-    rows: list[str] = []
-    for part in (text or "").split(";"):
-        dt = _norm_dtype(part)
-        if dt is not None:
-            rows.append(dt)
-    return tuple(rows)
-
-
-def _parse_format_lanes(text: str | None) -> tuple[str, ...]:
-    rows: list[str] = []
-    for part in (text or "").split(";"):
-        cell = part.strip().strip('"').upper()
-        if cell and cell not in {"N/A", "NULL", "NONE"}:
-            rows.append(cell)
-    return tuple(rows)
+def _parse_paired_lanes(
+    shapes_text: str | None,
+    dtypes_text: str | None,
+    formats_text: str | None = None,
+) -> tuple[str, tuple[tuple[int, ...], ...], tuple[str, ...], tuple[str, ...]]:
+    s_whole = str(shapes_text or "").strip().strip('"')
+    d_whole = str(dtypes_text or "").strip().strip('"')
+    f_whole = str(formats_text or "").strip().strip('"')
+    if s_whole.upper() in _MISSING_TEXT or d_whole.upper() in _MISSING_TEXT:
+        return "missing", (), (), ()
+    s_parts = s_whole.split(";")
+    d_parts = d_whole.split(";")
+    if len(s_parts) != len(d_parts):
+        return "mismatch", (), (), ()
+    has_formats = f_whole.upper() not in _MISSING_TEXT
+    f_parts = f_whole.split(";") if has_formats else None
+    if f_parts is not None and len(f_parts) != len(d_parts):
+        return "mismatch", (), (), ()
+    shapes: list[tuple[int, ...]] = []
+    dtypes: list[str] = []
+    formats: list[str] = []
+    for idx, raw_d in enumerate(d_parts):
+        s_cell = s_parts[idx].strip().strip('"')
+        d_cell = raw_d.strip().strip('"')
+        f_cell = f_parts[idx].strip().strip('"').upper() if f_parts is not None else ""
+        if d_cell.upper() in _UNDEFINED_DTYPES:
+            if s_cell.upper() in _MISSING_TEXT:
+                continue
+            return "missing", (), (), ()
+        dt = _norm_dtype(d_cell)
+        if dt is None or s_cell.upper() in {"N/A", "NULL", "NONE", "UNDEFINED"}:
+            return "missing", (), (), ()
+        if s_cell == "":
+            dims: tuple[int, ...] = ()
+        else:
+            try:
+                dims = tuple(int(value) for value in s_cell.split(",") if value.strip())
+            except ValueError:
+                return "missing", (), (), ()
+            if not dims:
+                return "missing", (), (), ()
+        shapes.append(dims)
+        dtypes.append(dt)
+        if f_parts is not None:
+            if f_cell in _MISSING_TEXT:
+                return "missing", (), (), ()
+            formats.append(f_cell)
+    if not shapes:
+        return "missing", (), (), ()
+    return "ok", tuple(shapes), tuple(dtypes), tuple(formats)
 
 
 def event_signature(
     event: Event,
 ) -> tuple[tuple[tuple[int, ...], ...], tuple[str, ...]] | None:
     """Parsed shape/dtype lanes of a captured event, or None when incomplete."""
-    inputs = _parse_shape_lanes(event.input_shapes)
-    outputs = _parse_shape_lanes(event.output_shapes)
-    input_dtypes = _parse_dtype_lanes(event.input_dtypes)
-    output_dtypes = _parse_dtype_lanes(event.output_dtypes)
-    if inputs is None or outputs is None or not inputs or not outputs:
-        return None
-    if not input_dtypes or not output_dtypes:
-        return None
-    if len(inputs) != len(input_dtypes) or len(outputs) != len(output_dtypes):
+    in_status, inputs, input_dtypes, _ = _parse_paired_lanes(
+        event.input_shapes, event.input_dtypes, event.input_formats
+    )
+    out_status, outputs, output_dtypes, _ = _parse_paired_lanes(
+        event.output_shapes, event.output_dtypes, event.output_formats
+    )
+    if in_status != "ok" or out_status != "ok":
         return None
     return (*inputs, *outputs), (*input_dtypes, *output_dtypes)
 
@@ -212,6 +240,10 @@ def _match_declared_shapes(
     shapes_field: Any,
     in_shapes: tuple[tuple[int, ...], ...],
     out_shapes: tuple[tuple[int, ...], ...],
+    *,
+    in_dtypes: tuple[str, ...] = (),
+    out_dtypes: tuple[str, ...] = (),
+    family: str = "",
 ) -> bool | None:
     if not isinstance(shapes_field, Mapping) or not shapes_field:
         return False
@@ -242,6 +274,7 @@ def _match_declared_shapes(
         else:
             input_roles[key] = shape
 
+    is_attention_abi = family.lower() == "attention" or "query" in input_roles
     has_explicit_roles = bool(
         input_roles or output_roles or explicit_inputs is not None or explicit_outputs is not None
     )
@@ -259,7 +292,16 @@ def _match_declared_shapes(
         if out_shapes != explicit_outputs:
             return False
     elif output_roles:
-        if Counter(out_shapes) != Counter(output_roles.values()):
+        effective_out = out_shapes
+        if is_attention_abi and len(out_shapes) > len(output_roles):
+            extra_ok = all(
+                out_shapes[idx] == ()
+                and (idx >= len(out_dtypes) or out_dtypes[idx] in {"fp32", "bf16", "fp16"})
+                for idx in range(len(output_roles), len(out_shapes))
+            )
+            if extra_ok:
+                effective_out = out_shapes[: len(output_roles)]
+        if Counter(effective_out) != Counter(output_roles.values()):
             return False
     elif out_shapes:
         coarse_set = set(coarse_shapes.values())
@@ -283,7 +325,14 @@ def _match_declared_shapes(
             shape for k, shape in input_roles.items() if k not in _OPTIONAL_INPUT_KEYS
         )
         all_counts = Counter(input_roles.values())
-        obs_counts = Counter(in_shapes)
+        if is_attention_abi and in_dtypes:
+            obs_counts = Counter(
+                shape
+                for shape, dt in zip(in_shapes, in_dtypes)
+                if dt not in _ATTENTION_AUX_DTYPES and shape != ()
+            )
+        else:
+            obs_counts = Counter(in_shapes)
         if not (_counter_leq(req_counts, obs_counts) and _counter_leq(obs_counts, all_counts)):
             return False
     elif in_shapes:
@@ -299,20 +348,32 @@ def _match_declared_shapes(
 
 def native_call_signature_match(binding: Mapping[str, Any], event: Event) -> bool | None:
     """True/False across role-matched input/output shapes, dtypes, and formats; None if unresolved."""
-    in_shapes = _parse_shape_lanes(event.input_shapes)
-    out_shapes = _parse_shape_lanes(event.output_shapes)
-    in_dtypes = _parse_dtype_lanes(event.input_dtypes)
-    out_dtypes = _parse_dtype_lanes(event.output_dtypes)
-    if in_shapes is None or out_shapes is None or not in_shapes or not out_shapes:
-        return None
-    if not in_dtypes or not out_dtypes:
-        return None
-    if len(in_shapes) != len(in_dtypes) or len(out_shapes) != len(out_dtypes):
+    in_status, in_shapes, in_dtypes, in_formats = _parse_paired_lanes(
+        event.input_shapes, event.input_dtypes, event.input_formats
+    )
+    out_status, out_shapes, out_dtypes, out_formats = _parse_paired_lanes(
+        event.output_shapes, event.output_dtypes, event.output_formats
+    )
+    if in_status == "mismatch" or out_status == "mismatch":
         return False
+    if in_status != "ok" or out_status != "ok":
+        return None
 
     typed = binding.get("typed") or {}
     attrs = typed.get("attrs") if isinstance(typed.get("attrs"), Mapping) else {}
-    shape_verdict = _match_declared_shapes(typed.get("shapes"), in_shapes, out_shapes)
+    shapes_map = typed.get("shapes") if isinstance(typed.get("shapes"), Mapping) else {}
+    family = str(binding.get("family") or "")
+    is_attention_abi = family.lower() == "attention" or any(
+        str(k).strip().lower() == "query" for k in shapes_map
+    )
+    shape_verdict = _match_declared_shapes(
+        typed.get("shapes"),
+        in_shapes,
+        out_shapes,
+        in_dtypes=in_dtypes,
+        out_dtypes=out_dtypes,
+        family=family,
+    )
     if shape_verdict is not True:
         return shape_verdict
 
@@ -326,6 +387,9 @@ def native_call_signature_match(binding: Mapping[str, Any], event: Event) -> boo
     elif declared_dtype is not None:
         allowed_in = {declared_dtype}
         for key in (
+            "query_dtype",
+            "key_dtype",
+            "value_dtype",
             "weight_dtype",
             "cache_dtype",
             "group_list_dtype",
@@ -335,7 +399,16 @@ def native_call_signature_match(binding: Mapping[str, Any], event: Event) -> boo
         ):
             if (aux := _norm_dtype(typed.get(key) or attrs.get(key))) is not None:
                 allowed_in.add(aux)
-        if in_dtypes[0] != declared_dtype or any(dt not in allowed_in for dt in in_dtypes):
+        checked_in = (
+            tuple(
+                dt
+                for shape, dt in zip(in_shapes, in_dtypes)
+                if dt not in _ATTENTION_AUX_DTYPES and shape != ()
+            )
+            if is_attention_abi
+            else in_dtypes
+        )
+        if in_dtypes[0] != declared_dtype or any(dt not in allowed_in for dt in checked_in):
             return False
 
     explicit_out_dtypes = typed.get("output_dtypes")
@@ -351,11 +424,14 @@ def native_call_signature_match(binding: Mapping[str, Any], event: Event) -> boo
             allowed_out = {target_out}
             if declared_dtype is not None:
                 allowed_out.add(declared_dtype)
-            if out_dtypes[0] != target_out or any(dt not in allowed_out for dt in out_dtypes):
+            checked_out = (
+                tuple(dt for shape, dt in zip(out_shapes, out_dtypes) if shape != ())
+                if is_attention_abi
+                else out_dtypes
+            )
+            if out_dtypes[0] != target_out or any(dt not in allowed_out for dt in checked_out):
                 return False
 
-    in_formats = _parse_format_lanes(event.input_formats)
-    out_formats = _parse_format_lanes(event.output_formats)
     if isinstance(typed.get("input_formats"), (list, tuple)):
         if not in_formats:
             return None
@@ -399,12 +475,8 @@ def resolve_implementation_correspondence(
         None
         if event is None
         else (
-            _parse_shape_lanes(event.input_shapes),
-            _parse_shape_lanes(event.output_shapes),
-            _parse_dtype_lanes(event.input_dtypes),
-            _parse_dtype_lanes(event.output_dtypes),
-            _parse_format_lanes(event.input_formats),
-            _parse_format_lanes(event.output_formats),
+            _parse_paired_lanes(event.input_shapes, event.input_dtypes, event.input_formats),
+            _parse_paired_lanes(event.output_shapes, event.output_dtypes, event.output_formats),
         )
     )
     cache_key = (
@@ -455,26 +527,27 @@ def resolve_implementation_correspondence(
             basis = "observed_hccl_alias_same_call"
             signature_match = True
 
-    if not targets:
-        impl_targets = list(
+    impl_targets = (
+        list(
             dict.fromkeys(
                 rank_candidates_fn(target_index.native_implementations.get(kind, ()), rank)
             )
         )
-        if impl_targets:
-            targets = impl_targets
-            if event is not None:
-                bound = [
-                    target_index.native_bindings[node]
-                    for node in targets
-                    if node in target_index.native_bindings
-                ]
-                if bound:
-                    verdicts = {native_call_signature_match(item, event) for item in bound}
-                    if verdicts == {True}:
-                        signature_match = True
-                    elif False in verdicts:
-                        signature_match = False
+        if not targets
+        else []
+    )
+    bound_verdicts: list[tuple[str, bool | None]] = []
+    if impl_targets and event is not None:
+        bound_verdicts = [
+            (node, native_call_signature_match(target_index.native_bindings[node], event))
+            for node in impl_targets
+            if node in target_index.native_bindings
+        ]
+        matched_impl = [node for node, verdict in bound_verdicts if verdict is True]
+        if matched_impl:
+            targets = matched_impl
+            signature_match = True
+            basis = "declared_native_call_signature"
 
     if not targets:
         names = (kind,) if alt_name is None else (kind, alt_name)
@@ -503,11 +576,19 @@ def resolve_implementation_correspondence(
                     matched_label = candidate_name
                     basis = "declared_native_call_signature"
                     break
-            else:
+            elif not impl_targets:
                 targets = candidates
                 matched_label = candidate_name
                 basis = "declared_native_call_no_event"
                 break
+
+    if not targets and impl_targets:
+        targets = impl_targets
+        basis = "declared_native_implementation"
+        if bound_verdicts:
+            verdict_set = {verdict for _, verdict in bound_verdicts}
+            if False in verdict_set and None not in verdict_set:
+                signature_match = False
 
     if targets:
         description = target_index.describe_implementation(matched_label, targets)

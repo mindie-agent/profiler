@@ -38,6 +38,8 @@ from .collective_readiness_db import (
     MAX_CHILDREN,
     MAX_NS,
     MAX_TASKS,
+    MAX_TOTAL_CALLS,
+    MIN_SQLITE_LOCK_BUDGET_S,
     TaskGroupIndex,
     check_deadline,
     column_names,
@@ -52,6 +54,7 @@ from .collective_readiness_db import (
     resolve_strings,
     table_names,
 )
+from .events import ProfilerQueryError
 from .segment import RankSource, discover_rank_sources, resolve_ranks
 from .sql import open_readonly
 
@@ -139,10 +142,13 @@ def _call_rows(
     effective_timeout = max(0.1, float(timeout_s))
     check_deadline(deadline, db_label, effective_timeout)
     remaining_s = deadline - time.monotonic()
-    if remaining_s <= 0:
-        check_deadline(deadline, db_label, effective_timeout)
+    if remaining_s < MIN_SQLITE_LOCK_BUDGET_S:
+        raise ProfilerQueryError(
+            f"{db_label}: remaining deadline ({remaining_s:.3f}s) is below minimum "
+            f"SQLite lock budget ({MIN_SQLITE_LOCK_BUDGET_S:.1f}s); readiness budget exceeded"
+        )
     db = open_readonly(
-        source.db_path, timeout_s=min(effective_timeout, max(0.001, remaining_s)), allow_pragma=True
+        source.db_path, timeout_s=min(effective_timeout, remaining_s), allow_pragma=True
     )
     db.row_factory = sqlite3.Row
     db.set_progress_handler(lambda: 1 if time.monotonic() > deadline else 0, 5_000)
@@ -184,6 +190,7 @@ def _call_rows(
         ):
             if optional in cols:
                 selected.append(optional)
+        call_budget = max(0, MAX_TOTAL_CALLS - int(budgets.setdefault("calls", 0)))
         calls = query_windowed_calls(
             db,
             db_label,
@@ -193,6 +200,7 @@ def _call_rows(
             limitations,
             deadline=deadline,
             timeout_s=effective_timeout,
+            max_calls=min(MAX_CALLS, call_budget),
         )
         if not calls:
             return []
@@ -288,7 +296,7 @@ def _call_rows(
 
         windowed = list(intervals) != [(0, MAX_NS)]
         prepared_calls: list[
-            tuple[sqlite3.Row, list[sqlite3.Row], sqlite3.Row | None, sqlite3.Row | None]
+            tuple[sqlite3.Row, list[sqlite3.Row], bool, sqlite3.Row | None, sqlite3.Row | None]
         ] = []
         for call in calls:
             check_deadline(deadline, db_label, effective_timeout)
@@ -301,17 +309,18 @@ def _call_rows(
                 continue
             if call["connectionId"] is None:
                 limitations.add("null_connection_id")
-                prepared_calls.append((call, [], None, None))
+                prepared_calls.append((call, [], False, None, None))
                 continue
             conn_key = (str(call["connectionId"]), str(call["deviceId"]))
             group = task_index.get(conn_key)
+            scan_capped = False
             if group is not None:
                 related, scan_capped = group.overlapping(op_start, op_end)
                 if scan_capped:
                     limitations.add("overlap_scan_budget_reached")
             else:
                 related = []
-            bound = _bound_task(related, op_start, op_end)
+            bound = None if scan_capped else _bound_task(related, op_start, op_end)
             pred: sqlite3.Row | None = None
             if bound is not None:
                 stream = str(bound["streamId"])
@@ -342,7 +351,7 @@ def _call_rows(
                         pred = fallback[0]
                         if (sid := int_id(pred["taskType"])) is not None:
                             referenced_string_ids.add(sid)
-            prepared_calls.append((call, related, bound, pred))
+            prepared_calls.append((call, related, scan_capped, bound, pred))
 
         strings = resolve_strings(
             db,
@@ -355,13 +364,15 @@ def _call_rows(
         )
 
         result: list[dict[str, Any]] = []
-        for call, related, bound, pred in prepared_calls:
+        for call, related, scan_capped, bound, pred in prepared_calls:
             check_deadline(deadline, db_label, effective_timeout)
             op_start, op_end = int(call["startNs"]), int(call["endNs"])
             device = str(call["deviceId"]) if call["deviceId"] is not None else None
             conn_str = str(call["connectionId"]) if call["connectionId"] is not None else None
             if bound is not None:
                 participants = [bound]
+            elif scan_capped:
+                participants = []
             else:
                 participants = [
                     task
@@ -589,6 +600,7 @@ def _call_rows(
             )
             item["call_ordinal"] = counts.get(key, 0)
             counts[key] = item["call_ordinal"] + 1
+        budgets["calls"] = int(budgets.get("calls", 0)) + len(result)
         return result
     finally:
         db.set_progress_handler(None, 0)
@@ -612,7 +624,7 @@ def read_collective_readiness(
     sources = resolve_ranks(discover_rank_sources(root, source=source), ranks)
     calls: list[dict[str, Any]] = []
     limitations: set[str] = set()
-    budgets = {"overlaps": 0, "children": 0, "waits": 0}
+    budgets = {"calls": 0, "overlaps": 0, "children": 0, "waits": 0}
     db_sources = 0
     for item in sources:
         if item.db_path and source != "csv":
@@ -677,9 +689,11 @@ __all__ = [
     "MAX_CHILDREN",
     "MAX_OVERLAPS_PER_CALL",
     "MAX_TASKS",
+    "MAX_TOTAL_CALLS",
     "MAX_TOTAL_CHILDREN",
     "MAX_TOTAL_OVERLAPS",
     "MAX_TOTAL_WAITS",
+    "MIN_SQLITE_LOCK_BUDGET_S",
     "SCHEMA",
     "attach_to_report",
     "read_collective_readiness",

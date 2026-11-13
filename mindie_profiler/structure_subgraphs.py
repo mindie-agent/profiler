@@ -54,7 +54,7 @@ class StructureTargets:
             if call_id and node_id not in self.native_calls[call_id]:
                 self.native_calls[call_id].append(node_id)
             api = record.get("api") or {}
-            for entry in (api.get("entry"), api.get("aclnn_symbol")):
+            for entry in (api.get("entry"), api.get("aclnn_symbol"), *(api.get("candidates") or ())):
                 if entry and node_id not in self.native_call_entries[entry]:
                     self.native_call_entries[entry].append(node_id)
             for kernel in record.get("kernels", ()):

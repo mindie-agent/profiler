@@ -304,7 +304,9 @@ def test_r35_decode_unmatched_and_malformed_geometry_guards(tmp_path: Path) -> N
     )
 
 
-def test_summarize_sparse_mte1_streams_bounded_and_guards_missing_or_static_events() -> None:
+def test_summarize_sparse_mte1_streams_bounded_and_guards_missing_or_static_events(
+    tmp_path: Path,
+) -> None:
     from mindie_profiler.measured_supply import deployment_source_identity
     from mindie_profiler.pmu_derivation import summarize_sparse_mte1
 
@@ -380,4 +382,49 @@ def test_summarize_sparse_mte1_streams_bounded_and_guards_missing_or_static_even
     assert unparsed == []
     assert "sparse_mte1_tensor_geometry_mismatch" in {
         item["code"] for item in unparsed_lims
+    }
+
+    # 4. Distinct kernel KvQuantSparseFlashAttentionVllm is NEVER relabeled to KvQuantSparseFlashAttention!
+    vllm_csv = tmp_path / "vllm_sfa.csv"
+    vllm_csv.write_text(
+        REAL_SFA_CSV.read_text(encoding="utf-8").replace(
+            "KvQuantSparseFlashAttention", "KvQuantSparseFlashAttentionVllm"
+        ),
+        encoding="utf-8",
+    )
+    vllm_rep = analyze_profile(
+        vllm_csv,
+        full_range=True,
+        source="csv",
+        aic_count=32,
+        deployment_image_id=R64,
+        sparse_geometry=train_geom,
+    )
+    vllm_supply = vllm_rep["enrichment"]["pmu_observations"]["measured_supply"]
+    assert vllm_supply["resource_services"] == []
+    assert "sparse_mte1_no_matching_events" in {
+        item["code"] for item in vllm_supply["limitations"]
+    }
+
+    # 5. Truncated Input Data Types missing FP8 KV evidence is rejected explicitly!
+    no_kv_dt_csv = tmp_path / "no_kv_dt.csv"
+    no_kv_dt_csv.write_text(
+        REAL_SFA_CSV.read_text(encoding="utf-8").replace(
+            "DT_BF16;DT_FLOAT8_E4M3FN;DT_FLOAT8_E4M3FN;INT32;DT_UNDEFINED;DT_UNDEFINED;INT32;INT32;INT32",
+            "DT_BF16",
+        ),
+        encoding="utf-8",
+    )
+    no_kv_rep = analyze_profile(
+        no_kv_dt_csv,
+        full_range=True,
+        source="csv",
+        aic_count=32,
+        deployment_image_id=R64,
+        sparse_geometry=train_geom,
+    )
+    no_kv_supply = no_kv_rep["enrichment"]["pmu_observations"]["measured_supply"]
+    assert no_kv_supply["resource_services"] == []
+    assert "sparse_mte1_tensor_geometry_mismatch" in {
+        item["code"] for item in no_kv_supply["limitations"]
     }

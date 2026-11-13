@@ -450,3 +450,12 @@ def test_non_matrix_op_dtype_aliases_and_tilde_root_status_provenance(
     )
     assert resilient["status"] == "measured_pair"
     assert resilient["pair"] is not None
+
+    # 6. Public build_dual_load_service enforces complete_in_window exclusion directly!
+    valid_pair = resilient["pair"]
+    clipped_sat = {**valid_pair["saturated"], "complete_in_window": False}
+    clipped_tail = {**valid_pair["underfilled"], "complete_in_window": False}
+    with pytest.raises(ValueError, match="measured_supply_saturated_incomplete_in_window"):
+        build_dual_load_service(clipped_sat, valid_pair["underfilled"], physical_owners=32)
+    with pytest.raises(ValueError, match="measured_supply_underfilled_incomplete_in_window"):
+        build_dual_load_service(valid_pair["saturated"], clipped_tail, physical_owners=32)

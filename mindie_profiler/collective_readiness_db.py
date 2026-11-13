@@ -35,9 +35,11 @@ from .accounting import merge_intervals
 from .events import ProfilerQueryError, ProfilerUsageError
 
 MAX_CALLS = 20_000
+MAX_TOTAL_CALLS = 20_000
 MAX_TASKS = 20_000
 MAX_CHILDREN = 2_000
 MAX_OVERLAP_SCAN_PER_CALL = 256
+MIN_SQLITE_LOCK_BUDGET_S = 3.0
 _CHUNK_SIZE = 400
 _WINDOW_CHUNK = 64
 MAX_NS = 9_223_372_036_854_775_807
@@ -494,6 +496,13 @@ def normalize_intervals(
     return [(lo, hi)]
 
 
+def _sort_calls(calls: list[sqlite3.Row]) -> list[sqlite3.Row]:
+    calls.sort(
+        key=lambda r: (int(r["startNs"]), int(r["opId"]) if int_id(r["opId"]) is not None else 0)
+    )
+    return calls
+
+
 def query_windowed_calls(
     db: sqlite3.Connection,
     db_label: str,
@@ -504,42 +513,74 @@ def query_windowed_calls(
     *,
     deadline: float,
     timeout_s: float,
+    max_calls: int = MAX_CALLS,
 ) -> list[sqlite3.Row]:
+    del order_col
     seen_ops: set[str] = set()
     calls: list[sqlite3.Row] = []
-    for win_chunk in chunks(intervals, _WINDOW_CHUNK):
-        remaining = (MAX_CALLS - len(calls)) + 1
-        if remaining <= 1:
-            limitations.add("call_row_budget_reached")
-            break
-        where = " OR ".join("(endNs>? AND startNs<?)" for _ in win_chunk)
-        params: list[Any] = []
-        for lo, hi in win_chunk:
-            params.extend((lo, hi))
-        params.append(remaining)
-        batch = fetch_rows(
-            db,
-            db_label,
-            f"SELECT {','.join(selected)} FROM COMMUNICATION_OP "
-            f"WHERE {where} ORDER BY startNs,{order_col} LIMIT ?",
-            params,
-            remaining,
-            deadline=deadline,
-            timeout_s=timeout_s,
-        )
-        for row in batch:
-            op_key = str(row["opId"])
-            if op_key in seen_ops:
-                continue
-            seen_ops.add(op_key)
-            if len(calls) >= MAX_CALLS:
+    select_cols = ",".join(["rowid AS _rowid", *selected])
+    if max_calls <= 0:
+        for win_chunk in chunks(intervals, _WINDOW_CHUNK):
+            where = " OR ".join("(endNs>? AND startNs<?)" for _ in win_chunk)
+            params: list[Any] = []
+            for lo, hi in win_chunk:
+                params.extend((lo, hi))
+            probe = fetch_rows(
+                db,
+                db_label,
+                f"SELECT 1 FROM COMMUNICATION_OP WHERE ({where}) LIMIT 1",
+                params,
+                1,
+                deadline=deadline,
+                timeout_s=timeout_s,
+            )
+            if probe:
                 limitations.add("call_row_budget_reached")
                 break
-            calls.append(row)
-    calls.sort(
-        key=lambda r: (int(r["startNs"]), int(r["opId"]) if int_id(r["opId"]) is not None else 0)
-    )
-    return calls
+        return []
+    for win_chunk in chunks(intervals, _WINDOW_CHUNK):
+        where = " OR ".join("(endNs>? AND startNs<?)" for _ in win_chunk)
+        win_params: list[Any] = []
+        for lo, hi in win_chunk:
+            win_params.extend((lo, hi))
+        cursor: tuple[int, int] | None = None
+        while True:
+            fetch_limit = max(1, (max_calls - len(calls)) + 1)
+            if cursor is None:
+                sql = (
+                    f"SELECT {select_cols} FROM COMMUNICATION_OP "
+                    f"WHERE ({where}) ORDER BY startNs ASC, rowid ASC LIMIT ?"
+                )
+                params = [*win_params, fetch_limit]
+            else:
+                sql = (
+                    f"SELECT {select_cols} FROM COMMUNICATION_OP "
+                    f"WHERE ({where}) AND (startNs>? OR (startNs=? AND rowid>?)) "
+                    "ORDER BY startNs ASC, rowid ASC LIMIT ?"
+                )
+                params = [*win_params, cursor[0], cursor[0], cursor[1], fetch_limit]
+            batch = fetch_rows(
+                db,
+                db_label,
+                sql,
+                params,
+                fetch_limit,
+                deadline=deadline,
+                timeout_s=timeout_s,
+            )
+            for row in batch:
+                op_key = str(row["opId"])
+                if op_key in seen_ops:
+                    continue
+                if len(calls) >= max_calls:
+                    limitations.add("call_row_budget_reached")
+                    return _sort_calls(calls)
+                seen_ops.add(op_key)
+                calls.append(row)
+            if len(batch) < fetch_limit:
+                break
+            cursor = (int(batch[-1]["startNs"]), int(batch[-1]["_rowid"]))
+    return _sort_calls(calls)
 
 
 def query_windowed_tasks(
@@ -557,33 +598,47 @@ def query_windowed_tasks(
     for dev_chunk in chunks(devices):
         dev_marks = ",".join("?" for _ in dev_chunk)
         for win_chunk in chunks(intervals, _WINDOW_CHUNK):
-            remaining = (MAX_TASKS - len(task_rows)) + 1
-            if remaining <= 1:
-                limitations.add("task_row_budget_reached")
-                return task_rows
             where_win = " OR ".join("(endNs>? AND startNs<?)" for _ in win_chunk)
-            params: list[Any] = list(dev_chunk)
+            base_params: list[Any] = list(dev_chunk)
             for lo, hi in win_chunk:
-                params.extend((lo, hi))
-            params.append(remaining)
-            batch = fetch_rows(
-                db,
-                db_label,
-                "SELECT rowid AS _rowid,startNs,endNs,connectionId,deviceId,globalTaskId,"
-                f"streamId,taskId,taskType FROM TASK WHERE deviceId IN ({dev_marks}) "
-                f"AND ({where_win}) ORDER BY startNs,globalTaskId LIMIT ?",
-                params,
-                remaining,
-                deadline=deadline,
-                timeout_s=timeout_s,
-            )
-            for row in batch:
-                rid = int(row["_rowid"])
-                if rid in seen_rowids:
-                    continue
-                seen_rowids.add(rid)
-                if len(task_rows) >= MAX_TASKS:
-                    limitations.add("task_row_budget_reached")
-                    return task_rows
-                task_rows.append(row)
+                base_params.extend((lo, hi))
+            cursor: tuple[int, int] | None = None
+            while True:
+                fetch_limit = max(1, (MAX_TASKS - len(task_rows)) + 1)
+                if cursor is None:
+                    sql = (
+                        "SELECT rowid AS _rowid,startNs,endNs,connectionId,deviceId,globalTaskId,"
+                        f"streamId,taskId,taskType FROM TASK WHERE deviceId IN ({dev_marks}) "
+                        f"AND ({where_win}) ORDER BY startNs ASC, rowid ASC LIMIT ?"
+                    )
+                    params = [*base_params, fetch_limit]
+                else:
+                    sql = (
+                        "SELECT rowid AS _rowid,startNs,endNs,connectionId,deviceId,globalTaskId,"
+                        f"streamId,taskId,taskType FROM TASK WHERE deviceId IN ({dev_marks}) "
+                        f"AND ({where_win}) AND (startNs>? OR (startNs=? AND rowid>?)) "
+                        "ORDER BY startNs ASC, rowid ASC LIMIT ?"
+                    )
+                    params = [*base_params, cursor[0], cursor[0], cursor[1], fetch_limit]
+                batch = fetch_rows(
+                    db,
+                    db_label,
+                    sql,
+                    params,
+                    fetch_limit,
+                    deadline=deadline,
+                    timeout_s=timeout_s,
+                )
+                for row in batch:
+                    rid = int(row["_rowid"])
+                    if rid in seen_rowids:
+                        continue
+                    if len(task_rows) >= MAX_TASKS:
+                        limitations.add("task_row_budget_reached")
+                        return task_rows
+                    seen_rowids.add(rid)
+                    task_rows.append(row)
+                if len(batch) < fetch_limit:
+                    break
+                cursor = (int(batch[-1]["startNs"]), int(batch[-1]["_rowid"]))
     return task_rows

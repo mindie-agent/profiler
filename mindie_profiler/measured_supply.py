@@ -583,6 +583,14 @@ def build_dual_load_service(
     """
     _require(saturated.get("status") == "measured", "measured_supply_saturated_unknown")
     _require(underfilled.get("status") == "measured", "measured_supply_underfilled_unknown")
+    _require(
+        saturated.get("complete_in_window") is True,
+        "measured_supply_saturated_incomplete_in_window",
+    )
+    _require(
+        underfilled.get("complete_in_window") is True,
+        "measured_supply_underfilled_incomplete_in_window",
+    )
     for field in ("native_type", "dtype", "output_dtype", "n", "k", "device_id", "rank_id"):
         _require(
             saturated.get(field) == underfilled.get(field),
