@@ -58,6 +58,8 @@ from .memory_forensics import (
     detect_step_monotonic_leaks,
     run_memory_forensics,
 )
+from .native_capture import CAPTURE_SCHEMA, capture_profile, prepare_standby_session
+from .native_capture_shm import mark_capture_step
 from .sim_bridge import export_sim_case
 from .structural_inference import (
     CANONICAL_L1_FAMILIES,
@@ -91,6 +93,7 @@ analyze = analyze_profile
 __all__ = [
     "ADVISOR_SCHEMA",
     "CANONICAL_L1_FAMILIES",
+    "CAPTURE_SCHEMA",
     "FUSION_PATTERN_RULES",
     "FusionPatternRule",
     "MEMORY_FORENSICS_SCHEMA",
@@ -116,6 +119,7 @@ __all__ = [
     "analyze_profile",
     "attribute_cluster_stragglers_and_links",
     "build_trace_index",
+    "capture_profile",
     "classify_canonical_l1_family",
     "correlate_profile",
     "cross_rank_stats",
@@ -131,8 +135,10 @@ __all__ = [
     "inventory_profile",
     "iter_trace_events",
     "load_steps_file",
+    "mark_capture_step",
     "parse_step_windows",
     "parse_windows",
+    "prepare_standby_session",
     "read_collective_readiness",
     "resolve_ranks",
     "run_memory_forensics",

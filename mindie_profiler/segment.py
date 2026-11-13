@@ -33,6 +33,7 @@ from pathlib import Path
 from typing import Any, Iterable, Sequence
 
 from .events import ProfilerUsageError, Window
+from .sources_csv import MINDSTUDIO_OUTPUT_DIR, find_mindstudio_csv_candidates
 
 _DB_GLOB = "ascend_pytorch_profiler*.db"
 _TRACE_GLOB = "trace_view*.json"
@@ -149,7 +150,7 @@ def find_db_candidates(rank_dir: Path | str) -> list[Path]:
 
 def find_csv_candidates(rank_dir: Path | str) -> list[Path]:
     base_dir = Path(rank_dir)
-    found = [
+    classic = [
         candidate
         for candidate in (
             base_dir / "kernel_details.csv",
@@ -159,13 +160,15 @@ def find_csv_candidates(rank_dir: Path | str) -> list[Path]:
         )
         if candidate.is_file()
     ]
-    return sorted(set(found), key=str)
+    mindstudio = find_mindstudio_csv_candidates(base_dir)
+    selected = mindstudio["op_summary"] or mindstudio["task_time"]
+    return sorted(set(classic + selected), key=str)
 
 
 def find_trace_candidates(rank_dir: Path | str) -> list[Path]:
     base_dir = Path(rank_dir)
     found: list[Path] = []
-    for base in (base_dir, base_dir / _OUTPUT_DIR):
+    for base in (base_dir, base_dir / _OUTPUT_DIR, base_dir / MINDSTUDIO_OUTPUT_DIR):
         if base.is_dir():
             found.extend(base.glob(_TRACE_GLOB))
     return sorted(set(found), key=str)
@@ -188,7 +191,7 @@ def _find_db(rank_dir: Path) -> tuple[Path | None, tuple[str, ...], tuple[Path, 
 
 
 def _rank_dir_for_file(path: Path) -> Path:
-    if path.parent.name == _OUTPUT_DIR:
+    if path.parent.name in {_OUTPUT_DIR, MINDSTUDIO_OUTPUT_DIR}:
         return path.parent.parent
     return path.parent
 
@@ -265,7 +268,7 @@ def discover_rank_sources(
             raise ProfilerUsageError(f"no usable {source} source at {root_path}")
         return [item]
     root_path = root_path.resolve()
-    if root_path.name == _OUTPUT_DIR:
+    if root_path.name in {_OUTPUT_DIR, MINDSTUDIO_OUTPUT_DIR}:
         root_path = root_path.parent
     own_db, _notes, own_db_candidates = _find_db(root_path)
     own_csv_candidates = find_csv_candidates(root_path)
@@ -286,7 +289,19 @@ def discover_rank_sources(
         current_path = Path(current)
         has_db = any(name.startswith("ascend_pytorch_profiler") and name.endswith(".db") for name in filenames)
         has_csv = any(name in filenames for name in ("kernel_details.csv", "kernel_details.csv.gz"))
+        has_mindstudio = MINDSTUDIO_OUTPUT_DIR in dirnames or any(
+            (name.startswith("op_summary_") or name.startswith("task_time_")) and name.endswith(".csv")
+            for name in filenames
+        )
         has_output = _OUTPUT_DIR in dirnames
+        if has_mindstudio:
+            mindstudio = find_mindstudio_csv_candidates(current_path)
+            if mindstudio["op_summary"] or mindstudio["task_time"]:
+                if current_path not in seen:
+                    discovered.append(current_path)
+                    seen.add(current_path)
+                dirnames[:] = []
+                continue
         if has_db or has_csv:
             if current_path not in seen:
                 discovered.append(current_path)
