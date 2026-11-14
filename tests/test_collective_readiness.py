@@ -622,3 +622,110 @@ def test_analyze_profile_readiness_timeout_budget_and_failure_degradation(
     assert "collective_readiness_failed" in lim_codes
     saved = json.loads(out_json.read_text(encoding="utf-8"))
     assert saved["collective_readiness"]["status"] == "error"
+
+
+def test_truncated_tasks_suppress_false_binding_cross_conn_predecessor_and_fast_sweep(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from mindie_profiler.collective_readiness_db import index_call_ownership
+
+    # 1. Task truncation (task_row_budget_reached) never turns ambiguity into a false unique binding.
+    trunc_root = tmp_path / "trunc_ambig"
+    trunc_db = _create_readiness_db(trunc_root, 0, prior=False, op_count=1)
+    con = sqlite3.connect(trunc_db)
+    con.execute("DELETE FROM TASK")
+    con.executemany(
+        "INSERT INTO TASK VALUES(0, 1, 0, 9, ?, 1, ?, 5)",
+        [(100 + i, 100 + i) for i in range(4)],
+    )
+    con.executemany(
+        "INSERT INTO TASK VALUES(1000, 2000, 0, 2, ?, ?, ?, 7)",
+        [(20_000, 26, 100), (20_001, 27, 101)],
+    )
+    con.commit()
+    con.close()
+
+    monkeypatch.setattr("mindie_profiler.collective_readiness_db.MAX_TASKS", 5)
+    win_res = read_collective_readiness(trunc_root, windows=[(1000, 2000)])
+    full_res = read_collective_readiness(trunc_root)
+    monkeypatch.undo()
+    assert win_res["calls"][0]["observed_context"]["bound_task_global_id"] is None
+    assert full_res["calls"][0]["observed_context"]["bound_task_global_id"] is None
+    assert full_res["calls"][0]["service_children"] == []
+    assert full_res["calls"][0]["waits"] == []
+    assert "task_row_budget_reached" in full_res["limitations"]
+    assert "task_row_budget_reached" in full_res["calls"][0]["unknowns"]
+
+    # 2. Real GLM-4.5 Golden Capture resolves cross-connection same-stream predecessor (1055 -> 528),
+    # and disjoint windows resolve closer gap predecessor across differing connectionIds.
+    glm45_db = (
+        Path(__file__).parent
+        / "fixtures"
+        / "profiler_core"
+        / "real_glm45"
+        / "rank_0"
+        / "ASCEND_PROFILER_OUTPUT"
+        / "ascend_pytorch_profiler_0.db"
+    )
+    glm_report = read_collective_readiness(glm45_db, source="db")
+    call_528 = next(
+        c
+        for c in glm_report["calls"]
+        if c["observed_context"]["bound_task_global_id"] == "528"
+    )
+    assert call_528["dependencies"][0]["global_task_id"] == "1055"
+    assert call_528["dependencies"][0]["stream_id"] == "5"
+    assert call_528["dependencies"][0]["end_ns"] == 1763456164890797580
+
+    gap_root = tmp_path / "gap_pred"
+    gap_db = _create_readiness_db(gap_root, 0, prior=False, op_count=1)
+    gcon = sqlite3.connect(gap_db)
+    gcon.execute("DELETE FROM TASK")
+    gcon.execute("DELETE FROM COMMUNICATION_OP")
+    gcon.execute("INSERT INTO TASK VALUES(120, 180, 0, 50, 1, 26, 1, 5)")
+    gcon.execute("INSERT INTO TASK VALUES(500, 600, 0, 51, 2, 26, 2, 5)")
+    gcon.execute("INSERT INTO TASK VALUES(1100, 1500, 0, 52, 3, 26, 3, 7)")
+    gcon.execute(
+        "INSERT INTO COMMUNICATION_OP VALUES(100, 1100, 1500, 52, 32, 1, 11, 32, 5120, 0, 2, 3)"
+    )
+    gcon.commit()
+    gcon.close()
+    gap_res = read_collective_readiness(gap_root, windows=[(100, 200), (1000, 2000)])
+    assert gap_res["calls"][0]["dependencies"][0]["global_task_id"] == "2"
+    assert gap_res["calls"][0]["dependencies"][0]["end_ns"] == 600
+
+    # 3. 20,000 overlapping calls sweep in O(N log N) well within 3.2s and honor expired deadline.
+    sweep_db = tmp_path / "sweep" / "rank_0" / "ASCEND_PROFILER_OUTPUT" / "ascend_pytorch_profiler_0.db"
+    sweep_db.parent.mkdir(parents=True)
+    scon = sqlite3.connect(sweep_db)
+    scon.row_factory = sqlite3.Row
+    scon.execute(
+        "CREATE TABLE COMMUNICATION_OP(startNs INT, endNs INT, connectionId INT, deviceId INT, opId INT)"
+    )
+    scon.executemany(
+        "INSERT INTO COMMUNICATION_OP VALUES(?, 30000, 2, 0, ?)",
+        [(i + 1, i + 1) for i in range(20_000)],
+    )
+    scon.commit()
+    raw_calls = scon.execute("SELECT * FROM COMMUNICATION_OP").fetchall()
+    scon.close()
+
+    t0 = time.perf_counter()
+    sweep_res = read_collective_readiness(tmp_path / "sweep", source="db", timeout_s=3.2)
+    assert time.perf_counter() - t0 < 1.5
+    assert len(sweep_res["calls"]) == 20_000
+
+    with pytest.raises(ProfilerQueryError, match="exceeded"):
+        index_call_ownership(
+            raw_calls,
+            has_op_id_col=True,
+            task_by_global={},
+            compute_raw={},
+            comm_raw={},
+            sched_raw={},
+            ambiguous_globals=set(),
+            limitations=set(),
+            deadline=time.monotonic() - 0.01,
+            timeout_s=3.2,
+            db_label="sweep.db",
+        )

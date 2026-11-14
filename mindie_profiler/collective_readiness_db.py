@@ -343,53 +343,28 @@ def load_raw_children(
     string_ids: set[int] = set()
     if not unique_ids:
         return {}, {}, {}, string_ids
-    compute = _read_child_table(
-        db,
-        db_label,
+    child_maps: list[dict[str, dict[str, Any]]] = []
+    for table in (
         "COMPUTE_TASK_INFO",
-        column_names(
-            db, db_label, tables, "COMPUTE_TASK_INFO", deadline=deadline, timeout_s=timeout_s
-        ),
-        unique_ids,
-        ambiguous_globals,
-        limitations,
-        string_ids,
-        deadline=deadline,
-        timeout_s=timeout_s,
-    )
-    comm = _read_child_table(
-        db,
-        db_label,
         "COMMUNICATION_TASK_INFO",
-        column_names(
-            db, db_label, tables, "COMMUNICATION_TASK_INFO", deadline=deadline, timeout_s=timeout_s
-        ),
-        unique_ids,
-        ambiguous_globals,
-        limitations,
-        string_ids,
-        deadline=deadline,
-        timeout_s=timeout_s,
-    )
-    schedule = _read_child_table(
-        db,
-        db_label,
         "COMMUNICATION_SCHEDULE_TASK_INFO",
-        column_names(
-            db,
-            db_label,
-            tables,
-            "COMMUNICATION_SCHEDULE_TASK_INFO",
-            deadline=deadline,
-            timeout_s=timeout_s,
-        ),
-        unique_ids,
-        ambiguous_globals,
-        limitations,
-        string_ids,
-        deadline=deadline,
-        timeout_s=timeout_s,
-    )
+    ):
+        cols = column_names(db, db_label, tables, table, deadline=deadline, timeout_s=timeout_s)
+        child_maps.append(
+            _read_child_table(
+                db,
+                db_label,
+                table,
+                cols,
+                unique_ids,
+                ambiguous_globals,
+                limitations,
+                string_ids,
+                deadline=deadline,
+                timeout_s=timeout_s,
+            )
+        )
+    compute, comm, schedule = child_maps
     for gid in list(ambiguous_globals):
         compute.pop(gid, None)
         comm.pop(gid, None)
@@ -400,7 +375,7 @@ def load_raw_children(
 class TaskGroupIndex:
     """Segment max-tree index for guaranteed O((1 + K) log N) overlap lookup."""
 
-    __slots__ = ("tasks", "starts", "tree_size", "tree", "by_stream")
+    __slots__ = ("tasks", "starts", "tree_size", "tree")
 
     def __init__(self, rows: list[sqlite3.Row]) -> None:
         rows.sort(key=lambda r: (int(r["startNs"]), int(r["endNs"]), int(r["globalTaskId"] or 0)))
@@ -412,23 +387,15 @@ class TaskGroupIndex:
             size <<= 1
         self.tree_size = size if n > 0 else 0
         tree = [-1] * (2 * size) if n > 0 else []
-        stream_buckets: dict[str, list[sqlite3.Row]] = {}
         for idx, row in enumerate(rows):
-            row_start = int(row["startNs"])
-            row_end = int(row["endNs"])
+            row_start, row_end = int(row["startNs"]), int(row["endNs"])
             tree[size + idx] = row_end if row_end > row_start else (row_end + 1)
-            stream_buckets.setdefault(str(row["streamId"]), []).append(row)
         for node in range(size - 1, 0, -1):
             if not tree:
                 break
-            left = tree[node << 1]
-            right_val = tree[(node << 1) | 1]
+            left, right_val = tree[node << 1], tree[(node << 1) | 1]
             tree[node] = left if left >= right_val else right_val
         self.tree = tree
-        self.by_stream: dict[str, tuple[list[int], list[sqlite3.Row]]] = {}
-        for stream_id, bucket in stream_buckets.items():
-            bucket.sort(key=lambda r: (int(r["endNs"]), int(r["globalTaskId"] or 0)))
-            self.by_stream[stream_id] = ([int(r["endNs"]) for r in bucket], bucket)
 
     def overlapping(
         self, start_ns: int, end_ns: int, *, scan_limit: int = MAX_OVERLAP_SCAN_PER_CALL
@@ -465,20 +432,119 @@ class TaskGroupIndex:
                 stack.append((node << 1, seg_l, mid))
         return matched, capped
 
-    def prior_on_stream(
-        self, stream_id: str, op_start_ns: int, exclude_global_id: str
+
+class StreamOrderIndex:
+    """Device-and-stream ordered TASK index independent of host connectionId."""
+
+    __slots__ = ("by_stream",)
+
+    def __init__(
+        self,
+        rows: Sequence[sqlite3.Row],
+        *,
+        deadline: float | None = None,
+        db_label: str = "profile.db",
+        timeout_s: float = 20.0,
+    ) -> None:
+        buckets: dict[tuple[str, str], list[sqlite3.Row]] = {}
+        for idx, row in enumerate(rows):
+            if deadline is not None and (idx & 255) == 0:
+                check_deadline(deadline, db_label, timeout_s)
+            if (
+                row["deviceId"] is None
+                or row["streamId"] is None
+                or row["endNs"] is None
+                or row["globalTaskId"] is None
+            ):
+                continue
+            buckets.setdefault((str(row["deviceId"]), str(row["streamId"])), []).append(row)
+        self.by_stream: dict[tuple[str, str], tuple[list[int], list[sqlite3.Row]]] = {}
+        for key, bucket in buckets.items():
+            if deadline is not None:
+                check_deadline(deadline, db_label, timeout_s)
+            bucket.sort(key=lambda r: (int(r["endNs"]), int(r["globalTaskId"] or 0)))
+            self.by_stream[key] = ([int(r["endNs"]) for r in bucket], bucket)
+
+    def prior(
+        self, device_id: str, stream_id: str, op_start_ns: int, excluded_globals: set[str]
     ) -> sqlite3.Row | None:
-        entry = self.by_stream.get(stream_id)
+        entry = self.by_stream.get((device_id, stream_id))
         if entry is None:
             return None
         ends, bucket = entry
         idx = bisect_right(ends, op_start_ns) - 1
         while idx >= 0:
-            cand = bucket[idx]
-            if str(cand["globalTaskId"]) != exclude_global_id:
-                return cand
+            if str(bucket[idx]["globalTaskId"]) not in excluded_globals:
+                return bucket[idx]
             idx -= 1
         return None
+
+
+def resolve_stream_predecessor(
+    db: sqlite3.Connection,
+    db_label: str,
+    bound: sqlite3.Row,
+    op_start: int,
+    owned_tasks: Sequence[sqlite3.Row],
+    stream_index: StreamOrderIndex,
+    task_intervals: Sequence[tuple[int, int]],
+    ambiguous_globals: set[str],
+    checked_globals: set[str],
+    limitations: set[str],
+    *,
+    can_query_task: bool,
+    deadline: float,
+    timeout_s: float,
+) -> sqlite3.Row | None:
+    """Resolve latest unambiguous same-(deviceId, streamId) task with endNs <= op_start."""
+    if bound["deviceId"] is None or bound["streamId"] is None:
+        return None
+    local_excl = {str(bound["globalTaskId"])} | {
+        str(t["globalTaskId"]) for t in owned_tasks if t["globalTaskId"] is not None
+    }
+    pred = stream_index.prior(
+        str(bound["deviceId"]), str(bound["streamId"]), op_start, local_excl | ambiguous_globals
+    )
+    cov_lo = next((lo for lo, hi in task_intervals if lo <= op_start <= hi), op_start)
+    if pred is not None and int(pred["endNs"]) > cov_lo:
+        return pred
+    if not (can_query_task and cov_lo > 0 and op_start > 0):
+        return pred
+    excl_ints = sorted(int(g) for g in local_excl if int_id(g) is not None)
+    not_in = (
+        f" AND globalTaskId NOT IN ({','.join('?' for _ in excl_ints)})"
+        if excl_ints and len(excl_ints) <= 64
+        else ""
+    )
+    args: list[Any] = [bound["deviceId"], bound["streamId"], op_start]
+    if not_in:
+        args.extend(excl_ints)
+    args.append(32)
+    candidates = fetch_rows(
+        db,
+        db_label,
+        "SELECT startNs,endNs,connectionId,deviceId,globalTaskId,streamId,taskId,taskType "
+        "FROM TASK WHERE deviceId=? AND streamId=? AND endNs<=? "
+        f"AND globalTaskId IS NOT NULL{not_in} ORDER BY endNs DESC, globalTaskId DESC LIMIT ?",
+        args,
+        32,
+        deadline=deadline,
+        timeout_s=timeout_s,
+    )
+    unchecked = [r["globalTaskId"] for r in candidates if str(r["globalTaskId"]) not in checked_globals]
+    if unchecked:
+        new_ambig = find_ambiguous_task_globals(
+            db, db_label, unchecked, deadline=deadline, timeout_s=timeout_s
+        )
+        checked_globals.update(str(x) for x in unchecked)
+        if new_ambig:
+            ambiguous_globals.update(new_ambig)
+            limitations.add("ambiguous_global_task_id")
+    for cand in candidates:
+        gid = str(cand["globalTaskId"])
+        if gid not in local_excl and gid not in ambiguous_globals:
+            return cand
+    return None
 
 
 def normalize_intervals(
@@ -527,17 +593,10 @@ def query_windowed_calls(
     if max_calls <= 0:
         for win_chunk in chunks(intervals, _WINDOW_CHUNK):
             where = " OR ".join("(endNs>? AND startNs<?)" for _ in win_chunk)
-            params: list[Any] = []
-            for lo, hi in win_chunk:
-                params.extend((lo, hi))
+            params = [bound for lo, hi in win_chunk for bound in (lo, hi)]
             probe = fetch_rows(
-                db,
-                db_label,
-                f"SELECT 1 FROM COMMUNICATION_OP WHERE ({where}) LIMIT 1",
-                params,
-                1,
-                deadline=deadline,
-                timeout_s=timeout_s,
+                db, db_label, f"SELECT 1 FROM COMMUNICATION_OP WHERE ({where}) LIMIT 1",
+                params, 1, deadline=deadline, timeout_s=timeout_s,
             )
             if probe:
                 limitations.add("call_row_budget_reached")
@@ -545,33 +604,22 @@ def query_windowed_calls(
         return []
     for win_chunk in chunks(intervals, _WINDOW_CHUNK):
         where = " OR ".join("(endNs>? AND startNs<?)" for _ in win_chunk)
-        win_params: list[Any] = []
-        for lo, hi in win_chunk:
-            win_params.extend((lo, hi))
+        win_params = [bound for lo, hi in win_chunk for bound in (lo, hi)]
         cursor: tuple[int, int] | None = None
         while True:
             fetch_limit = max(1, (max_calls - len(calls)) + 1)
-            if cursor is None:
-                sql = (
-                    f"SELECT {select_cols} FROM COMMUNICATION_OP "
-                    f"WHERE ({where}) ORDER BY startNs ASC, rowid ASC LIMIT ?"
-                )
-                params = [*win_params, fetch_limit]
-            else:
-                sql = (
-                    f"SELECT {select_cols} FROM COMMUNICATION_OP "
-                    f"WHERE ({where}) AND (startNs>? OR (startNs=? AND rowid>?)) "
-                    "ORDER BY startNs ASC, rowid ASC LIMIT ?"
-                )
-                params = [*win_params, cursor[0], cursor[0], cursor[1], fetch_limit]
+            after = "" if cursor is None else " AND (startNs>? OR (startNs=? AND rowid>?))"
+            params = (
+                [*win_params, fetch_limit]
+                if cursor is None
+                else [*win_params, cursor[0], cursor[0], cursor[1], fetch_limit]
+            )
+            sql = (
+                f"SELECT {select_cols} FROM COMMUNICATION_OP WHERE ({where}){after} "
+                "ORDER BY startNs ASC, rowid ASC LIMIT ?"
+            )
             batch = fetch_rows(
-                db,
-                db_label,
-                sql,
-                params,
-                fetch_limit,
-                deadline=deadline,
-                timeout_s=timeout_s,
+                db, db_label, sql, params, fetch_limit, deadline=deadline, timeout_s=timeout_s
             )
             for row in batch:
                 op_key = str(row["opId"])
@@ -604,35 +652,23 @@ def query_windowed_tasks(
         dev_marks = ",".join("?" for _ in dev_chunk)
         for win_chunk in chunks(intervals, _WINDOW_CHUNK):
             where_win = " OR ".join("(endNs>? AND startNs<?)" for _ in win_chunk)
-            base_params: list[Any] = list(dev_chunk)
-            for lo, hi in win_chunk:
-                base_params.extend((lo, hi))
+            base_params = [*dev_chunk, *(b for lo, hi in win_chunk for b in (lo, hi))]
             cursor: tuple[int, int] | None = None
             while True:
                 fetch_limit = max(1, (MAX_TASKS - len(task_rows)) + 1)
-                if cursor is None:
-                    sql = (
-                        "SELECT rowid AS _rowid,startNs,endNs,connectionId,deviceId,globalTaskId,"
-                        f"streamId,taskId,taskType FROM TASK WHERE deviceId IN ({dev_marks}) "
-                        f"AND ({where_win}) ORDER BY startNs ASC, rowid ASC LIMIT ?"
-                    )
-                    params = [*base_params, fetch_limit]
-                else:
-                    sql = (
-                        "SELECT rowid AS _rowid,startNs,endNs,connectionId,deviceId,globalTaskId,"
-                        f"streamId,taskId,taskType FROM TASK WHERE deviceId IN ({dev_marks}) "
-                        f"AND ({where_win}) AND (startNs>? OR (startNs=? AND rowid>?)) "
-                        "ORDER BY startNs ASC, rowid ASC LIMIT ?"
-                    )
-                    params = [*base_params, cursor[0], cursor[0], cursor[1], fetch_limit]
+                after = "" if cursor is None else " AND (startNs>? OR (startNs=? AND rowid>?))"
+                params = (
+                    [*base_params, fetch_limit]
+                    if cursor is None
+                    else [*base_params, cursor[0], cursor[0], cursor[1], fetch_limit]
+                )
+                sql = (
+                    "SELECT rowid AS _rowid,startNs,endNs,connectionId,deviceId,globalTaskId,"
+                    f"streamId,taskId,taskType FROM TASK WHERE deviceId IN ({dev_marks}) "
+                    f"AND ({where_win}){after} ORDER BY startNs ASC, rowid ASC LIMIT ?"
+                )
                 batch = fetch_rows(
-                    db,
-                    db_label,
-                    sql,
-                    params,
-                    fetch_limit,
-                    deadline=deadline,
-                    timeout_s=timeout_s,
+                    db, db_label, sql, params, fetch_limit, deadline=deadline, timeout_s=timeout_s
                 )
                 for row in batch:
                     rid = int(row["_rowid"])
@@ -660,13 +696,18 @@ def index_call_ownership(
     ambiguous_globals: set[str],
     limitations: set[str],
     concurrency_calls: Sequence[sqlite3.Row] | None = None,
+    deadline: float | None = None,
+    timeout_s: float = 20.0,
+    db_label: str = "profile.db",
 ) -> tuple[set[str], dict[tuple[str, str], list[sqlite3.Row]], set[str]]:
-    """Resolve child opId ownership and detect concurrent same-connection calls."""
+    """Resolve child opId ownership and detect concurrent same-connection calls in O(N log N)."""
     task_op_owner: dict[str, str] = {}
     conflicted_op_globals: set[str] = set()
     if has_op_id_col:
         for raw_map in (compute_raw, comm_raw, sched_raw):
-            for gid, raw_child in list(raw_map.items()):
+            for idx, (gid, raw_child) in enumerate(list(raw_map.items())):
+                if deadline is not None and (idx & 255) == 0:
+                    check_deadline(deadline, db_label, timeout_s)
                 if gid in ambiguous_globals or (child_op := raw_child.get("_op_id")) is None:
                     continue
                 prev_op = task_op_owner.get(gid)
@@ -682,13 +723,20 @@ def index_call_ownership(
                 else:
                     task_op_owner[gid] = child_op
     tasks_by_op_id: dict[tuple[str, str], list[sqlite3.Row]] = {}
-    for gid, owner_op in task_op_owner.items():
+    for idx, (gid, owner_op) in enumerate(task_op_owner.items()):
+        if deadline is not None and (idx & 255) == 0:
+            check_deadline(deadline, db_label, timeout_s)
         if (owned := task_by_global.get(gid)) is not None and owned["deviceId"] is not None:
             tasks_by_op_id.setdefault((owner_op, str(owned["deviceId"])), []).append(owned)
     for owned_list in tasks_by_op_id.values():
+        if deadline is not None:
+            check_deadline(deadline, db_label, timeout_s)
         owned_list.sort(key=lambda r: (int(r["startNs"]), int(r["endNs"]), int(r["globalTaskId"])))
     calls_by_conn: dict[tuple[str, str], list[tuple[int, int, str]]] = {}
-    for item in concurrency_calls if concurrency_calls is not None else calls:
+    source_calls = concurrency_calls if concurrency_calls is not None else calls
+    for idx, item in enumerate(source_calls):
+        if deadline is not None and (idx & 255) == 0:
+            check_deadline(deadline, db_label, timeout_s)
         if (
             item["connectionId"] is None
             or item["startNs"] is None
@@ -703,12 +751,20 @@ def index_call_ownership(
     for spans in calls_by_conn.values():
         if len(spans) < 2:
             continue
+        if deadline is not None:
+            check_deadline(deadline, db_label, timeout_s)
         spans.sort()
-        active: list[tuple[int, int, str]] = []
-        for s_ns, e_ns, oid in spans:
-            active = [entry for entry in active if entry[1] > s_ns]
-            if active:
+        # Sorted by startNs: span i overlaps an earlier span iff s_ns < max_{r<i} e_r;
+        # when s_ns >= max_end, e_ns > s_ns >= max_end updates max_oid for step i + 1.
+        max_end = -1
+        max_oid = ""
+        for idx, (s_ns, e_ns, oid) in enumerate(spans):
+            if deadline is not None and (idx & 255) == 0:
+                check_deadline(deadline, db_label, timeout_s)
+            if s_ns < max_end:
                 shared_conn_ops.add(oid)
-                shared_conn_ops.update(prev_oid for _, _, prev_oid in active)
-            active.append((s_ns, e_ns, oid))
+                shared_conn_ops.add(max_oid)
+            if e_ns > max_end:
+                max_end = e_ns
+                max_oid = oid
     return set(task_op_owner) | conflicted_op_globals, tasks_by_op_id, shared_conn_ops

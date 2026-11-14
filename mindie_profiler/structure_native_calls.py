@@ -107,6 +107,8 @@ def resolve_implementation_correspondence(
     kind: str,
     rank: str,
     event: Event | None = None,
+    *,
+    target_registry: dict[int, tuple[str, ...]] | None = None,
 ) -> dict[str, Any] | None:
     signature = event_signature(event) if event is not None else None
     raw = event_raw_identity(event) if event is not None else None
@@ -277,41 +279,117 @@ def resolve_implementation_correspondence(
         call = description.get("native_call") or {}
         if call.get("call_id"):
             description["call_ids"] = [call["call_id"]]
+        if target_registry is not None:
+            target_registry[id(description)] = tuple(targets)
     else:
         description = None
 
     if len(cache) >= _MAX_IMPLEMENTATION_CACHE:
         cache.clear()
+        if target_registry is not None:
+            target_registry.clear()
+            if description is not None:
+                target_registry[id(description)] = tuple(targets)
     cache[cache_key] = description
     return description
 
 
-_MAX_ACTIVE_RAW_CARRYOVER = 4096
+class OperatorCorrespondenceAccumulator:
+    """Order-independent per-operator correspondence aggregator within one window."""
+
+    def __init__(self) -> None:
+        self._variants: dict[str, dict[str, Any]] = {}
+        self._counts: Counter[str] = Counter()
+        self._target_set: set[str] = set()
+        self._none_count = 0
+
+    def add(
+        self,
+        correspondence: Mapping[str, Any] | None,
+        targets: tuple[str, ...] | None = None,
+    ) -> None:
+        if correspondence is None:
+            self._none_count += 1
+            return
+        canon = json.dumps(correspondence, sort_keys=True, separators=(",", ":"))
+        if canon not in self._variants:
+            self._variants[canon] = dict(correspondence)
+        self._counts[canon] += 1
+        if targets is not None:
+            self._target_set.update(targets)
+        else:
+            self._target_set.update(correspondence.get("declared_node_ids") or ())
+            self._target_set.update(correspondence.get("declared_subgraph_ids") or ())
+
+    def finish(self, op_type: str, rank: str, target_index: Any) -> dict[str, Any] | None:
+        if not self._variants:
+            return None
+        if len(self._variants) == 1 and self._none_count == 0:
+            return dict(next(iter(self._variants.values())))
+        ordered = sorted(self._variants.items(), key=lambda item: item[0])
+        union_targets = [key for key in target_index.all if key in self._target_set]
+        summary = target_index.describe_implementation(op_type, union_targets)
+        call_ids = sorted(
+            {str(cid) for _, corr in ordered for cid in (corr.get("call_ids") or ()) if cid}
+        )
+        verdicts = {corr.get("signature_match") for _, corr in ordered}
+        if self._none_count > 0:
+            verdicts.add(None)
+        sig_match: bool | None = (
+            True if verdicts == {True} else False if verdicts == {False} else None
+        )
+        all_observed = self._none_count == 0 and all(
+            bool(corr.get("observed_proof")) for _, corr in ordered
+        )
+        single_call = (
+            summary.get("native_call")
+            if (self._none_count == 0 and len(call_ids) == 1 and sig_match is True)
+            else None
+        )
+        summary.update(
+            basis="multiple_event_correspondences",
+            rank=rank,
+            native_call=single_call,
+            observed_signature=None,
+            raw_identity=None,
+            signature_match=sig_match,
+            observed_proof=all_observed,
+            prepare_only_control=not all_observed,
+            occurrence_binding_implied=bool(all_observed and single_call is not None),
+            variant_count=len(ordered) + (1 if self._none_count > 0 else 0),
+            unmatched_event_count=self._none_count,
+            variants=[
+                {**corr, "event_count": self._counts[canon]} for canon, corr in ordered[:64]
+            ],
+        )
+        if call_ids:
+            summary["call_ids"] = call_ids
+        return summary
 
 
 class NativeCallGlobalTracker:
-    """Bounded cross-window tracker retaining only unclosed spanning raw identities."""
+    """Bounded cross-window tracker retaining unclosed spanning raw identities."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, max_active: int = 100_000) -> None:
+        if max_active <= 0:
+            raise ProfilerUsageError("max_active must be positive")
+        self.max_active = int(max_active)
         self.primary_by_raw: dict[tuple[str, ...], str] = {}
         self.presentation_counts: Counter[tuple[str, ...]] = Counter()
         self.identity_counts: Counter[str] = Counter()
 
     def evict_closed(self, window_end_ns: int | None, rank_id: str | None = None) -> None:
-        if window_end_ns is not None:
-            rank_text = str(rank_id) if rank_id is not None else None
-            expired = [
-                raw
-                for raw in self.primary_by_raw
-                if (rank_text is None or raw[0] == rank_text) and int(raw[7]) <= window_end_ns
-            ]
-            for raw in expired:
-                self.primary_by_raw.pop(raw, None)
-                self.presentation_counts.pop(raw, None)
-        while len(self.primary_by_raw) > _MAX_ACTIVE_RAW_CARRYOVER:
-            oldest = next(iter(self.primary_by_raw))
-            self.primary_by_raw.pop(oldest, None)
-            self.presentation_counts.pop(oldest, None)
+        if window_end_ns is None:
+            return
+        rank_text = str(rank_id) if rank_id is not None else None
+        expired = [
+            raw
+            for raw in self.primary_by_raw
+            if (rank_text is None or raw[0] == rank_text) and int(raw[7]) <= window_end_ns
+        ]
+        for raw in expired:
+            self.primary_by_raw.pop(raw, None)
+            self.presentation_counts.pop(raw, None)
 
 
 class NativeCallWindowTracker:
@@ -347,6 +425,14 @@ class NativeCallWindowTracker:
         ):
             return native_identity, None
 
+        if (
+            raw not in self._global.primary_by_raw
+            and len(self._global.primary_by_raw) >= self._global.max_active
+        ):
+            raise ProfilerUsageError(
+                f"active spanning native-call identities exceeded max_active={self._global.max_active}; "
+                "select narrower rank scopes or raise --max-mapping-events"
+            )
         call = correspondence.get("native_call") or {}
         presentation_id = f"{event.event_id}:{event.op_type}"
         primary = self._global.primary_by_raw.setdefault(raw, presentation_id)
@@ -409,6 +495,7 @@ class NativeCallWindowTracker:
 __all__ = [
     "NativeCallGlobalTracker",
     "NativeCallWindowTracker",
+    "OperatorCorrespondenceAccumulator",
     "event_raw_identity",
     "event_signature",
     "native_call_signature_match",

@@ -23,6 +23,7 @@ from .structure_cohorts import CohortAccumulator
 from .structure_native_calls import (
     NativeCallGlobalTracker,
     NativeCallWindowTracker,
+    OperatorCorrespondenceAccumulator,
     resolve_implementation_correspondence,
     verify_graph_id,
 )
@@ -180,7 +181,8 @@ class StructureMapper:
         self.diagnostic_counts = Counter()
         self.diagnostics = {}
         self.implementation_correspondences = {}
-        self.native_tracker = NativeCallGlobalTracker()
+        self._correspondence_targets = {}
+        self.native_tracker = NativeCallGlobalTracker(max_active=self.max_events)
         self.explicit = {}
         self.host_scopes = defaultdict(set)
         self.module_scopes = {}
@@ -292,6 +294,7 @@ class StructureMapper:
             kind,
             rank,
             event=event,
+            target_registry=self._correspondence_targets,
         )
 
     def _host_candidates(self, event, source_key):
@@ -436,6 +439,7 @@ class StructureMapper:
         reasons = Counter()
         diagnostic_counts = Counter()
         operators = {}
+        operator_correspondences = defaultdict(OperatorCorrespondenceAccumulator)
         intervals = defaultdict(list)
         nodes = {}
         subgraphs = {}
@@ -499,6 +503,14 @@ class StructureMapper:
             correspondence = self._implementation_correspondence(
                 event.op_type, observation.rank_id, event=event
             )
+            operator_correspondences[event.op_type].add(
+                correspondence,
+                (
+                    self._correspondence_targets.get(id(correspondence))
+                    if correspondence is not None
+                    else None
+                ),
+            )
             native_identity, native_occurrence = window_calls.observe(
                 event, interval, correspondence
             )
@@ -508,7 +520,7 @@ class StructureMapper:
                 "complete_event_count": 0, "clipped_event_count": 0,
                 "cohort_event_count": 0, "cohort_excluded_event_counts": Counter(),
                 "contract_available_events": 0,
-                "implementation_correspondence": correspondence,
+                "implementation_correspondence": None,
                 "status_counts": Counter(), "reason_counts": Counter(),
                 "diagnostic_counts": Counter(),
             })
@@ -662,9 +674,18 @@ class StructureMapper:
                 for record in structural_groups.values()
             ],
             "operators": [
-                {key: dict(value) if isinstance(value, Counter) else value
-                 for key, value in operator.items()}
-                for _, operator in sorted(operators.items())
+                {
+                    **(
+                        {
+                            key: dict(value) if isinstance(value, Counter) else value
+                            for key, value in operator.items()
+                        }
+                    ),
+                    "implementation_correspondence": operator_correspondences[op_type].finish(
+                        op_type, observation.rank_id, self.target_index
+                    ),
+                }
+                for op_type, operator in sorted(operators.items())
             ],
             "unobserved_node_ids": sorted(
                 set(self._rank_candidates(self.nodes, observation.rank_id)) - covered_nodes),

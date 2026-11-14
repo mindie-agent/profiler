@@ -262,7 +262,7 @@ def test_sim_v0911_multi_variant_matmul_and_real_glm45_attention_abi() -> None:
             "rank_replicas": {"rank_0": "0"},
         },
     )
-    mapper.map_window(_obs([ev_qkv, ev_down_bare_float, attn_ev]))
+    win_forward = mapper.map_window(_obs([ev_qkv, ev_down_bare_float, attn_ev]))
     c_qkv, c_down, c_attn = [
         row["implementation_correspondence"] for row in mapper.sample
     ]
@@ -272,6 +272,29 @@ def test_sim_v0911_multi_variant_matmul_and_real_glm45_attention_abi() -> None:
     assert c_down["native_call"]["call_id"] == calls_by_op["l0.down"]["call_id"]
     assert c_attn["signature_match"] is True
     assert c_attn["native_call"]["call_id"] == calls_by_op["l0.attn"]["call_id"]
+
+    # Operator summary correspondence is invariant to event arrival order across multi-variant ops!
+    reverse_mapper = StructureMapper(
+        structure,
+        bindings={
+            "schema_version": "mindie-profile-bindings/1",
+            "graph_id": structure["graph_id"],
+            "rank_replicas": {"rank_0": "0"},
+        },
+    )
+    win_reverse = reverse_mapper.map_window(_obs([attn_ev, ev_down_bare_float, ev_qkv]))
+    assert win_forward["operators"] == win_reverse["operators"]
+    ops_by_type = {row["operator_type"]: row for row in win_forward["operators"]}
+    mm_corr = ops_by_type["MatMulV2"]["implementation_correspondence"]
+    assert mm_corr["basis"] == "multiple_event_correspondences"
+    assert mm_corr["native_call"] is None
+    assert mm_corr["observed_signature"] is None
+    assert mm_corr["signature_match"] is True
+    assert mm_corr["variant_count"] == 2
+    assert mm_corr["call_ids"] == sorted(
+        [calls_by_op["l0.qkv"]["call_id"], calls_by_op["l0.down"]["call_id"]]
+    )
+    assert ops_by_type["FusedInferAttentionScore"]["implementation_correspondence"] == c_attn
 
 
 def test_quantized_role_paired_dtype_and_c1hwncoc0_layout_rejection() -> None:
@@ -369,3 +392,115 @@ def test_quantized_role_paired_dtype_and_c1hwncoc0_layout_rejection() -> None:
         idx=14,
     )
     assert native_call_signature_match(binding, ev_c1hwncoc0) is False
+
+
+def test_native_call_global_tracker_retains_spanning_identities_and_fails_above_budget() -> None:
+    from mindie_profiler.events import ProfilerUsageError
+    from mindie_profiler.structure_native_calls import (
+        NativeCallGlobalTracker,
+        NativeCallWindowTracker,
+    )
+
+    global_tracker = NativeCallGlobalTracker(max_active=100_000)
+    corr_base = {
+        "basis": "observed_hccl_alias_same_call",
+        "native_call": {"call_id": "a" * 64, "timing_owner": {"op_id": "tp_ar"}},
+    }
+    w1 = NativeCallWindowTracker(global_tracker, {"AivKernel", "hcom_allReduce"})
+    first_primary = None
+    for idx in range(4_097):
+        ev = Event(
+            rank_id="rank_0",
+            rank_index=0,
+            name="AivKernel",
+            op_type="AivKernel",
+            task_type="MIX_AIC",
+            core="MIX_AIC",
+            stream_id="26",
+            task_id=str(idx),
+            device_id="0",
+            start_ns=0,
+            end_ns=5_000,
+            source_kind="db",
+            table="COMPUTE_TASK_INFO",
+            locator={"global_task_id": str(idx), "connection_id": "2"},
+        )
+        _, occ = w1.observe(
+            ev,
+            (0, 1_000),
+            {**corr_base, "raw_identity": {"rank_id": "rank_0", "global_task_id": str(idx)}},
+        )
+        if idx == 0:
+            assert occ is not None
+            first_primary = occ["primary_presentation"]
+    w1.finish(window_end_ns=1_000, rank_id="rank_0")
+    assert len(global_tracker.primary_by_raw) == 4_097
+
+    # Re-presenting spanning raw identity 0 in window 2 preserves presentation_index=2 and alias_of!
+    w2 = NativeCallWindowTracker(global_tracker, {"AivKernel", "hcom_allReduce"})
+    ev0_alias = Event(
+        rank_id="rank_0",
+        rank_index=0,
+        name="hcom_allReduce",
+        op_type="hcom_allReduce",
+        task_type="COMMUNICATION",
+        core="COMMUNICATION",
+        stream_id="26",
+        task_id="0",
+        device_id="0",
+        start_ns=0,
+        end_ns=5_000,
+        source_kind="db",
+        table="COMMUNICATION_OP",
+        locator={"global_task_id": "0", "connection_id": "2"},
+    )
+    _, occ2 = w2.observe(
+        ev0_alias,
+        (1_000, 2_000),
+        {**corr_base, "raw_identity": {"rank_id": "rank_0", "global_task_id": "0"}},
+    )
+    assert occ2 is not None
+    assert occ2["presentation_index"] == 2
+    assert occ2["alias_of"] == first_primary
+    w2.finish(window_end_ns=5_000, rank_id="rank_0")
+    assert len(global_tracker.primary_by_raw) == 0
+
+    # Exceeding max_active fails closed with ProfilerUsageError rather than silently evicting!
+    small_tracker = NativeCallGlobalTracker(max_active=2)
+    w_small = NativeCallWindowTracker(small_tracker, {"AivKernel"})
+    for idx in range(2):
+        ev = Event(
+            rank_id="rank_0",
+            rank_index=0,
+            name="AivKernel",
+            op_type="AivKernel",
+            task_type="MIX_AIC",
+            core="MIX_AIC",
+            stream_id="26",
+            task_id=str(idx),
+            device_id="0",
+            start_ns=0,
+            end_ns=9_000,
+            source_kind="db",
+            table="COMPUTE_TASK_INFO",
+            locator={"global_task_id": str(idx), "connection_id": "2"},
+        )
+        w_small.observe(ev, (0, 1_000), {**corr_base, "raw_identity": {"rank_id": "rank_0"}})
+    ev_overflow = Event(
+        rank_id="rank_0",
+        rank_index=0,
+        name="AivKernel",
+        op_type="AivKernel",
+        task_type="MIX_AIC",
+        core="MIX_AIC",
+        stream_id="26",
+        task_id="99",
+        device_id="0",
+        start_ns=0,
+        end_ns=9_000,
+        source_kind="db",
+        table="COMPUTE_TASK_INFO",
+        locator={"global_task_id": "99", "connection_id": "2"},
+    )
+    with pytest.raises(ProfilerUsageError, match="max_active=2"):
+        w_small.observe(ev_overflow, (0, 1_000), {**corr_base, "raw_identity": {"rank_id": "rank_0"}})

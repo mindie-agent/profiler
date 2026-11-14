@@ -40,11 +40,11 @@ from .collective_readiness_db import (
     MAX_TASKS,
     MAX_TOTAL_CALLS,
     MIN_SQLITE_LOCK_BUDGET_S,
+    StreamOrderIndex,
     TaskGroupIndex,
     check_deadline,
     column_names,
     enum_map,
-    fetch_rows,
     find_ambiguous_task_globals,
     index_call_ownership,
     int_id,
@@ -52,6 +52,7 @@ from .collective_readiness_db import (
     normalize_intervals,
     query_windowed_calls,
     query_windowed_tasks,
+    resolve_stream_predecessor,
     resolve_strings,
     table_names,
 )
@@ -193,17 +194,12 @@ def _call_rows(
             if optional in cols:
                 selected.append(optional)
         call_budget = max(0, MAX_TOTAL_CALLS - int(budgets.setdefault("calls", 0)))
+        calls_lims: set[str] = set()
         calls = query_windowed_calls(
-            db,
-            db_label,
-            selected,
-            order_col,
-            intervals,
-            limitations,
-            deadline=deadline,
-            timeout_s=effective_timeout,
-            max_calls=min(MAX_CALLS, call_budget),
+            db, db_label, selected, order_col, intervals, calls_lims,
+            deadline=deadline, timeout_s=effective_timeout, max_calls=min(MAX_CALLS, call_budget),
         )
+        limitations.update(calls_lims)
         if not calls:
             return []
 
@@ -211,14 +207,8 @@ def _call_rows(
             db, db_label, tables, "TASK", deadline=deadline, timeout_s=effective_timeout
         )
         can_query_task = {
-            "startNs",
-            "endNs",
-            "connectionId",
-            "deviceId",
-            "globalTaskId",
-            "streamId",
-            "taskId",
-            "taskType",
+            "startNs", "endNs", "connectionId", "deviceId",
+            "globalTaskId", "streamId", "taskId", "taskType",
         } <= task_cols
         windowed = list(intervals) != [(0, MAX_NS)]
         call_envelopes = [
@@ -231,19 +221,15 @@ def _call_rows(
         envelope_lims: set[str] = set()
         envelope_calls = (
             query_windowed_calls(
-                db,
-                db_label,
-                ["startNs", "endNs", "connectionId", "deviceId", op_id_expr],
-                order_col,
-                merge_intervals(call_envelopes),
-                envelope_lims,
-                deadline=deadline,
-                timeout_s=effective_timeout,
-                max_calls=MAX_TOTAL_CALLS * 2,
+                db, db_label, ["startNs", "endNs", "connectionId", "deviceId", op_id_expr],
+                order_col, merge_intervals(call_envelopes), envelope_lims,
+                deadline=deadline, timeout_s=effective_timeout, max_calls=MAX_TOTAL_CALLS * 2,
             )
-            if windowed and call_envelopes
+            if (windowed or "call_row_budget_reached" in calls_lims) and call_envelopes
             else calls
         )
+        task_lims: set[str] = set()
+        task_intervals: list[tuple[int, int]] = []
         task_rows: list[sqlite3.Row] = []
         if can_query_task:
             devices = sorted(
@@ -251,14 +237,10 @@ def _call_rows(
             )
             task_intervals = merge_intervals([*intervals, *call_envelopes])
             task_rows = query_windowed_tasks(
-                db,
-                db_label,
-                devices,
-                task_intervals,
-                limitations,
-                deadline=deadline,
-                timeout_s=effective_timeout,
+                db, db_label, devices, task_intervals, task_lims,
+                deadline=deadline, timeout_s=effective_timeout,
             )
+            limitations.update(task_lims)
 
         grouped_rows: dict[tuple[str, str], list[sqlite3.Row]] = {}
         global_ids: set[Any] = set()
@@ -278,6 +260,7 @@ def _call_rows(
                 task
             )
 
+        checked_globals = {str(x) for x in global_ids}
         ambiguous_globals = (
             find_ambiguous_task_globals(
                 db, db_label, global_ids, deadline=deadline, timeout_s=effective_timeout
@@ -292,6 +275,9 @@ def _call_rows(
         for key, rows in grouped_rows.items():
             check_deadline(deadline, db_label, effective_timeout)
             task_index[key] = TaskGroupIndex(rows)
+        stream_index = StreamOrderIndex(
+            task_rows, deadline=deadline, db_label=db_label, timeout_s=effective_timeout
+        )
 
         task_by_global: dict[str, sqlite3.Row] = {}
         for task in task_rows:
@@ -301,17 +287,16 @@ def _call_rows(
             if gid not in ambiguous_globals:
                 task_by_global[gid] = task
 
+        child_lims: set[str] = set()
         compute_raw, comm_raw, sched_raw, child_string_ids = load_raw_children(
-            db,
-            db_label,
-            tables,
-            global_ids,
-            ambiguous_globals,
-            limitations,
-            deadline=deadline,
-            timeout_s=effective_timeout,
+            db, db_label, tables, global_ids, ambiguous_globals, child_lims,
+            deadline=deadline, timeout_s=effective_timeout,
         )
+        limitations.update(child_lims)
         referenced_string_ids.update(child_string_ids)
+        incomplete_tasks = "task_row_budget_reached" in task_lims
+        incomplete_children = "child_row_budget_reached" in child_lims
+        incomplete_candidates = incomplete_tasks or incomplete_children
         claimed_globals, tasks_by_op_id, shared_conn_ops = index_call_ownership(
             calls,
             has_op_id_col=has_op_id_col,
@@ -322,6 +307,9 @@ def _call_rows(
             ambiguous_globals=ambiguous_globals,
             limitations=limitations,
             concurrency_calls=envelope_calls,
+            deadline=deadline,
+            timeout_s=effective_timeout,
+            db_label=db_label,
         )
         if "call_row_budget_reached" in envelope_lims:
             limitations.add("call_row_budget_reached")
@@ -348,11 +336,26 @@ def _call_rows(
                 continue
             call_op_id = str(call["opId"])
             dev_str = str(call["deviceId"]) if call["deviceId"] is not None else ""
-            explicit_owned = list(tasks_by_op_id.get((call_op_id, dev_str), ()))
+            explicit_owned = (
+                [] if incomplete_candidates else list(tasks_by_op_id.get((call_op_id, dev_str), ()))
+            )
             if call["connectionId"] is None:
                 limitations.add("null_connection_id")
-                bound_null = _bound_task(explicit_owned, op_start, op_end)
-                prepared_calls.append((call, [], explicit_owned, False, bound_null, None))
+                bound_null = (
+                    None if incomplete_candidates else _bound_task(explicit_owned, op_start, op_end)
+                )
+                pred_null = (
+                    resolve_stream_predecessor(
+                        db, db_label, bound_null, op_start, explicit_owned, stream_index,
+                        task_intervals, ambiguous_globals, checked_globals, limitations,
+                        can_query_task=can_query_task, deadline=deadline, timeout_s=effective_timeout,
+                    )
+                    if bound_null is not None
+                    else None
+                )
+                if pred_null is not None and (sid := int_id(pred_null["taskType"])) is not None:
+                    referenced_string_ids.add(sid)
+                prepared_calls.append((call, [], explicit_owned, False, bound_null, pred_null))
                 continue
             conn_key = (str(call["connectionId"]), dev_str)
             group = task_index.get(conn_key)
@@ -363,65 +366,51 @@ def _call_rows(
                     limitations.add("overlap_scan_budget_reached")
             else:
                 related = []
-            seen_owned = {str(t["globalTaskId"]) for t in explicit_owned}
-            owned_tasks = list(explicit_owned)
-            unkeyed_related = [
-                t for t in related if str(t["globalTaskId"]) not in claimed_globals
-            ]
-            if call_op_id in shared_conn_ops:
-                if unkeyed_related:
-                    limitations.add("shared_connection_without_op_id")
-                bound = _bound_task(owned_tasks, op_start, op_end)
+            if incomplete_candidates:
+                owned_tasks = []
+                bound = None
+                pred = None
             else:
-                candidates = list(explicit_owned)
-                for t in unkeyed_related:
-                    if str(t["globalTaskId"]) not in seen_owned:
-                        candidates.append(t)
-                bound = None if scan_capped else _bound_task(candidates, op_start, op_end)
-                bound_gid = str(bound["globalTaskId"]) if bound is not None else None
-                if not scan_capped:
+                seen_owned = {str(t["globalTaskId"]) for t in explicit_owned}
+                owned_tasks = list(explicit_owned)
+                unkeyed_related = [
+                    t for t in related if str(t["globalTaskId"]) not in claimed_globals
+                ]
+                if call_op_id in shared_conn_ops:
+                    if unkeyed_related:
+                        limitations.add("shared_connection_without_op_id")
+                    bound = _bound_task(owned_tasks, op_start, op_end)
+                else:
+                    candidates = list(explicit_owned)
                     for t in unkeyed_related:
-                        gid = str(t["globalTaskId"])
-                        if gid in seen_owned:
-                            continue
-                        if gid == bound_gid or (
-                            op_start <= int(t["startNs"]) and int(t["endNs"]) <= op_end
-                        ):
-                            seen_owned.add(gid)
-                            owned_tasks.append(t)
-            owned_tasks.sort(
-                key=lambda r: (int(r["startNs"]), int(r["endNs"]), str(r["globalTaskId"]))
-            )
-            pred: sqlite3.Row | None = None
-            if bound is not None:
-                stream = str(bound["streamId"])
-                bound_global = str(bound["globalTaskId"])
-                if group is not None:
-                    pred = group.prior_on_stream(stream, op_start, bound_global)
-                if pred is None and windowed and can_query_task and op_start > 0:
-                    fallback = fetch_rows(
-                        db,
-                        db_label,
-                        "SELECT startNs,endNs,connectionId,deviceId,globalTaskId,"
-                        "streamId,taskId,taskType FROM TASK "
-                        "WHERE connectionId=? AND deviceId=? AND streamId=? "
-                        "AND endNs<=? AND globalTaskId!=? "
-                        "ORDER BY endNs DESC, globalTaskId DESC LIMIT 1",
-                        (
-                            bound["connectionId"],
-                            bound["deviceId"],
-                            bound["streamId"],
-                            op_start,
-                            bound["globalTaskId"],
-                        ),
-                        1,
-                        deadline=deadline,
-                        timeout_s=effective_timeout,
+                        if str(t["globalTaskId"]) not in seen_owned:
+                            candidates.append(t)
+                    bound = None if scan_capped else _bound_task(candidates, op_start, op_end)
+                    bound_gid = str(bound["globalTaskId"]) if bound is not None else None
+                    if not scan_capped:
+                        for t in unkeyed_related:
+                            gid = str(t["globalTaskId"])
+                            if gid in seen_owned:
+                                continue
+                            if gid == bound_gid or (
+                                op_start <= int(t["startNs"]) and int(t["endNs"]) <= op_end
+                            ):
+                                seen_owned.add(gid)
+                                owned_tasks.append(t)
+                owned_tasks.sort(
+                    key=lambda r: (int(r["startNs"]), int(r["endNs"]), str(r["globalTaskId"]))
+                )
+                pred = (
+                    resolve_stream_predecessor(
+                        db, db_label, bound, op_start, owned_tasks, stream_index,
+                        task_intervals, ambiguous_globals, checked_globals, limitations,
+                        can_query_task=can_query_task, deadline=deadline, timeout_s=effective_timeout,
                     )
-                    if fallback:
-                        pred = fallback[0]
-                        if (sid := int_id(pred["taskType"])) is not None:
-                            referenced_string_ids.add(sid)
+                    if bound is not None
+                    else None
+                )
+                if pred is not None and (sid := int_id(pred["taskType"])) is not None:
+                    referenced_string_ids.add(sid)
             prepared_calls.append((call, related, owned_tasks, scan_capped, bound, pred))
 
         strings = resolve_strings(
@@ -579,6 +568,9 @@ def _call_rows(
                 + ([] if deps else ["causal_predecessor_not_joined"])
                 + ([] if service else ["native_child_not_joined"])
                 + (["native_child_global_task_ambiguous"] if had_ambiguous_child else [])
+                + (["task_row_budget_reached"] if incomplete_tasks else [])
+                + (["child_row_budget_reached"] if incomplete_children else [])
+                + (["overlap_scan_budget_reached"] if scan_capped else [])
                 + ["cross_rank_clock_not_established"]
             )
             result.append(
