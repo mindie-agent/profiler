@@ -313,7 +313,7 @@ def _export_and_analyze_gear2(
     if errors or not prof_dirs:
         return export_receipts, None, errors or ["msprof_no_prof_dirs_produced_by_aclprof"]
 
-    popen_kwargs: dict[str, object] = {}
+    popen_kwargs: dict[str, object] = {"encoding": "utf-8", "errors": "replace"}
     if os.name == "nt":
         popen_kwargs["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
@@ -366,10 +366,10 @@ def _export_and_analyze_gear2(
             "--full-range", "--top", str(top_n), "--query-timeout-s", f"{per_rank_timeout:.4f}",
             "--csv-timeout-s", f"{per_rank_timeout:.4f}", "--output", str(c7_tmp),
         ]
+        an_env = {**os.environ, "PYTHONPATH": py_path, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"}
         try:
             proc_an = subprocess.run(
-                analyze_cmd, env={**os.environ, "PYTHONPATH": py_path},
-                capture_output=True, text=True, timeout=rem_analyze, check=False, **popen_kwargs,
+                analyze_cmd, env=an_env, capture_output=True, text=True, timeout=rem_analyze, check=False, **popen_kwargs,
             )
             if proc_an.returncode != 0:
                 tail = (proc_an.stderr or proc_an.stdout or "").strip()[-300:]
@@ -413,6 +413,8 @@ def _pgid_alive(pgid: int | None) -> bool:
         return False
     except PermissionError:
         return True
+    except TimeoutError:
+        raise
     except OSError:
         return False
 
@@ -428,17 +430,16 @@ def _terminate_process_group(
     if not proc_was_alive and not _pgid_alive(pgid):
         return False
     now = time.monotonic()
-    budget = max(0.02, float(grace_s))
-    if hard_deadline is not None:
-        budget = max(0.02, min(budget, hard_deadline - now))
+    budget = max(0.02, min(float(grace_s), hard_deadline - now)) if hard_deadline is not None else max(0.02, float(grace_s))
     end_deadline = now + budget
-    kill_reserve = min(0.15, budget * 0.35)
-    term_deadline = now + max(0.01, budget - kill_reserve)
+    term_deadline = now + max(0.01, budget - min(0.15, budget * 0.35))
     try:
         if os.name != "nt" and pgid is not None:
             os.killpg(pgid, signal.SIGTERM)
         elif proc_was_alive:
             proc.terminate()
+    except TimeoutError:
+        raise
     except OSError:
         pass
     while time.monotonic() < term_deadline:
@@ -451,6 +452,8 @@ def _terminate_process_group(
                 os.killpg(pgid, signal.SIGKILL)
             elif proc.poll() is None:
                 proc.kill()
+        except TimeoutError:
+            raise
         except OSError:
             pass
         while time.monotonic() < end_deadline:
@@ -493,42 +496,24 @@ def capture_profile(
     """Execute a steady-state CANN 9.x NPU capture in launch or attach mode."""
 
     if bool(command) == bool(attach_session_id):
-        raise ProfilerUsageError(
-            "specify exactly one of 'command' (launch mode) or 'attach_session_id' (attach mode)"
-        )
+        raise ProfilerUsageError("specify exactly one of 'command' (launch mode) or 'attach_session_id' (attach mode)")
     if expected_workers < 1 or expected_workers > 32:
-        raise ProfilerUsageError(
-            f"expected_workers must be in 1..32, got {expected_workers}"
-        )
+        raise ProfilerUsageError(f"expected_workers must be in 1..32, got {expected_workers}")
     gear_code = _resolve_gear(gear)
     metrics_code = _resolve_aicore_metrics(aicore_metrics)
     effective_export_s = export_timeout_s if gear_code == GEAR_DEEP_ACLPROF else 0.0
     resolved_outer_s = _validate_timeout_budgets(
-        warmup_timeout_s=warmup_timeout_s,
-        capture_timeout_s=capture_timeout_s,
-        export_timeout_s=effective_export_s,
-        cleanup_grace_s=cleanup_grace_s,
-        outer_timeout_s=outer_timeout_s,
+        warmup_timeout_s=warmup_timeout_s, capture_timeout_s=capture_timeout_s,
+        export_timeout_s=effective_export_s, cleanup_grace_s=cleanup_grace_s, outer_timeout_s=outer_timeout_s,
     )
-
     install = discover_cann9(cann_root)
     shim_so = ensure_capture_shim_binary(install, gear=gear, cache_root=cache_root)
     is_attach = attach_session_id is not None
-    session_id = (
-        validate_session_id(attach_session_id)
-        if attach_session_id is not None
-        else f"cap_{uuid.uuid4().hex[:12]}"
-    )
-    out_dir = (
-        Path(output_dir).expanduser().resolve()
-        if output_dir is not None
-        else Path.cwd() / "mindie_captures" / session_id
-    )
+    session_id = validate_session_id(attach_session_id) if attach_session_id is not None else f"cap_{uuid.uuid4().hex[:12]}"
+    out_dir = Path(output_dir).expanduser().resolve() if output_dir is not None else Path.cwd() / "mindie_captures" / session_id
     out_dir.mkdir(parents=True, exist_ok=True)
     shm_path = resolve_shm_backing_path(session_id, shm_dir=shm_dir)
-    use_coordinated = (
-        (expected_workers > 1 or is_attach) if coordinated is None else bool(coordinated)
-    )
+    use_coordinated = (expected_workers > 1 or is_attach) if coordinated is None else bool(coordinated)
     control_mode = MODE_COORDINATED if use_coordinated else MODE_AUTONOMOUS
     max_cv_ppm = max(0, int(round(max_cv_pct * 10_000.0)))
 
@@ -739,6 +724,8 @@ def capture_profile(
                 if fast_sum.get("interval_overflow"):
                     all_workers_ok = False
                     controller_notes.append(f"mspti_interval_overflow:slot_{w['slot_index']}")
+            except TimeoutError:
+                raise
             except (OSError, ValueError) as exc:
                 all_workers_ok = False
                 controller_notes.append(f"worker_json_read_error:{exc}")

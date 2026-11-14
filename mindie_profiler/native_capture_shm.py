@@ -231,11 +231,15 @@ class PipeTailDrainer:
                     buf.extend(chunk)
                     if len(buf) > cap * 2:
                         del buf[:-cap]
+        except TimeoutError:
+            raise
         except OSError:
             pass
         finally:
             try:
                 pipe.close()
+            except TimeoutError:
+                raise
             except OSError:
                 pass
 
@@ -460,6 +464,9 @@ class CaptureShmSession:
                     import fcntl
 
                     fcntl.flock(lfd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except TimeoutError:
+                os.close(lfd)
+                raise
             except OSError as exc:
                 os.close(lfd)
                 raise ProfilerUsageError(
@@ -486,15 +493,21 @@ class CaptureShmSession:
                     import fcntl
 
                     fcntl.flock(lfd, fcntl.LOCK_UN)
+            except TimeoutError:
+                raise
             except OSError:
                 pass
             try:
                 os.close(lfd)
+            except TimeoutError:
+                raise
             except OSError:
                 pass
         if unlink and self._ctl_lock_path is not None:
             try:
                 self._ctl_lock_path.unlink(missing_ok=True)
+            except TimeoutError:
+                raise
             except OSError:
                 pass
         if self._ctl_lock_key is not None:
@@ -649,12 +662,16 @@ class CaptureShmSession:
         if self._fd is not None:
             try:
                 os.close(self._fd)
+            except TimeoutError:
+                raise
             except OSError:
                 pass
             self._fd = None
         if should_unlink:
             try:
                 self.path.unlink(missing_ok=True)
+            except TimeoutError:
+                raise
             except OSError:
                 pass
         self._release_controller_lock(unlink=should_unlink)
@@ -684,6 +701,8 @@ def mark_capture_step() -> bool:
                     fn.argtypes = []
                     fn.restype = None
                     _STEP_FN = fn
+            except TimeoutError:
+                raise
             except OSError:
                 _STEP_FN = None
     if _STEP_FN is None:

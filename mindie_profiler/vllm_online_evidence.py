@@ -45,13 +45,11 @@ TINY_MODEL_SCHEMA = "mindie-tiny-llama-model/1"
 ARTIFACT_SCHEMA = "mindie-vllm-profile-artifacts/1"
 DB_EXPORT_SCHEMA = "mindie-vllm-db-export/1"
 MAX_ARTIFACT_FILES = 20_000
-_CREATE_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+from ._host_exec import CREATE_NO_WINDOW as _CREATE_NO_WINDOW, utf8_python_env
 
 
 def _no_window_kwargs() -> dict[str, int]:
-    if os.name != "nt":
-        return {}
-    return {"creationflags": _CREATE_NO_WINDOW}
+    return {"creationflags": _CREATE_NO_WINDOW} if os.name == "nt" else {}
 
 
 class OnlineEvidenceError(RuntimeError):
@@ -661,13 +659,10 @@ def export_db_for_roots(
         try:
             completed = subprocess.run(
                 [python or sys.executable, "-c", code, str(root)],
-                capture_output=True,
-                text=True,
-                timeout=float(timeout_s),
-                check=False,
+                capture_output=True, text=True, encoding="utf-8", errors="replace",
+                timeout=float(timeout_s), check=False,
                 cwd=str(cwd) if cwd is not None else None,
-                env=os.environ.copy(),
-                **_no_window_kwargs(),
+                env=utf8_python_env(), **_no_window_kwargs(),
             )
             receipt.update({
                 "returncode": completed.returncode,
@@ -690,54 +685,88 @@ def export_db_for_roots(
     return receipts
 
 
+def _append_cleanup_error(receipt: dict[str, Any], detail: str) -> None:
+    receipt["cleanup_error"] = f"{receipt['cleanup_error']}; {detail}" if receipt["cleanup_error"] else detail
+
+
+def _fallback_kill(process: subprocess.Popen[Any], receipt: dict[str, Any], exc: BaseException) -> None:
+    try:
+        process.kill()
+        receipt["kill_sent"] = True
+    except TimeoutError:
+        raise
+    except OSError as kill_exc:
+        _append_cleanup_error(receipt, f"KILL failed: {exc}; {kill_exc}")
+
+
 def terminate_process_group(
-    process: subprocess.Popen[Any],
-    *,
-    grace_s: float,
-    kill_timeout_s: float,
+    process: subprocess.Popen[Any], *, grace_s: float, kill_timeout_s: float
 ) -> dict[str, Any]:
-    """TERM then KILL only the process group created for this server."""
+    """TERM then KILL only the process group/tree created for this server."""
     receipt: dict[str, Any] = {
-        "pid": process.pid,
-        "term_sent": False,
-        "kill_sent": False,
-        "exit_code": process.poll(),
-        "cleanup_error": None,
+        "pid": process.pid, "term_sent": False, "kill_sent": False,
+        "exit_code": process.poll(), "cleanup_error": None,
     }
-    if process.poll() is not None:
+    if receipt["exit_code"] is not None:
+        return receipt
+    if os.name == "nt":
+        try:
+            process.terminate()
+            receipt["term_sent"] = True
+        except TimeoutError:
+            raise
+        except OSError as exc:
+            _append_cleanup_error(receipt, f"TERM failed: {exc}")
+        try:
+            receipt["exit_code"] = process.wait(timeout=grace_s)
+            return receipt
+        except subprocess.TimeoutExpired:
+            pass
+        sys_root = os.environ.get("SystemRoot") or r"C:\Windows"
+        tk_exe = os.path.join(sys_root, "System32", "taskkill.exe")
+        tk_cmd = tk_exe if os.path.isfile(tk_exe) else "taskkill"
+        try:
+            subprocess.run(
+                [tk_cmd, "/T", "/F", "/PID", str(process.pid)],
+                capture_output=True, text=True, encoding="utf-8", errors="replace",
+                timeout=max(1.0, float(kill_timeout_s)), check=False, **_no_window_kwargs(),
+            )
+            receipt["kill_sent"] = True
+        except subprocess.TimeoutExpired as exc:
+            _fallback_kill(process, receipt, exc)
+        except TimeoutError:
+            raise
+        except OSError as exc:
+            _fallback_kill(process, receipt, exc)
+        try:
+            receipt["exit_code"] = process.wait(timeout=kill_timeout_s)
+        except subprocess.TimeoutExpired as exc:
+            _append_cleanup_error(receipt, f"wait after KILL failed: {exc}")
         return receipt
     try:
         pgid = os.getpgid(process.pid)
     except ProcessLookupError:
         receipt["exit_code"] = process.poll()
         return receipt
-    try:
-        os.killpg(pgid, signal.SIGTERM)
-        receipt["term_sent"] = True
-    except ProcessLookupError:
-        pass
-    except TimeoutError:
-        raise
-    except OSError as exc:
-        receipt["cleanup_error"] = f"TERM failed: {exc}"
-    try:
-        receipt["exit_code"] = process.wait(timeout=grace_s)
-        return receipt
-    except subprocess.TimeoutExpired:
-        pass
-    try:
-        os.killpg(pgid, signal.SIGKILL)
-        receipt["kill_sent"] = True
-    except ProcessLookupError:
-        pass
-    except TimeoutError:
-        raise
-    except OSError as exc:
-        receipt["cleanup_error"] = (receipt["cleanup_error"] + "; " if receipt["cleanup_error"] else "") + f"KILL failed: {exc}"
-    try:
-        receipt["exit_code"] = process.wait(timeout=kill_timeout_s)
-    except subprocess.TimeoutExpired as exc:
-        receipt["cleanup_error"] = (receipt["cleanup_error"] + "; " if receipt["cleanup_error"] else "") + f"wait after KILL failed: {exc}"
+    for sig, key, label, wait_s in (
+        (signal.SIGTERM, "term_sent", "TERM", grace_s),
+        (signal.SIGKILL, "kill_sent", "KILL", kill_timeout_s),
+    ):
+        try:
+            os.killpg(pgid, sig)
+            receipt[key] = True
+        except ProcessLookupError:
+            pass
+        except TimeoutError:
+            raise
+        except OSError as exc:
+            _append_cleanup_error(receipt, f"{label} failed: {exc}")
+        try:
+            receipt["exit_code"] = process.wait(timeout=wait_s)
+            return receipt
+        except subprocess.TimeoutExpired as exc:
+            if sig == signal.SIGKILL:
+                _append_cleanup_error(receipt, f"wait after KILL failed: {exc}")
     return receipt
 
 

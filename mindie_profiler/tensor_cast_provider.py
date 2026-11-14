@@ -104,16 +104,24 @@ def _hardware_category(op_kind: str | None) -> str:
     raise ProviderUnmodeledError(f"unsupported_op_kind:{op_kind}")
 
 
+from ._host_exec import no_window_kwargs, normalize_git_repo_arg, which_native
+
+
 def _run_git(source_path: Path, *arguments: str) -> str:
-    command = ["git", "-C", str(source_path), *arguments]
+    git_bin = which_native("git")
+    if not git_bin:
+        raise ProviderUnmodeledError(f"source_git_{arguments[0]}_failed")
+    command = [git_bin, "-C", normalize_git_repo_arg(source_path), *arguments]
     try:
         completed = subprocess.run(
             command,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=GIT_TIMEOUT_S,
             check=False,
-            **_no_window_kwargs(),
+            **no_window_kwargs(),
         )
     except TimeoutError:
         raise

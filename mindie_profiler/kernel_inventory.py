@@ -425,6 +425,8 @@ def build_inventory(manifest: Mapping[str, Any], output: str | Path, *, timeout_
                 connection.commit()
                 if not found:
                     no_exports.append(str(path))
+            except TimeoutError:
+                raise
             except (OSError, EOFError, tarfile.TarError, ProfilerSchemaError, ProfilerQueryError) as exc:
                 failures.append({"source": str(path), "error": str(exc)})
                 # Opening/enumerating a source can fail before ingest_source.
