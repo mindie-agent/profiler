@@ -510,13 +510,20 @@ def ensure_capture_shim_binary(
         os.replace(tmp_so, so_path)
         return so_path
     finally:
-        if os.name != "nt":
-            try:
-                import fcntl
+        try:
+            if os.name != "nt":
+                try:
+                    import fcntl
 
-                fcntl.flock(lock_fd, fcntl.LOCK_UN)
+                    fcntl.flock(lock_fd, fcntl.LOCK_UN)
+                except TimeoutError:
+                    raise
+                except OSError:
+                    pass
+        finally:
+            try:
+                os.close(lock_fd)
             except TimeoutError:
                 raise
             except OSError:
                 pass
-        os.close(lock_fd)

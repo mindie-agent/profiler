@@ -480,40 +480,43 @@ class CaptureShmSession:
             raise
 
     def _release_controller_lock(self, *, unlink: bool) -> None:
-        if self._ctl_lock_fd is not None:
-            lfd = self._ctl_lock_fd
-            self._ctl_lock_fd = None
-            try:
-                if os.name == "nt":
-                    import msvcrt
+        try:
+            if self._ctl_lock_fd is not None:
+                lfd = self._ctl_lock_fd
+                self._ctl_lock_fd = None
+                try:
+                    if os.name == "nt":
+                        import msvcrt
 
-                    os.lseek(lfd, 0, os.SEEK_SET)
-                    msvcrt.locking(lfd, msvcrt.LK_UNLCK, 1)
-                else:
-                    import fcntl
+                        os.lseek(lfd, 0, os.SEEK_SET)
+                        msvcrt.locking(lfd, msvcrt.LK_UNLCK, 1)
+                    else:
+                        import fcntl
 
-                    fcntl.flock(lfd, fcntl.LOCK_UN)
-            except TimeoutError:
-                raise
-            except OSError:
-                pass
-            try:
-                os.close(lfd)
-            except TimeoutError:
-                raise
-            except OSError:
-                pass
-        if unlink and self._ctl_lock_path is not None:
-            try:
-                self._ctl_lock_path.unlink(missing_ok=True)
-            except TimeoutError:
-                raise
-            except OSError:
-                pass
-        if self._ctl_lock_key is not None:
-            with _CONTROLLER_GUARD:
-                _ACTIVE_CONTROLLERS.discard(self._ctl_lock_key)
-            self._ctl_lock_key = None
+                        fcntl.flock(lfd, fcntl.LOCK_UN)
+                except TimeoutError:
+                    raise
+                except OSError:
+                    pass
+                finally:
+                    try:
+                        os.close(lfd)
+                    except TimeoutError:
+                        raise
+                    except OSError:
+                        pass
+            if unlink and self._ctl_lock_path is not None:
+                try:
+                    self._ctl_lock_path.unlink(missing_ok=True)
+                except TimeoutError:
+                    raise
+                except OSError:
+                    pass
+        finally:
+            if self._ctl_lock_key is not None:
+                with _CONTROLLER_GUARD:
+                    _ACTIVE_CONTROLLERS.discard(self._ctl_lock_key)
+                self._ctl_lock_key = None
 
     @property
     def view(self) -> MindieCaptureShm:
@@ -659,22 +662,27 @@ class CaptureShmSession:
                 except BufferError:
                     pass
             self._mmap = None
-        if self._fd is not None:
+        try:
             try:
-                os.close(self._fd)
-            except TimeoutError:
-                raise
-            except OSError:
-                pass
-            self._fd = None
-        if should_unlink:
-            try:
-                self.path.unlink(missing_ok=True)
-            except TimeoutError:
-                raise
-            except OSError:
-                pass
-        self._release_controller_lock(unlink=should_unlink)
+                if self._fd is not None:
+                    fd = self._fd
+                    self._fd = None
+                    try:
+                        os.close(fd)
+                    except TimeoutError:
+                        raise
+                    except OSError:
+                        pass
+            finally:
+                if should_unlink:
+                    try:
+                        self.path.unlink(missing_ok=True)
+                    except TimeoutError:
+                        raise
+                    except OSError:
+                        pass
+        finally:
+            self._release_controller_lock(unlink=should_unlink)
 
     def __enter__(self) -> CaptureShmSession:
         return self

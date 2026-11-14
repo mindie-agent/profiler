@@ -45,7 +45,7 @@ TINY_MODEL_SCHEMA = "mindie-tiny-llama-model/1"
 ARTIFACT_SCHEMA = "mindie-vllm-profile-artifacts/1"
 DB_EXPORT_SCHEMA = "mindie-vllm-db-export/1"
 MAX_ARTIFACT_FILES = 20_000
-from ._host_exec import CREATE_NO_WINDOW as _CREATE_NO_WINDOW, utf8_python_env
+from ._host_exec import CREATE_NO_WINDOW as _CREATE_NO_WINDOW, kill_windows_process_tree, utf8_python_env
 
 
 def _no_window_kwargs() -> dict[str, int]:
@@ -711,35 +711,24 @@ def terminate_process_group(
         return receipt
     if os.name == "nt":
         try:
-            process.terminate()
+            tk_res = kill_windows_process_tree(process.pid, timeout_s=max(0.1, float(grace_s)))
             receipt["term_sent"] = True
-        except TimeoutError:
-            raise
-        except OSError as exc:
-            _append_cleanup_error(receipt, f"TERM failed: {exc}")
-        try:
-            receipt["exit_code"] = process.wait(timeout=grace_s)
-            return receipt
-        except subprocess.TimeoutExpired:
-            pass
-        sys_root = os.environ.get("SystemRoot") or r"C:\Windows"
-        tk_exe = os.path.join(sys_root, "System32", "taskkill.exe")
-        tk_cmd = tk_exe if os.path.isfile(tk_exe) else "taskkill"
-        try:
-            subprocess.run(
-                [tk_cmd, "/T", "/F", "/PID", str(process.pid)],
-                capture_output=True, text=True, encoding="utf-8", errors="replace",
-                timeout=max(1.0, float(kill_timeout_s)), check=False, **_no_window_kwargs(),
-            )
-            receipt["kill_sent"] = True
+            if tk_res.returncode == 0:
+                receipt["kill_sent"] = True
+            elif process.poll() is None:
+                detail = (tk_res.stderr or tk_res.stdout or f"rc={tk_res.returncode}").strip()
+                _append_cleanup_error(receipt, f"taskkill tree cleanup failed: {detail}")
+                _fallback_kill(process, receipt, RuntimeError(detail))
         except subprocess.TimeoutExpired as exc:
+            _append_cleanup_error(receipt, f"taskkill tree cleanup timed out: {exc}")
             _fallback_kill(process, receipt, exc)
         except TimeoutError:
             raise
         except OSError as exc:
+            _append_cleanup_error(receipt, f"taskkill tree cleanup failed: {exc}")
             _fallback_kill(process, receipt, exc)
         try:
-            receipt["exit_code"] = process.wait(timeout=kill_timeout_s)
+            receipt["exit_code"] = process.wait(timeout=max(0.05, float(kill_timeout_s)))
         except subprocess.TimeoutExpired as exc:
             _append_cleanup_error(receipt, f"wait after KILL failed: {exc}")
         return receipt
