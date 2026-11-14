@@ -27,6 +27,7 @@
 
 from __future__ import annotations
 
+import re
 import sqlite3
 import time
 from pathlib import Path
@@ -108,15 +109,21 @@ def _bound_task(related: Sequence[sqlite3.Row], op_start: int, op_end: int) -> s
     return chosen[0] if len(chosen) == 1 else None
 
 
+_ALLTOALLV_RE = re.compile(r"[aA]ll_?[tT]o_?[aA]ll_?[vV][cC]?(?:(?![a-zA-Z])|(?=[A-Z][a-z]))")
+
+
 def _collective_kind(op_name: str | None) -> str | None:
-    lower = (op_name or "").lower()
-    if "allgather" in lower:
+    raw = op_name or ""
+    folded = raw.lower().replace("_", "").replace("-", "")
+    if "allgather" in folded:
         return "all_gather"
-    if "reducescatter" in lower:
+    if "reducescatter" in folded:
         return "reduce_scatter"
-    if "alltoall" in lower:
+    if _ALLTOALLV_RE.search(raw):
+        return "all_to_allv"
+    if "alltoall" in folded:
         return "all_to_all"
-    if "allreduce" in lower:
+    if "allreduce" in folded:
         return "all_reduce"
     return None
 
@@ -253,9 +260,11 @@ def _call_rows(
             )
 
         checked_globals = {str(x) for x in global_ids}
+        ambig_scan_cache: list[set[str]] = []
         ambiguous_globals = (
             find_ambiguous_task_globals(
-                db, db_label, global_ids, deadline=deadline, timeout_s=effective_timeout
+                db, db_label, global_ids,
+                deadline=deadline, timeout_s=effective_timeout, scan_cache=ambig_scan_cache,
             )
             if can_query_task and global_ids
             else set()
@@ -420,7 +429,8 @@ def _call_rows(
                     resolve_stream_predecessor(
                         db, db_label, bound, op_start, owned_tasks, stream_index,
                         task_intervals, ambiguous_globals, checked_globals, limitations,
-                        can_query_task=can_query_task, deadline=deadline, timeout_s=effective_timeout,
+                        can_query_task=can_query_task, deadline=deadline,
+                        timeout_s=effective_timeout, scan_cache=ambig_scan_cache,
                     )
                     if bound is not None
                     else None
@@ -657,12 +667,8 @@ def _call_rows(
                         "rank_id": source.rank_id,
                         "device_id": device,
                         "query_tables": [
-                            "COMMUNICATION_OP",
-                            "TASK",
-                            "STRING_IDS",
-                            "COMPUTE_TASK_INFO",
-                            "COMMUNICATION_TASK_INFO",
-                            "COMMUNICATION_SCHEDULE_TASK_INFO",
+                            "COMMUNICATION_OP", "TASK", "STRING_IDS", "COMPUTE_TASK_INFO",
+                            "COMMUNICATION_TASK_INFO", "COMMUNICATION_SCHEDULE_TASK_INFO",
                         ],
                         "accounting_basis": (
                             "one_rank_local_semantic_call; children joined by "
@@ -673,14 +679,9 @@ def _call_rows(
             )
         counts: dict[tuple[Any, ...], int] = {}
         for item in result:
-            operation = item["operation"]
-            key = (
-                item["rank_id"],
-                operation.get("communicator")
-                or operation.get("group_name")
-                or operation.get("op_name"),
-                operation.get("collective"),
-            )
+            op_meta = item["operation"]
+            comm_key = op_meta.get("communicator") or op_meta.get("group_name") or op_meta.get("op_name")
+            key = (item["rank_id"], comm_key, op_meta.get("collective"))
             item["call_ordinal"] = counts.get(key, 0)
             counts[key] = item["call_ordinal"] + 1
         budgets["calls"] = int(budgets.get("calls", 0)) + len(result)

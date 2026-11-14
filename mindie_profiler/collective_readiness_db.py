@@ -213,6 +213,9 @@ def enum_map(
     return {str(row["id"]): str(row["name"]) for row in rows if row["name"] is not None}
 
 
+_MAX_AMBIGUOUS_GLOBALS = 250_000
+
+
 def find_ambiguous_task_globals(
     db: sqlite3.Connection,
     db_label: str,
@@ -220,24 +223,28 @@ def find_ambiguous_task_globals(
     *,
     deadline: float,
     timeout_s: float,
+    scan_cache: list[set[str]] | None = None,
 ) -> set[str]:
-    unique_ids = sorted({int(item) for item in global_ids if int_id(item) is not None})
-    ambiguous: set[str] = set()
-    for chunk in chunks(unique_ids):
-        marks = ",".join("?" for _ in chunk)
-        rows = fetch_rows(
-            db,
-            db_label,
-            f"SELECT globalTaskId, COUNT(*) AS cnt FROM TASK "
-            f"WHERE globalTaskId IN ({marks}) GROUP BY globalTaskId HAVING cnt > 1",
-            chunk,
-            len(chunk) + 1,
-            deadline=deadline,
-            timeout_s=timeout_s,
+    candidates = {str(gid) for item in global_ids if (gid := int_id(item)) is not None}
+    if not candidates:
+        return set()
+    if scan_cache:
+        return candidates & scan_cache[0]
+    rows = fetch_rows(
+        db, db_label,
+        "SELECT globalTaskId FROM TASK WHERE globalTaskId IS NOT NULL "
+        "GROUP BY globalTaskId HAVING COUNT(*) > 1 LIMIT ?",
+        (_MAX_AMBIGUOUS_GLOBALS + 1,), _MAX_AMBIGUOUS_GLOBALS + 1,
+        deadline=deadline, timeout_s=timeout_s,
+    )
+    if len(rows) > _MAX_AMBIGUOUS_GLOBALS:
+        raise ProfilerQueryError(
+            f"{db_label}: duplicate globalTaskId groups exceeded {_MAX_AMBIGUOUS_GLOBALS}"
         )
-        for row in rows:
-            ambiguous.add(str(row["globalTaskId"]))
-    return ambiguous
+    all_dups = {str(row["globalTaskId"]) for row in rows if row["globalTaskId"] is not None}
+    if scan_cache is not None:
+        scan_cache.append(all_dups)
+    return candidates & all_dups
 
 
 def _read_child_table(
@@ -513,6 +520,7 @@ def resolve_stream_predecessor(
     can_query_task: bool,
     deadline: float,
     timeout_s: float,
+    scan_cache: list[set[str]] | None = None,
 ) -> sqlite3.Row | None:
     """Resolve latest unambiguous same-(deviceId, streamId) task with endNs <= op_start."""
     if bound["deviceId"] is None or bound["streamId"] is None:
@@ -534,25 +542,18 @@ def resolve_stream_predecessor(
         if excl_ints and len(excl_ints) <= 64
         else ""
     )
-    args: list[Any] = [bound["deviceId"], bound["streamId"], op_start]
-    if not_in:
-        args.extend(excl_ints)
-    args.append(32)
+    args: list[Any] = [bound["deviceId"], bound["streamId"], op_start, *(excl_ints if not_in else ()), 32]
     candidates = fetch_rows(
-        db,
-        db_label,
+        db, db_label,
         "SELECT startNs,endNs,connectionId,deviceId,globalTaskId,streamId,taskId,taskType "
         "FROM TASK WHERE deviceId=? AND streamId=? AND endNs<=? "
         f"AND globalTaskId IS NOT NULL{not_in} ORDER BY endNs DESC, globalTaskId DESC LIMIT ?",
-        args,
-        32,
-        deadline=deadline,
-        timeout_s=timeout_s,
+        args, 32, deadline=deadline, timeout_s=timeout_s,
     )
     unchecked = [r["globalTaskId"] for r in candidates if str(r["globalTaskId"]) not in checked_globals]
     if unchecked:
         new_ambig = find_ambiguous_task_globals(
-            db, db_label, unchecked, deadline=deadline, timeout_s=timeout_s
+            db, db_label, unchecked, deadline=deadline, timeout_s=timeout_s, scan_cache=scan_cache
         )
         checked_globals.update(str(x) for x in unchecked)
         if new_ambig:

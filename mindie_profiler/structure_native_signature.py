@@ -9,10 +9,10 @@
   * Input and output lanes are paired index-by-index across shape, dtype, and
     format; unequal lane counts fail closed (``False``) and incomplete capture
     columns resolve to ``None`` rather than a guessed match.
-  * Declared native roles preserve canonical ABI slot order (e.g. ``query`` ->
-    ``key`` -> ``value``, ``input`` -> ``weight`` -> optional scales/bias) and
-    role-specific dtypes; swapped operand slots return ``False``, and role sets
-    without an established slot order resolve to ``None`` rather than ``True``.
+  * Every operand declared in ``typed.shapes`` or ``typed.attrs`` is required
+    (never universally optional): missing declared operands or swapped ABI slots
+    return ``False``, and role sets without an established slot order resolve to
+    ``None`` rather than ``True``.
   * Contiguous/ND layout declarations reject non-contiguous Ascend storage
     formats cleanly after case-normalization (including ``C1HWNCoC0``).
 
@@ -112,7 +112,7 @@ _AUX_ONLY_ROLES = frozenset(
         "sparse_indices",
     }
 )
-_OPTIONAL_INPUT_KEYS = _AUX_ONLY_ROLES | frozenset({"bias", "residual"})
+_QUANTIZE_FAMILIES = frozenset({"quantize", "add_rmsnorm_quant", "rmsnorm_quant"})
 _ROLE_DTYPE_KEYS: dict[str, tuple[str, ...]] = {
     "input": ("input_dtype", "activation_dtype", "activation_format", "x_dtype", "lhs_dtype"),
     "x": ("x_dtype", "input_dtype", "activation_dtype", "activation_format"),
@@ -338,45 +338,29 @@ def _role_order_established(
 
 def _align_ordered_specs(
     obs_pairs: tuple[tuple[tuple[int, ...], str], ...],
-    ordered_specs: tuple[tuple[tuple[int, ...], str | None, bool, bool], ...],
+    ordered_specs: tuple[tuple[tuple[int, ...], str | None, bool], ...],
     *,
     ignore_dtype: bool = False,
 ) -> int:
     """Return 2 on exact ordered match, 1 on shape-matched untyped ambiguity, 0 on mismatch."""
-    memo: dict[tuple[int, int], int] = {}
-
-    def solve(oi: int, si: int) -> int:
-        state = (oi, si)
-        if state in memo:
-            return memo[state]
-        if oi == len(obs_pairs):
-            res = 2 if all(spec[2] for spec in ordered_specs[si:]) else 0
-            memo[state] = res
-            return res
-        if si == len(ordered_specs):
-            memo[state] = 0
-            return 0
-        shape, exp_dt, is_opt, is_tail = ordered_specs[si]
-        obs_shape, obs_dt = obs_pairs[oi]
-        best = solve(oi, si + 1) if is_opt else 0
+    if len(obs_pairs) != len(ordered_specs):
+        return 0
+    verdict = 2
+    for (obs_shape, obs_dt), (shape, exp_dt, is_tail) in zip(obs_pairs, ordered_specs):
         shape_ok = (
             len(obs_shape) == len(shape) + 1 and obs_shape[1:] == shape
             if is_tail
             else obs_shape == shape
         )
-        if shape_ok:
-            if ignore_dtype or (exp_dt is not None and obs_dt == exp_dt):
-                sub = solve(oi + 1, si + 1)
-                if sub > best:
-                    best = sub
-            elif exp_dt is None:
-                sub = solve(oi + 1, si + 1)
-                if sub > 0:
-                    best = max(best, 1)
-        memo[state] = best
-        return best
-
-    return solve(0, 0)
+        if not shape_ok:
+            return 0
+        if ignore_dtype or (exp_dt is not None and obs_dt == exp_dt):
+            continue
+        if exp_dt is None:
+            verdict = 1
+        else:
+            return 0
+    return verdict
 
 
 def _match_input_dtypes(
@@ -390,6 +374,7 @@ def _match_input_dtypes(
     declared_dtype: str | None,
     primary_in_dt: str | None,
     is_attention_abi: bool,
+    is_quantize_family: bool = False,
 ) -> bool | None:
     explicit_in_dtypes = typed.get("input_dtypes")
     if isinstance(explicit_in_dtypes, (list, tuple)):
@@ -404,14 +389,14 @@ def _match_input_dtypes(
     if not has_complete_roles:
         allowed_pos = {primary_in_dt} if primary_in_dt is not None else set()
         has_distinct_role_dt = False
-        for attr_key, target_roles in _DECLARED_INPUT_DTYPE_ROLES:
+        for attr_key, _ in _DECLARED_INPUT_DTYPE_ROLES:
+            if is_quantize_family and attr_key in {"activation_scale_format", "scale_dtype"}:
+                continue
             if (decl_dt := _lookup_dtype(typed, attrs, attr_key)) is None:
                 continue
             allowed_pos.add(decl_dt)
             if decl_dt not in in_dtypes:
-                if not (target_roles <= _OPTIONAL_INPUT_KEYS):
-                    return False
-                continue
+                return False
             if decl_dt != primary_in_dt:
                 has_distinct_role_dt = True
         if primary_in_dt is not None:
@@ -435,13 +420,14 @@ def _match_input_dtypes(
         return True
 
     for attr_key, target_roles in _DECLARED_INPUT_DTYPE_ROLES:
+        if is_quantize_family and attr_key in {"activation_scale_format", "scale_dtype"}:
+            continue
         if (decl_dt := _lookup_dtype(typed, attrs, attr_key)) is None:
             continue
         if not (target_roles & input_roles.keys()):
-            if decl_dt not in in_dtypes and not (target_roles <= _OPTIONAL_INPUT_KEYS):
+            if decl_dt not in in_dtypes:
                 return False
-            if decl_dt in in_dtypes and decl_dt != primary_in_dt:
-                return None
+            return None
 
     role_dtypes: dict[str, str | None] = {}
     for k in input_roles:
@@ -457,11 +443,16 @@ def _match_input_dtypes(
                 return False
             break
     declared_dt_set = {dt for dt in role_dtypes.values() if dt is not None}
+    untyped_aux_shapes = {
+        shape
+        for k, shape in input_roles.items()
+        if role_dtypes[k] is None and k in _AUX_ONLY_ROLES
+    }
     aux_skip = _ATTENTION_AUX_DTYPES - declared_dt_set
     obs_seq = tuple(
         (s, dt)
         for s, dt in zip(in_shapes, in_dtypes)
-        if not (is_attention_abi and (dt in aux_skip or s == ()))
+        if not (is_attention_abi and s not in untyped_aux_shapes and (dt in aux_skip or s == ()))
     )
     if input_roles.keys() & _PARTIAL_CACHE_ROLES:
         allowed_dt = {dt for dt in role_dtypes.values() if dt is not None}
@@ -473,33 +464,21 @@ def _match_input_dtypes(
     ordered_keys = _role_order_established(input_roles, _INPUT_ROLE_ORDER)
     if ordered_keys is not None:
         ordered_specs = tuple(
-            (input_roles[k], role_dtypes[k], k in _OPTIONAL_INPUT_KEYS, k in _TAIL_INPUT_ROLES)
-            for k in ordered_keys
+            (input_roles[k], role_dtypes[k], k in _TAIL_INPUT_ROLES) for k in ordered_keys
         )
         score = _align_ordered_specs(obs_seq, ordered_specs, ignore_dtype=False)
         return True if score == 2 else (None if score == 1 else False)
 
-    if any(role_dtypes[k] is None for k in input_roles if k not in _OPTIONAL_INPUT_KEYS):
-        return None
     obs_pairs = Counter(obs_seq)
-    req_pairs = Counter(
-        (shape, role_dtypes[k])
-        for k, shape in input_roles.items()
-        if k not in _OPTIONAL_INPUT_KEYS and role_dtypes[k] is not None
+    typed_pairs = Counter(
+        (shape, role_dtypes[k]) for k, shape in input_roles.items() if role_dtypes[k] is not None
     )
-    all_pairs = Counter(
-        (shape, role_dtypes[k])
-        for k, shape in input_roles.items()
-        if role_dtypes[k] is not None
-    )
-    if not _counter_leq(req_pairs, obs_pairs):
+    if not _counter_leq(typed_pairs, obs_pairs):
         return False
-    if not _counter_leq(obs_pairs, all_pairs):
-        rem_shapes = Counter(
-            s for (s, dt), cnt in (obs_pairs - all_pairs).items() for _ in range(cnt)
-        )
-        untyped_opt = Counter(shape for k, shape in input_roles.items() if role_dtypes[k] is None)
-        return None if _counter_leq(rem_shapes, untyped_opt) else False
+    if any(role_dtypes[k] is None for k in input_roles):
+        return None
+    if obs_pairs != typed_pairs:
+        return False
     return True if len(set(obs_seq)) <= 1 else None
 
 
@@ -522,8 +501,9 @@ def native_call_signature_match(binding: Mapping[str, Any], event: Event) -> boo
     if parsed_shapes is None:
         return False
     coarse_shapes, input_roles, output_roles, explicit_inputs, explicit_outputs = parsed_shapes
-    family = str(binding.get("family") or "")
-    is_attention_abi = family.lower() == "attention" or "query" in input_roles
+    family_lower = str(binding.get("family") or "").strip().lower()
+    is_attention_abi = family_lower == "attention" or "query" in input_roles
+    is_quantize_family = family_lower in _QUANTIZE_FAMILIES
     declared_dtype = _norm_dtype(typed.get("dtype"))
     primary_in_dt = (
         _lookup_dtype(typed, attrs, "input_dtype", "activation_dtype", "activation_format", "query_dtype")
@@ -590,11 +570,21 @@ def native_call_signature_match(binding: Mapping[str, Any], event: Event) -> boo
             }
             if declared_dtype is not None:
                 role_dt_vals.add(declared_dtype)
+            untyped_aux_shapes = {
+                shape
+                for k, shape in input_roles.items()
+                if k in _AUX_ONLY_ROLES
+                and _lookup_dtype(typed, attrs, *_ROLE_DTYPE_KEYS.get(k, (f"{k}_dtype",))) is None
+            }
             aux_skip = _ATTENTION_AUX_DTYPES - role_dt_vals
             obs_seq = tuple(
                 (s, dt)
                 for s, dt in zip(in_shapes, in_dtypes)
-                if not (is_attention_abi and (dt in aux_skip or s == ()))
+                if not (
+                    is_attention_abi
+                    and s not in untyped_aux_shapes
+                    and (dt in aux_skip or s == ())
+                )
             )
             if input_roles.keys() & _PARTIAL_CACHE_ROLES:
                 unresolved_order = True
@@ -602,25 +592,13 @@ def native_call_signature_match(binding: Mapping[str, Any], event: Event) -> boo
                 ordered_in = _role_order_established(input_roles, _INPUT_ROLE_ORDER)
                 if ordered_in is not None:
                     shape_specs = tuple(
-                        (
-                            input_roles[k],
-                            None,
-                            k in _OPTIONAL_INPUT_KEYS,
-                            k in _TAIL_INPUT_ROLES,
-                        )
-                        for k in ordered_in
+                        (input_roles[k], None, k in _TAIL_INPUT_ROLES) for k in ordered_in
                     )
                     if _align_ordered_specs(obs_seq, shape_specs, ignore_dtype=True) == 0:
                         return False
                 else:
-                    req_counts = Counter(
-                        shape for k, shape in input_roles.items() if k not in _OPTIONAL_INPUT_KEYS
-                    )
-                    all_counts = Counter(input_roles.values())
                     obs_counts = Counter(s for s, _ in obs_seq)
-                    if not (
-                        _counter_leq(req_counts, obs_counts) and _counter_leq(obs_counts, all_counts)
-                    ):
+                    if obs_counts != Counter(input_roles.values()):
                         return False
                     if len(set(s for s, _ in obs_seq)) > 1:
                         unresolved_order = True
@@ -643,6 +621,7 @@ def native_call_signature_match(binding: Mapping[str, Any], event: Event) -> boo
         declared_dtype=declared_dtype,
         primary_in_dt=primary_in_dt,
         is_attention_abi=is_attention_abi,
+        is_quantize_family=is_quantize_family,
     )
     if in_dt_verdict is False:
         return False

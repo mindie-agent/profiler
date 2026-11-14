@@ -283,6 +283,7 @@ def read_communication_events(
     deadline: float | None = None,
     timeout_s: float = 20.0,
     contested_tasks: set[tuple[str, str]] | None = None,
+    task_occurrences: Mapping[Any, int] | None = None,
 ) -> list[Event]:
     """Read windowed ``COMMUNICATION_OP`` events with exclusive relational TASK join."""
     _check_deadline(deadline, schema_path, window, timeout_s)
@@ -381,18 +382,24 @@ def read_communication_events(
 
         ambiguous_gids: set[str] = set()
         gid_list = list(raw_gid_values.values())
-        for offset in range(0, len(gid_list), _CHUNK_SIZE):
+        if task_occurrences is not None:
+            for gid_text, raw_gid in raw_gid_values.items():
+                key: int | str = (
+                    igid if (igid := _as_optional_int(raw_gid)) is not None else gid_text
+                )
+                if task_occurrences.get(key, 0) > 1 or (
+                    key != gid_text and task_occurrences.get(gid_text, 0) > 1
+                ):
+                    ambiguous_gids.add(gid_text)
+        elif raw_gid_values:
             _check_deadline(deadline, schema_path, window, timeout_s)
-            chunk = gid_list[offset : offset + _CHUNK_SIZE]
-            marks = ", ".join("?" for _ in chunk)
             dups = con.execute(
-                f"SELECT globalTaskId FROM {task_table} WHERE globalTaskId IN ({marks}) "
-                "GROUP BY globalTaskId HAVING COUNT(*) > 1",
-                chunk,
+                f"SELECT globalTaskId FROM {task_table} "
+                "WHERE globalTaskId IS NOT NULL GROUP BY globalTaskId HAVING COUNT(*) > 1"
             ).fetchall()
             stats.rows_read += len(dups)
             for (dup_gid,) in dups:
-                if (gid_text := _optional_text(dup_gid)) is not None:
+                if (gid_text := _optional_text(dup_gid)) is not None and gid_text in raw_gid_values:
                     ambiguous_gids.add(gid_text)
 
         owner_by_gid, conflicted_gids = (

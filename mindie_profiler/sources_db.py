@@ -315,7 +315,7 @@ class DbSource:
         self.mapping = dict(mapping or load_mapping())
         self._names = self.mapping["tables"]
         self._strings: dict[int, str] | None = None
-        self._task_occurrences: dict[int, int] | None = None
+        self._task_occurrences: dict[int | str, int] | None = None
         self._occurrence_scan_ms = 0.0
 
     def _connection(self, timeout_s: float) -> sqlite3.Connection:
@@ -326,22 +326,20 @@ class DbSource:
             self._strings = _resolve_strings(con, self._names["strings"])
         return self._strings
 
-    def _task_occurrence_counts(self, con: sqlite3.Connection) -> dict[int, int]:
-        """Full-capture TASK occurrence count per globalTaskId.
-
-        This is deliberately a full-capture query, not a window query: a
-        globalTaskId repeated outside the selected window still makes the
-        CTI waitNs/PMU group ambiguous for the selected occurrence.
-        """
-
+    def _task_occurrence_counts(self, con: sqlite3.Connection) -> dict[int | str, int]:
+        """Full-capture TASK occurrence count per globalTaskId (cached across windows)."""
         if self._task_occurrences is None:
             started = time.perf_counter()
-            self._task_occurrences = {
-                int(row[0]): int(row[1])
-                for row in con.execute(
-                    f"SELECT globalTaskId, COUNT(*) FROM {self._names['task']} GROUP BY globalTaskId"
+            counts: dict[int | str, int] = {}
+            for raw_gid, raw_cnt in con.execute(
+                f"SELECT globalTaskId, COUNT(*) FROM {self._names['task']} "
+                "WHERE globalTaskId IS NOT NULL GROUP BY globalTaskId"
+            ):
+                key: int | str = (
+                    igid if (igid := _as_optional_int(raw_gid)) is not None else str(raw_gid)
                 )
-            }
+                counts[key] = counts.get(key, 0) + int(raw_cnt)
+            self._task_occurrences = counts
             self._occurrence_scan_ms = round((time.perf_counter() - started) * 1000.0, 6)
         return self._task_occurrences
 
@@ -707,6 +705,7 @@ class DbSource:
                         deadline=deadline,
                         timeout_s=timeout_s,
                         contested_tasks=contested_comm_tasks,
+                        task_occurrences=occurrences,
                     )
                 )
 

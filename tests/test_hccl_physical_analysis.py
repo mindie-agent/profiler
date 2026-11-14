@@ -713,3 +713,75 @@ def test_competing_comm_ops_on_same_task_never_collapse_into_one_native_call(
         for rcall in res["calls"]:
             assert rcall["observed_context"]["bound_task_global_id"] is None
             assert rcall["service_children"] == []
+    monkeypatch.undo()
+
+    # 6. DbSource reuses TASK occurrence cache across chunks/windows; readiness distinguishes all_to_allv.
+    cache_db = tmp_path / "cache" / "rank_0" / "ASCEND_PROFILER_OUTPUT" / "ascend_pytorch_profiler_0.db"
+    cache_db.parent.mkdir(parents=True)
+    kcon = sqlite3.connect(cache_db)
+    kcon.executescript(
+        """
+        CREATE TABLE STRING_IDS(id INTEGER PRIMARY KEY, value TEXT);
+        CREATE TABLE TASK(
+            globalTaskId INT, startNs INT, endNs INT, deviceId INT,
+            streamId INT, taskId INT, taskType INT, connectionId INT, modelId INT, contextId INT
+        );
+        CREATE INDEX TaskIndex ON TASK(startNs, globalTaskId);
+        CREATE TABLE COMPUTE_TASK_INFO(globalTaskId INT PRIMARY KEY, name INT, opType INT, taskType INT);
+        CREATE TABLE COMMUNICATION_OP(
+            opName INT, opType INT, startNs INT, endNs INT, deviceId INT,
+            connectionId INT, groupName INT, opId INT PRIMARY KEY
+        );
+        INSERT INTO STRING_IDS VALUES
+            (1, 'hcom_allToAllV_AicpuKernel_0'), (2, 'hcom_allToAll__0'),
+            (3, 'hcom_allToAll_vllm_0'), (4, 'ep_group'), (5, 'AI_VECTOR_CORE');
+        """
+    )
+    # 1,050 comm rows (>2 chunks of 500) + 1 duplicate globalTaskId outside window 1.
+    kcon.executemany(
+        "INSERT INTO TASK VALUES(?, ?, ?, 0, 7, ?, 5, ?, 1, 0)",
+        [(i, i * 10, i * 10 + 5, i, 10_000 + i) for i in range(1, 1051)]
+        + [(1050, 999_000, 999_005, 9999, 99_999)],
+    )
+    kcon.executemany(
+        "INSERT INTO COMMUNICATION_OP VALUES(?, 1, ?, ?, 0, ?, 4, ?)",
+        [
+            (1 if i % 3 == 1 else (2 if i % 3 == 2 else 3), i * 10, i * 10 + 5, 10_000 + i, i)
+            for i in range(1, 1051)
+        ],
+    )
+    kcon.commit()
+    kcon.close()
+
+    from mindie_profiler import sources_db as sdb_mod
+
+    orig_connect = sdb_mod._connect
+    src_sql: list[str] = []
+    monkeypatch.setattr(
+        sdb_mod,
+        "_connect",
+        lambda p, t: (c := orig_connect(p, t), c.set_trace_callback(src_sql.append))[0],
+    )
+    cached_src = DbSource(probe_db(cache_db))
+    ev_w0, _ = cached_src.iter_window(Window(0, 6_000, step=0))
+    group_scans_w0 = [s for s in src_sql if "GROUP BY globalTaskId" in s]
+    assert len(group_scans_w0) == 1
+    src_sql.clear()
+    ev_w1, _ = cached_src.iter_window(Window(6_000, 11_000, step=1))
+    assert [s for s in src_sql if "GROUP BY globalTaskId" in s] == []
+    by_op = {e.locator["op_id"]: e for e in (*ev_w0, *ev_w1)}
+    assert by_op["1"].locator["task_join_status"] == "connection_and_interval"
+    assert by_op["1050"].locator["task_join_status"] == "unresolved_ambiguous_global_task_id"
+    monkeypatch.undo()
+
+    monkeypatch.setattr("mindie_profiler.collective_readiness.open_readonly", traced_open)
+    post_open_sql.clear()
+    a2a_res = read_collective_readiness(tmp_path / "cache", source="db", windows=[(8, 48)])
+    assert len([s for s in post_open_sql if "FROM TASK" in s and "GROUP BY globalTaskId" in s]) == 1
+    calls_4 = a2a_res["calls"]
+    assert [c["operation"]["collective"] for c in calls_4] == [
+        "all_to_allv", "all_to_all", "all_to_all", "all_to_allv"
+    ]
+    assert [(c["operation"]["collective"], c["call_ordinal"]) for c in calls_4] == [
+        ("all_to_allv", 0), ("all_to_all", 0), ("all_to_all", 1), ("all_to_allv", 1)
+    ]

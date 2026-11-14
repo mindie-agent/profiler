@@ -671,3 +671,103 @@ def test_malformed_or_dangling_native_calls_fail_closed() -> None:
     dup_conflict["native_calls"].append(other)
     with pytest.raises(ProfilerUsageError, match="conflicting bindings"):
         StructureMapper(dup_conflict, bindings=binds)
+
+
+def test_explicitly_declared_operands_are_never_optional() -> None:
+    from mindie_sim.prediction.native_binding import bind_native_call, validate_invocation
+    from mindie_sim.schema.common import ModelingError
+    from mindie_sim.schema import operators as sim_ops
+    from mindie_sim import structure as sim_structure
+
+    biased_op = sim_ops.OpSpec(
+        op_id="l0.biased_proj",
+        family="matmul",
+        phase="prefill",
+        stage="prefill",
+        layer=0,
+        requests=("r0",),
+        dtype="bf16",
+        semantic_shape=(4, 16, 8),
+        local_shape=(4, 16, 8),
+        padded_shape=(4, 16, 8),
+        launch_shape=(4, 16, 8),
+        metadata={
+            "native_kind": "MatMulV2",
+            "native_tensor_view": {
+                "input_shape": [4, 8],
+                "weight_shape": [8, 16],
+                "bias_shape": [16],
+                "output_shape": [4, 16],
+            },
+        },
+    )
+    unbiased_op = sim_ops.OpSpec(
+        op_id="l0.unbiased_proj",
+        family="matmul",
+        phase="prefill",
+        stage="prefill",
+        layer=0,
+        requests=("r0",),
+        dtype="bf16",
+        semantic_shape=(4, 16, 8),
+        local_shape=(4, 16, 8),
+        padded_shape=(4, 16, 8),
+        launch_shape=(4, 16, 8),
+        metadata={
+            "native_kind": "MatMulV2",
+            "native_tensor_view": {
+                "input_shape": [4, 8],
+                "weight_shape": [8, 16],
+                "output_shape": [4, 16],
+            },
+        },
+    )
+    sim_binding = bind_native_call(biased_op)
+    with pytest.raises(ModelingError, match="native_call_invocation_missing_fields:bias"):
+        validate_invocation(
+            sim_binding,
+            {
+                "dtype": "bf16",
+                "layout": "contiguous",
+                "shapes": {
+                    "input": [4, 8],
+                    "weight": [8, 16],
+                    "output": [4, 16],
+                    "local": [4, 16, 8],
+                    "padded": [4, 16, 8],
+                    "launch": [4, 16, 8],
+                },
+                "attrs": {},
+            },
+        )
+
+    exported = sim_structure.export_op_structure(
+        [biased_op, unbiased_op],
+        model={"num_hidden_layers": 1},
+        execution={"phase": "prefill"},
+        native_evidence=True,
+    )
+    by_op = {row["op_id"]: row for row in exported["native_calls"]}
+    ev_no_bias = _ev("MatMulV2", in_shapes="4,8;8,16", in_dtypes="DT_BF16;DT_BF16", out_shapes="4,16", out_dtypes="DT_BF16", idx=30)
+    ev_with_bias = _ev("MatMulV2", in_shapes="4,8;8,16;16", in_dtypes="DT_BF16;DT_BF16;DT_BF16", in_formats="ND;ND;ND", out_shapes="4,16", out_dtypes="DT_BF16", idx=31)
+    assert native_call_signature_match(by_op["l0.biased_proj"], ev_no_bias) is False
+    assert native_call_signature_match(by_op["l0.biased_proj"], ev_with_bias) is True
+    assert native_call_signature_match(by_op["l0.unbiased_proj"], ev_no_bias) is True
+    assert native_call_signature_match(by_op["l0.unbiased_proj"], ev_with_bias) is False
+
+    # Declared residual, scale, group_list, and indices also reject missing operands.
+    for extra_role, extra_shape, extra_attrs in (
+        ("residual", [4, 8], {}),
+        ("scale", [16], {"scale_dtype": "fp32"}),
+        ("group_list", [1], {"group_list_dtype": "int64"}),
+        ("indices", [4, 128], {"index_dtype": "int32"}),
+    ):
+        decl = {
+            "family": "attention" if extra_role == "indices" else "matmul",
+            "typed": {
+                "dtype": "bf16",
+                "shapes": {"input": [4, 8], "weight": [8, 16], extra_role: extra_shape, "output": [4, 16]},
+                "attrs": extra_attrs,
+            },
+        }
+        assert native_call_signature_match(decl, ev_no_bias) is False
