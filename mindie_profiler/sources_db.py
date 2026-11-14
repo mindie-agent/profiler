@@ -44,6 +44,7 @@ from typing import Any, Mapping
 from urllib.parse import quote
 
 from .events import Event, ProfilerQueryError, ProfilerSchemaError, QueryStats, Window
+from .sources_db_comm import read_communication_events
 
 MAPPING_PATH = Path(__file__).resolve().parent / "knowledge" / "db_source_mapping.json"
 _IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -122,13 +123,13 @@ def _connect(path: Path, timeout_s: float) -> sqlite3.Connection:
     if not path.is_file():
         raise ProfilerQueryError(f"profiler db not found: {path}")
     uri = "file:" + quote(str(path.resolve()), safe="/") + "?mode=ro"
-    busy_timeout_s = max(3.0, float(timeout_s))
+    busy_timeout_s = min(5.0, max(3.0, float(timeout_s)))
     try:
         con = sqlite3.connect(uri, uri=True, timeout=busy_timeout_s)
     except sqlite3.Error as exc:
         raise ProfilerQueryError(f"cannot open profiler db read-only: {path}: {exc}") from exc
     con.execute("PRAGMA query_only = ON")
-    con.execute(f"PRAGMA busy_timeout = {int(busy_timeout_s * 1000)}")
+    con.execute(f"PRAGMA busy_timeout = {min(5000, max(3000, int(round(busy_timeout_s * 1000))))}")
     return con
 
 
@@ -314,7 +315,7 @@ class DbSource:
         self.mapping = dict(mapping or load_mapping())
         self._names = self.mapping["tables"]
         self._strings: dict[int, str] | None = None
-        self._task_occurrences: dict[int, int] | None = None
+        self._task_occurrences: dict[int | str, int] | None = None
         self._occurrence_scan_ms = 0.0
 
     def _connection(self, timeout_s: float) -> sqlite3.Connection:
@@ -325,22 +326,20 @@ class DbSource:
             self._strings = _resolve_strings(con, self._names["strings"])
         return self._strings
 
-    def _task_occurrence_counts(self, con: sqlite3.Connection) -> dict[int, int]:
-        """Full-capture TASK occurrence count per globalTaskId.
-
-        This is deliberately a full-capture query, not a window query: a
-        globalTaskId repeated outside the selected window still makes the
-        CTI waitNs/PMU group ambiguous for the selected occurrence.
-        """
-
+    def _task_occurrence_counts(self, con: sqlite3.Connection) -> dict[int | str, int]:
+        """Full-capture TASK occurrence count per globalTaskId (cached across windows)."""
         if self._task_occurrences is None:
             started = time.perf_counter()
-            self._task_occurrences = {
-                int(row[0]): int(row[1])
-                for row in con.execute(
-                    f"SELECT globalTaskId, COUNT(*) FROM {self._names['task']} GROUP BY globalTaskId"
+            counts: dict[int | str, int] = {}
+            for raw_gid, raw_cnt in con.execute(
+                f"SELECT globalTaskId, COUNT(*) FROM {self._names['task']} "
+                "WHERE globalTaskId IS NOT NULL GROUP BY globalTaskId"
+            ):
+                key: int | str = (
+                    igid if (igid := _as_optional_int(raw_gid)) is not None else str(raw_gid)
                 )
-            }
+                counts[key] = counts.get(key, 0) + int(raw_cnt)
+            self._task_occurrences = counts
             self._occurrence_scan_ms = round((time.perf_counter() - started) * 1000.0, 6)
         return self._task_occurrences
 
@@ -557,12 +556,15 @@ class DbSource:
                 for column in ("outputShapes", "outputDataTypes", "outputFormats", "opState")
             ]
             wait_expr = f"c.{self.schema.wait_column}" if self.schema.wait_column else "NULL"
+            task_columns = _columns(con, names["task"])
+            connection_expr = "t.connectionId" if "connectionId" in task_columns else "NULL"
             sql = (
                 "SELECT t.globalTaskId, t.startNs, t.endNs, t.deviceId, t.streamId, t.taskId, "
                 "t.modelId, t.contextId, c.name, c.opType, c.taskType, "
                 + ", ".join(shape_exprs)
                 + ", " + wait_expr + " AS wait_ns, " + block + " AS block_dim, " + mix + " AS mix_block_dim, "
-                + ", ".join(output_exprs) + " "
+                + ", ".join(output_exprs)
+                + ", " + connection_expr + " AS connectionId "
                 f"FROM {names['task']} t JOIN {compute} c ON c.globalTaskId = t.globalTaskId "
                 "WHERE t.endNs > ? AND t.startNs < ? ORDER BY t.startNs, t.globalTaskId LIMIT ?"
             )
@@ -634,6 +636,7 @@ class DbSource:
                         "stream_id": _as_text(row[4]),
                         "device_id": _as_text(row[3]),
                         "task_occurrences_full_capture": occurrence_count,
+                        "connection_id": None if row[21] is None else _as_text(row[21]),
                     },
                 )
                 compute_events.append(event)
@@ -680,50 +683,31 @@ class DbSource:
                     }:
                         stats.pmu_ambiguous_rows += 1
 
+            contested_comm_tasks: set[tuple[str, str]] = set()
             comm = names["comm"]
             if comm in self.schema.tables:
-                comm_sql = (
-                    "SELECT rowid, opName, opType, startNs, endNs, deviceId "
-                    f"FROM {comm} WHERE endNs > ? AND startNs < ? ORDER BY startNs, rowid LIMIT ?"
+                events.extend(
+                    read_communication_events(
+                        con,
+                        schema_path=self.schema.path,
+                        source_kind=self.schema.source_kind,
+                        tables=self.schema.tables,
+                        comm_table=comm,
+                        task_table=names["task"],
+                        task_columns=task_columns,
+                        columns_fn=_columns,
+                        text_fn=_text,
+                        strings=strings,
+                        unresolved=unresolved,
+                        window=window,
+                        max_rows=max_rows,
+                        stats=stats,
+                        deadline=deadline,
+                        timeout_s=timeout_s,
+                        contested_tasks=contested_comm_tasks,
+                        task_occurrences=occurrences,
+                    )
                 )
-                comm_rows = con.execute(comm_sql, (window.start_ns, window.end_ns, max_rows + 1)).fetchall()
-                stats.rows_read += len(comm_rows)
-                if len(comm_rows) > max_rows:
-                    raise ProfilerQueryError(
-                        f"{Path(self.schema.path).name}: comm window {window.label or window.step} "
-                        f"exceeded row budget {max_rows}"
-                    )
-                for row in comm_rows:
-                    if row[3] is None or row[4] is None or _as_int(row[4]) <= _as_int(row[3]):
-                        stats.bad_rows += 1
-                        continue
-                    events.append(
-                        Event(
-                            rank_id="",
-                            rank_index=None,
-                            name=_text(strings, row[1], unresolved),
-                            op_type=_text(strings, row[2], unresolved),
-                            task_type="COMMUNICATION",
-                            core="COMMUNICATION",
-                            stream_id="",
-                            task_id="",
-                            device_id=_as_text(row[5]),
-                            start_ns=_as_int(row[3]),
-                            end_ns=_as_int(row[4]),
-                            source_kind=self.schema.source_kind,
-                            table=comm,
-                            wait_status="not_applicable",
-                            pmu_status="not_applicable",
-                            pmu_kind="not_applicable",
-                            locator={
-                                "source": self.schema.path,
-                                "table": comm,
-                                "rowid": _as_optional_int(row[0]),
-                                "device_id": _as_text(row[5]),
-                            },
-                        )
-                    )
-                stats.comm_rows = len(comm_rows)
 
             sched = names["comm_sched"]
             if sched in self.schema.tables:
@@ -773,6 +757,11 @@ class DbSource:
                         )
                     )
                 stats.comm_sched_rows = len(sched_rows)
+            if contested_comm_tasks:
+                for ev in events:
+                    gid = ev.locator.get("task_global_id")
+                    if gid is not None and (ev.device_id, str(gid)) in contested_comm_tasks:
+                        ev.locator["task_join_status"] = "unresolved_contested_comm_task"
         except sqlite3.OperationalError as exc:
             if "interrupted" in str(exc).lower():
                 raise ProfilerQueryError(

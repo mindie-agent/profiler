@@ -313,4 +313,59 @@ def derive_pmu_evidence(
     }
 
 
-__all__ = ["metric_units", "derive_pmu_evidence", "PMU_ANALYSIS_SCHEMA"]
+_SUPPLY_EXPORTS = frozenset(
+    {
+        "DUAL_LOAD_SCHEMA",
+        "MEASURED_SUPPLY_SCHEMA",
+        "MEASURED_SUPPLY_SCOPE",
+        "R35_IMAGE_SHA",
+        "R64_IMAGE_SHA",
+        "SATURATION_THRESHOLD",
+        "build_dual_load_service",
+        "deployment_source_identity",
+        "derive_measured_supply",
+        "image_digest",
+        "summarize_measured_supply",
+    }
+)
+_SPARSE_EXPORTS = frozenset(
+    {
+        "RESOURCE_SERVICE_SCHEMA",
+        "SPARSE_NATIVE_TYPE",
+        "sparse_mte1_bytes",
+        "summarize_sparse_mte1",
+    }
+)
+
+
+def __getattr__(name: str) -> Any:
+    if name in _SUPPLY_EXPORTS:
+        from . import measured_supply
+
+        return getattr(measured_supply, name)
+    if name in _SPARSE_EXPORTS:
+        from . import measured_supply_sparse
+
+        return getattr(measured_supply_sparse, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+__all__ = [
+    "DUAL_LOAD_SCHEMA",
+    "MEASURED_SUPPLY_SCHEMA",
+    "MEASURED_SUPPLY_SCOPE",
+    "PMU_ANALYSIS_SCHEMA",
+    "R35_IMAGE_SHA",
+    "R64_IMAGE_SHA",
+    "RESOURCE_SERVICE_SCHEMA",
+    "SATURATION_THRESHOLD",
+    "SPARSE_NATIVE_TYPE",
+    "build_dual_load_service",
+    "deployment_source_identity",
+    "derive_measured_supply",
+    "derive_pmu_evidence",
+    "image_digest",
+    "metric_units",
+    "sparse_mte1_bytes",
+    "summarize_measured_supply",
+    "summarize_sparse_mte1",
+]

@@ -10,12 +10,13 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Mapping, Sequence
 
 from .events import ProfilerUsageError
 
 
 class StructureTargets:
-    def __init__(self, nodes, subgraphs):
+    def __init__(self, nodes, subgraphs, native_calls=None):
         self.nodes = nodes
         self.subgraphs = {}
         for record in subgraphs:
@@ -37,6 +38,87 @@ class StructureTargets:
             self.subgraphs[key] = record
         self.all = {**nodes, **self.subgraphs}
         self.native_implementations = defaultdict(list)
+        self.native_calls = defaultdict(list)
+        self.native_call_entries = defaultdict(list)
+        self.native_call_kernels = defaultdict(list)
+        self.native_call_observed = defaultdict(list)
+        self.native_call_alias_names = set()
+        self.native_bindings = {}
+        if native_calls is not None and (
+            not isinstance(native_calls, Sequence) or isinstance(native_calls, (str, bytes))
+        ):
+            raise ProfilerUsageError("structure native_calls must be a sequence of mappings")
+        for record in native_calls or ():
+            if not isinstance(record, Mapping):
+                raise ProfilerUsageError("structure native_calls entries must be mappings")
+            node_id = record.get("node_id")
+            if not isinstance(node_id, str) or not node_id or node_id not in self.nodes:
+                raise ProfilerUsageError(
+                    f"structure native_calls references unknown node_id: {node_id!r}"
+                )
+            call_id = record.get("call_id")
+            if not isinstance(call_id, str) or not call_id:
+                raise ProfilerUsageError(
+                    f"structure native_calls entry for {node_id} requires non-empty call_id"
+                )
+            prev_binding = self.native_bindings.get(node_id)
+            if prev_binding is not None and prev_binding.get("call_id") != call_id:
+                raise ProfilerUsageError(
+                    f"structure native_calls has conflicting bindings for {node_id}"
+                )
+            self.native_bindings[node_id] = record
+            if node_id not in self.native_calls[call_id]:
+                self.native_calls[call_id].append(node_id)
+            api = record.get("api")
+            if api is not None and not isinstance(api, Mapping):
+                raise ProfilerUsageError(f"structure native_calls api must be a mapping: {node_id}")
+            api = api or {}
+            for entry in (api.get("entry"), api.get("aclnn_symbol"), *(api.get("candidates") or ())):
+                if entry and node_id not in self.native_call_entries[entry]:
+                    self.native_call_entries[entry].append(node_id)
+            kernels = record.get("kernels", ())
+            if not isinstance(kernels, Sequence) or isinstance(kernels, (str, bytes)):
+                raise ProfilerUsageError(
+                    f"structure native_calls kernels must be a sequence: {node_id}"
+                )
+            for kernel in kernels:
+                if not isinstance(kernel, Mapping):
+                    raise ProfilerUsageError(
+                        f"structure native_calls kernel entry must be a mapping: {node_id}"
+                    )
+                name = kernel.get("name")
+                if name and node_id not in self.native_call_kernels[name]:
+                    self.native_call_kernels[name].append(node_id)
+            aliases = record.get("observed_aliases", ())
+            if not isinstance(aliases, Sequence) or isinstance(aliases, (str, bytes)):
+                raise ProfilerUsageError(
+                    f"structure native_calls observed_aliases must be a sequence: {node_id}"
+                )
+            for alias in aliases:
+                if not isinstance(alias, Mapping):
+                    raise ProfilerUsageError(
+                        f"structure native_calls observed_alias must be a mapping: {node_id}"
+                    )
+                raw = (
+                    alias.get("rank_id"),
+                    alias.get("global_task_id"),
+                    alias.get("stream_id"),
+                    alias.get("task_id"),
+                    alias.get("connection_id"),
+                    alias.get("device_id"),
+                    alias.get("start_ns"),
+                    alias.get("end_ns"),
+                )
+                logical = alias.get("logical_rank", alias.get("rank_index"))
+                if logical is not None and str(self.nodes[node_id].get("replica")) != str(logical):
+                    continue
+                if all(value is not None for value in raw):
+                    raw_key = tuple(str(value) for value in raw)
+                    if node_id not in self.native_call_observed[raw_key]:
+                        self.native_call_observed[raw_key].append(node_id)
+                for field in ("compute_name", "comm_name", "name", "op_type"):
+                    if alias.get(field):
+                        self.native_call_alias_names.add(str(alias[field]))
         for key, target in self.all.items():
             implementation = target.get("implementation") or {}
             kinds = set(implementation.get("native_kinds", ()))
@@ -48,7 +130,41 @@ class StructureTargets:
 
     def describe_implementation(self, kind, targets):
         """Describe a declared native boundary without claiming a tensor match."""
+        targets = list(dict.fromkeys(targets))
         node_ids, subgraph_ids = self.split(targets)
+        bindings = [self.native_bindings[key] for key in targets if key in self.native_bindings]
+        call_ids = {row["call_id"] for row in bindings if row.get("call_id")}
+        native_call = None
+        if len(call_ids) == 1:
+            row = bindings[0]
+            api = row.get("api") or {}
+            owner_keys = {
+                (
+                    str(self.all.get(key, {}).get("replica")),
+                    str(self.all.get(key, {}).get("stage")),
+                    (self.native_bindings[key].get("timing_owner") or {}).get("op_id")
+                    or self.native_bindings[key].get("op_id")
+                    or key,
+                )
+                for key in targets
+                if key in self.native_bindings
+            }
+            unique_timing_owner = row.get("timing_owner") if len(owner_keys) == 1 else None
+            native_call = {
+                "call_id": row["call_id"],
+                "entry": api.get("entry"),
+                "aclnn_symbol": api.get("aclnn_symbol"),
+                "kernels": [
+                    kernel.get("name")
+                    for kernel in row.get("kernels", ())
+                    if isinstance(kernel, dict) and kernel.get("name")
+                ],
+                "evidence": row.get("evidence") or {},
+                "timing_owner": unique_timing_owner,
+                "declared_target_count": len(bindings),
+                "tensor_match_implied": False,
+                "occurrence_binding_implied": False,
+            }
         return {
             "basis": "declared_native_implementation",
             "native_operator_type": kind,
@@ -65,6 +181,7 @@ class StructureTargets:
                 for key in targets
             }),
             "common": self.classify(targets)["common"],
+            "native_call": native_call,
             "tensor_match_implied": False,
             "occurrence_binding_implied": False,
         }

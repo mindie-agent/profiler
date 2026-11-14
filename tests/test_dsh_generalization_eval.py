@@ -5,7 +5,8 @@
   dsh_generalization_eval enforces parser-versioned caches and <= 4 worker bounds.
 [Invariants] Missing tensor shapes, wrong widths, missing task IDs, or reversed
   HcPre/HcPost ordering must be rejected (returning None). Stale v2 caches without
-  matching PARSER_IDENTITY must be invalidated.
+  matching PARSER_IDENTITY must be invalidated. A nonempty decode_active_event.py
+  edit changes this entry's parser identity and the v3 extraction cache key.
 [Timeouts & Locks] Pure in-memory unit tests (< 2s); isolated tmp_path cache root.
 [Side-Effect Policy] Read-only against repository fixtures; writes only to tmp_path.
 """
@@ -15,6 +16,7 @@ from dataclasses import replace
 from hashlib import sha256
 import json
 from pathlib import Path
+import shutil
 import sys
 
 import pytest
@@ -253,6 +255,104 @@ def test_dsh_evaluator_worker_bounds_and_parser_versioned_cache(tmp_path, monkey
 
     extracted = dsh_eval.extract_or_load(csv_file, traits, tpl, seg)
     assert extracted["observed"]["geometry_groups"][0]["body_forward_span_ms"]["mean"] == 51.346
+
+
+def test_helper_mutation_changes_extraction_cache_key(tmp_path, monkeypatch):
+    """Helper bytes reach the extraction cache key through extract_or_load."""
+    from scoped_native_replay import read_prediction_cache
+
+    live = dsh_eval.PARSER_IDENTITY
+    assert dsh_eval.CACHE_VERSION == f"v3:{live}"
+    assert dsh_eval._PARSER_SOURCES == (
+        "decode_segmentation.py",
+        "decode_active_event.py",
+        "communication_bounds.py",
+        "events.py",
+    )
+    with pytest.raises(FileNotFoundError):
+        dsh_eval._parser_identity(tmp_path / "absent")
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    (empty / "decode_segmentation.py").write_bytes(b"")
+    with pytest.raises(ValueError, match="parser source is empty"):
+        dsh_eval._parser_identity(empty)
+
+    prof_root = Path(dsh_eval.auto_segment_decode_forwards.__code__.co_filename).resolve().parent
+    original = (prof_root / "decode_active_event.py").read_bytes()
+    assert original
+    temp_prof = tmp_path / "prof"
+    temp_prof.mkdir()
+    for name in dsh_eval._PARSER_SOURCES:
+        source = prof_root / name
+        dest = temp_prof / name
+        if name == "decode_active_event.py":
+            dest.write_bytes(original + b"\n# temp identity probe\n")
+        else:
+            shutil.copyfile(source, dest)
+    mutated = dsh_eval._parser_identity(temp_prof)
+    assert mutated != live
+    assert f"v3:{mutated}" != dsh_eval.CACHE_VERSION
+
+    live_cache = dsh_eval.CACHE_ROOT
+    cache_root = tmp_path / "extractions"
+    monkeypatch.setattr(dsh_eval, "CACHE_ROOT", cache_root)
+    csv_file = tmp_path / "kernel_details.csv"
+    csv_file.write_text("Name,Type,Start Time(us),Duration(us)\n", encoding="utf-8")
+    traits = {"phase": "decode", "tp": 8}
+    tpl = json.loads(
+        (ROOT / "examples" / "structure" / "cases" / "decode-v4flash-a3-tp8-c4.json").read_text(encoding="utf-8")
+    )
+    fresh_obs = {
+        "forward_count": 5,
+        "geometry_groups": [{
+            "geometry": {"query_rows": 32},
+            "body_forward_span_ms": {"count": 5, "mean": 51.346},
+            "per_layer_ms": [],
+        }],
+    }
+    calls = {"n": 0}
+
+    def segment(*_args, **_kwargs):
+        calls["n"] += 1
+        return fresh_obs
+
+    monkeypatch.setattr(dsh_eval, "_source", lambda *_a, **_k: ([], {"kind": "csv"}))
+    monkeypatch.setattr(dsh_eval, "auto_segment_decode_forwards", segment)
+    monkeypatch.setattr(dsh_eval, "compact_observation", lambda obs: obs)
+    monkeypatch.setattr(
+        dsh_eval, "capture_metadata", lambda _path: {"context_evidence": None, "client": None}
+    )
+
+    first = dsh_eval.extract_or_load(csv_file, traits, tpl, {})
+    assert calls["n"] == 1
+    assert first["parser_identity"] == live
+    assert first["cache_version"] == f"v3:{live}"
+    first_path = cache_root / f"{first['cache_key']}.json"
+    assert first_path.is_file()
+    assert not first_path.is_relative_to(live_cache)
+
+    monkeypatch.setattr(dsh_eval, "PARSER_IDENTITY", mutated)
+    monkeypatch.setattr(dsh_eval, "CACHE_VERSION", f"v3:{mutated}")
+    second = dsh_eval.extract_or_load(csv_file, traits, tpl, {})
+    assert calls["n"] == 2
+    assert second["cache_key"] != first["cache_key"]
+    assert second["parser_identity"] == mutated
+
+    pred_key = "a" * 64
+    pred_path = tmp_path / f"pred_{pred_key}.json"
+    pred_path.write_text(json.dumps({"status": "modeled", "body_forward_span_ms": 1.0}), encoding="utf-8")
+    assert read_prediction_cache(pred_key, tmp_path) is None
+    pred_path.write_text(
+        json.dumps({"status": "modeled", "prediction_identity": "b" * 64, "body_forward_span_ms": 1.0}),
+        encoding="utf-8",
+    )
+    assert read_prediction_cache(pred_key, tmp_path) is None
+    pred_path.write_text(
+        json.dumps({"status": "modeled", "prediction_identity": pred_key, "body_forward_span_ms": 1.0}),
+        encoding="utf-8",
+    )
+    cached = read_prediction_cache(pred_key, tmp_path)
+    assert cached is not None and cached["body_forward_span_ms"] == 1.0
 
 
 def test_hardware_uses_real_path_components_not_slash_folding():

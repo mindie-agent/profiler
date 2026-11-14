@@ -14,11 +14,17 @@
 """
 from __future__ import annotations
 
+from collections import defaultdict
+from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
 from dataclasses import dataclass
 from hashlib import sha256
 import json
+import os
 from pathlib import Path
+from statistics import median
+import time
 
+from runtime_identity import prediction_report_identity
 from service_response_acceptance import evaluate_acceptance
 from scoped_native_replay import (
     compact_scope_sidecar,
@@ -260,3 +266,237 @@ def unpadded_scenarios(row_dummy, obs, tpl, automatic_scenarios):
             geometry.update(physical_query_rows=rows, query_rows=out_q,
                             sequences_per_replica=out_q // tokens)
     return scenarios
+
+
+def summarize_errors(errors: list[float]) -> dict:
+    if not errors:
+        return {"count": 0, "pass_15pct": 0, "pass_10pct": 0, "pass_rate_15pct": 0.0, "pass_rate_10pct": 0.0}
+    abs_errs = [abs(e) for e in errors]
+    p15, p10, n = sum(e <= 0.15 for e in abs_errs), sum(e <= 0.10 for e in abs_errs), len(errors)
+    return {
+        "count": n,
+        "pass_15pct": p15,
+        "pass_10pct": p10,
+        "pass_rate_15pct": round(p15 / n, 4),
+        "pass_rate_10pct": round(p10 / n, 4),
+        "mean_abs_error": round(sum(abs_errs) / n, 4),
+        "median_abs_error": round(median(abs_errs), 4),
+        "max_abs_error": round(max(abs_errs), 4),
+    }
+
+
+def assemble_dsh_report(
+    *,
+    elapsed_seconds: float,
+    decode_sb: dict,
+    prefill_sb: dict,
+    sim_identity: str,
+    native_identity: str,
+    registered_recomputations: dict,
+    scoped_results: dict,
+    all_dsh_csvs: list,
+    registered_in_dsh: list,
+    eager_excluded: list,
+    heldout_tasks: list,
+    reg_decode_errs: list[float],
+    reg_prefill_errs: list[float],
+    heldout_results: list[dict],
+) -> dict:
+    by_cohort: dict[str, list[dict]] = defaultdict(list)
+    for row in heldout_results:
+        by_cohort[row["traits"]["cohort"]].append(row)
+    cohort_summaries = []
+    for cohort_key, items in sorted(by_cohort.items()):
+        errs = [x["relative_error"] for x in items if x.get("relative_error") is not None]
+        tr0 = items[0]["traits"]
+        cohort_summaries.append({
+            "cohort": cohort_key, "hw": tr0["hw"], "family": tr0["family"], "phase": tr0["phase"],
+            "tp": tr0["tp"], "dp": tr0["dp"], "ep": tr0["ep"], "spec_tokens": tr0["spec_tokens"],
+            "template": items[0]["template"], "cross_tp_transfer": items[0]["cross_tp_transfer"],
+            "capture_count": len(items), "compared_count": len(errs), "stats": summarize_errors(errs),
+        })
+    heldout_errs = [r["relative_error"] for r in heldout_results if r.get("relative_error") is not None]
+    heldout_prim_errs = [
+        r.get("primary_relative_error", r["relative_error"])
+        for r in heldout_results if r.get("relative_error") is not None
+    ]
+    heldout_non_dspark0 = [
+        r["relative_error"] for r in heldout_results
+        if r.get("relative_error") is not None
+        and not (r["traits"]["family"] == "deepseek-v4.1" and r["traits"]["spec_tokens"] == 0)
+    ]
+    all_fleet_errs = reg_decode_errs + reg_prefill_errs + heldout_errs
+    scoped_status = defaultdict(int)
+    scoped_geometries = 0
+    for plan in scoped_results.values():
+        for row in plan["provenance"]:
+            scoped_status[row.get("status") or "unknown"] += 1
+            scoped_geometries += 1
+    return {
+        "schema_version": "mindie-dsh-full-generalization/2",
+        "elapsed_seconds": round(elapsed_seconds, 2),
+        **prediction_report_identity(
+            {"registered_decode": decode_sb, "registered_prefill": prefill_sb, "dsh_predictions": {"sim_identity": sim_identity}},
+            sim_identity,
+        ),
+        "registered_recomputations": registered_recomputations,
+        "dsh_native_observation_identity": native_identity,
+        "dsh_prediction_arm": "observed_native",
+        "dsh_scoped_native_replay": {
+            "captures": len(scoped_results),
+            "geometries": scoped_geometries,
+            "status_counts": dict(sorted(scoped_status.items())),
+            "order": "capture_scoped_caller_before_native_observations",
+            "archive_template_replacement": False,
+            "prediction_identity": "final_physical_raw_plus_geometry_plus_sim_and_native_identity",
+            "prepared_state": "one_capture_reused_per_geometry_released_after_jobs_materialized",
+        },
+        "calibration_provenance": {
+            "evaluation_relation": "historical_model_conditioned_regimes_not_certified_heldout",
+            "independent_heldout": False,
+            "input_conditioned_regime_overrides": True,
+            "prior_fit_capture_membership": "not_established",
+            "registered_comparisons": "retained_source_reports_except_explicit_missing_case_recomputations",
+        },
+        "inventory": {
+            "dsh_20261030_total_csvs": len(all_dsh_csvs),
+            "dsh_20261030_registered_body_csvs": len(registered_in_dsh),
+            "dsh_20261030_eager_excluded_csvs": len(eager_excluded),
+            "dsh_20261030_unregistered_heldout_csvs": len(heldout_tasks),
+            "registered_decode_body_cases": len(reg_decode_errs),
+            "registered_prefill_compared_cases": len(reg_prefill_errs),
+            "total_evaluated_body_cases": len(reg_decode_errs) + len(reg_prefill_errs) + len(heldout_tasks),
+        },
+        "summary": {
+            "registered_decode_body": summarize_errors(reg_decode_errs),
+            "registered_prefill_body": summarize_errors(reg_prefill_errs),
+            "heldout_unregistered_all": summarize_errors(heldout_errs),
+            "heldout_unregistered_primary_population": summarize_errors(heldout_prim_errs),
+            "heldout_unregistered_excluding_v41_dspark0_uncalibrated_sp1": summarize_errors(heldout_non_dspark0),
+            "full_fleet_combined": summarize_errors(all_fleet_errs),
+        },
+        "cohort_summaries": cohort_summaries,
+        "eager_excluded": eager_excluded,
+        "heldout_cases": heldout_results,
+    }
+
+
+def write_dsh_markdown(report: dict, out_md: Path) -> None:
+    inv, s = report["inventory"], report["summary"]
+    lines = [
+        "# MindIE-Sim Full-Fleet DSH Historical-Template Replay Report", "",
+        "Existing template regimes are not certified independent heldout calibration. Registered scoreboard comparisons retain their source runtime metadata; explicit missing-case recomputations are recorded separately from the new DSH predictions.", "",
+        f"- **All contributing runtime identities verified against the current runtime**: `{report['sim_identity_matches_current']}`",
+        "## 1. Executive Summary & Fleet Inventory", "",
+        f"- **DSH `2026-10-30` Total `kernel_details.csv` Captures**: `{inv['dsh_20261030_total_csvs']}`",
+        f"  - **Registered in `cases.json` (`body` scope)**: `{inv['dsh_20261030_registered_body_csvs']}`",
+        f"  - **Excluded Pure Decode-Eager Captures**: `{inv['dsh_20261030_eager_excluded_csvs']}`",
+        f"  - **Unregistered Captures Evaluated**: `{inv['dsh_20261030_unregistered_heldout_csvs']}` across `{len(report['cohort_summaries'])}` cohorts",
+        f"- **Total Evaluated Body Captures (Registered + Unregistered)**: `{inv['total_evaluated_body_cases']}` (`{s['full_fleet_combined']['count']}` compared)", "",
+        "| Evaluation Scope | Compared | Pass `<= 15%` | Rate `<= 15%` | Pass `<= 10%` | Rate `<= 10%` | Mean `|Err|` | Median `|Err|` | Max `|Err|` |",
+        "| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+    ]
+    for label, key in [
+        ("Registered Decode Body (`cases.json`)", "registered_decode_body"),
+        ("Registered Prefill Body (`cases.json`)", "registered_prefill_body"),
+        ("Unregistered (Excl. Uncalibrated `v41` `dspark0`)", "heldout_unregistered_excluding_v41_dspark0_uncalibrated_sp1"),
+        ("Unregistered (All Compared, All Populations)", "heldout_unregistered_all"),
+        ("Unregistered (Primary Population)", "heldout_unregistered_primary_population"),
+        ("**Full Fleet Combined**", "full_fleet_combined"),
+    ]:
+        r = s[key]
+        lines.append(
+            f"| {label} | {r['count']} | {r['pass_15pct']} | **{r['pass_rate_15pct']*100:.2f}%** | "
+            f"{r['pass_10pct']} | **{r['pass_rate_10pct']*100:.2f}%** | {r['mean_abs_error']*100:.2f}% | "
+            f"{r['median_abs_error']*100:.2f}% | {r['max_abs_error']*100:.2f}% |"
+        )
+    lines.extend([
+        "", "## 2. Unregistered Cohort Breakdown", "",
+        "| Cohort | Family | Phase | TP/DP/EP | Spec | Cross-TP | Template | Captures | Compared | Pass `<=15%` | Pass `<=10%` | Mean `|Err|` | Median `|Err|` |",
+        "| :--- | :--- | :--- | :---: | ---: | :---: | :--- | ---: | ---: | ---: | ---: | ---: | ---: |",
+    ])
+    for c in report["cohort_summaries"]:
+        st, spec_s = c["stats"], ("-" if c["spec_tokens"] is None else str(c["spec_tokens"]))
+        p15 = f"{st['pass_15pct']}/{st['count']} ({st['pass_rate_15pct']*100:.1f}%)" if st["count"] else "N/A"
+        p10 = f"{st['pass_10pct']}/{st['count']} ({st['pass_rate_10pct']*100:.1f}%)" if st["count"] else "N/A"
+        m_s, md_s = (f"{st['mean_abs_error']*100:.2f}%", f"{st['median_abs_error']*100:.2f}%") if st["count"] else ("N/A", "N/A")
+        lines.append(
+            f"| `{c['cohort']}` | `{c['family']}` | `{c['phase']}` | `{c['tp']}/{c['dp']}/{c['ep']}` | "
+            f"{spec_s} | {'Yes' if c['cross_tp_transfer'] else 'No'} | `{c['template']}` | {c['capture_count']} | "
+            f"{c['compared_count']} | {p15} | {p10} | {m_s} | {md_s} |"
+        )
+    out_md.parent.mkdir(parents=True, exist_ok=True)
+    out_md.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
+
+
+def bounded_workers(requested: int, worker_ram_mb: int = 512) -> int:
+    cpu_cap, usable_mb = os.cpu_count() or 1, None
+    try:
+        import psutil
+        usable_mb = max(worker_ram_mb, int(psutil.virtual_memory().available) // (1024 * 1024))
+    except ImportError:
+        pass
+    except TimeoutError:
+        raise
+    except OSError:
+        pass
+    if usable_mb is None:
+        try:
+            pages = os.sysconf("SC_AVPHYS_PAGES")
+            if isinstance(pages, int) and pages > 0:
+                usable_mb = max(worker_ram_mb, (int(pages) * int(os.sysconf("SC_PAGE_SIZE"))) // (1024 * 1024))
+        except TimeoutError:
+            raise
+        except (AttributeError, OSError, ValueError):
+            pass
+    return 1 if usable_mb is None else max(1, min(int(requested), cpu_cap, usable_mb // worker_ram_mb, 4))
+
+
+def run_bounded_pool(
+    fn,
+    items: list,
+    workers: int,
+    *,
+    step_timeout_s: float = 60.0,
+    progress_step: int = 100,
+    label: str = "Processed",
+) -> dict:
+    """Execute worker items with 1-per-worker in-flight depth so per-future deadlines measure execution time."""
+    if not items:
+        return {}
+    results, started_at, it, completed, pool = {}, {}, iter(items), 0, ProcessPoolExecutor(max_workers=workers)
+    try:
+        for _ in range(min(max(1, workers), len(items))):
+            started_at[pool.submit(fn, next(it))] = time.monotonic()
+        while started_at:
+            now = time.monotonic()
+            remaining = min(step_timeout_s - (now - t0) for t0 in started_at.values())
+            done, _ = (
+                wait(set(started_at.keys()), timeout=max(0.0, remaining), return_when=FIRST_COMPLETED)
+                if remaining > 0
+                else (set(), set())
+            )
+            if not done:
+                raise TimeoutError(f"worker_future_timed_out_after_{step_timeout_s}s")
+            for fut in done:
+                started_at.pop(fut, None)
+                k, v = fut.result(timeout=1.0)
+                results[k], completed = v, completed + 1
+                if completed % progress_step == 0 or completed == len(items):
+                    print(f"  {label} {completed}/{len(items)}...", flush=True)
+                try:
+                    started_at[pool.submit(fn, next(it))] = time.monotonic()
+                except StopIteration:
+                    pass
+    finally:
+        for fut in started_at:
+            fut.cancel()
+        for proc in list((getattr(pool, "_processes", None) or {}).values()) if started_at else ():
+            try:
+                proc.kill()
+            except TimeoutError:
+                raise
+            except OSError:
+                pass
+        pool.shutdown(wait=False, cancel_futures=True)
+    return results

@@ -3,5 +3,7 @@
 * text=auto eol=lf
 
 # Evidence hashes refer to the captured bytes, independent of host line endings.
+*.db binary
 tests/fixtures/profiler_core/** -text
 tests/fixtures/profiler_core/real_glm45/kernel_details_slice.csv -text whitespace=cr-at-eol
+tests/fixtures/r64_sfa_service/kernel_details.csv -text

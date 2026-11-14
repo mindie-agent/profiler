@@ -74,13 +74,19 @@ def _bounded_workers(value: int) -> int:
     return max(1, min(int(value), MAX_WORKERS))
 
 
-def _parser_identity() -> str:
-    prof_root = Path(decode_segmentation.__file__).resolve().parent
+_PARSER_SOURCES = ("decode_segmentation.py", "decode_active_event.py", "communication_bounds.py", "events.py", "prefill.py")
+
+
+def _parser_identity(prof_root: Path | None = None, struct_dir: Path | None = None) -> str:
+    prof_root = prof_root or Path(decode_segmentation.__file__).resolve().parent
+    struct_dir = struct_dir or STRUCT_DIR
     digest = sha256(PARSER_VERSION.encode("utf-8"))
-    for mod_path in (prof_root / "decode_segmentation.py", prof_root / "communication_bounds.py",
-                     prof_root / "events.py", STRUCT_DIR / "prefill.py"):
-        if mod_path.exists():
-            digest.update(mod_path.read_bytes())
+    for name in _PARSER_SOURCES:
+        mod_path = (struct_dir if name == "prefill.py" else prof_root) / name
+        payload = mod_path.read_bytes()
+        if not payload:
+            raise ValueError(f"parser source is empty: {mod_path}")
+        digest.update(payload)
     return f"{PARSER_VERSION}:{digest.hexdigest()[:16]}"
 
 
@@ -112,23 +118,14 @@ def _atomic_write_json(path: Path, payload: dict) -> None:
 
 def _summarize_errors(errors: list[float]) -> dict:
     if not errors:
-        return {
-            "count": 0, "pass_15pct": 0, "pass_10pct": 0,
-            "pass_rate_15pct": 0.0, "pass_rate_10pct": 0.0,
-            "mean_abs_error": 0.0, "median_abs_error": 0.0, "max_abs_error": 0.0,
-        }
+        return {"count": 0, "pass_15pct": 0, "pass_10pct": 0, "pass_rate_15pct": 0.0,
+                "pass_rate_10pct": 0.0, "mean_abs_error": 0.0, "median_abs_error": 0.0, "max_abs_error": 0.0}
     abs_errs = [abs(float(e)) for e in errors]
-    n = len(abs_errs)
-    p15 = sum(1 for e in abs_errs if e <= 0.15)
-    p10 = sum(1 for e in abs_errs if e <= 0.10)
+    n, p15, p10 = len(abs_errs), sum(1 for e in abs_errs if e <= 0.15), sum(1 for e in abs_errs if e <= 0.10)
     return {
-        "count": n,
-        "pass_15pct": p15,
-        "pass_10pct": p10,
-        "pass_rate_15pct": round(p15 / n, 4),
-        "pass_rate_10pct": round(p10 / n, 4),
-        "mean_abs_error": round(sum(abs_errs) / n, 4),
-        "median_abs_error": round(median(abs_errs), 4),
+        "count": n, "pass_15pct": p15, "pass_10pct": p10,
+        "pass_rate_15pct": round(p15 / n, 4), "pass_rate_10pct": round(p10 / n, 4),
+        "mean_abs_error": round(sum(abs_errs) / n, 4), "median_abs_error": round(median(abs_errs), 4),
         "max_abs_error": round(max(abs_errs), 4),
     }
 
@@ -657,7 +654,9 @@ def _configure_chip(hw: str, archive_root: Path, cache_root: Path, sim_identity:
                     observation_identity: str = NATIVE_OBSERVATION_IDENTITY):
     """Apply the same explicit inputs to the parent and every spawned worker."""
     script = archive_root / hw / f"eval_{hw}_wave5.py"
-    module_dir = str(script.parent)
+    struct_str, module_dir = str(STRUCT_DIR), str(script.parent)
+    for helper in ("body", "decode", "prefill"):
+        importlib.import_module(helper)
     if module_dir not in sys.path:
         sys.path.insert(0, module_dir)
     previous_bytecode_setting = sys.dont_write_bytecode
@@ -666,6 +665,11 @@ def _configure_chip(hw: str, archive_root: Path, cache_root: Path, sim_identity:
         module = importlib.import_module(script.stem)
     finally:
         sys.dont_write_bytecode = previous_bytecode_setting
+        sys.path[:] = [
+            struct_str,
+            *(p for p in sys.path if p != struct_str and Path(p).parts[-2:] != ("examples", "structure")),
+        ]
+    module.STRUCT_DIR = STRUCT_DIR
     if Path(module.__file__).resolve() != script.resolve():
         raise ValueError(f"chip_evaluator_module_conflict:{script}")
     if SIM_IDENTITY != sim_identity:

@@ -33,6 +33,7 @@ from .advisor_rules import (
     scan_host_sync_and_gc_freezes,
 )
 from .analyze import analyze_profile
+from .collective_readiness import read_collective_readiness
 from .correlate import correlate_profile
 from .cross_rank import (
     attribute_cluster_stragglers_and_links,
@@ -86,7 +87,7 @@ from .segment import (
 from .sources_trace import build_trace_index, iter_trace_events
 from .sql import run_sql
 
-__version__ = "0.5.11"
+__version__ = "0.5.12"
 analyze = analyze_profile
 
 __all__ = [
@@ -138,6 +139,7 @@ __all__ = [
     "parse_step_windows",
     "parse_windows",
     "prepare_standby_session",
+    "read_collective_readiness",
     "resolve_ranks",
     "run_memory_forensics",
     "run_sql",

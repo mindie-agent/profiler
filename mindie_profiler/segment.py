@@ -43,6 +43,12 @@ _RANK_PATTERNS = (
     re.compile(r"(rank[_-]?\d+)", re.IGNORECASE),
     re.compile(r"(device[_-]?\d+)", re.IGNORECASE),
 )
+_CANONICAL_RANK_DIR_RE = re.compile(
+    r"(?:dp\d+_pp\d+_tp\d+_dcp\d+_ep\d+_)?(?:rank|device)[_-]?\d+$",
+    re.IGNORECASE,
+)
+_PROF_LEAF_RE = re.compile(r"prof_\d+.*$", re.IGNORECASE)
+_ASCEND_LEAF_RE = re.compile(r".*_ascend_(?:pt|ms)$", re.IGNORECASE)
 _INDEX_RE = re.compile(r"(?:rank|device)[_-]?(\d+)", re.IGNORECASE)
 _SAFE_RE = re.compile(r"[^A-Za-z0-9_]+")
 
@@ -61,17 +67,73 @@ class RankSource:
     trace_candidates: tuple[str, ...] = ()
 
 
-def _rank_text(rank_dir: Path) -> str | None:
-    for base in (rank_dir, *list(rank_dir.parents)[:3]):
+def _bundle_root_for_leaf(rank_dir: Path) -> Path:
+    """Return the innermost rank bundle root for a direct file or leaf directory."""
+    current = rank_dir.resolve()
+    if current.name.lower() in {"ascend_profiler_output", "mindstudio_profiler_output"}:
+        current = current.parent
+    if _PROF_LEAF_RE.fullmatch(current.name) and current.parent != current:
+        current = current.parent
+    if _ASCEND_LEAF_RE.fullmatch(current.name) and current.parent != current:
+        current = current.parent
+    if current.name.lower() == "profile" and current.parent != current:
+        current = current.parent
+    elif current.parent.name.lower() == "profile" and current.parent.parent != current.parent:
+        current = current.parent.parent
+    return current
+
+
+def _is_bundle_wrapper_dir(name: str) -> bool:
+    return bool(_PROF_LEAF_RE.fullmatch(name) or _ASCEND_LEAF_RE.fullmatch(name))
+
+
+def _rank_text(
+    rank_dir: Path,
+    *,
+    stop_at: Path | None = None,
+    stop_before: Path | None = None,
+) -> str | None:
+    """Find the rank label in the bundle path, bounded within the caller's root.
+
+    Real bundles use ``.../rank0/profile/<export-hash>/ASCEND_PROFILER_OUTPUT`` or
+    ``.../rank0/<host>_<pid>_<ts>_ascend_pt/ASCEND_PROFILER_OUTPUT``; the leaf
+    directory is not the physical rank.  Walks at most four parents and stops
+    inclusively at ``stop_at`` (or exclusively at legacy ``stop_before``) so
+    external ancestor names above the caller's root never contaminate rank
+    discovery while preserving a rank label on ``root`` itself.
+    """
+    resolved_dir = rank_dir.resolve()
+    resolved_at = stop_at.resolve() if stop_at is not None else None
+    resolved_before = stop_before.resolve() if stop_before is not None else None
+    wrapper_fallback: str | None = None
+    for depth, base in enumerate((resolved_dir, *list(resolved_dir.parents)[:4])):
+        if depth > 0 and resolved_before is not None and base == resolved_before:
+            break
+        matched: str | None = None
         for pattern in _RANK_PATTERNS:
             match = pattern.search(base.name)
             if match:
-                return match.group(1)
-    return None
+                matched = match.group(1)
+                break
+        if matched is not None:
+            if _is_bundle_wrapper_dir(base.name):
+                if wrapper_fallback is None:
+                    wrapper_fallback = matched
+            else:
+                return matched
+        if resolved_at is not None and base == resolved_at:
+            break
+    return wrapper_fallback
 
 
-def infer_rank_id(rank_dir: Path, ordinal: int = 0) -> str:
-    text = _rank_text(rank_dir) or rank_dir.name
+def infer_rank_id(
+    rank_dir: Path,
+    ordinal: int = 0,
+    *,
+    stop_at: Path | None = None,
+    stop_before: Path | None = None,
+) -> str:
+    text = _rank_text(rank_dir, stop_at=stop_at, stop_before=stop_before) or rank_dir.name
     for pattern in _RANK_PATTERNS:
         match = pattern.search(text)
         if match:
@@ -84,12 +146,19 @@ def infer_rank_id(rank_dir: Path, ordinal: int = 0) -> str:
     return safe or f"rank_{ordinal}"
 
 
-def infer_rank_index(rank_dir_text: str | Path) -> int | None:
-    text = (
-        (_rank_text(rank_dir_text) or rank_dir_text.name)
-        if isinstance(rank_dir_text, Path)
-        else rank_dir_text
-    )
+def infer_rank_index(
+    rank_dir_text: str | Path,
+    *,
+    stop_at: Path | None = None,
+    stop_before: Path | None = None,
+) -> int | None:
+    if isinstance(rank_dir_text, Path):
+        text = (
+            _rank_text(rank_dir_text, stop_at=stop_at, stop_before=stop_before)
+            or rank_dir_text.name
+        )
+    else:
+        text = rank_dir_text
     matches = _INDEX_RE.findall(text)
     return int(matches[-1]) if matches else None
 
@@ -159,9 +228,11 @@ def _source_for_dir(
     ordinal: int,
     source: str,
     explicit_file: Path | None = None,
+    stop_at: Path | None = None,
 ) -> RankSource | None:
-    rank_id = infer_rank_id(rank_dir, ordinal)
-    rank_index = infer_rank_index(rank_dir)
+    boundary = stop_at if stop_at is not None else _bundle_root_for_leaf(rank_dir)
+    rank_id = infer_rank_id(rank_dir, ordinal, stop_at=boundary)
+    rank_index = infer_rank_index(rank_dir, stop_at=boundary)
     db_path, notes, db_candidates = _find_db(rank_dir)
     csv_candidates = find_csv_candidates(rank_dir)
     csv_path = csv_candidates[0] if len(csv_candidates) == 1 else None
@@ -283,7 +354,12 @@ def discover_rank_sources(
     items = [
         item
         for ordinal, rank_dir in enumerate(sorted(discovered, key=str))
-        if (item := _source_for_dir(rank_dir, ordinal=ordinal, source=source)) is not None
+        if (
+            item := _source_for_dir(
+                rank_dir, ordinal=ordinal, source=source, stop_at=root_path
+            )
+        )
+        is not None
     ]
     if not items:
         raise ProfilerUsageError(

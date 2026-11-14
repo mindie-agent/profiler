@@ -17,9 +17,10 @@ from dataclasses import asdict, dataclass, is_dataclass
 from math import prod
 
 from .accounting import union_length
+from .decode_active_event import _FieldShare, _active_event, note_pool
 from .events import ProfilerUsageError
 from .forward_spans import _statistics
-from .normalized import shapes, row_from_event
+from .normalized import row_from_event
 from .body_attention_contracts import fia_block_table_slot
 from .communication_bounds import dual_stream_moe_hidden_consumer, padded_hidden_consumer
 
@@ -585,6 +586,12 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
     so consumers select the measured body boundaries explicitly.
     """
     config = _model(model_config)
+    pools = {}
+    probe = {
+        "high_strings": 0, "high_shapes": 0, "high_active": 0, "closed_windows": 0,
+        "live_strings": 0, "live_shapes": 0, "live_active": 0,
+    }
+    sources = defaultdict(list) if on_forward is not None else None
     active, previous = defaultdict(list), {}
     forwards, auxiliaries, auxiliary_values, anomalies, counts = [], [], [], [], Counter()
     auxiliary_occurrences = []
@@ -646,8 +653,14 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
         if event.start_ns < previous.get(key, event.start_ns):
             raise ProfilerUsageError("automatic forward segmentation requires chronological device events")
         previous[key] = event.start_ns
-        row = _Row(event, shapes(event.input_shapes), shapes(event.output_shapes))
+        share = pools.get(key)
+        if share is None:
+            share = pools[key] = _FieldShare()
+        row = _active_event(event, share)
         active[key].append(row)
+        if sources is not None:
+            sources[key].append(event)
+        note_pool(probe, pools, active)
         if sum(map(len, active.values())) > max_forward_events:
             raise ProfilerUsageError(f"active forward events exceed {max_forward_events}; no trustworthy head closure")
         terminal_norm = _terminal_norm(active[key], config)
@@ -667,8 +680,8 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
                     value["raw_duration_ns"] for value in result["communication_envelope_bounds"])
                 counts["bounded_communication_unassigned_suffix_ns"] += sum(
                     value["unassigned_summary_suffix_ns"] for value in result["communication_envelope_bounds"])
-            if on_forward is not None:
-                on_forward(result, tuple(row.event for row in active[key]))
+            if sources is not None:
+                on_forward(result, tuple(sources[key]))
             accumulate_stages(result)
             result["stage_count"] = len(result["stages"])
             result["stage_details_retained"] = len(forwards) < max_detailed_forwards
@@ -691,6 +704,11 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
                 counts["rejected_segment_events"] += len(active[key])
             anomaly({**failure, "event_count": len(active[key]), "rank_id": key[0], "device_id": key[1]})
         active[key].clear()
+        if sources is not None:
+            sources[key].clear()
+        pools.pop(key, None)
+        probe["closed_windows"] += 1
+        note_pool(probe, pools, active)
     for key, rows in active.items():
         if rows:
             counts["trailing_segment_events"] += len(rows)
@@ -740,7 +758,8 @@ def auto_segment_decode_forwards(events, model_config, *, source=None, max_event
                              "per_layer_ms": groups(group["layers"]),
                              "stage_span_ms": groups(group["stages"])}
                             for group in geometry_groups.values()],
-        "scan_counts": dict(counts), "anomaly_counts": dict(reasons), "anomalies": anomalies,
+        "scan_counts": {**dict(counts), "pool_probe": dict(probe)},
+        "anomaly_counts": dict(reasons), "anomalies": anomalies,
         "communication_envelope_accounting": {
             "basis": "structural_consumer_upper_bound",
             "affected_forwards": counts["forwards_with_bounded_communication_envelopes"],
