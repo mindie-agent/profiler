@@ -40,6 +40,7 @@ from .collective_readiness_db import (
     MAX_TASKS,
     MAX_TOTAL_CALLS,
     MIN_SQLITE_LOCK_BUDGET_S,
+    SQLITE_CLEANUP_GRACE_S,
     StreamOrderIndex,
     TaskGroupIndex,
     check_deadline,
@@ -52,6 +53,7 @@ from .collective_readiness_db import (
     normalize_intervals,
     query_windowed_calls,
     query_windowed_tasks,
+    reserve_sqlite_lock_budget,
     resolve_stream_predecessor,
     resolve_strings,
     table_names,
@@ -142,15 +144,9 @@ def _call_rows(
     assert source.db_path is not None
     db_label = Path(source.db_path).name
     effective_timeout = max(0.1, float(timeout_s))
-    check_deadline(deadline, db_label, effective_timeout)
-    remaining_s = deadline - time.monotonic()
-    if remaining_s < MIN_SQLITE_LOCK_BUDGET_S:
-        raise ProfilerQueryError(
-            f"{db_label}: remaining deadline ({remaining_s:.3f}s) is below minimum "
-            f"SQLite lock budget ({MIN_SQLITE_LOCK_BUDGET_S:.1f}s); readiness budget exceeded"
-        )
+    busy_ms = reserve_sqlite_lock_budget(deadline, db_label, effective_timeout)
     db = open_readonly(
-        source.db_path, timeout_s=min(effective_timeout, remaining_s), allow_pragma=True
+        source.db_path, timeout_s=busy_ms / 1000.0, allow_pragma=True
     )
     db.row_factory = sqlite3.Row
     db.set_progress_handler(lambda: 1 if time.monotonic() > deadline else 0, 5_000)
@@ -772,6 +768,7 @@ __all__ = [
     "MAX_TOTAL_WAITS",
     "MIN_SQLITE_LOCK_BUDGET_S",
     "SCHEMA",
+    "SQLITE_CLEANUP_GRACE_S",
     "attach_to_report",
     "read_collective_readiness",
 ]

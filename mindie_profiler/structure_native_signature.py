@@ -2,22 +2,22 @@
 
 [Role]
   Parse captured semicolon-delimited tensor shape/dtype/format lanes and match
-  them against ``mindie-sim`` ``BIND1`` ``typed`` declarations without pooling
-  role-specific dtypes across unrelated input/output slots.
+  them against ``mindie-sim`` ``BIND1`` ``typed`` declarations while preserving
+  native input/output role slot ordering and per-role dtypes.
 
 [Invariants]
   * Input and output lanes are paired index-by-index across shape, dtype, and
     format; unequal lane counts fail closed (``False``) and incomplete capture
     columns resolve to ``None`` rather than a guessed match.
-  * Role-declared dtypes (such as ``weight_dtype="int8"`` with activation
-    ``dtype="bf16"``) must match the tensor carrying that role's shape rather
-    than pooling into a flat allowed-dtype set; output dtypes match declared
-    output dtype (or ``typed.dtype``), never input-only role dtypes.
+  * Declared native roles preserve canonical ABI slot order (e.g. ``query`` ->
+    ``key`` -> ``value``, ``input`` -> ``weight`` -> optional scales/bias) and
+    role-specific dtypes; swapped operand slots return ``False``, and role sets
+    without an established slot order resolve to ``None`` rather than ``True``.
   * Contiguous/ND layout declarations reject non-contiguous Ascend storage
     formats cleanly after case-normalization (including ``C1HWNCoC0``).
 
 [Timeouts & Locks]
-  Pure in-memory tuple/counter inspection per candidate binding; no I/O or locks.
+  Pure in-memory tuple/slot inspection per candidate binding; no I/O or locks.
 
 [Side-Effect Policy]
   Pure functions; does not mutate caller bindings, events, or global state.
@@ -59,9 +59,48 @@ _DTYPE_TOKENS = {
 _NON_CONTIGUOUS_FORMATS = frozenset(
     {"FRACTAL_NZ", "FRACTAL_Z", "FRACTAL_Z_3D", "NC1HWC0", "NDC1HWC0", "C1HWNCOC0"}
 )
-_COARSE_SHAPE_KEYS = frozenset({"local", "padded", "launch", "payload"})
+_COARSE_SHAPE_KEYS = frozenset(
+    {"local", "padded", "launch", "payload", "active_query", "nz_storage", "nz_logical_storage"}
+)
 _OUTPUT_SHAPE_KEYS = frozenset({"output", "out", "y", "outputs"})
 _PRIMARY_INPUT_KEYS = ("input", "x", "lhs", "activation", "query", "q")
+_TAIL_INPUT_ROLES = frozenset({"key_tail", "value_tail"})
+_PARTIAL_CACHE_ROLES = frozenset({"cache_head", "rope_cache_head", "slot"})
+_INPUT_ROLE_ORDER: dict[str, int] = {
+    "input": 0,
+    "x": 0,
+    "lhs": 0,
+    "activation": 0,
+    "query": 0,
+    "q": 0,
+    "weight": 1,
+    "rhs": 1,
+    "w": 1,
+    "key": 2,
+    "k": 2,
+    "key_tail": 2,
+    "cache": 2,
+    "value": 3,
+    "v": 3,
+    "value_tail": 3,
+    "query_rope": 4,
+    "rope_cache": 5,
+    "residual": 6,
+    "gamma": 7,
+    "norm_weight": 7,
+    "beta": 8,
+    "norm_bias": 8,
+    "gate": 9,
+    "scale": 10,
+    "weight_scale": 10,
+    "bias": 11,
+    "input_scale": 12,
+    "activation_scale": 12,
+    "group_list": 13,
+    "indices": 14,
+    "sparse_indices": 14,
+}
+_OUTPUT_ROLE_ORDER: dict[str, int] = {"output": 0, "out": 0, "y": 0}
 _AUX_ONLY_ROLES = frozenset(
     {
         "group_list",
@@ -286,6 +325,60 @@ def _parse_declared_shapes(
     return coarse, in_roles, out_roles, exp_in, exp_out
 
 
+def _role_order_established(
+    roles: Mapping[str, Any], order_map: Mapping[str, int]
+) -> list[str] | None:
+    if any(k not in order_map for k in roles):
+        return None
+    ranks = [order_map[k] for k in roles]
+    if len(set(ranks)) != len(ranks):
+        return None
+    return sorted(roles, key=lambda k: order_map[k])
+
+
+def _align_ordered_specs(
+    obs_pairs: tuple[tuple[tuple[int, ...], str], ...],
+    ordered_specs: tuple[tuple[tuple[int, ...], str | None, bool, bool], ...],
+    *,
+    ignore_dtype: bool = False,
+) -> int:
+    """Return 2 on exact ordered match, 1 on shape-matched untyped ambiguity, 0 on mismatch."""
+    memo: dict[tuple[int, int], int] = {}
+
+    def solve(oi: int, si: int) -> int:
+        state = (oi, si)
+        if state in memo:
+            return memo[state]
+        if oi == len(obs_pairs):
+            res = 2 if all(spec[2] for spec in ordered_specs[si:]) else 0
+            memo[state] = res
+            return res
+        if si == len(ordered_specs):
+            memo[state] = 0
+            return 0
+        shape, exp_dt, is_opt, is_tail = ordered_specs[si]
+        obs_shape, obs_dt = obs_pairs[oi]
+        best = solve(oi, si + 1) if is_opt else 0
+        shape_ok = (
+            len(obs_shape) == len(shape) + 1 and obs_shape[1:] == shape
+            if is_tail
+            else obs_shape == shape
+        )
+        if shape_ok:
+            if ignore_dtype or (exp_dt is not None and obs_dt == exp_dt):
+                sub = solve(oi + 1, si + 1)
+                if sub > best:
+                    best = sub
+            elif exp_dt is None:
+                sub = solve(oi + 1, si + 1)
+                if sub > 0:
+                    best = max(best, 1)
+        memo[state] = best
+        return best
+
+    return solve(0, 0)
+
+
 def _match_input_dtypes(
     *,
     typed: Mapping[str, Any],
@@ -363,15 +456,32 @@ def _match_input_dtypes(
             if in_dtypes[0] != p_dt:
                 return False
             break
-    if any(role_dtypes[k] is None for k in input_roles if k not in _OPTIONAL_INPUT_KEYS):
-        return None
     declared_dt_set = {dt for dt in role_dtypes.values() if dt is not None}
     aux_skip = _ATTENTION_AUX_DTYPES - declared_dt_set
-    obs_pairs = Counter(
+    obs_seq = tuple(
         (s, dt)
         for s, dt in zip(in_shapes, in_dtypes)
         if not (is_attention_abi and (dt in aux_skip or s == ()))
     )
+    if input_roles.keys() & _PARTIAL_CACHE_ROLES:
+        allowed_dt = {dt for dt in role_dtypes.values() if dt is not None}
+        if primary_in_dt is not None:
+            allowed_dt.add(primary_in_dt)
+        if allowed_dt and any(dt not in allowed_dt for _, dt in obs_seq):
+            return False
+        return None
+    ordered_keys = _role_order_established(input_roles, _INPUT_ROLE_ORDER)
+    if ordered_keys is not None:
+        ordered_specs = tuple(
+            (input_roles[k], role_dtypes[k], k in _OPTIONAL_INPUT_KEYS, k in _TAIL_INPUT_ROLES)
+            for k in ordered_keys
+        )
+        score = _align_ordered_specs(obs_seq, ordered_specs, ignore_dtype=False)
+        return True if score == 2 else (None if score == 1 else False)
+
+    if any(role_dtypes[k] is None for k in input_roles if k not in _OPTIONAL_INPUT_KEYS):
+        return None
+    obs_pairs = Counter(obs_seq)
     req_pairs = Counter(
         (shape, role_dtypes[k])
         for k, shape in input_roles.items()
@@ -390,7 +500,7 @@ def _match_input_dtypes(
         )
         untyped_opt = Counter(shape for k, shape in input_roles.items() if role_dtypes[k] is None)
         return None if _counter_leq(rem_shapes, untyped_opt) else False
-    return True
+    return True if len(set(obs_seq)) <= 1 else None
 
 
 def native_call_signature_match(binding: Mapping[str, Any], event: Event) -> bool | None:
@@ -421,6 +531,7 @@ def native_call_signature_match(binding: Mapping[str, Any], event: Event) -> boo
     )
     declared_out_dtype = _lookup_dtype(typed, attrs, "output_dtype", "output_format", "y_dtype")
 
+    unresolved_order = False
     has_explicit_roles = bool(
         input_roles or output_roles or explicit_inputs is not None or explicit_outputs is not None
     )
@@ -431,7 +542,7 @@ def native_call_signature_match(binding: Mapping[str, Any], event: Event) -> boo
         if any(s not in coarse_set for s in (*in_shapes, *out_shapes)):
             return False
         if not (len(in_shapes) == 1 and len(out_shapes) == 1 and in_shapes[0] == out_shapes[0]):
-            return None
+            unresolved_order = True
     else:
         if explicit_outputs is not None:
             if out_shapes != explicit_outputs:
@@ -444,8 +555,15 @@ def native_call_signature_match(binding: Mapping[str, Any], event: Event) -> boo
                     for i in range(len(output_roles), len(out_shapes))
                 ):
                     effective_out = out_shapes[: len(output_roles)]
-            if Counter(effective_out) != Counter(output_roles.values()):
-                return False
+            ordered_out = _role_order_established(output_roles, _OUTPUT_ROLE_ORDER)
+            if ordered_out is not None:
+                if effective_out != tuple(output_roles[k] for k in ordered_out):
+                    return False
+            else:
+                if Counter(effective_out) != Counter(output_roles.values()):
+                    return False
+                if len(set(effective_out)) > 1:
+                    unresolved_order = True
         elif out_shapes:
             coarse_set = set(coarse_shapes.values())
             if not coarse_set:
@@ -453,7 +571,7 @@ def native_call_signature_match(binding: Mapping[str, Any], event: Event) -> boo
             if any(s not in coarse_set for s in out_shapes):
                 return False
             if len(out_shapes) > 1:
-                return None
+                unresolved_order = True
 
         if explicit_inputs is not None:
             if in_shapes != explicit_inputs:
@@ -473,17 +591,39 @@ def native_call_signature_match(binding: Mapping[str, Any], event: Event) -> boo
             if declared_dtype is not None:
                 role_dt_vals.add(declared_dtype)
             aux_skip = _ATTENTION_AUX_DTYPES - role_dt_vals
-            req_counts = Counter(
-                shape for k, shape in input_roles.items() if k not in _OPTIONAL_INPUT_KEYS
+            obs_seq = tuple(
+                (s, dt)
+                for s, dt in zip(in_shapes, in_dtypes)
+                if not (is_attention_abi and (dt in aux_skip or s == ()))
             )
-            all_counts = Counter(input_roles.values())
-            obs_counts = (
-                Counter(s for s, dt in zip(in_shapes, in_dtypes) if dt not in aux_skip and s != ())
-                if is_attention_abi
-                else Counter(in_shapes)
-            )
-            if not (_counter_leq(req_counts, obs_counts) and _counter_leq(obs_counts, all_counts)):
-                return False
+            if input_roles.keys() & _PARTIAL_CACHE_ROLES:
+                unresolved_order = True
+            else:
+                ordered_in = _role_order_established(input_roles, _INPUT_ROLE_ORDER)
+                if ordered_in is not None:
+                    shape_specs = tuple(
+                        (
+                            input_roles[k],
+                            None,
+                            k in _OPTIONAL_INPUT_KEYS,
+                            k in _TAIL_INPUT_ROLES,
+                        )
+                        for k in ordered_in
+                    )
+                    if _align_ordered_specs(obs_seq, shape_specs, ignore_dtype=True) == 0:
+                        return False
+                else:
+                    req_counts = Counter(
+                        shape for k, shape in input_roles.items() if k not in _OPTIONAL_INPUT_KEYS
+                    )
+                    all_counts = Counter(input_roles.values())
+                    obs_counts = Counter(s for s, _ in obs_seq)
+                    if not (
+                        _counter_leq(req_counts, obs_counts) and _counter_leq(obs_counts, all_counts)
+                    ):
+                        return False
+                    if len(set(s for s, _ in obs_seq)) > 1:
+                        unresolved_order = True
         elif in_shapes:
             coarse_set = set(coarse_shapes.values())
             if not coarse_set:
@@ -491,7 +631,7 @@ def native_call_signature_match(binding: Mapping[str, Any], event: Event) -> boo
             if any(s not in coarse_set for s in in_shapes):
                 return False
             if len(in_shapes) > 1:
-                return None
+                unresolved_order = True
 
     in_dt_verdict = _match_input_dtypes(
         typed=typed,
@@ -504,8 +644,10 @@ def native_call_signature_match(binding: Mapping[str, Any], event: Event) -> boo
         primary_in_dt=primary_in_dt,
         is_attention_abi=is_attention_abi,
     )
-    if in_dt_verdict is not True:
-        return in_dt_verdict
+    if in_dt_verdict is False:
+        return False
+    if in_dt_verdict is None:
+        unresolved_order = True
 
     explicit_out_dtypes = typed.get("output_dtypes")
     if isinstance(explicit_out_dtypes, (list, tuple)):
@@ -544,7 +686,7 @@ def native_call_signature_match(binding: Mapping[str, Any], event: Event) -> boo
                 return False
         elif "fractal_nz" in layout and "FRACTAL_NZ" not in in_formats:
             return False
-    return True
+    return None if unresolved_order else True
 
 
 __all__ = [

@@ -504,3 +504,99 @@ def test_native_call_global_tracker_retains_spanning_identities_and_fails_above_
     )
     with pytest.raises(ProfilerUsageError, match="max_active=2"):
         w_small.observe(ev_overflow, (0, 1_000), {**corr_base, "raw_identity": {"rank_id": "rank_0"}})
+
+
+def test_attention_input_role_order_rejects_swapped_kv_and_unknown_roles() -> None:
+    sim_ops = pytest.importorskip("mindie_sim.schema.operators")
+    sim_structure = pytest.importorskip("mindie_sim.structure")
+
+    attn_op = sim_ops.OpSpec(
+        op_id="l0.mla_v_diff",
+        family="attention",
+        phase="prefill",
+        stage="prefill",
+        layer=0,
+        requests=("r0",),
+        dtype="bf16",
+        semantic_shape=(4, 12, 64),
+        local_shape=(4, 12, 64),
+        padded_shape=(4, 12, 64),
+        launch_shape=(4, 12, 64),
+        metadata={
+            "native_kind": "FusedInferAttentionScore",
+            "attention_tensor_view": {
+                "logical_layout": "TND",
+                "kv_storage": "contiguous",
+                "query_shape": [4, 12, 128],
+                "key_shape": [4, 12, 128],
+                "value_shape": [4, 12, 64],
+                "output_shape": [4, 12, 64],
+                "query_dtype": "bf16",
+                "key_dtype": "bf16",
+                "value_dtype": "bf16",
+                "output_dtype": "bf16",
+            },
+        },
+    )
+    structure = sim_structure.export_op_structure(
+        [attn_op],
+        model={"num_hidden_layers": 1},
+        execution={"phase": "prefill"},
+        native_evidence=True,
+    )
+    binding = structure["native_calls"][0]
+    ev_ordered = _ev(
+        "FusedInferAttentionScore",
+        in_shapes="4,12,128;4,12,128;4,12,64;1,4",
+        in_dtypes="DT_BF16;DT_BF16;DT_BF16;DT_INT32",
+        in_formats="ND;ND;ND;ND",
+        out_shapes="4,12,64",
+        out_dtypes="DT_BF16",
+        idx=20,
+    )
+    ev_swapped_kv = _ev(
+        "FusedInferAttentionScore",
+        in_shapes="4,12,128;4,12,64;4,12,128;1,4",
+        in_dtypes="DT_BF16;DT_BF16;DT_BF16;DT_INT32",
+        in_formats="ND;ND;ND;ND",
+        out_shapes="4,12,64",
+        out_dtypes="DT_BF16",
+        idx=21,
+    )
+    assert native_call_signature_match(binding, ev_ordered) is True
+    assert native_call_signature_match(binding, ev_swapped_kv) is False
+
+    mapper = StructureMapper(
+        structure,
+        bindings={
+            "schema_version": "mindie-profile-bindings/1",
+            "graph_id": structure["graph_id"],
+            "rank_replicas": {"rank_0": "0"},
+        },
+    )
+    mapper.map_window(_obs([ev_ordered, ev_swapped_kv]))
+    c_ok, c_swapped = [row["implementation_correspondence"] for row in mapper.sample]
+    assert c_ok["signature_match"] is True
+    assert c_ok["basis"] == "declared_native_call_signature"
+    assert c_ok["native_call"]["call_id"] == binding["call_id"]
+    assert c_swapped["signature_match"] is False
+    assert c_swapped["basis"] == "declared_native_implementation"
+    assert c_swapped["native_call"] is None
+
+    # Unknown role names without established slot order resolve to None, never True.
+    unknown_roles = {
+        "family": "custom",
+        "typed": {
+            "dtype": "bf16",
+            "shapes": {"alpha_slot": [4, 8], "beta_slot": [8, 16], "output": [4, 16]},
+        },
+    }
+    ev_ab = _ev(
+        "CustomOp",
+        in_shapes="4,8;8,16",
+        in_dtypes="DT_BF16;DT_BF16",
+        out_shapes="4,16",
+        out_dtypes="DT_BF16",
+        idx=22,
+    )
+    assert native_call_signature_match(unknown_roles, ev_ab) is None

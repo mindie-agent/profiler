@@ -30,7 +30,7 @@ from __future__ import annotations
 import statistics
 from typing import Any, Iterable, Mapping, Sequence
 
-from .events import Event, Observation, ProfilerUsageError
+from .events import Event, Observation, ProfilerQueryError, ProfilerUsageError
 from .measured_supply import (
     R64_IMAGE_SHA,
     SATURATION_THRESHOLD,
@@ -325,6 +325,8 @@ def _parse_sparse_geometry(sparse_geometry: Mapping[str, Any]) -> dict[str, Any]
 class SparseSupplyAccumulator:
     """Bounded O(1)-when-inactive collector that filters before retaining samples."""
 
+    _MAX_DEDUP_EVENTS = 250_000
+
     def __init__(
         self,
         *,
@@ -339,6 +341,7 @@ class SparseSupplyAccumulator:
         self.max_samples = max(1, int(max_samples))
         self.grouped: dict[tuple[Any, ...], list[dict[str, Any]]] = {}
         self.group_totals: dict[tuple[Any, ...], int] = {}
+        self._seen_events: set[tuple[str, ...]] = set()
         self.capped_samples = 0
         self.dropped_groups = 0
         self.geometry_mismatch = 0
@@ -359,6 +362,28 @@ class SparseSupplyAccumulator:
             return
         if not candidate.get("mte1_us") or not candidate.get("elapsed_us"):
             return
+        raw_eid = candidate.get("event_id")
+        raw_ridx = candidate.get("row_index")
+        event_token = (
+            str(raw_eid)
+            if raw_eid not in (None, "")
+            else (f"row:{raw_ridx}" if raw_ridx is not None else None)
+        )
+        if event_token is not None:
+            dedup_key = (
+                str(candidate.get("rank_id") or ""),
+                str(candidate.get("device_id") or ""),
+                str(candidate.get("source") or ""),
+                str(candidate.get("source_sha256") or ""),
+                event_token,
+            )
+            if dedup_key in self._seen_events:
+                return
+            if len(self._seen_events) >= self._MAX_DEDUP_EVENTS:
+                raise ProfilerQueryError(
+                    f"sparse PMU deduplication exceeded {self._MAX_DEDUP_EVENTS} distinct events"
+                )
+            self._seen_events.add(dedup_key)
         if not _candidate_geometry_matches(
             candidate,
             q_len=spec["q_len"],

@@ -43,6 +43,7 @@ from .measured_supply import (
     measured_supply_event_record,
 )
 from .measured_supply_sparse import SparseSupplyAccumulator, build_measured_supply_summary
+from .measured_supply_summary import PmuEventDeduplicator
 from .pmu_derivation import derive_pmu_evidence, metric_units
 from .sources_db import load_mapping
 from .wait_provenance import attach_wait_anchor
@@ -649,48 +650,23 @@ def pmu_summary(
     sparse_acc = SparseSupplyAccumulator(sparse_geometry=sparse_geometry)
     source_pmu_rows = sum(observation.stats.pmu_rows for observation in observations)
     source_ambiguous_groups = max((observation.stats.ambiguous_groups for observation in observations), default=0)
+    dedup = PmuEventDeduplicator()
     for observation in observations:
         for event in observation.events:
-            if event.is_aicpu:
-                counts["aicpu_event_count"] += 1
-                if event.pmu_status == "bound" and event.pmu_kind == "aicpu" and event.pmu:
-                    counts["aicpu_events_with_counters"] += 1
-                elif event.pmu_status == "not_applicable":
-                    counts["not_applicable_event_count"] += 1
-                continue
-            if event.is_comm:
-                if event.pmu_status == "not_applicable":
-                    counts["not_applicable_event_count"] += 1
-                continue
-            if event.pmu_status == "bound" and event.pmu:
-                counts["bound_event_count"] += 1
-                counts["raw_pmu_rows"] += int(event.pmu_provenance.get("raw_rows") or len(event.pmu))
-                if not event.complete_in(observation.window.start_ns, observation.window.end_ns):
-                    counts["clipped_bound_event_count"] += 1
-                if is_matrix_supply_event(event):
-                    supply_acc.add_event(observation, event)
-                sparse_acc.add_event(observation, event)
-                if len(bound_events) < 64:
-                    bound_events.append(_pmu_event_payload(observation, event, source_identity, physical_owners=physical_owners))
-            elif event.pmu_status in {"ambiguous_task_occurrence", "duplicate_metric_rows", "incomplete_metric_value", "cardinality_unknown"}:
-                counts["ambiguous_event_count"] += 1
-                provenance = event.pmu_provenance
-                global_id = provenance.get("global_task_id")
-                if isinstance(global_id, int):
-                    key = (observation.rank_id, global_id)
-                    if key not in ambiguous_groups:
-                        ambiguous_groups[key] = {
-                            **provenance,
-                            "rank_id": observation.rank_id,
-                            "observation_id": observation.identity()["observation_id"],
-                            "status": event.pmu_status,
-                            "metric_units": metric_units({name: 0.0 for name in (provenance.get("per_metric") or {})}),
-                        }
-                        counts["raw_pmu_rows"] += int(provenance.get("raw_rows") or 0)
-            elif event.pmu_status == "absent":
-                counts["absent_event_count"] += 1
-            elif event.pmu_status == "not_applicable":
-                counts["not_applicable_event_count"] += 1
+            dedup.observe(
+                observation,
+                event,
+                counts=counts,
+                bound_events=bound_events,
+                ambiguous_groups=ambiguous_groups,
+                supply_acc=supply_acc,
+                sparse_acc=sparse_acc,
+                is_matrix_fn=is_matrix_supply_event,
+                metric_units_fn=metric_units,
+                payload_fn=lambda obs=observation, ev=event: _pmu_event_payload(
+                    obs, ev, source_identity, physical_owners=physical_owners
+                ),
+            )
     if counts["ambiguous_event_count"]:
         add_limitation(
             limitations, "pmu_ambiguous_task_occurrence", "global",

@@ -624,6 +624,7 @@ def analyze_profile(
 
     from .collective_readiness import (
         MIN_SQLITE_LOCK_BUDGET_S,
+        SQLITE_CLEANUP_GRACE_S,
         SCHEMA as READINESS_SCHEMA,
         read_collective_readiness,
     )
@@ -634,9 +635,12 @@ def analyze_profile(
         else [(w.start_ns, w.end_ns) for w in selected_windows]
     )
     db_rank_count = sum(1 for item in sources if item.db_path and source != "csv")
-    readiness_timeout_s = (
-        max(MIN_SQLITE_LOCK_BUDGET_S, float(query_timeout_s)) * max(1, db_rank_count) + 1.0
+    per_rank_budget_s = (
+        max(MIN_SQLITE_LOCK_BUDGET_S, float(query_timeout_s))
+        + MIN_SQLITE_LOCK_BUDGET_S
+        + SQLITE_CLEANUP_GRACE_S
     )
+    readiness_timeout_s = per_rank_budget_s * max(1, db_rank_count) + 1.0
     try:
         collective_readiness = read_collective_readiness(
             normalized_root,

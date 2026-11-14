@@ -25,9 +25,9 @@ from __future__ import annotations
 
 import math
 import statistics
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any, Callable, Iterable, Mapping, Sequence
 
-from .events import Event, Observation
+from .events import Event, Observation, ProfilerQueryError
 from .measured_supply import (
     MAX_SAMPLES_PER_CONDITION,
     MAX_SUPPLY_CONDITIONS,
@@ -223,6 +223,8 @@ class _ConditionBucket:
 class MatrixSupplyAccumulator:
     """Bounded O(unique conditions) incremental aggregator for matrix PMU supply."""
 
+    _MAX_DEDUP_EVENTS = 250_000
+
     def __init__(
         self,
         *,
@@ -238,18 +240,14 @@ class MatrixSupplyAccumulator:
         self.max_conditions = max(1, int(max_conditions))
         self.max_samples_per_condition = max(1, int(max_samples_per_condition))
         self.conditions: dict[tuple[Any, ...], _ConditionBucket] = {}
+        self._measured_events: set[tuple[str, str, str]] = set()
+        self._clipped_events: set[tuple[str, str, str]] = set()
+        self._record_obs_by_event: dict[tuple[Any, ...], Any] = {}
         self.clipped = 0
         self.dropped_conditions = 0
         self.capped_samples = 0
 
-    def add_record(self, candidate: Mapping[str, Any]) -> None:
-        if self.physical_owners is None:
-            return
-        if candidate.get("status") != "measured":
-            return
-        if not candidate.get("complete_in_window"):
-            self.clipped += 1
-            return
+    def _insert_measured(self, candidate: Mapping[str, Any]) -> None:
         prov = candidate.get("provenance") or {}
         key = (
             candidate.get("native_call"),
@@ -276,17 +274,179 @@ class MatrixSupplyAccumulator:
         if bucket.add(candidate, max_samples=self.max_samples_per_condition):
             self.capped_samples += 1
 
+    def add_record(self, candidate: Mapping[str, Any]) -> None:
+        if self.physical_owners is None:
+            return
+        if candidate.get("status") != "measured":
+            return
+        if not candidate.get("complete_in_window"):
+            self.clipped += 1
+            return
+        prov = candidate.get("provenance") or {}
+        eid = prov.get("event_id")
+        obs_id = candidate.get("observation_id")
+        if eid not in (None, "") and obs_id not in (None, ""):
+            rec_key = (
+                str(candidate.get("rank_id") or ""),
+                str(prov.get("source") or ""),
+                str(eid),
+                candidate.get("native_call"),
+                int(candidate["m"]),
+            )
+            prev_obs = self._record_obs_by_event.get(rec_key)
+            if prev_obs is not None:
+                if prev_obs != obs_id:
+                    return
+            else:
+                if len(self._record_obs_by_event) >= self._MAX_DEDUP_EVENTS:
+                    raise ProfilerQueryError(
+                        f"matrix PMU deduplication exceeded {self._MAX_DEDUP_EVENTS} distinct events"
+                    )
+                self._record_obs_by_event[rec_key] = obs_id
+        self._insert_measured(candidate)
+
     def add_event(self, observation: Observation, event: Event) -> None:
         if self.physical_owners is None:
             return
-        self.add_record(
-            measured_supply_event_record(
-                observation,
-                event,
-                self.source_identity,
-                physical_owners=self.physical_owners,
-            )
+        phys_key = (str(observation.rank_id), str(observation.source.path), str(event.event_id))
+        if phys_key in self._measured_events:
+            return
+        rec = measured_supply_event_record(
+            observation,
+            event,
+            self.source_identity,
+            physical_owners=self.physical_owners,
         )
+        if rec.get("status") != "measured":
+            return
+        if not rec.get("complete_in_window"):
+            if phys_key not in self._clipped_events:
+                if len(self._measured_events) + len(self._clipped_events) >= self._MAX_DEDUP_EVENTS:
+                    raise ProfilerQueryError(
+                        f"matrix PMU deduplication exceeded {self._MAX_DEDUP_EVENTS} distinct events"
+                    )
+                self._clipped_events.add(phys_key)
+                self.clipped += 1
+            return
+        if phys_key in self._clipped_events:
+            self._clipped_events.remove(phys_key)
+            self.clipped = max(0, self.clipped - 1)
+        if len(self._measured_events) + len(self._clipped_events) >= self._MAX_DEDUP_EVENTS:
+            raise ProfilerQueryError(
+                f"matrix PMU deduplication exceeded {self._MAX_DEDUP_EVENTS} distinct events"
+            )
+        self._measured_events.add(phys_key)
+        self._insert_measured(rec)
+
+
+class PmuEventDeduplicator:
+    """Bounded physical-event deduplicator across overlapping observation windows."""
+
+    _MAX_DEDUP_EVENTS = 250_000
+
+    def __init__(self) -> None:
+        self._seen_bound: dict[tuple[str, str, str], tuple[bool, int]] = {}
+        self._seen_other: set[tuple[str, str, str]] = set()
+
+    def _mark_other(self, key: tuple[str, str, str]) -> bool:
+        if key in self._seen_other:
+            return False
+        if len(self._seen_bound) + len(self._seen_other) >= self._MAX_DEDUP_EVENTS:
+            raise ProfilerQueryError(
+                f"PMU observation deduplication exceeded {self._MAX_DEDUP_EVENTS} distinct events"
+            )
+        self._seen_other.add(key)
+        return True
+
+    def observe(
+        self,
+        observation: Observation,
+        event: Event,
+        *,
+        counts: dict[str, int],
+        bound_events: list[dict[str, Any]],
+        ambiguous_groups: dict[tuple[str, int], dict[str, Any]],
+        supply_acc: MatrixSupplyAccumulator,
+        sparse_acc: Any,
+        is_matrix_fn: Callable[[Event], bool],
+        metric_units_fn: Callable[[Mapping[str, float]], dict[str, str]],
+        payload_fn: Callable[[], dict[str, Any]],
+    ) -> None:
+        phys_key = (str(observation.rank_id), str(observation.source.path), str(event.event_id))
+        if event.is_aicpu:
+            if not self._mark_other(phys_key):
+                return
+            counts["aicpu_event_count"] += 1
+            if event.pmu_status == "bound" and event.pmu_kind == "aicpu" and event.pmu:
+                counts["aicpu_events_with_counters"] += 1
+            elif event.pmu_status == "not_applicable":
+                counts["not_applicable_event_count"] += 1
+            return
+        if event.is_comm:
+            if not self._mark_other(phys_key):
+                return
+            if event.pmu_status == "not_applicable":
+                counts["not_applicable_event_count"] += 1
+            return
+        if event.pmu_status == "bound" and event.pmu:
+            if is_matrix_fn(event):
+                supply_acc.add_event(observation, event)
+            sparse_acc.add_event(observation, event)
+            complete = event.complete_in(observation.window.start_ns, observation.window.end_ns)
+            prev = self._seen_bound.get(phys_key)
+            if prev is None:
+                if len(self._seen_bound) + len(self._seen_other) >= self._MAX_DEDUP_EVENTS:
+                    raise ProfilerQueryError(
+                        f"PMU observation deduplication exceeded {self._MAX_DEDUP_EVENTS} distinct events"
+                    )
+                counts["bound_event_count"] += 1
+                counts["raw_pmu_rows"] += int(
+                    event.pmu_provenance.get("raw_rows") or len(event.pmu)
+                )
+                if not complete:
+                    counts["clipped_bound_event_count"] += 1
+                sample_idx = -1
+                if len(bound_events) < 64:
+                    sample_idx = len(bound_events)
+                    bound_events.append(payload_fn())
+                self._seen_bound[phys_key] = (complete, sample_idx)
+            elif not prev[0] and complete:
+                counts["clipped_bound_event_count"] = max(0, counts["clipped_bound_event_count"] - 1)
+                self._seen_bound[phys_key] = (True, prev[1])
+                if prev[1] >= 0:
+                    bound_events[prev[1]] = payload_fn()
+            return
+        if event.pmu_status in {
+            "ambiguous_task_occurrence",
+            "duplicate_metric_rows",
+            "incomplete_metric_value",
+            "cardinality_unknown",
+        }:
+            if not self._mark_other(phys_key):
+                return
+            counts["ambiguous_event_count"] += 1
+            provenance = event.pmu_provenance
+            global_id = provenance.get("global_task_id")
+            if isinstance(global_id, int):
+                gkey = (observation.rank_id, global_id)
+                if gkey not in ambiguous_groups:
+                    ambiguous_groups[gkey] = {
+                        **provenance,
+                        "rank_id": observation.rank_id,
+                        "observation_id": observation.identity()["observation_id"],
+                        "status": event.pmu_status,
+                        "metric_units": metric_units_fn(
+                            {name: 0.0 for name in (provenance.get("per_metric") or {})}
+                        ),
+                    }
+                    counts["raw_pmu_rows"] += int(provenance.get("raw_rows") or 0)
+            return
+        if event.pmu_status == "absent":
+            if self._mark_other(phys_key):
+                counts["absent_event_count"] += 1
+        elif event.pmu_status == "not_applicable":
+            if self._mark_other(phys_key):
+                counts["not_applicable_event_count"] += 1
 
 
 def summarize_measured_supply(
@@ -540,4 +700,4 @@ def summarize_measured_supply(
     }
 
 
-__all__ = ["MatrixSupplyAccumulator", "summarize_measured_supply"]
+__all__ = ["MatrixSupplyAccumulator", "PmuEventDeduplicator", "summarize_measured_supply"]

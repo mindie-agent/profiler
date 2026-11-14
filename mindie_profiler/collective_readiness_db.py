@@ -40,6 +40,8 @@ MAX_TASKS = 20_000
 MAX_CHILDREN = 2_000
 MAX_OVERLAP_SCAN_PER_CALL = 256
 MIN_SQLITE_LOCK_BUDGET_S = 3.0
+MAX_SQLITE_LOCK_BUDGET_S = 5.0
+SQLITE_CLEANUP_GRACE_S = 0.1
 _CHUNK_SIZE = 400
 _WINDOW_CHUNK = 64
 MAX_NS = 9_223_372_036_854_775_807
@@ -58,6 +60,22 @@ def check_deadline(deadline: float, db_label: str, timeout_s: float) -> None:
         )
 
 
+def reserve_sqlite_lock_budget(deadline: float, db_label: str, timeout_s: float) -> int:
+    check_deadline(deadline, db_label, timeout_s)
+    remaining_s = deadline - time.monotonic()
+    usable_s = remaining_s - SQLITE_CLEANUP_GRACE_S
+    if usable_s < MIN_SQLITE_LOCK_BUDGET_S:
+        raise ProfilerQueryError(
+            f"{db_label}: remaining deadline ({remaining_s:.3f}s) is below minimum "
+            f"SQLite lock budget ({MIN_SQLITE_LOCK_BUDGET_S:.1f}s + "
+            f"{SQLITE_CLEANUP_GRACE_S:.1f}s cleanup); readiness budget exceeded ({timeout_s:.1f}s)"
+        )
+    return min(
+        int(MAX_SQLITE_LOCK_BUDGET_S * 1000),
+        max(int(MIN_SQLITE_LOCK_BUDGET_S * 1000), int(usable_s * 1000)),
+    )
+
+
 def fetch_rows(
     db: sqlite3.Connection,
     db_label: str,
@@ -68,8 +86,9 @@ def fetch_rows(
     deadline: float,
     timeout_s: float,
 ) -> list[sqlite3.Row]:
-    check_deadline(deadline, db_label, timeout_s)
+    busy_ms = reserve_sqlite_lock_budget(deadline, db_label, timeout_s)
     try:
+        db.execute(f"PRAGMA busy_timeout = {busy_ms}")
         out = list(db.execute(sql, tuple(args)).fetchmany(limit))
     except TimeoutError:
         raise

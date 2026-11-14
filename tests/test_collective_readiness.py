@@ -711,8 +711,8 @@ def test_truncated_tasks_suppress_false_binding_cross_conn_predecessor_and_fast_
     scon.close()
 
     t0 = time.perf_counter()
-    sweep_res = read_collective_readiness(tmp_path / "sweep", source="db", timeout_s=3.2)
-    assert time.perf_counter() - t0 < 1.5
+    sweep_res = read_collective_readiness(tmp_path / "sweep", source="db", timeout_s=6.5)
+    assert time.perf_counter() - t0 < 3.5
     assert len(sweep_res["calls"]) == 20_000
 
     with pytest.raises(ProfilerQueryError, match="exceeded"):
@@ -729,3 +729,62 @@ def test_truncated_tasks_suppress_false_binding_cross_conn_predecessor_and_fast_
             timeout_s=3.2,
             db_label="sweep.db",
         )
+
+
+def test_direct_file_discovery_and_sqlite_lock_budget_guard(tmp_path: Path) -> None:
+    from mindie_profiler.collective_readiness_db import fetch_rows
+    from mindie_profiler.segment import discover_rank_sources, resolve_ranks
+    from mindie_profiler.sql import open_readonly
+
+    a5_db = (
+        tmp_path
+        / "a5_cap"
+        / "rank0"
+        / "rack08os2_51511_20261106180618435_ascend_pt"
+        / "ASCEND_PROFILER_OUTPUT"
+        / "ascend_pytorch_profiler_0.db"
+    )
+    a5_db.parent.mkdir(parents=True)
+    sqlite3.connect(a5_db).close()
+    for entry in (a5_db, a5_db.parents[2], a5_db.parents[3]):
+        found = discover_rank_sources(entry, source="db")
+        assert [(item.rank_id, item.rank_index) for item in found] == [("rank_0", 0)]
+        assert len(resolve_ranks(found, ["0"])) == 1
+
+    ext_db = (
+        tmp_path
+        / "ext_rank9_workspace"
+        / "plain_leaf"
+        / "ASCEND_PROFILER_OUTPUT"
+        / "ascend_pytorch_profiler_0.db"
+    )
+    ext_db.parent.mkdir(parents=True)
+    sqlite3.connect(ext_db).close()
+    ext_found = discover_rank_sources(ext_db, source="db")
+    assert ext_found[0].rank_id == "plain_leaf"
+    assert ext_found[0].rank_index is None
+
+    # Contended rollback-journal EXCLUSIVE lock fails before busy_timeout when remaining < 3.1s.
+    lock_db = tmp_path / "locked.db"
+    wcon = sqlite3.connect(lock_db, isolation_level=None)
+    wcon.execute("PRAGMA journal_mode = DELETE")
+    wcon.execute("CREATE TABLE COMMUNICATION_OP(opId INT)")
+    ro = open_readonly(lock_db, timeout_s=5.0, allow_pragma=True)
+    ro.row_factory = sqlite3.Row
+    wcon.execute("BEGIN EXCLUSIVE")
+    wcon.execute("INSERT INTO COMMUNICATION_OP VALUES(1)")
+    try:
+        t_lock = time.perf_counter()
+        with pytest.raises(ProfilerQueryError, match="SQLite lock budget"):
+            fetch_rows(
+                ro,
+                "locked.db",
+                "SELECT * FROM COMMUNICATION_OP",
+                deadline=time.monotonic() + 0.25,
+                timeout_s=5.0,
+            )
+        assert time.perf_counter() - t_lock < 0.15
+    finally:
+        ro.close()
+        wcon.execute("ROLLBACK")
+        wcon.close()

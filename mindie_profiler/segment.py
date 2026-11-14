@@ -43,6 +43,12 @@ _RANK_PATTERNS = (
     re.compile(r"(rank[_-]?\d+)", re.IGNORECASE),
     re.compile(r"(device[_-]?\d+)", re.IGNORECASE),
 )
+_CANONICAL_RANK_DIR_RE = re.compile(
+    r"(?:dp\d+_pp\d+_tp\d+_dcp\d+_ep\d+_)?(?:rank|device)[_-]?\d+$",
+    re.IGNORECASE,
+)
+_PROF_LEAF_RE = re.compile(r"prof_\d+.*$", re.IGNORECASE)
+_ASCEND_LEAF_RE = re.compile(r".*_ascend_(?:pt|ms)$", re.IGNORECASE)
 _INDEX_RE = re.compile(r"(?:rank|device)[_-]?(\d+)", re.IGNORECASE)
 _SAFE_RE = re.compile(r"[^A-Za-z0-9_]+")
 
@@ -66,9 +72,19 @@ def _bundle_root_for_leaf(rank_dir: Path) -> Path:
     current = rank_dir.resolve()
     if current.name.lower() in {"ascend_profiler_output", "mindstudio_profiler_output"}:
         current = current.parent
-    if current.parent.name.lower() == "profile" and current.parent.parent != current.parent:
+    if _PROF_LEAF_RE.fullmatch(current.name) and current.parent != current:
+        current = current.parent
+    if _ASCEND_LEAF_RE.fullmatch(current.name) and current.parent != current:
+        current = current.parent
+    if current.name.lower() == "profile" and current.parent != current:
+        current = current.parent
+    elif current.parent.name.lower() == "profile" and current.parent.parent != current.parent:
         current = current.parent.parent
     return current
+
+
+def _is_bundle_wrapper_dir(name: str) -> bool:
+    return bool(_PROF_LEAF_RE.fullmatch(name) or _ASCEND_LEAF_RE.fullmatch(name))
 
 
 def _rank_text(
@@ -79,25 +95,35 @@ def _rank_text(
 ) -> str | None:
     """Find the rank label in the bundle path, bounded within the caller's root.
 
-    Real bundles use ``.../rank0/profile/<export-hash>/ASCEND_PROFILER_OUTPUT``;
-    the leaf directory is not the physical rank.  Walks at most three parents and
-    stops inclusively at ``stop_at`` (or exclusively at legacy ``stop_before``)
-    so external ancestor names above the caller's root never contaminate rank
+    Real bundles use ``.../rank0/profile/<export-hash>/ASCEND_PROFILER_OUTPUT`` or
+    ``.../rank0/<host>_<pid>_<ts>_ascend_pt/ASCEND_PROFILER_OUTPUT``; the leaf
+    directory is not the physical rank.  Walks at most four parents and stops
+    inclusively at ``stop_at`` (or exclusively at legacy ``stop_before``) so
+    external ancestor names above the caller's root never contaminate rank
     discovery while preserving a rank label on ``root`` itself.
     """
     resolved_dir = rank_dir.resolve()
     resolved_at = stop_at.resolve() if stop_at is not None else None
     resolved_before = stop_before.resolve() if stop_before is not None else None
-    for depth, base in enumerate((resolved_dir, *list(resolved_dir.parents)[:3])):
+    wrapper_fallback: str | None = None
+    for depth, base in enumerate((resolved_dir, *list(resolved_dir.parents)[:4])):
         if depth > 0 and resolved_before is not None and base == resolved_before:
             break
+        matched: str | None = None
         for pattern in _RANK_PATTERNS:
             match = pattern.search(base.name)
             if match:
-                return match.group(1)
+                matched = match.group(1)
+                break
+        if matched is not None:
+            if _is_bundle_wrapper_dir(base.name):
+                if wrapper_fallback is None:
+                    wrapper_fallback = matched
+            else:
+                return matched
         if resolved_at is not None and base == resolved_at:
             break
-    return None
+    return wrapper_fallback
 
 
 def infer_rank_id(

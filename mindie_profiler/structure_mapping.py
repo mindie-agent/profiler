@@ -24,6 +24,7 @@ from .structure_native_calls import (
     NativeCallGlobalTracker,
     NativeCallWindowTracker,
     OperatorCorrespondenceAccumulator,
+    conflicted_comm_raw_identities,
     resolve_implementation_correspondence,
     verify_graph_id,
 )
@@ -286,7 +287,7 @@ class StructureMapper:
             and (stage is None or str(self.targets[key].get("stage")) == stage)
         ]
 
-    def _implementation_correspondence(self, kind, rank, event=None):
+    def _implementation_correspondence(self, kind, rank, event=None, *, conflicted_raws=None):
         return resolve_implementation_correspondence(
             self.implementation_correspondences,
             self.target_index,
@@ -295,6 +296,7 @@ class StructureMapper:
             rank,
             event=event,
             target_registry=self._correspondence_targets,
+            conflicted_raws=conflicted_raws,
         )
 
     def _host_candidates(self, event, source_key):
@@ -453,6 +455,11 @@ class StructureMapper:
         window_calls = NativeCallWindowTracker(
             self.native_tracker, self.target_index.native_call_alias_names
         )
+        conflicted_raws = (
+            self.native_tracker.conflicted_raws | conflicted_comm_raw_identities(observation.events)
+            if events is None
+            else self.native_tracker.conflicted_raws
+        )
         for event in observation.events if events is None else events:
             interval = event.clipped(observation.window.start_ns, observation.window.end_ns)
             if interval is None:
@@ -501,7 +508,7 @@ class StructureMapper:
                 diagnostic_counts[diagnostic["category"]] += 1
                 self.diagnostic_counts[diagnostic["category"]] += 1
             correspondence = self._implementation_correspondence(
-                event.op_type, observation.rank_id, event=event
+                event.op_type, observation.rank_id, event=event, conflicted_raws=conflicted_raws
             )
             operator_correspondences[event.op_type].add(
                 correspondence,
@@ -635,6 +642,7 @@ class StructureMapper:
                         native_tensor_contract(normalized) if retain_native else None),
                     "diagnostic": diagnostic,
                 })
+                window_calls.bind_sample_row(event, self.sample[-1])
         native_calls = window_calls.finish(
             window_end_ns=observation.window.end_ns,
             rank_id=observation.rank_id,

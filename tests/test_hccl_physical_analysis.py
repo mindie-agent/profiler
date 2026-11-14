@@ -506,3 +506,131 @@ def test_reused_connection_id_join_is_sublinear_and_enforces_deadline(
     monkeypatch.setattr("mindie_profiler.sources_db_comm.time.perf_counter", expired_perf)
     with pytest.raises(ProfilerQueryError, match="exceeded"):
         source.iter_window(win, max_rows=20_000, timeout_s=0.1)
+
+
+def test_competing_comm_ops_on_same_task_never_collapse_into_one_native_call(
+    tmp_path: Path,
+) -> None:
+    import shutil
+    from mindie_profiler.accounting import account_window
+    from mindie_profiler.events import Event, Observation, QueryStats, SourceRef
+    from mindie_profiler.structure_mapping import StructureMapper
+
+    operators_module = pytest.importorskip("mindie_sim.schema.operators")
+    lowering_module = pytest.importorskip("mindie_sim.prediction.collective_lowering")
+    structure_module = pytest.importorskip("mindie_sim.structure")
+    OpSpec = operators_module.OpSpec
+
+    db_copy = tmp_path / "rank_0" / "ASCEND_PROFILER_OUTPUT" / "ascend_pytorch_profiler_0.db"
+    db_copy.parent.mkdir(parents=True)
+    shutil.copy2(REAL_GLM45_DB, db_copy)
+    con = sqlite3.connect(db_copy)
+    row78 = con.execute(
+        "SELECT opName, startNs, endNs, connectionId, groupName, opId, relay, retry, "
+        "dataType, algType, count, opType, waitNs FROM COMMUNICATION_OP WHERE opId = 78"
+    ).fetchone()
+    assert row78 is not None
+    real_start, real_end = int(row78[1]), int(row78[2])
+    con.execute(
+        "INSERT INTO COMMUNICATION_OP VALUES(?, ?, ?, ?, ?, 79, ?, ?, ?, ?, 6, ?, ?)",
+        (row78[0], real_start, real_end, row78[3], row78[4], row78[6], row78[7], row78[8], row78[9], row78[11], row78[12]),
+    )
+    con.commit()
+    con.close()
+
+    win = Window(start_ns=real_start - 1_000, end_ns=real_end + 1_000, step=1)
+    events, _ = DbSource(probe_db(db_copy)).iter_window(win)
+    comm_events = [ev for ev in events if ev.table == "COMMUNICATION_OP"]
+    assert len(comm_events) == 2
+    assert all(ev.locator["global_task_id"] is None for ev in comm_events)
+    assert all(str(ev.locator["task_join_status"]).startswith("unresolved_") for ev in comm_events)
+
+    op = OpSpec(
+        op_id="tp_ar_dup_guard",
+        family="allreduce",
+        phase="decode",
+        stage="decode",
+        layer=0,
+        requests=("r0",),
+        dtype="bf16",
+        comm_bytes=6,
+        comm_group="tp",
+        comm_ranks=2,
+        metadata={"collective": "allreduce", "ranks": 2},
+    )
+    lowered = lowering_module.lower_collectives(
+        [op],
+        {"mesh_allreduce_max_bytes": 1 << 20},
+        captured=[
+            {
+                "op_id": "tp_ar_dup_guard",
+                "rank_id": "rank_0",
+                "global_task_id": "528",
+                "stream_id": "5",
+                "task_id": "2750",
+                "connection_id": "20633",
+                "device_id": "0",
+                "start_ns": str(real_start),
+                "end_ns": str(real_end),
+                "compute_name": "AivKernel",
+                "comm_name": "hcom_allReduce__042_0_1",
+            }
+        ],
+    )
+    structure = structure_module.export_op_structure(
+        {0: tuple(lowered)}, model={}, execution={"phase": "decode"}, native_evidence=True
+    )
+    bindings = {
+        "schema_version": "mindie-profile-bindings/1",
+        "graph_id": structure["graph_id"],
+        "rank_replicas": {"rank_0": "0"},
+    }
+    report = analyze_profile(
+        tmp_path,
+        ranks=["rank_0"],
+        source="db",
+        structure=structure,
+        structure_bindings=bindings,
+        windows=[win],
+        hash_sources=False,
+    )
+    assert report["structure_mapping"]["native_call_count"] == 0
+
+    # Direct mapper defense-in-depth when pre-built Events share one raw identity across op_id=78/79.
+    synthetic = [
+        Event(
+            rank_id="rank_0",
+            rank_index=0,
+            name="hcom_allReduce__042_0_1",
+            op_type="hcom_allReduce_",
+            task_type="COMMUNICATION",
+            core="COMMUNICATION",
+            stream_id="5",
+            task_id="2750",
+            device_id="0",
+            start_ns=real_start,
+            end_ns=real_end,
+            source_kind="db",
+            table="COMMUNICATION_OP",
+            locator={"op_id": oid, "global_task_id": "528", "connection_id": "20633", "count": cnt},
+        )
+        for oid, cnt in (("78", 3), ("79", 6))
+    ]
+    obs = Observation(
+        "rank_0",
+        0,
+        win,
+        account_window(synthetic, win),
+        synthetic,
+        SourceRef("rank_0", 0, "db", "/mem", "mem", None, 1, "v1", "db", 1),
+        QueryStats("rank_0", "1"),
+    )
+    for streamed in (False, True):
+        mapper = StructureMapper(structure, bindings=bindings)
+        wres = (
+            mapper.map_window(obs, events=iter(synthetic))
+            if streamed
+            else mapper.map_window(obs)
+        )
+        assert wres["native_calls"] == []
+        assert mapper.native_tracker.identity_counts["conflicted_comm_op_claim"] == 2

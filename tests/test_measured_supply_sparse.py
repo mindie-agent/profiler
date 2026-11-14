@@ -428,3 +428,72 @@ def test_summarize_sparse_mte1_streams_bounded_and_guards_missing_or_static_even
     assert "sparse_mte1_tensor_geometry_mismatch" in {
         item["code"] for item in no_kv_supply["limitations"]
     }
+
+
+def test_overlapping_windows_deduplicate_sparse_and_matrix_pmu_supply() -> None:
+    from mindie_profiler.events import Window
+    from mindie_profiler.sources_csv import CsvSource, probe_csv
+
+    train_geom = json.loads(TRAIN_GEOMETRY.read_text(encoding="utf-8"))
+    sfa_events = list(
+        CsvSource(probe_csv(REAL_SFA_CSV), rank_id="rank_0", rank_index=0).iter_events(
+            max_rows=100, timeout_s=3.0
+        )
+    )
+    whole = Window(
+        min(e.start_ns for e in sfa_events),
+        max(e.end_ns for e in sfa_events),
+        label="all",
+    )
+    last = max(sfa_events, key=lambda e: e.start_ns)
+    clipped_last = Window(
+        last.start_ns + (last.end_ns - last.start_ns) // 2,
+        last.end_ns,
+        label="clipped_last",
+    )
+    overlapping = [
+        whole,
+        *(Window(last.start_ns - i, last.end_ns + i, label=f"w{i}") for i in range(1, 5)),
+    ]
+    for windows in ([whole], overlapping, [clipped_last, whole], [whole, clipped_last]):
+        rep = analyze_profile(
+            REAL_SFA_CSV,
+            windows=windows,
+            source="csv",
+            aic_count=32,
+            deployment_image_id=R64,
+            sparse_geometry=train_geom,
+        )
+        pmu = rep["enrichment"]["pmu_observations"]
+        assert pmu["counts"]["bound_event_count"] == 4
+        assert pmu["counts"]["clipped_bound_event_count"] == 0
+        assert len(pmu["bound_events"]) == 4
+        svc = pmu["measured_supply"]["resource_services"][0]
+        assert svc["event_count"] == 3
+        assert svc["median_mte1_us"] == pytest.approx(269.564, rel=1e-9)
+        assert svc["rate_bytes_per_s"] == pytest.approx(93_782_016 / 269.564e-6, rel=1e-9)
+
+    qbmm_csv = Path(__file__).parent / "fixtures" / "r64_qbmm_dual_load" / "kernel_details.csv"
+    qbmm_events = list(
+        CsvSource(probe_csv(qbmm_csv), rank_id="rank_0", rank_index=0).iter_events(
+            max_rows=100, timeout_s=3.0
+        )
+    )
+    q_whole = Window(
+        min(e.start_ns for e in qbmm_events),
+        max(e.end_ns for e in qbmm_events),
+        label="q_all",
+    )
+    q_last = max(qbmm_events, key=lambda e: e.start_ns)
+    q_base = analyze_profile(
+        qbmm_csv, windows=[q_whole], source="csv", aic_count=32, deployment_image_id=R64
+    )["enrichment"]["pmu_observations"]
+    q_over = analyze_profile(
+        qbmm_csv,
+        windows=[q_whole, Window(q_last.start_ns - 5, q_last.end_ns + 5, label="q_dup")],
+        source="csv",
+        aic_count=32,
+        deployment_image_id=R64,
+    )["enrichment"]["pmu_observations"]
+    assert q_over["counts"] == q_base["counts"]
+    assert q_over["measured_supply"]["pair"] == q_base["measured_supply"]["pair"]

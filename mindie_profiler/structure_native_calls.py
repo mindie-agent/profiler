@@ -77,6 +77,9 @@ def verify_graph_id(structure: Mapping[str, Any]) -> str:
 def event_raw_identity(event: Event) -> tuple[str, ...] | None:
     """Signed raw task identity used for one HCCL call's rank-local aliases."""
     locator = event.locator or {}
+    join_status = str(locator.get("task_join_status") or "")
+    if join_status.startswith("unresolved"):
+        return None
     global_task = locator.get(
         "global_task_id", locator.get("globalTaskId", locator.get("task_global_id"))
     )
@@ -97,6 +100,36 @@ def event_raw_identity(event: Event) -> tuple[str, ...] | None:
     )
 
 
+def _comm_op_token(event: Event) -> tuple[Any, ...] | None:
+    if event.table != "COMMUNICATION_OP":
+        return None
+    locator = event.locator or {}
+    op_id = locator.get("op_id", locator.get("opId"))
+    rowid = locator.get("rowid")
+    if op_id not in (None, ""):
+        return ("op_id", str(op_id))
+    if rowid not in (None, ""):
+        return ("rowid", str(rowid))
+    return ("event_id", event.event_id)
+
+
+def conflicted_comm_raw_identities(events: Any) -> set[tuple[str, ...]]:
+    """Return raw task identities claimed by multiple distinct COMMUNICATION_OP rows."""
+    owners: dict[tuple[str, ...], tuple[Any, ...]] = {}
+    conflicted: set[tuple[str, ...]] = set()
+    for event in events:
+        if (token := _comm_op_token(event)) is None:
+            continue
+        if (raw := event_raw_identity(event)) is None or raw in conflicted:
+            continue
+        prev = owners.get(raw)
+        if prev is not None and prev != token:
+            conflicted.add(raw)
+        else:
+            owners[raw] = token
+    return conflicted
+
+
 _MAX_IMPLEMENTATION_CACHE = 4096
 
 
@@ -109,10 +142,18 @@ def resolve_implementation_correspondence(
     event: Event | None = None,
     *,
     target_registry: dict[int, tuple[str, ...]] | None = None,
+    conflicted_raws: set[tuple[str, ...]] | None = None,
 ) -> dict[str, Any] | None:
     signature = event_signature(event) if event is not None else None
     raw = event_raw_identity(event) if event is not None else None
-    matched_raw = raw if (raw is not None and raw in target_index.native_call_observed) else None
+    is_conflicted_raw = bool(
+        raw is not None and conflicted_raws is not None and raw in conflicted_raws
+    )
+    matched_raw = (
+        raw
+        if (raw is not None and not is_conflicted_raw and raw in target_index.native_call_observed)
+        else None
+    )
     alt_name = event.name if (event is not None and event.name and event.name != kind) else None
     event_match_key = (
         None
@@ -377,19 +418,24 @@ class NativeCallGlobalTracker:
         self.primary_by_raw: dict[tuple[str, ...], str] = {}
         self.presentation_counts: Counter[tuple[str, ...]] = Counter()
         self.identity_counts: Counter[str] = Counter()
+        self.comm_owner_by_raw: dict[tuple[str, ...], tuple[Any, ...]] = {}
+        self.conflicted_raws: set[tuple[str, ...]] = set()
 
     def evict_closed(self, window_end_ns: int | None, rank_id: str | None = None) -> None:
         if window_end_ns is None:
             return
         rank_text = str(rank_id) if rank_id is not None else None
+        candidates = set(self.primary_by_raw) | set(self.comm_owner_by_raw) | self.conflicted_raws
         expired = [
             raw
-            for raw in self.primary_by_raw
+            for raw in candidates
             if (rank_text is None or raw[0] == rank_text) and int(raw[7]) <= window_end_ns
         ]
         for raw in expired:
             self.primary_by_raw.pop(raw, None)
             self.presentation_counts.pop(raw, None)
+            self.comm_owner_by_raw.pop(raw, None)
+            self.conflicted_raws.discard(raw)
 
 
 class NativeCallWindowTracker:
@@ -407,6 +453,46 @@ class NativeCallWindowTracker:
         correspondence: Mapping[str, Any] | None,
     ) -> tuple[str | None, dict[str, Any] | None]:
         raw = event_raw_identity(event)
+        comm_token = _comm_op_token(event)
+        if raw is not None and comm_token is not None:
+            prev_owner = self._global.comm_owner_by_raw.get(raw)
+            if raw in self._global.conflicted_raws or (
+                prev_owner is not None and prev_owner != comm_token
+            ):
+                self._global.conflicted_raws.add(raw)
+                self._global.comm_owner_by_raw.pop(raw, None)
+                self._global.primary_by_raw.pop(raw, None)
+                self._global.presentation_counts.pop(raw, None)
+                removed = self._groups.pop(raw, ())
+                for prior in removed:
+                    self._global.identity_counts["observed_raw_identity"] -= 1
+                    if self._global.identity_counts["observed_raw_identity"] <= 0:
+                        self._global.identity_counts.pop("observed_raw_identity", None)
+                    self._global.identity_counts["conflicted_comm_op_claim"] += 1
+                    if (sref := prior.get("sample_row")) is not None:
+                        sref["native_call_identity"] = "conflicted_comm_op_claim"
+                        sref["native_call_occurrence"] = None
+            else:
+                if (
+                    raw not in self._global.comm_owner_by_raw
+                    and len(self._global.comm_owner_by_raw) >= self._global.max_active
+                ):
+                    raise ProfilerUsageError(
+                        f"active spanning native-call identities exceeded max_active={self._global.max_active}; "
+                        "select narrower rank scopes or raise --max-mapping-events"
+                    )
+                self._global.comm_owner_by_raw[raw] = comm_token
+
+        if raw is not None and raw in self._global.conflicted_raws:
+            if (
+                event.table == "COMMUNICATION_OP"
+                or event.op_type in self._alias_names
+                or event.name in self._alias_names
+            ):
+                self._global.identity_counts["conflicted_comm_op_claim"] += 1
+                return "conflicted_comm_op_claim", None
+            return None, None
+
         native_identity: str | None = None
         if correspondence is not None and correspondence.get("basis") == "observed_hccl_alias_same_call":
             native_identity = "observed_raw_identity"
@@ -454,9 +540,15 @@ class NativeCallWindowTracker:
                 "event_id": event.event_id,
                 "interval": interval,
                 "occurrence": occurrence,
+                "sample_row": None,
             }
         )
         return native_identity, occurrence
+
+    def bind_sample_row(self, event: Event, sample_row: dict[str, Any]) -> None:
+        raw = event_raw_identity(event)
+        if raw is not None and (entries := self._groups.get(raw)):
+            entries[-1]["sample_row"] = sample_row
 
     def finish(
         self,
@@ -466,6 +558,8 @@ class NativeCallWindowTracker:
     ) -> list[dict[str, Any]]:
         native_calls: list[dict[str, Any]] = []
         for raw, entries in self._groups.items():
+            if raw in self._global.conflicted_raws:
+                continue
             presentations = [entry["occurrence"]["presentation_id"] for entry in entries]
             for entry in entries:
                 entry["occurrence"].update(
@@ -496,6 +590,7 @@ __all__ = [
     "NativeCallGlobalTracker",
     "NativeCallWindowTracker",
     "OperatorCorrespondenceAccumulator",
+    "conflicted_comm_raw_identities",
     "event_raw_identity",
     "event_signature",
     "native_call_signature_match",

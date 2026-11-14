@@ -13,8 +13,10 @@
     with deterministic ``ORDER BY``; row-budget overflow raises
     ``ProfilerQueryError`` and is never silently truncated.
   * A ``TASK`` row binds to ``COMMUNICATION_OP`` only when ``(connectionId,
-    deviceId)`` matches and the interval contains (preferring exact match) a
-    unique ``TASK`` occurrence; ambiguous or missing matches remain unresolved.
+    deviceId)`` matches, ``globalTaskId`` is unique across full-capture ``TASK``,
+    optional child ``opId`` ownership agrees, no overlapping un-disambiguated
+    ``COMMUNICATION_OP`` shares the connection, and no two ``COMMUNICATION_OP``
+    rows claim the same ``TASK`` occurrence; ambiguous claims stay unresolved.
 
 [Timeouts & Locks]
   Executes on the caller-owned read-only SQLite connection under its active
@@ -179,6 +181,79 @@ def _optional_enum(
     return f"<unresolved:{key}>"
 
 
+def _overlapping_comm_rowids(
+    rows: list[tuple[int, int, int, str, str, str | None]],
+) -> set[int]:
+    """Return rowids of COMMUNICATION_OP rows overlapping another row on (conn, device)."""
+    by_conn: dict[tuple[str, str], list[tuple[int, int, int]]] = {}
+    for rowid, start_ns, end_ns, dev_text, conn_text, _ in rows:
+        by_conn.setdefault((conn_text, dev_text), []).append((start_ns, end_ns, rowid))
+    collided: set[int] = set()
+    for group in by_conn.values():
+        if len(group) < 2:
+            continue
+        group.sort()
+        max_end = group[0][1]
+        max_rowid = group[0][2]
+        for start_ns, end_ns, rowid in group[1:]:
+            if start_ns < max_end:
+                collided.add(max_rowid)
+                collided.add(rowid)
+            if end_ns >= max_end:
+                max_end = end_ns
+                max_rowid = rowid
+    return collided
+
+
+def _child_op_owners(
+    con: sqlite3.Connection,
+    *,
+    tables: tuple[str, ...],
+    columns_fn: Callable[[sqlite3.Connection, str], set[str]],
+    gids: list[Any],
+    schema_path: str,
+    window: Window,
+    deadline: float | None,
+    timeout_s: float,
+    stats: QueryStats,
+) -> tuple[dict[str, str], set[str]]:
+    owner_by_gid: dict[str, str] = {}
+    conflicted_gids: set[str] = set()
+    if not gids:
+        return owner_by_gid, conflicted_gids
+    for child_table in (
+        "COMMUNICATION_TASK_INFO",
+        "COMMUNICATION_SCHEDULE_TASK_INFO",
+        "COMPUTE_TASK_INFO",
+    ):
+        if child_table not in tables:
+            continue
+        cols = columns_fn(con, child_table)
+        if not {"globalTaskId", "opId"} <= cols:
+            continue
+        for offset in range(0, len(gids), _CHUNK_SIZE):
+            _check_deadline(deadline, schema_path, window, timeout_s)
+            chunk = gids[offset : offset + _CHUNK_SIZE]
+            marks = ", ".join("?" for _ in chunk)
+            rows = con.execute(
+                f"SELECT globalTaskId, opId FROM {child_table} WHERE globalTaskId IN ({marks})",
+                chunk,
+            ).fetchall()
+            stats.rows_read += len(rows)
+            for gid_val, op_val in rows:
+                gid_text = _optional_text(gid_val)
+                op_text = _optional_text(op_val)
+                if gid_text is None or op_text is None or gid_text in conflicted_gids:
+                    continue
+                prev = owner_by_gid.get(gid_text)
+                if prev is not None and prev != op_text:
+                    conflicted_gids.add(gid_text)
+                    owner_by_gid.pop(gid_text, None)
+                else:
+                    owner_by_gid[gid_text] = op_text
+    return owner_by_gid, conflicted_gids
+
+
 def read_communication_events(
     con: sqlite3.Connection,
     *,
@@ -198,18 +273,27 @@ def read_communication_events(
     deadline: float | None = None,
     timeout_s: float = 20.0,
 ) -> list[Event]:
-    """Read windowed ``COMMUNICATION_OP`` events with optional relational TASK join."""
+    """Read windowed ``COMMUNICATION_OP`` events with exclusive relational TASK join."""
     _check_deadline(deadline, schema_path, window, timeout_s)
     comm_columns = columns_fn(con, comm_table)
+    has_op_id = "opId" in comm_columns
     optional = {
         name: (name if name in comm_columns else "NULL")
-        for name in ("connectionId", "algType", "dataType", "count", "groupName", "rankSize")
+        for name in (
+            "connectionId",
+            "algType",
+            "dataType",
+            "count",
+            "groupName",
+            "rankSize",
+            "opId",
+        )
     }
     comm_sql = (
         "SELECT rowid, opName, opType, startNs, endNs, deviceId, "
         f"{optional['connectionId']}, {optional['algType']}, "
         f"{optional['dataType']}, {optional['count']}, "
-        f"{optional['groupName']}, {optional['rankSize']} "
+        f"{optional['groupName']}, {optional['rankSize']}, {optional['opId']} "
         f"FROM {comm_table} WHERE endNs > ? AND startNs < ? ORDER BY startNs, rowid LIMIT ?"
     )
     comm_rows = con.execute(
@@ -226,7 +310,7 @@ def read_communication_events(
         return []
 
     can_join_task = "connectionId" in comm_columns and "connectionId" in task_columns
-    task_indexes: dict[tuple[str, str], _ContainingTaskIndex] = {}
+    resolved_by_rowid: dict[int, tuple[tuple[Any, ...] | None, str]] = {}
     if can_join_task:
         conn_values = sorted(
             {row[6] for row in comm_rows if _optional_text(row[6]) is not None},
@@ -240,6 +324,8 @@ def read_communication_events(
         query_lo = min([window.start_ns, *(s for s, _ in valid_spans)])
         query_hi = max([window.end_ns, *(e for _, e in valid_spans)])
         tasks_by_connection: dict[tuple[str, str], list[tuple[Any, ...]]] = {}
+        raw_gid_values: dict[str, Any] = {}
+        env_lo, env_hi = query_lo, query_hi
         task_read = 0
         for offset in range(0, len(conn_values), _CHUNK_SIZE):
             _check_deadline(deadline, schema_path, window, timeout_s)
@@ -265,13 +351,124 @@ def read_communication_events(
                 conn_text = _optional_text(task[0])
                 if conn_text is None or task[5] is None or task[6] is None:
                     continue
-                if _as_int(task[6]) <= _as_int(task[5]):
+                t_start, t_end = _as_int(task[5]), _as_int(task[6])
+                if t_end <= t_start:
                     continue
+                env_lo = min(env_lo, t_start)
+                env_hi = max(env_hi, t_end)
                 dev_text = "" if task[1] is None else str(task[1])
                 tasks_by_connection.setdefault((conn_text, dev_text), []).append(task)
+                if (gid_text := _optional_text(task[2])) is not None:
+                    raw_gid_values.setdefault(gid_text, task[2])
+
+        task_indexes: dict[tuple[str, str], _ContainingTaskIndex] = {}
         for key, raw_list in tasks_by_connection.items():
             _check_deadline(deadline, schema_path, window, timeout_s)
             task_indexes[key] = _ContainingTaskIndex(raw_list)
+
+        ambiguous_gids: set[str] = set()
+        gid_list = list(raw_gid_values.values())
+        for offset in range(0, len(gid_list), _CHUNK_SIZE):
+            _check_deadline(deadline, schema_path, window, timeout_s)
+            chunk = gid_list[offset : offset + _CHUNK_SIZE]
+            marks = ", ".join("?" for _ in chunk)
+            dups = con.execute(
+                f"SELECT globalTaskId FROM {task_table} WHERE globalTaskId IN ({marks}) "
+                "GROUP BY globalTaskId HAVING COUNT(*) > 1",
+                chunk,
+            ).fetchall()
+            stats.rows_read += len(dups)
+            for (dup_gid,) in dups:
+                if (gid_text := _optional_text(dup_gid)) is not None:
+                    ambiguous_gids.add(gid_text)
+
+        owner_by_gid, conflicted_gids = (
+            _child_op_owners(
+                con,
+                tables=tables,
+                columns_fn=columns_fn,
+                gids=gid_list,
+                schema_path=schema_path,
+                window=window,
+                deadline=deadline,
+                timeout_s=timeout_s,
+                stats=stats,
+            )
+            if has_op_id
+            else ({}, set())
+        )
+
+        envelope_ops: list[tuple[int, int, int, str, str, str | None]] = []
+        env_read = 0
+        for offset in range(0, len(conn_values), _CHUNK_SIZE):
+            _check_deadline(deadline, schema_path, window, timeout_s)
+            chunk = conn_values[offset : offset + _CHUNK_SIZE]
+            marks = ", ".join("?" for _ in chunk)
+            remaining = (max_rows - env_read) + 1
+            env_sql = (
+                f"SELECT rowid, startNs, endNs, deviceId, connectionId, {optional['opId']} "
+                f"FROM {comm_table} WHERE connectionId IN ({marks}) "
+                "AND endNs > ? AND startNs < ? ORDER BY startNs, rowid LIMIT ?"
+            )
+            batch = con.execute(env_sql, (*chunk, env_lo, env_hi, remaining)).fetchall()
+            env_read += len(batch)
+            stats.rows_read += len(batch)
+            if env_read > max_rows:
+                raise ProfilerQueryError(
+                    f"{Path(schema_path).name}: comm envelope {window.label or window.step} "
+                    f"exceeded row budget {max_rows}"
+                )
+            for erow in batch:
+                if erow[1] is None or erow[2] is None or _as_int(erow[2]) <= _as_int(erow[1]):
+                    continue
+                conn_text = _optional_text(erow[4])
+                if conn_text is None:
+                    continue
+                envelope_ops.append(
+                    (
+                        _as_int(erow[0]),
+                        _as_int(erow[1]),
+                        _as_int(erow[2]),
+                        "" if erow[3] is None else str(erow[3]),
+                        conn_text,
+                        _optional_text(erow[5]) if has_op_id else None,
+                    )
+                )
+
+        overlapping_rowids = _overlapping_comm_rowids(envelope_ops)
+        op_id_counts: dict[tuple[str, str], int] = {}
+        for _, _, _, dev_text, _, op_text in envelope_ops:
+            if op_text is not None:
+                op_id_counts[(dev_text, op_text)] = op_id_counts.get((dev_text, op_text), 0) + 1
+
+        provisional: dict[int, tuple[tuple[Any, ...], str, str]] = {}
+        claimants: dict[tuple[str, str], list[int]] = {}
+        for rowid, s_ns, e_ns, dev_text, conn_text, op_text in envelope_ops:
+            index = task_indexes.get((conn_text, dev_text))
+            cand = index.unique_bound(s_ns, e_ns) if index is not None else None
+            if cand is None:
+                resolved_by_rowid[rowid] = (None, "unresolved_no_unique_connection_task")
+                continue
+            gid_text = _optional_text(cand[2])
+            if gid_text is None or gid_text in ambiguous_gids or gid_text in conflicted_gids:
+                resolved_by_rowid[rowid] = (None, "unresolved_ambiguous_global_task_id")
+                continue
+            dup_op_id = op_text is not None and op_id_counts.get((dev_text, op_text), 0) > 1
+            if gid_text in owner_by_gid:
+                if op_text is None or dup_op_id or owner_by_gid[gid_text] != op_text:
+                    resolved_by_rowid[rowid] = (None, "unresolved_op_id_mismatch")
+                    continue
+            elif rowid in overlapping_rowids or dup_op_id:
+                resolved_by_rowid[rowid] = (None, "unresolved_shared_connection_overlap")
+                continue
+            provisional[rowid] = (cand, dev_text, gid_text)
+            claimants.setdefault((dev_text, gid_text), []).append(rowid)
+
+        for rowid, (cand, dev_text, gid_text) in provisional.items():
+            if len(claimants[(dev_text, gid_text)]) > 1:
+                resolved_by_rowid[rowid] = (None, "unresolved_shared_task_claim")
+            else:
+                resolved_by_rowid[rowid] = (cand, "connection_and_interval")
 
     algo_enums = _enum_lookup(con, tables, "ENUM_HCCL_ALGO_TYPE", columns_fn)
     events: list[Event] = []
@@ -281,30 +478,28 @@ def read_communication_events(
         if row[3] is None or row[4] is None or _as_int(row[4]) <= _as_int(row[3]):
             stats.bad_rows += 1
             continue
+        rowid = _as_optional_int(row[0])
         start_ns = _as_int(row[3])
         end_ns = _as_int(row[4])
         device_id = "" if row[5] is None else str(row[5])
         connection_id = _optional_text(row[6]) if "connectionId" in comm_columns else None
-        bound_task = None
-        if can_join_task and connection_id is not None:
-            index = task_indexes.get((connection_id, device_id))
-            if index is not None:
-                bound_task = index.unique_bound(start_ns, end_ns)
+        op_id_text = _optional_text(row[12]) if has_op_id else None
+        if not can_join_task or connection_id is None:
+            bound_task, join_status = None, "unresolved_connection_id_absent"
+        else:
+            bound_task, join_status = resolved_by_rowid.get(
+                _as_int(row[0]), (None, "unresolved_no_unique_connection_task")
+            )
 
         global_task_id = _optional_text(bound_task[2]) if bound_task is not None else None
         stream_id = ("" if bound_task[3] is None else str(bound_task[3])) if bound_task is not None else ""
         task_id = ("" if bound_task[4] is None else str(bound_task[4])) if bound_task is not None else ""
-        if bound_task is not None:
-            join_status = "connection_and_interval"
-        elif not can_join_task or connection_id is None:
-            join_status = "unresolved_connection_id_absent"
-        else:
-            join_status = "unresolved_no_unique_connection_task"
 
         locator: dict[str, Any] = {
             "source": schema_path,
             "table": comm_table,
-            "rowid": _as_optional_int(row[0]),
+            "rowid": rowid,
+            "op_id": op_id_text,
             "device_id": device_id,
             "connection_id": connection_id,
             "global_task_id": global_task_id,
