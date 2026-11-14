@@ -287,4 +287,6 @@ def test_kernel_inventory_invalidates_archive_before_propagating_timeout(
 
     with sqlite3.connect(out_dir / "kernels.sqlite") as conn:
         statuses = dict(conn.execute("SELECT member, status FROM sources").fetchall())
+        cost_rows = conn.execute("SELECT COUNT(*) FROM costs").fetchone()[0]
     assert statuses == {"a.csv": "failed", "b.csv": "failed"}
+    assert cost_rows == 0

@@ -204,6 +204,7 @@ class PipeTailDrainer:
         self._max_bytes = max(512, int(max_bytes))
         self._stdout_buf = bytearray()
         self._stderr_buf = bytearray()
+        self._errors: list[BaseException] = []
         self._threads: list[threading.Thread] = []
         for pipe, target_buf in (
             (stdout_pipe, self._stdout_buf),
@@ -231,15 +232,15 @@ class PipeTailDrainer:
                     buf.extend(chunk)
                     if len(buf) > cap * 2:
                         del buf[:-cap]
-        except TimeoutError:
-            raise
+        except TimeoutError as exc:
+            self._errors.append(exc)
         except OSError:
             pass
         finally:
             try:
                 pipe.close()
-            except TimeoutError:
-                raise
+            except TimeoutError as exc:
+                self._errors.append(exc)
             except OSError:
                 pass
 
@@ -248,6 +249,8 @@ class PipeTailDrainer:
         for th in self._threads:
             rem = max(0.01, deadline - time.monotonic())
             th.join(timeout=rem)
+        if self._errors:
+            raise self._errors[0]
         cap = self._max_bytes
         out_str = bytes(self._stdout_buf[-cap:]).decode("utf-8", errors="replace")
         err_str = bytes(self._stderr_buf[-cap:]).decode("utf-8", errors="replace")

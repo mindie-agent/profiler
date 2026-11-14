@@ -715,10 +715,11 @@ def terminate_process_group(
             receipt["term_sent"] = True
             if tk_res.returncode == 0:
                 receipt["kill_sent"] = True
-            elif process.poll() is None:
+            elif not (tk_res.returncode == 128 and process.poll() is not None):
                 detail = (tk_res.stderr or tk_res.stdout or f"rc={tk_res.returncode}").strip()
                 _append_cleanup_error(receipt, f"taskkill tree cleanup failed: {detail}")
-                _fallback_kill(process, receipt, RuntimeError(detail))
+                if process.poll() is None:
+                    _fallback_kill(process, receipt, RuntimeError(detail))
         except subprocess.TimeoutExpired as exc:
             _append_cleanup_error(receipt, f"taskkill tree cleanup timed out: {exc}")
             _fallback_kill(process, receipt, exc)

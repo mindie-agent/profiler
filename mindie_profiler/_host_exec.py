@@ -215,7 +215,14 @@ def _which_windows(command: str, *, path: str | None = None) -> str | None:
     if not command:
         return None
     pathext_raw = os.environ.get("PATHEXT") or _WIN_DEFAULT_PATHEXT
-    pathext = [ext if ext.startswith(".") else f".{ext}" for ext in pathext_raw.split(";") if ext]
+    pathext: list[str] = []
+    for raw_ext in pathext_raw.split(";"):
+        if not raw_ext:
+            continue
+        norm_ext = raw_ext if raw_ext.startswith(".") else f".{raw_ext}"
+        for variant in (norm_ext.lower(), norm_ext):
+            if variant not in pathext:
+                pathext.append(variant)
     has_known_ext = any(command.lower().endswith(ext.lower()) for ext in pathext)
     if "\\" in command or "/" in command or (len(command) >= 2 and command[1] == ":"):
         direct_candidates = [command] if has_known_ext else [command, *(command + ext for ext in pathext)]

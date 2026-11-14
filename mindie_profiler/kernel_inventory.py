@@ -394,6 +394,7 @@ def _invalidate_source_archive(connection, path: Path, error: str) -> None:
             "SELECT id FROM sources WHERE path=?", (str(path),)).fetchall():
         _release_source(connection, source_id)
         connection.execute("UPDATE sources SET status='failed',error=? WHERE id=?", (error, source_id))
+    connection.execute("DELETE FROM costs")
     connection.commit()
 
 
