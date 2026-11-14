@@ -470,14 +470,22 @@ def ensure_capture_shim_binary(
                 "-lm",
             ]
         )
-        popen_kwargs: dict[str, object] = {}
-        if os.name == "nt":
-            popen_kwargs["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+        from ._host_exec import no_window_kwargs, which_native
+
+        resolved_compiler = which_native(compiler)
+        if not resolved_compiler:
+            raise ProfilerError(
+                f"failed to invoke C compiler {compiler!r} for CANN 9.x shim: native executable not found"
+            )
+        cmd[0] = resolved_compiler
+        popen_kwargs: dict[str, object] = dict(no_window_kwargs())
         try:
             proc = subprocess.run(
                 cmd,
                 capture_output=True,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 timeout=timeout_s,
                 check=False,
                 **popen_kwargs,
@@ -502,11 +510,20 @@ def ensure_capture_shim_binary(
         os.replace(tmp_so, so_path)
         return so_path
     finally:
-        if os.name != "nt":
-            try:
-                import fcntl
+        try:
+            if os.name != "nt":
+                try:
+                    import fcntl
 
-                fcntl.flock(lock_fd, fcntl.LOCK_UN)
+                    fcntl.flock(lock_fd, fcntl.LOCK_UN)
+                except TimeoutError:
+                    raise
+                except OSError:
+                    pass
+        finally:
+            try:
+                os.close(lock_fd)
+            except TimeoutError:
+                raise
             except OSError:
                 pass
-        os.close(lock_fd)

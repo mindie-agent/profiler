@@ -204,6 +204,7 @@ class PipeTailDrainer:
         self._max_bytes = max(512, int(max_bytes))
         self._stdout_buf = bytearray()
         self._stderr_buf = bytearray()
+        self._errors: list[BaseException] = []
         self._threads: list[threading.Thread] = []
         for pipe, target_buf in (
             (stdout_pipe, self._stdout_buf),
@@ -231,11 +232,15 @@ class PipeTailDrainer:
                     buf.extend(chunk)
                     if len(buf) > cap * 2:
                         del buf[:-cap]
+        except TimeoutError as exc:
+            self._errors.append(exc)
         except OSError:
             pass
         finally:
             try:
                 pipe.close()
+            except TimeoutError as exc:
+                self._errors.append(exc)
             except OSError:
                 pass
 
@@ -244,6 +249,8 @@ class PipeTailDrainer:
         for th in self._threads:
             rem = max(0.01, deadline - time.monotonic())
             th.join(timeout=rem)
+        if self._errors:
+            raise self._errors[0]
         cap = self._max_bytes
         out_str = bytes(self._stdout_buf[-cap:]).decode("utf-8", errors="replace")
         err_str = bytes(self._stderr_buf[-cap:]).decode("utf-8", errors="replace")
@@ -460,6 +467,9 @@ class CaptureShmSession:
                     import fcntl
 
                     fcntl.flock(lfd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except TimeoutError:
+                os.close(lfd)
+                raise
             except OSError as exc:
                 os.close(lfd)
                 raise ProfilerUsageError(
@@ -473,34 +483,43 @@ class CaptureShmSession:
             raise
 
     def _release_controller_lock(self, *, unlink: bool) -> None:
-        if self._ctl_lock_fd is not None:
-            lfd = self._ctl_lock_fd
-            self._ctl_lock_fd = None
-            try:
-                if os.name == "nt":
-                    import msvcrt
+        try:
+            if self._ctl_lock_fd is not None:
+                lfd = self._ctl_lock_fd
+                self._ctl_lock_fd = None
+                try:
+                    if os.name == "nt":
+                        import msvcrt
 
-                    os.lseek(lfd, 0, os.SEEK_SET)
-                    msvcrt.locking(lfd, msvcrt.LK_UNLCK, 1)
-                else:
-                    import fcntl
+                        os.lseek(lfd, 0, os.SEEK_SET)
+                        msvcrt.locking(lfd, msvcrt.LK_UNLCK, 1)
+                    else:
+                        import fcntl
 
-                    fcntl.flock(lfd, fcntl.LOCK_UN)
-            except OSError:
-                pass
-            try:
-                os.close(lfd)
-            except OSError:
-                pass
-        if unlink and self._ctl_lock_path is not None:
-            try:
-                self._ctl_lock_path.unlink(missing_ok=True)
-            except OSError:
-                pass
-        if self._ctl_lock_key is not None:
-            with _CONTROLLER_GUARD:
-                _ACTIVE_CONTROLLERS.discard(self._ctl_lock_key)
-            self._ctl_lock_key = None
+                        fcntl.flock(lfd, fcntl.LOCK_UN)
+                except TimeoutError:
+                    raise
+                except OSError:
+                    pass
+                finally:
+                    try:
+                        os.close(lfd)
+                    except TimeoutError:
+                        raise
+                    except OSError:
+                        pass
+            if unlink and self._ctl_lock_path is not None:
+                try:
+                    self._ctl_lock_path.unlink(missing_ok=True)
+                except TimeoutError:
+                    raise
+                except OSError:
+                    pass
+        finally:
+            if self._ctl_lock_key is not None:
+                with _CONTROLLER_GUARD:
+                    _ACTIVE_CONTROLLERS.discard(self._ctl_lock_key)
+                self._ctl_lock_key = None
 
     @property
     def view(self) -> MindieCaptureShm:
@@ -646,18 +665,27 @@ class CaptureShmSession:
                 except BufferError:
                     pass
             self._mmap = None
-        if self._fd is not None:
+        try:
             try:
-                os.close(self._fd)
-            except OSError:
-                pass
-            self._fd = None
-        if should_unlink:
-            try:
-                self.path.unlink(missing_ok=True)
-            except OSError:
-                pass
-        self._release_controller_lock(unlink=should_unlink)
+                if self._fd is not None:
+                    fd = self._fd
+                    self._fd = None
+                    try:
+                        os.close(fd)
+                    except TimeoutError:
+                        raise
+                    except OSError:
+                        pass
+            finally:
+                if should_unlink:
+                    try:
+                        self.path.unlink(missing_ok=True)
+                    except TimeoutError:
+                        raise
+                    except OSError:
+                        pass
+        finally:
+            self._release_controller_lock(unlink=should_unlink)
 
     def __enter__(self) -> CaptureShmSession:
         return self
@@ -684,6 +712,8 @@ def mark_capture_step() -> bool:
                     fn.argtypes = []
                     fn.restype = None
                     _STEP_FN = fn
+            except TimeoutError:
+                raise
             except OSError:
                 _STEP_FN = None
     if _STEP_FN is None:

@@ -63,13 +63,6 @@ ACCEPTANCE_SCHEMA = "mindie-profiler-provider-acceptance/1"
 GIT_TIMEOUT_S = 10.0
 GIT_MAX_BYTES = 1_048_576
 _CREATE_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
-
-
-def _no_window_kwargs() -> dict[str, int]:
-    if os.name != "nt":
-        return {}
-    return {"creationflags": _CREATE_NO_WINDOW}
-
 _IMPORT_LOCK = threading.Lock()
 _SUPPORTED_LAYOUTS = {"nd", "row_major", "contiguous", "contiguous_row_major"}
 _MMA_OP_KINDS = {"matmul", "gemm", "mm", "bmm", "addmm"}
@@ -104,16 +97,24 @@ def _hardware_category(op_kind: str | None) -> str:
     raise ProviderUnmodeledError(f"unsupported_op_kind:{op_kind}")
 
 
+from ._host_exec import no_window_kwargs, normalize_git_repo_arg, which_native
+
+
 def _run_git(source_path: Path, *arguments: str) -> str:
-    command = ["git", "-C", str(source_path), *arguments]
+    git_bin = which_native("git")
+    if not git_bin:
+        raise ProviderUnmodeledError(f"source_git_{arguments[0]}_failed")
+    command = [git_bin, "-C", normalize_git_repo_arg(source_path), *arguments]
     try:
         completed = subprocess.run(
             command,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=GIT_TIMEOUT_S,
             check=False,
-            **_no_window_kwargs(),
+            **no_window_kwargs(),
         )
     except TimeoutError:
         raise

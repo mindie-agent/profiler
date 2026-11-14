@@ -389,6 +389,15 @@ def summarize(connection, output: Path) -> dict[str, Any]:
     return counts
 
 
+def _invalidate_source_archive(connection, path: Path, error: str) -> None:
+    for (source_id,) in connection.execute(
+            "SELECT id FROM sources WHERE path=?", (str(path),)).fetchall():
+        _release_source(connection, source_id)
+        connection.execute("UPDATE sources SET status='failed',error=? WHERE id=?", (error, source_id))
+    connection.execute("DELETE FROM costs")
+    connection.commit()
+
+
 def build_inventory(manifest: Mapping[str, Any], output: str | Path, *, timeout_s: float = 300) -> dict[str, Any]:
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
@@ -425,16 +434,14 @@ def build_inventory(manifest: Mapping[str, Any], output: str | Path, *, timeout_
                 connection.commit()
                 if not found:
                     no_exports.append(str(path))
+            except TimeoutError as exc:
+                _invalidate_source_archive(connection, path, str(exc))
+                raise
             except (OSError, EOFError, tarfile.TarError, ProfilerSchemaError, ProfilerQueryError) as exc:
                 failures.append({"source": str(path), "error": str(exc)})
                 # Opening/enumerating a source can fail before ingest_source.
                 # Invalidate its stale members as well as any partial import.
-                for (source_id,) in connection.execute(
-                        "SELECT id FROM sources WHERE path=?", (str(path),)).fetchall():
-                    _release_source(connection, source_id)
-                    connection.execute("UPDATE sources SET status='failed',error=? WHERE id=?",
-                                       (str(exc), source_id))
-                connection.commit()
+                _invalidate_source_archive(connection, path, str(exc))
             print(f"inventory {index}/{len(paths)} {path.name}: {found} CSV export(s)", flush=True)
         summary = summarize(connection, output)
     summary.update({"db": str(db.resolve()), "source_files": len(paths), "failures": failures,

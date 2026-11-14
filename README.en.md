@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Release-v0.5.12-blue" alt="Release v0.5.12">
+  <img src="https://img.shields.io/badge/Release-v0.5.13-blue" alt="Release v0.5.13">
   <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/Interface-CLI%20%7C%20Python%20API%20%7C%20C7%20JSON-00ADD8" alt="CLI | Python API | C7 JSON">
   <img src="https://img.shields.io/badge/Target-Ascend%20NPU%20(A2%20%2F%20A3%20%2F%20A5)-FF6B00" alt="Ascend NPU">
@@ -73,8 +73,8 @@ If you are an AI Agent receiving the prompt above, follow these steps to install
    - Install the pinned release wheels (recommended for production):
      ```bash
      uv pip install \
-       https://github.com/mindie-agent/sim/releases/download/v0.9.11/mindie_sim-0.9.11-py3-none-any.whl \
-       https://github.com/mindie-agent/profiler/releases/download/v0.5.12/mindie_profiler-0.5.12-py3-none-any.whl
+       https://github.com/mindie-agent/sim/releases/download/v0.9.13/mindie_sim-0.9.13-py3-none-any.whl \
+       https://github.com/mindie-agent/profiler/releases/download/v0.5.13/mindie_profiler-0.5.13-py3-none-any.whl
      ```
    - Or install the latest development version from `main`:
      ```bash
@@ -109,9 +109,9 @@ If you are an AI Agent receiving the prompt above, follow these steps to install
 | **`memory`**<br/>`mindie_profiler.memory_profile`<br/>`python3 -m mindie_profiler.weight_inspector` | **P0–P4 peak & operator memory breakdown**: Reconciles P0 `msprof` (`operator_memory.csv` / `memory_record.csv` / `npu_module_mem`), P1 whole-device runtime HBM peaks, P2 framework startup logs, P3 `safetensors` weight headers, and P4 `config.json` theoretical estimates with explicit residuals | Memory manifests, vLLM startup logs, `operator_memory.csv`, `memory_record.csv`, model weight dir | `mindie-memory-attribution/1` JSON report (weights, KV cache, activations, communication buffers, and uninvented residual) |
 | **`modeling-inputs`**<br/>`mindie_profiler.modeling_inputs`<br/>`python3 -m mindie_profiler.enrichment_model` | **Retained observation export and Roofline comparison**: Extracts shapes, dtypes, layouts, durations and hardware peaks into `ModelingInputsBundle` and computes single-kernel ideal lower bounds; rewritten sim does not natively consume this legacy bundle | C7 summary JSON, hotspot records, and raw physical hardware peaks | `mindie-modeling-inputs/1` observation bundle and 3-value alignment (`ideal_hardware_lower_bound_ms`, `model_predicted_ms`, `measured_device_ms`) |
 
-### Current Compatible Combination: Structure Attribution, Bottom-Up Structural Inference & Unified 7,337-Capture Operator & Step Validation (Paired with `mindie-sim 0.9.11`)
+### Current Compatible Combination: Structure Attribution, Bottom-Up Structural Inference & Unified 7,337-Capture Operator & Step Validation (Paired with `mindie-sim 0.9.13`)
 
-The current installation pairs `mindie-profiler v0.5.12` with [`mindie-sim v0.9.11`](https://github.com/mindie-agent/sim) for end-to-end raw capture analysis, bottom-up structural inference (`mindie-structural-inference/1`), model structure attribution, and 4D hardware efficiency reports, backed by the open **7,337-capture NPU profiling benchmark dataset** ([`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench)) spanning `A2` (`837`), `A3` (`1,729`), and `A5` (`4,771`) (`436,412` step samples). Historical full-fleet measurements retain their original data and sampled versions in [`docs/releases/profiler-0.5.7.md`](./docs/releases/profiler-0.5.7.md), [`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md), and [`examples/structure/README.md`](./examples/structure/README.md).
+The current installation pairs `mindie-profiler v0.5.13` with [`mindie-sim v0.9.13`](https://github.com/mindie-agent/sim) for end-to-end raw capture analysis, bottom-up structural inference (`mindie-structural-inference/1`), model structure attribution, and 4D hardware efficiency reports, backed by the open **7,337-capture NPU profiling benchmark dataset** ([`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench)) spanning `A2` (`837`), `A3` (`1,729`), and `A5` (`4,771`) (`436,412` step samples). Historical full-fleet measurements retain their original data and sampled versions in [`docs/releases/profiler-0.5.7.md`](./docs/releases/profiler-0.5.7.md), [`docs/releases/profiler-0.5.6.md`](./docs/releases/profiler-0.5.6.md), and [`examples/structure/README.md`](./examples/structure/README.md).
 
 Evaluation caches identify the complete sim Python/JSON content (`simulator_identity`); all 7,337 captures undergo measurement-blind, zero-cached-prediction live operator-level (`L1` operator families + `L2` accelerator engines) and step-level (`L3/L4` step latency) physical modeling recomputation while preserving each suite's evaluation mode.
 
