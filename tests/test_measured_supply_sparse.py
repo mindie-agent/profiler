@@ -497,3 +497,61 @@ def test_overlapping_windows_deduplicate_sparse_and_matrix_pmu_supply() -> None:
     )["enrichment"]["pmu_observations"]
     assert q_over["counts"] == q_base["counts"]
     assert q_over["measured_supply"]["pair"] == q_base["measured_supply"]["pair"]
+
+
+def test_pmu_enrichment_scales_past_250k_events_and_deduplicates_serialized_records() -> None:
+    from mindie_profiler.accounting import account_window
+    from mindie_profiler.enrichment_anomaly import pmu_summary
+    from mindie_profiler.events import Event, Observation, QueryStats, SourceRef, Window
+    from mindie_profiler.measured_supply import measured_supply_event_record
+    from mindie_profiler.measured_supply_summary import (
+        PmuEventDeduplicator,
+        summarize_measured_supply,
+    )
+    from mindie_profiler.sources_csv import CsvSource, probe_csv
+
+    src = SourceRef("rank_0", 0, "db", "/mem/p.db", "p.db", None, 1, "v1", "db", 1)
+    comm_events = [
+        Event(
+            rank_id="rank_0", rank_index=0, name="hcom_allReduce_", op_type="hcom_allReduce_",
+            task_type="COMMUNICATION", core="COMMUNICATION", stream_id="5", task_id=str(i),
+            device_id="0", start_ns=i * 10 + 1, end_ns=i * 10 + 9,
+            source_kind="db", table="COMMUNICATION_OP", pmu_status="not_applicable",
+        )
+        for i in range(250_005)
+    ]
+    win = Window(0, 250_005 * 10 + 10, step=1)
+    obs = Observation(
+        "rank_0", 0, win,
+        account_window(comm_events[:1], win),
+        comm_events, src, QueryStats("rank_0", "1"),
+    )
+    dedup_probe = PmuEventDeduplicator([obs])
+    assert dedup_probe._obs_locator == {}
+    summary = pmu_summary([obs], physical_owners=32)
+    assert summary["counts"]["not_applicable_event_count"] == 250_005
+
+    # Serialized measured_supply_event_record dicts place observation_id inside provenance:
+    # overlapping windows over the same physical QBMM event must deduplicate to event_count=1.
+    qbmm_csv = Path(__file__).parent / "fixtures" / "r64_qbmm_dual_load" / "kernel_details.csv"
+    q_ev = next(
+        iter(
+            CsvSource(probe_csv(qbmm_csv), rank_id="rank_0", rank_index=0).iter_events(
+                max_rows=10, timeout_s=3.0
+            )
+        )
+    )
+    win_a = Window(q_ev.start_ns - 10, q_ev.end_ns + 10, label="wa")
+    win_b = Window(q_ev.start_ns - 20, q_ev.end_ns + 20, label="wb")
+    obs_a = Observation(
+        "rank_0", 0, win_a, account_window([q_ev], win_a), [q_ev], src, QueryStats("rank_0", "wa")
+    )
+    obs_b = Observation(
+        "rank_0", 0, win_b, account_window([q_ev], win_b), [q_ev], src, QueryStats("rank_0", "wb")
+    )
+    r64_ident = {"source_scope": "r64", "image_digest": R64_IMAGE_SHA}
+    rec_a = measured_supply_event_record(obs_a, q_ev, r64_ident, physical_owners=32)
+    rec_b = measured_supply_event_record(obs_b, q_ev, r64_ident, physical_owners=32)
+    assert "observation_id" not in rec_a and rec_a["provenance"]["observation_id"] != rec_b["provenance"]["observation_id"]
+    deduped = summarize_measured_supply([rec_a, rec_b], physical_owners=32, source_identity=r64_ident)
+    assert deduped["candidates"][0]["event_count"] == 1

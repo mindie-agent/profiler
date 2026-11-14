@@ -100,6 +100,37 @@ def event_raw_identity(event: Event) -> tuple[str, ...] | None:
     )
 
 
+_CONFLICTED_JOIN_STATUSES = frozenset(
+    {
+        "unresolved_shared_task_claim",
+        "unresolved_shared_connection_overlap",
+        "unresolved_op_id_mismatch",
+        "unresolved_ambiguous_global_task_id",
+        "unresolved_contested_comm_task",
+    }
+)
+
+
+def contested_raw_identity(event: Event) -> tuple[str, ...] | None:
+    """Return the contested TASK raw identity attached to an unresolved comm event."""
+    ct = (event.locator or {}).get("contested_task")
+    if not isinstance(ct, Mapping):
+        return None
+    fields = (
+        event.rank_id,
+        ct.get("global_task_id"),
+        ct.get("stream_id"),
+        ct.get("task_id"),
+        ct.get("connection_id"),
+        ct.get("device_id"),
+        ct.get("start_ns"),
+        ct.get("end_ns"),
+    )
+    if any(val in (None, "") for val in fields[1:]):
+        return None
+    return tuple(str(val) for val in fields)
+
+
 def _comm_op_token(event: Event) -> tuple[Any, ...] | None:
     if event.table != "COMMUNICATION_OP":
         return None
@@ -118,6 +149,8 @@ def conflicted_comm_raw_identities(events: Any) -> set[tuple[str, ...]]:
     owners: dict[tuple[str, ...], tuple[Any, ...]] = {}
     conflicted: set[tuple[str, ...]] = set()
     for event in events:
+        if (craw := contested_raw_identity(event)) is not None:
+            conflicted.add(craw)
         if (token := _comm_op_token(event)) is None:
             continue
         if (raw := event_raw_identity(event)) is None or raw in conflicted:
@@ -341,8 +374,24 @@ class OperatorCorrespondenceAccumulator:
     def __init__(self) -> None:
         self._variants: dict[str, dict[str, Any]] = {}
         self._counts: Counter[str] = Counter()
-        self._target_set: set[str] = set()
+        self._target_counts: Counter[str] = Counter()
         self._none_count = 0
+
+    @staticmethod
+    def _resolved_targets(
+        correspondence: Mapping[str, Any],
+        targets: tuple[str, ...] | None,
+    ) -> tuple[str, ...]:
+        if targets is not None:
+            return tuple(dict.fromkeys(targets))
+        return tuple(
+            dict.fromkeys(
+                [
+                    *(correspondence.get("declared_node_ids") or ()),
+                    *(correspondence.get("declared_subgraph_ids") or ()),
+                ]
+            )
+        )
 
     def add(
         self,
@@ -356,11 +405,31 @@ class OperatorCorrespondenceAccumulator:
         if canon not in self._variants:
             self._variants[canon] = dict(correspondence)
         self._counts[canon] += 1
-        if targets is not None:
-            self._target_set.update(targets)
+        for item in self._resolved_targets(correspondence, targets):
+            self._target_counts[item] += 1
+
+    def retract(
+        self,
+        old_correspondence: Mapping[str, Any] | None,
+        old_targets: tuple[str, ...] | None,
+        new_correspondence: Mapping[str, Any] | None,
+        new_targets: tuple[str, ...] | None = None,
+    ) -> None:
+        if old_correspondence is None:
+            self._none_count = max(0, self._none_count - 1)
         else:
-            self._target_set.update(correspondence.get("declared_node_ids") or ())
-            self._target_set.update(correspondence.get("declared_subgraph_ids") or ())
+            canon = json.dumps(old_correspondence, sort_keys=True, separators=(",", ":"))
+            if self._counts.get(canon, 0) > 1:
+                self._counts[canon] -= 1
+            else:
+                self._counts.pop(canon, None)
+                self._variants.pop(canon, None)
+            for item in self._resolved_targets(old_correspondence, old_targets):
+                if self._target_counts.get(item, 0) > 1:
+                    self._target_counts[item] -= 1
+                else:
+                    self._target_counts.pop(item, None)
+        self.add(new_correspondence, new_targets)
 
     def finish(self, op_type: str, rank: str, target_index: Any) -> dict[str, Any] | None:
         if not self._variants:
@@ -368,7 +437,7 @@ class OperatorCorrespondenceAccumulator:
         if len(self._variants) == 1 and self._none_count == 0:
             return dict(next(iter(self._variants.values())))
         ordered = sorted(self._variants.items(), key=lambda item: item[0])
-        union_targets = [key for key in target_index.all if key in self._target_set]
+        union_targets = [key for key in target_index.all if self._target_counts.get(key, 0) > 0]
         summary = target_index.describe_implementation(op_type, union_targets)
         call_ids = sorted(
             {str(cid) for _, corr in ordered for cid in (corr.get("call_ids") or ()) if cid}
@@ -446,44 +515,67 @@ class NativeCallWindowTracker:
         self._alias_names = alias_names
         self._groups: dict[tuple[str, ...], list[dict[str, Any]]] = defaultdict(list)
 
+    def _retract_raw(
+        self,
+        raw: tuple[str, ...],
+        retract_cb: Callable[[Event, dict[str, Any]], None] | None = None,
+    ) -> None:
+        self._global.conflicted_raws.add(raw)
+        self._global.comm_owner_by_raw.pop(raw, None)
+        self._global.primary_by_raw.pop(raw, None)
+        self._global.presentation_counts.pop(raw, None)
+        for prior in self._groups.pop(raw, ()):
+            self._global.identity_counts["observed_raw_identity"] -= 1
+            if self._global.identity_counts["observed_raw_identity"] <= 0:
+                self._global.identity_counts.pop("observed_raw_identity", None)
+            self._global.identity_counts["conflicted_comm_op_claim"] += 1
+            if (sref := prior.get("sample_row")) is not None:
+                sref["native_call_identity"] = "conflicted_comm_op_claim"
+                sref["native_call_occurrence"] = None
+            if retract_cb is not None:
+                retract_cb(prior["event"], prior)
+
+    def precheck_conflict(
+        self,
+        event: Event,
+        retract_cb: Callable[[Event, dict[str, Any]], None] | None = None,
+    ) -> None:
+        if (craw := contested_raw_identity(event)) is not None:
+            self._retract_raw(craw, retract_cb)
+        raw = event_raw_identity(event)
+        comm_token = _comm_op_token(event)
+        if raw is None or comm_token is None:
+            return
+        prev_owner = self._global.comm_owner_by_raw.get(raw)
+        if raw in self._global.conflicted_raws or (
+            prev_owner is not None and prev_owner != comm_token
+        ):
+            self._retract_raw(raw, retract_cb)
+            return
+        if (
+            raw not in self._global.comm_owner_by_raw
+            and len(self._global.comm_owner_by_raw) >= self._global.max_active
+        ):
+            raise ProfilerUsageError(
+                f"active spanning native-call identities exceeded max_active={self._global.max_active}; "
+                "select narrower rank scopes or raise --max-mapping-events"
+            )
+        self._global.comm_owner_by_raw[raw] = comm_token
+
     def observe(
         self,
         event: Event,
         interval: tuple[int, int],
         correspondence: Mapping[str, Any] | None,
+        *,
+        correspondence_targets: tuple[str, ...] | None = None,
     ) -> tuple[str | None, dict[str, Any] | None]:
+        self.precheck_conflict(event)
         raw = event_raw_identity(event)
-        comm_token = _comm_op_token(event)
-        if raw is not None and comm_token is not None:
-            prev_owner = self._global.comm_owner_by_raw.get(raw)
-            if raw in self._global.conflicted_raws or (
-                prev_owner is not None and prev_owner != comm_token
-            ):
-                self._global.conflicted_raws.add(raw)
-                self._global.comm_owner_by_raw.pop(raw, None)
-                self._global.primary_by_raw.pop(raw, None)
-                self._global.presentation_counts.pop(raw, None)
-                removed = self._groups.pop(raw, ())
-                for prior in removed:
-                    self._global.identity_counts["observed_raw_identity"] -= 1
-                    if self._global.identity_counts["observed_raw_identity"] <= 0:
-                        self._global.identity_counts.pop("observed_raw_identity", None)
-                    self._global.identity_counts["conflicted_comm_op_claim"] += 1
-                    if (sref := prior.get("sample_row")) is not None:
-                        sref["native_call_identity"] = "conflicted_comm_op_claim"
-                        sref["native_call_occurrence"] = None
-            else:
-                if (
-                    raw not in self._global.comm_owner_by_raw
-                    and len(self._global.comm_owner_by_raw) >= self._global.max_active
-                ):
-                    raise ProfilerUsageError(
-                        f"active spanning native-call identities exceeded max_active={self._global.max_active}; "
-                        "select narrower rank scopes or raise --max-mapping-events"
-                    )
-                self._global.comm_owner_by_raw[raw] = comm_token
-
-        if raw is not None and raw in self._global.conflicted_raws:
+        join_status = str((event.locator or {}).get("task_join_status") or "")
+        if (raw is not None and raw in self._global.conflicted_raws) or (
+            join_status in _CONFLICTED_JOIN_STATUSES
+        ):
             if (
                 event.table == "COMMUNICATION_OP"
                 or event.op_type in self._alias_names
@@ -537,9 +629,12 @@ class NativeCallWindowTracker:
         }
         self._groups[raw].append(
             {
+                "event": event,
                 "event_id": event.event_id,
                 "interval": interval,
                 "occurrence": occurrence,
+                "correspondence": correspondence,
+                "correspondence_targets": correspondence_targets,
                 "sample_row": None,
             }
         )

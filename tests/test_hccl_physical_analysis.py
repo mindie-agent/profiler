@@ -143,10 +143,9 @@ def _write_two_rank_packet(root: Path, *, with_connection_id: bool = True) -> Pa
 
 
 def _hccl_structure() -> dict:
-    schema = pytest.importorskip("mindie_sim.schema.operators")
-    hccl_graph = pytest.importorskip("mindie_sim.prediction.hccl_graph")
-    native_binding = pytest.importorskip("mindie_sim.prediction.native_binding")
-    structure_module = pytest.importorskip("mindie_sim.structure")
+    from mindie_sim.prediction import hccl_graph, native_binding
+    from mindie_sim.schema import operators as schema
+    from mindie_sim import structure as structure_module
 
     aliases = [
         {
@@ -377,10 +376,9 @@ def test_alias_presentations_use_interval_union_not_bounding_span() -> None:
 
 def test_real_glm45_golden_capture_hccl_alias_deduplicates_interval_union() -> None:
     """Acceptance happy path on retained real GLM-4.5 hardware capture SQLite DB."""
-    schema = pytest.importorskip("mindie_sim.schema.operators")
-    hccl_graph = pytest.importorskip("mindie_sim.prediction.hccl_graph")
-    native_binding = pytest.importorskip("mindie_sim.prediction.native_binding")
-    structure_module = pytest.importorskip("mindie_sim.structure")
+    from mindie_sim.prediction import hccl_graph, native_binding
+    from mindie_sim.schema import operators as schema
+    from mindie_sim import structure as structure_module
 
     real_start = 1763456164890902342
     real_end = 1763456164890910282
@@ -509,71 +507,47 @@ def test_reused_connection_id_join_is_sublinear_and_enforces_deadline(
 
 
 def test_competing_comm_ops_on_same_task_never_collapse_into_one_native_call(
-    tmp_path: Path,
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    import copy
     import shutil
-    from mindie_profiler.accounting import account_window
-    from mindie_profiler.events import Event, Observation, QueryStats, SourceRef
-    from mindie_profiler.structure_mapping import StructureMapper
+    from mindie_sim import structure as structure_module
+    from mindie_sim.prediction import hccl_graph, native_binding
+    from mindie_sim.schema import operators as schema
+    from mindie_profiler.collective_readiness import read_collective_readiness
 
-    operators_module = pytest.importorskip("mindie_sim.schema.operators")
-    lowering_module = pytest.importorskip("mindie_sim.prediction.collective_lowering")
-    structure_module = pytest.importorskip("mindie_sim.structure")
-    OpSpec = operators_module.OpSpec
-
-    db_copy = tmp_path / "rank_0" / "ASCEND_PROFILER_OUTPUT" / "ascend_pytorch_profiler_0.db"
+    real_db = REAL_GLM45_ROOT / "rank_0" / "ASCEND_PROFILER_OUTPUT" / "ascend_pytorch_profiler_0.db"
+    db_copy = tmp_path / "glm_dup" / "rank_0" / "ASCEND_PROFILER_OUTPUT" / "ascend_pytorch_profiler_0.db"
     db_copy.parent.mkdir(parents=True)
-    shutil.copy2(REAL_GLM45_DB, db_copy)
+    shutil.copy2(real_db, db_copy)
+
     con = sqlite3.connect(db_copy)
     row78 = con.execute(
         "SELECT opName, startNs, endNs, connectionId, groupName, opId, relay, retry, "
-        "dataType, algType, count, opType, waitNs FROM COMMUNICATION_OP WHERE opId = 78"
+        "dataType, algType, count, opType, deviceId, waitNs, opConnectionId "
+        "FROM COMMUNICATION_OP WHERE opId = 78"
     ).fetchone()
-    assert row78 is not None
+    assert row78 is not None and len(row78) == 15
     real_start, real_end = int(row78[1]), int(row78[2])
-    con.execute(
-        "INSERT INTO COMMUNICATION_OP VALUES(?, ?, ?, ?, ?, 79, ?, ?, ?, ?, 6, ?, ?)",
-        (row78[0], real_start, real_end, row78[3], row78[4], row78[6], row78[7], row78[8], row78[9], row78[11], row78[12]),
-    )
-    con.commit()
     con.close()
 
-    win = Window(start_ns=real_start - 1_000, end_ns=real_end + 1_000, step=1)
-    events, _ = DbSource(probe_db(db_copy)).iter_window(win)
-    comm_events = [ev for ev in events if ev.table == "COMMUNICATION_OP"]
-    assert len(comm_events) == 2
-    assert all(ev.locator["global_task_id"] is None for ev in comm_events)
-    assert all(str(ev.locator["task_join_status"]).startswith("unresolved_") for ev in comm_events)
-
-    op = OpSpec(
-        op_id="tp_ar_dup_guard",
-        family="allreduce",
-        phase="decode",
-        stage="decode",
-        layer=0,
-        requests=("r0",),
-        dtype="bf16",
-        comm_bytes=6,
-        comm_group="tp",
-        comm_ranks=2,
-        metadata={"collective": "allreduce", "ranks": 2},
+    op = schema.OpSpec(
+        "s0.l0.tp_all_reduce", "allreduce", "decode", 0, 0, (),
+        (3,), (3,), (3,), (3,), (3,), link_bytes=12, dtype="fp32",
+        metadata=(("group_axis", "tp"), ("collective", "allreduce")),
     )
-    lowered = lowering_module.lower_collectives(
-        [op],
-        {"mesh_allreduce_max_bytes": 1 << 20},
-        captured=[
+    lowered = list(hccl_graph.lower((op,), SimpleNamespace(kernels={}), "fp32"))
+    lowered[0] = native_binding.declare_native_call(
+        lowered[0],
+        api={"namespace": "hccl", "entry": "HcclAllReduce"},
+        source={"path": "hccl/all_reduce.cc", "sha256": "b" * 64},
+        kernels=[{"name": "AivKernel", "role": "aiv", "evidence": "source_declared"}],
+        observed_aliases=[
             {
-                "op_id": "tp_ar_dup_guard",
-                "rank_id": "rank_0",
-                "global_task_id": "528",
-                "stream_id": "5",
-                "task_id": "2750",
-                "connection_id": "20633",
-                "device_id": "0",
-                "start_ns": str(real_start),
-                "end_ns": str(real_end),
-                "compute_name": "AivKernel",
-                "comm_name": "hcom_allReduce__042_0_1",
+                "rank_id": "rank_0", "logical_rank": 0, "global_task_id": "528",
+                "stream_id": "5", "task_id": "62134", "connection_id": "20633",
+                "device_id": "0", "start_ns": str(real_start), "end_ns": str(real_end),
+                "compute_name": "AivKernel", "comm_name": "hcom_allReduce__042_0_1",
             }
         ],
     )
@@ -585,52 +559,157 @@ def test_competing_comm_ops_on_same_task_never_collapse_into_one_native_call(
         "graph_id": structure["graph_id"],
         "rank_replicas": {"rank_0": "0"},
     }
-    report = analyze_profile(
-        tmp_path,
-        ranks=["rank_0"],
-        source="db",
-        structure=structure,
-        structure_bindings=bindings,
-        windows=[win],
-        hash_sources=False,
-    )
-    assert report["structure_mapping"]["native_call_count"] == 0
+    win = Window(start_ns=real_start - 1_000, end_ns=real_end + 1_000, step=1)
 
-    # Direct mapper defense-in-depth when pre-built Events share one raw identity across op_id=78/79.
-    synthetic = [
+    # 1. Positive control BEFORE inserting competing opId=79: binds 1 native call (2 presentations).
+    pos = analyze_profile(
+        tmp_path / "glm_dup", ranks=["rank_0"], source="db",
+        structure=structure, structure_bindings=bindings, windows=[win], hash_sources=False,
+    )["structure_mapping"]
+    assert pos["native_call_count"] == 1
+    assert pos["native_calls"][0]["presentation_count"] == 2
+    assert pos["native_calls"][0]["activity_ns"] == real_end - real_start == 7_940
+
+    # 2. Insert competing opId=79 on connectionId=20633: invalidates BOTH comm AND AivKernel!
+    con = sqlite3.connect(db_copy)
+    row79 = list(row78)
+    row79[5] = 79
+    row79[10] = 6
+    con.execute(
+        f"INSERT INTO COMMUNICATION_OP VALUES ({','.join('?' for _ in row79)})", row79
+    )
+    con.commit()
+    con.close()
+
+    events, _ = DbSource(probe_db(db_copy)).iter_window(win)
+    comm_events = [ev for ev in events if ev.table == "COMMUNICATION_OP"]
+    aiv_events = [ev for ev in events if ev.name == "AivKernel"]
+    assert len(comm_events) == 2 and len(aiv_events) == 1
+    assert all(ev.locator["global_task_id"] is None for ev in comm_events)
+    assert aiv_events[0].locator.get("task_join_status") == "unresolved_contested_comm_task"
+
+    neg = analyze_profile(
+        tmp_path / "glm_dup", ranks=["rank_0"], source="db",
+        structure=structure, structure_bindings=bindings, windows=[win], hash_sources=False,
+    )["structure_mapping"]
+    assert neg["native_call_count"] == 0
+    assert neg["native_calls"] == []
+    assert neg["native_call_identity_counts"] == {"conflicted_comm_op_claim": 3}
+    for row in neg["event_mappings"]:
+        corr = row.get("implementation_correspondence") or {}
+        assert corr.get("observed_proof") is not True
+        assert corr.get("occurrence_binding_implied") is not True
+
+    # 3. Pre-built Event parity between list (streamed=False) and iterator (streamed=True).
+    aiv_pre = Event(
+        rank_id="rank_0", rank_index=0, name="AivKernel", op_type="AivKernel",
+        task_type="MIX_AIC", core="MIX_AIC", stream_id="5", task_id="62134", device_id="0",
+        start_ns=real_start, end_ns=real_end, source_kind="db", table="COMPUTE_TASK_INFO",
+        locator={"task_global_id": "528", "connection_id": "20633"},
+    )
+    comm_pre = [
         Event(
-            rank_id="rank_0",
-            rank_index=0,
-            name="hcom_allReduce__042_0_1",
-            op_type="hcom_allReduce_",
-            task_type="COMMUNICATION",
-            core="COMMUNICATION",
-            stream_id="5",
-            task_id="2750",
-            device_id="0",
-            start_ns=real_start,
-            end_ns=real_end,
-            source_kind="db",
-            table="COMMUNICATION_OP",
+            rank_id="rank_0", rank_index=0, name="hcom_allReduce__042_0_1",
+            op_type="hcom_allReduce_", task_type="COMMUNICATION", core="COMMUNICATION",
+            stream_id="5", task_id="62134", device_id="0", start_ns=real_start, end_ns=real_end,
+            source_kind="db", table="COMMUNICATION_OP",
             locator={"op_id": oid, "global_task_id": "528", "connection_id": "20633", "count": cnt},
         )
         for oid, cnt in (("78", 3), ("79", 6))
     ]
-    obs = Observation(
-        "rank_0",
-        0,
-        win,
-        account_window(synthetic, win),
-        synthetic,
-        SourceRef("rank_0", 0, "db", "/mem", "mem", None, 1, "v1", "db", 1),
-        QueryStats("rank_0", "1"),
-    )
-    for streamed in (False, True):
-        mapper = StructureMapper(structure, bindings=bindings)
-        wres = (
-            mapper.map_window(obs, events=iter(synthetic))
-            if streamed
-            else mapper.map_window(obs)
+    for batch, expected_claims in ((comm_pre, 2), ([aiv_pre, *comm_pre], 3)):
+        obs = Observation(
+            "rank_0", 0, win, account_window(batch, win), batch,
+            SourceRef("rank_0", 0, "db", "/mem", "mem", None, 1, "v1", "db", 1),
+            QueryStats("rank_0", "1"),
         )
-        assert wres["native_calls"] == []
-        assert mapper.native_tracker.identity_counts["conflicted_comm_op_claim"] == 2
+        results = []
+        for streamed in (False, True):
+            mapper = StructureMapper(copy.deepcopy(structure), bindings=bindings)
+            wres = mapper.map_window(obs, events=iter(batch)) if streamed else mapper.map_window(obs)
+            assert wres["native_calls"] == []
+            assert dict(mapper.native_tracker.identity_counts) == {
+                "conflicted_comm_op_claim": expected_claims
+            }
+            for srow in mapper.sample:
+                scorr = srow.get("implementation_correspondence") or {}
+                assert scorr.get("observed_proof") is not True
+                assert scorr.get("occurrence_binding_implied") is not True
+                assert srow["native_call_occurrence"] is None
+            for op_row in wres["operators"]:
+                ocorr = op_row.get("implementation_correspondence") or {}
+                assert ocorr.get("observed_proof") is not True
+                assert ocorr.get("occurrence_binding_implied") is not True
+            results.append((dict(mapper.native_tracker.identity_counts), [r["implementation_correspondence"] for r in mapper.sample]))
+        assert results[0] == results[1]
+
+    # 4. Child ownership query enforces max_rows budget without reading unbounded rows.
+    child_db = tmp_path / "child_budget.db"
+    ccon = sqlite3.connect(child_db)
+    ccon.executescript(
+        """
+        CREATE TABLE STRING_IDS(id INTEGER PRIMARY KEY, value TEXT);
+        CREATE TABLE TASK(
+            globalTaskId INT, startNs INT, endNs INT, deviceId INT,
+            streamId INT, taskId INT, modelId INT, contextId INT, taskType INT, connectionId INT
+        );
+        CREATE TABLE COMPUTE_TASK_INFO(name INT, globalTaskId INT, opType INT, taskType INT);
+        CREATE TABLE COMMUNICATION_OP(
+            opName INT, opType INT, startNs INT, endNs INT, deviceId INT, connectionId INT, opId INT
+        );
+        CREATE TABLE COMMUNICATION_TASK_INFO(globalTaskId INT, opId INT);
+        INSERT INTO STRING_IDS VALUES(1, 'hcom_allReduce_');
+        INSERT INTO TASK VALUES(5, 100, 200, 0, 1, 1, 1, 1, 1, 9);
+        INSERT INTO COMMUNICATION_OP VALUES(1, 1, 100, 200, 0, 9, 1);
+        """
+    )
+    ccon.executemany("INSERT INTO COMMUNICATION_TASK_INFO VALUES(5, 1)", [() for _ in range(500)])
+    ccon.commit()
+    ccon.close()
+    with pytest.raises(ProfilerQueryError, match="comm child join.*exceeded row budget 4"):
+        DbSource(probe_db(child_db)).iter_window(Window(0, 500, step=1), max_rows=4)
+
+    # 5. Readiness sequential non-overlapping collectives never share one unowned TASK,
+    #    and fetch_rows issues zero per-query PRAGMA busy_timeout statements (Iron Rule 1).
+    seq_db = tmp_path / "seq" / "rank_0" / "ASCEND_PROFILER_OUTPUT" / "ascend_pytorch_profiler_0.db"
+    seq_db.parent.mkdir(parents=True)
+    scon = sqlite3.connect(seq_db)
+    scon.executescript(
+        """
+        CREATE TABLE STRING_IDS(id INTEGER PRIMARY KEY, value TEXT);
+        CREATE TABLE TASK(
+            globalTaskId INT, startNs INT, endNs INT, deviceId INT,
+            streamId INT, taskId INT, taskType INT, connectionId INT
+        );
+        CREATE TABLE COMPUTE_TASK_INFO(globalTaskId INT, name INT, opType INT, taskType INT);
+        CREATE TABLE COMMUNICATION_OP(
+            opName INT, startNs INT, endNs INT, connectionId INT, deviceId INT, opId INT
+        );
+        INSERT INTO STRING_IDS VALUES(1, 'AivKernel'), (2, 'MIX_AIC'), (3, 'hcom_allReduce_');
+        INSERT INTO TASK VALUES(1, 0, 100, 0, 5, 17, 2, 77);
+        INSERT INTO COMPUTE_TASK_INFO VALUES(1, 1, 1, 2);
+        INSERT INTO COMMUNICATION_OP VALUES(3, 10, 20, 77, 0, 10), (3, 50, 60, 77, 0, 11);
+        """
+    )
+    scon.commit()
+    scon.close()
+
+    from mindie_profiler import sql as sql_mod
+
+    real_open = sql_mod.open_readonly
+    post_open_sql: list[str] = []
+
+    def traced_open(*args, **kwargs):
+        conn = real_open(*args, **kwargs)
+        conn.set_trace_callback(post_open_sql.append)
+        return conn
+
+    monkeypatch.setattr("mindie_profiler.collective_readiness.open_readonly", traced_open)
+    for r_windows in (None, [(10, 20)]):
+        post_open_sql.clear()
+        res = read_collective_readiness(tmp_path / "seq", source="db", windows=r_windows)
+        assert not any("busy_timeout" in stmt.lower() for stmt in post_open_sql)
+        assert "shared_connection_without_op_id" in res["limitations"]
+        for rcall in res["calls"]:
+            assert rcall["observed_context"]["bound_task_global_id"] is None
+            assert rcall["service_children"] == []

@@ -144,9 +144,9 @@ def _call_rows(
     assert source.db_path is not None
     db_label = Path(source.db_path).name
     effective_timeout = max(0.1, float(timeout_s))
-    busy_ms = reserve_sqlite_lock_budget(deadline, db_label, effective_timeout)
+    reserve_sqlite_lock_budget(deadline, db_label, effective_timeout)
     db = open_readonly(
-        source.db_path, timeout_s=busy_ms / 1000.0, allow_pragma=True
+        source.db_path, timeout_s=MIN_SQLITE_LOCK_BUDGET_S, allow_pragma=True
     )
     db.row_factory = sqlite3.Row
     db.set_progress_handler(lambda: 1 if time.monotonic() > deadline else 0, 5_000)
@@ -166,27 +166,14 @@ def _call_rows(
             db, db_label, tables, "ENUM_HCCL_DATA_TYPE", deadline=deadline, timeout_s=effective_timeout
         )
         transports = enum_map(
-            db,
-            db_label,
-            tables,
-            "ENUM_HCCL_TRANSPORT_TYPE",
-            deadline=deadline,
-            timeout_s=effective_timeout,
+            db, db_label, tables, "ENUM_HCCL_TRANSPORT_TYPE", deadline=deadline, timeout_s=effective_timeout
         )
 
         has_op_id_col = "opId" in cols
         op_id_expr = "opId" if has_op_id_col else "rowid AS opId"
         order_col = "opId" if has_op_id_col else "rowid"
         selected = ["startNs", "endNs", "connectionId", "deviceId", op_id_expr]
-        for optional in (
-            "opName",
-            "groupName",
-            "dataType",
-            "algType",
-            "count",
-            "rankSize",
-            "transportType",
-        ):
+        for optional in ("opName", "groupName", "dataType", "algType", "count", "rankSize", "transportType"):
             if optional in cols:
                 selected.append(optional)
         call_budget = max(0, MAX_TOTAL_CALLS - int(budgets.setdefault("calls", 0)))
@@ -214,16 +201,6 @@ def _call_rows(
             and item["endNs"] is not None
             and int(item["endNs"]) > int(item["startNs"])
         ]
-        envelope_lims: set[str] = set()
-        envelope_calls = (
-            query_windowed_calls(
-                db, db_label, ["startNs", "endNs", "connectionId", "deviceId", op_id_expr],
-                order_col, merge_intervals(call_envelopes), envelope_lims,
-                deadline=deadline, timeout_s=effective_timeout, max_calls=MAX_TOTAL_CALLS * 2,
-            )
-            if (windowed or "call_row_budget_reached" in calls_lims) and call_envelopes
-            else calls
-        )
         task_lims: set[str] = set()
         task_intervals: list[tuple[int, int]] = []
         task_rows: list[sqlite3.Row] = []
@@ -237,6 +214,25 @@ def _call_rows(
                 deadline=deadline, timeout_s=effective_timeout,
             )
             limitations.update(task_lims)
+        task_envelopes = [
+            (int(t["startNs"]), int(t["endNs"]))
+            for t in task_rows
+            if t["connectionId"] is not None
+            and t["startNs"] is not None
+            and t["endNs"] is not None
+            and int(t["endNs"]) > int(t["startNs"])
+        ]
+        envelope_lims: set[str] = set()
+        envelope_spans = merge_intervals([*call_envelopes, *task_envelopes])
+        envelope_calls = (
+            query_windowed_calls(
+                db, db_label, ["startNs", "endNs", "connectionId", "deviceId", op_id_expr],
+                order_col, envelope_spans, envelope_lims,
+                deadline=deadline, timeout_s=effective_timeout, max_calls=MAX_TOTAL_CALLS * 2,
+            )
+            if (windowed or "call_row_budget_reached" in calls_lims) and envelope_spans
+            else calls
+        )
 
         grouped_rows: dict[tuple[str, str], list[sqlite3.Row]] = {}
         global_ids: set[Any] = set()
@@ -310,17 +306,38 @@ def _call_rows(
         if "call_row_budget_reached" in envelope_lims:
             limitations.add("call_row_budget_reached")
             shared_conn_ops.update(str(item["opId"]) for item in calls)
+        contested_unkeyed: set[str] = set()
+        unkeyed_owners: dict[str, set[str]] = {}
+        for ec_idx, ec in enumerate(envelope_calls):
+            if (ec_idx & 255) == 0:
+                check_deadline(deadline, db_label, effective_timeout)
+            if ec["connectionId"] is None or ec["startNs"] is None or ec["endNs"] is None:
+                continue
+            ec_s, ec_e = int(ec["startNs"]), int(ec["endNs"])
+            if ec_e <= ec_s:
+                continue
+            ec_dev = str(ec["deviceId"]) if ec["deviceId"] is not None else ""
+            ec_group = task_index.get((str(ec["connectionId"]), ec_dev))
+            if ec_group is None:
+                continue
+            ec_rel, ec_cap = ec_group.overlapping(ec_s, ec_e)
+            if ec_cap:
+                limitations.add("overlap_scan_budget_reached")
+                shared_conn_ops.add(str(ec["opId"]))
+                continue
+            ec_tok = f"r:{ec['_rowid']}" if "_rowid" in ec.keys() else f"op:{ec['opId']}:{ec_idx}"
+            for t in ec_rel:
+                gid = str(t["globalTaskId"])
+                if gid in claimed_globals or gid in contested_unkeyed:
+                    continue
+                ts, te = int(t["startNs"]), int(t["endNs"])
+                if (ts <= ec_s and te >= ec_e) or (ec_s <= ts and te <= ec_e):
+                    owners = unkeyed_owners.setdefault(gid, set())
+                    owners.add(ec_tok)
+                    if len(owners) > 1:
+                        contested_unkeyed.add(gid)
 
-        prepared_calls: list[
-            tuple[
-                sqlite3.Row,
-                list[sqlite3.Row],
-                list[sqlite3.Row],
-                bool,
-                sqlite3.Row | None,
-                sqlite3.Row | None,
-            ]
-        ] = []
+        prepared_calls: list[tuple[Any, ...]] = []
         for call in calls:
             check_deadline(deadline, db_label, effective_timeout)
             if call["startNs"] is None or call["endNs"] is None:
@@ -369,8 +386,11 @@ def _call_rows(
             else:
                 seen_owned = {str(t["globalTaskId"]) for t in explicit_owned}
                 owned_tasks = list(explicit_owned)
+                raw_unkeyed = [t for t in related if str(t["globalTaskId"]) not in claimed_globals]
+                if any(str(t["globalTaskId"]) in contested_unkeyed for t in raw_unkeyed):
+                    limitations.add("shared_connection_without_op_id")
                 unkeyed_related = [
-                    t for t in related if str(t["globalTaskId"]) not in claimed_globals
+                    t for t in raw_unkeyed if str(t["globalTaskId"]) not in contested_unkeyed
                 ]
                 if call_op_id in shared_conn_ops:
                     if unkeyed_related:
@@ -410,13 +430,8 @@ def _call_rows(
             prepared_calls.append((call, related, owned_tasks, scan_capped, bound, pred))
 
         strings = resolve_strings(
-            db,
-            db_label,
-            tables,
-            referenced_string_ids,
-            limitations,
-            deadline=deadline,
-            timeout_s=effective_timeout,
+            db, db_label, tables, referenced_string_ids, limitations,
+            deadline=deadline, timeout_s=effective_timeout,
         )
 
         result: list[dict[str, Any]] = []

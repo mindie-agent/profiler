@@ -600,3 +600,74 @@ def test_attention_input_role_order_rejects_swapped_kv_and_unknown_roles() -> No
         idx=22,
     )
     assert native_call_signature_match(unknown_roles, ev_ab) is None
+
+
+def test_malformed_or_dangling_native_calls_fail_closed() -> None:
+    import copy
+    from mindie_sim import structure as sim_structure
+    from mindie_sim.schema import operators as sim_ops
+    from mindie_profiler.events import ProfilerUsageError
+
+    op = sim_ops.OpSpec(
+        op_id="s0.l0.q_proj",
+        family="matmul",
+        phase="prefill",
+        stage="prefill",
+        layer=0,
+        requests=("r0",),
+        semantic_shape=(4, 16),
+        local_shape=(4, 16),
+        padded_shape=(4, 16),
+        launch_shape=(4, 16),
+        dtype="bf16",
+        metadata={
+            "native_call": {
+                "schema": "mindie-sim/native-call-binding/1",
+                "call_id": "e" * 64,
+                "op_id": "s0.l0.q_proj",
+                "family": "matmul",
+                "recipe": "qbmm",
+                "source_boundary": "atb",
+                "api": {"namespace": "aclnn", "entry": "QuantBatchMatmulV3"},
+                "source": {"path": "ops/qbmm.cpp", "sha256": "f" * 64},
+                "typed": {"dtype": "bf16", "inputs": [[4, 8], [8, 16]], "outputs": [[4, 16]]},
+                "kernels": [{"name": "QuantBatchMatmulV3", "role": "aic", "evidence": "source_declared"}],
+            }
+        },
+    )
+    base = sim_structure.export_op_structure(
+        [op], model={"num_hidden_layers": 1}, execution={"phase": "prefill"}, native_evidence=True
+    )
+    binds = {
+        "schema_version": "mindie-profile-bindings/1",
+        "graph_id": base["graph_id"],
+        "rank_replicas": {"rank_0": "0"},
+    }
+    assert len(StructureMapper(copy.deepcopy(base), bindings=binds).target_index.native_bindings) == 1
+
+    bad_seq = copy.deepcopy(base)
+    bad_seq["native_calls"] = "not-a-sequence"
+    with pytest.raises(ProfilerUsageError, match="native_calls"):
+        StructureMapper(bad_seq, bindings=binds)
+
+    bad_item = copy.deepcopy(base)
+    bad_item["native_calls"].append("malformed-binding")
+    with pytest.raises(ProfilerUsageError, match="native_calls"):
+        StructureMapper(bad_item, bindings=binds)
+
+    bad_node = copy.deepcopy(base)
+    bad_node["native_calls"][0]["node_id"] = "missing-semantic-node"
+    with pytest.raises(ProfilerUsageError, match="unknown node_id"):
+        StructureMapper(bad_node, bindings=binds)
+
+    bad_cid = copy.deepcopy(base)
+    bad_cid["native_calls"][0]["call_id"] = ""
+    with pytest.raises(ProfilerUsageError, match="call_id"):
+        StructureMapper(bad_cid, bindings=binds)
+
+    dup_conflict = copy.deepcopy(base)
+    other = copy.deepcopy(base["native_calls"][0])
+    other["call_id"] = "9" * 64
+    dup_conflict["native_calls"].append(other)
+    with pytest.raises(ProfilerUsageError, match="conflicting bindings"):
+        StructureMapper(dup_conflict, bindings=binds)

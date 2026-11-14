@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Mapping, Sequence
 
 from .events import ProfilerUsageError
 
@@ -43,27 +44,61 @@ class StructureTargets:
         self.native_call_observed = defaultdict(list)
         self.native_call_alias_names = set()
         self.native_bindings = {}
+        if native_calls is not None and (
+            not isinstance(native_calls, Sequence) or isinstance(native_calls, (str, bytes))
+        ):
+            raise ProfilerUsageError("structure native_calls must be a sequence of mappings")
         for record in native_calls or ():
-            if not isinstance(record, dict):
-                continue
+            if not isinstance(record, Mapping):
+                raise ProfilerUsageError("structure native_calls entries must be mappings")
             node_id = record.get("node_id")
-            if node_id not in self.nodes:
-                continue
-            self.native_bindings[node_id] = record
+            if not isinstance(node_id, str) or not node_id or node_id not in self.nodes:
+                raise ProfilerUsageError(
+                    f"structure native_calls references unknown node_id: {node_id!r}"
+                )
             call_id = record.get("call_id")
-            if call_id and node_id not in self.native_calls[call_id]:
+            if not isinstance(call_id, str) or not call_id:
+                raise ProfilerUsageError(
+                    f"structure native_calls entry for {node_id} requires non-empty call_id"
+                )
+            prev_binding = self.native_bindings.get(node_id)
+            if prev_binding is not None and prev_binding.get("call_id") != call_id:
+                raise ProfilerUsageError(
+                    f"structure native_calls has conflicting bindings for {node_id}"
+                )
+            self.native_bindings[node_id] = record
+            if node_id not in self.native_calls[call_id]:
                 self.native_calls[call_id].append(node_id)
-            api = record.get("api") or {}
+            api = record.get("api")
+            if api is not None and not isinstance(api, Mapping):
+                raise ProfilerUsageError(f"structure native_calls api must be a mapping: {node_id}")
+            api = api or {}
             for entry in (api.get("entry"), api.get("aclnn_symbol"), *(api.get("candidates") or ())):
                 if entry and node_id not in self.native_call_entries[entry]:
                     self.native_call_entries[entry].append(node_id)
-            for kernel in record.get("kernels", ()):
-                name = kernel.get("name") if isinstance(kernel, dict) else None
+            kernels = record.get("kernels", ())
+            if not isinstance(kernels, Sequence) or isinstance(kernels, (str, bytes)):
+                raise ProfilerUsageError(
+                    f"structure native_calls kernels must be a sequence: {node_id}"
+                )
+            for kernel in kernels:
+                if not isinstance(kernel, Mapping):
+                    raise ProfilerUsageError(
+                        f"structure native_calls kernel entry must be a mapping: {node_id}"
+                    )
+                name = kernel.get("name")
                 if name and node_id not in self.native_call_kernels[name]:
                     self.native_call_kernels[name].append(node_id)
-            for alias in record.get("observed_aliases", ()):
-                if not isinstance(alias, dict):
-                    continue
+            aliases = record.get("observed_aliases", ())
+            if not isinstance(aliases, Sequence) or isinstance(aliases, (str, bytes)):
+                raise ProfilerUsageError(
+                    f"structure native_calls observed_aliases must be a sequence: {node_id}"
+                )
+            for alias in aliases:
+                if not isinstance(alias, Mapping):
+                    raise ProfilerUsageError(
+                        f"structure native_calls observed_alias must be a mapping: {node_id}"
+                    )
                 raw = (
                     alias.get("rank_id"),
                     alias.get("global_task_id"),

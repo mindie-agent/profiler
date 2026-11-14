@@ -213,6 +213,7 @@ def _child_op_owners(
     gids: list[Any],
     schema_path: str,
     window: Window,
+    max_rows: int,
     deadline: float | None,
     timeout_s: float,
     stats: QueryStats,
@@ -221,6 +222,7 @@ def _child_op_owners(
     conflicted_gids: set[str] = set()
     if not gids:
         return owner_by_gid, conflicted_gids
+    child_read = 0
     for child_table in (
         "COMMUNICATION_TASK_INFO",
         "COMMUNICATION_SCHEDULE_TASK_INFO",
@@ -235,11 +237,19 @@ def _child_op_owners(
             _check_deadline(deadline, schema_path, window, timeout_s)
             chunk = gids[offset : offset + _CHUNK_SIZE]
             marks = ", ".join("?" for _ in chunk)
+            remaining = (max_rows - child_read) + 1
             rows = con.execute(
-                f"SELECT globalTaskId, opId FROM {child_table} WHERE globalTaskId IN ({marks})",
-                chunk,
+                f"SELECT globalTaskId, opId FROM {child_table} "
+                f"WHERE globalTaskId IN ({marks}) LIMIT ?",
+                (*chunk, remaining),
             ).fetchall()
+            child_read += len(rows)
             stats.rows_read += len(rows)
+            if child_read > max_rows:
+                raise ProfilerQueryError(
+                    f"{Path(schema_path).name}: comm child join window "
+                    f"{window.label or window.step} exceeded row budget {max_rows}"
+                )
             for gid_val, op_val in rows:
                 gid_text = _optional_text(gid_val)
                 op_text = _optional_text(op_val)
@@ -272,6 +282,7 @@ def read_communication_events(
     stats: QueryStats,
     deadline: float | None = None,
     timeout_s: float = 20.0,
+    contested_tasks: set[tuple[str, str]] | None = None,
 ) -> list[Event]:
     """Read windowed ``COMMUNICATION_OP`` events with exclusive relational TASK join."""
     _check_deadline(deadline, schema_path, window, timeout_s)
@@ -311,6 +322,8 @@ def read_communication_events(
 
     can_join_task = "connectionId" in comm_columns and "connectionId" in task_columns
     resolved_by_rowid: dict[int, tuple[tuple[Any, ...] | None, str]] = {}
+    candidate_by_rowid: dict[int, tuple[Any, ...]] = {}
+    uniquely_owned_tasks: set[tuple[str, str]] = set()
     if can_join_task:
         conn_values = sorted(
             {row[6] for row in comm_rows if _optional_text(row[6]) is not None},
@@ -390,6 +403,7 @@ def read_communication_events(
                 gids=gid_list,
                 schema_path=schema_path,
                 window=window,
+                max_rows=max_rows,
                 deadline=deadline,
                 timeout_s=timeout_s,
                 stats=stats,
@@ -443,13 +457,17 @@ def read_communication_events(
 
         provisional: dict[int, tuple[tuple[Any, ...], str, str]] = {}
         claimants: dict[tuple[str, str], list[int]] = {}
+        candidate_tasks_seen: set[tuple[str, str]] = set()
         for rowid, s_ns, e_ns, dev_text, conn_text, op_text in envelope_ops:
             index = task_indexes.get((conn_text, dev_text))
             cand = index.unique_bound(s_ns, e_ns) if index is not None else None
             if cand is None:
                 resolved_by_rowid[rowid] = (None, "unresolved_no_unique_connection_task")
                 continue
+            candidate_by_rowid[rowid] = cand
             gid_text = _optional_text(cand[2])
+            if gid_text is not None:
+                candidate_tasks_seen.add((dev_text, gid_text))
             if gid_text is None or gid_text in ambiguous_gids or gid_text in conflicted_gids:
                 resolved_by_rowid[rowid] = (None, "unresolved_ambiguous_global_task_id")
                 continue
@@ -469,6 +487,9 @@ def read_communication_events(
                 resolved_by_rowid[rowid] = (None, "unresolved_shared_task_claim")
             else:
                 resolved_by_rowid[rowid] = (cand, "connection_and_interval")
+                uniquely_owned_tasks.add((dev_text, gid_text))
+        if contested_tasks is not None:
+            contested_tasks.update(candidate_tasks_seen - uniquely_owned_tasks)
 
     algo_enums = _enum_lookup(con, tables, "ENUM_HCCL_ALGO_TYPE", columns_fn)
     events: list[Event] = []
@@ -512,6 +533,19 @@ def read_communication_events(
             "rank_size": _as_optional_int(row[11]),
             "task_join_status": join_status,
         }
+        if bound_task is None and rowid is not None and (cand := candidate_by_rowid.get(rowid)) is not None:
+            cand_gid = _optional_text(cand[2])
+            cand_dev = "" if cand[1] is None else str(cand[1])
+            if cand_gid is not None and (cand_dev, cand_gid) not in uniquely_owned_tasks:
+                locator["contested_task"] = {
+                    "global_task_id": cand_gid,
+                    "stream_id": "" if cand[3] is None else str(cand[3]),
+                    "task_id": "" if cand[4] is None else str(cand[4]),
+                    "connection_id": connection_id,
+                    "device_id": device_id,
+                    "start_ns": _as_int(cand[5]),
+                    "end_ns": _as_int(cand[6]),
+                }
         events.append(
             Event(
                 rank_id="",

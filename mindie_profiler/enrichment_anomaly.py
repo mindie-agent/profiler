@@ -650,12 +650,13 @@ def pmu_summary(
     sparse_acc = SparseSupplyAccumulator(sparse_geometry=sparse_geometry)
     source_pmu_rows = sum(observation.stats.pmu_rows for observation in observations)
     source_ambiguous_groups = max((observation.stats.ambiguous_groups for observation in observations), default=0)
-    dedup = PmuEventDeduplicator()
-    for observation in observations:
+    dedup = PmuEventDeduplicator(observations)
+    for obs_idx, observation in enumerate(observations):
         for event in observation.events:
             dedup.observe(
                 observation,
                 event,
+                obs_idx=obs_idx,
                 counts=counts,
                 bound_events=bound_events,
                 ambiguous_groups=ambiguous_groups,
@@ -667,6 +668,13 @@ def pmu_summary(
                     obs, ev, source_identity, physical_owners=physical_owners
                 ),
             )
+        dedup.finish_observation(obs_idx, supply_acc=supply_acc, sparse_acc=sparse_acc)
+    if dedup.dedup_budget_reached:
+        add_limitation(
+            limitations, "pmu_overlap_dedup_budget_reached", "global",
+            "Active cross-window PMU deduplication reached its in-memory overlap ceiling; subsequent overlapping events may repeat.",
+            "medium",
+        )
     if counts["ambiguous_event_count"]:
         add_limitation(
             limitations, "pmu_ambiguous_task_occurrence", "global",

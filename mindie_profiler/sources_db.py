@@ -685,6 +685,7 @@ class DbSource:
                     }:
                         stats.pmu_ambiguous_rows += 1
 
+            contested_comm_tasks: set[tuple[str, str]] = set()
             comm = names["comm"]
             if comm in self.schema.tables:
                 events.extend(
@@ -705,6 +706,7 @@ class DbSource:
                         stats=stats,
                         deadline=deadline,
                         timeout_s=timeout_s,
+                        contested_tasks=contested_comm_tasks,
                     )
                 )
 
@@ -756,6 +758,11 @@ class DbSource:
                         )
                     )
                 stats.comm_sched_rows = len(sched_rows)
+            if contested_comm_tasks:
+                for ev in events:
+                    gid = ev.locator.get("task_global_id")
+                    if gid is not None and (ev.device_id, str(gid)) in contested_comm_tasks:
+                        ev.locator["task_join_status"] = "unresolved_contested_comm_task"
         except sqlite3.OperationalError as exc:
             if "interrupted" in str(exc).lower():
                 raise ProfilerQueryError(

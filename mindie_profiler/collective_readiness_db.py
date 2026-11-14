@@ -86,9 +86,8 @@ def fetch_rows(
     deadline: float,
     timeout_s: float,
 ) -> list[sqlite3.Row]:
-    busy_ms = reserve_sqlite_lock_budget(deadline, db_label, timeout_s)
+    reserve_sqlite_lock_budget(deadline, db_label, timeout_s)
     try:
-        db.execute(f"PRAGMA busy_timeout = {busy_ms}")
         out = list(db.execute(sql, tuple(args)).fetchmany(limit))
     except TimeoutError:
         raise
@@ -606,7 +605,7 @@ def query_windowed_calls(
     max_calls: int = MAX_CALLS,
 ) -> list[sqlite3.Row]:
     del order_col
-    seen_ops: set[str] = set()
+    seen_rowids: set[int] = set()
     calls: list[sqlite3.Row] = []
     select_cols = ",".join(["rowid AS _rowid", *selected])
     if max_calls <= 0:
@@ -641,13 +640,13 @@ def query_windowed_calls(
                 db, db_label, sql, params, fetch_limit, deadline=deadline, timeout_s=timeout_s
             )
             for row in batch:
-                op_key = str(row["opId"])
-                if op_key in seen_ops:
+                rid = int(row["_rowid"])
+                if rid in seen_rowids:
                     continue
                 if len(calls) >= max_calls:
                     limitations.add("call_row_budget_reached")
                     return _sort_calls(calls)
-                seen_ops.add(op_key)
+                seen_rowids.add(rid)
                 calls.append(row)
             if len(batch) < fetch_limit:
                 break

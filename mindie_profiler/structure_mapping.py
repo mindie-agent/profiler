@@ -455,11 +455,26 @@ class StructureMapper:
         window_calls = NativeCallWindowTracker(
             self.native_tracker, self.target_index.native_call_alias_names
         )
-        conflicted_raws = (
-            self.native_tracker.conflicted_raws | conflicted_comm_raw_identities(observation.events)
-            if events is None
-            else self.native_tracker.conflicted_raws
-        )
+        if events is None:
+            self.native_tracker.conflicted_raws.update(
+                conflicted_comm_raw_identities(observation.events)
+            )
+
+        def _retract_prior(prior_ev, prior_entry):
+            downgraded = self._implementation_correspondence(
+                prior_ev.op_type, observation.rank_id, event=prior_ev,
+                conflicted_raws=self.native_tracker.conflicted_raws,
+            )
+            d_targets = (
+                self._correspondence_targets.get(id(downgraded))
+                if downgraded is not None else None
+            )
+            operator_correspondences[prior_ev.op_type].retract(
+                prior_entry["correspondence"], prior_entry["correspondence_targets"],
+                downgraded, d_targets,
+            )
+            if (sref := prior_entry.get("sample_row")) is not None:
+                sref["implementation_correspondence"] = downgraded
         for event in observation.events if events is None else events:
             interval = event.clipped(observation.window.start_ns, observation.window.end_ns)
             if interval is None:
@@ -507,19 +522,19 @@ class StructureMapper:
             if diagnostic is not None:
                 diagnostic_counts[diagnostic["category"]] += 1
                 self.diagnostic_counts[diagnostic["category"]] += 1
+            window_calls.precheck_conflict(event, _retract_prior)
             correspondence = self._implementation_correspondence(
-                event.op_type, observation.rank_id, event=event, conflicted_raws=conflicted_raws
+                event.op_type, observation.rank_id, event=event,
+                conflicted_raws=self.native_tracker.conflicted_raws,
             )
-            operator_correspondences[event.op_type].add(
-                correspondence,
-                (
-                    self._correspondence_targets.get(id(correspondence))
-                    if correspondence is not None
-                    else None
-                ),
+            corr_targets = (
+                self._correspondence_targets.get(id(correspondence))
+                if correspondence is not None
+                else None
             )
+            operator_correspondences[event.op_type].add(correspondence, corr_targets)
             native_identity, native_occurrence = window_calls.observe(
-                event, interval, correspondence
+                event, interval, correspondence, correspondence_targets=corr_targets
             )
             operator = operators.setdefault(event.op_type, {
                 "operator_type": event.op_type, "event_count": 0,

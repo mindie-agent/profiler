@@ -325,7 +325,7 @@ def _parse_sparse_geometry(sparse_geometry: Mapping[str, Any]) -> dict[str, Any]
 class SparseSupplyAccumulator:
     """Bounded O(1)-when-inactive collector that filters before retaining samples."""
 
-    _MAX_DEDUP_EVENTS = 250_000
+    _MAX_DEDUP_EVENTS = 1_000_000
 
     def __init__(
         self,
@@ -342,11 +342,19 @@ class SparseSupplyAccumulator:
         self.grouped: dict[tuple[Any, ...], list[dict[str, Any]]] = {}
         self.group_totals: dict[tuple[Any, ...], int] = {}
         self._seen_events: set[tuple[str, ...]] = set()
+        self._phys_to_dedup: dict[tuple[str, str, str], tuple[str, ...]] = {}
         self.capped_samples = 0
         self.dropped_groups = 0
         self.geometry_mismatch = 0
+        self.dedup_budget_reached = False
 
-    def add_candidate(self, candidate: Mapping[str, Any]) -> None:
+    def add_candidate(
+        self,
+        candidate: Mapping[str, Any],
+        *,
+        retain: bool = True,
+        phys_key: tuple[str, str, str] | None = None,
+    ) -> None:
         if not self.enabled or self.spec is None:
             return
         spec = self.spec
@@ -379,11 +387,13 @@ class SparseSupplyAccumulator:
             )
             if dedup_key in self._seen_events:
                 return
-            if len(self._seen_events) >= self._MAX_DEDUP_EVENTS:
-                raise ProfilerQueryError(
-                    f"sparse PMU deduplication exceeded {self._MAX_DEDUP_EVENTS} distinct events"
-                )
-            self._seen_events.add(dedup_key)
+            if retain:
+                if len(self._seen_events) < self._MAX_DEDUP_EVENTS:
+                    self._seen_events.add(dedup_key)
+                    if phys_key is not None:
+                        self._phys_to_dedup[phys_key] = dedup_key
+                else:
+                    self.dedup_budget_reached = True
         if not _candidate_geometry_matches(
             candidate,
             q_len=spec["q_len"],
@@ -421,12 +431,19 @@ class SparseSupplyAccumulator:
             return
         bucket.append(dict(candidate))
 
-    def add_event(self, observation: Observation, event: Event) -> None:
+    def add_event(
+        self, observation: Observation, event: Event, *, retain: bool = True
+    ) -> None:
         if not self.enabled:
             return
         cand = sparse_supply_candidate(observation, event)
         if cand is not None:
-            self.add_candidate(cand)
+            phys_key = (str(observation.rank_id), str(observation.source.path), str(event.event_id))
+            self.add_candidate(cand, retain=retain, phys_key=phys_key)
+
+    def evict_physical_key(self, phys_key: tuple[str, str, str]) -> None:
+        if (dkey := self._phys_to_dedup.pop(phys_key, None)) is not None:
+            self._seen_events.discard(dkey)
 
 
 def summarize_sparse_mte1(
@@ -501,6 +518,12 @@ def summarize_sparse_mte1(
     grouped = acc.grouped
     capped = acc.capped_samples
     geometry_mismatch = acc.geometry_mismatch
+    if acc.dedup_budget_reached and limitations is not None:
+        limitations.append({
+            "code": "sparse_mte1_dedup_budget_reached",
+            "detail": f"sparse PMU overlap deduplication reached {acc._MAX_DEDUP_EVENTS} active events",
+            "severity": "medium",
+        })
     if acc.dropped_groups and limitations is not None:
         limitations.append(
             {
