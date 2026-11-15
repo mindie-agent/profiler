@@ -14,8 +14,46 @@ from collections import defaultdict
 from .events import ProfilerUsageError
 
 
+from collections.abc import Mapping
+
+
+def _norm_target_carrier(value, name="structure targets", _depth=0):
+    if _depth > 64:
+        raise ProfilerUsageError(f"{name} exceeds container nesting limit")
+    if isinstance(value, Mapping):
+        try:
+            _ = len(value)
+            out = {}
+            for key in value:
+                if type(key) is not str:
+                    raise ProfilerUsageError(f"{name} keys must be plain strings")
+                out[key] = _norm_target_carrier(value[key], name, _depth + 1)
+            return out
+        except TimeoutError:
+            raise
+        except ProfilerUsageError:
+            raise
+        except (TypeError, ValueError, OverflowError) as exc:
+            raise ProfilerUsageError(f"invalid {name} mapping protocol") from exc
+    if isinstance(value, (list, tuple)):
+        try:
+            _ = len(value)
+            return [_norm_target_carrier(item, name, _depth + 1) for item in value]
+        except TimeoutError:
+            raise
+        except ProfilerUsageError:
+            raise
+        except (TypeError, ValueError, OverflowError) as exc:
+            raise ProfilerUsageError(f"invalid {name} sequence protocol") from exc
+    return value
+
+
 class StructureTargets:
-    def __init__(self, nodes, subgraphs):
+    def __init__(self, nodes, subgraphs, native_calls=None):
+        nodes = _norm_target_carrier(nodes, "structure nodes")
+        subgraphs = _norm_target_carrier(subgraphs, "structure subgraphs")
+        if native_calls is not None:
+            native_calls = _norm_target_carrier(native_calls, "structure native_calls")
         self.nodes = nodes
         self.subgraphs = {}
         for record in subgraphs:
@@ -37,6 +75,51 @@ class StructureTargets:
             self.subgraphs[key] = record
         self.all = {**nodes, **self.subgraphs}
         self.native_implementations = defaultdict(list)
+        self.native_calls = defaultdict(list)
+        self.native_call_entries = defaultdict(list)
+        self.native_call_kernels = defaultdict(list)
+        self.native_call_observed = defaultdict(list)
+        self.native_call_alias_names = set()
+        # BIND1 destination: the sim exports one actual-invocation record per
+        # emitted node, beside the structural identity.  Index only; a record
+        # never selects a kernel or proves an occurrence.
+        self.native_bindings = {}
+        for record in native_calls or ():
+            if not isinstance(record, dict):
+                continue
+            node_id = record.get("node_id")
+            if node_id not in self.nodes:
+                # A projected/subgraph-only structure may retain a record whose
+                # semantic node was not selected.  It is not an index target.
+                continue
+            self.native_bindings[node_id] = record
+            call_id = record.get("call_id")
+            if call_id:
+                self.native_calls[call_id].append(node_id)
+            api = record.get("api") or {}
+            for entry in (api.get("entry"), api.get("aclnn_symbol")):
+                if entry:
+                    self.native_call_entries[entry].append(node_id)
+            for kernel in record.get("kernels", ()):
+                name = kernel.get("name") if isinstance(kernel, dict) else None
+                if name:
+                    self.native_call_kernels[name].append(node_id)
+            for alias in record.get("observed_aliases", ()):
+                if not isinstance(alias, dict):
+                    continue
+                raw = (alias.get("rank_id"), alias.get("global_task_id"),
+                       alias.get("stream_id"), alias.get("task_id"),
+                       alias.get("connection_id"), alias.get("device_id"),
+                       alias.get("start_ns"), alias.get("end_ns"))
+                logical = alias.get("logical_rank", alias.get("rank_index"))
+                if (logical is not None
+                        and str(self.nodes[node_id].get("replica")) != str(logical)):
+                    continue
+                if all(value is not None for value in raw):
+                    self.native_call_observed[tuple(str(value) for value in raw)].append(node_id)
+                for field in ("compute_name", "comm_name"):
+                    if alias.get(field):
+                        self.native_call_alias_names.add(str(alias[field]))
         for key, target in self.all.items():
             implementation = target.get("implementation") or {}
             kinds = set(implementation.get("native_kinds", ()))
@@ -49,6 +132,25 @@ class StructureTargets:
     def describe_implementation(self, kind, targets):
         """Describe a declared native boundary without claiming a tensor match."""
         node_ids, subgraph_ids = self.split(targets)
+        bindings = [self.native_bindings[key] for key in targets
+                    if key in self.native_bindings]
+        call_ids = {row["call_id"] for row in bindings}
+        native_call = None
+        if len(call_ids) == 1:
+            row = bindings[0]
+            api = row.get("api") or {}
+            native_call = {
+                "call_id": row["call_id"],
+                "entry": api.get("entry"),
+                "aclnn_symbol": api.get("aclnn_symbol"),
+                "kernels": [kernel.get("name") for kernel in row.get("kernels", ())
+                            if isinstance(kernel, dict) and kernel.get("name")],
+                "evidence": row.get("evidence") or {},
+                "timing_owner": row.get("timing_owner"),
+                "declared_target_count": len(bindings),
+                "tensor_match_implied": False,
+                "occurrence_binding_implied": False,
+            }
         return {
             "basis": "declared_native_implementation",
             "native_operator_type": kind,
@@ -65,6 +167,7 @@ class StructureTargets:
                 for key in targets
             }),
             "common": self.classify(targets)["common"],
+            "native_call": native_call,
             "tensor_match_implied": False,
             "occurrence_binding_implied": False,
         }

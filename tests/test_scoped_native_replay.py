@@ -30,6 +30,7 @@ from scoped_native_replay import (  # noqa: E402
     load_verified_extraction,
     prediction_identity,
     prepare_scoped_replay,
+    read_prediction_cache,
     resolve_context_offset,
     validate_scope_plan,
 )
@@ -618,6 +619,20 @@ def test_balanced_grouped_mapping_is_exact_and_dimensions_still_rejected():
     assert result == mutated
     assert provenance["scope_status"] != "applied"
     assert provenance["scope_reason"]
+
+
+def test_prediction_cache_never_accepts_missing_or_foreign_identity(tmp_path):
+    key = "a" * 64
+    path = tmp_path / f"pred_{key}.json"
+    path.write_text(json.dumps({"status": "modeled", "body_forward_span_ms": 1.0}), encoding="utf-8")
+    assert read_prediction_cache(key, tmp_path) is None
+    path.write_text(json.dumps({"status": "modeled", "prediction_identity": "b" * 64,
+                                "body_forward_span_ms": 1.0}), encoding="utf-8")
+    assert read_prediction_cache(key, tmp_path) is None
+    path.write_text(json.dumps({"status": "modeled", "prediction_identity": key,
+                                "body_forward_span_ms": 1.0}), encoding="utf-8")
+    cached = read_prediction_cache(key, tmp_path)
+    assert cached is not None and cached["body_forward_span_ms"] == 1.0
 
 
 def test_dsh_materialize_scoped_jobs_schedules_offsets_and_signature_keys(tmp_path):

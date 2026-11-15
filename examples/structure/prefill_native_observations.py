@@ -33,11 +33,35 @@ PROFILE_PATH = Path(__file__).with_name("profiles") / "prefill_native_20261106.j
 SCHEMA = "mindie-profiler-prefill-native-observation-profile/1"
 
 
+def _flatten_selector(path: str, value):
+    if isinstance(value, dict):
+        for name, inner in value.items():
+            yield from _flatten_selector(f"{path}.{name}", inner)
+    else:
+        yield path, value
+
+
+def _flatten_match(match: dict | None) -> dict | None:
+    if not isinstance(match, dict):
+        return match
+    flat = {}
+    for key, value in match.items():
+        if key in ("physical_rates", "resource_units") and isinstance(value, dict):
+            for path, leaf in _flatten_selector(key, value):
+                flat[path] = leaf
+        else:
+            flat[key] = value
+    return flat
+
+
 def _read_profile(path: Path):
     data = Path(path).read_bytes()
     profile = json.loads(data)
     if profile.get("schema") != SCHEMA or profile.get("phase") != "prefill":
         raise ValueError("unsupported_prefill_native_observation_profile")
+    profile["service_regimes"] = [
+        {**rule, "match": _flatten_match(rule.get("match", {}))}
+        for rule in profile["service_regimes"]]
     RegimePolicy(profile["service_regimes"])
     return profile, sha256(data).hexdigest()
 
@@ -56,8 +80,9 @@ def _physical_axes(execution, op):
 
 
 def _matches(axes, rule):
+    match = _flatten_match(rule.get("match", {})) or {}
     if any(not axis_equal(lookup(axes, key), value)
-           for key, value in rule.get("match", {}).items()):
+           for key, value in match.items()):
         return False
     values = coordinates(axes, rule.get("coordinates", {}))
     if values is None:
@@ -93,6 +118,19 @@ def _physical_values(value):
     return value
 
 
+def _declared_subset_matches(declared, current) -> bool:
+    """True when every declared rate/mode/unit/topology field matches current."""
+    if isinstance(declared, dict):
+        if not isinstance(current, dict):
+            return False
+        return all(key in current and _declared_subset_matches(val, current[key])
+                   for key, val in declared.items())
+    if isinstance(declared, list):
+        return (isinstance(current, list) and len(declared) == len(current)
+                and all(_declared_subset_matches(d, c) for d, c in zip(declared, current)))
+    return declared == current
+
+
 def _source_domain(case, contract):
     """Compare normalized declarations; omitted defaults are equivalent."""
     hardware = case.machine.hardware_key or case.machine.sku
@@ -101,7 +139,7 @@ def _source_domain(case, contract):
     parallel = case.runtime.parallel.to_dict()
     if any(parallel.get(name) != value for name, value in contract["parallel"].items()):
         return "parallelism_outside_observed_domain"
-    if _physical_contract(case) != _physical_values(contract["physical"]):
+    if not _declared_subset_matches(_physical_values(contract["physical"]), _physical_contract(case)):
         return "physical_rates_or_topology_outside_observed_domain"
     if any(getattr(case.model, name) != value for name, value in contract["model"].items()):
         return "model_geometry_outside_observed_domain"
@@ -135,8 +173,10 @@ class _DomainMiss(Exception):
 
 def _physical_rule(rule):
     """Normalized physical content of an imported response, without provenance."""
-    return json.loads(json.dumps({name: rule.get(name) for name in (
-        "id", "match", "coordinates", "domain", "response")}))
+    payload = {name: rule.get(name) for name in (
+        "id", "match", "coordinates", "domain", "response")}
+    payload["match"] = _flatten_match(payload.get("match"))
+    return json.loads(json.dumps(payload))
 
 
 def _previous_rules(raw, native_rules):

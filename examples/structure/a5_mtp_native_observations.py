@@ -16,7 +16,9 @@ from mindie_sim.prediction.cost import CostModel
 from mindie_sim.prediction.execution import Execution
 from mindie_sim.prediction.structure import parse_case
 
-from a5_native_observations import _matches, _operator_axes, _physical_contract, _read_profile
+from a5_native_observations import (
+    _declared_environment_gaps, _matches, _operator_axes, _physical_contract, _read_profile,
+)
 
 
 PROFILE_PATH = Path(__file__).with_name("profiles") / "a5_mtp_native_20261106.json"
@@ -27,7 +29,7 @@ def apply_a5_mtp_native_observations(
     profile_path: Path = PROFILE_PATH,
 ) -> tuple[dict, dict]:
     """Apply both complete native boundaries only within their declared domain."""
-    profile, identity = _read_profile(Path(profile_path))
+    profile, identity = _read_profile(Path(profile_path), flatten_rules=True)
     result = deepcopy(raw)
     provenance = {
         "schema_version": "mindie-profiler-native-observation-import/1",
@@ -51,7 +53,8 @@ def apply_a5_mtp_native_observations(
     if contract is None or any(getattr(case.runtime.parallel, name) != value
                                for name, value in contract["parallel"].items()):
         return miss("parallelism_outside_observed_domain")
-    if _physical_contract(case) != contract["physical"]:
+    mismatches, _ = _declared_environment_gaps(contract["physical"], _physical_contract(case))
+    if mismatches:
         return miss("physical_rates_or_declared_runtime_outside_observed_domain")
     caller = raw.get("runtime", {}).get("kernels", {}).get("lowerings", {}).get("gdn_decode")
     if not isinstance(caller, dict) or caller.get("implementation") != "vllm_ascend_gdn_decode":

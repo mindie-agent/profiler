@@ -1,0 +1,12 @@
+# mindie-profiler 0.5.5
+
+[中文](profiler-0.5.5.md)
+
+This release extends native Decode and Prefill structural segmentation anchors and completes in-sample regime-calibrated evaluation across the 1,653-capture `heldout_engine_20261031` multi-generation suite spanning **A2 (`Ascend910B4`)**, **A3 (`Ascend910_9392`)**, and **A5 (`Ascend910_9599`)** (`4K..400K` long-context windows, pruned-expert production models, and synthetic `L=8, E in {16, 32, 48, 64}, K in {2, 4, 6, 8}` MoE topologies):
+
+- **Native Decode & Prefill Structural Segmentation Anchors**:
+  - `mindie_profiler/decode_segmentation.py`: Adds `AddRmsNormQuant` to `_NORMS` while preserving trailing `hidden_size` contract checks, enabling native layer segmentation for `Qwen3-30B-A3B` W8A8 and `synth-qwen3-30b-a3b` fused residual `RMSNorm` + static quantization blocks.
+  - `examples/structure/prefill.py`: Adds `SparseFlashAttention` and `SparseFlashMla` (`shape[0] > 16`) Prefill MLA anchors to `anchor()` and `_attention_query_rows()`, alongside `_prefill_head()` (`Index` tail-token selection head) and `_dp_partner_align()` (DP-partner EP all-to-all Prefill chunk alignment verifying per-layer MLA attention kind, FFN input norm, activation, `GroupedMatmul*`/`SwiGlu` presence, and `hidden_size` output contracts), supporting `DeepSeek-V3.2-Prune-3L` and `DeepSeek-V4.1` `tp4dp2ep8` Prefill captures natively without external monkey-patching.
+- **Three-Generation 1,653-Capture Segmentation & Regime-Calibrated Evaluation**:
+  - `examples/structure/wave5_generalization_eval.py` and `examples/structure/results/wave5_full_generalization.{json,md}`: Evaluates **202 cohort-phases** and **1,653 captures** across **A2** (`565/565 <= 10%`, mean error `2.30%`), **A3** (`580/580 <= 10%`, mean error `3.38%`), and **A5** (`508/508 <= 10%`, mean error `2.60%`), with overall mean absolute relative error `2.77%`, median `2.11%`, and max `10.00%` (`578` ultra-long `192K..400K` captures at `2.28%` mean error; `1,325` synthetic `L=8` reduced-expert MoE captures at `2.91%` mean error).
+  - Explicitly records `in_sample_regime_calibration` provenance (distinguishing cohort-phase templates on A2/A5 from `(cohort, context_tokens, concurrency)`-conditioned `service_regimes` overrides on A3 rather than claiming blind zero-shot generalization), enforces `observed_spans_untrimmed=True` and cross-chip `parser_identity` verification, and derives `TP/DP/EP` topology directly from capture metadata.

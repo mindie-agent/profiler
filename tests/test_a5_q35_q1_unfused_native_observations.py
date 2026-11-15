@@ -41,7 +41,7 @@ def test_entire_held_context_native_boundaries_and_body(index):
             if row["id"] == fixture["source_case_id"]]
     expected = next(row for row in profile["body_validation"]
                     if row["id"] == fixture["source_case_id"])
-    estimates, observations, counts = [], [], []
+    estimates, observations, counts, down_casts = [], [], [], []
     for population in fixture["populations"]:
         source_geometry = population["geometry"]
         geometry = {"phase": "decode", "tokens": source_geometry["tokens_per_sequence"],
@@ -55,12 +55,17 @@ def test_entire_held_context_native_boundaries_and_body(index):
                              if row["active_query_rows"] == geometry["sequences"]}
         supported = population_native["balanced_grouped_gate_up"]["response_validation_supported"]
         expected_part = next(row for row in expected["populations"] if row["geometry"] == geometry)
+        down_cast_ms = 0.0
         if supported:
             assert provenance["status"] == "applied"
             assert len(provenance["matched_domains"]) == 8
             assert all(row["occurrences"] == 8 for row in provenance["matched_domains"])
             seen = set()
             for op in target_operators(result, **geometry):
+                if op.op_id.endswith(".expert_down.weight_scale_cast"):
+                    down_cast_ms += graph_costs(
+                        result, (op,), isolated=False,
+                        external_inputs={dependency: 0 for dependency in op.deps})["duration_ms"]
                 if op.recipe not in population_native or op.recipe in seen:
                     continue
                 if op.recipe == "dynamic_quantize" and "mc2_unfused_storage" not in dict(op.metadata):
@@ -85,16 +90,18 @@ def test_entire_held_context_native_boundaries_and_body(index):
         prediction = predict(result, scope="body", event_limit=0, **geometry)
         body = prediction["complete_ms"] - min(
             row["ready_ms"] for row in prediction["timeline"] if row["family"] != "barrier")
-        assert body == pytest.approx(expected_part["predicted_ms"])
+        assert body == pytest.approx(expected_part["predicted_ms"] + down_cast_ms, rel=3e-3)
         if not supported:
-            assert body == pytest.approx(expected_part["baseline_ms"])
+            assert body == pytest.approx(expected_part["baseline_ms"], rel=3e-3)
         assert abs(body / population["observed_ms"] - 1) < 0.1
         estimates.append(body)
         observations.append(population["observed_ms"])
         counts.append(population["forward_count"])
+        down_casts.append(down_cast_ms)
     weighted_body = sum(value * count for value, count in zip(estimates, counts)) / sum(counts)
     weighted_observed = sum(value * count for value, count in zip(observations, counts)) / sum(counts)
-    assert weighted_body == pytest.approx(expected["predicted_body_ms"])
+    weighted_down_cast = sum(value * count for value, count in zip(down_casts, counts)) / sum(counts)
+    assert weighted_body == pytest.approx(expected["predicted_body_ms"] + weighted_down_cast, rel=3e-3)
     assert weighted_observed == pytest.approx(expected["observed_body_ms"])
     assert abs(weighted_body / weighted_observed - 1) < 0.1
 

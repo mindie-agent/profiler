@@ -26,6 +26,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import os
 import re
 import sqlite3
@@ -37,11 +38,13 @@ from .events import ProfilerError
 from .segment import (
     _OUTPUT_DIR,
     find_csv_candidates,
+    find_csv_discovery_candidates,
     find_db_candidates,
     find_trace_candidates,
     infer_rank_id,
     infer_rank_index,
 )
+from .sources_csv import MINDSTUDIO_OUTPUT_DIR, find_mindstudio_csv_candidates, probe_csv
 from .sources_db import probe_db
 from .sql import open_readonly
 
@@ -102,7 +105,20 @@ def _discover_rank_dirs(root: Path, *, max_dirs: int) -> list[Path]:
         has_db = any(name.startswith("ascend_pytorch_profiler") and name.endswith(".db") for name in filenames)
         has_csv = any(name in filenames for name in ("kernel_details.csv", "kernel_details.csv.gz"))
         has_trace = any(name.startswith("trace_view") and name.endswith(".json") for name in filenames)
+        has_mindstudio = MINDSTUDIO_OUTPUT_DIR in dirnames or any(
+            name.startswith("op_summary_") and name.endswith(".csv")
+            or name.startswith("task_time_") and name.endswith(".csv")
+            for name in filenames
+        )
         has_output = _OUTPUT_DIR in dirnames
+        if has_mindstudio:
+            candidates = find_mindstudio_csv_candidates(current_path)
+            if candidates["op_summary"] or candidates["task_time"]:
+                if current_path not in seen:
+                    discovered.append(current_path)
+                    seen.add(current_path)
+                dirnames[:] = []
+                continue
         if has_db or has_csv or has_trace:
             if current_path not in seen:
                 discovered.append(current_path)
@@ -218,9 +234,17 @@ def _capture_span(con: sqlite3.Connection, tables: set[str]) -> dict[str, Any] |
 
 def _db_facts(path: Path, *, timeout_s: float) -> dict[str, Any]:
     row = _file_row(path)
+    capture_root = path.parent.parent if path.parent.name == _OUTPUT_DIR else path.parent
     facts: dict[str, Any] = {
         **row,
         "kind": "db",
+        "source_id": "SRC-" + hashlib.sha256(
+            f"{path.resolve()}\x1f{row['size_bytes']}".encode("utf-8")
+        ).hexdigest()[:16].upper(),
+        "capture_id": "CAP-" + hashlib.sha256(
+            str(capture_root.resolve()).encode("utf-8")
+        ).hexdigest()[:16].upper(),
+        "table_kind": "db",
         "schema_version": None,
         "schema_variant": None,
         "tables": [],
@@ -267,28 +291,72 @@ def _db_facts(path: Path, *, timeout_s: float) -> dict[str, Any]:
     return facts
 
 
+def _csv_file_fact(path: Path) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    row = {**_file_row(path), "kind": "csv"}
+    try:
+        schema = probe_csv(path)
+    except TimeoutError:
+        raise
+    except (ProfilerError, OSError, ValueError) as exc:
+        error = {
+            "code": "csv_probe_failed",
+            "stage": "header",
+            "message": str(exc),
+            "path": str(path.resolve()),
+        }
+        row["read_error"] = error
+        return row, error
+    row.update(
+        {
+            "layout": schema.layout,
+            "source_kind": schema.source_kind,
+            "schema_version": schema.schema_version,
+            "schema_variant": schema.schema_variant,
+            "source_id": schema.source_id,
+            "capture_id": schema.capture_id,
+            "table_kind": schema.table_kind,
+            "clock": schema.clock.as_dict(),
+        }
+    )
+    return row, None
+
+
 def _rank_facts(rank_dir: Path, *, ordinal: int, timeout_s: float,
                 explicit_file: Path | None = None) -> dict[str, Any]:
     rank_id = infer_rank_id(rank_dir, ordinal)
     db_candidates = find_db_candidates(rank_dir)
-    csv_candidates = find_csv_candidates(rank_dir)
+    csv_candidates = find_csv_discovery_candidates(rank_dir)
+    selected_csv = find_csv_candidates(rank_dir)
     trace_candidates = find_trace_candidates(rank_dir)
     if explicit_file is not None:
         if explicit_file.suffix == ".db":
-            db_candidates, csv_candidates, trace_candidates = [explicit_file], [], []
+            db_candidates, csv_candidates, selected_csv, trace_candidates = [explicit_file], [], [], []
         elif explicit_file.name.endswith((".csv", ".csv.gz")):
-            db_candidates, csv_candidates, trace_candidates = [], [explicit_file], []
+            db_candidates, csv_candidates, selected_csv, trace_candidates = [], [explicit_file], [explicit_file], []
         elif explicit_file.name.endswith((".json", ".json.gz")):
-            db_candidates, csv_candidates, trace_candidates = [], [], [explicit_file]
+            db_candidates, csv_candidates, selected_csv, trace_candidates = [], [], [], [explicit_file]
         else:
             raise ProfilerError(f"unsupported profiling source file: {explicit_file}")
     dbs = [_db_facts(path, timeout_s=timeout_s) for path in db_candidates]
+    csv_files: list[dict[str, Any]] = []
+    limitations: list[dict[str, Any]] = []
+    for path in csv_candidates:
+        csv_row, csv_error = _csv_file_fact(path)
+        csv_files.append(csv_row)
+        if csv_error is not None:
+            limitations.append(
+                {
+                    "code": "csv_read_error",
+                    "detail": csv_error["message"],
+                    "path": csv_error["path"],
+                    "stage": csv_error["stage"],
+                }
+            )
     files = (
         [*dbs]
-        + [{**_file_row(path), "kind": "csv"} for path in csv_candidates]
+        + csv_files
         + [{**_file_row(path), "kind": "json_trace"} for path in trace_candidates]
     )
-    limitations: list[dict[str, Any]] = []
     if len(db_candidates) > 1:
         limitations.append(
             {
@@ -297,14 +365,28 @@ def _rank_facts(rank_dir: Path, *, ordinal: int, timeout_s: float,
                 "candidates": [str(item.resolve()) for item in db_candidates],
             }
         )
+    if len(selected_csv) > 1:
+        limitations.append(
+            {
+                "code": "multiple_csv_candidates",
+                "detail": f"{len(selected_csv)} selectable CSV candidates; pass one explicit .csv path",
+                "candidates": [str(item.resolve()) for item in selected_csv],
+            }
+        )
     if not db_candidates and not csv_candidates and not trace_candidates:
         limitations.append({"code": "no_source_files", "detail": "rank directory has no DB/CSV/trace source"})
     return {
         "rank_id": rank_id,
-        "rank_index": infer_rank_index(rank_dir.name),
+        "rank_index": infer_rank_index(rank_dir),
         "rank_dir": str(rank_dir.resolve()),
         "db_candidates": [str(item.resolve()) for item in db_candidates],
         "csv_candidates": [str(item.resolve()) for item in csv_candidates],
+        "selected_csv": [str(item.resolve()) for item in selected_csv],
+        "csv_selection_status": (
+            "ambiguous" if len(selected_csv) > 1
+            else "selected" if len(selected_csv) == 1
+            else "none"
+        ),
         "trace_candidates": [str(item.resolve()) for item in trace_candidates],
         "files": files,
         "limitations": limitations,
@@ -343,10 +425,20 @@ def inventory_profile(
         limitations.extend(
             {"rank_id": rank["rank_id"], **item} for item in rank.get("limitations", [])
         )
+    capture_ids = sorted(
+        {
+            file_fact["capture_id"]
+            for rank in ranks
+            for file_fact in rank.get("files", [])
+            if file_fact.get("capture_id")
+        }
+    )
     return {
         "schema_version": INVENTORY_SCHEMA,
         "root": str(path.resolve()),
         "rank_count": len(ranks),
+        "capture_count": len(capture_ids),
+        "capture_ids": capture_ids,
         "ranks": ranks,
         "source_priority": "DB > CSV > JSON Trace; only one authority per metric",
         "identity_policy": "path+size_bytes+mtime_ns+schema_version; no SHA256 by default",

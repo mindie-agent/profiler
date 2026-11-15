@@ -9,7 +9,7 @@ description = "Ascend NPU profiling collection, in-place inventory/analyze/corre
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "mindie-sim @ git+https://github.com/mindie-agent/sim.git@f0f76b0b56830a0315c108efe90bcf131d3701ce",
+    "mindie-sim>=0.9.10,<0.10",
 ]
 
 [project.optional-dependencies]
@@ -17,15 +17,17 @@ test = ["pytest>=8,<10", "ijson>=3.2,<4", "psutil>=6,<8"]
 
 [project.scripts]
 mindie-profiler = "mindie_profiler.__main__:main"
+mindie-profiler-api = "mindie_profiler.public:main"
 
 [tool.setuptools.packages.find]
 include = ["mindie_profiler*"]
 
 [tool.pytest.ini_options]
-pythonpath = ["."]
+pythonpath = [".", "tests"]
 markers = [
     "live_npu: standing A2/A3 Ascend NPU non-destructive live integration",
+    "archive_integration: opt-in host fleet archive; skipped unless selected or MINDIE_ARCHIVE_INTEGRATION=1",
 ]
 
 [tool.setuptools.package-data]
-mindie_profiler = ["knowledge/*.json"]
+mindie_profiler = ["knowledge/*.json", "_cann9_capture_shim.c", "_cann9_capture_mspti.h"]

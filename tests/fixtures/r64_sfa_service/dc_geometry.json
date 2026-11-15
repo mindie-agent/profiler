@@ -1,0 +1,17 @@
+{
+ "q_len": 2,
+ "context": 1056,
+ "kv_len": 1057,
+ "causal": true,
+ "owners": 32,
+ "mix_block_num": 64,
+ "g": 64,
+ "dq": 576,
+ "dv": 512,
+ "s2_tile": 128,
+ "phase": "decode",
+ "op_state": "static",
+ "hardware": "Ascend950DT_9582",
+ "geometry_basis": "public_dc_underfilled_geometry",
+ "shape_class": "decode_static_q2"
+}

@@ -1,20 +1,23 @@
-"""Streaming kernel_details.csv source with verified header resolution.
+"""Streaming CANN CSV sources with verified header resolution.
 
 [Role]
-  Probe and stream the classic CANN ``kernel_details.csv`` projection, resolve
-  the real 46-column export and its documented aliases, and return events for
-  caller-supplied explicit windows.
+  Probe and stream the classic ``kernel_details.csv`` projection and the
+  CANN 9.2 ``mindstudio_profiler_output/op_summary_*.csv`` /
+  ``task_time_*.csv`` layouts through the same normalized Event path.
 
 [Invariants]
-  * Header aliases are case-insensitive and come from the mapping file; a
-    missing Name/start/duration(or end) column raises ``ProfilerSchemaError``.
+  * Header aliases are case-insensitive; layout-specific aliases do not make
+    a second parser.  A missing Name/start/duration(or end) column raises
+    ``ProfilerSchemaError``.
   * CSV times are microseconds and are converted once to integer nanoseconds.
-    Wait Time(us) becomes wait_ns; aic/aiv time columns become ns PMU values;
-    ratios/cycles/percent stay in their native units.
+    The original start/duration/end tokens are kept on the Event clock fields;
+    they are never reconstructed from the rounded ns values.
+  * Wait/duration values with their own columns become typed fields; aic/aiv
+    time columns become ns PMU values; ratios/cycles/percent stay native.
   * The scan is single-pass and bounded by a row budget and wall-clock
     deadline; invalid timing rows are counted, not converted to zero.
   * No step id is fabricated: a CSV row only belongs to a window the caller
-    supplied explicitly.
+    supplied explicitly.  CSV units never imply a shared cross-rank clock.
 
 [Timeouts & Locks]
   ``timeout_s`` (default 30s) is checked every 1024 rows; no lock is held.
@@ -34,13 +37,47 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any, Mapping
 
-from .events import Event, ProfilerQueryError, ProfilerSchemaError, QueryStats, Window
+from .events import (
+    ClockDomain,
+    Event,
+    ProfilerQueryError,
+    ProfilerSchemaError,
+    ProfilerUsageError,
+    QueryStats,
+    Window,
+)
 from .sources_db import load_mapping
+
+MINDSTUDIO_OUTPUT_DIR = "mindstudio_profiler_output"
+_TASK_TIME_ALIASES: dict[str, tuple[str, ...]] = {
+    "name": ("kernel_name",),
+    "core": ("kernel_type",),
+    "type": ("kernel_type",),
+    "start_us": ("task_start(us)", "task_start"),
+    "duration_us": ("task_time(us)", "task_time"),
+    "end_us": ("task_stop(us)", "task_stop"),
+}
+_CSV_SOURCE_KINDS = {
+    "kernel_details": "kernel_details_csv",
+    "op_summary": "mindstudio_op_summary_csv",
+    "task_time": "mindstudio_task_time_csv",
+}
+_CSV_DOMAINS = {
+    "kernel_details": "kernel_details_csv_us",
+    "op_summary": "mindstudio_op_summary_us",
+    "task_time": "mindstudio_task_time_us",
+}
+_CSV_TABLES = {
+    "kernel_details": "kernel_details.csv",
+    "op_summary": "op_summary.csv",
+    "task_time": "task_time.csv",
+}
 
 
 @dataclass(frozen=True, slots=True)
 class CsvSchema:
     path: str
+    layout: str
     header: tuple[str, ...]
     header_sha256: str
     columns: Mapping[str, int]
@@ -52,15 +89,21 @@ class CsvSchema:
     pmu_scales: Mapping[str, float]
     pmu_missing: tuple[str, ...]
     optional_missing: tuple[str, ...]
+    clock: ClockDomain
+    source_id: str
+    capture_id: str
     size_bytes: int
 
     @property
     def schema_version(self) -> str:
-        return f"kernel_details_csv_{len(self.header)}col"
+        if self.layout == "kernel_details":
+            return f"kernel_details_csv_{len(self.header)}col"
+        return f"{self.layout}_csv_{len(self.header)}col"
 
     @property
     def schema_variant(self) -> str:
-        variant = "csv_" + ("blockDim" if self.block_column == "Block Dim" else "verified_aliases")
+        prefix = "csv_" if self.layout == "kernel_details" else f"mindstudio_{self.layout}_"
+        variant = prefix + ("blockDim" if self.block_column == "Block Dim" else "verified_aliases")
         if self.wait_column:
             variant += "_wait"
         if self.pmu_columns:
@@ -69,7 +112,19 @@ class CsvSchema:
 
     @property
     def source_kind(self) -> str:
-        return "kernel_details_csv"
+        return _CSV_SOURCE_KINDS[self.layout]
+
+    @property
+    def table_name(self) -> str:
+        return _CSV_TABLES[self.layout]
+
+    @property
+    def clock_domain(self) -> str:
+        return _CSV_DOMAINS[self.layout]
+
+    @property
+    def table_kind(self) -> str:
+        return self.layout
 
 
 def _fold(value: str) -> str:
@@ -88,11 +143,47 @@ def _header_digest(header: tuple[str, ...]) -> str:
     return hashlib.sha256("\x1f".join(header).encode("utf-8")).hexdigest()
 
 
+def _layout_for(path: Path, header: tuple[str, ...]) -> str:
+    folded = {_fold(name) for name in header}
+    if "kernel_name" in folded or "task_time(us)" in folded:
+        return "task_time"
+    if path.name.startswith("op_summary_") or {
+        "task start time(us)",
+        "op type",
+    } <= folded:
+        return "op_summary"
+    return "kernel_details"
+
+
+def _aliases_for(mapping: Mapping[str, Any], layout: str) -> dict[str, list[str]]:
+    aliases = {name: list(values) for name, values in mapping["csv"]["aliases"].items()}
+    if layout == "task_time":
+        for logical, extra in _TASK_TIME_ALIASES.items():
+            aliases[logical] = [*extra, *aliases.get(logical, [])]
+    return aliases
+
+
 def _open_csv_text(path: Path):
     """Compressed exports use the same decoder and decompressed row locators."""
     if path.name.endswith(".csv.gz"):
         return gzip.open(path, "rt", encoding="utf-8-sig", newline="")
     return path.open("r", encoding="utf-8-sig", newline="")
+
+
+def _source_id_for(path: Path, size_bytes: int) -> str:
+    digest = hashlib.sha256(f"{path.resolve()}\x1f{size_bytes}".encode("utf-8")).hexdigest()
+    return f"SRC-{digest[:16].upper()}"
+
+
+def _capture_id_for(path: Path) -> str:
+    if path.parent.name == MINDSTUDIO_OUTPUT_DIR:
+        capture_root = path.parent.parent
+    elif path.parent.name == "ASCEND_PROFILER_OUTPUT":
+        capture_root = path.parent.parent
+    else:
+        capture_root = path.parent
+    digest = hashlib.sha256(str(capture_root.resolve()).encode("utf-8")).hexdigest()
+    return f"CAP-{digest[:16].upper()}"
 
 
 def probe_csv(path: str | Path, *, mapping: Mapping[str, Any] | None = None) -> CsvSchema:
@@ -111,7 +202,8 @@ def probe_csv(path: str | Path, *, mapping: Mapping[str, Any] | None = None) -> 
     if not header:
         raise ProfilerSchemaError(f"{csv_path.name}: empty CSV (no header)")
     header = tuple(str(name).strip() for name in header)
-    aliases = mapping["csv"]["aliases"]
+    layout = _layout_for(csv_path, header)
+    aliases = _aliases_for(mapping, layout)
     required = mapping["csv"]["required_fields"]
     columns: dict[str, int] = {}
     missing: list[str] = []
@@ -156,8 +248,11 @@ def probe_csv(path: str | Path, *, mapping: Mapping[str, Any] | None = None) -> 
     )
     if not pmu_columns:
         optional_missing = optional_missing + ("pmu_columns",)
+    clock = _csv_clock(layout, _CSV_TABLES[layout], header, columns)
+    size_bytes = csv_path.stat().st_size
     return CsvSchema(
         path=str(csv_path.resolve()),
+        layout=layout,
         header=header,
         header_sha256=_header_digest(header),
         columns=columns,
@@ -169,8 +264,47 @@ def probe_csv(path: str | Path, *, mapping: Mapping[str, Any] | None = None) -> 
         pmu_scales=pmu_scales,
         pmu_missing=tuple(pmu_missing),
         optional_missing=optional_missing,
-        size_bytes=csv_path.stat().st_size,
+        clock=clock,
+        source_id=_source_id_for(csv_path, size_bytes),
+        capture_id=_capture_id_for(csv_path),
+        size_bytes=size_bytes,
     )
+
+
+def find_mindstudio_csv_candidates(
+    root: str | Path,
+) -> dict[str, list[Path]]:
+    """Return CANN 9.2 mindstudio op_summary/task_time CSV candidates."""
+    base = Path(root)
+    directories = [base] if base.name == MINDSTUDIO_OUTPUT_DIR else [
+        base / MINDSTUDIO_OUTPUT_DIR,
+        base,
+    ]
+    found: dict[str, set[Path]] = {"op_summary": set(), "task_time": set()}
+    for directory in directories:
+        if not directory.is_dir():
+            continue
+        found["op_summary"].update(directory.glob("op_summary_*.csv"))
+        found["task_time"].update(directory.glob("task_time_*.csv"))
+    return {
+        layout: sorted(paths, key=lambda item: (str(item.parent), item.name))
+        for layout, paths in found.items()
+    }
+
+
+def select_mindstudio_csv(root: str | Path) -> tuple[Path | None, str | None]:
+    """Select one MINDSTUDIO output, preferring the richer op_summary layout."""
+    candidates = find_mindstudio_csv_candidates(root)
+    for layout in ("op_summary", "task_time"):
+        paths = candidates[layout]
+        if len(paths) == 1:
+            return paths[0], layout
+        if len(paths) > 1:
+            names = ", ".join(path.name for path in paths)
+            raise ProfilerUsageError(
+                f"{len(paths)} {layout} CSV candidates ({names}); pass one explicitly"
+            )
+    return None, None
 
 
 def _cell(row: list[str], index: int | None) -> str:
@@ -198,6 +332,31 @@ def _optional_int(text: str) -> int | None:
     return int(value) if value is not None and value == value.to_integral_value() else None
 
 
+def _csv_clock(
+    layout: str,
+    table_name: str,
+    header: tuple[str, ...],
+    columns: Mapping[str, int],
+) -> ClockDomain:
+    def column(logical: str) -> str:
+        index = columns.get(logical)
+        return header[index] if index is not None else "missing"
+
+    return ClockDomain(
+        domain=_CSV_DOMAINS[layout],
+        unit="us",
+        scale_ns=1000,
+        offset_ns=None,
+        reference_domain=None,
+        source=(
+            f"{table_name} times are microseconds in {column('start_us')} / "
+            f"{column('duration_us')} / {column('end_us')}; converted once to "
+            "integer ns; no cross-rank synchronization anchor; raw tick retained "
+            "where present"
+        ),
+    )
+
+
 def decode_csv_row(row: list[str], row_index: int, schema: CsvSchema, *,
                    rank_id: str, rank_index: int | None, stats: QueryStats,
                    strict: bool = False, include_zero_duration: bool = False) -> Event | None:
@@ -211,10 +370,13 @@ def decode_csv_row(row: list[str], row_index: int, schema: CsvSchema, *,
                 f"{schema.path}: CSV line {row_index + 2} has invalid timing")
         return None
 
-    start_us = _number(_cell(row, columns.get("start_us")))
-    duration_us = _number(_cell(row, columns.get("duration_us")))
+    start_tick = _cell(row, columns.get("start_us")) or None
+    duration_tick = _cell(row, columns.get("duration_us")) or None
+    end_tick = _cell(row, columns.get("end_us")) or None
+    start_us = _number(start_tick or "")
+    duration_us = _number(duration_tick or "")
     if duration_us is None:
-        end_us = _number(_cell(row, columns.get("end_us")))
+        end_us = _number(end_tick or "")
         duration_us = None if end_us is None or start_us is None else end_us - start_us
     if start_us is None or duration_us is None or duration_us < 0:
         return invalid_timing()
@@ -276,7 +438,23 @@ def decode_csv_row(row: list[str], row_index: int, schema: CsvSchema, *,
         start_ns=start_ns,
         end_ns=end_ns,
         source_kind=schema.source_kind,
-        table="kernel_details.csv",
+        table=schema.table_name,
+        clock=schema.clock,
+        clock_start_tick=start_tick,
+        clock_duration_tick=duration_tick,
+        clock_end_tick=end_tick,
+        source_id=schema.source_id,
+        capture_id=schema.capture_id,
+        table_kind=schema.table_kind,
+        field_presence={
+            "clock": start_tick is not None,
+            "abi": bool(
+                _cell(row, columns.get("input_shapes"))
+                or _cell(row, columns.get("output_shapes"))
+            ),
+            "step": False,
+            "state": bool(_cell(row, columns.get("op_state"))),
+        },
         input_shapes=_cell(row, columns.get("input_shapes")),
         input_dtypes=_cell(row, columns.get("input_dtypes")),
         input_formats=_cell(row, columns.get("input_formats")),
@@ -290,7 +468,7 @@ def decode_csv_row(row: list[str], row_index: int, schema: CsvSchema, *,
         wait_status=wait_status,
         wait_source=(schema.wait_column if schema.wait_column else None),
         wait_provenance={
-            "table": "kernel_details.csv",
+            "table": schema.table_name,
             "column": schema.wait_column,
             "row_index": row_index,
             "status": wait_status,
@@ -298,10 +476,10 @@ def decode_csv_row(row: list[str], row_index: int, schema: CsvSchema, *,
         },
         pmu=tuple(sorted(pmu.items())),
         pmu_status=pmu_status,
-        pmu_source="kernel_details.csv",
+        pmu_source=schema.table_name,
         pmu_kind="aicore" if pmu_applicable else "not_applicable",
         pmu_provenance={
-            "table": "kernel_details.csv",
+            "table": schema.table_name,
             "row_index": row_index,
             "status": pmu_status,
             "raw_rows": len(pmu),
@@ -311,7 +489,7 @@ def decode_csv_row(row: list[str], row_index: int, schema: CsvSchema, *,
         },
         locator={
             "source": schema.path,
-            "table": "kernel_details.csv",
+            "table": schema.table_name,
             "row_index": row_index,
             "csv_line": row_index + 2,
             "task_id": _cell(row, columns.get("task_id")),
@@ -319,6 +497,8 @@ def decode_csv_row(row: list[str], row_index: int, schema: CsvSchema, *,
             "device_id": _cell(row, columns.get("device_id")),
         },
     )
+    if schema.layout != "kernel_details":
+        event.locator["layout"] = schema.layout
     return event
 
 

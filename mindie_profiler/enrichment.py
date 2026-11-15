@@ -223,6 +223,9 @@ def enrich_report(
     model_hardware: Any = None,
     steady_config: Any = None,
     host_events: Sequence[Mapping[str, Any]] | None = None,
+    physical_owners: int | None = None,
+    source_identity: Mapping[str, Any] | None = None,
+    sparse_geometry: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Attach scene, steady, measured anomaly/PMU, advisor rules, and optional modeling fragments."""
 
@@ -233,7 +236,9 @@ def enrich_report(
     wait_anchor = wait_anchor_summary(observations)
     aicpu = aicpu_summary(observations)
     underfeed = underfeed_summary(observations)
-    pmu = pmu_summary(observations)
+    pmu = pmu_summary(observations, physical_owners=physical_owners,
+                      source_identity=source_identity,
+                      sparse_geometry=sparse_geometry)
     advisor = evaluate_advisor_rules(observations, host_events=host_events)
     modeling = apply_modeling(
         report.get("top_hotspot_kernels", []),

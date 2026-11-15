@@ -1182,7 +1182,7 @@ def test_native_protocol_conflicts_reuse_the_real_sim_selector(native):
 def test_native_protocol_without_peer_window_is_a_conflict_before_mutation(tmp_path):
     fixture = json.loads(E32.read_text())
     raw = deepcopy(fixture["raw"])
-    native = {"kind": "arch35_fullmesh"}
+    native = {"kind": "arch35_fullmesh", "unsupported_option": 1}
     raw["runtime"]["kernels"]["native_moe_protocol"] = deepcopy(native)
     original = deepcopy(raw)
     command = _command(tmp_path, E32_COMMAND)

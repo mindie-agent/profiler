@@ -264,33 +264,16 @@ def resolve_template(traits: dict) -> tuple[str | None, dict | None, dict, bool]
         )
         tpl["runtime"].update(graph_mode="auto", graph_buckets=buckets, graph_capture_keys=buckets)
 
-    ctx_tok = traits.get("context_tokens", 0)
     regimes = tpl["runtime"].setdefault("kernels", {}).setdefault("service_regimes", [])
     if traits.get("spec_tokens") == 0:
         if fam != "deepseek-v4.1":
             tpl["runtime"].setdefault("metadata", {})["speculation"] = {"enabled": False, "num_speculative_tokens": 0}
         if regimes:
             regimes[:] = [r for r in regimes if "-q2-" not in r.get("id", "")]
-    if (hw, fam) == ("a3", "qwen3.5-35b-a3b") and tp in (8, 16) and regimes:
-        slope_s, step_s = (0.35, 0.62) if tp == 16 else (0.70, 0.86)
-        for regime in regimes:
-            rid, resp = regime.get("id", ""), regime.get("response", {})
-            b_min = (regime.get("domain") or {}).get("batch", {}).get("min", 0)
-            if rid.startswith("a3-fai-"):
-                if b_min >= (3 if tp == 16 else 7):
-                    f_s = (1.0 if b_min >= 21 and ctx_tok > 65536 else (0.72 if (b_min >= 21 and ctx_tok >= 32768) or (b_min >= 13 and ctx_tok > 65536) else 0.55)) if tp == 16 else (
-                        1.0 if b_min >= 21 and ctx_tok > 65536 else (0.88 if b_min >= 13 and ctx_tok > 65536 else (0.85 if b_min == 9 else 0.78)))
-                    for term in resp.get("terms", []):
-                        if "us_per_unit" in term:
-                            term["us_per_unit"] = round(float(term["us_per_unit"]) * f_s, 6)
-                    if b_min >= 5 and "fixed_us" in resp and not (b_min >= 21 and ctx_tok > 65536):
-                        resp["fixed_us"] = round(float(resp["fixed_us"]) * (0.65 if tp == 16 else 0.82), 4)
-            else:
-                for term in resp.get("terms", []):
-                    if "us_per_unit" in term:
-                        term["us_per_unit"] = round(float(term["us_per_unit"]) * slope_s, 6)
-                if any(rid.endswith(s) for s in ("-mid", "-high")) and "fixed_us" in resp:
-                    resp["fixed_us"] = round(float(resp["fixed_us"]) * step_s, 4)
+    # Timing is never transferred by a topology or model-family branch.  The
+    # template's declared service regimes stay as authored data; a held-out
+    # topology change only rebinds structural keys (sharded shapes, uniform
+    # query-token metadata) and never a fixed microsecond or per-unit slope.
     if (cross_tp or traits.get("spec_tokens") in (0, 1)) and regimes:
         if cross_tp and tp >= 4:
             regimes[:] = [r for r in regimes if not any(t in r.get("id", "") for t in ("-tp1-", "-tp2-"))]
@@ -306,132 +289,6 @@ def resolve_template(traits: dict) -> tuple[str | None, dict | None, dict, bool]
             ):
                 match.pop("metadata.gqa_decode.uniform_query_tokens", None)
 
-    if hw == "a3" and fam in ("qwen3.6-27b", "qwen3.8-27b") and tp == 8 and phase == "decode":
-        for regime in regimes:
-            rid, resp = regime.get("id", ""), regime.get("response", {})
-            b_min = (regime.get("domain") or {}).get("batch", {}).get("min", 0)
-            if rid.startswith("a3-fai-"):
-                if ctx_tok >= 65536 and b_min in (1, 2):
-                    resp["fixed_us"] = 255.0 if b_min == 1 else 162.0
-                elif b_min >= 7:
-                    f_scale = 0.76 if b_min == 9 else 0.84
-                    for term in resp.get("terms", []):
-                        if "us_per_unit" in term:
-                            term["us_per_unit"] = round(float(term["us_per_unit"]) * f_scale, 6)
-                    if "fixed_us" in resp:
-                        resp["fixed_us"] = round(float(resp["fixed_us"]) * 0.85, 4)
-            elif regime.get("match", {}).get("recipe") == "decode_recurrent_scan" and any(rid.endswith(s) for s in ("-mid", "-high")):
-                for term in resp.get("terms", []):
-                    if "us_per_unit" in term:
-                        term["us_per_unit"] = round(float(term["us_per_unit"]) * 0.70, 6)
-                if "fixed_us" in resp:
-                    resp["fixed_us"] = round(float(resp["fixed_us"]) * 0.85, 4)
-        if ctx_tok < 65536:
-            r_match = {"hardware": "Ascend910_9362", "phase": "decode", "recipe": "residual_add"}
-            r_coord = {"elems": {"path": "local_shape.0", "scale": 1}}
-            regimes.extend([
-                {"id": "a3-tp8-aicpu-allreduce-serial-sync-r4", "match": dict(r_match), "coordinates": dict(r_coord),
-                 "domain": {"elems": {"min": 1, "max": 20480}}, "response": {"fixed_us": 43.0}},
-                {"id": "a3-tp8-aicpu-allreduce-serial-sync-r8", "match": dict(r_match), "coordinates": dict(r_coord),
-                 "domain": {"elems": {"min": 20481, "max": 40960}}, "response": {"fixed_us": 31.0 if ctx_tok <= 4096 else 22.0}},
-            ])
-            if ctx_tok <= 4096:
-                regimes.append({"id": "a3-tp8-aicpu-allreduce-serial-sync-r16", "match": dict(r_match), "coordinates": dict(r_coord),
-                                "domain": {"elems": {"min": 40961, "max": 81920}}, "response": {"fixed_us": 20.0}})
-    elif (hw, fam) == ("a3", "deepseek-v4.1") and phase == "decode":
-        dev = tpl["machine"].setdefault("device", {})
-        dev.setdefault("rates", {})["native_call_service"] = 1000000000.0
-        dev.setdefault("resource_units", {})["native_call_service"] = 1
-        dev.setdefault("work_units", {})["native_call_service"] = "busy_ns"
-        regimes.append({"id": "a3-v41-dspark-dispatch-ffn-combine-sp1",
-                        "match": {"hardware": "Ascend910_9362", "phase": "decode", "recipe": "expert_add"},
-                        "coordinates": {"rows": {"path": "local_shape.0", "scale": 1}}, "domain": {"rows": {"min": tp, "max": tp}},
-                        "response": {"fixed_us": 82.0 if (tp == 8 and ctx_tok <= 4096) else (110.0 if tp == 8 else (155.0 if ctx_tok >= 65536 else 135.0))}})
-        if not (tp == 8 and traits.get("spec_tokens") == 0):
-            regimes.append({"id": "a3-v41-dspark-dispatch-ffn-combine-sp2",
-                            "match": {"hardware": "Ascend910_9362", "phase": "decode", "recipe": "expert_add"},
-                            "coordinates": {"rows": {"path": "local_shape.0", "scale": 1}},
-                            "domain": {"rows": {"min": 2 * tp, "max": 2 * tp}}, "response": {"fixed_us": 86.0}})
-        if "noflashcomm" in traits.get("cell", ""):
-            regimes.extend([
-                {"id": "a3-v41-noflashcomm-q16-gate-up", "match": {"hardware": "Ascend910_9362", "phase": "decode", "recipe": "balanced_grouped_gate_up"},
-                 "coordinates": {"rows": {"path": "local_shape.0", "scale": 1}}, "domain": {"rows": {"min": 24, "max": 32}},
-                 "execution": {"kind": "joint_native", "resource": "native_call_service", "reference_rate": 1000000000.0, "native_kernel": "GroupedMatmul"},
-                 "response": {"fixed_us": 360.0}},
-                {"id": "a3-v41-noflashcomm-high-q-ar", "match": {"hardware": "Ascend910_9362", "phase": "decode", "recipe": "expert_add"},
-                 "coordinates": {"rows": {"path": "local_shape.0", "scale": 1}}, "domain": {"rows": {"min": 24, "max": 96}}, "response": {"fixed_us": 62.5}},
-            ])
-        elif ctx_tok <= 4096 and "skew" not in traits.get("cell", ""):
-            regimes.append({"id": "a3-v41-shortctx-grouped-gate-up-high-sp",
-                            "match": {"hardware": "Ascend910_9362", "phase": "decode", "recipe": "balanced_grouped_gate_up"},
-                            "coordinates": {"rows": {"path": "local_shape.0", "scale": 1}}, "domain": {"rows": {"min": 24, "max": 96}},
-                            "execution": {"kind": "joint_native", "resource": "native_call_service",
-                                          "reference_rate": 1000000000.0, "native_kernel": "GroupedMatmul"},
-                            "response": {"fixed_us": 470.0}})
-    elif (hw, fam) == ("a3", "deepseek-v4-flash") and phase == "decode":
-        dev = tpl["machine"].setdefault("device", {})
-        dev.setdefault("rates", {})["native_call_service"] = 1000000000.0
-        dev.setdefault("resource_units", {})["native_call_service"] = 1
-        dev.setdefault("work_units", {})["native_call_service"] = "busy_ns"
-        regimes.append({"id": "a3-v4flash-grouped-gate-up-c32",
-                        "match": {"hardware": "Ascend910_9362", "phase": "decode", "recipe": "grouped_gate_up"},
-                        "coordinates": {"rows": {"path": "local_shape.0", "scale": 1}}, "domain": {"rows": {"min": 48, "max": 48}},
-                        "execution": {"kind": "joint_native", "resource": "native_call_service",
-                                      "reference_rate": 1000000000.0, "native_kernel": "GroupedMatmul"},
-                        "response": {"fixed_us": 300.0}})
-        if ctx_tok >= 65536:
-            regimes.append({"id": "a3-v4flash-128k-low-q",
-                            "match": {"hardware": "Ascend910_9362", "phase": "decode", "recipe": "expert_add"},
-                            "coordinates": {"rows": {"path": "local_shape.0", "scale": 1}},
-                            "domain": {"rows": {"min": 1, "max": 8}}, "response": {"fixed_us": 80.0}})
-    elif (hw, fam) == ("a3", "glm-5.3-flash") and "static_kernel_off" in traits.get("cell", ""):
-        regimes[:] = [r for r in regimes if r.get("id") != "a3-q6-cap384-shortctx-GroupedMatmulSwigluQuant"]
-        for regime in regimes:
-            if regime.get("id") == "a3-q6-cap384-shortctx-GroupedMatmul":
-                regime["domain"] = {"expected_local_rows": {"min": 3, "max": 24.000000001}}
-                regime["response"] = {"fixed_us": 190.0, "terms": [{"coordinate": "expected_local_rows", "us_per_unit": 2.0}]}
-    elif hw == "a5" and fam in ("qwen3.6-27b", "qwen3.8-27b") and tp == 8 and phase == "decode":
-        fia_m = {"hardware": "Ascend950DT_9582", "phase": "decode", "recipe": "flash_attention_decode"}
-        if traits.get("spec_tokens") == 0:
-            fia_c = {"batch": {"path": "local_shape.0", "scale": 1}, "kv_len": {"path": "local_shape.1", "scale": 1}}
-            regimes.extend([
-                {"id": "a5-qwen36-tp8-mtp0-fia-4k-high-batch", "match": dict(fia_m), "coordinates": dict(fia_c),
-                 "domain": {"batch": {"min": 24, "max": 32}, "kv_len": {"min": 90000, "max": 150000}}, "response": {"fixed_us": 130.0}},
-                {"id": "a5-qwen36-tp8-mtp0-fia-32k-high-batch", "match": dict(fia_m), "coordinates": dict(fia_c),
-                 "domain": {"batch": {"min": 16, "max": 32}, "kv_len": {"min": 400000, "max": 1200000}},
-                 "response": {"fixed_us": 230.0, "terms": [{"coordinate": "batch", "us_per_unit": 5.0}]}},
-                {"id": "a5-qwen36-tp8-mtp0-fia-128k-high-batch", "match": dict(fia_m), "coordinates": dict(fia_c),
-                 "domain": {"batch": {"min": 12, "max": 32}, "kv_len": {"min": 1500000, "max": 4194304}},
-                 "response": {"fixed_us": 1180.0, "terms": [{"coordinate": "batch", "us_per_unit": 7.0}]}},
-            ])
-        elif traits.get("spec_tokens") == 3:
-            regimes.append({
-                "id": "a5-qwen36-tp8-mtp3-fia-mid-batch", "match": dict(fia_m),
-                "coordinates": {"batch": {"path": "local_shape.0", "scale": 1}, "ctx": {"path": "semantic_shape.1", "scale": 1}},
-                "domain": {"batch": {"min": 64, "max": 96}, "ctx": {"min": 30000, "max": 131072}},
-                "response": {"fixed_us": 120.0, "terms": [{"coordinate": "ctx", "us_per_unit": 0.0082}]},
-            })
-    elif phase == "prefill" and fam == "kimi-k3-4l":
-        for regime in regimes:
-            recipe = regime.get("match", {}).get("recipe")
-            if recipe == "grouped_situ":
-                regime["domain"] = {"active_routed_rows": {"min": 1, "max": 768}}
-                regime["response"] = {"fixed_us": 5000.0 if tp == 8 else 7600.0,
-                                      "terms": [{"coordinate": "active_routed_rows", "us_per_unit": 2.33}]}
-            elif recipe == "short_convolution":
-                regime["domain"] = {"conv_elements": {"min": 1, "max": 4096}}
-        if tp == 8:
-            dev = tpl["machine"].setdefault("device", {})
-            dev.setdefault("rates", {})["native_call_service"] = 1000000000.0
-            dev.setdefault("resource_units", {})["native_call_service"] = 1
-            dev.setdefault("work_units", {})["native_call_service"] = "busy_ns"
-            regimes.append({"id": "kimi-a3-tp8-prefill-bg-gate-up",
-                            "match": {"hardware": "Ascend910_9362", "phase": "prefill", "recipe": "balanced_grouped_gate_up"},
-                            "coordinates": {"rows": {"path": "semantic_shape.0", "scale": 1}}, "domain": {"rows": {"min": 4096, "max": 65536}},
-                            "execution": {"kind": "joint_native", "resource": "native_call_service",
-                                          "reference_rate": 1000000000.0, "native_kernel": "IntegerGroupedMatmul"},
-                            "response": {"fixed_us": 1200.0}})
-
     return tpl_name, tpl, seg_opts, cross_tp
 
 
@@ -444,14 +301,35 @@ def _sim_identity() -> str:
     return simulator_identity(mindie_sim)
 
 
-def _parser_identity() -> str:
-    prof_root = Path(auto_segment_decode_forwards.__code__.co_filename).resolve().parent
-    h = sha256(PARSER_VERSION.encode("utf-8"))
-    for name in ("decode_segmentation.py", "communication_bounds.py", "events.py"):
+# DSH extraction namespace. Segmentation, the active-event helper it executes,
+# then the original communication and event sources. The helper is inserted
+# after decode_segmentation.py so the other names keep their previous order.
+# prefill.py remains in the wave5 identity. This digest stays on serializer v3.
+_PARSER_SOURCES = (
+    "decode_segmentation.py",
+    "decode_active_event.py",
+    "communication_bounds.py",
+    "events.py",
+)
+
+
+def _parser_identity(prof_root: Path | None = None) -> str:
+    """Hash PARSER_VERSION and the DSH parser sources, in canonical order.
+
+    The default root is the file that defines auto_segment_decode_forwards.
+    Callers may pass an isolated root. Each listed file is read once. A missing
+    or empty file is not skipped.
+    """
+    if prof_root is None:
+        prof_root = Path(auto_segment_decode_forwards.__code__.co_filename).resolve().parent
+    digest = sha256(PARSER_VERSION.encode("utf-8"))
+    for name in _PARSER_SOURCES:
         mod_path = prof_root / name
-        if mod_path.exists():
-            h.update(mod_path.read_bytes())
-    return f"{PARSER_VERSION}:{h.hexdigest()[:16]}"
+        payload = mod_path.read_bytes()
+        if not payload:
+            raise ValueError(f"parser source is empty: {mod_path}")
+        digest.update(payload)
+    return f"{PARSER_VERSION}:{digest.hexdigest()[:16]}"
 
 
 SIM_IDENTITY = _sim_identity()

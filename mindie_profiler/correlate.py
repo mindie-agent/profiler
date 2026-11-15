@@ -43,6 +43,7 @@ from .accounting import merge_intervals
 from .events import ProfilerQueryError, ProfilerUsageError, Window
 from .segment import discover_rank_sources, resolve_ranks
 from .sources_db import _text
+from .profiler_configs import CorrelationConfig, DEFAULT_CORRELATION_CONFIG
 from .sql import open_readonly
 
 CORRELATION_SCHEMA = "mindie-profiler-correlation/1"
@@ -202,7 +203,8 @@ def _compute_names(
     strings: dict[int, str],
     global_ids: Sequence[int],
     *,
-    limit: int = 5000,
+    limit: int = DEFAULT_CORRELATION_CONFIG.max_name_rows,
+    batch_size: int = DEFAULT_CORRELATION_CONFIG.sql_batch_ids,
 ) -> dict[int, str]:
     if _COMPUTE_TABLE not in _tables(con) or not global_ids:
         return {}
@@ -214,8 +216,8 @@ def _compute_names(
     out: dict[int, str] = {}
     unresolved: list[int] = []
     ids = list(dict.fromkeys(global_ids))[:limit]
-    for offset in range(0, len(ids), 500):
-        chunk = ids[offset: offset + 500]
+    for offset in range(0, len(ids), batch_size):
+        chunk = ids[offset: offset + batch_size]
         placeholders = ",".join("?" for _ in chunk)
         try:
             rows = con.execute(
@@ -230,7 +232,13 @@ def _compute_names(
     return out
 
 
-def _connections(con: sqlite3.Connection, references: Iterable[int], *, limit: int) -> dict[int, set[int]]:
+def _connections(
+    con: sqlite3.Connection,
+    references: Iterable[int],
+    *,
+    limit: int,
+    batch_size: int = DEFAULT_CORRELATION_CONFIG.sql_batch_ids,
+) -> dict[int, set[int]]:
     ids = sorted(set(references))
     if not ids or _CONNECTION_TABLE not in _tables(con):
         return {}
@@ -242,8 +250,8 @@ def _connections(con: sqlite3.Connection, references: Iterable[int], *, limit: i
     out: dict[int, set[int]] = {}
     selected = 0
     try:
-        for offset in range(0, len(ids), 500):
-            chunk = ids[offset:offset + 500]
+        for offset in range(0, len(ids), batch_size):
+            chunk = ids[offset:offset + batch_size]
             placeholders = ",".join("?" for _ in chunk)
             rows = con.execute(
                 f"SELECT {id_col}, {conn_col} FROM {_CONNECTION_TABLE} "
@@ -262,15 +270,21 @@ def _connections(con: sqlite3.Connection, references: Iterable[int], *, limit: i
     return out
 
 
-def _task_occurrences(con: sqlite3.Connection, global_ids: Sequence[int], *, limit: int = 2000) -> dict[int, int]:
+def _task_occurrences(
+    con: sqlite3.Connection,
+    global_ids: Sequence[int],
+    *,
+    limit: int = DEFAULT_CORRELATION_CONFIG.max_task_occurrences,
+    batch_size: int = DEFAULT_CORRELATION_CONFIG.sql_batch_ids,
+) -> dict[int, int]:
     columns = _columns(con, _DEVICE_TABLE)
     global_col = _pick(columns, ("globalTaskId",))
     if global_col is None:
         return {}
     counts: dict[int, int] = {}
     ids = list(dict.fromkeys(global_ids))[:limit]
-    for offset in range(0, len(ids), 500):
-        chunk = ids[offset: offset + 500]
+    for offset in range(0, len(ids), batch_size):
+        chunk = ids[offset: offset + batch_size]
         placeholders = ",".join("?" for _ in chunk)
         try:
             rows = con.execute(
@@ -323,7 +337,7 @@ def _attach_stacks(events: list[dict[str, Any]]) -> None:
             stack.append(event)
 
 
-def _stack_path(event: dict[str, Any] | None, *, limit: int = 8) -> list[dict[str, Any]]:
+def _stack_path(event: dict[str, Any] | None, *, limit: int = DEFAULT_CORRELATION_CONFIG.max_stack_depth) -> list[dict[str, Any]]:
     path: list[dict[str, Any]] = []
     cursor = event
     while cursor is not None and len(path) < limit:
@@ -347,6 +361,7 @@ def _find_cann(
     links: dict[int, set[int]],
 ) -> tuple[dict[str, Any] | None, str | None, bool, int]:
     connection = task.get("connection_id")
+    # ABI: Trace connection IDs establish the explicit join; interval containment is only a labeled fallback and multiple candidates remain ambiguous.
     if connection is not None:
         candidates = [event for event in cann_events if connection in _connections_for(event, links)]
         if candidates:
@@ -392,6 +407,7 @@ def _find_pytorch(
 ) -> tuple[dict[str, Any] | None, str | None, bool, int]:
     if cann is not None:
         connections = _connections_for(cann, links)
+        # ABI: Trace connection IDs establish the explicit join; interval containment is only a labeled fallback and multiple candidates remain ambiguous.
         if task.get("connection_id") in connections:
             connections = {task["connection_id"]}
         candidates = [
@@ -414,6 +430,7 @@ def _find_pytorch(
             selected = max(candidates, key=lambda event: (event["start_ns"], -event["end_ns"]))
             return selected, "same_global_tid_containment", _strict_stack(candidates), len(candidates)
     connection = task.get("connection_id")
+    # ABI: Trace connection IDs establish the explicit join; interval containment is only a labeled fallback and multiple candidates remain ambiguous.
     if connection is not None:
         candidates = [
             event for event in pytorch_events
@@ -449,9 +466,10 @@ def correlate_profile(
     ranks: Iterable[str] | None = None,
     kernel_name: str | None = None,
     min_gap_ms: float | None = None,
-    max_rows: int = 5000,
-    timeout_s: float = 20.0,
-    call_limit: int = 200,
+    max_rows: int | None = None,
+    timeout_s: float | None = None,
+    call_limit: int | None = None,
+    config: CorrelationConfig = DEFAULT_CORRELATION_CONFIG,
 ) -> dict[str, Any]:
     """Correlate host stacks and device tasks for one rank/window."""
 
@@ -459,8 +477,15 @@ def correlate_profile(
         raise ProfilerUsageError("correlate requires an explicit --window or --full-range")
     if window is not None and full_range:
         raise ProfilerUsageError("--full-range cannot be combined with --window")
-    if max_rows <= 0 or call_limit <= 0:
+    resolved_max_rows = config.max_rows if max_rows is None else max_rows
+    resolved_call_limit = config.max_calls if call_limit is None else call_limit
+    resolved_timeout_s = (config.query_timeout_us / 1_000_000.0) if timeout_s is None else timeout_s
+    min_timeout_s = config.min_query_timeout_us / 1_000_000.0
+    if resolved_max_rows <= 0 or resolved_call_limit <= 0:
         raise ProfilerUsageError("max_rows and call_limit must be positive")
+    max_rows = resolved_max_rows
+    call_limit = resolved_call_limit
+    timeout_s = resolved_timeout_s
     sources = resolve_ranks(discover_rank_sources(root, source="db"), ranks)
     if not sources:
         raise ProfilerUsageError("no rank selected")
@@ -475,8 +500,11 @@ def correlate_profile(
     }
     con = open_readonly(db_path, timeout_s=timeout_s, allow_pragma=True)
     started = time.perf_counter()
-    deadline = started + max(0.1, timeout_s)
-    con.set_progress_handler(lambda: 1 if time.perf_counter() > deadline else 0, 20_000)
+    deadline = started + max(min_timeout_s, timeout_s)
+    con.set_progress_handler(
+        lambda: 1 if time.perf_counter() > deadline else 0,
+        config.progress_interval_opcodes,
+    )
     limitations: list[dict[str, Any]] = []
     try:
         tables = _tables(con)
@@ -509,12 +537,19 @@ def correlate_profile(
         connection_refs = {
             event["connection_id"] for event in pytorch_events
         } - {None}
-        links = _connections(con, connection_refs, limit=max_rows)
+        links = _connections(con, connection_refs, limit=max_rows, batch_size=config.sql_batch_ids)
         tasks = _task_rows(con, strings, start_ns=window.start_ns, end_ns=window.end_ns, limit=max_rows)
-        compute_names = _compute_names(con, strings, [task["global_task_id"] for task in tasks if task["global_task_id"] is not None])
+        compute_names = _compute_names(
+            con,
+            strings,
+            [task["global_task_id"] for task in tasks if task["global_task_id"] is not None],
+            limit=config.max_name_rows,
+            batch_size=config.sql_batch_ids,
+        )
         occurrences = _task_occurrences(
             con, [task["global_task_id"] for task in tasks if task["global_task_id"] is not None],
             limit=max_rows,
+            batch_size=config.sql_batch_ids,
         )
         if kernel_name:
             try:

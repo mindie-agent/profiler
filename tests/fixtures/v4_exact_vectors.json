@@ -1,0 +1,2049 @@
+{
+  "source_sha256": "9ba8851ac6d1b11fdfd56143fda1bb572a8c74e5019c32d9cc2b146debc8b2d0",
+  "exact_test_tables": {
+    "check_counts": {
+      "floor_sum": 4000,
+      "lattice_count": 4000,
+      "load3d_worked": 24,
+      "contract_8_18": 2,
+      "load3d_random": 2400,
+      "fractal_address_map": 16,
+      "fractal_capacity": 8,
+      "fp32_NZ_17": 1,
+      "nddma_span": 6,
+      "nddma_known": 1,
+      "subbyte_row_reset": 1,
+      "nddma_alias_reject": 1,
+      "interval_peak": 4,
+      "resident_order_invariance": 50,
+      "slot_alignment": 1,
+      "pool_alignment": 1,
+      "finite_pipeline_DAG": 4,
+      "finite_affine_counterexample": 1,
+      "infeasible_zero_distance_cycle": 1,
+      "GM_in_tau": 1,
+      "fixed_policy_hidden_monotone": 792,
+      "core_barrier_counterexample": 1,
+      "core_independent_monotone": 1,
+      "memory_overlap_bounds": 5,
+      "memory_exact_fraction": 1,
+      "attnres_semantic_count": 5,
+      "engram_semantic_count": 5,
+      "add_rms_semantic_count": 5,
+      "replay_semantic_count": 5,
+      "mhc_semantic_count": 9,
+      "welford_value": 29,
+      "welford_merge_value": 435,
+      "flash_cube_source_enumeration": 1,
+      "matmul_tiled_read": 4,
+      "matmul_tiled_issue": 4,
+      "matmul_mte1_padding": 4,
+      "w4_unpack_count": 3,
+      "quant_source_host_tiling": 1,
+      "quant_source_event_enumeration": 1,
+      "streamk_source_tail": 1,
+      "cache_service_vs_unique": 1,
+      "sequence_separate_from_waves": 1,
+      "one_C_two_V_conservation": 1,
+      "clock_rate_identity": 1,
+      "Replay_to_Commit_U_promotion": 1,
+      "typed_domain_rejections": 7
+    },
+    "total_checks": 11847,
+    "load3d_vectors": [
+      {
+        "id": "contract_once",
+        "parameters": {
+          "H": 2,
+          "W": 2,
+          "C": 1,
+          "kh": 2,
+          "kw": 2,
+          "sh": 1,
+          "sw": 1,
+          "dh": 1,
+          "dw": 1,
+          "bits": 16,
+          "pt": 0,
+          "pb": 1,
+          "pl": 0,
+          "pr": 1
+        },
+        "read_policy": "source_once",
+        "expected": {
+          "output_h": 2,
+          "output_w": 2,
+          "valid_references": 9,
+          "logical_input_bytes": 8,
+          "actual_source_read_bytes_once": 8,
+          "actual_source_read_bytes_per_ref": 18,
+          "unfolded_logical_output_bytes": 32,
+          "actual_dest_write_bytes": 32,
+          "dest_physical_capacity_bytes": 32,
+          "pool_allocation_bytes": 32
+        },
+        "unique_touched_source_bytes": 8,
+        "chosen_transfer_triple": [
+          8,
+          32,
+          32
+        ]
+      },
+      {
+        "id": "contract_per_reference",
+        "parameters": {
+          "H": 2,
+          "W": 2,
+          "C": 1,
+          "kh": 2,
+          "kw": 2,
+          "sh": 1,
+          "sw": 1,
+          "dh": 1,
+          "dw": 1,
+          "bits": 16,
+          "pt": 0,
+          "pb": 1,
+          "pl": 0,
+          "pr": 1
+        },
+        "read_policy": "source_per_ref",
+        "expected": {
+          "output_h": 2,
+          "output_w": 2,
+          "valid_references": 9,
+          "logical_input_bytes": 8,
+          "actual_source_read_bytes_once": 8,
+          "actual_source_read_bytes_per_ref": 18,
+          "unfolded_logical_output_bytes": 32,
+          "actual_dest_write_bytes": 32,
+          "dest_physical_capacity_bytes": 32,
+          "pool_allocation_bytes": 32
+        },
+        "unique_touched_source_bytes": 8,
+        "chosen_transfer_triple": [
+          18,
+          32,
+          32
+        ]
+      },
+      {
+        "id": "symmetric_pad",
+        "parameters": {
+          "H": 3,
+          "W": 3,
+          "C": 2,
+          "kh": 3,
+          "kw": 3,
+          "sh": 1,
+          "sw": 1,
+          "dh": 1,
+          "dw": 1,
+          "bits": 16,
+          "pt": 1,
+          "pb": 1,
+          "pl": 1,
+          "pr": 1
+        },
+        "read_policy": "source_per_ref",
+        "expected": {
+          "output_h": 3,
+          "output_w": 3,
+          "valid_references": 98,
+          "logical_input_bytes": 36,
+          "actual_source_read_bytes_once": 36,
+          "actual_source_read_bytes_per_ref": 196,
+          "unfolded_logical_output_bytes": 324,
+          "actual_dest_write_bytes": 324,
+          "dest_physical_capacity_bytes": 324,
+          "pool_allocation_bytes": 324
+        },
+        "unique_touched_source_bytes": 36,
+        "chosen_transfer_triple": [
+          196,
+          324,
+          324
+        ]
+      },
+      {
+        "id": "asymmetric_pad",
+        "parameters": {
+          "H": 3,
+          "W": 4,
+          "C": 3,
+          "kh": 2,
+          "kw": 3,
+          "sh": 2,
+          "sw": 1,
+          "dh": 1,
+          "dw": 1,
+          "bits": 16,
+          "pt": 2,
+          "pb": 0,
+          "pl": 0,
+          "pr": 1
+        },
+        "read_policy": "source_per_ref",
+        "expected": {
+          "output_h": 2,
+          "output_w": 3,
+          "valid_references": 48,
+          "logical_input_bytes": 72,
+          "actual_source_read_bytes_once": 72,
+          "actual_source_read_bytes_per_ref": 96,
+          "unfolded_logical_output_bytes": 216,
+          "actual_dest_write_bytes": 216,
+          "dest_physical_capacity_bytes": 216,
+          "pool_allocation_bytes": 216
+        },
+        "unique_touched_source_bytes": 48,
+        "chosen_transfer_triple": [
+          96,
+          216,
+          216
+        ]
+      },
+      {
+        "id": "dilation_and_stride",
+        "parameters": {
+          "H": 5,
+          "W": 6,
+          "C": 1,
+          "kh": 3,
+          "kw": 2,
+          "sh": 1,
+          "sw": 2,
+          "dh": 2,
+          "dw": 3,
+          "bits": 16,
+          "pt": 1,
+          "pb": 2,
+          "pl": 2,
+          "pr": 0
+        },
+        "read_policy": "source_per_ref",
+        "expected": {
+          "output_h": 4,
+          "output_w": 3,
+          "valid_references": 45,
+          "logical_input_bytes": 60,
+          "actual_source_read_bytes_once": 60,
+          "actual_source_read_bytes_per_ref": 90,
+          "unfolded_logical_output_bytes": 144,
+          "actual_dest_write_bytes": 144,
+          "dest_physical_capacity_bytes": 144,
+          "pool_allocation_bytes": 144
+        },
+        "unique_touched_source_bytes": 50,
+        "chosen_transfer_triple": [
+          90,
+          144,
+          144
+        ]
+      },
+      {
+        "id": "stride_holes",
+        "parameters": {
+          "H": 7,
+          "W": 8,
+          "C": 2,
+          "kh": 2,
+          "kw": 2,
+          "sh": 3,
+          "sw": 4,
+          "dh": 1,
+          "dw": 1,
+          "bits": 16,
+          "pt": 0,
+          "pb": 0,
+          "pl": 0,
+          "pr": 0
+        },
+        "read_policy": "source_once",
+        "expected": {
+          "output_h": 2,
+          "output_w": 2,
+          "valid_references": 32,
+          "logical_input_bytes": 224,
+          "actual_source_read_bytes_once": 224,
+          "actual_source_read_bytes_per_ref": 64,
+          "unfolded_logical_output_bytes": 64,
+          "actual_dest_write_bytes": 64,
+          "dest_physical_capacity_bytes": 64,
+          "pool_allocation_bytes": 64
+        },
+        "unique_touched_source_bytes": 64,
+        "chosen_transfer_triple": [
+          224,
+          64,
+          64
+        ]
+      },
+      {
+        "id": "zero_output",
+        "parameters": {
+          "H": 1,
+          "W": 2,
+          "C": 1,
+          "kh": 3,
+          "kw": 3,
+          "sh": 1,
+          "sw": 1,
+          "dh": 1,
+          "dw": 1,
+          "bits": 16,
+          "pt": 0,
+          "pb": 0,
+          "pl": 0,
+          "pr": 0
+        },
+        "read_policy": "source_once",
+        "expected": {
+          "output_h": 0,
+          "output_w": 0,
+          "valid_references": 0,
+          "logical_input_bytes": 4,
+          "actual_source_read_bytes_once": 0,
+          "actual_source_read_bytes_per_ref": 0,
+          "unfolded_logical_output_bytes": 0,
+          "actual_dest_write_bytes": 0,
+          "dest_physical_capacity_bytes": 0,
+          "pool_allocation_bytes": 0
+        },
+        "unique_touched_source_bytes": 0,
+        "chosen_transfer_triple": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": "all_padding_output",
+        "parameters": {
+          "H": 1,
+          "W": 1,
+          "C": 1,
+          "kh": 1,
+          "kw": 1,
+          "sh": 2,
+          "sw": 2,
+          "dh": 1,
+          "dw": 1,
+          "bits": 16,
+          "pt": 1,
+          "pb": 0,
+          "pl": 1,
+          "pr": 0
+        },
+        "read_policy": "source_per_ref",
+        "expected": {
+          "output_h": 1,
+          "output_w": 1,
+          "valid_references": 0,
+          "logical_input_bytes": 2,
+          "actual_source_read_bytes_once": 2,
+          "actual_source_read_bytes_per_ref": 0,
+          "unfolded_logical_output_bytes": 2,
+          "actual_dest_write_bytes": 2,
+          "dest_physical_capacity_bytes": 2,
+          "pool_allocation_bytes": 2
+        },
+        "unique_touched_source_bytes": 0,
+        "chosen_transfer_triple": [
+          0,
+          2,
+          2
+        ]
+      },
+      {
+        "id": "kernel_larger_than_image",
+        "parameters": {
+          "H": 1,
+          "W": 1,
+          "C": 1,
+          "kh": 3,
+          "kw": 3,
+          "sh": 1,
+          "sw": 1,
+          "dh": 1,
+          "dw": 1,
+          "bits": 16,
+          "pt": 1,
+          "pb": 1,
+          "pl": 1,
+          "pr": 1
+        },
+        "read_policy": "source_per_ref",
+        "expected": {
+          "output_h": 1,
+          "output_w": 1,
+          "valid_references": 1,
+          "logical_input_bytes": 2,
+          "actual_source_read_bytes_once": 2,
+          "actual_source_read_bytes_per_ref": 2,
+          "unfolded_logical_output_bytes": 18,
+          "actual_dest_write_bytes": 18,
+          "dest_physical_capacity_bytes": 18,
+          "pool_allocation_bytes": 18
+        },
+        "unique_touched_source_bytes": 2,
+        "chosen_transfer_triple": [
+          2,
+          18,
+          18
+        ]
+      },
+      {
+        "id": "fp32_NZ_tail",
+        "parameters": {
+          "H": 2,
+          "W": 3,
+          "C": 17,
+          "kh": 2,
+          "kw": 1,
+          "sh": 1,
+          "sw": 1,
+          "dh": 1,
+          "dw": 1,
+          "bits": 32,
+          "pt": 0,
+          "pb": 1,
+          "pl": 0,
+          "pr": 0,
+          "layout": "NZ"
+        },
+        "read_policy": "source_once",
+        "expected": {
+          "output_h": 2,
+          "output_w": 3,
+          "valid_references": 153,
+          "logical_input_bytes": 408,
+          "actual_source_read_bytes_once": 408,
+          "actual_source_read_bytes_per_ref": 612,
+          "unfolded_logical_output_bytes": 816,
+          "actual_dest_write_bytes": 816,
+          "dest_physical_capacity_bytes": 2560,
+          "pool_allocation_bytes": 2560
+        },
+        "unique_touched_source_bytes": 408,
+        "chosen_transfer_triple": [
+          408,
+          816,
+          816
+        ]
+      },
+      {
+        "id": "packed_fp4_NZ",
+        "parameters": {
+          "H": 2,
+          "W": 2,
+          "C": 2,
+          "kh": 2,
+          "kw": 2,
+          "sh": 1,
+          "sw": 1,
+          "dh": 1,
+          "dw": 1,
+          "bits": 4,
+          "pt": 0,
+          "pb": 1,
+          "pl": 0,
+          "pr": 1,
+          "layout": "NZ"
+        },
+        "read_policy": "source_per_ref",
+        "expected": {
+          "output_h": 2,
+          "output_w": 2,
+          "valid_references": 18,
+          "logical_input_bytes": 4,
+          "actual_source_read_bytes_once": 4,
+          "actual_source_read_bytes_per_ref": 9,
+          "unfolded_logical_output_bytes": 16,
+          "actual_dest_write_bytes": 16,
+          "dest_physical_capacity_bytes": 512,
+          "pool_allocation_bytes": 512
+        },
+        "unique_touched_source_bytes": 4,
+        "chosen_transfer_triple": [
+          9,
+          16,
+          16
+        ]
+      },
+      {
+        "id": "int8_pointwise",
+        "parameters": {
+          "H": 2,
+          "W": 2,
+          "C": 1,
+          "kh": 1,
+          "kw": 1,
+          "sh": 1,
+          "sw": 1,
+          "dh": 1,
+          "dw": 1,
+          "bits": 8,
+          "pt": 0,
+          "pb": 0,
+          "pl": 0,
+          "pr": 0
+        },
+        "read_policy": "source_once",
+        "expected": {
+          "output_h": 2,
+          "output_w": 2,
+          "valid_references": 4,
+          "logical_input_bytes": 4,
+          "actual_source_read_bytes_once": 4,
+          "actual_source_read_bytes_per_ref": 4,
+          "unfolded_logical_output_bytes": 4,
+          "actual_dest_write_bytes": 4,
+          "dest_physical_capacity_bytes": 4,
+          "pool_allocation_bytes": 4
+        },
+        "unique_touched_source_bytes": 4,
+        "chosen_transfer_triple": [
+          4,
+          4,
+          4
+        ]
+      }
+    ],
+    "fractal_vectors": [
+      {
+        "m": 17,
+        "n": 17,
+        "bits": 4,
+        "layout": "NZ",
+        "c0": 64,
+        "capacity": 1024,
+        "logical_row_packed_bytes": 153,
+        "max_live_bit": 4164
+      },
+      {
+        "m": 17,
+        "n": 17,
+        "bits": 4,
+        "layout": "ZN",
+        "c0": 64,
+        "capacity": 1024,
+        "logical_row_packed_bytes": 153,
+        "max_live_bit": 4164
+      },
+      {
+        "m": 17,
+        "n": 17,
+        "bits": 8,
+        "layout": "NZ",
+        "c0": 32,
+        "capacity": 1024,
+        "logical_row_packed_bytes": 289,
+        "max_live_bit": 4232
+      },
+      {
+        "m": 17,
+        "n": 17,
+        "bits": 8,
+        "layout": "ZN",
+        "c0": 32,
+        "capacity": 1024,
+        "logical_row_packed_bytes": 289,
+        "max_live_bit": 4232
+      },
+      {
+        "m": 17,
+        "n": 17,
+        "bits": 16,
+        "layout": "NZ",
+        "c0": 16,
+        "capacity": 2048,
+        "logical_row_packed_bytes": 578,
+        "max_live_bit": 12304
+      },
+      {
+        "m": 17,
+        "n": 17,
+        "bits": 16,
+        "layout": "ZN",
+        "c0": 16,
+        "capacity": 2048,
+        "logical_row_packed_bytes": 578,
+        "max_live_bit": 12304
+      },
+      {
+        "m": 17,
+        "n": 17,
+        "bits": 32,
+        "layout": "NZ",
+        "c0": 8,
+        "capacity": 3072,
+        "logical_row_packed_bytes": 1156,
+        "max_live_bit": 20512
+      },
+      {
+        "m": 17,
+        "n": 17,
+        "bits": 32,
+        "layout": "ZN",
+        "c0": 8,
+        "capacity": 3072,
+        "logical_row_packed_bytes": 1156,
+        "max_live_bit": 20512
+      }
+    ],
+    "nddma_vectors": [
+      {
+        "id": "3_rows_20B_stride256B",
+        "shape": [
+          3,
+          20
+        ],
+        "stride_bits": [
+          2048,
+          8
+        ],
+        "element_bits": 8,
+        "base_bits": 0,
+        "alignment": 512,
+        "expected": {
+          "logical_bits": 480,
+          "actual_transfer_bytes": 60,
+          "address_span_bytes": 532,
+          "physical_capacity_bytes": 1024
+        },
+        "capacity_policy": "minimum_enclosing_span_aligned; caller-reserved full-pitch capacity may be larger"
+      },
+      {
+        "id": "contiguous_fp32",
+        "shape": [
+          2,
+          3
+        ],
+        "stride_bits": [
+          96,
+          32
+        ],
+        "element_bits": 32,
+        "base_bits": 0,
+        "alignment": 32,
+        "expected": {
+          "logical_bits": 192,
+          "actual_transfer_bytes": 24,
+          "address_span_bytes": 24,
+          "physical_capacity_bytes": 32
+        },
+        "capacity_policy": "minimum_enclosing_span_aligned; caller-reserved full-pitch capacity may be larger"
+      },
+      {
+        "id": "packed_row_restart",
+        "shape": [
+          3,
+          3
+        ],
+        "stride_bits": [
+          16,
+          4
+        ],
+        "element_bits": 4,
+        "base_bits": 0,
+        "alignment": 32,
+        "expected": {
+          "logical_bits": 36,
+          "actual_transfer_bytes": 6,
+          "address_span_bytes": 6,
+          "physical_capacity_bytes": 32
+        },
+        "capacity_policy": "minimum_enclosing_span_aligned; caller-reserved full-pitch capacity may be larger"
+      },
+      {
+        "id": "contiguous_9_nibbles",
+        "shape": [
+          9
+        ],
+        "stride_bits": [
+          4
+        ],
+        "element_bits": 4,
+        "base_bits": 0,
+        "alignment": 1,
+        "expected": {
+          "logical_bits": 36,
+          "actual_transfer_bytes": 5,
+          "address_span_bytes": 5,
+          "physical_capacity_bytes": 5
+        },
+        "capacity_policy": "minimum_enclosing_span_aligned; caller-reserved full-pitch capacity may be larger"
+      },
+      {
+        "id": "offset_half_byte",
+        "shape": [
+          3
+        ],
+        "stride_bits": [
+          4
+        ],
+        "element_bits": 4,
+        "base_bits": 4,
+        "alignment": 1,
+        "expected": {
+          "logical_bits": 12,
+          "actual_transfer_bytes": 2,
+          "address_span_bytes": 2,
+          "physical_capacity_bytes": 2
+        },
+        "capacity_policy": "minimum_enclosing_span_aligned; caller-reserved full-pitch capacity may be larger"
+      },
+      {
+        "id": "empty",
+        "shape": [
+          0,
+          20
+        ],
+        "stride_bits": [
+          2048,
+          8
+        ],
+        "element_bits": 8,
+        "base_bits": 0,
+        "alignment": 512,
+        "expected": {
+          "logical_bits": 0,
+          "actual_transfer_bytes": 0,
+          "address_span_bytes": 0,
+          "physical_capacity_bytes": 0
+        },
+        "capacity_policy": "minimum_enclosing_span_aligned; caller-reserved full-pitch capacity may be larger"
+      }
+    ],
+    "interval_vector": {
+      "S_max": 9,
+      "buffers": [
+        {
+          "pool": "UB",
+          "owner": 0,
+          "lane": 0,
+          "bytes": 17,
+          "resident": true
+        },
+        {
+          "pool": "UB",
+          "owner": 0,
+          "lane": 0,
+          "bytes": 100,
+          "slots": 3,
+          "start": 2,
+          "end": 4
+        },
+        {
+          "pool": "UB",
+          "owner": 0,
+          "lane": 0,
+          "bytes": 33,
+          "start": 4,
+          "end": 7
+        },
+        {
+          "pool": "UB",
+          "owner": 0,
+          "lane": 1,
+          "bytes": 1000,
+          "start": 0,
+          "end": 9
+        },
+        {
+          "pool": "L1",
+          "owner": 0,
+          "lane": null,
+          "bytes": 513,
+          "slots": 2,
+          "start": 0,
+          "end": 8
+        },
+        {
+          "pool": "UB",
+          "owner": 1,
+          "lane": 0,
+          "bytes": 1,
+          "start": 9,
+          "end": 9
+        }
+      ],
+      "expected": {
+        "('UB', 0, 0)": 480,
+        "('UB', 0, 1)": 1024,
+        "('L1', 0, None)": 2048,
+        "('UB', 1, 0)": 32
+      }
+    },
+    "pipeline_vectors": [
+      {
+        "slots": 1,
+        "first_item": 300,
+        "cycle_ratio": 300,
+        "resource_bound": 100,
+        "tau_lower_bound": 300,
+        "N": 4,
+        "exact_makespan": 1200,
+        "affine_first_plus_N_minus_one_tau": 1200
+      },
+      {
+        "slots": 2,
+        "first_item": 300,
+        "cycle_ratio": 150,
+        "resource_bound": 100,
+        "tau_lower_bound": 150,
+        "N": 4,
+        "exact_makespan": 700,
+        "affine_first_plus_N_minus_one_tau": 750
+      },
+      {
+        "slots": 3,
+        "first_item": 300,
+        "cycle_ratio": 100,
+        "resource_bound": 100,
+        "tau_lower_bound": 100,
+        "N": 4,
+        "exact_makespan": 600,
+        "affine_first_plus_N_minus_one_tau": 600
+      },
+      {
+        "slots": 4,
+        "first_item": 300,
+        "cycle_ratio": 75,
+        "resource_bound": 100,
+        "tau_lower_bound": 100,
+        "N": 4,
+        "exact_makespan": 600,
+        "affine_first_plus_N_minus_one_tau": 600
+      }
+    ],
+    "resource_vector": {
+      "GM": 250,
+      "MTE2_AIC": 40,
+      "MTE2_AIV": 30,
+      "MTE1": 100,
+      "CUBE": 100,
+      "FIX": 100,
+      "VEC": 50,
+      "MTE3": 20
+    },
+    "wave_vectors": [
+      {
+        "hidden": 8192,
+        "U": 28,
+        "full_tiles": 1,
+        "remainder_elements": 0,
+        "tiles": 1,
+        "full_waves": 0,
+        "partial_wave_tiles": 1,
+        "exact_independent_tile_makespan": 8192
+      },
+      {
+        "hidden": 8192,
+        "U": 32,
+        "full_tiles": 1,
+        "remainder_elements": 0,
+        "tiles": 1,
+        "full_waves": 0,
+        "partial_wave_tiles": 1,
+        "exact_independent_tile_makespan": 8192
+      },
+      {
+        "hidden": 8192,
+        "U": 36,
+        "full_tiles": 1,
+        "remainder_elements": 0,
+        "tiles": 1,
+        "full_waves": 0,
+        "partial_wave_tiles": 1,
+        "exact_independent_tile_makespan": 8192
+      },
+      {
+        "hidden": 8193,
+        "U": 28,
+        "full_tiles": 1,
+        "remainder_elements": 1,
+        "tiles": 2,
+        "full_waves": 0,
+        "partial_wave_tiles": 2,
+        "exact_independent_tile_makespan": 8192
+      },
+      {
+        "hidden": 8193,
+        "U": 32,
+        "full_tiles": 1,
+        "remainder_elements": 1,
+        "tiles": 2,
+        "full_waves": 0,
+        "partial_wave_tiles": 2,
+        "exact_independent_tile_makespan": 8192
+      },
+      {
+        "hidden": 8193,
+        "U": 36,
+        "full_tiles": 1,
+        "remainder_elements": 1,
+        "tiles": 2,
+        "full_waves": 0,
+        "partial_wave_tiles": 2,
+        "exact_independent_tile_makespan": 8192
+      }
+    ],
+    "core_counterexample": {
+      "Mtiles": 70,
+      "cores": [
+        28,
+        32,
+        36
+      ],
+      "local_time": 10,
+      "shared_time_per_tile": 1,
+      "barrier_makespans": [
+        70,
+        74,
+        70
+      ],
+      "independent_makespans": [
+        30,
+        30,
+        20
+      ]
+    },
+    "memory_vectors": [
+      {
+        "read": 300,
+        "write": 200,
+        "read_bps": 100,
+        "write_bps": 200,
+        "alpha": {
+          "numerator": 3,
+          "denominator": 10
+        },
+        "seconds": {
+          "numerator": 33,
+          "denominator": 10
+        }
+      },
+      {
+        "read": 0,
+        "write": 200,
+        "read_bps": 100,
+        "write_bps": 200,
+        "alpha": {
+          "numerator": 3,
+          "denominator": 10
+        },
+        "seconds": 1
+      },
+      {
+        "read": 300,
+        "write": 0,
+        "read_bps": 100,
+        "write_bps": 200,
+        "alpha": {
+          "numerator": 3,
+          "denominator": 10
+        },
+        "seconds": 3
+      },
+      {
+        "read": 300,
+        "write": 200,
+        "read_bps": 100,
+        "write_bps": 200,
+        "alpha": 0,
+        "seconds": 3
+      },
+      {
+        "read": 300,
+        "write": 200,
+        "read_bps": 100,
+        "write_bps": 200,
+        "alpha": 1,
+        "seconds": 4
+      }
+    ],
+    "semantic_cost_vectors": [
+      {
+        "D": 1,
+        "attnres": 27,
+        "engram": 25,
+        "add_rms": 8,
+        "replay_unsplit": 30,
+        "commit": 3
+      },
+      {
+        "D": 2,
+        "attnres": 39,
+        "engram": 34,
+        "add_rms": 13,
+        "replay_unsplit": 66,
+        "commit": 12
+      },
+      {
+        "D": 7,
+        "attnres": 99,
+        "engram": 79,
+        "add_rms": 38,
+        "replay_unsplit": 456,
+        "commit": 147
+      },
+      {
+        "D": 128,
+        "attnres": 1551,
+        "engram": 1168,
+        "add_rms": 643,
+        "replay_unsplit": 116616,
+        "commit": 49152
+      },
+      {
+        "D": 7168,
+        "attnres": 86031,
+        "engram": 64528,
+        "add_rms": 35843,
+        "replay_unsplit": 359769096,
+        "commit": 154140672
+      }
+    ],
+    "flash_source_cube_vector": {
+      "shared_score": 1310720,
+      "stable_score": 9175040,
+      "inverse": 2097152
+    },
+    "quant_source_vector": {
+      "geometry": {
+        "tm": 64,
+        "tn": 64,
+        "kl0": 256,
+        "kl1": 256,
+        "da": 4,
+        "db": 4,
+        "dc": 2,
+        "packed_k_fractals": 8,
+        "tile_count": 4
+      },
+      "read_bytes": 96256,
+      "write_bytes": 32768,
+      "bit_ops": 294912,
+      "cube_flops": 8388608
+    },
+    "multiwave_sequence_vector": {
+      "S": [
+        2,
+        5,
+        1
+      ],
+      "U": 2,
+      "step_time": 7,
+      "exact_time": 42
+    },
+    "U_promotion_vector": {
+      "N": 2,
+      "A": 5,
+      "D": 128,
+      "read": 2560,
+      "write": 5120,
+      "casts": 1280
+    },
+    "cache_vector": {
+      "unique_working_set": 64,
+      "l2_read_service": 256,
+      "hbm_read_service": 64
+    }
+  },
+  "operators": {
+    "block_attn_res_update_rms_norm": [
+      {
+        "id": "declared_route_fixture",
+        "bindings": {
+          "T": 3,
+          "D": 7168,
+          "U": 2,
+          "t": 1,
+          "depth": 2
+        },
+        "expected": {
+          "flops_cube": 0,
+          "ops_vec": 258093,
+          "cast_elements": 107520,
+          "logical_read_bytes": 258072,
+          "logical_write_bytes": 129024,
+          "actual_read_bytes": 301080,
+          "actual_write_bytes": 129024,
+          "ub_declared_raw": 186560
+        },
+        "buffer_expected": [
+          {
+            "name": "query",
+            "raw_bytes": 28672,
+            "aligned_bytes_per_slot": 28672,
+            "slots": 1
+          },
+          {
+            "name": "gamma",
+            "raw_bytes": 14336,
+            "aligned_bytes_per_slot": 14336,
+            "slots": 1
+          },
+          {
+            "name": "row_channels",
+            "raw_bytes": 71776,
+            "aligned_bytes_per_slot": 71776,
+            "slots": 2
+          }
+        ],
+        "validation_kind": "AST versus native trusted-expression arithmetic; independent semantic/tile oracles listed separately",
+        "physical_fixture_scope": "guarded mathematical count vector, not measured hardware execution"
+      }
+    ],
+    "fused_recurrent_kda_replayssm": [
+      {
+        "id": "declared_route_fixture",
+        "bindings": {
+          "B": 2,
+          "N": 12,
+          "D": 128,
+          "L": 5,
+          "PLH": 120,
+          "U": 16,
+          "r": 64,
+          "v": 64,
+          "control": 384,
+          "metadata": 12
+        },
+        "expected": {
+          "flops_cube": 0,
+          "ops_vec": 7112640,
+          "logical_read_bytes": 1640628,
+          "logical_write_bytes": 76800,
+          "actual_read_bytes": 1780080,
+          "actual_write_bytes": 76800,
+          "cast_elements": 84600,
+          "ub_declared_raw": 88320
+        },
+        "buffer_expected": [
+          {
+            "name": "state",
+            "raw_bytes": 32768,
+            "aligned_bytes_per_slot": 32768,
+            "slots": 1
+          },
+          {
+            "name": "other_declared_buffers",
+            "raw_bytes": 55552,
+            "aligned_bytes_per_slot": 55552,
+            "slots": 1
+          }
+        ],
+        "validation_kind": "AST versus native trusted-expression arithmetic; independent semantic/tile oracles listed separately",
+        "physical_fixture_scope": "guarded mathematical count vector, not measured hardware execution"
+      }
+    ],
+    "commit_recurrent_kda": [
+      {
+        "id": "declared_route_fixture",
+        "bindings": {
+          "B": 3,
+          "Bpos": 2,
+          "N": 2,
+          "D": 128,
+          "A": 5,
+          "PAH": 40,
+          "tasks": 24,
+          "active_items": 16
+        },
+        "expected": {
+          "flops_cube": 0,
+          "ops_vec": 491520,
+          "logical_read_bytes": 274964,
+          "logical_write_bytes": 262144,
+          "actual_read_bytes": 298624,
+          "actual_write_bytes": 262144,
+          "cast_elements": 5120,
+          "ub_declared_raw": 134144
+        },
+        "buffer_expected": [
+          {
+            "name": "state_pingpong",
+            "raw_bytes": 65536,
+            "aligned_bytes_per_slot": 65536,
+            "slots": 2
+          },
+          {
+            "name": "U_K_decay_and_fp32_U",
+            "raw_bytes": 3072,
+            "aligned_bytes_per_slot": 3072,
+            "slots": 1
+          }
+        ],
+        "validation_kind": "AST versus native trusted-expression arithmetic; independent semantic/tile oracles listed separately",
+        "physical_fixture_scope": "guarded mathematical count vector, not measured hardware execution"
+      }
+    ],
+    "flash_kda": [
+      {
+        "id": "declared_route_fixture",
+        "bindings": {
+          "C": 64,
+          "D": 128,
+          "Nchunks": 2,
+          "N": 2,
+          "Nqk": 1,
+          "L": 65,
+          "B": 1,
+          "initial": 1,
+          "final": 1,
+          "save_states": 1,
+          "chunk_square_sum": 4097,
+          "scalar_preproc": 1000,
+          "inverse_vec": 15360,
+          "metadata": 8,
+          "read_events": [
+            32,
+            64,
+            32
+          ],
+          "write_events": [
+            64,
+            32
+          ],
+          "vec_event_lanes": [
+            64,
+            64,
+            16
+          ],
+          "cube_event_flops": [
+            8192,
+            4096
+          ]
+        },
+        "expected": {
+          "flops_cube": 23267840,
+          "score_cube_shared_per_full_chunk": 1310720,
+          "score_cube_stable_per_full_chunk": 9175040,
+          "inverse_cube_per_full_chunk": 2097152,
+          "remaining_cube_per_full_chunk": 9437184,
+          "inverse_vector_per_full_chunk": 15360,
+          "ops_vec": 62440,
+          "logical_read_bytes": 232212,
+          "logical_write_bytes": 426496,
+          "actual_read_bytes": 128,
+          "actual_write_bytes": 96,
+          "issued_ops_vec": 144,
+          "issued_flops_cube": 12288
+        },
+        "buffer_expected": [
+          {
+            "name": "FP32_state",
+            "raw_bytes": 65536,
+            "aligned_bytes_per_slot": 65536,
+            "slots": 1
+          },
+          {
+            "name": "L0C_64xD",
+            "raw_bytes": 32768,
+            "aligned_bytes_per_slot": 32768,
+            "slots": 1
+          }
+        ],
+        "validation_kind": "AST versus native trusted-expression arithmetic; independent semantic/tile oracles listed separately",
+        "physical_fixture_scope": "synthetic ledger reduction only"
+      }
+    ],
+    "engram_gate": [
+      {
+        "id": "declared_route_fixture",
+        "bindings": {
+          "T": 3,
+          "h": 2,
+          "D": 128,
+          "Au": 2,
+          "weight_loads": 6,
+          "mask_service": 12,
+          "mask_service_streaming": 6,
+          "chunk": 64
+        },
+        "expected": {
+          "flops_cube": 0,
+          "ops_vec": 4672,
+          "logical_read_bytes": 4099,
+          "logical_write_bytes": 1536,
+          "actual_read_bytes": 6668,
+          "actual_write_bytes": 1536,
+          "actual_read_bytes_streaming": 6662,
+          "ub_resident_raw": 3840,
+          "ub_streaming_raw": 1792,
+          "max_resident_D": 8448
+        },
+        "buffer_expected": [
+          {
+            "name": "resident_all_raw",
+            "raw_bytes": 3840,
+            "aligned_bytes_per_slot": 3840,
+            "slots": 1
+          },
+          {
+            "name": "streaming_alternative",
+            "raw_bytes": 1792,
+            "aligned_bytes_per_slot": 1792,
+            "slots": 1
+          }
+        ],
+        "validation_kind": "AST versus native trusted-expression arithmetic; independent semantic/tile oracles listed separately",
+        "physical_fixture_scope": "guarded mathematical count vector, not measured hardware execution"
+      }
+    ],
+    "mhc_hcpre_cv_splitk": [
+      {
+        "id": "declared_route_fixture",
+        "bindings": {
+          "T": 2,
+          "h": 4,
+          "D": 4096,
+          "I": 20,
+          "P": 4,
+          "mt": 2,
+          "dt": 128,
+          "read_events": [
+            32,
+            64,
+            32
+          ],
+          "write_events": [
+            64,
+            32
+          ],
+          "vec_event_lanes": [
+            64,
+            64,
+            16
+          ],
+          "cube_event_flops": [
+            8192,
+            4096
+          ]
+        },
+        "expected": {
+          "flops_cube": 1572864,
+          "ops_vec": 125782,
+          "split_projection_reduce_ops": 144,
+          "logical_read_bytes": 1638508,
+          "logical_write_bytes": 16544,
+          "split_workspace_bytes": 800,
+          "reference_x_read_bytes": 196608,
+          "actual_read_bytes": 128,
+          "actual_write_bytes": 96,
+          "issued_ops_vec": 144,
+          "issued_flops_cube": 12288
+        },
+        "buffer_expected": [
+          {
+            "name": "row_x",
+            "raw_bytes": 2048,
+            "aligned_bytes_per_slot": 2048,
+            "slots": 2
+          },
+          {
+            "name": "split_mm_rms",
+            "raw_bytes": 800,
+            "aligned_bytes_per_slot": 800,
+            "slots": 2
+          }
+        ],
+        "validation_kind": "AST versus native trusted-expression arithmetic; independent semantic/tile oracles listed separately",
+        "physical_fixture_scope": "synthetic ledger reduction only"
+      }
+    ],
+    "mhc_hcpost": [
+      {
+        "id": "declared_route_fixture",
+        "bindings": {
+          "T": 3,
+          "h": 4,
+          "D": 4096,
+          "dt": 128,
+          "U": 6
+        },
+        "expected": {
+          "flops_cube": 0,
+          "ops_vec": 442368,
+          "logical_read_bytes": 123120,
+          "logical_write_bytes": 98304,
+          "actual_read_bytes": 130560,
+          "actual_write_bytes": 98304,
+          "ub_reference_raw": 4432
+        },
+        "buffer_expected": [
+          {
+            "name": "x",
+            "raw_bytes": 256,
+            "aligned_bytes_per_slot": 256,
+            "slots": 1
+          },
+          {
+            "name": "residual_fp32",
+            "raw_bytes": 2048,
+            "aligned_bytes_per_slot": 2048,
+            "slots": 1
+          },
+          {
+            "name": "output_accumulator",
+            "raw_bytes": 2048,
+            "aligned_bytes_per_slot": 2048,
+            "slots": 1
+          },
+          {
+            "name": "coefficients",
+            "raw_bytes": 80,
+            "aligned_bytes_per_slot": 96,
+            "slots": 1
+          }
+        ],
+        "validation_kind": "AST versus native trusted-expression arithmetic; independent semantic/tile oracles listed separately",
+        "physical_fixture_scope": "guarded mathematical count vector, not measured hardware execution"
+      }
+    ],
+    "mega_mla": [
+      {
+        "id": "declared_route_fixture",
+        "bindings": {
+          "T": 2,
+          "H": 8,
+          "X": 5120,
+          "Q": 1280,
+          "D": 512,
+          "Kw_unique": 5,
+          "Kc_unique": 3,
+          "pairs": 12,
+          "nwrite": 2,
+          "idxcols": 8,
+          "scalar_quant_norm_rope": 1000,
+          "read_events": [
+            32,
+            64,
+            32
+          ],
+          "write_events": [
+            64,
+            32
+          ],
+          "vec_event_lanes": [
+            64,
+            64,
+            16
+          ],
+          "cube_event_flops": [
+            8192,
+            4096
+          ],
+          "window_refs": [
+            4,
+            3
+          ],
+          "compressed_refs": [
+            2,
+            3
+          ]
+        },
+        "expected": {
+          "flops_cube": 57868288,
+          "ops_vec": 1528,
+          "logical_read_bytes": 14900424,
+          "logical_write_bytes": 17472,
+          "unique_cache_input_payload_bytes": 3680,
+          "attention_gather_read_service": 5408,
+          "actual_read_bytes": 128,
+          "actual_write_bytes": 96,
+          "issued_ops_vec": 144,
+          "issued_flops_cube": 12288
+        },
+        "buffer_expected": [
+          {
+            "name": "online_output_FP32",
+            "raw_bytes": 16384,
+            "aligned_bytes_per_slot": 16384,
+            "slots": 1
+          },
+          {
+            "name": "online_max_sum",
+            "raw_bytes": 64,
+            "aligned_bytes_per_slot": 64,
+            "slots": 1
+          }
+        ],
+        "validation_kind": "AST versus native trusted-expression arithmetic; independent semantic/tile oracles listed separately",
+        "physical_fixture_scope": "synthetic ledger reduction only"
+      }
+    ],
+    "mega_full_index": [
+      {
+        "id": "declared_route_fixture",
+        "bindings": {
+          "T": 6,
+          "Qv": 4,
+          "L": 10,
+          "H": 32,
+          "D": 128,
+          "nwrite": 4,
+          "visible_pairs": 34,
+          "unique_cache_tokens": 6,
+          "values": 1,
+          "prologue_vec": 1000,
+          "selector_vec": 2000,
+          "metadata": 68,
+          "read_events": [
+            32,
+            64,
+            32
+          ],
+          "write_events": [
+            64,
+            32
+          ],
+          "vec_event_lanes": [
+            64,
+            64,
+            16
+          ],
+          "cube_event_flops": [
+            8192,
+            4096
+          ]
+        },
+        "expected": {
+          "flops_cube": 65945600,
+          "ops_vec": 6264,
+          "logical_read_bytes": 5948108,
+          "logical_write_bytes": 81704,
+          "q_payload_bytes": 12288,
+          "q_scale_bytes": 768,
+          "head_weight_output_bytes": 768,
+          "grouped_cache_capacity_bytes": 1088,
+          "page_payload_bytes": 8704,
+          "unread_placeholder_metadata_bytes": 0,
+          "actual_read_bytes": 128,
+          "actual_write_bytes": 96,
+          "issued_ops_vec": 144,
+          "issued_flops_cube": 12288
+        },
+        "buffer_expected": [
+          {
+            "name": "top512_values",
+            "raw_bytes": 2048,
+            "aligned_bytes_per_slot": 2048,
+            "slots": 1
+          },
+          {
+            "name": "top512_indices",
+            "raw_bytes": 2048,
+            "aligned_bytes_per_slot": 2048,
+            "slots": 1
+          }
+        ],
+        "validation_kind": "AST versus native trusted-expression arithmetic; independent semantic/tile oracles listed separately",
+        "physical_fixture_scope": "synthetic ledger reduction only"
+      }
+    ],
+    "moonep": [
+      {
+        "id": "declared_route_fixture",
+        "bindings": {
+          "R": 4,
+          "E": 16,
+          "S": 8,
+          "topk": 2,
+          "H": 128,
+          "b": 2,
+          "copies": 3,
+          "W": [
+            64,
+            128
+          ],
+          "scales": [
+            0,
+            0
+          ],
+          "remote_routes": 11,
+          "planner_ops": 100,
+          "backend_ops": 200,
+          "read_events": [
+            32,
+            64,
+            32
+          ],
+          "write_events": [
+            64,
+            32
+          ],
+          "vec_event_lanes": [
+            64,
+            64,
+            16
+          ],
+          "cube_event_flops": [
+            8192,
+            4096
+          ],
+          "xfer_workspace": 512
+        },
+        "expected": {
+          "flops_cube": 0,
+          "ops_vec": 1900,
+          "logical_read_bytes": 8320,
+          "logical_write_bytes": 2048,
+          "prefetch_wire_bytes": 1152,
+          "reduce_wire_bytes": 1152,
+          "reduce_add_ops": 576,
+          "reduce_local_stage_read_bytes": 6144,
+          "reduce_local_stage_write_bytes": 6144,
+          "reduce_atomic_read_bytes": 1152,
+          "reduce_atomic_write_bytes": 1152,
+          "dispatch_wire_payload_bytes": 2816,
+          "combine_wire_payload_bytes": 2816,
+          "route_expanded_payload_bytes": 4096,
+          "combine_add_ops": 1024,
+          "prefetch_flag_write_bytes": 48,
+          "actual_read_bytes": 128,
+          "actual_write_bytes": 96,
+          "issued_ops_vec": 144,
+          "issued_flops_cube": 12288
+        },
+        "buffer_expected": [
+          {
+            "name": "peer_expert_lists",
+            "raw_bytes": 32,
+            "aligned_bytes_per_slot": 32,
+            "slots": 1
+          },
+          {
+            "name": "flags_epoch",
+            "raw_bytes": 32,
+            "aligned_bytes_per_slot": 32,
+            "slots": 2
+          },
+          {
+            "name": "transfer_workspace",
+            "raw_bytes": 512,
+            "aligned_bytes_per_slot": 512,
+            "slots": 1
+          }
+        ],
+        "validation_kind": "AST versus native trusted-expression arithmetic; independent semantic/tile oracles listed separately",
+        "physical_fixture_scope": "synthetic ledger reduction only"
+      }
+    ],
+    "grouped_matmul_finalize_routing": [
+      {
+        "id": "declared_route_fixture",
+        "bindings": {
+          "G": 2,
+          "M": 5,
+          "N": 128,
+          "K": 64,
+          "B": 3,
+          "Bs": 0,
+          "active": 5,
+          "has_bias": 0,
+          "full_load": 1,
+          "tm": 128,
+          "tn": 256,
+          "tk": 128,
+          "gm_A": 320,
+          "gm_B": 16384,
+          "gm_scales": 522,
+          "gm_bias": 0,
+          "gm_logits": 20,
+          "gm_rowidx": 40,
+          "issued_vec_lanes": 4096,
+          "issued_cube": 4194304
+        },
+        "expected": {
+          "flops_cube": 81920,
+          "ops_vec": 640,
+          "atomic_add_ops": 640,
+          "logical_read_bytes": 17286,
+          "logical_write_bytes": 1536,
+          "actual_read_bytes": 19846,
+          "actual_write_bytes": 4096,
+          "issued_ops_vec": 4096,
+          "issued_flops_cube": 4194304,
+          "l1_reference_raw": 101376,
+          "ub_per_lane_raw": 196864
+        },
+        "buffer_expected": [
+          {
+            "name": "L0A",
+            "raw_bytes": 16384,
+            "aligned_bytes_per_slot": 16384,
+            "slots": 2
+          },
+          {
+            "name": "L0B",
+            "raw_bytes": 32768,
+            "aligned_bytes_per_slot": 32768,
+            "slots": 2
+          },
+          {
+            "name": "L0C",
+            "raw_bytes": 131072,
+            "aligned_bytes_per_slot": 131072,
+            "slots": 2
+          },
+          {
+            "name": "cv",
+            "raw_bytes": 65536,
+            "aligned_bytes_per_slot": 65536,
+            "slots": 2
+          },
+          {
+            "name": "out",
+            "raw_bytes": 65536,
+            "aligned_bytes_per_slot": 65536,
+            "slots": 1
+          },
+          {
+            "name": "logit",
+            "raw_bytes": 256,
+            "aligned_bytes_per_slot": 256,
+            "slots": 1
+          }
+        ],
+        "validation_kind": "AST versus native trusted-expression arithmetic; independent semantic/tile oracles listed separately",
+        "physical_fixture_scope": "synthetic ledger reduction only"
+      }
+    ],
+    "add_rms_norm": [
+      {
+        "id": "declared_route_fixture",
+        "bindings": {
+          "R": 2,
+          "D": 8193,
+          "b": 2,
+          "bw": 4,
+          "bo": 2,
+          "res_out": 1,
+          "weight_loads": 2,
+          "c": 4096
+        },
+        "expected": {
+          "flops_cube": 0,
+          "ops_vec": 81936,
+          "ops_vec_row_split": 98322,
+          "cast_elements": 49158,
+          "cast_elements_row_split": 81930,
+          "logical_read_bytes": 98316,
+          "logical_write_bytes": 65544,
+          "actual_read_bytes": 131088,
+          "actual_write_bytes": 65544,
+          "actual_read_bytes_row_split": 196632,
+          "resident_UB_raw": 114702,
+          "split_UB_raw": 57376
+        },
+        "buffer_expected": [
+          {
+            "name": "resident",
+            "raw_bytes": 114702,
+            "aligned_bytes_per_slot": 114720,
+            "slots": 1
+          },
+          {
+            "name": "split_tile",
+            "raw_bytes": 57376,
+            "aligned_bytes_per_slot": 57376,
+            "slots": 1
+          }
+        ],
+        "validation_kind": "AST versus native trusted-expression arithmetic; independent semantic/tile oracles listed separately",
+        "physical_fixture_scope": "guarded mathematical count vector, not measured hardware execution"
+      }
+    ],
+    "layernorm_welford": [
+      {
+        "id": "declared_route_fixture",
+        "bindings": {
+          "R": 2,
+          "D": 17,
+          "P": 3,
+          "b": 2,
+          "bg": 4,
+          "bb": 4,
+          "bo": 2,
+          "resident": 0,
+          "correction": 0
+        },
+        "expected": {
+          "flops_cube": 0,
+          "ops_vec": 388,
+          "integer_ops": 38,
+          "logical_read_bytes": 204,
+          "logical_write_bytes": 68,
+          "actual_read_bytes": 480,
+          "actual_write_bytes": 140,
+          "partial_state_bytes": 72
+        },
+        "buffer_expected": [
+          {
+            "name": "partial_triple",
+            "raw_bytes": 36,
+            "aligned_bytes_per_slot": 64,
+            "slots": 1
+          },
+          {
+            "name": "x_tile",
+            "raw_bytes": 12,
+            "aligned_bytes_per_slot": 32,
+            "slots": 1
+          }
+        ],
+        "validation_kind": "AST versus native trusted-expression arithmetic; independent semantic/tile oracles listed separately",
+        "physical_fixture_scope": "guarded mathematical count vector, not measured hardware execution"
+      }
+    ],
+    "matmul_bf16": [
+      {
+        "id": "declared_route_fixture",
+        "bindings": {
+          "M": 17,
+          "N": 19,
+          "K": 33,
+          "tm": 16,
+          "tn": 16,
+          "tk": 16,
+          "depth": 2
+        },
+        "expected": {
+          "flops_cube": 21318,
+          "ops_vec": 0,
+          "logical_read_bytes": 2376,
+          "logical_write_bytes": 646,
+          "actual_read_bytes": 4752,
+          "actual_write_bytes": 646,
+          "mte1_valid_bytes": 4752,
+          "issued_flops_cube": 98304,
+          "mte1_padded_operand_bytes": 12288,
+          "fix_source_payload_bytes": 1292
+        },
+        "buffer_expected": [
+          {
+            "name": "A_L1",
+            "raw_bytes": 512,
+            "aligned_bytes_per_slot": 512,
+            "slots": 2
+          },
+          {
+            "name": "B_L1",
+            "raw_bytes": 512,
+            "aligned_bytes_per_slot": 512,
+            "slots": 2
+          },
+          {
+            "name": "A_L0",
+            "raw_bytes": 512,
+            "aligned_bytes_per_slot": 512,
+            "slots": 2
+          },
+          {
+            "name": "B_L0",
+            "raw_bytes": 512,
+            "aligned_bytes_per_slot": 512,
+            "slots": 2
+          },
+          {
+            "name": "C_L0",
+            "raw_bytes": 1024,
+            "aligned_bytes_per_slot": 1024,
+            "slots": 1
+          }
+        ],
+        "validation_kind": "AST versus native trusted-expression arithmetic; independent semantic/tile oracles listed separately",
+        "physical_fixture_scope": "guarded mathematical count vector, not measured hardware execution"
+      }
+    ],
+    "matmul_streamk": [
+      {
+        "id": "declared_route_fixture",
+        "bindings": {
+          "M": 33,
+          "N": 35,
+          "K": 64,
+          "tm": 16,
+          "tn": 16,
+          "tk": 16,
+          "P": 2,
+          "tail_tiles": 1,
+          "tail_valid_elems": 3,
+          "tail_write_elems": 16,
+          "all_tiles": 9
+        },
+        "expected": {
+          "flops_cube": 147840,
+          "ops_vec": 3,
+          "issued_ops_vec": 256,
+          "logical_read_bytes": 8704,
+          "logical_write_bytes": 2310,
+          "actual_read_bytes": 28160,
+          "actual_write_bytes": 2438,
+          "partial_workspace_capacity": 18432,
+          "partial_valid_payload_bytes": 24,
+          "partial_write_service_bytes": 128,
+          "partial_read_service_bytes": 2048
+        },
+        "buffer_expected": [
+          {
+            "name": "A_L1",
+            "raw_bytes": 512,
+            "aligned_bytes_per_slot": 512,
+            "slots": 2
+          },
+          {
+            "name": "B_L1",
+            "raw_bytes": 512,
+            "aligned_bytes_per_slot": 512,
+            "slots": 2
+          },
+          {
+            "name": "C_L0",
+            "raw_bytes": 1024,
+            "aligned_bytes_per_slot": 1024,
+            "slots": 1
+          },
+          {
+            "name": "reduce_stage",
+            "raw_bytes": 2048,
+            "aligned_bytes_per_slot": 2048,
+            "slots": 1
+          },
+          {
+            "name": "reduce_out",
+            "raw_bytes": 512,
+            "aligned_bytes_per_slot": 512,
+            "slots": 1
+          }
+        ],
+        "validation_kind": "AST versus native trusted-expression arithmetic; independent semantic/tile oracles listed separately",
+        "physical_fixture_scope": "guarded mathematical count vector, not measured hardware execution"
+      }
+    ],
+    "quant_batch_matmul_w4a8_mxfp": [
+      {
+        "id": "declared_route_fixture",
+        "bindings": {
+          "M": 65,
+          "N": 70,
+          "K": 96,
+          "tm": 64,
+          "tn": 64,
+          "kl1": 256,
+          "kl0": 256,
+          "da": 4,
+          "db": 4,
+          "dc": 2,
+          "bias": 1
+        },
+        "expected": {
+          "flops_cube": 873600,
+          "ops_vec": 512,
+          "issued_ops_vec": 512,
+          "bit_ops": 294912,
+          "logical_read_bytes": 10420,
+          "logical_write_bytes": 9100,
+          "actual_read_bytes": 96256,
+          "actual_write_bytes": 32768,
+          "issued_flops_cube": 8388608,
+          "l1_declared_raw": 133376,
+          "ub_per_lane_raw": 24832,
+          "wrapper_zero_output_bytes": 32768
+        },
+        "buffer_expected": [
+          {
+            "name": "A_L1",
+            "raw_bytes": 16384,
+            "aligned_bytes_per_slot": 16384,
+            "slots": 4
+          },
+          {
+            "name": "B_L1",
+            "raw_bytes": 16384,
+            "aligned_bytes_per_slot": 16384,
+            "slots": 4
+          },
+          {
+            "name": "scale_A_L1",
+            "raw_bytes": 512,
+            "aligned_bytes_per_slot": 512,
+            "slots": 2
+          },
+          {
+            "name": "scale_B_L1",
+            "raw_bytes": 512,
+            "aligned_bytes_per_slot": 512,
+            "slots": 2
+          },
+          {
+            "name": "bias_L1",
+            "raw_bytes": 256,
+            "aligned_bytes_per_slot": 512,
+            "slots": 1
+          },
+          {
+            "name": "bias_BT",
+            "raw_bytes": 256,
+            "aligned_bytes_per_slot": 256,
+            "slots": 1
+          },
+          {
+            "name": "A_L0",
+            "raw_bytes": 16384,
+            "aligned_bytes_per_slot": 16384,
+            "slots": 2
+          },
+          {
+            "name": "B_L0",
+            "raw_bytes": 16384,
+            "aligned_bytes_per_slot": 16384,
+            "slots": 2
+          },
+          {
+            "name": "C_L0",
+            "raw_bytes": 16384,
+            "aligned_bytes_per_slot": 16384,
+            "slots": 2
+          },
+          {
+            "name": "scale_A_implicit",
+            "raw_bytes": 512,
+            "aligned_bytes_per_slot": 512,
+            "slots": 2
+          },
+          {
+            "name": "scale_B_implicit",
+            "raw_bytes": 512,
+            "aligned_bytes_per_slot": 512,
+            "slots": 2
+          },
+          {
+            "name": "packed_window",
+            "raw_bytes": 8192,
+            "aligned_bytes_per_slot": 8192,
+            "slots": 1
+          },
+          {
+            "name": "decoded_window",
+            "raw_bytes": 16384,
+            "aligned_bytes_per_slot": 16384,
+            "slots": 1
+          },
+          {
+            "name": "bias_stage",
+            "raw_bytes": 256,
+            "aligned_bytes_per_slot": 256,
+            "slots": 1
+          }
+        ],
+        "validation_kind": "AST versus native trusted-expression arithmetic; independent semantic/tile oracles listed separately",
+        "physical_fixture_scope": "guarded mathematical count vector, not measured hardware execution"
+      }
+    ]
+  }
+}

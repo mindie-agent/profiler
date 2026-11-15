@@ -14,18 +14,20 @@
     itself never invents an ideal lower bound or predicted time.
   * Every hotspot carries source sha256/table/filter/task ids where available;
     bounded locator samples are marked separately from full measured totals.
-  * ``steady_steps`` contains only caller-supplied steps.  Untagged windows
-    remain untagged in ``window_accounting``.
+  * Every share states its denominator explicitly: block shares use attributed
+    block-union time and hotspot shares use device-activity-sum time.
+  * ``steady_steps`` contains only caller-supplied steps; untagged windows stay
+    untagged in ``window_accounting``.
+  * Every window retains its clock-coverage receipt (clipped/comparable counts
+    and sourced reference domains); rank names alone never imply shared clocks.
 
 [Timeouts & Locks]
-  O(n log n) medians and sorts over bounded observations/events; no I/O,
-  except the optional atomic report write.
+  O(n log n) medians and sorts over bounded events; optional atomic JSON write.
 
 [Side-Effect Policy]
   Writes only the requested output JSON via a temporary file + ``os.replace``;
   no network and no mutation of source artifacts.
 """
-
 from __future__ import annotations
 
 import json
@@ -34,282 +36,54 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Sequence
-
 from .accounting import hotspot_aggregates, percentile
-from .classify import ALL_BLOCKS, MAPPING_RULES
-from .cross_rank import aggregate_observations, cross_rank_stats, p50
+from .classify import ALL_BLOCKS, EVENT_BLOCKS, MAPPING_RULES
+from .cross_rank import (
+    _observation_accounting,
+    _reference_projections,
+    aggregate_observations,
+    cross_rank_stats,
+    p50,
+)
 from .events import Observation, PARSER_VERSION, REPORT_SCHEMA, SourceRef
 
+from .report_sections import (
+    _bound_family, _clock_coverage, _execution_engine, _filter_sql, _hotspot_key,
+    _hotspots, _id_list, _metric_definitions, _ms, _schema_version, _source_kind,
+    _source_sha_map,
+)
 
-def _ms(value: int | float | None) -> float | None:
-    return None if value is None else round(float(value) / 1_000_000.0, 6)
+def _comparison_projection(observations: Sequence[Observation]):
+    """Return the common reference, its per-window projection and completeness.
 
-
-def _source_kind(sources: Sequence[SourceRef]) -> str:
-    kinds = {source.kind for source in sources}
-    if kinds == {"db"}:
-        return "ascend_pytorch_profiler_db"
-    if kinds == {"csv"}:
-        return "kernel_details_csv"
-    return "mixed"
-
-
-def _source_sha_map(sources: Sequence[SourceRef], kind: str) -> dict[str, str | None]:
-    return {
-        source.rank_id: source.sha256
-        for source in sources
-        if source.kind == kind
-    }
-
-
-def _schema_version(sources: Sequence[SourceRef]) -> str | dict[str, str]:
-    values = sorted({source.schema_version for source in sources})
-    if len(values) == 1:
-        return values[0]
-    return {source.rank_id: source.schema_version for source in sources}
-
-
-def _metric_definitions() -> dict[str, str]:
-    return {
-        "request_wall_ms": "external client/server request duration; None unless explicitly supplied",
-        "window_duration_ms": "query window length (window.end_ns - window.start_ns), not a request duration",
-        "observed_event_span_ms": "max clipped event end - min clipped event start inside the explicit window",
-        "device_busy_union_ms": "length of the union of clipped device event intervals; overlapping events counted once",
-        "device_activity_sum_ms": "sum of clipped device event durations; overlapping events counted per event",
-        "exposed_comm_ms": "communication union minus non-communication union; fused MoE communication is not exposed",
-        "device_uncovered_ms": "observed_event_span minus device_busy_union; device idle, not a host-dispatch measurement",
-        "host_dispatch_gap_ms": "measured Host/Runtime to device launch gap; None without correlate evidence",
-        "total_cost_ms": "device_activity_sum + device_uncovered; not an end-to-end wall and not additive with exposed_comm",
-        "clipped_event_count": "events crossed by a window boundary; kept in activity sums but excluded from per-call P50/P90/Max",
-        "underfeed_bubble_ratio": "device_uncovered / observed_event_span",
-        "block_union_ms": "per-block union of clipped events; shares are normalised over the sum of block unions",
-        "wall_ms": "deprecated alias for observed_event_span_ms",
-        "busy_union_ms": "deprecated alias for device_busy_union_ms",
-        "kernel_sum_ms": "deprecated alias for device_activity_sum_ms",
-        "host_gap_ms": "deprecated alias for device_uncovered_ms",
-        "steady_steps": "only explicitly supplied steps; kernel details have no step-id column",
-        "window_start_us/window_end_us": "offsets from window_origin_ns; exact bounds remain integer window_start_ns/window_end_ns",
-    }
-
-
-def _id_list(values: Sequence[int]) -> str:
-    return ",".join(str(int(value)) for value in values)
-
-
-def _filter_sql(locator: dict[str, Any], task_ids: Sequence[int], row_indices: Sequence[int], rowids: Sequence[int]) -> str:
-    table = locator.get("table") or "kernel_details.csv"
-    if table == "COMMUNICATION_OP":
-        return f"COMMUNICATION_OP WHERE rowid IN ({_id_list(rowids)})"
-    if table in {"COMPUTE_TASK_INFO", "COMMUNICATION_SCHEDULE_TASK_INFO"}:
-        return f"{table} WHERE globalTaskId IN ({_id_list(task_ids)})"
-    return f"kernel_details.csv WHERE row_index IN ({_id_list(row_indices)})"
-
-
-def _hotspot_key(row: dict, group_by: str) -> tuple:
-    if group_by == "kernel":
-        return (row["rank_id"], row["semantic_block"], row["kernel_name"])
-    return (
-        row["rank_id"],
-        row["semantic_block"],
-        row["kernel_name"],
-        row.get("input_shapes", ""),
-        row.get("input_dtypes", ""),
-        row.get("input_formats", ""),
+    A projection exists only when CLOCK declared one common reference and every
+    selected observation contributed at least one mapped event.  ``complete``
+    is stricter: every usable window must have mapped all of its contribution.
+    A partial mapping keeps its local duration as the comparison value.
+    """
+    reference_data = _reference_projections(observations)
+    if reference_data is None:
+        return "local", None, False
+    domain, projections = reference_data
+    usable = [obs for obs in observations if obs.accounting.available]
+    complete = bool(usable) and all(
+        projections.get(id(obs), {}).get("complete") for obs in usable
     )
-
-
-def _execution_engine(row: dict) -> str | None:
-    engines = sorted(str(item) for item in row.get("execution_engines", ()) if item)
-    if not engines:
-        return None
-    return engines[0] if len(engines) == 1 else "mixed"
-
-
-def _bound_family(row: dict) -> str:
-    families = sorted(str(item) for item in row.get("bound_families", ()) if item and item != "unknown")
-    return families[0] if len(families) == 1 else "unknown"
-
-
-def _hotspots(
-    observations: Sequence[Observation],
-    sources: dict[str, SourceRef],
-    top_n: int,
-    *,
-    group_by: str = "variant",
-) -> list[dict]:
-    if group_by not in {"variant", "kernel"}:
-        raise ValueError(f"group_by must be variant or kernel, got {group_by!r}")
-    grouped: dict[tuple, dict] = {}
-    total_duration = 0
-    for observation in observations:
-        if not observation.accounting.available:
-            continue
-        total_duration += observation.accounting.device_activity_sum_ns or 0
-        identity_by_locator = {id(event.locator): event.identity() for event in observation.events}
-        for row in hotspot_aggregates(observation.events, observation.window):
-            enriched_locators = []
-            for locator in row["locators"]:
-                identity = identity_by_locator.get(id(locator)) or {}
-                enriched_locators.append({**locator, "event_id": identity.get("event_id")})
-            row["locators"] = enriched_locators
-            key = _hotspot_key(row, group_by)
-            current = grouped.get(key)
-            if current is None:
-                current = {
-                    **row,
-                    "durations": list(row["durations"]),
-                    "locators": list(row["locators"]),
-                    "execution_engines": set(row.get("execution_engines", ())),
-                    "bound_families": set(row.get("bound_families", ())),
-                    "last_observation": observation,
-                    "window_labels": [observation.window.label or str(observation.window.step)],
-                    "window_bounds_ns": [[observation.window.start_ns, observation.window.end_ns]],
-                    "variant_inputs": {
-                        (row.get("input_shapes", ""), row.get("input_dtypes", ""), row.get("input_formats", ""))
-                    },
-                }
-                grouped[key] = current
-            else:
-                current["duration_ns"] += row["duration_ns"]
-                current["count"] += row["count"]
-                current["clipped_event_count"] += row["clipped_event_count"]
-                current["durations"].extend(row["durations"])
-                current["execution_engines"].update(row.get("execution_engines", ()))
-                current["bound_families"].update(row.get("bound_families", ()))
-                current["variant_inputs"].add(
-                    (row.get("input_shapes", ""), row.get("input_dtypes", ""), row.get("input_formats", ""))
-                )
-                if len(current["locators"]) < 16:
-                    current["locators"].extend(row["locators"][: 16 - len(current["locators"])])
-                label = observation.window.label or str(observation.window.step)
-                current["window_labels"].append(label)
-                current["window_bounds_ns"].append([observation.window.start_ns, observation.window.end_ns])
-    rows: list[dict] = []
-    for row in grouped.values():
-        observation = row["last_observation"]
-        source = sources.get(row["rank_id"])
-        locator = row["locators"][0] if row["locators"] else {}
-        task_ids = sorted(
-            {
-                int(item["task_global_id"])
-                for item in row["locators"]
-                if item.get("task_global_id") is not None
-            }
-        )
-        row_indices = sorted(
-            {
-                int(item["row_index"])
-                for item in row["locators"]
-                if item.get("row_index") is not None
-            }
-        )
-        rowids = sorted(
-            {
-                int(item["rowid"])
-                for item in row["locators"]
-                if item.get("rowid") is not None
-            }
-        )
-        event_ids = sorted(
-            {
-                str(item["event_id"])
-                for item in row["locators"]
-                if item.get("event_id")
-            }
-        )
-        evidence = {
-            "db_file": source.basename if source and source.kind == "db" else None,
-            "csv_file": source.basename if source and source.kind == "csv" else None,
-            "table": locator.get("table"),
-            "filter_sql": _filter_sql(locator, task_ids, row_indices, rowids),
-            "task_global_ids": task_ids,
-            "row_indices": row_indices,
-            "rowids": rowids,
-            "ids_truncated": row["count"] > len(row["locators"]),
-            "total_contributing_events": row["count"],
-            "retained_event_locators": len(row["locators"]),
-            "event_ids": event_ids,
-            "event_id_count": len(event_ids),
-            "event_ids_truncated": row["count"] > len(event_ids),
-            "filter_scope": "locator_sample",
-            "measurement_basis": "all clipped event occurrences in the requested windows; filter_sql selects the retained locator sample",
-            "window_labels": row["window_labels"],
-            "window_bounds_ns": row["window_bounds_ns"],
-            "rank_id": row["rank_id"],
-            "source_sha256": source.sha256 if source else None,
-        }
-        variant_inputs = sorted(row.get("variant_inputs", ()))
-        variant_count = len(variant_inputs) if group_by == "kernel" else 1
-        if group_by == "kernel" and variant_count > 1:
-            input_shapes = None
-            input_dtypes = None
-            input_formats = None
-        else:
-            input_shapes = row.get("input_shapes") or None
-            input_dtypes = row.get("input_dtypes") or None
-            input_formats = row.get("input_formats") or None
-        has_shape = bool(input_shapes)
-        reason = (
-            "model provider/inputs not configured; no ideal lower bound or prediction was requested"
-            if has_shape
-            else "missing input shape/dtype/layout and no model provider configured"
-        )
-        durations = row["durations"]
-        rows.append(
-            {
-                "rank": observation.rank_index if observation.rank_index is not None else row["rank_id"],
-                "rank_id": row["rank_id"],
-                "rank_index": observation.rank_index,
-                "semantic_block": row["semantic_block"],
-                "kernel_name": row["kernel_name"],
-                "input_shapes": input_shapes,
-                "input_dtypes": input_dtypes,
-                "input_formats": input_formats,
-                "variant_count": variant_count,
-                "variant_inputs": [
-                    {"input_shapes": shapes, "input_dtypes": dtypes, "input_formats": formats}
-                    for shapes, dtypes, formats in variant_inputs
-                ] if group_by == "kernel" else [],
-                "group_by": group_by,
-                "execution_engine": _execution_engine(row),
-                "bound_family": _bound_family(row),
-                "measured_device_ms_p50": p50(_ms(value) for value in durations),
-                "measured_device_ms_p90": _ms(percentile(durations, 0.9)),
-                "measured_device_ms_max": _ms(max(durations) if durations else None),
-                "measured_device_ms_total": _ms(row["duration_ns"]),
-                "share_of_busy_pct": (
-                    round(100.0 * row["duration_ns"] / total_duration, 6) if total_duration > 0 else None
-                ),
-                "share_basis": "sum of clipped event durations / device_activity_sum",
-                "representative_window": observation.window.label or str(observation.window.step),
-                "call_count": row["count"],
-                "complete_call_count": len(durations),
-                "clipped_event_count": row["clipped_event_count"],
-                "distribution_basis": "complete_in_window_events_only",
-                "modeling_alignment": {
-                    "status": "unmodeled",
-                    "ideal_hardware_lower_bound_ms": None,
-                    "model_predicted_ms": None,
-                    "model_provider": None,
-                    "model_assumptions": None,
-                    "unmodeled_reason": reason,
-                },
-                "wait_anchor_false_hotspot": None,
-                "wait_anchor_assessment": "not_evaluated",
-                "wait_anchor_reason": "exact event/window Wait-Anchor attachment was not evaluated for this hotspot",
-                "wait_anchor_evidence": [],
-                "wait_anchor_scope": None,
-                "evidence_locator": evidence,
-            }
-        )
-    rows.sort(key=lambda item: (item["measured_device_ms_total"] or 0.0, item["kernel_name"]), reverse=True)
-    return rows[:top_n]
-
+    return domain, projections, complete
 
 def _window_accounting(observations: Sequence[Observation]) -> list[dict]:
+    # Duration-distribution summaries above this row are computed in the
+    # common reference domain when CLOCK supplies a complete mapping.  Carry
+    # the same projected accounting on the selected window row so a consumer
+    # can check the declaration against the exact domain it was produced from.
+    # Local durations remain on the existing fields; no value is overwritten.
+    comparison_domain, projections, comparison_complete = _comparison_projection(
+        observations
+    )
     rows: list[dict] = []
     for observation in observations:
         accounting = observation.accounting
+        projected = _observation_accounting(observation, projections)
         rows.append(
             {
                 "rank_id": observation.rank_id,
@@ -352,6 +126,26 @@ def _window_accounting(observations: Sequence[Observation]) -> list[dict]:
                 "block_share_pct": {
                     block: accounting.block_share_pct.get(block) for block in ALL_BLOCKS
                 },
+                "comparison_domain": comparison_domain,
+                "comparison_complete": comparison_complete,
+                "comparison_event_count": projected.event_count,
+                "comparison_observed_event_span_ms": _ms(projected.observed_event_span_ns),
+                "comparison_device_busy_union_ms": _ms(projected.busy_union_ns),
+                "comparison_device_activity_sum_ms": _ms(projected.device_activity_sum_ns),
+                "comparison_exposed_comm_ms": _ms(projected.exposed_comm_ns),
+                "comparison_device_uncovered_ms": _ms(projected.device_uncovered_ns),
+                "comparison_total_cost_ms": _ms(projected.total_cost_ns),
+                "comparison_underfeed_bubble_ratio": projected.underfeed_ratio,
+                "comparison_aicpu_exposed_ratio": projected.aicpu_exposed_ratio,
+                "comparison_coverage_ratio": projected.coverage_ratio,
+                "comparison_block_union_ms": {
+                    block: (_ms(projected.block_union_ns.get(block)) if projected.available else None)
+                    for block in ALL_BLOCKS
+                },
+                "comparison_block_share_pct": {
+                    block: projected.block_share_pct.get(block) for block in ALL_BLOCKS
+                },
+                "clock_coverage": _clock_coverage(observation),
                 "source": {
                     "kind": observation.source.kind,
                     "basename": observation.source.basename,
@@ -368,20 +162,38 @@ def _window_accounting(observations: Sequence[Observation]) -> list[dict]:
         )
     return rows
 
-
 def _block_breakdown(observations: Sequence[Observation]) -> list[dict]:
-    usable = [obs for obs in observations if obs.accounting.available]
+    # The step summary above uses CLOCK's reference projection when the mapping
+    # is complete.  Keep the block table in that same domain so a consumer can
+    # check one declared block p50 against one projected row; a partial mapping
+    # falls back to the local window accounting that remains valid on its own.
+    _domain, projections, complete = _comparison_projection(observations)
+
+    def accounting_for(observation: Observation):
+        if complete:
+            return _observation_accounting(observation, projections)
+        return observation.accounting
+
+    usable = [obs for obs in observations if accounting_for(obs).available]
+    denominators = [
+        sum(
+            accounting_for(obs).block_union_ns.get(block) or 0
+            for block in EVENT_BLOCKS
+        )
+        for obs in usable
+    ]
+    denominator_ms_p50 = p50(_ms(value) for value in denominators)
     rows: list[dict] = []
     for block in ALL_BLOCKS:
         values = [
-            _ms(obs.accounting.block_union_ns.get(block))
+            _ms(accounting_for(obs).block_union_ns.get(block))
             for obs in usable
-            if obs.accounting.block_union_ns.get(block) is not None
+            if accounting_for(obs).block_union_ns.get(block) is not None
         ]
         shares = [
-            obs.accounting.block_share_pct.get(block)
+            accounting_for(obs).block_share_pct.get(block)
             for obs in usable
-            if obs.accounting.block_share_pct.get(block) is not None
+            if accounting_for(obs).block_share_pct.get(block) is not None
         ]
         rows.append(
             {
@@ -389,7 +201,11 @@ def _block_breakdown(observations: Sequence[Observation]) -> list[dict]:
                 "busy_union_ms_p50": p50(values),
                 "share_of_busy_pct": p50(shares),
                 "mapping_rule": MAPPING_RULES[block],
-                "event_count": sum(obs.accounting.block_event_count.get(block, 0) for obs in usable),
+                "event_count": sum(
+                    accounting_for(obs).block_event_count.get(block, 0) for obs in usable
+                ),
+                "share_denominator": "sum_of_attributed_block_unions",
+                "share_denominator_ms_p50": denominator_ms_p50,
                 "basis": (
                     "device uncovered = observed event span - device busy union"
                     if block == "Host_Gap"
@@ -398,7 +214,6 @@ def _block_breakdown(observations: Sequence[Observation]) -> list[dict]:
             }
         )
     return rows
-
 
 def _by_step(observations: Sequence[Observation]) -> list[dict]:
     grouped: dict[int, list[Observation]] = {}
@@ -410,7 +225,6 @@ def _by_step(observations: Sequence[Observation]) -> list[dict]:
         aggregate = aggregate_observations(grouped[step])
         rows.append({"step": step, **aggregate})
     return rows
-
 
 def _limitations_findings(limitations: Sequence[dict]) -> list[dict]:
     return [
@@ -425,6 +239,87 @@ def _limitations_findings(limitations: Sequence[dict]) -> list[dict]:
         for item in limitations
     ]
 
+def _source_event_facts(source: SourceRef, observations: Sequence[Observation]) -> dict:
+    """Project CLOCK's selected source and Event facts without re-discovery."""
+
+    event_rows = [
+        (observation, event)
+        for observation in observations
+        if observation.rank_id == source.rank_id
+        for event in observation.events
+    ]
+    layouts: set[str] = set()
+    source_ids: set[str] = set()
+    capture_ids: set[str] = set()
+    table_kinds: set[str] = set()
+    source_kinds: set[str] = set()
+    clock_map: dict[str, dict] = {}
+    field_presence: dict[str, bool] = {}
+    raw_samples: list[dict] = []
+    raw_count = 0
+    for observation, event in event_rows:
+        locator = event.locator if isinstance(event.locator, dict) else {}
+        layout = str(locator.get("layout") or "")
+        if layout:
+            layouts.add(layout)
+        if event.source_id:
+            source_ids.add(str(event.source_id))
+        if event.capture_id:
+            capture_ids.add(str(event.capture_id))
+        if event.table_kind:
+            table_kinds.add(str(event.table_kind))
+        if event.source_kind:
+            source_kinds.add(str(event.source_kind))
+        clock_entry = event.clock.as_dict()
+        clock_map[repr(sorted(clock_entry.items()))] = clock_entry
+        for name, present in (event.field_presence or {}).items():
+            field_presence[str(name)] = bool(field_presence.get(str(name))) or bool(present)
+        tick_start = event.clock_start_tick
+        tick_duration = event.clock_duration_tick
+        tick_end = event.clock_end_tick
+        if tick_start is not None or tick_duration is not None or tick_end is not None:
+            raw_count += 1
+            if len(raw_samples) < 8:
+                raw_samples.append({
+                    "step": observation.window.step,
+                    "source_id": event.source_id,
+                    "clock_domain": event.clock.domain,
+                    "start_tick": tick_start,
+                    "duration_tick": tick_duration,
+                    "end_tick": tick_end,
+                })
+    stats = [observation.stats for observation in observations if observation.rank_id == source.rank_id]
+    read_errors = {
+        "bad_rows": sum(item.bad_rows for item in stats),
+        "unresolved_string_ids": sum(item.unresolved_string_ids for item in stats),
+        "rows_read": sum(item.rows_read for item in stats),
+        "rows_selected": sum(item.rows_selected for item in stats),
+        "query_errors": list(source.notes),
+        "optional_missing": list(source.optional_missing),
+    }
+    clock_domains = sorted(clock_map.values(), key=lambda item: item.get("domain", ""))
+    layout_values = sorted(layouts)
+    source_kind_values = sorted(source_kinds) or [source.kind]
+    return {
+        "layout": layout_values[0] if len(layout_values) == 1 else (layout_values or None),
+        "source_kind": (
+            source_kind_values[0] if len(source_kind_values) == 1
+            else source_kind_values
+        ),
+        "source_ids": sorted(source_ids),
+        "capture_ids": sorted(capture_ids),
+        "table_kinds": sorted(table_kinds),
+        "clock": clock_domains[0] if len(clock_domains) == 1 else None,
+        "clock_domains": clock_domains,
+        "raw_ticks": {
+            "retained_count": raw_count,
+            "sample_count": len(raw_samples),
+            "samples": raw_samples,
+            "fields": ["clock_start_tick", "clock_duration_tick", "clock_end_tick"],
+        },
+        "field_presence": field_presence,
+        "read_errors": read_errors,
+    }
 
 def build_report(
     *,
@@ -450,6 +345,9 @@ def build_report(
     analysis_observations = step_observations if steps else list(observations)
     cross = cross_rank_stats(analysis_observations)
     source_by_rank = {source.rank_id: source for source in sources}
+    source_facts = {
+        source.rank_id: _source_event_facts(source, observations) for source in sources
+    }
     step_accounting = {
         "steady_steps": steps,
         "observed_steps": step_aggregate["steady_steps"],
@@ -479,6 +377,14 @@ def build_report(
             "rank_count_with_data": step_cross["rank_count_with_data"] if steps else cross["rank_count_with_data"],
             "wall_skew_ms": step_cross["wall_skew_ms"] if steps else cross["wall_skew_ms"],
             "wall_ratio": step_cross["wall_ratio"] if steps else cross["wall_ratio"],
+            "clock_union_span": (
+                step_cross["cross_rank_union_span"] if steps
+                else cross["cross_rank_union_span"]
+            ),
+            "straggler_and_link_attribution": (
+                step_cross["straggler_and_link_attribution"] if steps
+                else cross["straggler_and_link_attribution"]
+            ),
         },
     }
     report = {
@@ -509,11 +415,58 @@ def build_report(
                     "optional_missing": list(source.optional_missing),
                     "notes": list(source.notes),
                     "content_identity": source.content_identity(),
+                    **source_facts[source.rank_id],
+                    "csv_candidates": getattr(source, "csv_candidates", None),
+                    "selected_csv": getattr(source, "selected_csv", None),
+                    "csv_selection_status": getattr(source, "csv_selection_status", None),
+                    "candidate_evidence": (
+                        "available" if getattr(source, "csv_candidates", None) is not None
+                        else "unavailable_from_analyze_source_ref"
+                    ),
                 }
                 for source in sources
             ],
             "source_fingerprints": {
                 source.rank_id: source.content_identity() for source in sources
+            },
+            "source_inventory": {
+                "rank_count": len(sources),
+                "capture_count": len({
+                    capture
+                    for facts in source_facts.values()
+                    for capture in facts.get("capture_ids", [])
+                }),
+                "capture_ids": sorted({
+                    capture
+                    for facts in source_facts.values()
+                    for capture in facts.get("capture_ids", [])
+                }),
+                "rank_sources": [
+                    {
+                        "rank_id": source.rank_id,
+                        "kind": source.kind,
+                        "selected_path": source.path,
+                        "layout": source_facts[source.rank_id].get("layout"),
+                        "source_ids": source_facts[source.rank_id].get("source_ids", []),
+                        "capture_ids": source_facts[source.rank_id].get("capture_ids", []),
+                        "table_kinds": source_facts[source.rank_id].get("table_kinds", []),
+                        "clock_domains": source_facts[source.rank_id].get("clock_domains", []),
+                        "read_errors": source_facts[source.rank_id].get("read_errors", {}),
+                        "csv_candidates": getattr(source, "csv_candidates", None),
+                        "selected_csv": getattr(source, "selected_csv", None),
+                        "csv_selection_status": getattr(source, "csv_selection_status", None),
+                        "candidate_evidence": (
+                            "available" if getattr(source, "csv_candidates", None) is not None
+                            else "unavailable_from_analyze_source_ref"
+                        ),
+                    }
+                    for source in sources
+                ],
+                "candidate_projection_blocker": (
+                    "analyze_profile currently passes selected SourceRef facts only; "
+                    "full RankSource csv_candidates/selected_csv/csv_selection_status "
+                    "must be carried by a narrow analyze/CLOCK sidecar"
+                ),
             },
             "schema": list(schema_rows),
         },
@@ -551,7 +504,6 @@ def build_report(
     }
     return report
 
-
 def write_report(report: dict, output_path: str | Path) -> Path:
     """Atomically write the C7 JSON; no partial file is left on failure."""
 
@@ -565,6 +517,8 @@ def write_report(report: dict, output_path: str | Path) -> Path:
             handle.flush()
             os.fsync(handle.fileno())
         os.replace(temp_name, destination)
+    except TimeoutError:
+        raise
     except BaseException:
         try:
             os.unlink(temp_name)

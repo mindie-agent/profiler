@@ -1,0 +1,12 @@
+{
+ "schema": "mindie-profiler-fixture-provenance/1",
+ "source_path": "/Volumes/data/mindie-agent-workstreams/a5-multinode-fleet-rack06-20261107/out/glm51_dp16tp1ep16/pf_1k_c1/177.25.21.1/dp2_pp0_tp0_dcp0_ep2_rank0_1467_20261107094934940_ascend_pt/kernel_details.csv.gz",
+ "source_sha256": "cc05e517246544f8c4c4461e6986fac07c8892ad4547f3d221339c514123630f",
+ "source_rows": [
+  52,
+  38455
+ ],
+ "fixture_csv_sha256": "5437b52dad69e3ff473c3306955cfb36814b5eb7154ce9df20038b0dcf7207cb",
+ "selection": "one full-grid M=1024 QBMM row and one tail M=1 QBMM row, exact header and values",
+ "not_fabricated": true
+}

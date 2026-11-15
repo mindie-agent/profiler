@@ -1,0 +1,17 @@
+{
+ "q_len": 1024,
+ "context": 0,
+ "kv_len": 1024,
+ "causal": true,
+ "owners": 32,
+ "mix_block_num": 64,
+ "g": 64,
+ "dq": 576,
+ "dv": 512,
+ "s2_tile": 128,
+ "phase": "prefill",
+ "op_state": "dynamic",
+ "hardware": "Ascend950DT_9582",
+ "geometry_basis": "public_train_geometry_single_request_causal",
+ "shape_class": "prefill_causal_q1024_g64_dq576_dv512_s2tile128"
+}

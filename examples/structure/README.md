@@ -1,17 +1,13 @@
-# 结构、实测与预测的统一验证管线
+# 模型结构、实测归因与性能预测统一验证管线
 
-`pipeline.py` 是唯一公开回放入口，`cases.json` 是唯一 Case 清册，`results/` 保存当前结果。
-每一轮从同一个固定的 Sim 包重新预测，记录包内容 SHA256 和已安装源码提交，不按误差选择旧结果。
-原始采集、逐源完整报告及训练证据保留在仓库外，以 SHA256 指针关联。
+`examples/structure/pipeline.py` 是本仓库唯一的公开离线回放与验证入口，`cases.json` 是唯一的测试场景清册，`results/` 保存当前受控输出摘要。每轮验证均从同一个固定版本的 `mindie-sim` 包重新运行预测，同时记录包内容 SHA256 与源码提交哈希，严禁跨版本按误差高低挑选历史结果。原始大体积采集文件、逐源完整分层报告与校准训练证据保存在 Git 仓库外部，通过 SHA256 内容指针精确关联。
 
-历史 Wave5/DSH 回放的原生校准、物理适用域及首次执行等待的边界见
-[`NATIVE_OBSERVATIONS.md`](NATIVE_OBSERVATIONS.md)。算子校准和完整 Body 精度分别验收。
-显式 opt-in 的冻结 A2/A5 qualified 校准及其真实分母见
-[`QUALIFIED_NATIVE_CALIBRATION.md`](QUALIFIED_NATIVE_CALIBRATION.md)；默认回放不变。
+- 历史多代际（`Wave 5` / `DSH`）回放中的原生算子校准、物理适用域与首次执行等待边界详见 [`NATIVE_OBSERVATIONS.md`](NATIVE_OBSERVATIONS.md)（单算子校准与整网 Body 精度分开独立验收）。
+- 显式按需启用（opt-in）的冻结 A2/A5 限定域原生校准及其完整真实分母详见 [`QUALIFIED_NATIVE_CALIBRATION.md`](QUALIFIED_NATIVE_CALIBRATION.md)（默认回放路径不受影响）。
 
-## 运行
+## 运行方式
 
-在安装本项目测试依赖和配套 Sim 后，从仓库根目录执行：
+安装好本项目测试依赖及配套 `mindie-sim` 后，在仓库根目录执行：
 
 ```bash
 python examples/structure/pipeline.py --phase decode \
@@ -35,16 +31,12 @@ python examples/structure/pipeline.py --scope generalization \
   --archive-root /path/to/external-evidence
 ```
 
-`--case-id ID` 可以选择单一场景；`--prediction-timeout` 设置单次预测预算。
-选定场景时可加 `--update` 增量刷新当前结果：仅保留同一 Sim 内容哈希、完整 Case 定义和证据 SHA256 均未变化的其他行。变更模型或运行时必须重放，不按历史误差挑选结果。
-不指定 `--case-id` 的 `--update` 自动重放新增或定义发生变化的场景；没有变化时仅核验已有证据并刷新清册关联。
-多 worker 按实际可用 CPU/RAM 限制，每个预测工作集预算 512 MiB。
-清册中的本地采集路径需可读；迁移数据时更新路径并保留、核验内容 SHA256。
-清册、模型和 Sim 包在一次运行内不可变。结果逐源写入，失败保留原始原因并使入口返回非零。
+- **单场景与增量刷新**：通过 `--case-id ID` 可指定单个场景，`--prediction-timeout` 设置单次预测超时上限。配合 `--update` 进行增量刷新时，仅当其他条目的 `mindie-sim` 内容哈希、完整 Case 定义与外部证据 SHA256 完全未变时才保留原记录；一旦模型定义或仿真运行时发生变化，必须全量重跑，绝不按历史误差择优拼表。不带 `--case-id` 执行 `--update` 时，会自动重放新增或定义变更的场景，对未变更场景仅校验证据完整性并刷新清册关联。
+- **并发预算与原子发布**：多进程并发度（`--workers`）受本机实际可用 CPU 与内存约束，单个预测子进程工作集上限为 `512 MiB`。运行期间清册、模型配置与 `mindie-sim` 包保持只读不可变；所有选定场景全部执行完毕后才原子替换 `results/` 下的主记分牌（中途中断不会覆盖已有完整记分牌，已完成场景的外部 SHA256 归档仍会保留；单场景 `--case-id` 调试不会覆盖全量记分牌）。任何场景失败均保留原始错误原因并以非零状态码退出。
 
 ## 本地长上下文采集增量接入
 
-已有采集可通过同一个入口发现和提取，不启动设备或远程任务：
+无需启动 NPU 设备或远端任务，可直接通过同一管线入口发现并提取本地已有的长上下文采集目录：
 
 ```bash
 python examples/structure/pipeline.py \
@@ -55,92 +47,59 @@ python examples/structure/pipeline.py \
   --archive-root /path/to/external-evidence --update
 ```
 
-此模式只流式提取设备证据；`--update` 将完整 Decode 来源追加到唯一 `cases.json`，不执行 Sim 预测。
-省略 `--update` 时只返回候选与提取结果。随后使用正常 `--phase decode --update` 回放新增来源。
-新部署尚无已登记来源时，可用 `--template-case-path cases/source-model.json` 提供已核验的模型声明；它与 `--template-case-id` 二选一，不会向清册写入占位来源。
-当根目录是某次采集的 `prof/` 时，使用实际叶子目录模式（例如 `--capture-pattern 'decode_*'`），避免把包含多个来源的父目录当作一次采集。
-没有设备 CSV、只有 Prefill、模板不明确和上下文证据缺失分别报告；不会把 API 统计或目录名称变成 Body。
-已登记的相同源内容不再提取，多 rank 目录优先唯一 `tp0` / `rank0`，有歧义时保留缺口。
+- **提取与预测两步分离**：`--discover-local` 仅流式提取设备侧实测证据；加上 `--update` 会将完整 Decode 来源追加登记至 `cases.json`（不在此步执行仿真预测），省略 `--update` 则仅输出候选目录与提取预览。登记完成后，再运行常规 `--phase decode --update` 对新增来源执行预测对账。
+- **模板绑定与目录粒度**：若新部署尚无已登记的同类场景，可通过 `--template-case-path cases/source-model.json` 传入经核验的模型声明文件（与 `--template-case-id` 二选一，不会向清册写入占位条目）。若扫描根目录本身就是单次采集下的 `prof/` 目录，请传入具体叶子目录通配符（如 `--capture-pattern 'decode_*'`），避免将包含多次实验的父目录误识别为单次采集。缺少设备 CSV、仅含 Prefill、模板匹配不唯一或上下文证据缺失均分类如实报告，绝不拿 API 汇总表或目录名充当 Decode Body。重复内容自动跳过；多 Rank 目录优先选取唯一的 `tp0` / `rank0`，存在歧义时保留缺口标记。
+- **部署与请求元数据解析**：支持读取 `capture_metadata.json`、`benchmark_summary.json`、`profile_evidence.json` 与 `manifest.json`。`capture_parameters` 或 `source_configuration` 中的 `model/hardware/tp/dp/ep/quant` 以及生产摘要中的 `model_path`、`tensor_parallel_size`、`extra.recipe`、`extra.quantization` 和显式硬件 SKU 均作为显式部署条件校验。同标签的 `client_cell.json`（或按 `summary.cell` 命名的 Profile JSON）用于提取真实请求 Token 用量，实际 `prompt_tokens` 优先于标称前缀长度（例如 `4096` 前缀加 `8` 后缀的真实输入长度为 `4104`）；缺失 `usage` 时仅保留显式请求长度条件，`DP`/`EP` 缺失绝不默认补 `1`。若实测元数据中的 `TP/DP/EP` 或硬件 SKU 与所选模板冲突，直接拒绝接入；未显式传入 `--template-case-id` 时，清册顶层 `capture_templates` 必须存在唯一精确匹配：
+  ```json
+  {"capture_templates": [{"case_id": "decode:existing-source-id", "match": {
+    "model": "declared-model", "hardware": "declared-sku", "tp": 16, "dp": 1,
+    "ep": 16, "quant": "declared-quantization"
+  }}]}
+  ```
+  模板仅用于提供采集文件未记录的静态部署声明，选择过程不读取历史误差或通过率；无逐步序列长度记录时，绝不把目录名中的 `128k`、KV 缓存池上限或页表容量当作实际有效上下文长度。
+- **多几何样本桶（Population Bucket）全量计分**：新接入来源默认启用 `geometry_limit: null`，对采集内出现的所有 `(Batch, Query)` 几何样本桶逐桶评估（存量旧清册条目默认仍评估样本数最多的主几何桶）。输出中的 `geometry_comparisons` 按桶分别记录调用次数、Mean/P50/P90、预测值与误差，绝不将不同 Batch 规模的单层耗时混算。`population_coverage` 显式列出已覆盖调用占比，`source_all_populations_passed` 仅在所有几何桶均完成计分且全部达标时为 `true`。源级主指标（Headline）固定取完整 Forward 次数最多的主样本群（并列时保持输入顺序，不按误差择优）；其余爬坡或收尾阶段的候选样本群逐桶并列展示，既不掩盖其他样本桶的未达标项，也不单凭样本数最多推定 Host 已进入稳态。
+- **算子全集证据（`operator_population_evidence`）复用**：已提取的完整原生算子样本全集可通过清册中的 `operator_population_evidence` 登记复用（锁定 `actual` 与 `mapping` 文件的路径、文件大小及 SHA256）。回放时管线逐项核验源码契约、候选层集合、算子角色与融合边界，并调用当前版本的 `mindie-sim` 重新计算物理成本，既不重扫原始大体积 CSV，也不复用旧预测值。契约或融合边界发生变化的算子群会被明确排除；未映射算子族的少量抽样不能替代算子全集。若 Body 提取文件仅更新了外围记账字段，可在逐项核验完整 Forward 数、层边界与张量几何完全一致后通过 `retained_body_identity` 复用。
 
-元数据读取 `capture_metadata.json`、`benchmark_summary.json`、`profile_evidence.json`、`manifest.json`。
-`capture_parameters` 或 `source_configuration` 中的 `model/hardware/tp/dp/ep/quant` 是显式部署声明。
-同时支持生产摘要的 `model_path`、`tensor_parallel_size`、`extra.recipe`、`extra.quantization` 和明确硬件 SKU 字段。
-同 label 的 `client_cell.json` 可提供完整请求 usage；实际 `prompt_tokens` 优先于 prefix 长度。
-也支持生产器以自身 `summary.cell` 命名的 Profile JSON，以及 `requests[].usage` 中的实际输入/输出长度；同一目录存在多个匹配摘要时保留歧义。
-例如 4096 prefix 加 8 suffix 的真实 usage 是 4104；usage 缺失时只保留显式请求长度条件，DP/EP 缺失不会补成 1。
-明确的 TP/DP/EP 或 SKU 与模板冲突时拒绝接入，缺字段则仍需明确模板声明。
-未指定 `--template-case-id` 时，清册顶层 `capture_templates` 必须有唯一的完整匹配：
+## 数据与计量边界
 
-```json
-{"capture_templates": [{"case_id": "decode:existing-source-id", "match": {
-  "model": "declared-model", "hardware": "declared-sku", "tp": 16, "dp": 1,
-  "ep": 16, "quant": "declared-quantization"
-}}]}
-```
+- **职责与身份分离**：`cases/*.json` 保存模型结构、并行部署、源码程序与物理服务参数；`cases.json` 清册记录采集源、模型定义、提取产物与校准证据的 SHA256 身份。核心事件解析与张量契约唯一归属 `mindie_profiler/`，声明式结构与物理资源成本唯一归属 `mindie-sim`。
+- **Decode 分层并集核算**：依据完整层拓扑、张量几何与输出 Head 边界自动切分 Decode Body，分别报告完整层的设备活动并集、层内未覆盖间隙、首层（Layer 0）与稳态层耗时，而非简单累加所有 Kernel 耗时。
+- **跨 Head 通信摘要的条件上界**：对于缺少设备 Task/Stream 绑定且时间跨度越过同次 Forward 输出 Head 的通信汇总行，仅在隐藏态生产者与后继消费者链路完整时，才以消费者起始时间给出条件结束上界（原始摘要区间与定位信息完整保留，真实设备 Task 绝不裁剪，且该条件上界不作为实测通信服务时间参与严格算子计分）。
+- **Prefill 分块与算子容差**：Prefill 对完整实测 Chunk 逐一预测并累加 Body 耗时；当 Query 总量与声明不一致时，绝不拿局部切片冒充完整请求。严格同构算子群（Cohort）要求具备相同的张量契约与物理工作量（源码条件参考项单独列出）：单次调用 `> 50 us` 采用 `15%` 相对容差，`<= 50 us` 采用 `15 us` 绝对容差。
+- **Engine 端到端与物理域冻结**：Engine 评估消费完整客户端请求记录与真实 `completion_tokens` 计数，设备调度周期、客户端 Token TPOT、流式 Chunk 间隔、TTFT 与总吞吐各自保留独立分母，未观测到的外围耗时不臆断为 Host 空泡。图模式下的自动拓扑定位属于结构条件推断，精确单次调用绑定仍需 Host/Module 级证据支撑。物理服务域按算子实现、数值精度、内存布局与执行边界划分，训练集与留出集源 SHA256 在读取留出集耗时前严格冻结。
 
-显式模板选择保留未观测的部署字段，不声称捕获已经证明这些条件。选择过程不读取历史通过率。
-请求 prompt/output 形成条件范围与初始代表值；没有逐步序列长度时不把 128K 目录名、KV 缓存或页表容量当实际上下文。
+## 模块职责一览
 
-新增来源的 `geometry_limit: null` 比较所有实际 B/q 桶。旧清册行默认仍只预测最大人口桶。
-结果中的 `geometry_comparisons` 分别保存每桶调用数、Mean/P50/P90、预测与误差；不混算不同 B 的单层分布。
-`population_coverage` 明示覆盖调用数，`source_all_populations_passed` 仅在全部桶均已评分且全部通过时为真。
-源级 Headline 以完整 Forward 数最多的主群为准；同数时保持输入顺序，不按误差或预测成功与否择优。
-其余爬坡/收尾候选群逐桶展示，不否决主群，但最大人口本身不代表 Host 已证实稳态。
-全桶通过与覆盖率是独立审计，主群通过不会把其他群的失败改成通过。
+| 模块 | 核心职责 |
+| --- | --- |
+| `pipeline.py` | 清册筛选、源内容哈希核验、单版本运行时锁定、受限并发调度、外置证据归档与记分牌原子更新 |
+| `body.py` / `decode.py` | `mindie-sim` Body 语义时间线对接、Decode 前向窗口提取与逐层对账 |
+| `prefill.py` | 完整 Prefill Chunk 识别、DP-partner 对齐与 Body / TTFT 边界切分 |
+| `engine.py` | 客户端请求记录、设备调度周期、外围/MTP 区间核算与正式 Serving 预测评估 |
+| `operators.py` / `cohorts.py` | Body 内原生算子族提取、同构算子群聚合与物理成本对账 |
+| `references.py` | 源码条件参考对照（与严格同构 Cohort 计分显式隔离） |
+| `service_evidence.py` | 服务参数执行证据管理与冻结物理域泛化校验 |
 
-回放期间保留上一份完整记分牌，全部选定来源执行完毕后才替换当前 JSON/Markdown；中途进度写入标准输出。
-中断不会发布局部主表，已完成源的完整证据仍保存在外置 SHA256 归档中。
-局部 `--case-id` 调试不能覆盖较大的已有记分牌；同运行时增量更新使用 `--update`，新运行时需完整重放。
+## 阶段性回放结果与报告生成
 
-已提取的完整原生算子人口可通过清册的 `operator_population_evidence` 复用，条目固定 actual 与 mapping 的路径、SHA256 和大小。
-管线逐个验证源码合同、候选层集合、角色及融合边界，再用当前 Sim 重新计算物理成本，不重扫原始 CSV，也不复用旧预测。
-合同或边界发生变化的 cohort 明确排除；未映射族的少量示例不能代替完整人口。
-若 Body 提取文件只改变了外围记账，可附旧 `retained_body_identity`；必须验证完整 Forward、层边界和几何逐项相等后才能复用。
-算子人口证据的登记不会使已核验的 Body 成本失效，算子比较本身仍需重新执行。
+> [!NOTE]
+> 以下 `results/` 报告为基于特定采集子集与对应校准边界生成的离线回放摘要，阅读与引用时须同时遵循仓库主文档 [`README.md` 基准数据集清单与独立精度证据边界](../../README.md#基准数据集清单与独立精度证据边界) 中的分母与独立性说明。
 
-## 数据边界
+- [Decode 结构回放摘要（280 个登记场景 `<= 15%`）](results/decode.md)
+- [Prefill Body 与 TTFT 回放摘要（15 个登记场景 `<= 15%`）](results/prefill.md)
+- [Engine 与客户端边界对账报告](results/engine.md)
+- [物理服务域留出验证报告](results/generalization.md)
+- [未登记 DSH 采集泛化评估报告](results/dsh_full_generalization.md)
+- [整网 4D 效率、`0.80x MBU` 反事实 Roofline 与 `30 ms` SLA 硬件缩放报告](results/efficiency_and_scaling.md)
 
-- `cases/*.json` 保存模型、部署、源码程序与物理服务参数；清册保存采集、模型、提取结果和校准证据的内容身份。
-- Decode 从完整拓扑、张量几何及 head 边界自动识别 Body。完整层的活动并集、内部间隙、层 0 与稳态层分别报告；不是把所有 kernel 耗时相加。
-- 无设备 Task/Stream 绑定的通信摘要若跨越同次 Forward 的 Head，只在实际 hidden 生产者与后继 consumer 链完整时，以 consumer 开始时间给出条件结束上界。原摘要区间和定位信息仍保留，真实设备任务不裁剪；该上界不作为实测通信服务时间参与严格算子计分。
-- Prefill 对实际完整 chunk 逐一预测，累加其 Body。query 总量与声明不一致时不把局部片段冒充完整请求。
-- 算子严格 cohort 需要相同张量契约和物理工作量；源码条件参考单列。单次 >50 us 使用 15% 相对容差，<=50 us 使用 15 us 绝对容差。
-- Engine 使用完整请求记录与实际 completion-token 数。设备 target cycle、客户端 token TPOT、文本 chunk 间隔、TTFT 和吞吐各自保留分母。缺失的外围区间不直接命名为 Host gap。
-- 图模式的自动拓扑定位是结构条件推断；精确 occurrence 绑定仍需要 Host/module 证据。同构集合可以评分而无需猜测具体层。
-- 服务域按真实实现、精度、布局和执行边界划分，以 local M/N/K、工作量或 payload 表示连续变化。跨 TP 迁移不复制单点耗时；通信 topology/ranks 保持独立。训练源与留出源 SHA 集合在读取留出耗时前冻结。
-
-## 模块职责
-
-| 模块 | 职责 |
-|---|---|
-| `pipeline.py` | 清册选择、源身份、同一运行时、有限并发、外置证据和当前记分牌 |
-| `body.py` / `decode.py` | Sim Body 语义时间线、Decode 提取与分层对账 |
-| `prefill.py` | 完整 Prefill chunk 识别与 Body/TTFT 分界 |
-| `engine.py` | 请求、设备 cycle、Outer/MTP 区间和正式 Serving 预测 |
-| `operators.py` / `cohorts.py` | Body 内原生算子族、同构集合及物理程序比较 |
-| `references.py` | 不冒充严格 cohort 的源码条件参考 |
-| `service_evidence.py` | 服务参数执行证据与冻结物理域泛化 |
-
-核心事件解析和合同仍唯一归属 `mindie_profiler/`，声明结构和资源成本唯一归属 Sim。
-旧日期/commit 过程目录、一次性构造脚本和跨历史预测拼接已从当前树删除。
-
-## 当前结果
-
-- [Decode（280 cases 全量 `<= 15%` 达标）](results/decode.md)
-- [Prefill Body 与 TTFT（15 cases 全量 `<= 15%` 达标）](results/prefill.md)
-- [Engine 与客户端边界](results/engine.md)
-- [物理服务域留出验证](results/generalization.md)
-- [未注册 DSH 全量泛化评估（561 heldout cases，97.33% `<= 15%` 达标）](results/dsh_generalization.md)
-- [整网 4D 效率、0.80x MBU 反事实拟合与 30ms SLA 硬件缩放报告](results/efficiency_and_sla.md)
-
-生成或刷新 4D 效率与 DSH 泛化报告：
+重新生成或刷新整网 4D 效率报告与 DSH 泛化评估报告：
 
 ```bash
 python examples/structure/efficiency_report.py \
-  --output examples/structure/results/efficiency_and_sla.json \
-  --markdown examples/structure/results/efficiency_and_sla.md
+  --json-out examples/structure/results/efficiency_and_scaling.json \
+  > examples/structure/results/efficiency_and_scaling.md
 
 python examples/structure/dsh_generalization_eval.py
 ```
 
-JSON 小于 5 MB，逐源完整分层与预测详情可由其 SHA256 证据指针取回。
+所有入库结果 JSON 体积均控制在 `5 MB` 以内，逐源完整分层与预测明细可通过报告中的 SHA256 证据指针在外部归档目录中检索。

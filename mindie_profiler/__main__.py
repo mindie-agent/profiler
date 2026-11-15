@@ -2,9 +2,9 @@
 
 [Role]
   Expose explicit subcommands — ``inventory``, ``analyze``, ``correlate``,
-  ``compare``, ``sql`` and offline ``camodel`` — plus a legacy no-subcommand
-  ``analyze`` form.  Parse explicit windows, ranks, source preferences, and
-  bounded query limits, then print or atomically write JSON.
+  ``compare``, ``sql``, ``camodel``, ``kernels``, ``export-sim-case``,
+  ``capture``, ``inspect-op``, ``repro-op``, ``fabric-probe`` and
+  ``op-formula`` — plus legacy no-subcommand ``analyze``, emitting JSON.
 
 [Invariants]
   * No command infers a step from kernel rows; absent windows are a usage
@@ -36,7 +36,7 @@ from .analyze import analyze_profile
 from .events import ProfilerError, ProfilerUsageError
 from .segment import load_steps_file, parse_step_windows, parse_windows
 
-SUBCOMMANDS = ("inventory", "analyze", "correlate", "compare", "sql", "camodel", "kernels", "export-sim-case")
+SUBCOMMANDS = ("inventory", "analyze", "correlate", "compare", "sql", "camodel", "kernels", "export-sim-case", "capture", "inspect-op", "repro-op", "fabric-probe", "op-formula")
 
 
 def _add_analyze_arguments(parser: argparse.ArgumentParser) -> None:
@@ -66,6 +66,14 @@ def _add_analyze_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--hash", action="store_true", help="compute content SHA256 for source identity")
     parser.add_argument("--no-hash", dest="hash", action="store_false", help=argparse.SUPPRESS)
     parser.add_argument("--request-wall-ms", type=float, default=None, help="external request wall time (measured)")
+    parser.add_argument("--aic-count", type=int, default=None,
+                        help="declared physical AIC count (for example 32); not inferred from sampled Block Num")
+    parser.add_argument("--deployment-image-id", default=None,
+                        help="exact deployment OCI image digest for source classification; "
+                             "a same-capture status.json prepare record takes precedence")
+    parser.add_argument("--sparse-geometry", default=None,
+                        help="JSON geometry binding for the saturated sparse SFA MTE1 service "
+                             "(q_len/context/kv_len/causal/owners/g/dq/dv/s2_tile/hardware)")
     parser.add_argument("--mode", choices=("inference", "training", "rl"), default=None, help="explicit workload mode")
     parser.add_argument("--framework", default=None, help="scene framework, e.g. vllm-ascend")
     parser.add_argument("--phase", default=None, help="scene phase, e.g. prefill/decode")
@@ -120,7 +128,7 @@ def _correlate_parser() -> argparse.ArgumentParser:
     parser.add_argument("--rank", action="append", default=None, help="rank id or numeric rank index")
     parser.add_argument("--window", default=None, metavar="START:END", help="explicit correlation window in --unit")
     parser.add_argument("--full-range", action="store_true", help="use the DB's full TASK span")
-    parser.add_argument("--unit", choices=("us", "ns", "ms"), default="us")
+    parser.add_argument("--unit", choices=("us", "ns", "ms"), default="us", help="timestamp unit for --window (default: us)")
     parser.add_argument("--kernel-name", default=None, help="case-insensitive hotspot kernel name pattern")
     parser.add_argument("--min-gap-ms", type=float, default=None, help="only report device gaps at least this large")
     parser.add_argument("--max-rows", type=int, default=5000, help="per-table row cap")
@@ -188,6 +196,14 @@ def _emit(payload: dict, output: str | None, *, summary: dict | None = None) -> 
     return 0
 
 
+def _json_file(path: str | None):
+    if not path:
+        return None
+    import json
+    from pathlib import Path
+    return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
 def _run_analyze(argv: Sequence[str]) -> int:
     args = build_parser().parse_args(argv)
     windows = _collect_windows(args)
@@ -204,6 +220,9 @@ def _run_analyze(argv: Sequence[str]) -> int:
         csv_timeout_s=args.csv_timeout_s,
         group_by=args.group_by,
         request_wall_ms=args.request_wall_ms,
+        aic_count=args.aic_count,
+        deployment_image_id=args.deployment_image_id,
+        sparse_geometry=_json_file(args.sparse_geometry),
         scene=_scene(args),
         structure=args.structure,
         structure_bindings=args.bindings,
@@ -339,6 +358,26 @@ def main(argv: Sequence[str] | None = None) -> int:
     command = raw[0] if raw and raw[0] in SUBCOMMANDS else "analyze"
     rest = raw[1:] if raw and raw[0] in SUBCOMMANDS else raw
     try:
+        if command == "capture":
+            from .cli_capture import main as capture_main
+
+            return capture_main(rest)
+        if command == "inspect-op":
+            from .op_api_registry import main as inspect_main
+
+            return inspect_main(rest)
+        if command == "repro-op":
+            from .repro_op import main as repro_main
+
+            return repro_main(rest)
+        if command == "fabric-probe":
+            from .fabric_probe import main as fabric_main
+
+            return fabric_main(rest)
+        if command == "op-formula":
+            from .op_formula_annotator import main as op_formula_main
+
+            return op_formula_main(rest)
         if command == "export-sim-case":
             from .sim_bridge import main as export_sim_case_main
 

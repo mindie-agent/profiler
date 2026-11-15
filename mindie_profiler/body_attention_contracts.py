@@ -43,6 +43,11 @@ def _native(row):
     contract = native_tensor_contract(row)
     if contract is None or row.kind not in _ARITIES:
         return None
+    if any(not shape and str(fmt).strip().upper() == "N/A"
+           for shapes, formats in ((row.input_shapes, row.input_formats),
+                                   (row.output_shapes, row.output_formats))
+           for shape, fmt in zip(shapes, formats)):
+        return None
     inputs, outputs = contract[2:]
     expected_inputs, expected_outputs = _ARITIES[row.kind]
     if len(inputs) not in expected_inputs or len(outputs) not in expected_outputs:

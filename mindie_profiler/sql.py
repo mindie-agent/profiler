@@ -93,7 +93,7 @@ _DENIED_ACTIONS = {
 def _authorizer(
     action: int,
     arg1: str | None,
-    _arg2: str | None,
+    arg2: str | None,
     _db: str | None,
     _trigger: str | None,
     *,
@@ -103,7 +103,7 @@ def _authorizer(
         return sqlite3.SQLITE_OK if allow_pragma else sqlite3.SQLITE_DENY
     if action in _DENIED_ACTIONS:
         return sqlite3.SQLITE_DENY
-    if action == sqlite3.SQLITE_FUNCTION and str(arg1 or "").lower() in _DENIED_FUNCTIONS:
+    if action == sqlite3.SQLITE_FUNCTION and str(arg2 or arg1 or "").lower() in _DENIED_FUNCTIONS:
         return sqlite3.SQLITE_DENY
     return sqlite3.SQLITE_OK
 
@@ -254,7 +254,7 @@ def run_sql(
         con.set_authorizer(None)
         con.close()
     resolved_columns = [
-        str(item[0]) for item in payload[0].keys() if str(item).endswith("_resolved")
+        str(item) for item in payload[0].keys() if str(item).endswith("_resolved")
     ] if payload else []
     return {
         "schema_version": SQL_SCHEMA,

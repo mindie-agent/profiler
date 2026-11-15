@@ -4,6 +4,13 @@
 [Invariants] Input dictionaries, captures and archives are never mutated. An
   unmatched calibration leaves ordinary prediction available. Unknown binary
   and caller-stride evidence is retained, never promoted to observed identity.
+  This is an explicit historical-observation replay/diagnostic arm, not the
+  general production price authority: a fixed whole-kernel response may replay
+  its measured domain, but must be decomposed into resource/phase services
+  before it can enter general prediction. Additive hardware declarations that
+  did not exist at capture do not widen the observed domain; every declared
+  rate/mode/unit/runtime value remains an exact guard, and a changed or removed
+  one falls back to ordinary prediction.
 [Timeouts & Locks] One small local profile read and one target graph; no network,
   subprocesses, device contexts, locks or timing-dependent parameter assignment.
 [Side-Effect Policy] Return a new input and provenance; write no files or state.
@@ -26,11 +33,41 @@ from mindie_sim.prediction.structure import parse_case
 PROFILE_PATH = Path(__file__).resolve().parent / "profiles" / "a5_gdn_decode_native_20261106.json"
 
 
-def _read_profile(path: Path) -> tuple[dict, dict]:
+def _flatten_selector(path: str, value):
+    if isinstance(value, dict):
+        for name, inner in value.items():
+            yield from _flatten_selector(f"{path}.{name}", inner)
+    else:
+        yield path, value
+
+
+def _flatten_match(match: dict) -> dict:
+    """Express physical guards as exact declared leaves.
+
+    Aggregate equality would reject a retained rule when a newer hardware
+    declaration adds an unrelated rate, mode or unit. Flattening keeps every
+    measured value an exact guard while leaving additive declarations outside
+    the observed domain.
+    """
+    flat = {}
+    for key, value in match.items():
+        if key in ("physical_rates", "resource_units", "metadata.mc2_unfused_storage") and isinstance(value, dict):
+            for path, leaf in _flatten_selector(key, value):
+                flat[path] = leaf
+        else:
+            flat[key] = value
+    return flat
+
+
+def _read_profile(path: Path, *, flatten_rules: bool = False) -> tuple[dict, dict]:
     data = path.read_bytes()
     profile = json.loads(data)
     if profile["schema_version"] != "mindie-profiler-native-observation-profile/1":
         raise ValueError("unsupported_native_observation_profile")
+    if flatten_rules:
+        profile["rules"] = [
+            {**rule, "match": _flatten_match(rule["match"])}
+            for rule in profile["rules"]]
     RegimePolicy(profile["rules"])
     return profile, {"id": profile["id"], "path": str(path.resolve()),
                      "sha256": sha256(data).hexdigest()}
@@ -46,6 +83,43 @@ def _physical_contract(case) -> dict:
                 "rates", "compute_peaks", "service_modes", "resource_units")}}
                     for device in case.machine.dies],
     }))
+
+
+CONTRACT_FIELDS = ("rates", "compute_peaks", "service_modes", "resource_units")
+
+
+def _declared_environment_gaps(declared: dict, current: dict) -> tuple[list[str], list[str]]:
+    """Return declared-domain mismatches and current-only physical declarations.
+
+    The retained profile records the hardware/runtime environment under which
+    its responses were pooled. Later hardware profiles may add newly declared
+    instruction services, modes or resource units; those additions did not
+    exist in the observed environment, so they neither widen nor invalidate it.
+    Every value that *was* declared must still be present and identical. A
+    changed or removed declared value is a real service-supply change and must
+    fall back to ordinary prediction rather than reuse the response.
+    """
+    mismatches: list[str] = []
+    additions: list[str] = []
+    if declared.get("runtime") != current.get("runtime"):
+        mismatches.append("runtime")
+    old_devices = declared.get("devices") or []
+    new_devices = current.get("devices") or []
+    if len(old_devices) != len(new_devices):
+        return mismatches + ["devices"], additions
+    for index, (old, new) in enumerate(zip(old_devices, new_devices)):
+        prefix = f"devices.{index}"
+        if old.get("compute_units") != new.get("compute_units"):
+            mismatches.append(f"{prefix}.compute_units")
+        for field in CONTRACT_FIELDS:
+            old_values = old.get(field) or {}
+            new_values = new.get(field) or {}
+            for key, value in old_values.items():
+                if key not in new_values or new_values[key] != value:
+                    mismatches.append(f"{prefix}.{field}.{key}")
+            additions.extend(f"{prefix}.{field}.{key}"
+                             for key in sorted(set(new_values) - set(old_values)))
+    return mismatches, additions
 
 
 def _operator_axes(execution, op) -> dict:
@@ -80,7 +154,7 @@ def apply_a5_native_observations(
     access any of the retained capture paths. All five native boundaries must
     be covered for the requested sequence partition before old responses change.
     """
-    profile, identity = _read_profile(Path(profile_path))
+    profile, identity = _read_profile(Path(profile_path), flatten_rules=True)
     result = deepcopy(raw)
     provenance = {
         "schema_version": "mindie-profiler-native-observation-import/1",
@@ -89,6 +163,11 @@ def apply_a5_native_observations(
                      "sequences": sequences},
         "calibration": deepcopy(profile["calibration"]),
         "sources": deepcopy(profile["sources"]),
+        "consumption": "explicit_observation_replay",
+        "general_production_pricing": False,
+        "migration": "decompose_whole_kernel_responses_into_resource_phase_services_before_general_prediction",
+        "physical_contract_mismatches": [],
+        "undeclared_physical_contract_additions": [],
         "observations_modified": False, "matched_domains": [],
     }
 
@@ -108,7 +187,11 @@ def apply_a5_native_observations(
     if any(getattr(case.runtime.parallel, key) != value
            for key, value in profile["parallel"].items()):
         return miss("parallelism_outside_observed_domain")
-    if _physical_contract(case) != profile["source_contract"]:
+    mismatches, additions = _declared_environment_gaps(
+        profile["source_contract"], _physical_contract(case))
+    provenance["undeclared_physical_contract_additions"] = additions
+    if mismatches:
+        provenance["physical_contract_mismatches"] = mismatches
         return miss("physical_rates_or_declared_runtime_outside_observed_domain")
     selected = raw.get("runtime", {}).get("kernels", {}).get("lowerings", {}).get("gdn_decode")
     caller = profile["caller_implementation"]
@@ -148,6 +231,9 @@ def apply_a5_native_observations(
     imported = [deepcopy(rule) for rule in rules if rule["id"] in hits]
     for rule in imported:
         rule["provenance"]["profile_sha256"] = identity["sha256"]
+        rule["provenance"]["consumption"] = "explicit_observation_replay"
+        rule["provenance"]["general_production_pricing"] = False
+        rule["provenance"]["physical_guard_basis"] = "profile_declared_leaves"
     kernels["service_regimes"].extend(imported)
     provenance.update(
         status="applied", reason="all_selected_native_boundaries_within_observed_domain",

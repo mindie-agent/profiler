@@ -35,6 +35,7 @@ from mindie_sim.prediction.execution import Execution
 from mindie_sim.prediction.service_regimes import (
     RegimePolicy, _axes, axis_equal, coordinates, lookup)
 from mindie_sim.prediction.structure import parse_case
+from mindie_sim.schema.common import ModelingError
 from qualified_native_abi import (
     QualifiedAbiMismatch, QualifiedCalibrationError, check_caller_native_entity,
     validate_native_abi)
@@ -303,7 +304,13 @@ def _matches(axes, rule):
 
 def _operator_axes(execution, op):
     scope = dict(op.metadata).get("graph_replay_scope", "none")
-    prepared, recipe = execution.prepare(op)
+    try:
+        prepared, recipe = execution.prepare(op)
+    except ModelingError as exc:
+        if str(exc).startswith("attention_kv_"):
+            raise QualifiedAbiMismatch(
+                "native_abi_caller_view_incompatible", detail=str(exc)) from exc
+        raise
     context = execution._context(prepared, 0, scope, recipe=recipe)
     return _axes(context, physical_rates=False)
 
