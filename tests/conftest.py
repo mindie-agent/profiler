@@ -4,9 +4,19 @@
 [Side-Effect Policy] Monkeypatches process environment only; writes no files.
 """
 import os
+import shutil
 import sys
+import tempfile
 
 import pytest
+
+from pathlib import Path
+
+_TESTS_DIR = str(Path(__file__).resolve().parent)
+_REPO_ROOT = str(Path(__file__).resolve().parents[1])
+for _entry in (_TESTS_DIR, _REPO_ROOT):
+    if _entry not in sys.path:
+        sys.path.insert(0, _entry)
 
 
 _SIM_SOURCE = os.environ.get("MINDIE_SIM_SOURCE")
@@ -36,3 +46,10 @@ def isolated_runtime(tmp_path, monkeypatch):
         monkeypatch.setenv(key, str(root / name))
     monkeypatch.setenv('MINDIE_DIAGNOSTICS_ROOT', str(root / 'isolated-diagnostics'))
     monkeypatch.setenv('MINDIE_DIAGNOSTICS_CONFIG', str(root / 'reporting.json'))
+    Path('/tmp').mkdir(parents=True, exist_ok=True)
+    short_root = tempfile.mkdtemp(prefix='mpr_', dir='/tmp')
+    monkeypatch.setenv('MINDIE_REPRO_SHORT_ROOT', short_root)
+    try:
+        yield
+    finally:
+        shutil.rmtree(short_root, ignore_errors=True)

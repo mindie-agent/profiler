@@ -8,6 +8,12 @@
 [Invariants]
   * Internal time is integer nanoseconds.  CSV microseconds are converted
     once at the adapter boundary; reports convert to milliseconds once.
+  * Each event retains its source clock domain, raw unit/tick (when the
+    adapter can keep it), and any sourced scale/offset to a common reference.
+    A local duration is valid inside its own domain.  Cross-domain comparison
+    is allowed only through an explicitly sourced reference; it is never
+    obtained from timestamp magnitude, epoch-looking values, or by
+    subtracting per-rank minimum timestamps.
   * A missing measurement is ``None``, never ``0``.  Zero is only emitted
     when a real event/interval is zero length.
   * ``step`` is copied from the caller's explicit window.  No source adapter
@@ -26,6 +32,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -56,6 +63,8 @@ def composite_event_identity(
     The original integer interval and the source/table/rank/locator occurrence
     are part of the hash; missing fields stay ``None`` rather than being guessed.
     """
+    from .repro_snapshot import snapshot
+    locator = snapshot({} if locator is None else locator)
     payload = {
         "schema_version": EVENT_IDENTITY_SCHEMA,
         "rank_id": str(rank_id),
@@ -67,7 +76,7 @@ def composite_event_identity(
         "task_id": str(task_id),
         "start_ns": int(start_ns),
         "end_ns": int(end_ns),
-        "locator": dict(locator or {}),
+        "locator": locator,
     }
     canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False, default=str)
     digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:24]
@@ -91,6 +100,145 @@ class ProfilerUsageError(ProfilerError):
 
 
 @dataclass(frozen=True, slots=True)
+class ClockDomain:
+    """One source clock domain and its sourced relation to a reference.
+
+    ``scale_ns`` converts one raw source tick to integer nanoseconds; the
+    adapter has already applied it to ``Event.start_ns``/``end_ns``.  The
+    reference relation is optional and is applied to those local nanoseconds:
+
+        reference_ns = round(local_ns * scale_num / scale_den) + offset_ns
+
+    ``reference_scale_num/den`` and ``offset_ns`` are retained only when they
+    come from source metadata or an explicit synchronization anchor.  The
+    optional validity bounds are checked against the local timestamp; a value
+    outside them is unknown, not clamped.  A domain with no sourced relation
+    keeps ``reference_domain``/``offset_ns`` as ``None``; its local duration
+    remains valid, but it cannot participate in cross-domain spans or ordering.
+    Ratio, drift and validity are never inferred from durations or matching
+    names; callers must declare them.
+    """
+
+    domain: str
+    unit: str
+    scale_ns: int = 1
+    offset_ns: int | None = None
+    reference_domain: str | None = None
+    reference_scale_num: int = 1
+    reference_scale_den: int = 1
+    valid_from_ns: int | None = None
+    valid_to_ns: int | None = None
+    source: str = "unknown"
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.domain, str) or not self.domain:
+            raise ValueError("clock domain must be a non-empty string")
+        if not isinstance(self.unit, str) or not self.unit:
+            raise ValueError("clock unit must be a non-empty string")
+        if isinstance(self.scale_ns, bool) or not isinstance(self.scale_ns, int) or self.scale_ns <= 0:
+            raise ValueError("clock scale_ns must be a positive integer")
+        if self.reference_domain is not None:
+            if not isinstance(self.reference_domain, str) or not self.reference_domain:
+                raise ValueError("clock reference_domain must be a non-empty string")
+            if isinstance(self.offset_ns, bool) or not isinstance(self.offset_ns, int):
+                raise ValueError("a referenced clock domain requires an integer offset_ns")
+        elif self.offset_ns is not None:
+            raise ValueError("offset_ns is only meaningful with a reference_domain")
+        for name, value in (
+            ("reference_scale_num", self.reference_scale_num),
+            ("reference_scale_den", self.reference_scale_den),
+        ):
+            if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+                raise ValueError(f"{name} must be a positive integer")
+        if self.reference_domain is None and (
+            self.reference_scale_num != 1 or self.reference_scale_den != 1
+        ):
+            raise ValueError(
+                "reference_scale_num/den require a reference_domain"
+            )
+        for name, value in (
+            ("valid_from_ns", self.valid_from_ns),
+            ("valid_to_ns", self.valid_to_ns),
+        ):
+            if value is not None and (isinstance(value, bool) or not isinstance(value, int)):
+                raise ValueError(f"{name} must be an integer or None")
+        if (
+            self.valid_from_ns is not None
+            and self.valid_to_ns is not None
+            and self.valid_to_ns < self.valid_from_ns
+        ):
+            raise ValueError("valid_to_ns must not precede valid_from_ns")
+
+    @property
+    def comparable(self) -> bool:
+        return self.reference_domain is not None and self.offset_ns is not None
+
+    def to_reference_ns(self, local_ns: int) -> int | None:
+        """Map local nanoseconds through the sourced relation, or ``None``.
+
+        The optional rational ratio is applied before the constant offset and
+        is rounded half away from zero at the nanosecond boundary.  Validity is
+        checked against the local timestamp; an out-of-range value is unknown,
+        not clamped.
+        """
+        if not self.comparable:
+            return None
+        local_ns = int(local_ns)
+        if self.valid_from_ns is not None and local_ns < self.valid_from_ns:
+            return None
+        if self.valid_to_ns is not None and local_ns > self.valid_to_ns:
+            return None
+        numerator = local_ns * int(self.reference_scale_num)
+        denominator = int(self.reference_scale_den)
+        sign = -1 if numerator < 0 else 1
+        quotient, remainder = divmod(abs(numerator), denominator)
+        if remainder * 2 >= denominator:
+            quotient += 1
+        return sign * quotient + int(self.offset_ns)
+
+    def shares_reference_with(self, other: "ClockDomain") -> bool:
+        return (
+            self.comparable
+            and other.comparable
+            and self.reference_domain == other.reference_domain
+        )
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "domain": self.domain,
+            "unit": self.unit,
+            "scale_ns": self.scale_ns,
+            "offset_ns": self.offset_ns,
+            "reference_domain": self.reference_domain,
+            "reference_scale_num": self.reference_scale_num,
+            "reference_scale_den": self.reference_scale_den,
+            "valid_from_ns": self.valid_from_ns,
+            "valid_to_ns": self.valid_to_ns,
+            "source": self.source,
+        }
+
+
+UNKNOWN_CLOCK = ClockDomain(
+    domain="unknown",
+    unit="unknown",
+    source="source did not declare a clock domain; no cross-domain relation is available",
+)
+
+_CSV_US_CLOCK = ClockDomain(
+    domain="kernel_details_csv_us",
+    unit="us",
+    scale_ns=1000,
+    offset_ns=None,
+    reference_domain=None,
+    source=(
+        "kernel_details.csv Start Time(us) is microseconds and was converted "
+        "once to integer ns at the adapter boundary; the adapter supplies no "
+        "cross-rank synchronization anchor; raw microsecond tick is not retained"
+    ),
+)
+
+
+@dataclass(frozen=True, slots=True)
 class Window:
     """One explicitly supplied analysis window (all times are ns)."""
 
@@ -99,6 +247,7 @@ class Window:
     step: int | None = None
     label: str | None = None
     source: str = "explicit"
+    clock: ClockDomain | None = None
 
     def __post_init__(self) -> None:
         if self.end_ns <= self.start_ns:
@@ -129,6 +278,14 @@ class Event:
     end_ns: int
     source_kind: str
     table: str
+    clock: ClockDomain = UNKNOWN_CLOCK
+    clock_start_tick: int | str | None = None
+    clock_duration_tick: int | str | None = None
+    clock_end_tick: int | str | None = None
+    source_id: str | None = None
+    capture_id: str | None = None
+    table_kind: str | None = None
+    field_presence: dict[str, bool] = field(default_factory=dict)
     block: str = "Unclassified"
     mapping_rule: str = "residual_unmapped"
     execution_engine: str = "unknown"
@@ -179,6 +336,29 @@ class Event:
     @property
     def duration_ns(self) -> int:
         return max(0, self.end_ns - self.start_ns)
+
+    def __post_init__(self) -> None:
+        # CSV adapters convert microseconds to nanoseconds before creating
+        # this record; the adapter supplies the raw tick fields where the
+        # layout has them.  Declared units/scale are retained, epoch magnitude
+        # never establishes a shared reference, and no offset is fitted.
+        if isinstance(self.locator, Mapping):
+            from .repro_values import bounded_mapping
+            self.locator = bounded_mapping(self.locator, "event locator")
+        if self.source_kind == "kernel_details_csv" and self.clock == UNKNOWN_CLOCK:
+            self.clock = _CSV_US_CLOCK
+
+    @property
+    def clock_comparable(self) -> bool:
+        return self.clock.comparable
+
+    def reference_interval_ns(self) -> tuple[int, int] | None:
+        """Return the interval in its declared reference domain, when sourced."""
+        start_ns = self.clock.to_reference_ns(self.start_ns)
+        end_ns = self.clock.to_reference_ns(self.end_ns)
+        if start_ns is None or end_ns is None:
+            return None
+        return start_ns, end_ns
 
     def clipped(self, start_ns: int, end_ns: int) -> tuple[int, int] | None:
         left = max(self.start_ns, start_ns)

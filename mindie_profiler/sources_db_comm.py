@@ -34,7 +34,7 @@ import time
 from pathlib import Path
 from typing import Any, Callable, Mapping
 
-from .events import Event, ProfilerQueryError, QueryStats, Window
+from .events import ClockDomain, Event, ProfilerQueryError, QueryStats, Window
 
 _CHUNK_SIZE = 500
 
@@ -284,6 +284,9 @@ def read_communication_events(
     timeout_s: float = 20.0,
     contested_tasks: set[tuple[str, str]] | None = None,
     task_occurrences: Mapping[Any, int] | None = None,
+    clock: Any = None,
+    source_id: str | None = None,
+    capture_id: str | None = None,
 ) -> list[Event]:
     """Read windowed ``COMMUNICATION_OP`` events with exclusive relational TASK join."""
     _check_deadline(deadline, schema_path, window, timeout_s)
@@ -568,6 +571,13 @@ def read_communication_events(
                 end_ns=end_ns,
                 source_kind=source_kind,
                 table=comm_table,
+                clock=clock,
+                clock_start_tick=start_ns,
+                clock_end_tick=end_ns,
+                source_id=source_id,
+                capture_id=capture_id,
+                table_kind=comm_table,
+                field_presence={"clock": clock is not None, "abi": row[8] is not None or row[9] is not None, "step": False, "state": False},
                 wait_status="not_applicable",
                 pmu_status="not_applicable",
                 pmu_kind="not_applicable",

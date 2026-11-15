@@ -60,6 +60,43 @@ from .memory_forensics import (
 )
 from .native_capture import CAPTURE_SCHEMA, capture_profile, prepare_standby_session
 from .native_capture_shm import mark_capture_step
+from .aclgraph_mcp import call_tool
+from .aclgraph_multistream import (
+    ACLGraphModelError,
+    ACLGraphWrapperModel,
+    BreakableACLGraphWrapperModel,
+    CAPTURE_ERROR_CODE,
+    DIAGNOSTIC_CODES,
+    Diagnostic,
+    GraphMode,
+    HcclExpansion,
+    OLD_HDK_CAPTURE_MARKER,
+    ParallelRegion,
+    SQBudget,
+    STREAM_RESOURCE_MARKERS,
+    StreamInterval,
+    StreamResourceExhausted,
+    SuperKernelEligibility,
+    UpdatableGraphModel,
+    check_capture_budget,
+    check_superkernel_eligibility,
+    classify_capture_error,
+    diagnose_aclgraph_multistream,
+    diagnose_region,
+    effective_launch_floor_us,
+)
+from .fabric_probe import build_fabric_probe_plan, fit_calibrated_fabric_profile
+from .op_api_registry import bind_captured_occurrence, inspect_op_abi
+from .profiler_configs import (
+    ACLGraphLaunchConfig,
+    AdvisorConfig,
+    CorrelationConfig,
+    FusionRuleConfig,
+    MemoryForensicsConfig,
+    SimBridgeBottleneckPolicy,
+    StructuralInferenceConfig,
+)
+from .repro_op import generate_single_op_reproducer
 from .sim_bridge import export_sim_case
 from .structural_inference import (
     CANONICAL_L1_FAMILIES,
@@ -87,7 +124,7 @@ from .segment import (
 from .sources_trace import build_trace_index, iter_trace_events
 from .sql import run_sql
 
-__version__ = "0.5.13"
+__version__ = "0.5.14"
 analyze = analyze_profile
 
 __all__ = [
@@ -139,7 +176,6 @@ __all__ = [
     "parse_step_windows",
     "parse_windows",
     "prepare_standby_session",
-    "read_collective_readiness",
     "resolve_ranks",
     "run_memory_forensics",
     "run_sql",
@@ -147,5 +183,40 @@ __all__ = [
     "scan_alignment_and_mte_contention",
     "scan_fusible_operator_sequences",
     "scan_host_sync_and_gc_freezes",
+    "ACLGraphLaunchConfig",
+    "ACLGraphModelError",
+    "ACLGraphWrapperModel",
+    "AdvisorConfig",
+    "BreakableACLGraphWrapperModel",
+    "CAPTURE_ERROR_CODE",
+    "CorrelationConfig",
+    "DIAGNOSTIC_CODES",
+    "Diagnostic",
+    "FusionRuleConfig",
+    "GraphMode",
+    "HcclExpansion",
+    "MemoryForensicsConfig",
+    "OLD_HDK_CAPTURE_MARKER",
+    "ParallelRegion",
+    "SQBudget",
+    "STREAM_RESOURCE_MARKERS",
+    "SimBridgeBottleneckPolicy",
+    "StreamInterval",
+    "StreamResourceExhausted",
+    "StructuralInferenceConfig",
+    "SuperKernelEligibility",
+    "UpdatableGraphModel",
+    "bind_captured_occurrence",
+    "build_fabric_probe_plan",
+    "call_tool",
+    "check_capture_budget",
+    "check_superkernel_eligibility",
+    "classify_capture_error",
+    "diagnose_aclgraph_multistream",
+    "diagnose_region",
+    "effective_launch_floor_us",
+    "fit_calibrated_fabric_profile",
+    "generate_single_op_reproducer",
+    "inspect_op_abi",
     "__version__",
 ]

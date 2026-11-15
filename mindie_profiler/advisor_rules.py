@@ -22,248 +22,20 @@
 [Side-Effect Policy]
   Pure functional transforms returning plain JSON-serializable dicts.
 """
-
 from __future__ import annotations
 
 from dataclasses import dataclass
 import re
 from typing import Any, Mapping, Sequence
-
 from .anomaly_discovery import KernelEvent
 from .events import Event, Observation
+from .profiler_configs import AdvisorConfig, DEFAULT_ADVISOR_CONFIG, DEFAULT_FUSION_RULE_CONFIG, FusionRuleConfig
 
-ADVISOR_SCHEMA = "mindie-profile-advisor/1"
-
-DTYPE_ITEMSIZE_BYTES: dict[str, int] = {
-    "FLOAT": 4, "FP32": 4, "FLOAT32": 4, "DT_FLOAT": 4,
-    "FLOAT16": 2, "FP16": 2, "HALF": 2, "DT_FLOAT16": 2,
-    "BFLOAT16": 2, "BF16": 2, "DT_BF16": 2,
-    "DOUBLE": 8, "FP64": 8, "FLOAT64": 8, "DT_DOUBLE": 8,
-    "INT64": 8, "UINT64": 8, "LONG": 8, "DT_INT64": 8, "DT_UINT64": 8,
-    "INT32": 4, "UINT32": 4, "INT": 4, "DT_INT32": 4, "DT_UINT32": 4,
-    "INT16": 2, "UINT16": 2, "SHORT": 2, "DT_INT16": 2, "DT_UINT16": 2,
-    "INT8": 1, "UINT8": 1, "BOOL": 1, "BYTE": 1, "DT_INT8": 1, "DT_UINT8": 1, "DT_BOOL": 1,
-    "FP8": 1, "HIFLOAT8": 1, "FLOAT8_E4M3FN": 1, "FLOAT8_E5M2": 1, "INT4": 1, "DT_INT4": 1,
-}
-
-DOUBLE_DTYPES = {"DOUBLE", "FP64", "FLOAT64", "DT_DOUBLE", "COMPLEX64", "COMPLEX128", "DT_COMPLEX64", "DT_COMPLEX128"}
-
-AICPU_FALLBACK_CATALOG: tuple[tuple[str, tuple[str, ...], str, str], ...] = (
-    ("aicpu_nonzero_dynamic_mask", ("nonzero", "where"), "torch.where / masked_fill (static-shape mask)",
-     "Dynamic boolean indexing (NonZero/Where) falls back to AI_CPU and forces host-device stream sync; replace with static-shape torch.where, masked_fill, or fixed-capacity padded buffers."),
-    ("aicpu_index_scatter_gather", ("indexput", "index_put", "scatter", "gather", "indexselect", "index_select", " index"),
-     "torch_npu.npu_scatter / torch_npu.npu_moe_token_permute",
-     "Unaligned or unsupported-dtype scatter/gather/index_put falls back to AI_CPU; ensure contiguous int32/int64 indices and float16/bfloat16/float32 payloads, or fuse into npu_moe_token_permute."),
-    ("aicpu_topk_sort_fallback", ("topk", "sort", "argsort"), "torch_npu.npu_moe_gating_top_k_softmax / float16 TopK",
-     "TopK/Sort on AI_CPU indicates k exceeds AI_CORE limit or unsupported dtype (float64/int64); downcast logits to float16/bfloat16/float32 or use torch_npu.npu_moe_gating_top_k_softmax."),
-    ("aicpu_cast_transdata_fallback", ("cast", "transdata", "transpose", " permute", "contiguous"),
-     "torch_npu.npu_format_cast / AMP dtype alignment",
-     "Format/dtype conversion on AI_CPU indicates unsupported dtype (e.g. float64/bool/int64) or non-contiguous stride layout; align mixed-precision dtypes and materialize contiguous ND tensors on AI_CORE."),
-    ("aicpu_index_generator", ("arange", "range", "linspace", "unique", "multinomial", "randperm"),
-     "Pre-allocated NPU int32 index buffer",
-     "Index/random generation on AI_CPU inside decode step stalls dispatch; pre-allocate position/index buffers on NPU during warmup with int32/float16 dtypes."),
+from .advisor_rules_scanners import (
+    ADVISOR_SCHEMA, AICPU_FALLBACK_CATALOG, DOUBLE_DTYPES, DTYPE_ITEMSIZE_BYTES,
+    FUSION_PATTERN_RULES, FusionPatternRule, SYNC_HOST_PATTERNS, _AdvisorKernel,
+    _canon_op_token, _coerce_kernels, _event_to_kernel, _ms,
 )
-
-SYNC_HOST_PATTERNS: tuple[tuple[str, tuple[str, ...], str], ...] = (
-    ("explicit_stream_sync", ("aclrtsynchronizestream", "aclrtsynchronizedevice", "aclrtsynchronizeevent", "cudastreamsynchronize"),
-     "Explicit stream/device synchronization blocks host dispatch until NPU drains; remove per-layer syncs or replace with cross-stream aclrtStreamWaitEvent."),
-    ("scalar_item_d2h_sync", ("aten::item", "aten::_local_scalar_dense", ".item(", "aten::cpu", "aten::to", "aclrtmemcpy"),
-     "Host scalar extraction (.item() / .cpu() / synchronous D2H memcpy) forces an implicit stream sync; keep convergence/routing predicates on device tensors or batch D2H copies at step end."),
-)
-
-
-@dataclass(frozen=True)
-class _AdvisorKernel:
-    rank_id: str
-    rank_index: int | None
-    step: int | None
-    window_label: str | None
-    name: str
-    op_type: str
-    task_type: str
-    core: str
-    stream_id: str | None
-    task_id: str | None
-    start_ns: int
-    end_ns: int
-    duration_ns: int
-    is_comm: bool
-    is_aicpu: bool
-    input_shapes: str | None
-    input_dtypes: str | None
-    input_formats: str | None
-    size_bytes: int | None
-    pmu: Mapping[str, float | None]
-    bound_family: str
-
-
-@dataclass(frozen=True)
-class FusionPatternRule:
-    pattern_code: str
-    sequence: tuple[str, ...]
-    replacement_api: str
-    kernel_saving_ratio: float
-    guidance: str
-
-
-FUSION_PATTERN_RULES: tuple[FusionPatternRule, ...] = (
-    FusionPatternRule("add_rms_norm_dynamic_quant", ("Add", "RmsNorm", "DynamicQuant"), "torch_npu.npu_add_rms_norm_quant", 0.50,
-                      "Fuse residual Add + RmsNorm + DynamicQuant into torch_npu.npu_add_rms_norm_quant to eliminate two intermediate HBM round-trips and two kernel launches."),
-    FusionPatternRule("decomposed_rms_norm_cast_chain", ("Cast", "Pow", "ReduceMean", "Add", "Rsqrt", "Mul", "Cast"), "torch_npu.npu_rms_norm", 0.70,
-                      "Replace decomposed FP32 Cast + Pow + ReduceMean + Add + Rsqrt + Mul + Cast chain with fused torch_npu.npu_rms_norm."),
-    FusionPatternRule("decomposed_rms_norm", ("Pow", "ReduceMean", "Rsqrt", "Mul"), "torch_npu.npu_rms_norm", 0.65,
-                      "Replace decomposed elementwise RmsNorm chain (Pow + ReduceMean + Rsqrt + Mul) with fused torch_npu.npu_rms_norm."),
-    FusionPatternRule("decomposed_rms_norm_eps", ("Pow", "ReduceMean", "Add", "Rsqrt", "Mul"), "torch_npu.npu_rms_norm", 0.65,
-                      "Replace decomposed elementwise RmsNorm chain (Pow + ReduceMean + Add + Rsqrt + Mul) with fused torch_npu.npu_rms_norm."),
-    FusionPatternRule("rotary_pos_emb_decomposed", ("Mul", "Slice", "Neg", "Concat", "Mul", "Add"), "torch_npu.npu_rotary_mul", 0.60,
-                      "Fuse decomposed RoPE elementwise chain (Mul + Slice + Neg + Concat + Mul + Add) into torch_npu.npu_rotary_mul."),
-    FusionPatternRule("rotary_pos_emb_cos_sin", ("Cos", "Sin", "Mul", "Mul", "Add"), "torch_npu.npu_rotary_mul", 0.55,
-                      "Fuse decomposed Cos/Sin RoPE elementwise chain into torch_npu.npu_rotary_mul."),
-    FusionPatternRule("swiglu_slice_chain", ("Slice", "SiLU", "Mul"), "torch_npu.npu_swiglu", 0.50,
-                      "Fuse gate/up projection Slice/Split + SiLU/Swish + Mul into torch_npu.npu_swiglu."),
-    FusionPatternRule("swiglu_concat_chain", ("Concat", "SiLU", "Mul"), "torch_npu.npu_swiglu", 0.50,
-                      "Fuse gate/up Concat + SiLU/Swish + Mul into torch_npu.npu_swiglu."),
-    FusionPatternRule("swiglu_activation_mul", ("SiLU", "Mul"), "torch_npu.npu_swiglu", 0.45,
-                      "Fuse standalone Swish/SiLU + elementwise Mul into torch_npu.npu_swiglu."),
-    FusionPatternRule("moe_routing_topk_permute", ("TopK", "Scatter", "Gather"), "torch_npu.npu_moe_gating_top_k_softmax + torch_npu.npu_moe_token_permute", 0.55,
-                      "Fuse un-fused MoE TopK + Scatter + Gather token routing into npu_moe_gating_top_k_softmax and npu_moe_token_permute."),
-    FusionPatternRule("moe_softmax_topk_gather", ("Softmax", "TopK", "Gather"), "torch_npu.npu_moe_gating_top_k_softmax + torch_npu.npu_moe_token_permute", 0.55,
-                      "Fuse Softmax + TopK + Gather/IndexSelect MoE routing chain into npu_moe_gating_top_k_softmax and npu_moe_token_permute."),
-    FusionPatternRule("moe_topk_histc_scatter", ("TopK", "Histc", "Scatter"), "torch_npu.npu_moe_init_routing / torch_npu.npu_moe_token_permute", 0.55,
-                      "Fuse MoE TopK + Histc + Scatter expert counting/routing into torch_npu.npu_moe_init_routing."),
-    FusionPatternRule("add_rms_norm", ("Add", "RmsNorm"), "torch_npu.npu_add_rms_norm", 0.40,
-                      "Fuse residual Add + RmsNorm into torch_npu.npu_add_rms_norm to avoid materializing the pre-norm residual tensor to HBM."),
-    FusionPatternRule("rms_norm_dynamic_quant", ("RmsNorm", "DynamicQuant"), "torch_npu.npu_rms_norm_quant / torch_npu.npu_add_rms_norm_quant", 0.40,
-                      "Fuse RmsNorm + DynamicQuant into a single quantized norm kernel to eliminate intermediate HBM I/O."),
-    FusionPatternRule("redundant_cast_chain", ("Cast", "Cast"), "Single-step Cast or native mixed-precision op", 0.80,
-                      "Eliminate back-to-back redundant Cast->Cast conversions on the same stream."),
-)
-
-
-def _ms(ns: int | float | None) -> float:
-    return 0.0 if ns is None else round(float(ns) / 1_000_000.0, 6)
-
-
-def _canon_op_token(op_type: str, name: str) -> str:
-    raw = f"{op_type} {name}".lower()
-    for needle, token in (
-        ("addrmsnormquant", "FusedAddRmsNormQuant"), ("add_rms_norm_quant", "FusedAddRmsNormQuant"),
-        ("addrmsnorm", "FusedAddRmsNorm"), ("add_rms_norm", "FusedAddRmsNorm"),
-        ("swiglu", "FusedSwiGLU"), ("rotarymul", "FusedRotary"), ("rotary_mul", "FusedRotary"),
-        ("applyrotaryposemb", "FusedRotary"), ("rmsnorm", "RmsNorm"), ("rms_norm", "RmsNorm"),
-        ("layernorm", "LayerNorm"), ("layer_norm", "LayerNorm"),
-        ("dynamicquant", "DynamicQuant"), ("ascendquant", "DynamicQuant"), ("quantize", "DynamicQuant"),
-        ("swish", "SiLU"), ("silu", "SiLU"), ("topk", "TopK"), ("top_k", "TopK"),
-        ("softmax", "Softmax"), ("histc", "Histc"), ("bincount", "Histc"),
-        ("scatter", "Scatter"), ("indexput", "Scatter"), ("index_put", "Scatter"),
-        ("gather", "Gather"), ("indexselect", "Gather"), ("index_select", "Gather"),
-        ("groupedmatmul", "GroupedMatmul"), ("grouped_matmul", "GroupedMatmul"),
-        ("matmul", "MatMul"), ("gemm", "MatMul"), ("bmm", "MatMul"),
-        ("flashattention", "FlashAttention"), ("pagedattention", "FlashAttention"),
-        ("transdata", "TransData"), ("transpose", "Transpose"), ("cast", "Cast"),
-        ("reducesum", "ReduceMean"), ("reducemean", "ReduceMean"), ("reduce_mean", "ReduceMean"),
-        ("rsqrt", "Rsqrt"), ("pow", "Pow"), ("slice", "Slice"), ("split", "Slice"), ("chunk", "Slice"),
-        ("concat", "Concat"), ("cat", "Concat"), ("neg", "Neg"), ("cos", "Cos"), ("sin", "Sin"),
-    ):
-        if needle in raw:
-            return token
-    if re.search(r"(^|[^a-z])add(v2|_|d|$|[^a-z])", raw) or op_type.lower() in {"add", "addv2", "addd"}:
-        return "Add"
-    if re.search(r"(^|[^a-z])mul(v2|_|d|$|[^a-z])", raw) or op_type.lower() in {"mul", "mulv2", "muld"}:
-        return "Mul"
-    return op_type or name or "Unknown"
-
-
-def _event_to_kernel(ev: Event, rank_id: str, rank_index: int | None, step: int | None, wlabel: str | None) -> _AdvisorKernel:
-    dur = max(0, int(ev.end_ns) - int(ev.start_ns))
-    return _AdvisorKernel(
-        rank_id=str(rank_id), rank_index=rank_index, step=step, window_label=wlabel,
-        name=str(ev.name or ""), op_type=str(ev.op_type or ""), task_type=str(ev.task_type or ""),
-        core=str(ev.core or ""), stream_id=str(ev.stream_id) if ev.stream_id is not None else None,
-        task_id=str(ev.task_id) if ev.task_id is not None else None,
-        start_ns=int(ev.start_ns), end_ns=int(ev.end_ns), duration_ns=dur,
-        is_comm=bool(ev.is_comm), is_aicpu=bool(ev.is_aicpu),
-        input_shapes=ev.input_shapes, input_dtypes=ev.input_dtypes, input_formats=ev.input_formats,
-        size_bytes=None, pmu=dict(ev.pmu) if ev.pmu else {}, bound_family=str(ev.bound_family or ""),
-    )
-
-
-def _coerce_kernels(
-    observations: Sequence[Observation] | None = None,
-    events: Sequence[Event | KernelEvent | Mapping[str, Any]] | None = None,
-) -> list[_AdvisorKernel]:
-    kernels: list[_AdvisorKernel] = []
-    if observations:
-        for obs in observations:
-            for ev in obs.events:
-                kernels.append(_event_to_kernel(ev, obs.rank_id, obs.rank_index, obs.window.step, obs.window.label))
-    if events:
-        for idx, item in enumerate(events):
-            if isinstance(item, Event):
-                kernels.append(_event_to_kernel(item, item.rank_id or "rank_0", item.rank_index, None, None))
-            elif isinstance(item, KernelEvent):
-                s_ns = int(round(float(item.start_us) * 1000.0))
-                d_ns = max(0, int(round(float(item.duration_us) * 1000.0)))
-                tt = str(item.task_type or item.accelerator_core or "")
-                is_aicpu = "AI_CPU" in tt.upper() or "AICPU" in tt.upper()
-                is_comm = any(tok in tt.upper() or tok in str(item.name).upper() for tok in ("HCCL", "COMM", "HCOM"))
-                kernels.append(
-                    _AdvisorKernel(
-                        rank_id=f"rank_{item.rank}" if item.rank is not None else "rank_0",
-                        rank_index=item.rank, step=item.step,
-                        window_label=f"step_{item.step}" if item.step is not None else None,
-                        name=str(item.name or ""), op_type=str(item.name or ""), task_type=tt,
-                        core=str(item.accelerator_core or tt),
-                        stream_id=str(item.stream_id) if item.stream_id is not None else None,
-                        task_id=str(item.event_id) if item.event_id is not None else str(idx),
-                        start_ns=s_ns, end_ns=s_ns + d_ns, duration_ns=d_ns,
-                        is_comm=is_comm, is_aicpu=is_aicpu,
-                        input_shapes=None, input_dtypes=None, input_formats=None, size_bytes=None,
-                        pmu=dict(item.pmu_counters) if item.pmu_counters else {}, bound_family="",
-                    )
-                )
-            elif isinstance(item, Mapping):
-                s_ns = item.get("start_ns")
-                if s_ns is None and item.get("start_us") is not None:
-                    s_ns = int(round(float(item["start_us"]) * 1000.0))
-                s_ns = int(s_ns or 0)
-                e_ns = item.get("end_ns")
-                if e_ns is None:
-                    d_ns = item.get("duration_ns")
-                    if d_ns is None and item.get("duration_us") is not None:
-                        d_ns = int(round(float(item["duration_us"]) * 1000.0))
-                    e_ns = s_ns + int(d_ns or 0)
-                e_ns = int(e_ns)
-                tt = str(item.get("task_type") or item.get("core") or "")
-                core = str(item.get("core") or tt)
-                name = str(item.get("name") or item.get("op_name") or "")
-                op_type = str(item.get("op_type") or name)
-                is_aicpu = bool(item.get("is_aicpu") or "AI_CPU" in tt.upper() or "AICPU" in tt.upper() or "AI_CPU" in core.upper())
-                is_comm = bool(
-                    item.get("is_comm")
-                    or any(tok in tt.upper() or tok in op_type.upper() or tok in name.upper() for tok in ("HCCL", "COMMUNICATION", "HCOM", "SDMA"))
-                )
-                kernels.append(
-                    _AdvisorKernel(
-                        rank_id=str(item.get("rank_id") or (f"rank_{item['rank']}" if item.get("rank") is not None else "rank_0")),
-                        rank_index=int(item["rank_index"]) if item.get("rank_index") is not None else (int(item["rank"]) if isinstance(item.get("rank"), int) else None),
-                        step=int(item["step"]) if item.get("step") is not None else None,
-                        window_label=str(item["window_label"]) if item.get("window_label") is not None else None,
-                        name=name, op_type=op_type, task_type=tt, core=core,
-                        stream_id=str(item["stream_id"]) if item.get("stream_id") is not None else "0",
-                        task_id=str(item["task_id"]) if item.get("task_id") is not None else str(idx),
-                        start_ns=s_ns, end_ns=e_ns, duration_ns=max(0, e_ns - s_ns),
-                        is_comm=is_comm, is_aicpu=is_aicpu,
-                        input_shapes=str(item["input_shapes"]) if item.get("input_shapes") is not None else None,
-                        input_dtypes=str(item["input_dtypes"]) if item.get("input_dtypes") is not None else None,
-                        input_formats=str(item["input_formats"]) if item.get("input_formats") is not None else None,
-                        size_bytes=int(item["size_bytes"]) if item.get("size_bytes") is not None else None,
-                        pmu=dict(item["pmu"]) if isinstance(item.get("pmu"), Mapping) else {},
-                        bound_family=str(item.get("bound_family") or ""),
-                    )
-                )
-    return kernels
-
 
 def _parse_tensor_shapes(shapes_str: str | None) -> list[list[int]]:
     if not shapes_str:
@@ -276,12 +48,10 @@ def _parse_tensor_shapes(shapes_str: str | None) -> list[list[int]]:
             tensors.append(dims)
     return tensors
 
-
 def _parse_dtypes(dtypes_str: str | None) -> list[str]:
     if not dtypes_str:
         return []
     return [tok.strip().upper() for tok in re.split(r"[;,]", dtypes_str.strip().strip('"').strip("'")) if tok.strip()]
-
 
 def _estimate_tensor_bytes(shapes: list[list[int]], dtypes: list[str]) -> list[int]:
     sizes: list[int] = []
@@ -292,7 +62,6 @@ def _estimate_tensor_bytes(shapes: list[list[int]], dtypes: list[str]) -> list[i
         dtype = dtypes[idx] if idx < len(dtypes) else (dtypes[0] if dtypes else "FP16")
         sizes.append(numel * DTYPE_ITEMSIZE_BYTES.get(dtype, 2))
     return sizes
-
 
 def scan_aicpu_fallbacks(
     observations: Sequence[Observation] | None = None, *,
@@ -386,13 +155,15 @@ def scan_aicpu_fallbacks(
             "cast_transdata_total_ms": _ms(cast_trans_ns) if storm_detected else 0.0,
             "matches": matches, "findings": findings}
 
-
 def scan_alignment_and_mte_contention(
     observations: Sequence[Observation] | None = None,
     *,
     events: Sequence[Event | KernelEvent | Mapping[str, Any]] | None = None,
-    mte2_contention_threshold: float = 0.35,
+    mte2_contention_threshold: float | None = None,
+    config: AdvisorConfig = DEFAULT_ADVISOR_CONFIG,
 ) -> dict[str, Any]:
+    if mte2_contention_threshold is None:
+        mte2_contention_threshold = config.mte2_contention_ratio
     """Detect 32B/512B byte & Cube/FA shape alignment violations and multi-stream MTE contention."""
     kernels = _coerce_kernels(observations, events)
     if not kernels:
@@ -413,43 +184,50 @@ def scan_alignment_and_mte_contention(
         reasons: list[str] = []
         rule_codes: list[str] = []
 
+        ub_granule = config.ub_burst_bytes
+        hbm_granule = config.hbm_burst_bytes
+        fractal_tile = config.cube_fractal_tile
+        inner_tile = config.cube_inner_tile
+        fa_multiple = config.fa_head_dim_multiple
+
         if k.is_comm or "memcpy" in k.name.lower() or "sdma" in k.task_type.lower():
-            for bsize in tensor_bytes:
-                if bsize is not None and bsize > 512 and (bsize % 512 != 0):
-                    rule_codes.append("sdma_512b_unaligned")
-                    reasons.append(f"Communication/SDMA payload {bsize}B is not aligned to 512B burst boundary")
-                    break
+            unaligned_sdma = next(
+                (b for b in tensor_bytes if b is not None and b > hbm_granule and b % hbm_granule != 0),
+                None,
+            )
+            if unaligned_sdma is not None:
+                rule_codes.append("sdma_512b_unaligned")
+                reasons.append(f"Communication/SDMA payload {unaligned_sdma}B is not aligned to {hbm_granule}B burst boundary")
 
         for idx, bsize in enumerate(tensor_bytes):
             if bsize is None or bsize <= 0:
                 continue
-            if bsize % 32 != 0:
+            if bsize % ub_granule != 0:
                 rule_codes.append("ub_32b_unaligned")
-                reasons.append(f"Tensor[{idx}] size {bsize}B violates 32B AI Core UB burst alignment")
+                reasons.append(f"Tensor[{idx}] size {bsize}B violates {ub_granule}B AI Core UB burst alignment")
                 break
-            if bsize > 512 and (bsize % 512 != 0) and canon in {"MatMul", "GroupedMatmul", "FlashAttention", "TransData"}:
+            if bsize > hbm_granule and (bsize % hbm_granule != 0) and canon in {"MatMul", "GroupedMatmul", "FlashAttention", "TransData"}:
                 rule_codes.append("hbm_512b_unaligned")
-                reasons.append(f"Tensor[{idx}] size {bsize}B violates 512B HBM burst alignment")
+                reasons.append(f"Tensor[{idx}] size {bsize}B violates {hbm_granule}B HBM burst alignment")
                 break
 
         if canon in {"MatMul", "GroupedMatmul"} and shapes:
             for dims in shapes:
                 if len(dims) >= 2:
                     m_dim, k_dim = dims[-2], dims[-1]
-                    if k_dim % 16 != 0 or m_dim % 16 != 0:
+                    if k_dim % fractal_tile != 0 or m_dim % fractal_tile != 0:
                         rule_codes.append("cube_fractal_16_unaligned")
-                        reasons.append(f"Cube shape {dims} is not a multiple of 16 (fractal 16x16 padding overhead)")
+                        reasons.append(f"Cube shape {dims} is not a multiple of {fractal_tile} (fractal {fractal_tile}x{fractal_tile} padding overhead)")
                         break
-                    if k_dim >= 256 and (k_dim % 256 != 0):
+                    if k_dim >= inner_tile and (k_dim % inner_tile != 0):
                         rule_codes.append("cube_tile_256_unaligned")
-                        reasons.append(f"Cube inner axis {k_dim} in {dims} is not aligned to 256 tile boundary")
+                        reasons.append(f"Cube inner axis {k_dim} in {dims} is not aligned to {inner_tile} tile boundary")
                         break
         elif canon == "FlashAttention" and shapes:
-            for dims in shapes:
-                if dims[-1] % 16 != 0:
-                    rule_codes.append("fa_head_dim_unaligned")
-                    reasons.append(f"FlashAttention head_dim={dims[-1]} is not aligned to 16")
-                    break
+            unaligned_fa = next((dims for dims in shapes if dims and dims[-1] % fa_multiple != 0), None)
+            if unaligned_fa is not None:
+                rule_codes.append("fa_head_dim_unaligned")
+                reasons.append(f"FlashAttention head_dim={unaligned_fa[-1]} is not aligned to {fa_multiple}")
 
         if rule_codes:
             alignment_violations.append({
@@ -524,15 +302,19 @@ def scan_alignment_and_mte_contention(
             "mte_contention_count": len(contention_windows), "mte_contention_windows": contention_windows,
             "total_contention_overlap_ms": total_overlap_ms, "findings": findings}
 
-
 def scan_host_sync_and_gc_freezes(
     observations: Sequence[Observation] | None = None,
     *,
     events: Sequence[Event | KernelEvent | Mapping[str, Any]] | None = None,
     host_events: Sequence[Mapping[str, Any]] | None = None,
-    gc_gap_threshold_ms: float = 10.0,
-    sync_co_occurrence_threshold: float = 0.80,
+    gc_gap_threshold_ms: float | None = None,
+    sync_co_occurrence_threshold: float | None = None,
+    config: AdvisorConfig = DEFAULT_ADVISOR_CONFIG,
 ) -> dict[str, Any]:
+    if gc_gap_threshold_ms is None:
+        gc_gap_threshold_ms = config.gc_gap_us / 1000.0
+    if sync_co_occurrence_threshold is None:
+        sync_co_occurrence_threshold = config.sync_co_occurrence_ratio
     """Distinguish forced host stream syncs (.item()/aclrtSynchronizeStream) and Python GC freezes."""
     kernels = _coerce_kernels(observations, events)
     host_rows: list[dict[str, Any]] = []
@@ -632,9 +414,10 @@ def scan_host_sync_and_gc_freezes(
             ]
             acl_busy_ns = sum(min(h["end_ns"], gap_end) - max(h["start_ns"], gap_start) for h in overlapping_host)
             acl_ratio = acl_busy_ns / float(gap_ns) if gap_ns > 0 else 0.0
-            acl_rate_per_us = len(overlapping_host) / (gap_ns / 1000.0) if gap_ns > 0 else 0.0
+            gap_duration_us = gap_ns / 1000.0
+            acl_rate_per_us = len(overlapping_host) / gap_duration_us if gap_ns > 0 else 0.0
             if host_rows:
-                if acl_ratio < 0.01 and acl_rate_per_us < 0.0001:
+                if acl_ratio < config.acl_idle_busy_ratio and acl_rate_per_us < config.acl_idle_events_per_us:
                     gc_freezes.append({
                         "freeze_type": "suspected_python_gc_or_gil_freeze", "rank_id": rank_id, "step": step,
                         "start_ns": gap_start, "end_ns": gap_end, "gap_ms": _ms(gap_ns),
@@ -652,9 +435,10 @@ def scan_host_sync_and_gc_freezes(
 
     if gc_freezes:
         g0 = gc_freezes[0]
+        high_gap_ms = config.gc_high_severity_us / 1000.0
         findings.append({
             "finding_type": "advisor_host_gc_or_dispatch_freeze",
-            "severity": "high" if g0["gap_ms"] >= 20.0 else "medium", "confidence": g0["confidence"],
+            "severity": "high" if g0["gap_ms"] >= high_gap_ms else "medium", "confidence": g0["confidence"],
             "summary": f"Detected {len(gc_freezes)} host dispatch/GC freeze window(s) totaling {sum(x['gap_ms'] for x in gc_freezes):.3f} ms (max {max(x['gap_ms'] for x in gc_freezes):.3f} ms).",
             "evidence_ref": g0["freeze_type"],
             "evidence_scope": {"rank_id": g0["rank_id"], "step": g0["step"], "start_ns": g0["start_ns"], "end_ns": g0["end_ns"]},
@@ -665,7 +449,6 @@ def scan_host_sync_and_gc_freezes(
             "ascend_launch_blocking_suspected": launch_blocking, "node_launch_sync_co_occurrence_ratio": co_ratio,
             "gc_freeze_count": len(gc_freezes), "gc_freeze_total_ms": round(sum(g["gap_ms"] for g in gc_freezes), 6),
             "sync_events": sync_matches, "gc_freezes": gc_freezes, "findings": findings}
-
 
 def scan_fusible_operator_sequences(
     observations: Sequence[Observation] | None = None, *,
@@ -754,19 +537,28 @@ def scan_fusible_operator_sequences(
     return {"status": "detected" if candidates else "clean", "total_matched_sequences": sum(c["occurrence_count"] for c in candidates),
             "total_estimated_savings_ms": round(sum(c["estimated_savings_ms"] for c in candidates), 6), "candidates": candidates, "findings": findings}
 
-
 def evaluate_advisor_rules(
     observations: Sequence[Observation] | None = None,
     *,
     events: Sequence[Event | KernelEvent | Mapping[str, Any]] | None = None,
     host_events: Sequence[Mapping[str, Any]] | None = None,
-    gc_gap_threshold_ms: float = 10.0,
+    gc_gap_threshold_ms: float | None = None,
+    config: AdvisorConfig = DEFAULT_ADVISOR_CONFIG,
 ) -> dict[str, Any]:
     """Run all four Ascend Advisor scanners and return a consolidated C7 fragment."""
-    aicpu = scan_aicpu_fallbacks(observations, events=events)
-    alignment = scan_alignment_and_mte_contention(observations, events=events)
+    aicpu = scan_aicpu_fallbacks(
+        observations,
+        events=events,
+        cast_storm_min_count=config.cast_storm_min_count,
+        cast_storm_share_threshold=config.cast_storm_share_ratio,
+    )
+    alignment = scan_alignment_and_mte_contention(observations, events=events, config=config)
     host_sync = scan_host_sync_and_gc_freezes(
-        observations, events=events, host_events=host_events, gc_gap_threshold_ms=gc_gap_threshold_ms
+        observations,
+        events=events,
+        host_events=host_events,
+        gc_gap_threshold_ms=gc_gap_threshold_ms,
+        config=config,
     )
     fusion = scan_fusible_operator_sequences(observations, events=events)
     return {
@@ -778,9 +570,9 @@ def evaluate_advisor_rules(
         "findings": [*aicpu["findings"], *alignment["findings"], *host_sync["findings"], *fusion["findings"]],
     }
 
-
 __all__ = [
-    "ADVISOR_SCHEMA", "FUSION_PATTERN_RULES", "FusionPatternRule", "evaluate_advisor_rules",
+    "ADVISOR_SCHEMA", "AdvisorConfig", "DEFAULT_ADVISOR_CONFIG", "DEFAULT_FUSION_RULE_CONFIG",
+    "FUSION_PATTERN_RULES", "FusionPatternRule", "FusionRuleConfig", "evaluate_advisor_rules",
     "scan_aicpu_fallbacks", "scan_alignment_and_mte_contention",
     "scan_fusible_operator_sequences", "scan_host_sync_and_gc_freezes",
 ]

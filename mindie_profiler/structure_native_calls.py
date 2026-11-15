@@ -45,10 +45,43 @@ def _union_ns(intervals: list[tuple[int, int]]) -> int:
     return sum(right - left for left, right in merge_intervals(intervals))
 
 
+
+def _snapshot_structure_carrier(value: Any, name: str = "structure metadata", _depth: int = 0) -> Any:
+    if _depth > 64:
+        raise ProfilerUsageError(f"{name} exceeds container nesting limit")
+    if isinstance(value, Mapping):
+        try:
+            _ = len(value)
+            out = {}
+            for key in value:
+                if type(key) is not str:
+                    raise ProfilerUsageError(f"{name} keys must be plain strings")
+                out[key] = _snapshot_structure_carrier(value[key], name, _depth + 1)
+            return out
+        except TimeoutError:
+            raise
+        except ProfilerUsageError:
+            raise
+        except (TypeError, ValueError, OverflowError) as exc:
+            raise ProfilerUsageError(f"invalid {name} mapping protocol") from exc
+    if isinstance(value, (list, tuple)):
+        try:
+            _ = len(value)
+            return [_snapshot_structure_carrier(item, name, _depth + 1) for item in value]
+        except TimeoutError:
+            raise
+        except ProfilerUsageError:
+            raise
+        except (TypeError, ValueError, OverflowError) as exc:
+            raise ProfilerUsageError(f"invalid {name} sequence protocol") from exc
+    return value
+
+
 def _seal_digest(payload: Mapping[str, Any]) -> str:
+    normalized = _snapshot_structure_carrier(payload, "structure metadata")
     digest = sha256()
     encoder = json.JSONEncoder(sort_keys=True, separators=(",", ":"), allow_nan=False)
-    for chunk in encoder.iterencode(payload):
+    for chunk in encoder.iterencode(normalized):
         digest.update(chunk.encode("utf-8"))
     return "sha256:" + digest.hexdigest()
 

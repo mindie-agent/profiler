@@ -30,7 +30,10 @@ import re
 import statistics
 from typing import Any, Mapping, Sequence
 
+from .profiler_configs import DEFAULT_MEMORY_FORENSICS_CONFIG, MemoryForensicsConfig
+
 MEMORY_FORENSICS_SCHEMA = "mindie-memory-forensics/1"
+_BYTES_PER_MIB = float(DEFAULT_MEMORY_FORENSICS_CONFIG.min_leak_bytes)
 
 _UNIT_MULTIPLIERS: dict[str, float] = {
     "B": 1.0, "BYTE": 1.0, "BYTES": 1.0,
@@ -129,18 +132,29 @@ def analyze_memory_inefficiencies(
     memory_blocks: Sequence[Mapping[str, Any]] | None = None,
     *,
     allocator_snapshots: Sequence[Mapping[str, Any]] | None = None,
-    min_api_gap: int = 10,
-    idle_api_gap_threshold: int = 3000,
-    early_alloc_threshold_ms: float = 2.0,
-    late_free_threshold_ms: float = 2.0,
-    idle_gap_threshold_ms: float = 10.0,
-    early_alloc_ratio_threshold: float = 0.30,
-    late_free_ratio_threshold: float = 0.30,
-    spike_ratio_threshold: float = 0.15,
-    high_fragmentation_threshold: float = 0.15,
-    moderate_fragmentation_threshold: float = 0.05,
+    min_api_gap: int | None = None,
+    idle_api_gap_threshold: int | None = None,
+    early_alloc_threshold_ms: float | None = None,
+    late_free_threshold_ms: float | None = None,
+    idle_gap_threshold_ms: float | None = None,
+    early_alloc_ratio_threshold: float | None = None,
+    late_free_ratio_threshold: float | None = None,
+    spike_ratio_threshold: float | None = None,
+    high_fragmentation_threshold: float | None = None,
+    moderate_fragmentation_threshold: float | None = None,
+    config: MemoryForensicsConfig = DEFAULT_MEMORY_FORENSICS_CONFIG,
 ) -> dict[str, Any]:
     """Detect early_allocation, late_deallocation, temporary_buffer_spike, and allocator_fragmentation."""
+    min_api_gap = config.min_api_gap_count if min_api_gap is None else min_api_gap
+    idle_api_gap_threshold = config.idle_api_gap_count if idle_api_gap_threshold is None else idle_api_gap_threshold
+    early_alloc_threshold_ms = (config.early_alloc_us / 1000.0) if early_alloc_threshold_ms is None else early_alloc_threshold_ms
+    late_free_threshold_ms = (config.late_free_us / 1000.0) if late_free_threshold_ms is None else late_free_threshold_ms
+    idle_gap_threshold_ms = (config.idle_gap_us / 1000.0) if idle_gap_threshold_ms is None else idle_gap_threshold_ms
+    early_alloc_ratio_threshold = config.early_alloc_ratio if early_alloc_ratio_threshold is None else early_alloc_ratio_threshold
+    late_free_ratio_threshold = config.late_free_ratio if late_free_ratio_threshold is None else late_free_ratio_threshold
+    spike_ratio_threshold = config.spike_ratio if spike_ratio_threshold is None else spike_ratio_threshold
+    high_fragmentation_threshold = config.high_fragmentation_ratio if high_fragmentation_threshold is None else high_fragmentation_threshold
+    moderate_fragmentation_threshold = config.moderate_fragmentation_ratio if moderate_fragmentation_threshold is None else moderate_fragmentation_threshold
     blocks = [_normalize_block(b, i) for i, b in enumerate(memory_blocks or []) if isinstance(b, Mapping)]
     snapshots = [dict(s) for s in (allocator_snapshots or []) if isinstance(s, Mapping)]
 
@@ -270,7 +284,7 @@ def analyze_memory_inefficiencies(
         if b["max_idle_gap_ns"] is not None and b["max_idle_gap_ns"] >= idle_ns_thresh:
             spike_reasons.append(f"temporary idleness of {b['max_idle_gap_ns'] / 1e6:.3f} ms between accesses")
         if b["tag"] in {"workspace", "temp", "temporary", "comm_buffer", "transient"} and b["size_bytes"] > 0:
-            spike_reasons.append(f"transient {b['tag']} buffer spike ({b['size_bytes'] / (1024 ** 2):.2f} MiB)")
+            spike_reasons.append(f"transient {b['tag']} buffer spike ({b['size_bytes'] / _BYTES_PER_MIB:.2f} MiB)")
         if spike_reasons:
             temp_spikes.append(
                 {
@@ -326,7 +340,7 @@ def analyze_memory_inefficiencies(
                         "spike_ratio": round(spike_ratio, 6),
                         "step": step,
                         "reasons": [
-                            f"Transient peak surge of {spike_delta / (1024 ** 2):.2f} MiB ({spike_ratio:.1%} above steady allocated)"
+                            f"Transient peak surge of {spike_delta / _BYTES_PER_MIB:.2f} MiB ({spike_ratio:.1%} above steady allocated)"
                         ],
                         "guidance": "Inspect peak operator workspace or logits materialization; chunk vocab/LM-head projection or cap HCCL/ACLNN workspace.",
                     }
@@ -353,7 +367,7 @@ def analyze_memory_inefficiencies(
                         "severity": severity,
                         "recommended_env": "PYTORCH_NPU_ALLOC_CONF=expandable_segments:True",
                         "guidance": (
-                            f"NPU caching allocator holds {unallocated_b / (1024 ** 2):.2f} MiB "
+                            f"NPU caching allocator holds {unallocated_b / _BYTES_PER_MIB:.2f} MiB "
                             f"({frag_ratio:.1%} of reserved HBM) in unallocated segments; set "
                             "PYTORCH_NPU_ALLOC_CONF=expandable_segments:True and pad dynamic shapes to fixed buckets."
                         ),
@@ -380,7 +394,7 @@ def analyze_memory_inefficiencies(
                         f"max fragmentation ratio {max(x['fragmentation_ratio'] for x in collection):.1%} "
                         f"(recommend {first['recommended_env']})."
                         if label == "allocator_fragmentation"
-                        else f"top candidate {first['op_name']} ({first['size_bytes'] / (1024 ** 2):.2f} MiB)."
+                        else f"top candidate {first['op_name']} ({first['size_bytes'] / _BYTES_PER_MIB:.2f} MiB)."
                     )
                 ),
                 "evidence_ref": ref,
@@ -548,7 +562,7 @@ def detect_step_monotonic_leaks(
                 "summary": (
                     f"Post-warmup step_monotonic_leak detected across steps "
                     f"{[s['step'] for s in post_warmup]}: allocated memory grew monotonically by "
-                    f"{total_post_growth / (1024 ** 2):.2f} MiB ({leak_rate / (1024 ** 2):.3f} MiB/step)."
+                    f"{total_post_growth / _BYTES_PER_MIB:.2f} MiB ({leak_rate / _BYTES_PER_MIB:.3f} MiB/step)."
                 ),
                 "evidence_ref": "step_monotonic_leak",
                 "evidence_scope": {
@@ -602,10 +616,13 @@ def run_memory_forensics(
     allocator_snapshots: Sequence[Mapping[str, Any]] | None = None,
     step_snapshots: Sequence[Mapping[str, Any]] | None = None,
     warmup_steps: int = 1,
-    min_post_warmup_steps: int = 3,
-    min_leak_bytes: float = 1_048_576.0,
+    min_post_warmup_steps: int | None = None,
+    min_leak_bytes: float | None = None,
+    config: MemoryForensicsConfig = DEFAULT_MEMORY_FORENSICS_CONFIG,
 ) -> dict[str, Any]:
     """Run both memory inefficiency pattern scanning and step-monotonic leak detection."""
+    resolved_min_steps = config.min_post_warmup_steps if min_post_warmup_steps is None else min_post_warmup_steps
+    resolved_min_leak = float(config.min_leak_bytes) if min_leak_bytes is None else min_leak_bytes
     if isinstance(manifest, Mapping):
         if memory_blocks is None:
             memory_blocks = manifest.get("memory_blocks") or manifest.get("block_events")
@@ -617,13 +634,14 @@ def run_memory_forensics(
     inefficiencies = analyze_memory_inefficiencies(
         memory_blocks,
         allocator_snapshots=allocator_snapshots,
+        config=config,
     )
     leaks = detect_step_monotonic_leaks(
         step_snapshots,
         memory_blocks=memory_blocks,
         warmup_steps=warmup_steps,
-        min_post_warmup_steps=min_post_warmup_steps,
-        min_leak_bytes=min_leak_bytes,
+        min_post_warmup_steps=resolved_min_steps,
+        min_leak_bytes=resolved_min_leak,
     )
     return {
         "schema_version": MEMORY_FORENSICS_SCHEMA,
@@ -634,7 +652,9 @@ def run_memory_forensics(
 
 
 __all__ = [
+    "DEFAULT_MEMORY_FORENSICS_CONFIG",
     "MEMORY_FORENSICS_SCHEMA",
+    "MemoryForensicsConfig",
     "analyze_memory_inefficiencies",
     "detect_step_monotonic_leaks",
     "run_memory_forensics",

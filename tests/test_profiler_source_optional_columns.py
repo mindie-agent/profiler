@@ -4,7 +4,10 @@ import sqlite3
 import pytest
 
 from mindie_profiler import analyze_profile
-from test_profiler_core import STEP4, build_db, rank0_events
+try:
+    from tests.test_profiler_core import STEP4, build_db, rank0_events
+except ModuleNotFoundError:
+    from test_profiler_core import STEP4, build_db, rank0_events
 
 
 @pytest.mark.parametrize("columns", [("blockDim",), ("mixBlockDim",), ("blockDim", "mixBlockDim")])

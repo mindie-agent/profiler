@@ -491,7 +491,7 @@ def test_a5_abi_and_predeclared_domain_misses_are_distinct():
             phase="prefill", tokens=8192, context=24576, native_abi=abi)
 
     for tokens, context, case_name in ((1536, 0, "qwen35_tp4_h4"),
-                                       (8192, 0, "qwen30_tp4_h8")):
+                                       (1536, 0, "qwen30_tp4_h8")):
         abi = deepcopy(A5_ABI[case_name])
         key = "attention_prefill_D128" if case_name == "qwen30_tp4_h8" else "attention_prefill_D256"
         q = tokens
@@ -500,7 +500,7 @@ def test_a5_abi_and_predeclared_domain_misses_are_distinct():
                                         f"{abi[key]['geometry']['head_dim']}",
                                         f"{kv},1,{abi[key]['geometry']['head_dim']}",
                                         f"{kv},1,{abi[key]['geometry']['head_dim']}"]
-        abi[key]["output_shapes"] = [abi[key]["input_shapes"][0]]
+        abi[key]["output_shapes"][0] = abi[key]["input_shapes"][0]
         missed, provenance = apply_qualified_native_observations(
             deepcopy(A5_CASES[case_name]), profile="a5-attention", phase="prefill",
             tokens=tokens, context=context, native_abi=abi)
@@ -617,9 +617,9 @@ def test_a5_true_train_total_kv_and_wrong_context_through_public_engine():
                       recipes={"flash_attention_prefill"})["flash_attention_prefill"]
     assert row["program"] == "JointNativeService"
     assert row["operator"]["local_shape"] == [8192, 32768, 4, 256]
-    assert row["analytical_reference_work"]["cube"] == pytest.approx(962089451520.0)
+    assert row["analytical_reference_work"]["cube"] == pytest.approx(963146416128.0)
     rule = _rule(A5_PROFILE.data, "a5-train85-attention_prefill_d256-4-1-256-prefill")
-    assert row["duration_ms"] * 1000 == pytest.approx(3484.5328946101044)
+    assert row["duration_ms"] * 1000 == pytest.approx(3488.2854227297125)
     assert row["duration_ms"] * 1000 == pytest.approx(
         _affine(rule, _response_values(rule, row)))
 

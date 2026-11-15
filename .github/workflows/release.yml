@@ -15,8 +15,9 @@ jobs:
     secrets:
       MINDIE_RELEASE_DEPLOY_KEY: ${{ secrets.MINDIE_RELEASE_DEPLOY_KEY }}
     with:
-      release-notes-path: docs/releases/profiler-0.5.13.md
+      release-notes-path: docs/releases/profiler-0.5.14.md
+      python: /tmp/prof-rel-venv/bin/python
       setup-command: |
-        uv venv --python 3.13 && uv pip install -e ".[test]"
+        uv venv --seed --python 3.13 /tmp/prof-rel-venv && uv pip install --python /tmp/prof-rel-venv/bin/python ".[test]" && rm -rf build dist *.egg-info .venv
       test-command: |
-        .venv/bin/python -m pytest -q -m "not live_npu"
+        PYTHONDONTWRITEBYTECODE=1 /tmp/prof-rel-venv/bin/python -B -m pytest -q -n auto -p no:cacheprovider -m "not live_npu"

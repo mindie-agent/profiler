@@ -33,7 +33,7 @@ from pathlib import Path
 from typing import Any, Iterable, Sequence
 
 from .events import ProfilerUsageError, Window
-from .sources_csv import MINDSTUDIO_OUTPUT_DIR, find_mindstudio_csv_candidates
+from .sources_csv import MINDSTUDIO_OUTPUT_DIR, find_mindstudio_csv_candidates, select_mindstudio_csv
 
 _DB_GLOB = "ascend_pytorch_profiler*.db"
 _TRACE_GLOB = "trace_view*.json"
@@ -174,7 +174,32 @@ def find_db_candidates(rank_dir: Path | str) -> list[Path]:
     return sorted(set(found), key=lambda item: (str(item.parent), item.name))
 
 
+def find_csv_discovery_candidates(rank_dir: Path | str) -> list[Path]:
+    """Return every CSV candidate (all layouts) for inventory/discovery."""
+    base_dir = Path(rank_dir)
+    found = [
+        candidate
+        for candidate in (
+            base_dir / "kernel_details.csv",
+            base_dir / _OUTPUT_DIR / "kernel_details.csv",
+            base_dir / "kernel_details.csv.gz",
+            base_dir / _OUTPUT_DIR / "kernel_details.csv.gz",
+        )
+        if candidate.is_file()
+    ]
+    mindstudio = find_mindstudio_csv_candidates(base_dir)
+    found.extend(mindstudio["op_summary"])
+    found.extend(mindstudio["task_time"])
+    return sorted(set(found), key=str)
+
+
 def find_csv_candidates(rank_dir: Path | str) -> list[Path]:
+    """Return the selected analysis CSV candidates.
+
+    A unique op_summary projection wins over task_time.  Classic
+    kernel_details.csv remains a separate candidate; if both classic and new
+    layouts exist the caller must disambiguate explicitly.
+    """
     base_dir = Path(rank_dir)
     classic = [
         candidate
@@ -238,7 +263,7 @@ def _source_for_dir(
     csv_path = csv_candidates[0] if len(csv_candidates) == 1 else None
     trace_candidates = find_trace_candidates(rank_dir)
     if len(csv_candidates) > 1:
-        notes = notes + (f"{len(csv_candidates)} kernel_details.csv candidates; pass one explicitly",)
+        notes = notes + (f"{len(csv_candidates)} CSV candidates; pass one explicitly",)
     if explicit_file is not None:
         if explicit_file.suffix == ".db":
             db_path, csv_path = explicit_file, None
@@ -248,18 +273,39 @@ def _source_for_dir(
             csv_path, db_path = explicit_file, None
             csv_candidates = [explicit_file]
             db_candidates = ()
-    if db_path is None and len(db_candidates) > 1 and source in {"db", "auto"}:
-        names = ", ".join(item.name for item in db_candidates)
-        raise ProfilerUsageError(
-            f"rank {rank_id!r} has {len(db_candidates)} profiler db candidates ({names}); "
-            "pass an explicit .db path or run inventory to list them"
-        )
     if source == "db":
+        if db_path is None and len(db_candidates) > 1:
+            names = ", ".join(item.name for item in db_candidates)
+            raise ProfilerUsageError(
+                f"rank {rank_id!r} has {len(db_candidates)} profiler db candidates "
+                f"({names}); pass an explicit .db path"
+            )
         kind = "db" if db_path else None
     elif source == "csv":
+        if len(csv_candidates) > 1:
+            names = ", ".join(item.name for item in csv_candidates)
+            raise ProfilerUsageError(
+                f"rank {rank_id!r} has {len(csv_candidates)} CSV candidates "
+                f"({names}); pass one explicit .csv path"
+            )
         kind = "csv" if csv_path else None
     else:
-        kind = "db" if db_path else ("csv" if csv_path else None)
+        if db_path is None and len(db_candidates) > 1:
+            names = ", ".join(item.name for item in db_candidates)
+            raise ProfilerUsageError(
+                f"rank {rank_id!r} has {len(db_candidates)} profiler db candidates "
+                f"({names}); pass an explicit .db path or run inventory to list them"
+            )
+        if db_path is not None:
+            kind = "db"
+        elif len(csv_candidates) > 1:
+            names = ", ".join(item.name for item in csv_candidates)
+            raise ProfilerUsageError(
+                f"rank {rank_id!r} has {len(csv_candidates)} CSV candidates "
+                f"({names}); pass one explicit .csv path"
+            )
+        else:
+            kind = "csv" if csv_path else None
     if kind is None:
         return None
     return RankSource(
@@ -298,6 +344,11 @@ def discover_rank_sources(
         root_path = root_path.parent
     own_db, _notes, own_db_candidates = _find_db(root_path)
     own_csv_candidates = find_csv_candidates(root_path)
+    if len(own_csv_candidates) > 1 and (source == "csv" or (not own_db and not own_db_candidates)):
+        names = ", ".join(item.name for item in own_csv_candidates)
+        raise ProfilerUsageError(
+            f"{len(own_csv_candidates)} CSV candidates ({names}); pass one explicitly"
+        )
     own_csv = own_csv_candidates[0] if len(own_csv_candidates) == 1 else None
     if own_db or own_csv or own_db_candidates:
         item = _source_for_dir(root_path, ordinal=0, source=source)
@@ -363,7 +414,7 @@ def discover_rank_sources(
     ]
     if not items:
         raise ProfilerUsageError(
-            f"no kernel_details.csv or {_DB_GLOB} found under {root_path} for source={source}"
+            f"no kernel_details.csv, mindstudio op_summary/task_time CSV, or {_DB_GLOB} found under {root_path} for source={source}"
         )
     ids: dict[str, str] = {}
     for item in items:

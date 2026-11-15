@@ -147,6 +147,8 @@ def _strict_realpath(raw_text: str) -> str:
                 return probe
             suffix.append(name)
             probe = parent or "/"
+        except TimeoutError:
+            raise
         except OSError:
             return probe
 

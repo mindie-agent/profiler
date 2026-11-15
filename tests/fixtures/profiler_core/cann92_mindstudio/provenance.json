@@ -1,0 +1,27 @@
+{
+  "schema_version": "mindie-profiler-cann92-mindstudio-slice/1",
+  "source": {
+    "capture_root": "/Volumes/data/Codex/2026-11-12/kan-x/work/a5-implementation/jobs/A5-RESOURCE/run/a5-res-smoke-20261112T1549Z/raw/PROF_000001_20261112234953856_00589148HJQCBCDK",
+    "op_summary": {
+      "raw_path": "/Volumes/data/Codex/2026-11-12/kan-x/work/a5-implementation/jobs/A5-RESOURCE/run/a5-res-smoke-20261112T1549Z/raw/PROF_000001_20261112234953856_00589148HJQCBCDK/mindstudio_profiler_output/op_summary_20261112235012.csv",
+      "sha256": "f4139ef7133c8ffb3e1e8f7b54ecc5e2647c684fc7b2f2ad4b480e43db3f69b6"
+    },
+    "task_time": {
+      "raw_path": "/Volumes/data/Codex/2026-11-12/kan-x/work/a5-implementation/jobs/A5-RESOURCE/run/a5-res-smoke-20261112T1549Z/raw/PROF_000001_20261112234953856_00589148HJQCBCDK/mindstudio_profiler_output/task_time_20261112235012.csv",
+      "sha256": "94426a9696dea54a85d2bbe8f2e09f8cb068a264289da7c90303bfa3a8f7fbeb"
+    }
+  },
+  "slice": {
+    "op_summary": {
+      "path": "op_summary_slice.csv",
+      "sha256": "f4139ef7133c8ffb3e1e8f7b54ecc5e2647c684fc7b2f2ad4b480e43db3f69b6",
+      "rows": 15
+    },
+    "task_time": {
+      "path": "task_time_slice.csv",
+      "sha256": "94426a9696dea54a85d2bbe8f2e09f8cb068a264289da7c90303bfa3a8f7fbeb",
+      "rows": 15
+    }
+  },
+  "selection": "CANN 9.2.1 mindstudio_profiler_output op_summary_*.csv and task_time_*.csv, all 15 MatMulV3 rows, unchanged bytes."
+}

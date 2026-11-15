@@ -13,10 +13,15 @@ from collections import defaultdict
 from collections.abc import Mapping, Sequence
 
 from .events import ProfilerUsageError
+from .structure_native_calls import _snapshot_structure_carrier
 
 
 class StructureTargets:
     def __init__(self, nodes, subgraphs, native_calls=None):
+        nodes = _snapshot_structure_carrier(nodes, "structure nodes")
+        subgraphs = _snapshot_structure_carrier(subgraphs, "structure subgraphs")
+        if native_calls is not None:
+            native_calls = _snapshot_structure_carrier(native_calls, "structure native_calls")
         self.nodes = nodes
         self.subgraphs = {}
         for record in subgraphs:

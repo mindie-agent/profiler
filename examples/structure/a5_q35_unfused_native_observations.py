@@ -67,6 +67,12 @@ def _add_native_queue(result):
             if isinstance(values, dict) and QUEUE not in values:
                 values[QUEUE] = value
                 changed = True
+        if any(k.startswith("physical_rates.resources.") for k in match) and f"physical_rates.resources.{QUEUE}" not in match:
+            match[f"physical_rates.resources.{QUEUE}"] = QUEUE_RATE
+            changed = True
+        if any(k.startswith("resource_units.") for k in match) and f"resource_units.{QUEUE}" not in match:
+            match[f"resource_units.{QUEUE}"] = 1
+            changed = True
         if changed:
             rebound.append(rule["id"])
     return rebound
@@ -134,7 +140,7 @@ def apply_a5_q35_unfused_native_observations(
 ) -> tuple[dict, dict]:
     """Import all eight exact native domains atomically, or retain the input."""
     selected_path = profile_path if profile_path is not None else (Q1_PROFILE_PATH if tokens == 1 else PROFILE_PATH)
-    profile, identity = _read_profile(Path(selected_path))
+    profile, identity = _read_profile(Path(selected_path), flatten_rules=True)
     provenance = {"schema_version": "mindie-profiler-native-observation-import/1",
                   "profile": identity, "status": "not_applicable", "matched_domains": [],
                   "geometry": {"phase": phase, "tokens": tokens, "context": context,
@@ -154,7 +160,9 @@ def apply_a5_q35_unfused_native_observations(
         return miss("hardware_or_parallelism_outside_observed_domain")
     if _queue_conflict(parsed):
         return miss("native_queue_declaration_conflict")
-    if _base_physical_contract(parsed) != contract["physical"]:
+    from a5_native_observations import _declared_environment_gaps
+    mismatches, _ = _declared_environment_gaps(contract["physical"], _base_physical_contract(parsed))
+    if mismatches:
         return miss("physical_rates_or_declared_runtime_outside_observed_domain")
     if (any(getattr(parsed.model, key) != value for key, value in contract["model"].items()) or
             not parsed.model.layer_plans or any(
@@ -192,7 +200,8 @@ def apply_a5_q35_unfused_native_observations(
     for op in operators:
         axes = _operator_axes(execution, op)
         if (op.recipe not in recipes or
-                op.recipe == "dynamic_quantize" and "mc2_unfused_storage" not in dict(op.metadata)):
+                op.recipe == "dynamic_quantize" and "mc2_unfused_storage" not in dict(op.metadata) or
+                op.recipe == "expert_weight_scale_cast" and op.op_id.endswith(".expert_down.weight_scale_cast")):
             other_axes.append(axes)
             continue
         seen.add(op.recipe)

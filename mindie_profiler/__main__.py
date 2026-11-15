@@ -36,7 +36,7 @@ from .analyze import analyze_profile
 from .events import ProfilerError, ProfilerUsageError
 from .segment import load_steps_file, parse_step_windows, parse_windows
 
-SUBCOMMANDS = ("inventory", "analyze", "correlate", "compare", "sql", "camodel", "kernels", "export-sim-case", "capture")
+SUBCOMMANDS = ("inventory", "analyze", "correlate", "compare", "sql", "camodel", "kernels", "export-sim-case", "capture", "inspect-op", "repro-op", "fabric-probe", "op-formula")
 
 
 def _add_analyze_arguments(parser: argparse.ArgumentParser) -> None:
@@ -388,6 +388,22 @@ def main(argv: Sequence[str] | None = None) -> int:
             from .cli_capture import main as capture_main
 
             return capture_main(rest)
+        if command == "inspect-op":
+            from .op_api_registry import main as inspect_main
+
+            return inspect_main(rest)
+        if command == "repro-op":
+            from .repro_op import main as repro_main
+
+            return repro_main(rest)
+        if command == "fabric-probe":
+            from .fabric_probe import main as fabric_main
+
+            return fabric_main(rest)
+        if command == "op-formula":
+            from .op_formula_annotator import main as op_formula_main
+
+            return op_formula_main(rest)
         if command == "export-sim-case":
             from .sim_bridge import main as export_sim_case_main
 

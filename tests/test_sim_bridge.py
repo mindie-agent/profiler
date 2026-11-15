@@ -100,17 +100,23 @@ def _write_wave5(root: Path, *, npu_type: str = "A3", graph: str = "piecewise") 
     return root
 
 
+def _legacy_export(*args, **kwargs):
+    """Legacy tests explicitly opt into the descriptive defaulted mode."""
+    kwargs.setdefault("diagnostic", True)
+    return sim_bridge.export_sim_case(*args, **kwargs)
+
+
 def _assert_schema_valid(case: dict) -> None:
-    sim = pytest.importorskip("mindie_sim")
+    pytest.importorskip("mindie_sim")
     from mindie_sim.prediction.structure import parse_case
 
     parsed = parse_case(case)
-    result = sim.predict(parsed, scope="body", phase="decode", tokens=1, context=4096)
-    assert result["complete_ms"] > 0
+    assert parsed.model.layers >= 1
+    assert parsed.machine.dies
 
 
 def test_wave5_capture_extracts_metadata_and_observed_profile(tmp_path):
-    case = sim_bridge.export_sim_case(_write_wave5(tmp_path / "wave5"))
+    case = _legacy_export(_write_wave5(tmp_path / "wave5"))
 
     assert set(case) == {"machine", "model", "workload", "runtime", "slo"}
     metadata = case["runtime"]["metadata"]
@@ -148,7 +154,7 @@ def test_wave5_capture_extracts_metadata_and_observed_profile(tmp_path):
 
 def test_profiler_capture_fixture_exports_without_observed_leakage():
     fixture = ROOT / "tests" / "fixtures" / "profiler_capture_a2"
-    case = sim_bridge.export_sim_case(fixture)
+    case = _legacy_export(fixture)
 
     metadata = case["runtime"]["metadata"]
     provenance = metadata["profiler_provenance"]
@@ -186,7 +192,7 @@ def test_c7_summary_json_exports_observed_blocks_and_hotspots(tmp_path):
     }
     path = tmp_path / "summary.json"
     path.write_text(json.dumps(report), encoding="utf-8")
-    case = sim_bridge.export_sim_case(path, chip="A3", model="qwen3-30b-a3b",
+    case = _legacy_export(path, chip="A3", model="qwen3-30b-a3b",
                                       tp=4, dp=2, ep=8)
 
     observed = case["runtime"]["metadata"]["observed_profile"]
@@ -209,7 +215,7 @@ def test_cli_overrides_write_atomic_case(tmp_path):
         "--model", "qwen3-30b-a3b", "--tp", "4", "--dp", "2", "--ep", "8",
         "--batch-size", "8", "--seq-len", "2048", "--decode-steps", "64",
         "--phase", "decode", "--quant", "w8a8", "--graph-mode", "eager",
-        "--hccl-expansion-mode", "aiv", "--output", str(output),
+        "--hccl-expansion-mode", "aiv", "--diagnostic", "--output", str(output),
     ]) == 0
     case = json.loads(output.read_text(encoding="utf-8"))
     metadata = case["runtime"]["metadata"]
@@ -237,11 +243,12 @@ def test_cli_input_aliases(tmp_path, flag):
         argv.append(str(capture))
     else:
         argv.extend([flag, str(capture)])
+    argv.append("--diagnostic")
     assert sim_bridge.main(argv) == 0
 
 
 def test_no_leakage_and_roundtrip_prediction(tmp_path):
-    case = sim_bridge.export_sim_case(_write_wave5(tmp_path / "wave5"))
+    case = _legacy_export(_write_wave5(tmp_path / "wave5"))
     metadata = case["runtime"]["metadata"]
     assert "observed_profile" in metadata and "profiler_provenance" in metadata
     for key in ("observed_profile", "profiler_provenance", "bridge_summary"):
@@ -253,6 +260,17 @@ def test_no_leakage_and_roundtrip_prediction(tmp_path):
             assert token not in text
     assert "observed_profile" not in json.dumps(case["runtime"].get("kernels", {}))
     _assert_schema_valid(case)
+    sim = pytest.importorskip("mindie_sim")
+    from mindie_sim.prediction.structure import parse_case
+
+    compact_model = dict(case["model"], layers=2)
+    if "layer_plans" in compact_model:
+        compact_model["layer_plans"] = list(compact_model["layer_plans"])[:2]
+    pred = sim.predict(
+        parse_case({**case, "model": compact_model}),
+        scope="body", phase="decode", tokens=1, context=4096,
+    )
+    assert pred["complete_ms"] > 0
 
     code = (
         "import sys; "
@@ -273,7 +291,7 @@ def test_raw_run_meta_and_benchmark_json_inputs(tmp_path):
         "parallelism": {"tp": 4, "dp": 2, "ep": 8},
         "workload": {"batch_size": 8, "seq_len": 2048, "decode_steps": 64},
     }), encoding="utf-8")
-    case = sim_bridge.export_sim_case(run_meta)
+    case = _legacy_export(run_meta)
     assert case["runtime"]["metadata"]["profiler_provenance"]["source_kind"] == "run_meta"
     assert case["runtime"]["parallel"] == {"tp": 4, "dp": 2, "ep": 8, "pp": 1}
     assert case["runtime"]["metadata"]["profiler_provenance"]["extracted_model"] == "qwen3-30b-a3b"
@@ -287,7 +305,7 @@ def test_raw_run_meta_and_benchmark_json_inputs(tmp_path):
         "top_operators": [{"op_type": "hcom_allReduce_", "total_us": 400,
                            "pct_of_device_time": 40.0}],
     }), encoding="utf-8")
-    case = sim_bridge.export_sim_case(benchmark, chip="A3", model="qwen3-30b-a3b")
+    case = _legacy_export(benchmark, chip="A3", model="qwen3-30b-a3b")
     assert case["runtime"]["metadata"]["profiler_provenance"]["source_kind"] == "benchmark_summary"
     assert case["runtime"]["parallel"]["tp"] == 4
     assert case["runtime"]["metadata"]["observed_profile"]["hccl_share"] == pytest.approx(0.4)
@@ -306,7 +324,7 @@ def test_attribution_named_report_and_explicit_output(tmp_path):
     source = tmp_path / "attribution.json"
     source.write_text(json.dumps(report), encoding="utf-8")
     output = tmp_path / "nested" / "case.json"
-    returned = sim_bridge.export_sim_case(
+    returned = _legacy_export(
         source, chip="a3", model="qwen3-30b-a3b", tp=4, ep=4, output=output,
     )
     written = json.loads(output.read_text(encoding="utf-8"))
@@ -316,7 +334,7 @@ def test_attribution_named_report_and_explicit_output(tmp_path):
 
 
 def test_catalog_models_preserve_geometry_with_structural_metadata():
-    qwen = sim_bridge.export_sim_case({
+    qwen = _legacy_export({
         "npu_type": "A3", "model_name": "Qwen3.6-27B",
         "env": {"NUM_LAYERS": "64", "SPEC_K": "3"},
     })
@@ -327,7 +345,7 @@ def test_catalog_models_preserve_geometry_with_structural_metadata():
     assert qwen["model"]["layers"] == 64
     _assert_schema_valid(qwen)
 
-    dsv4 = sim_bridge.export_sim_case({
+    dsv4 = _legacy_export({
         "npu_type": "A3", "model_name": "deepseek-v4-flash",
         "env": {"SPEC_K": "3"},
     })
@@ -343,7 +361,7 @@ def test_invalid_parallel_topology_rejected_by_api_and_cli(tmp_path):
     capture = _write_wave5(tmp_path / "wave5")
     output = tmp_path / "invalid.json"
     with pytest.raises(sim_bridge.ProfilerUsageError, match=r"ep_not_divisor_of_dp_tp_domain|invalid_ep_partition"):
-        sim_bridge.export_sim_case(capture, tp=4, dp=1, ep=3)
+        _legacy_export(capture, tp=4, dp=1, ep=3)
     rc = sim_bridge.main([
         "export-sim-case", "--input", str(capture),
         "--tp", "4", "--dp", "1", "--ep", "3", "--output", str(output),
@@ -353,7 +371,7 @@ def test_invalid_parallel_topology_rejected_by_api_and_cli(tmp_path):
 
 
 def test_nested_traits_and_wrapped_benchmark_summary():
-    case_traits = sim_bridge.export_sim_case({
+    case_traits = _legacy_export({
         "traits": {
             "hw": "a2", "family": "dsv2lite", "phase": "decode",
             "tp": 4, "ep": 4, "concurrency": 16, "context_tokens": 8192,
@@ -366,7 +384,7 @@ def test_nested_traits_and_wrapped_benchmark_summary():
     assert case_traits["runtime"]["metadata"]["bridge_summary"]["workload"]["seq_len"] == 8192
     assert case_traits["runtime"]["metadata"]["observed_profile"]["step_time_ms"] == pytest.approx(14.2)
 
-    wrapped = sim_bridge.export_sim_case({
+    wrapped = _legacy_export({
         "benchmark_summary": {
             "concurrency": 8, "tensor_parallel_size": 4,
             "step_time_ms": 12.5, "tpot_client_ms": {"median": 6.2},
@@ -379,7 +397,7 @@ def test_nested_traits_and_wrapped_benchmark_summary():
 
 
 def test_small_pct_non_renormalized_hotspots_and_step_trace_overlap(tmp_path):
-    c7 = sim_bridge.export_sim_case({
+    c7 = _legacy_export({
         "schema_version": "mindie-profile-summary/1",
         "step_accounting": {
             "wall_ms_p50": 10.0,
@@ -393,7 +411,7 @@ def test_small_pct_non_renormalized_hotspots_and_step_trace_overlap(tmp_path):
     assert obs_c7["aicpu_share"] == pytest.approx(0.12)
     assert obs_c7["host_share"] == pytest.approx(0.08)
 
-    bench = sim_bridge.export_sim_case({
+    bench = _legacy_export({
         "kernel_stats": {
             "top_operators_by_device_time": [
                 {"op_type": "FusedInferAttentionScore", "pct_of_device_time": 20.0},
@@ -410,7 +428,7 @@ def test_small_pct_non_renormalized_hotspots_and_step_trace_overlap(tmp_path):
         "1000,200,300,500,100,1300\n",
         encoding="utf-8",
     )
-    trace_case = sim_bridge.export_sim_case(trace_dir)
+    trace_case = _legacy_export(trace_dir)
     obs_trace = trace_case["runtime"]["metadata"]["observed_profile"]
     assert obs_trace["device_busy_union_ms"] == pytest.approx(1.2)
     assert obs_trace["device_activity_sum_ms"] == pytest.approx(1.5)
@@ -420,26 +438,26 @@ def test_small_pct_non_renormalized_hotspots_and_step_trace_overlap(tmp_path):
 
 
 def test_glm53_qwen35_mxfp8_and_registered_skus():
-    glm = sim_bridge.export_sim_case({}, model="glm-5.3", chip="Ascend910_9362")
+    glm = _legacy_export({}, model="glm-5.3", chip="Ascend910_9362")
     assert glm["machine"]["sku"] == "Ascend910_9362"
     assert glm["model"]["layers"] == 78
     assert glm["model"]["num_experts"] == 256
     assert glm["runtime"]["metadata"]["profiler_provenance"]["extracted_model"] == "glm-5.3"
     _assert_schema_valid(glm)
 
-    glm_flash = sim_bridge.export_sim_case({}, model="glm-5.3-flash", chip="Ascend910B1")
+    glm_flash = _legacy_export({}, model="glm-5.3-flash", chip="Ascend910B1")
     assert glm_flash["machine"]["sku"] == "Ascend910B1"
     assert glm_flash["model"]["layers"] == 45
     assert glm_flash["model"]["num_experts"] == 288
     _assert_schema_valid(glm_flash)
 
-    q35 = sim_bridge.export_sim_case({}, model="qwen3.5-35b-a3b", chip="a3")
+    q35 = _legacy_export({}, model="qwen3.5-35b-a3b", chip="a3")
     assert q35["model"]["layers"] == 40
     assert q35["model"]["attention"] == "gdn"
     assert q35["model"]["num_experts"] == 256
     _assert_schema_valid(q35)
 
-    mxfp8 = sim_bridge.export_sim_case({
+    mxfp8 = _legacy_export({
         "npu_type": "A5", "model_name": "Qwen3.8-27B-W8A8-MXFP8",
     })
     assert mxfp8["runtime"]["metadata"]["bridge_summary"]["system"]["quantization"] == "w8a8_mxfp8"
@@ -447,7 +465,7 @@ def test_glm53_qwen35_mxfp8_and_registered_skus():
 
 
 def test_explicit_config_precedence_deepseek_mla_and_a3_tp16():
-    cfg_case = sim_bridge.export_sim_case({
+    cfg_case = _legacy_export({
         "model_name": "Qwen3.6-27B",
         "model_config": {
             "hidden_size": 1024, "num_attention_heads": 8,
@@ -459,7 +477,7 @@ def test_explicit_config_precedence_deepseek_mla_and_a3_tp16():
     assert cfg_case["model"]["layers"] == 2
     _assert_schema_valid(cfg_case)
 
-    dsv2_cfg = sim_bridge.export_sim_case({
+    dsv2_cfg = _legacy_export({
         "model_config": {
             "model_type": "deepseek_v2", "hidden_size": 2048, "num_attention_heads": 16,
             "num_hidden_layers": 27, "intermediate_size": 10944, "vocab_size": 102400,
@@ -482,20 +500,20 @@ def test_standalone_kernel_csv_wrapped_env_sim_case_roundtrip_and_walk_timeout(t
         "QuantBatchMatmulV3,MIX_AIC,700\n",
         encoding="utf-8",
     )
-    kcase = sim_bridge.export_sim_case(kdir)
+    kcase = _legacy_export(kdir)
     kobs = kcase["runtime"]["metadata"]["observed_profile"]
     assert kobs["device_activity_sum_ms"] == pytest.approx(1.0)
     assert len(kobs["top_operators"]) == 2
     assert kcase["runtime"]["metadata"]["hccl_op_expansion_mode"] == "aicpu"
 
-    wrapped_env = sim_bridge.export_sim_case({"run_meta": {"env": {"TP": "4"}}})
+    wrapped_env = _legacy_export({"run_meta": {"env": {"TP": "4"}}})
     assert wrapped_env["runtime"]["parallel"]["tp"] == 4
 
-    base_case = sim_bridge.export_sim_case(
+    base_case = _legacy_export(
         {}, chip="a3", model="deepseek-v2-lite", tp=4, ep=4,
         batch_size=8, seq_len=2048, decode_steps=64,
     )
-    roundtrip = sim_bridge.export_sim_case(base_case)
+    roundtrip = _legacy_export(base_case)
     assert roundtrip["runtime"]["parallel"] == {"tp": 4, "dp": 1, "ep": 4, "pp": 1}
     assert len(roundtrip["workload"]["requests"]) == 8
     assert roundtrip["workload"]["requests"][0]["prompt_tokens"] == 2048
@@ -508,7 +526,7 @@ def test_standalone_kernel_csv_wrapped_env_sim_case_roundtrip_and_walk_timeout(t
 
     monkeypatch.setattr(sim_bridge.os, "walk", fake_walk)
     with pytest.raises(TimeoutError, match="scan timeout"):
-        sim_bridge.export_sim_case(kdir)
+        _legacy_export(kdir)
 
 
 def test_full_catalog_override_precedence_and_strict_bounds(tmp_path):
@@ -518,24 +536,24 @@ def test_full_catalog_override_precedence_and_strict_bounds(tmp_path):
         "hunyuan-video-dit", "kimi-k3-dspark", "qwen3-30b-a3b",
         "qwen3.5-27b", "qwen3.5-moe", "qwen3.8-2.4t-a95b", "qwen3.8-27b",
     ):
-        case = sim_bridge.export_sim_case({}, model=model_id, chip="a3")
+        case = _legacy_export({}, model=model_id, chip="a3")
         assert case["runtime"]["metadata"]["profiler_provenance"]["extracted_model"] == model_id
         _assert_schema_valid(case)
 
-    override_case = sim_bridge.export_sim_case(
+    override_case = _legacy_export(
         {"model_name": "DeepSeek-V3-671B"}, model="Qwen3.6-27B", chip="a3",
     )
     assert override_case["runtime"]["metadata"]["profiler_provenance"]["extracted_model"] == "qwen3.6-27b"
     assert override_case["model"]["layers"] == 64
 
     with pytest.raises(sim_bridge.ProfilerUsageError, match=r"(?i)unsupported.*model"):
-        sim_bridge.export_sim_case({}, model="unknown-custom-model")
+        _legacy_export({}, model="unknown-custom-model")
 
     for bad_batch in (0, 4097):
         with pytest.raises(sim_bridge.ProfilerUsageError, match="batch_size_out_of_bounds"):
-            sim_bridge.export_sim_case({}, batch_size=bad_batch)
+            _legacy_export({}, batch_size=bad_batch)
 
-    partial_acct = sim_bridge.export_sim_case({
+    partial_acct = _legacy_export({
         "accounting": {
             "step_accounting": {"step_time_ms": 12.0},
             "window_accounting": {
@@ -551,7 +569,7 @@ def test_full_catalog_override_precedence_and_strict_bounds(tmp_path):
     assert obs_partial["exposed_comm_ms"] == pytest.approx(1.5)
     assert obs_partial["aicpu_share"] == pytest.approx(0.1)
 
-    window_only = sim_bridge.export_sim_case({
+    window_only = _legacy_export({
         "accounting": {
             "window_accounting": {"device_busy_union_ms_p50": 8.0},
         },
@@ -569,7 +587,7 @@ def test_full_catalog_override_precedence_and_strict_bounds(tmp_path):
         "1,1,9000,9000,9000,9000,9000,9000\n",
         encoding="utf-8",
     )
-    multi_case = sim_bridge.export_sim_case(multi_step_dir)
+    multi_case = _legacy_export(multi_step_dir)
     obs_multi = multi_case["runtime"]["metadata"]["observed_profile"]
     assert obs_multi["step_time_ms"] == pytest.approx(1.95)
     assert obs_multi["device_busy_union_ms"] == pytest.approx(1.8)
@@ -583,7 +601,7 @@ def test_full_catalog_override_precedence_and_strict_bounds(tmp_path):
     )
     (corrupt_dir / "run_meta.json").write_text("{corrupt", encoding="utf-8")
     with pytest.raises(sim_bridge.ProfilerUsageError, match="invalid JSON"):
-        sim_bridge.export_sim_case(corrupt_dir)
+        _legacy_export(corrupt_dir)
 
     huge_csv = tmp_path / "huge.csv"
     huge_csv.write_text("Name,Duration(us)\n" + "op,1\n" * 5, encoding="utf-8")
@@ -592,35 +610,35 @@ def test_full_catalog_override_precedence_and_strict_bounds(tmp_path):
 
 
 def test_fourth_review_p2_regressions(tmp_path):
-    a5_pr = sim_bridge.export_sim_case({"npu_type": "Ascend950PR_A5"})
+    a5_pr = _legacy_export({"npu_type": "Ascend950PR_A5"})
     assert a5_pr["machine"]["sku"] == "Ascend950PR_9579"
     _assert_schema_valid(a5_pr)
-    qwen_synth = sim_bridge.export_sim_case({"family": "synth-qwen3-30b-l8-e16-k2", "hw": "a3", "phase": "decode"})
+    qwen_synth = _legacy_export({"family": "synth-qwen3-30b-l8-e16-k2", "hw": "a3", "phase": "decode"})
     assert qwen_synth["runtime"]["metadata"]["profiler_provenance"]["extracted_model"] == "qwen3-30b-a3b"
     _assert_schema_valid(qwen_synth)
-    explicit_dsv = sim_bridge.export_sim_case({"model_config": {"model_type": "deepseek_v2", "hidden_size": 2048, "num_attention_heads": 16, "num_hidden_layers": 4, "first_k_dense_replace": 1, "intermediate_size": 10944, "vocab_size": 102400, "kv_lora_rank": 512, "q_lora_rank": 0, "qk_nope_head_dim": 128, "qk_rope_head_dim": 64, "v_head_dim": 128, "n_routed_experts": 64, "num_experts_per_tok": 6, "n_shared_experts": 2, "moe_intermediate_size": 1408}}, chip="a3")
+    explicit_dsv = _legacy_export({"model_config": {"model_type": "deepseek_v2", "hidden_size": 2048, "num_attention_heads": 16, "num_hidden_layers": 4, "first_k_dense_replace": 1, "intermediate_size": 10944, "vocab_size": 102400, "kv_lora_rank": 512, "q_lora_rank": 0, "qk_nope_head_dim": 128, "qk_rope_head_dim": 64, "v_head_dim": 128, "n_routed_experts": 64, "num_experts_per_tok": 6, "n_shared_experts": 2, "moe_intermediate_size": 1408}}, chip="a3")
     if "layer_plans" in explicit_dsv["model"]:
         assert explicit_dsv["model"]["layer_plans"][0]["ffn"] == "dense" and explicit_dsv["model"]["layer_plans"][1]["ffn"] == "moe" and explicit_dsv["model"]["layer_plans"][1]["num_shared_experts"] == 2
     with pytest.raises(sim_bridge.ProfilerUsageError, match="max_position_embeddings"):
-        sim_bridge.export_sim_case({}, model="deepseek-v2-lite", seq_len=999999)
-    dense_rt = sim_bridge.export_sim_case(sim_bridge.export_sim_case({}, model="qwen3.6-27b", chip="a3"))
+        _legacy_export({}, model="deepseek-v2-lite", seq_len=999999)
+    dense_rt = _legacy_export(_legacy_export({}, model="qwen3.6-27b", chip="a3"))
     assert dense_rt["model"]["ffn"] == "dense"
     _assert_schema_valid(dense_rt)
 
     # 6. SPEC_K=3 configures draft_mode/draft_proposal_tokens/auxiliary.mtp without fabricating acceptance length
-    spec_case = sim_bridge.export_sim_case({"env": {"SPEC_K": "3"}}, model="qwen3-30b-a3b", chip="a3")
+    spec_case = _legacy_export({"env": {"SPEC_K": "3"}}, model="qwen3-30b-a3b", chip="a3")
     assert spec_case["runtime"]["metadata"]["draft_mode"] == "mtp"
     assert spec_case["runtime"]["metadata"]["draft_proposal_tokens"] == 3
     assert spec_case["runtime"].get("mtp_acceptance_length", 1.0) == 1.0
     assert spec_case["model"]["auxiliary"]["mtp"] is not None
     _assert_schema_valid(spec_case)
-    spec_explicit = sim_bridge.export_sim_case(
+    spec_explicit = _legacy_export(
         {"env": {"SPEC_K": "3", "MTP_ACCEPTANCE_LENGTH": "2.4"}}, model="qwen3-30b-a3b", chip="a3"
     )
     assert spec_explicit["runtime"]["mtp_acceptance_length"] == pytest.approx(2.4)
 
     # 7 & 8. mode="prefill_chunked" -> phase="prefill", traits.is_eager=False -> aclgraph_full
-    prefill_rec = sim_bridge.export_sim_case({
+    prefill_rec = _legacy_export({
         "traits": {"hw": "a3", "family": "qwen3-30b-a3b", "phase": "prefill_chunked", "is_eager": False},
     })
     assert prefill_rec["runtime"]["metadata"]["bridge_summary"]["workload"]["phase"] == "prefill"
@@ -636,7 +654,7 @@ def test_fourth_review_p2_regressions(tmp_path):
         "2000,200,800,1000,100,2300\n",
         encoding="utf-8",
     )
-    untagged_case = sim_bridge.export_sim_case(untagged_dir)
+    untagged_case = _legacy_export(untagged_dir)
     assert untagged_case["runtime"]["metadata"]["observed_profile"]["step_time_ms"] is None
 
     tagged_dir = tmp_path / "tagged_trace"
@@ -648,7 +666,7 @@ def test_fourth_review_p2_regressions(tmp_path):
         "3,2000,200,800,1000,100,2300\n",
         encoding="utf-8",
     )
-    tagged_case = sim_bridge.export_sim_case(tagged_dir)
+    tagged_case = _legacy_export(tagged_dir)
     obs_tagged = tagged_case["runtime"]["metadata"]["observed_profile"]
     assert obs_tagged["step_time_ms"] == pytest.approx(2.0)
     # Per-step busy is [1.9, 1.3, 2.2] -> median is 1.9 (not median(comp)=1.2 + median(exp)=0.2 = 1.4)
@@ -659,16 +677,16 @@ def test_fourth_review_p2_regressions(tmp_path):
     api_dir.mkdir()
     (api_dir / "run_meta.json").write_text(json.dumps({"observed_profile": {"step_time_ms": 10.0}}), encoding="utf-8")
     (api_dir / "api_statistic.csv").write_text("Name,Time(us)\naclnnLaunch,2500\n", encoding="utf-8")
-    api_case = sim_bridge.export_sim_case(api_dir)
+    api_case = _legacy_export(api_dir)
     assert api_case["runtime"]["metadata"]["observed_profile"]["host_share"] == pytest.approx(0.25)
 
     # 12. Uncataloged model names reject instead of silently selecting another model
     for bad_name in ("Qwen3-8B", "Qwen3-235B-A22B", "DeepSeek-V3-671B"):
         with pytest.raises(sim_bridge.ProfilerUsageError, match="unsupported or unrecognized model"):
-            sim_bridge.export_sim_case({"model_name": bad_name}, chip="a3")
+            _legacy_export({"model_name": bad_name}, chip="a3")
 
     # 13. architecture_override.num_routed_experts is respected
-    routed_case = sim_bridge.export_sim_case({
+    routed_case = _legacy_export({
         "model_name": "dsv2lite",
         "architecture_override": {"num_hidden_layers": 27, "num_routed_experts": 16, "num_experts_per_tok": 6},
     }, chip="a2")
@@ -683,7 +701,7 @@ def test_fourth_review_p2_regressions(tmp_path):
             "design": {"prompt_tokens": 131072, "shared_tokens": 130944, "max_tokens": 160},
         },
     }), encoding="utf-8")
-    b_case = sim_bridge.export_sim_case(bench_design, model="deepseek-v2-lite", chip="a2")
+    b_case = _legacy_export(bench_design, model="deepseek-v2-lite", chip="a2")
     assert b_case["workload"]["requests"][0]["prompt_tokens"] == 131072
     assert b_case["workload"]["requests"][0]["prefix_tokens"] == 130944
     assert b_case["workload"]["requests"][0]["output_tokens"] == 160
@@ -701,37 +719,37 @@ def test_fourth_review_p2_regressions(tmp_path):
         "host,acl,aclrtLaunchKernelWithHostArgs,200000,80\n",
         encoding="utf-8",
     )
-    multi_api_case = sim_bridge.export_sim_case(multi_api_dir)
+    multi_api_case = _legacy_export(multi_api_dir)
     assert multi_api_case["runtime"]["metadata"]["observed_profile"]["host_share"] == pytest.approx(0.1)
 
 
 def test_fifth_review_p2_regressions(tmp_path):
     # 1. qwen35 shorthand & benchmark_summary mapping parity with file
-    q35_case = sim_bridge.export_sim_case({"summary": {"concurrency": 4, "cell": "a3_real_qwen35_E256_K8_tp4ep4_prefill_4k_c4", "mode": "profile", "design": {"prompt_tokens": 4096, "max_tokens": 32}}, "tpot_client_ms": {"median": 12.0}})
+    q35_case = _legacy_export({"summary": {"concurrency": 4, "cell": "a3_real_qwen35_E256_K8_tp4ep4_prefill_4k_c4", "mode": "profile", "design": {"prompt_tokens": 4096, "max_tokens": 32}}, "tpot_client_ms": {"median": 12.0}})
     assert q35_case["runtime"]["metadata"]["profiler_provenance"]["extracted_model"] == "qwen3.5-35b-a3b" and q35_case["runtime"]["parallel"] == {"tp": 4, "dp": 1, "ep": 4, "pp": 1} and q35_case["runtime"]["metadata"]["bridge_summary"]["workload"]["phase"] == "prefill"
 
     # 2. Nested text_config in multimodal config.json; static num_nextn_predict_layers does not enable speculation
-    nested_case = sim_bridge.export_sim_case({"model_type": "qwen3_5_moe", "text_config": {"hidden_size": 2048, "num_attention_heads": 16, "num_key_value_heads": 2, "head_dim": 256, "num_hidden_layers": 2, "intermediate_size": 512, "vocab_size": 248320, "num_experts": 16, "num_experts_per_tok": 4, "moe_intermediate_size": 512, "num_nextn_predict_layers": 1}}, chip="a3")
+    nested_case = _legacy_export({"model_type": "qwen3_5_moe", "text_config": {"hidden_size": 2048, "num_attention_heads": 16, "num_key_value_heads": 2, "head_dim": 256, "num_hidden_layers": 2, "intermediate_size": 512, "vocab_size": 248320, "num_experts": 16, "num_experts_per_tok": 4, "moe_intermediate_size": 512, "num_nextn_predict_layers": 1}}, chip="a3")
     assert nested_case["model"]["layers"] == 2 and nested_case["model"]["num_experts"] == 16 and nested_case["runtime"]["metadata"].get("spec_tokens") is None and "draft_mode" not in nested_case["runtime"]["metadata"]
 
     # 3. SPEC_K=0 overrides architecture_override.num_nextn_predict_layers
-    spec_off = sim_bridge.export_sim_case({"model_name": "qwen3-30b-a3b", "architecture_override": {"num_nextn_predict_layers": 1}, "env": {"SPEC_K": "0"}}, chip="a3")
+    spec_off = _legacy_export({"model_name": "qwen3-30b-a3b", "architecture_override": {"num_nextn_predict_layers": 1}, "env": {"SPEC_K": "0"}}, chip="a3")
     assert spec_off["runtime"]["metadata"]["spec_tokens"] == 0 and "draft_mode" not in spec_off["runtime"]["metadata"]
 
     # 4. --speculative-config enforce_eager does not poison main model graph_mode; --enable-expert-parallel ignores PP
     cmd_dir = tmp_path / "spec_cmd"
     cmd_dir.mkdir()
     (cmd_dir / "cmd.sh").write_text("vllm serve dsv2lite --tensor-parallel-size 4 --pipeline-parallel-size 2 --enable-expert-parallel --compilation-config '{\"cudagraph_mode\":\"FULL_DECODE_ONLY\"}' --speculative-config '{\"enforce_eager\":true}'\n", encoding="utf-8")
-    cmd_case = sim_bridge.export_sim_case(cmd_dir, chip="a3")
+    cmd_case = _legacy_export(cmd_dir, chip="a3")
     assert cmd_case["runtime"]["metadata"]["execution_mode"] == "aclgraph_full" and cmd_case["runtime"]["parallel"] == {"tp": 4, "dp": 1, "ep": 4, "pp": 2}
 
     # 5. Model override ignores source config max_position_embeddings
-    assert sim_bridge.export_sim_case({"model_config": {"hidden_size": 2048, "num_attention_heads": 16, "max_position_embeddings": 2048}}, model="qwen3.5-35b-a3b", chip="a3", seq_len=8192)["workload"]["requests"][0]["prompt_tokens"] == 8192
+    assert _legacy_export({"model_config": {"hidden_size": 2048, "num_attention_heads": 16, "max_position_embeddings": 2048}}, model="qwen3.5-35b-a3b", chip="a3", seq_len=8192)["workload"]["requests"][0]["prompt_tokens"] == 8192
 
     # 6. Case round-trip preserves layer_plans and applies quant override; kimi-k3-dspark uses catalog auxiliary.dspark
-    q36_rt = sim_bridge.export_sim_case(sim_bridge.export_sim_case({}, model="qwen3.6-27b", chip="a3"), quant="w8a8")
+    q36_rt = _legacy_export(_legacy_export({}, model="qwen3.6-27b", chip="a3"), quant="w8a8")
     assert q36_rt["model"]["weight_dtype"] == "int8" and any(lp.get("attention") == "gdn" for lp in q36_rt["model"].get("layer_plans", ()))
-    dspark_case = sim_bridge.export_sim_case({}, model="kimi-k3-dspark", chip="a3")
+    dspark_case = _legacy_export({}, model="kimi-k3-dspark", chip="a3")
     if "auxiliary" in dspark_case["model"]: assert dspark_case["model"]["auxiliary"].get("dspark") is not None
 
     # 7. Exposed comm share is not masked; 10 tagged 100-ms steps + 1000 API calls gives host_share=0.2; W4A8 order-independent
@@ -740,57 +758,57 @@ def test_fifth_review_p2_regressions(tmp_path):
     (comm_dir / "step_trace_time.csv").write_text("Step,Computing,Communication(Not Overlapped),Overlapped,Communication,Free,Stage\n" + "".join(f"{i},50000,50000,0,50000,0,100000\n" for i in range(1, 11)), encoding="utf-8")
     (comm_dir / "op_statistic.csv").write_text("OP Type,Core Type,Count,Total Time(us)\nDynamicQuant,AI_VECTOR_CORE,10,399000\nW4A8MatMul,AI_CORE,10,1000\nHcomAllReduce,AI_CPU,10,1000\n", encoding="utf-8")
     (comm_dir / "api_statistic.csv").write_text("API Name,Time(us),Count\naclrtLaunchKernel,200000,1000\n", encoding="utf-8")
-    comm_case = sim_bridge.export_sim_case(comm_dir)
+    comm_case = _legacy_export(comm_dir)
     assert comm_case["runtime"]["metadata"]["observed_profile"]["comm_share"] == pytest.approx(0.5) and comm_case["runtime"]["metadata"]["observed_profile"]["host_share"] == pytest.approx(0.2) and comm_case["runtime"]["metadata"]["bridge_summary"]["system"]["quantization"] == "w4a8"
 
     # 8. Unknown hardware tokens and non-positive dimensions raise ProfilerUsageError
     for bad_hw in ("Ascend910B7", "a4"):
         with pytest.raises(sim_bridge.ProfilerUsageError, match="unsupported or unrecognized hardware"):
-            sim_bridge.export_sim_case({}, chip=bad_hw)
+            _legacy_export({}, chip=bad_hw)
     for bad_kw in ({"tp": 0}, {"dp": -1}, {"seq_len": 0}, {"decode_steps": 0}):
         with pytest.raises(sim_bridge.ProfilerUsageError, match="invalid simulation case"):
-            sim_bridge.export_sim_case({}, **bad_kw)
+            _legacy_export({}, **bad_kw)
 
     # 9. Real qwen35-benchmark, qwen36-benchmark, qwen36-client-cell, and glm_a5_mtp3_c12_profile fixtures
-    q35_bench = sim_bridge.export_sim_case(ROOT / "tests" / "fixtures" / "pipeline" / "local_a5_metadata" / "qwen35-benchmark.json", chip="a5")
+    q35_bench = _legacy_export(ROOT / "tests" / "fixtures" / "pipeline" / "local_a5_metadata" / "qwen35-benchmark.json", chip="a5")
     assert q35_bench["workload"]["requests"][0]["prompt_tokens"] == 4096 and q35_bench["workload"]["requests"][0]["prefix_tokens"] == 0 and q35_bench["workload"]["requests"][0]["output_tokens"] == 256
     assert q35_bench["runtime"]["metadata"]["observed_profile"]["step_time_ms"] == pytest.approx(21.073193821429133) and q35_bench["runtime"]["metadata"]["observed_profile"]["tpot_p50_ms"] == pytest.approx(7.133439254902013)
-    q36_bench = sim_bridge.export_sim_case(ROOT / "tests" / "fixtures" / "pipeline" / "local_a5_metadata" / "qwen36-benchmark.json", chip="a5")
+    q36_bench = _legacy_export(ROOT / "tests" / "fixtures" / "pipeline" / "local_a5_metadata" / "qwen36-benchmark.json", chip="a5")
     assert q36_bench["runtime"]["metadata"]["profiler_provenance"]["source_kind"] == "benchmark_summary" and q36_bench["runtime"]["metadata"]["draft_proposal_tokens"] == 3 and q36_bench["runtime"]["metadata"]["observed_profile"]["tpot_p50_ms"] == pytest.approx(8.043379514866745)
-    q36_cell = sim_bridge.export_sim_case(ROOT / "tests" / "fixtures" / "pipeline" / "local_a5_metadata" / "qwen36-client-cell.json", chip="a5")
+    q36_cell = _legacy_export(ROOT / "tests" / "fixtures" / "pipeline" / "local_a5_metadata" / "qwen36-client-cell.json", chip="a5")
     assert q36_cell["runtime"]["metadata"]["profiler_provenance"]["source_kind"] == "client_cell" and q36_cell["workload"]["requests"][0]["prompt_tokens"] == 4104 and q36_cell["runtime"]["metadata"]["observed_profile"]["step_time_ms"] == pytest.approx(23.685343364054606)
-    glm_prof = sim_bridge.export_sim_case(ROOT / "tests" / "fixtures" / "engine_boundaries" / "glm_a5_mtp3_c12_profile.json", model="glm-5.3", chip="a5")
+    glm_prof = _legacy_export(ROOT / "tests" / "fixtures" / "engine_boundaries" / "glm_a5_mtp3_c12_profile.json", model="glm-5.3", chip="a5")
     assert len(glm_prof["workload"]["requests"]) == 12 and glm_prof["workload"]["requests"][0]["output_tokens"] == 256 and glm_prof["runtime"]["metadata"]["draft_proposal_tokens"] == 3
 
     # 10. fp16 preserves catalog architecture; Case round-trip preserves mxfp4_routed_only & no-layer_plans explicit model; standalone draft rejects SPEC_K; C7 wall_ms_p50 is not step_time_ms
-    fp16_q36 = sim_bridge.export_sim_case({}, model="qwen3.6-27b", chip="a3", quant="fp16")
+    fp16_q36 = _legacy_export({}, model="qwen3.6-27b", chip="a3", quant="fp16")
     assert fp16_q36["model"]["attention"] == "gdn" and fp16_q36["model"]["weight_dtype"] == "fp16"
-    dsv4_rt = sim_bridge.export_sim_case(sim_bridge.export_sim_case({}, model="deepseek-v4-flash", chip="a5"))
+    dsv4_rt = _legacy_export(_legacy_export({}, model="deepseek-v4-flash", chip="a5"))
     assert dsv4_rt["model"]["quant"]["name"] == "fp8_dynamic+mxfp4_experts"
     no_lp = {"machine": fp16_q36["machine"], "model": {"name": "inline-test", "layers": 2, "hidden_size": 1024, "num_heads": 8, "num_kv_heads": 8, "head_dim": 128, "intermediate_size": 2048, "vocab_size": 32000, "attention": "gqa", "ffn": "moe", "num_experts": 8, "top_k": 2, "moe_intermediate_size": 512, "weight_dtype": "fp16"}, "workload": fp16_q36["workload"], "runtime": {"parallel": {"tp": 1, "dp": 1, "ep": 1, "pp": 1}}, "slo": fp16_q36["slo"]}
-    assert sim_bridge.export_sim_case(no_lp)["model"]["hidden_size"] == 1024 and sim_bridge.export_sim_case(no_lp, quant="w4a8")["model"]["quant"]["expert_weight_format"] == "int4"
-    assert sim_bridge.export_sim_case({"provenance": {"source": "host on Ascend950DT_9581 node"}})["machine"]["sku"] == "Ascend950DT_9581"
-    assert sim_bridge.export_sim_case({"provenance": {"source": "host on Ascend910B4-1 node"}})["machine"]["sku"] == "Ascend910B4-1"
-    assert sim_bridge.export_sim_case({"model_name": "Qwen3-30B-A3B-W8A8"}, chip="a3", quant="none")["model"]["weight_dtype"] == "bf16"
-    assert 512 in sim_bridge.export_sim_case({"env": {"SPEC_K": "3"}}, model="qwen3-30b-a3b", chip="a3", batch_size=128, graph_mode="aclgraph")["runtime"]["graph_capture_keys"]
-    assert sim_bridge.export_sim_case({"schema_version": "mindie-profile-summary/1", "step_accounting": {"wall_ms_p50": 15.0}})["runtime"]["metadata"]["observed_profile"]["step_time_ms"] is None
-    with pytest.raises(sim_bridge.ProfilerUsageError, match="standalone_draft_requires_target_model"): sim_bridge.export_sim_case({"env": {"SPEC_K": "3"}}, model="kimi-k3-dspark", chip="a3")
-    with pytest.raises(sim_bridge.ProfilerUsageError, match="unsupported or unrecognized quantization"): sim_bridge.export_sim_case({}, model="qwen3.6-27b", chip="a3", quant="int3_unknown")
+    assert _legacy_export(no_lp)["model"]["hidden_size"] == 1024 and _legacy_export(no_lp, quant="w4a8")["model"]["quant"]["expert_weight_format"] == "int4"
+    assert _legacy_export({"provenance": {"source": "host on Ascend950DT_9581 node"}})["machine"]["sku"] == "Ascend950DT_9581"
+    assert _legacy_export({"provenance": {"source": "host on Ascend910B4-1 node"}})["machine"]["sku"] == "Ascend910B4-1"
+    assert _legacy_export({"model_name": "Qwen3-30B-A3B-W8A8"}, chip="a3", quant="none")["model"]["weight_dtype"] == "bf16"
+    assert 512 in _legacy_export({"env": {"SPEC_K": "3"}}, model="qwen3-30b-a3b", chip="a3", batch_size=128, graph_mode="aclgraph")["runtime"]["graph_capture_keys"]
+    assert _legacy_export({"schema_version": "mindie-profile-summary/1", "step_accounting": {"wall_ms_p50": 15.0}})["runtime"]["metadata"]["observed_profile"]["step_time_ms"] is None
+    with pytest.raises(sim_bridge.ProfilerUsageError, match="standalone_draft_requires_target_model"): _legacy_export({"env": {"SPEC_K": "3"}}, model="kimi-k3-dspark", chip="a3")
+    with pytest.raises(sim_bridge.ProfilerUsageError, match="unsupported or unrecognized quantization"): _legacy_export({}, model="qwen3.6-27b", chip="a3", quant="int3_unknown")
     with pytest.raises(sim_bridge.ProfilerUsageError, match="cannot scan directory"): sim_bridge._walk_err(PermissionError("permission denied"))
-    bm_with_model = sim_bridge.export_sim_case({"model_name": "Qwen3-30B-A3B", "npu_type": "A3", "tensor_parallel_size": 4, "concurrency": 8, "step_time_ms": 12.5, "tpot_client_ms": {"median": 6.2}})
+    bm_with_model = _legacy_export({"model_name": "Qwen3-30B-A3B", "npu_type": "A3", "tensor_parallel_size": 4, "concurrency": 8, "step_time_ms": 12.5, "tpot_client_ms": {"median": 6.2}})
     assert bm_with_model["runtime"]["metadata"]["profiler_provenance"]["source_kind"] == "benchmark_summary" and bm_with_model["runtime"]["parallel"]["tp"] == 4 and bm_with_model["runtime"]["metadata"]["observed_profile"]["step_time_ms"] == pytest.approx(12.5)
-    assert sim_bridge.export_sim_case({"schema_version": "mindie-profile-summary/1", "top_hotspot_kernels": [{"kernel_name": "hcom", "share_of_busy_pct": 25.0, "execution_engine": "hccl"}]})["runtime"]["metadata"]["observed_profile"]["cube_share"] is None
-    int8_case = sim_bridge.export_sim_case({}, model="qwen3.6-27b", chip="a3", quant="w8a8")
-    sim_bridge.export_sim_case(int8_case, quant="fp16")
+    assert _legacy_export({"schema_version": "mindie-profile-summary/1", "top_hotspot_kernels": [{"kernel_name": "hcom", "share_of_busy_pct": 25.0, "execution_engine": "hccl"}]})["runtime"]["metadata"]["observed_profile"]["cube_share"] is None
+    int8_case = _legacy_export({}, model="qwen3.6-27b", chip="a3", quant="w8a8")
+    _legacy_export(int8_case, quant="fp16")
     assert int8_case["model"]["quant"]["weight_format"] == "int8"
     kimi_cmd = tmp_path / "kimi_cmd.sh"
     kimi_cmd.write_text("vllm serve /weights/kimi-k3 --tensor-parallel-size 8 --enable-expert-parallel --speculative-config '{\"model\":\"/weights/kimi-k3-dspark\",\"num_speculative_tokens\":3}'\n", encoding="utf-8")
-    assert sim_bridge.export_sim_case(kimi_cmd, chip="a3")["runtime"]["metadata"]["profiler_provenance"]["extracted_model"] == "kimi-k3"
+    assert _legacy_export(kimi_cmd, chip="a3")["runtime"]["metadata"]["profiler_provenance"]["extracted_model"] == "kimi-k3"
     aiv_dir = tmp_path / "aiv_comm"
     aiv_dir.mkdir()
     (aiv_dir / "op_statistic.csv").write_text("OP Type,Core Type,Count,Total Time(us)\nHcomAllReduce,AI_VECTOR_CORE,10,500\nReshape,AI_CPU,10,100\n", encoding="utf-8")
-    assert sim_bridge.export_sim_case(aiv_dir)["runtime"]["metadata"]["hccl_op_expansion_mode"] == "aiv"
-    no_sim_proc = subprocess.run([sys.executable, "-I", "-S", "-c", f"import sys,json; sys.path.insert(0,{str(ROOT)!r}); from mindie_profiler.sim_bridge import export_sim_case; print(json.dumps(export_sim_case({{}},model='qwen3.6-27b')))"], capture_output=True, text=True, timeout=10, check=True)
+    assert _legacy_export(aiv_dir)["runtime"]["metadata"]["hccl_op_expansion_mode"] == "aiv"
+    no_sim_proc = subprocess.run([sys.executable, "-I", "-S", "-c", f"import sys,json; sys.path.insert(0,{str(ROOT)!r}); from mindie_profiler.sim_bridge import export_sim_case; print(json.dumps(export_sim_case({{}},model='qwen3.6-27b',diagnostic=True)))"], capture_output=True, text=True, timeout=10, check=True)
     _assert_schema_valid(json.loads(no_sim_proc.stdout))
 
 

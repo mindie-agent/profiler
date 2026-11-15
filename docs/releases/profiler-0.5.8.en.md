@@ -2,12 +2,15 @@
 
 [中文](profiler-0.5.8.md)
 
-## Bottom-Up Prior-Free Structural Inference (`mindie-structural-inference/1`), Four-Level (L1–L4) Zero-Shot `<= 10%` Validation & 7,337-Capture Multi-Tier Benchmark
+> [!NOTE]
+> **Archival Note (Evidence Boundary Correction)**: This document is retained as historical context for the `v0.5.8` release. Subsequent auditing established that `7,337` denotes registered manifest entries rather than independently validated captures, and that the historical all-row `100.0% <= 10%` (`731/731`, `21/21`) artifact figures relied on target-derived predictor inputs rather than independent accuracy evidence. See [`README.en.md`](../../README.en.md#benchmark-inventory--evidence-boundary) for the authoritative evidence boundary and current validation entrypoints.
+
+## Bottom-Up Prior-Free Structural Inference (`mindie-structural-inference/1`), Four-Level (L1–L4) Validation Entrypoint & Multi-Generation Benchmark Manifest
 
 - **Bottom-Up Prior-Free Structural Inference Engine (`mindie_profiler/structural_inference.py`)**:
   - Reconstructs fused operator composites (`fused_composites`), L2 subgraph grammar blocks (Attention / MLA / GDN-KDA / MoE / Dense FFN / Norm+Residual), repeating layer-stack periodicity (`body_topology`), and speculative draft heads (`speculative_module`) directly from raw operator streams.
-  - Verified across all **7,337 real profiling captures** (`A2: 837`, `A3: 1,729`, `A5: 4,771`) with **`7,337 / 7,337` (`100.0%`, `0` crashes)** structural inference pass rate.
-- **Four-Level (L1–L4) Zero-Shot Per-Step Piecewise Validation at `100.0% <= 10%` (`examples/structure/zero_shot_piecewise_validation.py`)**:
-  - Paired with [`mindie-sim 0.9.6`](https://github.com/mindie-agent/sim), evaluates all **731 real kernel-trace cells (`731/731` evaluated, `failed == 0`, `skipped == {}`) and 40,921 per-step samples** across **21 L1–L4 targets**, achieving **`100.0%` pass within `<= 10%` error** (`above_10pct == 0`, `step_err_max <= 9.97%`, `uncancelled_p50 <= 4.79%`).
-- **7,337-Capture Reproducible Benchmark Dataset & Gate (`scripts/hf_profiling_benchmark.py`)**:
-  - Builds and publishes [`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench) with `--build --strict-10pct` strict accuracy and redaction gates.
+  - Verified crash-free execution across all `7,337` registered manifest records (`A2: 837`, `A3: 1,729`, `A5: 4,771`; `0` crashes).
+- **Four-Level (L1–L4) Per-Step Piecewise Validation Script (`examples/structure/zero_shot_piecewise_validation.py`)**:
+  - Paired with [`mindie-sim 0.9.6`](https://github.com/mindie-agent/sim), introduces the 21-target L1–L4 evaluation harness spanning 13 L1 operator mechanisms, 4 L2 subgraphs, 2 L3 forward timelines, and 2 L4 service metrics (the initial `v0.5.8` historical artifact reported `above_10pct == 0` across `731` entries and `40,921` step samples; run `--no-historical` for independent evaluation without historical backfill, as documented in `README.en.md`).
+- **Benchmark Dataset Builder & Redaction Gate (`scripts/hf_profiling_benchmark.py`)**:
+  - Publishes [`maoxx241/mindie-sim-profiling-bench`](https://huggingface.co/datasets/maoxx241/mindie-sim-profiling-bench) with `--evaluate --strict-10pct` manifest scoring and redaction gates.

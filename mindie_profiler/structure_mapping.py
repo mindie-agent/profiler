@@ -26,6 +26,8 @@ from .structure_native_calls import (
     OperatorCorrespondenceAccumulator,
     conflicted_comm_raw_identities,
     resolve_implementation_correspondence,
+    _seal_digest,
+    _snapshot_structure_carrier,
     verify_graph_id,
 )
 from .structure_subgraphs import StructureTargets
@@ -44,7 +46,10 @@ def read_metadata(value, schema):
                 value = json.load(stream)
         except (ValueError, UnicodeError) as exc:
             raise ProfilerUsageError(f"{path}: invalid structure metadata: {exc}") from exc
-    if not isinstance(value, Mapping) or value.get("schema_version") != schema:
+    if not isinstance(value, Mapping):
+        raise ProfilerUsageError(f"expected {schema} metadata")
+    value = _snapshot_structure_carrier(value, "structure metadata")
+    if value.get("schema_version") != schema:
         raise ProfilerUsageError(f"expected {schema} metadata")
     return value
 

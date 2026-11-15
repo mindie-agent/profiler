@@ -1,5 +1,6 @@
 """Re-declare one complete real TensorMove population through the core accumulator."""
 from copy import deepcopy
+from functools import lru_cache
 import json
 from pathlib import Path
 
@@ -19,13 +20,20 @@ def retained_case():
     return json.loads(path.read_text())
 
 
-def mapping_for_case(case):
+@lru_cache(maxsize=16)
+def _cached_export(case_canonical: str, geometry_canonical: str) -> dict:
     from mindie_sim.structure import export_structure
+    return export_structure(json.loads(case_canonical), **json.loads(geometry_canonical))
 
+
+def mapping_for_case(case):
     saved = json.loads(FIXTURE.read_text())
     execution = saved['declared_execution']
     geometry = {k: execution[k] for k in ('phase', 'tokens', 'context', 'sequences', 'scope')}
-    manifest = export_structure(case, **geometry)
+    manifest = deepcopy(_cached_export(
+        json.dumps(case, sort_keys=True),
+        json.dumps(geometry, sort_keys=True),
+    ))
     mapper = StructureMapper(manifest)
     original = saved['cohort']
     # Complete retained candidate set, tensor contract and work must all survive.

@@ -4,6 +4,7 @@ These are offline contract replays. Explicit occurrence annotations in the
 binding control are test inputs, not evidence of a newly collected module.
 """
 from dataclasses import replace
+from functools import lru_cache
 import json
 from pathlib import Path
 
@@ -20,7 +21,17 @@ from mindie_profiler.tensor_contracts import observed_contract
 FIXTURES = Path(__file__).parent / "fixtures"
 
 
+@lru_cache(maxsize=None)
+def _cached_declaration(name: str, tokens: int) -> dict:
+    structure = pytest.importorskip("mindie_sim.structure")
+    case = case_path(f"{name}.json")
+    return structure.export_structure(
+        json.loads(case.read_text()), phase="prefill", tokens=tokens, scope="model")
+
+
 def declaration(name, tokens, **kwargs):
+    if not kwargs:
+        return _cached_declaration(name, tokens)
     structure = pytest.importorskip("mindie_sim.structure")
     case = case_path(f'{name}.json')
     return structure.export_structure(

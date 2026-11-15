@@ -58,16 +58,16 @@ def _grouped(kind, inputs, outputs):
     if (not _tensor(x, 2, {"int8"}) or not _tensor(result, 2, {"int8"})
             or x[0][0] != result[0][0] or not _tensor(groups, 1, {"int64"})
             or x_scale != ((x[0][0],), "fp32", "ND") or out_scale != x_scale
-            or not _tensor(weight, 5, {"int8", "DT_INT4"}, "FRACTAL_NZ")
+            or not _tensor(weight, 5, {"int8", "int4", "DT_INT4"}, "FRACTAL_NZ")
             or weight[0][0] != groups[0][0]
-            or not _tensor(weight_scale, 2, {"fp32", "bf16", "fp16", "UINT64", "DT_UINT64"})
+            or not _tensor(weight_scale, 2, {"fp32", "bf16", "fp16", "uint64", "UINT64", "DT_UINT64"})
             or weight_scale[0] != (groups[0][0], 2 * result[0][1])
             or math.prod(weight[0][1:]) != x[0][1] * 2 * result[0][1]):
         return None, _issue(
             kind, "unsupported_grouped_mlp_parameter_geometry",
             "Input/output channels, expert bank, packed weight element count and "
             "per-token/per-channel scales must describe the verified grouped SwiGLU ABI.")
-    weight_dtype = "int4" if weight[1] == "DT_INT4" else weight[1]
+    weight_dtype = "int4" if weight[1] in {"DT_INT4", "int4"} else weight[1]
     return ("grouped_mlp_parameters_active", kind,
             (groups[0][0], x[0][1], result[0][1]),
             (x[1], weight_dtype, result[1])), None
@@ -97,7 +97,7 @@ def _grouped_situ(kind, inputs, outputs):
     if (x[0][0] != rows or k % 64 or width % 64
             or x_scale != ((rows, k // 64, 2), "fp8_e8m0", "ND")
             or weight != ((experts, 2 * width, k // 2),
-                          "DT_FLOAT4_E2M1", "FRACTAL_NZ_C0_16")
+                          "fp4_e2m1", "FRACTAL_NZ_C0_16")
             or weight_scale != ((experts, 2 * width, k // 64, 2), "fp8_e8m0", "ND")
             or out_scale != ((rows, width // 64, 2), "fp8_e8m0", "ND")):
         return None, _issue(

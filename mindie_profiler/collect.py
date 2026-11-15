@@ -428,6 +428,8 @@ def post_profile_action(
                 "message": f"{action} rejected with HTTP {response.status}",
             }
     except (socket.timeout, TimeoutError) as exc:
+        if "timed out" not in str(exc).lower() and exc.args:
+            raise
         if not result["sent"]:
             result["error"] = {
                 "code": "connect_timeout",
@@ -435,34 +437,26 @@ def post_profile_action(
             }
         else:
             result.update({
-                "status": "unknown",
-                "sent": True,
-                "external_effect": "unknown",
+                "status": "unknown", "sent": True, "external_effect": "unknown",
                 "error": {"code": "request_timeout", "message": str(exc) or "control request timed out"},
                 "reconcile": _reconcile_identity(
-                    request_id=request_id,
-                    action=action,
-                    endpoint=endpoint,
-                    execution_id=execution_id,
-                    started_at=started_at,
+                    request_id=request_id, action=action, endpoint=endpoint,
+                    execution_id=execution_id, started_at=started_at,
                 ),
             })
     except (http.client.RemoteDisconnected, http.client.BadStatusLine, http.client.IncompleteRead, http.client.HTTPException) as exc:
         result.update({
-            "status": "unknown",
-            "sent": True,
-            "external_effect": "unknown",
+            "status": "unknown", "sent": True, "external_effect": "unknown",
             "error": {"code": "response_lost", "message": f"{type(exc).__name__}: {exc}"},
             "reconcile": _reconcile_identity(
-                request_id=request_id,
-                action=action,
-                endpoint=endpoint,
-                execution_id=execution_id,
-                started_at=started_at,
+                request_id=request_id, action=action, endpoint=endpoint,
+                execution_id=execution_id, started_at=started_at,
             ),
         })
     except (ConnectionRefusedError, socket.gaierror) as exc:
         result["error"] = {"code": "connect_failed", "message": str(exc) or type(exc).__name__}
+    except TimeoutError:
+        raise
     except OSError as exc:
         if not result["sent"] and exc.errno in (
             errno.ECONNREFUSED, errno.EHOSTUNREACH, errno.ENETUNREACH, errno.EADDRNOTAVAIL
