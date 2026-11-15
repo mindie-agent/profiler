@@ -231,7 +231,7 @@ def test_f6_supervisor_cleanup_is_inside_the_wall_budget():
         assert result["exit_code"] == 2
         assert result["terminated_ranks"] == [0]
         assert proc.poll() is not None
-        assert proc.returncode == -9
+        assert proc.returncode == (1 if sys.platform == "win32" else -9)
         assert elapsed <= 0.15
     finally:
         if proc.poll() is None:

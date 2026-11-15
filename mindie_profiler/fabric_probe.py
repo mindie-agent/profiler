@@ -422,9 +422,12 @@ def _emergency_reap_children(children: Any, hard_end: float) -> None:
                     killed = True
                 if not killed:
                     with contextlib.suppress(BaseException):
-                        pid = getattr(proc, "pid", None)
-                        if isinstance(pid, int) and pid > 0:
-                            os.kill(pid, signal.SIGKILL)
+                        if os.name == "nt":
+                            subprocess.Popen.kill(proc)
+                        else:
+                            pid = getattr(proc, "pid", None)
+                            if isinstance(pid, int) and pid > 0:
+                                os.kill(pid, signal.SIGKILL)
                 with contextlib.suppress(BaseException):
                     proc.wait(timeout=0)
                 if proc.returncode is None:

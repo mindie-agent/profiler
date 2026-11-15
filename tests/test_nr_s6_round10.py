@@ -537,6 +537,8 @@ def test_r18_fdopen_failure_closes_raw_fd(fault_type, tmp_path):
 def test_r18_opened_destination_identity(exclusive, kind, tmp_path):
     target, foreign = tmp_path / "leaf", tmp_path / "foreign"
     if kind == "fifo":
+        if not hasattr(os, "mkfifo"):
+            pytest.skip("POSIX FIFO required")
         os.mkfifo(foreign, 0o600)
     else:
         foreign.write_bytes(b"payload")
@@ -544,7 +546,7 @@ def test_r18_opened_destination_identity(exclusive, kind, tmp_path):
     hits, reads, receipts, read = [], [], [], os.read
     def opened(path, flags, *args, **kwargs):
         if Path(path) == target and not flags & os.O_WRONLY and not hits:
-            assert flags & os.O_NONBLOCK
+            assert flags & (os.O_BINARY if os.name == "nt" else os.O_NONBLOCK)
             hits.append(path)
             if kind in ("same_bytes", "fifo"):
                 os.replace(foreign, target)
@@ -630,15 +632,15 @@ def test_r18_abort_staging_ownership(mode, secondary_type, tmp_path):
     foreign.write_bytes(b"foreign")
     foreign_inode, primary = checked_io.inode_of(foreign), TimeoutError("write")
     a_closed, b_ready, a_done = threading.Event(), threading.Event(), threading.Event()
-    handles, paths, caught = [], {}, []
-    real_open, replace = builtins.open, os.replace
+    handles, paths, caught, pending = [], {}, [], []
+    real_open, replace, real_lstat = builtins.open, os.replace, os.lstat
     class Writer(io.TextIOWrapper):
         def write(self, data):
             raise primary
         def close(self):
             super().close()
             if mode == "foreign":
-                replace(foreign, self.name)
+                pending.append(Path(self.name)) if os.name == "nt" else replace(foreign, self.name)
             else:
                 a_closed.set()
                 assert b_ready.wait(10)
@@ -653,6 +655,10 @@ def test_r18_abort_staging_ownership(mode, secondary_type, tmp_path):
             h = real_open(path, *args, **kwargs)
         handles.append(h)
         return h
+    def lstatting(p, *args, **kwargs):
+        if pending and Path(p) == pending[0]:
+            replace(foreign, pending.pop(0))
+        return real_lstat(p, *args, **kwargs)
     def replacing(src, dst):
         if threading.current_thread().name == "r18-B":
             before = checked_io.inode_of(src)
@@ -666,7 +672,8 @@ def test_r18_abort_staging_ownership(mode, secondary_type, tmp_path):
             caught.append(exc)
         finally:
             a_done.set()
-    with patch.object(builtins, "open", opened), patch.object(os, "replace", replacing):
+    with patch.object(builtins, "open", opened), patch.object(os, "replace", replacing), \
+            patch.object(os, "lstat", lstatting):
         if mode == "foreign":
             a_call()
         else:

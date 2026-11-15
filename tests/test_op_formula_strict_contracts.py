@@ -309,7 +309,7 @@ def test_formula_test_discovery_is_covered_by_scoped_hygiene():
                   if isinstance(node, ast.Assign)
                   and any(isinstance(t, ast.Name) and t.id == "SCOPED"
                           for t in node.targets))
-    discovered = {str(p.relative_to(ROOT))
+    discovered = {p.relative_to(ROOT).as_posix()
                   for p in (ROOT / "tests").glob("test_op_formula*.py")}
     assert discovered <= set(scoped), discovered - set(scoped)
 

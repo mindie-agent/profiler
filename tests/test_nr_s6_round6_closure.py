@@ -536,6 +536,8 @@ def test_r19_abort_publication_preserves_foreign(replacement, prior, contended, 
         foreign.write_bytes(b"foreign")
     elif replacement == "symlink":
         foreign.symlink_to(payload)
+    elif not hasattr(os, "mkfifo"):
+        pytest.skip("POSIX FIFO required")
     else:
         os.mkfifo(foreign, 0o600)
     identity = foreign.lstat()
@@ -545,24 +547,34 @@ def test_r19_abort_publication_preserves_foreign(replacement, prior, contended, 
     namespace = {"__name__": "r19_probe"}
     exec(compile(emit_fabric_probe_script(_probe_plan())["script"], "<r19>", "exec"), namespace)
     namespace["ABORT_FILE"] = str(target)
-    fileopen, replace, link = builtins.open, os.replace, os.link
-    handles, staging = [], []
+    fileopen, replace, rename, link = builtins.open, os.replace, os.rename, os.link
+    handles, staging, pending = [], [], []
     class Writer(io.TextIOWrapper):
         def close(self):
             path = Path(self.name)
             super().close()
-            replace(foreign, path)
-            staging.append(path)
+            if os.name == "nt":
+                pending.append(path)
+            else:
+                replace(foreign, path)
+                staging.append(path)
     def open_file(path, *args, **kwargs):
         handle = Writer(fileopen(path, "xb", buffering=0, opener=kwargs["opener"]), encoding="utf-8")
         handles.append(handle)
         return handle
+    def rename_file(src, dst, *args, **kwargs):
+        if pending and Path(src) == pending[0] and not staging:
+            path = pending.pop(0)
+            replace(foreign, path)
+            staging.append(path)
+        return rename(src, dst, *args, **kwargs)
     def restore(src, dst, *args, **kwargs):
         if contended and str(src).endswith(".publish"):
             Path(dst).write_bytes(b"new occupant")
         return link(src, dst, *args, **kwargs)
     with monkeypatch.context() as patcher:
         patcher.setattr(builtins, "open", open_file)
+        patcher.setattr(os, "rename", rename_file)
         patcher.setattr(os, "link", restore)
         namespace["_write_abort_record"]({"kind": "abort", "rank": 0})
     assert len(handles) == len(staging) == 1 and handles[0].closed
@@ -620,6 +632,8 @@ def test_r19_atomic_publication_receipt(exclusive, replacement, boundary, monkey
         foreign.write_bytes(b"foreign")
     elif replacement == "symlink":
         foreign.symlink_to(payload)
+    elif not hasattr(os, "mkfifo"):
+        pytest.skip("POSIX FIFO required")
     else:
         os.mkfifo(foreign, 0o600)
     inode = foreign.lstat().st_ino

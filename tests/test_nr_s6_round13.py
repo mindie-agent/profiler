@@ -91,7 +91,7 @@ def test_r13_repro_op_re_raises_anchor_stat_timeout(monkeypatch, tmp_path):
 
     def stat_timeout(path, *args, **kwargs):
         if isinstance(path, (str, bytes, os.PathLike)) \
-                and os.fspath(path) == os.sep:
+                and os.fspath(path) in (os.sep, tmp_path.anchor):
             raise sentinel
         return original(path, *args, **kwargs)
 
@@ -269,7 +269,7 @@ def test_r14_repro_mcp_checked_predicate_re_raises_public_timeout(
             frame = frame.f_back
         if (atomic_io.lstat_or_none.__code__ in codes
                 and helper.__code__ in codes
-                and str(path).endswith("/repro.py")):
+                and Path(path).name == "repro.py"):
             hits.append(str(path))
             raise sentinel
         return original(path, *args, **kwargs)
@@ -345,6 +345,8 @@ def test_r15_supervisor_reaps_before_primary_escapes_with_shared_budget(mode):
                 and name == mode.split("_")[2] and not cleanup_hits):
             cleanup_hits.append(name)
             raise secondary
+        if os.name == "nt" and name == "terminate" and fault in ("kill", "wait"):
+            return None  # TerminateProcess cannot be ignored by SIG_IGN on Windows.
         result = original[name](*args, **kwargs)
         if name == "kill":
             killed.append(True)
@@ -365,14 +367,19 @@ def test_r15_supervisor_reaps_before_primary_escapes_with_shared_budget(mode):
                                           poll_interval_s=.002)
             elapsed = time.monotonic() - started
             codes = [child.returncode for child in children]
-        assert elapsed <= .25
+        assert elapsed <= (.5 if os.name == "nt" else .25)
         assert hits and caught.value is primary
-        assert codes == [-9, -9]  # Before any harness poll/wait or rescue.
+        expected_rc = 1 if os.name == "nt" else -9
+        assert codes == [expected_rc, expected_rc]  # Before any harness poll/wait or rescue.
         if mode.startswith("terminate_then_"):
             assert cleanup_hits
         for child in children:
-            with pytest.raises(ProcessLookupError):
-                os.kill(child.pid, 0)
+            if os.name == "nt":
+                import ctypes
+                assert ctypes.windll.kernel32.WaitForSingleObject(int(child._handle), 0) == 0
+            else:
+                with pytest.raises(ProcessLookupError):
+                    os.kill(child.pid, 0)
     finally:
         _reap_children(children)
         for child in children:
@@ -419,7 +426,7 @@ def test_r14_diff_checked_predicates_re_raise_timeout(monkeypatch, tmp_path):
             codes.append(frame.f_code)
             frame = frame.f_back
         if (atomic_io.lstat_or_none.__code__ in codes
-                and "/diff/" in str(path)):
+                and "/diff/" in str(path).replace("\\", "/")):
             raise lexists_sentinel
         return original_lstat(path, *args, **kwargs)
 
@@ -439,7 +446,7 @@ def test_r14_diff_checked_predicates_re_raise_timeout(monkeypatch, tmp_path):
             codes.append(frame.f_code)
             frame = frame.f_back
         if (atomic_io.stat_or_none.__code__ in codes
-                and "/diff/" in str(path)):
+                and "/diff/" in str(path).replace("\\", "/")):
             raise isdir_sentinel
         return original_stat(path, *args, **kwargs)
 

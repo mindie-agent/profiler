@@ -32,6 +32,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from collections.abc import Mapping
 from typing import Any
@@ -74,7 +75,7 @@ def _dynamic_string_cost(literal: str) -> int:
     value = literal[1:-1]
     if value.startswith("sha256:") and len(value) == 71:
         return 4 + len(value[7:].encode("utf-8")) + 1
-    if value.startswith("/"):
+    if value.startswith("/") or (len(value) > 2 and value[1:1 + 2] == ":/" and value[0].isalpha()):
         for suffix, count in _PATH_SUFFIX_TOKENS.items():
             if value.endswith(suffix) and len(value) > len(suffix):
                 prefix = value[:-len(suffix)]
@@ -269,6 +270,10 @@ def _project_payload(payload: Mapping[str, Any]) -> dict[str, Any]:
             out[key] = item
     if "issues" not in out and isinstance(payload.get("issues"), (list, tuple)):
         out["issues"] = []
+    if os.name == "nt":
+        for key in _PATH_KEYS:
+            if isinstance(out.get(key), str):
+                out[key] = out[key].replace("\\", "/")
     return out
 
 
@@ -338,7 +343,8 @@ def truncate_lists(value: Any, *, list_limit: int = 8,
 def _envelope_estimate(payload: Mapping[str, Any], limit: int,
                        *, include_limit: bool = False
                        ) -> tuple[int, dict[str, Any]]:
-    body = {key: value for key, value in payload.items() if key != "receipt"}
+    body = {key: (value.replace("\\", "/") if os.name == "nt" and key in _PATH_KEYS and isinstance(value, str) else value)
+            for key, value in payload.items() if key != "receipt"}
     estimate = estimate_tokens(body)
     candidate = _receipt_payload(body, int(limit), include_limit=include_limit)
     candidate["receipt"]["token_estimate"] = estimate

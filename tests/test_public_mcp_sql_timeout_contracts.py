@@ -390,13 +390,21 @@ def test_caller_timeout_identity_propagates_across_boundaries_and_all_broad_hand
         def poll(self) -> None:
             return None
 
+        def terminate(self) -> None:
+            raise sentinel
+
         def wait(self, timeout: float | None = None) -> int:
             return 0
 
-    with patch("os.getpgid", return_value=999999), patch("os.killpg", side_effect=sentinel):
+    if os.name == "nt":
         with pytest.raises(TimeoutError) as exc_info:
-            native_capture._terminate_process_group(_FakeProc(), os.getpgid(999999), grace_s=0.5)  # type: ignore[arg-type]
+            native_capture._terminate_process_group(_FakeProc(), None, grace_s=0.5)  # type: ignore[arg-type]
         assert exc_info.value is sentinel
+    else:
+        with patch("os.getpgid", return_value=999999), patch("os.killpg", side_effect=sentinel):
+            with pytest.raises(TimeoutError) as exc_info:
+                native_capture._terminate_process_group(_FakeProc(), os.getpgid(999999), grace_s=0.5)  # type: ignore[arg-type]
+            assert exc_info.value is sentinel
 
     inv_db = tmp_path / "kernels.sqlite"
     con = kernel_inventory._connect(inv_db)

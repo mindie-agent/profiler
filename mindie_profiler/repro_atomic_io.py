@@ -229,14 +229,14 @@ def _forbidden_parent(parent: Path, forbidden: set[Path], allow_slot: Path | Non
         return False
     return _inside(parent, forbidden) or (resolved is not None and _inside(resolved, forbidden))
 def _anchor_for(parent: Path) -> tuple[Path, tuple[str, ...]] | None:
+    root = Path(parent.anchor or os.sep)
+    if (info := stat_or_none(root)) is None or not stat.S_ISDIR(info.st_mode):
+        return None
     if not _IS_WIN:
         temp = Path(os.sep + "tmp")
-        temp_info = stat_or_none(temp)
-        if temp_info is not None and stat.S_ISDIR(temp_info.st_mode) and (temp == parent or temp in parent.parents):
+        if (temp == parent or temp in parent.parents) and (ti := stat_or_none(temp)) is not None and stat.S_ISDIR(ti.st_mode):
             return temp, parent.relative_to(temp).parts
-    root = Path(parent.anchor or os.sep)
-    info = stat_or_none(root)
-    return (root, parent.parts[1:] if parent.anchor else parent.parts) if info is not None and stat.S_ISDIR(info.st_mode) else None
+    return root, (parent.parts[1:] if parent.anchor else parent.parts)
 def _walk_parent(parent: Path, forbidden: set[Path], allow_slot: Path | None, create: bool = True) -> bool:
     """Validate every component before creating any missing directory."""
     anchor = _anchor_for(parent)

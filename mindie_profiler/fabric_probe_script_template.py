@@ -125,7 +125,7 @@ def _write_abort_record(record, primary_exc=None):
         committed_write, temp_owned = False, True
         try:
             try:
-                fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0), 0o600)
+                fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_BINARY", 0), 0o600)
                 handle = None
                 try:
                     handle = open(fd, "w", closefd=False, encoding="utf-8", newline="\n", opener=os.open)

@@ -708,16 +708,25 @@ from mindie_profiler.op_abi_attributes import attr_issue
 
 @pytest.fixture
 def key_deadline():
-    import signal
-    def expired(signum, frame):
-        raise TimeoutError("key validation exceeded test deadline")
-    previous = signal.signal(signal.SIGALRM, expired)
-    signal.setitimer(signal.ITIMER_REAL, 60)
-    try:
-        yield
-    finally:
-        signal.setitimer(signal.ITIMER_REAL, 0)
-        signal.signal(signal.SIGALRM, previous)
+    import _thread, signal, threading
+    if hasattr(signal, "SIGALRM"):
+        def expired(signum, frame):
+            raise TimeoutError("key validation exceeded test deadline")
+        previous = signal.signal(signal.SIGALRM, expired)
+        signal.setitimer(signal.ITIMER_REAL, 60)
+        try:
+            yield
+        finally:
+            signal.setitimer(signal.ITIMER_REAL, 0)
+            signal.signal(signal.SIGALRM, previous)
+    else:
+        timer = threading.Timer(60.0, _thread.interrupt_main)
+        timer.daemon = True
+        timer.start()
+        try:
+            yield
+        finally:
+            timer.cancel()
 
 
 @pytest.mark.parametrize("kind", ["counted", "billion", "frozenset", "list", "dict", "int", "tuple", "str_subclass"])

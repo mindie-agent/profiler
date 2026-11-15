@@ -38,7 +38,7 @@ jobs:
           VIRTUAL_ENV: ${{ runner.temp }}/prof-venv
           UV_PROJECT_ENVIRONMENT: ${{ runner.temp }}/prof-venv
           MINDIE_CACHE_HOME: ${{ runner.temp }}/mindie-sim-cache
-        run: uv run --no-project python -B -m pytest -q -n auto --dist worksteal -p no:cacheprovider -m "not live_npu" --durations=20 --junitxml="${{ runner.temp }}/results.xml"
+        run: uv run --no-project python -B -m pytest -q -n auto --dist worksteal -p no:cacheprovider -m "not live_npu" --basetemp="${{ runner.temp }}/pt" --durations=20 --junitxml="${{ runner.temp }}/results.xml"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -360,15 +360,22 @@ def test_r16_public_foreign_destination_read_replacement(leaf, monkeypatch, tmp_
     foreign.write_bytes(b"owned by another caller")
     inode, primary, hits = checked_io.inode_of(foreign), TimeoutError(leaf), []
     opened, fds = _r16_fds()
-    original_read = os.read
+    original_read, original_close, pending = os.read, os.close, {}
     def read(fd, *args):
         path = fds[fd][0]
         if path.name == leaf and not hits:
-            os.replace(foreign, path)
+            if os.name == "nt":
+                pending[fd] = path
+            else:
+                os.replace(foreign, path)
             hits.append(path)
             raise primary
         return original_read(fd, *args)
-    with patch.object(os, "open", opened), patch.object(os, "read", read):
+    def close(fd):
+        original_close(fd)
+        if fd in pending:
+            os.replace(foreign, pending.pop(fd))
+    with patch.object(os, "open", opened), patch.object(os, "read", read), patch.object(os, "close", close):
         with pytest.raises(TimeoutError) as caught:
             repro_mcp("repro_op", request)
     assert caught.value is primary and len(hits) == 1
@@ -492,14 +499,19 @@ def test_r16_caller_pair_rollback(boundary, keep, cleanup_fault, monkeypatch, tm
     foreign = tmp_path / "foreign"
     foreign.write_bytes(b'{"foreign": true}')
     opened, fds = _r16_fds()
-    replace, read, verify, unlink = os.replace, os.read, storage._verify_pair_bytes, os.unlink
-    cleanup_hits = []
-    def fail():
+    replace, read, close, verify, unlink = os.replace, os.read, os.close, storage._verify_pair_bytes, os.unlink
+    cleanup_hits, pending = [], {}
+    def install_foreign():
+        path = mirror / ("repro.py" if keep.endswith("script") else "manifest.json")
+        replace(foreign, path)
+        kept[path] = (checked_io.inode_of(path), path.read_bytes())
+    def fail(defer_fd=None):
         hits.append(boundary)
         if keep and keep.startswith("foreign_"):
-            path = mirror / ("repro.py" if keep.endswith("script") else "manifest.json")
-            replace(foreign, path)
-            kept[path] = (checked_io.inode_of(path), path.read_bytes())
+            if defer_fd is not None and os.name == "nt":
+                pending[defer_fd] = True
+            else:
+                install_foreign()
         if boundary != "pair_false":
             raise primary
         return False
@@ -509,8 +521,12 @@ def test_r16_caller_pair_rollback(boundary, keep, cleanup_fault, monkeypatch, tm
         return replace(src, dst, *args, **kwargs)
     def read_hook(fd, *args):
         if boundary == "read" and fds[fd][0] == mirror / "manifest.json" and not hits:
-            fail()
+            fail(defer_fd=fd)
         return read(fd, *args)
+    def close_hook(fd):
+        close(fd)
+        if pending.pop(fd, False):
+            install_foreign()
     def pair_hook(script, *args, **kwargs):
         if boundary.startswith("pair_") and Path(script).absolute().parent == mirror and not hits:
             return fail()
@@ -522,8 +538,8 @@ def test_r16_caller_pair_rollback(boundary, keep, cleanup_fault, monkeypatch, tm
         return unlink(path, *args, **kwargs)
     with contextlib.ExitStack() as stack:
         for owner, name, fn in ((os, "open", opened), (os, "replace", replace_hook),
-                (os, "read", read_hook), (storage, "_verify_pair_bytes", pair_hook),
-                (os, "unlink", unlink_hook)):
+                (os, "read", read_hook), (os, "close", close_hook),
+                (storage, "_verify_pair_bytes", pair_hook), (os, "unlink", unlink_hook)):
             stack.enter_context(patch.object(owner, name, fn))
         if boundary == "pair_false" and not cleanup_fault:
             assert repro_mcp("repro_op", request)["status"] == "delivery_failed"

@@ -58,9 +58,13 @@ def isolated_runtime(tmp_path, monkeypatch, _session_sim_cache_home):
     monkeypatch.setenv('MINDIE_DIAGNOSTICS_ROOT', str(root / 'isolated-diagnostics'))
     monkeypatch.setenv('MINDIE_DIAGNOSTICS_CONFIG', str(root / 'reporting.json'))
     Path('/tmp').mkdir(parents=True, exist_ok=True)
+    if os.name == 'nt' and tmp_path.anchor:
+        (Path(tmp_path.anchor) / 'tmp').mkdir(parents=True, exist_ok=True)
     short_root = tempfile.mkdtemp(prefix='mpr_', dir='/tmp')
+    short_cleanup = Path(short_root).resolve()
     monkeypatch.setenv('MINDIE_REPRO_SHORT_ROOT', short_root)
     try:
         yield
     finally:
         shutil.rmtree(short_root, ignore_errors=True)
+        shutil.rmtree(short_cleanup, ignore_errors=True)
