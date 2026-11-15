@@ -23,9 +23,17 @@ from a5_q35_unfused_native_observations import PROFILE_PATH, apply_a5_q35_unfuse
 from a5_mtp_native_observations import apply_a5_mtp_native_observations
 
 
-def retained():
+from functools import lru_cache
+
+
+@lru_cache(maxsize=1)
+def _retained_doc():
     path = ROOT / "tests/fixtures/native_observations/a5_qwen35_unfused_q4_b7.json"
     return json.loads(path.read_text())
+
+
+def retained():
+    return deepcopy(_retained_doc())
 
 
 def options():
@@ -48,14 +56,15 @@ def test_held_context_native_means_execute_on_valid_rows_and_physical_capacity()
             if row["id"] == fixture["source_case_id"] and row["active_query_rows"] == 28}
     assert len(held) == 8
     seen = set()
-    for op in target_operators(result, **options()):
+    parsed = parse_case(result)
+    for op in target_operators(parsed, **options()):
         if op.recipe not in held or op.recipe in seen:
             continue
         if op.recipe == "dynamic_quantize" and "mc2_unfused_storage" not in dict(op.metadata):
             continue
         seen.add(op.recipe)
         actual = held[op.recipe]
-        isolated = graph_costs(result, (op,), isolated=False,
+        isolated = graph_costs(parsed, (op,), isolated=False,
                                external_inputs={dependency: 0 for dependency in op.deps})
         prediction = isolated["duration_ms"] * 1000
         assert prediction == pytest.approx(actual["predicted_native_mean_us"])
@@ -81,15 +90,18 @@ def test_independent_queue_keeps_existing_attention_and_recurrence_responses():
     assert provenance["status"] == "applied" and raw == old
     assert len(provenance["added_queue_guard_rule_ids"]) == 2
     previous = {rule["id"]: rule for rule in old["runtime"]["kernels"]["service_regimes"]}
+    parsed_result = parse_case(result)
+    parsed_old = parse_case(old)
+    result_ops = target_operators(parsed_result, **options())
     for rule in result["runtime"]["kernels"]["service_regimes"]:
         if rule["id"] not in provenance["added_queue_guard_rule_ids"]:
             continue
         assert rule["response"] == previous[rule["id"]]["response"]
-        for op in target_operators(result, **options()):
+        for op in result_ops:
             if op.recipe == rule["match"]["recipe"]:
-                cost = graph_costs(result, (op,), isolated=False,
+                cost = graph_costs(parsed_result, (op,), isolated=False,
                                    external_inputs={dependency: 0 for dependency in op.deps})
-                original = graph_costs(old, (op,), isolated=False,
+                original = graph_costs(parsed_old, (op,), isolated=False,
                                        external_inputs={dependency: 0 for dependency in op.deps})
                 assert cost["duration_ms"] == pytest.approx(original["duration_ms"])
                 break
@@ -196,7 +208,7 @@ def test_valid_existing_expert_abi_outside_native_caller_keeps_ordinary_predicti
     raw["model"]["quant"] = quant
     original = deepcopy(raw)
     ordinary = target_operators(raw, **options())
-    assert len(ordinary) == 2470
+    assert len(ordinary) == 1590
     result, provenance = apply_a5_q35_unfused_native_observations(raw, **options())
     assert provenance["status"] == "not_applicable"
     assert provenance["reason"] == (
@@ -222,7 +234,7 @@ def test_omitted_quantizer_preserves_valid_ordinary_caller():
     raw["runtime"]["lowering_passes"] = []
     original = deepcopy(raw)
     ordinary = target_operators(raw, **options())
-    assert len(ordinary) == 2410
+    assert len(ordinary) == 1530
     result, provenance = apply_a5_q35_unfused_native_observations(raw, **options())
     assert provenance["reason"] == "required_activation_quantizer_not_selected"
     assert provenance["status"] == "not_applicable"
@@ -244,7 +256,7 @@ def test_selected_native_implementation_keeps_its_original_valid_graph(selected)
             "otherwise": "analytical"}
     original = deepcopy(raw)
     ordinary = target_operators(raw, **options())
-    assert len(ordinary) == (2470 if selected == "quantize" else 2390)
+    assert len(ordinary) == (1590 if selected == "quantize" else 1510)
     result, provenance = apply_a5_q35_unfused_native_observations(raw, **options())
     assert provenance["status"] == "not_applicable"
     assert provenance["native_caller_domain_error"].startswith("mc2_unfused_")

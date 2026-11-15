@@ -28,6 +28,7 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
+from collections.abc import Mapping as _AbcMapping
 from hashlib import sha256
 import json
 from typing import Any, Callable, Mapping
@@ -45,27 +46,115 @@ def _union_ns(intervals: list[tuple[int, int]]) -> int:
     return sum(right - left for left, right in merge_intervals(intervals))
 
 
-def _seal_digest(payload: Mapping[str, Any]) -> str:
-    digest = sha256()
-    encoder = json.JSONEncoder(sort_keys=True, separators=(",", ":"), allow_nan=False)
-    for chunk in encoder.iterencode(payload):
-        digest.update(chunk.encode("utf-8"))
-    return "sha256:" + digest.hexdigest()
+
+_SCALAR_TYPES = (str, int, float, bool, type(None))
 
 
-def verify_graph_id(structure: Mapping[str, Any]) -> str:
+def _snapshot_structure_carrier(value: Any, name: str = "structure metadata", _depth: int = 0) -> Any:
+    if _depth > 64:
+        raise ProfilerUsageError(f"{name} exceeds container nesting limit")
+    vtype = type(value)
+    if vtype in _SCALAR_TYPES:
+        return value
+    inline_leaf = _depth < (1 << ((1 << 2) + 2))
+    if vtype is dict:
+        out = {}
+        for key, item in value.items():
+            if type(key) is not str:
+                raise ProfilerUsageError(f"{name} keys must be plain strings")
+            out[key] = (
+                item if inline_leaf and type(item) in _SCALAR_TYPES
+                else _snapshot_structure_carrier(item, name, _depth + 1)
+            )
+        return out
+    if vtype is list or vtype is tuple:
+        if inline_leaf:
+            return [
+                item if type(item) in _SCALAR_TYPES
+                else _snapshot_structure_carrier(item, name, _depth + 1)
+                for item in value
+            ]
+        return [_snapshot_structure_carrier(item, name, _depth + 1) for item in value]
+    if isinstance(value, _AbcMapping):
+        try:
+            _ = len(value)
+            out = {}
+            for key in value:
+                if type(key) is not str:
+                    raise ProfilerUsageError(f"{name} keys must be plain strings")
+                out[key] = _snapshot_structure_carrier(value[key], name, _depth + 1)
+            return out
+        except TimeoutError:
+            raise
+        except ProfilerUsageError:
+            raise
+        except (TypeError, ValueError, OverflowError) as exc:
+            raise ProfilerUsageError(f"invalid {name} mapping protocol") from exc
+    if isinstance(value, (list, tuple)):
+        try:
+            _ = len(value)
+            return [_snapshot_structure_carrier(item, name, _depth + 1) for item in value]
+        except TimeoutError:
+            raise
+        except ProfilerUsageError:
+            raise
+        except (TypeError, ValueError, OverflowError) as exc:
+            raise ProfilerUsageError(f"invalid {name} sequence protocol") from exc
+    return value
+
+
+def _seal_digest(payload: Mapping[str, Any], *, _validated: bool = False) -> str:
+    normalized = payload if _validated else _snapshot_structure_carrier(payload, "structure metadata")
+    encoded = json.dumps(normalized, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    return "sha256:" + sha256(encoded.encode("utf-8")).hexdigest()
+
+
+_VERIFIED_STRUCTURES: dict[str, tuple[dict[str, Any], str]] = {}
+_VERIFIED_FAST_NODE_FLOOR = (1 << 2) << (1 << 2)
+_VERIFIED_CACHE_LIMIT = (1 << 2) << 2
+
+
+def verify_and_snapshot_structure(value: Mapping[str, Any], schema: str) -> tuple[dict[str, Any], str]:
+    fast_digest: str | None = None
+    if (
+        type(value) is dict
+        and value.get("schema_version") == schema
+        and type(value.get("nodes")) is list
+        and len(value["nodes"]) > _VERIFIED_FAST_NODE_FLOOR
+    ):
+        try:
+            raw = json.dumps(value, separators=(",", ":"), allow_nan=False).encode("utf-8")
+            fast_digest = sha256(raw).hexdigest()
+        except (TypeError, ValueError, RecursionError):
+            fast_digest = None
+        if fast_digest is not None and fast_digest in _VERIFIED_STRUCTURES:
+            return _VERIFIED_STRUCTURES[fast_digest]
+    snap = _snapshot_structure_carrier(value, "structure metadata")
+    if snap.get("schema_version") != schema:
+        raise ProfilerUsageError(f"expected {schema} metadata")
+    gid = verify_graph_id(snap, _validated=True)
+    if fast_digest is not None:
+        if len(_VERIFIED_STRUCTURES) >= _VERIFIED_CACHE_LIMIT:
+            _VERIFIED_STRUCTURES.clear()
+        _VERIFIED_STRUCTURES[fast_digest] = (snap, gid)
+    return snap, gid
+
+
+def verify_graph_id(structure: Mapping[str, Any], *, _validated: bool = False) -> str:
     declared = structure.get("graph_id")
     current = _seal_digest(
         {
             key: value
             for key, value in structure.items()
             if key not in {"graph_id", "source", "native_calls", "native_call_coverage"}
-        }
+        },
+        _validated=_validated,
     )
     if declared == current:
         return current
     legacy = _seal_digest(
-        {key: value for key, value in structure.items() if key not in {"graph_id", "source"}}
+        {key: value for key, value in structure.items() if key not in {"graph_id", "source"}},
+        _validated=_validated,
     )
     if declared == legacy:
         return legacy

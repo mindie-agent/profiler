@@ -325,6 +325,11 @@ def ingest_source(connection, path: Path, member: str, handle: TextIO,
             stat.st_size, stat.st_mtime_ns, count, inserted, nonpositive, source_id,
         ))
         connection.commit()
+    except TimeoutError as exc:
+        _release_source(connection, source_id)
+        connection.execute("UPDATE sources SET status='failed',error=? WHERE id=?", (str(exc), source_id))
+        connection.commit()
+        raise
     except Exception as exc:
         # Failed partial imports must not leak through raw catalogue readers.
         # Successful copies retain their measured occurrences.

@@ -18,6 +18,12 @@ from .native_tensor_abi import native_tensor_contract, native_tensor_diagnostic
 MATRIX_BODY_TYPES = {"QuantBatchMatmulV3", "QuantBatchMatmulV4", "GroupedMatmul"}
 _DTYPES = {"DT_INT4": "int4", "INT4": "int4", "DT_FLOAT4_E2M1": "mxfp4",
            "UINT64": "uint64", "DT_UINT64": "uint64"}
+_MX_WEIGHT_DTYPES = {"mxfp4", "fp4_e2m1"}
+
+
+def _mx_dtype(value):
+    """One canonical MXFP4 spelling for both literal and normalized sources."""
+    return "mxfp4" if value in _MX_WEIGHT_DTYPES else value
 
 
 def _slots(row):
@@ -48,7 +54,7 @@ def _nd_mx_v3(row, inputs, outputs, m, n, k):
                             "ND FP8 V3 requires matching weight/weight-scale axes "
                             "[N,K]/[N,ceil(K/64),2] or [K,N]/[ceil(K/64),N,2], "
                             "paired E8M0 token scales and a floating output.")
-    return ("matrix", (m, n, k), x[1], weight[1], y[1], xs[0], xs[1]), None
+    return ("matrix", (m, n, k), x[1], _mx_dtype(weight[1]), y[1], xs[0], xs[1]), None
 
 
 def _dense(row, inputs, outputs):
@@ -110,7 +116,7 @@ def _dense(row, inputs, outputs):
             return None, _issue(row, "inconsistent_quant_matrix_weight_axes",
                                 "The retained transposed NZ weight has [ceil(K/32),ceil(N/16),16,32] axes.")
         valid = (
-            x[1] == "fp8_e4m3" and weight[1] == "mxfp4"
+            x[1] == "fp8_e4m3" and weight[1] in _MX_WEIGHT_DTYPES
             and xs == ((m, groups, 2), "fp8_e8m0", "ND")
             and ws == ((n, groups, 2), "fp8_e8m0", "ND")
             and y[1] in {"bf16", "fp16"}
@@ -119,7 +125,7 @@ def _dense(row, inputs, outputs):
         return None, _issue(row, "unsupported_quant_matrix_scale_or_precision",
                             "Operand/output precision and both scale descriptors must satisfy "
                             "the retained INT8 per-token/per-channel or MX paired-scale interface.")
-    return ("matrix", (m, n, k), x[1], weight[1], y[1], xs[0], xs[1]), None
+    return ("matrix", (m, n, k), x[1], _mx_dtype(weight[1]), y[1], xs[0], xs[1]), None
 
 
 def _grouped(row, inputs, outputs):
@@ -138,7 +144,7 @@ def _grouped(row, inputs, outputs):
     m, k = x[0]
     n, experts = y[0][1], group_list[0][0]
     xs = inputs[8] if len(inputs) == 9 else ((), None, None)
-    mxfp4 = x[1] == "fp8_e4m3" and weight[1] == "mxfp4"
+    mxfp4 = x[1] == "fp8_e4m3" and weight[1] in _MX_WEIGHT_DTYPES
     if offset[0] or anti_offset[0] or anti_scale[0] and not mxfp4:
         return None, _issue(row, "grouped_matrix_antiquant_boundary_not_declared",
                             "Materialized offset/antiquant interfaces are separate semantic branches.")
@@ -177,7 +183,7 @@ def _grouped(row, inputs, outputs):
         return None, _issue(row, "unsupported_grouped_matrix_precision_or_axes",
                             "The expert bank, grouped scale and per-token scale must match "
                             "a retained BF16, INT8, INT4, MXFP8 or MXFP8/MXFP4 interface.")
-    return ("grouped_matrix", (experts, m, n, k), x[1], weight[1], y[1],
+    return ("grouped_matrix", (experts, m, n, k), x[1], _mx_dtype(weight[1]), y[1],
             xs[0], xs[1] if xs[0] else ""), None
 
 

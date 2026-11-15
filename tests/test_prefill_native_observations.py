@@ -18,6 +18,7 @@ import pytest
 
 pytest.importorskip("mindie_sim")
 from mindie_sim import graph_costs, predict, target_operators  # noqa: E402
+from mindie_sim.prediction.structure import parse_case  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "examples" / "structure"))
@@ -31,12 +32,25 @@ GEOMETRY = {"phase": "prefill", "tokens": 8064, "context": 201600, "sequences": 
 COLLECTIVE_COUNTS = {"linear_reduce": 30, "catalog_tp_allreduce": 10, "ring_allreduce": 40}
 
 
-def retained():
+from functools import lru_cache
+
+
+@lru_cache(maxsize=1)
+def _retained_doc():
     return json.loads(FIXTURE.read_text())
 
 
-def profile():
+@lru_cache(maxsize=1)
+def _profile_doc():
     return json.loads(PROFILE_PATH.read_text())
+
+
+def retained():
+    return deepcopy(_retained_doc())
+
+
+def profile():
+    return deepcopy(_profile_doc())
 
 
 def _strings(value):
@@ -64,31 +78,39 @@ def part(fixture, forward):
     return next(row for row in fixture["parts"] if row["forward"] == forward)
 
 
-def attention_us(raw, geometry=GEOMETRY):
+def _parsed_and_ops(raw, geometry):
+    parsed = parse_case(raw) if isinstance(raw, dict) else raw
+    return parsed, tuple(target_operators(parsed, **geometry))
+
+
+def attention_us(raw, geometry=GEOMETRY, _ops=None):
+    parsed, ops = (raw, _ops) if _ops is not None else _parsed_and_ops(raw, geometry)
     totals = []
-    for op in target_operators(raw, **geometry):
+    for op in ops:
         if op.recipe != "flash_attention":
             continue
-        totals.append(graph_costs(raw, (op,), isolated=False,
+        totals.append(graph_costs(parsed, (op,), isolated=False,
                                   external_inputs={key: 0 for key in op.deps})["duration_ms"] * 1000)
     return totals
 
 
-def collective_us(raw, geometry=GEOMETRY):
+def collective_us(raw, geometry=GEOMETRY, _ops=None):
+    parsed, ops = (raw, _ops) if _ops is not None else _parsed_and_ops(raw, geometry)
     seen, result = set(), {}
-    for op in target_operators(raw, **geometry):
+    for op in ops:
         if op.recipe not in COLLECTIVE_COUNTS or op.recipe in seen:
             continue
         seen.add(op.recipe)
         result[op.recipe] = graph_costs(
-            raw, (op,), isolated=False,
+            parsed, (op,), isolated=False,
             external_inputs={key: 0 for key in op.deps})["duration_ms"] * 1000
     return result
 
 
-def operator_us(raw, recipe):
-    op = next(item for item in target_operators(raw, **GEOMETRY) if item.recipe == recipe)
-    return graph_costs(raw, (op,), isolated=False,
+def operator_us(raw, recipe, _ops=None):
+    parsed, ops = (raw, _ops) if _ops is not None else _parsed_and_ops(raw, GEOMETRY)
+    op = next(item for item in ops if item.recipe == recipe)
+    return graph_costs(parsed, (op,), isolated=False,
                        external_inputs={key: 0 for key in op.deps})["duration_ms"] * 1000
 
 
@@ -121,19 +143,22 @@ def test_full_chunk_imports_native_boundaries_and_removes_the_capture_floor():
     native = part(fixture, 25)
     assert native["context"] == GEOMETRY["context"] and native["tokens"] == GEOMETRY["tokens"]
     anchored = attention[GEOMETRY["context"] + GEOMETRY["tokens"]]
-    for value in attention_us(adapted):
+    parsed_adapted, adapted_ops = _parsed_and_ops(adapted, GEOMETRY)
+    parsed_raw, raw_ops = _parsed_and_ops(raw, GEOMETRY)
+    for value in attention_us(parsed_adapted, _ops=adapted_ops):
         assert value == pytest.approx(anchored, abs=1e-6)
     assert anchored == pytest.approx(native["attention"]["sum_us"] / 10, rel=0.02)
     us_per_call = document["native_observations"]["allreduce"]["us_per_call"]
-    for recipe, per_call in collective_us(adapted).items():
+    for recipe, per_call in collective_us(parsed_adapted, _ops=adapted_ops).items():
         assert per_call == pytest.approx(us_per_call, abs=1e-6)
         assert per_call != pytest.approx(old_floor)
-    assert operator_us(adapted, "flash_attention") == pytest.approx(anchored)
+    assert operator_us(parsed_adapted, "flash_attention", _ops=adapted_ops) == pytest.approx(anchored)
     # The native floor retains the measured forward sum, not a wait estimate.
     native_collective = sum(row["sum_us"] for row in native["collectives"].values())
     assert native_collective / 80 == pytest.approx(us_per_call, rel=0.05)
     for recipe in ("balanced_grouped_gate_up", "rmsnorm"):
-        assert operator_us(adapted, recipe) == pytest.approx(operator_us(raw, recipe))
+        assert operator_us(parsed_adapted, recipe, _ops=adapted_ops) == pytest.approx(
+            operator_us(parsed_raw, recipe, _ops=raw_ops))
 
 
 def test_curve_units_and_monotone_context_work_match_retained_chunks():

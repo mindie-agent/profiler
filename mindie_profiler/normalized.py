@@ -1,8 +1,10 @@
 """Complete tensor and occurrence views over normalized profiler events.
 
 [Role] Expose one streaming CSV reader and a projection of existing DB/CSV events.
-[Invariants] Raw tensor descriptors and integer nanoseconds retain their source;
-  unknown tensors stay unknown. A kernel row never implies a model layer.
+[Invariants] Raw tensor descriptors, source clock domain/unit and integer
+  nanoseconds retain their source; a raw tick is kept when the adapter
+  provides it. Unknown tensors stay unknown. A kernel row never implies a
+  model layer, and a local duration never implies a shared cross-rank clock.
 [Timeouts & Locks] CsvSource owns bounded scans; event projection is in memory.
 [Side-Effect Policy] Read-only; no imports of device runtimes or simulation.
 """
@@ -11,7 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from .events import Event
+from .events import ClockDomain, Event
 from .sources_csv import CsvSource, probe_csv
 from .sources_db import load_mapping
 
@@ -56,6 +58,45 @@ class KernelRow:
     @property
     def end_ns(self) -> int:
         return self.start_ns + self.duration_ns
+
+    # Clock metadata is an event/source fact, not a tensor property.  The
+    # projection exposes it unchanged so consumers can keep local durations
+    # while refusing an unverified cross-domain span.
+    @property
+    def clock(self) -> ClockDomain:
+        return self.event.clock
+
+    @property
+    def clock_start_tick(self) -> int | str | None:
+        return self.event.clock_start_tick
+
+    @property
+    def clock_duration_tick(self) -> int | str | None:
+        return self.event.clock_duration_tick
+
+    @property
+    def clock_end_tick(self) -> int | str | None:
+        return self.event.clock_end_tick
+
+    @property
+    def reference_interval_ns(self) -> tuple[int, int] | None:
+        return self.event.reference_interval_ns()
+
+    @property
+    def source_id(self) -> str | None:
+        return self.event.source_id
+
+    @property
+    def capture_id(self) -> str | None:
+        return self.event.capture_id
+
+    @property
+    def table_kind(self) -> str | None:
+        return self.event.table_kind
+
+    @property
+    def field_presence(self) -> dict[str, bool]:
+        return dict(self.event.field_presence)
 
     @property
     def signature(self) -> tuple:

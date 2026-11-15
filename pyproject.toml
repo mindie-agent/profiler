@@ -4,27 +4,30 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mindie-profiler"
-version = "0.5.13"
+version = "0.5.14"
 description = "Ascend NPU profiling collection, in-place inventory/analyze/correlate/compare/sql analysis, and memory/online evidence"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "mindie-sim @ git+https://github.com/mindie-agent/sim.git@296c8498a33278f9a9f2a49b21480666625223c6",
+    "mindie-sim @ git+https://github.com/mindie-agent/sim.git@49d30f2322471197f5c15e9f44e5d36eca4ee949",
 ]
 
 [project.optional-dependencies]
-test = ["pytest>=8,<10", "ijson>=3.2,<4", "psutil>=6,<8"]
+test = ["pytest>=8,<10", "pytest-xdist>=3.5,<4", "ijson>=3.2,<4", "psutil>=6,<8"]
 
 [project.scripts]
 mindie-profiler = "mindie_profiler.__main__:main"
+mindie-profiler-api = "mindie_profiler.public:main"
 
 [tool.setuptools.packages.find]
 include = ["mindie_profiler*"]
 
 [tool.pytest.ini_options]
-pythonpath = ["."]
+pythonpath = [".", "tests"]
+addopts = "-p no:cacheprovider"
 markers = [
     "live_npu: standing A2/A3 Ascend NPU non-destructive live integration",
+    "archive_integration: opt-in host fleet archive; skipped unless selected or MINDIE_ARCHIVE_INTEGRATION=1",
 ]
 
 [tool.setuptools.package-data]

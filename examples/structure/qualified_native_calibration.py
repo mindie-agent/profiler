@@ -35,6 +35,7 @@ from mindie_sim.prediction.execution import Execution
 from mindie_sim.prediction.service_regimes import (
     RegimePolicy, _axes, axis_equal, coordinates, lookup)
 from mindie_sim.prediction.structure import parse_case
+from mindie_sim.schema.common import ModelingError
 from qualified_native_abi import (
     QualifiedAbiMismatch, QualifiedCalibrationError, check_caller_native_entity,
     validate_native_abi)
@@ -244,6 +245,58 @@ def _projected_rules(profile: QualifiedProfile, families, queue,
     return projected, projection
 
 
+_PARSED_RAW_CACHE: dict[str, Any] = {}
+_TARGET_OPS_CACHE: dict[tuple[str, str, int, int, int], tuple[Any, ...]] = {}
+
+
+def _ops_cache_key(raw: Mapping, phase: str, tokens: int, context: int, sequences: int):
+    stripped = dict(raw)
+    if isinstance(raw.get("runtime"), Mapping):
+        rt = dict(raw["runtime"])
+        if isinstance(rt.get("kernels"), Mapping):
+            kernels = dict(rt["kernels"])
+            kernels.pop("service_regimes", None)
+            rt["kernels"] = kernels
+        stripped["runtime"] = rt
+    if isinstance(raw.get("machine"), Mapping):
+        mc = dict(raw["machine"])
+        mc.pop("device", None)
+        stripped["machine"] = mc
+    return (_canonical(stripped), phase, tokens, context, sequences)
+
+
+def _parse_raw_cached(raw: Mapping):
+    try:
+        key = _canonical(raw)
+    except TimeoutError:
+        raise
+    except Exception:
+        return parse_case(raw)
+    if key in _PARSED_RAW_CACHE:
+        return _PARSED_RAW_CACHE[key]
+    parsed = parse_case(raw)
+    if len(_PARSED_RAW_CACHE) >= 64:
+        _PARSED_RAW_CACHE.pop(next(iter(_PARSED_RAW_CACHE)))
+    _PARSED_RAW_CACHE[key] = parsed
+    return parsed
+
+
+def _target_ops_cached(raw: Mapping, phase: str, tokens: int, context: int, sequences: int):
+    try:
+        key = _ops_cache_key(raw, phase, tokens, context, sequences)
+    except TimeoutError:
+        raise
+    except Exception:
+        return target_operators(raw, phase=phase, tokens=tokens, context=context, sequences=sequences)
+    if key in _TARGET_OPS_CACHE:
+        return _TARGET_OPS_CACHE[key]
+    ops = tuple(target_operators(raw, phase=phase, tokens=tokens, context=context, sequences=sequences))
+    if len(_TARGET_OPS_CACHE) >= 64:
+        _TARGET_OPS_CACHE.pop(next(iter(_TARGET_OPS_CACHE)))
+    _TARGET_OPS_CACHE[key] = ops
+    return ops
+
+
 def _raw_contract_reason(raw, profile):
     hardware = raw.get("machine", {}).get("hardware_key") or raw.get("machine", {}).get("sku")
     if not hardware:
@@ -263,7 +316,9 @@ def _raw_contract_reason(raw, profile):
         if key in runtime and runtime[key] != value:
             return "parallelism_outside_qualified_domain"
     try:
-        case = parse_case(raw)
+        case = _parse_raw_cached(raw)
+    except TimeoutError:
+        raise
     except Exception as error:
         raise QualifiedCalibrationError("raw_case_not_parseable") from error
     expected_quant = dict(profile.data.get("source_contract", {}).get("quant", {}))
@@ -278,7 +333,9 @@ def _queue_conflict(raw, profile):
     queue = profile.data["projection"]["queue"]
     resource = queue["resource"]
     try:
-        case = parse_case(raw)
+        case = _parse_raw_cached(raw)
+    except TimeoutError:
+        raise
     except Exception:
         return True
     for device in case.machine.dies:
@@ -303,7 +360,13 @@ def _matches(axes, rule):
 
 def _operator_axes(execution, op):
     scope = dict(op.metadata).get("graph_replay_scope", "none")
-    prepared, recipe = execution.prepare(op)
+    try:
+        prepared, recipe = execution.prepare(op)
+    except ModelingError as exc:
+        if str(exc).startswith("attention_kv_"):
+            raise QualifiedAbiMismatch(
+                "native_abi_caller_view_incompatible", detail=str(exc)) from exc
+        raise
     context = execution._context(prepared, 0, scope, recipe=recipe)
     return _axes(context, physical_rates=False)
 
@@ -383,11 +446,10 @@ def apply_qualified_native_observations(
 
     unpriced = deepcopy(raw)
     unpriced.setdefault("runtime", {}).setdefault("kernels", {})["service_regimes"] = []
-    case = parse_case(unpriced)
+    case = _parse_raw_cached(unpriced)
     execution = Execution(case, CostModel(case), recipes=recipes, include_submission=False)
     if operators is None:
-        operators = target_operators(raw, phase=phase, tokens=tokens,
-                                     context=context, sequences=sequences)
+        operators = _target_ops_cached(raw, phase, tokens, context, sequences)
         operator_source = "ordinary_target_operators"
     else:
         operator_source = "caller_declared_public_call"

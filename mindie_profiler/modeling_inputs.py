@@ -16,6 +16,10 @@
     unrecognized operator stays ``"unknown"`` rather than being guessed.
   * Bundle extraction preserves observed names/shapes/dtypes and emits ``None``
     for absent fields; it never invents shapes, dtypes or durations.
+  * Native/tensor evidence is recovered at its own level: ordered input/output
+    slots and an explicit ABI record are preserved, while a single legacy
+    ``shape`` is filled only from exactly one complete input slot.  A C7
+    hotspot or native call is never expanded into a guessed model/service case.
   * The bound is a single-kernel roofline lower bound, never a whole-network
     lower bound and never proof that measured time must exceed it.
 
@@ -39,311 +43,40 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Mapping
+from .native_tensor_abi import ABI_SCHEMA
+from .native_tensor_abi import DTYPES as _NATIVE_DTYPES
+from .native_tensor_abi import native_abi_from_slots
 
-IDEAL_BOUND_FORMULA_VERSION = "roofline-max-v1"
-SCHEMA_VERSION = "mindie-modeling-inputs/1"
-
-# Stable family catalogue consumed by the simulator.  Tokens are compared
-# against the normalized operator name; order resolves overlap (for example
-# GroupedMatmulAllReduce is a matmul before it is a communication op).
-OPERATOR_FAMILIES: dict[str, tuple[str, ...]] = {
-    "matmul": ("matmul", "batchmatmul", "batch_matmul", "bmm", "gemm", "mm", "addmm",
-               "linear", "fusedmatmul", "groupedmatmul", "quantmatmul",
-               "matmulallreduce", "allgathermatmul", "matmulreducescatter"),
-    "communication": ("hccl", "hcom", "allreduce", "allgather", "alltoall",
-                      "reducescatter", "broadcast", "send", "recv", "barrier"),
-    "rmsnorm": ("rmsnorm", "rms_norm", "rms norm", "layernorm", "layer_norm",
-                "l2norm", "l2_norm", "normalization"),
-    "elementwise": ("elementwise", "element_wise", "relu", "gelu", "silu", "swish",
-                    "sigmoid", "tanh", "add", "sub", "mul", "div", "exp", "log", "sqrt",
-                    "rsqrt", "abs", "neg", "cast", "clamp", "activation", "softmax",
-                    "dropout", "where", "select"),
-    "copy": ("copy", "memcpy", "clone", "contiguous", "transpose", "permute",
-             "reshape", "view", "concat", "slice", "pad", "gather", "scatter", "datacopypad"),
-    "reduction": ("reduce", "reduction", "sum", "mean", "max", "min", "argmax", "argmin", "norm"),
-}
-
-_OPERATOR_PREFIXES = ("aclnn", "aclop", "aic", "aiv", "mix", "op")
-
-_DTYPE_BYTES = {
-    "float16": 2,
-    "bfloat16": 2,
-    "float32": 4,
-    "float64": 8,
-    "int8": 1,
-    "uint8": 1,
-    "int16": 2,
-    "int32": 4,
-    "int64": 8,
-    "bool": 1,
-}
-_DTYPE_ALIASES = {
-    "fp16": "float16",
-    "half": "float16",
-    "bf16": "bfloat16",
-    "fp32": "float32",
-    "float": "float32",
-    "fp64": "float64",
-    "double": "float64",
-    "i8": "int8",
-    "u8": "uint8",
-    "i16": "int16",
-    "i32": "int32",
-    "i64": "int64",
-    "dt_bf16": "bfloat16",
-    "dt_float16": "float16",
-    "dt_float32": "float32",
-    "dt_float": "float32",
-    "dt_int8": "int8",
-}
-
-
-def _finite(value: Any) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(float(value))
-
-
-def _normalise_dtype(dtype: str) -> str:
-    key = dtype.strip().lower().replace("-", "_").replace(" ", "_")
-    return _DTYPE_ALIASES.get(key, key)
-
-
-def _canonical_annotations(value: Any) -> tuple[tuple[str, str], ...]:
-    if value is None:
-        return ()
-    if isinstance(value, Mapping):
-        return tuple(sorted((str(k), str(v)) for k, v in value.items()))
-    return tuple(sorted((str(k), str(v)) for k, v in value))
-
-
-def _normalise_operator_name(name: str) -> str:
-    text = str(name or "").strip().lower()
-    if "::" in text:
-        text = text.rsplit("::", 1)[-1]
-    text = "".join(char for char in text if char.isalnum())
-    for prefix in _OPERATOR_PREFIXES:
-        if text.startswith(prefix) and len(text) > len(prefix):
-            text = text[len(prefix):]
-            break
-    return text
-
-
-def classify_operator_family(operator_name: str) -> str:
-    """Return the deterministic modeling family for an operator name."""
-    normalised = _normalise_operator_name(operator_name)
-    if not normalised:
-        return "unknown"
-    for family, tokens in OPERATOR_FAMILIES.items():
-        for token in tokens:
-            candidate = "".join(char for char in token.lower() if char.isalnum())
-            if candidate and (normalised == candidate or candidate in normalised):
-                return family
-    return "unknown"
-
-
-def _coerce_shape(value: Any) -> tuple[int, ...] | None:
-    if value is None:
-        return None
-    if isinstance(value, str):
-        text = value.strip()
-        if not text:
-            return None
-        try:
-            parsed = json.loads(text)
-        except (TypeError, ValueError):
-            parsed = None
-        if parsed is not None and parsed != value:
-            return _coerce_shape(parsed)
-        text = text.replace("x", ",").replace("×", ",").replace(" ", ",")
-        parts = [part for part in text.replace("[", "").replace("]", "").split(",") if part]
-        if not parts:
-            return None
-        try:
-            return tuple(int(part) for part in parts)
-        except (TypeError, ValueError):
-            return None
-    if isinstance(value, (list, tuple)):
-        try:
-            dims = tuple(int(dim) for dim in value)
-        except (TypeError, ValueError):
-            return None
-        return dims or None
-    return None
-
-
-@dataclass(frozen=True, init=False)
-class OperatorObservation:
-    """One observed operator occurrence with optional modeling metadata."""
-
-    name: str; family: str; shape: tuple[int, ...] | None; dtype: str | None
-    layout: str | None; duration_ns: int | None; count: int; rank: int | None
-    device_id: str | None; stream_id: str | None; task_id: str | None
-    annotations: tuple[tuple[str, str], ...]
-
-    def __init__(
-        self, name: str | None = None, family: str | None = None, shape: Any = None,
-        dtype: str | None = None, layout: str | None = None, duration_ns: int | None = None,
-        count: int = 1, rank: int | None = None, device_id: str | int | None = None,
-        stream_id: str | int | None = None, task_id: str | int | None = None, annotations: Any = (),
-        *, operator_name: str | None = None, operator: str | None = None, op_name: str | None = None,
-        kernel_name: str | None = None, op_type: str | None = None, input_shapes: Any = None,
-        input_dtypes: Any = None, input_formats: Any = None, duration: Any = None,
-        extra: Mapping[str, Any] | None = None, **kwargs: Any,
-    ) -> None:
-        observed_name = name or operator_name or operator or op_name or kernel_name or op_type or ""
-        if not isinstance(observed_name, str) or not observed_name.strip():
-            raise ValueError("operator observation requires a non-empty name")
-        observed_shape = _coerce_shape(shape if shape is not None else input_shapes)
-        observed_dtype = dtype if dtype is not None else input_dtypes
-        if isinstance(observed_dtype, str) and observed_dtype.strip():
-            observed_dtype = _normalise_dtype(observed_dtype)
-        else:
-            observed_dtype = None
-        observed_layout = layout if layout is not None else input_formats
-        observed_layout = observed_layout.strip() if isinstance(observed_layout, str) and observed_layout.strip() else None
-        observed_duration = duration_ns if duration_ns is not None else duration
-        if observed_duration is not None:
-            try:
-                observed_duration = max(0, int(observed_duration))
-            except (TypeError, ValueError):
-                observed_duration = None
-        try:
-            observed_count = max(0, int(count))
-        except (TypeError, ValueError):
-            observed_count = 0
-        try:
-            observed_rank = None if rank is None else int(rank)
-        except (TypeError, ValueError):
-            observed_rank = None
-        resolved_family = family or classify_operator_family(observed_name)
-        merged = dict(extra or {})
-        merged.update(kwargs)
-        for key, value in (
-            ("operator_name", operator_name), ("op_name", op_name),
-            ("kernel_name", kernel_name), ("op_type", op_type),
-        ):
-            if value is not None and key not in merged:
-                merged[key] = value
-        if annotations:
-            merged.update(dict(_canonical_annotations(annotations)))
-        object.__setattr__(self, "name", observed_name.strip())
-        object.__setattr__(self, "family", str(resolved_family).strip().lower() or "unknown")
-        object.__setattr__(self, "shape", observed_shape)
-        object.__setattr__(self, "dtype", observed_dtype)
-        object.__setattr__(self, "layout", observed_layout)
-        object.__setattr__(self, "duration_ns", observed_duration)
-        object.__setattr__(self, "count", observed_count)
-        object.__setattr__(self, "rank", observed_rank)
-        object.__setattr__(self, "device_id", None if device_id is None else str(device_id))
-        object.__setattr__(self, "stream_id", None if stream_id is None else str(stream_id))
-        object.__setattr__(self, "task_id", None if task_id is None else str(task_id))
-        object.__setattr__(self, "annotations", tuple(sorted((str(k), str(v)) for k, v in merged.items())))
-
-    @property
-    def operator_name(self) -> str: return self.name
-
-    @property
-    def op_name(self) -> str: return self.name
-
-    @property
-    def kernel_name(self) -> str: return self.name
-
-    @property
-    def input_shapes(self) -> tuple[int, ...] | None: return self.shape
-
-    @property
-    def input_dtypes(self) -> str | None: return self.dtype
-
-    @property
-    def input_formats(self) -> str | None: return self.layout
-
-    @classmethod
-    def from_mapping(cls, value: Mapping[str, Any]) -> "OperatorObservation":
-        if not isinstance(value, Mapping):
-            raise TypeError("operator observation must be a mapping")
-        return cls(**dict(value))
-
-    def as_dict(self) -> dict[str, Any]:
-        return {"name": self.name, "operator_name": self.name, "family": self.family,
-                "shape": list(self.shape) if self.shape is not None else None,
-                "dtype": self.dtype, "layout": self.layout, "duration_ns": self.duration_ns,
-                "count": self.count, "rank": self.rank, "device_id": self.device_id,
-                "stream_id": self.stream_id, "task_id": self.task_id,
-                "annotations": [list(item) for item in self.annotations]}
-
-    to_dict = as_dict
-
-
-@dataclass(frozen=True, init=False)
-class ModelingInputsBundle:
-    """Portable collection of operator observations consumed by a simulator."""
-
-    schema_version: str; observations: tuple[OperatorObservation, ...]
-    generated_at: str | None; source: str | None; metadata: dict[str, Any]
-
-    def __init__(self, observations: Iterable[OperatorObservation | Mapping[str, Any]] = (),
-                 *, schema_version: str = SCHEMA_VERSION, generated_at: str | None = None,
-                 source: str | None = None, metadata: Mapping[str, Any] | None = None) -> None:
-        normalized: list[OperatorObservation] = []
-        for item in observations:
-            if isinstance(item, OperatorObservation):
-                normalized.append(item)
-            elif isinstance(item, Mapping):
-                normalized.append(OperatorObservation.from_mapping(item))
-            else:
-                raise TypeError("observations must contain OperatorObservation or mappings")
-        object.__setattr__(self, "schema_version", str(schema_version))
-        object.__setattr__(self, "observations", tuple(normalized))
-        object.__setattr__(self, "generated_at", generated_at)
-        object.__setattr__(self, "source", source)
-        object.__setattr__(self, "metadata", dict(metadata or {}))
-
-    @classmethod
-    def from_mapping(cls, value: Mapping[str, Any]) -> "ModelingInputsBundle":
-        if not isinstance(value, Mapping):
-            raise TypeError("modeling inputs bundle must be a mapping")
-        return cls(
-            observations=value.get("observations", ()),
-            schema_version=value.get("schema_version", SCHEMA_VERSION),
-            generated_at=value.get("generated_at"),
-            source=value.get("source"),
-            metadata=value.get("metadata"),
-        )
-
-    from_dict = from_mapping
-
-    def as_dict(self) -> dict[str, Any]:
-        family_counts: dict[str, int] = {}
-        for observation in self.observations:
-            family_counts[observation.family] = family_counts.get(observation.family, 0) + 1
-        return {
-            "schema_version": self.schema_version,
-            "generated_at": self.generated_at,
-            "source": self.source,
-            "observation_count": len(self.observations),
-            "families": dict(sorted(family_counts.items())),
-            "observations": [observation.as_dict() for observation in self.observations],
-            "metadata": dict(self.metadata),
-        }
-
-    to_dict = as_dict
-
-    def __len__(self) -> int:
-        return len(self.observations)
-
-    def __iter__(self):
-        return iter(self.observations)
-
-    def __getitem__(self, key: str) -> Any:
-        return self.as_dict()[key]
-
+from .modeling_inputs_observations import (
+    OperatorObservation, _PROVENANCE_KEYS, _normalise_observation_mapping,
+    _provenance_annotations, _verified_abi,
+)
+from .modeling_inputs_roofline import ModelingInputsBundle
+from .modeling_inputs_slots import (
+    IDEAL_BOUND_FORMULA_VERSION, OPERATOR_FAMILIES, SCHEMA_VERSION, TensorSlot,
+    _DTYPE_ALIASES, _DTYPE_BYTES, _EXPLICIT_UNDEFINED_TEXT, _LEGACY_DTYPE_NAMES,
+    _MISSING_SLOT, _MISSING_TEXT, _NATIVE_DTYPE_ALIASES, _OPERATOR_PREFIXES,
+    _PLACEHOLDER_OPERATORS, _UNDEFINED_TEXT, _abi_content, _canonical_annotations,
+    _clean_operator, _clean_text, _coerce_shape, _coerce_slots, _finite,
+    _is_explicit_undefined_text, _is_missing_text, _is_undefined_text,
+    _legacy_dtype_name, _ms_to_ns, _native_abi_record, _normalise_dtype,
+    _normalise_operator_name, _normalise_slot_dtype, _normalise_slot_layout,
+    _positional_field, _recanonical_abi, _slot_from_parts, _slot_shape, _split_slots,
+    _tensor_slots, _us_to_ns, classify_operator_family,
+)
 
 def _record_mapping(record: Any) -> Mapping[str, Any]:
     if isinstance(record, Mapping):
         return record
     values: dict[str, Any] = {}
-    for name in ("name", "operator_name", "op_name", "kernel_name", "op_type", "family",
-                 "shape", "input_shapes", "dtype", "input_dtypes", "layout", "input_formats",
-                 "duration_ns", "duration", "count", "rank", "device_id", "stream_id", "task_id"):
+    for name in (
+        "name", "operator_name", "op_name", "kernel_name", "kernel_type", "op_type",
+        "native_operator", "family", "shape", "input_shapes", "dtype", "input_dtypes",
+        "layout", "input_formats", "output_shapes", "output_dtypes", "output_formats",
+        "inputs", "outputs", "native_abi", "context", "duration_ns", "duration", "duration_us",
+        "duration_ms", "measured_device_ms_p50", "count", "call_count", "rank",
+        "device_id", "stream_id", "task_id",
+    ):
         if hasattr(record, name):
             values[name] = getattr(record, name)
     if not values:
@@ -353,12 +86,82 @@ def _record_mapping(record: Any) -> Mapping[str, Any]:
             pass
     return values
 
+def _payload_records(payload: Any, metadata: dict[str, Any]) -> list[Any]:
+    """Select observation records from a C7/native/bundle payload.
 
-def _read_records(path: Path) -> Iterable[Any]:
+    A C7 hotspot list and a native call record are already at the recoverable
+    operator/tensor level.  They are not padded with guessed model or service
+    fields just because a report contains them.
+    """
+    if isinstance(payload, Mapping):
+        if isinstance(payload.get("observations"), list):
+            metadata["source_kind"] = "bundle"
+            return list(payload["observations"])
+        if isinstance(payload.get("events"), list):
+            metadata["source_kind"] = "events"
+            return list(payload["events"])
+        if isinstance(payload.get("top_hotspot_kernels"), list):
+            metadata["source_kind"] = "c7_summary"
+            metadata.setdefault("source_schema", payload.get("schema_version"))
+            if payload.get("hotspot_grouping") is not None:
+                metadata.setdefault("hotspot_grouping", payload.get("hotspot_grouping"))
+            return list(payload["top_hotspot_kernels"])
+        if isinstance(payload.get("raw_abi"), Mapping) and isinstance(payload.get("raw_operator"), Mapping):
+            metadata["source_kind"] = "native_observation"
+            return [payload]
+        if isinstance(payload.get("first_call"), Mapping):
+            metadata["source_kind"] = "native_observation"
+            return [payload["first_call"]]
+        if isinstance(payload.get("selected_row"), Mapping):
+            selected = dict(payload["selected_row"])
+            selected.setdefault("source_csv", payload.get("source_csv"))
+            selected.setdefault("source_window", payload.get("source_window"))
+            selected.setdefault("scope", payload.get("scope"))
+            selected.setdefault("schema", payload.get("schema"))
+            selected.setdefault("same_shape_distribution", payload.get("same_shape_distribution"))
+            selected.setdefault("source_kind", "native_selected_row")
+            selected.setdefault(
+                "name",
+                f"kernel_row:{selected.get('csv_line') or selected.get('task_id') or 'unknown'}",
+            )
+            metadata["source_kind"] = "native_selected_row"
+            return [selected]
+        if isinstance(payload.get("entries"), Mapping):
+            leaves: list[Mapping[str, Any]] = []
+
+            def walk(node: Any, path: tuple[str, ...]) -> None:
+                if isinstance(node, Mapping):
+                    if any(key in node for key in ("kernel_type", "kernel_name", "native_operator", "op_type")):
+                        item = dict(node)
+                        item.setdefault("entry_key", "/".join(path))
+                        if path:
+                            item.setdefault("model_label", path[0])
+                        for key in ("schema", "source", "use"):
+                            if payload.get(key) is not None:
+                                item.setdefault(key, payload[key])
+                        item.setdefault("source_kind", "qualified_abi_entry")
+                        leaves.append(item)
+                    else:
+                        for key, child in node.items():
+                            walk(child, path + (str(key),))
+                elif isinstance(node, list):
+                    for index, child in enumerate(node):
+                        walk(child, path + (str(index),))
+
+            walk(payload["entries"], ())
+            if leaves:
+                metadata["source_kind"] = "native_observation_collection"
+                return leaves
+    if isinstance(payload, list):
+        return payload
+    return [payload]
+
+def _read_records(path: Path, metadata: dict[str, Any]) -> Iterable[Any]:
     text = path.read_text(encoding="utf-8")
     try:
         payload = json.loads(text)
     except (TypeError, ValueError):
+        metadata["source_kind"] = "jsonl_records"
         for line in text.splitlines():
             line = line.strip()
             if not line:
@@ -368,90 +171,7 @@ def _read_records(path: Path) -> Iterable[Any]:
             except (TypeError, ValueError):
                 continue
         return
-    if isinstance(payload, Mapping) and isinstance(payload.get("observations"), list):
-        yield from payload["observations"]
-    elif isinstance(payload, Mapping) and isinstance(payload.get("events"), list):
-        yield from payload["events"]
-    elif isinstance(payload, list):
-        yield from payload
-    else:
-        yield payload
-
-
-def extract_modeling_inputs(
-    source: Any = None,
-    *,
-    source_name: str | None = None,
-) -> ModelingInputsBundle:
-    """Extract a modeling-inputs bundle from records or an explicit JSON path."""
-    if isinstance(source, ModelingInputsBundle):
-        return source
-    records: Iterable[Any]
-    resolved_source = source_name
-    if source is None:
-        records = ()
-    elif isinstance(source, (str, Path)):
-        path = Path(source)
-        records = _read_records(path)
-        resolved_source = resolved_source or str(path)
-    elif isinstance(source, Mapping):
-        if isinstance(source.get("observations"), list):
-            return ModelingInputsBundle.from_mapping(source)
-        records = (source,)
-    else:
-        try:
-            records = iter(source)
-        except TypeError:
-            records = (source,)
-    observations: list[OperatorObservation] = []
-    for record in records:
-        observations.append(
-            record if isinstance(record, OperatorObservation)
-            else OperatorObservation.from_mapping(_record_mapping(record))
-        )
-    return ModelingInputsBundle(
-        observations=observations,
-        generated_at=datetime.now(timezone.utc).isoformat(),
-        source=resolved_source,
-        metadata={"extractor": "extract_modeling_inputs", "schema_version": SCHEMA_VERSION},
-    )
-
-
-def write_modeling_inputs_bundle(
-    bundle: ModelingInputsBundle | Mapping[str, Any] | Iterable[Any],
-    destination: str | Path,
-    *,
-    indent: int = 2,
-) -> Path:
-    """Atomically write a bundle as UTF-8 JSON and return the written path."""
-    if isinstance(bundle, (str, Path)) and not isinstance(destination, (str, Path)):
-        bundle, destination = destination, bundle
-    if isinstance(bundle, ModelingInputsBundle):
-        payload = bundle
-    elif isinstance(bundle, Mapping):
-        payload = ModelingInputsBundle.from_mapping(bundle)
-    else:
-        payload = extract_modeling_inputs(bundle)
-    path = Path(destination)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    text = json.dumps(payload.as_dict(), indent=indent, sort_keys=True) + "\n"
-    handle, temporary = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=str(path.parent))
-    try:
-        with os.fdopen(handle, "w", encoding="utf-8") as stream:
-            stream.write(text)
-            stream.flush()
-            os.fsync(stream.fileno())
-        os.replace(temporary, path)
-    except BaseException:
-        try:
-            os.unlink(temporary)
-        except TimeoutError:
-            raise
-        except OSError:
-            pass
-        raise
-    return path
-
+    yield from _payload_records(payload, metadata)
 
 @dataclass(frozen=True)
 class HardwareSpec:
@@ -477,7 +197,6 @@ class HardwareSpec:
             "peak_flops_per_s": self.peak_flops_per_s,
             "memory_bandwidth_bytes_per_s": self.memory_bandwidth_bytes_per_s,
         }
-
 
 @dataclass(frozen=True)
 class KernelInputs:
@@ -663,14 +382,12 @@ class KernelInputs:
         )
         return "sha256:" + hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
-
 def _coerce_inputs(value: KernelInputs | Mapping[str, Any]) -> KernelInputs:
     if isinstance(value, KernelInputs):
         return value
     if isinstance(value, Mapping):
         return KernelInputs.from_mapping(value)
     raise TypeError("inputs must be KernelInputs or a mapping")
-
 
 @dataclass(frozen=True)
 class IdealLowerBound:
@@ -691,6 +408,94 @@ class IdealLowerBound:
             "unmodeled_reason": self.unmodeled_reason,
         }
 
+def extract_modeling_inputs(
+    source: Any = None,
+    *,
+    source_name: str | None = None,
+) -> ModelingInputsBundle:
+    """Extract a modeling-inputs bundle from records or an explicit JSON path.
+
+    C7 summaries (``top_hotspot_kernels``), native call records (``raw_abi`` /
+    ``raw_operator``) and JSON/JSONL record streams are accepted.  Extraction
+    stops at the native/tensor level actually present in the input; it does not
+    infer a complete model or service case.
+    """
+    if isinstance(source, ModelingInputsBundle):
+        return source
+    metadata: dict[str, Any] = {
+        "extractor": "extract_modeling_inputs",
+        "schema_version": SCHEMA_VERSION,
+        "source_kind": "records",
+        "native_scope": "operator_and_tensor_only",
+        "model_or_service_inferred": False,
+    }
+    records: Iterable[Any]
+    resolved_source = source_name
+    if source is None:
+        metadata["source_kind"] = "empty"
+        records = ()
+    elif isinstance(source, (str, Path)):
+        path = Path(source)
+        records = _read_records(path, metadata)
+        resolved_source = resolved_source or str(path)
+    elif isinstance(source, Mapping):
+        if isinstance(source.get("observations"), list):
+            return ModelingInputsBundle.from_mapping(source)
+        records = _payload_records(source, metadata)
+    else:
+        try:
+            records = iter(source)
+        except TypeError:
+            records = (source,)
+    observations: list[OperatorObservation] = []
+    for record in records:
+        observations.append(
+            record if isinstance(record, OperatorObservation)
+            else OperatorObservation.from_mapping(_record_mapping(record))
+        )
+    return ModelingInputsBundle(
+        observations=observations,
+        generated_at=datetime.now(timezone.utc).isoformat(),
+        source=resolved_source,
+        metadata=metadata,
+    )
+
+def write_modeling_inputs_bundle(
+    bundle: ModelingInputsBundle | Mapping[str, Any] | Iterable[Any],
+    destination: str | Path,
+    *,
+    indent: int = 2,
+) -> Path:
+    """Atomically write a bundle as UTF-8 JSON and return the written path."""
+    if isinstance(bundle, (str, Path)) and not isinstance(destination, (str, Path)):
+        bundle, destination = destination, bundle
+    if isinstance(bundle, ModelingInputsBundle):
+        payload = bundle
+    elif isinstance(bundle, Mapping):
+        payload = ModelingInputsBundle.from_mapping(bundle)
+    else:
+        payload = extract_modeling_inputs(bundle)
+    path = Path(destination)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    text = json.dumps(payload.as_dict(), indent=indent, sort_keys=True) + "\n"
+    handle, temporary = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=str(path.parent))
+    try:
+        with os.fdopen(handle, "w", encoding="utf-8") as stream:
+            stream.write(text)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+    except TimeoutError:
+        raise
+    except BaseException:
+        try:
+            os.unlink(temporary)
+        except TimeoutError:
+            raise
+        except OSError:
+            pass
+        raise
+    return path
 
 def estimate_ideal_hardware_lower_bound(
     inputs: KernelInputs | Mapping[str, Any],
@@ -769,7 +574,6 @@ def estimate_ideal_hardware_lower_bound(
         unmodeled_reason=None,
     )
 
-
 ideal_hardware_lower_bound = estimate_ideal_hardware_lower_bound
 
 __all__ = [
@@ -781,6 +585,7 @@ __all__ = [
     "KernelInputs",
     "ModelingInputsBundle",
     "OperatorObservation",
+    "TensorSlot",
     "classify_operator_family",
     "estimate_ideal_hardware_lower_bound",
     "extract_modeling_inputs",

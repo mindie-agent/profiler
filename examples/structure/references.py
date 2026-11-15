@@ -306,12 +306,32 @@ def _reference_graphs(graphs, book, groups):
             for replica, ops in graphs.items()}
 
 
+_TARGET_GRAPHS_CACHE = {}
+
+
+def _cached_target_graphs(case, geometry):
+    from mindie_sim.prediction.operator_analysis import target_graphs
+    from mindie_sim.prediction.program import RecipeBook
+    from mindie_sim.prediction.body_defaults import effective_body_declaration
+
+    key = (sha256(repr(case).encode('utf-8')).hexdigest(), canonical(geometry))
+    cached = _TARGET_GRAPHS_CACHE.get(key)
+    if cached is not None:
+        return cached
+    effective, _ = effective_body_declaration(
+        case, geometry['phase'], tokens=geometry['tokens'], scope=geometry['scope'])
+    book = RecipeBook.from_mapping(effective.runtime.kernels)
+    raw_graphs = target_graphs(effective, **geometry)
+    if len(_TARGET_GRAPHS_CACHE) >= 8:
+        _TARGET_GRAPHS_CACHE.pop(next(iter(_TARGET_GRAPHS_CACHE)))
+    _TARGET_GRAPHS_CACHE[key] = (effective, book, raw_graphs)
+    return effective, book, raw_graphs
+
+
 def predict_source_role_references(case, manifest, actual):
     """Price each independent declared program set; never fabricate native ABI."""
     from mindie_sim.prediction.graph_analysis import graph_costs
-    from mindie_sim.prediction.operator_analysis import target_graphs, operator_costs
-    from mindie_sim.prediction.program import RecipeBook
-    from mindie_sim.prediction.body_defaults import effective_body_declaration
+    from mindie_sim.prediction.operator_analysis import operator_costs
     from service_evidence import service_execution_evidence
 
     groups = actual.get('source_role_references', ())
@@ -319,9 +339,8 @@ def predict_source_role_references(case, manifest, actual):
         return []
     execution = manifest['execution']
     geometry = {key: execution[key] for key in ('phase', 'tokens', 'context', 'sequences', 'scope')}
-    case, _ = effective_body_declaration(case, geometry['phase'], tokens=geometry['tokens'], scope=geometry['scope'])
-    book = RecipeBook.from_mapping(case.runtime.kernels)
-    graphs = _reference_graphs(target_graphs(case, **geometry), book, groups)
+    case, book, raw_graphs = _cached_target_graphs(case, geometry)
+    graphs = _reference_graphs(raw_graphs, book, groups)
     by_id = {f'rank:{replica}/{op.op_id}': op
              for replica, ops in graphs.items() for op in ops}
     targets = {target['node_id']: target for target in manifest['nodes']}

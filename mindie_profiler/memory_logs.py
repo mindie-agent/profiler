@@ -11,7 +11,7 @@
   * GB is decimal 1e9 and GiB is binary 1024^3; units are never guessed from
     magnitude.
   * Only explicit log facts become values; missing lines stay absent.
-  * Raw matched text and source lines are retained for precision/audit.
+  * Raw matched text and source lines are retained for precision and provenance.
 
 [Timeouts & Locks]
   Pure string parsing over supplied bounded log text.

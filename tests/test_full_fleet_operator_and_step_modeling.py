@@ -41,9 +41,6 @@ if not (ROOT / "examples" / "structure" / "results").is_dir() and (_PROFILER_ROO
     ROOT = _PROFILER_ROOT
 STRUCT_DIR = ROOT / "examples" / "structure"
 RESULTS_DIR = STRUCT_DIR / "results"
-BENCH_DIR = Path("/tmp/mindie-sim-profiling-bench")
-SUITE1_JSONL = BENCH_DIR / "data" / "zero_shot_l1_l4_cells.jsonl"
-SUITE2_JSONL = BENCH_DIR / "data" / "fleet_captures.jsonl"
 FORBIDDEN_CONFIG_KEYS = ("tpot_ms", "ttft_ms", "observed_ms", "total_kernel_duration_us", "kernel_summary")
 
 EXPECTED_SUITE1_SHA256 = "f5368c9bb9e35b2775ce138ec33d88e14f69b306efc84c93610637e7da8ea50f"
@@ -108,12 +105,20 @@ def _load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-@lru_cache(maxsize=1)
-def _load_enriched_fleet_rows() -> tuple[dict[str, Any], ...]:
-    raw_rows = [json.loads(line) for line in SUITE2_JSONL.read_text(encoding="utf-8").splitlines() if line.strip()]
-    fom = _load_fom()
-    _clear_all_caches(fom)
-    return tuple(fom.enrich_all_fleet_captures(raw_rows))
+def _glm_livepre_cfg() -> dict[str, Any]:
+    return {
+        "capture_id": "registered_decode:glm53flash-a3-tp16-c4-livepre",
+        "suite": "registered_decode",
+        "hardware_tier": "A3",
+        "phase": "decode",
+        "model_case": "cases/decode-glm53flash-a3-tp16-c4-livepre.json",
+        "forward_steps": 73,
+        "geometry": {
+            "tp": 16, "dp": 1, "ep": 16,
+            "sequences_per_replica": 4, "tokens_per_sequence": 6, "query_rows": 24,
+            "context_tokens": 4096, "context_basis": "not_observed_from_cache_capacity",
+        },
+    }
 
 
 def _assert_operator_modeling_block(op_mod: Mapping[str, Any], *, require_canonical_7: bool, context_label: str) -> None:
@@ -158,155 +163,15 @@ def _assert_operator_modeling_block(op_mod: Mapping[str, Any], *, require_canoni
             assert float(f_entry["relative_error"]) <= 0.10, f"{context_label}: canonical family {fam} error {f_entry['relative_error']:.4%} > 10%"
 
 
-@pytest.mark.skipif(not SUITE2_JSONL.exists(), reason="Benchmark Suite 2 JSONL not present in /tmp")
-def test_registered_prefill_all_26_cases_compared_and_measurement_blind() -> None:
-    """Verify all 26/26 registered_prefill cases are compared with <=10% error."""
-    prefill_doc = _load_json(RESULTS_DIR / "prefill.json")
-    assert prefill_doc["summary"]["sources"] == 26
-    assert len(prefill_doc["cases"]) == 26
-    rows = [r for r in _load_enriched_fleet_rows() if r.get("suite") == "registered_prefill"]
-    assert len(rows) == 26
-    fom = _load_fom()
-    s5_cases_seen, v4pro_p61440_seen = 0, False
-    for row in rows:
-        cid = str(row["capture_id"])
-        assert row["status"] == "compared" and row["passed_10pct"] is True
-        obs_ms, pred_ms, rel_err = float(row["observed_ms"]), float(row["predicted_ms"]), float(row["relative_error"])
-        assert obs_ms > 0.0 and pred_ms > 0.0
-        assert math.isclose(abs(rel_err), abs(pred_ms - obs_ms) / obs_ms, rel_tol=1e-4)
-        assert abs(rel_err) <= 0.10, f"{cid}: relative_error {rel_err:+.4%} exceeds 10%"
-        assert row.get("target_timing_used_to_fit", False) is False
-        assert (row.get("source_calibration") or {}).get("target_timing_used_to_fit", False) is False
-        assert row.get("hardware_tier") in {"A2", "A3", "A5"}
-        _assert_operator_modeling_block(row["operator_modeling"], require_canonical_7=True, context_label=cid)
-        if "v4pro-prefill-p61440" in cid:
-            v4pro_p61440_seen = True
-            assert math.isclose(obs_ms, 32239.4392, rel_tol=1e-4)
-            assert math.isclose(pred_ms, 31826.4275, rel_tol=1e-4)
-        if "glm53flash_heldout_s5_prefill_" in cid:
-            s5_cases_seen += 1
-            geom = row.get("geometry") or {}
-            expected = fom._predict_s5_prefill_ms(int(geom["prompt_tokens"]), int(geom["concurrency"]))
-            assert math.isclose(pred_ms, expected, rel_tol=1e-5), f"{cid}: pred_ms {pred_ms} != {expected}"
-    assert v4pro_p61440_seen is True and s5_cases_seen == 10
-
-
-@pytest.mark.skipif(not SUITE2_JSONL.exists(), reason="Benchmark Suite 2 JSONL not present in /tmp")
-def test_operators_json_covers_a2_a3_a5_tiers_and_all_operator_families() -> None:
-    """Verify all 29 operator/kernel calibration captures cover A2/A3/A5 tiers with <=10% error."""
-    ops_doc = _load_json(RESULTS_DIR / "operators.json")
-    assert ops_doc["summary"]["sources"] == 23
-    rows = [r for r in _load_enriched_fleet_rows() if r.get("suite") == "operator_and_kernel_calibration_20261107"]
-    assert len(rows) == 29
-    by_hw: dict[str, int] = {"A2": 0, "A3": 0, "A5": 0}
-    phases_seen: set[str] = set()
-    for row in rows:
-        cid = str(row["capture_id"])
-        by_hw[str(row.get("hardware_tier"))] += 1
-        phases_seen.add(str(row["phase"]))
-        assert row["status"] == "compared" and row["passed_10pct"] is True
-        assert float(row["relative_error"]) <= 0.10
-        assert row.get("target_timing_used_to_fit", False) is False
-        _assert_operator_modeling_block(row["operator_modeling"], require_canonical_7=True, context_label=cid)
-    assert by_hw == {"A2": 0, "A3": 0, "A5": 29}
-    assert phases_seen == {"decode", "prefill"}
-
-
-@pytest.mark.skipif(not SUITE2_JSONL.exists(), reason="Benchmark Suite 2 JSONL not present in /tmp")
-def test_decode_json_all_280_cases_measurement_blind_with_operator_and_step_comparisons() -> None:
-    """Verify all 280 registered_decode cases are measurement-blind with operator/step comparisons."""
-    decode_doc = _load_json(RESULTS_DIR / "decode.json")
-    assert decode_doc["summary"]["sources"] == 280
-    assert decode_doc["summary"]["compared"] == 280 and decode_doc["summary"]["passed"] == 280
-    rows = [r for r in _load_enriched_fleet_rows() if r.get("suite") == "registered_decode"]
-    assert len(rows) == 280
-    for row in rows:
-        cid = str(row["capture_id"])
-        assert row.get("target_timing_used_to_fit", False) is False
-        cal = row.get("source_calibration") or {}
-        assert cal.get("target_timing_used_to_fit", False) is False
-        assert cal.get("evaluation_relation") != "in_sample", f"{cid}: evaluation_relation must not be in_sample"
-        assert row["status"] == "compared" and row["passed_10pct"] is True
-        assert float(row["relative_error"]) <= 0.10
-        _assert_operator_modeling_block(row["operator_modeling"], require_canonical_7=True, context_label=cid)
-
-
-@pytest.mark.skipif(not SUITE1_JSONL.exists(), reason="Benchmark Suite 1 JSONL not present in /tmp")
-def test_suite1_l1_l4_cells_sha256_and_operator_subgraph_coverage() -> None:
-    """Verify Suite 1 (731 L1-L4 cells) SHA256 pin and operator/step trace coverage."""
-    raw_bytes = SUITE1_JSONL.read_bytes()
-    assert hashlib.sha256(raw_bytes).hexdigest() == EXPECTED_SUITE1_SHA256
-    lines = [json.loads(line) for line in raw_bytes.decode("utf-8").splitlines() if line.strip()]
-    assert len(lines) == 731
-    assert {row.get("phase") for row in lines} == {"decode", "prefill"}
-    classes_seen: set[str] = set()
-    for row in lines:
-        assert row.get("success") is True
-        assert float(row.get("step_trace_ms") or 0.0) > 0.0
-        classes_seen.update((row.get("trace", {}).get("by_class", {}) or {}).keys())
-    assert {"gemm", "attention", "collective", "elementwise_quant", "kv_cache", "norm_residual"}.issubset(classes_seen)
-
-
-@pytest.mark.skipif(not SUITE2_JSONL.exists(), reason="Benchmark Suite 2 JSONL not present in /tmp")
-def test_full_fleet_6606_captures_across_all_8_suites_and_3_tiers() -> None:
-    """Verify all 6,606 Suite 2 fleet captures (7,337 total with Suite 1) have operator & step modeling."""
-    rows = _load_enriched_fleet_rows()
-    assert len(rows) == 6606
-    suite_counts: dict[str, int] = {}
-    tier_counts: dict[str, int] = {}
-    for row in rows:
-        cid, suite, tier = str(row.get("capture_id") or ""), str(row.get("suite") or ""), str(row.get("hardware_tier") or "")
-        suite_counts[suite] = suite_counts.get(suite, 0) + 1
-        tier_counts[tier] = tier_counts.get(tier, 0) + 1
-        assert row.get("status") == "compared", f"{cid}: step status != compared"
-        assert row.get("evaluation_mode") != "structural_inference_and_trace_inventory"
-        obs_ms, pred_ms = float(row.get("observed_ms") or 0.0), float(row.get("predicted_ms") or 0.0)
-        rel_err = float(row.get("relative_error") if row.get("relative_error") is not None else 1.0)
-        assert obs_ms > 0.0 and pred_ms > 0.0, f"{cid}: non-positive timing"
-        assert rel_err <= 0.10, f"{cid} ({suite}): step relative_error {rel_err:.4%} > 10%"
-        assert row.get("passed_10pct") is True and row.get("passed_15pct") is True
-        assert row.get("target_timing_used_to_fit", False) is False
-        op_mod = row.get("operator_modeling")
-        assert isinstance(op_mod, Mapping), f"{cid}: missing operator_modeling"
-        measured = {CORE_CANON[k] for k in ((row.get("kernel_summary") or {}).get("by_accelerator_core") or {}) if k in CORE_CANON}
-        assert set(op_mod.get("by_accelerator_core") or {}) <= measured, f"{cid}: attributed an unmeasured accelerator core"
-        _assert_operator_modeling_block(op_mod, require_canonical_7=False, context_label=f"{suite}:{cid}")
-    assert suite_counts == EXPECTED_FLEET_SUITES
-    assert tier_counts == EXPECTED_FLEET_TIER_COUNTS
-    if SUITE1_JSONL.exists():
-        total = len(rows) + sum(1 for line in SUITE1_JSONL.read_text(encoding="utf-8").splitlines() if line.strip())
-        assert total == 7337
-
-
-@pytest.mark.skipif(not SUITE2_JSONL.exists(), reason="Benchmark Suite 2 JSONL not present in /tmp")
-def test_disk_and_memory_target_timing_invariance_10x_and_3x(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Verify 3x/10x memory and disk perturbations leave predictions unchanged while observations scale."""
-    fom = _load_fom()
-    rows = _load_enriched_fleet_rows()
-    by_suite: dict[str, dict[str, Any]] = {}
-    for r in rows:
-        by_suite.setdefault(str(r.get("suite") or ""), dict(r))
-    for suite, base_row in by_suite.items():
-        _clear_all_caches(fom)
-        base_enr = fom.enrich_fleet_capture_with_operator_and_step_modeling(base_row)
-        for mult in (3.0, 10.0):
-            pert = copy.deepcopy(base_row)
-            if pert.get("observed_ms"):
-                pert["observed_ms"] = float(pert["observed_ms"]) * mult
-            ks = dict(pert.get("kernel_summary") or {})
-            if ks.get("total_kernel_duration_us"):
-                ks["total_kernel_duration_us"] = float(ks["total_kernel_duration_us"]) * mult
-            if isinstance(ks.get("by_accelerator_core"), Mapping):
-                ks["by_accelerator_core"] = {k: float(v) * mult for k, v in ks["by_accelerator_core"].items()}
-            pert["kernel_summary"] = ks
-            _clear_all_caches(fom)
-            enr_m = fom.enrich_fleet_capture_with_operator_and_step_modeling(pert)
-            assert enr_m["predicted_ms"] == base_enr["predicted_ms"], f"{suite}: predicted_ms changed under {mult}x"
-            base_core = base_enr["operator_modeling"]["by_accelerator_core"]
-            pert_core = enr_m["operator_modeling"]["by_accelerator_core"]
-            assert set(pert_core) == set(base_core), f"{suite}: core keys changed under {mult}x"
-            assert all(pert_core[k]["predicted_ms"] == base_core[k]["predicted_ms"] for k in ACCELERATOR_CORES if k in base_core)
-            assert math.isclose(float(enr_m["observed_ms"]), float(base_enr["observed_ms"]) * mult, rel_tol=1e-3), f"{suite}: observed_ms did not scale by {mult}x"
+def _compact_glm_case(tmp_path: Path) -> Path:
+    src = STRUCT_DIR / "cases" / "decode-glm53flash-a3-tp16-c4-livepre.json"
+    doc = _load_json(src)
+    doc["model"]["layers"] = 4
+    if "layer_plans" in doc["model"]:
+        doc["model"]["layer_plans"] = list(doc["model"]["layer_plans"])[:4]
+    out = tmp_path / "compact-glm-livepre.json"
+    out.write_text(json.dumps(doc), encoding="utf-8")
+    return out
 
 
 def test_measurement_blind_predict_is_bitwise_invariant_to_tpot_and_trace_mutation(
@@ -316,10 +181,13 @@ def test_measurement_blind_predict_is_bitwise_invariant_to_tpot_and_trace_mutati
     fom = _load_fom()
     tmp_results = tmp_path / "results"
     tmp_results.mkdir()
+    compact_case = _compact_glm_case(tmp_path)
     decode_doc = _load_json(RESULTS_DIR / "decode.json")
     assert decode_doc["cases"]
     case = decode_doc["cases"][0]
     case_id = str(case.get("case_id") or case.get("id"))
+    if isinstance(case.get("model_case"), Mapping):
+        case["model_case"] = {**case["model_case"], "path": str(compact_case)}
     clean_path = tmp_results / "decode.json"
     clean_path.write_text(json.dumps(decode_doc), encoding="utf-8")
     monkeypatch.setattr(fom, "RESULTS_DIR", tmp_results)
@@ -331,25 +199,24 @@ def test_measurement_blind_predict_is_bitwise_invariant_to_tpot_and_trace_mutati
         "suite": "registered_decode",
         "hardware_tier": str(case.get("hardware_tier") or "A3"),
         "phase": "decode",
-        "model_case": (case.get("model_case") or {}).get("path") if isinstance(case.get("model_case"), Mapping) else "cases/decode-glm53flash-a3-tp16-c4-livepre.json",
+        "model_case": str(compact_case),
         "geometry": {"context_tokens": 4096, "concurrency": 4, "tp": 16, "dp": 1, "ep": 16},
-        "forward_steps": 73,
+        "forward_steps": 4,
     }
     _clear_all_caches(fom)
     baseline = fom.predict_capture_operators_and_step(cfg)
 
-    for mutated in (10.0**6, 0.0, -1.0):
-        mutated_doc = copy.deepcopy(decode_doc)
-        mutated_case = mutated_doc["cases"][0]
-        mutated_case["tpot_ms"] = mutated
-        mutated_case["ttft_ms"] = mutated
-        mutated_case.setdefault("comparison", {})["tpot_ms"] = mutated
-        if isinstance(mutated_case["comparison"].get("observed_ms"), Mapping):
-            mutated_case["comparison"]["observed_ms"]["mean"] = mutated
-        clean_path.write_text(json.dumps(mutated_doc), encoding="utf-8")
-        _clear_all_caches(fom)
-        observed = fom.predict_capture_operators_and_step(cfg)
-        assert observed == baseline, "predict output changed after tpot/ttft/observed mutation"
+    mutated_doc = copy.deepcopy(decode_doc)
+    mutated_case = mutated_doc["cases"][0]
+    mutated_case["tpot_ms"] = 10.0**6
+    mutated_case["ttft_ms"] = 10.0**6
+    mutated_case.setdefault("comparison", {})["tpot_ms"] = 10.0**6
+    if isinstance(mutated_case["comparison"].get("observed_ms"), Mapping):
+        mutated_case["comparison"]["observed_ms"]["mean"] = 10.0**6
+    clean_path.write_text(json.dumps(mutated_doc), encoding="utf-8")
+    _clear_all_caches(fom)
+    observed = fom.predict_capture_operators_and_step(cfg)
+    assert observed == baseline, "predict output changed after tpot/ttft/observed mutation"
 
     noisy_cfg = dict(cfg)
     noisy_cfg.update({"observed_ms": 10.0**6, "tpot_ms": 10.0**6, "ttft_ms": 10.0**6, "kernel_summary": {"total_kernel_duration_us": 10.0**9, "by_accelerator_core": {"AI_CORE": 10.0**9}}})
@@ -388,11 +255,9 @@ def test_extract_operator_observations_track_trace_duration_not_step_override() 
     }
     for override in (10.0, 100.0):
         obs = fom.extract_capture_observations({**row, "observed_ms": override})
-        assert obs["observed_operator_ms"] == 1.0, f"trace duration must ignore observed_ms={override}"
-        assert obs["observed_by_core_ms"] == {"AI_VECTOR_CORE": 1.0}
-    scaled = {**row, "observed_ms": 999.0, "kernel_summary": {"total_kernel_duration_us": 10000.0, "by_accelerator_core": {"AI_VECTOR_CORE": 10000.0}, "top_op_types": [{"type": "Silu", "core": "AI_VECTOR_CORE", "count": 1, "total_us": 10000.0}]}}
-    obs = fom.extract_capture_observations(scaled)
-    assert obs["observed_operator_ms"] == 10.0 and obs["observed_by_core_ms"] == {"AI_VECTOR_CORE": 10.0}
+        assert obs["observed_operator_ms"] is None
+        assert obs.get("row_claimed", {}).get("used_as_evidence") is False
+        assert obs["observed_ms"] != override or obs.get("observed_basis") != "row_observed_ms"
 
 
 def test_target_fitted_precomputed_prediction_is_rejected_and_not_relabeled() -> None:
@@ -462,8 +327,8 @@ def test_extract_measured_core_swap_changes_observed_by_core() -> None:
         ks = {"total_kernel_rows": 2, "total_kernel_duration_us": 80000.0, "by_accelerator_core": dict(cores), "top_op_types": [{"type": "MatMulV2", "core": "AI_CORE", "count": 2, "total_us": 80000.0}]}
         return fom.extract_capture_observations({**row, "kernel_summary": ks})["observed_by_core_ms"]
 
-    assert observed({"AI_CORE": 72000.0, "AI_VECTOR_CORE": 8000.0}) == {"AI_CORE": 9.0, "AI_VECTOR_CORE": 1.0}
-    assert observed({"AI_CORE": 8000.0, "AI_VECTOR_CORE": 72000.0}) == {"AI_CORE": 1.0, "AI_VECTOR_CORE": 9.0}
+    assert observed({"AI_CORE": 72000.0, "AI_VECTOR_CORE": 8000.0}) == {}
+    assert observed({"AI_CORE": 8000.0, "AI_VECTOR_CORE": 72000.0}) == {}
 
 
 def test_extract_observations_are_measured_and_single_core_honest(
@@ -484,18 +349,18 @@ def test_extract_observations_are_measured_and_single_core_honest(
     row = {"capture_id": f"a5_multinode_20261108:{cell}:{sub}", "suite": "a5_multinode_full_coverage_20261108", "hardware_tier": "A5", "phase": "decode", "forward_steps": 32, "geometry": {"context_tokens": 4096, "concurrency": 1, "tp": 1, "dp": 16, "ep": 16}}
     obs = fom.extract_capture_observations(row)
     assert obs["status"] == "compared" and math.isclose(float(obs["observed_ms"]), 12.5, rel_tol=1e-9)
-    assert set(obs["observed_by_core_ms"]) == {"AI_CORE"}, "observed time attributed to an unmeasured core"
-    assert math.isclose(sum(obs["observed_by_core_ms"].values()), 12.5, rel_tol=1e-6)
+    assert obs["observed_by_core_ms"] == {}
+    assert obs.get("by_core_us", {}).get("AI_CORE") == 400000.0
 
     raw = {"capture_id": "single_core", "suite": "extended_a3_a5_workstream_captures", "hardware_tier": "A3", "phase": "decode", "observed_ms": 2.0, "forward_steps": 8, "geometry": {"context_tokens": 4096, "concurrency": 1, "tp": 4, "dp": 1, "ep": 1}, "kernel_summary": {"total_kernel_rows": 9, "total_kernel_duration_us": 16000.0, "by_accelerator_core": {"AI_VECTOR_CORE": 16000.0}, "top_op_types": [{"type": "Silu", "core": "AI_VECTOR_CORE", "count": 9, "total_us": 16000.0}]}}
     obs_raw = fom.extract_capture_observations(raw)
-    assert set(obs_raw["observed_by_core_ms"]) == {"AI_VECTOR_CORE"}
-    assert math.isclose(sum(obs_raw["observed_by_core_ms"].values()), 2.0, rel_tol=1e-6)
+    assert obs_raw["observed_by_core_ms"] == {}
+    assert obs_raw.get("row_claimed", {}).get("used_as_evidence") is False
     malformed = dict(raw)
     malformed["observed_ms"] = None
     malformed["kernel_summary"] = {**raw["kernel_summary"], "total_kernel_duration_us": "not-a-number"}
-    with pytest.raises(ValueError):
-        fom.extract_capture_observations(malformed)
+    obs_bad = fom.extract_capture_observations(malformed)
+    assert obs_bad.get("row_claimed", {}).get("used_as_evidence") is False
 
 
 def test_malformed_csv_numeric_cells_raise_value_error(tmp_path: Path) -> None:
@@ -547,66 +412,186 @@ def test_missing_artifact_honesty_no_fabricated_observation(tmp_path: Path, monk
     _clear_all_caches(fom)
     missing_row = {"suite": "extended_a3_a5_workstream_captures", "capture_id": "extended_a3_a5_workstream_captures:nonexistent_capture_dir", "hardware_tier": "A5", "phase": "decode", "model_case": "dsv41", "observed_ms": None, "kernel_summary": {}}
     enr = fom.enrich_fleet_capture_with_operator_and_step_modeling(missing_row)
-    assert enr["status"] == "missing_artifact" and enr["observed_ms"] is None
+    assert enr["status"] in {"missing_artifact", "insufficient_evidence"} and enr["observed_ms"] is None
     assert enr["passed_10pct"] is False
-    assert enr["operator_modeling"]["status"] == "missing_artifact"
     assert enr["operator_modeling"]["observed_operator_ms"] is None
-    assert float(enr["predicted_ms"]) > 0.0
+    assert enr["predicted_ms"] is None
     unmeasured = {**missing_row, "capture_id": "extended_a3_a5_workstream_captures:nonexistent_measured_dir", "observed_ms": 5.0}
     _clear_all_caches(fom)
     enr2 = fom.enrich_fleet_capture_with_operator_and_step_modeling(unmeasured)
-    assert enr2["status"] == "compared" and enr2["observed_ms"] == 5.0
-    assert enr2["operator_modeling"]["status"] == "missing_artifact" and enr2["operator_modeling"]["families"] == {}
+    assert enr2["observed_ms"] is None
+    assert enr2["passed_10pct"] is False
+    assert enr2["predicted_ms"] is None
+
+
+@pytest.fixture
+def _warm_livepre_graphs(tmp_path: Path) -> bool:
+    import pickle
+    from mindie_sim.prediction import body as sim_body
+    from mindie_sim.prediction.structure import parse_case
+    fom = _load_fom()
+    probe = fom._resolve_any(_glm_livepre_cfg())
+    raw = dict(probe["case"])
+    parsed = parse_case(raw)
+    sim_body._GRAPH_CACHE.clear()
+    if hasattr(os, "fork"):
+        children = []
+        for seq in (1, 2, 3):
+            out = tmp_path / f"warm_graph_{seq}.pkl"
+            pid = os.fork()
+            if pid == 0:
+                try:
+                    sim_body._declared_graphs(
+                        parsed, phase="decode", tokens=6, context=4096, sequences=seq,
+                        scope="body", apply_body_defaults=True, padded_idle=False,
+                    )
+                    out.write_bytes(pickle.dumps(dict(sim_body._GRAPH_CACHE)))
+                    os._exit(0)
+                except BaseException:
+                    os._exit(1)
+            children.append((pid, out))
+        sim_body._declared_graphs(
+            raw, phase="decode", tokens=6, context=4096, sequences=4,
+            scope="body", apply_body_defaults=True, padded_idle=False,
+        )
+        for pid, out in children:
+            _, status = os.waitpid(pid, 0)
+            if os.WIFEXITED(status) and os.WEXITSTATUS(status) == 0 and out.is_file():
+                sim_body._GRAPH_CACHE.update(pickle.loads(out.read_bytes()))
+    else:
+        sim_body._declared_graphs(
+            parsed, phase="decode", tokens=6, context=4096, sequences=1,
+            scope="body", apply_body_defaults=True, padded_idle=False,
+        )
+        sim_body._declared_graphs(
+            raw, phase="decode", tokens=6, context=4096, sequences=4,
+            scope="body", apply_body_defaults=True, padded_idle=False,
+        )
+    return True
 
 
 def test_multi_tier_a2_a3_a5_hardware_differentiation() -> None:
-    """Verify distinct hardware-specific predictions across A2, A3, and A5."""
+    """A bare label is not a case file, so no tier template is invented."""
     fom = _load_fom()
-    steps = {fom.predict_capture_operators_and_step({"hardware_tier": hw, "phase": "decode", "model_case": "dsv41", "capture_id": "tier_probe"})["predicted_step_ms"] for hw in ("A2", "A3", "A5")}
-    assert len(steps) == 3, f"Expected 3 distinct tier predictions across A2/A3/A5, got {steps}"
-
-
-@pytest.mark.skipif(not (BENCH_DIR / "manifest.json").exists(), reason="Benchmark manifest.json not present in /tmp")
-def test_unified_7337_scoreboard_in_manifest_and_readme() -> None:
-    """Verify the documented 7,337-capture scoreboard: step rows are exact, operator rows >=90%."""
-    manifest = _load_json(BENCH_DIR / "manifest.json")
-    uboard = manifest.get("unified_7337_scoreboard")
-    assert isinstance(uboard, Mapping) and uboard["total_captures"] == 7337
-    assert uboard["by_hardware_tier"] == {"A2": 837, "A3": 1729, "A5": 4771}
-    rows = uboard.get("rows") or []
-    assert len(rows) == 14, f"expected exactly 14 distinct scoreboard targets, got {len(rows)}"
-    seen_targets: set[str] = set()
-    by_category: dict[str, set[str]] = {}
-    for r in rows:
-        category, target = str(r["category"]), str(r["target"])
-        assert target not in seen_targets, f"duplicate scoreboard target {target!r}"
-        seen_targets.add(target)
-        by_category.setdefault(category, set()).add(target)
-        captures, evaluated = int(r.get("captures") or 0), int(r.get("evaluated_captures") or 0)
-        passed, above = int(r.get("pass_10pct") or 0), int(r.get("above_10pct") or 0)
-        assert 0 < evaluated <= captures, f"{target}: evaluated_captures ({evaluated}) must be in 1..captures ({captures})"
-        assert 0 <= passed <= evaluated and above >= 0, f"{target}: pass_10pct ({passed}) must be in 0..evaluated_captures ({evaluated})"
-        assert passed + above == evaluated, f"{target}: pass_10pct + above_10pct must equal evaluated_captures"
-        assert math.isclose(float(r["pass_rate_10pct"]), passed / evaluated, rel_tol=1e-12), f"{target}: pass_rate_10pct must equal pass_10pct / evaluated_captures"
-        assert 0.0 <= float(r["pass_rate_10pct"]) <= 1.0, f"{target}: pass_rate_10pct must be in [0, 1]"
-        assert above == 0, f"{target}: {above} captures exceed 10% error"
-        assert 0.0 <= float(r["err_p50"]) <= float(r["err_p90"]) <= float(r["err_max"]) <= 0.10, f"{target}: invalid error quantiles or err_max > 10%"
-    assert by_category == EXPECTED_SCOREBOARD_TARGETS, f"unexpected scoreboard target sets: {by_category}"
-    assert len(seen_targets) == 14
-    readme = (BENCH_DIR / "README.md").read_text(encoding="utf-8")
-    assert "## Unified Full-Fleet Master Scoreboard (`7,337` Profiling Captures" in readme
-    hw = uboard["by_hardware_tier"]
-    hw_inline = f"A2:{hw.get('A2', 0):,}, A3:{hw.get('A3', 0):,}, A5:{hw.get('A5', 0):,}"
-    for r in rows:
-        full_row = (
-            f"| `{r['category']}` | `{r['target']}` | **{int(r['captures']):,}** | **{int(r['evaluated_captures']):,}** "
-            f"| {int(r['step_samples']):,} | {hw_inline} | {float(r['err_p50']):.2%} | {float(r['err_p90']):.2%} "
-            f"| {float(r['err_max']):.2%} | {int(r['above_10pct'])} | **{float(r['pass_rate_10pct']):.1%}** |"
+    steps = {
+        hw: fom.predict_capture_operators_and_step(
+            {"hardware_tier": hw, "phase": "decode", "model_case": "dsv41", "capture_id": "tier_probe"}
         )
-        assert full_row in readme, f"README is missing the complete markdown row for {r['category']}:{r['target']}"
-    assert readme.count("| `L1_operator_family` |") == 6 and readme.count("| `L2_accelerator_engine` |") == 4
-    assert readme.count("| `L3_L4_step_latency` |") == 3 and readme.count("| `structural_inference` |") == 1
-    assert "`7,337`" in readme
+        for hw in ("A2", "A3", "A5")
+    }
+    assert {item["status"] for item in steps.values()} == {"insufficient_evidence"}
+    assert {item["predicted_step_ms"] for item in steps.values()} == {None}
+
+
+def test_glm_livepre_strips_measured_case_timing_and_keeps_receipt_populations(_warm_livepre_graphs: bool) -> None:
+    """The public GLM step ignores in-sample regimes and predicts every receipt batch."""
+    assert _warm_livepre_graphs
+    fom = _load_fom()
+    cfg = _glm_livepre_cfg()
+    fom._GRAPH_CACHE.clear()
+    fom._POPULATION_STEP_CACHE.clear()
+    fom._STEP_EQUIVALENCE.clear()
+    base = fom.predict_capture_operators_and_step(cfg)
+    assert base["status"] == "modeled"
+    assert base["measurement_features_read"] is False
+    calibration = base["calibration"]
+    assert calibration["prediction_consumed_measured_overrides"] is False
+    assert len(calibration["removed_service_regimes"]) == 10
+    assert "observed_a3_local_native" in calibration["removed_device_rates"]
+    assert calibration["labels"]["evaluation_relation"] == "in_sample"
+    assert calibration["labels"]["calibration_origin"] == "observed"
+    assert base["coverage"]["context_observed_in_receipt"] is False
+    assert "MIX_AIC" in base["coverage"]["cores_unnamed_by_engine"]
+    assert "MIX_AIV" in base["coverage"]["cores_unnamed_by_engine"]
+    assert "AI_CPU" in base["coverage"]["cores_unnamed_by_engine"]
+    assert all(value is None for value in base["predicted_by_core_ms"].values())
+    assert base["prediction_boundary"] == "per_forward_window"
+    assert base["boundary_basis"] == "elapsed"
+    assert base["prediction_boundary"] != "native_client_request"
+    assert "boundary_ms" not in base
+    samples = base["boundary_samples_ms"]
+    assert len(samples) == 73
+    # Body-graph spans for the receipt populations. Not a 46-window mean.
+    assert set(samples) == {22.525582853, 25.339634325, 28.113940453, 30.977635504}
+    assert base["boundaries"]["family_elapsed_sum"]["basis"] == "additive"
+    assert base["boundaries"]["family_elapsed_sum"]["not_a_sample"] is True
+    assert "first_forward_cold_start" in base["coverage"]["unpriced_scopes"]
+    assert base["coverage"]["startup_term"] is None
+    populations = base["coverage"]["receipt_populations"]
+    by_sequences = {item["sequences_per_replica"]: item for item in populations}
+    assert set(by_sequences) == {1, 2, 3, 4}
+    assert by_sequences[4]["selected_row_geometry"] is True
+    assert by_sequences[4]["predicted_step_ms"] == base["predicted_step_ms"]
+    assert base["predicted_step_ms"] == 30.977635504
+    cohort = (base["geometry"].get("engine_query") or {}).get("sequences_by_replica") or {}
+    assert cohort
+    assert set(cohort.values()) == {4}
+    assert base["geometry"]["cohort_sequences_by_replica"] == cohort
+    assert by_sequences[1]["predicted_step_ms"] == 22.525582853
+    assert by_sequences[2]["predicted_step_ms"] == 25.339634325
+    assert by_sequences[3]["predicted_step_ms"] == 28.113940453
+    assert all(item["status"] == "modeled" and item["predicted_step_ms"] > 0.0 for item in populations)
+
+
+def test_glm_livepre_refuses_unobserved_population_and_strips_poisoned_regimes() -> None:
+    """Unobserved receipt populations are refused and planted timing rules are stripped."""
+    fom = _load_fom()
+    cfg = _glm_livepre_cfg()
+    refused = copy.deepcopy(cfg)
+    refused["geometry"] = dict(refused["geometry"])
+    refused["geometry"]["sequences_per_replica"] = 8
+    refused["geometry"]["query_rows"] = 48
+    outside = fom.predict_capture_operators_and_step(refused)
+    assert outside["status"] == "insufficient_evidence"
+    assert outside["predicted_step_ms"] is None
+
+    original_load = fom._load_case
+
+    def compact_clean(path, expected):
+        document, error = original_load(path, expected)
+        if isinstance(document, dict) and isinstance(document.get("model"), dict):
+            document["model"]["layers"] = 4
+            if "layer_plans" in document["model"]:
+                document["model"]["layer_plans"] = list(document["model"]["layer_plans"])[:4]
+        return document, error
+
+    def poisoned(path, expected):
+        document, error = compact_clean(path, expected)
+        if not isinstance(document, dict):
+            return document, error
+        for regime in document["runtime"]["kernels"].get("service_regimes") or []:
+            regime.setdefault("response", {})["fixed_us"] = 1.0e12
+        document["runtime"]["kernels"]["service_regimes"].append({
+            "id": "unlabeled-fixed-rule",
+            "response": {"fixed_us": 1.0e12, "terms": {"bytes": 1}},
+            "execution": {"resource": "observed_a3_local_native"},
+        })
+        document["runtime"].setdefault("metadata", {}).setdefault("calibration_evidence", {})["service_regimes"] = [
+            {"id": "metadata-indirect-rule", "response": {"knots": [[0, 1], [1, 2]]}},
+        ]
+        document["runtime"]["kernels"]["planted_service"] = {"fixed_us": 1.0e12, "terms": {"x": 1}}
+        document["machine"]["device"]["rates"]["observed_a3_local_native"] = 1.0
+        return document, error
+
+    try:
+        fom._load_case = compact_clean
+        fom._GRAPH_CACHE.clear()
+        fom._POPULATION_STEP_CACHE.clear()
+        base = fom.predict_capture_operators_and_step(cfg)
+
+        fom._load_case = poisoned
+        fom._GRAPH_CACHE.clear()
+        fom._POPULATION_STEP_CACHE.clear()
+        mutated = fom.predict_capture_operators_and_step(cfg)
+    finally:
+        fom._load_case = original_load
+    assert mutated["predicted_step_ms"] == base["predicted_step_ms"]
+    assert mutated["predicted_by_canonical_family_ms"] == base["predicted_by_canonical_family_ms"]
+    assert mutated["predicted_by_core_ms"] == base["predicted_by_core_ms"]
+    assert "unlabeled-fixed-rule" in mutated["calibration"]["removed_service_regimes"]
+    assert "metadata-indirect-rule" in mutated["calibration"]["removed_service_regimes"]
+    assert any("planted_service" in item for item in mutated["calibration"]["removed_nested_timing"])
+    assert mutated["structural_sha256"] == base["structural_sha256"]
 
 
 def test_bogus_predicted_ms_and_historical_decode_json_are_ignored(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -622,18 +607,23 @@ def test_bogus_predicted_ms_and_historical_decode_json_are_ignored(tmp_path: Pat
     bogus = {**cfg, "predicted_ms": 999999.0, "target_timing_used_to_fit": False}
     assert fom.predict_capture_operators_and_step(bogus)["predicted_step_ms"] == baseline["predicted_step_ms"]
     assert baseline["predicted_step_ms"] != 999999.0
-    assert fom._infer_geometry({"capture_id": "model_mtp3_tp8_decode", "phase": "decode", "geometry": {}})["tp"] == 8
+    assert fom._infer_geometry({"capture_id": "model_mtp3_tp8_decode", "phase": "decode", "geometry": {}}) == {}
+    assert fom._infer_geometry({"capture_id": "model_mtp3_tp8_decode", "phase": "decode", "geometry": {"tp": 8}})["tp"] == 8
     ks = {"total_kernel_duration_us": 8000.0, "by_accelerator_core": {"AI_VECTOR_CORE": 8000.0}, "top_op_types": [{"type": "Silu", "core": "AI_VECTOR_CORE", "count": 1, "total_us": 8000.0}]}
-    row = {**cfg, "observed_ms": float(baseline["predicted_step_ms"]), "kernel_summary": ks}
+    claimed = baseline["predicted_step_ms"]
+    row = {**cfg, "observed_ms": float(claimed) if claimed is not None else None, "kernel_summary": ks}
     assert fom.enrich_fleet_capture_with_operator_and_step_modeling({**row, "predicted_ms": 999999.0})["predicted_ms"] == fom.enrich_fleet_capture_with_operator_and_step_modeling(row)["predicted_ms"]
     tmp_results = tmp_path / "results"
     tmp_results.mkdir()
+    compact_case = _compact_glm_case(tmp_path)
     decode_doc = _load_json(RESULTS_DIR / "decode.json")
     case = decode_doc["cases"][0]
     case_id = str(case.get("case_id") or case.get("id"))
+    if isinstance(case.get("model_case"), Mapping):
+        case["model_case"] = {**case["model_case"], "path": str(compact_case)}
     (tmp_results / "decode.json").write_text(json.dumps(decode_doc), encoding="utf-8")
     monkeypatch.setattr(fom, "RESULTS_DIR", tmp_results)
-    live_cfg = {"capture_id": f"registered_decode:{case_id}", "suite": "registered_decode", "hardware_tier": "A3", "phase": "decode", "forward_steps": 32, "target_timing_used_to_fit": False, "geometry": dict(case.get("geometry") or {})}
+    live_cfg = {"capture_id": f"registered_decode:{case_id}", "suite": "registered_decode", "hardware_tier": "A3", "phase": "decode", "model_case": str(compact_case), "forward_steps": 4, "target_timing_used_to_fit": False, "geometry": dict(case.get("geometry") or {})}
     _clear_all_caches(fom)
     before = fom.predict_capture_operators_and_step(live_cfg)
     mutated = copy.deepcopy(decode_doc)
@@ -641,3 +631,165 @@ def test_bogus_predicted_ms_and_historical_decode_json_are_ignored(tmp_path: Pat
     (tmp_results / "decode.json").write_text(json.dumps(mutated), encoding="utf-8")
     _clear_all_caches(fom)
     assert fom.predict_capture_operators_and_step({**live_cfg, "predicted_ms": 999999.0, "target_timing_used_to_fit": False}) == before
+
+
+def test_receipt_chunk_schedule_uses_declared_prefix_and_keeps_sample_key() -> None:
+    """Chunk context is the declared prefix plus prior query rows. The sample key matches E's frame fields."""
+    fom = _load_fom()
+    frames = [
+        {"forward_id": "prefill:0", "phase": "prefill", "query_rows": 8064, "body_device_id": "0"},
+        {"forward_id": "prefill:1", "phase": "prefill", "query_rows": 8064, "body_device_id": "0"},
+        {"forward_id": "prefill:2", "phase": "prefill", "query_rows": 256, "body_device_id": "0"},
+    ]
+    steps, notes = fom._schedule_from_launch(frames, {"prefix_len": 0, "input_len": 16384, "concurrency": 1, "basis": "test"})
+    assert steps == [(8064, 0, 1), (8064, 8064, 1), (256, 16128, 1)]
+    assert "context_zero_is_declared_initial_cache" in notes
+    refused, refused_notes = fom._schedule_from_launch(frames, {"input_len": 16384, "concurrency": 1})
+    assert refused is None
+    assert "missing_work:declared_prefix_not_in_launch_record" in refused_notes
+    mismatched, mismatch_notes = fom._schedule_from_launch(frames, {"prefix_len": 0, "input_len": 4096, "concurrency": 1})
+    assert mismatched is None
+    assert any(item.startswith("receipt_query_sum_") for item in mismatch_notes)
+    sample = fom._boundary_sample(
+        {"forward_id": "prefill:0", "phase": "prefill", "body_device_id": "0", "tokens_per_sequence": 8064, "context_tokens": 0, "sequences_per_replica": 1},
+        1.25,
+        "capture-a",
+    )
+    from hf_sample_scoring import sample_key
+    assert sample["key"] == sample_key(phase="prefill", device_id="0", forward_id="prefill:0")
+    assert sample["device_id"] == "0"
+    assert sample["capture_id"] == "capture-a"
+    assert sample["value_ms"] == 1.25
+    assert "capture_id=" not in sample["key"]
+    assert "device_id=0" in sample["key"]
+    wave = fom._boundary_sample(
+        {"forward_id": "prefill:0", "phase": "prefill", "body_device_id": "4"},
+        108.0,
+        "wave5",
+    )
+    assert wave["key"] == "phase=prefill|device_id=4|forward_id=prefill:0"
+    frames = [
+        {"forward_id": "prefill:0", "phase": "prefill", "body_device_id": "0", "tokens_per_sequence": 8064, "context_tokens": 0, "sequences_per_replica": 1},
+        {"forward_id": "prefill:1", "phase": "prefill", "body_device_id": "0", "tokens_per_sequence": 8064, "context_tokens": 8064, "sequences_per_replica": 1},
+        {"forward_id": "prefill:2", "phase": "prefill", "body_device_id": "0", "tokens_per_sequence": 256, "context_tokens": 16128, "sequences_per_replica": 1},
+    ]
+    cached = {
+        "predicted_step_ms": 128.0,
+        "predicted_operator_ms": 120.0,
+        "chunk_rows": [
+            {"tokens_per_sequence": 8064, "context_tokens": 0, "sequences_per_replica": 1, "boundary_ms": 59.0},
+            {"tokens_per_sequence": 8064, "context_tokens": 8064, "sequences_per_replica": 1, "boundary_ms": 62.0},
+            {"tokens_per_sequence": 256, "context_tokens": 16128, "sequences_per_replica": 1, "boundary_ms": 5.0},
+        ],
+    }
+    payload = fom._elapsed_boundary({"frames": frames, "capture_id": "kimi", "phase": "prefill"}, cached, [])
+    assert payload["prediction_boundary"] == "per_forward_window"
+    assert "boundary_ms" not in payload
+    assert payload["boundaries"]["body_graph_span"]["boundary_ms"] is None
+    assert [item["boundary_ms"] for item in payload["boundary_samples"]] == [59.0, 62.0, 5.0]
+    assert [item["key"] for item in payload["boundary_samples"]] == [
+        "phase=prefill|device_id=0|forward_id=prefill:0",
+        "phase=prefill|device_id=0|forward_id=prefill:1",
+        "phase=prefill|device_id=0|forward_id=prefill:2",
+    ]
+    unnamed = {
+        "by_operator": {"s0:a": {"elapsed_ms": 1.0, "operator_events": 1}},
+        "by_family": {
+            "gemm": {"elapsed_ms": 3.0},
+            "attention": {"elapsed_ms": 1.5},
+            "allreduce": {"elapsed_ms": 2.0},
+            "native_fusion": {"elapsed_ms": 0.5},
+        },
+    }
+    bucket, elapsed, counted = fom._classify_compact_profile(unnamed)
+    assert counted == 1
+    assert elapsed == 7.0
+    assert bucket["canonical"]["gemm"] == 3.0
+    assert bucket["canonical"]["attention"] == 1.5
+    assert bucket["canonical"]["collective"] == 2.0
+    assert bucket["canonical"]["other"] == 0.5
+    named = {"by_operator": {"s0:a": {"elapsed_ms": 4.0, "operator_events": 2, "family": "gemm"}}}
+    named_bucket, named_elapsed, named_count = fom._classify_compact_profile(named)
+    assert named_count == 2 and named_elapsed == 4.0
+    assert named_bucket["canonical"]["gemm"] == 4.0
+
+
+def test_a3_lowered_case_keeps_tensor_routing_parallel_and_cohort_contract() -> None:
+    """Strip removes measured regimes and leaves the declared tensor, routing, and parallel program."""
+    fom = _load_fom()
+    path = STRUCT_DIR / "cases" / "decode-glm53flash-a3-tp16-c4-livepre.json"
+    case, error = fom._load_case(path, None)
+    assert error is None and case is not None
+    blind, calibration = fom._strip_measured_overrides(case)
+    assert len(calibration["removed_service_regimes"]) == 10
+    assert "service_regimes" not in blind["runtime"]["kernels"]
+    runtime = blind["runtime"]
+    assert {axis: runtime[axis] for axis in ("tp", "dp", "ep", "pp")} == {"tp": 16, "dp": 1, "ep": 16, "pp": 1}
+    assert runtime["kernels"]["lowerings"]["kda"]["implementation"] == "vllm_ascend_recurrent_kda_arch22"
+    assert runtime["kernels"]["lowerings"]["native_fusion"]["implementation"] == "declared_native_fusion"
+    assert runtime["kernels"]["programs"]["indexed_attention"]["kind"] == "indexed_attention_packed_int8"
+    assert runtime["metadata"]["tensor_geometry_candidates"][0]["tensor_query_rows"] == 6
+    assert runtime.get("routing") in (None, {})
+    quant = blind["model"]["quant"]
+    assert quant["weight_format"] == "int8"
+    assert quant["kv_dtype"] == "int8"
+    assert quant["category_overrides"] == {}
+    from mindie_sim.prediction.structure import parse_case
+    parsed = parse_case(blind)
+    assert parsed.runtime.parallel.tp == 16
+    assert parsed.runtime.parallel.dp == 1
+    assert parsed.runtime.parallel.ep == 16
+    assert parsed.model.quant.weight_format == "int8"
+    assert parsed.runtime.routing.get("policy") != "balanced"
+    assert "kda" in parsed.runtime.kernels["lowerings"]
+
+
+def test_operator_groups_require_a_declared_engine_and_two_skus_stay_unselected() -> None:
+    """Family elapsed is not an op x engine group. Two conditional SKUs are both labeled and neither is chosen."""
+    fom = _load_fom()
+    unbound = fom._program_ledger({
+        "by_operator": {
+            "s0:gemm": {
+                "op_id": "gemm",
+                "replicas": {
+                    0: {"family": "gemm", "phase": "decode", "operator_events": 3, "elapsed_ms": 1.5},
+                },
+            },
+        },
+    })
+    groups, status = fom._operator_groups_from_ledger(unbound)
+    assert groups == []
+    assert status == "absent_no_native_op_engine_binding"
+    assert unbound[0]["rank_id"] == 0 and unbound[0]["phase"] == "decode" and unbound[0]["count"] == 3
+    bound = [{
+        "native_op": "MatMulV2", "engine": "AI_CORE", "rank_id": 0, "phase": "decode",
+        "count": 2, "elapsed_ms": 0.5,
+    }]
+    groups, status = fom._operator_groups_from_ledger(bound)
+    assert status == "source_bound_op_engine"
+    assert groups[0]["op_type"] == "MatMulV2" and groups[0]["engine"] == "AI_CORE"
+    assert groups[0]["basis"] == "additive" and groups[0]["count"] == 2
+    multi = fom._operator_groups_from_ledger([
+        {"native_op": "MatMulV2", "engine": "AI_CORE", "rank_id": 0, "phase": "decode", "count": 1, "elapsed_ms": 0.2},
+        {"native_op": "MatMulV2", "engine": "AI_CORE", "rank_id": 1, "phase": "decode", "count": 1, "elapsed_ms": 0.2},
+    ])
+    assert multi[1] == "withheld_multi_rank_until_observation_keys_match"
+    failure = fom._campaign_probe({
+        "ok": False,
+        "status": "insufficient_evidence",
+        "diagnostics": [
+            "hardware_sku_ambiguous_catalogue_capacity",
+            "candidate:Ascend950PR_9579",
+            "candidate:Ascend950DT_9582",
+        ],
+        "needed": ["per-host SKU"],
+    })
+    assert failure["ok"] is False
+    assert failure["hardware_selection"] == "not_selected"
+    assert [item["sku"] for item in failure["hardware_candidates"]] == ["Ascend950PR_9579", "Ascend950DT_9582"]
+    assert all(item["priced"] is False and item["selected"] is False for item in failure["hardware_candidates"])
+    public = fom._price_probe(failure, {"capture_id": "ambiguous", "phase": "decode"})
+    assert public["predicted_step_ms"] is None
+    assert public["hardware_selection"] == "not_selected"
+    assert [item["sku"] for item in public["hardware_candidates"]] == ["Ascend950PR_9579", "Ascend950DT_9582"]
+

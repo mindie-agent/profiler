@@ -16,10 +16,13 @@ from .kernel_inventory import build_inventory
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(prog="mindie-profiler kernels")
-    parser.add_argument("--manifest", required=True)
-    parser.add_argument("--output-dir", required=True)
-    parser.add_argument("--source-timeout-s", type=float, default=300)
+    parser = argparse.ArgumentParser(
+        prog="mindie-profiler kernels",
+        description="Stream-extract a deduplicated kernel and tensor-shape catalogue from existing captures.",
+    )
+    parser.add_argument("--manifest", required=True, help="read-only source manifest JSON (<= 1 MiB)")
+    parser.add_argument("--output-dir", required=True, help="destination directory for kernels.sqlite and variants.jsonl")
+    parser.add_argument("--source-timeout-s", type=float, default=300, help="per-source scan deadline in seconds (default: 300)")
     args = parser.parse_args(argv)
     path = Path(args.manifest)
     if path.stat().st_size > 1024 * 1024:

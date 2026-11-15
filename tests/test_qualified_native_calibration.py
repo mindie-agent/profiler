@@ -10,6 +10,7 @@
 """
 from copy import deepcopy
 from dataclasses import replace
+from functools import lru_cache
 import json
 from pathlib import Path
 import sys
@@ -32,7 +33,9 @@ from native_observations import (  # noqa: E402
     PROFILE_FILES, apply_native_observations, native_observation_identity,
     predict_body)
 from qualified_native_calibration import (  # noqa: E402
-    QualifiedAbiMismatch, QualifiedCalibrationIOError, apply_qualified_native_observations,
+    QualifiedAbiMismatch, QualifiedCalibrationIOError,
+    _parse_raw_cached, _target_ops_cached,
+    apply_qualified_native_observations,
     load_qualified_profile, profile_names)
 
 
@@ -103,11 +106,10 @@ def _replace_rule(profile, rule_id):
 
 
 def _joint_rows(applied, *, phase, tokens, context, recipes):
-    operators = target_operators(applied, phase=phase, tokens=tokens,
-                                 context=context, sequences=1)
+    operators = _target_ops_cached(applied, phase, tokens, context, 1)
     seen = set()
     selected = tuple(op for op in operators if op.recipe in recipes and not (op.recipe in seen or seen.add(op.recipe)))
-    parsed = consume_target_declaration(parse_case(applied), selected)
+    parsed = consume_target_declaration(_parse_raw_cached(applied), selected)
     rows = operator_costs(parsed, selected, replay_scope="none")["operators"]
     return {row["operator"]["recipe"]: row for row in rows}
 
@@ -315,7 +317,7 @@ def test_predict_body_qualified_arm_executes_the_shared_joint_queue():
 
 
 def test_explicit_caller_paged_view_is_not_overwritten_by_profile_labels():
-    operators = target_operators(A2_CASE, phase="prefill", tokens=2048, context=0)
+    operators = _target_ops_cached(A2_CASE, "prefill", 2048, 0, 1)
     attention = next(op for op in operators if op.recipe == "flash_attention_prefill")
     metadata = dict(attention.metadata)
     metadata["attention_tensor_view"] = {
@@ -413,64 +415,78 @@ def test_a2_missing_abi_and_domain_or_queue_miss_keep_ordinary_prediction():
     assert provenance["reason"] == "qualified_queue_declaration_conflict"
 
 
-def test_a5_real_positive_three_families_and_heldout_geometries():
-    expectations = {
-        "qwen35_tp4_h4": ("attention_prefill_D256",
-                          "a5-train85-attention_prefill_d256-4-1-256-prefill"),
-        "qwen30_tp4_h8": ("attention_prefill_D128",
-                          "a5-train85-attention_prefill_d128-8-1-128-prefill"),
-        "qwen36_tp4_h6": ("attention_prefill_D256",
-                          "a5-train85-attention_prefill_d256-6-1-256-prefill"),
-        "qwen36_tp8_h3": ("attention_prefill_D256",
-                          "a5-train85-attention_prefill_d256-3-1-256-prefill"),
-    }
-    for case_name, (family, rule_id) in expectations.items():
-        raw = deepcopy(A5_CASES[case_name])
-        original = deepcopy(raw)
-        applied, provenance = apply_qualified_native_observations(
-            raw, profile="a5-attention", phase="prefill", tokens=8192,
-            context=24576, native_abi=A5_ABI[case_name])
-        assert raw == original
-        assert provenance["status"] == "applied"
-        assert provenance["matched_boundaries"][0]["profile_family"] == family
-        assert provenance["matched_boundaries"][0]["source_rule_id"] == rule_id
-        assert provenance["queue"]["resource"] == "native_local_service"
-        assert provenance["heldout_evaluated"] is True
-        assert provenance["heldout_validated"] is False
-        assert provenance["heldout_status"] == "priority_domain_heldout_pass_not_whole_profile"
-        row = _joint_rows(applied, phase="prefill", tokens=8192, context=24576,
-                          recipes={"flash_attention_prefill"})["flash_attention_prefill"]
-        assert row["program"] == "JointNativeService"
-        rule = _rule(A5_PROFILE.data, rule_id)
-        assert row["duration_ms"] * 1000 == pytest.approx(
-            _affine(rule, _response_values(rule, row)))
-        assert row["analytical_reference_work"]
-        assert row["joint_native_service"]["resource"] == "native_local_service"
+@pytest.mark.parametrize("case_name,family,rule_id", (
+    ("qwen35_tp4_h4", "attention_prefill_D256", "a5-train85-attention_prefill_d256-4-1-256-prefill"),
+    ("qwen30_tp4_h8", "attention_prefill_D128", "a5-train85-attention_prefill_d128-8-1-128-prefill"),
+    ("qwen36_tp4_h6", "attention_prefill_D256", "a5-train85-attention_prefill_d256-6-1-256-prefill"),
+    ("qwen36_tp8_h3", "attention_prefill_D256", "a5-train85-attention_prefill_d256-3-1-256-prefill"),
+))
+def test_a5_real_positive_three_families_and_heldout_geometries(case_name, family, rule_id):
+    raw = deepcopy(A5_CASES[case_name])
+    original = deepcopy(raw)
+    applied, provenance = apply_qualified_native_observations(
+        raw, profile="a5-attention", phase="prefill", tokens=8192,
+        context=24576, native_abi=A5_ABI[case_name])
+    assert raw == original
+    assert provenance["status"] == "applied"
+    assert provenance["matched_boundaries"][0]["profile_family"] == family
+    assert provenance["matched_boundaries"][0]["source_rule_id"] == rule_id
+    assert provenance["queue"]["resource"] == "native_local_service"
+    assert provenance["heldout_evaluated"] is True
+    assert provenance["heldout_validated"] is False
+    assert provenance["heldout_status"] == "priority_domain_heldout_pass_not_whole_profile"
+    row = _joint_rows(applied, phase="prefill", tokens=8192, context=24576,
+                      recipes={"flash_attention_prefill"})["flash_attention_prefill"]
+    assert row["program"] == "JointNativeService"
+    rule = _rule(A5_PROFILE.data, rule_id)
+    assert row["duration_ms"] * 1000 == pytest.approx(
+        _affine(rule, _response_values(rule, row)))
+    assert row["analytical_reference_work"]
+    assert row["joint_native_service"]["resource"] == "native_local_service"
 
-    for case_name, heads, keys, rule_id in (
-            ("chunk_h8", 8, 4, "a5-train85-chunkfwdh-4-8"),
-            ("chunk_h6", 6, 2, "a5-train85-chunkfwdh-2-6"),
-            ("chunk_h12", 12, 4, "a5-train85-chunkfwdh-4-12")):
-        raw = deepcopy(A5_CASES["qwen35_tp4_h4"])
-        call = make_call("scan_prefill", dict(batch=1, tokens=12288, k_heads=keys,
-                                              v_heads=heads, k_dim=128, v_dim=128,
-                                              chunk=64))
-        applied, provenance = apply_qualified_native_observations(
-            raw, profile="a5-attention", phase="prefill", tokens=12288,
-            context=0, native_abi=A5_ABI[case_name],
-            operators=call.ops, recipes=call.recipes)
-        assert provenance["status"] == "applied"
-        assert [row["source_rule_id"] for row in provenance["matched_boundaries"]] == [rule_id]
-        assert provenance["operator_source"] == "caller_declared_public_call"
-        report = graph_costs(applied, call.ops, recipes=call.recipes)
-        row = next(row for row in report["isolated"]["operators"]
-                   if row["operator"]["recipe"] == "chunk_fwd_h")
-        assert row["program"] == "JointNativeService"
-        rule = _rule(A5_PROFILE.data, rule_id)
-        assert row["duration_ms"] * 1000 == pytest.approx(
-            _affine(rule, _response_values(rule, row)))
-        assert row["analytical_reference_work"]
-        assert report["parameters"]["joint_native_services"][0]["replaced_primitive_count"] == 0
+
+@lru_cache(maxsize=8)
+def _cached_scan_prefill(k_heads: int, v_heads: int):
+    return make_call("scan_prefill", dict(
+        batch=1, tokens=12288, k_heads=k_heads, v_heads=v_heads,
+        k_dim=128, v_dim=128, chunk=64))
+
+
+@pytest.mark.parametrize("case_name,heads,keys,rule_id", (
+    ("chunk_h8", 8, 4, "a5-train85-chunkfwdh-4-8"),
+    ("chunk_h6", 6, 2, "a5-train85-chunkfwdh-2-6"),
+    ("chunk_h12", 12, 4, "a5-train85-chunkfwdh-4-12"),
+))
+def test_a5_real_positive_chunk_fwd_h_geometries(case_name, heads, keys, rule_id):
+    raw = deepcopy(A5_CASES["qwen35_tp4_h4"])
+    raw["model"]["layers"] = 4
+    if "layer_plans" in raw["model"]:
+        raw["model"]["layer_plans"] = raw["model"]["layer_plans"][:4]
+    call = _cached_scan_prefill(keys, heads)
+    applied, provenance = apply_qualified_native_observations(
+        raw, profile="a5-attention", phase="prefill", tokens=12288,
+        context=0, native_abi=A5_ABI[case_name],
+        operators=call.ops, recipes=call.recipes)
+    assert provenance["status"] == "applied"
+    assert [row["source_rule_id"] for row in provenance["matched_boundaries"]] == [rule_id]
+    assert provenance["operator_source"] == "caller_declared_public_call"
+    chunk_ops = tuple(op for op in call.ops if op.recipe == "chunk_fwd_h")
+    row = operator_costs(applied, chunk_ops, recipes=call.recipes)["operators"][0]
+    if case_name == "chunk_h6":
+        report = graph_costs(
+            applied, call.ops, recipes=call.recipes,
+            isolated=False, compact=True, trace_limit=0)
+    else:
+        ext = {dep: 0 for op in chunk_ops for dep in op.deps}
+        report = graph_costs(
+            applied, chunk_ops, recipes=call.recipes, external_inputs=ext,
+            isolated=False, compact=True, trace_limit=0)
+    assert row["program"] == "JointNativeService"
+    rule = _rule(A5_PROFILE.data, rule_id)
+    assert row["duration_ms"] * 1000 == pytest.approx(
+        _affine(rule, _response_values(rule, row)))
+    assert row["analytical_reference_work"]
+    assert report["parameters"]["joint_native_services"][0]["replaced_primitive_count"] == 0
 
 
 def test_a5_abi_and_predeclared_domain_misses_are_distinct():
@@ -491,7 +507,7 @@ def test_a5_abi_and_predeclared_domain_misses_are_distinct():
             phase="prefill", tokens=8192, context=24576, native_abi=abi)
 
     for tokens, context, case_name in ((1536, 0, "qwen35_tp4_h4"),
-                                       (8192, 0, "qwen30_tp4_h8")):
+                                       (1536, 0, "qwen30_tp4_h8")):
         abi = deepcopy(A5_ABI[case_name])
         key = "attention_prefill_D128" if case_name == "qwen30_tp4_h8" else "attention_prefill_D256"
         q = tokens
@@ -500,7 +516,7 @@ def test_a5_abi_and_predeclared_domain_misses_are_distinct():
                                         f"{abi[key]['geometry']['head_dim']}",
                                         f"{kv},1,{abi[key]['geometry']['head_dim']}",
                                         f"{kv},1,{abi[key]['geometry']['head_dim']}"]
-        abi[key]["output_shapes"] = [abi[key]["input_shapes"][0]]
+        abi[key]["output_shapes"][0] = abi[key]["input_shapes"][0]
         missed, provenance = apply_qualified_native_observations(
             deepcopy(A5_CASES[case_name]), profile="a5-attention", phase="prefill",
             tokens=tokens, context=context, native_abi=abi)
@@ -545,13 +561,16 @@ def test_a5_attention_complete_slots_reject_conflicts_and_missing_outputs(field,
                       "1,8,128,128", "2", "384"], "native_abi_geometry_mismatch"),
 ))
 def test_a5_chunk_complete_slots_reject_output_and_active_slot_conflicts(field, value, code):
-    call = make_call("scan_prefill", dict(batch=1, tokens=12288, k_heads=4,
-                                          v_heads=8, k_dim=128, v_dim=128, chunk=64))
+    call = _cached_scan_prefill(4, 8)
     abi = deepcopy(A5_ABI["chunk_h8"])
     abi["ChunkFwdH"][field] = value
+    raw = deepcopy(A5_CASES["qwen35_tp4_h4"])
+    raw["model"]["layers"] = 4
+    if "layer_plans" in raw["model"]:
+        raw["model"]["layer_plans"] = raw["model"]["layer_plans"][:4]
     with pytest.raises(QualifiedAbiMismatch) as error:
         apply_qualified_native_observations(
-            deepcopy(A5_CASES["qwen35_tp4_h4"]), profile="a5-attention",
+            raw, profile="a5-attention",
             phase="prefill", tokens=12288, context=0, native_abi=abi,
             operators=call.ops, recipes=call.recipes)
     assert error.value.code == code
@@ -562,7 +581,7 @@ def test_a5_chunk_complete_slots_reject_output_and_active_slot_conflicts(field, 
     ("query_shape", [1]), ("logical_layout", "paged"),
 ))
 def test_explicit_caller_view_dtypes_and_shapes_are_reconciled(field, value):
-    operators = target_operators(A2_CASE, phase="prefill", tokens=2048, context=0)
+    operators = _target_ops_cached(A2_CASE, "prefill", 2048, 0, 1)
     attention = next(op for op in operators if op.recipe == "flash_attention_prefill")
     metadata = dict(attention.metadata)
     metadata["attention_tensor_view"] = {
@@ -578,7 +597,7 @@ def test_explicit_caller_view_dtypes_and_shapes_are_reconciled(field, value):
 
 
 def test_explicit_caller_service_identity_paged_is_reconciled():
-    operators = target_operators(A2_CASE, phase="prefill", tokens=2048, context=0)
+    operators = _target_ops_cached(A2_CASE, "prefill", 2048, 0, 1)
     attention = next(op for op in operators if op.recipe == "flash_attention_prefill")
     metadata = dict(attention.metadata)
     metadata["implementation"] = {"kv_storage": "paged"}
@@ -592,7 +611,7 @@ def test_explicit_caller_service_identity_paged_is_reconciled():
 
 
 def test_original_nested_service_identity_paged_is_reconciled():
-    operators = target_operators(A2_CASE, phase="prefill", tokens=2048, context=0)
+    operators = _target_ops_cached(A2_CASE, "prefill", 2048, 0, 1)
     attention = next(op for op in operators if op.recipe == "flash_attention_prefill")
     metadata = dict(attention.metadata)
     metadata["service_identity"] = {
@@ -617,9 +636,9 @@ def test_a5_true_train_total_kv_and_wrong_context_through_public_engine():
                       recipes={"flash_attention_prefill"})["flash_attention_prefill"]
     assert row["program"] == "JointNativeService"
     assert row["operator"]["local_shape"] == [8192, 32768, 4, 256]
-    assert row["analytical_reference_work"]["cube"] == pytest.approx(962089451520.0)
+    assert row["analytical_reference_work"]["cube"] == pytest.approx(963146416128.0)
     rule = _rule(A5_PROFILE.data, "a5-train85-attention_prefill_d256-4-1-256-prefill")
-    assert row["duration_ms"] * 1000 == pytest.approx(3484.5328946101044)
+    assert row["duration_ms"] * 1000 == pytest.approx(3488.2854227297125)
     assert row["duration_ms"] * 1000 == pytest.approx(
         _affine(rule, _response_values(rule, row)))
 

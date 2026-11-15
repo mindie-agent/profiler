@@ -75,14 +75,27 @@ def test_ep_replicas_keep_envelopes_without_adding_parallel_layer_spans(adapter,
         max(r["span_ms"] for r in result["replica_envelopes_ms"]))
 
 
-def test_real_livepre_native_roles_do_not_collapse_into_one_fusion_bucket(adapter):
-    from collections import Counter
-    from mindie_sim import predict
+@pytest.fixture(scope="module")
+def livepre_case():
+    pytest.importorskip("mindie_sim")
+    from mindie_sim.prediction.body import _declared_graphs
+    from mindie_sim.prediction.structure import parse_case
 
     path = (Path(__file__).resolve().parents[1] /
             "examples/structure/cases/decode-glm53flash-a3-tp16-c4-livepre.json")
-    raw = json.loads(path.read_text())
-    result = predict(raw, scope="body", phase="decode", tokens=6,
+    parsed = parse_case(json.loads(path.read_text()))
+    _declared_graphs(
+        parsed, phase="decode", tokens=6, context=4096, sequences=4,
+        scope="body", apply_body_defaults=True, padded_idle=False,
+    )
+    return parsed
+
+
+def test_real_livepre_native_roles_do_not_collapse_into_one_fusion_bucket(adapter, livepre_case):
+    from collections import Counter
+    from mindie_sim import predict
+
+    result = predict(livepre_case, scope="body", phase="decode", tokens=6,
                      sequences=4, context=4096, event_limit=0)
     summary = adapter._scheduled_operators(result["timeline"])
     native = [row for row in result["timeline"] if row.get("fusion_role")]

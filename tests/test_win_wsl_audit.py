@@ -290,3 +290,54 @@ def test_kernel_inventory_invalidates_archive_before_propagating_timeout(
         cost_rows = conn.execute("SELECT COUNT(*) FROM costs").fetchone()[0]
     assert statuses == {"a.csv": "failed", "b.csv": "failed"}
     assert cost_rows == 0
+
+
+def test_atomic_io_purges_recycled_committed_inodes_and_handles_nt_branches(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from mindie_profiler import repro_atomic_io as checked_io
+
+    # 1. Simulate ext4 recycling a deleted CAS file's (st_dev, st_ino) on a fresh O_CREAT|O_EXCL write.
+    recycled_target = tmp_path / "index.json"
+    real_open = os.open
+    seeded_inodes: list[tuple[int, int]] = []
+
+    def open_and_seed_stale_commit(path: object, flags: int, *args: object, **kwargs: object) -> int:
+        fd = real_open(path, flags, *args, **kwargs)
+        if flags & os.O_EXCL:
+            st = os.fstat(fd)
+            stale = (st.st_dev, st.st_ino)
+            seeded_inodes.append(stale)
+            with checked_io._OWNERSHIP_LOCK:
+                checked_io._COMMITTED_INODES.add(stale)
+        return fd
+
+    with monkeypatch.context() as patcher:
+        patcher.setattr(os, "open", open_and_seed_stale_commit)
+        assert checked_io.safe_write_bytes(recycled_target, b'{"v":1}\n') is True
+    assert seeded_inodes
+    assert seeded_inodes[0] not in checked_io._COMMITTED_INODES
+    assert checked_io.safe_write_bytes(recycled_target, b'{"v":2}\n', protected=set(checked_io._COMMITTED_INODES)) is True
+    assert checked_io.read_regular_bytes(recycled_target) == b'{"v":2}\n'
+
+    # 2. Verify Windows (os.name == "nt") branches in _link_nofollow, _anchor_for, and safe_write_bytes.
+    link_kwargs_seen: list[dict[str, object]] = []
+    real_link = os.link
+
+    def recording_link(src: object, dst: object, **kwargs: object) -> None:
+        link_kwargs_seen.append(dict(kwargs))
+        real_link(src, dst, **kwargs)
+
+    with monkeypatch.context() as patcher:
+        patcher.setattr(checked_io, "_IS_WIN", True)
+        patcher.setattr(checked_io, "_WIN_BIN", 0)
+        patcher.setattr(os, "link", recording_link)
+        anchor = checked_io._anchor_for(tmp_path)
+        assert anchor is not None
+        src_f = tmp_path / "nt_src.txt"
+        dst_f = tmp_path / "nt_dst.txt"
+        assert checked_io.safe_write_bytes(src_f, b"nt-bytes") is True
+        assert checked_io.read_regular_bytes(src_f) == b"nt-bytes"
+        checked_io._link_nofollow(src_f, dst_f)
+        assert link_kwargs_seen == [{}]
+        assert dst_f.read_bytes() == b"nt-bytes"

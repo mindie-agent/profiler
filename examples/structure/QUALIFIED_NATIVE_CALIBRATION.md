@@ -1,78 +1,81 @@
-# Explicit qualified A2/A5 native calibration
+# Explicit Opt-In Qualified A2/A5 Native Calibration
 
-`qualified_native_calibration.py` imports two frozen, named calibration profiles
-as **explicit opt-in** responses. The default `observed_native` replay and every
-archived profile keep their prior behavior. No model name, case ID, observed
-duration or file path selects a response.
+`qualified_native_calibration.py` exposes two frozen, named operator calibration profiles as **explicit opt-in** simulation responses. Default `observed_native` replay and all archived profiles preserve their existing behavior; no model name, case ID, observed latency, or file path ever activates these profiles implicitly.
 
-## Profiles
+## Available Profiles
 
-| profile | imported native families | status |
+| Profile ID | Imported Native Operator Families | Status |
 | --- | --- | --- |
-| `a2-fia-dense` | A2 FIA dense continuous-TND KV, W8A8 dense scale-only | qualified/experimental |
-| `a5-attention` | A5 prefill attention D128/D256, GDN `ChunkFwdH` | qualified/experimental |
+| `a2-fia-dense` | A2 `FusedInferAttentionScore` (FIA) dense continuous-TND KV, W8A8 dense scale-only GEMM | `qualified/experimental` |
+| `a5-attention` | A5 prefill attention (`D128` / `D256`), GDN `ChunkFwdH` | `qualified/experimental` |
 
-The A2 profile also records the frozen `fused_gdn_gating_kernel` response as
-**train-only**. It is excluded unless `include_train_only=True`, has zero heldout
-rows, and never becomes a heldout-validated claim. Ordinary Sim's BF16
-`delta_gates` op is not relabelled as the FP32 fused gating kernel; only a
-caller-declared matching gating op can select that recorded rule.
-
-The A5 profile imports exactly the three predeclared priority families. It does
-not import Cast, Transpose, Prepare, ChunkFwdO, causal convolution, or D256
-decode; those remain analytical. No minor role or decode promotion is automatic.
+- **`a2-fia-dense` train-only gating rule**: The A2 profile also records a frozen `fused_gdn_gating_kernel` response marked **train-only** (`0` heldout rows). It remains excluded unless `include_train_only=True` is passed explicitly and is never counted as a heldout-validated rule. Standard `mindie-sim` BF16 `delta_gates` operators are never relabeled as FP32 fused gating kernels; only an explicit caller-declared matching gating operator can select that rule.
+- **`a5-attention` strict family scope**: The A5 profile imports only the three predeclared priority families listed above. `Cast`, `Transpose`, `Prepare`, `ChunkFwdO`, causal convolution, and `D256` decode remain analytical — no auxiliary operator role or decode phase is promoted automatically.
 
 ## Python API
 
-`raw_case` below is the caller's retained raw Sim case; the adapter returns a
-copied case and never mutates the caller's mapping.
+`raw_case` below is the caller's original `mindie-sim` Case mapping; the adapter always returns a shallow/deep copy as needed and never mutates the caller's input dictionary.
 
 ```python
 import json
 import sys
+from pathlib import Path
+
 sys.path.insert(0, "examples/structure")
 from native_observations import predict_body
 
-abi = json.loads(open("tests/fixtures/native_observations/qualified_a2_abi.json").read())
+abi = json.loads(Path("tests/fixtures/native_observations/qualified_a2_abi.json").read_text(encoding="utf-8"))
 prediction = predict_body(
-    raw_case, phase="prefill", tokens=2048, context=0,
+    raw_case,
+    phase="prefill",
+    tokens=2048,
+    context=0,
     qualified=(("a2-fia-dense", abi["prefill"]),),
 )
 ```
 
-The A5 attention arm uses the same opt-in tuple:
+Selecting the A5 attention profile uses the same opt-in tuple convention:
 
 ```python
-a5_abi = json.loads(open(
-    "tests/fixtures/native_observations/qualified_a5_abi.json").read())
-# context is the prior prefix; retained native total KV = 8192 + 24576 = 32768.
+a5_abi = json.loads(Path("tests/fixtures/native_observations/qualified_a5_abi.json").read_text(encoding="utf-8"))
+# `context` is the prior KV prefix; total native KV length = 8192 + 24576 = 32768.
 prediction = predict_body(
-    raw_case, phase="prefill", tokens=8192, context=24576,
+    raw_case,
+    phase="prefill",
+    tokens=8192,
+    context=24576,
     qualified=(("a5-attention", a5_abi["qwen35_tp4_h4"]),),
 )
 ```
 
-`ChunkFwdH` is a complete public GDN callback, so use the existing call builder
-and `graph_costs`; the rules are inserted into a copied case and never overwrite
-the caller's raw:
+Because `ChunkFwdH` is a standalone public GDN callback, invoke it through the call builder and `graph_costs` directly (the adapter injects rules into a copied Case without mutating `raw_case`):
 
 ```python
 import sys
+
 sys.path.insert(0, "examples/structure")
 from mindie_sim.prediction.call_gdn import make_call
 from mindie_sim.prediction.graph_analysis import graph_costs
 from qualified_native_calibration import apply_qualified_native_observations
 
-call = make_call("scan_prefill", dict(batch=1, tokens=12288, k_heads=4,
-                                      v_heads=8, k_dim=128, v_dim=128, chunk=64))
-selected, provenance = apply_qualified_native_observations(
-    raw_case, profile="a5-attention", phase="prefill", tokens=12288, context=0,
-    native_abi=a5_abi["chunk_h8"], operators=call.ops, recipes=call.recipes,
+call = make_call(
+    "scan_prefill",
+    dict(batch=1, tokens=12288, k_heads=4, v_heads=8, k_dim=128, v_dim=128, chunk=64),
 )
-report = graph_costs(selected, call.ops, recipes=call.recipes)
+selected_case, provenance = apply_qualified_native_observations(
+    raw_case,
+    profile="a5-attention",
+    phase="prefill",
+    tokens=12288,
+    context=0,
+    native_abi=a5_abi["chunk_h8"],
+    operators=call.ops,
+    recipes=call.recipes,
+)
+report = graph_costs(selected_case, call.ops, recipes=call.recipes)
 ```
 
-## Runnable CLI
+## Command-Line Entrypoint
 
 ```bash
 python examples/structure/qualified_native_calibration.py \
@@ -88,65 +91,21 @@ python examples/structure/qualified_native_calibration.py \
   --phase prefill --tokens 8192 --context 24576
 ```
 
-The command prints the imported-rule count and the full provenance, including
-matched boundaries, actual ABI hashes, one queue, and the frozen denominators.
-`--include-train-only` is the only way to expose the A2 gating record.
+The CLI prints the imported rule count alongside full provenance metadata (matched operator boundaries, verified ABI SHA256 digests, target service queue name, and frozen validation denominators). Pass `--include-train-only` explicitly if you want to inspect the train-only A2 gating rule.
 
-## Contract and failure semantics
+## Contract & Failure Semantics
 
-- The caller supplies the actual retained ABI, keyed by profile family. The
-  profile validates the complete retained native slot contract: required input
-  slots, explicitly absent optional/undefined slots, output slots, per-slot
-  dtype/layout/shape and geometry relations, plus API, kernel, hardware, known
-  runtime, KV view (continuous TND, dense, non-paged) and control flags. Missing
-  outputs, an unexpectedly active optional input, a bad output dtype/layout/
-  shape, or a conflicting input layout are typed errors, not silent successes.
-  Explicit caller `attention_tensor_view` shapes/dtypes/layouts and
-  `service_identity.implementation` are reconciled with the same retained ABI
-  before projection, so a caller paged or wrong-dtype entity is not overwritten
-  by duplicated profile labels. A malformed profile or disagreeing ABI is a
-  typed `QualifiedCalibrationError` (`QualifiedCalibrationIOError`,
-  `QualifiedProfileError`, `QualifiedAbiMismatch`).
-- A hardware, parallelism, runtime, quantization, sequence or shape state
-  outside the frozen physical domain returns the caller's raw unchanged with
-  `status: not_applicable` and a reason. Ordinary prediction remains available;
-  no heldout or out-of-domain error is hidden.
-- One declared queue (`qualified_native_service` for A2,
-  `native_local_service` for A5) is written only when the caller has not
-  declared a conflicting rate/owner/work unit. The imported rule is a
-  `JointNativeService` replacement on that queue. Sim retains the analytical
-  reference work separately, so the response is never added on top of the
-  analytical schedule (no double charge).
-- Projection is explicit and auditable: the analysis adapter's
-  `metadata.native_abi.*` and related identity selectors are validated against
-  the caller's actual ABI and removed from the ordinary-Sim runtime match.
-  Physical domains, response coefficients, dtype/layout and declared
-  `gqa_*`/head geometry remain in the runtime guards. A2 FIA `kv_rows`/`prefix`
-  coordinates use the declared attention local shape after the exact ABI check.
+- **Full native slot ABI verification**: Callers supply the retained native ABI dictionary keyed by operator family. Before importing any rule, the adapter validates required input slots, explicitly absent optional/undefined slots, output slots, per-slot `dtype` / `layout` / `shape` invariants, geometry relationships, operator API, kernel name, hardware SKU, runtime stack, KV layout (`continuous TND`, dense, non-paged), and control flags. Missing outputs, unexpectedly active optional inputs, mismatched dtypes/layouts/shapes, or disagreements with caller-declared `attention_tensor_view` or `service_identity.implementation` raise typed `QualifiedCalibrationError` subclasses (`QualifiedCalibrationIOError`, `QualifiedProfileError`, `QualifiedAbiMismatch`) rather than silently falling back.
+- **Explicit `not_applicable` outside the frozen physical domain**: Whenever hardware SKU, parallelism, runtime configuration, quantization, sequence count, or tensor shape falls outside a profile's frozen physical domain, the adapter returns a copy of `raw_case` unchanged alongside `status: "not_applicable"` and an explicit reason code so ordinary analytical prediction can proceed without masking out-of-domain misses.
+- **Single replacement service queue (zero double-charging)**: Each profile registers a single service queue (`qualified_native_service` on A2; `native_local_service` on A5) only when the caller has not already declared a conflicting queue definition, installing a `JointNativeService` replacement on that queue while keeping analytical reference work isolated so timings are never double-counted.
+- **Auditable runtime guard projection**: `metadata.native_abi.*` selectors are verified up front against the supplied ABI and stripped before runtime rule matching, while physical domain bounds, response coefficients, dtypes/layouts, and declared `gqa_*` / head geometry guards remain active at evaluation time (A2 FIA `kv_rows` and `prefix` coordinates bind to the declared local attention shape after ABI verification).
 
-## Truthful denominators
+## Retained Heldout Denominators
 
-A2 first heldout: 114 JointNativeService calls, 96 within 10%, 18 Joint
-failures; 6 FIA analytical domain misses and 3 GDR rows unsupported; 120
-numerical rows and 123 admitted rows. Joint WAPE is 4.2732% (4.3461% including
-the six analytical misses), but this is not a universal per-call pass. Gating
-has zero heldout rows and stays train-only.
+- **A2 initial heldout (`123` admitted rows)**: `114` `JointNativeService` calls (`96` within `<= 10%`, `18` joint misses), `6` FIA analytical domain misses, and `3` unsupported GDR rows (`120` numerical rows total). Joint WAPE is `4.2732%` (`4.3461%` including the `6` analytical misses), which does **not** constitute a universal per-call pass. Fused GDN gating has `0` heldout rows and remains `train-only`.
+- **A5 heldout (`87` total rows)**: All `8` predeclared priority domain points pass (`5` chunked attention + `3` `ChunkFwdH` at `T=12288`), while pure-prefill `q=1536` / `q=65536` and `ChunkFwdH` at `T=1536` / `T=49152` were predeclared out of domain. Across the full `87`-row denominator (`54` joint rows, `33` analytical fallback rows), `37/54` joint rows and `39/87` total rows fall within `<= 10%` (overall WAPE `61.0026%`). `D256` decode remains unpromoted (`6/6` heldout within `10%`, but `29/30` in-sample train with `11.312%` max error). No all-family, whole-prefill, whole-GDN, or end-to-end accuracy claim is made.
 
-A5 heldout: 8 priority domain points pass (5 chunked attention + 3 ChunkFwdH
-T12288); pure-prefill q1536/q65536 and H T1536/T49152 were predeclared outside.
-The whole A5 denominator is 87 rows: 54 joint, 33 analytical fallback, 37/54
-joint rows within 10%, 39/87 all rows, weighted absolute error 61.0026%. D256
-decode remains unpromoted (6/6 heldout but TRAIN 29/30, max 11.312%). No
-all-10-family, whole-prefill, whole-GDN or end-to-end accuracy claim follows.
+## Interaction with Prepared Capture Scopes & Cache Identity
 
-## Prepared scope
-
-`predict_body(..., scope=... , qualified=...)` is not a supported combination:
-the qualified request is rejected visibly instead of being silently discarded.
-Ordinary `scope` replay without `qualified` is unchanged.
-
-## Cache identity
-
-`native_observation_identity()` includes
-`qualified_native_calibration.py` and both qualified JSON profiles. Changing any
-of those semantics or data invalidates the retained prediction cache namespace.
+- **Mutually exclusive with `scope=`**: Calling `predict_body(..., scope=..., qualified=...)` raises an explicit error rather than silently dropping `qualified`; ordinary `scope` replay without `qualified` is unaffected.
+- **Automatic cache invalidation**: `native_observation_identity()` hashes `qualified_native_calibration.py` together with both frozen JSON profile files, so any code or coefficient change automatically invalidates prior cached predictions.

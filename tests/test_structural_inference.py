@@ -130,7 +130,7 @@ def test_minimax_m3_fused_megamoe_and_qknorm_rope_cache_composites() -> None:
     assert topo.dense_ffn_layers == 3
     comp_by_name = {c.operator_name: c for c in report.fused_composites}
     assert "MegaMoe" in comp_by_name
-    assert comp_by_name["MegaMoe"].enclosing_subgraph == "moe_subgraph"
+    assert comp_by_name["MegaMoe"].enclosing_subgraph == "routed_experts"
     assert set(comp_by_name["MegaMoe"].constituent_families) == {
         "moe_router",
         "moe_grouped",
@@ -139,7 +139,7 @@ def test_minimax_m3_fused_megamoe_and_qknorm_rope_cache_composites() -> None:
     }
     assert comp_by_name["MegaMoe"].replaces_unfused_families is True
     assert "_minimax_qknorm_rope_cache_kernel" in comp_by_name
-    assert comp_by_name["_minimax_qknorm_rope_cache_kernel"].enclosing_subgraph == "attn_subgraph"
+    assert comp_by_name["_minimax_qknorm_rope_cache_kernel"].enclosing_subgraph == "attention"
     assert set(comp_by_name["_minimax_qknorm_rope_cache_kernel"].constituent_families) == {
         "norm_residual",
         "rope",
@@ -148,7 +148,7 @@ def test_minimax_m3_fused_megamoe_and_qknorm_rope_cache_composites() -> None:
     # Verify MegaMoe was NOT arbitrarily dumped into a single L1 family
     fam, subg, is_comp, fams = classify_canonical_l1_family("MegaMoe", "MegaMoe", "MIX")
     assert fam is None
-    assert subg == "moe_subgraph"
+    assert subg == "routed_experts"
     assert is_comp is True
     assert "moe_grouped" in fams
 def test_unseen_vendor_fused_moe_kernel_inferred_by_structural_complementarity() -> None:
@@ -179,10 +179,10 @@ def test_unseen_vendor_fused_moe_kernel_inferred_by_structural_complementarity()
     assert "FutureNextGenSuperFusedExpertBlockV9" in decisions
     item = decisions["FutureNextGenSuperFusedExpertBlockV9"]
     assert item.inferred_role == "inferred_fused_moe_composite"
-    assert item.inferred_subgraph == "moe_subgraph"
+    assert item.inferred_subgraph == "routed_experts"
     assert "moe_grouped" in item.candidate_families
     assert item.multiplicity_match == "matches_L_moe(58)"
-    assert report.l2_subgraph_us_per_step["moe_subgraph"] >= 58 * 210.0
+    assert report.l2_subgraph_us_per_step["routed_experts"] >= 58 * 210.0
 def test_boundary_anchor_and_launch_suffix_infer_10_steps_of_32() -> None:
     """10 steps x 32 layers must not collapse to the first 20-120 factorization."""
     events = [
@@ -268,7 +268,7 @@ def test_known_multifamily_composites_do_not_fill_a_single_l1_bucket() -> None:
     report = infer_trace_structure(events, explicit_steps=1)
     assert report.l1_family_us_per_step["norm_residual"] == 0
     assert report.l1_family_us_per_step["elementwise_quant"] == 0
-    assert report.l2_subgraph_us_per_step["norm_quant_subgraph"] == pytest.approx(640)
+    assert report.l2_subgraph_us_per_step["layernorm"] == pytest.approx(640)
     assert report.fused_composites[0].operator_name == "AddRmsNormDynamicQuant"
 
 
@@ -378,7 +378,7 @@ def test_family_maps_reject_mutation() -> None:
     with pytest.raises(TypeError):
         report.l1_family_us_per_step["attention"] = -1
     with pytest.raises(TypeError):
-        report.l2_subgraph_us_per_step["attn_subgraph"] = -1
+        report.l2_subgraph_us_per_step["attention"] = -1
 
 
 def test_overlapping_kernels_expose_span_separately_from_activity_sum() -> None:
@@ -497,7 +497,7 @@ def test_minimax_and_target_kernels_are_not_speculative_by_multiplicity() -> Non
 def test_hcpre_and_hcpost_count_toward_hyperconnection_layers() -> None:
     """D5: HcPre/HcPost are hyperconnection, including two launches per layer."""
     family, subgraph, composite, families = classify_canonical_l1_family("HcPre", "HcPre", "AI_VECTOR_CORE")
-    assert family == "hyperconnection" and subgraph == "norm_quant_subgraph" and composite is False
+    assert family == "hyperconnection" and subgraph == "hyper_connection" and composite is False
     assert classify_canonical_l1_family("HcPost", "HcPost", "")[0] == "hyperconnection"
     steps = 2
     events = _repeat_op("SparseFlashMla", "SparseFlashMla", "AI_CORE", 4 * steps, 5.0)
@@ -532,7 +532,7 @@ def test_adds_add_is_elementwise_not_an_indexer() -> None:
         "aclnnAdds_AddAiCore_Add", "Add", "AI_VECTOR_CORE",
     )
     assert family == "elementwise_quant"
-    assert subgraph == "norm_quant_subgraph"
+    assert subgraph == "layernorm"
     assert composite is False
     assert classify_canonical_l1_family("aclnnDsaBlockSparse", "DSA", "AI_CORE")[0] == "indexer"
     events = _repeat_op("aclnnAdds_AddAiCore_Add", "Add", "AI_VECTOR_CORE", 32, 1.0)
@@ -607,10 +607,10 @@ def test_hint_layers_use_combined_attention_not_router_divisibility() -> None:
 
 def test_field_separator_does_not_invent_ssm_and_prep_stays_attention() -> None:
     family, subgraph, composite, families = classify_canonical_l1_family("MlaPreprocess", "MlaPreprocess", "AI_CORE")
-    assert (family, subgraph, composite, families) == ("attention", "attn_subgraph", False, ("attention",))
+    assert (family, subgraph, composite, families) == ("attention", "attention", False, ("attention",))
     assert classify_canonical_l1_family("Compressor", "Compressor", "AI_VECTOR_CORE")[0] == "attention"
     _fam, sub, comp, fams = classify_canonical_l1_family("VendorFlashAttentionRopeCache", "VendorFlashAttentionRopeCache", "AI_CORE")
-    assert comp is True and sub == "attn_subgraph" and "attention" in fams
+    assert comp is True and sub == "attention" and "attention" in fams
     events = _calls("SparseFlashAttention", 399) + _calls("MlaPreprocess", 399)
     topo = infer_trace_structure(events, explicit_steps=133).body_topology
     assert topo.full_attention_layers == 3
@@ -654,7 +654,7 @@ def test_disjoint_attention_sums_and_qkv_is_not_dense_ffn() -> None:
     assert topo.dense_ffn_layers == 0
     gemm = next(op for op in infer_trace_structure(qkv, explicit_steps=1).operators if op.name == "QkvProjectionMatMul")
     assert gemm.canonical_family == "gemm"
-    assert gemm.enclosing_subgraph != "dense_ffn_subgraph"
+    assert gemm.enclosing_subgraph != "mlp"
 
 
 def test_verify_stays_on_target_and_hint_alone_is_not_execution() -> None:
@@ -703,9 +703,9 @@ def test_lmhead_is_gemm_and_unknown_aicpu_stays_unresolved() -> None:
     report = infer_trace_structure(events, explicit_steps=1)
     by_name = {op.name: op for op in report.operators}
     assert by_name["LmHeadMatMul"].canonical_family == "gemm"
-    assert by_name["LmHeadMatMul"].enclosing_subgraph == "dense_ffn_subgraph"
+    assert by_name["LmHeadMatMul"].enclosing_subgraph == "mlp"
     assert by_name["LogitsMatMul"].canonical_family == "gemm"
-    assert by_name["LogitsMatMul"].enclosing_subgraph == "dense_ffn_subgraph"
+    assert by_name["LogitsMatMul"].enclosing_subgraph == "mlp"
     assert by_name["LmHeadMatMul"].structural_scope != "framework_envelope"
     assert by_name["OpaqueCompute"].structural_scope != "framework_envelope"
     assert report.l1_family_us_per_step["gemm"] == pytest.approx(140)
@@ -773,7 +773,7 @@ def test_round3_linear_layers_hints_and_unknown_roles() -> None:
     assert (odd.inferred_steps, odd.total_body_layers, odd.full_attention_layers, odd.linear_attention_layers) == (6, 30, 11, 19)
     assert infer_trace_structure(_calls("MlaPreprocess", 32)).body_topology.total_body_layers == 0
     assert infer_trace_structure(_calls("Compressor", 32), explicit_steps=1).body_topology.full_attention_layers == 0
-    assert "gdn_kda" in classify_canonical_l1_family("VendorRecurrentKdaRopeCache", "VendorRecurrentKdaRopeCache", "AI_CORE")[3]
+    assert "kda_linear_attn" in classify_canonical_l1_family("VendorRecurrentKdaRopeCache", "VendorRecurrentKdaRopeCache", "AI_CORE")[3]
     assert "attention" in classify_canonical_l1_family("VendorFlashMlaRopeCache", "VendorFlashMlaRopeCache", "AI_CORE")[3]
     opaque = _calls("FlashAttention", 32, duration=100) + _calls("MoeGatingTopK", 32, duration=10, core="AI_VECTOR_CORE")
     opaque += _calls("OpaqueCompute", 32, duration=10)
@@ -797,3 +797,40 @@ def test_round3_linear_layers_hints_and_unknown_roles() -> None:
     a5_topo = infer_trace_structure(a5, hint_layers=93).body_topology
     assert (a5_topo.inferred_steps, a5_topo.total_body_layers, a5_topo.full_attention_layers, a5_topo.linear_attention_layers) == (17, 93, 24, 69)
     assert a5_topo.moe_ffn_layers == 92 and a5_topo.dense_ffn_layers == 1
+
+
+@pytest.mark.parametrize(("name", "l1", "l2"), (
+    ("HcPre", "hyperconnection", "hyper_connection"),
+    ("AttnResFwd", "norm_residual", "attn_residual"),
+    ("QuantLightningIndexer", "indexer", "lightning_indexer"),
+    ("FlashMla", "attention", "mla_attention"),
+    ("SparseFlashMla", "attention", "dsa_attention"),
+    ("MlaPrologV3", None, "mla_attention"),
+    ("MhaAttention", "attention", "mha_attention"),
+    ("GqaAttention", "attention", "gqa_attention"),
+    ("MqaAttention", "attention", "mqa_attention"),
+    ("RecurrentKda", "kda_linear_attn", "kda_linear_attn"),
+    ("RecurrentGatedDeltaRule", "gdn_linear_attn", "gdn_linear_attn"),
+    ("MoeGatingTopK", "moe_router", "moe_router"),
+    ("MoeDistributeDispatchV3", "collective", "moe_token_dispatcher"),
+    ("GroupedMatmul", "moe_grouped", "routed_experts"),
+    ("SwiGlu", "activation", "routed_experts"),
+    ("RmsNorm", "norm_residual", "layernorm"),
+))
+def test_l1_l2_cutover_vocabulary(name: str, l1: str | None, l2: str) -> None:
+    family, subgraph, composite, _families = classify_canonical_l1_family(name, name, "AI_CORE")
+    assert subgraph == l2
+    assert composite is (l1 is None)
+    if l1 is not None:
+        assert family == l1
+
+
+@pytest.mark.parametrize(("name", "l2"), (
+    ("SlidingWindowFlashAttention", "swa_attention"),
+    ("CompressedSparseFlashAttention", "csa_attention"),
+    ("SharedCompressFlashAttention", "csa2_attention"),
+    ("HierarchicalFlashAttention", "hca_attention"),
+))
+def test_compressed_attention_flavor_needs_an_explicit_schedule(name: str, l2: str) -> None:
+    assert classify_canonical_l1_family(name, name, "AI_CORE")[1] == l2
+    assert classify_canonical_l1_family("FlashAttention", "FlashAttention", "AI_CORE")[1] == "attention"

@@ -194,12 +194,16 @@ def export_camodel(trace: str | Path, plan: Mapping[str, Any], **budgets: Any) -
 def main(argv: list[str] | None = None) -> int:
     from .__main__ import _emit
 
-    parser = argparse.ArgumentParser(prog="mindie-profiler camodel", allow_abbrev=False)
+    parser = argparse.ArgumentParser(
+        prog="mindie-profiler camodel",
+        description="Extract active micro-stage interval unions from an offline CAModel Chrome trace.",
+        allow_abbrev=False,
+    )
     parser.add_argument("--trace", required=True, help="CAModel trace.json or exported Chrome trace")
     parser.add_argument("--plan", required=True, help="explicit context, timestamp unit and stage invocations JSON")
     parser.add_argument("--output", default=None, help="write stage durations for mindie-sim pipeline")
-    parser.add_argument("--max-intervals", type=int, default=200_000)
-    parser.add_argument("--timeout-s", type=float, default=30.0)
+    parser.add_argument("--max-intervals", type=int, default=200_000, help="maximum selected instruction intervals retained (default: 200000)")
+    parser.add_argument("--timeout-s", type=float, default=30.0, help="streaming trace scan deadline in seconds (default: 30.0)")
     args = parser.parse_args(argv)
     plan_path = Path(args.plan)
     if plan_path.stat().st_size > 1024 * 1024:

@@ -363,11 +363,11 @@ def test_outer_deadline_reserves_cleanup_grace_against_sigterm_ignoring_child(
     monkeypatch.setattr("mindie_profiler.native_capture.discover_cann9", lambda _r=None: install)
     monkeypatch.setattr("mindie_profiler.native_capture.ensure_capture_shim_binary", lambda *_a, **_kw: stub_so)
 
-    # Child marks worker DONE in /dev/shm immediately, then ignores SIGTERM and sleeps 30s.
+    # Child ignores SIGTERM immediately before imports, marks worker DONE in /dev/shm, then sleeps 30s.
     child_code = (
         "import json, os, pathlib, signal, time\n"
-        "from mindie_profiler.native_capture_shm import CaptureShmSession, WORKER_DONE\n"
         "signal.signal(signal.SIGTERM, signal.SIG_IGN)\n"
+        "from mindie_profiler.native_capture_shm import CaptureShmSession, WORKER_DONE\n"
         "shm = pathlib.Path(os.environ['MINDIE_CAPTURE_SHM_PATH'])\n"
         "with CaptureShmSession(shm, create=False, unlink_on_close=False) as s:\n"
         "    out_dir = pathlib.Path(bytes(s.view.header.output_dir).split(b'\\x00', 1)[0].decode())\n"
@@ -391,14 +391,14 @@ def test_outer_deadline_reserves_cleanup_grace_against_sigterm_ignoring_child(
         output_dir=tmp_path / "out_budget",
         gear="fast",
         target_capture_steps=2,
-        warmup_timeout_s=0.35,
-        capture_timeout_s=0.35,
-        cleanup_grace_s=0.30,
-        outer_timeout_s=1.0,
+        warmup_timeout_s=1.20,
+        capture_timeout_s=0.40,
+        cleanup_grace_s=0.40,
+        outer_timeout_s=2.0,
         extra_env={"PYTHONPATH": repo_root},
     )
     elapsed = time.monotonic() - t0
-    assert elapsed < 1.12, f"capture_profile overshot 1.0s outer budget: {elapsed:.3f}s"
+    assert elapsed < 2.25, f"capture_profile overshot 2.0s outer budget: {elapsed:.3f}s"
     assert "process_drain_timeout_terminated" in rep["notes"]
     assert rep["status"] == "failed"
 

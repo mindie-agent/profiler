@@ -5,6 +5,7 @@ missing-field and contradictory-declaration controls. No timing chooses a bucket
 """
 from copy import deepcopy
 from dataclasses import replace
+from functools import lru_cache
 import json
 from pathlib import Path
 
@@ -30,12 +31,21 @@ def declared(request):
     return request.param, case, structure.export_structure(case, phase="prefill", tokens=tokens)
 
 
+@lru_cache(maxsize=None)
 def captured(key):
     path = (FIXTURES / "attention_cache_contracts/a3_deepseek_v4f_compressed.csv"
             if key == "v4f" else FIXTURES / "fusion_contracts/a3_v4pro.csv")
-    rows = [row for row in kernel_rows(path, rank_id="rank_0", rank_index=0)
-            if row.kind == "SparseAttnSharedkv" and row.input_shapes[2]]
+    rows = tuple(row for row in kernel_rows(path, rank_id="rank_0", rank_index=0)
+                 if row.kind == "SparseAttnSharedkv" and row.input_shapes[2])
     return path, rows
+
+
+@lru_cache(maxsize=None)
+def _compressor_events(key):
+    path = FIXTURES / "fusion_contracts" / f"a3_{key}.csv"
+    events = tuple(row.event for row in kernel_rows(path, rank_id="rank_0", rank_index=0)
+                   if row.kind == "Compressor")
+    return path, events
 
 
 def observation(path, events):
@@ -83,14 +93,22 @@ def test_real_index_presence_splits_physical_candidates_once_without_layer_bindi
         assert mapped["node_ids"] == []
 
 
+def _clone_nodes(structure, predicate):
+    nodes = [deepcopy(node) if predicate(node) else node for node in structure["nodes"]]
+    return {**structure, "nodes": nodes}
+
+
 def test_real_topk_descriptor_rejects_alternative_with_same_active_contract(declared):
     key, _, structure = declared
     path, rows = captured(key)
     row = next(row for row in rows if row.input_shapes[4])
-    changed = deepcopy(structure)
-    targets = [node for node in changed["nodes"]
-               if node["structure"].get("indexer") and node.get("contract")
-               and node["contract"][:2] == ["sparse_attention_active", "SparseAttnSharedkv"]]
+    is_target = lambda node: (
+        node["structure"].get("indexer") and node.get("contract")
+        and node["contract"][:2] == ["sparse_attention_active", "SparseAttnSharedkv"]
+    )
+    first_match = next(node["node_id"] for node in structure["nodes"] if is_target(node))
+    changed = _clone_nodes(structure, lambda node: node["node_id"] == first_match)
+    targets = [node for node in changed["nodes"] if is_target(node)]
     wrong = targets[0]
     # Independently declared alternative top-k changes physical work while the
     # older active contract intentionally remains identical.
@@ -128,11 +146,12 @@ def test_unknown_declared_index_interface_is_retained_instead_of_guessing_a_buck
     key, _, structure = declared
     path, rows = captured(key)
     row = next(row for row in rows if row.input_shapes[4])
-    changed = deepcopy(structure)
-    unknown = next(node for node in changed["nodes"]
-                   if node["structure"].get("compress_ratio") == 128
-                   and node.get("contract")
-                   and node["contract"][:2] == ["sparse_attention_active", "SparseAttnSharedkv"])
+    target_id = next(node["node_id"] for node in structure["nodes"]
+                     if node["structure"].get("compress_ratio") == 128
+                     and node.get("contract")
+                     and node["contract"][:2] == ["sparse_attention_active", "SparseAttnSharedkv"])
+    changed = _clone_nodes(structure, lambda node: node["node_id"] == target_id)
+    unknown = next(node for node in changed["nodes"] if node["node_id"] == target_id)
     unknown["structure"].pop("indexer")
     report = map_structure([observation(path, [row.event])], seal(changed))
     mapped = report["event_mappings"][0]
@@ -147,7 +166,10 @@ def test_wrong_declared_topk_reports_descriptor_mismatch_without_reusing_other_b
     key, _, structure = declared
     path, rows = captured(key)
     row = next(row for row in rows if row.input_shapes[4])
-    changed = deepcopy(structure)
+    changed = _clone_nodes(
+        structure,
+        lambda node: bool(node.get("operator", {}).get("metadata", {}).get("indexed_attention_geometry")),
+    )
     for node in changed["nodes"]:
         geometry = node.get("operator", {}).get("metadata", {}).get("indexed_attention_geometry")
         if geometry:
@@ -179,10 +201,8 @@ def test_incompatible_explicit_layer_annotation_cannot_override_native_index_int
 
 def test_compressor_precision_mismatch_remains_visible_despite_matching_ratio(declared):
     key, _, structure = declared
-    path = FIXTURES / "fusion_contracts" / f"a3_{key}.csv"
-    events = [row.event for row in kernel_rows(path, rank_id="rank_0", rank_index=0)
-              if row.kind == "Compressor"]
-    report = map_structure([observation(path, events)], structure)
+    path, events = _compressor_events(key)
+    report = map_structure([observation(path, list(events))], structure)
     window = report["windows"][0]
     assert window["cohorts"] == []
     assert window["operators"][0]["cohort_excluded_event_counts"] == {

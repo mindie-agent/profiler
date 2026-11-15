@@ -21,12 +21,9 @@ from .accounting import merge_intervals
 from .events import ProfilerUsageError
 from .structure_cohorts import CohortAccumulator
 from .structure_native_calls import (
-    NativeCallGlobalTracker,
-    NativeCallWindowTracker,
-    OperatorCorrespondenceAccumulator,
-    conflicted_comm_raw_identities,
-    resolve_implementation_correspondence,
-    verify_graph_id,
+    NativeCallGlobalTracker, NativeCallWindowTracker, OperatorCorrespondenceAccumulator,
+    _seal_digest, _snapshot_structure_carrier, conflicted_comm_raw_identities,
+    resolve_implementation_correspondence, verify_and_snapshot_structure, verify_graph_id,
 )
 from .structure_subgraphs import StructureTargets
 
@@ -34,7 +31,7 @@ SCHEMA = "mindie-profile-structure-mapping/1"
 MAX_METADATA_BYTES = 32 * 1024 * 1024
 
 
-def read_metadata(value, schema):
+def _read_raw_mapping(value, schema):
     if isinstance(value, (str, Path)):
         path = Path(value)
         if path.stat().st_size > MAX_METADATA_BYTES:
@@ -44,7 +41,14 @@ def read_metadata(value, schema):
                 value = json.load(stream)
         except (ValueError, UnicodeError) as exc:
             raise ProfilerUsageError(f"{path}: invalid structure metadata: {exc}") from exc
-    if not isinstance(value, Mapping) or value.get("schema_version") != schema:
+    if not isinstance(value, Mapping):
+        raise ProfilerUsageError(f"expected {schema} metadata")
+    return value
+
+
+def read_metadata(value, schema):
+    value = _snapshot_structure_carrier(_read_raw_mapping(value, schema), "structure metadata")
+    if value.get("schema_version") != schema:
         raise ProfilerUsageError(f"expected {schema} metadata")
     return value
 
@@ -142,47 +146,47 @@ def _shared_kv_candidates(row, contract, candidates, targets):
     }
 
 
+_TARGET_CACHE: dict[tuple[str, int], tuple[dict[str, Any], StructureTargets, dict[Any, tuple[str, ...]]]] = {}
+
+
 class StructureMapper:
     def __init__(self, structure, *, bindings=None, correlations=None,
                  mapping_limit=200, max_events=100_000, phase=None, module_evidence=None):
-        self.structure = read_metadata(structure, "mindie-model-structure/1")
-        self.graph_id = _verify_graph_id(self.structure)
+        self.structure, self.graph_id = verify_and_snapshot_structure(
+            _read_raw_mapping(structure, "mindie-model-structure/1"), "mindie-model-structure/1")
         self.phase = phase
         declared_phase = self.structure.get("execution", {}).get("phase")
         if phase is not None and declared_phase != str(phase).strip().lower():
-            raise ProfilerUsageError(
-                f"scene phase {phase!r} does not match structure phase {declared_phase!r}")
-        self.nodes = {}
-        for node in self.structure.get("nodes", ()):
-            node_id = node.get("node_id")
-            if not node_id or node_id in self.nodes:
-                raise ProfilerUsageError(f"structure node_id missing or duplicated: {node_id}")
-            self.nodes[node_id] = node
-        if not self.nodes:
-            raise ProfilerUsageError("structure has no nodes")
-        self.target_index = StructureTargets(
-            self.nodes,
-            self.structure.get("subgraphs", ()),
-            self.structure.get("native_calls"),
-        )
-        self.targets = self.target_index.all
-        self.subgraphs = self.target_index.subgraphs
-        self.contracts = defaultdict(list)
-        for target_id, target in self.targets.items():
-            if target.get("contract") is not None and target.get("event_matchable", True):
-                self.contracts[_freeze(target["contract"])].append(target_id)
+            raise ProfilerUsageError(f"scene phase {phase!r} does not match structure phase {declared_phase!r}")
+        tkey = (self.graph_id, id(self.structure))
+        if tkey in _TARGET_CACHE:
+            c_nodes, self.target_index, c_contracts = _TARGET_CACHE[tkey]
+            self.nodes, self.contracts = dict(c_nodes), defaultdict(list, {k: list(v) for k, v in c_contracts.items()})
+        else:
+            self.nodes = {}
+            for node in self.structure.get("nodes", ()):
+                node_id = node.get("node_id")
+                if not node_id or node_id in self.nodes:
+                    raise ProfilerUsageError(f"structure node_id missing or duplicated: {node_id}")
+                self.nodes[node_id] = node
+            if not self.nodes:
+                raise ProfilerUsageError("structure has no nodes")
+            self.target_index = StructureTargets(
+                self.nodes, self.structure.get("subgraphs", ()), self.structure.get("native_calls"), _validated=True)
+            self.contracts = defaultdict(list)
+            for target_id, target in self.target_index.all.items():
+                if target.get("contract") is not None and target.get("event_matchable", True):
+                    self.contracts[_freeze(target["contract"])].append(target_id)
+            if len(_TARGET_CACHE) >= (1 << 2) << 1:
+                _TARGET_CACHE.clear()
+            _TARGET_CACHE[tkey] = (dict(self.nodes), self.target_index, {k: tuple(v) for k, v in self.contracts.items()})
+        self.targets, self.subgraphs = self.target_index.all, self.target_index.subgraphs
         if mapping_limit < 0 or max_events <= 0:
             raise ProfilerUsageError("mapping_limit must be nonnegative and max_mapping_events positive")
-        self.mapping_limit = mapping_limit
-        self.max_events = max_events
-        self.examined = 0
-        self.sample = []
-        self.statuses = Counter()
-        self.reasons = Counter()
-        self.diagnostic_counts = Counter()
-        self.diagnostics = {}
-        self.implementation_correspondences = {}
-        self._correspondence_targets = {}
+        self.mapping_limit, self.max_events = mapping_limit, max_events
+        self.examined, self.sample = 0, []
+        self.statuses, self.reasons, self.diagnostic_counts = Counter(), Counter(), Counter()
+        self.diagnostics, self.implementation_correspondences, self._correspondence_targets = {}, {}, {}
         self.native_tracker = NativeCallGlobalTracker(max_active=self.max_events)
         self.explicit = {}
         self.host_scopes = defaultdict(set)

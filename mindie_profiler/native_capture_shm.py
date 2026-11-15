@@ -234,6 +234,7 @@ class PipeTailDrainer:
                         del buf[:-cap]
         except TimeoutError as exc:
             self._errors.append(exc)
+            raise
         except OSError:
             pass
         finally:
@@ -241,6 +242,7 @@ class PipeTailDrainer:
                 pipe.close()
             except TimeoutError as exc:
                 self._errors.append(exc)
+                raise
             except OSError:
                 pass
 
@@ -421,6 +423,9 @@ class CaptureShmSession:
             raise ProfilerUsageError(
                 f"capture session already exists at {path}; attach with --attach or choose a distinct session_id"
             ) from exc
+        except TimeoutError:
+            self._release_controller_lock(unlink=False)
+            raise
         except OSError as exc:
             self._release_controller_lock(unlink=False)
             raise ProfilerError(f"cannot open capture shm {path}: {exc}") from exc

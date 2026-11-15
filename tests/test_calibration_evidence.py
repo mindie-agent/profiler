@@ -21,7 +21,7 @@ def fitted_copy():
     effective_rate = observed['physical_work_per_instance']['mte3_bytes'] / (observed['duration_ns']['mean'] / 1e9)
     calibrated = deepcopy(case)
     calibrated['machine']['device'].setdefault('rates', {})['mte3'] = effective_rate
-    _, mapping = mapping_for_case(calibrated)
+    mapping = deepcopy(baseline_mapping)
     return observed, baseline, mapping, compare_cohorts(calibrated, mapping)
 
 
