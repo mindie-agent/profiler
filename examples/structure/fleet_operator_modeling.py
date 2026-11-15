@@ -1110,14 +1110,14 @@ def _operator_groups_from_ledger(rows: Sequence[Mapping[str, Any]]) -> tuple[lis
     return groups, "source_bound_op_engine"
 
 
-def _graph_once(case: Mapping[str, Any], phase: str, tokens: int, context: int,
-                sequences: int | Sequence[int]) -> dict[str, Any]:
+def _graph_once(case: Any, phase: str, tokens: int, context: int,
+                sequences: int | Sequence[int], *, _sha: str | None = None) -> dict[str, Any]:
     from mindie_sim.prediction.body import body_forward
     from mindie_sim.schema.common import ModelingError
 
     # Same sku, phase, and token geometry is one body. A different context is not grouped.
     sequence_key = tuple(sequences) if isinstance(sequences, (list, tuple)) else sequences
-    equivalence = (_structural_sha(case), phase, tokens, context, sequence_key)
+    equivalence = (_sha or _structural_sha(case), phase, tokens, context, sequence_key)
     cached = _STEP_EQUIVALENCE.get(equivalence)
     if cached is not None:
         return dict(cached)
@@ -1951,87 +1951,89 @@ def _price_probe(probe: Mapping[str, Any], cfg: Mapping[str, Any]) -> dict[str, 
     key = _cache_key(probe, steps)
     cached = _GRAPH_CACHE.get(key)
     body_sequences = probe.get("body_sequences")
+    probe_sha = str(probe.get("structural_sha256") or "") or None
     if cached is None:
-        span = 0.0
-        elapsed = 0.0
-        events = 0
-        maps = _blank_maps()
-        resources: list[dict[str, Any]] = []
-        graph_geometry = None
-        chunk_rows: list[dict[str, Any]] = []
-        # Distinct windows stay separate rows. Chunk index keeps a later window
-        # from being added into an earlier rank's count.
-        additive_rows: list[dict[str, Any]] = []
-        body_sequences = probe.get("body_sequences")
-        for index, (tokens, context, sequences) in enumerate(steps):
-            query_sequences = body_sequences if body_sequences is not None else sequences
-            once = _graph_once(probe["case"], probe["phase"], tokens, context, query_sequences)
-            if not once.get("ok"):
-                return {
-                    **base, "status": once.get("status") or "model_rejected",
-                    "predicted_step_ms": None, "predicted_operator_ms": None,
-                    "diagnostics": list(probe["diagnostics"]) + list(once.get("diagnostics") or []),
-                    "geometry": {
-                        "phase": probe["phase"], "tokens_per_sequence": probe["tokens"],
-                        "sequences_per_replica": probe["sequences"], "context_tokens": probe["context"],
-                        "sequences_by_replica": body_sequences,
-                        "physical_rank": probe.get("physical_rank"),
-                        "idle_physical_rank": probe.get("idle_physical_rank"),
-                        "measurement_role": probe.get("measurement_role"),
-                        "context_source": probe["context_source"], **probe["parallel"],
-                    },
-                    "coverage": {"modeled": False, "chunks_attempted": len(steps)},
-                }
-            span += float(once["body_forward_ms"])
-            elapsed += float(once["family_elapsed_ms"])
-            events += int(once["operator_events"])
-            for kind in ("scope", "canonical", "benchmark", "unified"):
-                source = once[{"scope": "by_scope_ms", "canonical": "by_canonical_ms", "benchmark": "by_benchmark_ms", "unified": "by_unified_ms"}[kind]]
-                for name, value in source.items():
-                    maps[kind][name] = maps[kind].get(name, 0.0) + float(value)
-            resources.extend(once["resources"])
-            for row in once.get("additive_rows") or ():
-                if isinstance(row, Mapping):
-                    copied = dict(row)
-                    copied["chunk_index"] = index
-                    additive_rows.append(copied)
-            graph_geometry = once.get("engine_query")
-            chunk_rows.append({
-                "chunk_index": index,
-                "phase": probe["phase"],
-                "tokens_per_sequence": tokens,
-                "context_tokens": context,
-                "sequences_per_replica": sequences,
-                "boundary_ms": round(float(once["body_forward_ms"]), 9),
-                "family_elapsed_ms": round(float(once["family_elapsed_ms"]), 9),
-                "boundary": "body_graph_span",
-                "boundary_basis": "elapsed",
-                "cohort": (once.get("engine_query") or {}).get("sequences_by_replica"),
-            })
-        absent = [name for name, value in maps["canonical"].items() if value == 0.0]
-        cached = {
-            "predicted_step_ms": round(span, 9),
-            "predicted_operator_ms": round(elapsed, 9),
-            "predicted_by_scope_ms": _round_map(maps["scope"]),
-            "predicted_by_canonical_family_ms": _round_map(maps["canonical"]),
-            "predicted_by_family_ms": _round_map(maps["benchmark"]),
-            "predicted_by_unified_family_ms": _round_map(maps["unified"]),
-            "resources": resources,
-            "graph_geometry": graph_geometry,
-            "operator_events": events,
-            "absent_canonical_families": absent,
-            "chunks": len(steps),
-            "chunk_rows": chunk_rows,
-            "engine_query": graph_geometry,
-            "additive_rows": additive_rows,
-        }
-        core_pub = _core_publication(additive_rows, elapsed)
-        identity = _identity_totals(additive_rows)
-        cached["predicted_by_core_ms"] = core_pub["predicted_by_core_ms"]
-        cached["cores_unnamed_by_engine"] = list(core_pub["cores_unnamed_by_engine"])
-        cached["core_publication"] = core_pub
-        cached["identity_totals"] = identity
-        _GRAPH_CACHE[key] = cached
+        with _async_decode_populations(probe, steps, probe_sha):
+            span = 0.0
+            elapsed = 0.0
+            events = 0
+            maps = _blank_maps()
+            resources: list[dict[str, Any]] = []
+            graph_geometry = None
+            chunk_rows: list[dict[str, Any]] = []
+            # Distinct windows stay separate rows. Chunk index keeps a later window
+            # from being added into an earlier rank's count.
+            additive_rows: list[dict[str, Any]] = []
+            body_sequences = probe.get("body_sequences")
+            for index, (tokens, context, sequences) in enumerate(steps):
+                query_sequences = body_sequences if body_sequences is not None else sequences
+                once = _graph_once(probe["case"], probe["phase"], tokens, context, query_sequences, _sha=probe_sha)
+                if not once.get("ok"):
+                    return {
+                        **base, "status": once.get("status") or "model_rejected",
+                        "predicted_step_ms": None, "predicted_operator_ms": None,
+                        "diagnostics": list(probe["diagnostics"]) + list(once.get("diagnostics") or []),
+                        "geometry": {
+                            "phase": probe["phase"], "tokens_per_sequence": probe["tokens"],
+                            "sequences_per_replica": probe["sequences"], "context_tokens": probe["context"],
+                            "sequences_by_replica": body_sequences,
+                            "physical_rank": probe.get("physical_rank"),
+                            "idle_physical_rank": probe.get("idle_physical_rank"),
+                            "measurement_role": probe.get("measurement_role"),
+                            "context_source": probe["context_source"], **probe["parallel"],
+                        },
+                        "coverage": {"modeled": False, "chunks_attempted": len(steps)},
+                    }
+                span += float(once["body_forward_ms"])
+                elapsed += float(once["family_elapsed_ms"])
+                events += int(once["operator_events"])
+                for kind in ("scope", "canonical", "benchmark", "unified"):
+                    source = once[{"scope": "by_scope_ms", "canonical": "by_canonical_ms", "benchmark": "by_benchmark_ms", "unified": "by_unified_ms"}[kind]]
+                    for name, value in source.items():
+                        maps[kind][name] = maps[kind].get(name, 0.0) + float(value)
+                resources.extend(once["resources"])
+                for row in once.get("additive_rows") or ():
+                    if isinstance(row, Mapping):
+                        copied = dict(row)
+                        copied["chunk_index"] = index
+                        additive_rows.append(copied)
+                graph_geometry = once.get("engine_query")
+                chunk_rows.append({
+                    "chunk_index": index,
+                    "phase": probe["phase"],
+                    "tokens_per_sequence": tokens,
+                    "context_tokens": context,
+                    "sequences_per_replica": sequences,
+                    "boundary_ms": round(float(once["body_forward_ms"]), 9),
+                    "family_elapsed_ms": round(float(once["family_elapsed_ms"]), 9),
+                    "boundary": "body_graph_span",
+                    "boundary_basis": "elapsed",
+                    "cohort": (once.get("engine_query") or {}).get("sequences_by_replica"),
+                })
+            absent = [name for name, value in maps["canonical"].items() if value == 0.0]
+            cached = {
+                "predicted_step_ms": round(span, 9),
+                "predicted_operator_ms": round(elapsed, 9),
+                "predicted_by_scope_ms": _round_map(maps["scope"]),
+                "predicted_by_canonical_family_ms": _round_map(maps["canonical"]),
+                "predicted_by_family_ms": _round_map(maps["benchmark"]),
+                "predicted_by_unified_family_ms": _round_map(maps["unified"]),
+                "resources": resources,
+                "graph_geometry": graph_geometry,
+                "operator_events": events,
+                "absent_canonical_families": absent,
+                "chunks": len(steps),
+                "chunk_rows": chunk_rows,
+                "engine_query": graph_geometry,
+                "additive_rows": additive_rows,
+            }
+            core_pub = _core_publication(additive_rows, elapsed)
+            identity = _identity_totals(additive_rows)
+            cached["predicted_by_core_ms"] = core_pub["predicted_by_core_ms"]
+            cached["cores_unnamed_by_engine"] = list(core_pub["cores_unnamed_by_engine"])
+            cached["core_publication"] = core_pub
+            cached["identity_totals"] = identity
+            _GRAPH_CACHE[key] = cached
     absent = list(cached["absent_canonical_families"])
     forecasts = _population_forecasts(probe, cached)
     boundary = _elapsed_boundary(probe, cached, forecasts)
@@ -2319,8 +2321,9 @@ def _population_forecasts(probe: Mapping[str, Any], primary: Mapping[str, Any]) 
             span = 0.0
             query = None
             failed = None
+            probe_sha = str(probe.get("structural_sha256") or "") or None
             for step_tokens, step_context, step_sequences in steps:
-                once = _graph_once(probe["case"], probe["phase"], step_tokens, step_context, step_sequences)
+                once = _graph_once(probe["case"], probe["phase"], step_tokens, step_context, step_sequences, _sha=probe_sha)
                 if not once.get("ok"):
                     failed = once
                     break
@@ -2640,3 +2643,133 @@ def enrich_all_fleet_captures(rows: Sequence[Mapping[str, Any]]) -> list[dict[st
 def _infer_geometry(row: Mapping[str, Any]) -> dict[str, Any]:
     """Return declared geometry fields. Capture-id text is not a geometry source."""
     return _declared_geometry(row.get("geometry") if isinstance(row, Mapping) else None)
+
+
+from contextlib import contextmanager
+
+
+@contextmanager
+def _async_decode_populations(
+    probe: Mapping[str, Any],
+    steps: Sequence[tuple[int, int, int]],
+    probe_sha: str | None,
+):
+    """Overlap secondary decode receipt populations with the primary body evaluation."""
+    import os
+    import pickle
+    import subprocess
+    import sys
+    import tempfile
+
+    if os.environ.get("_MINDIE_FOM_WORKER") == "1" or probe.get("phase") != "decode":
+        yield
+        return
+    populations = list(probe.get("populations") or [])
+    if not (2 <= len(populations) <= 8):
+        yield
+        return
+    case = probe.get("case")
+    if not isinstance(case, Mapping):
+        yield
+        return
+    model = case.get("model") if isinstance(case.get("model"), Mapping) else {}
+    layers = model.get("layers")
+    if isinstance(layers, int) and layers < 16:
+        yield
+        return
+    primary_key = _cache_key(probe, steps)
+    pending: list[tuple[tuple[Any, ...], list[tuple[int, int, int]]]] = []
+    seen_keys = {primary_key}
+    for item in populations:
+        seq = item.get("sequences_per_replica")
+        tok = item.get("tokens_per_sequence")
+        if not isinstance(seq, int) or not isinstance(tok, int) or seq < 1 or tok < 1:
+            continue
+        sub = {**probe, "sequences": seq, "tokens": tok}
+        sub_steps = _chunk_plan(sub)
+        if isinstance(sub_steps, dict):
+            continue
+        sub_key = _cache_key(sub, sub_steps)
+        if sub_key not in _GRAPH_CACHE and sub_key not in _POPULATION_STEP_CACHE and sub_key not in seen_keys:
+            seen_keys.add(sub_key)
+            pending.append((sub_key, list(sub_steps)))
+    if len(pending) < 2:
+        yield
+        return
+    n_workers = min(len(pending), 3)
+    with tempfile.TemporaryDirectory(prefix="fom_pop_") as tmp:
+        tmp_dir = Path(tmp)
+        from mindie_sim.prediction.structure import parse_case
+        parsed_case = parse_case(dict(case))
+        if sys.platform.startswith("linux") and hasattr(os, "fork"):
+            import signal
+            import time
+            pids: list[tuple[int, Path]] = []
+            try:
+                for idx in range(n_workers):
+                    out_path = tmp_dir / f"out_{idx}.pkl"
+                    pid = os.fork()
+                    if pid == 0:
+                        try:
+                            from _population_worker import run_slice
+                            out_path.write_bytes(pickle.dumps(run_slice(parsed_case, pending, idx, n_workers)))
+                        except BaseException:
+                            os._exit(1)
+                        os._exit(0)
+                    pids.append((pid, out_path))
+                yield
+                deadline = time.monotonic() + 90.0
+                for pid, out_path in pids:
+                    while True:
+                        wpid, status = os.waitpid(pid, os.WNOHANG)
+                        if wpid == pid:
+                            break
+                        if time.monotonic() >= deadline:
+                            raise TimeoutError("decode_population_worker_timeout")
+                        time.sleep(0.01)
+                    if os.WIFEXITED(status) and os.WEXITSTATUS(status) == 0 and out_path.is_file():
+                        for sub_key, pop_entry in pickle.loads(out_path.read_bytes()):
+                            _POPULATION_STEP_CACHE[sub_key] = pop_entry
+            finally:
+                for pid, _out_path in pids:
+                    try:
+                        wpid, _ = os.waitpid(pid, os.WNOHANG)
+                        if wpid == 0:
+                            os.kill(pid, signal.SIGKILL)
+                            os.waitpid(pid, 0)
+                    except ChildProcessError:
+                        pass
+            return
+        req_path = tmp_dir / "req.pkl"
+        req_path.write_bytes(pickle.dumps((parsed_case, pending)))
+        env = {**os.environ, "_MINDIE_FOM_WORKER": "1", "PYTHONDONTWRITEBYTECODE": "1"}
+        procs: list[tuple[subprocess.Popen[str], Path]] = []
+        try:
+            for idx in range(n_workers):
+                out_path = tmp_dir / f"out_{idx}.pkl"
+                proc = subprocess.Popen(
+                    [
+                        sys.executable, "-B", str(_STRUCT_DIR / "_population_worker.py"),
+                        str(req_path), str(out_path), str(idx), str(n_workers),
+                    ],
+                    stdin=subprocess.DEVNULL,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    env=env,
+                )
+                procs.append((proc, out_path))
+            yield
+            for proc, out_path in procs:
+                try:
+                    proc.communicate(timeout=90)
+                except subprocess.TimeoutExpired as exc:
+                    raise TimeoutError("decode_population_worker_timeout") from exc
+                if proc.returncode == 0 and out_path.is_file():
+                    for sub_key, pop_entry in pickle.loads(out_path.read_bytes()):
+                        _POPULATION_STEP_CACHE[sub_key] = pop_entry
+        finally:
+            for proc, _out_path in procs:
+                if proc.poll() is None:
+                    proc.kill()
+                    proc.wait()

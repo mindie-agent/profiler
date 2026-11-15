@@ -19,6 +19,7 @@ from __future__ import annotations
 
 from collections import Counter
 from copy import deepcopy
+from functools import lru_cache
 from hashlib import sha256
 import json
 from pathlib import Path
@@ -59,8 +60,9 @@ def _flatten_match(match: dict) -> dict:
     return flat
 
 
-def _read_profile(path: Path, *, flatten_rules: bool = False) -> tuple[dict, dict]:
-    data = path.read_bytes()
+@lru_cache(maxsize=8)
+def _read_profile_cached(resolved: str, mtime_ns: int, size: int, flatten_rules: bool) -> tuple[dict, dict]:
+    data = Path(resolved).read_bytes()
     profile = json.loads(data)
     if profile["schema_version"] != "mindie-profiler-native-observation-profile/1":
         raise ValueError("unsupported_native_observation_profile")
@@ -69,8 +71,19 @@ def _read_profile(path: Path, *, flatten_rules: bool = False) -> tuple[dict, dic
             {**rule, "match": _flatten_match(rule["match"])}
             for rule in profile["rules"]]
     RegimePolicy(profile["rules"])
-    return profile, {"id": profile["id"], "path": str(path.resolve()),
+    return profile, {"id": profile["id"], "path": resolved,
                      "sha256": sha256(data).hexdigest()}
+
+
+def _read_profile(path: Path, *, flatten_rules: bool = False) -> tuple[dict, dict]:
+    resolved = path.resolve()
+    stat = resolved.stat()
+    profile, identity = _read_profile_cached(
+        str(resolved), stat.st_mtime_ns, stat.st_size, flatten_rules)
+    return deepcopy(profile), dict(identity)
+
+
+_BOUNDARY_CACHE: dict[tuple, tuple[set[str], Counter, dict | None, set[str]]] = {}
 
 
 def _physical_contract(case) -> dict:
@@ -202,24 +215,37 @@ def apply_a5_native_observations(
         return miss("declared_caller_condition_outside_observed_domain")
 
     rules = profile["rules"]
-    execution = Execution(case, CostModel(case), include_submission=False)
     recipes = {rule["match"]["recipe"] for rule in rules}
-    hits = Counter()
-    seen = set()
-    for op in target_operators(raw, phase=phase, tokens=tokens, context=context, sequences=sequences):
-        if op.recipe not in recipes:
-            continue
-        seen.add(op.recipe)
-        axes = _operator_axes(execution, op)
-        matches = [rule for rule in rules if _matches(axes, rule)]
-        if len(matches) > 1:
-            raise ValueError("overlapping_native_observation_domains:" + op.recipe)
-        if not matches:
-            provenance["unmatched_native_boundary"] = {
-                "recipe": op.recipe, "active_shape": list(op.local_shape),
-            }
-            return miss("active_abi_or_declared_source_condition_outside_domain")
-        hits[matches[0]["id"]] += 1
+    b_key = (
+        sha256(json.dumps(raw, sort_keys=True, default=repr).encode("utf-8")).hexdigest(),
+        identity["sha256"], phase, tokens, context, sequences,
+    )
+    cached_boundary = _BOUNDARY_CACHE.get(b_key)
+    if cached_boundary is None:
+        execution = Execution(case, CostModel(case), include_submission=False)
+        hits = Counter()
+        seen = set()
+        unmatched = None
+        for op in target_operators(case, phase=phase, tokens=tokens, context=context, sequences=sequences):
+            if op.recipe not in recipes:
+                continue
+            seen.add(op.recipe)
+            axes = _operator_axes(execution, op)
+            matches = [rule for rule in rules if _matches(axes, rule)]
+            if len(matches) > 1:
+                raise ValueError("overlapping_native_observation_domains:" + op.recipe)
+            if not matches:
+                unmatched = {"recipe": op.recipe, "active_shape": list(op.local_shape)}
+                break
+            hits[matches[0]["id"]] += 1
+        if len(_BOUNDARY_CACHE) >= 64:
+            _BOUNDARY_CACHE.clear()
+        _BOUNDARY_CACHE[b_key] = (recipes, hits, unmatched, seen)
+    else:
+        recipes, hits, unmatched, seen = cached_boundary
+    if unmatched is not None:
+        provenance["unmatched_native_boundary"] = deepcopy(unmatched)
+        return miss("active_abi_or_declared_source_condition_outside_domain")
     if seen != recipes:
         return miss("required_native_boundaries_not_present")
 

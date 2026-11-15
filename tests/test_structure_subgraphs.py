@@ -53,11 +53,20 @@ def bindings(declared, **kwargs):
             "graph_id": declared["graph_id"], **kwargs}
 
 
+_SELECTED_CACHE: dict[tuple[str, str], dict] = {}
+
+
 def selected(declared, event):
+    cache_key = (declared["graph_id"], event.event_id)
+    cached = _SELECTED_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
     report = map_structure([observation([event])], declared)
     row = report["event_mappings"][0]
     key = row["candidate_subgraph_ids"][0]
-    return next(item for item in declared["subgraphs"] if item["subgraph_id"] == key)
+    result = next(item for item in declared["subgraphs"] if item["subgraph_id"] == key)
+    _SELECTED_CACHE[cache_key] = result
+    return result
 
 
 def host_evidence(event, names):

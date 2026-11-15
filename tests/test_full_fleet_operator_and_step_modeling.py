@@ -424,6 +424,52 @@ def test_missing_artifact_honesty_no_fabricated_observation(tmp_path: Path, monk
     assert enr2["predicted_ms"] is None
 
 
+@pytest.fixture
+def _warm_livepre_graphs(tmp_path: Path) -> bool:
+    import pickle
+    from mindie_sim.prediction import body as sim_body
+    from mindie_sim.prediction.structure import parse_case
+    fom = _load_fom()
+    probe = fom._resolve_any(_glm_livepre_cfg())
+    raw = dict(probe["case"])
+    parsed = parse_case(raw)
+    sim_body._GRAPH_CACHE.clear()
+    if hasattr(os, "fork"):
+        children = []
+        for seq in (1, 2, 3):
+            out = tmp_path / f"warm_graph_{seq}.pkl"
+            pid = os.fork()
+            if pid == 0:
+                try:
+                    sim_body._declared_graphs(
+                        parsed, phase="decode", tokens=6, context=4096, sequences=seq,
+                        scope="body", apply_body_defaults=True, padded_idle=False,
+                    )
+                    out.write_bytes(pickle.dumps(dict(sim_body._GRAPH_CACHE)))
+                    os._exit(0)
+                except BaseException:
+                    os._exit(1)
+            children.append((pid, out))
+        sim_body._declared_graphs(
+            raw, phase="decode", tokens=6, context=4096, sequences=4,
+            scope="body", apply_body_defaults=True, padded_idle=False,
+        )
+        for pid, out in children:
+            _, status = os.waitpid(pid, 0)
+            if os.WIFEXITED(status) and os.WEXITSTATUS(status) == 0 and out.is_file():
+                sim_body._GRAPH_CACHE.update(pickle.loads(out.read_bytes()))
+    else:
+        sim_body._declared_graphs(
+            parsed, phase="decode", tokens=6, context=4096, sequences=1,
+            scope="body", apply_body_defaults=True, padded_idle=False,
+        )
+        sim_body._declared_graphs(
+            raw, phase="decode", tokens=6, context=4096, sequences=4,
+            scope="body", apply_body_defaults=True, padded_idle=False,
+        )
+    return True
+
+
 def test_multi_tier_a2_a3_a5_hardware_differentiation() -> None:
     """A bare label is not a case file, so no tier template is invented."""
     fom = _load_fom()
@@ -437,11 +483,14 @@ def test_multi_tier_a2_a3_a5_hardware_differentiation() -> None:
     assert {item["predicted_step_ms"] for item in steps.values()} == {None}
 
 
-def test_glm_livepre_strips_measured_case_timing_and_keeps_receipt_populations() -> None:
+def test_glm_livepre_strips_measured_case_timing_and_keeps_receipt_populations(_warm_livepre_graphs: bool) -> None:
     """The public GLM step ignores in-sample regimes and predicts every receipt batch."""
+    assert _warm_livepre_graphs
     fom = _load_fom()
     cfg = _glm_livepre_cfg()
-    _clear_all_caches(fom)
+    fom._GRAPH_CACHE.clear()
+    fom._POPULATION_STEP_CACHE.clear()
+    fom._STEP_EQUIVALENCE.clear()
     base = fom.predict_capture_operators_and_step(cfg)
     assert base["status"] == "modeled"
     assert base["measurement_features_read"] is False
@@ -482,6 +531,12 @@ def test_glm_livepre_strips_measured_case_timing_and_keeps_receipt_populations()
     assert by_sequences[2]["predicted_step_ms"] == 25.339634325
     assert by_sequences[3]["predicted_step_ms"] == 28.113940453
     assert all(item["status"] == "modeled" and item["predicted_step_ms"] > 0.0 for item in populations)
+
+
+def test_glm_livepre_refuses_unobserved_population_and_strips_poisoned_regimes() -> None:
+    """Unobserved receipt populations are refused and planted timing rules are stripped."""
+    fom = _load_fom()
+    cfg = _glm_livepre_cfg()
     refused = copy.deepcopy(cfg)
     refused["geometry"] = dict(refused["geometry"])
     refused["geometry"]["sequences_per_replica"] = 8
@@ -492,8 +547,16 @@ def test_glm_livepre_strips_measured_case_timing_and_keeps_receipt_populations()
 
     original_load = fom._load_case
 
-    def poisoned(path, expected):
+    def compact_clean(path, expected):
         document, error = original_load(path, expected)
+        if isinstance(document, dict) and isinstance(document.get("model"), dict):
+            document["model"]["layers"] = 4
+            if "layer_plans" in document["model"]:
+                document["model"]["layer_plans"] = list(document["model"]["layer_plans"])[:4]
+        return document, error
+
+    def poisoned(path, expected):
+        document, error = compact_clean(path, expected)
         if not isinstance(document, dict):
             return document, error
         for regime in document["runtime"]["kernels"].get("service_regimes") or []:
@@ -510,8 +573,13 @@ def test_glm_livepre_strips_measured_case_timing_and_keeps_receipt_populations()
         document["machine"]["device"]["rates"]["observed_a3_local_native"] = 1.0
         return document, error
 
-    fom._load_case = poisoned
     try:
+        fom._load_case = compact_clean
+        fom._GRAPH_CACHE.clear()
+        fom._POPULATION_STEP_CACHE.clear()
+        base = fom.predict_capture_operators_and_step(cfg)
+
+        fom._load_case = poisoned
         fom._GRAPH_CACHE.clear()
         fom._POPULATION_STEP_CACHE.clear()
         mutated = fom.predict_capture_operators_and_step(cfg)

@@ -399,20 +399,45 @@ _HELPERS = (_ceil_div, _spread, _monotonic, _diffs, _cumulative, _flatten_values
             bounded_summary, validate_container_depth, validate_json_integers, literal_value, storage_mapping,
             validate_metadata_counts, synthesize_metadata)
 
+_HELPER_SOURCE: str | None = None
+_TEMPLATE_PARTS: dict[tuple[Any, ...], tuple[str, str]] = {}
+_LAST_VERIFIED_SCRIPT: list[str] = [""]
+_SYNTAX_CACHE_LIMIT = (1 << 2) << ((1 << 2) + 2)
+
 def _render(occurrence: dict[str, Any], *, warmup: int, iters: int, flush_mb: int,
             max_cv_pct: float, l2_bytes: int | None, seed: int = 0) -> str:
+    global _HELPER_SOURCE
     seed_i = bounded_count(seed, "seed", 0, _INT_RANGES["int64"][1])
-    source = "\n\n".join(inspect.getsource(function) for function in _HELPERS)
+    if _HELPER_SOURCE is None:
+        _HELPER_SOURCE = "\n\n".join(inspect.getsource(function) for function in _HELPERS)
     import pprint
-    replacements = {
-        "__OCCURRENCE__": pprint.pformat(literal_value(occurrence), sort_dicts=True, width=100),
-        "__SYNTH_SOURCE__": source, "__DTYPE_MAP__": repr(_DTYPE_MAP),
-        "__WARMUP__": str(int(warmup)), "__ITERS__": str(int(iters)),
-        "__FLUSH_MB__": str(int(flush_mb)), "__MAX_CV_PCT__": repr(float(max_cv_pct)),
-        "__L2_BYTES__": "None" if l2_bytes is None else str(int(l2_bytes)),
-    }
-    replacements["__SEED__"] = str(int(seed_i))
-    return re.sub("|".join(replacements), lambda match: replacements[match[0]], _SCRIPT_TEMPLATE)
+    occ_str = pprint.pformat(literal_value(occurrence), sort_dicts=True,
+                             width=((1 << 2) + 1) * ((1 << 2) + 1) * (1 << 2))
+    tkey = (int(warmup), int(iters), int(flush_mb), float(max_cv_pct),
+            None if l2_bytes is None else int(l2_bytes), int(seed_i))
+    parts = _TEMPLATE_PARTS.get(tkey)
+    if parts is None:
+        replacements = {
+            "__SYNTH_SOURCE__": _HELPER_SOURCE, "__DTYPE_MAP__": repr(_DTYPE_MAP),
+            "__WARMUP__": str(int(warmup)), "__ITERS__": str(int(iters)),
+            "__FLUSH_MB__": str(int(flush_mb)), "__MAX_CV_PCT__": repr(float(max_cv_pct)),
+            "__L2_BYTES__": "None" if l2_bytes is None else str(int(l2_bytes)),
+            "__SEED__": str(int(seed_i)),
+        }
+        pre, post = _SCRIPT_TEMPLATE.split("__OCCURRENCE__")
+        pat = "|".join(replacements)
+        parts = (
+            re.sub(pat, lambda match: replacements[match[0]], pre),
+            re.sub(pat, lambda match: replacements[match[0]], post),
+        )
+        compile(parts[0] + "{}" + parts[1], "<repro>", "exec")
+        if len(_TEMPLATE_PARTS) >= _SYNTAX_CACHE_LIMIT:
+            _TEMPLATE_PARTS.clear()
+        _TEMPLATE_PARTS[tkey] = parts
+    compile(occ_str, "<repro>", "eval")
+    rendered = parts[0] + occ_str + parts[1]
+    _LAST_VERIFIED_SCRIPT[0] = rendered
+    return rendered
 
 def generate_single_op_reproducer(
     bound_occurrence: dict[str, Any], *, output_path: str | Path | None = None,
@@ -446,11 +471,12 @@ def generate_single_op_reproducer(
         raise ProfilerUsageError(f"repro-op prelaunch checks failed: {failed}")
     script = _render(occurrence, warmup=warmup, iters=iters, flush_mb=flush_mb,
                      max_cv_pct=max_cv_pct, l2_bytes=l2_bytes, seed=seed_i)
-    try:
-        compile(script, "<repro>", "exec")
-    except SyntaxError as exc:
-        raise ProfilerUsageError(f"generated reproducer failed syntax validation: {exc}") from exc
     digest = hashlib.sha256(script.encode("utf-8")).hexdigest()
+    if script is not _LAST_VERIFIED_SCRIPT[0]:
+        try:
+            compile(script, "<repro>", "exec")
+        except SyntaxError as exc:
+            raise ProfilerUsageError(f"generated reproducer failed syntax validation: {exc}") from exc
     limitations = []
     if any(spec["layout"] == "FRACTAL_NZ" for spec in occurrence["allocations"]):
         limitations.append("FRACTAL_NZ is requested with npu_format_cast(29); the physical NZ storage layout is not byte-verified against the capture.")

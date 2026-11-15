@@ -10,6 +10,8 @@
 """
 from collections import Counter
 from copy import deepcopy
+from functools import lru_cache
+import json
 from pathlib import Path
 
 from mindie_sim import target_operators
@@ -20,6 +22,15 @@ from mindie_sim.prediction.structure import parse_case
 from mindie_sim.schema.common import ModelingError
 
 from a5_native_observations import _matches, _operator_axes, _physical_contract, _read_profile
+
+
+@lru_cache(maxsize=16)
+def _cached_unfused_axes(canonical_unpriced: str, phase: str, tokens: int, context: int, sequences: int):
+    unpriced = json.loads(canonical_unpriced)
+    case = parse_case(unpriced)
+    execution = Execution(case, CostModel(case), include_submission=False)
+    operators = tuple(target_operators(case, phase=phase, tokens=tokens, context=context, sequences=sequences))
+    return tuple((op, _operator_axes(execution, op)) for op in operators)
 
 
 PROFILE_PATH = Path(__file__).with_name("profiles") / "a5_q35_unfused_native_20261106.json"
@@ -184,12 +195,12 @@ def apply_a5_q35_unfused_native_observations(
     # that replacing it would alter an unobserved native boundary.
     unpriced = deepcopy(result)
     unpriced["runtime"]["kernels"]["service_regimes"] = []
-    case = parse_case(unpriced)
-    execution = Execution(case, CostModel(case), include_submission=False)
     recipes = {rule["match"]["recipe"] for rule in profile["rules"]}
     hits, seen, native_axes, other_axes = Counter(), set(), [], []
     try:
-        operators = target_operators(result, phase=phase, tokens=tokens, context=context, sequences=sequences)
+        op_axes_pairs = _cached_unfused_axes(
+            json.dumps(unpriced, sort_keys=True), phase, tokens, context, sequences,
+        )
     except ModelingError as error:
         # The selected native caller owns its exact structural domain. A
         # domain miss preserves ordinary prediction, including its own errors.
@@ -197,8 +208,7 @@ def apply_a5_q35_unfused_native_observations(
             raise
         provenance["native_caller_domain_error"] = str(error)
         return miss("native_caller_contract_outside_observed_domain")
-    for op in operators:
-        axes = _operator_axes(execution, op)
+    for op, axes in op_axes_pairs:
         if (op.recipe not in recipes or
                 op.recipe == "dynamic_quantize" and "mc2_unfused_storage" not in dict(op.metadata) or
                 op.recipe == "expert_weight_scale_cast" and op.op_id.endswith(".expert_down.weight_scale_cast")):

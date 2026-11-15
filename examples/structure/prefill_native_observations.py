@@ -71,6 +71,15 @@ def _profile():
     return _read_profile(PROFILE_PATH)
 
 
+@lru_cache(maxsize=16)
+def _cached_prefill_axes(canonical_unpriced: str, phase: str, tokens: int, context: int, sequences: int):
+    unpriced = json.loads(canonical_unpriced)
+    probe = parse_case(unpriced)
+    operators = tuple(target_operators(probe, phase=phase, tokens=tokens, context=context, sequences=sequences))
+    execution = Execution(probe, CostModel(probe), include_submission=False)
+    return operators, tuple(_physical_axes(execution, op) for op in operators)
+
+
 def _physical_axes(execution, op):
     """Use the engine's normalized axes, including declared physical rates."""
     scope = dict(op.metadata).get("graph_replay_scope", "none")
@@ -303,8 +312,11 @@ def apply_prefill_native_observations(
     if reason:
         return miss(reason)
 
-    geometry = dict(phase=phase, tokens=tokens, context=context, sequences=sequences)
-    operators = target_operators(raw, **geometry)
+    unpriced = deepcopy(raw)
+    unpriced.setdefault("runtime", {}).setdefault("kernels", {})["service_regimes"] = []
+    operators, all_axes = _cached_prefill_axes(
+        json.dumps(unpriced, sort_keys=True), phase, tokens, context, sequences,
+    )
     expected = profile["physical_domain"]["calls_per_forward"]
     counts = _boundary_counts(operators, expected)
     if dict(counts) != expected:
@@ -322,17 +334,9 @@ def apply_prefill_native_observations(
             return miss("collective_active_rows_outside_observed_domain")
 
     rules = [deepcopy(rule) for rule in profile["service_regimes"]]
-    # Rule selectors never depend on a response. Inspect axes on an unpriced
-    # copy so a pre-existing overlapping declaration is reported by this
-    # adapter instead of failing while its own old response is being evaluated.
-    unpriced = deepcopy(raw)
-    unpriced.setdefault("runtime", {}).setdefault("kernels", {})["service_regimes"] = []
-    probe = parse_case(unpriced)
-    execution = Execution(probe, CostModel(probe), include_submission=False)
     native_axes, other_axes = [], []
     hits = Counter()
-    for op in operators:
-        axes = _physical_axes(execution, op)
+    for op, axes in zip(operators, all_axes):
         if op.recipe not in expected:
             other_axes.append(axes)
             continue

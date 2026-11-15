@@ -213,7 +213,7 @@ def test_case_level_measured_metadata_cannot_move_prediction(tmp_path, compact_c
     poisoned = tmp_path / "poisoned_case.json"
     poisoned.write_text(json.dumps(source), encoding="utf-8")
     spec = z.CellSpec("blind", "out", "decode", qwen38, "Qwen3.8-27B",
-                      1024, 2, 8, 4, 1, 1, 1)
+                      1024, 2, 8, 4, 1, 1, 1, synthetic_layers=2)
     clean = z.predict_cell(spec)
     dirty = z.predict_cell(z.replace(spec, model_case=poisoned))
     assert dirty.body_ms == pytest.approx(clean.body_ms)
@@ -300,7 +300,7 @@ def test_public_prediction_is_invariant_to_opaque_labels_and_suffixes(compact_ca
 
 def test_pp_prefill_uses_actual_hidden_rows_and_stage_link(compact_cases):
     base = z.CellSpec("pp_pf", "out", "prefill", compact_cases["qwen38"], "Qwen3.8-27B",
-                      1024, 1, 1, 2, 4, 1, 1)
+                      1024, 1, 1, 2, 4, 1, 1, synthetic_layers=2)
     small = z.predict_cell(z.replace(base, pp=2, prompt_tokens=1024))
     large = z.predict_cell(z.replace(base, pp=2, prompt_tokens=2048))
     pp1 = z.predict_cell(base)
@@ -318,7 +318,7 @@ def test_pp_prefill_uses_actual_hidden_rows_and_stage_link(compact_cases):
 
 def test_pp_inter_node_placement_selects_roce_formula(compact_cases):
     spec = z.CellSpec("pp_inter", "out", "prefill", compact_cases["qwen38"], "Qwen3.8-27B",
-                      1024, 1, 1, 8, 1, 1, 2)
+                      1024, 1, 1, 8, 1, 1, 2, synthetic_layers=2)
     pred = z.predict_cell(spec)
     rows = [row for row in pred.rows if row.kind == "PP"]
     assert rows and "link_roce" in rows[0].formula
@@ -326,7 +326,7 @@ def test_pp_inter_node_placement_selects_roce_formula(compact_cases):
 
 def test_pp2_decode_transfer_is_in_phase_body_and_service_once(compact_cases):
     base = z.CellSpec("pp_dc", "out", "decode", compact_cases["qwen38"], "Qwen3.8-27B",
-                      1024, 1, 128, 2, 4, 1, 1)
+                      1024, 1, 128, 2, 4, 1, 1, synthetic_layers=2)
     pp1 = z.predict_cell(base)
     pp2 = z.predict_cell(z.replace(base, pp=2))
     transfer = sum(row.duration_ms for row in pp2.rows if row.kind == "PP")
@@ -359,7 +359,7 @@ def test_missing_or_wrong_deploy_identity_is_rejected_without_template(tmp_path)
 
 def test_pp2_decode_service_includes_prefill_transfer_not_only_body(monkeypatch, compact_cases):
     base = z.CellSpec("pp_dc_service", "out", "decode", compact_cases["qwen38"], "Qwen3.8-27B",
-                      4096, 1, 64, 2, 4, 1, 1)
+                      4096, 1, 64, 2, 4, 1, 1, synthetic_layers=2)
     monkeypatch.setattr(z, "_max_batched_tokens", lambda spec: 1024)
     pp1 = z.predict_cell(base)
     pp2 = z.predict_cell(z.replace(base, pp=2))
@@ -394,7 +394,7 @@ def test_distinct_declared_max_tokens_controls_chunk_count(tmp_path, compact_cas
         "tp": 2, "dp": 4, "max_num_batched_tokens": 4096}))
     spec = z.CellSpec("qwen_probe_pf_32768_c1", "out", "prefill", compact_cases["qwen38"],
                       "Qwen3.8-27B", 32768, 1, 1, 2, 4, 1, 1,
-                      source_case_dir=case_dir)
+                      synthetic_layers=2, source_case_dir=case_dir)
     chunks = z._prefill_chunk_geometries(spec)
     assert z._max_batched_tokens(spec) == 4096
     assert [g.requests[0].q_len for g in chunks] == [4096] * 8

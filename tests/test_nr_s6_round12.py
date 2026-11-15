@@ -55,6 +55,10 @@ def _compact(value):
                       separators=(",", ":"))
 
 
+from functools import lru_cache
+
+
+@lru_cache(maxsize=1)
 def _encoders():
     tiktoken = pytest.importorskip("tiktoken")
     return [tiktoken.get_encoding(name)
@@ -470,9 +474,10 @@ def test_r23_tiny_latency_rejected(latency, parsed):
 
 @pytest.mark.parametrize("jsonl", [False, True])
 @pytest.mark.parametrize("ratio", [False, True])
-def test_r23_fit_cli_rejects_nonfinite_derivation(tmp_path, jsonl, ratio):
+def test_r23_fit_cli_rejects_nonfinite_derivation(tmp_path, capsys, jsonl, ratio):
     import subprocess
     import sys
+    from mindie_profiler.__main__ import main as cli_main
     from mindie_profiler.events import ProfilerUsageError
     from mindie_profiler.fabric_probe import build_fabric_probe_plan
     from mindie_profiler.fabric_probe_fit import fit_calibrated_fabric_profile
@@ -487,11 +492,17 @@ def test_r23_fit_cli_rejects_nonfinite_derivation(tmp_path, jsonl, ratio):
     topo, data = tmp_path / "topology.json", tmp_path / "samples.json"
     topo.write_text(json.dumps(topology))
     data.write_text("\n".join(map(json.dumps, samples)) if jsonl else json.dumps(samples))
-    run = subprocess.run([sys.executable, "-B", "-m", "mindie_profiler", "fabric-probe",
-        "--world-size", "2", "--ranks-per-node", "2", "--topology", str(topo), "--samples", str(data)],
-        text=True, capture_output=True, timeout=30)
-    assert run.returncode in (2, 4) and "Traceback" not in run.stderr
-    assert "Infinity" not in run.stdout and "NaN" not in run.stdout
+    cli_args = ["fabric-probe", "--world-size", "2", "--ranks-per-node", "2", "--topology", str(topo), "--samples", str(data)]
+    if not jsonl and not ratio:
+        run = subprocess.run([sys.executable, "-B", "-m", "mindie_profiler", *cli_args],
+            text=True, capture_output=True, timeout=30)
+        rc, out, err = run.returncode, run.stdout, run.stderr
+    else:
+        rc = cli_main(cli_args)
+        captured = capsys.readouterr()
+        out, err = captured.out, captured.err
+    assert rc in (2, 4) and "Traceback" not in err
+    assert "Infinity" not in out and "NaN" not in out
     # Both endpoints of the supported interval retain finite strict JSON output.
     for i, sample in enumerate(samples):
         sample["latency_us"] = 1e-6 if sample["regime"] == "isolated" else 1e12
@@ -502,10 +513,11 @@ def test_r23_fit_cli_rejects_nonfinite_derivation(tmp_path, jsonl, ratio):
 
 @pytest.mark.parametrize("parsed", [False, True])
 @pytest.mark.parametrize("ratio", [False, True])
-def test_r24_published_positive_fit(parsed, ratio, tmp_path):
+def test_r24_published_positive_fit(parsed, ratio, tmp_path, capsys):
     import math
     import subprocess
     import sys
+    from mindie_profiler.__main__ import main as cli_main
     from mindie_profiler.fabric_probe import build_fabric_probe_plan
     from mindie_profiler.fabric_probe_fit import parse_fabric_probe_samples, fit_calibrated_fabric_profile
     assert sys.get_int_max_str_digits() == 4300
@@ -524,11 +536,17 @@ def test_r24_published_positive_fit(parsed, ratio, tmp_path):
         data = tmp_path / ("samples." + fmt)
         data.write_text(json.dumps(samples, allow_nan=False) if fmt == "json" else
             "\n".join(json.dumps(s, allow_nan=False) for s in samples) + "\n")
-        run = subprocess.run([sys.executable, "-B", "-m", "mindie_profiler", "fabric-probe", "--world-size", "2",
-            "--ranks-per-node", "2", "--topology", str(topo), "--samples", str(data)],
-            text=True, capture_output=True, timeout=30)
-        assert run.returncode == 0 and not run.stderr and "NaN" not in run.stdout and "Infinity" not in run.stdout
-        profiles.append(json.loads(run.stdout))
+        cli_args = ["fabric-probe", "--world-size", "2", "--ranks-per-node", "2", "--topology", str(topo), "--samples", str(data)]
+        if not parsed and not ratio and fmt == "json":
+            run = subprocess.run([sys.executable, "-B", "-m", "mindie_profiler", *cli_args],
+                text=True, capture_output=True, timeout=30)
+            rc, out, err = run.returncode, run.stdout, run.stderr
+        else:
+            rc = cli_main(cli_args)
+            captured = capsys.readouterr()
+            out, err = captured.out, captured.err
+        assert rc == 0 and not err and "NaN" not in out and "Infinity" not in out
+        profiles.append(json.loads(out))
     for profile in profiles:
         assert profile["status"] == "calibrated" and profile["usable_for_link_override"]
         block = profile["tiers"]["intra_node_hccs"]["operations"]["all_reduce"]

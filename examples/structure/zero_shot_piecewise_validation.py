@@ -139,6 +139,20 @@ _ROUTE_CONDITIONAL_TARGETS = (
 )
 
 
+_BINDING_CACHE: dict[tuple[Any, ...], Any] = {}
+_FINGERPRINT_CACHE: dict[tuple[Any, ...], str] = {}
+
+
+def _stat_sig(path: Path | None) -> tuple[str, int, int] | None:
+    if path is None:
+        return None
+    try:
+        st = path.stat()
+    except OSError:
+        return (str(path), -1, -1)
+    return (str(path), int(st.st_mtime_ns), int(st.st_size))
+
+
 def _source_binding(spec: CellSpec, raw: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """Classify source routing against the resolved model and actual precedence.
 
@@ -149,6 +163,14 @@ def _source_binding(spec: CellSpec, raw: Mapping[str, Any] | None = None) -> dic
     remains a conditional scenario, and explicit cohort/runtime precedence is
     preserved.
     """
+    bkey = None
+    if raw is None:
+        bkey = (
+            _stat_sig(spec.model_case), _stat_sig(_cohort_case(spec)), _stat_sig(spec.source_config),
+            spec.synthetic_layers, spec.synthetic_experts, spec.synthetic_topk, spec.notes,
+        )
+        if bkey in _BINDING_CACHE:
+            return _BINDING_CACHE[bkey]
     raw = dict(raw) if isinstance(raw, Mapping) else _raw_case(spec)
     template = _load_json(spec.model_case) if spec.model_case is not None else {}
     template = template if isinstance(template, Mapping) else {}
@@ -219,7 +241,7 @@ def _source_binding(spec: CellSpec, raw: Mapping[str, Any] | None = None) -> dic
     for label, path in (('template', spec.model_case), ('cohort', cohort_path), ('source_config', spec.source_config)):
         if path is not None and path.exists():
             source_hashes[label] = hashlib.sha256(path.read_bytes()).hexdigest()
-    return _freeze_source_value({
+    frozen = _freeze_source_value({
         'schema': 'mindie-sim/source-routing-binding/2',
         'status': status,
         'reason': reason,
@@ -241,6 +263,11 @@ def _source_binding(spec: CellSpec, raw: Mapping[str, Any] | None = None) -> dic
         'known': ('template/cohort/source pointers, effective precedence, resolved MoE layer topology',),
         'unknown': () if not route_targets else ('matched scheduled request position', 'per-token expert assignment', 'expert-to-EP route', 'consumed route timing attribution'),
     })
+    if bkey is not None:
+        if len(_BINDING_CACHE) >= 128:
+            _BINDING_CACHE.pop(next(iter(_BINDING_CACHE)))
+        _BINDING_CACHE[bkey] = frozen
+    return frozen
 
 
 def _source_partial_targets(binding: Mapping[str, Any] | None) -> tuple[str, ...]:
@@ -249,6 +276,12 @@ def _source_partial_targets(binding: Mapping[str, Any] | None) -> tuple[str, ...
 
 def _public_case(spec: CellSpec) -> Any:
     """Same resolved source case/model used by the ordinary compiler."""
+    try:
+        key = (spec.dataset, _structure_fingerprint(spec))
+        if key in _COMPILED_MODELS:
+            return _COMPILED_MODELS[key][11]
+    except Exception:
+        pass
     from mindie_sim.prediction.structure import parse_case
     case = parse_case(_raw_case(spec))
     model, _notes = _model_for_instantiation(case.model, spec)
@@ -256,9 +289,22 @@ def _public_case(spec: CellSpec) -> Any:
 
 def _structure_fingerprint(spec: CellSpec) -> str:
     if spec.model_case is None or not spec.model_case.exists(): return f'nocase:{spec.cell_id}:{sorted(spec.notes)}'
+    fkey = (
+        _stat_sig(spec.model_case), _stat_sig(_cohort_case(spec)), _stat_sig(spec.source_config),
+        spec.dataset, spec.tp, spec.dp, spec.ep, spec.pp, spec.graph_buckets, spec.notes,
+        spec.synthetic_layers, spec.synthetic_experts, spec.synthetic_topk,
+        spec.source_config_sha256, spec.source_file_sha256, spec.source_origin,
+        str(spec.source_case_dir or ''),
+    )
+    if fkey in _FINGERPRINT_CACHE:
+        return _FINGERPRINT_CACHE[fkey]
     raw = _raw_case(spec)
     blob = json.dumps({'model': raw.get('model'), 'machine': raw.get('machine'), 'runtime': raw.get('runtime'), 'notes': sorted(spec.notes), 'synthetic': (spec.synthetic_layers, spec.synthetic_experts, spec.synthetic_topk), 'source_config': (str(spec.source_config or ''), spec.source_config_sha256, spec.source_file_sha256, spec.source_origin), 'binding': (str(spec.source_case_dir or ''), spec.dataset, hashlib.sha256(json.dumps({k: ((raw.get('runtime') or {}).get('metadata') or {}).get(k) for k in ('image', 'image_id', 'deployment_image', 'deployment_image_id', 'oci_image', 'oci_image_digest', 'mx_quant_source_revision')}, sort_keys=True, default=str).encode()).hexdigest()), 'tp': spec.tp, 'dp': spec.dp, 'ep': spec.ep, 'pp': spec.pp, 'graph_buckets': spec.graph_buckets}, sort_keys=True, default=str)
-    return hashlib.sha256(blob.encode('utf-8')).hexdigest()
+    digest = hashlib.sha256(blob.encode('utf-8')).hexdigest()
+    if len(_FINGERPRINT_CACHE) >= 256:
+        _FINGERPRINT_CACHE.pop(next(iter(_FINGERPRINT_CACHE)))
+    _FINGERPRINT_CACHE[fkey] = digest
+    return digest
 def _prepare_case_topology(spec: CellSpec) -> tuple[str, dict[str, Any]]:
     sanitized = _sanitize_forecast_service_rules(_raw_case_base(spec))
     blob = json.dumps({'sanitized': sanitized, 'kv_bf16': 'kv_bf16' in spec.notes, 'synthetic': (spec.synthetic_layers, spec.synthetic_experts, spec.synthetic_topk)}, sort_keys=True, default=str)
@@ -746,7 +792,10 @@ def predict_cell(spec: CellSpec, *, measured_mac: Mapping[str, Any] | None = Non
             if fprint not in unique: unique[fprint] = compiler.compile(instance, feature_metadata=features.metadata)
         layers, state = (max(1, len(model.layer_plans)), StateView())
         for layer in range(layers): state = state.mark_kv(layer).mark_index(layer).mark_selection(layer)
-        if len(_COMPILED_MODELS) >= 8: _COMPILED_MODELS.clear(); _COMPILED_DRAFT.clear()
+        if len(_COMPILED_MODELS) >= 64:
+            _evict = next(iter(_COMPILED_MODELS))
+            _COMPILED_MODELS.pop(_evict, None)
+            _COMPILED_DRAFT.pop(_evict, None)
         _COMPILED_MODELS[cache_key] = (layers, notes, supply, unique, counts, state, features, model.hidden_size, int(case.machine.ranks_per_node or 8), tuple(case.machine.links or ()), str(model.activation_dtype or 'bf16'), public_case)
         _COMPILED_HARDWARE[cache_key] = str(case.machine.hardware_key or case.machine.sku or "")
         _COMPILED_SELECTOR[cache_key] = (int(getattr(model, 'top_k', 1) or 1), int(getattr(model, 'num_experts', 0) or max(1, spec.ep)), _ep_ranks(spec), tuple(int(lp.index) for lp in model.layer_plans if str(getattr(lp, 'attention', '')).lower() == 'kda'))
@@ -783,7 +832,7 @@ def predict_cell(spec: CellSpec, *, measured_mac: Mapping[str, Any] | None = Non
                     _public_projection = _public_graph_projection(
                         public_case, phase=spec.phase, tokens=_tokens, context=_context,
                         sequences=_graph_sequences, selected_replica=_public_selected, scope='model')
-                    if len(_PUBLIC_CACHE) >= 8:
+                    if len(_PUBLIC_CACHE) >= 64:
                         _old = next(iter(_PUBLIC_CACHE)); _PUBLIC_CACHE.pop(_old); _PUBLIC_CONSUMED_CACHE.pop(_old, None)
                     _PUBLIC_CACHE[_public_key] = (_public_projection, '')
                 except TimeoutError:

@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse, json, math
 from collections import Counter, defaultdict
+from functools import lru_cache
 from pathlib import Path
 from statistics import mean, median
 from typing import Any, Mapping, Sequence
@@ -273,12 +274,15 @@ def load_benchmark_jsonl(path: Path, *, roots: Sequence[Path] | None=None) -> li
     try: from .zero_shot_actual_entry import apply_original_observations as recover, DEFAULT_ROOTS
     except ImportError: from zero_shot_actual_entry import apply_original_observations as recover, DEFAULT_ROOTS
     return recover([cell_from_dict(json.loads(line)) for line in Path(path).read_text(encoding='utf-8').splitlines() if line.strip()], roots=roots or DEFAULT_ROOTS)
-@_synced
-def _source_is_blind() -> bool:
+@lru_cache(maxsize=1)
+def _static_source_is_blind() -> bool:
     import inspect; text = Path(_z().__file__).read_text(encoding='utf-8'); banned = ('_EP_' + 'S', '_qwen_l1_' + 'scale', '_k3_' + 'l1', '_ep1_l1_' + 'scale', '_U' + 'G', '_V' + 'G')
     return not any((name in text for name in banned)) and all((tok not in inspect.getsource(predict_cell) for tok in ('MeasuredCell', '.trace', 'by_name', 'by_class', 'ttft_ms', 'tpot_ms')))
 @_synced
-def _no_empirical_curve_fit(predictions: Sequence[Prediction]=()) -> bool:
+def _source_is_blind() -> bool:
+    return _static_source_is_blind()
+@lru_cache(maxsize=1)
+def _static_no_empirical_curve_fit() -> bool:
     import ast, inspect, mindie_sim.prediction.piecewise as _pw; banned = ('_harm' + '1', '_harm' + '2', 'harm' + 'onic', 'is_' + 'glm', 'is_' + 'dsv41', 'is_' + 'qwen', 'is_' + 'k3', 'is_' + 'v41', '_glm' + '_', '_dsv41' + '_', '_qwen' + '_', '_k3' + '_')
     trig = {'cos', 'sin', 'acos', 'asin', 'atan', 'atan2'}; svars = {'q_len', 'prompt_tokens', 'kv_len', 'seq_len', 'context', 'tokens', 'concurrency', 'layers', 'head_dim', 'dk'}; glits = {45, 74, 75, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072}
     for p in (Path(_z().__file__), *sorted(Path(_pw.__file__).resolve().parent.rglob('*.py'))):
@@ -289,6 +293,11 @@ def _no_empirical_curve_fit(predictions: Sequence[Prediction]=()) -> bool:
             if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Name, ast.arg)) and any((b in (getattr(n, 'name', '') or getattr(n, 'id', '') or getattr(n, 'arg', '')).lower() for b in banned)): return False
             if isinstance(n, ast.Compare) and p == Path(_z().__file__) and any((({s.id for s in [*ast.walk(l), *ast.walk(r)] if isinstance(s, ast.Name)} & svars) and ({int(s.value) for s in [*ast.walk(l), *ast.walk(r)] if isinstance(s, ast.Constant) and isinstance(s.value, int) and (not isinstance(s.value, bool))} & glits)) for l, r in zip([n.left, *n.comparators], n.comparators)): return False
     if 'theta.tiles' in inspect.getsource(predict_cell) or inspect.getsource(predict_cell).count('model_label') > 2 or any(('model_label' in inspect.getsource(fn) for fn in (_raw_case, _structure_fingerprint, _model_for_instantiation, _ep_ranks, _service_ttft_overhead_ms, _component_errors))): return False
+    return True
+@_synced
+def _no_empirical_curve_fit(predictions: Sequence[Prediction]=()) -> bool:
+    if not _static_no_empirical_curve_fit():
+        return False
     return all((p.layers > 0 and bool(p.rows) and all((isinstance(v, (int, float)) and math.isfinite(v) and (v >= 0.0) for v in (*p.per_layer.values(), *p.subgraphs.values(), p.body_ms, p.decode_body_ms, p.prefill_body_ms))) and (abs(sum(p.per_layer.values()) * p.layers - sum((r.total_ms for r in p.rows))) <= 1e-05) and ('_pd_' in p.cell_id or p.public_events > 0 or abs(p.body_ms - (p.prefill_body_ms if p.decode_body_ms == 0.0 else p.decode_body_ms)) <= 1e-06) for p in predictions))
 @_synced
 def acceptance(result: Mapping[str, Any], *, require_all_21: bool=False) -> dict[str, Any]:

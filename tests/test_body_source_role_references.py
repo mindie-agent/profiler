@@ -13,12 +13,17 @@ FIXTURE = ROOT / 'tests/fixtures/decode_forward'
 
 
 @pytest.fixture(scope='module')
-def captured_reference_groups():
+def v41_body_rows():
+    from mindie_profiler.normalized import kernel_rows
+    return tuple(kernel_rows(FIXTURE / 'v41_dp8_first_body.csv'))
+
+
+@pytest.fixture(scope='module')
+def captured_reference_groups(v41_body_rows):
     sim = pytest.importorskip('mindie_sim')
     from mindie_sim.structure import export_structure
     from mindie_sim.prediction.structure import parse_case
     from mindie_profiler.decode_segmentation import auto_segment_decode_forwards
-    from mindie_profiler.normalized import kernel_rows
     from mindie_profiler.tensor_contracts import observed_contract
     import sys
     sys.path.insert(0, str(ROOT / 'examples/structure'))
@@ -27,9 +32,11 @@ def captured_reference_groups():
     path = case_path('a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1.json')
     case = parse_case(json.loads(path.read_text()))
     config = json.loads((FIXTURE / 'v41_dp8_model_config.json').read_text())
-    manifest = export_structure(case, phase='decode', tokens=1, sequences=1, context=2048, scope='body')
+    manifest = export_structure(
+        case, phase='decode', tokens=1, sequences=1, context=2048,
+        scope='body', replicas=[0])
     collector = helper.SourceRoleReferences(manifest, config)
-    rows = list(kernel_rows(FIXTURE / 'v41_dp8_first_body.csv'))
+    rows = v41_body_rows
     native = [row for row in rows if row.kind == 'MqsmlaKernel___call__']
     assert all(observed_contract(row) is None for row in native)
     callbacks = []
@@ -80,12 +87,11 @@ def test_reference_cost_is_per_physical_group_and_does_not_use_measured_duration
 
 
 @pytest.fixture(scope='module')
-def captured_native_component_groups(captured_reference_groups):
+def captured_native_component_groups(captured_reference_groups, v41_body_rows):
     helper, replay, case, manifest, config, _, _ = captured_reference_groups
     from mindie_profiler.decode_segmentation import auto_segment_decode_forwards
-    from mindie_profiler.normalized import kernel_rows
     from mindie_profiler.events import SourceRef, Observation, QueryStats, Window
-    rows = list(kernel_rows(FIXTURE / 'v41_dp8_first_body.csv'))
+    rows = v41_body_rows
     forwards = []
     auto_segment_decode_forwards(rows, config, on_forward=lambda forward, events: forwards.append((forward, events)))
     assert len(forwards) == 1
@@ -149,8 +155,6 @@ def test_native_multi_program_cost_uses_complete_dp_collective(captured_native_c
 def test_compact_reference_graph_preserves_full_graph_cost_and_all_dp_peers(
         captured_native_component_groups, monkeypatch):
     helper, case, manifest, mapping, families, groups = captured_native_component_groups
-    from mindie_sim.prediction.operator_analysis import target_graphs
-    from mindie_sim.prediction.program import RecipeBook
     roles = {'expert_dispatch_native', 'expert_combine_native', 'attention.hc_pre', 'expert_up'}
     selected = []
     for group in groups:
@@ -160,8 +164,7 @@ def test_compact_reference_graph_preserves_full_graph_cost_and_all_dp_peers(
     actual = {'forward_count': 1, 'source_role_references': selected}
     execution = manifest['execution']
     geometry = {key: execution[key] for key in ('phase', 'tokens', 'context', 'sequences', 'scope')}
-    book = RecipeBook.from_mapping(case.runtime.kernels)
-    full = target_graphs(case, **geometry)
+    _, book, full = helper._cached_target_graphs(case, geometry)
     compact = helper._reference_graphs(full, book, selected)
     ids = {key.split('/', 1)[1] for group in selected for key in group['representative_target_ids']}
     assert compact.keys() == full.keys() and len(compact) == 8
@@ -178,10 +181,10 @@ def test_compact_reference_graph_preserves_full_graph_cost_and_all_dp_peers(
     assert optimized == control
 
 
-def test_partial_hcpre_does_not_discard_observed_output_leading_axes(captured_reference_groups):
+def test_partial_hcpre_does_not_discard_observed_output_leading_axes(
+        captured_reference_groups, v41_body_rows):
     helper, replay, case, manifest, config, _, _ = captured_reference_groups
-    from mindie_profiler.normalized import kernel_rows
-    row = next(row for row in kernel_rows(FIXTURE / 'v41_dp8_first_body.csv') if row.kind == 'HcPre')
+    row = next(row for row in v41_body_rows if row.kind == 'HcPre')
     layer = {'layer_id': 0, 'attention': 'mla'}
     collector = helper.SourceRoleReferences(manifest, config)
     assert collector.add(row.event, layer, 'attention') == 'attention.hc_pre'
@@ -192,18 +195,32 @@ def test_partial_hcpre_does_not_discard_observed_output_leading_axes(captured_re
 
 def test_reference_manifest_keeps_complete_identity_and_exact_native_targets(
         captured_native_component_groups):
-    _, case, full, _, _, groups = captured_native_component_groups
+    _, _, manifest, _, _, groups = captured_native_component_groups
+    from mindie_sim.prediction.structure import parse_case
+    from mindie_sim.structure import export_structure
     from operators import _reference_manifest
-    geometry = {key: full['execution'][key]
+    geometry = {key: manifest['execution'][key]
                 for key in ('phase', 'tokens', 'context', 'sequences', 'scope')}
-    projected = _reference_manifest(case, geometry, {'source_role_references': groups})
+    doc = json.loads(case_path('a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1.json').read_text())
+    doc['model']['layers'] = 4
+    if 'layer_plans' in doc['model']:
+        doc['model']['layer_plans'] = doc['model']['layer_plans'][:4]
+    compact_case = parse_case(doc)
+    full = export_structure(compact_case, **geometry)
+    full_ids = {target['node_id'] for target in full['nodes']}
+    compact_groups = [
+        group for group in groups
+        if set(group['representative_target_ids']) <= full_ids
+    ]
+    assert len(compact_groups) >= 6
+    projected = _reference_manifest(compact_case, geometry, {'source_role_references': compact_groups})
     assert projected['graph_id'] == full['graph_id']
     assert projected['execution'] == full['execution']
     assert len(projected['nodes']) < len(full['nodes'])
     original = {target['node_id']: target for target in full['nodes']}
     retained = {target['node_id']: target for target in projected['nodes']}
     assert all(target == original[key] for key, target in retained.items())
-    required = {key for group in groups for key in group['representative_target_ids']}
+    required = {key for group in compact_groups for key in group['representative_target_ids']}
     assert required <= retained.keys()
     # TP1 has no allreduce; discovery must preserve that absence and still
     # consider attention candidates from every declared DP peer.

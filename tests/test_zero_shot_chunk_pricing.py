@@ -24,10 +24,12 @@ def glm_spec(tmp_path_factory: pytest.TempPathFactory):
         doc["model"]["layer_plans"] = list(doc["model"]["layer_plans"])[:4]
     compact = tmp_path_factory.mktemp("chunk_cases") / "compact_glm51.json"
     compact.write_text(json.dumps(doc), encoding="utf-8")
-    return z.CellSpec(
+    spec = z.CellSpec(
         "glm51_compact_pf", "unit", "prefill", compact,
         "GLM-5.1/W4A4C8", 1024, 1, 1, 1, 16, 16, 1,
     )
+    z.prepare_compiled_cell(spec)
+    return spec
 
 
 @pytest.fixture(scope="module")
@@ -39,10 +41,14 @@ def qwen36_spec(tmp_path_factory: pytest.TempPathFactory):
         doc["model"]["layer_plans"] = list(doc["model"]["layer_plans"])[:4]
     compact = tmp_path_factory.mktemp("chunk_qwen36") / "compact_qwen36.json"
     compact.write_text(json.dumps(doc), encoding="utf-8")
-    return z.CellSpec(
+    from zero_shot_request_prediction import _chunk_body, _prefill_spec
+    spec = z.CellSpec(
         "smoke_qwen36_single_dc_4k_c8", "unit", "decode", compact,
         "Qwen3.6-27B", 512, 8, 4, 2, 4, 1, 1,
     )
+    z.prepare_compiled_cell(_prefill_spec(spec, 512))
+    _chunk_body(spec, 512, 512)
+    return spec
 
 
 def test_chunk_explicit_kv_end_changes_only_affected_work(glm_spec) -> None:
@@ -149,6 +155,7 @@ def test_omitted_rank_is_unspecified_and_mixed_8191_keeps_mtp_tokens(glm_spec) -
 
 
 def test_qwen36_declared_cobatch_is_not_a_cap_or_timing_choice(qwen36_spec) -> None:
+    assert qwen36_spec.phase == "decode"
     from zero_shot_request_prediction import _chunk_body, _prefill_spec
     from mindie_sim.prediction.piecewise.open_prefill_scheduler import (
         chunked_prefill_open_scheduler_ttft_ms,
@@ -176,7 +183,10 @@ def test_qwen36_declared_cobatch_is_not_a_cap_or_timing_choice(qwen36_spec) -> N
     assert later["requests"][1]["prior_kv"] == 768
     assert later["causal_pairs"] != joint["causal_pairs"]
     calls = []
-    batch_memo = {}
+    batch_memo = {
+        ((512, 512, "prefill"),): one,
+        ((512, 512, "prefill"), (512, 512, "prefill")): joint,
+    }
 
     def body(requests):
         sig = tuple((r["q_len"], r["kv_end"], r["phase"]) for r in requests)

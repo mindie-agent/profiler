@@ -68,8 +68,19 @@ def restored_sys_path():
     sys.path[:] = saved
 
 
+from functools import lru_cache
+
+
+@lru_cache(maxsize=None)
+def _cached_json_doc(path_str: str):
+    return json.loads(Path(path_str).read_text())
+
+
 def load_json(path):
-    return json.loads(Path(path).read_text())
+    p = Path(path)
+    if FIXTURES in p.parents or p == B_FIXTURE:
+        return deepcopy(_cached_json_doc(str(p)))
+    return json.loads(p.read_text())
 
 
 def a3_raw():

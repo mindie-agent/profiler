@@ -580,17 +580,21 @@ def call_mcp_tool(name: str, arguments: Any = None) -> dict[str, Any]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        prog="mindie-profiler inspect-op",
+        prog="mindie-profiler inspect-op-abi",
         description="Inspect a pinned Ascend operator ABI card or summarize the ABI catalog.",
         allow_abbrev=False,
     )
     parser.add_argument("op_name", nargs="?", help="operator API or kernel name to inspect (omit with --list)")
-    parser.add_argument("--version", default=None, help="CANN release version to check qualification against")
+    parser.add_argument("--op", "--op-name", dest="op_flag", default=None, help="operator API or kernel name to inspect")
+    parser.add_argument("--version", "--cann-version", dest="version", default=None, help="CANN release version to check qualification against")
     parser.add_argument("--list", action="store_true", help="summarize catalogued operator families and padding modes")
     parser.add_argument("--output", "-o", default=None, help="write JSON card or summary to path instead of stdout")
     args = parser.parse_args(list(argv or ()))
-    payload = (catalog_summary() if args.list or not args.op_name
-               else inspect_op_abi(args.op_name, cann_version=args.version))
+    if args.op_name and args.op_flag and args.op_name != args.op_flag:
+        parser.error("conflicting positional op_name and --op")
+    selected_op = args.op_flag or args.op_name
+    payload = (catalog_summary() if args.list or not selected_op
+               else inspect_op_abi(selected_op, cann_version=args.version))
     text = json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     if args.output:
         Path(args.output).write_text(text, encoding="utf-8", newline="\n")

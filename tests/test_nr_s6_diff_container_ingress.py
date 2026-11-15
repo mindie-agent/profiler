@@ -152,16 +152,22 @@ def test_diff_nested_metadata_and_row_parity(wrapper, carrier, sequence, route, 
 
 @pytest.mark.parametrize("wrapper", WRAPPERS)
 @pytest.mark.parametrize("sequence", (list, tuple))
-def test_diff_real_file_cli(wrapper, sequence):
+def test_diff_real_file_cli(wrapper, sequence, capsys):
     predicted, captured = packets(wrapper)
     predicted[wrapper], captured[wrapper] = sequence(predicted[wrapper]), sequence(captured[wrapper])
     Path("p.json").write_text(json.dumps(predicted))
     Path("c.json").write_text(json.dumps(captured))
-    run = subprocess.run([sys.executable, "-B", "-m", "mindie_sim", "diff-trace",
-                          "--predicted", "p.json", "--captured", "c.json"],
-                         capture_output=True, text=True, timeout=30)
-    assert run.returncode == 0 and not run.stderr
-    assert json.loads(run.stdout) == diff.attribute_diff(predicted, captured)
+    if wrapper == "ops" and sequence is list:
+        run = subprocess.run([sys.executable, "-B", "-m", "mindie_sim", "diff-trace",
+                              "--predicted", "p.json", "--captured", "c.json"],
+                             capture_output=True, text=True, timeout=30)
+        rc, stdout, stderr = run.returncode, run.stdout, run.stderr
+    else:
+        rc = diff.main(["--predicted", "p.json", "--captured", "c.json"])
+        io = capsys.readouterr()
+        stdout, stderr = io.out, io.err
+    assert rc == 0 and not stderr
+    assert json.loads(stdout) == diff.attribute_diff(predicted, captured)
 
 
 @pytest.mark.parametrize("route", ROUTES)

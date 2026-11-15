@@ -11,12 +11,15 @@ is fail-closed on invalid modes, non-finite counts, and unknown tools.
 [Timeouts & Locks]
 Pure in-memory calls; no locks, waits, I/O, or subprocesses.
 [Side-Effect Policy]
-Read-only; no files, streams, or graph captures are created.
+Read-only in-memory tools; CLI writes only the explicitly requested `--output` JSON.
 """
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+import argparse
+import json
+from pathlib import Path
+from typing import Any, Mapping, Sequence
 
 from .aclgraph_multistream import (
     ACLGraphModelError, ParallelRegion, check_capture_budget,
@@ -183,7 +186,37 @@ def call_tool(name: str, arguments: Mapping[str, Any] | None = None) -> dict[str
         return _err("EINTERNAL", type(exc).__name__)
 
 
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        prog="mindie-profiler aclgraph",
+        description="Bounded ACLGraph multi-stream overlap, SQ/CQ budget, SuperKernel, and launch-floor checks.",
+        allow_abbrev=False,
+    )
+    parser.add_argument("--tool", choices=tuple(_TOOLS), required=True, help="ACLGraph diagnostic tool to invoke")
+    parser.add_argument("--args-json", default="{}", help="JSON object of keyword arguments for --tool (default {})")
+    parser.add_argument("--output", "-o", default=None, help="write JSON envelope to path instead of stdout")
+    args = parser.parse_args(list(argv or ()))
+    try:
+        parsed_args = json.loads(args.args_json)
+    except ValueError as exc:
+        from .events import ProfilerUsageError
+
+        raise ProfilerUsageError(f"invalid --args-json: {exc}") from exc
+    if not isinstance(parsed_args, Mapping):
+        from .events import ProfilerUsageError
+
+        raise ProfilerUsageError("--args-json must decode to a JSON object")
+    payload = call_tool(args.tool, parsed_args)
+    text = json.dumps(payload, ensure_ascii=False, sort_keys=True) + "\n"
+    if args.output:
+        from .report import write_report
+
+        write_report(payload, args.output)
+    print(text, end="")
+    return 0
+
+
 __all__ = [
     "MCP_TOOL_SPECS", "TOOL_SPECS", "aclgraph_diagnose", "aclgraph_launch_floor",
-    "aclgraph_sq_budget", "aclgraph_superkernel", "call_tool",
+    "aclgraph_sq_budget", "aclgraph_superkernel", "call_tool", "main",
 ]

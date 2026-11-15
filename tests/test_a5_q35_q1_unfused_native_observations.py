@@ -15,6 +15,7 @@ import pytest
 
 pytest.importorskip("mindie_sim")
 from mindie_sim import graph_costs, predict, target_operators
+from mindie_sim.prediction.structure import parse_case
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "examples" / "structure"))
@@ -25,8 +26,16 @@ from a5_q35_unfused_native_observations import Q1_PROFILE_PATH, apply_a5_q35_unf
 FIXTURE_PATH = ROOT / "tests/fixtures/native_observations/a5_q35_q1_unfused_heldout.json"
 
 
-def fixtures():
+from functools import lru_cache
+
+
+@lru_cache(maxsize=1)
+def _fixtures_doc():
     return json.loads(FIXTURE_PATH.read_text())["cases"]
+
+
+def fixtures():
+    return deepcopy(_fixtures_doc())
 
 
 def declared(fixture):
@@ -61,18 +70,23 @@ def test_entire_held_context_native_boundaries_and_body(index):
             assert len(provenance["matched_domains"]) == 8
             assert all(row["occurrences"] == 8 for row in provenance["matched_domains"])
             seen = set()
-            for op in target_operators(result, **geometry):
+            down_cast_cache: dict[tuple, float] = {}
+            parsed_res = parse_case(result)
+            for op in target_operators(parsed_res, **geometry):
                 if op.op_id.endswith(".expert_down.weight_scale_cast"):
-                    down_cast_ms += graph_costs(
-                        result, (op,), isolated=False,
-                        external_inputs={dependency: 0 for dependency in op.deps})["duration_ms"]
+                    dc_key = (op.recipe, tuple(op.local_shape), op.dtype)
+                    if dc_key not in down_cast_cache:
+                        down_cast_cache[dc_key] = graph_costs(
+                            parsed_res, (op,), isolated=False,
+                            external_inputs={dependency: 0 for dependency in op.deps})["duration_ms"]
+                    down_cast_ms += down_cast_cache[dc_key]
                 if op.recipe not in population_native or op.recipe in seen:
                     continue
                 if op.recipe == "dynamic_quantize" and "mc2_unfused_storage" not in dict(op.metadata):
                     continue
                 seen.add(op.recipe)
                 row = population_native[op.recipe]
-                measured = graph_costs(result, (op,), isolated=False,
+                measured = graph_costs(parsed_res, (op,), isolated=False,
                                        external_inputs={dependency: 0 for dependency in op.deps})
                 predicted_us = measured["duration_ms"] * 1000
                 assert predicted_us == pytest.approx(row["predicted_mean_us"])

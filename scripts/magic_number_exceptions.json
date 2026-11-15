@@ -8,7 +8,7 @@
       "owner": "mindie-profiler",
       "reason": "Declared capacity, byte width, or hardware buffer/queue limit (_MAX_JSON_INPUT_BYTES).",
       "signature": "0fb31933783b41bd552e54de7e6390dfedf0a4986152198e27b48984332f5a2f",
-      "source": "mindie_profiler/__main__.py:213"
+      "source": "mindie_profiler/__main__.py:228"
     },
     {
       "category": "H-CAP",
@@ -18,7 +18,7 @@
       "owner": "mindie-profiler",
       "reason": "Declared capacity, byte width, or hardware buffer/queue limit (_MAX_JSON_INPUT_BYTES).",
       "signature": "e812c5832af2609dcb9f500a375b626e0ade5cb70be8d9a9ed15364f7c9f8dce",
-      "source": "mindie_profiler/__main__.py:213"
+      "source": "mindie_profiler/__main__.py:228"
     },
     {
       "category": "P-HEUR",
@@ -6298,7 +6298,7 @@
       "owner": "mindie-profiler",
       "reason": "Declared capacity, byte width, or hardware buffer/queue limit (publication).",
       "signature": "0121d0548bbeec556ca2d4e2d90e25723410da26cfeddfa1b324f4b2746e5199",
-      "source": "mindie_profiler/repro_atomic_io.py:393"
+      "source": "mindie_profiler/repro_atomic_io.py:385"
     },
     {
       "category": "P-HEUR",
@@ -6308,7 +6308,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (handle).",
       "signature": "29ad091fad2267941e82bfefd15b272c7df0949da15fad8fb359214c4f4060c5",
-      "source": "mindie_profiler/repro_atomic_io.py:306"
+      "source": "mindie_profiler/repro_atomic_io.py:300"
     },
     {
       "category": "P-HEUR",
@@ -6318,7 +6318,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (_walk_parent).",
       "signature": "4792698e006615ffb3d42f29ea113455892fe164b23ffb26dc67b98aa38f21cc",
-      "source": "mindie_profiler/repro_atomic_io.py:262"
+      "source": "mindie_profiler/repro_atomic_io.py:256"
     },
     {
       "category": "P-HEUR",
@@ -6338,7 +6338,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (temporary).",
       "signature": "540a18edfafec663a1ca00af05d38c0a0f5bfbbc467863b4c2d6334b85bcf59f",
-      "source": "mindie_profiler/repro_atomic_io.py:303"
+      "source": "mindie_profiler/repro_atomic_io.py:297"
     },
     {
       "category": "P-HEUR",
@@ -6798,7 +6798,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (default).",
       "signature": "2dc19880a825ce33cd978a6340335bf0e5de75a2b24941afb893c2c102ef5b9d",
-      "source": "mindie_profiler/repro_op.py:668"
+      "source": "mindie_profiler/repro_op.py:673"
     },
     {
       "category": "P-HEUR",
@@ -6808,7 +6808,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (generate_single_op_reproducer).",
       "signature": "4ea20320c175182c0c15e4711cb519091768055639ff336caca7a63badb0ac3f",
-      "source": "mindie_profiler/repro_op.py:434"
+      "source": "mindie_profiler/repro_op.py:439"
     },
     {
       "category": "H-CAP",
@@ -6818,7 +6818,7 @@
       "owner": "mindie-profiler",
       "reason": "Declared capacity, byte width, or hardware buffer/queue limit (default).",
       "signature": "5a95b59626a840e8afa513e7cf1de3b1db9712c3bbbde3b7b8e83324293d0677",
-      "source": "mindie_profiler/repro_op.py:667"
+      "source": "mindie_profiler/repro_op.py:672"
     },
     {
       "category": "P-HEUR",
@@ -6828,7 +6828,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (default).",
       "signature": "6bd7634457aa19bd7e0c46fd979a13c76abfd7b18a347ca442cea136f6e95d09",
-      "source": "mindie_profiler/repro_op.py:666"
+      "source": "mindie_profiler/repro_op.py:671"
     },
     {
       "category": "H-CAP",
@@ -6838,7 +6838,7 @@
       "owner": "mindie-profiler",
       "reason": "Declared capacity, byte width, or hardware buffer/queue limit (max_cv_pct).",
       "signature": "77e79f36bea33249b0fa9c26fc571a35f959e4d96bd2dd9731261ed9e9e5d210",
-      "source": "mindie_profiler/repro_op.py:420"
+      "source": "mindie_profiler/repro_op.py:425"
     },
     {
       "category": "P-HEUR",
@@ -6848,7 +6848,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (main).",
       "signature": "7c1862facb3f68e8fbdcb4bf7b601061619d761f48cf08ecaac82d753101f084",
-      "source": "mindie_profiler/repro_op.py:693"
+      "source": "mindie_profiler/repro_op.py:698"
     },
     {
       "category": "P-HEUR",
@@ -6858,7 +6858,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (width).",
       "signature": "7ec66b01f53054d834fce6064fe5f934fd50f73dc0ca28355752c2260ec92599",
-      "source": "mindie_profiler/repro_op.py:408"
+      "source": "mindie_profiler/repro_op.py:413"
     },
     {
       "category": "P-HEUR",
@@ -6868,7 +6868,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (default).",
       "signature": "a5025344a76f0bf25019cf5b46348a475a2938d7fdd27e9c23a1f602ef4a25ea",
-      "source": "mindie_profiler/repro_op.py:665"
+      "source": "mindie_profiler/repro_op.py:670"
     },
     {
       "category": "P-HEUR",
@@ -6878,7 +6878,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (warmup).",
       "signature": "a5b1efceeade7e3bf78828fb2265f8139e7d3508a15bac5f9050a3113ec9939e",
-      "source": "mindie_profiler/repro_op.py:419"
+      "source": "mindie_profiler/repro_op.py:424"
     },
     {
       "category": "H-CAP",
@@ -6888,7 +6888,7 @@
       "owner": "mindie-profiler",
       "reason": "Declared capacity, byte width, or hardware buffer/queue limit (flush_mb).",
       "signature": "a70b72b021f9dfdc824db6fe5affe6b3c27e5067ef139e18098af90a8f026ddb",
-      "source": "mindie_profiler/repro_op.py:420"
+      "source": "mindie_profiler/repro_op.py:425"
     },
     {
       "category": "P-HEUR",
@@ -6898,7 +6898,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (main).",
       "signature": "b2e59fc91b4fbfde5ce01cd5b65550fc574560cb807f7a98ba022fb0540585d3",
-      "source": "mindie_profiler/repro_op.py:690"
+      "source": "mindie_profiler/repro_op.py:695"
     },
     {
       "category": "P-HEUR",
@@ -6918,7 +6918,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (iters).",
       "signature": "c45c603eb33ba677ec2c3e9d2dcba57405809154ec6d55aa31c9f0729315e1e4",
-      "source": "mindie_profiler/repro_op.py:419"
+      "source": "mindie_profiler/repro_op.py:424"
     },
     {
       "category": "P-HEUR",
@@ -7088,7 +7088,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (backup).",
       "signature": "ab92843503f59b69daeb4bb26c51a14e35f18f6ee860e4a825e841aa2358c7e9",
-      "source": "mindie_profiler/repro_storage.py:397"
+      "source": "mindie_profiler/repro_storage.py:393"
     },
     {
       "category": "M-GEOM",
@@ -7098,7 +7098,7 @@
       "owner": "mindie-profiler",
       "reason": "Model architecture, ABI slot arity, or tensor tile geometry (head).",
       "signature": "ae56a9c34f6b69e121bb80524a78b6a49b980c3522dc7ac07a56a5ec3cdf5952",
-      "source": "mindie_profiler/repro_storage.py:144"
+      "source": "mindie_profiler/repro_storage.py:142"
     },
     {
       "category": "P-HEUR",
@@ -7108,7 +7108,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (short_dir).",
       "signature": "fe18c055ef31323678e05bb6f77f8969c0795414cc2ded878a076ec55df9f618",
-      "source": "mindie_profiler/repro_storage.py:607"
+      "source": "mindie_profiler/repro_storage.py:603"
     },
     {
       "category": "P-HEUR",
@@ -7118,7 +7118,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (limits.num_seqs).",
       "signature": "0177e0ce1ba39c7179a8aa40dbaa6d85e45c7c9c7ab1c4beb8896553d106285a",
-      "source": "mindie_profiler/repro_values.py:301"
+      "source": "mindie_profiler/repro_values.py:333"
     },
     {
       "category": "H-CAP",
@@ -7128,7 +7128,7 @@
       "owner": "mindie-profiler",
       "reason": "Declared capacity, byte width, or hardware buffer/queue limit (_dtype_name).",
       "signature": "05dc4789fd3101cb1385a7793da70e38bbbc0d7cc38f9331c4397f7fec3604ba",
-      "source": "mindie_profiler/repro_values.py:393"
+      "source": "mindie_profiler/repro_values.py:425"
     },
     {
       "category": "P-HEUR",
@@ -7138,7 +7138,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (diagnostic_value).",
       "signature": "0d7f984ef159da413f6187c3786d6fae30967bd7f11048c5279df74ed3c802cb",
-      "source": "mindie_profiler/repro_values.py:201"
+      "source": "mindie_profiler/repro_values.py:207"
     },
     {
       "category": "M-GEOM",
@@ -7148,7 +7148,7 @@
       "owner": "mindie-profiler",
       "reason": "Model architecture, ABI slot arity, or tensor tile geometry (limits.pad_slot_id).",
       "signature": "10fdcaab53a78f9898fb3450a3960375f2cb7cde4fb64ccf77de50a637dada41",
-      "source": "mindie_profiler/repro_values.py:307"
+      "source": "mindie_profiler/repro_values.py:339"
     },
     {
       "category": "P-HEUR",
@@ -7158,7 +7158,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (high).",
       "signature": "16965c7bf9bf4a8dc656b13a393ca8c2a5c7ea6f7321db68654e261f320569ef",
-      "source": "mindie_profiler/repro_values.py:126"
+      "source": "mindie_profiler/repro_values.py:132"
     },
     {
       "category": "P-HEUR",
@@ -7168,7 +7168,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (diagnostic_value).",
       "signature": "16bc2125581b931ad67fa7282e3f3e6a94e15fba4855cc9a6c13c3c579240e54",
-      "source": "mindie_profiler/repro_values.py:194"
+      "source": "mindie_profiler/repro_values.py:200"
     },
     {
       "category": "P-HEUR",
@@ -7178,7 +7178,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (limits.next_tokens).",
       "signature": "19e7337a590b2e036fc8674c28d45c3553df4c5043361c982a26e3a3f1c0a2cc",
-      "source": "mindie_profiler/repro_values.py:306"
+      "source": "mindie_profiler/repro_values.py:338"
     },
     {
       "category": "P-HEUR",
@@ -7198,7 +7198,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (validate_count_attributes).",
       "signature": "28d6d0b5c5437098d5bca7571b6d69f91079da77e923ff02c04ea11d875f3bea",
-      "source": "mindie_profiler/repro_values.py:319"
+      "source": "mindie_profiler/repro_values.py:351"
     },
     {
       "category": "P-HEUR",
@@ -7238,7 +7238,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (key).",
       "signature": "3ae740b0bc3f30f1e6f3e82ee0f9b2a9eeb14fb282c5aeebd02dd4098e22d29b",
-      "source": "mindie_profiler/repro_values.py:203"
+      "source": "mindie_profiler/repro_values.py:209"
     },
     {
       "category": "P-HEUR",
@@ -7258,7 +7258,7 @@
       "owner": "mindie-profiler",
       "reason": "Model architecture, ABI slot arity, or tensor tile geometry (slot_allocations).",
       "signature": "45d725598d75c77dd76e9573a04faf913b27dec945c1d420532755c90893dc7e",
-      "source": "mindie_profiler/repro_values.py:563"
+      "source": "mindie_profiler/repro_values.py:608"
     },
     {
       "category": "P-HEUR",
@@ -7268,7 +7268,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (bounded_summary).",
       "signature": "474fa91b12cb49abba085db3ab1ba30dbde1b5692ff7307ae1174a5ecd29df79",
-      "source": "mindie_profiler/repro_values.py:178"
+      "source": "mindie_profiler/repro_values.py:184"
     },
     {
       "category": "P-HEUR",
@@ -7278,7 +7278,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (bounded_summary).",
       "signature": "47d4d5e5f27f132a7ab8d91d1c933190ce69df2f8636c3923eda88c7a42d7fce",
-      "source": "mindie_profiler/repro_values.py:153"
+      "source": "mindie_profiler/repro_values.py:159"
     },
     {
       "category": "P-HEUR",
@@ -7288,7 +7288,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold ((low, high)).",
       "signature": "47ee26026fd54eaf424365f3b77ba2a425b414d1952811373af735264adb7f0b",
-      "source": "mindie_profiler/repro_values.py:447"
+      "source": "mindie_profiler/repro_values.py:479"
     },
     {
       "category": "P-HEUR",
@@ -7298,7 +7298,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (limits.block_size).",
       "signature": "4a058ff901655347771cc5bde1694d65f6eb3bc1197a222188ac45a97d1b7f4e",
-      "source": "mindie_profiler/repro_values.py:305"
+      "source": "mindie_profiler/repro_values.py:337"
     },
     {
       "category": "P-HEUR",
@@ -7308,7 +7308,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (decode_bounded_json).",
       "signature": "4d3705edf7ee4061548c45e8457b2a9d9229b750c647f831eb6f2e27e975798c",
-      "source": "mindie_profiler/repro_values.py:267"
+      "source": "mindie_profiler/repro_values.py:299"
     },
     {
       "category": "P-HEUR",
@@ -7331,6 +7331,16 @@
       "source": "mindie_profiler/repro_values.py:59"
     },
     {
+      "category": "P-HEUR",
+      "count": 1,
+      "expires": "2027-06-30",
+      "file": "profiler:repro_values.py",
+      "owner": "mindie-profiler",
+      "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (_copy_container).",
+      "signature": "5401ce8734a4b0af038a2c88c8bcb3cd4da2fb2d56d1314df4ef8281203629a3",
+      "source": "mindie_profiler/repro_values.py:518"
+    },
+    {
       "category": "M-GEOM",
       "count": 1,
       "expires": "2027-06-30",
@@ -7338,7 +7348,7 @@
       "owner": "mindie-profiler",
       "reason": "Model architecture, ABI slot arity, or tensor tile geometry (limits.num_heads).",
       "signature": "54e259bf21c942daaae3ba994a61a7244d68732ccba62f07415dcea30b5483e5",
-      "source": "mindie_profiler/repro_values.py:302"
+      "source": "mindie_profiler/repro_values.py:334"
     },
     {
       "category": "P-HEUR",
@@ -7348,7 +7358,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (bounded_summary).",
       "signature": "5eff21fef2b99a8d309d55eb7df08035dba2660ba99dd620a710a5f31da85725",
-      "source": "mindie_profiler/repro_values.py:171"
+      "source": "mindie_profiler/repro_values.py:177"
     },
     {
       "category": "P-HEUR",
@@ -7358,7 +7368,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (storage_mapping).",
       "signature": "5f7bcf94a0e7dec34a4893d5e48963296899c73edef08916f2e714f63d5b900f",
-      "source": "mindie_profiler/repro_values.py:536"
+      "source": "mindie_profiler/repro_values.py:581"
     },
     {
       "category": "P-HEUR",
@@ -7378,7 +7388,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (_value_repr).",
       "signature": "6ab2489cff5548d5bf538db9f79754ec2bf93c7356f4fe53539fbc34d4728064",
-      "source": "mindie_profiler/repro_values.py:408"
+      "source": "mindie_profiler/repro_values.py:440"
     },
     {
       "category": "P-HEUR",
@@ -7398,7 +7408,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (repro_count_options).",
       "signature": "73d7ecb82c4b100125f48d4bb2e80e2ff84da97a7ec51f00df07e92ebda7a55e",
-      "source": "mindie_profiler/repro_values.py:347"
+      "source": "mindie_profiler/repro_values.py:379"
     },
     {
       "category": "P-HEUR",
@@ -7418,7 +7428,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (limits.null_block_id).",
       "signature": "77a977e9f0a10da4b40b5f5bd4f44d75cf04f542f765c4af1878f8088d3cdc2f",
-      "source": "mindie_profiler/repro_values.py:308"
+      "source": "mindie_profiler/repro_values.py:340"
     },
     {
       "category": "P-HEUR",
@@ -7428,7 +7438,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (maximum).",
       "signature": "7c9ca615d97bc06d9a1009b47d99a18c4d5ce97eb0d5b3db4880f8c6d097977e",
-      "source": "mindie_profiler/repro_values.py:246"
+      "source": "mindie_profiler/repro_values.py:278"
     },
     {
       "category": "P-HEUR",
@@ -7458,7 +7468,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (validate_binding_counts).",
       "signature": "88659e69a9f0d3bd66ca861fa2b5debacb2e1501172009f524c6294f85e2f1d8",
-      "source": "mindie_profiler/repro_values.py:338"
+      "source": "mindie_profiler/repro_values.py:370"
     },
     {
       "category": "P-HEUR",
@@ -7468,7 +7478,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (maximum).",
       "signature": "8ce040ee6c634d95a7a512b0b65b09d3133e79fac7fabbbf58f31b650bb42319",
-      "source": "mindie_profiler/repro_values.py:213"
+      "source": "mindie_profiler/repro_values.py:222"
     },
     {
       "category": "P-HEUR",
@@ -7478,7 +7488,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold ((low, high)).",
       "signature": "8e11101a81b0646e3361828ed12fee2dcbe87057b0b093a052d8d6131bc5cf3f",
-      "source": "mindie_profiler/repro_values.py:447"
+      "source": "mindie_profiler/repro_values.py:479"
     },
     {
       "category": "P-HEUR",
@@ -7488,7 +7498,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (storage_mapping).",
       "signature": "95f418a5bb408d4abc4340b4a7317659bea79c0a50ded0550563c3377830350d",
-      "source": "mindie_profiler/repro_values.py:537"
+      "source": "mindie_profiler/repro_values.py:582"
     },
     {
       "category": "P-HEUR",
@@ -7498,7 +7508,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (limits.pre_tokens).",
       "signature": "9b81d1402b8b17dcf836f9dd6a325cc2881775a64eaaa9994d3a45002d4a6547",
-      "source": "mindie_profiler/repro_values.py:305"
+      "source": "mindie_profiler/repro_values.py:337"
     },
     {
       "category": "P-HEUR",
@@ -7518,7 +7528,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (diagnostic_value).",
       "signature": "9ebe240fabb0bde7d843c7c2358f5d02b1aab0d876d7304173e1edf545d82e4e",
-      "source": "mindie_profiler/repro_values.py:188"
+      "source": "mindie_profiler/repro_values.py:194"
     },
     {
       "category": "P-HEUR",
@@ -7538,7 +7548,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (validate_count_attributes).",
       "signature": "a4061a97d1925730e359f0d7e312654f17a900210e7a65a140f7ca9a5da93f05",
-      "source": "mindie_profiler/repro_values.py:322"
+      "source": "mindie_profiler/repro_values.py:354"
     },
     {
       "category": "P-HEUR",
@@ -7568,7 +7578,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (limits.batch_size).",
       "signature": "ab1cf68d0f190321bf1d708b92195c54a42ddb7e19064b1f50a0c4e04429c5ca",
-      "source": "mindie_profiler/repro_values.py:301"
+      "source": "mindie_profiler/repro_values.py:333"
     },
     {
       "category": "P-HEUR",
@@ -7588,7 +7598,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (diagnostic_value).",
       "signature": "af561733d78a3c6c93199e4e6c1d4c130d3629adcb87c6707503d87616fce3aa",
-      "source": "mindie_profiler/repro_values.py:196"
+      "source": "mindie_profiler/repro_values.py:202"
     },
     {
       "category": "P-HEUR",
@@ -7608,7 +7618,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (high).",
       "signature": "b36613644a008ea57e9c8b94f0b341abcb5a0493eec12df1fa19d14de69d193f",
-      "source": "mindie_profiler/repro_values.py:134"
+      "source": "mindie_profiler/repro_values.py:140"
     },
     {
       "category": "M-GEOM",
@@ -7618,7 +7628,7 @@
       "owner": "mindie-profiler",
       "reason": "Model architecture, ABI slot arity, or tensor tile geometry (limits.k).",
       "signature": "b46c1acda3facb05097e3ec956aae744914ae0c6aa5283c123b1f15eb15b75ad",
-      "source": "mindie_profiler/repro_values.py:303"
+      "source": "mindie_profiler/repro_values.py:335"
     },
     {
       "category": "H-CAP",
@@ -7628,7 +7638,7 @@
       "owner": "mindie-profiler",
       "reason": "Declared capacity, byte width, or hardware buffer/queue limit (repro_count_options).",
       "signature": "b5d155bab48b3ee06b1d8a904b9c8f5f735abb73349650088986ac473d047937",
-      "source": "mindie_profiler/repro_values.py:350"
+      "source": "mindie_profiler/repro_values.py:382"
     },
     {
       "category": "P-HEUR",
@@ -7648,7 +7658,7 @@
       "owner": "mindie-profiler",
       "reason": "Model architecture, ABI slot arity, or tensor tile geometry (high).",
       "signature": "b7e9da2e3d4f7bbd6c8224f1e2b953d8198e405c4d152199a2a2d6656231e55a",
-      "source": "mindie_profiler/repro_values.py:142"
+      "source": "mindie_profiler/repro_values.py:148"
     },
     {
       "category": "P-HEUR",
@@ -7658,7 +7668,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (_copy_container).",
       "signature": "b88a541e45702f6416042876fbcb638f1d101bf513bfeb9829da7e5192245e8d",
-      "source": "mindie_profiler/repro_values.py:480"
+      "source": "mindie_profiler/repro_values.py:526"
     },
     {
       "category": "P-HEUR",
@@ -7668,7 +7678,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (value).",
       "signature": "b8b59ec06bfa258421e984c79fb2a2fa14baa774aaa7a41727c99f1aaeecc04b",
-      "source": "mindie_profiler/repro_values.py:360"
+      "source": "mindie_profiler/repro_values.py:392"
     },
     {
       "category": "M-GEOM",
@@ -7678,7 +7688,7 @@
       "owner": "mindie-profiler",
       "reason": "Model architecture, ABI slot arity, or tensor tile geometry (limits.head_num).",
       "signature": "bd540de8519e0876c253ea076aa2d728ebbe24ec39e9fca958b168a7ca614c42",
-      "source": "mindie_profiler/repro_values.py:302"
+      "source": "mindie_profiler/repro_values.py:334"
     },
     {
       "category": "P-HEUR",
@@ -7688,7 +7698,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (limits.pre_tockens).",
       "signature": "bd997a8aba33ba92f0a3ab84cf8b5ec59158685391b8bbd42c7bd919d2fe1d92",
-      "source": "mindie_profiler/repro_values.py:306"
+      "source": "mindie_profiler/repro_values.py:338"
     },
     {
       "category": "P-HEUR",
@@ -7708,7 +7718,7 @@
       "owner": "mindie-profiler",
       "reason": "Model architecture, ABI slot arity, or tensor tile geometry (limits.num_experts).",
       "signature": "c01df1f0c6c36e5acd95686d1bc0daad3ed0da6c1e534549a2be87184b032367",
-      "source": "mindie_profiler/repro_values.py:304"
+      "source": "mindie_profiler/repro_values.py:336"
     },
     {
       "category": "P-HEUR",
@@ -7718,7 +7728,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (diagnostic_value).",
       "signature": "c0fe767dd0e155de0e0c0c2b7dab7699594532696c4bc76b40cb55bf34cdd3ee",
-      "source": "mindie_profiler/repro_values.py:190"
+      "source": "mindie_profiler/repro_values.py:196"
     },
     {
       "category": "P-HEUR",
@@ -7728,7 +7738,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (_bounded_members).",
       "signature": "c3bbd1b86170225a6d3ecd083f73d06e9f8e1f28d9126bc496047f8e3b4bf2a5",
-      "source": "mindie_profiler/repro_values.py:112"
+      "source": "mindie_profiler/repro_values.py:118"
     },
     {
       "category": "P-HEUR",
@@ -7738,7 +7748,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (limits.offset).",
       "signature": "c528d5cde3c07242a66249728a77c91c02febe9ddd960eda92bbfa1f74d08bb8",
-      "source": "mindie_profiler/repro_values.py:308"
+      "source": "mindie_profiler/repro_values.py:340"
     },
     {
       "category": "P-HEUR",
@@ -7748,17 +7758,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (validate_binding_counts).",
       "signature": "d7bb20bd4b4931d53a4d7556be027283f26d15fd77a8f9b74f6301a8ba495b86",
-      "source": "mindie_profiler/repro_values.py:334"
-    },
-    {
-      "category": "P-HEUR",
-      "count": 1,
-      "expires": "2027-06-30",
-      "file": "profiler:repro_values.py",
-      "owner": "mindie-profiler",
-      "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (_copy_container).",
-      "signature": "dc568e0f5dc52b0163e3e05a3dda93a4446509877b79d0e42efa9921f6efb794",
-      "source": "mindie_profiler/repro_values.py:496"
+      "source": "mindie_profiler/repro_values.py:366"
     },
     {
       "category": "P-HEUR",
@@ -7768,7 +7768,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (repro_count_options).",
       "signature": "dd6551519bf3004311e1da6fbbd8ec4d88f21c4c594cdac2a4395da675807977",
-      "source": "mindie_profiler/repro_values.py:348"
+      "source": "mindie_profiler/repro_values.py:380"
     },
     {
       "category": "M-GEOM",
@@ -7778,7 +7778,7 @@
       "owner": "mindie-profiler",
       "reason": "Model architecture, ABI slot arity, or tensor tile geometry (limits.num_query_heads).",
       "signature": "dea480308dac3228d858586945ca188b2eca102203c8f3a91ba0576ac7e5a1c0",
-      "source": "mindie_profiler/repro_values.py:303"
+      "source": "mindie_profiler/repro_values.py:335"
     },
     {
       "category": "P-HEUR",
@@ -7798,7 +7798,7 @@
       "owner": "mindie-profiler",
       "reason": "Model architecture, ABI slot arity, or tensor tile geometry (limits.expert_num).",
       "signature": "e37e4db7db66b188ade1023701a5a946c567dd603cb01cf2310a033024c79878",
-      "source": "mindie_profiler/repro_values.py:304"
+      "source": "mindie_profiler/repro_values.py:336"
     },
     {
       "category": "P-HEUR",
@@ -7818,7 +7818,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (validate_json_integers).",
       "signature": "e471d31a031ac925f4b7202556d5f5786d1f53e06bd7201fae6f3898da1a8eba",
-      "source": "mindie_profiler/repro_values.py:294"
+      "source": "mindie_profiler/repro_values.py:326"
     },
     {
       "category": "M-GEOM",
@@ -7828,7 +7828,7 @@
       "owner": "mindie-profiler",
       "reason": "Model architecture, ABI slot arity, or tensor tile geometry (slot_allocations).",
       "signature": "e855bf4100ee43d691368f4e6d74de3d055bca5049df171139a7f89793e90f9f",
-      "source": "mindie_profiler/repro_values.py:558"
+      "source": "mindie_profiler/repro_values.py:603"
     },
     {
       "category": "P-HEUR",
@@ -7858,7 +7858,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (storage_mapping).",
       "signature": "ec023e493f782fda2cac1db4ebfb49ae3c8a6d64bf470dcd74b3d5937e9c1d9d",
-      "source": "mindie_profiler/repro_values.py:533"
+      "source": "mindie_profiler/repro_values.py:578"
     },
     {
       "category": "P-HEUR",
@@ -7868,7 +7868,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (validate_count_attributes).",
       "signature": "edf56f0f4399510786cf2e9e9405ccf56174c55c467e2e4dd19199d854ad0e21",
-      "source": "mindie_profiler/repro_values.py:321"
+      "source": "mindie_profiler/repro_values.py:353"
     },
     {
       "category": "P-HEUR",
@@ -7878,7 +7878,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (bounded_summary).",
       "signature": "f476608eaab78adb457e286d7e015c90adcb5b7b858c33a5cbd32efb39a81a4a",
-      "source": "mindie_profiler/repro_values.py:176"
+      "source": "mindie_profiler/repro_values.py:182"
     },
     {
       "category": "M-GEOM",
@@ -7888,7 +7888,7 @@
       "owner": "mindie-profiler",
       "reason": "Model architecture, ABI slot arity, or tensor tile geometry (limits.next_tockens).",
       "signature": "f74b380ccc09e6524d7beec07371b4eba39c7d62873fb1a650cfb2eb8e4bff70",
-      "source": "mindie_profiler/repro_values.py:307"
+      "source": "mindie_profiler/repro_values.py:339"
     },
     {
       "category": "P-HEUR",
@@ -7898,7 +7898,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (maximum).",
       "signature": "f9008db2a38941789b3a09d03e6547994e5654505c45dae0072450a6b5082694",
-      "source": "mindie_profiler/repro_values.py:477"
+      "source": "mindie_profiler/repro_values.py:512"
     },
     {
       "category": "M-GEOM",
@@ -7908,7 +7908,7 @@
       "owner": "mindie-profiler",
       "reason": "Model architecture, ABI slot arity, or tensor tile geometry (bounded_shape).",
       "signature": "f973a94a478ccbab96f5833c13aed0ead66f643604c3a39492eb93fdf51c128e",
-      "source": "mindie_profiler/repro_values.py:145"
+      "source": "mindie_profiler/repro_values.py:151"
     },
     {
       "category": "P-HEUR",
@@ -7918,7 +7918,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold ((low, high)).",
       "signature": "f9c3cd4249f2b980454001e2c98a34ad44d130835dd30a7a73af119424d32327",
-      "source": "mindie_profiler/repro_values.py:325"
+      "source": "mindie_profiler/repro_values.py:357"
     },
     {
       "category": "P-HEUR",
@@ -7938,7 +7938,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (validate_binding_counts).",
       "signature": "febc4dad8aca9f3c4eae12dfdf83fcf2c53ad60466c381005a7792835a0350e6",
-      "source": "mindie_profiler/repro_values.py:340"
+      "source": "mindie_profiler/repro_values.py:372"
     },
     {
       "category": "P-HEUR",
@@ -7948,7 +7948,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (bounded_summary).",
       "signature": "fffce95f4aaa97eaa5a83515520ae3c0af131f6d8d1a533f85a6b9b8c1532666",
-      "source": "mindie_profiler/repro_values.py:156"
+      "source": "mindie_profiler/repro_values.py:162"
     },
     {
       "category": "H-TOPO",
@@ -12428,7 +12428,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (candidate_subgraph_ids).",
       "signature": "1d5a0bb8ccd40a0fd0ef9109d9fce48231645d388e7c0ae3386e84dc8df41468",
-      "source": "mindie_profiler/structure_mapping.py:652"
+      "source": "mindie_profiler/structure_mapping.py:659"
     },
     {
       "category": "P-HEUR",
@@ -12438,7 +12438,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (candidate_node_ids).",
       "signature": "65ef37b11cf7ad76a245fe570561ef812023c864b248d747ac00ba98684f1643",
-      "source": "mindie_profiler/structure_mapping.py:651"
+      "source": "mindie_profiler/structure_mapping.py:658"
     },
     {
       "category": "P-HEUR",
@@ -12448,7 +12448,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (variants).",
       "signature": "02a4c4eb380c385519e7b354039716299fad3c63e91082c165e393a4aa1d33e5",
-      "source": "mindie_profiler/structure_native_calls.py:505"
+      "source": "mindie_profiler/structure_native_calls.py:520"
     },
     {
       "category": "P-HEUR",
@@ -12458,7 +12458,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (raw_identity.task_id).",
       "signature": "0a2555dbacb4452daa907a8579fc6d95371adfffcb558e0b85201ccfe44e6543",
-      "source": "mindie_profiler/structure_native_calls.py:372"
+      "source": "mindie_profiler/structure_native_calls.py:387"
     },
     {
       "category": "H-TIME",
@@ -12468,7 +12468,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit time bound, clock rate, or calibrated service latency (raw_identity.start_ns).",
       "signature": "1828a093a49cc6ebb8496de7757cf5eb84ffeb795115e36921ecd75e0f328306",
-      "source": "mindie_profiler/structure_native_calls.py:375"
+      "source": "mindie_profiler/structure_native_calls.py:390"
     },
     {
       "category": "P-HEUR",
@@ -12478,7 +12478,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (_MAX_IMPLEMENTATION_CACHE).",
       "signature": "59b48e68ff8dd171178d6103eeabd11bdaa9f787d7bf65f3305a1b96338b671b",
-      "source": "mindie_profiler/structure_native_calls.py:199"
+      "source": "mindie_profiler/structure_native_calls.py:214"
     },
     {
       "category": "P-HEUR",
@@ -12488,7 +12488,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (raw_identity.device_id).",
       "signature": "7545a28003ca4f8767072da6e1d36dd1e9988d4288ac21d8e857c20887538179",
-      "source": "mindie_profiler/structure_native_calls.py:374"
+      "source": "mindie_profiler/structure_native_calls.py:389"
     },
     {
       "category": "H-TIME",
@@ -12498,7 +12498,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit time bound, clock rate, or calibrated service latency (expired).",
       "signature": "872550e483e8ea2ca90ef075d991182d764d17841fb3d68861afd1f0af32dcd2",
-      "source": "mindie_profiler/structure_native_calls.py:534"
+      "source": "mindie_profiler/structure_native_calls.py:549"
     },
     {
       "category": "P-HEUR",
@@ -12508,7 +12508,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (raw_identity.connection_id).",
       "signature": "96878591a69d801aa0d0370128098eb837ca4c2d5512c53d0df86ffd8ff0dd01",
-      "source": "mindie_profiler/structure_native_calls.py:373"
+      "source": "mindie_profiler/structure_native_calls.py:388"
     },
     {
       "category": "H-TIME",
@@ -12518,7 +12518,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit time bound, clock rate, or calibrated service latency (raw_identity.end_ns).",
       "signature": "a3dd77e64bc18adbbb20150640b1c5423f8b617a1a44e19a100998b51515ccbf",
-      "source": "mindie_profiler/structure_native_calls.py:376"
+      "source": "mindie_profiler/structure_native_calls.py:391"
     },
     {
       "category": "P-HEUR",
@@ -12528,7 +12528,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (_snapshot_structure_carrier).",
       "signature": "e517c6d35357aa9b94f0d0c23b4e5a0e0e831e6abc2e7b16963add5338f2442d",
-      "source": "mindie_profiler/structure_native_calls.py:50"
+      "source": "mindie_profiler/structure_native_calls.py:54"
     },
     {
       "category": "P-HEUR",
@@ -12538,7 +12538,7 @@
       "owner": "mindie-profiler",
       "reason": "Explicit bounded policy cap, schema constant, or diagnostic threshold (max_active).",
       "signature": "f1b0e3bdad6f4d17150cdeba6be39ab11cabfc01a2ec700b727f87723f3d4de7",
-      "source": "mindie_profiler/structure_native_calls.py:516"
+      "source": "mindie_profiler/structure_native_calls.py:531"
     },
     {
       "category": "P-HEUR",

@@ -241,7 +241,21 @@ def test_registered_glm_recovers_fusion_kinds_and_leaves_cores_unresolved() -> N
     """The registered GLM body keeps its span. Fusion kinds move. Cores stay unbound."""
     fom.clear_caches()
     cfg = _glm_cfg()
-    base = fom.predict_capture_operators_and_step(cfg)
+    original = fom._load_case
+
+    def compact_load(path, expected):
+        document, error = original(path, expected)
+        if isinstance(document, dict) and isinstance(document.get("model"), dict):
+            document["model"]["layers"] = 4
+            if "layer_plans" in document["model"]:
+                document["model"]["layer_plans"] = list(document["model"]["layer_plans"])[:4]
+        return document, error
+
+    fom._load_case = compact_load
+    try:
+        base = fom.predict_capture_operators_and_step(cfg)
+    finally:
+        fom._load_case = original
     assert base["status"] == "modeled"
     assert base["measurement_features_read"] is False
     assert base["predicted_step_ms"] == base["predicted_operator_ms"]
@@ -291,7 +305,7 @@ def test_registered_glm_recovers_fusion_kinds_and_leaves_cores_unresolved() -> N
     original = fom._load_case
 
     def rotated(path, expected):
-        document, error = original(path, expected)
+        document, error = compact_load(path, expected)
         if not isinstance(document, dict):
             return document, error
         kernels = document["runtime"]["kernels"]

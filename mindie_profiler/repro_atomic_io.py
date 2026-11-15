@@ -29,8 +29,11 @@ _TMP_SUFFIX = ".tmp"
 _COPY_CHUNK = 1 << 20
 _OWNERSHIP_LOCK = threading.RLock()
 _COMMITTED_INODES: set[tuple[int, int]] = set()
-_READ_FLAGS = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0) | getattr(os, "O_BINARY", 0)
-_LINK_KW = {"follow_symlinks": False} if os.link in os.supports_follow_symlinks else {}
+_IS_WIN = os.name == "nt"
+_WIN_BIN = os.O_BINARY if _IS_WIN else 0
+_READ_FLAGS = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0) | _WIN_BIN
+def _link_nofollow(src: Any, dst: Any) -> None:
+    os.link(src, dst) if _IS_WIN else os.link(src, dst, follow_symlinks=False)
 def read_regular_bytes(path: Any) -> bytes | None:
     try:
         target = Path(str(path))
@@ -39,8 +42,7 @@ def read_regular_bytes(path: Any) -> bytes | None:
             return None
         handle = os.open(target, _READ_FLAGS)
     except TimeoutError: raise
-    except OSError:
-        return None
+    except OSError: return None
     stream, expected_fd_inode = None, None
     def close(primary):
         if stream is None:
@@ -51,17 +53,15 @@ def read_regular_bytes(path: Any) -> bytes | None:
         with _cleanup_scope(close):
             opened = os.fstat(handle)
             expected_fd_inode = (opened.st_dev, opened.st_ino)
-            if (not stat.S_ISREG(opened.st_mode)
-                    or (opened.st_dev, opened.st_ino) != (before.st_dev, before.st_ino)):
+            if not stat.S_ISREG(opened.st_mode) or expected_fd_inode != (before.st_dev, before.st_ino):
                 return None
-            if hasattr(os, "set_blocking"):
+            if not _IS_WIN:
                 os.set_blocking(handle, True)
             stream = os.fdopen(handle, "rb", closefd=False)
             handle = _borrow_stream_fd(stream, handle, expected_fd_inode)
             return stream.read()
     except TimeoutError: raise
-    except OSError:
-        return None
+    except OSError: return None
 def inode_of(path: Any) -> tuple[int, int] | None:
     info = lstat_or_none(path)
     return (info.st_dev, info.st_ino) if info is not None and stat.S_ISREG(info.st_mode) else None
@@ -179,7 +179,7 @@ def _unlink_owned_path(path, expected_inode=None, *, protected=(), active_exc=No
             info = os.lstat(parked)
         if not owned(info):
             try:
-                os.link(parked, path, **_LINK_KW)
+                _link_nofollow(parked, path)
             except FileExistsError:
                 current = os.lstat(path)
                 if (current.st_dev, current.st_ino) != (info.st_dev, info.st_ino):
@@ -191,17 +191,13 @@ def sha256_digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 def stat_or_none(path: Any) -> os.stat_result | None:
     """Checked stat: ordinary OS errors are None; timeouts retain identity."""
-    try:
-        return os.stat(path)
+    try: return os.stat(path)
     except TimeoutError: raise
-    except (OSError, ValueError):
-        return None
+    except (OSError, ValueError): return None
 def lstat_or_none(path: Any) -> os.stat_result | None:
-    try:
-        return os.lstat(path)
+    try: return os.lstat(path)
     except TimeoutError: raise
-    except (OSError, ValueError):
-        return None
+    except (OSError, ValueError): return None
 def path_exists(path: Any) -> bool:
     return stat_or_none(path) is not None
 def path_lexists(path: Any) -> bool:
@@ -218,13 +214,12 @@ def path_is_symlink(path: Any) -> bool:
 def _absolute(path: Any) -> Path:
     return Path(os.path.abspath(str(path)))
 def _inside(path: Path, roots: Iterable[Path]) -> bool:
-    return any(path == root or root in path.parents for root in roots)
+    ancestors = {path, *path.parents}
+    return not ancestors.isdisjoint(roots) if isinstance(roots, (set, frozenset)) else any(r in ancestors for r in roots)
 def _resolved_loose(path: Path) -> Path | None:
-    try:
-        return path.resolve(strict=False)
+    try: return path.resolve(strict=False)
     except TimeoutError: raise
-    except (OSError, RuntimeError):
-        return None
+    except (OSError, RuntimeError): return None
 def _forbidden_parent(parent: Path, forbidden: set[Path], allow_slot: Path | None) -> bool:
     if not forbidden:
         return False
@@ -234,15 +229,14 @@ def _forbidden_parent(parent: Path, forbidden: set[Path], allow_slot: Path | Non
         return False
     return _inside(parent, forbidden) or (resolved is not None and _inside(resolved, forbidden))
 def _anchor_for(parent: Path) -> tuple[Path, tuple[str, ...]] | None:
-    info = stat_or_none(parent.anchor or os.sep)
-    if info is None or not stat.S_ISDIR(info.st_mode):
-        return None
-    temp = Path((parent.anchor or os.sep) + "tmp")
-    temp_info = stat_or_none(temp)
-    if (temp_info is not None and stat.S_ISDIR(temp_info.st_mode) and (temp == parent or temp in parent.parents)):
-        return temp, parent.relative_to(temp).parts
+    if not _IS_WIN:
+        temp = Path(os.sep + "tmp")
+        temp_info = stat_or_none(temp)
+        if temp_info is not None and stat.S_ISDIR(temp_info.st_mode) and (temp == parent or temp in parent.parents):
+            return temp, parent.relative_to(temp).parts
     root = Path(parent.anchor or os.sep)
-    return root, parent.parts[1:] if parent.anchor else parent.parts
+    info = stat_or_none(root)
+    return (root, parent.parts[1:] if parent.anchor else parent.parts) if info is not None and stat.S_ISDIR(info.st_mode) else None
 def _walk_parent(parent: Path, forbidden: set[Path], allow_slot: Path | None, create: bool = True) -> bool:
     """Validate every component before creating any missing directory."""
     anchor = _anchor_for(parent)
@@ -301,12 +295,11 @@ def _inspect_predictable_temps(parent: Path, leaf: str) -> bool:
     return True
 def _open_temporary(parent: Path, leaf: str) -> tuple[int, Path] | None:
     temporary = parent / f".{leaf}.{os.getpid()}.{os.urandom(16).hex()}{_TMP_SUFFIX}"
-    flags = (os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_BINARY", 0))
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | (_WIN_BIN if _IS_WIN else getattr(os, "O_NOFOLLOW", 0))
     try:
         handle = os.open(temporary, flags, 0o600)
     except TimeoutError: raise
-    except OSError:
-        return None
+    except OSError: return None
     return handle, temporary
 def _write_all(handle: int, data: bytes) -> bool:
     view = memoryview(data)
@@ -326,7 +319,7 @@ def _verified_inode(path: Path, expected: tuple[int, int], digest: str) -> bool:
         with _cleanup_scope(lambda exc: _close_owned_fd(handle, active_exc=exc, expected=receipt)):
             opened = os.fstat(handle)
             receipt = (opened.st_dev, opened.st_ino)
-            if (not stat.S_ISREG(opened.st_mode) or (opened.st_dev, opened.st_ino) != expected):
+            if not stat.S_ISREG(opened.st_mode) or receipt != expected:
                 return False
             hasher = hashlib.sha256()
             while True:
@@ -336,8 +329,7 @@ def _verified_inode(path: Path, expected: tuple[int, int], digest: str) -> bool:
                 hasher.update(chunk)
             return hasher.hexdigest() == digest
     except TimeoutError: raise
-    except OSError:
-        return False
+    except OSError: return False
 def safe_write_bytes(target: Any, data: bytes, *, protected: Iterable[tuple[int, int]] = (),
                      forbidden: Iterable[Any] = (), allow_slot: Any = None, exclusive: bool = False,
                      installed_out: list[tuple[int, int]] | None = None, refresh_protected=None) -> bool:
@@ -346,11 +338,8 @@ def safe_write_bytes(target: Any, data: bytes, *, protected: Iterable[tuple[int,
     protected_set = {(int(dev), int(ino)) for dev, ino in protected}
     forbidden_set = {_absolute(path) for path in forbidden}
     allowance = _absolute(allow_slot) if allow_slot is not None else None
-    if (not _walk_parent(parent, forbidden_set, allowance)
-            or _forbidden_parent(parent, forbidden_set, allowance)):
-        return False
-    if (not _leaf_safe(destination, protected_set)
-            or not _inspect_predictable_temps(parent, destination.name)):
+    if (not _walk_parent(parent, forbidden_set, allowance) or _forbidden_parent(parent, forbidden_set, allowance)
+            or not _leaf_safe(destination, protected_set) or not _inspect_predictable_temps(parent, destination.name)):
         return False
     opened = _open_temporary(parent, destination.name)
     if opened is None:
@@ -378,6 +367,10 @@ def safe_write_bytes(target: Any, data: bytes, *, protected: Iterable[tuple[int,
                 temp_inode = (temp_info.st_dev, temp_info.st_ino)
                 if not stat.S_ISREG(temp_info.st_mode):
                     raise OSError("temporary is not a regular file")
+                if temp_info.st_nlink == 1:  # O_CREAT|O_EXCL sole link: purge recycled ext4 inodes.
+                    with _OWNERSHIP_LOCK:
+                        _COMMITTED_INODES.discard(temp_inode)
+                    protected_set.discard(temp_inode)
                 if not _write_all(handle, data):
                     raise OSError("short write")
             expected, digest = temp_inode, sha256_digest(data)
@@ -385,16 +378,15 @@ def safe_write_bytes(target: Any, data: bytes, *, protected: Iterable[tuple[int,
                 return False
             if refresh_protected is not None:
                 protected_set.update(refresh_protected())
-            if not _leaf_safe(destination, protected_set):
-                return False
-            if _forbidden_parent(parent, forbidden_set, allowance):
+                protected_set.discard(expected)
+            if not _leaf_safe(destination, protected_set) or _forbidden_parent(parent, forbidden_set, allowance):
                 return False
             # Keep the leaf prefix/suffix used by retained temporary fault selectors.
             publication = parent / f".{destination.name}.{os.urandom(16).hex()}.publish.tmp"
             os.rename(temporary, publication)
             if inode_of(publication) != expected:
                 try:
-                    os.link(publication, temporary, **_LINK_KW)
+                    _link_nofollow(publication, temporary)
                 except FileExistsError:
                     return False  # Preserve both foreign occupants.
                 os.unlink(publication)
@@ -410,12 +402,10 @@ def safe_write_bytes(target: Any, data: bytes, *, protected: Iterable[tuple[int,
             if not verified:
                 return False
         except TimeoutError: raise
-        except OSError:
-            return False
+        except OSError: return False
     if installed_out is not None:
         installed_out.append(expected)
     return True
-__all__ = ["ensure_directory", "inode_of", "lstat_or_none",
-           "path_exists", "path_is_dir", "path_is_file", "path_is_symlink",
-           "path_lexists", "read_regular_bytes", "safe_write_bytes",
-           "sha256_digest", "stat_or_none", "unlink_quiet", "validate_directory"]
+__all__ = ["ensure_directory", "inode_of", "lstat_or_none", "path_exists", "path_is_dir", "path_is_file",
+           "path_is_symlink", "path_lexists", "read_regular_bytes", "safe_write_bytes", "sha256_digest",
+           "stat_or_none", "unlink_quiet", "validate_directory"]

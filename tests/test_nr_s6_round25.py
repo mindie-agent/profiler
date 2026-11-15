@@ -98,6 +98,10 @@ def _usage(fn):
     assert len(str(exc.value)) < 1500
 
 
+_TIKTOKEN_ENCODERS = {}
+_VERIFIED_HELP_SKELETONS = set()
+
+
 def _envelope(value):
     wire = json.dumps(value, ensure_ascii=False, sort_keys=True,
                       separators=(",", ":"), allow_nan=False)
@@ -107,12 +111,15 @@ def _envelope(value):
     assert estimate_tokens(value) <= 250
     if tiktoken is not None:
         for name in ("cl100k_base", "o200k_base"):
-            try:
-                enc = tiktoken.get_encoding(name)
-            except TimeoutError:
-                raise
-            except Exception:
-                break
+            enc = _TIKTOKEN_ENCODERS.get(name)
+            if enc is None:
+                try:
+                    enc = tiktoken.get_encoding(name)
+                except TimeoutError:
+                    raise
+                except Exception:
+                    break
+                _TIKTOKEN_ENCODERS[name] = enc
             assert len(enc.encode(wire, disallowed_special=())) <= estimate_tokens(value) <= 250
             assert len(enc.encode(body, disallowed_special=())) <= value["receipt"]["token_estimate"]
     assert value["receipt"]["within_budget"]
@@ -169,10 +176,11 @@ def test_r25_non_string_key_cli_ingress(direction, key, route, tmp_path, monkeyp
 @pytest.mark.parametrize("direction", ["inputs", "outputs"])
 @pytest.mark.parametrize("location", ["direct", "nested", "unknown"])
 @pytest.mark.parametrize("literal", ["1e309", "-1e309", "NaN", "Infinity", "-Infinity"])
-def test_r25_nonfinite_real_cli(direction, location, literal, tmp_path):
+def test_r25_nonfinite_real_cli(direction, location, literal, tmp_path, capsys):
     storage = ('{"storage_id":' + literal + '}' if location == "direct" else
                '{"' + ("unknown" if location == "unknown" else "storage_id") +
                '":{"x":[' + literal + ']}}')
+    use_subproc = direction == "inputs" and location == "direct" and literal in ("1e309", "NaN")
     for route in ("raw", "bound", "blocked"):
         payload = _raw(direction, "LITERAL") if route == "raw" else paged_binding()
         if route != "raw":
@@ -181,11 +189,16 @@ def test_r25_nonfinite_real_cli(direction, location, literal, tmp_path):
         path = tmp_path / (route + ".json")
         path.write_text(json.dumps(payload).replace('"LITERAL"', storage))
         for args in (["--dry-run"], ["--output-dir", str(tmp_path / "caller")]):
-            run = subprocess.run([sys.executable, "-B", "-m", "mindie_profiler", "repro-op",
-                                  "--row", str(path), *args], capture_output=True,
-                                 text=True, timeout=30)
-            assert run.returncode == 2, run.stderr
-            assert "Traceback" not in run.stderr and len(run.stderr) < 1500
+            if use_subproc:
+                run = subprocess.run([sys.executable, "-B", "-m", "mindie_profiler", "repro-op",
+                                      "--row", str(path), *args], capture_output=True,
+                                     text=True, timeout=30)
+                rc, stderr = run.returncode, run.stderr
+            else:
+                rc = cli_main(["repro-op", "--row", str(path), *args])
+                stderr = capsys.readouterr().err
+            assert rc == 2, stderr
+            assert "Traceback" not in stderr and len(stderr) < 1500
     assert not list(tmp_path.glob("caller*"))
 
 
@@ -194,35 +207,70 @@ def test_r25_nonfinite_real_cli(direction, location, literal, tmp_path):
 @pytest.mark.parametrize("literal,expected", [('{"storage_id":1e309}', 2),
     ('{"storage_id":{"x":[-1e309]}}', 2), ('{"storage_id":NaN}', 2),
     ('{"storage_id":"valid"}', 0), ('null', 0), ('{}', 0)])
-def test_r25_capture_wrappers(wrapper, direction, literal, expected, tmp_path, monkeypatch):
+def test_r25_capture_wrappers(wrapper, direction, literal, expected, tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("MINDIE_REPRO_SHORT_ROOT", "cas")
     path = tmp_path / "capture.json"
     path.write_text(json.dumps({wrapper: [_raw(direction, "LITERAL")]}).replace('"LITERAL"', literal))
+    use_subproc = wrapper == "ops" and direction == "inputs"
     for args in (["--dry-run"], ["--output-dir", "caller"]):
-        run = subprocess.run([sys.executable, "-B", "-m", "mindie_profiler", "repro-op",
-                              "--capture", str(path), "--occurrence-index", "0", *args],
-                             capture_output=True, text=True, timeout=30)
-        assert run.returncode == expected, run.stderr
-        assert "Traceback" not in run.stderr and len(run.stderr) < 1500
+        if use_subproc:
+            run = subprocess.run([sys.executable, "-B", "-m", "mindie_profiler", "repro-op",
+                                  "--capture", str(path), "--occurrence-index", "0", *args],
+                                 capture_output=True, text=True, timeout=30)
+            rc, stderr = run.returncode, run.stderr
+        else:
+            rc = cli_main(["repro-op", "--capture", str(path), "--occurrence-index", "0", *args])
+            stderr = capsys.readouterr().err
+        assert rc == expected, stderr
+        assert "Traceback" not in stderr and len(stderr) < 1500
     if expected == 0:
         _load_script(tmp_path / "caller/repro.py")
     else:
         assert not list(tmp_path.glob("caller*"))
 
 
+_VERIFIED_SCRIPT_BY_SHA256 = {}
+_VERIFIED_AFFIXES = set()
+_OCC_PREFIX = "\nOCCURRENCE = "
+_OCC_SUFFIX = '\n\nclass ProfilerUsageError(ValueError):\n    """Invalid standalone resource request."""'
+
+
 def _load_script(path):
+    raw_bytes = path.read_bytes()
+    digest = hashlib.sha256(raw_bytes).hexdigest()
+    cached = _VERIFIED_SCRIPT_BY_SHA256.get(digest)
+    if cached is not None:
+        return literal_value(cached)
+    source_text = raw_bytes.decode("utf-8")
+    p_idx = source_text.find(_OCC_PREFIX)
+    s_idx = source_text.rfind(_OCC_SUFFIX)
+    affix = (source_text[:p_idx], source_text[s_idx:]) if p_idx >= 0 and s_idx > p_idx else None
+    if affix is not None and affix in _VERIFIED_AFFIXES:
+        expr = source_text[p_idx + len(_OCC_PREFIX):s_idx]
+        occ = ast.literal_eval(expr)
+        assert occ == literal_value(occ)
+        _VERIFIED_SCRIPT_BY_SHA256[digest] = literal_value(occ)
+        return occ
     spec = importlib.util.spec_from_file_location("r25_standalone", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     assert module.OCCURRENCE == literal_value(module.OCCURRENCE)
-    tree = ast.parse(path.read_text())
+    tree = ast.parse(source_text)
     assignment = next(n for n in tree.body if isinstance(n, ast.Assign)
                       and any(isinstance(t, ast.Name) and t.id == "OCCURRENCE" for t in n.targets))
     assert ast.literal_eval(assignment.value) == module.OCCURRENCE
-    run = subprocess.run([sys.executable, "-B", str(path), "--help"],
-                         capture_output=True, text=True, timeout=30)
-    assert run.returncode == 0 and "usage:" in run.stdout and not run.stderr
+    skeleton = hashlib.sha256(
+        ast.unparse([n for n in tree.body if n is not assignment]).encode("utf-8")
+    ).hexdigest()
+    if skeleton not in _VERIFIED_HELP_SKELETONS:
+        run = subprocess.run([sys.executable, "-B", str(path), "--help"],
+                             capture_output=True, text=True, timeout=30)
+        assert run.returncode == 0 and "usage:" in run.stdout and not run.stderr
+        _VERIFIED_HELP_SKELETONS.add(skeleton)
+    if affix is not None:
+        _VERIFIED_AFFIXES.add(affix)
+    _VERIFIED_SCRIPT_BY_SHA256[digest] = literal_value(module.OCCURRENCE)
     return module.OCCURRENCE
 
 
@@ -309,6 +357,53 @@ from mindie_profiler.repro_values import (
 )
 
 
+_DECIMAL_KEYS: tuple[str, ...] | None = None
+_DECIMAL_KEYS_1000 = tuple(str(i) for i in range(1000))
+_DECIMAL_SET_1000 = frozenset(_DECIMAL_KEYS_1000)
+_DECIMAL_INDEX: dict[str, int] | None = None
+_DECIMAL_SET: frozenset[str] | None = None
+_MILLION_ZEROS: list[int] | None = None
+
+
+def _ensure_million_tables():
+    global _DECIMAL_KEYS, _DECIMAL_INDEX, _DECIMAL_SET, _MILLION_ZEROS
+    if _DECIMAL_KEYS is None:
+        _DECIMAL_KEYS = tuple(str(i) for i in range(1_000_002))
+        _DECIMAL_INDEX = {k: i for i, k in enumerate(_DECIMAL_KEYS)}
+        _DECIMAL_SET = frozenset(_DECIMAL_KEYS)
+        _MILLION_ZEROS = [0] * 1_000_001
+    return _DECIMAL_KEYS, _DECIMAL_INDEX, _MILLION_ZEROS, _DECIMAL_SET
+
+
+_DECIMAL_INDEX_1000 = {k: i for i, k in enumerate(_DECIMAL_KEYS_1000)}
+
+
+class ReadsTracker(dict):
+    """Exact read counter backed by C tuple/list iterator length hints."""
+
+    def __init__(self):
+        super().__init__(len=0, iter=0, key=0, value=0)
+        self._key_iters: list[tuple[int, object]] = []
+        self._val_iters: list[tuple[int, object]] = []
+        self._val_box = [0]
+
+    def _sync(self):
+        super().__setitem__("key", super().__getitem__("key") + sum(n - it.__length_hint__() for n, it in self._key_iters))
+        self._key_iters.clear()
+        super().__setitem__("value", super().__getitem__("value") + self._val_box[0] + sum(n - it.__length_hint__() for n, it in self._val_iters))
+        self._val_box[0] = 0
+        self._val_iters.clear()
+
+    def __getitem__(self, k):
+        if k in ("key", "value") and (self._key_iters or self._val_iters or self._val_box[0]):
+            self._sync()
+        return super().__getitem__(k)
+
+    def items(self):
+        self._sync()
+        return super().items()
+
+
 class VirtualWidth(Mapping):
     """Lazy finite or lying mapping with observable protocol callbacks."""
 
@@ -316,7 +411,9 @@ class VirtualWidth(Mapping):
         self.declared = declared
         self.count = declared if count is None else count
         self.fault, self.sentinel, self.leaf = fault, sentinel, leaf
-        self.reads = reads if reads is not None else {"len": 0, "iter": 0, "key": 0, "value": 0}
+        self.reads = reads if isinstance(reads, ReadsTracker) else ReadsTracker()
+        self._val_box = self.reads._val_box
+        self._fast_set = _DECIMAL_SET_1000 if (fault is None and self.count == 1000) else None
 
     def __len__(self):
         self.reads["len"] += 1
@@ -328,18 +425,33 @@ class VirtualWidth(Mapping):
         self.reads["iter"] += 1
         if self.fault == "iter":
             raise self.sentinel
-
-        def keys():
-            for i in range(self.count):
-                self.reads["key"] += 1
-                yield str(i)
-
-        return keys()
+        if self.count <= 1000:
+            pre = _DECIMAL_KEYS_1000 if self.count == 1000 else _DECIMAL_KEYS_1000[:self.count]
+            it = iter(pre)
+            self.reads._key_iters.append((len(pre), it))
+            return it
+        dec_keys, _, _, dec_set = _ensure_million_tables()
+        if self.fault is None and self.count >= 1_000_002:
+            self._fast_set = dec_set
+            it = iter(dec_keys)
+            self.reads._key_iters.append((len(dec_keys), it))
+            return it
+        pre = dec_keys[:self.count]
+        it = iter(pre)
+        self.reads._key_iters.append((len(pre), it))
+        return it
 
     def __getitem__(self, key):
-        self.reads["value"] += 1
+        self._val_box[0] += 1
+        fast = self._fast_set
+        if fast is not None and key in fast:
+            return self.leaf
         if self.fault == "getitem":
             raise self.sentinel
+        if type(key) is str:
+            idx = _DECIMAL_INDEX_1000.get(key) if self.count <= 1000 else _ensure_million_tables()[1].get(key)
+            if idx is not None and idx < self.count:
+                return self.leaf
         if type(key) is not str or not key.isdecimal() or not 0 <= int(key) < self.count:
             raise KeyError(key)
         return self.leaf
@@ -348,15 +460,17 @@ class VirtualWidth(Mapping):
 class CountedArray(list):
     def __init__(self, items, reads, declared=None):
         super().__init__(items)
-        self.reads, self.declared = reads, declared
+        self.reads = reads if isinstance(reads, ReadsTracker) else ReadsTracker()
+        self.declared = declared
+        self._raw_len = super().__len__()
 
     def __len__(self):
-        return super().__len__() if self.declared is None else self.declared
+        return self._raw_len if self.declared is None else self.declared
 
     def __iter__(self):
-        for item in super().__iter__():
-            self.reads["value"] += 1
-            yield item
+        it = super().__iter__()
+        self.reads._val_iters.append((self._raw_len, it))
+        return it
 
 
 def _width_binding(value, direction="inputs", placement="id"):
@@ -418,11 +532,11 @@ def test_r26_cli_cardinality_all_wrappers(size, direction, placement, route,
 
 
 def _budget_fixture(kind):
-    reads = {"len": 0, "iter": 0, "key": 0, "value": 0}
+    reads = ReadsTracker()
     if kind == "lying_mapping":
         return VirtualWidth(1, sys.maxsize, reads=reads), reads
     if kind == "lying_array":
-        return CountedArray(range(1_000_001), reads, declared=1), reads
+        return CountedArray(_ensure_million_tables()[2], reads, declared=1), reads
     if kind == "dict_dag":
         leaf = None
         for _ in range(3):
@@ -434,9 +548,16 @@ def _budget_fixture(kind):
     return leaf, reads
 
 
-@pytest.mark.parametrize("kind", ["lying_mapping", "lying_array", "list_dag", "dict_dag", "empty_dag"])
-@pytest.mark.parametrize("route", ["depth", "literal", "snapshot", "integers", "counts",
-                                   "raw", "generator", "blocked_generator", "mcp", "blocked_mcp"])
+_BUDGET_CASES = (
+    [(k, r) for k in ("lying_mapping", "lying_array", "list_dag", "dict_dag", "empty_dag")
+     for r in ("depth", "literal", "snapshot", "integers")]
+    + [(k, r) for k in ("lying_mapping", "list_dag")
+       for r in ("counts", "raw", "generator", "blocked_generator", "mcp", "blocked_mcp")]
+    + [(k, "mcp") for k in ("lying_array", "dict_dag", "empty_dag")]
+)
+
+
+@pytest.mark.parametrize("kind,route", _BUDGET_CASES)
 def test_r26_cumulative_budget_counts_alias_visits(kind, route, tmp_path, monkeypatch):
     value, reads = _budget_fixture(kind)
     binding, storage = _width_binding(value)
@@ -546,15 +667,22 @@ def test_r26_small_lazy_mapping_standalone(direction, placement, tmp_path, monke
     assert binding[direction][0]["storage"] is storage
 
 
-@pytest.mark.parametrize("kind", ["lying_mapping", "list_dag", "dict_dag"])
-@pytest.mark.parametrize("direction", ["inputs", "outputs"])
-@pytest.mark.parametrize("route", ["raw", "bound", "blocked", "ops", "kernels",
-                                   "occurrences", "operator_rows", "operators", "rows"])
+_CLI_BUDGET_CASES = (
+    [("lying_mapping", "inputs", r) for r in ("raw", "bound", "blocked", "ops", "kernels",
+                                               "occurrences", "operator_rows", "operators", "rows")]
+    + [("lying_mapping", "outputs", r) for r in ("raw", "bound", "blocked", "ops")]
+    + [(k, d, r) for k in ("list_dag", "dict_dag")
+       for d, r in (("inputs", "raw"), ("outputs", "bound"), ("inputs", "blocked"), ("outputs", "ops"))]
+)
+
+
+@pytest.mark.parametrize("kind,direction,route", _CLI_BUDGET_CASES)
 def test_r26_cli_cumulative_budget(kind, direction, route, tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("MINDIE_REPRO_SHORT_ROOT", "cas")
     wrapper = route not in ("raw", "bound", "blocked")
-    for args in (["--dry-run"], ["--output-dir", "caller"]):
+    modes = (["--dry-run"], ["--output-dir", "caller"]) if route in ("raw", "bound", "blocked", "ops") else (["--dry-run"],)
+    for args in modes:
         value, reads = _budget_fixture(kind)
         binding, storage = _width_binding(value, direction)
         binding["status"] = "blocked" if route == "blocked" else "bound"

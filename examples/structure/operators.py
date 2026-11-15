@@ -610,10 +610,11 @@ def extract_case(entry, case_paths, output, *, context_tokens=None, geometry_lim
 
 
 from mindie_sim.cohort_comparison import _predict
-from mindie_sim.prediction.operator_analysis import target_graphs
-from mindie_sim.prediction.program import RecipeBook
-from mindie_sim.prediction.body_defaults import effective_body_declaration
-from references import predict_source_role_references, communication_calibration_evidence
+from references import (
+    _cached_target_graphs,
+    communication_calibration_evidence,
+    predict_source_role_references,
+)
 
 def _reference_manifest(case, geometry, actual):
     """Retain reference targets while Sim hashes the complete declared cohort.
@@ -624,10 +625,7 @@ def _reference_manifest(case, geometry, actual):
     """
     from mindie_sim.structure_selection import select_structure_targets
 
-    effective, _ = effective_body_declaration(
-        case, geometry['phase'], tokens=geometry['tokens'], scope=geometry['scope'])
-    book = RecipeBook.from_mapping(effective.runtime.kernels)
-    graphs = target_graphs(effective, **geometry)
+    effective, book, graphs = _cached_target_graphs(case, geometry)
     wanted = {key for group in (actual or {}).get('source_role_references', ())
               for key in group['representative_target_ids']}
     for replica, ops in graphs.items():
@@ -649,9 +647,7 @@ def program_references(case_path, mapping, actual=None):
     manifest=_reference_manifest(case,geometry,actual)
     if manifest['graph_id']!=mapping['graph_id']:
         raise ValueError('communication_reference_structure_changed')
-    case,_=effective_body_declaration(case,geometry['phase'],tokens=geometry['tokens'],scope=geometry['scope'])
-    book=RecipeBook.from_mapping(case.runtime.kernels)
-    graphs=target_graphs(case,**geometry)
+    case,book,graphs=_cached_target_graphs(case,geometry)
     needed={target['node_id'] for target in manifest['nodes']}
     by_id={f'rank:{replica}/{op.op_id}':op for replica,ops in graphs.items() for op in book.expand(ops)
            if f'rank:{replica}/{op.op_id}' in needed}

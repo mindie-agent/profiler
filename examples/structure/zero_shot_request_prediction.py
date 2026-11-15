@@ -252,6 +252,7 @@ def forecast_view(row: Mapping[str, Any], *,
 
 
 _T14_CACHE: dict[tuple[Any, ...], dict[str, Any]] = {}
+_T14_SIM_CACHE: dict[tuple[Any, ...], dict[str, Any]] = {}
 
 
 def _t14_request_forecast(spec: Any, declared: Sequence[Mapping[str, Any]],
@@ -277,6 +278,8 @@ def _t14_request_forecast(spec: Any, declared: Sequence[Mapping[str, Any]],
         tuple((str(item.get("key")), int(prompts[index]),
                int(item.get("max_tokens") or 1))
               for index, item in enumerate(declared)),
+        tuple(counterfactual_fields), str(spec.cell_id),
+        str(identity.original_row_sha256),
     )
     if cache_key in _T14_CACHE:
         import copy
@@ -289,34 +292,52 @@ def _t14_request_forecast(spec: Any, declared: Sequence[Mapping[str, Any]],
     case_ep = int(getattr(case.runtime.parallel, "ep", 1) or 1)
     if int(spec.ep) <= 1 and case_ep > 1 and (dp_val * tp_val) % case_ep == 0:
         ep_val = case_ep
-    parallel = replace(
-        case.runtime.parallel,
-        dp=dp_val,
-        tp=tp_val,
-        ep=ep_val,
-        pp=max(1, int(spec.pp)),
+    sim_key = (
+        str(spec.model_case), dp_val, tp_val, ep_val, max(1, int(spec.pp)),
+        max(1, int(chunk_budget)),
+        tuple((max(1, int(prompts[i])), max(1, int(item.get("max_tokens") or 1)))
+              for i, item in enumerate(declared)),
     )
-    runtime = replace(
-        case.runtime,
-        parallel=parallel,
-        max_num_batched_tokens=max(1, int(chunk_budget)),
-        enable_chunked_prefill=True,
-    )
-    requests = []
-    for ordinal, item in enumerate(declared):
-        key = str(item.get("key") or f"{spec.cell_id}|ordinal={ordinal}")
-        prompt = max(1, int(prompts[ordinal]))
-        output = max(1, int(item.get("max_tokens") or 1))
-        requests.append(RequestSpec(key, ordinal * 1e-9, prompt, output))
-    case = replace(case, runtime=runtime, workload=WorkloadSpec(tuple(requests), synthetic=False))
-    result = simulate_service(case, trace_limit=0, event_limit=0)
+    if sim_key in _T14_SIM_CACHE:
+        result = _T14_SIM_CACHE[sim_key]
+    else:
+        parallel = replace(
+            case.runtime.parallel,
+            dp=dp_val,
+            tp=tp_val,
+            ep=ep_val,
+            pp=max(1, int(spec.pp)),
+        )
+        runtime = replace(
+            case.runtime,
+            parallel=parallel,
+            max_num_batched_tokens=max(1, int(chunk_budget)),
+            enable_chunked_prefill=True,
+        )
+        requests = []
+        for ordinal, item in enumerate(declared):
+            prompt = max(1, int(prompts[ordinal]))
+            output = max(1, int(item.get("max_tokens") or 1))
+            requests.append(RequestSpec(f"ord:{ordinal}", ordinal * 1e-9, prompt, output))
+        case = replace(case, runtime=runtime, workload=WorkloadSpec(tuple(requests), synthetic=False))
+        result = simulate_service(case, trace_limit=0, event_limit=0)
+        if len(_T14_SIM_CACHE) >= 64:
+            _T14_SIM_CACHE.pop(next(iter(_T14_SIM_CACHE)))
+        _T14_SIM_CACHE[sim_key] = result
     status = str(result.get("status") or "unknown")
     if status != "modeled":
         return {**base, "reason": f"t14_service_not_modeled:{status}"}
-    by_id = {str(row.get("request_id")): row for row in result.get("requests") or ()
-             if isinstance(row, Mapping)}
+    raw_by_id = {str(row.get("request_id")): row for row in result.get("requests") or ()
+                 if isinstance(row, Mapping)}
+    by_id = {}
+    for ordinal, item in enumerate(declared):
+        k = str(item.get("key") or f"{spec.cell_id}|ordinal={ordinal}")
+        row_hit = raw_by_id.get(f"ord:{ordinal}", raw_by_id.get(k))
+        if row_hit is not None:
+            by_id[k] = row_hit
     missing = [str(item.get("key")) for item in declared
-               if str(item.get("key")) not in by_id]
+               if str(item.get("key") or f"{spec.cell_id}|ordinal={i}") not in by_id
+               for i in (declared.index(item),)]
     if missing:
         return {**base, "reason": "t14_request_event_missing:" + ",".join(missing[:4])}
     overhead = float(host_overhead_ms)
@@ -458,7 +479,7 @@ def _t14_request_forecast(spec: Any, declared: Sequence[Mapping[str, Any]],
         "requests": rows,
     }
     _T14_CACHE[cache_key] = result_bundle
-    if len(_T14_CACHE) > 4:
+    if len(_T14_CACHE) > 64:
         _T14_CACHE.pop(next(iter(_T14_CACHE)))
     import copy
     return copy.deepcopy(result_bundle)

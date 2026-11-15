@@ -9,14 +9,9 @@
 [Invariants]
   * A captured value vector is installed only when its recursively flattened
     length equals the allocated numel and every leaf is representable in the
-    exact destination dtype (integer range, bool identity, finite float range);
-    otherwise the occurrence is blocked before ``ready``.
-  * A tensor-list member that is absent, missing, invalid or a scalar is never
-    allocated and never silently replaced by zeros.
-  * A nested captured value has no privilege: the outer list length is not a
-    substitute for the flattened numel.
-  * Fidelity labels are derived from the validated allocation specs, not from
-    the mere presence of a ``values`` key.
+    exact destination dtype; otherwise the occurrence is blocked before ``ready``.
+  * Absent, missing, invalid or scalar tensor-list members are never allocated.
+  * Nested captured values have no privilege; fidelity labels derive from specs.
 
 [Timeouts & Locks]
   Pure in-memory work proportional to the captured element count.
@@ -95,25 +90,42 @@ def _bounded_members(value, budget, maximum=1_000_000, *, string_keys=False,
                      defer_lookup=False):
     """Charge each yielded entry, including repeated references, before descent."""
     bounded_container_len(value, maximum)
+    limit = bounded_container_len.__defaults__[0]
     mapping = isinstance(value, Mapping)
-    lookup = mapping and (string_keys or type(value) is not dict)
+    lookup = mapping and type(value) is not dict
     try:
-        if mapping:
-            members = ((key, None) for key in value) if lookup else value.items()
-        else:
-            members = enumerate(value)
-        for count, (key, item) in enumerate(members, 1):
-            if mapping and string_keys:
-                if type(key) is not str:
+        if not mapping:
+            for count, item in enumerate(value, 1):
+                budget[0] += 1
+                if count > maximum:
+                    raise ProfilerUsageError(f"container exceeds {maximum} members")
+                if budget[0] > limit:
+                    raise ProfilerUsageError("container traversal exceeds one million members")
+                yield None, item
+            return
+        if not lookup:
+            for count, (key, item) in enumerate(value.items(), 1):
+                if string_keys and type(key) is not str:
                     raise ProfilerUsageError("mapping keys must be plain strings")
+                budget[0] += 1
+                if count > maximum:
+                    raise ProfilerUsageError(f"container exceeds {maximum} members")
+                if budget[0] > limit:
+                    raise ProfilerUsageError("container traversal exceeds one million members")
+                yield key, item
+            return
+        for count, key in enumerate(value, 1):
+            if string_keys and type(key) is not str:
+                raise ProfilerUsageError("mapping keys must be plain strings")
             budget[0] += 1
             if count > maximum:
                 raise ProfilerUsageError(f"container exceeds {maximum} members")
-            if budget[0] > 1_000_000:
+            if budget[0] > limit:
                 raise ProfilerUsageError("container traversal exceeds one million members")
-            if lookup and not defer_lookup:
+            item = None
+            if not defer_lookup:
                 if not string_keys and type(key) is not str:
-                    for _ in _container_nodes(key, _budget=budget):
+                    for _ in _container_nodes(key, _budget=budget, _leaves=False):
                         pass
                 item = value[key]
             yield key, item
@@ -210,23 +222,61 @@ def diagnostic_value(value, depth=0, _budget=None):
     return bounded_summary(value)
 
 
-def _container_nodes(value, maximum=64, _budget=None):
+def _container_nodes(value, maximum=64, _budget=None, _leaves=True):
     """Walk at most one million entries without deduplicating shared subtrees."""
     budget = [0] if _budget is None else _budget
+    limit = bounded_container_len.__defaults__[0]
+    containers = (list, tuple, dict, set, frozenset, Mapping)
+    scalars = (type(None), int, str, float, bool)
 
     def children(container):
-        lookup = isinstance(container, Mapping) and type(container) is not dict
-        for key, item in _bounded_members(container, budget, defer_lookup=True):
-            # Resuming after the key's entire subtree is checked permits lookup.
-            yield key
-            if lookup:
-                try:
-                    item = container[key]
-                except TimeoutError:
-                    raise
-                except TypeError as exc:
-                    raise ProfilerUsageError("invalid container member protocol") from exc
-            yield item
+        if not isinstance(container, Mapping):
+            bounded_container_len(container)
+            try:
+                for count, item in enumerate(container, 1):
+                    budget[0] += 1
+                    if count > limit:
+                        raise ProfilerUsageError(f"container exceeds {limit} members")
+                    if budget[0] > limit:
+                        raise ProfilerUsageError("container traversal exceeds one million members")
+                    if type(item) not in scalars or (_leaves and type(item) is int):
+                        yield item
+            except TimeoutError:
+                raise
+            except TypeError as exc:
+                raise ProfilerUsageError("invalid container member protocol") from exc
+            return
+        bounded_container_len(container)
+        lookup = type(container) is not dict
+        try:
+            if not lookup:
+                for count, (key, item) in enumerate(container.items(), 1):
+                    budget[0] += 1
+                    if count > limit:
+                        raise ProfilerUsageError(f"container exceeds {limit} members")
+                    if budget[0] > limit:
+                        raise ProfilerUsageError("container traversal exceeds one million members")
+                    if type(key) not in scalars or (_leaves and type(key) is int):
+                        yield key
+                    if type(item) not in scalars or (_leaves and type(item) is int):
+                        yield item
+                return
+            for count, key in enumerate(container, 1):
+                budget[0] += 1
+                if count > limit:
+                    raise ProfilerUsageError(f"container exceeds {limit} members")
+                if budget[0] > limit:
+                    raise ProfilerUsageError("container traversal exceeds one million members")
+                # Resuming after the key's entire subtree is checked permits lookup.
+                if type(key) not in scalars or (_leaves and type(key) is int):
+                    yield key
+                item = container[key]
+                if type(item) not in scalars or (_leaves and type(item) is int):
+                    yield item
+        except TimeoutError:
+            raise
+        except TypeError as exc:
+            raise ProfilerUsageError("invalid container member protocol") from exc
 
     stack = [(iter((value,)), 0)]
     while stack:
@@ -236,16 +286,32 @@ def _container_nodes(value, maximum=64, _budget=None):
         except StopIteration:
             stack.pop()
             continue
-        yield item
-        if isinstance(item, (Mapping, list, tuple, set, frozenset)):
-            if depth >= maximum:
-                raise ProfilerUsageError("input container nesting exceeds 64 levels")
-            stack.append((children(item), depth + 1))
+        if _leaves:
+            yield item
+        if type(item) in scalars or not isinstance(item, containers):
+            continue
+        if depth >= maximum:
+            raise ProfilerUsageError("input container nesting exceeds 64 levels")
+        if type(item) in (list, tuple):
+            length = bounded_container_len(item)
+            if all(type(x) in scalars or not isinstance(x, containers) for x in item):
+                if not _leaves:
+                    budget[0] += length
+                    if budget[0] > limit:
+                        raise ProfilerUsageError("container traversal exceeds one million members")
+                    continue
+                if budget[0] + length <= limit:
+                    for x in item:
+                        if isinstance(x, int):
+                            yield x
+                    budget[0] += length
+                    continue
+        stack.append((children(item), depth + 1))
 
 
 def validate_container_depth(value, maximum=64):
     """Bound declared sizes, nesting and cumulative visits, including DAGs."""
-    for _ in _container_nodes(value, maximum):
+    for _ in _container_nodes(value, maximum, _leaves=False):
         pass
 
 
@@ -476,50 +542,79 @@ def validate_captured_values(shape: list[int], dtype: Any, values: Any
 
 def _copy_container(value, depth, budget, literal, maximum=1_000_000):
     """Copy containers with one cumulative budget; optionally require JSON leaves."""
-    if isinstance(value, (Mapping, list, tuple)):
-        if depth >= 64:
-            raise ProfilerUsageError("literal container nesting exceeds 64 levels")
-        result = {} if isinstance(value, Mapping) else []
-        for key, item in _bounded_members(value, budget, maximum, string_keys=True):
-            if isinstance(result, dict):
-                if type(key) is not str:
-                    raise ProfilerUsageError("mapping keys must be plain strings")
-                result[key] = _copy_container(item, depth + 1, budget, literal)
-            else:
-                result.append(_copy_container(item, depth + 1, budget, literal))
-        return result
-    if not literal:
+    fast = (type(None), bool, str)
+    scalars = (type(None), int, str, float, bool)
+    val_type = type(value)
+    if val_type in fast:
         return value
-    if value is None or type(value) in (bool, str):
-        return value
-    if type(value) is int:
-        if value.bit_length() <= 4096:
+    if val_type is int:
+        if not literal or value.bit_length() <= 4096:
             return value
         raise ProfilerUsageError("literal integer exceeds the bounded serialization limit")
-    if type(value) is float:
-        if math.isfinite(value):
+    if val_type is float:
+        if not literal or math.isfinite(value):
             return value
         raise ProfilerUsageError("literal numbers must be finite")
+    if isinstance(value, (list, tuple, dict, Mapping)):
+        if depth >= 64:
+            raise ProfilerUsageError("literal container nesting exceeds 64 levels")
+        if val_type in (list, tuple):
+            length = bounded_container_len(value, maximum)
+            limit = bounded_container_len.__defaults__[0]
+            if budget[0] + length <= limit and (
+                not literal and all(type(x) in scalars or not isinstance(x, (list, tuple, dict, Mapping)) for x in value)
+                or literal and all(type(x) in fast for x in value)
+            ):
+                budget[0] += length
+                return list(value)
+        if val_type is dict:
+            bounded_container_len(value, maximum)
+            limit, result = bounded_container_len.__defaults__[0], {}
+            for key, item in value.items():
+                if type(key) is not str:
+                    raise ProfilerUsageError("mapping keys must be plain strings")
+                budget[0] += 1
+                if budget[0] > limit:
+                    raise ProfilerUsageError("container traversal exceeds one million members")
+                result[key] = item if type(item) in fast else _copy_container(item, depth + 1, budget, literal)
+            return result
+        if isinstance(value, Mapping):
+            bounded_container_len(value, maximum)
+            limit, result = bounded_container_len.__defaults__[0], {}
+            try:
+                for count, key in enumerate(value, 1):
+                    if type(key) is not str:
+                        raise ProfilerUsageError("mapping keys must be plain strings")
+                    budget[0] += 1
+                    if count > maximum or budget[0] > limit:
+                        raise ProfilerUsageError(f"container exceeds {maximum} members" if count > maximum else "container traversal exceeds one million members")
+                    item = value[key]
+                    result[key] = item if type(item) in fast else _copy_container(item, depth + 1, budget, literal)
+            except TimeoutError:
+                raise
+            except TypeError as exc:
+                raise ProfilerUsageError("invalid container member protocol") from exc
+            return result
+        bounded_container_len(value, maximum)
+        limit, seq_out = bounded_container_len.__defaults__[0], []
+        for count, item in enumerate(value, 1):
+            budget[0] += 1
+            if count > maximum or budget[0] > limit:
+                raise ProfilerUsageError(f"container exceeds {maximum} members" if count > maximum else "container traversal exceeds one million members")
+            seq_out.append(item if type(item) in fast else _copy_container(item, depth + 1, budget, literal))
+        return seq_out
+    if not literal:
+        return value
     raise ProfilerUsageError("literal value must be a JSON primitive, object or array")
 
 
 def literal_value(value, depth=0):
-    """Copy exact JSON leaves and string keys into standalone built-in literals.
-
-    Integers have at most 4096 bits and floats are finite. Container depth is
-    at most 64 and the entire expanded tree has at most one million members.
-    Shared references consume the budget on every visit; cycles fail by depth.
-    """
+    """Copy exact JSON leaves and string keys into standalone built-in literals."""
     return _copy_container(value, depth, [0], True)
 
 
 def storage_mapping(value):
-    """Absent storage is empty; all members use the literal_value JSON domain.
-
-    IDs may be null, strings, bounded integers, finite floats or nested JSON;
-    scalar boolean IDs are rejected. Unknown members are validated as well.
-    Read-only Mapping inputs are copied, never mutated or stringified.
-    """
+    """Absent storage is empty; all members use the literal_value JSON domain."""
     if value is None:
         return {}
     if not isinstance(value, Mapping):

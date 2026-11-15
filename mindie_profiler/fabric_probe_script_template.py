@@ -100,7 +100,7 @@ def _remove_abort_temporary(path, expected):
                         info = os.lstat(parked)
                     if not owned(info):
                         try:
-                            os.link(parked, path, **({"follow_symlinks": False} if os.link in os.supports_follow_symlinks else {}))
+                            os.link(parked, path) if os.name == "nt" else os.link(parked, path, follow_symlinks=False)
                         except FileExistsError:
                             current = os.lstat(path)
                             if (current.st_dev, current.st_ino) != (info.st_dev, info.st_ino):
@@ -122,7 +122,7 @@ def _write_abort_record(record, primary_exc=None):
     def write():
         temporary = ABORT_FILE + f".{os.getpid()}.{os.urandom(16).hex()}.tmp"
         inode = publish = None
-        committed_write = False
+        committed_write, temp_owned = False, True
         try:
             try:
                 fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0), 0o600)
@@ -150,13 +150,15 @@ def _write_abort_record(record, primary_exc=None):
                     return
                 publish = ABORT_FILE + f".{os.getpid()}.{os.urandom(16).hex()}.publish"
                 os.rename(temporary, publish)
+                temp_owned = False
                 info = os.lstat(publish)
                 if not stat.S_ISREG(info.st_mode) or (info.st_dev, info.st_ino) != inode:
+                    foreign_publish, publish = publish, None
                     try:
-                        os.link(publish, temporary, **({"follow_symlinks": False} if os.link in os.supports_follow_symlinks else {}))
+                        os.link(foreign_publish, temporary) if os.name == "nt" else os.link(foreign_publish, temporary, follow_symlinks=False)
                     except FileExistsError:
                         return  # Both foreign occupants remain; no destination overwrite.
-                    os.unlink(publish)
+                    os.unlink(foreign_publish)
                     return
                 os.replace(publish, ABORT_FILE)
             finally:
@@ -165,7 +167,8 @@ def _write_abort_record(record, primary_exc=None):
                     if publish is not None:
                         _cleanup_call(lambda: _remove_abort_temporary(publish, inode), active)
                 finally:
-                    _cleanup_call(lambda: _remove_abort_temporary(temporary, inode), active or sys.exc_info()[1])
+                    if temp_owned:
+                        _cleanup_call(lambda: _remove_abort_temporary(temporary, inode), active or sys.exc_info()[1])
         except TimeoutError: raise
         except Exception:
             pass

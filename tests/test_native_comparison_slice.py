@@ -111,19 +111,33 @@ def _qbmm_abi_from_op(op):
     return abi, None
 
 
-def _sim_predictions(request_rows):
-    """Bind the selected sim output operator to the full r64 QBMM ABI.
+from functools import lru_cache
 
-    Only the request ABI/conditions are read; the prediction carries its own
-    boundary and ABI, so the comparator can detect an operator or ABI mismatch.
-    The calibration caveat is same-capture material, never heldout.
-    """
+
+@lru_cache(maxsize=8)
+def _parsed_sim_case(model: str, hardware: str, quant: str):
     supply = _sim_supply()
-    from mindie_sim import operator_costs
     from mindie_sim.compose import compose_case
     from mindie_sim.observations.calibration import apply_profiler_supply
-    from mindie_sim.prediction.operator_analysis import target_operators
     from mindie_sim.prediction.structure import parse_case
+
+    composed = compose_case(
+        model, hardware,
+        tp=1, dp=1, ep=1, quant=quant, prompt_tokens=1024,
+        output_tokens=1, concurrency=1, layers=1,
+        num_devices=1, ranks_per_node=1,
+    )
+    bound = apply_profiler_supply(
+        composed, str(supply), recipe="output", hardware=hardware, owners=None)
+    return parse_case(bound)
+
+
+@lru_cache(maxsize=16)
+def _sim_predictions_cached(canonical_json: str):
+    request_rows = json.loads(canonical_json)
+    _sim_supply()
+    from mindie_sim import operator_costs
+    from mindie_sim.prediction.operator_analysis import target_operators
 
     predictions = []
     for request in request_rows:
@@ -142,15 +156,7 @@ def _sim_predictions(request_rows):
             continue
         hardware = conditions["hardware"]
         tokens = int(request_abi["inputs"][0]["shape"][0])
-        composed = compose_case(
-            conditions["model"], hardware,
-            tp=1, dp=1, ep=1, quant=conditions["quant"], prompt_tokens=1024,
-            output_tokens=1, concurrency=1, layers=1,
-            num_devices=1, ranks_per_node=1,
-        )
-        bound = apply_profiler_supply(
-            composed, str(supply), recipe="output", hardware=hardware, owners=None)
-        case = parse_case(bound)
+        case = _parsed_sim_case(conditions["model"], hardware, conditions["quant"])
         op = next(
             item for item in target_operators(
                 case, phase="prefill", tokens=tokens, context=0)
@@ -190,6 +196,11 @@ def _sim_predictions(request_rows):
             ],
         })
     return predictions
+
+
+def _sim_predictions(request_rows):
+    """Bind the selected sim output operator to the full r64 QBMM ABI."""
+    return deepcopy(_sim_predictions_cached(json.dumps(request_rows, sort_keys=True)))
 
 
 def _sim_identity(observation):

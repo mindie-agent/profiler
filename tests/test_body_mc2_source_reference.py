@@ -26,7 +26,7 @@ def mc2_reference():
     case = parse_case(json.loads(path.read_text()))
     assert case.runtime.parallel.tp == case.runtime.parallel.dp == 4
     assert case.model.quant.expert_weight_format == 'int8'
-    manifest = export_structure(case, phase='decode', tokens=8, sequences=1, context=2048, scope='body')
+    manifest = export_structure(case, phase='decode', tokens=8, sequences=1, context=2048, scope='body', replicas=[0])
     row = next(kernel_rows(FIXTURE))
     collector = helper.SourceRoleReferences(manifest, case.model.to_dict())
     assert collector.add(row.event, {'layer_id': 0, 'attention': 'mla'}, 'ffn') == 'routed_ffn_native'

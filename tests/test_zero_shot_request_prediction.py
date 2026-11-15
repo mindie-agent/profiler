@@ -21,18 +21,25 @@ import zero_shot_request_prediction as prediction  # noqa: E402
 KIMI4 = ROOT / "examples" / "structure" / "cases" / "decode-a3_kimi4_tp8_w4a8_c1.json"
 
 
-@pytest.fixture
-def campaign_fixture(tmp_path: Path):
-    root = tmp_path / "rack06_campaign"
+@pytest.fixture(scope="module")
+def campaign_fixture(tmp_path_factory: pytest.TempPathFactory):
+    root = tmp_path_factory.mktemp("rack06_campaign")
     (root / "bin").mkdir(parents=True)
     (root / "bin" / "bench_cell.py").write_text("# synthetic bench_cell\n", encoding="utf-8")
     (root / "cases").mkdir(parents=True)
+    kimi_doc = json.loads(KIMI4.read_text(encoding="utf-8"))
+    tc = kimi_doc["model"]["hf_config"]["text_config"]
+    tc["num_hidden_layers"] = 2
+    tc["linear_attn_config"]["kda_layers"] = [1]
+    tc["linear_attn_config"]["full_attn_layers"] = [2]
+    kimi_compact = root / "cases" / "decode-a3_kimi2_tp8_w4a8_c1.json"
+    kimi_compact.write_text(json.dumps(kimi_doc), encoding="utf-8")
 
     # 1. C=2 decode cell (dp=2, tp=8)
     c2_case = "kimi4_dp2tp8"
-    c2_id = f"{c2_case}_dc_2k_c2"
+    c2_id = f"{c2_case}_dc_256_c2"
     (root / "cases" / f"{c2_case}.json").write_text(
-        json.dumps({"dp": 2, "tp": 8, "max_num_batched_tokens": 2048, "max_num_seqs": 32}),
+        json.dumps({"dp": 2, "tp": 8, "max_num_batched_tokens": 256, "max_num_seqs": 32}),
         encoding="utf-8",
     )
     c2_meas = root / "out" / c2_case / "measured" / f"{c2_id}.json"
@@ -41,38 +48,38 @@ def campaign_fixture(tmp_path: Path):
         "tag": c2_id,
         "mode": "profile_decode",
         "started": "2026-11-08T10:00:00Z",
-        "prompt_tokens": 2048,
-        "shared_tokens": 1920,
-        "max_tokens": 8,
+        "prompt_tokens": 256,
+        "shared_tokens": 192,
+        "max_tokens": 1,
         "concurrency": 2,
         "success": 2,
         "failed": 0,
         "first_token_latencies_s": [0.11, 0.12],
         "streams": [
-            {"ok": True, "ttft_s": 0.11, "e2e_s": 0.25, "completion_tokens": 8, "chunks": 8},
-            {"ok": True, "ttft_s": 0.12, "e2e_s": 0.26, "completion_tokens": 8, "chunks": 8},
+            {"ok": True, "ttft_s": 0.11, "e2e_s": 0.25, "completion_tokens": 1, "chunks": 2},
+            {"ok": True, "ttft_s": 0.12, "e2e_s": 0.26, "completion_tokens": 1, "chunks": 2},
         ],
     }), encoding="utf-8")
     c2_row = {
         "cell_id": c2_id,
         "dataset": "out",
         "phase": "decode",
-        "model_case": str(KIMI4),
+        "model_case": str(kimi_compact),
         "model_label": "kimi-k3-4layer",
-        "prompt_tokens": 2048,
+        "prompt_tokens": 256,
         "concurrency": 2,
-        "max_tokens": 8,
+        "max_tokens": 1,
         "tp": 8,
         "dp": 2,
         "ep": 1,
         "pp": 1,
     }
 
-    # 2. C=4 multichunk cell (dp=2, tp=8, prompt=4096, budget=2048)
+    # 2. C=4 multichunk cell (dp=2, tp=8, prompt=128, budget=128)
     c4_case = "kimi4_multi"
-    c4_id = f"{c4_case}_dc_4k_c4"
+    c4_id = f"{c4_case}_dc_128_c4"
     (root / "cases" / f"{c4_case}.json").write_text(
-        json.dumps({"dp": 2, "tp": 8, "max_num_batched_tokens": 4096, "max_num_seqs": 32}),
+        json.dumps({"dp": 2, "tp": 8, "max_num_batched_tokens": 256, "max_num_seqs": 32}),
         encoding="utf-8",
     )
     c4_meas = root / "out" / c4_case / "measured" / f"{c4_id}.json"
@@ -82,15 +89,15 @@ def campaign_fixture(tmp_path: Path):
         "tag": c4_id,
         "mode": "profile_decode",
         "started": "2026-11-08T11:00:00Z",
-        "prompt_tokens": 4096,
-        "shared_tokens": 3968,
-        "max_tokens": 8,
+        "prompt_tokens": 128,
+        "shared_tokens": 64,
+        "max_tokens": 1,
         "concurrency": 4,
         "success": 4,
         "failed": 0,
         "first_token_latencies_s": ttfts,
         "streams": [
-            {"ok": True, "ttft_s": t, "e2e_s": t + 0.2, "completion_tokens": 8, "chunks": 8}
+            {"ok": True, "ttft_s": t, "e2e_s": t + 0.2, "completion_tokens": 1, "chunks": 2}
             for t in ttfts
         ],
     }), encoding="utf-8")
@@ -98,11 +105,11 @@ def campaign_fixture(tmp_path: Path):
         "cell_id": c4_id,
         "dataset": "out",
         "phase": "decode",
-        "model_case": str(KIMI4),
+        "model_case": str(kimi_compact),
         "model_label": "kimi-k3-4layer",
-        "prompt_tokens": 4096,
+        "prompt_tokens": 128,
         "concurrency": 4,
-        "max_tokens": 8,
+        "max_tokens": 1,
         "tp": 8,
         "dp": 2,
         "ep": 1,
@@ -112,8 +119,9 @@ def campaign_fixture(tmp_path: Path):
     return root, c2_row, c4_row
 
 
-def test_t14_request_helper_consumes_real_shared_service_event() -> None:
-    spec = zsv.CellSpec("probe", "unit", "prefill", KIMI4, "kimi-k3-4layer",
+def test_t14_request_helper_consumes_real_shared_service_event(campaign_fixture) -> None:
+    _, c2_row, _ = campaign_fixture
+    spec = zsv.CellSpec("probe", "unit", "prefill", Path(c2_row["model_case"]), "kimi-k3-4layer",
                         8, 1, 1, 8, 1, 1, 1)
     identity = SimpleNamespace(
         producer={"producer_sha256": "p", "ttft_boundary": "client"},
@@ -148,7 +156,7 @@ def test_default_forecast_dispatches_to_t14_driver(campaign_fixture, monkeypatch
     monkeypatch.setattr(prediction, "_t14_request_forecast", fake)
     result = prediction.forecast_cell(c2_row, roots=[root])
     assert result is sentinel
-    assert calls and calls[0] == (c2_row["cell_id"], 2, [2048, 2048])
+    assert calls and calls[0] == (c2_row["cell_id"], 2, [256, 256])
 
 
 def test_c2_forecast_and_evaluate_blindness(campaign_fixture, tmp_path: Path) -> None:
@@ -195,8 +203,8 @@ def test_c2_forecast_and_evaluate_blindness(campaign_fixture, tmp_path: Path) ->
     assert all(item["actual_ms"] is None for item in eval_missing["requests"])
 
 
-def test_distinct_q_chunk_budget_and_missing_declarations(campaign_fixture) -> None:
-    root, c2_row, c4_row = campaign_fixture
+def test_missing_declarations_and_distinct_q(campaign_fixture) -> None:
+    root, c2_row, _ = campaign_fixture
     absent = prediction.forecast_cell({"cell_id": "no-such-cell", "phase": "decode"}, roots=[root])
     assert absent["status"] == "unavailable"
 
@@ -205,29 +213,40 @@ def test_distinct_q_chunk_budget_and_missing_declarations(campaign_fixture) -> N
 
     def _with_q(item: dict, q: int) -> dict:
         out = dict(item, prompt_tokens=q)
-        out["key"] = out["key"].replace("|p=2048|", f"|p={q}|")
+        out["key"] = out["key"].replace("|p=256|", f"|p={q}|")
         return out
 
     distinct = prediction.forecast_cell(
-        c2_row, roots=[root], declarations=[_with_q(base[0], 512), _with_q(base[1], 1024)])
+        c2_row, roots=[root], declarations=[_with_q(base[0], 64), _with_q(base[1], 128)])
     assert distinct["status"] == "forecast"
     assert distinct["requests"][0]["predicted_ms"] != distinct["requests"][1]["predicted_ms"]
 
-    # Chunk budget > prompt_tokens is a noop; smaller chunk budget increases multichunk TTFT
-    one_2048 = prediction.forecast_cell(
-        c2_row, roots=[root], declarations=[dict(item, chunk_budget=2048) for item in base])
-    one_4096 = prediction.forecast_cell(
-        c2_row, roots=[root], declarations=[dict(item, chunk_budget=4096) for item in base])
-    assert one_2048["requests"][0]["predicted_ms"] == pytest.approx(one_4096["requests"][0]["predicted_ms"])
 
+def test_c2_chunk_budget_invariance(campaign_fixture) -> None:
+    root, c2_row, _ = campaign_fixture
+    clean = prediction.forecast_cell(c2_row, roots=[root])
+    base = [dict(item) for item in clean["requests"]]
+
+    # Chunk budget > prompt_tokens is a noop
+    one_256 = prediction.forecast_cell(
+        c2_row, roots=[root], declarations=[dict(item, chunk_budget=256) for item in base])
+    one_512 = prediction.forecast_cell(
+        c2_row, roots=[root], declarations=[dict(item, chunk_budget=512) for item in base])
+    assert one_256["requests"][0]["predicted_ms"] == pytest.approx(one_512["requests"][0]["predicted_ms"])
+
+
+def test_c4_multichunk_budget_sensitivity(campaign_fixture) -> None:
+    root, _, c4_row = campaign_fixture
+    # Smaller chunk budget increases multichunk TTFT
     c4_clean = prediction.forecast_cell(c4_row, roots=[root])
     c4_base = [dict(item) for item in c4_clean["requests"]]
-    m1024 = prediction.forecast_cell(
-        c4_row, roots=[root], declarations=[dict(item, chunk_budget=1024) for item in c4_base])
-    m4096 = prediction.forecast_cell(
-        c4_row, roots=[root], declarations=[dict(item, chunk_budget=4096) for item in c4_base])
-    assert m1024["status"] == m4096["status"] == "forecast"
-    assert m1024["requests"][0]["predicted_ms"] != pytest.approx(m4096["requests"][0]["predicted_ms"])
+    default_budget = c4_clean["cell"]["chunk_budget"]
+    m64 = prediction.forecast_cell(
+        c4_row, roots=[root], declarations=[dict(item, chunk_budget=64) for item in c4_base])
+    m_full = prediction.forecast_cell(
+        c4_row, roots=[root], declarations=[dict(item, chunk_budget=default_budget) for item in c4_base])
+    assert m64["status"] == m_full["status"] == "forecast"
+    assert m64["requests"][0]["predicted_ms"] != pytest.approx(m_full["requests"][0]["predicted_ms"])
 
 
 def test_declaration_validation_counterfactuals_and_h3_scheduler(
@@ -267,7 +286,7 @@ def test_declaration_validation_counterfactuals_and_h3_scheduler(
     assert prediction.evaluate_cell(bad_prompt, roots=[root], declarations=source)["reason"] == "row_prompt_tokens_mismatch"
 
     cf_budget = prediction.evaluate_cell(
-        c4_row, roots=[root], declarations=[dict(item, chunk_budget=1024) for item in source])
+        c4_row, roots=[root], declarations=[dict(item, chunk_budget=64) for item in source])
     assert cf_budget["summary"]["observed"] == 0
     assert all(item["join_status"] == "counterfactual_no_grade" for item in cf_budget["requests"])
 

@@ -124,32 +124,37 @@ def test_measured_and_tolerance_validation():
     assert "NaN" not in json.dumps(bad_measured, allow_nan=False)
 
 
-def test_cli_rejects_malformed_arguments_with_exit_two(tmp_path):
-    def run(*args: str) -> subprocess.CompletedProcess:
-        return subprocess.run(
-            [sys.executable, "-m", "mindie_profiler", "op-formula", *args],
-            cwd=ROOT, capture_output=True, text=True, timeout=60)
+def test_cli_rejects_malformed_arguments_with_exit_two(tmp_path, capsys):
+    from mindie_profiler.__main__ import main as cli_main
+
+    def run(*args: str, subproc: bool = False):
+        if subproc:
+            res = subprocess.run(
+                [sys.executable, "-m", "mindie_profiler", "op-formula", *args],
+                cwd=ROOT, capture_output=True, text=True, timeout=60)
+            return res.returncode, res.stdout, res.stderr
+        rc = cli_main(["op-formula", *args])
+        io = capsys.readouterr()
+        return rc, io.out, io.err
 
     base = ["--operator", "matmul", "--params", '{"M":2,"N":2,"K":2}']
-    for extra in (["--measured-us", "nan"], ["--measured-us", "-1"],
-                  ["--tol", "nan"]):
-        result = run(*base, *extra)
-        assert result.returncode == 2, (extra, result.stdout, result.stderr)
-        assert "Traceback" not in result.stderr
+    for idx, extra in enumerate((["--measured-us", "nan"], ["--measured-us", "-1"],
+                                 ["--tol", "nan"])):
+        rc, out, err = run(*base, *extra, subproc=(idx == 0))
+        assert rc == 2, (extra, out, err)
+        assert "Traceback" not in err
     for bad_params in ("[]", "123"):
-        result = run("--operator", "matmul", "--params", bad_params)
-        assert result.returncode == 2
-        assert "Traceback" not in result.stderr
+        rc, _, err = run("--operator", "matmul", "--params", bad_params)
+        assert rc == 2
+        assert "Traceback" not in err
     rows = tmp_path / "rows.json"
     rows.write_text(json.dumps({"garbage": 1}), encoding="utf-8")
-    result = run("--rows", str(rows))
-    assert result.returncode == 2
+    assert run("--rows", str(rows))[0] == 2
     rows.write_text(json.dumps([{"name": "x"}, [1, 2]]), encoding="utf-8")
-    result = run("--rows", str(rows))
-    assert result.returncode == 2
+    assert run("--rows", str(rows))[0] == 2
     broken = tmp_path / "broken.json"
     broken.write_text("{not json", encoding="utf-8")
-    assert run("--rows", str(broken)).returncode == 2
+    assert run("--rows", str(broken))[0] == 2
 
 
 def test_strict_json_profile_containers(tmp_path):

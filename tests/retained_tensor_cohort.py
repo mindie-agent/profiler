@@ -15,9 +15,11 @@ FIXTURE = Path(__file__).parent / 'fixtures/pipeline/tensor_move_cohort.json'
 
 
 def retained_case():
-    sim = pytest.importorskip('mindie_sim')
+    pytest.importorskip('mindie_sim')
     path = case_path('qwen35-35b-a5-tp4-c128-mc2-tp-source-complete.json')
-    return json.loads(path.read_text())
+    doc = json.loads(path.read_text())
+    doc['model']['layers'] = 4
+    return doc
 
 
 @lru_cache(maxsize=16)
@@ -36,9 +38,15 @@ def mapping_for_case(case):
     ))
     mapper = StructureMapper(manifest)
     original = saved['cohort']
+    declared_layers = int(manifest['execution']['software']['pp_layer_partition'][0])
+    target_ids = [
+        tid for tid in original['target_ids']
+        if declared_layers >= 40 or any(f'.l{i}.' in tid for i in range(declared_layers))
+    ]
     # Complete retained candidate set, tensor contract and work must all survive.
-    assert set(original['target_ids']) <= mapper.target_index.all.keys()
-    for identifier in original['target_ids']:
+    assert len(target_ids) == 4 * declared_layers
+    assert set(target_ids) <= mapper.target_index.all.keys()
+    for identifier in target_ids:
         target = mapper.target_index.all[identifier]
         assert json.dumps(target['contract']) == json.dumps(original['contract'])
     window = saved['window']
@@ -50,9 +58,14 @@ def mapping_for_case(case):
                            None, [], source, QueryStats(window['rank_id'], 'retained'))
     accumulator = CohortAccumulator(manifest['graph_id'], mapper.target_index, observed,
                                     execution=manifest['execution'])
-    declaration, reason = accumulator._cohort(original['target_ids'])
+    declaration, reason = accumulator._cohort(target_ids)
     assert reason is None
     cohort = {**deepcopy(original), **declaration}
+    cohort['multiplicity'] = {
+        **cohort['multiplicity'],
+        'declared_instances': declaration['declared_instance_count'],
+        'calls_per_declared_instance': cohort['event_count'] / declaration['declared_instance_count'],
+    }
     return manifest, {'schema_version': 'mindie-profile-structure-mapping/1',
                       'graph_id': manifest['graph_id'], 'declared_execution': manifest['execution'],
                       'windows': [{**window, 'cohorts': [cohort]}]}

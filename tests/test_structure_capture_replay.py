@@ -16,7 +16,14 @@ def replay(capture, case_name):
     original = path.read_bytes()
     case = json.loads(original)
     case['runtime'].setdefault('kernels', {})['lowerings'] = {'mla_prolog': 'vllm_ascend_mla_prolog_v3'}
-    manifest = structure.export_structure(case, phase='decode', tokens=1, context=4096, scope='model')
+    extra = {}
+    if case_name == 'kimi-k3-a5':
+        case['model']['layers'] = 8
+        if 'layer_plans' in case['model']:
+            case['model']['layer_plans'] = case['model']['layer_plans'][:8]
+        extra['replicas'] = [0]
+    manifest = structure.export_structure(
+        case, phase='decode', tokens=1, context=4096, scope='model', **extra)
     report = analyze_profile(FIXTURES / capture, source='csv', full_range=True,
                              structure=manifest)['structure_mapping']
     assert path.read_bytes() == original

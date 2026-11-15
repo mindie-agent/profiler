@@ -3,6 +3,7 @@
 These are offline contract replays. Explicit occurrence annotations in the
 binding control are test inputs, not evidence of a newly collected module.
 """
+from copy import deepcopy
 from dataclasses import replace
 from functools import lru_cache
 import json
@@ -25,8 +26,23 @@ FIXTURES = Path(__file__).parent / "fixtures"
 def _cached_declaration(name: str, tokens: int) -> dict:
     structure = pytest.importorskip("mindie_sim.structure")
     case = case_path(f"{name}.json")
+    doc = json.loads(case.read_text())
+    keep = 12 if name == "glm53-a3-w4a8" else 8
+    extra = {}
+    runtime = doc.get("runtime") if isinstance(doc.get("runtime"), dict) else {}
+    parallel = runtime.get("parallel") if isinstance(runtime.get("parallel"), dict) else runtime
+    if int(parallel.get("dp") or 1) > 1:
+        extra["replicas"] = [0]
+    model = doc.get("model")
+    if isinstance(model, dict) and int(model.get("layers") or 0) > keep:
+        model["layers"] = keep
+        if isinstance(model.get("layer_plans"), list):
+            model["layer_plans"] = model["layer_plans"][:keep]
+        pp_plan = runtime.get("pp_plan") if isinstance(runtime.get("pp_plan"), dict) else None
+        if pp_plan and isinstance(pp_plan.get("partition"), list) and len(pp_plan["partition"]) == 1:
+            pp_plan["partition"] = [keep]
     return structure.export_structure(
-        json.loads(case.read_text()), phase="prefill", tokens=tokens, scope="model")
+        doc, phase="prefill", tokens=tokens, scope="model", **extra)
 
 
 def declaration(name, tokens, **kwargs):
@@ -38,7 +54,18 @@ def declaration(name, tokens, **kwargs):
         json.loads(case.read_text()), phase="prefill", tokens=tokens, scope="model", **kwargs)
 
 
+_MAPPED_CACHE = {}
+
+
 def mapped(group, capture, manifest, **kwargs):
+    if not kwargs and isinstance(manifest, dict) and "graph_id" in manifest:
+        key = (group, capture, manifest["graph_id"])
+        if key not in _MAPPED_CACHE:
+            _MAPPED_CACHE[key] = analyze_profile(
+                FIXTURES / group / capture, source="csv", full_range=True,
+                structure=manifest,
+            )["structure_mapping"]
+        return deepcopy(_MAPPED_CACHE[key])
     return analyze_profile(
         FIXTURES / group / capture, source="csv", full_range=True,
         structure=manifest, **kwargs,

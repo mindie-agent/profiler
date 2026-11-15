@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import socket
+import socketserver
 import threading
 import time
 import urllib.parse
@@ -51,14 +52,22 @@ class _Handler(BaseHTTPRequestHandler):
         pass
 
 
+class _LoopbackHTTPServer(ThreadingHTTPServer):
+    def server_bind(self) -> None:
+        socketserver.TCPServer.server_bind(self)
+        host, port = self.server_address[:2]
+        self.server_name = str(host)
+        self.server_port = int(port)
+
+
 @pytest.fixture
 def control_server():
-    server = ThreadingHTTPServer(("127.0.0.1", 0), _Handler)
+    server = _LoopbackHTTPServer(("127.0.0.1", 0), _Handler)
     server.daemon_threads = True
     server.requests = []
     server.status = 200
     server.delay = 0.0
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread = threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.02}, daemon=True)
     thread.start()
     try:
         yield server

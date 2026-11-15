@@ -52,13 +52,25 @@ def compact_cases(tmp_path_factory: pytest.TempPathFactory) -> dict[str, Path]:
         ("glm51", GLM51_CASE),
         ("v41", V41_CASE),
     ):
-        n = 12 if key == "glm51" else 4
+        n = 12 if key == "glm51" else (8 if key == "v41" else 4)
         doc = json.loads(src.read_text(encoding="utf-8"))
         doc["model"]["layers"] = n
         if "body_layers" in doc["model"]:
             doc["model"]["body_layers"] = n
         if "layer_plans" in doc["model"]:
             doc["model"]["layer_plans"] = list(doc["model"]["layer_plans"])[:n]
+        tc = (doc["model"].get("hf_config") or {}).get("text_config")
+        if key == "v41" and isinstance(tc, dict):
+            tc["num_hidden_layers"] = n
+            if "compress_ratios" in tc:
+                tc["compress_ratios"] = list(tc["compress_ratios"])[:n] + [0, 0, 0]
+            tc["kv_source_layer_ids"] = [2]
+            tc["index_source_layer_ids"] = [2]
+            tc["candidate_source_layer_id"] = 2
+            tc["engram_layer_ids"] = [1]
+            if "engram_num_embeddings" in tc:
+                tc["engram_num_embeddings"] = list(tc["engram_num_embeddings"])[:1]
+            tc["dspark_target_layer_ids"] = [5, 6, 7]
         dst = base_dir / f"compact_{key}.json"
         dst.write_text(json.dumps(doc), encoding="utf-8")
         out[key] = dst
@@ -247,7 +259,7 @@ def test_discovery_pairs_cell_with_kernel_and_declares_bucket(tmp_path):
 
 def test_structural_prediction_exposes_guards_pipes_and_all_levels(compact_cases):
     spec = z.CellSpec("qwen38", "unit", "decode", compact_cases["qwen38"], "Qwen3.8-27B",
-                      128, 2, 1, 4, 1, 1, 1, (1, 2, 4), 2)
+                      128, 2, 1, 4, 1, 1, 1, (1, 2, 4, 8), 2)
     first = z.predict_cell(spec)
     second = z.predict_cell(spec)
     assert first == second
@@ -281,7 +293,7 @@ def test_selected_fusions_publish_one_parent_and_uncharged_members_and_row_for_o
 
 def test_dp_cohort_is_split_into_one_local_batch_per_replica(compact_cases):
     spec = z.CellSpec("dp", "unit", "decode", compact_cases["qwen38"], "Qwen3.8-27B",
-                      4096, 4, 1, 4, 4, 1, 1, (4,), 4)
+                      4096, 4, 1, 4, 4, 1, 1, (1, 2, 4, 8), 4, synthetic_layers=2)
     assert z._local_batch(spec) == 1
     assert z._local_batch(replace(spec, concurrency=10, dp=4)) == 3
     assert z._local_batch(replace(spec, concurrency=7, dp=8)) == 1
@@ -294,7 +306,7 @@ def test_dp_cohort_is_split_into_one_local_batch_per_replica(compact_cases):
 
 def test_observed_block_table_batch_wins_over_the_declared_ceiling(compact_cases):
     spec = z.CellSpec("dp_obs", "unit", "decode", compact_cases["qwen38"], "Qwen3.8-27B",
-                      256, 8, 1, 4, 4, 1, 1, (8,), 8)
+                      256, 8, 1, 4, 4, 1, 1, (1, 2, 4, 8), 8, synthetic_layers=2)
     observed = replace(spec, sequences_per_replica=5)
     batch, is_observed, basis = z._local_batch_binding(observed)
     assert (batch, is_observed, basis) == (
@@ -318,9 +330,9 @@ def test_inactive_draft_is_skipped_and_output_uses_selected_rows(compact_cases):
     assert draft.rows and not any(row.kind == "spec_decode" for row in draft.rows)
     assert not any(note.startswith("spec_decode:") for note in draft.notes)
     small = z.predict_cell(z.CellSpec("small", "unit", "prefill", compact_cases["qwen38"], "Qwen3.8-27B",
-                                      64, 2, 1, 4, 1, 1, 1))
+                                      64, 2, 1, 4, 1, 1, 1, (1, 2, 4, 8), synthetic_layers=2))
     large = z.predict_cell(z.CellSpec("large", "unit", "prefill", compact_cases["qwen38"], "Qwen3.8-27B",
-                                      8192, 2, 1, 4, 1, 1, 1))
+                                      8192, 2, 1, 4, 1, 1, 1, (1, 2, 4, 8), synthetic_layers=2))
     small_o0 = sum(row.total_ms for row in small.rows if row.kind == "lm_head_sampler")
     large_o0 = sum(row.total_ms for row in large.rows if row.kind == "lm_head_sampler")
     assert small_o0 < large_o0 < 2.0 * small_o0
@@ -711,7 +723,7 @@ def test_l1_l3_comparisons_invariant_under_ttft_tpot_perturbation(tmp_path, comp
     write_kernel_csv(dc_csv, rows=dc_rows)
     write_kernel_csv(pf_csv, rows=KERNEL_ROWS)
     for phase, csv_p in (("decode", dc_csv), ("prefill", pf_csv)):
-        spec = z.CellSpec(f"inv_{phase}", "unit", phase, qwen38, "Qwen3.8-27B", 128, 2, 1, 4, 1, 1, 1)
+        spec = z.CellSpec(f"inv_{phase}", "unit", phase, qwen38, "Qwen3.8-27B", 128, 2, 1, 4, 1, 1, 1, synthetic_layers=2)
         pred = z.predict_cell(spec)
         c1 = z.attach_trace(z.MeasuredCell(spec, (csv_p,), None, 120.0, 15.0, None, 4 if phase == "decode" else 1, True))
         c2 = z.attach_trace(z.MeasuredCell(spec, (csv_p,), None, 9999.0, 888.0, None, 4 if phase == "decode" else 1, True))
@@ -720,14 +732,14 @@ def test_l1_l3_comparisons_invariant_under_ttft_tpot_perturbation(tmp_path, comp
         l13_b = [item for item in z.compare_cell(c2, pred) if item.level in {"L1", "L2", "L3"}]
         assert l13_a and l13_a == l13_b
     jsonl = tmp_path / "bench.jsonl"
-    jsonl.write_text(json.dumps({**z.cell_to_dict(z.attach_trace(z.MeasuredCell(z.CellSpec("inv_dc", "unit", "decode", qwen38, "Qwen3.8-27B", 128, 2, 1, 4, 1, 1, 1), (dc_csv,), None, 120.0, 15.0, None, 4, True))), "model_case": str(qwen38)}) + "\n", encoding="utf-8")
+    jsonl.write_text(json.dumps({**z.cell_to_dict(z.attach_trace(z.MeasuredCell(z.CellSpec("inv_dc", "unit", "decode", qwen38, "Qwen3.8-27B", 128, 2, 1, 4, 1, 1, 1, synthetic_layers=2), (dc_csv,), None, 120.0, 15.0, None, 4, True))), "model_case": str(qwen38)}) + "\n", encoding="utf-8")
     res = z.run_validation(benchmark_jsonl=jsonl, include_historical=False)
     assert "_prepare_dflash_inputs" in res["unresolved_kernels"] and res["agent_decisions"] and z.main(["--benchmark-jsonl", str(jsonl), "--no-historical", "--json"]) == 1
 
 
 def test_public_rows_expose_native_call_occurrence_and_exact_coverage(compact_cases):
     spec = z.CellSpec("native", "unit", "decode", compact_cases["qwen38"], "Qwen3.8-27B",
-                      128, 2, 1, 4, 1, 1, 1, (1, 2, 4), 2)
+                      128, 2, 1, 4, 1, 1, 1, (1, 2, 4, 8), 2)
     prediction = z.predict_cell(spec)
     bound = [row for row in prediction.rows if row.native_call]
     assert bound
