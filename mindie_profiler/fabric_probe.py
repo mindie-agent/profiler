@@ -403,6 +403,16 @@ def _read_abort_record(path: str | Path | None) -> dict[str, Any] | None:
     return payload if isinstance(payload, dict) else None
 
 
+def _process_reaped(proc: Any) -> bool:
+    if proc.returncode is None:
+        return False
+    handle = getattr(proc, "_handle", None) if os.name == "nt" else None
+    if isinstance(handle, int) and not isinstance(handle, bool):
+        import _winapi
+        return _winapi.WaitForSingleObject(int(handle), 0) == 0
+    return True
+
+
 def _emergency_reap_children(children: Any, hard_end: float) -> None:
     """Round-robin kill/reap, sharing one deadline and preserving the primary."""
     # Even an expired deadline gets one short emergency slice, never one per PID.
@@ -414,24 +424,30 @@ def _emergency_reap_children(children: Any, hard_end: float) -> None:
             for proc in pending:
                 with contextlib.suppress(BaseException):
                     proc.poll()
-                if proc.returncode is not None:
+                if _process_reaped(proc):
                     continue
-                killed = False
-                with contextlib.suppress(BaseException):
-                    proc.kill()
-                    killed = True
-                if not killed:
-                    with contextlib.suppress(BaseException):
-                        if os.name == "nt":
-                            import _winapi
-                            _winapi.TerminateProcess(int(proc._handle), 1)
-                        else:
-                            pid = getattr(proc, "pid", None)
-                            if isinstance(pid, int) and pid > 0:
-                                os.kill(pid, signal.SIGKILL)
-                with contextlib.suppress(BaseException):
-                    proc.wait(timeout=0)
                 if proc.returncode is None:
+                    killed = False
+                    with contextlib.suppress(BaseException):
+                        proc.kill()
+                        killed = True
+                    if not killed:
+                        with contextlib.suppress(BaseException):
+                            if os.name == "nt":
+                                import _winapi
+                                _winapi.TerminateProcess(int(proc._handle), 1)
+                            else:
+                                pid = getattr(proc, "pid", None)
+                                if isinstance(pid, int) and pid > 0:
+                                    os.kill(pid, signal.SIGKILL)
+                    with contextlib.suppress(BaseException):
+                        proc.wait(timeout=0)
+                handle = getattr(proc, "_handle", None) if os.name == "nt" else None
+                if isinstance(handle, int) and not isinstance(handle, bool):
+                    import _winapi
+                    if _winapi.WaitForSingleObject(int(handle), 2) == 0 and proc.returncode is None:
+                        proc.returncode = _winapi.GetExitCodeProcess(int(handle))
+                if not _process_reaped(proc):
                     survivors.append(proc)
             pending = survivors
             if pending:
@@ -540,7 +556,10 @@ def supervise_probe_processes(procs: Any, abort_file: str | Path | None = None,
                     raise
                 except Exception:
                     pass
-        reaped = all(proc.poll() is not None for proc in processes)
+        reaped = all(
+            proc.poll() is not None and _process_reaped(proc)
+            for proc in processes
+        )
         poll_once()
         for index, proc in enumerate(processes):
             if index not in codes and proc.returncode is not None:
