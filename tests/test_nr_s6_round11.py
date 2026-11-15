@@ -241,7 +241,7 @@ def test_r11_abi_catalog_span_round_trip_and_full_direct_card():
 
 # --------------------------------------------------------------- R11-F10-DIRS
 def test_r11_f10_dirs_protected_slot_creates_zero_directories(monkeypatch):
-    base, root = _root("nr_s6_r11_dirs_")
+    base, root = _root("r11_dirs_")
     try:
         monkeypatch.setenv("MINDIE_REPRO_SHORT_ROOT", str(root))
         first = repro_mcp("repro_op", {"occurrence": paged_binding(),

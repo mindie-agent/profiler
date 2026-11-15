@@ -519,14 +519,15 @@ def test_standalone_kernel_csv_wrapped_env_sim_case_roundtrip_and_walk_timeout(t
     assert roundtrip["workload"]["requests"][0]["prompt_tokens"] == 2048
     assert roundtrip["workload"]["requests"][0]["output_tokens"] == 64
 
-    def fake_walk(root, onerror=None):
+    def fake_walk(root, *args, onerror=None, **kwargs):
         if onerror is not None:
             onerror(TimeoutError("scan timeout"))
         return iter(())
 
-    monkeypatch.setattr(sim_bridge.os, "walk", fake_walk)
-    with pytest.raises(TimeoutError, match="scan timeout"):
-        _legacy_export(kdir)
+    with monkeypatch.context() as mp:
+        mp.setattr(sim_bridge.os, "walk", fake_walk)
+        with pytest.raises(TimeoutError, match="scan timeout"):
+            _legacy_export(kdir)
 
 
 def test_full_catalog_override_precedence_and_strict_bounds(tmp_path):

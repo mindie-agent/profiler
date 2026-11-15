@@ -338,13 +338,13 @@ def test_f10_long_default_temp_root_still_returns_resolvable_short_paths(
         assert "repro_sha256" in manifest.read_text()
         resolved = resolve_repro_artifact(result["artifact_id"])
         assert resolved["resolved"] is True
-        assert resolved["artifact_path"] == result["artifact_path"]
-        assert resolved["manifest_path"] == result["artifact_path"].replace("repro.py", "manifest.json")
+        assert Path(resolved["artifact_path"]) == Path(result["artifact_path"])
+        assert Path(resolved["manifest_path"]) == Path(result["artifact_path"].replace("repro.py", "manifest.json"))
         assert resolved["script_sha256"] == result["artifact_id"]
         via_tool = call_mcp_tool(
             "repro_op", {"resolve_artifact_id": result["artifact_id"]})
         assert via_tool["artifact_path"] == result["artifact_path"]
-        assert str(short_root()) in result["artifact_path"]
+        assert short_root().as_posix() in Path(result["artifact_path"]).as_posix()
     finally:
         shutil.rmtree(short, ignore_errors=True)
 

@@ -407,7 +407,7 @@ def _emergency_reap_children(children: Any, hard_end: float) -> None:
     """Round-robin kill/reap, sharing one deadline and preserving the primary."""
     # Even an expired deadline gets one short emergency slice, never one per PID.
     with contextlib.suppress(BaseException):
-        end = max(hard_end, time.monotonic() + 0.02)
+        end = max(hard_end, time.monotonic() + (0.5 / 2 if os.name == "nt" else 0.02))
         pending = list(children)
         while pending and time.monotonic() < end:
             survivors = []
@@ -423,7 +423,8 @@ def _emergency_reap_children(children: Any, hard_end: float) -> None:
                 if not killed:
                     with contextlib.suppress(BaseException):
                         if os.name == "nt":
-                            subprocess.Popen.kill(proc)
+                            import _winapi
+                            _winapi.TerminateProcess(int(proc._handle), 1)
                         else:
                             pid = getattr(proc, "pid", None)
                             if isinstance(pid, int) and pid > 0:
