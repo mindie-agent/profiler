@@ -13,15 +13,18 @@
   * Compiled shims are keyed by ``(abi_version, cann_version, innerversion,
     arch, source_sha256)`` and published atomically via ``os.replace``.
   * The shim cache is bounded: at most ``SHIM_CACHE_MAX_ENTRIES`` published
-    variants survive a build, and interrupted ``*.tmp.*`` leaves older than
-    ``SHIM_TMP_STALE_S`` are removed.  Pruning never fails a build.
+    variants survive a build; ``*.tmp.*`` leaves older than ``SHIM_TMP_STALE_S``
+    are swept only when a non-blocking probe proves no live builder owns the
+    cache.  Pruning never fails a build.
+  * One stable ``.cann_abi_build.lock`` serializes compile, publish, and
+    eviction; per-variant ``.*.lock`` siblings are never created or unlinked.
   * A compiler timeout surfaces as the builtin ``TimeoutError`` (never as a
     bare ``subprocess.TimeoutExpired``); an unpublished ``tmp_so`` is always
     removed, including on timeout.
 
 [Timeouts & Locks]
   ``ensure_capture_shim_binary`` enforces a bounded ``timeout_s`` compiler
-  budget under an advisory ``flock`` file lock when available.
+  budget under the directory build lock plus a process-local thread lock.
 
 [Side-Effect Policy]
   Discovery is read-only.  Shim compilation writes only inside the isolated
@@ -39,8 +42,10 @@ import platform
 import re
 import subprocess
 import time
+import uuid
 
 from .events import ProfilerError, ProfilerUsageError
+from .storage_locks import exclusive_lock
 
 SHIM_ABI_VERSION = "cann9-native-capture-v3"
 SHIM_SOURCE_FILENAME = "_cann9_capture_shim.c"
@@ -48,6 +53,7 @@ SHIM_HEADER_FILENAME = "_cann9_capture_mspti.h"
 SHIM_CACHE_MAX_ENTRIES = 8
 SHIM_TMP_STALE_S = 3600.0
 _SHIM_GLOB = "libmindie_cann9_capture_*.so"
+_BUILD_LOCK_NAME = ".cann_abi_build.lock"
 _SHIM_TMP_GLOBS = (".*.tmp.*", "*.tmp.*")
 _VERSION_RE = re.compile(r"^\s*(\d+)\.(\d+)(?:\.([0-9A-Za-z._-]+))?\s*$")
 _ARCH_CANDIDATES = ("aarch64-linux", "x86_64-linux")
@@ -387,24 +393,33 @@ def compute_shim_cache_key(install: Cann9Installation, source_bytes: bytes) -> s
     return digest.hexdigest()[:20]
 
 
-def _prune_shim_cache(target_dir: Path, *, keep: Path) -> None:
-    """Bound published shim variants and drop stale interrupted-compile leaves.
+def _sweep_stale_temporaries(target_dir: Path, *, lock_path: Path) -> None:
+    """Drop orphaned compile leaves only when no live builder owns the cache."""
 
-    A shim that is currently mapped cannot be unlinked on Windows, and a lock
-    file may be held by a concurrent builder; both are best-effort removals so
-    retention never turns a successful build into a failure.
+    with exclusive_lock(lock_path, blocking=False) as held:
+        if not held:
+            return
+        now = time.time()
+        for pattern in _SHIM_TMP_GLOBS:
+            for stale in target_dir.glob(pattern):
+                try:
+                    if now - stale.lstat().st_mtime > SHIM_TMP_STALE_S:
+                        stale.unlink(missing_ok=True)
+                except TimeoutError:
+                    raise
+                except OSError:
+                    continue
+
+
+def _prune_shim_cache(target_dir: Path, *, keep: Path) -> None:
+    """Bound published shim variants; lock files are never eviction targets.
+
+    A shim that is currently mapped cannot be unlinked on Windows; failure is
+    best effort so retention never turns a successful build into a failure.
+    The stable ``.cann_abi_build.lock`` and any legacy per-variant locks keep
+    their inode identity for the whole lifetime of the cache directory.
     """
 
-    now = time.time()
-    for pattern in _SHIM_TMP_GLOBS:
-        for stale in target_dir.glob(pattern):
-            try:
-                if now - stale.lstat().st_mtime > SHIM_TMP_STALE_S:
-                    stale.unlink(missing_ok=True)
-            except TimeoutError:
-                raise
-            except OSError:
-                continue
     published: list[Path] = []
     for candidate in target_dir.glob(_SHIM_GLOB):
         try:
@@ -432,7 +447,6 @@ def _prune_shim_cache(target_dir: Path, *, keep: Path) -> None:
     for victim in superseded:
         try:
             victim.unlink(missing_ok=True)
-            (target_dir / f".{victim.name}.lock").unlink(missing_ok=True)
         except TimeoutError:
             raise
         except OSError:
@@ -464,6 +478,95 @@ def _run_compiler(
             f"C compiler {cmd[0]!r} exceeded timeout_s={timeout_s}s "
             "while building the CANN 9.x capture shim"
         ) from exc
+
+
+def _compile_shim(
+    install: Cann9Installation,
+    *,
+    gear_tag: str,
+    so_path: Path,
+    target_dir: Path,
+    src_path: Path,
+    compiler: str,
+    timeout_s: float,
+) -> None:
+    """Compile one unpublished shim object with a collision-free temp name."""
+
+    acl_lib_dir = install.libascendcl_so.parent
+    mspti_lib_dir = install.libmspti_so.parent
+    rpath = (
+        f"{mspti_lib_dir}:{acl_lib_dir}"
+        if gear_tag == "fast"
+        else str(acl_lib_dir)
+    )
+    tmp_so = target_dir / f".{so_path.name}.tmp.{os.getpid()}.{uuid.uuid4().hex[:8]}"
+    cmd = [
+        compiler,
+        "-shared",
+        "-fPIC",
+        "-O2",
+        "-std=gnu11",
+        "-pthread",
+        "-Wall",
+        "-Wextra",
+        "-Wno-unused-parameter",
+        f"-I{src_path.parent}",
+        "-isystem",
+        str(install.mspti_include_dir),
+        "-isystem",
+        str(install.acl_include_dir),
+        str(src_path),
+        "-o",
+        str(tmp_so),
+        f"-L{acl_lib_dir}",
+    ]
+    cmd.append("-Wl,--no-as-needed")
+    if gear_tag == "fast":
+        cmd.extend([f"-L{mspti_lib_dir}", "-lmspti"])
+    cmd.extend(
+        [
+            "-lascendcl",
+            "-Wl,--as-needed",
+            f"-Wl,-rpath,{rpath}",
+            "-ldl",
+            "-lpthread",
+            "-lm",
+        ]
+    )
+    from ._host_exec import no_window_kwargs, which_native
+
+    resolved_compiler = which_native(compiler)
+    if not resolved_compiler:
+        raise ProfilerError(
+            f"failed to invoke C compiler {compiler!r} for CANN 9.x shim: native executable not found"
+        )
+    cmd[0] = resolved_compiler
+    popen_kwargs: dict[str, object] = dict(no_window_kwargs())
+    try:
+        try:
+            proc = _run_compiler(cmd, timeout_s=timeout_s, popen_kwargs=popen_kwargs)
+        except TimeoutError:
+            raise
+        except OSError as exc:
+            raise ProfilerError(
+                f"failed to invoke C compiler {compiler!r} for CANN 9.x shim: {exc}"
+            ) from exc
+
+        if proc.returncode != 0 or not tmp_so.is_file():
+            stderr = (proc.stderr or proc.stdout or "").strip()
+            raise ProfilerError(
+                f"failed to compile CANN 9.x capture shim (rc={proc.returncode}): {stderr[:800]}"
+            )
+        os.replace(tmp_so, so_path)
+    finally:
+        # A published shim was renamed onto ``so_path``; anything left here is
+        # an unpublished partial compile (timeout, OSError, non-zero rc).
+        try:
+            tmp_so.unlink(missing_ok=True)
+        except TimeoutError:
+            raise
+        except OSError:
+            pass
 
 
 def ensure_capture_shim_binary(
@@ -509,108 +612,19 @@ def ensure_capture_shim_binary(
     if so_path.is_file() and so_path.stat().st_size > 0:
         return so_path
 
-    lock_path = target_dir / f".{so_path.name}.lock"
-    lock_fd = os.open(str(lock_path), os.O_CREAT | os.O_RDWR, 0o600)
-    try:
-        if os.name != "nt":
-            import fcntl
-
-            fcntl.flock(lock_fd, fcntl.LOCK_EX)
+    lock_path = target_dir / _BUILD_LOCK_NAME
+    _sweep_stale_temporaries(target_dir, lock_path=lock_path)
+    with exclusive_lock(lock_path, blocking=True):
         if so_path.is_file() and so_path.stat().st_size > 0:
             return so_path
-
-        acl_lib_dir = install.libascendcl_so.parent
-        mspti_lib_dir = install.libmspti_so.parent
-        rpath = (
-            f"{mspti_lib_dir}:{acl_lib_dir}"
-            if gear_tag == "fast"
-            else str(acl_lib_dir)
+        _compile_shim(
+            install,
+            gear_tag=gear_tag,
+            so_path=so_path,
+            target_dir=target_dir,
+            src_path=src_path,
+            compiler=compiler,
+            timeout_s=timeout_s,
         )
-        tmp_so = target_dir / f".{so_path.name}.tmp.{os.getpid()}"
-        cmd = [
-            compiler,
-            "-shared",
-            "-fPIC",
-            "-O2",
-            "-std=gnu11",
-            "-pthread",
-            "-Wall",
-            "-Wextra",
-            "-Wno-unused-parameter",
-            f"-I{src_path.parent}",
-            "-isystem",
-            str(install.mspti_include_dir),
-            "-isystem",
-            str(install.acl_include_dir),
-            str(src_path),
-            "-o",
-            str(tmp_so),
-            f"-L{acl_lib_dir}",
-        ]
-        cmd.append("-Wl,--no-as-needed")
-        if gear_tag == "fast":
-            cmd.extend([f"-L{mspti_lib_dir}", "-lmspti"])
-        cmd.extend(
-            [
-                "-lascendcl",
-                "-Wl,--as-needed",
-                f"-Wl,-rpath,{rpath}",
-                "-ldl",
-                "-lpthread",
-                "-lm",
-            ]
-        )
-        from ._host_exec import no_window_kwargs, which_native
-
-        resolved_compiler = which_native(compiler)
-        if not resolved_compiler:
-            raise ProfilerError(
-                f"failed to invoke C compiler {compiler!r} for CANN 9.x shim: native executable not found"
-            )
-        cmd[0] = resolved_compiler
-        popen_kwargs: dict[str, object] = dict(no_window_kwargs())
-        try:
-            try:
-                proc = _run_compiler(cmd, timeout_s=timeout_s, popen_kwargs=popen_kwargs)
-            except TimeoutError:
-                raise
-            except OSError as exc:
-                raise ProfilerError(
-                    f"failed to invoke C compiler {compiler!r} for CANN 9.x shim: {exc}"
-                ) from exc
-
-            if proc.returncode != 0 or not tmp_so.is_file():
-                stderr = (proc.stderr or proc.stdout or "").strip()
-                raise ProfilerError(
-                    f"failed to compile CANN 9.x capture shim (rc={proc.returncode}): {stderr[:800]}"
-                )
-            os.replace(tmp_so, so_path)
-        finally:
-            # A published shim was renamed onto ``so_path``; anything left here
-            # is an unpublished partial compile (timeout, OSError, non-zero rc).
-            try:
-                tmp_so.unlink(missing_ok=True)
-            except TimeoutError:
-                raise
-            except OSError:
-                pass
         _prune_shim_cache(target_dir, keep=so_path)
         return so_path
-    finally:
-        try:
-            if os.name != "nt":
-                try:
-                    import fcntl
-
-                    fcntl.flock(lock_fd, fcntl.LOCK_UN)
-                except TimeoutError:
-                    raise
-                except OSError:
-                    pass
-        finally:
-            try:
-                os.close(lock_fd)
-            except TimeoutError:
-                raise
-            except OSError:
-                pass

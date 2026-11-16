@@ -8,6 +8,8 @@
   * Every path is absolute once registered; release is idempotent.
   * Cleanup removes only registered roots and never follows a symlink out of
     one; ``atexit`` drains the registry for non-pytest callers as well.
+  * A path leaves the registry only after ``shutil.rmtree`` confirms absence,
+    so transient Windows handle contention is retried by the next drain.
   * A released root is never re-registered by cleanup itself.
 
 [Timeouts & Locks]
@@ -50,12 +52,14 @@ def make_temp_workspace(
 
 
 def release_temp_workspace(path: str | os.PathLike[str]) -> None:
-    """Forget and remove one workspace; missing paths are already released."""
+    """Remove one workspace; keep it registered until removal is confirmed."""
 
     absolute = os.path.abspath(os.fspath(path))
+    shutil.rmtree(absolute, ignore_errors=True)
+    if os.path.lexists(absolute):
+        return
     with _LOCK:
         _LIVE.discard(absolute)
-    shutil.rmtree(absolute, ignore_errors=True)
 
 
 def release_all_temp_workspaces() -> int:
@@ -63,10 +67,15 @@ def release_all_temp_workspaces() -> int:
 
     with _LOCK:
         paths = sorted(_LIVE, key=len, reverse=True)
-        _LIVE.clear()
+    released = 0
     for path in paths:
         shutil.rmtree(path, ignore_errors=True)
-    return len(paths)
+        if os.path.lexists(path):
+            continue  # Keep it registered so the next atexit drain retries.
+        with _LOCK:
+            _LIVE.discard(path)
+        released += 1
+    return released
 
 
 def live_temp_workspaces() -> tuple[str, ...]:

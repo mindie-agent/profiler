@@ -69,7 +69,9 @@ def test_sidecar_index_is_wal_bounded_and_rebuilt_on_identity_change(tmp_path):
 
     con = sqlite3.connect(first["index_path"])
     try:
-        assert con.execute("PRAGMA journal_mode").fetchone()[0].lower() == "wal"
+        # Publication collapses the private build to one self-contained file,
+        # so the database is at rest in rollback-journal mode with no sidecars.
+        assert con.execute("PRAGMA journal_mode").fetchone()[0].lower() == "delete"
         assert con.execute("PRAGMA busy_timeout").fetchone()[0] == 5000
         meta = dict(con.execute("SELECT key, value FROM trace_meta"))
         assert meta["schema_version"] == "mindie-profiler-trace-index/1"

@@ -17,7 +17,8 @@
   * Short-root retention is bounded by ``repro_retention.prune_repro_storage``.
 
 [Timeouts & Locks]
-  A shared process-local commit/rollback RLock; no lock spans verification.
+  A shared process-local commit/rollback RLock plus a short-root cross-process
+  retention lock and per-write marker serialize stage/commit with eviction.
 
 [Side-Effect Policy]
   Writes only the short root or the explicitly requested output path.
@@ -36,7 +37,7 @@ from .repro_atomic_io import ( _COMMITTED_INODES as _PROTECTED_INODES, _OWNERSHI
     _cleanup_scope, _link_nofollow, _retry_cleanup, _unlink_owned_path, ensure_directory, inode_of as _inode_of,
     path_lexists, read_regular_bytes as _read_regular_bytes, safe_write_bytes,
 )
-from .repro_retention import opportunistic_prune, prune_repro_storage
+from .repro_retention import opportunistic_prune, prune_repro_storage, retention_write_guard
 SHORT_ROOT_DEFAULT = "/tmp/mprof"
 SHORT_ROOT_MAX = 48
 _INDEX_NAME = "index.json"
@@ -363,20 +364,20 @@ def _write_pair_immutable(directory: Path, script: str, manifest: dict[str, Any]
     script_bytes, manifest_bytes = _encode_pair(script, manifest)
     snapshot = snapshot if snapshot is not None else protection_snapshot()
     state = _slot_state(directory, snapshot[1])
-    script_path, manifest_path = directory / "repro.py", directory / "manifest.json"
-    if state == "clean":
-        written = _write_pair(directory, script, manifest, snapshot=snapshot)
-        if written is not None:
-            return written, None
-        state = _slot_state(directory, snapshot[1])
-        if state != "occupied":
-            return None, "artifact_persistence_failed"
-    if state == "occupied":
+    if state not in ("clean", "occupied"):
+        return None, state
+    with retention_write_guard(directory):
+        script_path, manifest_path = directory / "repro.py", directory / "manifest.json"
+        if state == "clean":
+            if (written := _write_pair(directory, script, manifest, snapshot=snapshot)) is not None:
+                return written, None
+            state = _slot_state(directory, snapshot[1])
+            if state != "occupied":
+                return None, "artifact_persistence_failed"
         if _verify_pair_bytes(script_path, manifest_path, script_bytes, manifest_bytes):
             _remember_inodes(script_path, manifest_path)
             return (str(script_path), str(manifest_path)), None
         return None, "artifact_directory_conflict"
-    return None, state
 class _PairTransaction:
     """Keep prior ordinary leaves until the enclosing pair verification commits."""
     def __init__(self, targets, protected):

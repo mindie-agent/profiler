@@ -20,25 +20,30 @@
     instead of silently yielding a partial event set.
 
 [Timeouts & Locks]
-  Index builds use WAL plus ``busy_timeout=5000``.  The read stream itself has
-  no wall-clock deadline; callers bound query work with SQLite progress
-  handlers in ``sql.py``.
+  Index builds use WAL plus ``busy_timeout=5000`` under a stable per-index lock
+  and a private per-build ownership lock.  The read stream itself has no
+  wall-clock deadline; callers bound query work with SQLite progress handlers
+  in ``sql.py``.
 
 [Side-Effect Policy]
   Reads the supplied trace.  The sidecar index is the only file written and is
   explicitly disposable; no network or source mutation.  A rebuild writes a
-  private ``.<index>.tmp.<pid>`` database, sets ``journal_size_limit`` to
-  8 MiB, takes a passive WAL checkpoint on close, and publishes with
-  ``os.replace``; a failed or interrupted build removes its temporary
-  database plus ``-wal``/``-shm`` siblings.
+  private ``.<index>.tmp.<pid>.<token>`` database, collapses it to one
+  self-contained file (TRUNCATE checkpoint, ``journal_mode=DELETE``, no
+  sidecars), then publishes under the index lock by removing the old database,
+  clearing both sidecars, and ``os.replace``; an interrupted publish leaves no
+  main file, so the next caller rebuilds cleanly.  ``journal_size_limit``
+  bounds WAL reuse after checkpointing rather than an active transaction.
 """
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import sqlite3
 import time
+import uuid
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -46,6 +51,7 @@ from typing import Any, Iterator
 from urllib.parse import quote
 
 from .events import ProfilerQueryError, ProfilerSchemaError
+from .storage_locks import exclusive_lock
 
 TRACE_SCHEMA = "mindie-profiler-trace-index/1"
 TRACE_INDEX_SUFFIX = ".mindie-trace-index.sqlite3"
@@ -309,11 +315,18 @@ def _readonly_uri(path: Path) -> str:
 
 def _open_index(path: Path) -> sqlite3.Connection:
     con = sqlite3.connect(str(path), timeout=5.0)
-    con.execute("PRAGMA journal_mode = WAL")
-    con.execute("PRAGMA synchronous = NORMAL")
-    con.execute("PRAGMA busy_timeout = 5000")
-    con.execute(f"PRAGMA journal_size_limit = {WAL_JOURNAL_SIZE_LIMIT}")
-    return con
+    configured = False
+    try:
+        con.execute("PRAGMA journal_mode = WAL")
+        con.execute("PRAGMA synchronous = NORMAL")
+        con.execute("PRAGMA busy_timeout = 5000")
+        con.execute(f"PRAGMA journal_size_limit = {WAL_JOURNAL_SIZE_LIMIT}")
+        configured = True
+        return con
+    finally:
+        if not configured:
+            with contextlib.suppress(sqlite3.Error):
+                con.close()
 
 
 def _close_index(con: sqlite3.Connection) -> None:
@@ -338,60 +351,129 @@ def _remove_index_files(path: Path) -> None:
 
 
 def _build_path(index: Path) -> Path:
-    return index.with_name(f".{index.name}.tmp.{os.getpid()}")
+    return index.with_name(f".{index.name}.tmp.{os.getpid()}.{uuid.uuid4().hex}")
+
+
+def _build_lock_path(build: Path) -> Path:
+    return build.with_name(build.name + ".lock")
+
+
+def _is_build_database(candidate: Path, index: Path) -> bool:
+    prefix = f".{index.name}.tmp."
+    if not candidate.name.startswith(prefix):
+        return False
+    pid, _, token = candidate.name[len(prefix):].partition(".")
+    return pid.isdigit() and bool(token) and all(char in "0123456789abcdef" for char in token)
+
+
+def _build_newest_mtime(candidate: Path) -> float | None:
+    newest = None
+    for suffix in ("", "-wal", "-shm"):
+        try:
+            stamp = os.lstat(Path(f"{candidate}{suffix}")).st_mtime
+        except FileNotFoundError:
+            continue
+        except TimeoutError:
+            raise
+        except OSError:
+            return None
+        newest = stamp if newest is None else max(newest, stamp)
+    return newest
 
 
 def _remove_stale_builds(index: Path) -> None:
-    """Sweep private build databases left by a killed builder; never a live one."""
+    """Sweep killed builds only after their ownership lock proves them dead."""
 
     cutoff = time.time() - _STALE_BUILD_S
     try:
-        candidates = list(index.parent.glob(f".{index.name}.tmp.*"))
+        candidates = [path for path in index.parent.glob(f".{index.name}.tmp.*")
+                      if _is_build_database(path, index)]
     except TimeoutError:
         raise
     except OSError:
         return
     for candidate in candidates:
-        try:
-            if os.lstat(candidate).st_mtime > cutoff:
+        newest = _build_newest_mtime(candidate)
+        if newest is None or newest > cutoff:
+            continue
+        lock_path = _build_lock_path(candidate)
+        with exclusive_lock(lock_path, blocking=False) as held:
+            if not held:
                 continue
+            _remove_index_files(candidate)
+            if os.name != "nt":
+                # POSIX can retire the lock inode while still holding it; the
+                # private name is never reused and every unlink is idempotent.
+                try:
+                    lock_path.unlink(missing_ok=True)
+                except TimeoutError:
+                    raise
+                except OSError:
+                    pass
+        try:
+            # Windows cannot unlink a lock leaf while its descriptor is open.
+            lock_path.unlink(missing_ok=True)
         except TimeoutError:
             raise
         except OSError:
-            continue
-        _remove_index_files(candidate)
+            pass
 
 
-def build_trace_index(
-    trace_path: str | Path,
-    index_path: str | Path | None = None,
-    *,
-    chunk_bytes: int = _DEFAULT_CHUNK,
-    batch_size: int = 2000,
-    force: bool = False,
-) -> dict[str, Any]:
-    """Build (or reuse) a sidecar SQLite index and return its identity facts."""
+def _finalize_index(con: sqlite3.Connection, build: Path) -> None:
+    """Collapse the private build into one self-contained database file."""
 
-    trace = Path(trace_path).expanduser().resolve()
-    if not trace.is_file():
-        raise ProfilerSchemaError(f"trace file not found: {trace}")
-    index = Path(index_path).expanduser().resolve() if index_path else index_path_for(trace)
-    identity = _identity(trace)
-    if not force and index_is_valid(index, trace):
-        return {
-            "index_path": str(index),
-            "rebuilt": False,
-            "source": identity,
-            "event_count": _index_event_count(index),
-        }
-    index.parent.mkdir(parents=True, exist_ok=True)
-    _remove_stale_builds(index)
-    started = time.perf_counter()
-    build = _build_path(index)
-    _remove_index_files(build)
-    con = _open_index(build)
-    published = False
+    con.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+    con.execute("PRAGMA journal_mode = DELETE")
+    con.close()
+    for suffix in ("-wal", "-shm"):
+        sidecar = Path(f"{build}{suffix}")
+        try:
+            sidecar.unlink(missing_ok=True)
+        except TimeoutError:
+            raise
+        except OSError:
+            pass
+        if os.path.lexists(sidecar):
+            raise ProfilerQueryError(f"trace index build did not collapse {sidecar.name}")
+
+
+def _publish_index(build: Path, index: Path) -> None:
+    """Publish without ever pairing a new database with an old sidecar."""
+
     try:
+        index.unlink(missing_ok=True)
+    except TimeoutError:
+        raise
+    except OSError as exc:
+        raise ProfilerQueryError(f"cannot detach old trace index {index}: {exc}") from exc
+    if os.path.lexists(index):
+        raise ProfilerQueryError(f"cannot detach old trace index {index}")
+    for suffix in ("-wal", "-shm"):
+        sidecar = Path(f"{index}{suffix}")
+        try:
+            sidecar.unlink(missing_ok=True)
+        except TimeoutError:
+            raise
+        except OSError as exc:
+            raise ProfilerQueryError(
+                f"cannot clear stale trace index sidecar {sidecar}: {exc}") from exc
+        if os.path.lexists(sidecar):
+            raise ProfilerQueryError(f"cannot clear stale trace index sidecar {sidecar}")
+    try:
+        os.replace(build, index)
+    except TimeoutError:
+        raise
+    except OSError as exc:
+        raise ProfilerQueryError(f"cannot publish trace index {index}: {exc}") from exc
+
+
+def _build_into(build: Path, index: Path, trace: Path, identity: dict[str, Any], *,
+                started: float, chunk_bytes: int, batch_size: int) -> int:
+    """Fill one private build database and close it in every exit path."""
+
+    con = None
+    try:
+        con = _open_index(build)
         try:
             con.execute("DROP TABLE IF EXISTS trace_events")
             con.execute("DROP TABLE IF EXISTS trace_meta")
@@ -448,23 +530,68 @@ def build_trace_index(
                 )
         except sqlite3.Error as exc:
             raise ProfilerQueryError(f"cannot build trace index {index}: {exc}") from exc
-        _close_index(con)
-        os.replace(build, index)
-        # A read-only WAL reader needs a valid ``-shm``; publish the bounded
-        # build sidecars with the database instead of orphaning them.
-        for suffix in ("-wal", "-shm"):
-            source = Path(f"{build}{suffix}")
-            if source.exists():
-                os.replace(source, Path(f"{index}{suffix}"))
-            else:
-                Path(f"{index}{suffix}").unlink(missing_ok=True)
-        published = True
+        _finalize_index(con, build)
+        con = None
+        return event_count
     finally:
-        if not published:
+        if con is not None:
             _close_index(con)
-        # On success ``build`` is already renamed; this only drops orphan
-        # ``-wal``/``-shm`` siblings, never the published index.
-        _remove_index_files(build)
+
+
+def build_trace_index(
+    trace_path: str | Path,
+    index_path: str | Path | None = None,
+    *,
+    chunk_bytes: int = _DEFAULT_CHUNK,
+    batch_size: int = 2000,
+    force: bool = False,
+) -> dict[str, Any]:
+    """Build (or reuse) a sidecar SQLite index and return its identity facts."""
+
+    trace = Path(trace_path).expanduser().resolve()
+    if not trace.is_file():
+        raise ProfilerSchemaError(f"trace file not found: {trace}")
+    index = Path(index_path).expanduser().resolve() if index_path else index_path_for(trace)
+    identity = _identity(trace)
+    if not force and index_is_valid(index, trace):
+        return {
+            "index_path": str(index),
+            "rebuilt": False,
+            "source": identity,
+            "event_count": _index_event_count(index),
+        }
+    index.parent.mkdir(parents=True, exist_ok=True)
+    index_lock = index.with_name(f".{index.name}.lock")
+    with exclusive_lock(index_lock, blocking=True):
+        if not force and index_is_valid(index, trace):
+            return {
+                "index_path": str(index),
+                "rebuilt": False,
+                "source": identity,
+                "event_count": _index_event_count(index),
+            }
+        _remove_stale_builds(index)
+        started = time.perf_counter()
+        build = _build_path(index)
+        build_lock = _build_lock_path(build)
+        try:
+            with exclusive_lock(build_lock, blocking=True):
+                try:
+                    event_count = _build_into(build, index, trace, identity,
+                                              started=started, chunk_bytes=chunk_bytes,
+                                              batch_size=batch_size)
+                    _publish_index(build, index)
+                finally:
+                    _remove_index_files(build)
+        finally:
+            # Windows cannot unlink a lock leaf while its descriptor is open;
+            # the generated build name is never reused.
+            try:
+                build_lock.unlink(missing_ok=True)
+            except TimeoutError:
+                raise
+            except OSError:
+                pass
     return {
         "index_path": str(index),
         "rebuilt": True,

@@ -5,13 +5,15 @@
   partial object, the shim cache stays bounded, the repro CAS/diff roots are
   pruned without touching active state, trace sidecar rebuilds clean up their
   private database, and probe runs leave no temporary directory behind.
+  Deterministic thread interleavings and fault injection cover symlink/reparse
+  escapes, registration-vs-eviction TOCTOU, and atomic trace publication.
 
 [Invariants]
   * Tests read only their own fresh roots; the pytest reaper owns cleanup.
   * No live NPU, network, or host ``$HOME`` access.
 
 [Timeouts & Locks]
-  Bounded filesystem work; no sleeps or timing races.
+  Bounded filesystem work; events order threads instead of sleeps.
 
 [Side-Effect Policy]
   Writes only pytest ``tmp_path`` and registered ``/tmp`` short roots.
@@ -19,20 +21,33 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 import os
 from pathlib import Path
+import sqlite3
+import stat
 import subprocess
+import sys
 import tempfile
+import threading
 import time
 from types import SimpleNamespace
+import uuid
 
 import pytest
 
-from mindie_profiler import cann_abi, repro_retention, repro_storage, sources_trace
+from mindie_profiler import (
+    cann_abi,
+    repro_retention,
+    repro_storage,
+    sources_trace,
+    storage_locks,
+)
 from mindie_profiler.events import ProfilerSchemaError
 from mindie_profiler.fabric_probe import build_fabric_probe_plan
 
 import nr_s6_round4_probe as probe
+import temp_workspaces as temp_workspaces_module
 from temp_workspaces import (
     live_temp_workspaces,
     make_temp_workspace,
@@ -108,7 +123,10 @@ def test_shim_cache_is_bounded_and_sweeps_stale_temporaries(tmp_path, monkeypatc
     assert published in survivors
     assert superseded[0] not in survivors
     assert superseded[-1] in survivors
-    assert not (cache / f".{superseded[0].name}.lock").exists()
+    # Lock identity is never split: both the stable build lock and legacy
+    # per-variant lock files survive eviction untouched.
+    assert (cache / cann_abi._BUILD_LOCK_NAME).is_file()
+    assert all((cache / f".{victim.name}.lock").exists() for victim in superseded)
     assert not stale.exists()
     assert inflight.exists()
 
@@ -206,6 +224,21 @@ def test_failed_index_build_removes_private_database_and_sidecars(tmp_path):
     assert not list(tmp_path.glob(".*.tmp.*"))
 
 
+def test_open_index_closes_connection_when_a_pragma_fails(tmp_path, monkeypatch):
+    database = tmp_path / "sidecar.sqlite3"
+    broker = SimpleNamespace(closed=False)
+
+    def broken_execute(*args, **kwargs):
+        raise sqlite3.OperationalError("pragma failed")
+
+    broker.execute = broken_execute
+    broker.close = lambda: broker.__setattr__("closed", True)
+    monkeypatch.setattr(sources_trace.sqlite3, "connect", lambda *args, **kwargs: broker)
+    with pytest.raises(sqlite3.OperationalError, match="pragma failed"):
+        sources_trace._open_index(database)
+    assert broker.closed is True
+
+
 def test_index_wal_is_bounded_and_checkpointed_on_close(tmp_path):
     database = tmp_path / "sidecar.sqlite3"
     con = sources_trace._open_index(database)
@@ -295,3 +328,385 @@ def test_run_ranks_releases_the_workspace_when_thread_startup_fails(
     assert created and not created[0].exists()
     assert str(created[0]) not in live_temp_workspaces()
     assert list(private.iterdir()) == []
+
+
+# ------------------------------------------------ symlink / reparse confinement
+def _link_directory_or_skip(link: Path, target: Path) -> None:
+    try:
+        link.symlink_to(target, target_is_directory=True)
+    except (NotImplementedError, OSError):
+        pytest.skip("directory symlinks are unavailable")
+
+
+def _link_file_or_skip(link: Path, target: Path) -> None:
+    try:
+        link.symlink_to(target)
+    except (NotImplementedError, OSError):
+        pytest.skip("file symlinks are unavailable")
+
+
+def test_prune_refuses_symlinked_root_and_diff_targets(tmp_path):
+    external = tmp_path / "external"
+    external.mkdir()
+    external_cas = _cas_slot(external, "aaaaaaaaaaaa", 40.0)
+    external_diff = external / "old_diff"
+    external_diff.mkdir()
+    (external_diff / "diff.json").write_text("{}\n", encoding="utf-8")
+    _age(external_diff / "diff.json", 40.0)
+
+    root = tmp_path / "root"
+    root.mkdir()
+    _link_directory_or_skip(root / "diff", external)
+
+    # A symlinked root must not launder a real ``diff`` directory underneath it.
+    real_root = tmp_path / "real_root"
+    real_root.mkdir()
+    nested_diff = real_root / "diff" / "old_nested"
+    nested_diff.mkdir(parents=True)
+    (nested_diff / "diff.json").write_text("{}\n", encoding="utf-8")
+    _age(nested_diff / "diff.json", 40.0)
+    link_root = tmp_path / "root_link"
+    _link_directory_or_skip(link_root, real_root)
+
+    assert repro_retention.prune_repro_storage(link_root, max_entries=0, max_age_days=0) == 0
+    assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=0) == 0
+    assert (external_cas / "repro.py").is_file()
+    assert (external_cas / "manifest.json").is_file()
+    assert (external_diff / "diff.json").is_file()
+    assert (nested_diff / "diff.json").is_file()
+    assert (root / "diff").is_symlink()
+
+
+@pytest.mark.parametrize("attribute", ["st_reparse_tag", "st_file_attributes"])
+def test_prune_skips_windows_reparse_entries_without_isjunction(tmp_path, monkeypatch, attribute):
+    root = tmp_path / "cas"
+    root.mkdir()
+    junction = _cas_slot(root, "dddddddddddd", 40.0)
+    real_lstat = os.lstat
+
+    def fake_lstat(path):
+        info = real_lstat(path)
+        if Path(path) != junction:
+            return info
+        values = {
+            "st_mode": stat.S_IFDIR,
+            "st_dev": info.st_dev,
+            "st_ino": info.st_ino,
+            "st_mtime": info.st_mtime,
+            "st_size": info.st_size,
+        }
+        if attribute == "st_reparse_tag":
+            values["st_reparse_tag"] = 0xA0000003
+        else:
+            values["st_file_attributes"] = 0x400
+        return SimpleNamespace(**values)
+
+    monkeypatch.delattr(os.path, "isjunction", raising=False)
+    monkeypatch.setattr(repro_retention.os, "lstat", fake_lstat)
+
+    assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=0) == 0
+    assert (junction / "repro.py").is_file()
+    assert (junction / "manifest.json").is_file()
+
+
+def test_prune_partial_symlink_leaf_keeps_regular_sibling(tmp_path):
+    root = tmp_path / "cas"
+    root.mkdir()
+    entry = root / "eeeeeeeeeeee"
+    entry.mkdir()
+    (entry / "repro.py").write_text("# regular leaf\n", encoding="utf-8")
+    _age(entry / "repro.py", 40.0)
+    external = tmp_path / "external-manifest.json"
+    external.write_text("{}\n", encoding="utf-8")
+    _link_file_or_skip(entry / "manifest.json", external)
+
+    assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=0) == 0
+    assert (entry / "repro.py").is_file()
+    assert (entry / "manifest.json").is_symlink()
+    assert external.is_file()
+
+
+def test_prune_rechecks_slot_registered_after_snapshot(tmp_path, monkeypatch):
+    root = tmp_path / "cas"
+    root.mkdir()
+    entry = _cas_slot(root, "ffffffffffff", 40.0)
+    scanned = threading.Event()
+    registration_visible = threading.Event()
+    allow_remember = threading.Event()
+    original_age = repro_retention._entry_age_seconds
+    original_remember = repro_storage._remember_inodes
+
+    def hooked_age(candidate, leaves, now):
+        if candidate == entry and not scanned.is_set():
+            scanned.set()
+            assert registration_visible.wait(5.0)
+        return original_age(candidate, leaves, now)
+
+    def held_remember(*paths):
+        registration_visible.set()
+        assert allow_remember.wait(5.0)
+        return original_remember(*paths)
+
+    monkeypatch.setattr(repro_retention, "_entry_age_seconds", hooked_age)
+    monkeypatch.setattr(repro_storage, "_remember_inodes", held_remember)
+    outcome: dict[str, object] = {}
+
+    def prune():
+        outcome["removed"] = repro_retention.prune_repro_storage(
+            root, max_entries=repro_retention.PRUNE_MAX_ENTRIES, max_age_days=1)
+
+    def register():
+        assert scanned.wait(5.0)
+        outcome["indexed"] = repro_storage._register({
+            "artifact_id": "sha256:" + "f" * 64,
+            "artifact_path": str(entry / "repro.py"),
+            "manifest_path": str(entry / "manifest.json"),
+            "script_sha256": "sha256:" + "f" * 64,
+        })
+
+    pruner = threading.Thread(target=prune)
+    registrar = threading.Thread(target=register)
+    pruner.start()
+    registrar.start()
+    assert registration_visible.wait(5.0)
+    pruner.join(5.0)
+    allow_remember.set()
+    registrar.join(5.0)
+
+    assert not pruner.is_alive() and not registrar.is_alive()
+    assert outcome["removed"] == 0
+    assert outcome["indexed"] is True
+    assert (entry / "repro.py").is_file()
+    assert (entry / "manifest.json").is_file()
+    assert repro_storage._inode_of(entry / "repro.py") in repro_storage._PROTECTED_INODES
+    assert not list(root.glob(".trash-*"))
+
+
+_RETENTION_LOCK_HOLDER = """
+import sys
+from pathlib import Path
+
+from mindie_profiler.storage_locks import exclusive_lock
+
+with exclusive_lock(Path(sys.argv[1]) / ".retention.lock", blocking=True):
+    print("held", flush=True)
+    sys.stdin.readline()
+"""
+
+
+def test_prune_skips_when_another_process_holds_retention_lock(tmp_path):
+    root = tmp_path / "cas"
+    root.mkdir()
+    entry = _cas_slot(root, "121212121212", 40.0)
+    env = dict(os.environ)
+    env["PYTHONPATH"] = os.pathsep.join(
+        [str(Path(__file__).resolve().parents[1]), env.get("PYTHONPATH", "")])
+    process = subprocess.Popen(
+        [sys.executable, "-c", _RETENTION_LOCK_HOLDER, str(root)],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        text=True,
+        env=env,
+    )
+    try:
+        assert process.stdout is not None
+        assert process.stdout.readline().strip() == "held"
+        assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=0) == 0
+        assert (entry / "repro.py").is_file()
+        assert (entry / "manifest.json").is_file()
+    finally:
+        assert process.stdin is not None
+        process.stdin.write("\n")
+        process.stdin.flush()
+        process.stdin.close()
+        assert process.wait(timeout=10) == 0
+
+    assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=0) == 1
+    assert not entry.exists()
+
+
+# ------------------------------------------------------- concurrent build gates
+def test_cann_abi_threaded_builds_keep_stable_lock_and_unique_temps(tmp_path, monkeypatch):
+    cache = tmp_path / "shim"
+    cache.mkdir()
+    legacy_locks = []
+    now = time.time()
+    for index in range(cann_abi.SHIM_CACHE_MAX_ENTRIES + 2):
+        so_path = cache / f"libmindie_cann9_capture_fast_9.0.{index}_aarch64-linux_{index:020x}.so"
+        so_path.write_bytes(b"old shim")
+        stamp = now - (60 - index) * 60
+        os.utime(so_path, (stamp, stamp))
+        lock_path = cache / f".{so_path.name}.lock"
+        lock_path.write_bytes(b"")
+        legacy_locks.append(lock_path)
+
+    created: list[Path] = []
+    records_lock = threading.Lock()
+
+    def run(cmd, **kwargs):
+        target = Path(cmd[cmd.index("-o") + 1])
+        with records_lock:
+            created.append(target)
+        target.write_bytes(b"\x7fELF threaded shim")
+        return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr("mindie_profiler._host_exec.which_native", lambda _name: "/usr/bin/gcc")
+    monkeypatch.setattr(subprocess, "run", run)
+    installs = [_shim_install(), replace(_shim_install(), version="9.0.1")]
+    published, errors = [], []
+
+    def build(install):
+        try:
+            published.append(cann_abi.ensure_capture_shim_binary(install, cache_root=cache))
+        except BaseException as exc:  # noqa: BLE001 - surfaced below
+            errors.append(exc)
+
+    threads = [threading.Thread(target=build, args=(install,)) for install in installs]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(15.0)
+
+    assert not errors
+    assert len(published) == 2 and all(path.is_file() for path in published)
+    assert len({str(path) for path in created}) == 2
+    assert not list(cache.glob(".*.tmp.*"))
+    assert (cache / cann_abi._BUILD_LOCK_NAME).is_file()
+    assert all(lock_path.is_file() for lock_path in legacy_locks)
+
+
+def test_trace_index_threaded_rebuilds_use_unique_temporary_databases(tmp_path, monkeypatch):
+    trace = tmp_path / "trace_view.json"
+    trace.write_text('[{"name": "a", "ts": 0, "dur": 1}]', encoding="utf-8")
+    builds: list[Path] = []
+    original_build_path = sources_trace._build_path
+
+    def recorded_build_path(index):
+        path = original_build_path(index)
+        builds.append(path)
+        return path
+
+    monkeypatch.setattr(sources_trace, "_build_path", recorded_build_path)
+    results, errors = [], []
+
+    def rebuild():
+        try:
+            results.append(sources_trace.build_trace_index(trace, force=True))
+        except BaseException as exc:  # noqa: BLE001 - surfaced below
+            errors.append(exc)
+
+    threads = [threading.Thread(target=rebuild) for _ in range(2)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(15.0)
+
+    index = sources_trace.index_path_for(trace)
+    assert not errors and len(results) == 2
+    assert len(builds) == 2 and len(set(builds)) == 2
+    assert sources_trace.index_is_valid(index, trace) is True
+    assert not list(tmp_path.glob(f".{index.name}.tmp.*"))
+
+
+# ------------------------------------------------------------ trace fault gates
+def _zombie_trace_build(index: Path, token: str) -> Path:
+    candidate = index.parent / f".{index.name}.tmp.4242.{token}"
+    candidate.write_bytes(b"stale trace build")
+    old = time.time() - 7 * 3600
+    os.utime(candidate, (old, old))
+    return candidate
+
+
+def test_stale_trace_build_with_fresh_wal_or_held_lock_is_not_swept(tmp_path):
+    trace = tmp_path / "trace_view.json"
+    trace.write_text("[]", encoding="utf-8")
+    index = sources_trace.index_path_for(trace)
+    fresh_wal = _zombie_trace_build(index, uuid.uuid4().hex)
+    wal = Path(f"{fresh_wal}-wal")
+    wal.write_bytes(b"fresh write")
+    held = _zombie_trace_build(index, uuid.uuid4().hex)
+    held_lock = Path(f"{held}.lock")
+    started, release = threading.Event(), threading.Event()
+
+    def holder():
+        with storage_locks.exclusive_lock(held_lock, blocking=True):
+            started.set()
+            release.wait(5.0)
+
+    thread = threading.Thread(target=holder)
+    thread.start()
+    assert started.wait(5.0)
+    try:
+        sources_trace.build_trace_index(trace, force=True)
+    finally:
+        release.set()
+        thread.join(5.0)
+
+    assert fresh_wal.exists()
+    assert wal.exists()
+    assert held.exists()
+    assert held_lock.exists()
+
+    sources_trace.build_trace_index(trace, force=True)
+    assert not held.exists()
+    assert not held_lock.exists()
+    assert fresh_wal.exists()  # Its fresh WAL still proves recent activity.
+
+
+@pytest.mark.parametrize("crash_after_replace", [False, True])
+def test_trace_publish_interruption_never_pairs_new_database_with_old_wal(
+        tmp_path, monkeypatch, crash_after_replace):
+    trace = tmp_path / "trace_view.json"
+    trace.write_text('[{"name": "a", "ts": 0, "dur": 1}]', encoding="utf-8")
+    index = sources_trace.index_path_for(trace)
+    con = sqlite3.connect(index)
+    con.execute("CREATE TABLE legacy(value)")
+    con.execute("INSERT INTO legacy VALUES ('old')")
+    con.commit()
+    con.close()
+    stale_wal = Path(f"{index}-wal")
+    stale_wal.write_bytes(b"stale old wal from the previous database")
+    real_replace = os.replace
+
+    def interrupted_replace(src, dst, *args, **kwargs):
+        if Path(dst) == index and ".tmp." in Path(src).name:
+            if crash_after_replace:
+                real_replace(src, dst, *args, **kwargs)
+            raise KeyboardInterrupt("simulated crash during trace publish")
+        return real_replace(src, dst, *args, **kwargs)
+
+    monkeypatch.setattr(sources_trace.os, "replace", interrupted_replace)
+    with pytest.raises(KeyboardInterrupt):
+        sources_trace.build_trace_index(trace, force=True)
+
+    assert not stale_wal.exists()
+    assert not (index.exists() and stale_wal.exists())
+    assert index.exists() is crash_after_replace
+
+    monkeypatch.setattr(sources_trace.os, "replace", real_replace)
+    facts = sources_trace.build_trace_index(trace, force=True)
+    assert facts["rebuilt"] is True
+    assert sources_trace.index_is_valid(index, trace) is True
+    assert not Path(f"{index}-wal").exists()
+    assert not Path(f"{index}-shm").exists()
+
+
+def test_temp_workspace_stays_registered_until_removal_is_confirmed(tmp_path, monkeypatch):
+    path = temp_workspaces_module.make_temp_workspace("mpr15r-", base=tmp_path)
+    real_rmtree = temp_workspaces_module.shutil.rmtree
+    attempts: list[str] = []
+
+    def flaky_rmtree(target, ignore_errors=False, **kwargs):
+        attempts.append(str(target))
+        if len(attempts) == 1:
+            return  # Simulate transient Windows handle contention.
+        return real_rmtree(target, ignore_errors=ignore_errors, **kwargs)
+
+    monkeypatch.setattr(temp_workspaces_module.shutil, "rmtree", flaky_rmtree)
+    temp_workspaces_module.release_temp_workspace(path)
+    assert str(path) in temp_workspaces_module.live_temp_workspaces()
+
+    released = temp_workspaces_module.release_all_temp_workspaces()
+    assert released >= 1
+    assert str(path) not in temp_workspaces_module.live_temp_workspaces()
+    assert not path.exists()

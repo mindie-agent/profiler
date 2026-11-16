@@ -531,7 +531,9 @@ def test_r17_parking_retries_preserve_primary(phase, faults, monkeypatch, tmp_pa
         with pytest.raises(TimeoutError) as caught:
             repro_mcp("repro_op", request)
     assert caught.value is primary and hits and len(failures) == faults
-    assert not any(checked_io.path_is_file(p) for p in Path("cas").rglob("*"))
+    # ``.retention.lock`` is the documented 0-byte cross-process advisory lock.
+    assert not any(checked_io.path_is_file(p) for p in Path("cas").rglob("*")
+                   if p.name != ".retention.lock")
     _r16_no_leaks(fds, tmp_path)
     assert repro_mcp("repro_op", request)["status"] == "ready"
 
