@@ -12,6 +12,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -402,3 +403,101 @@ def test_pinned_source_path_requires_an_enrolled_checkout(tmp_path, monkeypatch)
     monkeypatch.setenv("MINDIE_ABI_SOURCE_ROOTS", "{}")
     with pytest.raises(pytest.skip.Exception):
         repro._pinned_source_path(source)
+
+
+# ------------------------------------------------------------ Round-2 P1 #1
+def _structure_module(monkeypatch, name):
+    monkeypatch.syspath_prepend(str(STRUCT))
+    return importlib.import_module(name)
+
+
+def test_localize_evidence_resolves_capture_and_repository_uris(
+        monkeypatch, tmp_path):
+    capture = tmp_path / "captures"
+    workstreams = tmp_path / "workstreams"
+    monkeypatch.setenv("MINDIE_SIM_DATA_ROOT", str(capture))
+    monkeypatch.setenv("MINDIE_WORKSTREAM_ROOT", str(workstreams))
+    evidence_roots = _structure_module(monkeypatch, "evidence_roots")
+
+    capture_uri = "capture://mindie-sim-data/a3/heldout/kernel_details.csv"
+    capture_path = capture / "a3" / "heldout" / "kernel_details.csv"
+    repository_uri = (
+        "repository://mindie-agent/profiler/examples/structure/cases.json")
+    repository_path = STRUCT / "cases.json"
+    workstream_uri = "repository://mindie-agent/.workstreams/runs/run.json"
+    workstream_path = workstreams / "runs" / "run.json"
+
+    assert evidence_roots.localize_evidence(capture_uri) == str(
+        capture_path.resolve())
+    assert evidence_roots.localize_evidence(
+        "capture:/mindie-sim-data/a3/heldout/kernel_details.csv") == str(
+            capture_path.resolve())
+    assert evidence_roots.localize_evidence(repository_uri) == str(
+        repository_path.resolve())
+    assert evidence_roots.localize_evidence(workstream_uri) == str(
+        workstream_path.resolve())
+    assert evidence_roots.localize_evidence("relative/case.json") == (
+        "relative/case.json")
+    assert evidence_roots.localize_evidence(42) == 42
+
+    localized = evidence_roots.localize_evidence(
+        {"sources": [capture_uri], "pins": (repository_uri,)})
+    assert localized == {
+        "sources": [str(capture_path.resolve())],
+        "pins": (str(repository_path.resolve()),),
+    }
+    override = evidence_roots.localize_evidence(
+        capture_uri, capture_base=tmp_path / "override")
+    assert override == str(
+        (tmp_path / "override/a3/heldout/kernel_details.csv").resolve())
+
+
+def test_localize_evidence_restores_registered_dsh_classification(
+        monkeypatch, tmp_path):
+    pytest.importorskip("mindie_sim")
+    capture = tmp_path / "captures"
+    monkeypatch.setenv("MINDIE_SIM_DATA_ROOT", str(capture))
+    evidence_roots = _structure_module(monkeypatch, "evidence_roots")
+    dsh = _structure_module(monkeypatch, "dsh_generalization_eval")
+
+    cases = evidence_roots.localize_evidence(
+        json.loads((STRUCT / "cases.json").read_text()))["cases"]
+    reg_by_path = {
+        Path(case["source"]["path"]).resolve(): case
+        for case in cases
+        if case.get("source", {}).get("path")
+        and case.get("supported_scopes") != ["engine"]
+    }
+    for case_id in (
+        "decode:a3_glm53flash_heldout_c12_p4k",
+        "decode:a5_glm53flash_heldout_c12_p4k",
+    ):
+        case = next(item for item in cases if item["id"] == case_id)
+        source = Path(case["source"]["path"]).resolve()
+        assert source.is_relative_to(capture.resolve())
+        assert dsh.inventory_capture(source, reg_by_path) == (
+            "registered", None)
+
+
+# ------------------------------------------------------------ Round-2 P1 #2
+def test_raw_case_re_raises_the_original_timeout(monkeypatch, tmp_path):
+    consumer = _structure_module(monkeypatch, "zero_shot_public_consumer")
+    cells = importlib.import_module("mindie_profiler.sim_bridge_cells")
+    case = tmp_path / "case.json"
+    case.write_text("{}", encoding="utf-8")
+    spec = SimpleNamespace(model_case=case)
+    deadline = TimeoutError("deadline exceeded")
+
+    def _deadline(_spec):
+        raise deadline
+
+    monkeypatch.setattr(cells, "raw_case_for_cell", _deadline)
+    with pytest.raises(TimeoutError) as caught:
+        consumer._raw_case(spec)
+    assert caught.value is deadline
+
+    def _invalid(_spec):
+        raise ValueError("invalid template")
+
+    monkeypatch.setattr(cells, "raw_case_for_cell", _invalid)
+    assert consumer._raw_case(spec) == {}

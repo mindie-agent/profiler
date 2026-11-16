@@ -35,7 +35,7 @@ from pathlib import Path, PurePosixPath
 from statistics import median
 from typing import Any, Mapping, Sequence
 
-from evidence_roots import capture_root
+from evidence_roots import capture_root, localize_evidence, workstream_root
 ROOT = Path(__file__).resolve().parents[2] if Path(__file__).resolve().parent.name == "structure" else Path(__file__).resolve().parents[1]
 SIM_ROOT = ROOT.parent / "sim"
 for _p in (str(ROOT), str(SIM_ROOT), str(ROOT / "examples" / "structure")):
@@ -86,6 +86,17 @@ _GEOM_PASSTHROUGH = ("ep_dspark_wave_scale", "prompt_tokens", "sequences_per_rep
 _DEMAND_FIELDS = ("structural_weights", "active_hbm_mb", "active_cube_gflops")
 _FULL_POPULATION = {"zero_shot": 731, "fleet": 6606, "A2": 837, "A3": 1729, "A5": 4771}
 def _clean_text(text: str) -> str:
+    text = localize_evidence(str(text or ""))
+    for root, replacement in (
+        (capture_root(), ""),
+        (workstream_root(), "mindie-agent/.workstreams/"),
+        (Path(__file__).resolve().parent, ""),
+    ):
+        for spelling in (str(root), str(root.resolve())):
+            prefix = spelling.rstrip("/") + "/"
+            if text.startswith(prefix):
+                text = replacement + text[len(prefix):]
+                break
     s = str(text or "").replace(_LEGACY_WORKSTREAM_PREFIX, "mindie-agent/.workstreams/")
     return re.sub(r"\b(?:177\.(?:25|31)|192\.168|173\.125)\.\d{1,3}\.\d{1,3}\b", "node", re.sub(r"(?i)ascend(?:910b|950(?:pr|dt)?)[_-]?", "", _PATH_PREFIX_RE.sub("", s)))
 def _hw_tier(raw_hw: str, fallback_text: str = "") -> str:

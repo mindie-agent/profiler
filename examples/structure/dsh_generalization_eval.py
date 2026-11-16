@@ -44,7 +44,7 @@ from mindie_sim.prediction.structure import parse_case
 import prefill
 from runtime_identity import simulator_identity
 from evaluation_io import atomic_write_json as _atomic_write_json
-from evidence_roots import capture_root
+from evidence_roots import capture_root, localize_evidence
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_ROOT = capture_root()
@@ -671,7 +671,7 @@ def main(argv: list[str] | None = None) -> int:
     workers = _bounded_workers(args.workers)
     started = time.monotonic()
 
-    cases_reg = json.loads((BASE_DIR / "cases.json").read_text())["cases"]
+    cases_reg = localize_evidence(json.loads((BASE_DIR / "cases.json").read_text()))["cases"]
     reg_by_path = {Path(c["source"]["path"]).resolve(): c for c in cases_reg
                    if c.get("source", {}).get("path") and c.get("supported_scopes") != ["engine"]}
     decode_sb = json.loads((BASE_DIR / "results" / "decode.json").read_text())

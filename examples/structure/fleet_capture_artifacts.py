@@ -21,7 +21,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
-from evidence_roots import capture_root
+from evidence_roots import capture_root, localize_evidence
 
 SCHEMA_VERSION = "fleet-capture-observations/2"
 DEFAULT_DATA_ROOTS = (capture_root(),
@@ -334,7 +334,7 @@ def _median(values: Iterable[float | None]) -> float | None:
 
 def _read_json(path: Path) -> dict[str, Any] | None:
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
+        data = localize_evidence(json.loads(path.read_text(encoding="utf-8")), capture_base=next(iter(DATA_ROOTS), None))
     except (OSError, ValueError):
         return None
     return data if isinstance(data, dict) else None

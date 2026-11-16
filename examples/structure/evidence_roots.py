@@ -18,6 +18,10 @@ WORKSTREAM_ROOT_ENV = "MINDIE_WORKSTREAM_ROOT"
 #: Deterministic absent roots used when the caller has not enrolled a tree.
 ABSENT_CAPTURE_ROOT = "/nonexistent/mindie-sim-data"
 ABSENT_WORKSTREAM_ROOT = "/nonexistent/mindie-agent-workstreams"
+#: ``parents[2]`` from ``examples/structure/`` is the repository root.
+REPO_ROOT_PARENTS = 2
+#: Offset from a matched URI prefix to the first relative-path character.
+NEXT_CHAR_OFFSET = 1
 
 
 def capture_root() -> Path:
@@ -28,3 +32,46 @@ def capture_root() -> Path:
 def workstream_root() -> Path:
     """Local root of the ``repository://mindie-agent/.workstreams`` tree."""
     return Path(os.environ.get(WORKSTREAM_ROOT_ENV) or ABSENT_WORKSTREAM_ROOT)
+
+
+def localize_evidence(value, *, capture_base=None):
+    """Resolve stored ``capture://`` / ``repository://`` URIs in memory."""
+    if isinstance(value, dict):
+        return {
+            key: localize_evidence(item, capture_base=capture_base)
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [
+            localize_evidence(item, capture_base=capture_base)
+            for item in value
+        ]
+    if isinstance(value, tuple):
+        return tuple(
+            localize_evidence(item, capture_base=capture_base)
+            for item in value
+        )
+    if not isinstance(value, str) or not value.startswith(
+        ("capture:", "repository:")
+    ):
+        return value
+
+    roots = (
+        (
+            "capture", "mindie-sim-data",
+            Path(capture_base) if capture_base is not None else capture_root(),
+        ),
+        ("repository", "mindie-agent/.workstreams", workstream_root()),
+        (
+            "repository", "mindie-agent/profiler",
+            Path(__file__).resolve().parents[REPO_ROOT_PARENTS],
+        ),
+    )
+    for scheme, authority, root in roots:
+        for separator in ("://", ":/"):
+            prefix = scheme + separator + authority
+            if value == prefix:
+                return str(root.resolve())
+            if value.startswith(prefix + "/"):
+                return str((root / value[len(prefix) + NEXT_CHAR_OFFSET:]).resolve())
+    return value

@@ -15,6 +15,7 @@ from pathlib import Path
 import sys
 import time
 from mindie_profiler.process_memory import peak_rss_bytes
+from evidence_roots import localize_evidence
 
 import subprocess
 
@@ -185,7 +186,7 @@ def serving_evidence(scenario,summary):
 
 
 def resolved(path,base):
-    path=Path(path)
+    path=Path(localize_evidence(str(path)))
     return path.resolve() if path.is_absolute() else (base/path).resolve()
 
 

@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 import fleet_capture_observations as observations
-from evidence_roots import capture_root
+from evidence_roots import capture_root, localize_evidence
 
 _STRUCT_DIR = Path(__file__).resolve().parent
 CASES_DIR = _STRUCT_DIR / "cases"
@@ -210,7 +210,7 @@ def _case_index() -> dict[str, dict[str, Any]]:
         return _CASE_INDEX
     index: dict[str, dict[str, Any]] = {}
     if CASES_INDEX_PATH.is_file():
-        document = json.loads(CASES_INDEX_PATH.read_text(encoding="utf-8"))
+        document = localize_evidence(json.loads(CASES_INDEX_PATH.read_text(encoding="utf-8")))
         for entry in document.get("cases") or ():
             if not isinstance(entry, Mapping):
                 continue

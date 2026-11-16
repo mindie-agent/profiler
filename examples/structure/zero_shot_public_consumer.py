@@ -41,6 +41,8 @@ def _raw_case(spec: Any) -> dict[str, Any]:
         from sim_bridge_cells import raw_case_for_cell
     try:
         return raw_case_for_cell(spec)
+    except TimeoutError:
+        raise
     except (OSError, ValueError):
         return {}
 

@@ -29,6 +29,7 @@ from mindie_profiler.sources_csv import probe_csv
 from mindie_profiler.sources_db import DbSource, probe_db, sha256_file
 
 from body import GEOMETRY_FIELDS, _stats, compare_body_forward, compare_layers, compare_pooled_layers
+from evidence_roots import localize_evidence
 
 
 def _read(path):
@@ -38,7 +39,7 @@ def _read(path):
 
 
 def _path(base, value):
-    path = Path(value)
+    path = Path(localize_evidence(str(value)))
     return path.resolve() if path.is_absolute() else (base / path).resolve()
 
 
