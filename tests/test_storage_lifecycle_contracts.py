@@ -1137,3 +1137,46 @@ def test_diff_new_write_short_seal_pin_reports_delivery_failed_without_false_per
     assert rebuilt["persisted"] is True
     assert Path(rebuilt["artifact_path"]).is_file()
     assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14) == 0
+
+
+def test_diff_failed_seal_pin_preserves_concurrent_reader_lease_and_artifact(monkeypatch):
+    from mindie_sim.diff_trace import call_mcp_tool as diff_mcp
+
+    root = make_temp_workspace("mpr15c-", base="/tmp")
+    monkeypatch.setenv("MINDIE_REPRO_SHORT_ROOT", str(root))
+    trace = {"total_ms": 5, "ops": [{"name": "RMSNorm", "duration_ms": 5}]}
+
+    real_write = repro_retention.os.write
+    real_seal_pin = repro_retention._seal_pin
+    reader_pid = os.getpid() + 100000
+    monkeypatch.setattr(repro_retention, "process_exited", lambda pid: pid not in {os.getpid(), reader_pid})
+    short_fds: set[int] = set()
+    calls: list[int] = []
+
+    def reader_then_writer_fails(entry):
+        pin = repro_retention._pin_path(entry)
+        with pin.open("ab") as handle:
+            handle.write(f"{reader_pid}\n".encode("ascii"))
+        return real_seal_pin(entry)
+
+    def short_writer_pid(fd, data):
+        payload = bytes(data)
+        if not calls and payload == f"{os.getpid()}\n".encode("ascii"):
+            short_fds.add(fd)
+            calls.append(len(payload))
+            return real_write(fd, payload[:1])
+        if fd in short_fds and len(calls) == 1:
+            calls.append(len(payload))
+            return 0
+        return real_write(fd, data)
+
+    monkeypatch.setattr(repro_retention, "_seal_pin", reader_then_writer_fails)
+    monkeypatch.setattr(repro_retention.os, "write", short_writer_pid)
+    failed = diff_mcp({"predicted": trace, "captured": trace})
+    assert failed["persisted"] is False
+    assert failed["status"] == "delivery_failed"
+    pins = list((root / "diff").glob(".pin-*.lock"))
+    assert len(pins) == 1
+    assert pins[0].read_bytes() == f"{reader_pid}\n".encode("ascii")
+    assert len(list((root / "diff").glob("*/diff.json"))) == 1
+    assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14) == 0

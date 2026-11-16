@@ -287,19 +287,13 @@ def _rewrite_lease(fd: int, pids: list[int]) -> None:
         pass
 
 
-def _append_lease(entry: Path) -> bool:
-    fd = open_lock_file(_pin_path(entry), append=True)
-    if fd is None:
-        return False
-    start = None
-    sealed = False
+def _seal_fd(fd: int) -> bool:
+    start, sealed = None, False
     try:
         start = os.fstat(fd).st_size
         pids = _lease_pids(fd)
-        if pids is not None and os.getpid() in pids:
-            sealed = True
-            return True
-        if _write_lease_bytes(fd, f"{os.getpid()}\n".encode("ascii")):
+        if (pids is not None and os.getpid() in pids) or _write_lease_bytes(
+                fd, f"{os.getpid()}\n".encode("ascii")):
             sealed = True
             return True
         return False
@@ -309,39 +303,34 @@ def _append_lease(entry: Path) -> bool:
         return False
     finally:
         if not sealed and start is not None:
-            with contextlib.suppress(OSError):
+            try:
                 os.ftruncate(fd, start)
+            except TimeoutError:
+                raise
+            except OSError:
+                pass
+
+
+def _append_lease(entry: Path) -> bool:
+    fd = open_lock_file(_pin_path(entry), append=True)
+    if fd is None:
+        return False
+    try:
+        return _seal_fd(fd)
+    finally:
         close_lock_fd(fd)
 
 
 def _seal_pin(entry: Path) -> bool:
     """Hand a held shared OS lock off to a PID lease, then release the lock."""
 
-    key = _pin_key(entry)
     with _PIN_LOCK:
-        fd = _PINS.pop(key, None)
+        fd = _PINS.pop(_pin_key(entry), None)
     if fd is None:
         return _append_lease(entry)
-    start = None
-    sealed = False
     try:
-        start = os.fstat(fd).st_size
-        pids = _lease_pids(fd)
-        if pids is not None and os.getpid() in pids:
-            sealed = True
-            return True
-        if _write_lease_bytes(fd, f"{os.getpid()}\n".encode("ascii")):
-            sealed = True
-            return True
-        return False
-    except TimeoutError:
-        raise
-    except OSError:
-        return False
+        return _seal_fd(fd)
     finally:
-        if not sealed and start is not None:
-            with contextlib.suppress(OSError):
-                os.ftruncate(fd, start)
         _close_lock(fd)
 
 
@@ -732,14 +721,28 @@ def retention_write_guard(entry: Path, *, default_committed: bool = True) -> Ite
     finally:
         try:
             if safe:
-                try:
-                    if completed:
-                        _refresh_slot(entry)
-                finally:
-                    if completed:
-                        if not _seal_pin(entry):
-                            outcome[0] = False
-                            _slot_pinned(entry)
+                with exclusive_lock(base / _RETENTION_LOCK_NAME, blocking=True) as locked:
+                    if not locked:
+                        _drop_pin(entry)
+                        outcome[0] = False
+                    elif completed:
+                        try:
+                            _refresh_slot(entry)
+                        finally:
+                            if not _seal_pin(entry):
+                                outcome[0] = False
+                                if not _slot_pinned(entry) and not default_committed:
+                                    receipts = _validated_leaves(entry, _DIFF_LEAVES)
+                                    if receipts is not None and not any(
+                                            _protected_inode_live(i) for i in receipts.values()):
+                                        trash = base / f"{_TRASH_PREFIX}{entry.name}-{uuid.uuid4().hex}"
+                                        try:
+                                            os.replace(entry, trash)
+                                            _remove_trash(trash, _DIFF_LEAVES, receipts)
+                                        except TimeoutError:
+                                            raise
+                                        except OSError:
+                                            pass
                     else:
                         _drop_pin(entry)
                         _slot_pinned(entry)  # Remove a pin leaf that never got a lease.

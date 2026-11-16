@@ -410,11 +410,8 @@ def safe_write_bytes(target: Any, data: bytes, *, protected: Iterable[tuple[int,
             except TimeoutError: raise
             except OSError: return False
         guard[0] = True
-    if not all(guard):
-        _unlink_owned_path(destination, expected, protected=protected_set, active_exc=None)
-        return False
-    if installed_out is not None:
-        installed_out.append(expected)
+    if not all(guard): return False
+    if installed_out is not None: installed_out.append(expected)
     return True
 __all__ = ["ensure_directory", "inode_of", "lstat_or_none", "path_exists", "path_is_dir", "path_is_file",
            "path_is_symlink", "path_lexists", "read_regular_bytes", "safe_write_bytes", "sha256_digest",
