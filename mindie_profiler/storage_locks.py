@@ -208,7 +208,8 @@ def process_exited(pid: int) -> bool | None:
 
 
 @contextlib.contextmanager
-def exclusive_lock(path: str | os.PathLike[str], *, blocking: bool = True) -> Iterator[bool]:
+def exclusive_lock(path: str | os.PathLike[str], *, blocking: bool = True,
+                   require_os: bool = False) -> Iterator[bool]:
     """Yield ``True`` when the path lock is held, ``False`` on contention.
 
     The process-local lock is always released, so a failed non-blocking attempt
@@ -220,44 +221,50 @@ def exclusive_lock(path: str | os.PathLike[str], *, blocking: bool = True) -> It
     if depths is None:
         depths = {}
         _HELD.depths = depths
-    if depths.get(key):
-        depths[key] += 1
+    held = depths.get(key)
+    if held and held[0] > 0 and (held[1] or not require_os):
+        depths[key] = (held[0] + 1, held[1])
         try:
             yield True
         finally:
-            depths[key] -= 1
+            cur = depths.get(key)
+            if cur and cur[0] > 1:
+                depths[key] = (cur[0] - 1, cur[1])
+            else:
+                depths.pop(key, None)
         return
     guard = _thread_lock(key)
     if not guard.acquire(blocking=blocking):
         yield False
         return
     fd = None
+    os_locked = False
     locked = False
     try:
         try:
-            fd = os.open(key, os.O_CREAT | os.O_RDWR, _LOCK_FILE_MODE)
+            fd = os.open(key, os.O_CREAT | os.O_RDWR | getattr(os, "O_BINARY", 0), _LOCK_FILE_MODE)
         except TimeoutError:
             raise
         except OSError:
             fd = None
         if fd is None:
-            # Advisory locks may be unsupported (some network filesystems).
-            # A blocking caller still owns the process-local lock.
-            locked = blocking
+            locked = False if require_os else blocking
         else:
             try:
                 _os_lock(fd, blocking=blocking)
+                os_locked = True
                 locked = True
             except TimeoutError:
                 raise
             except OSError:
-                locked = blocking
-        depths[key] = 1
+                locked = False if require_os else blocking
+        if locked:
+            depths[key] = (1, os_locked)
         try:
             yield locked
         finally:
             if fd is not None:
-                if locked:
+                if os_locked:
                     try:
                         _os_unlock(fd)
                     except TimeoutError:

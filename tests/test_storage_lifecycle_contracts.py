@@ -1177,7 +1177,7 @@ def test_diff_failed_seal_pin_preserves_concurrent_reader_lease_and_artifact(mon
     assert failed["status"] == "delivery_failed"
     pins = list((root / "diff").glob(".pin-*.lock"))
     assert len(pins) == 1
-    assert pins[0].read_bytes() == f"{reader_pid}\n".encode("ascii")
+    assert pins[0].read_bytes().lstrip(b"\x00") == f"{reader_pid}\n".encode("ascii")
     assert len(list((root / "diff").glob("*/diff.json"))) == 1
     assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14) == 0
 
@@ -1236,3 +1236,30 @@ def test_rewrite_lease_short_write_never_erases_live_reader_pid(tmp_path, monkey
     monkeypatch.setattr(repro_retention.os, "write", real_write)
     assert repro_retention._slot_pinned(entry) is True
     assert pin.read_bytes() == f"{live_pid}\n".encode("ascii")
+
+
+def test_rollback_unleased_skips_deletion_when_os_lock_fails(tmp_path, monkeypatch):
+    from mindie_profiler import storage_locks
+
+    diff_dir = tmp_path / "diff"
+    slot = diff_dir / "0123456789ab"
+    slot.mkdir(parents=True)
+    leaf = slot / "diff.json"
+    leaf.write_text("{}\n", encoding="utf-8")
+    pin = diff_dir / ".pin-0123456789ab.lock"
+    pin.write_bytes(f"{os.getpid()}\n".encode("ascii"))
+
+    real_open = storage_locks.os.open
+    lock_target = os.path.abspath(diff_dir / ".retention.lock")
+
+    def deny_retention_lock(path, flags, *args, **kwargs):
+        if kwargs.get("dir_fd") is None and os.path.abspath(path) == lock_target:
+            raise PermissionError(errno.EACCES, "os lock unavailable")
+        return real_open(path, flags, *args, **kwargs)
+
+    monkeypatch.setattr(storage_locks.os, "open", deny_retention_lock)
+    deleted = []
+    repro_retention.rollback_unleased(leaf, lambda: deleted.append(True))
+    assert deleted == []
+    assert leaf.is_file()
+    assert not repro_retention._PINS

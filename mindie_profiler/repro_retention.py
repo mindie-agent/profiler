@@ -205,17 +205,12 @@ def _drop_pin(entry: Path) -> None:
 
 def _lease_pids(fd: int) -> list[int] | None:
     """Read every PID token; ``None`` means the lease state is unknown."""
-
     pids: list[int] = []
     carry = b""
-
     def take(token: bytes) -> None:
         if token.isdigit():
-            try:
-                pids.append(int(token))
-            except ValueError:
-                pass
-
+            try: pids.append(int(token))
+            except ValueError: pass
     try:
         os.lseek(fd, 0, os.SEEK_SET)
         while True:
@@ -415,7 +410,7 @@ def note_reused_slot(leaf: Path, expected_inode: tuple[int, int]) -> bool:
     base = entry.parent
     if not _safe_directory(base):
         return False
-    with exclusive_lock(base / _RETENTION_LOCK_NAME, blocking=True) as locked:
+    with exclusive_lock(base / _RETENTION_LOCK_NAME, blocking=True, require_os=True) as locked:
         if not locked:
             return False
         try:
@@ -462,12 +457,11 @@ def rollback_unleased(path: Path, action, active_exc: BaseException | None = Non
     entry, base = path.parent, path.parent.parent
     try:
         if not _safe_directory(base):
-            return
-        with exclusive_lock(base / _RETENTION_LOCK_NAME, blocking=True) as locked:
-            if not locked:
-                return
             _drop_pin(entry)
-            if not _slot_pinned(entry):
+            return
+        with exclusive_lock(base / _RETENTION_LOCK_NAME, blocking=True, require_os=True) as locked:
+            _drop_pin(entry)
+            if locked and not _slot_pinned(entry):
                 action()
     except BaseException:
         if active_exc is None:
@@ -716,18 +710,20 @@ def retention_write_guard(entry: Path, *, default_committed: bool = True) -> Ite
     handle = None
     safe = _safe_directory(base)
     if safe:
-        with exclusive_lock(base / _RETENTION_LOCK_NAME, blocking=True):
-            handle = _create_marker(marker)
-            _hold_pin(entry)
-    outcome = [default_committed]
-    completed = False
+        with exclusive_lock(base / _RETENTION_LOCK_NAME, blocking=True, require_os=True) as pre_locked:
+            if pre_locked:
+                handle = _create_marker(marker)
+                _hold_pin(entry)
+            else:
+                safe = False
+    outcome, completed = [default_committed], False
     try:
         yield outcome
         completed = bool(outcome[0])
     finally:
         try:
             if safe:
-                with exclusive_lock(base / _RETENTION_LOCK_NAME, blocking=True) as locked:
+                with exclusive_lock(base / _RETENTION_LOCK_NAME, blocking=True, require_os=True) as locked:
                     if not locked:
                         _drop_pin(entry)
                         outcome[0] = False
