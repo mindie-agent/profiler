@@ -15,16 +15,22 @@
   * Active state is never touched: commit-registry inodes, registered/active
     slots, lock-marked or write-marked entries, and unexpected payloads stay.
   * Eviction atomically renames the slot to a private ``.trash-*`` sibling
-    while both locks are held, then unlinks only pre-validated regular leaves.
-  * Writers publish a private ``.<slot>.write-*`` marker under the
-    cross-process lock for the whole leaf write; stale markers are swept.
+    while both locks are held, then unlinks only pre-validated regular leaves;
+    a ``.trash-*`` sibling that is itself a symlink or reparse point is never
+    traversed.
+  * Writers publish a private ``.write-<slot>-*`` marker holding an exclusive
+    OS lock for the whole delivery; a marker is swept only when it is stale and
+    its lock is provably free.  A written or reused slot also holds a shared
+    ``.pin-<slot>.lock`` lease through registration and leaves its PID behind;
+    a slot with a held lock or a live PID lease is never evicted.
   * Leftover ``.trash-*`` siblings with a known payload shape are swept.
 
 [Timeouts & Locks]
   The shared process-local ownership lock plus a non-blocking ``flock``/
   ``msvcrt`` lock on ``<root>/.retention.lock`` guard every eviction.  Writers
-  hold that OS lock only while creating their write marker, so no lock spans a
-  read, a leaf write, or a directory walk; contention skips eviction.
+  hold that OS lock only while creating their locked write marker and pin, so
+  no lock spans a read, a leaf write, or a directory walk; contention skips
+  eviction.  Marker age alone never proves a writer dead.
 
 [Side-Effect Policy]
   Removes only expired/excess slots and their private trash siblings inside the
@@ -34,15 +40,25 @@
 
 from __future__ import annotations
 
+import atexit
 from collections.abc import Iterator
 import contextlib
 import os
 from pathlib import Path
 import stat
+import threading
 import time
 import uuid
 
-from .storage_locks import exclusive_lock
+from .repro_atomic_io import unlink_quiet
+from .storage_locks import (
+    close_lock_fd,
+    exclusive_lock,
+    open_lock_file,
+    process_exited,
+    try_lock_fd,
+    unlock_fd,
+)
 
 PRUNE_MAX_ENTRIES = 64
 PRUNE_MAX_AGE_DAYS = 14.0
@@ -50,11 +66,16 @@ _SECONDS_PER_DAY = 86400.0
 _CAS_LEAVES = ("repro.py", "manifest.json")
 _DIFF_DIRECTORY = "diff"
 _DIFF_LEAVES = ("diff.json",)
+_SLOT_LEAVES = _CAS_LEAVES + _DIFF_LEAVES
 _RETENTION_LOCK_NAME = ".retention.lock"
 _TRASH_PREFIX = ".trash-"
 _WRITE_MARKER_INFIX = ".write-"
+_PIN_MARKER_PREFIX = ".pin-"
+_LOCK_SUFFIX = ".lock"
 _STALE_WRITE_MARKER_S = 3600.0
 _REPARSE_ATTRIBUTE = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+_PINS: dict[tuple[str, str], int] = {}
+_PIN_LOCK = threading.Lock()
 
 
 def _is_symlink_or_reparse(info: os.stat_result, path: Path | None = None) -> bool:
@@ -126,8 +147,9 @@ def _entry_locked(entry: Path) -> bool:
         raise
     except OSError:
         return True
-    prefix = f".{entry.name}{_WRITE_MARKER_INFIX}"
-    return any(child.name.startswith(prefix) for child in children)
+    prefixes = (f"{_WRITE_MARKER_INFIX}{entry.name}-",
+                f".{entry.name}{_WRITE_MARKER_INFIX}")
+    return any(child.name.startswith(prefixes) for child in children)
 
 
 def _validated_leaves(entry: Path, leaves: tuple[str, ...]
@@ -161,14 +183,264 @@ def _validated_leaves(entry: Path, leaves: tuple[str, ...]
     return receipts or None
 
 
+def _pin_path(entry: Path) -> Path:
+    return entry.with_name(f"{_PIN_MARKER_PREFIX}{entry.name}{_LOCK_SUFFIX}")
+
+
+def _pin_key(entry: Path) -> tuple[str, str]:
+    try:
+        base = str(entry.parent.resolve())
+    except TimeoutError:
+        raise
+    except (OSError, RuntimeError):
+        base = os.path.abspath(entry.parent)
+    return base, entry.name
+
+
+def _close_lock(fd: int) -> None:
+    try:
+        unlock_fd(fd)
+    finally:
+        close_lock_fd(fd)
+
+
+def _hold_pin(entry: Path) -> None:
+    """Cache one shared OS lease so eviction skips a live slot."""
+
+    key = _pin_key(entry)
+    with _PIN_LOCK:
+        if key in _PINS:
+            return
+        while len(_PINS) >= PRUNE_MAX_ENTRIES:
+            _close_lock(_PINS.pop(next(iter(_PINS))))
+        fd = open_lock_file(_pin_path(entry), append=True)
+        if fd is None:
+            return
+        if not try_lock_fd(fd, exclusive=False):
+            close_lock_fd(fd)
+            return
+        _PINS[key] = fd
+
+
+def _drop_pin(entry: Path) -> None:
+    with _PIN_LOCK:
+        fd = _PINS.pop(_pin_key(entry), None)
+    if fd is not None:
+        _close_lock(fd)
+
+
+def _lease_pids(fd: int) -> list[int]:
+    try:
+        size = os.fstat(fd).st_size
+        os.lseek(fd, 0, os.SEEK_SET)
+        limit = min(size, int(_STALE_WRITE_MARKER_S))
+        data = os.read(fd, limit) if limit else b""
+    except TimeoutError:
+        raise
+    except OSError:
+        return []
+    pids = []
+    for part in data.replace(b"\0", b" ").split():
+        if part.isdigit():
+            try:
+                pids.append(int(part))
+            except ValueError:
+                continue
+    return pids
+
+
+def _rewrite_lease(fd: int, pids: list[int]) -> None:
+    try:
+        os.lseek(fd, 0, os.SEEK_SET)
+        os.ftruncate(fd, 0)
+        if pids:
+            os.write(fd, "".join(f"{pid}\n" for pid in pids).encode("ascii"))
+    except TimeoutError:
+        raise
+    except OSError:
+        pass
+
+
+def _append_lease(entry: Path) -> None:
+    fd = open_lock_file(_pin_path(entry), append=True)
+    if fd is None:
+        return
+    try:
+        os.write(fd, f"{os.getpid()}\n".encode("ascii"))
+    except TimeoutError:
+        raise
+    except OSError:
+        pass
+    finally:
+        close_lock_fd(fd)
+
+
+def _seal_pin(entry: Path) -> None:
+    """Hand a held shared OS lock off to a PID lease, then release the lock."""
+
+    key = _pin_key(entry)
+    with _PIN_LOCK:
+        fd = _PINS.pop(key, None)
+    if fd is None:
+        _append_lease(entry)
+        return
+    try:
+        os.write(fd, f"{os.getpid()}\n".encode("ascii"))
+    except TimeoutError:
+        raise
+    except OSError:
+        pass
+    finally:
+        _close_lock(fd)
+
+
+def _release_pins() -> None:
+    with _PIN_LOCK:
+        fds = list(_PINS.values())
+        _PINS.clear()
+    for fd in fds:
+        _close_lock(fd)
+
+
+def _slot_pinned(entry: Path) -> bool:
+    """True when a live process holds the OS pin or its PID lease."""
+
+    path = _pin_path(entry)
+    try:
+        info = os.lstat(path)
+    except FileNotFoundError:
+        return False
+    except TimeoutError:
+        raise
+    except OSError:
+        return True
+    if not stat.S_ISREG(info.st_mode) or _is_symlink_or_reparse(info, path):
+        return True
+    fd = open_lock_file(path, create=False)
+    if fd is None:
+        return True
+    free = False
+    try:
+        free = try_lock_fd(fd, exclusive=True)
+        if not free:
+            return True
+        live = [pid for pid in dict.fromkeys(_lease_pids(fd))
+                if process_exited(pid) is not True]
+        _rewrite_lease(fd, live)
+        if live:
+            return True
+        if os.name != "nt":
+            unlink_quiet(path)
+    finally:
+        if free:
+            unlock_fd(fd)
+        close_lock_fd(fd)
+    if free and os.name == "nt":
+        unlink_quiet(path)
+    return False
+
+
+def _refresh_slot(entry: Path) -> None:
+    """Touch regular leaves and the slot directory so reuse restarts the age."""
+
+    for name in _SLOT_LEAVES:
+        path = entry / name
+        try:
+            info = os.lstat(path)
+        except FileNotFoundError:
+            continue
+        except TimeoutError:
+            raise
+        except OSError:
+            continue
+        if not stat.S_ISREG(info.st_mode) or _is_symlink_or_reparse(info, path):
+            continue
+        try:
+            os.utime(path, None, follow_symlinks=False)
+        except TimeoutError:
+            raise
+        except (NotImplementedError, OSError, ValueError):
+            continue
+    try:
+        info = os.lstat(entry)
+    except TimeoutError:
+        raise
+    except OSError:
+        return
+    if stat.S_ISDIR(info.st_mode) and not _is_symlink_or_reparse(info, entry):
+        try:
+            os.utime(entry, None, follow_symlinks=False)
+        except TimeoutError:
+            raise
+        except (NotImplementedError, OSError, ValueError):
+            pass
+
+
+def _create_marker(marker: Path) -> int | None:
+    fd = open_lock_file(marker)
+    if fd is not None and try_lock_fd(fd, exclusive=True):
+        return fd
+    if fd is not None:
+        close_lock_fd(fd)
+    return None
+
+
+def _drop_marker(marker: Path, fd: int | None) -> None:
+    if fd is None:
+        return
+    try:
+        if os.name != "nt":
+            unlink_quiet(marker)
+            return
+    finally:
+        _close_lock(fd)
+    unlink_quiet(marker)
+
+
+def _unlink_dead_marker(marker: Path) -> None:
+    """Unlink only when the marker lock is free, never while a writer holds it."""
+
+    fd = open_lock_file(marker, create=False)
+    if fd is None:
+        return
+    locked = try_lock_fd(fd, exclusive=True)
+    try:
+        if locked and os.name != "nt":
+            unlink_quiet(marker)
+    finally:
+        if locked:
+            unlock_fd(fd)
+        close_lock_fd(fd)
+    if locked and os.name == "nt":
+        unlink_quiet(marker)
+
+
 def _remove_trash(trash: Path, leaves: tuple[str, ...],
                   expected: dict[Path, tuple[int, int]] | None = None) -> int:
     """Unlink only re-validated regular leaves, then the empty trash directory."""
 
+    try:
+        info = os.lstat(trash)
+    except TimeoutError:
+        raise
+    except OSError:
+        return 0
+    if not stat.S_ISDIR(info.st_mode) or _is_symlink_or_reparse(info, trash):
+        return 0
     receipts = _validated_leaves(trash, leaves)
     if receipts is None:
         return 0
     if expected is not None and set(receipts.values()) != set(expected.values()):
+        return 0
+    try:
+        current = os.lstat(trash)
+    except TimeoutError:
+        raise
+    except OSError:
+        return 0
+    if ((current.st_dev, current.st_ino) != (info.st_dev, info.st_ino)
+            or not stat.S_ISDIR(current.st_mode)
+            or _is_symlink_or_reparse(current, trash)):
         return 0
     for path in receipts:
         try:
@@ -193,7 +465,18 @@ def _sweep_trash(base: Path, leaves: tuple[str, ...]) -> int:
         raise
     except OSError:
         return 0
-    return sum(_remove_trash(child, leaves) for child in children)
+    removed = 0
+    for child in children:
+        try:
+            info = os.lstat(child)
+        except TimeoutError:
+            raise
+        except OSError:
+            continue
+        if not stat.S_ISDIR(info.st_mode) or _is_symlink_or_reparse(info, child):
+            continue
+        removed += _remove_trash(child, leaves)
+    return removed
 
 
 def _evict_entry(base: Path, entry: Path, leaves: tuple[str, ...]) -> int:
@@ -201,7 +484,7 @@ def _evict_entry(base: Path, entry: Path, leaves: tuple[str, ...]) -> int:
 
     with repro_storage._LOCK:
         with exclusive_lock(base / _RETENTION_LOCK_NAME, blocking=False) as locked:
-            if not locked or _entry_locked(entry):
+            if not locked or _entry_locked(entry) or _slot_pinned(entry):
                 return 0
             resolved = repro_storage._resolved(entry)
             if resolved is None:
@@ -225,20 +508,30 @@ def _evict_entry(base: Path, entry: Path, leaves: tuple[str, ...]) -> int:
     return _remove_trash(trash, leaves, receipts)
 
 
-def _sweep_write_markers(children: list[Path], now: float) -> None:
+def _sweep_write_markers(base: Path, children: list[Path], now: float) -> None:
     """Drop markers left by a killed writer so its slot can become eligible."""
 
-    for child in children:
-        if _WRITE_MARKER_INFIX not in child.name:
-            continue
-        try:
-            if now - os.lstat(child).st_mtime <= _STALE_WRITE_MARKER_S:
-                continue
-            child.unlink()
-        except TimeoutError:
-            raise
-        except OSError:
-            continue
+    try:
+        with exclusive_lock(base / _RETENTION_LOCK_NAME, blocking=False) as locked:
+            if not locked:
+                return
+            for child in children:
+                if not child.name.startswith(".") or _WRITE_MARKER_INFIX not in child.name:
+                    continue
+                try:
+                    info = os.lstat(child)
+                except TimeoutError:
+                    raise
+                except OSError:
+                    continue
+                if not stat.S_ISREG(info.st_mode) or _is_symlink_or_reparse(info, child):
+                    continue
+                if now - info.st_mtime > _STALE_WRITE_MARKER_S:
+                    _unlink_dead_marker(child)
+    except TimeoutError:
+        raise
+    except OSError:
+        return
 
 
 def _prune_kind(base: Path, leaves: tuple[str, ...], *, limit: int, max_age_s: float,
@@ -251,7 +544,7 @@ def _prune_kind(base: Path, leaves: tuple[str, ...], *, limit: int, max_age_s: f
         raise
     except OSError:
         return 0
-    _sweep_write_markers(children, now)
+    _sweep_write_markers(base, children, now)
     candidates: list[tuple[float, Path]] = []
     for entry in children:
         if entry.name in {repro_storage._INDEX_NAME, _DIFF_DIRECTORY} \
@@ -285,13 +578,16 @@ def _prune_kind(base: Path, leaves: tuple[str, ...], *, limit: int, max_age_s: f
 
 @contextlib.contextmanager
 def retention_write_guard(entry: Path) -> Iterator[None]:
-    """Publish a per-write marker so eviction skips an in-flight slot.
+    """Hold an OS-locked marker and a shared slot lease across one delivery.
 
-    The marker is created under the cross-process retention lock, which eviction
-    holds for its whole re-check/rename section.  The lock is released before
-    the caller writes leaves, so readers and concurrent writers never block on
-    it; the marker alone keeps the slot ineligible until ``_remember_inodes``
-    has protected the committed inodes.
+    The marker is created and locked under the cross-process retention lock,
+    which eviction holds for its whole re-check/rename section.  The retention
+    lock is released before the caller writes leaves, so readers and concurrent
+    writers never block; the held marker lock proves the writer is alive even
+    when its mtime is older than the stale-marker threshold.  A shared OS pin is
+    also acquired before the retention lock is released; on success it is handed
+    off to a PID lease that covers the later in-process registration step, and
+    leaves are re-touched so a written or reused slot restarts its age.
     """
 
     base = entry.parent
@@ -301,35 +597,30 @@ def retention_write_guard(entry: Path) -> Iterator[None]:
         raise
     except OSError:
         pass
-    marker = entry.with_name(
-        f".{entry.name}{_WRITE_MARKER_INFIX}{os.getpid()}-{uuid.uuid4().hex[:8]}")
-    if not _safe_directory(base):
-        yield
-        return
-    with exclusive_lock(base / _RETENTION_LOCK_NAME, blocking=True):
-        try:
-            handle = os.open(marker, os.O_CREAT | os.O_EXCL | os.O_WRONLY,
-                             stat.S_IRUSR | stat.S_IWUSR)
-        except TimeoutError:
-            raise
-        except OSError:
-            handle = None
-        if handle is not None:
-            try:
-                os.close(handle)
-            except TimeoutError:
-                raise
-            except OSError:
-                pass
+    marker = base / (f"{_WRITE_MARKER_INFIX}{entry.name}-{os.getpid()}-"
+                     f"{uuid.uuid4().hex}{_LOCK_SUFFIX}")
+    handle = None
+    safe = _safe_directory(base)
+    if safe:
+        with exclusive_lock(base / _RETENTION_LOCK_NAME, blocking=True):
+            handle = _create_marker(marker)
+            _hold_pin(entry)
+    completed = False
     try:
         yield
+        completed = True
     finally:
         try:
-            marker.unlink(missing_ok=True)
-        except TimeoutError:
-            raise
-        except OSError:
-            pass
+            if safe:
+                _refresh_slot(entry)
+        finally:
+            if safe:
+                if completed:
+                    _seal_pin(entry)
+                else:
+                    _drop_pin(entry)
+                    _slot_pinned(entry)  # Remove a pin leaf that never got a lease.
+            _drop_marker(marker, handle)
 
 
 def prune_repro_storage(root: str | Path | None = None, *, max_entries: int = PRUNE_MAX_ENTRIES,
@@ -361,6 +652,8 @@ def opportunistic_prune() -> None:
     except OSError:
         pass
 
+
+atexit.register(_release_pins)
 
 __all__ = ["PRUNE_MAX_AGE_DAYS", "PRUNE_MAX_ENTRIES", "opportunistic_prune",
            "prune_repro_storage", "retention_write_guard"]

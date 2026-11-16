@@ -51,7 +51,7 @@ from typing import Any, Iterator
 from urllib.parse import quote
 
 from .events import ProfilerQueryError, ProfilerSchemaError
-from .storage_locks import exclusive_lock
+from .storage_locks import exclusive_lock, process_exited
 
 TRACE_SCHEMA = "mindie-profiler-trace-index/1"
 TRACE_INDEX_SUFFIX = ".mindie-trace-index.sqlite3"
@@ -362,8 +362,14 @@ def _is_build_database(candidate: Path, index: Path) -> bool:
     prefix = f".{index.name}.tmp."
     if not candidate.name.startswith(prefix):
         return False
-    pid, _, token = candidate.name[len(prefix):].partition(".")
-    return pid.isdigit() and bool(token) and all(char in "0123456789abcdef" for char in token)
+    pid, separator, token = candidate.name[len(prefix):].partition(".")
+    return pid.isdigit() and (not separator or (
+        bool(token) and all(char in "0123456789abcdef" for char in token)))
+
+
+def _legacy_build_pid(candidate: Path, index: Path) -> int | None:
+    rest = candidate.name[len(f".{index.name}.tmp."):]
+    return int(rest) if rest.isdigit() else None
 
 
 def _build_newest_mtime(candidate: Path) -> float | None:
@@ -397,6 +403,19 @@ def _remove_stale_builds(index: Path) -> None:
         if newest is None or newest > cutoff:
             continue
         lock_path = _build_lock_path(candidate)
+        legacy_pid = _legacy_build_pid(candidate, index)
+        try:
+            os.lstat(lock_path)
+            lock_present = True
+        except FileNotFoundError:
+            lock_present = False
+        except TimeoutError:
+            raise
+        except OSError:
+            lock_present = True
+        if (legacy_pid is not None and not lock_present
+                and process_exited(legacy_pid) is not True):
+            continue  # No lock to probe: a live/uncertain legacy PID keeps its build.
         with exclusive_lock(lock_path, blocking=False) as held:
             if not held:
                 continue

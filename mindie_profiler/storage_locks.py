@@ -12,8 +12,10 @@
     so two threads can never race on one file-descriptor lock.
   * A nested acquisition by the same thread is re-entrant and never re-locks
     the OS file; callers may compose guarded helpers safely.
-  * Lock files are 0-byte leaves that are created on demand and never removed
-    while a holder depends on their inode identity.
+  * Lock files are empty leaves on POSIX and one-byte leaves on Windows; they
+    are created on demand and never removed while a holder depends on them.
+  * A held OS lock is the liveness proof: a marker whose non-blocking exclusive
+    probe succeeds has no live holder, regardless of its mtime.
   * Every filesystem failure is best effort: a non-blocking caller receives
     ``False`` instead of an exception, while a blocking caller degrades to the
     process-local lock when the platform cannot provide an advisory lock.
@@ -48,7 +50,7 @@ def _thread_lock(key: str) -> threading.RLock:
         return _THREAD_LOCKS.setdefault(key, threading.RLock())
 
 
-def _os_lock(fd: int, *, blocking: bool) -> None:
+def _os_lock(fd: int, *, blocking: bool, exclusive: bool = True) -> None:
     if os.name == "nt":
         import msvcrt
 
@@ -67,7 +69,8 @@ def _os_lock(fd: int, *, blocking: bool) -> None:
                 continue
     import fcntl
 
-    flags = fcntl.LOCK_EX if blocking else fcntl.LOCK_EX | fcntl.LOCK_NB
+    flags = (fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH) | (
+        0 if blocking else fcntl.LOCK_NB)
     fcntl.flock(fd, flags)
 
 
@@ -81,6 +84,123 @@ def _os_unlock(fd: int) -> None:
     import fcntl
 
     fcntl.flock(fd, fcntl.LOCK_UN)
+
+
+def open_lock_file(path: str | os.PathLike[str], *, create: bool = True,
+                   append: bool = False) -> int | None:
+    """Open one private lock leaf without following a final symlink.
+
+    Windows byte-range locks require a non-empty region, so the leaf grows to a
+    single byte there.  POSIX leaves stay empty.  ``append`` gives lease writers
+    an atomic end-of-file write offset.
+    """
+
+    flags = os.O_RDWR | getattr(os, "O_NOFOLLOW", 0)
+    if create:
+        flags |= os.O_CREAT
+    if append:
+        flags |= os.O_APPEND
+    try:
+        fd = os.open(os.fspath(path), flags, _LOCK_FILE_MODE)
+    except TimeoutError:
+        raise
+    except OSError:
+        return None
+    if os.name == "nt":
+        try:
+            if os.fstat(fd).st_size == 0:
+                os.write(fd, b"\0")
+        except TimeoutError:
+            raise
+        except OSError:
+            pass
+    return fd
+
+
+def try_lock_fd(fd: int, *, exclusive: bool = True) -> bool:
+    """Try one non-blocking OS lock; ``False`` means held or unsupported."""
+
+    try:
+        _os_lock(fd, blocking=False, exclusive=exclusive)
+    except TimeoutError:
+        raise
+    except OSError:
+        return False
+    return True
+
+
+def unlock_fd(fd: int) -> None:
+    """Release an advisory lock held by ``fd``; failures stay best effort."""
+
+    try:
+        _os_unlock(fd)
+    except TimeoutError:
+        raise
+    except OSError:
+        pass
+
+
+def close_lock_fd(fd: int) -> None:
+    """Close one lock descriptor; failures stay best effort."""
+
+    try:
+        os.close(fd)
+    except TimeoutError:
+        raise
+    except OSError:
+        pass
+
+
+def _windows_process_exited(pid: int) -> bool | None:
+    try:
+        import _winapi
+    except ImportError:
+        return None
+    access = getattr(_winapi, "PROCESS_QUERY_LIMITED_INFORMATION", None)
+    if access is None:
+        access = getattr(_winapi, "PROCESS_QUERY_INFORMATION", None)
+    if access is None:
+        access = getattr(_winapi, "PROCESS_ALL_ACCESS", None)
+    if access is None:
+        return None
+    try:
+        handle = _winapi.OpenProcess(access, False, pid)
+    except TimeoutError:
+        raise
+    except OSError as exc:
+        if exc.winerror == getattr(_winapi, "ERROR_INVALID_PARAMETER", None):
+            return True
+        if exc.winerror == getattr(_winapi, "ERROR_ACCESS_DENIED", None):
+            return False
+        return None
+    try:
+        return _winapi.GetExitCodeProcess(handle) != _winapi.STILL_ACTIVE
+    except TimeoutError:
+        raise
+    except OSError:
+        return None
+    finally:
+        _winapi.CloseHandle(handle)
+
+
+def process_exited(pid: int) -> bool | None:
+    """Prove a process dead; ``None`` means uncertain, so callers must keep state."""
+
+    if pid <= 0:
+        return True
+    if os.name == "nt":
+        return _windows_process_exited(pid)
+    try:
+        os.kill(pid, 0)
+    except TimeoutError:
+        raise
+    except (OSError, OverflowError) as exc:
+        if isinstance(exc, ProcessLookupError):
+            return True
+        if isinstance(exc, PermissionError):
+            return False
+        return None
+    return False
 
 
 @contextlib.contextmanager
@@ -151,4 +271,5 @@ def exclusive_lock(path: str | os.PathLike[str], *, blocking: bool = True) -> It
         guard.release()
 
 
-__all__ = ["exclusive_lock"]
+__all__ = ["close_lock_fd", "exclusive_lock", "open_lock_file", "process_exited",
+           "try_lock_fd", "unlock_fd"]

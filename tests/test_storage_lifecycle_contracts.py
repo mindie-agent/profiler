@@ -426,6 +426,53 @@ def test_prune_partial_symlink_leaf_keeps_regular_sibling(tmp_path):
     assert external.is_file()
 
 
+@pytest.mark.parametrize("kind", ["cas", "diff"])
+@pytest.mark.parametrize("mode", ["symlink", "reparse"])
+def test_prune_never_traverses_symlinked_or_reparse_trash(tmp_path, monkeypatch, kind, mode):
+    root = tmp_path / "root"
+    root.mkdir()
+    base = root if kind == "cas" else root / "diff"
+    base.mkdir(exist_ok=True)
+    leaves = repro_retention._CAS_LEAVES if kind == "cas" else repro_retention._DIFF_LEAVES
+    external = tmp_path / f"external-{kind}"
+    external.mkdir()
+    for name in leaves:
+        (external / name).write_text("{}\n", encoding="utf-8")
+    trash = base / ".trash-evil"
+    if mode == "symlink":
+        _link_directory_or_skip(trash, external)
+    else:
+        trash.mkdir()
+        for name in leaves:
+            (trash / name).write_text("{}\n", encoding="utf-8")
+        real_lstat = os.lstat
+
+        def fake_lstat(path):
+            info = real_lstat(path)
+            if Path(path) != trash:
+                return info
+            return SimpleNamespace(
+                st_mode=stat.S_IFDIR,
+                st_dev=info.st_dev,
+                st_ino=info.st_ino,
+                st_mtime=info.st_mtime,
+                st_size=info.st_size,
+                st_file_attributes=0x400,
+            )
+
+        monkeypatch.delattr(os.path, "isjunction", raising=False)
+        monkeypatch.setattr(repro_retention.os, "lstat", fake_lstat)
+
+    assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=0) == 0
+    assert all((external / name).is_file() for name in leaves)
+    assert repro_retention._remove_trash(trash, leaves) == 0
+    assert all((external / name).is_file() for name in leaves)
+    if mode == "symlink":
+        assert trash.is_symlink()
+    else:
+        assert all((trash / name).is_file() for name in leaves)
+
+
 def test_prune_rechecks_slot_registered_after_snapshot(tmp_path, monkeypatch):
     root = tmp_path / "cas"
     root.mkdir()
@@ -522,6 +569,113 @@ def test_prune_skips_when_another_process_holds_retention_lock(tmp_path):
         assert process.wait(timeout=10) == 0
 
     assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=0) == 1
+    assert not entry.exists()
+
+
+def test_backdated_write_marker_survives_a_live_guard_and_blocks_eviction(tmp_path):
+    root = make_temp_workspace("mpr15g-", base="/tmp")
+    entry = _cas_slot(root, "343434343434", 40.0)
+    with repro_retention.retention_write_guard(entry):
+        markers = [child for child in root.iterdir() if child.name.startswith(".write-")]
+        assert len(markers) == 1
+        stamp = time.time() - 7200.0
+        os.utime(markers[0], (stamp, stamp))
+        assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14) == 0
+        assert markers[0].is_file()
+        assert (entry / "repro.py").is_file() and (entry / "manifest.json").is_file()
+    assert not [child for child in root.iterdir() if child.name.startswith(".write-")]
+    assert time.time() - (entry / "repro.py").stat().st_mtime < 60.0
+    # The successful guard left a PID lease for this live process, so the slot
+    # stays protected until the owner is gone.
+    leases = list(root.glob(".pin-*.lock"))
+    assert len(leases) == 1
+    assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14) == 0
+    leases[0].unlink()
+    assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14) == 1
+    assert not entry.exists()
+
+
+_SLOT_REUSE_CHILD = r"""
+import os
+import sys
+from pathlib import Path
+
+from mindie_profiler import repro_retention, repro_storage
+
+root = Path(os.environ["MINDIE_REPRO_SHORT_ROOT"])
+kind = sys.argv[1]
+if kind == "cas":
+    script = "#!/usr/bin/env python3\nprint('reused')\n"
+    result = repro_storage.stage_artifacts(script, {"schema": "mindie-op-repro/1"})
+    assert result["status"] == "delivered", result
+else:
+    entry = root / "diff" / "reused"
+    with repro_retention.retention_write_guard(entry):
+        (entry / "diff.json").write_text("{}\n", encoding="utf-8")
+    repro_storage._register({
+        "artifact_id": "sha256:" + "a" * 64,
+        "artifact_path": str(entry / "diff.json"),
+        "manifest_path": str(entry / "diff.json"),
+        "script_sha256": "sha256:" + "a" * 64,
+    })
+print("ready", flush=True)
+sys.stdin.readline()
+"""
+
+
+@pytest.mark.parametrize("kind", ["cas", "diff"])
+def test_live_child_slot_pin_survives_prune_until_the_child_exits(tmp_path, kind):
+    root = make_temp_workspace("mpr15p-", base="/tmp")
+    if kind == "cas":
+        script = "#!/usr/bin/env python3\nprint('reused')\n"
+        manifest = {"schema": "mindie-op-repro/1"}
+        script_bytes, manifest_bytes = repro_storage._encode_pair(script, manifest)
+        entry = root / repro_storage.artifact_id(script).split(":")[1][:12]
+        entry.mkdir()
+        (entry / "repro.py").write_bytes(script_bytes)
+        (entry / "manifest.json").write_bytes(manifest_bytes)
+        leaves = ("repro.py", "manifest.json")
+    else:
+        entry = root / "diff" / "reused"
+        entry.mkdir(parents=True)
+        (entry / "diff.json").write_text("{}\n", encoding="utf-8")
+        leaves = ("diff.json",)
+    for name in leaves:
+        _age(entry / name, 40.0)
+    env = dict(os.environ)
+    env["MINDIE_REPRO_SHORT_ROOT"] = str(root)
+    env["PYTHONPATH"] = os.pathsep.join(
+        [str(Path(__file__).resolve().parents[1]), env.get("PYTHONPATH", "")])
+    process = subprocess.Popen(
+        [sys.executable, "-c", _SLOT_REUSE_CHILD, kind],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        env=env,
+    )
+    try:
+        assert process.stdout is not None
+        assert process.stdout.readline().strip() == "ready"
+        assert time.time() - (entry / leaves[0]).stat().st_mtime < 60.0
+        assert list(entry.parent.glob(".pin-*.lock"))
+        assert repro_retention.prune_repro_storage(
+            root, max_entries=0, max_age_days=14) == 0
+        assert all((entry / name).is_file() for name in leaves)
+    finally:
+        if process.poll() is None:
+            if process.stdin is not None:
+                process.stdin.write("\n")
+                process.stdin.flush()
+                process.stdin.close()
+            try:
+                assert process.wait(timeout=10) == 0
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=10)
+                raise
+    assert process.stderr is not None and process.stderr.read() == ""
+    assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14) == 1
     assert not entry.exists()
 
 
@@ -651,6 +805,24 @@ def test_stale_trace_build_with_fresh_wal_or_held_lock_is_not_swept(tmp_path):
     assert not held.exists()
     assert not held_lock.exists()
     assert fresh_wal.exists()  # Its fresh WAL still proves recent activity.
+
+
+@pytest.mark.skipif(os.name == "nt", reason="legacy PID liveness is uncertain on Windows")
+def test_stale_legacy_tokenless_trace_build_is_swept_only_after_its_pid_exits(tmp_path):
+    trace = tmp_path / "trace_view.json"
+    trace.write_text("[]", encoding="utf-8")
+    index = sources_trace.index_path_for(trace)
+    dead = subprocess.Popen([sys.executable, "-c", "pass"])
+    dead.wait(timeout=10)
+    dead_build = tmp_path / f".{index.name}.tmp.{dead.pid}"
+    live_build = tmp_path / f".{index.name}.tmp.{os.getpid()}"
+    old = time.time() - 7 * 3600
+    for candidate in (dead_build, live_build):
+        candidate.write_bytes(b"legacy stale trace build")
+        os.utime(candidate, (old, old))
+    sources_trace.build_trace_index(trace, force=True)
+    assert not dead_build.exists()
+    assert live_build.is_file()
 
 
 @pytest.mark.parametrize("crash_after_replace", [False, True])
