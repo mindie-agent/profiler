@@ -340,7 +340,7 @@ def safe_write_bytes(target: Any, data: bytes, *, protected: Iterable[tuple[int,
     """Install and verify a fresh inode; report ownership only on success."""
     destination, parent = _absolute(target), _absolute(target).parent
     from . import repro_retention
-    with repro_retention.atomic_write_guard(destination):
+    with repro_retention.atomic_write_guard(destination) as guard:
         protected_set = {(int(dev), int(ino)) for dev, ino in protected}
         forbidden_set = {_absolute(path) for path in forbidden}
         allowance = _absolute(allow_slot) if allow_slot is not None else None
@@ -411,6 +411,7 @@ def safe_write_bytes(target: Any, data: bytes, *, protected: Iterable[tuple[int,
             except OSError: return False
         if installed_out is not None:
             installed_out.append(expected)
+        guard[0] = True
         return True
 __all__ = ["ensure_directory", "inode_of", "lstat_or_none", "path_exists", "path_is_dir", "path_is_file",
            "path_is_symlink", "path_lexists", "read_regular_bytes", "safe_write_bytes", "sha256_digest",

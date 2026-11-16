@@ -265,12 +265,22 @@ def _lease_pids(fd: int) -> list[int] | None:
     return list(dict.fromkeys(pids))
 
 
+def _write_lease_bytes(fd: int, payload: bytes) -> bool:
+    view = memoryview(payload)
+    while view:
+        written = os.write(fd, view)
+        if written <= 0:
+            return False
+        view = view[written:]
+    return True
+
+
 def _rewrite_lease(fd: int, pids: list[int]) -> None:
     try:
         os.lseek(fd, 0, os.SEEK_SET)
         os.ftruncate(fd, 0)
         if pids:
-            os.write(fd, "".join(f"{pid}\n" for pid in pids).encode("ascii"))
+            _write_lease_bytes(fd, "".join(f"{pid}\n" for pid in pids).encode("ascii"))
     except TimeoutError:
         raise
     except OSError:
@@ -281,14 +291,22 @@ def _append_lease(entry: Path) -> bool:
     fd = open_lock_file(_pin_path(entry), append=True)
     if fd is None:
         return False
+    start = None
     try:
+        start = os.fstat(fd).st_size
         pids = _lease_pids(fd)
-        if pids is None or os.getpid() not in pids:
-            os.write(fd, f"{os.getpid()}\n".encode("ascii"))
-        return True
+        if pids is not None and os.getpid() in pids:
+            return True
+        if _write_lease_bytes(fd, f"{os.getpid()}\n".encode("ascii")):
+            return True
+        os.ftruncate(fd, start)
+        return False
     except TimeoutError:
         raise
     except OSError:
+        if start is not None:
+            with contextlib.suppress(OSError):
+                os.ftruncate(fd, start)
         return False
     finally:
         close_lock_fd(fd)
@@ -306,7 +324,7 @@ def _seal_pin(entry: Path) -> None:
     try:
         pids = _lease_pids(fd)
         if pids is None or os.getpid() not in pids:
-            os.write(fd, f"{os.getpid()}\n".encode("ascii"))
+            _write_lease_bytes(fd, f"{os.getpid()}\n".encode("ascii"))
     except TimeoutError:
         raise
     except OSError:
@@ -445,8 +463,8 @@ def atomic_write_guard(path: Path):
     """Protect ``<short_root>/diff/<slot>/diff.json`` writes only."""
 
     if path.name == "diff.json" and path.parent.parent.name == _DIFF_DIRECTORY:
-        return retention_write_guard(path.parent)
-    return contextlib.nullcontext()
+        return retention_write_guard(path.parent, default_committed=False)
+    return contextlib.nullcontext([False])
 
 
 def _create_marker(marker: Path) -> int | None:
@@ -666,7 +684,7 @@ def _prune_kind(base: Path, leaves: tuple[str, ...], *, limit: int, max_age_s: f
 
 
 @contextlib.contextmanager
-def retention_write_guard(entry: Path) -> Iterator[None]:
+def retention_write_guard(entry: Path, *, default_committed: bool = True) -> Iterator[list[bool]]:
     """Hold an OS-locked marker and a shared slot lease across one delivery.
 
     The marker is created and locked under the cross-process retention lock,
@@ -694,15 +712,17 @@ def retention_write_guard(entry: Path) -> Iterator[None]:
         with exclusive_lock(base / _RETENTION_LOCK_NAME, blocking=True):
             handle = _create_marker(marker)
             _hold_pin(entry)
+    outcome = [default_committed]
     completed = False
     try:
-        yield
-        completed = True
+        yield outcome
+        completed = bool(outcome[0])
     finally:
         try:
             if safe:
                 try:
-                    _refresh_slot(entry)
+                    if completed:
+                        _refresh_slot(entry)
                 finally:
                     if completed:
                         _seal_pin(entry)

@@ -1049,3 +1049,44 @@ def test_diff_reuse_rebuilds_when_slot_is_evicted_mid_read(monkeypatch):
     assert rebuilt["persisted"] is True
     assert Path(rebuilt["artifact_path"]).is_file()
     assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14) == 0
+
+
+def test_diff_reuse_short_lease_write_forces_rebuild_and_rolls_back_partial_pid(monkeypatch):
+    from mindie_sim.diff_trace import call_mcp_tool as diff_mcp
+
+    root = make_temp_workspace("mpr15s-", base="/tmp")
+    monkeypatch.setenv("MINDIE_REPRO_SHORT_ROOT", str(root))
+    trace = {"total_ms": 2, "ops": [{"name": "Softmax", "duration_ms": 2}]}
+    seeded = diff_mcp({"predicted": trace, "captured": trace})
+    artifact = Path(seeded["artifact_path"])
+    pin = next((root / "diff").glob(".pin-*.lock"))
+    pin.unlink()
+    _age(artifact, 40.0)
+
+    real_write = repro_retention.os.write
+    calls = []
+    short_fds: set[int] = set()
+
+    def truncated_once(fd, data):
+        payload = bytes(data)
+        if not calls and payload == f"{os.getpid()}\n".encode("ascii"):
+            short_fds.add(fd)
+            calls.append(len(payload))
+            return real_write(fd, payload[:1])
+        if fd in short_fds and len(calls) == 1:
+            calls.append(len(payload))
+            return 0
+        return real_write(fd, data)
+
+    monkeypatch.setattr(repro_retention.os, "write", truncated_once)
+    failed = diff_mcp({"predicted": trace, "captured": trace})
+    assert len(calls) == 2
+    assert failed["persisted"] is False
+    assert not pin.exists()
+    assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14) == 1
+    assert not artifact.exists()
+
+    rebuilt = diff_mcp({"predicted": trace, "captured": trace})
+    assert rebuilt["persisted"] is True
+    assert Path(rebuilt["artifact_path"]).is_file()
+    assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14) == 0
