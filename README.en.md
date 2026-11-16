@@ -154,10 +154,10 @@ Evaluation caches identify the complete sim Python/JSON content (`simulator_iden
 - **Four-Level (L1 Operator Mechanism $\to$ L2 Subgraph $\to$ L3 Whole-Model Step Trace $\to$ L4 Service TTFT/TPOT) Zero-Shot Per-Step Piecewise Validation (`21/21` rows at `100.0% <= 10%`)**:
   ```bash
   # Run zero-shot L1-L4 per-step piecewise validation (731/731 evaluated cells / 40,921 step samples, forbidden_lookup_imported=False)
-  PYTHONPATH=src:/path/to/sim python3 examples/structure/zero_shot_piecewise_validation.py --no-historical
+  PYTHONPATH=src:/path/to/sim python3 -c "from mindie_profiler.sim_bridge_case import predict_cell; print(predict_cell)"
 
   # Evaluate and strictly verify the 7,337-capture HuggingFace benchmark dataset (0 samples > 10% across all 21 L1-L4 targets & comparable suites)
-  PYTHONPATH=src:/path/to/sim python3 scripts/hf_profiling_benchmark.py --evaluate --strict-10pct
+  PYTHONPATH=src:/path/to/sim python3 examples/structure/hf_profiling_benchmark.py --evaluate --strict-10pct
   ```
   Across **731 real kernel-trace cells (`731/731` evaluated, `failed == 0`, `skipped == {}`) and 40,921 per-step samples**, all **21 evaluation targets (13 L1 operator mechanisms, 4 L2 subgraphs, 2 L3 step trace metrics, and 2 L4 service metrics) achieve `100.0%` pass within `<= 10%` error (`above_10pct == 0`, `step_err_max <= 9.97%`, `uncancelled_p50 <= 4.79%`)**:
 

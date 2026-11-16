@@ -8,17 +8,17 @@
   },
   "source_modules": {
     "mindie_sim/prediction/w4a8_schedule.py": {
-      "path": "/Users/maoxx241/code/sim-rewrite-20261027/mindie_sim/prediction/w4a8_schedule.py",
+      "path": "repository://sim-rewrite-20261027/mindie_sim/prediction/w4a8_schedule.py",
       "sha256": "ef9d0dff6429acfe3f2db4b56b3a476a859831a20fab8b19c7fb5aa1607daed8",
       "size_bytes": 16787
     },
     "mindie_sim/prediction/w4a8.py": {
-      "path": "/Users/maoxx241/code/sim-rewrite-20261027/mindie_sim/prediction/w4a8.py",
+      "path": "repository://sim-rewrite-20261027/mindie_sim/prediction/w4a8.py",
       "sha256": "5cca6c5cad87d44e05a227ad0a0306d42241cb48310062bde95d96a74f0ad0fd",
       "size_bytes": 18341
     },
     "mindie_sim/prediction/operators/quant_grouped_schedule.py": {
-      "path": "/Users/maoxx241/code/sim-rewrite-20261027/mindie_sim/prediction/operators/quant_grouped_schedule.py",
+      "path": "repository://sim-rewrite-20261027/mindie_sim/prediction/operators/quant_grouped_schedule.py",
       "sha256": "b22b165381a3d8d7c9493ae608452687f01627619a235633e17c9032e21980bf",
       "size_bytes": 24064
     }
@@ -517,12 +517,12 @@
           }
         ],
         "INT32_host_branch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
           "sha256": "68714d9bc213d807cae10e1392693a08958ef39b20ac6a10a748167453680ad6",
           "lines": "884-921"
         },
         "BF16_dispatch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
           "sha256": "320af4dac634a8c9398494cd484150801b67d3280861fda0dd945db1edef0175",
           "lines": "336-348"
         }
@@ -1036,12 +1036,12 @@
           }
         ],
         "INT32_host_branch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
           "sha256": "68714d9bc213d807cae10e1392693a08958ef39b20ac6a10a748167453680ad6",
           "lines": "884-921"
         },
         "BF16_dispatch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
           "sha256": "320af4dac634a8c9398494cd484150801b67d3280861fda0dd945db1edef0175",
           "lines": "336-348"
         }
@@ -1515,12 +1515,12 @@
           }
         ],
         "INT32_host_branch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
           "sha256": "68714d9bc213d807cae10e1392693a08958ef39b20ac6a10a748167453680ad6",
           "lines": "884-921"
         },
         "BF16_dispatch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
           "sha256": "320af4dac634a8c9398494cd484150801b67d3280861fda0dd945db1edef0175",
           "lines": "336-348"
         }
@@ -2014,12 +2014,12 @@
           }
         ],
         "INT32_host_branch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
           "sha256": "68714d9bc213d807cae10e1392693a08958ef39b20ac6a10a748167453680ad6",
           "lines": "884-921"
         },
         "BF16_dispatch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
           "sha256": "320af4dac634a8c9398494cd484150801b67d3280861fda0dd945db1edef0175",
           "lines": "336-348"
         }
@@ -2513,12 +2513,12 @@
           }
         ],
         "INT32_host_branch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
           "sha256": "68714d9bc213d807cae10e1392693a08958ef39b20ac6a10a748167453680ad6",
           "lines": "884-921"
         },
         "BF16_dispatch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
           "sha256": "320af4dac634a8c9398494cd484150801b67d3280861fda0dd945db1edef0175",
           "lines": "336-348"
         }
@@ -3032,12 +3032,12 @@
           }
         ],
         "INT32_host_branch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
           "sha256": "68714d9bc213d807cae10e1392693a08958ef39b20ac6a10a748167453680ad6",
           "lines": "884-921"
         },
         "BF16_dispatch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
           "sha256": "320af4dac634a8c9398494cd484150801b67d3280861fda0dd945db1edef0175",
           "lines": "336-348"
         }
@@ -3511,12 +3511,12 @@
           }
         ],
         "INT32_host_branch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
           "sha256": "68714d9bc213d807cae10e1392693a08958ef39b20ac6a10a748167453680ad6",
           "lines": "884-921"
         },
         "BF16_dispatch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
           "sha256": "320af4dac634a8c9398494cd484150801b67d3280861fda0dd945db1edef0175",
           "lines": "336-348"
         }
@@ -4010,12 +4010,12 @@
           }
         ],
         "INT32_host_branch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
           "sha256": "68714d9bc213d807cae10e1392693a08958ef39b20ac6a10a748167453680ad6",
           "lines": "884-921"
         },
         "BF16_dispatch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
           "sha256": "320af4dac634a8c9398494cd484150801b67d3280861fda0dd945db1edef0175",
           "lines": "336-348"
         }
@@ -4509,12 +4509,12 @@
           }
         ],
         "INT32_host_branch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
           "sha256": "68714d9bc213d807cae10e1392693a08958ef39b20ac6a10a748167453680ad6",
           "lines": "884-921"
         },
         "BF16_dispatch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
           "sha256": "320af4dac634a8c9398494cd484150801b67d3280861fda0dd945db1edef0175",
           "lines": "336-348"
         }
@@ -5028,12 +5028,12 @@
           }
         ],
         "INT32_host_branch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
           "sha256": "68714d9bc213d807cae10e1392693a08958ef39b20ac6a10a748167453680ad6",
           "lines": "884-921"
         },
         "BF16_dispatch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
           "sha256": "320af4dac634a8c9398494cd484150801b67d3280861fda0dd945db1edef0175",
           "lines": "336-348"
         }
@@ -5507,12 +5507,12 @@
           }
         ],
         "INT32_host_branch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
           "sha256": "68714d9bc213d807cae10e1392693a08958ef39b20ac6a10a748167453680ad6",
           "lines": "884-921"
         },
         "BF16_dispatch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
           "sha256": "320af4dac634a8c9398494cd484150801b67d3280861fda0dd945db1edef0175",
           "lines": "336-348"
         }
@@ -6006,12 +6006,12 @@
           }
         ],
         "INT32_host_branch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_host/op_tiling/arch35/grouped_quant_matmul_tiling.cpp",
           "sha256": "68714d9bc213d807cae10e1392693a08958ef39b20ac6a10a748167453680ad6",
           "lines": "884-921"
         },
         "BF16_dispatch": {
-          "path": "/Users/maoxx241/code/refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
+          "path": "repository://refs/ops-transformer/gmm/grouped_matmul/op_kernel/grouped_matmul_apt.cpp",
           "sha256": "320af4dac634a8c9398494cd484150801b67d3280861fda0dd945db1edef0175",
           "lines": "336-348"
         }

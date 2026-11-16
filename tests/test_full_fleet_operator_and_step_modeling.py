@@ -35,7 +35,7 @@ from typing import Any, Mapping
 
 import pytest
 
-_PROFILER_ROOT = Path(os.environ.get("MINDIE_PROFILER_ROOT", "/Users/maoxx241/code/profiler"))
+_PROFILER_ROOT = Path(os.environ.get("MINDIE_PROFILER_ROOT", "repository://profiler"))
 ROOT = Path(__file__).resolve().parents[1]
 if not (ROOT / "examples" / "structure" / "results").is_dir() and (_PROFILER_ROOT / "examples" / "structure" / "results").is_dir():
     ROOT = _PROFILER_ROOT

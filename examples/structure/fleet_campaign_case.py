@@ -21,7 +21,7 @@ GLM51_SOURCE_CASE = Path(__file__).with_name("cases") / "decode-a5_glm51_mxfp4_d
 WEIGHTS_CATALOG = Path("/Volumes/data/mindie-sim-data/a5/weights-catalog")
 WORKSTREAM_ROOTS = (
     Path("/Volumes/data/mindie-agent-workstreams"),
-    Path("/Users/maoxx241/code/mindie-agent/.workstreams"),
+    Path("repository://mindie-agent/.workstreams"),
 )
 _RANK_RE = re.compile(r"^dp(\d+)_pp(\d+)_tp(\d+)_dcp(\d+)_ep(\d+)_rank(\d+)")
 def _sha256(path: Path) -> str:

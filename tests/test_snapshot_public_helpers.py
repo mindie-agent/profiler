@@ -24,7 +24,7 @@ from mindie_profiler.events import ProfilerUsageError, composite_event_identity
 from mindie_profiler.fabric_probe_fit import parse_fabric_probe_samples
 from mindie_profiler.repro_snapshot import snapshot
 from mindie_profiler.repro_storage import stage_artifacts
-from test_nr_s6_diff_container_ingress import (
+from mapping_fixtures import (
     CountedTuple, Deadline, HELPERS, ReadOnly, WideMapping, freeze, plain,
 )
 

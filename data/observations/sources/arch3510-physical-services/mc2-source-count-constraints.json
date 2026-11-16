@@ -3,32 +3,32 @@
   "runtime_source_commit": "c2b21f2023d096392ec7a4b7406df88d8611849a",
   "source_module_identities": [
     {
-      "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/mc2_phase.py",
+      "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/mc2_phase.py",
       "sha256": "a312c7c72b473a93789eb45b3ede48696ce7de795434e339ef47e6a0b78b1b59",
       "size_bytes": 8559
     },
     {
-      "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/mc2_instructions.py",
+      "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/mc2_instructions.py",
       "sha256": "951c042c777e2ae07c37d2b02271a51724a3e1d3d5cf93cc62875b6d8419d206",
       "size_bytes": 4528
     },
     {
-      "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/operators/mc2_fullmesh.py",
+      "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/operators/mc2_fullmesh.py",
       "sha256": "584dfc92069bbe53b9cf7f1f5acb420498d389ecbb427035d4c8b7712b7ddf10",
       "size_bytes": 24492
     },
     {
-      "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/instructions.py",
+      "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/instructions.py",
       "sha256": "a380390f78963f479e1556eefc6f9b7f1090e0aa7fd8df6f34f4dd3d983592ce",
       "size_bytes": 6165
     },
     {
-      "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/mc2_graph.py",
+      "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/mc2_graph.py",
       "sha256": "165c0e961d915f832b5491d89682bbde20f9c8287e242435b9bda58ccfce757f",
       "size_bytes": 13326
     },
     {
-      "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/source_force_eplb.py",
+      "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/source_force_eplb.py",
       "sha256": "f76d9377249770e6a7706c55dc6cfe41163d0b853dc1a131f3c5728eb425f825",
       "size_bytes": 7722
     }
@@ -688,7 +688,7 @@
     {
       "case_id": "a5_kimi_tp8_e16_bf16_c32_p4k",
       "case_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source-complete/a5_kimi_tp8_e16_bf16_c32_p4k_source_complete.json",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source-complete/a5_kimi_tp8_e16_bf16_c32_p4k_source_complete.json",
         "sha256": "0372c802fe170abc6cc453d2dfcea6938158a3636f16fe7423765406b2ac28f1",
         "size_bytes": 41310
       },
@@ -791,7 +791,7 @@
     {
       "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1",
       "case_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1-composed-arch35-source.json",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1-composed-arch35-source.json",
         "sha256": "62567b80a9e7a5614eeeb9f4735d5c0883d9d940528698b1ac0b69d4fed902b0",
         "size_bytes": 21323
       },
@@ -905,7 +905,7 @@
     {
       "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64",
       "case_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-composed-arch35-source.json",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-composed-arch35-source.json",
         "sha256": "335a943d3ba00368aac41fac044586fe6d12a1bbc9d356796129cc5894381bb4",
         "size_bytes": 21359
       },
@@ -53384,7 +53384,7 @@
         "size_bytes": 83732721
       },
       "case_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source-complete/a5_kimi_tp8_e16_bf16_c32_p4k_source_complete.json",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source-complete/a5_kimi_tp8_e16_bf16_c32_p4k_source_complete.json",
         "sha256": "0372c802fe170abc6cc453d2dfcea6938158a3636f16fe7423765406b2ac28f1",
         "size_bytes": 41310
       },
@@ -61190,7 +61190,7 @@
         "size_bytes": 83732721
       },
       "case_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source-complete/a5_kimi_tp8_e16_bf16_c32_p4k_source_complete.json",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source-complete/a5_kimi_tp8_e16_bf16_c32_p4k_source_complete.json",
         "sha256": "0372c802fe170abc6cc453d2dfcea6938158a3636f16fe7423765406b2ac28f1",
         "size_bytes": 41310
       },
@@ -69448,7 +69448,7 @@
         "size_bytes": 83732721
       },
       "case_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source-complete/a5_kimi_tp8_e16_bf16_c32_p4k_source_complete.json",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source-complete/a5_kimi_tp8_e16_bf16_c32_p4k_source_complete.json",
         "sha256": "0372c802fe170abc6cc453d2dfcea6938158a3636f16fe7423765406b2ac28f1",
         "size_bytes": 41310
       },
@@ -73670,7 +73670,7 @@
         "size_bytes": 83732721
       },
       "case_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source-complete/a5_kimi_tp8_e16_bf16_c32_p4k_source_complete.json",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/kimi-source-complete/a5_kimi_tp8_e16_bf16_c32_p4k_source_complete.json",
         "sha256": "0372c802fe170abc6cc453d2dfcea6938158a3636f16fe7423765406b2ac28f1",
         "size_bytes": 41310
       },
@@ -78012,7 +78012,7 @@
         "size_bytes": 101041319
       },
       "case_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1-composed-arch35-source.json",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1-composed-arch35-source.json",
         "sha256": "62567b80a9e7a5614eeeb9f4735d5c0883d9d940528698b1ac0b69d4fed902b0",
         "size_bytes": 21323
       },
@@ -97796,7 +97796,7 @@
         "size_bytes": 101041319
       },
       "case_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1-composed-arch35-source.json",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1-composed-arch35-source.json",
         "sha256": "62567b80a9e7a5614eeeb9f4735d5c0883d9d940528698b1ac0b69d4fed902b0",
         "size_bytes": 21323
       },
@@ -98848,7 +98848,7 @@
         "size_bytes": 101041319
       },
       "case_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1-composed-arch35-source.json",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1-composed-arch35-source.json",
         "sha256": "62567b80a9e7a5614eeeb9f4735d5c0883d9d940528698b1ac0b69d4fed902b0",
         "size_bytes": 21323
       },
@@ -110436,7 +110436,7 @@
         "size_bytes": 101041319
       },
       "case_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1-composed-arch35-source.json",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1-composed-arch35-source.json",
         "sha256": "62567b80a9e7a5614eeeb9f4735d5c0883d9d940528698b1ac0b69d4fed902b0",
         "size_bytes": 21323
       },
@@ -111476,7 +111476,7 @@
         "size_bytes": 50179338
       },
       "case_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-composed-arch35-source.json",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-composed-arch35-source.json",
         "sha256": "335a943d3ba00368aac41fac044586fe6d12a1bbc9d356796129cc5894381bb4",
         "size_bytes": 21359
       },
@@ -121912,7 +121912,7 @@
         "size_bytes": 50179338
       },
       "case_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-composed-arch35-source.json",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-composed-arch35-source.json",
         "sha256": "335a943d3ba00368aac41fac044586fe6d12a1bbc9d356796129cc5894381bb4",
         "size_bytes": 21359
       },
@@ -132568,7 +132568,7 @@
         "size_bytes": 50179338
       },
       "case_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-composed-arch35-source.json",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-composed-arch35-source.json",
         "sha256": "335a943d3ba00368aac41fac044586fe6d12a1bbc9d356796129cc5894381bb4",
         "size_bytes": 21359
       },
@@ -133308,7 +133308,7 @@
         "size_bytes": 50179338
       },
       "case_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-composed-arch35-source.json",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/v41-composed-arch35-conditional/a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64-composed-arch35-source.json",
         "sha256": "335a943d3ba00368aac41fac044586fe6d12a1bbc9d356796129cc5894381bb4",
         "size_bytes": 21359
       },

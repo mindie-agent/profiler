@@ -11,12 +11,12 @@
         "size_bytes": 2661235
       },
       "case_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot30_c2.json",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot30_c2.json",
         "sha256": "e555a4428633b264671b748f9cd0dcd04342845fcc0636aaba8178d606312b04",
         "size_bytes": 6508
       },
       "retained_case_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot30_c2.json",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot30_c2.json",
         "sha256": "e555a4428633b264671b748f9cd0dcd04342845fcc0636aaba8178d606312b04",
         "size_bytes": 6508
       },
@@ -9799,12 +9799,12 @@
         "size_bytes": 2685140
       },
       "case_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot50_c2.json",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot50_c2.json",
         "sha256": "4b1b2260e0b9d0da00261e5fad5875b52dc3d94dd79aaf96555329c1d9c4521e",
         "size_bytes": 6508
       },
       "retained_case_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot50_c2.json",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot50_c2.json",
         "sha256": "4b1b2260e0b9d0da00261e5fad5875b52dc3d94dd79aaf96555329c1d9c4521e",
         "size_bytes": 6508
       },
@@ -19587,12 +19587,12 @@
         "size_bytes": 2369862
       },
       "case_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot88_c8.json",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot88_c8.json",
         "sha256": "5f745effaa4d40b208a4d04c3ecd43bfd38a13c67b556dd5250e0452c10ae13e",
         "size_bytes": 6512
       },
       "retained_case_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot88_c8.json",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot88_c8.json",
         "sha256": "5f745effaa4d40b208a4d04c3ecd43bfd38a13c67b556dd5250e0452c10ae13e",
         "size_bytes": 6512
       },
@@ -29380,7 +29380,7 @@
         "size_bytes": 5594
       },
       "retained_case_identity": {
-        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/qwen-source-gdn-native/qwen35-35b-a5-tp4-c4-graph-source-gdn-native.json",
+        "path": "repository://sim-rewrite-20261027/examples/cases/high-concurrency-20261030/qwen-source-gdn-native/qwen35-35b-a5-tp4-c4-graph-source-gdn-native.json",
         "sha256": "c737422cc45ffa9fc1b5b305900623610915df58e61221bebd025ab07caac797",
         "size_bytes": 7336
       },
@@ -33815,7 +33815,7 @@
         "size_bytes": 5601
       },
       "retained_case_identity": {
-        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/qwen-source-gdn-native/qwen35-35b-a5-tp4-c64-graph-source-gdn-native.json",
+        "path": "repository://sim-rewrite-20261027/examples/cases/high-concurrency-20261030/qwen-source-gdn-native/qwen35-35b-a5-tp4-c64-graph-source-gdn-native.json",
         "sha256": "45af9b4b530a72d55925e70f1100fc76d4af044d5c7b718d5c837e8c4012d3f7",
         "size_bytes": 7343
       },
@@ -38250,7 +38250,7 @@
         "size_bytes": 5606
       },
       "retained_case_identity": {
-        "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/qwen-source-gdn-native/qwen35-35b-a5-tp4-c128-graph-source-gdn-native.json",
+        "path": "repository://sim-rewrite-20261027/examples/cases/high-concurrency-20261030/qwen-source-gdn-native/qwen35-35b-a5-tp4-c128-graph-source-gdn-native.json",
         "sha256": "6caa42b4950405c43a17f920a4ed71dd423b8a0097661642c167f22b7f9e5cfa",
         "size_bytes": 7348
       },

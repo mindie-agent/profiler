@@ -43,7 +43,7 @@
       },
       "helper_transfer": {
         "baseline_case_identity": {
-          "path": "/Users/maoxx241/code/profiler/examples/structure/cases/decode-a5_qwen38_highconc_c128.json",
+          "path": "repository://profiler/examples/structure/cases/decode-a5_qwen38_highconc_c128.json",
           "sha256": "3d3e7df7e407183138a243d3a0cb31e8a4a03dd10ca2e46c6093c10488db9d9c",
           "size_bytes": 5697
         },

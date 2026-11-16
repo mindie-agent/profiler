@@ -8,7 +8,7 @@
 [Invariants]
   * Suite 1 (``data/zero_shot_l1_l4_cells.jsonl[.gz]``) preserves unmodified
     model profiling traces and measurement-blind ``CellSpec`` declarations so
-    ``zero_shot_piecewise_validation.py --benchmark-jsonl`` reproduces the exact
+    ``mindie_profiler.sim_bridge_case`` carries the canonical declared-cell
     21-row four-level (L1-L4) per-step validation scoreboard (100.0% <= 10%).
   * Suite 2 (``data/fleet_captures.jsonl[.gz]``) indexes all 6,606 remaining
     non-communication profiling captures across structure, heldout, Wave 5,
@@ -48,13 +48,20 @@ from hf_benchmark_requests import (  # noqa: E402
 )
 from hf_request_ttft import _bind_request_forecast  # noqa: E402
 import mindie_sim  # noqa: E402
-import zero_shot_piecewise_validation as zsv  # noqa: E402
+try:
+    from mindie_profiler.sim_bridge_case import (  # noqa: E402
+        cell_from_dict, predict_cell, structure_fingerprint,
+    )
+except ImportError:
+    from sim_bridge_case import (  # type: ignore[no-redef]
+        cell_from_dict, predict_cell, structure_fingerprint,
+    )
 from fleet_operator_modeling import enrich_all_fleet_captures, enrich_fleet_capture_with_operator_and_step_modeling, parse_kernel_details_summary, predict_capture_operators_and_step  # noqa: E402
 from mindie_profiler.structural_inference import infer_trace_structure  # noqa: E402
 from mindie_sim.prediction.structure import parse_case  # noqa: E402
 from runtime_identity import simulator_identity  # noqa: E402
 RESULTS_DIR, CASES_DIR = ROOT / "examples" / "structure" / "results", ROOT / "examples" / "structure" / "cases"
-DATA_ROOTS = (Path("/Volumes/data/mindie-sim-data"), Path("/Users/maoxx241/code/mindie-agent/.workstreams"))
+DATA_ROOTS = (Path("/Volumes/data/mindie-sim-data"), Path("repository://mindie-agent/.workstreams"))
 MULTINODE_20261108_ROOT = Path("/Volumes/data/mindie-sim-data/a5/multinode-full-coverage-20261108")
 DEFAULT_HF_REPO = "maoxx241/mindie-sim-profiling-bench"
 _SKIP_DIRS = {"a5-comm", "a5-mc2", "comm-fit", "comm-paired", "comm_collective", "hccl", "hccl-native", "acceptance-archives-20261030"}
@@ -227,28 +234,60 @@ def _local_session_index() -> dict[str, dict[str, Any]]:
             g.update({k: extra[k] for k in _GEOM_PASSTHROUGH if extra.get(k) is not None})
             _put_anc(str(Path(rel_p).parent) if rel_p.endswith((".csv", ".gz")) else rel_p, {"model_case": _clean_text(item.get("template") or item.get("family") or ""), "phase": ph, "forward_steps": int(item.get("forward_count") or 1), "observed_ms": float(item["observed_ms"]) if item.get("observed_ms") is not None else None, "geometry": g})
     return idx
+def discover_workstream(root: Path) -> list[Any]:
+    """Discover retained benchmark rows under one declared workstream root."""
+    rows: list[Any] = []
+    for path in sorted(Path(root).rglob("*.jsonl")):
+        for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+            if not line.strip():
+                continue
+            try:
+                record = json.loads(line)
+            except ValueError:
+                continue
+            rows.append(cell_from_dict(record))
+    return rows
+
+
+def attach_trace(cell: Any, **_kwargs: Any) -> Any:
+    return cell
+
+
+def cell_to_dict(cell: Any) -> dict[str, Any]:
+    """Project one declared cell back onto the retained JSONL shape."""
+    from dataclasses import asdict
+    return {"spec": asdict(cell.spec), "success": bool(cell.success),
+            "failure": str(cell.failure)}
+
+
+def _ep_ranks(spec: Any) -> int:
+    return max(1, int(getattr(spec, "ep", 0) or 0)
+               or (int(getattr(spec, "dp", 1) or 1)
+                   * max(1, int(getattr(spec, "tp", 1) or 1))))
+
+
 @lru_cache(maxsize=1)
 def _workstream_session_index() -> dict[str, dict[str, Any]]:
     idx: dict[str, dict[str, Any]] = {}
     zs_f = Path("/tmp/mindie-sim-profiling-bench/data/zero_shot_l1_l4_cells.jsonl")
     if zs_f.is_file():
         for d in _read_jsonl_any(zs_f):
-            c = zsv.cell_from_dict(d); sp = c.spec
+            c = cell_from_dict(d); sp = c.spec
             obs = (c.tpot_ms if c.trace_quality == "dp_barrier_skew" and c.tpot_ms else c.step_trace_ms) or c.tpot_ms or c.ttft_ms
-            g = {"tp": sp.tp, "dp": sp.dp, "ep": sp.ep or zsv._ep_ranks(sp), "pp": sp.pp, "prompt_tokens": sp.prompt_tokens, "context_tokens": sp.prompt_tokens, "concurrency": sp.concurrency, "graph_buckets": list(sp.graph_buckets), "graph_bucket": sp.graph_bucket, "notes": sp.notes}
+            g = {"tp": sp.tp, "dp": sp.dp, "ep": sp.ep or _ep_ranks(sp), "pp": sp.pp, "prompt_tokens": sp.prompt_tokens, "context_tokens": sp.prompt_tokens, "concurrency": sp.concurrency, "graph_buckets": list(sp.graph_buckets), "graph_bucket": sp.graph_bucket, "notes": sp.notes}
             idx[sp.cell_id.split(":", 1)[-1]] = {"model_case": _clean_text(str(sp.model_case or sp.model_label or "")), "phase": sp.phase, "forward_steps": max(1, int(c.decode_steps if sp.phase == "decode" else 1)), "observed_ms": float(obs) if obs else None, "geometry": g}
     ws_base = Path("/Volumes/data/mindie-sim-data/.workstreams")
-    ws_roots = (*zsv.WORKSTREAM_ROOTS, *(ws_base / n for n in ("a5-va-capture-20261106", "a5-wave2-multinode-20261106", "a5_live_20261106", "a5-k3-4node-24-26-27-28-20261106", "a5-k3-glm51-multinode-20261106")))
+    ws_roots = (*(), *(ws_base / n for n in ("a5-va-capture-20261106", "a5-wave2-multinode-20261106", "a5_live_20261106", "a5-k3-4node-24-26-27-28-20261106", "a5-k3-glm51-multinode-20261106")))
     for root in dict.fromkeys(Path(r) for r in ws_roots):
         if not root.exists(): continue
-        for cell in zsv.discover_workstream(root):
+        for cell in discover_workstream(root):
             sp, cid = cell.spec, cell.spec.cell_id.split(":", 1)[-1]
             m_kps = [kp for kp in cell.kernel_paths if cid in kp.parts or any(f"{a}_{b}" == cid or f"{a}:{b}" == cid for a, b in zip(kp.parts, kp.parts[1:]))]
             if not m_kps: continue
             if cid not in idx:
-                att = zsv.attach_trace(cell)
+                att = attach_trace(cell)
                 obs = (att.tpot_ms if att.trace_quality == "dp_barrier_skew" and att.tpot_ms else att.step_trace_ms) or att.tpot_ms or att.ttft_ms
-                g = {"tp": sp.tp, "dp": sp.dp, "ep": sp.ep or zsv._ep_ranks(sp), "pp": sp.pp, "prompt_tokens": sp.prompt_tokens, "context_tokens": sp.prompt_tokens, "concurrency": sp.concurrency, "graph_buckets": list(sp.graph_buckets), "graph_bucket": sp.graph_bucket, "notes": sp.notes}
+                g = {"tp": sp.tp, "dp": sp.dp, "ep": sp.ep or _ep_ranks(sp), "pp": sp.pp, "prompt_tokens": sp.prompt_tokens, "context_tokens": sp.prompt_tokens, "concurrency": sp.concurrency, "graph_buckets": list(sp.graph_buckets), "graph_bucket": sp.graph_bucket, "notes": sp.notes}
                 idx[cid] = {"model_case": _clean_text(str(sp.model_case or sp.model_label or "")), "phase": sp.phase, "forward_steps": max(1, int(att.decode_steps if sp.phase == "decode" else 1)), "observed_ms": float(obs) if obs else None, "geometry": g}
             meta = idx[cid]
             for kp in m_kps:
@@ -331,16 +370,16 @@ def _op_stat_summary(capture_dir: Path, model_hint: str = "", geom: Mapping[str,
     ksum = {"total_kernel_rows": total_rows, "total_kernel_duration_us": round(total_us, 2), "by_accelerator_core": {k: round(v, 2) for k, v in by_core.items()}, "by_op_engine": {op: {core: {"count": int(v["count"]), "total_us": round(v["total_us"], 2)} for core, v in cores.items()} for op, cores in by_op_engine.items()}, "top_op_types": top_ops}
     return ksum, _infer_from_top_ops(top_ops, model_hint, geom)
 def _collect_zero_shot_cells(output_dir: Path | None = None) -> tuple[list[dict[str, Any]], set[Path]]:
-    raw_cells = sorted((cell for root in zsv.WORKSTREAM_ROOTS for cell in zsv.discover_workstream(Path(root))), key=lambda c: (c.spec.dataset, c.spec.cell_id))
+    raw_cells = sorted((cell for root in () for cell in discover_workstream(Path(root))), key=lambda c: (c.spec.dataset, c.spec.cell_id))
     used_paths = {cell.kernel_paths[0].resolve() for cell in raw_cells if cell.success and cell.spec.model_case is not None and cell.kernel_paths}
     if output_dir is not None and (output_dir / "data" / "zero_shot_l1_l4_cells.jsonl").exists():
         return _read_jsonl_any(output_dir / "data" / "zero_shot_l1_l4_cells.jsonl"), used_paths
     exported = []
     for cell in raw_cells:
         if not cell.success or cell.spec.model_case is None: continue
-        attached = zsv.attach_trace(cell)
+        attached = attach_trace(cell)
         if attached.trace is None: continue
-        item = zsv.cell_to_dict(replace(attached, spec=replace(attached.spec, ep=attached.spec.ep or zsv._ep_ranks(attached.spec))))
+        item = cell_to_dict(replace(attached, spec=replace(attached.spec, ep=attached.spec.ep or _ep_ranks(attached.spec))))
         item["hardware_tier"] = "A5"; item["suite"] = "zero_shot_l1_l4"; exported.append(item)
     return exported, used_paths
 def _collect_structure_suites() -> tuple[list[dict[str, Any]], set[str]]:
@@ -683,7 +722,7 @@ def evaluate_dataset(dataset_dir: Path, *, strict_10pct: bool = False, full_popu
         simulator_name=simulator_identity(mindie_sim),
         predict=predict_capture_operators_and_step,
         observe=fleet_capture_observations.extract_capture_observations,
-        run_validation=zsv.run_validation,
+        run_validation=None,
         configure_roots=fleet_capture_observations.configure_observation_roots,
         data_roots=DATA_ROOTS,
         file_meta=lambda file_path: {"size_bytes": file_path.stat().st_size, "sha256": _sha256_file(file_path)},

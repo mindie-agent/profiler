@@ -98,10 +98,6 @@ def _dangling(interval: StreamInterval, root: int | None) -> bool:
     return interval.aliases_buffer and not interval.events_ordered
 
 
-def _aiv_waves(demand: int, cores: int) -> int:
-    return max(1, math.ceil(demand / cores)) if demand > 0 else 0
-
-
 def diagnose_region(
     region: ParallelRegion | Mapping[str, Any],
     *,
@@ -114,12 +110,11 @@ def diagnose_region(
     intervals = [node.interval for node in dag.nodes]
     streams = {x.stream_id for x in intervals}
     overlap, pct, span = dag.overlap_us, dag.overlap_pct, dag.critical_path_us
-    from .memory_evidence import intervals_memory_service
-    service, details = intervals_memory_service(intervals, region)
-    unique = details["unique_bytes"]
-    wall = max(dag.event_wall_us, service)
+    # Only observed DAG wall time and overlap are reported here.  A modeled
+    # memory service would add an unobserved duration to the measured span.
+    wall = dag.event_wall_us
     net = dag.serial_us - wall
-    details.update(dag.details(), net_wall_us=wall, memory_extension_us=wall-dag.event_wall_us)
+    details = {**dag.details(), "net_wall_us": wall}
     # ABI: ACLGraph capture records tasks for replay; cross-stream dependencies and capture boundaries must survive partitioning or fusion.
     if dag.capture_hazards:
         return Diagnostic(
@@ -167,31 +162,27 @@ def diagnose_region(
         hccl = [item for item in intervals if item.is_hccl and (item.io_bytes or item.read_bytes or item.write_bytes)]
         harmful = [item for item in hccl if item.hccl_expansion_mode == HcclExpansion.AIV.value]
         if harmful and aiv_sum > region.aiv_cores:
-            hccl_blocks = sum(item.aiv_blocks for item in harmful)
-            before = _aiv_waves(aiv_sum, region.aiv_cores)
-            after = _aiv_waves(max(0, aiv_sum - hccl_blocks), region.aiv_cores)
-            gain = overlap * max(0.0, (before - after) / max(1, before))
             return Diagnostic(
                 "A3", "CORE_ENGINE_OVERSUBSCRIPTION", pct, span, wall, net,
                 "hccl_aiv_expansion_steals_vector_cores",
                 f"observed HCCL AIV expansion; aiv_sum={aiv_sum}/{region.aiv_cores}",
                 ("set HCCL_OP_EXPANSION_MODE=CCU_SCHED on A5", "limit stream core num"),
                 (), "supported_hypothesis",
-                {**details, "aic_sum": aic_sum, "aiv_sum": aiv_sum, "gain_us": gain},
+                {**details, "aic_sum": aic_sum, "aiv_sum": aiv_sum},
             )
         return Diagnostic(
             "A3", "CORE_ENGINE_OVERSUBSCRIPTION", pct, span, wall, net,
             "cube_cube_or_aiv_aiv_wave_serialization",
             f"observed aic_sum={aic_sum}/{region.aic_cores} aiv_sum={aiv_sum}/{region.aiv_cores}",
             ("rebalance branch block dims", "serialize the weaker branch"),
-            (), "observed", {**details, "aic_sum": aic_sum, "aiv_sum": aiv_sum, "gain_us": 0.0},
+            (), "observed", {**details, "aic_sum": aic_sum, "aiv_sum": aiv_sum},
         )
     if net <= 0.0:
         return Diagnostic(
             "A4", "MEMORY_CONTENTION_OR_SYNC_EROSION", pct, span, wall, net,
-            "shared_bandwidth_service_plus_event_overhead",
-            f"unique_ws={unique} service={service:.4f}us events={region.event_pairs}",
-            ("reduce concurrent working set", "merge event pairs", "split the dominant branch"),
+            "observed_overlap_eroded_by_stream_and_event_overhead",
+            f"events={region.event_pairs} stream_to_stream={span:.4f}us",
+            ("merge event pairs", "split the dominant branch"),
             (), "supported_hypothesis", details,
         )
     return Diagnostic("OK", "TRUE_OVERLAP", pct, span, wall, net, "overlap_holds",

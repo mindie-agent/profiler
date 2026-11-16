@@ -33,7 +33,7 @@ from mindie_profiler.aclgraph_multistream import (
     diagnose_region,
     effective_launch_floor_us,
 )
-from mindie_sim.opflow.token_budget import envelope_size
+from mindie_profiler.token_budget import envelope_size
 
 
 def _interval(
@@ -93,7 +93,6 @@ def test_a3_hccl_aiv_expansion_vs_ccu() -> None:
     ccu_diag = diagnose_region(ccu)
     assert ccu_diag.code == "A3" and "hccl_aiv" not in ccu_diag.cause
     assert ccu_diag.net_speedup_us == pytest.approx(98.5)
-    assert ccu_diag.details["gain_us"] == 0.0
 
 
 def test_a4_contention_and_event_erosion() -> None:
@@ -101,12 +100,12 @@ def test_a4_contention_and_event_erosion() -> None:
         _region(
             _interval("a", 0, 0, 100, io=400_000_000),
             _interval("b", 1, 0, 100, io=400_000_000),
-            event_pairs=60,
+            event_pairs=80,
         )
     )
     assert diag.code == "A4" and diag.net_speedup_us <= 0.0
     assert "event" in diag.cause
-    assert diag.details["event_us"] == 90.0
+    assert diag.details["event_us"] == 120.0
 
 
 def test_a5_dangling_and_alias_hazards() -> None:

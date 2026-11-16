@@ -99,7 +99,7 @@
       ],
       "ffn_source_contract": {
         "evidence": {
-          "path": "/Users/maoxx241/code/sim-serving-host-io-20261030/tests/fixtures/verification/qwen35-a3-ffn-contract.json",
+          "path": "repository://sim-serving-host-io-20261030/tests/fixtures/verification/qwen35-a3-ffn-contract.json",
           "sha256": "c42b158e6f7bda51edd3fe607355a1a37633e920c35fd1be51cb75ebfb579f1a"
         },
         "shared_precision": "BF16 activation and weight in both low and high row captures",

@@ -11,7 +11,7 @@
 - **多机集群互联微基准生成与回执校核（`mindie-profiler fabric-probe`、`mindie_profiler/fabric_probe*.py`）**：
   - 支持 `--emit-script` 按拓扑参数生成零外部依赖的多卡 HCCL 延迟/带宽微基准探测脚本，并通过 `--parse-receipt` 校验实测探测输出，产出可直接注入 `mindie-sim` Mode B（`CalibratedFabricProfile`）的 `mindie-fabric-probe/1` 互联供给回执。
 - **单算子理论物理下界与双层 Roofline 标注（`mindie-profiler op-formula`、`mindie_profiler/op_formula_*.py`）**：
-  - 复用 `mindie_sim.op_formulas` 代数引擎计算单算子或批量算子明细的精确 FLOPs、访存字节数、硬物理下界与实测供给校准下的参考下界（`mindie-op-formula-mcp/1`），优先拦截低于硬物理下界的测量/归因异常。
+  - 复用 `mindie_sim` 代数引擎计算单算子或批量算子明细的精确 FLOPs、访存字节数、硬物理下界与实测供给校准下的参考下界（`mindie-op-formula-mcp/1`），优先拦截低于硬物理下界的测量/归因异常。
 - **`ACLGraph` 捕获/重放依赖图重建与多流重叠诊断（`mindie_profiler/aclgraph_*.py`）**：
   - 重建 `ACLGraph` 捕获与重放阶段的跨流事件依赖 DAG（`reconstruct_aclgraph_dag`），对多流串行化与重叠损失执行五级根因定界（`diagnose_aclgraph_overlap`），并核算昇腾硬件 SQ/CQ 任务队列容量预算与 SuperKernel 设备侧循环融合可行性。
 - **结构映射入口加固、统一配置常量治理与并行测试提速（`mindie_profiler/structure_mapping.py`、`mindie_profiler/profiler_configs.py`）**：

@@ -132,7 +132,7 @@
     },
     {
       "fixture": "a5_fia_paged_probe.csv",
-      "source": "/Users/maoxx241/code/sim-rewrite-20261027/raw/fia-paged-probe/op_summary_20261025101818.csv",
+      "source": "repository://sim-rewrite-20261027/raw/fia-paged-probe/op_summary_20261025101818.csv",
       "source_size_bytes": 192366,
       "source_sha256": "db393d959c2edc9786a7fee9852fead63b55e9b6f4ce4a86708e7d4d17cd0f32",
       "rows": [
@@ -226,7 +226,7 @@
   ],
   "source_semantics": [
     {
-      "source": "/Users/maoxx241/code/vllm-ascend/vllm_ascend/attention/attention_v1.py",
+      "source": "repository://vllm-ascend/vllm_ascend/attention/attention_v1.py",
       "lines": [
         1281,
         1339,
@@ -240,7 +240,7 @@
       "evidence": "Operator graph input order is key,keyCacheRef,slotMapping,value,valueCacheRef; cache capacities and mapping values are not active input geometry."
     },
     {
-      "source": "/Users/maoxx241/code/vllm-ascend/csrc/attention/sparse_flash_attention/op_host/sparse_flash_attention_def.cpp",
+      "source": "repository://vllm-ascend/csrc/attention/sparse_flash_attention/op_host/sparse_flash_attention_def.cpp",
       "lines": [
         23,
         43,
@@ -250,7 +250,7 @@
       "evidence": "Native order Q,K,V,indices,table,q lengths,kv lengths,Qrope,Krope; primary output attention_out."
     },
     {
-      "source": "/Users/maoxx241/code/vllm-ascend/csrc/attention/sparse_flash_attention/op_host/sparse_flash_attention_tiling.cpp",
+      "source": "repository://vllm-ascend/csrc/attention/sparse_flash_attention/op_host/sparse_flash_attention_tiling.cpp",
       "lines": [
         111,
         114,
@@ -260,7 +260,7 @@
       "evidence": "TND is (tokens,heads,dim); PA_BSND is (block_count,block_size,heads,dim). Projection requires recorded rank-four caches and block table, excludes page dimensions and scalar layout value."
     },
     {
-      "source": "/Users/maoxx241/code/vllm-ascend/csrc/attention/sparse_attn_sharedkv/op_host/sparse_attn_sharedkv_def.cpp",
+      "source": "repository://vllm-ascend/csrc/attention/sparse_attn_sharedkv/op_host/sparse_attn_sharedkv_def.cpp",
       "lines": [
         23,
         28,
@@ -272,7 +272,7 @@
       "evidence": "Native order retains separate original and optional compressed KV tensors and block tables; compressed presence is compared, scalar compression ratio/masks are not."
     },
     {
-      "source": "/Users/maoxx241/code/vllm-ascend/csrc/attention/sparse_attn_sharedkv/op_host/sparse_attn_sharedkv_tiling.cpp",
+      "source": "repository://vllm-ascend/csrc/attention/sparse_attn_sharedkv/op_host/sparse_attn_sharedkv_tiling.cpp",
       "lines": [
         105,
         111,
@@ -282,7 +282,7 @@
       "evidence": "PA_ND cache axes are (block_count,block_size,heads,dim); separate original/compressed block tables are checked by source."
     },
     {
-      "source": "/Users/maoxx241/code/vllm-ascend/vllm_ascend/attention/sfa_v1.py",
+      "source": "repository://vllm-ascend/vllm_ascend/attention/sfa_v1.py",
       "lines": [
         977,
         986,
@@ -298,7 +298,7 @@
       "evidence": "Native token input supports T,H or B,S,H; Q outputs append head and feature axes. Row projection preserves product of only the recorded leading axes; scalar mode, scale and rope inputs remain outside the selected active scope."
     },
     {
-      "source": "/Users/maoxx241/code/vllm-ascend/csrc/attention/lightning_indexer/op_host/lightning_indexer_def.cpp",
+      "source": "repository://vllm-ascend/csrc/attention/lightning_indexer/op_host/lightning_indexer_def.cpp",
       "lines": [
         23,
         33,

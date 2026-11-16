@@ -1,6 +1,6 @@
 {
   "schema_version": "mindie-derived-capture-fixture/1",
-  "source": "/Volumes/data-tmp/tmp/mindie-body-profiling-kimi-op-summary.csv",
+  "source": "capture://local-tmp/tmp/mindie-body-profiling-kimi-op-summary.csv",
   "source_sha256": "ab1d44d3613ecb92d71af6d790ab9dfc72be5aabfe92bf4f99d584fbd0f9e648",
   "source_size_bytes": 110031770,
   "source_identity_basis": "Existing full-replay verified source identity; this pass streamed the same file to select unedited rows and count descriptors.",
@@ -111,7 +111,7 @@
   },
   "independent_implementation_evidence": [
     {
-      "path": "/Users/maoxx241/code/vllm-ascend-v41-private/vllm_ascend/ops/fused_moe/shared_experts.py",
+      "path": "repository://vllm-ascend-v41-private/vllm_ascend/ops/fused_moe/shared_experts.py",
       "sha256": "f1780df8ec2fc290bfeb946e5d48edcb8c1b4aee0f50c1bd9d10291def201e77",
       "revision": "ae923905948f360f4b7ab06df52d0789a0c9316e",
       "lines": [

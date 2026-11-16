@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 _STRUCT = Path(__file__).resolve().parent
-_DEFAULT_DATA_ROOTS = (Path("/Volumes/data/mindie-sim-data"), Path("/Users/maoxx241/code/mindie-agent/.workstreams"))
+_DEFAULT_DATA_ROOTS = (Path("/Volumes/data/mindie-sim-data"), Path("repository://mindie-agent/.workstreams"))
 _DEFAULT_RESULTS = _STRUCT / "results"
 _DEFAULT_CASES = _STRUCT / "cases"
 _DEFAULT_ARCHIVE = Path("/Volumes/data/mindie-sim-data/acceptance-archives-20261030")

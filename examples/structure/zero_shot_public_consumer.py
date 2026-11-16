@@ -15,13 +15,52 @@ import hashlib
 import json
 import math
 import re
+from types import SimpleNamespace
 from typing import Any, Mapping, Sequence
 
 
 def _operator_row(*args: Any, **kwargs: Any) -> Any:
-    try: from .zero_shot_piecewise_validation import OperatorRow
-    except ImportError: from zero_shot_piecewise_validation import OperatorRow
+    try:
+        from mindie_profiler.sim_bridge_case import OperatorRow
+    except ImportError:
+        from sim_bridge_case import OperatorRow
     return OperatorRow(*args, **kwargs)
+
+
+def _raw_case(spec: Any) -> dict[str, Any]:
+    """Read the declared source case without a private compiler dependency."""
+    path = getattr(spec, "model_case", None)
+    if path is None:
+        return {}
+    import json as _json
+    from pathlib import Path as _Path
+    candidate = _Path(path)
+    if not candidate.is_file():
+        return {}
+    raw = _json.loads(candidate.read_text(encoding="utf-8"))
+    runtime = dict(raw.get("runtime") or {})
+    runtime.update({"tp": int(getattr(spec, "tp", 1) or 1),
+                    "dp": int(getattr(spec, "dp", 1) or 1),
+                    "ep": int(getattr(spec, "ep", 1) or 1),
+                    "pp": int(getattr(spec, "pp", 1) or 1)})
+    return {**raw, "runtime": runtime}
+
+
+def _public_case(spec: Any) -> Any:
+    from mindie_sim.prediction.structure import parse_case
+    return parse_case(_raw_case(spec))
+
+
+def _geometry(spec: Any, phase: str) -> Any:
+    """Declared request geometry for local-token selection (no timing input)."""
+    batch = max(1, int(getattr(spec, "concurrency", 1) or 1))
+    dp = max(1, int(getattr(spec, "dp", 1) or 1))
+    local = max(1, (batch + dp - 1) // dp)
+    tokens = (max(1, int(getattr(spec, "prompt_tokens", 1) or 1))
+              if str(phase) == "prefill"
+              else max(1, int(getattr(spec, "tokens_per_sequence", 1) or 1)))
+    requests = tuple(SimpleNamespace(q_len=tokens) for _ in range(local))
+    return SimpleNamespace(local_batch=local, batch=local, requests=requests)
 
 
 def _typed_metadata(value: Any) -> dict[str, Any]:
@@ -86,8 +125,6 @@ def public_supply_key(case: Any) -> str:
 def _resolved_public_case(spec: Any, *, case: Any = None) -> Any:
     if case is not None:
         return case
-    try: from .zero_shot_piecewise_validation import _public_case
-    except ImportError: from zero_shot_piecewise_validation import _public_case
     return _public_case(spec)
 
 
@@ -348,8 +385,6 @@ def _public_consume(projection: Mapping[str, Any], base_rows: Sequence[Any], *,
 def _selected_moe_comm(spec: Any, features: Any, *, top_k: int, experts: int, ep: int) -> str:
     """PCOM27S canonical effective MC2 selector on the normalized feature record."""
     from mindie_sim.prediction.moe_comm_selection import MoeCommConfig, local_tokens
-    try: from .zero_shot_piecewise_validation import _geometry, _raw_case
-    except ImportError: from zero_shot_piecewise_validation import _geometry, _raw_case
     kernels = ((_raw_case(spec).get('runtime') or {}).get('kernels') or {})
     if kernels.get('native_moe_protocol'): return 'mc2'
     config = MoeCommConfig.from_features(features, ep=max(1, ep), top_k=max(1, top_k), experts=max(1, experts))

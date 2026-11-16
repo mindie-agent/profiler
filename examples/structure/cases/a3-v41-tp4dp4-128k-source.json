@@ -4080,7 +4080,7 @@
       "source_model_type": "deepseek_v41_text",
       "input_form": "explicit normalized structural ModelSpec; new capture not fit to timing",
       "structural_template_identity": {
-        "path": "/Users/maoxx241/code/profiler/examples/structure/cases/decode-a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4.json",
+        "path": "repository://profiler/examples/structure/cases/decode-a3_v41_w8a8_tp4_dp4_ep16_dspark7_c4.json",
         "sha256": "ec1cfe7b1e54eccc305b636d6f733b9be73671a8adedbcae188ad1304f9c67fe",
         "size_bytes": 141904
       },

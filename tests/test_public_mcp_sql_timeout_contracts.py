@@ -52,7 +52,6 @@ from mindie_profiler import (
     native_capture,
     native_capture_shm,
     op_api_registry,
-    op_formula_annotator,
     profiler_configs,
     public,
     repro_mcp,
@@ -87,64 +86,11 @@ def _paged_attention_raw_row() -> dict[str, object]:
     }
 
 
-def test_formula_mcp_observed_alias_topology_ranks_and_strict_schema() -> None:
-    params = {"M": 64, "N": 128, "K": 256, "dtype": "fp16"}
-    by_obs = op_formula_annotator.call_mcp_tool(
-        "evaluate_op_formula",
-        {"operator": "matmul", "params": params, "sku": "Ascend950DT_9581", "observed_us": 0.00001},
-    )
-    by_meas = op_formula_annotator.call_mcp_tool(
-        "evaluate_op_formula",
-        {"operator": "matmul", "params": params, "sku": "Ascend950DT_9581", "measured_us": 0.00001},
-    )
-    assert by_obs["status"] == "bound_violation"
-    assert by_obs["bound_violation_warning"] is True
-    assert by_obs["measured_us"] == pytest.approx(0.00001)
-    assert by_obs["status"] == by_meas["status"]
-    assert by_obs["t_floor_us"] == by_meas["t_floor_us"]
-
-    conflict = op_formula_annotator.call_mcp_tool(
-        "evaluate_op_formula",
-        {"operator": "matmul", "params": params, "observed_us": 1.0, "measured_us": 2.0},
-    )
-    assert conflict["status"] == "invalid_request"
-
-    extra = op_formula_annotator.call_mcp_tool(
-        "evaluate_op_formula",
-        {"operator": "matmul", "params": params, "measured_supply": {"aic_cores": 24}},
-    )
-    assert extra["status"] == "invalid_request"
-
-    ring = op_formula_annotator.call_mcp_tool(
-        "evaluate_op_formula",
-        {"operator": "all_reduce", "params": {"bytes": 1048576}, "sku": "Ascend950DT_9581", "topology": "ring", "ranks": 8},
-    )
-    hd = op_formula_annotator.call_mcp_tool(
-        "evaluate_op_formula",
-        {"operator": "all_reduce", "params": {"bytes": 1048576}, "sku": "Ascend950DT_9581", "topology": "hd", "ranks": 8},
-    )
-    assert ring["status"] == "unmeasured" and hd["status"] == "unmeasured"
-    assert ring["t_ref_us"] != hd["t_ref_us"]
-
-    ann_obs = op_formula_annotator.call_mcp_tool(
-        "annotate_profile_formulas",
-        {
-            "rows": [{"operator": "all_reduce", "params": {"bytes": 1048576}, "observed_us": 0.00001}],
-            "sku": "Ascend950DT_9581",
-            "topology": "ring",
-            "ranks": 8,
-        },
-    )
-    assert ann_obs["status"] == "violations_detected"
-    assert ann_obs["violation_count"] == 1
-
-
 def test_aclgraph_and_all_mcp_descriptors_publish_exact_bounded_input_schemas() -> None:
     all_groups = (
         aclgraph_mcp.TOOL_SPECS,
         op_api_registry.MCP_TOOL_SPECS,
         repro_mcp.MCP_TOOL_SPECS,
-        op_formula_annotator.MCP_TOOL_SPECS,
     )
     try:
         import tiktoken

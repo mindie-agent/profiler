@@ -14,7 +14,7 @@
   "derivation": "All consecutive rows from the embedding of the first complete q=4 target body through its vocabulary projection. Parsed CSV fields and integer-time source strings preserved; surrounding MTP/prefill excluded. Expected boundaries are independently checked against the retained layer-plan declaration, not assumed from the slice length.",
   "fixture_sha256": "5b8aeb0ef155dc550ba5b055827b589ce0cf88c0c9c909d36b97185ae2d5026e",
   "declaration": {
-    "case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/qwen36-a3-tp4.json",
+    "case_path": "repository://sim-rewrite-20261027/examples/cases/qwen36-a3-tp4.json",
     "case_sha256": "e1c8e9d7d5e2be4d4f7475875a605808917a34ce0849931696a4b2fe7bc45297",
     "basis": "existing Sim parse_case ModelSpec layer_plans projection"
   },

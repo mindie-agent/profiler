@@ -102,7 +102,7 @@
       ],
       "native_response_transfer": {
         "baseline_case_identity": {
-          "path": "/Users/maoxx241/code/profiler/examples/structure/cases/decode-qwen36-a3-tp4-c128.json",
+          "path": "repository://profiler/examples/structure/cases/decode-qwen36-a3-tp4-c128.json",
           "sha256": "c56069fd6e51ee64f892e4188b0f4d04230fc6578cea1fc0ae7a1e544769c626",
           "size_bytes": 2972
         },

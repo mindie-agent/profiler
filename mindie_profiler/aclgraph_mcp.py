@@ -28,16 +28,16 @@ from .aclgraph_multistream import (
 
 
 def _ok(payload: dict[str, Any], required: tuple[str, ...]) -> dict[str, Any]:
-    from mindie_sim.opflow.token_budget import bounded_envelope
+    from .token_budget import bounded_mcp_envelope
 
     payload.setdefault("ok", 1)
-    return bounded_envelope(payload, required=required)
+    return bounded_mcp_envelope(payload, required=required)
 
 
 def _err(code: str, message: str = "") -> dict[str, Any]:
-    from mindie_sim.opflow.token_budget import bounded_error
+    from .token_budget import bounded_mcp_error
 
-    return bounded_error(code, message)
+    return bounded_mcp_error(code, message)
 
 
 def aclgraph_diagnose(region: Mapping[str, Any]) -> dict[str, Any]:

@@ -17,8 +17,8 @@ import pytest
 from mindie_profiler.events import Event, ProfilerUsageError, SourceRef, Window
 from mindie_profiler.structure_mapping import StructureMapper, _seal_digest, read_metadata
 from mindie_profiler.structure_subgraphs import StructureTargets
-from test_nr_s6_capture_mapping_metadata import CARRIERS, Deadline, ReadOnly
-from test_nr_s6_public_mapping_parity import _fingerprint, _freeze
+from mapping_fixtures import CARRIERS, Deadline, ReadOnly
+from test_public_mapping_parity import _fingerprint, _freeze
 
 
 def _structure():

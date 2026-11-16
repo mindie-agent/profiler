@@ -17,12 +17,12 @@
     "size_bytes": 3552771
   },
   "case_identity": {
-    "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/qwen-source-gdn-native/qwen35-35b-a5-tp4-c64-graph-source-gdn-native.json",
+    "path": "repository://sim-rewrite-20261027/examples/cases/high-concurrency-20261030/qwen-source-gdn-native/qwen35-35b-a5-tp4-c64-graph-source-gdn-native.json",
     "sha256": "45af9b4b530a72d55925e70f1100fc76d4af044d5c7b718d5c837e8c4012d3f7",
     "size_bytes": 7343
   },
   "hardware_declaration_identity": {
-    "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/qwen-source-gdn-native/qwen35-35b-a5-tp4-c64-graph-source-gdn-native.json",
+    "path": "repository://sim-rewrite-20261027/examples/cases/high-concurrency-20261030/qwen-source-gdn-native/qwen35-35b-a5-tp4-c64-graph-source-gdn-native.json",
     "sha256": "45af9b4b530a72d55925e70f1100fc76d4af044d5c7b718d5c837e8c4012d3f7",
     "size_bytes": 7343
   },

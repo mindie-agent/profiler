@@ -23,8 +23,8 @@ from typing import Any, Iterable, Mapping, Sequence
 
 SCHEMA_VERSION = "fleet-capture-observations/2"
 DEFAULT_DATA_ROOTS = (Path("/Volumes/data/mindie-sim-data"),
-                      Path("/Users/maoxx241/code/mindie-agent/.workstreams"),
-                      Path("/Users/maoxx241/code"))
+                      Path("repository://mindie-agent/.workstreams"),
+                      Path("repository://code"))
 DATA_ROOTS: tuple[Path, ...] = DEFAULT_DATA_ROOTS
 MULTINODE_RUNS_ROOT = Path("/Volumes/data/mindie-sim-data/a5/multinode-full-coverage-20261108/runs")
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
@@ -47,7 +47,7 @@ _REGISTERED_FORWARD_CACHE: dict[tuple[str, int, int], dict[str, Any]] = {}
 # Exact historical-path -> recovered same-bytes source.  Used only when the
 # recorded path is absent and both size and streamed SHA-256 match.
 _RECOVERED_SOURCES: dict[str, dict[str, Any]] = {
-    "/Volumes/data-tmp/tmp/mindie-body-profiling-kimi-op-summary.csv": {
+    "capture://local-tmp/tmp/mindie-body-profiling-kimi-op-summary.csv": {
         "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_w4a8_mxfp_dp4_tp8_ep32_p32k_20261030/raw/prof-export/op_summary_20261023053244.csv",
         "size_bytes": 110031770,
         "sha256": "ab1d44d3613ecb92d71af6d790ab9dfc72be5aabfe92bf4f99d584fbd0f9e648",

@@ -5,6 +5,6 @@
     465,
     728
   ],
-  "source_case_path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c1.json",
+  "source_case_path": "repository://sim-rewrite-20261027/examples/cases/high-concurrency-20261030/kimi-variants/a3_kimi4_tp8_w4a8_c1.json",
   "basis": "unaltered actual CSV cells; first complete recurrent 4-layer decode candidate, not a synthesized workload"
 }

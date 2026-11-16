@@ -1327,7 +1327,7 @@
         "vllm_ascend/ops/register_custom_ops.py:123-156"
       ],
       "source_document_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/docs/operators/moe-output-reduction.md",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/docs/operators/moe-output-reduction.md",
         "sha256": "1abf1549fbdf2fb3f1383c5828ba1b9bafee117fa75f39cc1e80722262fcc7a5",
         "size_bytes": 5752
       },

@@ -31,6 +31,8 @@
 
 from __future__ import annotations
 
+import hashlib
+
 import json
 import os
 import re
@@ -563,6 +565,72 @@ def bounded_envelope(value: dict[str, Any], *, limit: int = 3000,
     return _fit_terminal(payload, int(limit))
 
 
+MAX_ENVELOPE_BYTES = 250
+_SAFE_ENVELOPE_BYTES = 246
+
+
+def _envelope_bytes(payload: Any) -> int:
+    default = json.dumps(payload, ensure_ascii=True, sort_keys=True)
+    compact = json.dumps(payload, ensure_ascii=False, sort_keys=True,
+                         separators=(",", ":"))
+    return max(len(default.encode("utf-8")), len(compact.encode("utf-8")))
+
+
+def _truncate_code(value: Any, chars: int = 16) -> str:
+    text = str(value)
+    return text if len(text) <= chars else text[: max(0, chars - 1)] + "~"
+
+
+def envelope_size(payload: Any) -> dict[str, int]:
+    """Report serialized envelope bytes under both supported JSON spellings."""
+    default = json.dumps(payload, ensure_ascii=True, sort_keys=True)
+    compact = json.dumps(payload, ensure_ascii=False, sort_keys=True,
+                         separators=(",", ":"))
+    default_bytes = len(default.encode("utf-8"))
+    compact_bytes = len(compact.encode("utf-8"))
+    return {"utf8_bytes": max(default_bytes, compact_bytes),
+            "token_estimate": max(default_bytes, compact_bytes),
+            "default_json_bytes": default_bytes,
+            "compact_json_bytes": compact_bytes}
+
+
+def bounded_mcp_envelope(payload: dict[str, Any], *, limit: int = MAX_ENVELOPE_BYTES,
+                        required: Any = ()) -> dict[str, Any]:
+    """Return a deterministic MCP envelope <= ``limit`` UTF-8 bytes.
+
+    Required identity fields are never shortened or dropped; optional
+    diagnostics are removed in declaration order.  If even the identity cannot
+    fit, a fixed ``EBUDGET`` receipt is returned instead of a truncated id.
+    """
+    if not isinstance(payload, dict):
+        raise TypeError("payload must be a dict")
+    if type(limit) is not int or not 32 <= limit <= MAX_ENVELOPE_BYTES:
+        raise ValueError("limit must be an integer in [32, 250]")
+    candidate = dict(payload)
+    keep = set(required) | {"ok"}
+    target = min(limit, _SAFE_ENVELOPE_BYTES)
+    if _envelope_bytes(candidate) <= target:
+        return candidate
+    for key in [name for name in candidate if name not in keep]:
+        del candidate[key]
+        if _envelope_bytes(candidate) <= target:
+            return candidate
+    if _envelope_bytes(candidate) <= target:
+        return candidate
+    failure = {"ok": 0, "err": "EBUDGET", "sha": hashlib.sha256(
+        json.dumps(payload, ensure_ascii=True, sort_keys=True, default=str).encode("utf-8")
+    ).hexdigest()[:8]}
+    return failure if _envelope_bytes(failure) <= limit else {"ok": 0, "err": "EBUDGET"}
+
+
+def bounded_mcp_error(code: str, message: str = "") -> dict[str, Any]:
+    """Compact MCP error: keep the code, drop an overlong message."""
+    return bounded_mcp_envelope(
+        {"ok": 0, "err": _truncate_code(code), "msg": str(message)},
+        required=("ok", "err"),
+    )
+
+
 serialize = snapshot_call(serialize, 'value')
 receipt = snapshot_call(receipt, 'value', 'extra')
 _truncate_lists_snapshot = truncate_lists
@@ -577,6 +645,9 @@ __all__ = [
     "UPPER_BOUND_TOKENIZER_ID",
     "bounded_envelope",
     "bounded_mcp_envelope",
+    "bounded_mcp_error",
+    "envelope_size",
+    "MAX_ENVELOPE_BYTES",
     "estimate_tokens",
     "fit_receipt_envelope",
     "omit_unrepresentable_paths",

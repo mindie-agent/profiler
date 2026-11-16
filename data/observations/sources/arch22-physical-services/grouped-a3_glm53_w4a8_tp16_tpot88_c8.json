@@ -19,7 +19,7 @@
     "size_bytes": 2308757
   },
   "case_identity": {
-    "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot88_c8.json",
+    "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm78/a3_glm53_w4a8_tp16_tpot88_c8.json",
     "sha256": "5f745effaa4d40b208a4d04c3ecd43bfd38a13c67b556dd5250e0452c10ae13e",
     "size_bytes": 6512
   },

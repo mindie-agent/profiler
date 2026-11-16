@@ -18,6 +18,6 @@ jobs:
       release-notes-path: docs/releases/profiler-0.5.15.md
       python: /tmp/prof-rel-venv/bin/python
       setup-command: |
-        uv venv --seed --python 3.13 /tmp/prof-rel-venv && uv pip install --python /tmp/prof-rel-venv/bin/python ".[test]" && rm -rf build dist *.egg-info .venv
+        uv venv --seed --python 3.13 /tmp/prof-rel-venv && uv pip install --python /tmp/prof-rel-venv/bin/python ".[test]" && /tmp/prof-rel-venv/bin/python -c "import mindie_sim.prediction.runtime.accel_build as b; b.build_accel()" && rm -rf build dist *.egg-info .venv
       test-command: |
-        PYTHONDONTWRITEBYTECODE=1 /tmp/prof-rel-venv/bin/python -B -m pytest -q -n auto -p no:cacheprovider -m "not live_npu"
+        PYTHONDONTWRITEBYTECODE=1 /tmp/prof-rel-venv/bin/python -B -m pytest -q -n auto --dist worksteal -p no:cacheprovider -m "not live_npu"

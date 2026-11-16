@@ -33,7 +33,7 @@
           "rule_count": 0,
           "evidence_refs": [
             {
-              "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/qwen36-a5.json",
+              "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/qwen36-a5.json",
               "sha256": "1b237cec438c34b64a05b68407e174bc044df5b8e1da3b0441eaefe7609a7479",
               "size_bytes": 3138
             }
@@ -46,7 +46,7 @@
         "phase": "prefill",
         "runtime_identity": {
           "version": "0.8.0",
-          "package_path": "/Volumes/data-tmp/tmp/profiler-unified-runtime/lib/python3.13/site-packages/mindie_sim",
+          "package_path": "capture://local-tmp/tmp/profiler-unified-runtime/lib/python3.13/site-packages/mindie_sim",
           "package_sha256": "39b4d09460b9b33edd1b16189b1c63881feca2cd3c748d90874c1f66dfba619f"
         },
         "model_case_identity": {
@@ -287,7 +287,7 @@
           "rule_count": 0,
           "evidence_refs": [
             {
-              "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/v4pro-a3-w4a8-tp16.json",
+              "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/v4pro-a3-w4a8-tp16.json",
               "sha256": "10707301e6c3645626661748ad57ca6a340b78eed383259ee92ee0fd1bd642f1",
               "size_bytes": 9919
             }
@@ -300,7 +300,7 @@
         "phase": "prefill",
         "runtime_identity": {
           "version": "0.8.0",
-          "package_path": "/Volumes/data-tmp/tmp/profiler-unified-runtime/lib/python3.13/site-packages/mindie_sim",
+          "package_path": "capture://local-tmp/tmp/profiler-unified-runtime/lib/python3.13/site-packages/mindie_sim",
           "package_sha256": "39b4d09460b9b33edd1b16189b1c63881feca2cd3c748d90874c1f66dfba619f"
         },
         "model_case_identity": {
@@ -961,7 +961,7 @@
           "elapsed_seconds": 90.23782058293,
           "peak_sampled_rss_bytes": 75825152,
           "runtime_identity": {
-            "package_path": "/Volumes/data-tmp/tmp/profiler-unified-runtime/lib/python3.13/site-packages/mindie_sim",
+            "package_path": "capture://local-tmp/tmp/profiler-unified-runtime/lib/python3.13/site-packages/mindie_sim",
             "version": "0.8.0",
             "package_sha256": "d4034cdd5ba4c86d7f56625093d7a9c06483afad0f1513724766d0f74a11ca75",
             "file_count": 294,

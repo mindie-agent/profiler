@@ -48,12 +48,10 @@ from mindie_profiler.op_api_registry import (
     inspect_op_abi, operator_names,
 )
 from mindie_profiler.repro_op import _compact_occurrence, generate_single_op_reproducer
-from mindie_sim.diff_trace import (
-    attribute_diff, effective_operator_rows, pad_aware_operator_cost,
+from native_abi_fixtures import (
+    _parse_header_signature, fa_binding, fa_row, gmm_binding, paged_binding,
+    paged_row,
 )
-from nr_s6_support import _parse_header_signature, fa_row, paged_row
-
-from nr_s6_support import fa_binding, gmm_binding, paged_binding
 
 def test_catalog_schema_and_counts():
     summary = catalog_summary()
@@ -127,51 +125,6 @@ def test_reproducer_dry_run_and_manifest(tmp_path):
     assert manifest["schema"] == "mindie-single-op-repro-manifest/1"
     assert manifest["fidelity"] == result["fidelity"]
     assert manifest["checks"]["metadata_installable"] is True
-
-
-def test_diff_trace_host_and_collective_scenarios():
-    predicted = {"total_ms": 8, "ops": [
-        {"name": "Matmul", "stream": 0, "start_ms": 0, "duration_ms": 8}]}
-    captured = {"total_ms": 9, "ops": [
-        {"name": "Matmul", "stream": 0, "start_ms": 0, "duration_ms": 8}],
-        "gaps": [{"stream": 1, "start_ms": 8, "duration_ms": 1}]}
-    host = attribute_diff(predicted, captured, launch_overhead_us=0)
-    assert host["buckets"]["host_dispatch_bubble_delta_ms"] == pytest.approx(1.0)
-    assert host["host_bound_ratio"] == pytest.approx(1 / 9, rel=1e-6)
-    predicted_comm = {"total_ms": 10, "ops": [
-        {"name": "Matmul", "stream": 0, "start_ms": 0, "duration_ms": 8},
-        {"name": "AllReduce", "stream": 0, "start_ms": 8, "duration_ms": 2}]}
-    captured_comm = {"total_ms": 11, "ops": [
-        {"name": "Matmul", "stream": 0, "start_ms": 0, "duration_ms": 8},
-        {"name": "AllReduce", "stream": 0, "start_ms": 8, "duration_ms": 3}]}
-    comm = attribute_diff(predicted_comm, captured_comm, launch_overhead_us=0)
-    assert comm["buckets"]["collective_and_skew_delta_ms"] == pytest.approx(1.0)
-    assert comm["conservation"]["exact"] is True
-
-
-def test_effective_rows_and_pad_aware_cost():
-    masked = effective_operator_rows("aclnnFlashAttentionVarLenScore", 48, 33,
-                                     cann_version="8.0")
-    assert masked["mode"] == "masked_varlen"
-    assert masked["charged_tokens"] == 33
-    assert masked["padded_tokens"] == 15
-    full = effective_operator_rows("aclnnRmsNorm", 48, 33, cann_version="9.0")
-    assert full["charged_tokens"] == 48
-    grouped = effective_operator_rows(
-        "aclnnGroupedMatmulV4", 64, None, {"group_list": [16, 32, 48, 64]},
-        cann_version="9.0")
-    assert grouped["charged_tokens"] == 64
-    cost = pad_aware_operator_cost("aclnnGroupedMatmulV4", 6.4, 64, None,
-                                   bound_args={"group_list": [16, 32, 48, 48]},
-                                   cann_version="9.0")
-    assert cost["duration_ms"] == pytest.approx(4.8)
-    unknown = effective_operator_rows("mystery_op", 10, None)
-    assert unknown["semantic_source"] == "unknown_operator"
-    masked_cost = pad_aware_operator_cost("aclnnFlashAttentionVarLenScore", 10.0,
-                                          48, 33, cann_version="8.0")
-    assert masked_cost["duration_ms"] == 10.0
-    assert masked_cost["work_model"] == "bucket_basis_unresolved"
-    assert masked_cost["row_scaled_estimate_ms"] == pytest.approx(10.0 * 33 / 48)
 
 
 def test_fabric_plan_and_synthetic_recovery():
@@ -254,104 +207,6 @@ def test_inspect_card_is_identity_complete():
     assert card["identity"]["source_sha256"]
 
 
-# ------------------------------------------------------------------- R1
-def test_r1_parallel_stream_idle_is_zero_host_bubble():
-    predicted = {"total_ms": 10, "ops": [{"name": "Matmul", "stream": 0,
-                                          "start_ms": 0, "duration_ms": 10}]}
-    captured = {"total_ms": 10, "ops": [{"name": "Matmul", "stream": 0,
-                                         "start_ms": 0, "duration_ms": 10}],
-                "gaps": [{"stream": 1, "start_ms": 0, "duration_ms": 5},
-                         {"stream": 2, "start_ms": 0, "duration_ms": 5}]}
-    result = attribute_diff(predicted, captured, launch_overhead_us=0)
-    assert result["buckets"]["host_dispatch_bubble_delta_ms"] == 0.0
-    assert result["buckets"]["kernel_roofline_and_clock_delta_ms"] == 0.0
-    assert result["host_bound_ratio"] == 0.0
-    assert result["conservation"]["exact"] is True
-
-
-def test_r1_parallel_duration_changes_are_not_double_counted():
-    predicted = {"total_ms": 10, "ops": [
-        {"name": "Matmul", "stream": 0, "start_ms": 0, "duration_ms": 10},
-        {"name": "Matmul", "stream": 1, "start_ms": 0, "duration_ms": 10}]}
-    captured = {"total_ms": 11, "ops": [
-        {"name": "Matmul", "stream": 0, "start_ms": 0, "duration_ms": 11},
-        {"name": "Matmul", "stream": 1, "start_ms": 0, "duration_ms": 11}]}
-    result = attribute_diff(predicted, captured, launch_overhead_us=0)
-    assert result["buckets"]["kernel_roofline_and_clock_delta_ms"] == pytest.approx(1.0)
-    assert result["kernel_roofline_and_clock"]["roofline_clock_explained_ms"] == pytest.approx(1.0)
-    assert result["kernel_roofline_and_clock"]["unexplained_residual_ms"] == pytest.approx(0.0)
-
-
-def test_r1_cast_under_matmul_has_zero_graph_delta():
-    predicted = {"total_ms": 10, "ops": [{"name": "Matmul", "stream": 0,
-                                          "start_ms": 0, "duration_ms": 10}]}
-    captured = {"total_ms": 10, "ops": [
-        {"name": "Matmul", "stream": 0, "start_ms": 0, "duration_ms": 10},
-        {"name": "Cast", "stream": 1, "start_ms": 0, "duration_ms": 2}]}
-    result = attribute_diff(predicted, captured, launch_overhead_us=0)
-    assert result["buckets"]["graph_lowering_delta_ms"] == 0.0
-    assert result["total_delta_ms"] == 0.0
-
-
-def test_r1_matched_fallback_is_charged_once():
-    predicted = {"total_ms": 10, "ops": [
-        {"name": "Matmul", "stream": 0, "start_ms": 0, "duration_ms": 8},
-        {"name": "X", "stream": 0, "start_ms": 8, "duration_ms": 2}]}
-    captured = {"total_ms": 11, "ops": [
-        {"name": "Matmul", "stream": 0, "start_ms": 0, "duration_ms": 8},
-        {"name": "X", "stream": 0, "start_ms": 8, "duration_ms": 3,
-         "fallback": True}]}
-    result = attribute_diff(predicted, captured, launch_overhead_us=0)
-    assert result["buckets"]["graph_lowering_delta_ms"] == pytest.approx(1.0)
-    assert result["buckets"]["kernel_roofline_and_clock_delta_ms"] == pytest.approx(0.0)
-
-
-def test_r1_removed_op_is_a_negative_graph_delta():
-    predicted = {"total_ms": 10, "ops": [
-        {"name": "A", "stream": 0, "start_ms": 0, "duration_ms": 5},
-        {"name": "B", "stream": 0, "start_ms": 5, "duration_ms": 5}]}
-    captured = {"total_ms": 5, "ops": [
-        {"name": "A", "stream": 0, "start_ms": 0, "duration_ms": 5}]}
-    result = attribute_diff(predicted, captured, launch_overhead_us=0)
-    assert result["buckets"]["graph_lowering_delta_ms"] == pytest.approx(-5.0)
-    assert result["status"] == "partial"
-    assert result["conservation"]["exact"] is True
-
-
-def test_r1_improvements_are_signed_not_clipped():
-    predicted = {"total_ms": 10, "ops": [{"name": "Matmul", "stream": 0,
-                                          "start_ms": 0, "duration_ms": 10}]}
-    captured = {"total_ms": 8, "ops": [{"name": "Matmul", "stream": 0,
-                                        "start_ms": 0, "duration_ms": 8}]}
-    result = attribute_diff(predicted, captured, launch_overhead_us=0)
-    assert result["total_delta_ms"] == pytest.approx(-2.0)
-    assert result["buckets"]["kernel_roofline_and_clock_delta_ms"] == pytest.approx(-2.0)
-    assert result["conservation"]["exact"] is True
-
-
-def test_r1_missing_evidence_is_partial_and_clock_is_never_assumed():
-    result = attribute_diff({"total_ms": 10}, {"total_ms": 12})
-    assert result["status"] == "partial"
-    assert result["issues"]
-    assert result["kernel_roofline_and_clock"]["clock_status"] == "unavailable"
-    assert result["kernel_roofline_and_clock"]["nominal_aic_mhz"] is None
-    assert result["kernel_roofline_and_clock"]["thermal_throttled"] is None
-
-
-def test_r1_stages_are_ordered_and_sum_exactly():
-    predicted = {"total_ms": 10, "ops": [
-        {"name": "Matmul", "stream": 0, "start_ms": 0, "duration_ms": 10}]}
-    captured = {"total_ms": 12, "ops": [
-        {"name": "Matmul", "stream": 0, "start_ms": 0, "duration_ms": 10},
-        {"name": "AllReduce", "stream": 0, "start_ms": 10, "duration_ms": 2}]}
-    result = attribute_diff(predicted, captured, launch_overhead_us=0)
-    stages = result["stages"]
-    assert [stages[key] for key in ("R0", "R1", "R2", "R3", "R4_model", "O")] == sorted(
-        stages[key] for key in ("R0", "R1", "R2", "R3", "R4_model", "O"))
-    assert result["buckets"]["collective_and_skew_delta_ms"] == pytest.approx(2.0)
-    assert sum(result["buckets"].values()) == pytest.approx(result["total_delta_ms"])
-
-
 # ------------------------------------------------------------------- R2
 def test_r2_unknown_suffixes_never_prefix_match():
     assert catalog_operator("aclnnMatmulBogusV999") is None
@@ -404,33 +259,6 @@ def test_r2_surface_kinds_are_separated():
         assert entry["c_abi_slots"]["kind"] in {"aclnn_c_api", "torch_schema"}
 
 # ------------------------------------------------------------------- R3
-def _parse_header_signature(path: Path, symbol: str) -> list[str]:
-    text = path.read_text(encoding="utf-8")
-    match = re.search(r"\b" + re.escape(symbol) + r"\s*\(", text)
-    assert match, symbol
-    index, depth = match.end(), 1
-    while depth:
-        if text[index] == "(":
-            depth += 1
-        elif text[index] == ")":
-            depth -= 1
-        index += 1
-    body = text[match.end():index - 1]
-    parts, depth, current = [], 0, ""
-    for char in body:
-        if char in "([<":
-            depth += 1
-        elif char in ")]>":
-            depth -= 1
-        if char == "," and depth == 0:
-            parts.append(current)
-            current = ""
-        else:
-            current += char
-    if current.strip():
-        parts.append(current)
-    return [re.split(r"[\s*]+", part.strip())[-1] for part in parts]
-
 def test_r3_every_pinned_c_signature_matches_its_header():
     catalog = json.loads((Path(__file__).parents[1] / "mindie_profiler"
                           / "op_api_catalog.json").read_text())

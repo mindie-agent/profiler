@@ -17,7 +17,7 @@
     "size_bytes": 1842907
   },
   "case_identity": {
-    "path": "/Users/maoxx241/code/sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new17/glm53flash-a5-tp8-c1.json",
+    "path": "repository://sim-rewrite-20261027/examples/cases/high-concurrency-20261030/new17/glm53flash-a5-tp8-c1.json",
     "sha256": "b2cd9f2efa1eb1933cbf08ce1019215a6366a802495379281afa9112ddf0d388",
     "size_bytes": 2832
   },

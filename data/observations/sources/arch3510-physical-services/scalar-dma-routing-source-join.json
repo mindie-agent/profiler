@@ -4,17 +4,17 @@
   "source_commit": "c2b21f2023d096392ec7a4b7406df88d8611849a",
   "source_modules": {
     "mindie_sim/prediction/moe_init_instructions.py": {
-      "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/moe_init_instructions.py",
+      "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/moe_init_instructions.py",
       "sha256": "1af37a4aa403a398f9fe284a7b03aaa185f5dd53954ff790784b77d05b10b26c",
       "size_bytes": 2601
     },
     "mindie_sim/prediction/moe_init_mxfp8.py": {
-      "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/moe_init_mxfp8.py",
+      "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/moe_init_mxfp8.py",
       "sha256": "b7c002ce52c15b84fa6a03aebbe3a493aa1a4ddd1e38ff3fcbc8685e7de4f8c9",
       "size_bytes": 15141
     },
     "mindie_sim/prediction/instructions.py": {
-      "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/instructions.py",
+      "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/mindie_sim/prediction/instructions.py",
       "sha256": "a380390f78963f479e1556eefc6f9b7f1090e0aa7fd8df6f34f4dd3d983592ce",
       "size_bytes": 6165
     }

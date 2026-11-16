@@ -4836,7 +4836,7 @@
     {
       "capture_id": "a5_kimi_k3",
       "fixture": "a5_kimi_k3.csv",
-      "source": "/Volumes/data-tmp/tmp/mindie-body-profiling-kimi-op-summary.csv",
+      "source": "capture://local-tmp/tmp/mindie-body-profiling-kimi-op-summary.csv",
       "source_sha256": "ab1d44d3613ecb92d71af6d790ab9dfc72be5aabfe92bf4f99d584fbd0f9e648",
       "source_size_bytes": 110031770,
       "source_report": "subgraph-a5_kimi_k3.json",
@@ -6831,7 +6831,7 @@
       ]
     },
     {
-      "source": "/Volumes/data-tmp/tmp/mindie-body-profiling-kimi-op-summary.csv",
+      "source": "capture://local-tmp/tmp/mindie-body-profiling-kimi-op-summary.csv",
       "source_sha256": "ab1d44d3613ecb92d71af6d790ab9dfc72be5aabfe92bf4f99d584fbd0f9e648",
       "source_identity_basis": "unchanged full source recorded in fusion_contracts/provenance.json; extraction reads through source line 240 only",
       "source_size_bytes": 110031770,
@@ -6925,7 +6925,7 @@
           "verified_domain": "Five-input/two-output stacked MX A8W4 native ABI; FP4 NZ_C0_16 packed weight and paired E8M0 scales. Device group-list values, beta/linear_beta and captured binary identity remain unknown."
         },
         "grouped_down_mxfp4": {
-          "path": "/Users/maoxx241/code/vllm-ascend/vllm_ascend/device/device_op.py",
+          "path": "repository://vllm-ascend/vllm_ascend/device/device_op.py",
           "sha256": "95a54b37c47aebeaafa09d3fec860ed53d91a8f83de364619094f85599367cb6",
           "base_revision": "175ef4d49c2072f9233619636f0309f4f88b4e2c",
           "source_state": "clean_at_revision",
@@ -6943,7 +6943,7 @@
     },
     {
       "capture_id": "a5_kimi_k3",
-      "source": "/Volumes/data-tmp/tmp/mindie-body-profiling-kimi-op-summary.csv",
+      "source": "capture://local-tmp/tmp/mindie-body-profiling-kimi-op-summary.csv",
       "source_sha256": "ab1d44d3613ecb92d71af6d790ab9dfc72be5aabfe92bf4f99d584fbd0f9e648",
       "source_size_bytes": 110031770,
       "original_archive": {

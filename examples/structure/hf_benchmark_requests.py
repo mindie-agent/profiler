@@ -14,7 +14,17 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 import hf_benchmark_gate
-import zero_shot_piecewise_validation as zsv
+from hf_request_ttft import _bind_request_forecast
+try:
+    from mindie_profiler.sim_bridge_case import (
+        cell_from_dict, forecast_cell, predict_cell, source_declarations,
+        structure_fingerprint as _structure_fingerprint,
+    )
+except ImportError:
+    from sim_bridge_case import (  # type: ignore[no-redef]
+        cell_from_dict, forecast_cell, predict_cell, source_declarations,
+        structure_fingerprint as _structure_fingerprint,
+    )
 try:
     from . import zero_shot_source_binding as zsb
 except ImportError:
@@ -64,7 +74,6 @@ def _l4_interface(row: Mapping[str, Any]) -> tuple[dict[str, Any], Any]:
 
 def _attach_request_forecast(decision: dict[str, Any], row: Mapping[str, Any], capture: Any) -> None:
     """Price one non-singleton cell with forecast_cell. The 94-scalar path does not call this."""
-    from zero_shot_request_prediction import forecast_cell, source_declarations
     try:
         declarations = tuple(source_declarations(row))
     except (OSError, ValueError, KeyError, TypeError):
@@ -231,14 +240,14 @@ def _zero_shot_l4_pair(row: Mapping[str, Any], *, price: bool = True) -> dict[st
         # The declared digest is checked separately above.  It must not enter
         # case resolution as the origin identity, otherwise a present but
         # contradicting declaration raises and is then mislabelled absent.
-        spec = zsv.cell_from_dict(_prediction_parse_row(row, declared_path)).spec
+        spec = cell_from_dict(_prediction_parse_row(row, declared_path)).spec
     except zsb.SourceConfigDigestMismatch as mismatch:
         # Defensive path: a digest field escaped the clear above.  Preserve the
         # actual file identity and report the digest gap, never "absent".
         decision["source_config_sha256"] = mismatch.actual_sha256
         decision["source_file_sha256"] = mismatch.actual_sha256
         try:
-            spec = zsv.cell_from_dict(_prediction_parse_row(row, declared_path)).spec
+            spec = cell_from_dict(_prediction_parse_row(row, declared_path)).spec
         except (OSError, TypeError, ValueError, KeyError) as exc:
             decision["reason"], decision["source_raw"] = "source_config_sha256_mismatch", "uncertain"
             decision["diagnostics"] = [f"reparse_{type(exc).__name__}:{exc}"]
@@ -317,9 +326,10 @@ def _zero_shot_l4_pair(row: Mapping[str, Any], *, price: bool = True) -> dict[st
                 source_origin=physical["source_origin"],
                 source_deploy_sha256=physical["source_deploy_sha256"],
             )
-            priced = zsv.predict_cell(priced_spec)
-            ttft = priced.ttft_ms
-            priced_notes = tuple(str(item) for item in priced.notes)
+            priced = predict_cell(priced_spec)
+            ttft = priced.get("ttft_ms") if isinstance(priced, Mapping) else getattr(priced, "ttft_ms", None)
+            priced_notes = tuple(str(item) for item in (
+                priced.get("notes") if isinstance(priced, Mapping) else getattr(priced, "notes", ()) or ()))
     except TimeoutError:
         raise
     except Exception as exc:
@@ -354,12 +364,12 @@ def _zero_shot_l4_pair(row: Mapping[str, Any], *, price: bool = True) -> dict[st
             if priced_notes:
                 decision.update(_header_fields(priced_notes))
                 decision["prediction_notes"] = priced_notes
-            return {**decision, **physical, "structure_fingerprint": zsv._structure_fingerprint(spec)}
+            return {**decision, **physical, "structure_fingerprint": _structure_fingerprint(spec)}
         decision["notes"] = spec.notes
-        return {**decision, **physical, "observation": observation, "prediction": prediction, "structure_fingerprint": zsv._structure_fingerprint(spec)}
+        return {**decision, **physical, "observation": observation, "prediction": prediction, "structure_fingerprint": _structure_fingerprint(spec)}
     prediction["boundary_ms"] = number
     decision["notes"], decision["source_raw"] = spec.notes, "bound"
     if priced_notes:
         decision.update(_header_fields(priced_notes))
         decision["prediction_notes"] = priced_notes
-    return {**decision, **physical, "observation": observation, "prediction": prediction, "structure_fingerprint": zsv._structure_fingerprint(spec)}
+    return {**decision, **physical, "observation": observation, "prediction": prediction, "structure_fingerprint": _structure_fingerprint(spec)}

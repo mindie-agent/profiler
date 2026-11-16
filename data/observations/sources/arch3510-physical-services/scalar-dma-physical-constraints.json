@@ -1290,26 +1290,26 @@
       "isolated_instruction_price_identified": false,
       "source_instruction_counts": {
         "evidence_identity": {
-          "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/moe-init-source-control-audit-20261030.json",
+          "path": "repository://sim-rewrite-20261027/data/verification/moe-init-source-control-audit-20261030.json",
           "sha256": "b95d0660fba3849016b9179a5819463a607b01627a9b6fb470b51f620020d55c",
           "size_bytes": 6399
         },
         "source_revision": "a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
         "source_hashes": {
           "one_core_sort": {
-            "path": "/Users/maoxx241/code/refs/ops-transformer/moe/moe_init_routing_v3/op_kernel/arch35/moe_v3_sort_one_core_arch35.h",
+            "path": "repository://refs/ops-transformer/moe/moe_init_routing_v3/op_kernel/arch35/moe_v3_sort_one_core_arch35.h",
             "sha256": "920534d82fd33eb308a4b3493e978b598e5bfba1da51f6700794a12197e94709"
           },
           "count": {
-            "path": "/Users/maoxx241/code/refs/ops-transformer/moe/moe_init_routing_v3/op_kernel/arch35/moe_v3_expert_tokens_count_arch35.h",
+            "path": "repository://refs/ops-transformer/moe/moe_init_routing_v3/op_kernel/arch35/moe_v3_expert_tokens_count_arch35.h",
             "sha256": "d0dfd8f977596357f37fddd1ea871789657b128e9c0d4bda03badbbd99ce7077"
           },
           "inverse": {
-            "path": "/Users/maoxx241/code/refs/ops-transformer/moe/moe_init_routing_v3/op_kernel/arch35/moe_v3_row_idx_gather_arch35.h",
+            "path": "repository://refs/ops-transformer/moe/moe_init_routing_v3/op_kernel/arch35/moe_v3_row_idx_gather_arch35.h",
             "sha256": "cfc375ee5bb0a5f9ddb845ba349ea09e3ed64ada80c3e947e6ff3fc25ce6d353"
           },
           "host": {
-            "path": "/Users/maoxx241/code/refs/ops-transformer/moe/moe_init_routing_v3/op_host/moe_init_routing_v3_tiling_arch35.cpp",
+            "path": "repository://refs/ops-transformer/moe/moe_init_routing_v3/op_host/moe_init_routing_v3_tiling_arch35.cpp",
             "sha256": "1507153599d4ccae0cc056dc5b1e4f4849c02cf97893736f3d6913a43b52385d"
           }
         },
@@ -2607,26 +2607,26 @@
       "isolated_instruction_price_identified": false,
       "source_instruction_counts": {
         "evidence_identity": {
-          "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/moe-init-source-control-audit-20261030.json",
+          "path": "repository://sim-rewrite-20261027/data/verification/moe-init-source-control-audit-20261030.json",
           "sha256": "b95d0660fba3849016b9179a5819463a607b01627a9b6fb470b51f620020d55c",
           "size_bytes": 6399
         },
         "source_revision": "a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
         "source_hashes": {
           "one_core_sort": {
-            "path": "/Users/maoxx241/code/refs/ops-transformer/moe/moe_init_routing_v3/op_kernel/arch35/moe_v3_sort_one_core_arch35.h",
+            "path": "repository://refs/ops-transformer/moe/moe_init_routing_v3/op_kernel/arch35/moe_v3_sort_one_core_arch35.h",
             "sha256": "920534d82fd33eb308a4b3493e978b598e5bfba1da51f6700794a12197e94709"
           },
           "count": {
-            "path": "/Users/maoxx241/code/refs/ops-transformer/moe/moe_init_routing_v3/op_kernel/arch35/moe_v3_expert_tokens_count_arch35.h",
+            "path": "repository://refs/ops-transformer/moe/moe_init_routing_v3/op_kernel/arch35/moe_v3_expert_tokens_count_arch35.h",
             "sha256": "d0dfd8f977596357f37fddd1ea871789657b128e9c0d4bda03badbbd99ce7077"
           },
           "inverse": {
-            "path": "/Users/maoxx241/code/refs/ops-transformer/moe/moe_init_routing_v3/op_kernel/arch35/moe_v3_row_idx_gather_arch35.h",
+            "path": "repository://refs/ops-transformer/moe/moe_init_routing_v3/op_kernel/arch35/moe_v3_row_idx_gather_arch35.h",
             "sha256": "cfc375ee5bb0a5f9ddb845ba349ea09e3ed64ada80c3e947e6ff3fc25ce6d353"
           },
           "host": {
-            "path": "/Users/maoxx241/code/refs/ops-transformer/moe/moe_init_routing_v3/op_host/moe_init_routing_v3_tiling_arch35.cpp",
+            "path": "repository://refs/ops-transformer/moe/moe_init_routing_v3/op_host/moe_init_routing_v3_tiling_arch35.cpp",
             "sha256": "1507153599d4ccae0cc056dc5b1e4f4849c02cf97893736f3d6913a43b52385d"
           }
         },
@@ -3924,26 +3924,26 @@
       "isolated_instruction_price_identified": false,
       "source_instruction_counts": {
         "evidence_identity": {
-          "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/moe-init-source-control-audit-20261030.json",
+          "path": "repository://sim-rewrite-20261027/data/verification/moe-init-source-control-audit-20261030.json",
           "sha256": "b95d0660fba3849016b9179a5819463a607b01627a9b6fb470b51f620020d55c",
           "size_bytes": 6399
         },
         "source_revision": "a3925fd49cd256ad478d2faf983bf2961b8ae2c8",
         "source_hashes": {
           "one_core_sort": {
-            "path": "/Users/maoxx241/code/refs/ops-transformer/moe/moe_init_routing_v3/op_kernel/arch35/moe_v3_sort_one_core_arch35.h",
+            "path": "repository://refs/ops-transformer/moe/moe_init_routing_v3/op_kernel/arch35/moe_v3_sort_one_core_arch35.h",
             "sha256": "920534d82fd33eb308a4b3493e978b598e5bfba1da51f6700794a12197e94709"
           },
           "count": {
-            "path": "/Users/maoxx241/code/refs/ops-transformer/moe/moe_init_routing_v3/op_kernel/arch35/moe_v3_expert_tokens_count_arch35.h",
+            "path": "repository://refs/ops-transformer/moe/moe_init_routing_v3/op_kernel/arch35/moe_v3_expert_tokens_count_arch35.h",
             "sha256": "d0dfd8f977596357f37fddd1ea871789657b128e9c0d4bda03badbbd99ce7077"
           },
           "inverse": {
-            "path": "/Users/maoxx241/code/refs/ops-transformer/moe/moe_init_routing_v3/op_kernel/arch35/moe_v3_row_idx_gather_arch35.h",
+            "path": "repository://refs/ops-transformer/moe/moe_init_routing_v3/op_kernel/arch35/moe_v3_row_idx_gather_arch35.h",
             "sha256": "cfc375ee5bb0a5f9ddb845ba349ea09e3ed64ada80c3e947e6ff3fc25ce6d353"
           },
           "host": {
-            "path": "/Users/maoxx241/code/refs/ops-transformer/moe/moe_init_routing_v3/op_host/moe_init_routing_v3_tiling_arch35.cpp",
+            "path": "repository://refs/ops-transformer/moe/moe_init_routing_v3/op_host/moe_init_routing_v3_tiling_arch35.cpp",
             "sha256": "1507153599d4ccae0cc056dc5b1e4f4849c02cf97893736f3d6913a43b52385d"
           }
         },
@@ -4683,7 +4683,7 @@
       "isolated_instruction_price_identified": false,
       "source_instruction_counts": {
         "evidence_identity": {
-          "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/grouped-dequant-arch35-20261030.json",
+          "path": "repository://sim-rewrite-20261027/data/verification/grouped-dequant-arch35-20261030.json",
           "sha256": "44ea1c1fe49d327f95e28e674a2aec19f3282c3316cdb472ba8a849164b23ae5",
           "size_bytes": 56661
         },
@@ -5424,7 +5424,7 @@
       "isolated_instruction_price_identified": false,
       "source_instruction_counts": {
         "evidence_identity": {
-          "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/grouped-dequant-arch35-20261030.json",
+          "path": "repository://sim-rewrite-20261027/data/verification/grouped-dequant-arch35-20261030.json",
           "sha256": "44ea1c1fe49d327f95e28e674a2aec19f3282c3316cdb472ba8a849164b23ae5",
           "size_bytes": 56661
         },
@@ -6165,7 +6165,7 @@
       "isolated_instruction_price_identified": false,
       "source_instruction_counts": {
         "evidence_identity": {
-          "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/grouped-dequant-arch35-20261030.json",
+          "path": "repository://sim-rewrite-20261027/data/verification/grouped-dequant-arch35-20261030.json",
           "sha256": "44ea1c1fe49d327f95e28e674a2aec19f3282c3316cdb472ba8a849164b23ae5",
           "size_bytes": 56661
         },
@@ -22010,7 +22010,7 @@
         "size_bytes": 47658417
       },
       "source_population_identity": {
-        "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/conv-state-memory-service-audit-20261030.json",
+        "path": "repository://sim-rewrite-20261027/data/verification/conv-state-memory-service-audit-20261030.json",
         "sha256": "c06ae9d3be49f331f01264eacb6ef281ddf1345665e9eafac8e7f6debf527725",
         "size_bytes": 16267
       },
@@ -22089,7 +22089,7 @@
         "size_bytes": 47658417
       },
       "source_population_identity": {
-        "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/conv-state-memory-service-audit-20261030.json",
+        "path": "repository://sim-rewrite-20261027/data/verification/conv-state-memory-service-audit-20261030.json",
         "sha256": "c06ae9d3be49f331f01264eacb6ef281ddf1345665e9eafac8e7f6debf527725",
         "size_bytes": 16267
       },
@@ -22168,7 +22168,7 @@
         "size_bytes": 41401175
       },
       "source_population_identity": {
-        "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/conv-state-memory-service-audit-20261030.json",
+        "path": "repository://sim-rewrite-20261027/data/verification/conv-state-memory-service-audit-20261030.json",
         "sha256": "c06ae9d3be49f331f01264eacb6ef281ddf1345665e9eafac8e7f6debf527725",
         "size_bytes": 16267
       },
@@ -22247,7 +22247,7 @@
         "size_bytes": 41401175
       },
       "source_population_identity": {
-        "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/conv-state-memory-service-audit-20261030.json",
+        "path": "repository://sim-rewrite-20261027/data/verification/conv-state-memory-service-audit-20261030.json",
         "sha256": "c06ae9d3be49f331f01264eacb6ef281ddf1345665e9eafac8e7f6debf527725",
         "size_bytes": 16267
       },
@@ -22326,7 +22326,7 @@
         "size_bytes": 34995055
       },
       "source_population_identity": {
-        "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/conv-state-memory-service-audit-20261030.json",
+        "path": "repository://sim-rewrite-20261027/data/verification/conv-state-memory-service-audit-20261030.json",
         "sha256": "c06ae9d3be49f331f01264eacb6ef281ddf1345665e9eafac8e7f6debf527725",
         "size_bytes": 16267
       },
@@ -22405,7 +22405,7 @@
         "size_bytes": 34995055
       },
       "source_population_identity": {
-        "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/verification/conv-state-memory-service-audit-20261030.json",
+        "path": "repository://sim-rewrite-20261027/data/verification/conv-state-memory-service-audit-20261030.json",
         "sha256": "c06ae9d3be49f331f01264eacb6ef281ddf1345665e9eafac8e7f6debf527725",
         "size_bytes": 16267
       },

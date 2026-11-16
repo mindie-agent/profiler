@@ -97,18 +97,25 @@ def resolve_and_apply_source(spec: Any) -> Any:
     return apply_source_resolution(spec, resolve_source_file(spec))
 
 
-def _main_module():
-    try: from . import zero_shot_piecewise_validation as module
-    except ImportError: import zero_shot_piecewise_validation as module
-    return module
+#: Enrolled workstream roots are supplied by the caller; no developer-local
+#: path is compiled into the source-binding helper.
+WORKSTREAM_ROOTS: tuple[str, ...] = ()
+
+
+def _load_json(path: Any) -> Any:
+    import json
+    from pathlib import Path
+    try:
+        return json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
 
 
 @lru_cache(maxsize=1024)
 def _source_binding(cell_id: str, tp: int, dp: int, ep: int) -> tuple[Path | None, str, str, Path | None, Path | None]:
     try: from .zero_shot_native_windows import _model_config
     except ImportError: from zero_shot_native_windows import _model_config
-    main = _main_module(); _load_json = main._load_json
-    for root in main.WORKSTREAM_ROOTS:
+    for root in WORKSTREAM_ROOTS:
         for cell_dir in sorted((Path(root) / 'out').glob('*/*')):
             if f'{cell_dir.parent.name}_{cell_dir.name}' != cell_id: continue
             case_dir = cell_dir.parent; status = _load_json(case_dir / 'status.json') or {}
@@ -117,8 +124,7 @@ def _source_binding(cell_id: str, tp: int, dp: int, ep: int) -> tuple[Path | Non
             raw_case, config, error, provenance = _model_config({'tp': tp, 'dp': dp, 'ep': ep}, case_dir, host)
             path = str(provenance.get('weight_config_path') or ''); sha = str(provenance.get('weight_config_sha256') or ''); weight = str(provenance.get('launch_model_dir') or provenance.get('weight_model_dir') or '')
             if path and sha:
-                local = next((Path('/Volumes/data/mindie-sim-data/a5/weights-metadata-20261108') / Path(weight).name for _ in (1,) if weight and (Path('/Volumes/data/mindie-sim-data/a5/weights-metadata-20261108') / Path(weight).name).is_dir()), None)
-                return Path(path), sha, sha, (local or (Path(weight) if weight else None)), case_dir
+                return Path(path), sha, sha, (Path(weight) if weight else None), case_dir
     return None, '', '', None, None
 def _w_category(category: str) -> str:
     text = str(category); rules = (("shared_experts", "shared_expert"), ("experts", "routed_expert"), ("self_attn.q_a", "mla.q_a"), ("self_attn.q_b", "mla.q_b"), ("self_attn.o_proj", "mla.o"), ("self_attn.kv_a", "mla.kv_a"), ("self_attn.kv_b", "mla.kv_b"), ("indexer.k_norm", ""), ("indexer.wq_b", "indexer"), ("indexer.wk", "indexer.pool_projection"), ("indexer.weights_proj", "indexer.weights"), ("mlp.gate_proj", "dense_mlp"), ("mlp.down_proj", "dense_mlp"), ("mlp.up_proj", "dense_mlp"), ("mlp.gate", "router"))

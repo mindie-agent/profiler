@@ -1477,7 +1477,7 @@
       },
       "launch_declaration": {
         "source": {
-          "path": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a3-highconc-decode/scripts/cases/serve_glm53f_w4a8.sh",
+          "path": "repository://mindie-agent/.workstreams/hp-serving/a3-highconc-decode/scripts/cases/serve_glm53f_w4a8.sh",
           "sha256": "3642c774841205a58d18951e41c5338989858a35ece0c9c5c3c33c71a404373d",
           "size_bytes": 2199
         },
@@ -1511,7 +1511,7 @@
           0.32768
         ],
         "acceptance_mode": "marginal",
-        "source": "/Users/maoxx241/code/mindie-agent/.workstreams/hp-serving/a3-highconc-decode/scripts/cases/serve_glm53f_w4a8.sh",
+        "source": "repository://mindie-agent/.workstreams/hp-serving/a3-highconc-decode/scripts/cases/serve_glm53f_w4a8.sh",
         "label": "configured synthetic acceptance; not observed acceptance"
       },
       "profiled_client": {
@@ -1602,7 +1602,7 @@
         "mc2_remaining_boundary": "Generic pack/transport/quant remains decomposed; no whole native MC2 service assigned."
       },
       "caller_source_case_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm78-capture-rows/a3_glm53_w4a8_tp16_tpot88_c8.json",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/examples/cases/high-concurrency-20261030/glm78-capture-rows/a3_glm53_w4a8_tp16_tpot88_c8.json",
         "sha256": "a0d14ab3d371cfd24ea0f4c062b12baaefc87d2723a966c7816beca3df524843",
         "size_bytes": 8713
       },

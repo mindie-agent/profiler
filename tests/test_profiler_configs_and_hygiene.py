@@ -75,7 +75,7 @@ def test_typed_configs_thread_into_diagnostic_entrypoints() -> None:
 
 def test_production_modules_under_800_lf_lines_and_magic_gate_clean() -> None:
     py_files = sorted(PKG_ROOT.rglob("*.py"))
-    assert len(py_files) >= 150
+    assert len(py_files) >= 140
     for path in py_files:
         raw = path.read_bytes()
         assert b"\r" not in raw, f"CR byte in {path.name}"

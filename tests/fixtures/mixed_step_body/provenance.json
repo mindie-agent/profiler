@@ -4261,27 +4261,27 @@
     "capture_binary_identity": "not_established_by_local_source_correspondence",
     "sources": [
       {
-        "path": "/Users/maoxx241/code/vllm-ascend/vllm_ascend/attention/attention_v1.py",
+        "path": "repository://vllm-ascend/vllm_ascend/attention/attention_v1.py",
         "sha256": "d9c6536f6903589fe83a6e4c8acb3934f88de60abd7768190a4a9edcf67e50ab",
         "purpose": "_get_fia_params: views paged cache as (pages, block_size, packed_width); no inferred KV-head factorization"
       },
       {
-        "path": "/Users/maoxx241/code/vllm-ascend/csrc/attention/recurrent_gated_delta_rule/op_host/recurrent_gated_delta_rule_def.cpp",
+        "path": "repository://vllm-ascend/csrc/attention/recurrent_gated_delta_rule/op_host/recurrent_gated_delta_rule_def.cpp",
         "sha256": "c388285948566df9e106bca2dc895aa6dad57506c9da5216cde67b3cc16276d0",
         "purpose": "10 input/2 output BF16 scalar-decay ABI; empty optional gk omitted in compact capture"
       },
       {
-        "path": "/Users/maoxx241/code/vllm-ascend/csrc/attention/recurrent_gated_delta_rule/op_host/recurrent_gated_delta_rule_tiling.cpp",
+        "path": "repository://vllm-ascend/csrc/attention/recurrent_gated_delta_rule/op_host/recurrent_gated_delta_rule_tiling.cpp",
         "sha256": "72bc53c4f46ffe3ff4d262098796ac878ae01364ba9dbaa519e417c8c0ce204e",
         "purpose": "Q/K equality, V-first state, cumulative-length sequence count, value/key head relationship"
       },
       {
-        "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/observations/sources/fla-a4a7958/chunk_gated_delta_rule_fwd/op_host/chunk_gated_delta_rule_fwd_def.cpp",
+        "path": "repository://sim-rewrite-20261027/data/observations/sources/fla-a4a7958/chunk_gated_delta_rule_fwd/op_host/chunk_gated_delta_rule_fwd_def.cpp",
         "sha256": "aa68c85268313353524e933af13af804dc6f4cfbc7e1bcb12cf4852af61b0784",
         "purpose": "Retained legacy BHTD 10 input/4 output definition; compact capture omits empty gk"
       },
       {
-        "path": "/Users/maoxx241/code/vllm-ascend/vllm_ascend/ops/gdn.py",
+        "path": "repository://vllm-ascend/vllm_ascend/ops/gdn.py",
         "sha256": "724f43cc24ee4b4d4d01c36e7967d02d95646b5e4ab011940e16bb5374a20c9f",
         "purpose": "Generic chunk wrapper is a distinct TND/BF16-state interface; not automatically a complete native single-kernel group"
       }

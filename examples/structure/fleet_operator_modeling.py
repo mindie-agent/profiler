@@ -1402,7 +1402,7 @@ def _ensure_archive():
         archive.configure_archive_roots(
             data_roots=(
                 Path("/Volumes/data/mindie-sim-data"),
-                Path("/Users/maoxx241/code/mindie-agent/.workstreams"),
+                Path("repository://mindie-agent/.workstreams"),
             ),
             results_dir=_STRUCT_DIR / "results",
             cases_dir=CASES_DIR,
