@@ -43,6 +43,7 @@ from __future__ import annotations
 import atexit
 from collections.abc import Iterator
 import contextlib
+import io
 import os
 from pathlib import Path
 import stat
@@ -73,7 +74,7 @@ _WRITE_MARKER_INFIX = ".write-"
 _PIN_MARKER_PREFIX = ".pin-"
 _LOCK_SUFFIX = ".lock"
 _STALE_WRITE_MARKER_S = 3600.0
-_REPARSE_ATTRIBUTE = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+_REPARSE_ATTRIBUTE = stat.FILE_ATTRIBUTE_REPARSE_POINT
 _PINS: dict[tuple[str, str], int] = {}
 _PIN_LOCK = threading.Lock()
 
@@ -229,24 +230,39 @@ def _drop_pin(entry: Path) -> None:
         _close_lock(fd)
 
 
-def _lease_pids(fd: int) -> list[int]:
+def _lease_pids(fd: int) -> list[int] | None:
+    """Read every PID token; ``None`` means the lease state is unknown."""
+
+    pids: list[int] = []
+    carry = b""
+
+    def take(token: bytes) -> None:
+        if token.isdigit():
+            try:
+                pids.append(int(token))
+            except ValueError:
+                pass
+
     try:
-        size = os.fstat(fd).st_size
         os.lseek(fd, 0, os.SEEK_SET)
-        limit = min(size, int(_STALE_WRITE_MARKER_S))
-        data = os.read(fd, limit) if limit else b""
+        while True:
+            chunk = os.read(fd, io.DEFAULT_BUFFER_SIZE)
+            if not chunk:
+                break
+            normalized = (carry + chunk).replace(b"\0", b" ")
+            parts = normalized.split()
+            carry = b""
+            if normalized and not normalized[-1:].isspace():
+                carry = parts.pop() if parts else normalized
+            for part in parts:
+                take(part)
+        if carry:
+            take(carry)
     except TimeoutError:
         raise
-    except OSError:
-        return []
-    pids = []
-    for part in data.replace(b"\0", b" ").split():
-        if part.isdigit():
-            try:
-                pids.append(int(part))
-            except ValueError:
-                continue
-    return pids
+    except OSError as exc:
+        return [] if isinstance(exc, FileNotFoundError) else None
+    return list(dict.fromkeys(pids))
 
 
 def _rewrite_lease(fd: int, pids: list[int]) -> None:
@@ -266,7 +282,9 @@ def _append_lease(entry: Path) -> None:
     if fd is None:
         return
     try:
-        os.write(fd, f"{os.getpid()}\n".encode("ascii"))
+        pids = _lease_pids(fd)
+        if pids is None or os.getpid() not in pids:
+            os.write(fd, f"{os.getpid()}\n".encode("ascii"))
     except TimeoutError:
         raise
     except OSError:
@@ -285,7 +303,9 @@ def _seal_pin(entry: Path) -> None:
         _append_lease(entry)
         return
     try:
-        os.write(fd, f"{os.getpid()}\n".encode("ascii"))
+        pids = _lease_pids(fd)
+        if pids is None or os.getpid() not in pids:
+            os.write(fd, f"{os.getpid()}\n".encode("ascii"))
     except TimeoutError:
         raise
     except OSError:
@@ -324,8 +344,10 @@ def _slot_pinned(entry: Path) -> bool:
         free = try_lock_fd(fd, exclusive=True)
         if not free:
             return True
-        live = [pid for pid in dict.fromkeys(_lease_pids(fd))
-                if process_exited(pid) is not True]
+        pids = _lease_pids(fd)
+        if pids is None:
+            return True  # Unreadable lease: never clear or evict a possibly live slot.
+        live = [pid for pid in pids if process_exited(pid) is not True]
         _rewrite_lease(fd, live)
         if live:
             return True
@@ -338,6 +360,20 @@ def _slot_pinned(entry: Path) -> bool:
     if free and os.name == "nt":
         unlink_quiet(path)
     return False
+
+
+def _touch(path: Path) -> None:
+    """Refresh one regular leaf; Windows cannot pass ``follow_symlinks``."""
+
+    try:
+        if os.utime in os.supports_follow_symlinks:
+            os.utime(path, None, follow_symlinks=False)
+        else:
+            os.utime(path, None)
+    except TimeoutError:
+        raise
+    except (NotImplementedError, OSError, ValueError):
+        pass
 
 
 def _refresh_slot(entry: Path) -> None:
@@ -353,14 +389,8 @@ def _refresh_slot(entry: Path) -> None:
             raise
         except OSError:
             continue
-        if not stat.S_ISREG(info.st_mode) or _is_symlink_or_reparse(info, path):
-            continue
-        try:
-            os.utime(path, None, follow_symlinks=False)
-        except TimeoutError:
-            raise
-        except (NotImplementedError, OSError, ValueError):
-            continue
+        if stat.S_ISREG(info.st_mode) and not _is_symlink_or_reparse(info, path):
+            _touch(path)
     try:
         info = os.lstat(entry)
     except TimeoutError:
@@ -368,12 +398,39 @@ def _refresh_slot(entry: Path) -> None:
     except OSError:
         return
     if stat.S_ISDIR(info.st_mode) and not _is_symlink_or_reparse(info, entry):
-        try:
-            os.utime(entry, None, follow_symlinks=False)
-        except TimeoutError:
-            raise
-        except (NotImplementedError, OSError, ValueError):
-            pass
+        _touch(entry)
+
+
+def note_reused_slot(entry: Path) -> None:
+    """Refresh a slot reused through an existing leaf and lease this process."""
+
+    base = entry.parent
+    if not _safe_directory(base):
+        return
+    with exclusive_lock(base / _RETENTION_LOCK_NAME, blocking=True):
+        _refresh_slot(entry)
+        _append_lease(entry)
+
+
+def note_atomic_read(path: Path) -> None:
+    """Retention hook for a successful ``read_regular_bytes`` of a diff leaf."""
+
+    if path.name != "diff.json" or path.parent.parent.name != _DIFF_DIRECTORY:
+        return
+    try:
+        note_reused_slot(path.parent)
+    except TimeoutError:
+        raise
+    except (OSError, ValueError):
+        pass
+
+
+def atomic_write_guard(path: Path):
+    """Protect ``<short_root>/diff/<slot>/diff.json`` writes only."""
+
+    if path.name == "diff.json" and path.parent.parent.name == _DIFF_DIRECTORY:
+        return retention_write_guard(path.parent)
+    return contextlib.nullcontext()
 
 
 def _create_marker(marker: Path) -> int | None:
@@ -479,6 +536,22 @@ def _sweep_trash(base: Path, leaves: tuple[str, ...]) -> int:
     return removed
 
 
+def _protected_inode_live(inode: tuple[int, int]) -> bool:
+    """True only when a remembered inode still names one of its own paths."""
+
+    if inode not in repro_storage._PROTECTED_INODES:
+        return False
+    paths = repro_storage._PROTECTED_PATHS.get(inode)
+    if not paths:
+        return True  # Unknown ownership: preserve the historical protection.
+    if any(repro_storage._inode_of(path) == inode for path in paths):
+        return True
+    with repro_storage._LOCK:
+        repro_storage._PROTECTED_INODES.discard(inode)
+        repro_storage._PROTECTED_PATHS.pop(inode, None)
+    return False
+
+
 def _evict_entry(base: Path, entry: Path, leaves: tuple[str, ...]) -> int:
     """Re-check live state and atomically detach one slot before unlinking it."""
 
@@ -496,9 +569,9 @@ def _evict_entry(base: Path, entry: Path, leaves: tuple[str, ...]) -> int:
             receipts = _validated_leaves(entry, leaves)
             if receipts is None:
                 return 0
-            if set(receipts.values()) & repro_storage._PROTECTED_INODES:
+            if any(_protected_inode_live(inode) for inode in receipts.values()):
                 return 0
-            trash = base / f"{_TRASH_PREFIX}{entry.name}-{uuid.uuid4().hex[:8]}"
+            trash = base / f"{_TRASH_PREFIX}{entry.name}-{uuid.uuid4().hex}"
             try:
                 os.replace(entry, trash)
             except TimeoutError:
@@ -612,14 +685,15 @@ def retention_write_guard(entry: Path) -> Iterator[None]:
     finally:
         try:
             if safe:
-                _refresh_slot(entry)
+                try:
+                    _refresh_slot(entry)
+                finally:
+                    if completed:
+                        _seal_pin(entry)
+                    else:
+                        _drop_pin(entry)
+                        _slot_pinned(entry)  # Remove a pin leaf that never got a lease.
         finally:
-            if safe:
-                if completed:
-                    _seal_pin(entry)
-                else:
-                    _drop_pin(entry)
-                    _slot_pinned(entry)  # Remove a pin leaf that never got a lease.
             _drop_marker(marker, handle)
 
 

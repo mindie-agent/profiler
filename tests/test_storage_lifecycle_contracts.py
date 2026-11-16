@@ -22,6 +22,9 @@
 from __future__ import annotations
 
 from dataclasses import replace
+import errno
+import hashlib
+import json
 import os
 from pathlib import Path
 import sqlite3
@@ -45,6 +48,7 @@ from mindie_profiler import (
 )
 from mindie_profiler.events import ProfilerSchemaError
 from mindie_profiler.fabric_probe import build_fabric_probe_plan
+from mindie_sim import diff_trace
 
 import nr_s6_round4_probe as probe
 import temp_workspaces as temp_workspaces_module
@@ -152,6 +156,17 @@ def _diff_slot(root: Path, name: str, days: float) -> Path:
     (entry / "diff.json").write_text("{}\n", encoding="utf-8")
     _age(entry / "diff.json", days)
     return entry
+
+
+_REUSE_TRACE = {"total_ms": 2, "ops": [{"name": "R14", "duration_ms": 2}]}
+
+
+def _diff_payload(trace: dict) -> bytes:
+    """Byte-identical payload for ``mindie_sim.diff_trace._persist_diff``."""
+
+    payload = diff_trace.attribute_diff(trace, trace)
+    return (json.dumps(payload, ensure_ascii=False, sort_keys=True,
+                       separators=(",", ":"), allow_nan=False) + "\n").encode("utf-8")
 
 
 def test_prune_repro_storage_bounds_age_and_count_while_protecting_active(
@@ -384,9 +399,11 @@ def test_prune_skips_windows_reparse_entries_without_isjunction(tmp_path, monkey
     junction = _cas_slot(root, "dddddddddddd", 40.0)
     real_lstat = os.lstat
 
-    def fake_lstat(path):
-        info = real_lstat(path)
-        if Path(path) != junction:
+    def fake_lstat(target, *args, **kwargs):
+        if args or kwargs:
+            return real_lstat(target, *args, **kwargs)
+        info = real_lstat(target)
+        if Path(target) != junction:
             return info
         values = {
             "st_mode": stat.S_IFDIR,
@@ -447,9 +464,11 @@ def test_prune_never_traverses_symlinked_or_reparse_trash(tmp_path, monkeypatch,
             (trash / name).write_text("{}\n", encoding="utf-8")
         real_lstat = os.lstat
 
-        def fake_lstat(path):
-            info = real_lstat(path)
-            if Path(path) != trash:
+        def fake_lstat(target, *args, **kwargs):
+            if args or kwargs:
+                return real_lstat(target, *args, **kwargs)
+            info = real_lstat(target)
+            if Path(target) != trash:
                 return info
             return SimpleNamespace(
                 st_mode=stat.S_IFDIR,
@@ -600,7 +619,7 @@ import os
 import sys
 from pathlib import Path
 
-from mindie_profiler import repro_retention, repro_storage
+from mindie_profiler import repro_storage
 
 root = Path(os.environ["MINDIE_REPRO_SHORT_ROOT"])
 kind = sys.argv[1]
@@ -609,18 +628,135 @@ if kind == "cas":
     result = repro_storage.stage_artifacts(script, {"schema": "mindie-op-repro/1"})
     assert result["status"] == "delivered", result
 else:
-    entry = root / "diff" / "reused"
-    with repro_retention.retention_write_guard(entry):
-        (entry / "diff.json").write_text("{}\n", encoding="utf-8")
-    repro_storage._register({
-        "artifact_id": "sha256:" + "a" * 64,
-        "artifact_path": str(entry / "diff.json"),
-        "manifest_path": str(entry / "diff.json"),
-        "script_sha256": "sha256:" + "a" * 64,
-    })
+    from mindie_sim.diff_trace import call_mcp_tool
+    trace = {"total_ms": 2, "ops": [{"name": "R14", "duration_ms": 2}]}
+    result = call_mcp_tool({"predicted": trace, "captured": trace})
+    assert result["persisted"] is True, result
+    entry = Path(result["artifact_path"]).parent
 print("ready", flush=True)
 sys.stdin.readline()
 """
+
+
+def test_lease_reader_sees_a_live_tail_past_the_legacy_window(tmp_path, monkeypatch):
+    entry = tmp_path / "slot"
+    entry.mkdir()
+    (entry / "diff.json").write_text("{}\n", encoding="utf-8")
+    pin = entry.with_name(".pin-slot.lock")
+    dead = b"".join(f"{900000 + index}\n".encode("ascii") for index in range(700))
+    pin.write_bytes(dead + f"{os.getpid()}\n".encode("ascii"))
+    assert pin.stat().st_size > 3600
+    monkeypatch.setattr(repro_retention, "process_exited",
+                        lambda pid: pid != os.getpid())
+
+    assert repro_retention._slot_pinned(entry) is True
+    assert pin.read_bytes() == f"{os.getpid()}\n".encode("ascii")
+
+
+def test_unreadable_lease_is_conservatively_pinned(tmp_path, monkeypatch):
+    entry = tmp_path / "slot"
+    entry.mkdir()
+    (entry / "diff.json").write_text("{}\n", encoding="utf-8")
+    pin = entry.with_name(".pin-slot.lock")
+    pin.write_bytes(f"{os.getpid()}\n".encode("ascii"))
+    monkeypatch.setattr(repro_retention, "_lease_pids", lambda _fd: None)
+
+    assert repro_retention._slot_pinned(entry) is True
+    assert pin.is_file() and pin.read_bytes() == f"{os.getpid()}\n".encode("ascii")
+
+
+def test_refresh_slot_touches_leaves_without_follow_symlinks_support(tmp_path, monkeypatch):
+    entry = tmp_path / "slot"
+    entry.mkdir()
+    leaf = entry / "diff.json"
+    leaf.write_text("{}\n", encoding="utf-8")
+    old = time.time() - 40 * 86400.0
+    os.utime(leaf, (old, old))
+    monkeypatch.setattr(repro_retention.os, "supports_follow_symlinks", frozenset())
+
+    repro_retention._refresh_slot(entry)
+
+    assert time.time() - leaf.stat().st_mtime < 60.0
+
+
+@pytest.mark.parametrize("code,exited", [(errno.EINVAL, True), (errno.EACCES, False)])
+def test_windows_process_exit_uses_mapped_errno_without_winapi_constant(
+        monkeypatch, code, exited):
+    fake = SimpleNamespace(PROCESS_QUERY_LIMITED_INFORMATION=object())
+
+    def deny(*_args):
+        raise OSError(code, "mapped Win32 error")
+
+    fake.OpenProcess = deny
+    monkeypatch.setitem(sys.modules, "_winapi", fake)
+    assert storage_locks._windows_process_exited(4242) is exited
+
+
+def test_prune_reclaims_recycled_protected_inode_after_its_path_is_gone(tmp_path):
+    root = tmp_path / "cas"
+    root.mkdir()
+    entry = _cas_slot(root, "dddddddddddd", 40.0)
+    inode = repro_storage._inode_of(entry / "repro.py")
+    stale = tmp_path / "gone" / "repro.py"
+    with repro_storage._LOCK:
+        repro_storage._PROTECTED_INODES.add(inode)
+        repro_storage._PROTECTED_PATHS[inode] = {stale}
+    try:
+        assert repro_retention.prune_repro_storage(
+            root, max_entries=0, max_age_days=0) == 1
+        assert not entry.exists()
+        assert inode not in repro_storage._PROTECTED_INODES
+        assert inode not in repro_storage._PROTECTED_PATHS
+    finally:
+        repro_storage._PROTECTED_INODES.discard(inode)
+        repro_storage._PROTECTED_PATHS.pop(inode, None)
+
+
+def test_write_guard_drops_marker_when_seal_pin_times_out(tmp_path, monkeypatch):
+    entry = tmp_path / "slot"
+    entry.mkdir()
+    (entry / "diff.json").write_text("{}\n", encoding="utf-8")
+    sentinel = TimeoutError("seal pin timeout")
+    pin_fds: list[int] = []
+    marker_fds: list[int] = []
+    original_hold = repro_retention._hold_pin
+    original_create = repro_retention._create_marker
+    original_write = os.write
+
+    def recording_hold(target):
+        original_hold(target)
+        fd = repro_retention._PINS.get(repro_retention._pin_key(target))
+        if fd is not None:
+            pin_fds.append(fd)
+
+    def recording_create(marker):
+        fd = original_create(marker)
+        if fd is not None:
+            marker_fds.append(fd)
+        return fd
+
+    def failing_write(fd, data):
+        if fd in pin_fds:
+            raise sentinel
+        return original_write(fd, data)
+
+    monkeypatch.setattr(repro_retention, "_hold_pin", recording_hold)
+    monkeypatch.setattr(repro_retention, "_create_marker", recording_create)
+    monkeypatch.setattr(repro_retention.os, "write", failing_write)
+
+    with pytest.raises(TimeoutError) as caught:
+        with repro_retention.retention_write_guard(entry):
+            pass
+
+    assert caught.value is sentinel
+    assert len(pin_fds) == 1 and len(marker_fds) == 1
+    for fd in (*pin_fds, *marker_fds):
+        with pytest.raises(OSError):
+            os.fstat(fd)
+    assert not list(tmp_path.glob(".write-*"))
+    assert repro_retention._slot_pinned(entry) is False
+    assert not list(tmp_path.glob(".pin-*.lock"))
+    assert not repro_retention._PINS
 
 
 @pytest.mark.parametrize("kind", ["cas", "diff"])
@@ -636,9 +772,10 @@ def test_live_child_slot_pin_survives_prune_until_the_child_exits(tmp_path, kind
         (entry / "manifest.json").write_bytes(manifest_bytes)
         leaves = ("repro.py", "manifest.json")
     else:
-        entry = root / "diff" / "reused"
+        data = _diff_payload(_REUSE_TRACE)
+        entry = root / "diff" / hashlib.sha256(data).hexdigest()[:12]
         entry.mkdir(parents=True)
-        (entry / "diff.json").write_text("{}\n", encoding="utf-8")
+        (entry / "diff.json").write_bytes(data)
         leaves = ("diff.json",)
     for name in leaves:
         _age(entry / name, 40.0)

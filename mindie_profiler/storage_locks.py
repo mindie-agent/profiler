@@ -168,9 +168,13 @@ def _windows_process_exited(pid: int) -> bool | None:
     except TimeoutError:
         raise
     except OSError as exc:
-        if exc.winerror == getattr(_winapi, "ERROR_INVALID_PARAMETER", None):
+        # CPython 3.13 no longer exports ERROR_INVALID_PARAMETER from _winapi;
+        # Windows maps Win32 87/5 onto the portable EINVAL/EACCES errno values.
+        invalid = getattr(_winapi, "ERROR_INVALID_PARAMETER", None)
+        denied = getattr(_winapi, "ERROR_ACCESS_DENIED", None)
+        if exc.errno == errno.EINVAL or (invalid is not None and exc.winerror == invalid):
             return True
-        if exc.winerror == getattr(_winapi, "ERROR_ACCESS_DENIED", None):
+        if exc.errno == errno.EACCES or (denied is not None and exc.winerror == denied):
             return False
         return None
     try:

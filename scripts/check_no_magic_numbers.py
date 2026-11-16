@@ -104,6 +104,19 @@ def digest(data):
     return hashlib.sha256(data).hexdigest()
 
 
+def stable_dump(node):
+    """Version-stable AST dump: 3.12+ adds ``type_params`` and hides empty fields."""
+    for child in ast.walk(node):
+        if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            fields = getattr(child, '_fields', ())
+            if 'type_params' in fields:
+                child._fields = tuple(field for field in fields if field != 'type_params')
+    try:
+        return ast.dump(node, include_attributes=False, show_empty=True)
+    except TypeError:  # Python < 3.13 always includes empty optional fields.
+        return ast.dump(node, include_attributes=False)
+
+
 def numeric_census(source, filename='<source>'):
     """Return all nontrivial literals, including contextual unit exemptions.
 
@@ -145,7 +158,7 @@ def numeric_census(source, filename='<source>'):
             parent = ancestors[-1] if ancestors else node
             owner = anchor or parent
             if owner not in hashes:
-                hashes[owner] = digest(ast.dump(owner, include_attributes=False).encode())
+                hashes[owner] = digest(stable_dump(owner).encode())
             symbol = '.'.join(scope) or '<module>'
             # Context only exempts unit factors used in multiplication/division.
             near = ' '.join((binding, ast.unparse(parent))).lower()

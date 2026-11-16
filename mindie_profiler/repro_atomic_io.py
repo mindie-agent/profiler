@@ -34,6 +34,9 @@ _WIN_BIN = os.O_BINARY if _IS_WIN else 0
 _READ_FLAGS = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0) | _WIN_BIN
 def _link_nofollow(src: Any, dst: Any) -> None:
     os.link(src, dst) if _IS_WIN else os.link(src, dst, follow_symlinks=False)
+def _retention_read_hook(path: Path) -> None:
+    from . import repro_retention
+    repro_retention.note_atomic_read(path)
 def read_regular_bytes(path: Any) -> bytes | None:
     try:
         target = Path(str(path))
@@ -59,7 +62,9 @@ def read_regular_bytes(path: Any) -> bytes | None:
                 os.set_blocking(handle, True)
             stream = os.fdopen(handle, "rb", closefd=False)
             handle = _borrow_stream_fd(stream, handle, expected_fd_inode)
-            return stream.read()
+            data = stream.read()
+            _retention_read_hook(target)
+            return data
     except TimeoutError: raise
     except OSError: return None
 def inode_of(path: Any) -> tuple[int, int] | None:
@@ -335,77 +340,79 @@ def safe_write_bytes(target: Any, data: bytes, *, protected: Iterable[tuple[int,
                      installed_out: list[tuple[int, int]] | None = None, refresh_protected=None) -> bool:
     """Install and verify a fresh inode; report ownership only on success."""
     destination, parent = _absolute(target), _absolute(target).parent
-    protected_set = {(int(dev), int(ino)) for dev, ino in protected}
-    forbidden_set = {_absolute(path) for path in forbidden}
-    allowance = _absolute(allow_slot) if allow_slot is not None else None
-    if (not _walk_parent(parent, forbidden_set, allowance) or _forbidden_parent(parent, forbidden_set, allowance)
-            or not _leaf_safe(destination, protected_set) or not _inspect_predictable_temps(parent, destination.name)):
-        return False
-    opened = _open_temporary(parent, destination.name)
-    if opened is None:
-        return False
-    handle, temporary = opened
-    installed_inode = temp_inode = publication = None
-    temp_present, verified = True, False
-    def close_writer(primary):
-        nonlocal temp_inode
-        if temp_inode is None:
-            temp_inode = _recover_fd_inode(handle)
-        _close_owned_fd(handle, active_exc=primary, expected=temp_inode)
-    def rollback(primary_exc):
-        if temp_present:
-            with _cleanup_scope(lambda exc: _unlink_owned_path(
-                    temporary, temp_inode, active_exc=primary_exc or exc, private=True)):
-                if publication is not None:
-                    _unlink_owned_path(publication, temp_inode, active_exc=primary_exc, private=True)
-        if installed_inode is not None and not verified:
-            _unlink_owned_path(destination, installed_inode, protected=protected_set, active_exc=primary_exc)
-    with _cleanup_scope(rollback):
-        try:
-            with _cleanup_scope(close_writer):
-                temp_info = os.fstat(handle)
-                temp_inode = (temp_info.st_dev, temp_info.st_ino)
-                if not stat.S_ISREG(temp_info.st_mode):
-                    raise OSError("temporary is not a regular file")
-                if temp_info.st_nlink == 1:  # O_CREAT|O_EXCL sole link: purge recycled ext4 inodes.
-                    with _OWNERSHIP_LOCK:
-                        _COMMITTED_INODES.discard(temp_inode)
-                    protected_set.discard(temp_inode)
-                if not _write_all(handle, data):
-                    raise OSError("short write")
-            expected, digest = temp_inode, sha256_digest(data)
-            if not _verified_inode(temporary, expected, digest):
-                return False
-            if refresh_protected is not None:
-                protected_set.update(refresh_protected())
-                protected_set.discard(expected)
-            if not _leaf_safe(destination, protected_set) or _forbidden_parent(parent, forbidden_set, allowance):
-                return False
-            # Keep the leaf prefix/suffix used by retained temporary fault selectors.
-            publication = parent / f".{destination.name}.{os.urandom(16).hex()}.publish.tmp"
-            os.rename(temporary, publication)
-            if inode_of(publication) != expected:
-                try:
-                    _link_nofollow(publication, temporary)
-                except FileExistsError:
-                    return False  # Preserve both foreign occupants.
-                os.unlink(publication)
-                return False
-            installed_inode = expected
-            if exclusive:
-                os.link(publication, destination)
-                _unlink_owned_path(publication, expected, private=True)
-            else:
-                os.replace(publication, destination)
-            temp_present = False
-            verified = _verified_inode(destination, expected, digest)
-            if not verified:
-                return False
-        except TimeoutError: raise
-        except OSError: return False
-    if installed_out is not None:
-        installed_out.append(expected)
-    return True
+    from . import repro_retention
+    with repro_retention.atomic_write_guard(destination):
+        protected_set = {(int(dev), int(ino)) for dev, ino in protected}
+        forbidden_set = {_absolute(path) for path in forbidden}
+        allowance = _absolute(allow_slot) if allow_slot is not None else None
+        if (not _walk_parent(parent, forbidden_set, allowance) or _forbidden_parent(parent, forbidden_set, allowance)
+                or not _leaf_safe(destination, protected_set) or not _inspect_predictable_temps(parent, destination.name)):
+            return False
+        opened = _open_temporary(parent, destination.name)
+        if opened is None:
+            return False
+        handle, temporary = opened
+        installed_inode = temp_inode = publication = None
+        temp_present, verified = True, False
+        def close_writer(primary):
+            nonlocal temp_inode
+            if temp_inode is None:
+                temp_inode = _recover_fd_inode(handle)
+            _close_owned_fd(handle, active_exc=primary, expected=temp_inode)
+        def rollback(primary_exc):
+            if temp_present:
+                with _cleanup_scope(lambda exc: _unlink_owned_path(
+                        temporary, temp_inode, active_exc=primary_exc or exc, private=True)):
+                    if publication is not None:
+                        _unlink_owned_path(publication, temp_inode, active_exc=primary_exc, private=True)
+            if installed_inode is not None and not verified:
+                _unlink_owned_path(destination, installed_inode, protected=protected_set, active_exc=primary_exc)
+        with _cleanup_scope(rollback):
+            try:
+                with _cleanup_scope(close_writer):
+                    temp_info = os.fstat(handle)
+                    temp_inode = (temp_info.st_dev, temp_info.st_ino)
+                    if not stat.S_ISREG(temp_info.st_mode):
+                        raise OSError("temporary is not a regular file")
+                    if temp_info.st_nlink == 1:  # O_CREAT|O_EXCL sole link: purge recycled ext4 inodes.
+                        with _OWNERSHIP_LOCK:
+                            _COMMITTED_INODES.discard(temp_inode)
+                        protected_set.discard(temp_inode)
+                    if not _write_all(handle, data):
+                        raise OSError("short write")
+                expected, digest = temp_inode, sha256_digest(data)
+                if not _verified_inode(temporary, expected, digest):
+                    return False
+                if refresh_protected is not None:
+                    protected_set.update(refresh_protected())
+                    protected_set.discard(expected)
+                if not _leaf_safe(destination, protected_set) or _forbidden_parent(parent, forbidden_set, allowance):
+                    return False
+                # Keep the leaf prefix/suffix used by retained temporary fault selectors.
+                publication = parent / f".{destination.name}.{os.urandom(16).hex()}.publish.tmp"
+                os.rename(temporary, publication)
+                if inode_of(publication) != expected:
+                    try:
+                        _link_nofollow(publication, temporary)
+                    except FileExistsError:
+                        return False  # Preserve both foreign occupants.
+                    os.unlink(publication)
+                    return False
+                installed_inode = expected
+                if exclusive:
+                    os.link(publication, destination)
+                    _unlink_owned_path(publication, expected, private=True)
+                else:
+                    os.replace(publication, destination)
+                temp_present = False
+                verified = _verified_inode(destination, expected, digest)
+                if not verified:
+                    return False
+            except TimeoutError: raise
+            except OSError: return False
+        if installed_out is not None:
+            installed_out.append(expected)
+        return True
 __all__ = ["ensure_directory", "inode_of", "lstat_or_none", "path_exists", "path_is_dir", "path_is_file",
            "path_is_symlink", "path_lexists", "read_regular_bytes", "safe_write_bytes", "sha256_digest",
            "stat_or_none", "unlink_quiet", "validate_directory"]
