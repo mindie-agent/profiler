@@ -344,7 +344,7 @@ def safe_write_bytes(target: Any, data: bytes, *, protected: Iterable[tuple[int,
         protected_set = {(int(dev), int(ino)) for dev, ino in protected}
         forbidden_set = {_absolute(path) for path in forbidden}
         allowance = _absolute(allow_slot) if allow_slot is not None else None
-        if (not _walk_parent(parent, forbidden_set, allowance) or _forbidden_parent(parent, forbidden_set, allowance)
+        if (not guard[-1] or not _walk_parent(parent, forbidden_set, allowance) or _forbidden_parent(parent, forbidden_set, allowance)
                 or not _leaf_safe(destination, protected_set) or not _inspect_predictable_temps(parent, destination.name)):
             return False
         opened = _open_temporary(parent, destination.name)

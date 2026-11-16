@@ -446,7 +446,7 @@ def atomic_write_guard(path: Path):
     """Protect ``<short_root>/diff/<slot>/diff.json`` writes only."""
     if path.name == "diff.json" and path.parent.parent.name == _DIFF_DIRECTORY:
         return retention_write_guard(path.parent, default_committed=False)
-    return contextlib.nullcontext([False])
+    return contextlib.nullcontext([False, True])
 
 
 def rollback_unleased(path: Path, action, active_exc: BaseException | None = None) -> None:
@@ -713,10 +713,12 @@ def retention_write_guard(entry: Path, *, default_committed: bool = True) -> Ite
         with exclusive_lock(base / _RETENTION_LOCK_NAME, blocking=True, require_os=True) as pre_locked:
             if pre_locked:
                 handle = _create_marker(marker)
-                _hold_pin(entry)
-            else:
-                safe = False
-    outcome, completed = [default_committed], False
+                if handle is not None: _hold_pin(entry)
+                if handle is None or _pin_key(entry) not in _PINS:
+                    _drop_pin(entry)
+                    safe = False
+            else: safe = False
+    outcome, completed = [default_committed, safe], False
     try:
         yield outcome
         completed = bool(outcome[0])
@@ -728,30 +730,26 @@ def retention_write_guard(entry: Path, *, default_committed: bool = True) -> Ite
                         _drop_pin(entry)
                         outcome[0] = False
                     elif completed:
-                        try:
-                            _refresh_slot(entry)
+                        try: _refresh_slot(entry)
                         finally:
                             if not _seal_pin(entry):
                                 outcome[0] = False
                                 if not _slot_pinned(entry) and not default_committed:
-                                    receipts = _validated_leaves(entry, _DIFF_LEAVES)
+                                    leaves = _DIFF_LEAVES if entry.parent.name == _DIFF_DIRECTORY else _CAS_LEAVES
+                                    receipts = _validated_leaves(entry, leaves)
                                     if receipts is not None and not any(
                                             _protected_inode_live(i) for i in receipts.values()):
                                         trash = base / f"{_TRASH_PREFIX}{entry.name}-{uuid.uuid4().hex}"
                                         try:
                                             os.replace(entry, trash)
-                                            _remove_trash(trash, _DIFF_LEAVES, receipts)
-                                        except TimeoutError:
-                                            raise
-                                        except OSError:
-                                            pass
+                                            _remove_trash(trash, leaves, receipts)
+                                        except TimeoutError: raise
+                                        except OSError: pass
                     else:
                         _drop_pin(entry)
                         _slot_pinned(entry)  # Remove a pin leaf that never got a lease.
-            else:
-                outcome[0] = False
-        finally:
-            _drop_marker(marker, handle)
+            else: outcome[0] = False
+        finally: _drop_marker(marker, handle)
 
 
 def prune_repro_storage(root: str | Path | None = None, *, max_entries: int = PRUNE_MAX_ENTRIES,

@@ -367,18 +367,23 @@ def _write_pair_immutable(directory: Path, script: str, manifest: dict[str, Any]
     state = _slot_state(directory, snapshot[1])
     if state not in ("clean", "occupied"):
         return None, state
-    with retention_write_guard(directory):
-        script_path, manifest_path = directory / "repro.py", directory / "manifest.json"
-        if state == "clean":
-            if (written := _write_pair(directory, script, manifest, snapshot=snapshot)) is not None:
-                return written, None
-            state = _slot_state(directory, snapshot[1])
-            if state != "occupied":
-                return None, "artifact_persistence_failed"
-        if _verify_pair_bytes(script_path, manifest_path, script_bytes, manifest_bytes):
-            _remember_inodes(script_path, manifest_path)
-            return (str(script_path), str(manifest_path)), None
-        return None, "artifact_directory_conflict"
+    written, error = None, "artifact_persistence_failed"
+    with retention_write_guard(directory, default_committed=state != "clean") as guard:
+        guard[0] = False
+        if guard[-1]:
+            script_path, manifest_path = directory / "repro.py", directory / "manifest.json"
+            if state == "clean":
+                written = _write_pair(directory, script, manifest, snapshot=snapshot)
+                state = _slot_state(directory, snapshot[1]) if written is None else state
+            if written is None and state == "occupied":
+                if _verify_pair_bytes(script_path, manifest_path, script_bytes, manifest_bytes):
+                    written = (str(script_path), str(manifest_path))
+                else: error = "artifact_directory_conflict"
+            guard[0] = written is not None
+    if written is None or not all(guard):
+        return None, error if written is None else "artifact_persistence_failed"
+    _remember_inodes(*written)
+    return written, None
 class _PairTransaction:
     """Keep prior ordinary leaves until the enclosing pair verification commits."""
     def __init__(self, targets, protected):
@@ -447,8 +452,6 @@ def _write_caller_pair(script_target: Path, manifest_target: Path,
             tx.protected.difference_update(tx.installed[target])
         if not _verify_pair_bytes(script_target, manifest_target, script_bytes, manifest_bytes):
             return None
-        if exclusive:
-            _remember_inodes(script_target, manifest_target)
         tx.committed = transaction is None
         return str(script_target), str(manifest_target)
 def _index_path() -> Path: return short_root() / _INDEX_NAME
@@ -461,8 +464,7 @@ def _record_index(entry: dict[str, Any]) -> bool:
             loaded = json.loads(raw.decode("utf-8"))
             existing = loaded if isinstance(loaded, dict) else {}
         existing[entry["artifact_id"]] = entry
-        data = (json.dumps(existing, indent=2, sort_keys=True)
-                + "\n").encode("utf-8")
+        data = (json.dumps(existing, indent=2, sort_keys=True) + "\n").encode("utf-8")
         if _atomic_write_bytes(path, data):
             return True
         return _atomic_write_bytes(path, data)
@@ -558,18 +560,13 @@ def resolve_repro_artifact(artifact_id_value: str) -> dict[str, Any]:
         return {"schema": "mindie-repro-artifact-resolution/1", "artifact_id": identifier, "resolved": False,
                 "retrievable": False, "error": error}
     return verified
-def _stage_failure(identifier: str, status: str, error: str, *,
-                   conflict: bool = False, protected: bool = False,
-                   manifest_sha256: str | None = None) -> dict[str, Any]:
-    return {
-        "artifact_id": identifier, "script_sha256": identifier,
-        "manifest_sha256": manifest_sha256, "status": status, "error": error,
-        "immutable_conflict": conflict, "protected_artifact_target": protected,
-        "artifact_path": None, "manifest_path": None,
-        "short_artifact_path": None, "short_manifest_path": None,
-        "requested_artifact_path": None, "requested_manifest_path": None,
-        "retrievable": False,
-    }
+def _stage_failure(identifier: str, status: str, error: str, *, conflict: bool = False,
+                   protected: bool = False, manifest_sha256: str | None = None) -> dict[str, Any]:
+    return {"artifact_id": identifier, "script_sha256": identifier, "manifest_sha256": manifest_sha256,
+            "status": status, "error": error, "immutable_conflict": conflict, "protected_artifact_target": protected,
+            "artifact_path": None, "manifest_path": None, "short_artifact_path": None,
+            "short_manifest_path": None, "requested_artifact_path": None, "requested_manifest_path": None,
+            "retrievable": False}
 def stage_artifacts(script: str, manifest: dict[str, Any], *, output_dir: str | Path | None = None,
                     output_path: str | Path | None = None) -> dict[str, Any]:
     """Write the short-root copy, mirror a caller path, and register the id."""
