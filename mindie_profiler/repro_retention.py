@@ -2,42 +2,20 @@
 
 [Role]
   Evict expired or excess ``<sha>/repro.py`` + ``manifest.json`` pairs and
-  ``diff/<id>/diff.json`` slots from the content-addressed short root so a
-  long-lived ``/tmp/mprof`` never grows without bound.
-
+  ``diff/<id>/diff.json`` slots from the short root so ``/tmp/mprof`` stays bounded.
 [Invariants]
-  * At most ``max_entries`` slots per kind survive; entries older than
-    ``max_age_days`` are evicted regardless of count.
-  * A symlinked or reparse-point ``<root>``/``<root>/diff`` is refused; such
-    candidates and leaves are never traversed or deleted.
-  * Every leaf is validated as a regular, non-reparse file before anything is
-    unlinked; an unexpected payload keeps the whole slot.
-  * Active state is never touched: commit-registry inodes, registered/active
-    slots, lock-marked or write-marked entries, and unexpected payloads stay.
-  * Eviction atomically renames the slot to a private ``.trash-*`` sibling
-    while both locks are held, then unlinks only pre-validated regular leaves;
-    a ``.trash-*`` sibling that is itself a symlink or reparse point is never
-    traversed.
-  * Writers publish a private ``.write-<slot>-*`` marker holding an exclusive
-    OS lock for the whole delivery; a marker is swept only when it is stale and
-    its lock is provably free.  A written or reused slot also holds a shared
-    ``.pin-<slot>.lock`` lease through registration and leaves its PID behind;
-    a slot with a held lock or a live PID lease is never evicted.
-  * Leftover ``.trash-*`` siblings with a known payload shape are swept.
-
+  * Keep <= ``max_entries`` slots per kind and evict slots older than ``max_age_days``.
+  * Refuse symlinked or reparse-point roots/slots/leaves; validate regular leaves before
+    atomic ``.trash-*`` detach under locks; unexpected payloads keep the whole slot.
+  * Active state stays untouched: commit-registry inodes, registered slots, locked
+    ``.write-<slot>-*`` markers, held ``.pin-<slot>.lock`` OS locks, and live PID leases.
 [Timeouts & Locks]
-  The shared process-local ownership lock plus a non-blocking ``flock``/
-  ``msvcrt`` lock on ``<root>/.retention.lock`` guard every eviction.  Writers
-  hold that OS lock only while creating their locked write marker and pin, so
-  no lock spans a read, a leaf write, or a directory walk; contention skips
-  eviction.  Marker age alone never proves a writer dead.
-
+  The process-local ownership lock plus ``<root>/.retention.lock`` guard eviction,
+  pin sealing, reuse verification, and unleased rollback; ``TimeoutError`` propagates.
 [Side-Effect Policy]
-  Removes only expired/excess slots and their private trash siblings inside the
-  selected short root.  Network, caller output paths, and the index leaf are
-  never mutated.
+  Removes only expired/excess slots and owned trash siblings inside the short root;
+  never mutates network, caller output paths, or the index leaf.
 """
-
 from __future__ import annotations
 
 import atexit
@@ -53,12 +31,7 @@ import uuid
 
 from .repro_atomic_io import unlink_quiet
 from .storage_locks import (
-    close_lock_fd,
-    exclusive_lock,
-    open_lock_file,
-    process_exited,
-    try_lock_fd,
-    unlock_fd,
+    close_lock_fd, exclusive_lock, open_lock_file, process_exited, try_lock_fd, unlock_fd,
 )
 
 PRUNE_MAX_ENTRIES = 64
@@ -276,15 +249,32 @@ def _write_lease_bytes(fd: int, payload: bytes) -> bool:
 
 
 def _rewrite_lease(fd: int, pids: list[int]) -> None:
+    end, tail_written = None, False
     try:
+        if not pids:
+            os.ftruncate(fd, 0)
+            return
+        end = os.fstat(fd).st_size
+        payload = "".join(f"{pid}\n" for pid in pids).encode("ascii")
+        newline = payload[-1:]
+        os.lseek(fd, end, os.SEEK_SET)
+        if not _write_lease_bytes(fd, newline + payload):
+            os.ftruncate(fd, end)
+            return
+        tail_written = True
         os.lseek(fd, 0, os.SEEK_SET)
-        os.ftruncate(fd, 0)
-        if pids:
-            _write_lease_bytes(fd, "".join(f"{pid}\n" for pid in pids).encode("ascii"))
+        if _write_lease_bytes(fd, payload + newline):
+            os.ftruncate(fd, len(payload))
     except TimeoutError:
         raise
     except OSError:
-        pass
+        if end is not None and not tail_written:
+            try:
+                os.ftruncate(fd, end)
+            except TimeoutError:
+                raise
+            except OSError:
+                pass
 
 
 def _seal_fd(fd: int) -> bool:
@@ -315,23 +305,18 @@ def _append_lease(entry: Path) -> bool:
     fd = open_lock_file(_pin_path(entry), append=True)
     if fd is None:
         return False
-    try:
-        return _seal_fd(fd)
-    finally:
-        close_lock_fd(fd)
+    try: return _seal_fd(fd)
+    finally: close_lock_fd(fd)
 
 
 def _seal_pin(entry: Path) -> bool:
     """Hand a held shared OS lock off to a PID lease, then release the lock."""
-
     with _PIN_LOCK:
         fd = _PINS.pop(_pin_key(entry), None)
     if fd is None:
         return _append_lease(entry)
-    try:
-        return _seal_fd(fd)
-    finally:
-        _close_lock(fd)
+    try: return _seal_fd(fd)
+    finally: _close_lock(fd)
 
 
 def _release_pins() -> None:
@@ -368,9 +353,11 @@ def _slot_pinned(entry: Path) -> bool:
         if pids is None:
             return True  # Unreadable lease: never clear or evict a possibly live slot.
         live = [pid for pid in pids if process_exited(pid) is not True]
-        _rewrite_lease(fd, live)
         if live:
+            if len(live) < len(pids):
+                _rewrite_lease(fd, live)
             return True
+        _rewrite_lease(fd, live)
         if os.name != "nt":
             unlink_quiet(path)
     finally:
@@ -462,10 +449,29 @@ def note_atomic_read(path: Path, expected_inode: tuple[int, int]) -> bool:
 
 def atomic_write_guard(path: Path):
     """Protect ``<short_root>/diff/<slot>/diff.json`` writes only."""
-
     if path.name == "diff.json" and path.parent.parent.name == _DIFF_DIRECTORY:
         return retention_write_guard(path.parent, default_committed=False)
     return contextlib.nullcontext([False])
+
+
+def rollback_unleased(path: Path, action, active_exc: BaseException | None = None) -> None:
+    """Run ``action`` only when no concurrent reader leased ``<diff>/<slot>``."""
+    if path.name not in _DIFF_LEAVES or path.parent.parent.name != _DIFF_DIRECTORY:
+        action()
+        return
+    entry, base = path.parent, path.parent.parent
+    try:
+        if not _safe_directory(base):
+            return
+        with exclusive_lock(base / _RETENTION_LOCK_NAME, blocking=True) as locked:
+            if not locked:
+                return
+            _drop_pin(entry)
+            if not _slot_pinned(entry):
+                action()
+    except BaseException:
+        if active_exc is None:
+            raise
 
 
 def _create_marker(marker: Path) -> int | None:

@@ -1180,3 +1180,59 @@ def test_diff_failed_seal_pin_preserves_concurrent_reader_lease_and_artifact(mon
     assert pins[0].read_bytes() == f"{reader_pid}\n".encode("ascii")
     assert len(list((root / "diff").glob("*/diff.json"))) == 1
     assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14) == 0
+
+
+def test_post_publish_verification_failure_preserves_concurrent_reader_lease(monkeypatch):
+    from mindie_profiler import repro_atomic_io as checked_io
+    from mindie_sim.diff_trace import call_mcp_tool as diff_mcp
+
+    root = make_temp_workspace("mpr15v-", base="/tmp")
+    monkeypatch.setenv("MINDIE_REPRO_SHORT_ROOT", str(root))
+    trace = {"total_ms": 6, "ops": [{"name": "Rotary", "duration_ms": 6}]}
+    reader_pid = os.getpid() + 100001
+    monkeypatch.setattr(repro_retention, "process_exited", lambda pid: pid not in {os.getpid(), reader_pid})
+
+    real_verify = checked_io._verified_inode
+    calls = []
+
+    def fail_final_verify_after_reader(path, expected, digest):
+        calls.append(Path(path).name)
+        if Path(path).name == "diff.json" and len(calls) == 2:
+            pin = repro_retention._pin_path(Path(path).parent)
+            with pin.open("ab") as handle:
+                handle.write(f"{reader_pid}\n".encode("ascii"))
+            raise OSError(errno.EIO, "transient read error after publish")
+        return real_verify(path, expected, digest)
+
+    monkeypatch.setattr(checked_io, "_verified_inode", fail_final_verify_after_reader)
+    failed = diff_mcp({"predicted": trace, "captured": trace})
+    assert failed["persisted"] is False
+    assert failed["status"] == "delivery_failed"
+    assert len(list((root / "diff").glob("*/diff.json"))) == 1
+    assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14) == 0
+
+
+def test_rewrite_lease_short_write_never_erases_live_reader_pid(tmp_path, monkeypatch):
+    entry = tmp_path / "slot"
+    entry.mkdir()
+    (entry / "diff.json").write_text("{}\n", encoding="utf-8")
+    pin = entry.with_name(".pin-slot.lock")
+    live_pid = os.getpid() + 100002
+    dead_pid = os.getpid() + 100003
+    pin.write_bytes(f"{dead_pid}\n{live_pid}\n".encode("ascii"))
+    monkeypatch.setattr(repro_retention, "process_exited", lambda pid: pid == dead_pid)
+
+    real_write = repro_retention.os.write
+    step = [0]
+
+    def fail_compaction_write(fd, data):
+        step[0] += 1
+        if step[0] == 1:
+            return real_write(fd, bytes(data)[:2])
+        return 0
+
+    monkeypatch.setattr(repro_retention.os, "write", fail_compaction_write)
+    assert repro_retention._slot_pinned(entry) is True
+    monkeypatch.setattr(repro_retention.os, "write", real_write)
+    assert repro_retention._slot_pinned(entry) is True
+    assert pin.read_bytes() == f"{live_pid}\n".encode("ascii")

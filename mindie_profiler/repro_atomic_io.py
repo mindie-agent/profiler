@@ -365,7 +365,7 @@ def safe_write_bytes(target: Any, data: bytes, *, protected: Iterable[tuple[int,
                     if publication is not None:
                         _unlink_owned_path(publication, temp_inode, active_exc=primary_exc, private=True)
             if installed_inode is not None and not verified:
-                _unlink_owned_path(destination, installed_inode, protected=protected_set, active_exc=primary_exc)
+                repro_retention.rollback_unleased(destination, lambda: _unlink_owned_path(destination, installed_inode, protected=protected_set, active_exc=primary_exc), primary_exc)
         with _cleanup_scope(rollback):
             try:
                 with _cleanup_scope(close_writer):
