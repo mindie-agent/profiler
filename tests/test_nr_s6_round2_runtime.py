@@ -38,8 +38,8 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def _isolate_short_root(monkeypatch):
-    import shutil as _shutil, tempfile as _tempfile
-    short = _tempfile.mkdtemp(prefix='mp_', dir='/tmp')
+    import shutil as _shutil
+    short = str(make_temp_workspace('mp_', base='/tmp'))
     monkeypatch.setenv('MINDIE_REPRO_SHORT_ROOT', short)
     try:
         yield
@@ -61,6 +61,7 @@ from mindie_sim.diff_trace import attribute_diff
 from mindie_sim.diff_trace_replay import _op_uid
 
 from nr_s6_support import paged_binding, paged_row
+from temp_workspaces import make_temp_workspace
 
 
 ROOT = Path(__file__).parents[1]

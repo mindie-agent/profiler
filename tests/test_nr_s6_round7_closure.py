@@ -35,7 +35,6 @@ from mindie_profiler import repro_atomic_io as checked_io
 import shutil
 import subprocess
 import sys
-import tempfile
 import threading
 import time
 
@@ -62,6 +61,7 @@ from mindie_sim.diff_trace import (
 
 from nr_s6_round4_probe import BrokerDist, World, run_ranks
 from nr_s6_support import paged_binding
+from temp_workspaces import make_temp_workspace
 from test_nr_s6_round2_closure import _ready_bindings
 
 
@@ -96,7 +96,7 @@ def _samples(results):
 
 
 def _fresh_root():
-    return Path(tempfile.mkdtemp(prefix="r7cas-", dir="/tmp"))
+    return make_temp_workspace("r7cas-", base="/tmp")
 
 
 # ----------------------------------------------------------------------- F1

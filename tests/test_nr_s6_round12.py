@@ -365,7 +365,8 @@ def test_r15_writer_rollback_reader_identity_and_retry(leaf, fault, monkeypatch,
         with pytest.raises(OSError) as closed:
             original["fstat"](fd)
         assert closed.value.errno == errno.EBADF
-    assert not any(checked_io.path_is_file(p) for p in Path("fresh").rglob("*"))
+    assert not any(checked_io.path_is_file(p) for p in Path("fresh").rglob("*")
+                   if p.name != ".retention.lock")
     assert {p: p.read_bytes() for p in historical} == historical
     assert resolve_repro_artifact(old["sha256"])["resolved"] is True
     assert repro_mcp("repro_op", request)["status"] == "ready"
@@ -446,7 +447,8 @@ def test_r15_reader_close_is_primary_inside_a_callers_exception_handler(monkeypa
             with pytest.raises(TimeoutError) as caught:
                 repro_mcp("repro_op", request)
         assert caught.value is primary and hits
-    assert not any(checked_io.path_is_file(p) for p in Path("handled").rglob("*"))
+    assert not any(checked_io.path_is_file(p) for p in Path("handled").rglob("*")
+                   if p.name != ".retention.lock")
     for fd in readers:
         with pytest.raises(OSError):
             os.fstat(fd)

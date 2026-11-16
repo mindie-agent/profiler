@@ -37,7 +37,7 @@ from .events import (
     Window,
 )
 
-__version__ = "0.5.14"
+__version__ = "0.5.15"
 
 _LAZY_EXPORTS: dict[str, tuple[str, str]] = {
     "ADVISOR_SCHEMA": (".advisor_rules", "ADVISOR_SCHEMA"),

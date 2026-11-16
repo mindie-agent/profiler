@@ -31,7 +31,6 @@ from mindie_profiler import repro_atomic_io as checked_io
 import shutil
 import subprocess
 import sys
-import tempfile
 import threading
 from unittest.mock import patch
 
@@ -51,6 +50,7 @@ from mindie_sim.diff_trace import (
 )
 
 from nr_s6_support import paged_binding
+from temp_workspaces import make_temp_workspace
 from test_nr_s6_round2_closure import _ready_bindings
 from test_nr_s6_round8 import _r16_fds, _r16_no_leaks
 
@@ -93,7 +93,7 @@ PADDINGS = {
 }
 
 def _fresh_root(prefix):
-    return Path(tempfile.mkdtemp(prefix=prefix, dir="/tmp"))
+    return make_temp_workspace(prefix, base="/tmp")
 
 def _sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
@@ -531,7 +531,9 @@ def test_r17_parking_retries_preserve_primary(phase, faults, monkeypatch, tmp_pa
         with pytest.raises(TimeoutError) as caught:
             repro_mcp("repro_op", request)
     assert caught.value is primary and hits and len(failures) == faults
-    assert not any(checked_io.path_is_file(p) for p in Path("cas").rglob("*"))
+    # ``.retention.lock`` is the documented 0-byte cross-process advisory lock.
+    assert not any(checked_io.path_is_file(p) for p in Path("cas").rglob("*")
+                   if p.name != ".retention.lock")
     _r16_no_leaks(fds, tmp_path)
     assert repro_mcp("repro_op", request)["status"] == "ready"
 

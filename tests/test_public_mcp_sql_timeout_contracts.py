@@ -38,7 +38,6 @@ import socket
 import sqlite3
 import subprocess
 import sys
-import tempfile
 from unittest.mock import patch
 
 import pytest
@@ -62,6 +61,7 @@ from mindie_profiler import (
 analyze_mod = importlib.import_module("mindie_profiler.analyze")
 from mindie_profiler.events import ProfilerQueryError, ProfilerUsageError
 from mindie_profiler.sql import _authorizer, open_readonly, run_sql
+from temp_workspaces import make_temp_workspace
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PKG_ROOT = REPO_ROOT / "mindie_profiler"
@@ -194,7 +194,7 @@ def test_repro_mcp_binds_raw_occurrence_and_forwards_seed_and_cann_version(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    short_dir = tempfile.mkdtemp(prefix="mpc_", dir="/tmp")
+    short_dir = str(make_temp_workspace("mpc_", base="/tmp"))
     monkeypatch.setenv("MINDIE_REPRO_SHORT_ROOT", short_dir)
     monkeypatch.setenv("MINDIE_DATA_HOME", str(tmp_path / "data"))
     raw = _paged_attention_raw_row()

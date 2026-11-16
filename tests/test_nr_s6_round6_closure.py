@@ -32,7 +32,6 @@ from mindie_profiler import repro_atomic_io as checked_io
 import shutil
 import subprocess
 import sys
-import tempfile
 import time
 
 import pytest
@@ -53,6 +52,7 @@ from test_nr_s6_round4_closure import _probe_plan
 from test_nr_s6_round5_closure import (
     _READY_TYPES, _invoke_all_ready, _ready_invoke_setup,
 )
+from temp_workspaces import make_temp_workspace
 
 
 def _diff(predicted, captured):
@@ -68,7 +68,7 @@ def _records(results):
 
 
 def _fresh_short_root():
-    return Path(tempfile.mkdtemp(prefix="r6cas-", dir="/tmp"))
+    return make_temp_workspace("r6cas-", base="/tmp")
 
 
 # ----------------------------------------------------------------------- F1
@@ -221,7 +221,7 @@ def _spawn(code, *args):
 
 
 def test_f6_supervisor_terminates_a_blocked_peer_promptly():
-    tmp = tempfile.mkdtemp(prefix="r6sup-")
+    tmp = str(make_temp_workspace("r6sup-"))
     abort = Path(tmp, "abort.json")
     writer = (
         "import json, sys;"

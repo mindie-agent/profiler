@@ -35,8 +35,8 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def _isolate_short_root(monkeypatch):
-    import shutil as _shutil, tempfile as _tempfile
-    short = _tempfile.mkdtemp(prefix='mp_', dir='/tmp')
+    import shutil as _shutil
+    short = str(make_temp_workspace('mp_', base='/tmp'))
     monkeypatch.setenv('MINDIE_REPRO_SHORT_ROOT', short)
     try:
         yield
@@ -64,6 +64,7 @@ VLLM = Path("/Users/maoxx241/code/vllm-ascend")
 
 # ---------------------------------------------------------------- fixtures
 from nr_s6_support import exec_script, fa_row, paged_row, _fake_torch, probe_namespace
+from temp_workspaces import make_temp_workspace
 
 
 # ------------------------------------------------------------- R7 / R8
