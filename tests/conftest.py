@@ -1,12 +1,12 @@
-"""[Role] Shared pytest isolation for the standalone profiler test suite.
+"""pytest isolation for the standalone profiler test suite.
+
+[Role] Isolate HOME/data/config roots and reclaim every test temp workspace.
 [Invariants] Tests never inherit developer contribution or GitHub credentials.
 [Timeouts & Locks] No locks, timers, sleeps, or background services.
-[Side-Effect Policy] Monkeypatches process environment only; writes no files.
+[Side-Effect Policy] Monkeypatches process environment and owns temp cleanup.
 """
 import os
-import shutil
 import sys
-import tempfile
 
 import pytest
 
@@ -17,6 +17,12 @@ _REPO_ROOT = str(Path(__file__).resolve().parents[1])
 for _entry in (_TESTS_DIR, _REPO_ROOT):
     if _entry not in sys.path:
         sys.path.insert(0, _entry)
+
+from temp_workspaces import (  # noqa: E402 - resolved via the tests path entry.
+    make_temp_workspace,
+    release_all_temp_workspaces,
+    release_temp_workspace,
+)
 
 
 _SIM_SOURCE = os.environ.get("MINDIE_SIM_SOURCE")
@@ -32,6 +38,16 @@ def _session_sim_cache_home(tmp_path_factory):
     if "PYTEST_XDIST_WORKER" in os.environ:
         base = base.parent
     return str(base / "mindie-sim-cache")
+
+
+@pytest.fixture(autouse=True)
+def _temp_workspace_reaper():
+    """Drain registered workspaces even when a test fails before its finally."""
+
+    try:
+        yield
+    finally:
+        release_all_temp_workspaces()
 
 
 @pytest.fixture(autouse=True)
@@ -60,11 +76,9 @@ def isolated_runtime(tmp_path, monkeypatch, _session_sim_cache_home):
     Path('/tmp').mkdir(parents=True, exist_ok=True)
     if os.name == 'nt' and tmp_path.anchor:
         (Path(tmp_path.anchor) / 'tmp').mkdir(parents=True, exist_ok=True)
-    short_root = tempfile.mkdtemp(prefix='mpr_', dir='/tmp')
-    short_cleanup = Path(short_root).resolve()
-    monkeypatch.setenv('MINDIE_REPRO_SHORT_ROOT', short_root)
+    short_root = make_temp_workspace('mpr_', base='/tmp')
+    monkeypatch.setenv('MINDIE_REPRO_SHORT_ROOT', str(short_root))
     try:
         yield
     finally:
-        shutil.rmtree(short_root, ignore_errors=True)
-        shutil.rmtree(short_cleanup, ignore_errors=True)
+        release_temp_workspace(short_root)

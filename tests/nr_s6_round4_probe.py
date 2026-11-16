@@ -18,7 +18,9 @@
   a bounded timeout and no device or process group is created.
 
 [Side-Effect Policy]
-  Writes only the caller-supplied temporary JSONL paths.
+  Writes only the caller-supplied temporary JSONL paths; the per-run workspace
+  is registered with ``temp_workspaces`` so the pytest reaper and ``atexit``
+  both remove it, and an exceptional exit releases it immediately.
 """
 
 from __future__ import annotations
@@ -29,12 +31,12 @@ import json
 import os
 from pathlib import Path
 import sys
-import tempfile
 import threading
 import time
 import types
 
 from mindie_profiler.fabric_probe import emit_fabric_probe_script
+from temp_workspaces import make_temp_workspace, release_temp_workspace
 
 
 class ProtocolMismatch(RuntimeError):
@@ -464,7 +466,8 @@ def run_ranks(plan, *, sync_actions=None, fail_alloc=None, data_actions=None,
     sys.modules["torch_npu"] = npu
     sys.modules["torch.distributed"] = distributed
     results = {}
-    tmp = tempfile.mkdtemp(prefix="nr4-probe-")
+    tmp = make_temp_workspace("nr4-probe-")
+    completed = False
     try:
         def runner(rank):
             namespace = {"__name__": f"round4_probe_{rank}"}
@@ -497,10 +500,13 @@ def run_ranks(plan, *, sync_actions=None, fail_alloc=None, data_actions=None,
             thread.join(timeout)
             if thread.is_alive():
                 world.errors[thread.name] = "thread join timeout"
+        completed = True
+        return world, results, str(tmp)
     finally:
         for name, value in old.items():
             if value is None:
                 sys.modules.pop(name, None)
             else:
                 sys.modules[name] = value
-    return world, results, tmp
+        if not completed:
+            release_temp_workspace(tmp)

@@ -26,12 +26,17 @@
 
 [Side-Effect Policy]
   Reads the supplied trace.  The sidecar index is the only file written and is
-  explicitly disposable; no network or source mutation.
+  explicitly disposable; no network or source mutation.  A rebuild writes a
+  private ``.<index>.tmp.<pid>`` database, sets ``journal_size_limit`` to
+  8 MiB, takes a passive WAL checkpoint on close, and publishes with
+  ``os.replace``; a failed or interrupted build removes its temporary
+  database plus ``-wal``/``-shm`` siblings.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 import time
 from dataclasses import dataclass
@@ -44,6 +49,8 @@ from .events import ProfilerQueryError, ProfilerSchemaError
 
 TRACE_SCHEMA = "mindie-profiler-trace-index/1"
 TRACE_INDEX_SUFFIX = ".mindie-trace-index.sqlite3"
+WAL_JOURNAL_SIZE_LIMIT = 8 * 1024 * 1024
+_STALE_BUILD_S = 6 * 3600.0
 _DEFAULT_CHUNK = 1024 * 1024
 
 
@@ -305,7 +312,54 @@ def _open_index(path: Path) -> sqlite3.Connection:
     con.execute("PRAGMA journal_mode = WAL")
     con.execute("PRAGMA synchronous = NORMAL")
     con.execute("PRAGMA busy_timeout = 5000")
+    con.execute(f"PRAGMA journal_size_limit = {WAL_JOURNAL_SIZE_LIMIT}")
     return con
+
+
+def _close_index(con: sqlite3.Connection) -> None:
+    """Checkpoint the WAL passively, then close; never mask the primary error."""
+
+    try:
+        con.execute("PRAGMA wal_checkpoint(PASSIVE)")
+    except sqlite3.Error:
+        pass
+    finally:
+        con.close()
+
+
+def _remove_index_files(path: Path) -> None:
+    for candidate in (path, Path(f"{path}-wal"), Path(f"{path}-shm")):
+        try:
+            candidate.unlink(missing_ok=True)
+        except TimeoutError:
+            raise
+        except OSError:
+            continue
+
+
+def _build_path(index: Path) -> Path:
+    return index.with_name(f".{index.name}.tmp.{os.getpid()}")
+
+
+def _remove_stale_builds(index: Path) -> None:
+    """Sweep private build databases left by a killed builder; never a live one."""
+
+    cutoff = time.time() - _STALE_BUILD_S
+    try:
+        candidates = list(index.parent.glob(f".{index.name}.tmp.*"))
+    except TimeoutError:
+        raise
+    except OSError:
+        return
+    for candidate in candidates:
+        try:
+            if os.lstat(candidate).st_mtime > cutoff:
+                continue
+        except TimeoutError:
+            raise
+        except OSError:
+            continue
+        _remove_index_files(candidate)
 
 
 def build_trace_index(
@@ -331,66 +385,86 @@ def build_trace_index(
             "event_count": _index_event_count(index),
         }
     index.parent.mkdir(parents=True, exist_ok=True)
+    _remove_stale_builds(index)
     started = time.perf_counter()
-    con = _open_index(index)
+    build = _build_path(index)
+    _remove_index_files(build)
+    con = _open_index(build)
+    published = False
     try:
-        con.execute("DROP TABLE IF EXISTS trace_events")
-        con.execute("DROP TABLE IF EXISTS trace_meta")
-        _create_schema(con)
-        con.execute("DELETE FROM trace_meta")
-        event_count = 0
-        batch: list[tuple[Any, ...]] = []
-        with con:
-            for event in iter_trace_events(trace):
-                event_count += 1
-                ts = _number(event.get("ts"))
-                dur = _number(event.get("dur"))
-                ts_ns = _ns_from_us(event.get("ts"))
-                end_ns = ts_ns + _ns_from_us(event.get("dur")) if ts_ns is not None and dur is not None else None
-                args = event.get("args")
-                args_json = json.dumps(args, ensure_ascii=False, sort_keys=True) if args is not None else None
-                batch.append(
-                    (
-                        event_count,
-                        _text(event.get("name")),
-                        _text(event.get("cat")),
-                        _text(event.get("ph")),
-                        ts,
-                        dur,
-                        ts_ns,
-                        end_ns,
-                        _text(event.get("pid")),
-                        _text(event.get("tid")),
-                        args_json,
+        try:
+            con.execute("DROP TABLE IF EXISTS trace_events")
+            con.execute("DROP TABLE IF EXISTS trace_meta")
+            _create_schema(con)
+            con.execute("DELETE FROM trace_meta")
+            event_count = 0
+            batch: list[tuple[Any, ...]] = []
+            with con:
+                for event in iter_trace_events(trace):
+                    event_count += 1
+                    ts = _number(event.get("ts"))
+                    dur = _number(event.get("dur"))
+                    ts_ns = _ns_from_us(event.get("ts"))
+                    end_ns = ts_ns + _ns_from_us(event.get("dur")) if ts_ns is not None and dur is not None else None
+                    args = event.get("args")
+                    args_json = json.dumps(args, ensure_ascii=False, sort_keys=True) if args is not None else None
+                    batch.append(
+                        (
+                            event_count,
+                            _text(event.get("name")),
+                            _text(event.get("cat")),
+                            _text(event.get("ph")),
+                            ts,
+                            dur,
+                            ts_ns,
+                            end_ns,
+                            _text(event.get("pid")),
+                            _text(event.get("tid")),
+                            args_json,
+                        )
                     )
-                )
-                if len(batch) >= max(1, batch_size):
+                    if len(batch) >= max(1, batch_size):
+                        con.executemany(
+                            "INSERT INTO trace_events(seq,name,cat,ph,ts,dur,ts_ns,end_ns,pid,tid,args_json) "
+                            "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                            batch,
+                        )
+                        batch.clear()
+                if batch:
                     con.executemany(
                         "INSERT INTO trace_events(seq,name,cat,ph,ts,dur,ts_ns,end_ns,pid,tid,args_json) "
                         "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
                         batch,
                     )
-                    batch.clear()
-            if batch:
                 con.executemany(
-                    "INSERT INTO trace_events(seq,name,cat,ph,ts,dur,ts_ns,end_ns,pid,tid,args_json) "
-                    "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-                    batch,
+                    "INSERT OR REPLACE INTO trace_meta(key, value) VALUES (?, ?)",
+                    [
+                        *identity.items(),
+                        ("event_count", str(event_count)),
+                        ("root_kind", _root_kind(trace)),
+                        ("built_at_utc", time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())),
+                        ("build_elapsed_ms", f"{(time.perf_counter() - started) * 1000.0:.6f}"),
+                    ],
                 )
-            con.executemany(
-                "INSERT OR REPLACE INTO trace_meta(key, value) VALUES (?, ?)",
-                [
-                    *identity.items(),
-                    ("event_count", str(event_count)),
-                    ("root_kind", _root_kind(trace)),
-                    ("built_at_utc", time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())),
-                    ("build_elapsed_ms", f"{(time.perf_counter() - started) * 1000.0:.6f}"),
-                ],
-            )
-    except sqlite3.Error as exc:
-        raise ProfilerQueryError(f"cannot build trace index {index}: {exc}") from exc
+        except sqlite3.Error as exc:
+            raise ProfilerQueryError(f"cannot build trace index {index}: {exc}") from exc
+        _close_index(con)
+        os.replace(build, index)
+        # A read-only WAL reader needs a valid ``-shm``; publish the bounded
+        # build sidecars with the database instead of orphaning them.
+        for suffix in ("-wal", "-shm"):
+            source = Path(f"{build}{suffix}")
+            if source.exists():
+                os.replace(source, Path(f"{index}{suffix}"))
+            else:
+                Path(f"{index}{suffix}").unlink(missing_ok=True)
+        published = True
     finally:
-        con.close()
+        if not published:
+            _close_index(con)
+        # On success ``build`` is already renamed; this only drops orphan
+        # ``-wal``/``-shm`` siblings, never the published index.
+        _remove_index_files(build)
     return {
         "index_path": str(index),
         "rebuilt": True,

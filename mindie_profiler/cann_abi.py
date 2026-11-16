@@ -12,6 +12,12 @@
   * Explicit ``cann_root`` never silently falls back to another installation.
   * Compiled shims are keyed by ``(abi_version, cann_version, innerversion,
     arch, source_sha256)`` and published atomically via ``os.replace``.
+  * The shim cache is bounded: at most ``SHIM_CACHE_MAX_ENTRIES`` published
+    variants survive a build, and interrupted ``*.tmp.*`` leaves older than
+    ``SHIM_TMP_STALE_S`` are removed.  Pruning never fails a build.
+  * A compiler timeout surfaces as the builtin ``TimeoutError`` (never as a
+    bare ``subprocess.TimeoutExpired``); an unpublished ``tmp_so`` is always
+    removed, including on timeout.
 
 [Timeouts & Locks]
   ``ensure_capture_shim_binary`` enforces a bounded ``timeout_s`` compiler
@@ -32,12 +38,17 @@ from pathlib import Path
 import platform
 import re
 import subprocess
+import time
 
 from .events import ProfilerError, ProfilerUsageError
 
 SHIM_ABI_VERSION = "cann9-native-capture-v3"
 SHIM_SOURCE_FILENAME = "_cann9_capture_shim.c"
 SHIM_HEADER_FILENAME = "_cann9_capture_mspti.h"
+SHIM_CACHE_MAX_ENTRIES = 8
+SHIM_TMP_STALE_S = 3600.0
+_SHIM_GLOB = "libmindie_cann9_capture_*.so"
+_SHIM_TMP_GLOBS = (".*.tmp.*", "*.tmp.*")
 _VERSION_RE = re.compile(r"^\s*(\d+)\.(\d+)(?:\.([0-9A-Za-z._-]+))?\s*$")
 _ARCH_CANDIDATES = ("aarch64-linux", "x86_64-linux")
 
@@ -376,6 +387,85 @@ def compute_shim_cache_key(install: Cann9Installation, source_bytes: bytes) -> s
     return digest.hexdigest()[:20]
 
 
+def _prune_shim_cache(target_dir: Path, *, keep: Path) -> None:
+    """Bound published shim variants and drop stale interrupted-compile leaves.
+
+    A shim that is currently mapped cannot be unlinked on Windows, and a lock
+    file may be held by a concurrent builder; both are best-effort removals so
+    retention never turns a successful build into a failure.
+    """
+
+    now = time.time()
+    for pattern in _SHIM_TMP_GLOBS:
+        for stale in target_dir.glob(pattern):
+            try:
+                if now - stale.lstat().st_mtime > SHIM_TMP_STALE_S:
+                    stale.unlink(missing_ok=True)
+            except TimeoutError:
+                raise
+            except OSError:
+                continue
+    published: list[Path] = []
+    for candidate in target_dir.glob(_SHIM_GLOB):
+        try:
+            if candidate.is_file():
+                published.append(candidate)
+        except TimeoutError:
+            raise
+        except OSError:
+            continue
+    keep_key = os.path.abspath(str(keep))
+    others = [path for path in published if os.path.abspath(str(path)) != keep_key]
+    if len(others) + 1 <= SHIM_CACHE_MAX_ENTRIES:
+        return
+
+    def _mtime(path: Path) -> float:
+        try:
+            return path.stat().st_mtime
+        except TimeoutError:
+            raise
+        except OSError:
+            return 0.0
+
+    others.sort(key=_mtime)
+    superseded = others[: len(others) - (SHIM_CACHE_MAX_ENTRIES - 1)]
+    for victim in superseded:
+        try:
+            victim.unlink(missing_ok=True)
+            (target_dir / f".{victim.name}.lock").unlink(missing_ok=True)
+        except TimeoutError:
+            raise
+        except OSError:
+            continue
+
+
+def _run_compiler(
+    cmd: list[str],
+    *,
+    timeout_s: float,
+    popen_kwargs: dict[str, object],
+) -> subprocess.CompletedProcess[str]:
+    """Run the shim compiler and translate its timeout into ``TimeoutError``."""
+
+    try:
+        return subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=timeout_s,
+            check=False,
+            **popen_kwargs,
+        )
+    except subprocess.TimeoutExpired as exc:
+        # ``TimeoutExpired`` inherits ``SubprocessError``, not ``TimeoutError``.
+        raise TimeoutError(
+            f"C compiler {cmd[0]!r} exceeded timeout_s={timeout_s}s "
+            "while building the CANN 9.x capture shim"
+        ) from exc
+
+
 def ensure_capture_shim_binary(
     install: Cann9Installation,
     *,
@@ -480,34 +570,31 @@ def ensure_capture_shim_binary(
         cmd[0] = resolved_compiler
         popen_kwargs: dict[str, object] = dict(no_window_kwargs())
         try:
-            proc = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                timeout=timeout_s,
-                check=False,
-                **popen_kwargs,
-            )
-        except TimeoutError:
-            if tmp_so.exists():
-                tmp_so.unlink(missing_ok=True)
-            raise
-        except OSError as exc:
-            if tmp_so.exists():
-                tmp_so.unlink(missing_ok=True)
-            raise ProfilerError(
-                f"failed to invoke C compiler {compiler!r} for CANN 9.x shim: {exc}"
-            ) from exc
+            try:
+                proc = _run_compiler(cmd, timeout_s=timeout_s, popen_kwargs=popen_kwargs)
+            except TimeoutError:
+                raise
+            except OSError as exc:
+                raise ProfilerError(
+                    f"failed to invoke C compiler {compiler!r} for CANN 9.x shim: {exc}"
+                ) from exc
 
-        if proc.returncode != 0 or not tmp_so.is_file():
-            tmp_so.unlink(missing_ok=True)
-            stderr = (proc.stderr or proc.stdout or "").strip()
-            raise ProfilerError(
-                f"failed to compile CANN 9.x capture shim (rc={proc.returncode}): {stderr[:800]}"
-            )
-        os.replace(tmp_so, so_path)
+            if proc.returncode != 0 or not tmp_so.is_file():
+                stderr = (proc.stderr or proc.stdout or "").strip()
+                raise ProfilerError(
+                    f"failed to compile CANN 9.x capture shim (rc={proc.returncode}): {stderr[:800]}"
+                )
+            os.replace(tmp_so, so_path)
+        finally:
+            # A published shim was renamed onto ``so_path``; anything left here
+            # is an unpublished partial compile (timeout, OSError, non-zero rc).
+            try:
+                tmp_so.unlink(missing_ok=True)
+            except TimeoutError:
+                raise
+            except OSError:
+                pass
+        _prune_shim_cache(target_dir, keep=so_path)
         return so_path
     finally:
         try:

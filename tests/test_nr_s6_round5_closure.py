@@ -51,6 +51,7 @@ from mindie_sim.diff_trace import attribute_diff
 
 from nr_s6_round4_probe import run_ranks
 from nr_s6_support import exec_script, paged_binding
+from temp_workspaces import make_temp_workspace
 from test_nr_s6_round2_closure import _ready_bindings
 from test_nr_s6_round3_closure import _bsh_fa_row, _fit_samples, _moe_row
 from test_nr_s6_round4_closure import _probe_plan
@@ -321,7 +322,7 @@ def test_f8_cli_rejects_invalid_group_size(tmp_path):
 # ---------------------------------------------------------------------- F10
 def test_f10_long_default_temp_root_still_returns_resolvable_short_paths(
         monkeypatch):
-    short = tempfile.mkdtemp(prefix="mp5a_", dir="/tmp")
+    short = str(make_temp_workspace("mp5a_", base="/tmp"))
     monkeypatch.setenv("MINDIE_REPRO_SHORT_ROOT", short)
     monkeypatch.setattr(tempfile, "gettempdir",
                         lambda: "/tmp/" + "a" * 180)
@@ -349,7 +350,7 @@ def test_f10_long_default_temp_root_still_returns_resolvable_short_paths(
         shutil.rmtree(short, ignore_errors=True)
 
 def test_f10_long_caller_path_is_still_resolvable(monkeypatch):
-    short = tempfile.mkdtemp(prefix="mp5b_", dir="/tmp")
+    short = str(make_temp_workspace("mp5b_", base="/tmp"))
     monkeypatch.setenv("MINDIE_REPRO_SHORT_ROOT", short)
     requested = "/tmp/" + "b" * 180
     try:

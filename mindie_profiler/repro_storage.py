@@ -14,6 +14,7 @@
   * Delivered pairs are re-opened with ``O_RDONLY|O_NOFOLLOW`` and byte-hashed.
   * Invalid/refused indexes mark delivery_failed/index_persistence_failed
     with index_persisted=False; the staged pair and old index bytes are kept.
+  * Short-root retention is bounded by ``repro_retention.prune_repro_storage``.
 
 [Timeouts & Locks]
   A shared process-local commit/rollback RLock; no lock spans verification.
@@ -35,6 +36,7 @@ from .repro_atomic_io import ( _COMMITTED_INODES as _PROTECTED_INODES, _OWNERSHI
     _cleanup_scope, _link_nofollow, _retry_cleanup, _unlink_owned_path, ensure_directory, inode_of as _inode_of,
     path_lexists, read_regular_bytes as _read_regular_bytes, safe_write_bytes,
 )
+from .repro_retention import opportunistic_prune, prune_repro_storage
 SHORT_ROOT_DEFAULT = "/tmp/mprof"
 SHORT_ROOT_MAX = 48
 _INDEX_NAME = "index.json"
@@ -650,6 +652,7 @@ def stage_artifacts(script: str, manifest: dict[str, Any], *, output_dir: str | 
         result["status"] = "delivery_failed"
         result["error"] = "index_persistence_failed"
         result["retrievable"] = False
+    opportunistic_prune()
     return result
 __all__ = ["SHORT_ROOT_DEFAULT", "SHORT_ROOT_MAX", "artifact_id", "file_artifact_id",
-           "resolve_repro_artifact", "short_root", "stage_artifacts"]
+           "prune_repro_storage", "resolve_repro_artifact", "short_root", "stage_artifacts"]
