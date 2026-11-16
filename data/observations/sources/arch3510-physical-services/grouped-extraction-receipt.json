@@ -2,7 +2,10 @@
   "schema_version": "mindie-grouped-micro-batch/1",
   "status": "completed",
   "inputs_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/grouped-inputs.json",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "data/observations/sources/arch3510-physical-services/grouped-inputs.json",
+    "source_sha256": "f27b7961c44bf4aae323f9bc992b604e9dd34e16092b665d7a996cb80335f8c8",
+    "revision": null,
     "sha256": "f27b7961c44bf4aae323f9bc992b604e9dd34e16092b665d7a996cb80335f8c8",
     "size_bytes": 1586863
   },
@@ -10,7 +13,10 @@
     {
       "case_id": "a3_glm53_w4a8_tp16_tpot30_c2",
       "output_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/grouped-a3_glm53_w4a8_tp16_tpot30_c2.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch22-physical-services/grouped-a3_glm53_w4a8_tp16_tpot30_c2.json",
+        "source_sha256": "290b3aee4a565fa2925eb526b4c9806b2068a97a39509218fb3e91207f22b4e2",
+        "revision": null,
         "sha256": "290b3aee4a565fa2925eb526b4c9806b2068a97a39509218fb3e91207f22b4e2",
         "size_bytes": 4036157
       },
@@ -25,7 +31,10 @@
     {
       "case_id": "a3_glm53_w4a8_tp16_tpot50_c2",
       "output_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/grouped-a3_glm53_w4a8_tp16_tpot50_c2.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch22-physical-services/grouped-a3_glm53_w4a8_tp16_tpot50_c2.json",
+        "source_sha256": "4a6497e1ae5f052dbbece241dc513fbf4c6225b0db044881174a7369aea8e0f0",
+        "revision": null,
         "sha256": "4a6497e1ae5f052dbbece241dc513fbf4c6225b0db044881174a7369aea8e0f0",
         "size_bytes": 4034509
       },
@@ -40,7 +49,10 @@
     {
       "case_id": "a3_glm53_w4a8_tp16_tpot88_c8",
       "output_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/grouped-a3_glm53_w4a8_tp16_tpot88_c8.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch22-physical-services/grouped-a3_glm53_w4a8_tp16_tpot88_c8.json",
+        "source_sha256": "f2a630375bc0b96a04a70d65c2612109633b2d9d25eaa47054995367ff87bb78",
+        "revision": null,
         "sha256": "f2a630375bc0b96a04a70d65c2612109633b2d9d25eaa47054995367ff87bb78",
         "size_bytes": 4098777
       },
@@ -55,7 +67,10 @@
     {
       "case_id": "qwen35-35b-a5-tp4-c4-graph",
       "output_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/grouped-qwen35-35b-a5-tp4-c4-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/grouped-qwen35-35b-a5-tp4-c4-graph.json",
+        "source_sha256": "00e935809d7b7354b670f8fddb0a9f624d6d45febf6607be8fe11e2f0c964069",
+        "revision": null,
         "sha256": "00e935809d7b7354b670f8fddb0a9f624d6d45febf6607be8fe11e2f0c964069",
         "size_bytes": 3725860
       },
@@ -70,7 +85,10 @@
     {
       "case_id": "qwen35-35b-a5-tp4-c64-graph",
       "output_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/grouped-qwen35-35b-a5-tp4-c64-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/grouped-qwen35-35b-a5-tp4-c64-graph.json",
+        "source_sha256": "a4001aa59f1e392b5ecd29cb36c433e65d62926903653f7e189b5ac71fe6f0f6",
+        "revision": null,
         "sha256": "a4001aa59f1e392b5ecd29cb36c433e65d62926903653f7e189b5ac71fe6f0f6",
         "size_bytes": 4155771
       },
@@ -85,7 +103,10 @@
     {
       "case_id": "qwen35-35b-a5-tp4-c128-graph",
       "output_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/grouped-qwen35-35b-a5-tp4-c128-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/grouped-qwen35-35b-a5-tp4-c128-graph.json",
+        "source_sha256": "5e6ace643206a116beed69a7a05253a0a763ba46bd14878e3c24abb780d65cd2",
+        "revision": null,
         "sha256": "5e6ace643206a116beed69a7a05253a0a763ba46bd14878e3c24abb780d65cd2",
         "size_bytes": 4080464
       },
@@ -104,9 +125,18 @@
     "successful_complete_source_passes": 6,
     "initial_partial_failed_attempt": {
       "case_id": "a3_glm53_w4a8_tp16_tpot30_c2",
-      "log_path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/grouped-initial-shared-dsq-chain.run.log",
+      "log_path": "repository://mindie-agent/profiler/data/observations/sources/arch22-physical-services/grouped-initial-shared-dsq-chain.run.log",
       "cause": "source-role chain initially included separate shared-expert DSQ before routed fused-up; collector corrected to require routed fused-up then down",
       "effect": "local parser attempt failed; no capture/device write; successful six complete passes preserved"
     }
+  },
+  "path_normalization": {
+    "schema": "mindie-path-normalization/1",
+    "original_sha256": "0d7c692a8fd1aca7c5257bb7d308ae52a4bfd35169cdbd2e3dd18555a699f424",
+    "normalized_sha256": "8c7ff815858fa06ac9be4262fb5c385b050f289690c7b69b86f73817bae9f9c4",
+    "rules": [
+      "repository_identity",
+      "capture_uri"
+    ]
   }
 }

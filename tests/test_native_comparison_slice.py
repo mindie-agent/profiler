@@ -10,6 +10,7 @@ from copy import deepcopy
 import builtins
 import csv
 import json
+import os
 from pathlib import Path
 import shutil
 
@@ -743,9 +744,10 @@ def test_sim_descriptive_report_keeps_fusion_boundary_mismatch(exported):
     assert report["unpaired_predictions"][0]["reason"] == "no_exact_observation_identity"
 
 
-T03_FIRST_CALL = Path(
-    "/Volumes/data/Codex/2026-11-12/kan-x/work/a5-implementation/jobs/"
-    "A5-T03/out/native/native_first_call.json")
+T03_FIRST_CALL = Path(os.environ.get(
+    "MINDIE_T03_NATIVE_FIRST_CALL",
+    "capture://codex/2026-11-12/kan-x/work/a5-implementation/jobs/"
+    "A5-T03/out/native/native_first_call.json"))
 
 
 def test_t03_first_call_abi_is_ingestible_but_conditions_are_incomplete():
@@ -1417,6 +1419,8 @@ def test_t12_bridge_binds_timing_free_abi_and_preserves_gap(requests):
     pytest.importorskip("mindie_sim")
     from mindie_profiler.sim_bridge import predict_native_requests
 
+    # A complete non-matrix invocation stays an explicit canonical-lowering
+    # gap; it is never priced with a generic element-count vector formula.
     invocation = {
         "api": {"namespace": "aclnn", "entry": "aclnnAddRmsNorm",
                 "aclnn_symbol": "aclnnAddRmsNorm"},
@@ -1438,12 +1442,10 @@ def test_t12_bridge_binds_timing_free_abi_and_preserves_gap(requests):
         [{"request_id": "req:add-rms", "t12_invocation": invocation}],
         hardware=CONDITIONS["hardware"])
     prediction = positive["predictions"][0]
-    assert prediction["status"] == "modeled"
-    assert prediction["duration_ms"] > 0
-    assert prediction["abi"]["status"] == "complete"
-    assert prediction["t12"]["binding_bound"] is True
-    assert prediction["t12"]["binding"]["api"]["entry"] == "aclnnAddRmsNorm"
-    assert prediction["t12"]["program"]["caller_plan"]["variant"] == "fused_attention_norm"
+    assert prediction["status"] == "unmodeled"
+    assert prediction["reason"] == (
+        "t12_invocation_unavailable:canonical_lowering_missing:aclnnAddRmsNorm")
+    assert prediction["duration_ms"] is None
     assert positive["non_claims"] and "no_model_case_constructed" in positive["non_claims"]
 
     unmodeled_requests = {
@@ -1511,61 +1513,53 @@ def test_sim_execution_known_null_and_conflict_sets(exported):
             source["observation_id"]]
 
 
-def test_t12_bridge_maps_explicit_api_plus_ordered_abi():
+def test_t12_bridge_maps_explicit_api_plus_ordered_matmul_abi():
     pytest.importorskip("mindie_sim")
     from mindie_profiler.sim_bridge import predict_native_requests
 
     abi = native_abi_from_slots(
-        "AddRmsNorm",
+        "aclnnMatmul",
         [
-            {"shape": [2048, 5120], "dtype": "bf16", "layout": "ND"},
-            {"shape": [2048, 5120], "dtype": "bf16", "layout": "ND"},
-            {"shape": [5120], "dtype": "bf16", "layout": "ND"},
+            {"shape": [2048, 512], "dtype": "bf16", "layout": "ND"},
+            {"shape": [512, 512], "dtype": "bf16", "layout": "ND"},
         ],
-        [
-            {"shape": [2048, 5120], "dtype": "bf16", "layout": "ND"},
-            {"shape": [2048, 1], "dtype": "fp32", "layout": "ND"},
-            {"shape": [2048, 5120], "dtype": "bf16", "layout": "ND"},
-        ],
+        [{"shape": [2048, 512], "dtype": "bf16", "layout": "ND"}],
     )
     request = {
-        "request_id": "req:add-ordered",
-        "api": {"namespace": "aclnn", "entry": "aclnnAddRmsNorm",
-                "aclnn_symbol": "aclnnAddRmsNorm"},
+        "request_id": "req:matmul-ordered",
+        "api": {"namespace": "aclnn", "entry": "aclnnMatmul",
+                "aclnn_symbol": "aclnnMatmul"},
         "version": {"api": "cann-9.2.0",
                     "image_id": "sha256:9e869e8148467296f56d1001b0dac4fea893c841ac7d0a03d4e824a233c2ffea"},
-        "attrs": {"epsilon": 1e-6},
-        "conditions": {"variant": "fused_attention_norm",
+        "attrs": {},
+        "conditions": {"variant": "dense_matmul",
                        "sequence_rows": "shard", "sequence_ranks": 2},
         "abi": abi,
     }
     result = predict_native_requests([request], hardware=CONDITIONS["hardware"])
     prediction = result["predictions"][0]
     assert prediction["status"] == "modeled"
-    assert prediction["t12"]["binding"]["api"]["entry"] == "aclnnAddRmsNorm"
+    assert prediction["t12"]["binding"]["api"]["entry"] == "aclnnMatmul"
     assert prediction["abi"]["status"] == "complete"
     assert prediction["duration_ms"] > 0
 
 
-def test_add_rmsnorm_conditions_export_matches_direct_control():
+def test_matmul_conditions_export_matches_direct_control():
     pytest.importorskip("mindie_sim")
     from mindie_profiler.sim_bridge import predict_native_requests
 
     invocation = {
-        "api": {"namespace": "aclnn", "entry": "aclnnAddRmsNorm",
-                "aclnn_symbol": "aclnnAddRmsNorm"},
+        "api": {"namespace": "aclnn", "entry": "aclnnMatmul",
+                "aclnn_symbol": "aclnnMatmul"},
         "version": {"api": "cann-9.2.0",
                     "image_id": "sha256:9e869e8148467296f56d1001b0dac4fea893c841ac7d0a03d4e824a233c2ffea"},
         "tensors": {
-            "x": {"shape": [2048, 5120], "dtype": "bf16", "role": "input"},
-            "residual": {"shape": [2048, 5120], "dtype": "bf16", "role": "input"},
-            "gamma": {"shape": [5120], "dtype": "bf16", "role": "weight"},
-            "output": {"shape": [2048, 5120], "dtype": "bf16", "role": "output"},
-            "rstd": {"shape": [2048, 1], "dtype": "fp32", "role": "output"},
-            "residual_out": {"shape": [2048, 5120], "dtype": "bf16", "role": "output"},
+            "x1": {"shape": [2048, 512], "dtype": "bf16", "role": "input"},
+            "x2": {"shape": [512, 512], "dtype": "bf16", "role": "weight"},
+            "out": {"shape": [2048, 512], "dtype": "bf16", "role": "output"},
         },
         "attrs": {"epsilon": 1e-6},
-        "conditions": {"variant": "fused_attention_norm",
+        "conditions": {"variant": "dense_matmul",
                        "sequence_rows": "shard", "sequence_ranks": 2},
     }
     direct = predict_native_requests(
@@ -1579,9 +1573,9 @@ def test_add_rmsnorm_conditions_export_matches_direct_control():
         "api": invocation["api"], "version": invocation["version"],
         "attrs": invocation["attrs"], "epsilon": 1e-6,
         "sequence_rows": "shard", "sequence_ranks": 2,
-        "variant": "fused_attention_norm",
+        "variant": "dense_matmul",
     }
-    boundary = {"kind": "kernel", "native_operator": "AddRmsNorm",
+    boundary = {"kind": "kernel", "native_operator": "aclnnMatmul",
                 "scope": "one_complete_kernel_event",
                 "expansion": "single_kernel_row", "fusion": {"members": []}}
     window = {"id": "window:add-export", "kind": "local_domain_range",
@@ -1645,15 +1639,23 @@ def test_t12_r6_qbmm_actual_abi_is_work_only_paired():
         assert prediction["status"] == "modeled"
         assert prediction["duration_ms"] > 0
         assert prediction["abi"]["status"] == "complete"
-        assert prediction["abi"]["digest"] == observation["abi"]["digest"]
+        assert prediction["abi"]["digest"]
+        # The captured device ABI stores the weight as FRACTAL_NZ; the
+        # normalized invocation exposes a logical ND view, so only an exact
+        # digest agreement may certify a capture pairing.
+        assert prediction["abi"]["digest"] != observation["abi"]["digest"]
+        assert prediction["eligibility"]["capture_pairing"] is False
         assert prediction["work"]["cube"]["macs"] > 0
 
     report = compare_native_predictions(observations, bridge)
-    assert report["counts"]["paired"] == 2
-    assert report["counts"]["work_only"] == 0
-    assert report["counts"]["within_tolerance"] + report["counts"]["outside_tolerance"] == 2
-    assert all(item["prediction_abi_digest"] == item["observation_abi_digest"]
-               for item in report["items"])
+    # A normalized logical view is not the captured device ABI, so the
+    # comparison reports the exact conflict instead of certifying a pairing.
+    assert report["counts"]["paired"] == 0
+    assert report["counts"]["predictions_with_abi_conflict"] == 2
+    assert report["counts"]["unpaired_predictions"] == 2
+    assert report["status"] == "inconclusive"
+    assert all(item["reason"] == "request_identity_conflict:abi.digest"
+               for item in report["unpaired_predictions"])
 
     no_source = predict_native_requests(
         requests, hardware=CONDITIONS["hardware"], phase=CONDITIONS["phase"])
@@ -1931,9 +1933,10 @@ def test_t12_abi_keeps_absent_declared_position():
     assert abi["inputs"][1]["present"] is False
 
 
-T18_CHAIN = Path(
-    "/Volumes/data/Codex/2026-11-12/kan-x/work/a5-implementation/jobs/"
-    "A5-T18/logs/t16-chain")
+T18_CHAIN = Path(os.environ.get(
+    "MINDIE_T18_CHAIN",
+    "capture://codex/2026-11-12/kan-x/work/a5-implementation/jobs/"
+    "A5-T18/logs/t16-chain"))
 
 
 def test_t18_w8a8_wave8_chain_and_call_id():
@@ -2056,24 +2059,21 @@ def test_t18_explicit_r31_invocation_matches_top_level_version():
 
 
 def _seq_boundary():
-    return {"kind": "kernel", "native_operator": "AddRmsNorm",
+    return {"kind": "kernel", "native_operator": "aclnnMatmul",
             "scope": "one_complete_kernel_event",
             "expansion": "single_kernel_row", "fusion": {"members": []}}
 
 
-def _add_rmsnorm_prediction(sequence_ranks, *, request_conditions=None):
+def _matmul_prediction(sequence_ranks, *, request_conditions=None):
     invocation = {
-        "api": {"namespace": "aclnn", "entry": "aclnnAddRmsNorm",
-                "aclnn_symbol": "aclnnAddRmsNorm"},
+        "api": {"namespace": "aclnn", "entry": "aclnnMatmul",
+                "aclnn_symbol": "aclnnMatmul"},
         "version": {"api": "cann-9.2.0",
                     "image_id": "sha256:9e869e8148467296f56d1001b0dac4fea893c841ac7d0a03d4e824a233c2ffea"},
         "tensors": {
-            "x": {"shape": [2, 4], "dtype": "bf16", "role": "input"},
-            "residual": {"shape": [2, 4], "dtype": "bf16", "role": "input"},
-            "gamma": {"shape": [4], "dtype": "bf16", "role": "weight"},
-            "output": {"shape": [2, 4], "dtype": "bf16", "role": "output"},
-            "rstd": {"shape": [2, 1], "dtype": "fp32", "role": "output"},
-            "residual_out": {"shape": [2, 4], "dtype": "bf16", "role": "output"},
+            "x1": {"shape": [2, 4], "dtype": "bf16", "role": "input"},
+            "x2": {"shape": [4, 8], "dtype": "bf16", "role": "weight"},
+            "out": {"shape": [2, 8], "dtype": "bf16", "role": "output"},
         },
         "attrs": {"epsilon": 1e-6},
         "conditions": {"variant": "fused_attention_norm",
@@ -2141,7 +2141,7 @@ def _seq_report(prediction, *, with_request, observation_request_id="req:seq",
 
 
 def test_actual_sequence_ranks_conflict_same_and_no_id():
-    conflicting = _add_rmsnorm_prediction(2, request_conditions={})
+    conflicting = _matmul_prediction(2, request_conditions={})
     assert conflicting["conditions"]["sequence_ranks"] == 2
     same_id = _seq_report(conflicting, with_request=True)
     assert same_id["counts"]["paired"] == 0
@@ -2196,7 +2196,7 @@ def test_actual_sequence_ranks_conflict_same_and_no_id():
     assert consumed_report["counts"]["paired"] == 1
     assert consumed_report["items"][0]["comparison"]["within_tolerance"] is True
 
-    matching = _add_rmsnorm_prediction(1)
+    matching = _matmul_prediction(1)
     report = _seq_report(matching, with_request=True)
     assert report["counts"]["paired"] == 1
     assert report["items"][0]["comparison"]["within_tolerance"] is True
@@ -2377,12 +2377,31 @@ def test_w8a8_aclnn_weight_nz_keeps_declared_api_and_representation():
     prediction = predict_native_requests(
         [request], hardware=CONDITIONS["hardware"],
         phase="decode")["predictions"][0]
-    assert prediction["status"] == "modeled"
-    assert prediction["t12"]["invocation"]["api"]["entry"] == (
+    # FRACTAL_NZ is not a normalized ND matrix operand, so the storage view is
+    # an explicit geometry gap instead of a guessed [k, n] MAC count.
+    assert prediction["status"] == "unmodeled"
+    assert prediction["reason"] == (
+        "t12_invocation_unavailable:gemm_geometry_incomplete")
+
+    nd_abi = native_abi_from_slots(
+        "QuantBatchMatmulV3",
+        [
+            {"shape": [4, 8704], "dtype": "int8", "layout": "ND"},
+            {"shape": [8704, 5120], "dtype": "int8", "layout": "ND"},
+            {"shape": [5120], "dtype": "bf16", "layout": "ND"},
+            {"shape": [4], "dtype": "fp32", "layout": "ND"},
+        ],
+        [{"shape": [4, 5120], "dtype": "bf16", "layout": "ND"}],
+    )
+    modeled = predict_native_requests(
+        [{**request, "request_id": "aclnn-nd", "abi": nd_abi}],
+        hardware=CONDITIONS["hardware"], phase="decode")["predictions"][0]
+    assert modeled["status"] == "modeled"
+    assert modeled["t12"]["invocation"]["api"]["entry"] == (
         "aclnnQuantMatmulWeightNz")
-    shapes = prediction["t12"]["binding"]["typed"]["shapes"]
-    assert shapes["weight_nz"] == [160, 544, 16, 32]
-    assert "weight" not in shapes
+    shapes = modeled["t12"]["binding"]["typed"]["shapes"]
+    assert shapes["weight"] == [8704, 5120]
+    assert "weight_nz" not in shapes
 
 
 def test_source_domains_keep_runner_and_binary_separate():
@@ -2390,7 +2409,7 @@ def test_source_domains_keep_runner_and_binary_separate():
         "QuantBatchMatmulV3",
         [
             {"shape": [4, 8704], "dtype": "int8", "layout": "ND"},
-            {"shape": [160, 544, 16, 32], "dtype": "int8", "layout": "FRACTAL_NZ"},
+            {"shape": [8704, 5120], "dtype": "int8", "layout": "ND"},
             {"shape": [5120], "dtype": "bf16", "layout": "ND"},
             {"shape": [4], "dtype": "fp32", "layout": "ND"},
         ],
@@ -2414,7 +2433,8 @@ def test_source_domains_keep_runner_and_binary_separate():
     assert domains["request_software"]["torch"] == "2.6"
     assert domains["runner_source"]["vllm_commit"] == "deadbeef"
     assert domains["t12_invocation_version"]["api"] == "cann-9.2.0"
-    assert domains["t12_binding_source"]["sha256"] != "deadbeef"
+    # No canonical source-binding receipt exists for a generic OpSpec call.
+    assert domains["t12_binding_source"] is None
     assert prediction["eligibility"]["timed_pairing"] is True
     assert prediction["eligibility"]["cpu_mechanism"] is True
     assert prediction["eligibility"]["selected_plan"] is True

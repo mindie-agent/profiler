@@ -3,7 +3,7 @@
  "derivation": {
   "kind": "genuine_minimized_line_subset",
   "source": {
-   "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen30b_L8_E16_K4_tp4ep4_prefill_64k_c1/kernel_details.csv",
+   "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen30b_L8_E16_K4_tp4ep4_prefill_64k_c1/kernel_details.csv",
    "sha256": "2af0fb3423bded7378f701cbc6958d61915f122b30169b4e19456a7322c28016"
   },
   "timing_values_modified": false,
@@ -588,7 +588,7 @@
   }
  ],
  "source_identity": {
-  "path": "/Volumes/data/code/mindie-release-20261014/profiler/tests/fixtures/scoped_structure/a5_qwen30b_e16k4_prefill_64k.csv",
+  "path": "repository://mindie-agent/profiler/tests/fixtures/scoped_structure/a5_qwen30b_e16k4_prefill_64k.csv",
   "sha256": "ef9ce43985151c526dc8f23d88bc1ad253d95cab7da13c644adb9f2ade3f5a5d",
   "size_bytes": 254076
  }

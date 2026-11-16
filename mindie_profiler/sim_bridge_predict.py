@@ -20,7 +20,7 @@ from .events import PARSER_VERSION, ProfilerError, ProfilerUsageError
 from .native_abi_model import build_plan
 
 from .sim_bridge_native_obs import (
-    _native_json_safe, _native_prediction_request_fields, _request_abi_lowered,
+    _native_json_safe, _native_prediction_request_fields,
     _t12_abi, _t12_duration_ms, _t12_invocation_from_request,
 )
 from .sim_bridge_observed import _canonical_json, _native_timing_path
@@ -65,14 +65,16 @@ def _canonical_environment(hardware: Any) -> tuple[Any, str | None]:
 
 
 def _binding_state(plan: Any) -> tuple[bool, str | None]:
-    """Resolve the declared source identity without inventing one."""
-    version = dict(plan.version or {})
-    image_id = str(version.get("image_id") or "").lower()
-    source = (version.get("source") or version.get("revision")
-              or version.get("source_revision") or version.get("base_revision"))
-    if source == "r31" and image_id and not image_id.startswith("9e869e814846"):
-        return False, "t12_invocation_unavailable:version:image_not_r31"
-    return bool(source or image_id), None
+    """Resolve the canonical source binding receipt, never a version label.
+
+    The generic ``OpSpec`` path carries declared API/version facts but no
+    ``{repository, revision, relative_path, source_sha256}`` receipt, so the
+    binding stays explicitly unestablished.  ``plan.version`` is preserved
+    verbatim in the invocation receipt; it is never hashed into a pretended
+    source identity.
+    """
+    del plan
+    return False, None
 
 
 def _canonical_result(plan: Any, report: Mapping[str, Any] | None, *,
@@ -90,20 +92,11 @@ def _canonical_result(plan: Any, report: Mapping[str, Any] | None, *,
     })
     call_id = "native:" + hashlib.sha256(payload.encode("utf-8")).hexdigest()
     kernel = {"name": plan.operator}
-    source_digest = hashlib.sha256(_canonical_json(
-        plan.version or {"declared": plan.operator}).encode("utf-8")).hexdigest()
     binding = {
         "call_id": call_id,
         "api": dict(plan.api),
         "typed": {
-            "source": {
-                "repository": "declared",
-                "path": plan.operator,
-                "sha256": source_digest,
-                "revision": (plan.version or {}).get("source")
-                or (plan.version or {}).get("api"),
-                "state": "declared_source_identity",
-            },
+            "source": None,
             "kernels": [kernel],
             "variant": plan.conditions.get("variant"),
             "relation": "declared_native_call",
@@ -173,70 +166,6 @@ def _simulate_canonical(environment: Any, plan: Any, *, execute: bool) -> tuple[
     duration = _t12_duration_ms(report.get("duration_ms"))
     return _canonical_result(plan, report, duration=duration,
                              execute=True), duration
-
-
-def _request_abi_consumed(plan: Any, request_abi: Any) -> bool:
-    """True when the normalized call consumed exactly the declared request ABI.
-
-    Slot count and dtype identity must agree.  Shapes may be an equivalent
-    storage transpose or a derived logical QBMM view of the same slot; the
-    declared request identity is then echoed instead of a compressed view.
-    """
-    if not isinstance(request_abi, Mapping):
-        return False
-    if str(request_abi.get("status") or "") != "complete":
-        return False
-    if not request_abi.get("digest") or not request_abi.get("verified"):
-        return False
-    declared: list[tuple[Any, Any]] = []
-    for direction in ("inputs", "outputs"):
-        for slot in request_abi.get(direction) or ():
-            if not isinstance(slot, Mapping) or slot.get("present") is False:
-                continue
-            declared.append((slot.get("shape"), str(slot.get("dtype") or "").lower()))
-    actual: list[tuple[Any, Any]] = []
-    for tensor in plan.tensors.values():
-        if tensor.get("present") is False:
-            continue
-        shape = tensor.get("shape")
-        if not isinstance(shape, (list, tuple)) or not shape:
-            continue
-        actual.append((list(shape), str(tensor.get("dtype") or "").lower()))
-    if len(declared) != len(actual) or not declared:
-        return False
-    def _elements(shape):
-        total = 1
-        for dim in shape or ():
-            try:
-                total *= int(dim)
-            except (TypeError, ValueError):
-                return 0
-        return total
-
-    storage = {"uint8": "fp8_e8m0", "bf16": "bf16", "fp32": "fp32"}
-
-    def equivalent(left, right):
-        (left_shape, left_dtype), (right_shape, right_dtype) = left, right
-        if storage.get(left_dtype, left_dtype) != storage.get(right_dtype, right_dtype):
-            return False
-        if list(left_shape or ()) == list(right_shape or ()):
-            return True
-        if [int(v) for v in left_shape or ()] == [int(v) for v in right_shape or ()][::-1]:
-            return True
-        return _elements(left_shape) == _elements(right_shape) > 0
-
-    # Slot order is a declaration detail of the captured row; the canonical
-    # normalizer may reorder an optional name-bound slot.  Compare the same
-    # multiset of present (shape, dtype) identities.
-    remaining = list(actual)
-    for left in declared:
-        for index, right in enumerate(remaining):
-            if equivalent(left, right):
-                remaining.pop(index)
-                break
-        else:
-            return False
-    return not remaining
 
 
 def predict_native_requests(
@@ -455,13 +384,17 @@ def predict_native_requests(
         }
         abi_for_eligibility = _t12_abi(result) if result.status == "predicted" else None
         request_abi = request.get("abi")
-        if result.status == "predicted" and (
-                _request_abi_lowered(result, request_abi)
-                or _request_abi_consumed(plan, request_abi)):
-            # Identity echo: the canonical call consumed this exact ordered
-            # ABI (or an equivalent storage/logical view), so the prediction
-            # declares the request's typed slot identity.  The duration remains
-            # independently computed by the simulator.
+        same_abi = bool(
+            isinstance(request_abi, Mapping)
+            and request_abi.get("verified")
+            and abi_for_eligibility
+            and request_abi.get("digest")
+            == abi_for_eligibility.get("digest")
+        )
+        if result.status == "predicted" and same_abi:
+            # Exact verified digest agreement: the declared request ABI is the
+            # actual normalized ABI.  The duration remains independently
+            # computed by the simulator.
             abi_for_eligibility = dict(request_abi)
             abi_for_eligibility["digest_source"] = (
                 "declared_request_slots_lowered_by_selected_program")
@@ -490,8 +423,7 @@ def predict_native_requests(
                 "cpu_mechanism": result.status == "predicted",
                 "selected_plan": bool(payload.get("program")),
                 "timed_pairing": duration is not None,
-                "capture_pairing": bool(abi_for_eligibility
-                                        and abi_for_eligibility.get("verified")),
+                "capture_pairing": same_abi,
             },
             "abi": abi_for_eligibility,
             "evidence": [

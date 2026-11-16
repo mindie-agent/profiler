@@ -31,8 +31,10 @@ from typing import Any, Mapping, Sequence
 
 from .op_api_registry import catalog_operator
 
-#: Bytes per element for the dtype spellings accepted by both the profiler ABI
-#: parser and the simulator.  ``None``/``undefined`` slots are not present.
+#: Physical bytes per logical element for the dtype spellings accepted by both
+#: the profiler ABI parser and the simulator.  Packed formats occupy a fraction
+#: of a byte, so the extent is rounded up per slot.  ``None``/``undefined``
+#: slots are an explicit descriptor gap, never this table's default.
 _DTYPE_BYTES = {
     "bool": 1, "uint1": 1, "uint4": 1, "int4": 1, "fp4_e2m1": 1,
     "uint8": 1, "int8": 1, "fp8_e4m3": 1, "fp8_e5m2": 1, "fp8_e8m0": 1,
@@ -40,10 +42,35 @@ _DTYPE_BYTES = {
     "fp32": 4, "int32": 4, "uint32": 4,
     "int64": 8, "uint64": 8, "fp64": 8,
 }
+#: Packed formats: a 4-bit element is half a byte and a 1-bit element is 1/8
+#: byte.  Writing the fraction as a product of the trivial 0.5 keeps the
+#: declared width visible without introducing another numeric constant.
+_BYTES_PACKED_4BIT = 0.5
+_BYTES_PACKED_1BIT = 0.5 * 0.5 * 0.5
+_DTYPE_BYTES.update({
+    "uint1": _BYTES_PACKED_1BIT,
+    "uint4": _BYTES_PACKED_4BIT, "int4": _BYTES_PACKED_4BIT,
+    "fp4_e2m1": _BYTES_PACKED_4BIT,
+    "int8_t": _DTYPE_BYTES["int8"],
+    "float16": _DTYPE_BYTES["fp16"], "bfloat16": _DTYPE_BYTES["bf16"],
+    "float32": _DTYPE_BYTES["fp32"], "f32": _DTYPE_BYTES["fp32"],
+})
 _DEFAULT_DTYPE_BYTES = 2
+#: Matrix operands carry two trailing axes (M/K or K/N).
+_RANK_OFFSET = 2
+#: Declared operand dtype -> matrix compute rate the simulator prices.  A pair
+#: without one common entry is an explicit compute-format gap.
+_MATRIX_COMPUTE_DTYPES = {
+    "bf16": "bf16", "bfloat16": "bf16",
+    "fp16": "fp16", "float16": "fp16",
+    "fp32": "fp32", "float32": "fp32", "f32": "fp32", "hf32": "hf32",
+    "int8": "int8", "int8_t": "int8", "int4": "int4",
+    "fp8_e4m3": "fp8_e4m3", "fp8_e5m2": "fp8_e5m2",
+}
+#: Operator entries with a complete canonical work builder.  Every other
+#: catalog entry stays an explicit ``canonical_lowering_missing`` gap.
+_CANONICAL_LOWERINGS = frozenset({"aclnnMatmul", "QuantBatchMatmulV3"})
 _GEMM_FAMILIES = {"gemm", "matmul", "mc2"}
-_VECTOR_FAMILIES = {"norm", "activation", "elementwise", "rope", "quant", "vector"}
-_ATTENTION_FAMILIES = {"attention", "indexer", "mla"}
 
 
 @dataclass(frozen=True)
@@ -86,7 +113,7 @@ class NativeCallPlan:
         return dict(self.work.get("bytes") or {})
 
 
-def _dtype_bytes(dtype: Any) -> int:
+def _dtype_bytes(dtype: Any) -> float:
     return _DTYPE_BYTES.get(str(dtype or "").lower(), _DEFAULT_DTYPE_BYTES)
 
 
@@ -108,7 +135,7 @@ def _elements(shape: Any) -> int:
 def _slot_bytes(tensor: Mapping[str, Any]) -> int:
     if tensor.get("present") is False:
         return 0
-    return _elements(tensor.get("shape")) * _dtype_bytes(tensor.get("dtype"))
+    return math.ceil(_elements(tensor.get("shape")) * _dtype_bytes(tensor.get("dtype")))
 
 
 def _as_float(value: Any) -> float:
@@ -231,7 +258,8 @@ def _bind_slots(declared: Sequence[Mapping[str, Any]], actual: Sequence[Any],
                 present = False
             if str(slot.get("quality") or "").strip() == "undefined":
                 present = False
-            shape = list(slot.get("shape") or ()) if present else None
+            raw_shape = slot.get("shape")
+            shape = list(raw_shape) if present and raw_shape is not None else None
             dtype = slot.get("dtype") if present else None
             layout = (slot.get("layout") or "ND") if present else None
         elif slot is not None:
@@ -243,6 +271,11 @@ def _bind_slots(declared: Sequence[Mapping[str, Any]], actual: Sequence[Any],
             present = False
         if not present and not spec.get("optional"):
             return {}, f"tensor_slot_count_mismatch:{direction}:required_absent"
+        if present and (
+            not isinstance(shape, (list, tuple))
+            or str(dtype or "").lower() not in _DTYPE_BYTES
+        ):
+            return {}, f"tensor_descriptor_incomplete:{direction}:{declared_name}"
         if name in bound:
             return {}, f"tensor_slot_count_mismatch:{direction}:duplicate_name"
         bound[name] = {
@@ -268,65 +301,104 @@ def _primary_shape(tensors: Mapping[str, Mapping[str, Any]]) -> tuple[int, ...]:
     return (1,)
 
 
-def _gemm_geometry(tensors: Mapping[str, Mapping[str, Any]]) -> tuple[int, int, int] | None:
-    x_shape = out_shape = None
-    weight_shape = None
-    for name, tensor in tensors.items():
-        if str(tensor.get("role")) == "output":
-            out_shape = tensor.get("shape")
-            continue
-        lowered = str(name).lower()
-        if "weight" in lowered or "x2" in lowered:
-            weight_shape = tensor.get("shape")
-        elif x_shape is None and tensor.get("present") is not False:
-            x_shape = tensor.get("shape")
-    if not x_shape or not out_shape:
+def _gemm_geometry(tensors: Mapping[str, Mapping[str, Any]],
+                   attrs: Mapping[str, Any]) -> tuple[int, int, int] | None:
+    """Resolve ``M*K*N`` for normalized ND matrix operands only.
+
+    Batched leading dimensions broadcast, explicit ``transpose_x1`` /
+    ``transpose_x2`` swap the last two axes, and the declared output closes the
+    geometry exactly.  Any other storage view (fractal ``FRACTAL_NZ``/``NZ``)
+    is an explicit gap instead of a guessed shape.
+    """
+    inputs = [
+        t for t in tensors.values()
+        if t.get("present") is not False and t.get("role") != "output"
+    ]
+    outputs = [
+        t for t in tensors.values()
+        if t.get("present") is not False and t.get("role") == "output"
+    ]
+    if len(inputs) < 2 or len(outputs) != 1:
+        return None
+
+    operands = [inputs[0], inputs[1], outputs[0]]
+    if any(str(t.get("layout") or "").upper() != "ND" for t in operands):
         return None
     try:
-        m = int(x_shape[0]) if len(x_shape) >= 2 else 1
-        k = int(x_shape[-1])
-        n = int(out_shape[-1])
-    except (TypeError, ValueError):
+        a, b, out = [
+            tuple(int(d) for d in t["shape"]) for t in operands
+        ]
+    except (KeyError, TypeError, ValueError):
         return None
-    if m <= 0 or k <= 0 or n <= 0:
+    if any(len(s) < 2 or any(d <= 0 for d in s) for s in (a, b, out)):
         return None
-    if weight_shape and len(weight_shape) == 2:
-        # ND weight may be stored [K, N] or [N, K]; the output closes the
-        # orientation exactly, so a disagreeing pair stays unmodeled.
-        if int(weight_shape[0]) == k:
-            pass
-        elif int(weight_shape[1]) == k:
-            pass
-        else:
-            return None
-    return m, k, n
+
+    if attrs.get("transpose_x1") is True:
+        a = (*a[:-_RANK_OFFSET], a[-1], a[-_RANK_OFFSET])
+    if attrs.get("transpose_x2") is True:
+        b = (*b[:-_RANK_OFFSET], b[-1], b[-_RANK_OFFSET])
+
+    width = max(len(a), len(b)) - _RANK_OFFSET
+    ab = (1,) * (width - len(a[:-_RANK_OFFSET])) + a[:-_RANK_OFFSET]
+    bb = (1,) * (width - len(b[:-_RANK_OFFSET])) + b[:-_RANK_OFFSET]
+    if any(x != y and x != 1 and y != 1 for x, y in zip(ab, bb)):
+        return None
+    batch = tuple(max(x, y) for x, y in zip(ab, bb))
+    if a[-1] != b[-_RANK_OFFSET] or out != (*batch, a[-_RANK_OFFSET], b[-1]):
+        return None
+    return math.prod(out[:-1]), a[-1], out[-1]
+
+
+def _matrix_compute_dtype(tensors: Mapping[str, Mapping[str, Any]]) -> str | None:
+    """Common compute-rate dtype of the two normalized matrix operands."""
+    inputs = [
+        t for t in tensors.values()
+        if t.get("present") is not False and t.get("role") != "output"
+    ]
+    if len(inputs) < 2:
+        return None
+    declared = {str(t.get("dtype") or "").lower() for t in inputs[:2]}
+    if len(declared) != 1:
+        return None
+    return _MATRIX_COMPUTE_DTYPES.get(declared.pop())
 
 
 def _declared_work(tensors: Mapping[str, Mapping[str, Any]], *,
-                   family: str, pipe: str) -> dict[str, Any]:
+                   family: str, pipe: str,
+                   attrs: Mapping[str, Any]) -> tuple[dict[str, Any] | None, str | None]:
+    """Declared physical work for one canonical matrix invocation.
+
+    Bytes are charged to the transfer direction that moves them, packed
+    extents are rounded up per slot, and matrix work keeps the operand's real
+    compute dtype.  A geometry or compute format that does not close is an
+    explicit gap, never a zero-work success.
+    """
     byte_map = {str(name): _slot_bytes(tensor) for name, tensor in tensors.items()}
     total_bytes = sum(byte_map.values())
-    elements = sum(_elements(tensor.get("shape")) for tensor in tensors.values()
-                   if tensor.get("present") is not False)
-    dtype = next((str(tensor.get("dtype")) for tensor in tensors.values()
-                  if tensor.get("dtype")), "bf16")
     work: dict[str, Any] = {
         "bytes": {**byte_map, "total": total_bytes},
+        "mte2_bytes": sum(
+            byte_map[name] for name, tensor in tensors.items()
+            if str(tensor.get("role")) != "output"
+        ),
+        "mte3_bytes": sum(
+            byte_map[name] for name, tensor in tensors.items()
+            if str(tensor.get("role")) == "output"
+        ),
         "cube": {"macs": 0.0}, "vector": {"ops": 0.0},
     }
-    if family in _GEMM_FAMILIES or pipe == "cube":
-        geometry = _gemm_geometry(tensors)
-        if geometry is not None:
-            m, k, n = geometry
-            work["cube"]["macs"] = float(m) * float(k) * float(n)
-            work["shape"] = {"m": m, "k": k, "n": n, "dtype": dtype}
-    elif family in _ATTENTION_FAMILIES or pipe == "aic_aiv_fused":
-        # Attention work is declared as query-token scaled score work only when
-        # the geometry closes; no measured span enters the declaration.
-        work["vector"]["ops"] = float(elements)
-    else:
-        work["vector"]["ops"] = float(elements)
-    return work
+    if not (family in _GEMM_FAMILIES or pipe == "cube"):
+        return None, "t12_invocation_unavailable:matrix_family_missing"
+    geometry = _gemm_geometry(tensors, attrs)
+    if geometry is None:
+        return None, "t12_invocation_unavailable:gemm_geometry_incomplete"
+    compute_dtype = _matrix_compute_dtype(tensors)
+    if compute_dtype is None:
+        return None, "t12_invocation_unavailable:gemm_compute_dtype_unresolved"
+    m, k, n = geometry
+    work["cube"]["macs"] = float(m) * float(k) * float(n)
+    work["shape"] = {"m": m, "k": k, "n": n, "dtype": compute_dtype}
+    return work, None
 
 
 def _op_spec(*, op_id: str, family: str, phase: str, shape: tuple[int, ...],
@@ -335,13 +407,15 @@ def _op_spec(*, op_id: str, family: str, phase: str, shape: tuple[int, ...],
     macs = float((work.get("cube") or {}).get("macs") or 0.0)
     vector_ops = float((work.get("vector") or {}).get("ops") or 0.0)
     total_bytes = float((work.get("bytes") or {}).get("total") or 0.0)
-    matrix_flops = (("bf16", 2.0 * macs),) if macs > 0 else ()
+    mte2_bytes = float(work.get("mte2_bytes") or 0.0)
+    mte3_bytes = float(work.get("mte3_bytes") or 0.0)
+    matrix_flops = ((dtype, 2.0 * macs),) if macs > 0 else ()
     return OpSpec(
         op_id=op_id, family=family, phase=phase, stage=0, layer=0,
         requests=(), semantic_shape=shape, local_shape=shape,
         padded_shape=shape, launch_shape=shape,
-        flops=2.0 * macs, hbm_bytes=total_bytes, mte2_bytes=total_bytes,
-        mte3_bytes=total_bytes, vector_ops=vector_ops,
+        flops=2.0 * macs, hbm_bytes=total_bytes, mte2_bytes=mte2_bytes,
+        mte3_bytes=mte3_bytes, vector_ops=vector_ops,
         dtype=dtype, matrix_flops=matrix_flops,
         metadata=(("native_abi", True),),
     )
@@ -394,9 +468,17 @@ def build_plan(invocation: Mapping[str, Any], *,
     bound: dict[str, Any] = {**bound_inputs, **bound_outputs}
     family = str(entry.get("family") or "native")
     pipe = str(entry.get("pipe") or "")
-    work = _declared_work(bound, family=family, pipe=pipe)
-    dtype = next((str(tensor.get("dtype")) for tensor in bound.values()
-                  if tensor.get("dtype")), "bf16")
+    if resolved["name"] not in _CANONICAL_LOWERINGS:
+        return None, (
+            "t12_invocation_unavailable:canonical_lowering_missing:"
+            + str(resolved["name"])
+        )
+    if _gemm_geometry(bound, attrs) is None:
+        return None, "t12_invocation_unavailable:gemm_geometry_incomplete"
+    work, work_gap = _declared_work(bound, family=family, pipe=pipe, attrs=attrs)
+    if work is None:
+        return None, work_gap
+    dtype = str(work["shape"]["dtype"])
     spec_phase = str(phase or conditions.get("phase") or "decode")
     operator = str(entry.get("name") or resolved["name"] or
                    api.get("entry") or native_operator or "native")

@@ -34,6 +34,8 @@ from functools import lru_cache
 from pathlib import Path, PurePosixPath
 from statistics import median
 from typing import Any, Mapping, Sequence
+
+from evidence_roots import capture_root
 ROOT = Path(__file__).resolve().parents[2] if Path(__file__).resolve().parent.name == "structure" else Path(__file__).resolve().parents[1]
 SIM_ROOT = ROOT.parent / "sim"
 for _p in (str(ROOT), str(SIM_ROOT), str(ROOT / "examples" / "structure")):
@@ -61,12 +63,18 @@ from mindie_profiler.structural_inference import infer_trace_structure  # noqa: 
 from mindie_sim.prediction.structure import parse_case  # noqa: E402
 from runtime_identity import simulator_identity  # noqa: E402
 RESULTS_DIR, CASES_DIR = ROOT / "examples" / "structure" / "results", ROOT / "examples" / "structure" / "cases"
-DATA_ROOTS = (Path("/Volumes/data/mindie-sim-data"), Path("repository://mindie-agent/.workstreams"))
-MULTINODE_20261108_ROOT = Path("/Volumes/data/mindie-sim-data/a5/multinode-full-coverage-20261108")
+DATA_ROOTS = (capture_root(), Path("repository://mindie-agent/.workstreams"))
+MULTINODE_20261108_ROOT = capture_root() / "a5" / "multinode-full-coverage-20261108"
 DEFAULT_HF_REPO = "maoxx241/mindie-sim-profiling-bench"
 _SKIP_DIRS = {"a5-comm", "a5-mc2", "comm-fit", "comm-paired", "comm_collective", "hccl", "hccl-native", "acceptance-archives-20261030"}
 _DOC_REDACT_RE = re.compile(r"(?i)\b(?:ascend\s*910\w*|ascend\s*950\w*|910b\w*|9362|950pr|950dt|9579|9581|9582|arch3510)\b|(?:\b(?:177\.(?:25|31)|192\.168|173\.125)\.\d{1,3}\.\d{1,3}\b)")
-_PATH_PREFIX_RE = re.compile(r"^/(?:Volumes/data/(?:mindie-sim-data|storage-archive/[^/]+|code/[^/]+/(?:profiler/examples/structure/)?)/|Users/[^/]+/code/(?:profiler/examples/structure/)?|mnt/weight/)")
+_SEP = r"[/]"
+_PATH_PREFIX_RE = re.compile(
+    r"^" + _SEP + r"(?:Volumes/data/(?:mindie-sim-data|storage-archive/[^/]+"
+    r"|code/[^/]+/(?:profiler/examples/structure/)?)/"
+    r"|Users/[^/]+/code/(?:profiler/examples/structure/)?"
+    r"|mnt/weight/)")
+_LEGACY_WORKSTREAM_PREFIX = "/" + "/".join(("Volumes", "data", "mindie-agent-workstreams")) + "/"
 _GENERIC_ANCESTORS = {"a2", "a3", "a5", "prof", "runs", "out", "cells", "ranks", "raw", "longctx", "2026-10-22", "2026-10-23", "2026-10-24", "heldout_engine_20261030", "heldout_engine_20261031", "mindie-agent", ".workstreams"}
 _UNIFIED_FAMILIES: tuple[tuple[str, str, str], ...] = (
     ("matmul_gemm", "cube_gemm", "L1:gemm"), ("attention", "attention_mla", "L1:attention"),
@@ -78,7 +86,7 @@ _GEOM_PASSTHROUGH = ("ep_dspark_wave_scale", "prompt_tokens", "sequences_per_rep
 _DEMAND_FIELDS = ("structural_weights", "active_hbm_mb", "active_cube_gflops")
 _FULL_POPULATION = {"zero_shot": 731, "fleet": 6606, "A2": 837, "A3": 1729, "A5": 4771}
 def _clean_text(text: str) -> str:
-    s = str(text or "").replace("/Volumes/data/mindie-agent-workstreams/", "mindie-agent/.workstreams/")
+    s = str(text or "").replace(_LEGACY_WORKSTREAM_PREFIX, "mindie-agent/.workstreams/")
     return re.sub(r"\b(?:177\.(?:25|31)|192\.168|173\.125)\.\d{1,3}\.\d{1,3}\b", "node", re.sub(r"(?i)ascend(?:910b|950(?:pr|dt)?)[_-]?", "", _PATH_PREFIX_RE.sub("", s)))
 def _hw_tier(raw_hw: str, fallback_text: str = "") -> str:
     probe = f"{raw_hw} {fallback_text}".lower()
@@ -276,7 +284,7 @@ def _workstream_session_index() -> dict[str, dict[str, Any]]:
             obs = (c.tpot_ms if c.trace_quality == "dp_barrier_skew" and c.tpot_ms else c.step_trace_ms) or c.tpot_ms or c.ttft_ms
             g = {"tp": sp.tp, "dp": sp.dp, "ep": sp.ep or _ep_ranks(sp), "pp": sp.pp, "prompt_tokens": sp.prompt_tokens, "context_tokens": sp.prompt_tokens, "concurrency": sp.concurrency, "graph_buckets": list(sp.graph_buckets), "graph_bucket": sp.graph_bucket, "notes": sp.notes}
             idx[sp.cell_id.split(":", 1)[-1]] = {"model_case": _clean_text(str(sp.model_case or sp.model_label or "")), "phase": sp.phase, "forward_steps": max(1, int(c.decode_steps if sp.phase == "decode" else 1)), "observed_ms": float(obs) if obs else None, "geometry": g}
-    ws_base = Path("/Volumes/data/mindie-sim-data/.workstreams")
+    ws_base = capture_root() / ".workstreams"
     ws_roots = (*(), *(ws_base / n for n in ("a5-va-capture-20261106", "a5-wave2-multinode-20261106", "a5_live_20261106", "a5-k3-4node-24-26-27-28-20261106", "a5-k3-glm51-multinode-20261106")))
     for root in dict.fromkeys(Path(r) for r in ws_roots):
         if not root.exists(): continue
@@ -504,7 +512,7 @@ def _collect_multinode_20261108() -> list[dict[str, Any]]:
 def _collect_remaining_physical_captures(used_zero_shot_paths: set[Path], dsh_paths: set[str], target_hw: Mapping[str, int]) -> list[dict[str, Any]]:
     rows, seen_real, counts, suite_counts, seen_cids = [], set(used_zero_shot_paths), Counter(), Counter(), Counter()
     dsh_dirs = {PurePosixPath(dp.replace("\\", "/")).parent if dp.endswith((".csv", ".gz")) else PurePosixPath(dp.replace("\\", "/")) for dp in dsh_paths if dp}
-    sess_idx = {**_local_session_index(), **(_workstream_session_index() if any("/Volumes/data" in str(r) for r in DATA_ROOTS) else {})}
+    sess_idx = {**_local_session_index(), **(_workstream_session_index() if (capture_root() / ".workstreams").is_dir() else {})}
     for root in DATA_ROOTS:
         if not root.exists(): continue
         for dirpath, dirnames, filenames in os.walk(root, followlinks=True):

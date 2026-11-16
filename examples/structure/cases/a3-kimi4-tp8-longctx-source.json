@@ -376,7 +376,7 @@
       },
       "inheritance_note": "Values are explicit structural assumptions unless field_evidence independently confirms them; layer counts are this checkpoint, not a truncated accuracy surrogate.",
       "current_capture_evidence": {
-        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/kimi-tp8-source-metadata.json",
+        "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/kimi-tp8-source-metadata.json",
         "sha256": "6130d20ad44d5138503431aad1f0acd5b08e25ed3e021aa9794b28d9bd2d78c8",
         "size_bytes": 172130
       }
@@ -895,7 +895,7 @@
     "metadata": {
       "captured_execution_mode": "FULL_DECODE_ONLY",
       "deployment_evidence": {
-        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/kimi-tp8-source-metadata.json",
+        "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/kimi-tp8-source-metadata.json",
         "sha256": "6130d20ad44d5138503431aad1f0acd5b08e25ed3e021aa9794b28d9bd2d78c8",
         "size_bytes": 172130
       },

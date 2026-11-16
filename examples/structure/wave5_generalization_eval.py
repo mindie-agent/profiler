@@ -46,9 +46,10 @@ from scoped_native_replay import (
     compact_scope_sidecar, load_verified_extraction, prefill_geometries,
     prediction_identity, prepare_scoped_replay, price_declared_prediction)
 from dsh_scoped_prefill import load_scoped_predictions, score_prefill_capture
+from evidence_roots import capture_root
 
 STRUCT_DIR = Path(__file__).resolve().parent
-DEFAULT_ARCHIVE_ROOT = Path("/Volumes/data/mindie-sim-data/acceptance-archives-20261030/wave5-eval")
+DEFAULT_ARCHIVE_ROOT = capture_root() / "acceptance-archives-20261030" / "wave5-eval"
 DEFAULT_OUT_JSON = STRUCT_DIR / "results" / "wave5_full_generalization.json"
 DEFAULT_OUT_MD = STRUCT_DIR / "results" / "wave5_full_generalization.md"
 MAX_WORKERS = 4

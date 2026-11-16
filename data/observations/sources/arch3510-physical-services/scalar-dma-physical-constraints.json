@@ -2,12 +2,18 @@
   "schema_version": "mindie-scalar-dma-physical-constraints/1",
   "status": "completed",
   "extraction_receipt_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-extraction-receipt.json",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-extraction-receipt.json",
+    "source_sha256": "376015f1b271bfd427cf109f3b7465fc4d985d4ac8a745322d72c6eed545c00a",
+    "revision": null,
     "sha256": "376015f1b271bfd427cf109f3b7465fc4d985d4ac8a745322d72c6eed545c00a",
     "size_bytes": 12778
   },
   "pmu_semantics_evidence": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261029/situ-mx-pmu-boundary.md",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "examples/structure/acceptance-20261029/situ-mx-pmu-boundary.md",
+    "source_sha256": "224b09abff32a8057466127e013f58ecd4d399500121ea5e94e3f73c8fd21dc5",
+    "revision": null,
     "sha256": "224b09abff32a8057466127e013f58ecd4d399500121ea5e94e3f73c8fd21dc5",
     "size_bytes": 4930
   },
@@ -16,12 +22,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c8_p4k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
         "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
         "size_bytes": 41993164
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "source_sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
+        "revision": null,
         "sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
         "size_bytes": 3852442
       },
@@ -387,12 +396,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c8_p4k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
         "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
         "size_bytes": 41993164
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "source_sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
+        "revision": null,
         "sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
         "size_bytes": 3852442
       },
@@ -673,12 +685,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c8_p4k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
         "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
         "size_bytes": 41993164
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "source_sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
+        "revision": null,
         "sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
         "size_bytes": 3852442
       },
@@ -959,12 +974,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c8_p4k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
         "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
         "size_bytes": 41993164
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "source_sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
+        "revision": null,
         "sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
         "size_bytes": 3852442
       },
@@ -1333,12 +1351,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c4_p8k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
         "sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
         "size_bytes": 25256665
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "source_sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
+        "revision": null,
         "sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
         "size_bytes": 2210414
       },
@@ -1704,12 +1725,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c4_p8k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
         "sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
         "size_bytes": 25256665
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "source_sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
+        "revision": null,
         "sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
         "size_bytes": 2210414
       },
@@ -1990,12 +2014,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c4_p8k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
         "sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
         "size_bytes": 25256665
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "source_sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
+        "revision": null,
         "sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
         "size_bytes": 2210414
       },
@@ -2276,12 +2303,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c4_p8k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
         "sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
         "size_bytes": 25256665
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "source_sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
+        "revision": null,
         "sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
         "size_bytes": 2210414
       },
@@ -2650,12 +2680,15 @@
     {
       "source_case_id": "glm53flash-a5-tp8-c1",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
         "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
         "size_bytes": 71005746
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "source_sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
+        "revision": null,
         "sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
         "size_bytes": 4605077
       },
@@ -3021,12 +3054,15 @@
     {
       "source_case_id": "glm53flash-a5-tp8-c1",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
         "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
         "size_bytes": 71005746
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "source_sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
+        "revision": null,
         "sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
         "size_bytes": 4605077
       },
@@ -3307,12 +3343,15 @@
     {
       "source_case_id": "glm53flash-a5-tp8-c1",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
         "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
         "size_bytes": 71005746
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "source_sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
+        "revision": null,
         "sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
         "size_bytes": 4605077
       },
@@ -3593,12 +3632,15 @@
     {
       "source_case_id": "glm53flash-a5-tp8-c1",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
         "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
         "size_bytes": 71005746
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "source_sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
+        "revision": null,
         "sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
         "size_bytes": 4605077
       },
@@ -3967,12 +4009,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c4-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
         "sha256": "9b8a87bfd6252204ab077e331ed97976ff9f5256935cb153677ac619dd96aac1",
         "size_bytes": 70137504
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c4-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c4-graph.json",
+        "source_sha256": "c5ce1f1d0026b78901e56e663f72051894f1e3edc8aeb8fbd59fa073e8706b47",
+        "revision": null,
         "sha256": "c5ce1f1d0026b78901e56e663f72051894f1e3edc8aeb8fbd59fa073e8706b47",
         "size_bytes": 4150913
       },
@@ -4338,12 +4383,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c4-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
         "sha256": "9b8a87bfd6252204ab077e331ed97976ff9f5256935cb153677ac619dd96aac1",
         "size_bytes": 70137504
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c4-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c4-graph.json",
+        "source_sha256": "c5ce1f1d0026b78901e56e663f72051894f1e3edc8aeb8fbd59fa073e8706b47",
+        "revision": null,
         "sha256": "c5ce1f1d0026b78901e56e663f72051894f1e3edc8aeb8fbd59fa073e8706b47",
         "size_bytes": 4150913
       },
@@ -4708,12 +4756,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c64-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
         "sha256": "5612e7cccfb3878cf27b22b1e89c5d186cd100633a44748973349f1bf03872f3",
         "size_bytes": 79462851
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c64-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c64-graph.json",
+        "source_sha256": "62628fe2b6131de823d8c4db989212244ada4be250d155d3d16c7bc84b93cc29",
+        "revision": null,
         "sha256": "62628fe2b6131de823d8c4db989212244ada4be250d155d3d16c7bc84b93cc29",
         "size_bytes": 5295052
       },
@@ -5079,12 +5130,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c64-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
         "sha256": "5612e7cccfb3878cf27b22b1e89c5d186cd100633a44748973349f1bf03872f3",
         "size_bytes": 79462851
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c64-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c64-graph.json",
+        "source_sha256": "62628fe2b6131de823d8c4db989212244ada4be250d155d3d16c7bc84b93cc29",
+        "revision": null,
         "sha256": "62628fe2b6131de823d8c4db989212244ada4be250d155d3d16c7bc84b93cc29",
         "size_bytes": 5295052
       },
@@ -5449,12 +5503,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c128-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
         "sha256": "bf35b8b21c078d6fc7223918b280158fda5ee7c1f83009c70c98b16f27b08df5",
         "size_bytes": 88444963
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c128-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c128-graph.json",
+        "source_sha256": "83746ffe66721a9f2073fce437098d9414fbfb2642c73fb4e53d2a0da575e538",
+        "revision": null,
         "sha256": "83746ffe66721a9f2073fce437098d9414fbfb2642c73fb4e53d2a0da575e538",
         "size_bytes": 4939272
       },
@@ -5820,12 +5877,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c128-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
         "sha256": "bf35b8b21c078d6fc7223918b280158fda5ee7c1f83009c70c98b16f27b08df5",
         "size_bytes": 88444963
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c128-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c128-graph.json",
+        "source_sha256": "83746ffe66721a9f2073fce437098d9414fbfb2642c73fb4e53d2a0da575e538",
+        "revision": null,
         "sha256": "83746ffe66721a9f2073fce437098d9414fbfb2642c73fb4e53d2a0da575e538",
         "size_bytes": 4939272
       },
@@ -6192,12 +6252,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c8_p4k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
         "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
         "size_bytes": 41993164
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "source_sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
+        "revision": null,
         "sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
         "size_bytes": 3852442
       },
@@ -6509,12 +6572,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c8_p4k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
         "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
         "size_bytes": 41993164
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "source_sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
+        "revision": null,
         "sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
         "size_bytes": 3852442
       },
@@ -6826,12 +6892,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c8_p4k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
         "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
         "size_bytes": 41993164
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "source_sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
+        "revision": null,
         "sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
         "size_bytes": 3852442
       },
@@ -7143,12 +7212,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c8_p4k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
         "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
         "size_bytes": 41993164
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "source_sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
+        "revision": null,
         "sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
         "size_bytes": 3852442
       },
@@ -7460,12 +7532,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c8_p4k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
         "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
         "size_bytes": 41993164
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "source_sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
+        "revision": null,
         "sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
         "size_bytes": 3852442
       },
@@ -7777,12 +7852,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c8_p4k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
         "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
         "size_bytes": 41993164
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "source_sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
+        "revision": null,
         "sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
         "size_bytes": 3852442
       },
@@ -8094,12 +8172,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c8_p4k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
         "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
         "size_bytes": 41993164
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "source_sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
+        "revision": null,
         "sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
         "size_bytes": 3852442
       },
@@ -8411,12 +8492,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c8_p4k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
         "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
         "size_bytes": 41993164
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "source_sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
+        "revision": null,
         "sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
         "size_bytes": 3852442
       },
@@ -8728,12 +8812,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c8_p4k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
         "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
         "size_bytes": 41993164
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "source_sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
+        "revision": null,
         "sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
         "size_bytes": 3852442
       },
@@ -8924,12 +9011,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c8_p4k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c8_p4k_20261030/kernel_details.csv",
         "sha256": "b259cfca342b034f9b057cd4499289a7b7244660bf02411c624f8a416b9d0a5f",
         "size_bytes": 41993164
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c8_p4k.json",
+        "source_sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
+        "revision": null,
         "sha256": "3f0f4e929aaa54fe9893d5076f933632d032032ff045ec3fed4bea533955dc8e",
         "size_bytes": 3852442
       },
@@ -9241,12 +9331,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c4_p8k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
         "sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
         "size_bytes": 25256665
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "source_sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
+        "revision": null,
         "sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
         "size_bytes": 2210414
       },
@@ -9558,12 +9651,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c4_p8k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
         "sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
         "size_bytes": 25256665
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "source_sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
+        "revision": null,
         "sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
         "size_bytes": 2210414
       },
@@ -9875,12 +9971,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c4_p8k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
         "sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
         "size_bytes": 25256665
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "source_sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
+        "revision": null,
         "sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
         "size_bytes": 2210414
       },
@@ -10192,12 +10291,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c4_p8k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
         "sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
         "size_bytes": 25256665
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "source_sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
+        "revision": null,
         "sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
         "size_bytes": 2210414
       },
@@ -10509,12 +10611,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c4_p8k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
         "sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
         "size_bytes": 25256665
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "source_sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
+        "revision": null,
         "sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
         "size_bytes": 2210414
       },
@@ -10826,12 +10931,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c4_p8k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
         "sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
         "size_bytes": 25256665
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "source_sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
+        "revision": null,
         "sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
         "size_bytes": 2210414
       },
@@ -11143,12 +11251,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c4_p8k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
         "sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
         "size_bytes": 25256665
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "source_sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
+        "revision": null,
         "sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
         "size_bytes": 2210414
       },
@@ -11460,12 +11571,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c4_p8k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
         "sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
         "size_bytes": 25256665
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "source_sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
+        "revision": null,
         "sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
         "size_bytes": 2210414
       },
@@ -11777,12 +11891,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c4_p8k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
         "sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
         "size_bytes": 25256665
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "source_sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
+        "revision": null,
         "sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
         "size_bytes": 2210414
       },
@@ -11973,12 +12090,15 @@
     {
       "source_case_id": "a5_glm53flash_tp8_c4_p8k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c4_p8k_20261030/kernel_details.csv",
         "sha256": "1c75ebb7233b7181728dcab47c69c6bd5cee8fca5b4f28da3d9b4c72332551cd",
         "size_bytes": 25256665
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-a5_glm53flash_tp8_c4_p8k.json",
+        "source_sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
+        "revision": null,
         "sha256": "763f4dc501ccb5300047de8785bffdf309b4ee810de3a8e9a34f833d68cecc99",
         "size_bytes": 2210414
       },
@@ -12290,12 +12410,15 @@
     {
       "source_case_id": "glm53flash-a5-tp8-c1",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
         "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
         "size_bytes": 71005746
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "source_sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
+        "revision": null,
         "sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
         "size_bytes": 4605077
       },
@@ -12607,12 +12730,15 @@
     {
       "source_case_id": "glm53flash-a5-tp8-c1",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
         "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
         "size_bytes": 71005746
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "source_sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
+        "revision": null,
         "sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
         "size_bytes": 4605077
       },
@@ -12924,12 +13050,15 @@
     {
       "source_case_id": "glm53flash-a5-tp8-c1",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
         "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
         "size_bytes": 71005746
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "source_sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
+        "revision": null,
         "sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
         "size_bytes": 4605077
       },
@@ -13241,12 +13370,15 @@
     {
       "source_case_id": "glm53flash-a5-tp8-c1",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
         "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
         "size_bytes": 71005746
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "source_sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
+        "revision": null,
         "sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
         "size_bytes": 4605077
       },
@@ -13558,12 +13690,15 @@
     {
       "source_case_id": "glm53flash-a5-tp8-c1",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
         "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
         "size_bytes": 71005746
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "source_sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
+        "revision": null,
         "sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
         "size_bytes": 4605077
       },
@@ -13875,12 +14010,15 @@
     {
       "source_case_id": "glm53flash-a5-tp8-c1",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
         "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
         "size_bytes": 71005746
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "source_sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
+        "revision": null,
         "sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
         "size_bytes": 4605077
       },
@@ -14192,12 +14330,15 @@
     {
       "source_case_id": "glm53flash-a5-tp8-c1",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
         "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
         "size_bytes": 71005746
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "source_sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
+        "revision": null,
         "sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
         "size_bytes": 4605077
       },
@@ -14509,12 +14650,15 @@
     {
       "source_case_id": "glm53flash-a5-tp8-c1",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
         "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
         "size_bytes": 71005746
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "source_sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
+        "revision": null,
         "sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
         "size_bytes": 4605077
       },
@@ -14826,12 +14970,15 @@
     {
       "source_case_id": "glm53flash-a5-tp8-c1",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
         "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
         "size_bytes": 71005746
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "source_sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
+        "revision": null,
         "sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
         "size_bytes": 4605077
       },
@@ -15022,12 +15169,15 @@
     {
       "source_case_id": "glm53flash-a5-tp8-c1",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
         "sha256": "c3c78ba68f3ef2ad896b25ea0ab6e9e2215aaac0a94ca7fc6b228a1c3444a443",
         "size_bytes": 71005746
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-glm53flash-a5-tp8-c1.json",
+        "source_sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
+        "revision": null,
         "sha256": "f9dfee45f3e83aef3ac3cda94febbb803b35f0c49e1c85216c3a1713c48a4d7b",
         "size_bytes": 4605077
       },
@@ -15339,12 +15489,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c4-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
         "sha256": "9b8a87bfd6252204ab077e331ed97976ff9f5256935cb153677ac619dd96aac1",
         "size_bytes": 70137504
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c4-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c4-graph.json",
+        "source_sha256": "c5ce1f1d0026b78901e56e663f72051894f1e3edc8aeb8fbd59fa073e8706b47",
+        "revision": null,
         "sha256": "c5ce1f1d0026b78901e56e663f72051894f1e3edc8aeb8fbd59fa073e8706b47",
         "size_bytes": 4150913
       },
@@ -15656,12 +15809,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c4-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
         "sha256": "9b8a87bfd6252204ab077e331ed97976ff9f5256935cb153677ac619dd96aac1",
         "size_bytes": 70137504
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c4-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c4-graph.json",
+        "source_sha256": "c5ce1f1d0026b78901e56e663f72051894f1e3edc8aeb8fbd59fa073e8706b47",
+        "revision": null,
         "sha256": "c5ce1f1d0026b78901e56e663f72051894f1e3edc8aeb8fbd59fa073e8706b47",
         "size_bytes": 4150913
       },
@@ -15973,12 +16129,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c4-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
         "sha256": "9b8a87bfd6252204ab077e331ed97976ff9f5256935cb153677ac619dd96aac1",
         "size_bytes": 70137504
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c4-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c4-graph.json",
+        "source_sha256": "c5ce1f1d0026b78901e56e663f72051894f1e3edc8aeb8fbd59fa073e8706b47",
+        "revision": null,
         "sha256": "c5ce1f1d0026b78901e56e663f72051894f1e3edc8aeb8fbd59fa073e8706b47",
         "size_bytes": 4150913
       },
@@ -16290,12 +16449,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c4-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
         "sha256": "9b8a87bfd6252204ab077e331ed97976ff9f5256935cb153677ac619dd96aac1",
         "size_bytes": 70137504
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c4-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c4-graph.json",
+        "source_sha256": "c5ce1f1d0026b78901e56e663f72051894f1e3edc8aeb8fbd59fa073e8706b47",
+        "revision": null,
         "sha256": "c5ce1f1d0026b78901e56e663f72051894f1e3edc8aeb8fbd59fa073e8706b47",
         "size_bytes": 4150913
       },
@@ -16607,12 +16769,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c4-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
         "sha256": "9b8a87bfd6252204ab077e331ed97976ff9f5256935cb153677ac619dd96aac1",
         "size_bytes": 70137504
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c4-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c4-graph.json",
+        "source_sha256": "c5ce1f1d0026b78901e56e663f72051894f1e3edc8aeb8fbd59fa073e8706b47",
+        "revision": null,
         "sha256": "c5ce1f1d0026b78901e56e663f72051894f1e3edc8aeb8fbd59fa073e8706b47",
         "size_bytes": 4150913
       },
@@ -16924,12 +17089,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c4-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
         "sha256": "9b8a87bfd6252204ab077e331ed97976ff9f5256935cb153677ac619dd96aac1",
         "size_bytes": 70137504
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c4-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c4-graph.json",
+        "source_sha256": "c5ce1f1d0026b78901e56e663f72051894f1e3edc8aeb8fbd59fa073e8706b47",
+        "revision": null,
         "sha256": "c5ce1f1d0026b78901e56e663f72051894f1e3edc8aeb8fbd59fa073e8706b47",
         "size_bytes": 4150913
       },
@@ -17243,12 +17411,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c4-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot5ms_c4_20261030/kernel_details.csv",
         "sha256": "9b8a87bfd6252204ab077e331ed97976ff9f5256935cb153677ac619dd96aac1",
         "size_bytes": 70137504
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c4-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c4-graph.json",
+        "source_sha256": "c5ce1f1d0026b78901e56e663f72051894f1e3edc8aeb8fbd59fa073e8706b47",
+        "revision": null,
         "sha256": "c5ce1f1d0026b78901e56e663f72051894f1e3edc8aeb8fbd59fa073e8706b47",
         "size_bytes": 4150913
       },
@@ -17560,12 +17731,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c64-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
         "sha256": "5612e7cccfb3878cf27b22b1e89c5d186cd100633a44748973349f1bf03872f3",
         "size_bytes": 79462851
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c64-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c64-graph.json",
+        "source_sha256": "62628fe2b6131de823d8c4db989212244ada4be250d155d3d16c7bc84b93cc29",
+        "revision": null,
         "sha256": "62628fe2b6131de823d8c4db989212244ada4be250d155d3d16c7bc84b93cc29",
         "size_bytes": 5295052
       },
@@ -17877,12 +18051,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c64-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
         "sha256": "5612e7cccfb3878cf27b22b1e89c5d186cd100633a44748973349f1bf03872f3",
         "size_bytes": 79462851
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c64-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c64-graph.json",
+        "source_sha256": "62628fe2b6131de823d8c4db989212244ada4be250d155d3d16c7bc84b93cc29",
+        "revision": null,
         "sha256": "62628fe2b6131de823d8c4db989212244ada4be250d155d3d16c7bc84b93cc29",
         "size_bytes": 5295052
       },
@@ -18194,12 +18371,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c64-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
         "sha256": "5612e7cccfb3878cf27b22b1e89c5d186cd100633a44748973349f1bf03872f3",
         "size_bytes": 79462851
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c64-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c64-graph.json",
+        "source_sha256": "62628fe2b6131de823d8c4db989212244ada4be250d155d3d16c7bc84b93cc29",
+        "revision": null,
         "sha256": "62628fe2b6131de823d8c4db989212244ada4be250d155d3d16c7bc84b93cc29",
         "size_bytes": 5295052
       },
@@ -18511,12 +18691,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c64-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
         "sha256": "5612e7cccfb3878cf27b22b1e89c5d186cd100633a44748973349f1bf03872f3",
         "size_bytes": 79462851
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c64-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c64-graph.json",
+        "source_sha256": "62628fe2b6131de823d8c4db989212244ada4be250d155d3d16c7bc84b93cc29",
+        "revision": null,
         "sha256": "62628fe2b6131de823d8c4db989212244ada4be250d155d3d16c7bc84b93cc29",
         "size_bytes": 5295052
       },
@@ -18828,12 +19011,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c64-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
         "sha256": "5612e7cccfb3878cf27b22b1e89c5d186cd100633a44748973349f1bf03872f3",
         "size_bytes": 79462851
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c64-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c64-graph.json",
+        "source_sha256": "62628fe2b6131de823d8c4db989212244ada4be250d155d3d16c7bc84b93cc29",
+        "revision": null,
         "sha256": "62628fe2b6131de823d8c4db989212244ada4be250d155d3d16c7bc84b93cc29",
         "size_bytes": 5295052
       },
@@ -19145,12 +19331,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c64-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
         "sha256": "5612e7cccfb3878cf27b22b1e89c5d186cd100633a44748973349f1bf03872f3",
         "size_bytes": 79462851
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c64-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c64-graph.json",
+        "source_sha256": "62628fe2b6131de823d8c4db989212244ada4be250d155d3d16c7bc84b93cc29",
+        "revision": null,
         "sha256": "62628fe2b6131de823d8c4db989212244ada4be250d155d3d16c7bc84b93cc29",
         "size_bytes": 5295052
       },
@@ -19464,12 +19653,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c64-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
         "sha256": "5612e7cccfb3878cf27b22b1e89c5d186cd100633a44748973349f1bf03872f3",
         "size_bytes": 79462851
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c64-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c64-graph.json",
+        "source_sha256": "62628fe2b6131de823d8c4db989212244ada4be250d155d3d16c7bc84b93cc29",
+        "revision": null,
         "sha256": "62628fe2b6131de823d8c4db989212244ada4be250d155d3d16c7bc84b93cc29",
         "size_bytes": 5295052
       },
@@ -19781,12 +19973,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c128-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
         "sha256": "bf35b8b21c078d6fc7223918b280158fda5ee7c1f83009c70c98b16f27b08df5",
         "size_bytes": 88444963
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c128-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c128-graph.json",
+        "source_sha256": "83746ffe66721a9f2073fce437098d9414fbfb2642c73fb4e53d2a0da575e538",
+        "revision": null,
         "sha256": "83746ffe66721a9f2073fce437098d9414fbfb2642c73fb4e53d2a0da575e538",
         "size_bytes": 4939272
       },
@@ -20098,12 +20293,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c128-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
         "sha256": "bf35b8b21c078d6fc7223918b280158fda5ee7c1f83009c70c98b16f27b08df5",
         "size_bytes": 88444963
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c128-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c128-graph.json",
+        "source_sha256": "83746ffe66721a9f2073fce437098d9414fbfb2642c73fb4e53d2a0da575e538",
+        "revision": null,
         "sha256": "83746ffe66721a9f2073fce437098d9414fbfb2642c73fb4e53d2a0da575e538",
         "size_bytes": 4939272
       },
@@ -20415,12 +20613,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c128-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
         "sha256": "bf35b8b21c078d6fc7223918b280158fda5ee7c1f83009c70c98b16f27b08df5",
         "size_bytes": 88444963
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c128-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c128-graph.json",
+        "source_sha256": "83746ffe66721a9f2073fce437098d9414fbfb2642c73fb4e53d2a0da575e538",
+        "revision": null,
         "sha256": "83746ffe66721a9f2073fce437098d9414fbfb2642c73fb4e53d2a0da575e538",
         "size_bytes": 4939272
       },
@@ -20732,12 +20933,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c128-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
         "sha256": "bf35b8b21c078d6fc7223918b280158fda5ee7c1f83009c70c98b16f27b08df5",
         "size_bytes": 88444963
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c128-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c128-graph.json",
+        "source_sha256": "83746ffe66721a9f2073fce437098d9414fbfb2642c73fb4e53d2a0da575e538",
+        "revision": null,
         "sha256": "83746ffe66721a9f2073fce437098d9414fbfb2642c73fb4e53d2a0da575e538",
         "size_bytes": 4939272
       },
@@ -21049,12 +21253,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c128-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
         "sha256": "bf35b8b21c078d6fc7223918b280158fda5ee7c1f83009c70c98b16f27b08df5",
         "size_bytes": 88444963
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c128-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c128-graph.json",
+        "source_sha256": "83746ffe66721a9f2073fce437098d9414fbfb2642c73fb4e53d2a0da575e538",
+        "revision": null,
         "sha256": "83746ffe66721a9f2073fce437098d9414fbfb2642c73fb4e53d2a0da575e538",
         "size_bytes": 4939272
       },
@@ -21366,12 +21573,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c128-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
         "sha256": "bf35b8b21c078d6fc7223918b280158fda5ee7c1f83009c70c98b16f27b08df5",
         "size_bytes": 88444963
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c128-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c128-graph.json",
+        "source_sha256": "83746ffe66721a9f2073fce437098d9414fbfb2642c73fb4e53d2a0da575e538",
+        "revision": null,
         "sha256": "83746ffe66721a9f2073fce437098d9414fbfb2642c73fb4e53d2a0da575e538",
         "size_bytes": 4939272
       },
@@ -21685,12 +21895,15 @@
     {
       "source_case_id": "qwen35-35b-a5-tp4-c128-graph",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot30ms_c128_20261030/kernel_details.csv",
         "sha256": "bf35b8b21c078d6fc7223918b280158fda5ee7c1f83009c70c98b16f27b08df5",
         "size_bytes": 88444963
       },
       "partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c128-graph.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-qwen35-35b-a5-tp4-c128-graph.json",
+        "source_sha256": "83746ffe66721a9f2073fce437098d9414fbfb2642c73fb4e53d2a0da575e538",
+        "revision": null,
         "sha256": "83746ffe66721a9f2073fce437098d9414fbfb2642c73fb4e53d2a0da575e538",
         "size_bytes": 4939272
       },
@@ -22005,7 +22218,7 @@
       "batch": 16,
       "direction": "gather",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c16_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c16_p4k_20261030/kernel_details.csv",
         "sha256": "bd9aaa075053ec7b4520a8a45238e810192b9b83f96d9833792be3ce9a46ca34",
         "size_bytes": 47658417
       },
@@ -22084,7 +22297,7 @@
       "batch": 16,
       "direction": "scatter",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c16_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c16_p4k_20261030/kernel_details.csv",
         "sha256": "bd9aaa075053ec7b4520a8a45238e810192b9b83f96d9833792be3ce9a46ca34",
         "size_bytes": 47658417
       },
@@ -22163,7 +22376,7 @@
       "batch": 32,
       "direction": "gather",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
         "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
         "size_bytes": 41401175
       },
@@ -22242,7 +22455,7 @@
       "batch": 32,
       "direction": "scatter",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
         "sha256": "f48928ad671257a81014752dcb9a81848d5214e87251018a0b06f159be75da72",
         "size_bytes": 41401175
       },
@@ -22321,7 +22534,7 @@
       "batch": 64,
       "direction": "gather",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c64_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c64_p4k_20261030/kernel_details.csv",
         "sha256": "1d33448e6faeeedf5175035f4c324b74220bbc179d2cec85657162970576095a",
         "size_bytes": 34995055
       },
@@ -22400,7 +22613,7 @@
       "batch": 64,
       "direction": "scatter",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c64_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/glm5_3_flash_w8a8_mxfp8_high_conc_decode_c64_p4k_20261030/kernel_details.csv",
         "sha256": "1d33448e6faeeedf5175035f4c324b74220bbc179d2cec85657162970576095a",
         "size_bytes": 34995055
       },
@@ -22608,8 +22821,20 @@
   "new_costs": 0,
   "new_raw_scans": 0,
   "producer_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/summarize_scalar_dma_services.py",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "examples/structure/summarize_scalar_dma_services.py",
+    "source_sha256": "5cf13c0fc272f73733d3a99f3a2e03bf522ec365ea10d25aeb93328f8421e543",
+    "revision": null,
     "sha256": "5cf13c0fc272f73733d3a99f3a2e03bf522ec365ea10d25aeb93328f8421e543",
     "size_bytes": 14820
+  },
+  "path_normalization": {
+    "schema": "mindie-path-normalization/1",
+    "original_sha256": "cc271de32e67bd9894d0c85f4a289737222f6ad7211971633e68f0de58a0a295",
+    "normalized_sha256": "fffc3f140ddc027c9604443641c7b1359a1415c5e45f25e85b309f9efbb3b130",
+    "rules": [
+      "repository_identity",
+      "capture_uri"
+    ]
   }
 }

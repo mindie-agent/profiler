@@ -16,12 +16,12 @@
   "source_manifest_sha256": "f18c3581f22d1ec7ddb470d4f416c32f58db7a23c466abb873058e3b7cdb3b44",
   "sources": [
     {
-      "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4f-c4-admission/raw/c4p4096.kernel_details.csv",
+      "path": "capture://mindie-sim-data/a3/2026-10-23/v4f-c4-admission/raw/c4p4096.kernel_details.csv",
       "sha256": "d6fcb1b6b7cfb83e06010beda16a50839658ab259cad0d24dda01fd47957f835",
       "size_bytes": 5973264
     },
     {
-      "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4f-c4-admission/raw/c4p16384.kernel_details.csv",
+      "path": "capture://mindie-sim-data/a3/2026-10-23/v4f-c4-admission/raw/c4p16384.kernel_details.csv",
       "sha256": "bdaf3827f722d7846f36ce6d448fb73e8f116b276bda1ee3eca22658dcd4b265",
       "size_bytes": 156917819
     }

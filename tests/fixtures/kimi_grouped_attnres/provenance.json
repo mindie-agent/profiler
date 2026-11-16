@@ -121,7 +121,7 @@
       "verified_domain": "Shared gate-up requests INT32 with pertoken_scale=None; separate dequant/activation owns floating-point rescale. Not a capture-binary identity."
     },
     {
-      "archive": "/Volumes/data/temp/codex-session-01a09c11-01b6-7ef2-bf23-6dae53e42dae/work/residual-0921/final2.tar.gz",
+      "archive": "capture://temp/codex-session-01a09c11-01b6-7ef2-bf23-6dae53e42dae/work/residual-0921/final2.tar.gz",
       "archive_sha256": "4e58515e6bdd28c09fb8a8da6dd4fadfa77e0b4254cbc8837c64358513981f3a",
       "members": [
         {

@@ -1,6 +1,6 @@
 {
   "schema": "mindie-real-capture-slice/1",
-  "source_archive": "/Volumes/data/mindie-sim-data/a5/2026-10-23/kimi-k3-longctx/k3lc-os1.tgz",
+  "source_archive": "capture://mindie-sim-data/a5/2026-10-23/kimi-k3-longctx/k3lc-os1.tgz",
   "source_archive_sha256": "8b74c09cfdbdb14d010f7c941b4911abc88e865a9d625e88813f4096ed91a00d",
   "source_member": "raw/prof-export/op_summary_20261023053244.csv",
   "source_member_sha256": "ab1d44d3613ecb92d71af6d790ab9dfc72be5aabfe92bf4f99d584fbd0f9e648",

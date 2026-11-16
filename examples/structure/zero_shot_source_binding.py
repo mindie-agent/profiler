@@ -107,6 +107,8 @@ def _load_json(path: Any) -> Any:
     from pathlib import Path
     try:
         return json.loads(Path(path).read_text(encoding="utf-8"))
+    except TimeoutError:
+        raise
     except (OSError, ValueError):
         return None
 

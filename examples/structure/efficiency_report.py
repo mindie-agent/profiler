@@ -20,7 +20,7 @@ from typing import Any, Mapping, Sequence
 from mindie_sim.prediction.efficiency import (
     analyze_network_efficiency,
     fit_efficiency_targets,
-    solve_hardware_sla_throughput,
+    solve_sla_sizing,
 )
 from mindie_sim.prediction.structure import parse_case
 
@@ -90,7 +90,7 @@ def build_efficiency_report(
                 mode="clamp_to_target",
             )
             net = {k: v for k, v in fit["baseline_analysis"].items() if k != "operators"}
-            sla = solve_hardware_sla_throughput(
+            sla = solve_sla_sizing(
                 case,
                 sla_ms=sla_ms,
                 context=ctx,

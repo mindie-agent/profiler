@@ -5,7 +5,7 @@
   "source_identity_basis": "unchanged full source recorded in fusion_contracts/provenance.json; extraction reads through source line 240 only",
   "source_size_bytes": 110031770,
   "archive": {
-    "path": "/Volumes/data/mindie-sim-data/a5/2026-10-23/kimi-k3-longctx/k3lc-os1.tgz",
+    "path": "capture://mindie-sim-data/a5/2026-10-23/kimi-k3-longctx/k3lc-os1.tgz",
     "sha256": "8b74c09cfdbdb14d010f7c941b4911abc88e865a9d625e88813f4096ed91a00d",
     "member": "raw/prof-export/op_summary_20261023053244.csv"
   },
@@ -61,7 +61,7 @@
   "edits": "No cells changed; CSV serialization normalized to LF.",
   "implementation_sources": {
     "grouped_situ": {
-      "archive": "/Volumes/data/temp/codex-session-01a09c11-01b6-7ef2-bf23-6dae53e42dae/work/gmmsituquant-latest-0916/gmmsituquant-latest-overlay.zip",
+      "archive": "capture://temp/codex-session-01a09c11-01b6-7ef2-bf23-6dae53e42dae/work/gmmsituquant-latest-0916/gmmsituquant-latest-overlay.zip",
       "archive_sha256": "fd5ded62862cabd7b686feceadcd8f39b692bdbb1989eb93c72eea29f4fc11da",
       "base_revision": "75f52c1d7df8df8548d854a01b64935727a70e88",
       "source_state": "independent_local_delivery_overlay",

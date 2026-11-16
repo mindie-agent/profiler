@@ -1,6 +1,6 @@
 {
   "source_identity": {
-    "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp4_128k_20261030/prof/decode_128k_in126k_out3k_c4/kernel_details.csv",
+    "path": "capture://mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp4_128k_20261030/prof/decode_128k_in126k_out3k_c4/kernel_details.csv",
     "sha256": "31b8e79032731f22620688c493cbcf6fbb828963e9a049a5a236788be631a062",
     "size_bytes": 98251697,
     "sha_basis": "existing accepted extraction pin; no full-file rehash in this bounded probe"

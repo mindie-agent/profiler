@@ -15,11 +15,13 @@ import re
 from pathlib import Path
 from typing import Any, Mapping
 
+from evidence_roots import capture_root
+
 _STRUCT = Path(__file__).resolve().parent
-_DEFAULT_DATA_ROOTS = (Path("/Volumes/data/mindie-sim-data"), Path("repository://mindie-agent/.workstreams"))
+_DEFAULT_DATA_ROOTS = (capture_root(), Path("repository://mindie-agent/.workstreams"))
 _DEFAULT_RESULTS = _STRUCT / "results"
 _DEFAULT_CASES = _STRUCT / "cases"
-_DEFAULT_ARCHIVE = Path("/Volumes/data/mindie-sim-data/acceptance-archives-20261030")
+_DEFAULT_ARCHIVE = capture_root() / "acceptance-archives-20261030"
 _DEFAULT_RECEIPT_INDEX = Path("/tmp/mindie-3h-20261111/observation_receipt_index.tsv")
 _MAX_RECEIPT_BYTES = 4 * 1024 * 1024
 _GEOM_KEYS = (

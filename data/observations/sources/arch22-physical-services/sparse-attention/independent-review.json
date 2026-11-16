@@ -6,7 +6,10 @@
   "sources": [
     {
       "identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/sparse-attention/a3_glm53_w4a8_tp16_tpot30_c2-sfa-pmu.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch22-physical-services/sparse-attention/a3_glm53_w4a8_tp16_tpot30_c2-sfa-pmu.json",
+        "source_sha256": "134b2b2d9e121e4b86f80a753ac89e50aa2913b8454cd63e1153d6e214263dda",
+        "revision": null,
         "sha256": "134b2b2d9e121e4b86f80a753ac89e50aa2913b8454cd63e1153d6e214263dda",
         "size_bytes": 2397345
       },
@@ -21,7 +24,10 @@
     },
     {
       "identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/sparse-attention/a3_glm53_w4a8_tp16_tpot50_c2-sfa-pmu.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch22-physical-services/sparse-attention/a3_glm53_w4a8_tp16_tpot50_c2-sfa-pmu.json",
+        "source_sha256": "6b1d1c0567caa81123ebea8a47b35d35f1d5c0707c5d643f4e8252713fc10de7",
+        "revision": null,
         "sha256": "6b1d1c0567caa81123ebea8a47b35d35f1d5c0707c5d643f4e8252713fc10de7",
         "size_bytes": 2401760
       },
@@ -36,7 +42,10 @@
     },
     {
       "identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/sparse-attention/a3_glm53_w4a8_tp16_tpot88_c8-sfa-pmu.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "data/observations/sources/arch22-physical-services/sparse-attention/a3_glm53_w4a8_tp16_tpot88_c8-sfa-pmu.json",
+        "source_sha256": "da3aef1c19e7e612b9b144c489b7f36bea2797173537c982aa67eebb4e2c68ff",
+        "revision": null,
         "sha256": "da3aef1c19e7e612b9b144c489b7f36bea2797173537c982aa67eebb4e2c68ff",
         "size_bytes": 3059223
       },
@@ -61,5 +70,14 @@
     "peak_rss_bytes": 85196800,
     "raw_reads": 0,
     "cost_predictions": 0
+  },
+  "path_normalization": {
+    "schema": "mindie-path-normalization/1",
+    "original_sha256": "3abb2a407fd6a3f1609677ce69af6860f09e424ad09f93d0cf931b9dc5223997",
+    "normalized_sha256": "3245a562875f1b84456e6092dfaf0bd8e360616aa203f2ec60773ec53318d272",
+    "rules": [
+      "repository_identity",
+      "capture_uri"
+    ]
   }
 }

@@ -5,7 +5,7 @@
   "sources": [
     {
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
         "sha256": "95fe4cc26e249dbd597c62ae1db12710fca8ea758ff16cf1f12e6ed5584d256d",
         "size_bytes": 102190664
       },
@@ -14,7 +14,7 @@
     },
     {
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p16k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p16k_20261030/kernel_details.csv",
         "sha256": "cc316ae15600914b4c58c7ef10a0103026a7d5abae1dc733dd3eedcaa0397f8e",
         "size_bytes": 102198993
       },
@@ -23,7 +23,7 @@
     },
     {
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p16k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p16k_20261030/kernel_details.csv",
         "sha256": "e0165e2c51d162f7dcfafa75346acbc739f1e30fbea2bd741e7c5b40f5b7437d",
         "size_bytes": 74642919
       },

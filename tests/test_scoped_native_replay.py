@@ -572,9 +572,9 @@ def test_real_a5_archive_template_replacement_applies(
         restored_sys_path, tmp_path):
     import wave5_generalization_eval as wave5
 
-    archive = Path("/Volumes/data/mindie-sim-data/acceptance-archives-20261030"
+    archive = Path("capture://mindie-sim-data/acceptance-archives-20261030"
                    "/wave5-eval")
-    capture = Path("/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031"
+    capture = Path("capture://mindie-sim-data/a5/heldout_engine_20261031"
                    "/a5_synth_qwen30b_L8_E16_K4_tp4ep4_prefill_4k_c1"
                    "/kernel_details.csv")
     if not capture.is_file() or not (archive / "a5" / "eval_a5_wave5.py").is_file():

@@ -1125,15 +1125,15 @@
     },
     "source_control": {
       "a2-response-physical-fix-independent.txt": {
-        "path": "/Volumes/data/mindie-sim-data/calibration-20261107/control/a2-response-physical-fix-independent.txt",
+        "path": "capture://mindie-sim-data/calibration-20261107/control/a2-response-physical-fix-independent.txt",
         "sha256": "809b3a8138189de003c9af73968711814ecd74a8e8dc9456e12826c2022a2e3a"
       },
       "a2-response-first-heldout-independent.txt": {
-        "path": "/Volumes/data/mindie-sim-data/calibration-20261107/control/a2-response-first-heldout-independent.txt",
+        "path": "capture://mindie-sim-data/calibration-20261107/control/a2-response-first-heldout-independent.txt",
         "sha256": "d8eb9cc88d00e2008d034ece6b271a4eb20bffa5201146e3d66e86f749c64ad1"
       },
       "a2-response-parent-freeze.json": {
-        "path": "/Volumes/data/mindie-sim-data/calibration-20261107/control/a2-response-parent-freeze.json",
+        "path": "capture://mindie-sim-data/calibration-20261107/control/a2-response-parent-freeze.json",
         "sha256": "3b17b1f6353b5a72be9459c2e76c6dbbb708dfbe611429759d19a62795bcfcce"
       }
     },

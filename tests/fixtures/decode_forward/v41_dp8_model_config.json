@@ -4386,7 +4386,7 @@
     "tokens_per_sequence": 1,
     "basis": "source_declared_no_speculation_decode_capture",
     "evidence": {
-      "path": "/Volumes/data/mindie-sim-data/a5/dsv41_dp8ep8_sweep_20261030/serve.log",
+      "path": "capture://mindie-sim-data/a5/dsv41_dp8ep8_sweep_20261030/serve.log",
       "sha256": "6e621f4bbc3f65caa89b3f5b800fed8ab193bf3ebb73121c1fdd5f09e0990d6f",
       "size_bytes": 268539
     },

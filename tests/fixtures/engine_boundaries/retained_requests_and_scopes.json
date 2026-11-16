@@ -3,19 +3,19 @@
   "sources": {
     "qwen36-a5-tp2-c12": {
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030/kernel_details.csv",
         "size_bytes": 43475364,
         "mtime_ns": 1793298518000000000,
         "schema_version": "kernel_details_csv_48col",
         "sha256": "adada115f0f1c6cddaee97dbfed2aba8c5c0e9f1ade856ad2cc4dbd1f4f11841"
       },
       "extraction_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen36-a5-tp2-c12.json",
+        "path": "repository://mindie-agent/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-qwen36-a5-tp2-c12.json",
         "sha256": "cb5fe8dd50fda431e2f28cd27eb9a1cf0796f85b6e7adbed0a070fcd43f84d29",
         "size_bytes": 1498703
       },
       "benchmark_summary_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030/benchmark_summary.json",
+        "path": "capture://mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030/benchmark_summary.json",
         "sha256": "de690311a3b66ff28d61d89b164dbae28f1b5d9ac3f993f806051a8a71d55ce4",
         "size_bytes": 26765
       },
@@ -2250,7 +2250,7 @@
         }
       ],
       "request_records_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030/client_cell.json",
+        "path": "capture://mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030/client_cell.json",
         "sha256": "3e6867d8a69edb26d0ab29d6551a1e34574d0f51d610bc9e9b141a85710ed5fe",
         "size_bytes": 61939
       },
@@ -2267,19 +2267,19 @@
     },
     "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64": {
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
         "size_bytes": 50179338,
         "mtime_ns": 1793303665000000000,
         "schema_version": "kernel_details_csv_48col",
         "sha256": "085c8c00a0560d14a3ca4beb9b965efc04b6be1f40b47734cd47102af4363282"
       },
       "extraction_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64.json",
+        "path": "repository://mindie-agent/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64.json",
         "sha256": "62440544d383de860c1135ee174bcaee866a0dbee8c1d806770041e3ad74b056",
         "size_bytes": 793792
       },
       "benchmark_summary_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/benchmark_summary.json",
+        "path": "capture://mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/benchmark_summary.json",
         "sha256": "270a387c8d84a0b0b9fa274ac83c5fe8ca735e66e045b4802919375f9d68bc9c",
         "size_bytes": 1015939
       },
@@ -2325,19 +2325,19 @@
     },
     "glm53flash-a3-tp16-c4-livepre": {
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot30_c4_20261030/ranks/tp0/kernel_details.csv.gz",
+        "path": "capture://mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot30_c4_20261030/ranks/tp0/kernel_details.csv.gz",
         "size_bytes": 11734491,
         "mtime_ns": 1793295009000000000,
         "schema_version": "kernel_details_csv_46col",
         "sha256": "35c1ff6c9570a472ca26f1bfa293cd09709a1e4d0f2984b039de9e48d961c1e2"
       },
       "extraction_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-glm53flash-a3-tp16-c4-livepre.json",
+        "path": "repository://mindie-agent/profiler/examples/structure/acceptance-20261030-controller-alias/completed/auto-forward-glm53flash-a3-tp16-c4-livepre.json",
         "sha256": "46c12b352e4b51330e61e108947c977e2fa2aaa621a90b6b1907b76dc1a47867",
         "size_bytes": 1703313
       },
       "benchmark_summary_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot30_c4_20261030/benchmark_summary.json",
+        "path": "capture://mindie-sim-data/a3/glm5_3_flash_w8a8_high_conc_decode_livepre_tpot30_c4_20261030/benchmark_summary.json",
         "sha256": "aa9c1bdd67f88bed4beba29d4a53913be40ce6d0e45d5bca3bf6c76334299f66",
         "size_bytes": 10949
       },

@@ -1,11 +1,17 @@
 {
   "schema_version": "mindie-joint-collective-service-regimes/1",
   "source_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/network-observable-service-baseline.json",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "data/observations/sources/arch3510-physical-services/network-observable-service-baseline.json",
+    "source_sha256": "9f5fa01a4d099842be53915bebbcf5122bc86de5f6df1493e9dc4ea56fbf9e88",
+    "revision": null,
     "sha256": "9f5fa01a4d099842be53915bebbcf5122bc86de5f6df1493e9dc4ea56fbf9e88"
   },
   "producer_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/fit_network_joint_services.py",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "examples/structure/fit_network_joint_services.py",
+    "source_sha256": "1416eedffd5893f1f720995d3273314ddd895c4bd95c4fa73b118e68882c2edf",
+    "revision": null,
     "sha256": "1416eedffd5893f1f720995d3273314ddd895c4bd95c4fa73b118e68882c2edf"
   },
   "regimes": [
@@ -744,5 +750,14 @@
     "raw_event_reads": 0,
     "new_predictions": 0,
     "peak_rss_bytes": 18694144
+  },
+  "path_normalization": {
+    "schema": "mindie-path-normalization/1",
+    "original_sha256": "2a45c2ad359b6df67a793673211a06e2e06ab0c05499899d0467e1014512551b",
+    "normalized_sha256": "510175997d2cc321e26bfde2b1dc42d865b321320fd8363091257cbe688071dc",
+    "rules": [
+      "repository_identity",
+      "capture_uri"
+    ]
   }
 }

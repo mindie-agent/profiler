@@ -1,12 +1,12 @@
 {
   "schema_version": "mindie-profiler.capture-structure-fixture/1",
   "source": {
-    "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/synth_dsv4f_L8_E16_K2_tp8ep8_decode_4k_c4/kernel_details.csv",
+    "path": "capture://mindie-sim-data/a3/heldout_engine_20261031/synth_dsv4f_L8_E16_K2_tp8ep8_decode_4k_c4/kernel_details.csv",
     "sha256": "98e10982e0e3fa7228da6c0fe7563eaf6f5d72901634a9ad38f3cde65c95f6b3",
     "size_bytes": 23334624
   },
   "source_command": {
-    "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/synth_dsv4f_L8_E16_K2_tp8ep8_decode_4k_c4/cmd.sh",
+    "path": "capture://mindie-sim-data/a3/heldout_engine_20261031/synth_dsv4f_L8_E16_K2_tp8ep8_decode_4k_c4/cmd.sh",
     "sha256": "1fd86caa273b9661c642288edd49ce73ac856a764ead39928d709effb3bf7565",
     "size_bytes": 736
   },

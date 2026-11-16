@@ -4339,10 +4339,10 @@
     },
     "metadata": {
       "input_boundary": "conditional target verification body only; not serving replay or observed per-forward batch",
-      "capture_directory": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c16_20261030",
+      "capture_directory": "capture://mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c16_20261030",
       "selected_rank": "dp0_tp0",
       "kernel_source": {
-        "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c16_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c16_20261030/kernel_details.csv",
         "sha256": "025313a10fd2b7f9d62ff54933c1acfe4f10158b9f1011006a74c3580964a814",
         "size_bytes": 63772053
       },
@@ -4352,12 +4352,12 @@
         "sha256": "548b2b5f31aff1ca886cb1baf9e6c6bb0f15cbd9356b4c7cc324acb23691e717"
       },
       "profile_cell": {
-        "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c16_20261030/profile_cell.json",
+        "path": "capture://mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c16_20261030/profile_cell.json",
         "size_bytes": 5308,
         "sha256": "de9eb9210fa2ec4e53c7d80df2629891248321874124501e6d42454ca91b8bdd"
       },
       "manifest": {
-        "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c16_20261030/manifest.json",
+        "path": "capture://mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c16_20261030/manifest.json",
         "size_bytes": 5286,
         "sha256": "bc23d1da925b88e43dd2d2084a34cad81318eb0430e3e6168a96265a319c2f45"
       },
@@ -4446,7 +4446,7 @@
       },
       "selected_rank_alias": {
         "compressed_source": {
-          "path": "/Volumes/data/mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c16_20261030/ranks/dp0_tp0/kernel_details.csv.gz",
+          "path": "capture://mindie-sim-data/a3/deepseek_v4_1_flash_w8a8_dspark7_high_conc_decode_c16_20261030/ranks/dp0_tp0/kernel_details.csv.gz",
           "sha256": "2a0e49588fea91f1929d0eef415ddbecf382a3df3816867a26275eb0a76945d4",
           "size_bytes": 10302042
         },

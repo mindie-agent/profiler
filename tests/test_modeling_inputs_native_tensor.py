@@ -492,7 +492,7 @@ def test_mapping_without_operator_or_tensor_identity_is_rejected() -> None:
 _T03_NATIVE_FIRST_CALL = Path(
     os.environ.get(
         "MINDIE_T03_NATIVE_FIRST_CALL",
-        "/Volumes/data/Codex/2026-11-12/kan-x/work/a5-implementation/jobs/"
+        "capture://codex/2026-11-12/kan-x/work/a5-implementation/jobs/"
         "A5-T03/out/native/native_first_call.json",
     )
 )
@@ -539,7 +539,7 @@ def test_t03_real_bundle_roundtrip_keeps_shared_abi(tmp_path: Path) -> None:
 _T02_QUALIFIED_ABI = Path(
     os.environ.get(
         "MINDIE_T02_QUALIFIED_ABI",
-        "/Volumes/data/Codex/2026-11-12/kan-x/work/a5-implementation/jobs/"
+        "capture://codex/2026-11-12/kan-x/work/a5-implementation/jobs/"
         "A5-T02/input/evidence/qualified_a5_abi.json",
     )
 )
@@ -652,7 +652,7 @@ def test_t03_blank_slot_positional_roundtrip_keeps_gap(tmp_path: Path) -> None:
 _T16_REQUESTS = Path(
     os.environ.get(
         "MINDIE_T16_REQUESTS",
-        "/Volumes/data/Codex/2026-11-12/kan-x/work/a5-implementation/jobs/"
+        "capture://codex/2026-11-12/kan-x/work/a5-implementation/jobs/"
         "A5-T16/example_requests.json",
     )
 )
@@ -767,7 +767,7 @@ def test_t16_qbmm_real_abi_matches_shared_projection(tmp_path: Path) -> None:
 _T02_SELECTED_ROW = Path(
     os.environ.get(
         "MINDIE_T02_SELECTED_ROW",
-        "/Volumes/data/Codex/2026-11-12/kan-x/work/a5-implementation/jobs/"
+        "capture://codex/2026-11-12/kan-x/work/a5-implementation/jobs/"
         "A5-T02/input/evidence/native_qbmm_row120.json",
     )
 )

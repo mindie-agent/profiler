@@ -89,14 +89,14 @@
   ],
   "training_sources": [
     {
-      "path": "/Volumes/data/mindie-sim-data/a2/heldout_engine_20261031/a2_real_dsv32prune_L3_E256_K8_tp4ep4_decode_4k_c1/kernel_details.csv",
+      "path": "capture://mindie-sim-data/a2/heldout_engine_20261031/a2_real_dsv32prune_L3_E256_K8_tp4ep4_decode_4k_c1/kernel_details.csv",
       "size_bytes": 5279809,
       "mtime_ns": 1793466966000000000,
       "schema_version": "kernel_details_csv_46col",
       "sha256": "0ff71bd6117da3f81e037c42d8f19230b2ae1e1838faacf05c3d293294ff8d25"
     },
     {
-      "path": "/Volumes/data/mindie-sim-data/a2/heldout_engine_20261031/a2_real_dsv32prune_L3_E256_K8_tp4ep4_decode_32k_c1/kernel_details.csv",
+      "path": "capture://mindie-sim-data/a2/heldout_engine_20261031/a2_real_dsv32prune_L3_E256_K8_tp4ep4_decode_32k_c1/kernel_details.csv",
       "size_bytes": 3574203,
       "mtime_ns": 1793467049000000000,
       "schema_version": "kernel_details_csv_46col",
@@ -105,21 +105,21 @@
   ],
   "validation_sources": [
     {
-      "path": "/Volumes/data/mindie-sim-data/a2/heldout_engine_20261031/a2_real_dsv32prune_L3_E256_K8_tp4ep4_decode_4k_c16/kernel_details.csv",
+      "path": "capture://mindie-sim-data/a2/heldout_engine_20261031/a2_real_dsv32prune_L3_E256_K8_tp4ep4_decode_4k_c16/kernel_details.csv",
       "size_bytes": 5669501,
       "mtime_ns": 1793467007000000000,
       "schema_version": "kernel_details_csv_46col",
       "sha256": "d2869382f93bd40b9d08ca3625894e0d8505d497bd74beccad4aa5dbcf975553"
     },
     {
-      "path": "/Volumes/data/mindie-sim-data/a2/heldout_engine_20261031/a2_real_dsv32prune_L3_E256_K8_tp4ep4_decode_4k_c32/kernel_details.csv",
+      "path": "capture://mindie-sim-data/a2/heldout_engine_20261031/a2_real_dsv32prune_L3_E256_K8_tp4ep4_decode_4k_c32/kernel_details.csv",
       "size_bytes": 5976848,
       "mtime_ns": 1793467029000000000,
       "schema_version": "kernel_details_csv_46col",
       "sha256": "9df304a395f253adcd9742854bb1b20f7f270e56a3aea0110a3b8bcfc51ff304"
     },
     {
-      "path": "/Volumes/data/mindie-sim-data/a2/heldout_engine_20261031/a2_real_dsv32prune_L3_E256_K8_tp4ep4_decode_32k_c16/kernel_details.csv",
+      "path": "capture://mindie-sim-data/a2/heldout_engine_20261031/a2_real_dsv32prune_L3_E256_K8_tp4ep4_decode_32k_c16/kernel_details.csv",
       "size_bytes": 953984,
       "mtime_ns": 1793467082000000000,
       "schema_version": "kernel_details_csv_46col",

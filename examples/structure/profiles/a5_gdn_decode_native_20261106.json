@@ -47,66 +47,66 @@
   },
   "sources": [
     {
-      "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+      "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
       "sha256": "46f5f8512d807b5d7a6d8d6be81a4c5cff4fad2de42d4ca88183d464877d59b4",
       "case_id": "a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4",
       "command": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/cmd.sh",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/cmd.sh",
         "sha256": "feb93691be1e9a41e7b691a62ee086ddf3affb01918219839bd87a28b2217e2e"
       },
       "full_decode_graph_mode_declared": true,
       "native_binary_source_identity_verified": false
     },
     {
-      "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4/kernel_details.csv",
+      "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4/kernel_details.csv",
       "sha256": "df2dad6d6e7d8e50cc9025e85508874bebb045fe475eb315af9c946c076a13a5",
       "case_id": "a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4",
       "command": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4/cmd.sh",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4/cmd.sh",
         "sha256": "eba5abd6384ae02c14afcd701a9b34dd421949178d986a0311ca62956858095c"
       },
       "full_decode_graph_mode_declared": true,
       "native_binary_source_identity_verified": false
     },
     {
-      "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+      "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
       "sha256": "ed6d092300b75ccd8c6a10b7b33aaf1093d23d1e1b17fceb19f3844df71aa0c3",
       "case_id": "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16",
       "command": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/cmd.sh",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/cmd.sh",
         "sha256": "f4a0f39d21c32c0100309f7a2a1a51893ae5cdee8f88eac02f3144ecfd9f40fe"
       },
       "full_decode_graph_mode_declared": true,
       "native_binary_source_identity_verified": false
     },
     {
-      "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+      "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
       "sha256": "a7f6c2bb53ad703501d8937190df84e490fa6a1cbeaa58f86c368fe0ba47b695",
       "case_id": "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4",
       "command": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4/cmd.sh",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4/cmd.sh",
         "sha256": "132f1d9e3d6db00c14a43099f9c525fac52669763dbfb33eee0073971fc9d93e"
       },
       "full_decode_graph_mode_declared": true,
       "native_binary_source_identity_verified": false
     },
     {
-      "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+      "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
       "sha256": "3fce860a6c2f9240c19f4d143e5696cbf79e05c943c76153407fa25ab80bc644",
       "case_id": "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1",
       "command": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/cmd.sh",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/cmd.sh",
         "sha256": "33edbbecadc4d979738941da2da2d6da57529c8543423bb44011860862bb6c58"
       },
       "full_decode_graph_mode_declared": true,
       "native_binary_source_identity_verified": false
     },
     {
-      "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+      "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
       "sha256": "4b10d8de8e793085fbad7d378e882b2f396c2cbd52a7ede8c68f7b6588ee1598",
       "case_id": "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4",
       "command": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4/cmd.sh",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4/cmd.sh",
         "sha256": "8a0f54f924cadd836312cd2feedd80860596b0b4b6697651269c7c645cc7244d"
       },
       "full_decode_graph_mode_declared": true,
@@ -134,7 +134,7 @@
         "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
       },
       "example": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
         "row": 56,
         "native_type": "MatMulV3",
         "input_shapes": "\"4,2048;3072,2048\"",
@@ -160,7 +160,7 @@
             "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
           },
           "example": {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
             "row": 56
           }
         }
@@ -188,7 +188,7 @@
         "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
       },
       "example": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
         "row": 57,
         "native_type": "MatMulV3",
         "input_shapes": "\"4,2048;16,2048\"",
@@ -214,7 +214,7 @@
             "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
           },
           "example": {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
             "row": 57
           }
         }
@@ -241,7 +241,7 @@
         "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
       },
       "example": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
         "row": 62,
         "native_type": "CausalConv1d",
         "input_shapes": "\"4,2048;4,2048;;62438,3,2048;5;4;;;;;;\"",
@@ -264,7 +264,7 @@
             "a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4": 1122
           },
           "example": {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
             "row": 62
           }
         },
@@ -282,7 +282,7 @@
             "a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4": 1104
           },
           "example": {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4/kernel_details.csv",
             "row": 62
           }
         },
@@ -300,7 +300,7 @@
             "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4": 1128
           },
           "example": {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
             "row": 62
           }
         },
@@ -318,7 +318,7 @@
             "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
           },
           "example": {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
             "row": 62
           }
         }
@@ -347,7 +347,7 @@
         "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
       },
       "example": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
         "row": 70,
         "native_type": "RecurrentGatedDeltaRule",
         "input_shapes": "\"4,4,128;4,4,128;4,8,128;4,8;62438,8,128,128;5;4;4,8\"",
@@ -370,7 +370,7 @@
             "a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4": 1122
           },
           "example": {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
             "row": 70
           }
         },
@@ -388,7 +388,7 @@
             "a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4": 1104
           },
           "example": {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_4k_c4/kernel_details.csv",
             "row": 70
           }
         },
@@ -406,7 +406,7 @@
             "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4": 1128
           },
           "example": {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
             "row": 70
           }
         },
@@ -424,7 +424,7 @@
             "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
           },
           "example": {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
             "row": 70
           }
         }
@@ -452,7 +452,7 @@
         "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1408
       },
       "example": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
         "row": 73,
         "native_type": "MatMulV3",
         "input_shapes": "\"4,1024;2048,1024\"",
@@ -478,7 +478,7 @@
             "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1408
           },
           "example": {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
             "row": 73
           }
         }
@@ -503,7 +503,7 @@
         "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
       },
       "example": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
         "row": 56,
         "native_type": "MatMulV3",
         "input_shapes": "\"16,2048;3072,2048\"",
@@ -526,7 +526,7 @@
             "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
           },
           "example": {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
             "row": 56
           }
         }
@@ -551,7 +551,7 @@
         "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
       },
       "example": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
         "row": 57,
         "native_type": "MatMulV3",
         "input_shapes": "\"16,2048;16,2048\"",
@@ -574,7 +574,7 @@
             "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
           },
           "example": {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
             "row": 57
           }
         }
@@ -598,7 +598,7 @@
         "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
       },
       "example": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
         "row": 62,
         "native_type": "CausalConv1d",
         "input_shapes": "\"16,2048;4,2048;;62416,3,2048;17;16;;;;;;\"",
@@ -621,7 +621,7 @@
             "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
           },
           "example": {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
             "row": 62
           }
         }
@@ -647,7 +647,7 @@
         "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
       },
       "example": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
         "row": 70,
         "native_type": "RecurrentGatedDeltaRule",
         "input_shapes": "\"16,4,128;16,4,128;16,8,128;16,8;62416,8,128,128;17;16;16,8\"",
@@ -670,7 +670,7 @@
             "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
           },
           "example": {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
             "row": 70
           }
         }
@@ -695,7 +695,7 @@
         "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1400
       },
       "example": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
         "row": 73,
         "native_type": "MatMulV3",
         "input_shapes": "\"16,1024;2048,1024\"",
@@ -718,7 +718,7 @@
             "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1400
           },
           "example": {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
             "row": 73
           }
         }
@@ -743,7 +743,7 @@
         "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
       },
       "example": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
         "row": 56,
         "native_type": "MatMulV3",
         "input_shapes": "\"1,2048;3072,2048\"",
@@ -766,7 +766,7 @@
             "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
           },
           "example": {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
             "row": 56
           }
         }
@@ -791,7 +791,7 @@
         "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
       },
       "example": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
         "row": 57,
         "native_type": "MatMulV3",
         "input_shapes": "\"1,2048;16,2048\"",
@@ -814,7 +814,7 @@
             "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
           },
           "example": {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
             "row": 57
           }
         }
@@ -838,7 +838,7 @@
         "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
       },
       "example": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
         "row": 59,
         "native_type": "CausalConv1d",
         "input_shapes": "\"1,2048;4,2048;;62338,3,2048;2;1;;;;;;\"",
@@ -861,7 +861,7 @@
             "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
           },
           "example": {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
             "row": 59
           }
         }
@@ -887,7 +887,7 @@
         "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
       },
       "example": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
         "row": 64,
         "native_type": "RecurrentGatedDeltaRule",
         "input_shapes": "\"1,4,128;1,4,128;1,8,128;1,8;62338,8,128,128;2;1;1,8\"",
@@ -910,7 +910,7 @@
             "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
           },
           "example": {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
             "row": 64
           }
         }
@@ -935,7 +935,7 @@
         "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1568
       },
       "example": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
         "row": 66,
         "native_type": "MatMulV3",
         "input_shapes": "\"1,1024;2048,1024\"",
@@ -958,7 +958,7 @@
             "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1568
           },
           "example": {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
             "row": 66
           }
         }
@@ -1100,7 +1100,7 @@
           "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
         },
         "example": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
           "row": 56,
           "native_type": "MatMulV3",
           "input_shapes": "\"4,2048;3072,2048\"",
@@ -1257,7 +1257,7 @@
           "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
         },
         "example": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
           "row": 57,
           "native_type": "MatMulV3",
           "input_shapes": "\"4,2048;16,2048\"",
@@ -1418,7 +1418,7 @@
           "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
         },
         "example": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
           "row": 62,
           "native_type": "CausalConv1d",
           "input_shapes": "\"4,2048;4,2048;;62438,3,2048;5;4;;;;;;\"",
@@ -1654,7 +1654,7 @@
           "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1056
         },
         "example": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
           "row": 70,
           "native_type": "RecurrentGatedDeltaRule",
           "input_shapes": "\"4,4,128;4,4,128;4,8,128;4,8;62438,8,128,128;5;4;4,8\"",
@@ -1812,7 +1812,7 @@
           "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_4k_c4": 1408
         },
         "example": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
           "row": 73,
           "native_type": "MatMulV3",
           "input_shapes": "\"4,1024;2048,1024\"",
@@ -1966,7 +1966,7 @@
           "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
         },
         "example": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
           "row": 56,
           "native_type": "MatMulV3",
           "input_shapes": "\"16,2048;3072,2048\"",
@@ -2120,7 +2120,7 @@
           "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
         },
         "example": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
           "row": 57,
           "native_type": "MatMulV3",
           "input_shapes": "\"16,2048;16,2048\"",
@@ -2302,7 +2302,7 @@
           "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
         },
         "example": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
           "row": 62,
           "native_type": "CausalConv1d",
           "input_shapes": "\"16,2048;4,2048;;62416,3,2048;17;16;;;;;;\"",
@@ -2559,7 +2559,7 @@
           "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1050
         },
         "example": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
           "row": 70,
           "native_type": "RecurrentGatedDeltaRule",
           "input_shapes": "\"16,4,128;16,4,128;16,8,128;16,8;62416,8,128,128;17;16;16,8\"",
@@ -2714,7 +2714,7 @@
           "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16": 1400
         },
         "example": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
           "row": 73,
           "native_type": "MatMulV3",
           "input_shapes": "\"16,1024;2048,1024\"",
@@ -2868,7 +2868,7 @@
           "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
         },
         "example": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
           "row": 56,
           "native_type": "MatMulV3",
           "input_shapes": "\"1,2048;3072,2048\"",
@@ -3022,7 +3022,7 @@
           "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
         },
         "example": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
           "row": 57,
           "native_type": "MatMulV3",
           "input_shapes": "\"1,2048;16,2048\"",
@@ -3174,7 +3174,7 @@
           "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
         },
         "example": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
           "row": 59,
           "native_type": "CausalConv1d",
           "input_shapes": "\"1,2048;4,2048;;62338,3,2048;2;1;;;;;;\"",
@@ -3401,7 +3401,7 @@
           "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1176
         },
         "example": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
           "row": 64,
           "native_type": "RecurrentGatedDeltaRule",
           "input_shapes": "\"1,4,128;1,4,128;1,8,128;1,8;62338,8,128,128;2;1;1,8\"",
@@ -3556,7 +3556,7 @@
           "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1": 1568
         },
         "example": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
           "row": 66,
           "native_type": "MatMulV3",
           "input_shapes": "\"1,1024;2048,1024\"",
@@ -3589,66 +3589,66 @@
     "native_max_abs_error": 0.053538039990208564,
     "control_sources": [
       {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "0367980a274743c171d58c0324ab4aeabdcfc62d6732a11123c7c5fa84b93e8e",
         "case_id": "a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_64k_c4",
         "command": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_64k_c4/cmd.sh",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K2_tp4ep4_decode_64k_c4/cmd.sh",
           "sha256": "a226269431042a72d892ee22af10295244f0e386be2d3acae50af0be26723089"
         },
         "full_decode_graph_mode_declared": true,
         "native_binary_source_identity_verified": false
       },
       {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "42dc4c38355cbd29fdc7e43942419e6996fbfcdc00704c491bebc8f52b96d588",
         "case_id": "a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_64k_c4",
         "command": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_64k_c4/cmd.sh",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E16_K8_tp4ep4_decode_64k_c4/cmd.sh",
           "sha256": "85270ad5aac8d34838c182ec91ad5df133f08a5a7931673b151d5071af248e58"
         },
         "full_decode_graph_mode_declared": true,
         "native_binary_source_identity_verified": false
       },
       {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "ce264b46ffad23f1095194aa684b8be5420284d306c56f0c21c792e8a48f0fc9",
         "case_id": "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c16",
         "command": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c16/cmd.sh",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c16/cmd.sh",
           "sha256": "8136e8eaa87795f8969d311202e804a46fa7b8b2024a394c685c6c5a750be0b5"
         },
         "full_decode_graph_mode_declared": true,
         "native_binary_source_identity_verified": false
       },
       {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "d1e8f6e70ac56151e6177fac8e763505c03878bdc518f39f4e4216122bc68890",
         "case_id": "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c4",
         "command": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c4/cmd.sh",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c4/cmd.sh",
           "sha256": "0cc4ef825787c89d26a637510d5fe9dd4f57a37df8c9fb9820ef7f6f9641dc85"
         },
         "full_decode_graph_mode_declared": true,
         "native_binary_source_identity_verified": false
       },
       {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
         "sha256": "5df5f9858193119d1a5edf3255b2d2eeed27db06b2cff489981824b83945607b",
         "case_id": "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c1",
         "command": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c1/cmd.sh",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c1/cmd.sh",
           "sha256": "78c7a1441691bb06cb35736b0024d75f93dafa3ae6b7e32a4cf8c40b352a0829"
         },
         "full_decode_graph_mode_declared": true,
         "native_binary_source_identity_verified": false
       },
       {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "632a5fcd168b69d1c4d7d88acf097583fc1d3f1105c9b0023743948cf7889172",
         "case_id": "a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_64k_c4",
         "command": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_64k_c4/cmd.sh",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K2_tp4ep4_decode_64k_c4/cmd.sh",
           "sha256": "9b856cbb444197c34500eefd4a8a74837e0bf8617ad85591a6edb6b5922813f8"
         },
         "full_decode_graph_mode_declared": true,

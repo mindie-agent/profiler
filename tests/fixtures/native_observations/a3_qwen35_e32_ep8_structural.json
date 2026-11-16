@@ -1,7 +1,7 @@
 {
   "schema_version": "mindie-profiler.capture-structure-fixture/1",
   "source": {
-    "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/synth_qwen35_L8_E32_K2_tp8ep8_decode_256k_c1/kernel_details.csv",
+    "path": "capture://mindie-sim-data/a3/heldout_engine_20261031/synth_qwen35_L8_E32_K2_tp8ep8_decode_256k_c1/kernel_details.csv",
     "sha256": "bdd6a2022358f29c60b586da3f17ab0c677df0fed10734219e40d091cf0933e1",
     "size_bytes": 14602114
   },

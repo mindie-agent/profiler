@@ -672,12 +672,12 @@
       "model_coverage": "partial",
       "checkpoint_contract": "bounded_native_topology_and_launch_declaration",
       "source_metadata": {
-        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/kimi-a5-tp8-128k-source-metadata.json",
+        "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/kimi-a5-tp8-128k-source-metadata.json",
         "sha256": "e3876566a409b4e5c626c0822d70e8f39bb1c765fbe9f716cd8291b652af519e",
         "size_bytes": 519522
       },
       "architecture_template_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/cases/decode-a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "path": "repository://mindie-agent/profiler/examples/structure/cases/decode-a5_kimi_tp8_e16_bf16_c1_p4k.json",
         "sha256": "5515da6b4a08bc633007a4dac5416905a6c8004de54b6a247508b231803632fe",
         "size_bytes": 83286
       },
@@ -1184,7 +1184,7 @@
       "captured_execution_mode": "FULL_DECODE_ONLY",
       "draft_proposal_tokens": 0,
       "source_metadata": {
-        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/kimi-a5-tp8-128k-source-metadata.json",
+        "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/kimi-a5-tp8-128k-source-metadata.json",
         "sha256": "e3876566a409b4e5c626c0822d70e8f39bb1c765fbe9f716cd8291b652af519e",
         "size_bytes": 519522
       },
@@ -1205,7 +1205,7 @@
         "basis": "same-run serve.log resolved speculative_config=None",
         "source_line": 51,
         "source_identity": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261030/kimi_k3_bf16_tp8_ep8_128k_decode_20261030/logs/serve.log",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261030/kimi_k3_bf16_tp8_ep8_128k_decode_20261030/logs/serve.log",
           "sha256": "aa926e07c1a7133c41a40336163ee87db57f2a33c8a4767a8532f5a44b0ae5a5",
           "size_bytes": 1029691
         }

@@ -4085,7 +4085,7 @@
         "size_bytes": 141904
       },
       "deployment_evidence": {
-        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/v41-tp4dp4-128k-source-metadata.json",
+        "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/v41-tp4dp4-128k-source-metadata.json",
         "sha256": "dbab5caef4a927106c01a3f5e193a560b9bcf7357229748aebbb1c788c890da2",
         "size_bytes": 23324
       },
@@ -4101,7 +4101,7 @@
       "checkpoint_dimensions_provisional": true,
       "target_layer_count_basis": "all five first complete target bodies have40layers/H5120, retained native ABI pin",
       "native_abi_identity": {
-        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/v41-tp4dp4-longctx-bounded-native.json",
+        "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/v41-tp4dp4-longctx-bounded-native.json",
         "sha256": "13bb8d9e9960cd990f318b3b5892fc9e55f31a71a693680e63515baaa07a2b4e",
         "size_bytes": 3489850
       },
@@ -4333,12 +4333,12 @@
     },
     "metadata": {
       "source_deployment_identity": {
-        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/v41-tp4dp4-128k-source-metadata.json",
+        "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/v41-tp4dp4-128k-source-metadata.json",
         "sha256": "dbab5caef4a927106c01a3f5e193a560b9bcf7357229748aebbb1c788c890da2",
         "size_bytes": 23324
       },
       "bounded_native_identity": {
-        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/v41-tp4dp4-longctx-bounded-native.json",
+        "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/v41-tp4dp4-longctx-bounded-native.json",
         "sha256": "13bb8d9e9960cd990f318b3b5892fc9e55f31a71a693680e63515baaa07a2b4e",
         "size_bytes": 3489850
       },

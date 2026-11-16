@@ -43,6 +43,23 @@ from mindie_profiler.op_abi_descriptors import parse_shape
 from mindie_profiler.op_abi_padding import (
     compute_padding, synthesize_group_list, synthesize_offsets, validate_group_list,
 )
+
+
+def _pinned_source_path(source):
+    """Resolve one ``repository://`` catalog source under an enrolled checkout.
+
+    ``MINDIE_ABI_SOURCE_ROOTS`` is the caller-supplied JSON mapping from the
+    catalog ``repo`` id to a local checkout root.  A repo that is not enrolled
+    skips cleanly; a missing file beneath an enrolled root is a hard failure.
+    """
+    import os
+    roots = json.loads(os.environ.get("MINDIE_ABI_SOURCE_ROOTS", "{}"))
+    root = roots.get(source["repo"])
+    if root is None:
+        pytest.skip(f"source checkout not enrolled: {source['repo']}")
+    path = Path(root) / source["rel_path"]
+    assert path.is_file(), f"pinned source missing: {path}"
+    return path
 from mindie_profiler.op_api_registry import (
     bind_captured_occurrence, catalog_entry, catalog_operator, catalog_summary,
     inspect_op_abi, operator_names,
@@ -239,9 +256,7 @@ def test_r2_sources_are_sha_pinned_and_flattening_is_declared():
         for source in entry["sources"]:
             if source.get("kind") in {"local_header", "local_header_markdown",
                                       "python_call_site"}:
-                path = Path(source["path"])
-                if not path.exists():
-                    pytest.skip(f"external source checkout absent on runner: {path}")
+                path = _pinned_source_path(source)
                 payload = path.read_bytes()
                 assert "sha256:" + hashlib.sha256(payload).hexdigest() == source["sha256"]
                 checked += 1
@@ -267,9 +282,7 @@ def test_r3_every_pinned_c_signature_matches_its_header():
         source = entry["sources"][0]
         if source.get("kind") not in {"local_header", "local_header_markdown"}:
             continue
-        header_path = Path(source["path"])
-        if not header_path.exists():
-            pytest.skip(f"external header checkout absent on runner: {header_path}")
+        header_path = _pinned_source_path(source)
         expected = _parse_header_signature(header_path, source["symbol"])
         actual = [param["c_name"] for param in entry["c_abi_slots"]["parameters"]]
         assert actual == expected, name

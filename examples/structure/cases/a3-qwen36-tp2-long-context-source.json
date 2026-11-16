@@ -124,7 +124,7 @@
         "size_bytes": 4234
       },
       "deployment_log_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/logs/vllm.log",
+        "path": "capture://mindie-sim-data/a3/heldout_engine_20261030/qwen36_27b_tp2_128k_20261030/logs/vllm.log",
         "sha256": "2fe9e59ab2c54c6852fdc6d066ee5e7011cc3a0a904e3513b96578b8ae75c0ea",
         "size_bytes": 532375
       },
@@ -156,7 +156,7 @@
       "point_service_rules_inherited": false,
       "geometry_policy": "physical array extent is not proof of active requests; derive every target geometry from complete topology and retain output rows separately",
       "source_metadata": {
-        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/qwen36_27b_tp2_128k_20261030-source-metadata.json",
+        "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/qwen36_27b_tp2_128k_20261030-source-metadata.json",
         "sha256": "7afe6b42a4c48122c3af050e2b70a91a68a7809b0a71211e15d2a85e8b2aa7c2",
         "size_bytes": 154038
       },
@@ -175,7 +175,7 @@
       "native_representation_correction": {
         "basis": "retained complete low/high concurrency Body tensor ABI only; no timing or prediction used",
         "evidence_identity": {
-          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/qwen36_27b_tp2_128k_20261030-source-metadata.json",
+          "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/qwen36_27b_tp2_128k_20261030-source-metadata.json",
           "sha256": "7afe6b42a4c48122c3af050e2b70a91a68a7809b0a71211e15d2a85e8b2aa7c2",
           "size_bytes": 154038
         },
@@ -400,7 +400,7 @@
         "routed_grouped_scales": null,
         "native_scale_storage_vs_contract": "Matrix active-geometry contract does not compare weight scale storage representation; this correction does not promote to full native ABI.",
         "previous_model_identity": {
-          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/dc3fc3d8ea01c41b7c14e067fb2ceca764d7aeba28ac5cf5de9474bdf2513fca.json",
+          "path": "capture://mindie-sim-data/acceptance-archives-20261030/current/dc3fc3d8ea01c41b7c14e067fb2ceca764d7aeba28ac5cf5de9474bdf2513fca.json",
           "sha256": "dc3fc3d8ea01c41b7c14e067fb2ceca764d7aeba28ac5cf5de9474bdf2513fca",
           "size_bytes": 4825
         }
@@ -413,7 +413,7 @@
           "path": "attention/fused_infer_attention_score/op_host/flash_attention_infer_tiling.h"
         },
         "native_evidence": {
-          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/qwen36_27b_tp2_128k_20261030-source-metadata.json",
+          "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/qwen36_27b_tp2_128k_20261030-source-metadata.json",
           "sha256": "7afe6b42a4c48122c3af050e2b70a91a68a7809b0a71211e15d2a85e8b2aa7c2",
           "size_bytes": 154038
         },

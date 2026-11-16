@@ -6,10 +6,22 @@
   "primary_forwards": 376,
   "partitions": 18,
   "source_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/grouped-extraction-receipt.json",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "data/observations/sources/arch3510-physical-services/grouped-extraction-receipt.json",
+    "source_sha256": "0d7c692a8fd1aca7c5257bb7d308ae52a4bfd35169cdbd2e3dd18555a699f424",
+    "revision": null,
     "sha256": "0d7c692a8fd1aca7c5257bb7d308ae52a4bfd35169cdbd2e3dd18555a699f424"
   },
   "raw_scans": 0,
   "new_costs": 0,
-  "scope": "Saved source hashes, full integer duration/layer/Forward populations and all PMU numeric/missing/zero denominators. Source tile/descriptor joint constraints deferred while Wave0 active."
+  "scope": "Saved source hashes, full integer duration/layer/Forward populations and all PMU numeric/missing/zero denominators. Source tile/descriptor joint constraints deferred while Wave0 active.",
+  "path_normalization": {
+    "schema": "mindie-path-normalization/1",
+    "original_sha256": "aff1bfbbb3f865b8a2bbfed04be58a835f0e5f8eb4d49fe418b3d80bd66aeb8f",
+    "normalized_sha256": "26b74c503d091eaefe7adfb0cb913226bdec1c37d8702cb14d8469df88f2a918",
+    "rules": [
+      "repository_identity",
+      "capture_uri"
+    ]
+  }
 }

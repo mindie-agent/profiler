@@ -4,17 +4,23 @@
   "architecture": "arch22",
   "hardware": "Ascend910_9362",
   "source_identity": {
-    "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+    "path": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
     "sha256": "5c13263d015f971a90b790b1c94aba384b402a1e15ed6417dc6794b0c3b40ab5",
     "size_bytes": 61482469
   },
   "prior_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot30_c2-native-partitions.json",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot30_c2-native-partitions.json",
+    "source_sha256": "4e96d7466d545cc68d4481833bd9833117ed57a41de56e7a60e4bc2ed43bc0cd",
+    "revision": null,
     "sha256": "4e96d7466d545cc68d4481833bd9833117ed57a41de56e7a60e4bc2ed43bc0cd",
     "size_bytes": 2661235
   },
   "body_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/scope-paired/auto-forward-a3_glm53_w4a8_tp16_tpot30_c2.json",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "examples/structure/acceptance-20261030-controller-alias/scope-paired/auto-forward-a3_glm53_w4a8_tp16_tpot30_c2.json",
+    "source_sha256": "525dd932b38dee69324762979dcf0e39af0dfdc2c3f55ec14976d03ce1112e5e",
+    "revision": null,
     "sha256": "525dd932b38dee69324762979dcf0e39af0dfdc2c3f55ec14976d03ce1112e5e",
     "size_bytes": 1876482
   },
@@ -24,7 +30,10 @@
     "size_bytes": 6508
   },
   "inputs_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/grouped-inputs.json",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "data/observations/sources/arch3510-physical-services/grouped-inputs.json",
+    "source_sha256": "f27b7961c44bf4aae323f9bc992b604e9dd34e16092b665d7a996cb80335f8c8",
+    "revision": null,
     "sha256": "f27b7961c44bf4aae323f9bc992b604e9dd34e16092b665d7a996cb80335f8c8",
     "size_bytes": 1586863
   },
@@ -104145,7 +104154,7 @@
         "examples": [
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 13718,
               "csv_line": 13720,
@@ -104200,7 +104209,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 13747,
               "csv_line": 13749,
@@ -104257,7 +104266,7 @@
         "longest_calls": [
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 143379,
               "csv_line": 143381,
@@ -104312,7 +104321,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 165453,
               "csv_line": 165455,
@@ -104367,7 +104376,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 31936,
               "csv_line": 31938,
@@ -104422,7 +104431,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 41400,
               "csv_line": 41402,
@@ -104477,7 +104486,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 108682,
               "csv_line": 108684,
@@ -104541,7 +104550,7 @@
       "source_chain_examples": [
         [
           {
-            "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 13718,
             "csv_line": 13720,
@@ -104550,7 +104559,7 @@
             "device_id": "0"
           },
           {
-            "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 13719,
             "csv_line": 13721,
@@ -104561,7 +104570,7 @@
         ],
         [
           {
-            "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 13747,
             "csv_line": 13749,
@@ -104570,7 +104579,7 @@
             "device_id": "0"
           },
           {
-            "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 13748,
             "csv_line": 13750,
@@ -209366,7 +209375,7 @@
         "examples": [
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 13719,
               "csv_line": 13721,
@@ -209421,7 +209430,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 13748,
               "csv_line": 13750,
@@ -209478,7 +209487,7 @@
         "longest_calls": [
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 101996,
               "csv_line": 101998,
@@ -209533,7 +209542,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 133534,
               "csv_line": 133536,
@@ -209588,7 +209597,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 127227,
               "csv_line": 127229,
@@ -209643,7 +209652,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 111455,
               "csv_line": 111457,
@@ -209698,7 +209707,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 23273,
               "csv_line": 23275,
@@ -209762,7 +209771,7 @@
       "source_chain_examples": [
         [
           {
-            "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 13718,
             "csv_line": 13720,
@@ -209771,7 +209780,7 @@
             "device_id": "0"
           },
           {
-            "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 13719,
             "csv_line": 13721,
@@ -209782,7 +209791,7 @@
         ],
         [
           {
-            "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 13747,
             "csv_line": 13749,
@@ -209791,7 +209800,7 @@
             "device_id": "0"
           },
           {
-            "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot30_c2_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 13748,
             "csv_line": 13750,
@@ -209811,17 +209820,26 @@
   },
   "runtime_sources": {
     "examples/structure/collect_grouped_micro_pmu.py": {
-      "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/collect_grouped_micro_pmu.py",
+      "repository": "mindie-agent/profiler",
+      "relative_path": "examples/structure/collect_grouped_micro_pmu.py",
+      "source_sha256": "a4064ac83d2b6ad00f9016ad6f1ddf26a58d339d73721050202f3d77175da017",
+      "revision": null,
       "sha256": "a4064ac83d2b6ad00f9016ad6f1ddf26a58d339d73721050202f3d77175da017",
       "size_bytes": 14727
     },
     "examples/structure/targeted_native_pmu.py": {
-      "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/targeted_native_pmu.py",
+      "repository": "mindie-agent/profiler",
+      "relative_path": "examples/structure/targeted_native_pmu.py",
+      "source_sha256": "ddde6a1e849c862f57a3f267fe904484db1445801807ac85b3d552c98a7c9b80",
+      "revision": null,
       "sha256": "ddde6a1e849c862f57a3f267fe904484db1445801807ac85b3d552c98a7c9b80",
       "size_bytes": 5521
     },
     "mindie_profiler/decode_segmentation.py": {
-      "path": "/Volumes/data/code/mindie-release-20261014/profiler/mindie_profiler/decode_segmentation.py",
+      "repository": "mindie-agent/profiler",
+      "relative_path": "mindie_profiler/decode_segmentation.py",
+      "source_sha256": "690580528e3c999cdd2261178140e97032210f2b8ed74b31fa1306a064f4533c",
+      "revision": null,
       "sha256": "690580528e3c999cdd2261178140e97032210f2b8ed74b31fa1306a064f4533c",
       "size_bytes": 36822
     }
@@ -209837,5 +209855,14 @@
     "Source call-chain role is conditional on independently verified complete layer topology, not Host identity.",
     "Native N/A ABI remains absent; buffer capacity is not active routed rows.",
     "PMU pipes overlap; no exclusive latency partition or descriptor unit price is implied."
-  ]
+  ],
+  "path_normalization": {
+    "schema": "mindie-path-normalization/1",
+    "original_sha256": "5e7681fd75d422c3e90fd44df1fb69bf331856662b84c94fde561d53f8a221cd",
+    "normalized_sha256": "e0e761079e2e005e6481ef3a0f5860f0a54de07c5494c2dd90e5889580de13e7",
+    "rules": [
+      "repository_identity",
+      "capture_uri"
+    ]
+  }
 }

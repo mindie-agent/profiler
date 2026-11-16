@@ -7,7 +7,7 @@
   borrowed; client metric semantics are explicit; no stale row value scores.
 
 [Invariants]
-  * Synthetic artifacts only; no `/Volumes/data` or simulator dependency.
+  * Synthetic artifacts only; no developer-local capture root or simulator dependency.
   * Malformed cells raise; raw mass is invariant under `forward_steps` changes.
   * Each measurement boundary is separate and typed.
 

@@ -35,7 +35,10 @@
   ],
   "source_modules_unchanged": true,
   "baseline_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/mc2-observable-pmu-baseline.json",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "data/observations/sources/arch3510-physical-services/mc2-observable-pmu-baseline.json",
+    "source_sha256": "691292132ee98b084f7e6cc99f5e8cd43c03c28aa112c858ed3214d3e3996184",
+    "revision": null,
     "sha256": "691292132ee98b084f7e6cc99f5e8cd43c03c28aa112c858ed3214d3e3996184",
     "size_bytes": 13197658
   },
@@ -43,12 +46,15 @@
     {
       "case_id": "a5_kimi_tp8_e16_bf16_c1_p4k",
       "case_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-kimi-v41/cases-source-routing-84d80b40/a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-service-kimi-v41/cases-source-routing-84d80b40/a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "source_sha256": "f2a6bca8c3712b00501227a0fbacdf884d74c0f6b83400ac0fefd19e31d0e582",
+        "revision": null,
         "sha256": "f2a6bca8c3712b00501227a0fbacdf884d74c0f6b83400ac0fefd19e31d0e582",
         "size_bytes": 284279
       },
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
         "sha256": "95fe4cc26e249dbd597c62ae1db12710fca8ea758ff16cf1f12e6ed5584d256d",
         "size_bytes": 102190664
       },
@@ -693,7 +699,7 @@
         "size_bytes": 41310
       },
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
         "sha256": "d734e9ec764b0f1baf35589d4886f6b9e2cd9254c660721f3ad6a86b0602c504",
         "size_bytes": 83732721
       },
@@ -796,7 +802,7 @@
         "size_bytes": 21323
       },
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
         "sha256": "323f2e48f662c7b255b6d2ae69d3ba1ea3045578d375be54c503876ff3f45861",
         "size_bytes": 101041319
       },
@@ -910,7 +916,7 @@
         "size_bytes": 21359
       },
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
         "sha256": "085c8c00a0560d14a3ca4beb9b965efc04b6be1f40b47734cd47102af4363282",
         "size_bytes": 50179338
       },
@@ -25063,17 +25069,23 @@
       "row_id": "c15e7ecf2fb4b8c52b1815e1707dcbb235f34ea6b3677938b1402c9bfd898ac1",
       "case_id": "a5_kimi_tp8_e16_bf16_c1_p4k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
         "sha256": "95fe4cc26e249dbd597c62ae1db12710fca8ea758ff16cf1f12e6ed5584d256d",
         "size_bytes": 102190664
       },
       "case_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-kimi-v41/cases-source-routing-84d80b40/a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-service-kimi-v41/cases-source-routing-84d80b40/a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "source_sha256": "f2a6bca8c3712b00501227a0fbacdf884d74c0f6b83400ac0fefd19e31d0e582",
+        "revision": null,
         "sha256": "f2a6bca8c3712b00501227a0fbacdf884d74c0f6b83400ac0fefd19e31d0e582",
         "size_bytes": 284279
       },
       "body_acceptance_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "source_sha256": "43c7ec349511b81db6cc734668c054960dbfca28338ce45f403ea645e9216406",
+        "revision": null,
         "sha256": "43c7ec349511b81db6cc734668c054960dbfca28338ce45f403ea645e9216406",
         "size_bytes": 2245441
       },
@@ -32713,7 +32725,10 @@
       "native_abi_sha256": "5f38b2613dfc8974d21ca64897b22657c77fe4c9ea562098b8e3666ebb71112f",
       "basis": "complete_retained_native_partition_exact_population",
       "native_partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-paged-fia-pmu/a5_kimi_tp8_e16_bf16_c1_p4k-native-partitions.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-kimi-paged-fia-pmu/a5_kimi_tp8_e16_bf16_c1_p4k-native-partitions.json",
+        "source_sha256": "50c6c8388bac9a3972765895da05042510b16a0708cd58e0ad7ffbbd5685842b",
+        "revision": null,
         "sha256": "50c6c8388bac9a3972765895da05042510b16a0708cd58e0ad7ffbbd5685842b",
         "size_bytes": 753896
       },
@@ -32725,17 +32740,23 @@
       "row_id": "daedb17cdfb751d012280872e99a42d731644d9d0caa06079844dea096f638f8",
       "case_id": "a5_kimi_tp8_e16_bf16_c1_p4k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
         "sha256": "95fe4cc26e249dbd597c62ae1db12710fca8ea758ff16cf1f12e6ed5584d256d",
         "size_bytes": 102190664
       },
       "case_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-kimi-v41/cases-source-routing-84d80b40/a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-service-kimi-v41/cases-source-routing-84d80b40/a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "source_sha256": "f2a6bca8c3712b00501227a0fbacdf884d74c0f6b83400ac0fefd19e31d0e582",
+        "revision": null,
         "sha256": "f2a6bca8c3712b00501227a0fbacdf884d74c0f6b83400ac0fefd19e31d0e582",
         "size_bytes": 284279
       },
       "body_acceptance_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "source_sha256": "43c7ec349511b81db6cc734668c054960dbfca28338ce45f403ea645e9216406",
+        "revision": null,
         "sha256": "43c7ec349511b81db6cc734668c054960dbfca28338ce45f403ea645e9216406",
         "size_bytes": 2245441
       },
@@ -43375,7 +43396,10 @@
       "native_abi_sha256": "137b0a740d06a3cf14744c87a76ad81ad357dcbddfb53e0f712b05ff264b90df",
       "basis": "complete_retained_native_partition_exact_population",
       "native_partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-paged-fia-pmu/a5_kimi_tp8_e16_bf16_c1_p4k-native-partitions.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-kimi-paged-fia-pmu/a5_kimi_tp8_e16_bf16_c1_p4k-native-partitions.json",
+        "source_sha256": "50c6c8388bac9a3972765895da05042510b16a0708cd58e0ad7ffbbd5685842b",
+        "revision": null,
         "sha256": "50c6c8388bac9a3972765895da05042510b16a0708cd58e0ad7ffbbd5685842b",
         "size_bytes": 753896
       },
@@ -43387,17 +43411,23 @@
       "row_id": "de5ea19e793dd4da79d265e51000b512d044ce0088d1838f6ad901da5ed7f45f",
       "case_id": "a5_kimi_tp8_e16_bf16_c1_p4k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
         "sha256": "95fe4cc26e249dbd597c62ae1db12710fca8ea758ff16cf1f12e6ed5584d256d",
         "size_bytes": 102190664
       },
       "case_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-kimi-v41/cases-source-routing-84d80b40/a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-service-kimi-v41/cases-source-routing-84d80b40/a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "source_sha256": "f2a6bca8c3712b00501227a0fbacdf884d74c0f6b83400ac0fefd19e31d0e582",
+        "revision": null,
         "sha256": "f2a6bca8c3712b00501227a0fbacdf884d74c0f6b83400ac0fefd19e31d0e582",
         "size_bytes": 284279
       },
       "body_acceptance_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "source_sha256": "43c7ec349511b81db6cc734668c054960dbfca28338ce45f403ea645e9216406",
+        "revision": null,
         "sha256": "43c7ec349511b81db6cc734668c054960dbfca28338ce45f403ea645e9216406",
         "size_bytes": 2245441
       },
@@ -47973,7 +48003,10 @@
       "native_abi_sha256": "5f38b2613dfc8974d21ca64897b22657c77fe4c9ea562098b8e3666ebb71112f",
       "basis": "complete_retained_native_partition_exact_population",
       "native_partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-paged-fia-pmu/a5_kimi_tp8_e16_bf16_c1_p4k-native-partitions.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-kimi-paged-fia-pmu/a5_kimi_tp8_e16_bf16_c1_p4k-native-partitions.json",
+        "source_sha256": "50c6c8388bac9a3972765895da05042510b16a0708cd58e0ad7ffbbd5685842b",
+        "revision": null,
         "sha256": "50c6c8388bac9a3972765895da05042510b16a0708cd58e0ad7ffbbd5685842b",
         "size_bytes": 753896
       },
@@ -47985,17 +48018,23 @@
       "row_id": "087e72f4fd3368acca9130ebbcaea07ade1f7f7ecd7d8c7dfdb13aed69f7de8c",
       "case_id": "a5_kimi_tp8_e16_bf16_c1_p4k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
         "sha256": "95fe4cc26e249dbd597c62ae1db12710fca8ea758ff16cf1f12e6ed5584d256d",
         "size_bytes": 102190664
       },
       "case_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-kimi-v41/cases-source-routing-84d80b40/a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-service-kimi-v41/cases-source-routing-84d80b40/a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "source_sha256": "f2a6bca8c3712b00501227a0fbacdf884d74c0f6b83400ac0fefd19e31d0e582",
+        "revision": null,
         "sha256": "f2a6bca8c3712b00501227a0fbacdf884d74c0f6b83400ac0fefd19e31d0e582",
         "size_bytes": 284279
       },
       "body_acceptance_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c1_p4k.json",
+        "source_sha256": "43c7ec349511b81db6cc734668c054960dbfca28338ce45f403ea645e9216406",
+        "revision": null,
         "sha256": "43c7ec349511b81db6cc734668c054960dbfca28338ce45f403ea645e9216406",
         "size_bytes": 2245441
       },
@@ -53367,7 +53406,10 @@
       "native_abi_sha256": "137b0a740d06a3cf14744c87a76ad81ad357dcbddfb53e0f712b05ff264b90df",
       "basis": "complete_retained_native_partition_exact_population",
       "native_partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-paged-fia-pmu/a5_kimi_tp8_e16_bf16_c1_p4k-native-partitions.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-kimi-paged-fia-pmu/a5_kimi_tp8_e16_bf16_c1_p4k-native-partitions.json",
+        "source_sha256": "50c6c8388bac9a3972765895da05042510b16a0708cd58e0ad7ffbbd5685842b",
+        "revision": null,
         "sha256": "50c6c8388bac9a3972765895da05042510b16a0708cd58e0ad7ffbbd5685842b",
         "size_bytes": 753896
       },
@@ -53379,7 +53421,7 @@
       "row_id": "1de141421a2c41cbab14a82d30d5fb47d6adc427491fc56d0254e47dd58860e6",
       "case_id": "a5_kimi_tp8_e16_bf16_c32_p4k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
         "sha256": "d734e9ec764b0f1baf35589d4886f6b9e2cd9254c660721f3ad6a86b0602c504",
         "size_bytes": 83732721
       },
@@ -53389,7 +53431,10 @@
         "size_bytes": 41310
       },
       "body_acceptance_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c32_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c32_p4k.json",
+        "source_sha256": "bae71e3372414a9a3963716f67f62eb0f42f8f14dd584e50702ba4e92e64a7f4",
+        "revision": null,
         "sha256": "bae71e3372414a9a3963716f67f62eb0f42f8f14dd584e50702ba4e92e64a7f4",
         "size_bytes": 2221635
       },
@@ -61173,7 +61218,10 @@
       "native_abi_sha256": "682b3bd1d23dea3214d01eaa274ce0e9c911b1385b8faa418559c1ee8c7f91b1",
       "basis": "complete_retained_native_partition_exact_population",
       "native_partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-paged-fia-pmu/a5_kimi_tp8_e16_bf16_c32_p4k-native-partitions.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-kimi-paged-fia-pmu/a5_kimi_tp8_e16_bf16_c32_p4k-native-partitions.json",
+        "source_sha256": "adeb23fb54c0c006f289f7ffcf59988f2e6649f62da0d4eb7196a6331b3bb1d6",
+        "revision": null,
         "sha256": "adeb23fb54c0c006f289f7ffcf59988f2e6649f62da0d4eb7196a6331b3bb1d6",
         "size_bytes": 703314
       },
@@ -61185,7 +61233,7 @@
       "row_id": "617c729012350c1cf52b5935a35821266d0bee44c37cb498ede74db262fa0440",
       "case_id": "a5_kimi_tp8_e16_bf16_c32_p4k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
         "sha256": "d734e9ec764b0f1baf35589d4886f6b9e2cd9254c660721f3ad6a86b0602c504",
         "size_bytes": 83732721
       },
@@ -61195,7 +61243,10 @@
         "size_bytes": 41310
       },
       "body_acceptance_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c32_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c32_p4k.json",
+        "source_sha256": "bae71e3372414a9a3963716f67f62eb0f42f8f14dd584e50702ba4e92e64a7f4",
+        "revision": null,
         "sha256": "bae71e3372414a9a3963716f67f62eb0f42f8f14dd584e50702ba4e92e64a7f4",
         "size_bytes": 2221635
       },
@@ -69431,7 +69482,10 @@
       "native_abi_sha256": "02095210c8d2f2b3e68087c6b1dfa47742b0bc5f020c59037ff3ed121fce2e5f",
       "basis": "complete_retained_native_partition_exact_population",
       "native_partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-paged-fia-pmu/a5_kimi_tp8_e16_bf16_c32_p4k-native-partitions.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-kimi-paged-fia-pmu/a5_kimi_tp8_e16_bf16_c32_p4k-native-partitions.json",
+        "source_sha256": "adeb23fb54c0c006f289f7ffcf59988f2e6649f62da0d4eb7196a6331b3bb1d6",
+        "revision": null,
         "sha256": "adeb23fb54c0c006f289f7ffcf59988f2e6649f62da0d4eb7196a6331b3bb1d6",
         "size_bytes": 703314
       },
@@ -69443,7 +69497,7 @@
       "row_id": "345ce42c6420a5a11d1c19c361e81290ea194538adf0c32776b1ae80046ae560",
       "case_id": "a5_kimi_tp8_e16_bf16_c32_p4k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
         "sha256": "d734e9ec764b0f1baf35589d4886f6b9e2cd9254c660721f3ad6a86b0602c504",
         "size_bytes": 83732721
       },
@@ -69453,7 +69507,10 @@
         "size_bytes": 41310
       },
       "body_acceptance_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c32_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c32_p4k.json",
+        "source_sha256": "bae71e3372414a9a3963716f67f62eb0f42f8f14dd584e50702ba4e92e64a7f4",
+        "revision": null,
         "sha256": "bae71e3372414a9a3963716f67f62eb0f42f8f14dd584e50702ba4e92e64a7f4",
         "size_bytes": 2221635
       },
@@ -73653,7 +73710,10 @@
       "native_abi_sha256": "682b3bd1d23dea3214d01eaa274ce0e9c911b1385b8faa418559c1ee8c7f91b1",
       "basis": "complete_retained_native_partition_exact_population",
       "native_partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-paged-fia-pmu/a5_kimi_tp8_e16_bf16_c32_p4k-native-partitions.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-kimi-paged-fia-pmu/a5_kimi_tp8_e16_bf16_c32_p4k-native-partitions.json",
+        "source_sha256": "adeb23fb54c0c006f289f7ffcf59988f2e6649f62da0d4eb7196a6331b3bb1d6",
+        "revision": null,
         "sha256": "adeb23fb54c0c006f289f7ffcf59988f2e6649f62da0d4eb7196a6331b3bb1d6",
         "size_bytes": 703314
       },
@@ -73665,7 +73725,7 @@
       "row_id": "9b68f8558002dd629770c92c04ea24029c5ab0f8c514325c0f0b0ef2b76743d6",
       "case_id": "a5_kimi_tp8_e16_bf16_c32_p4k",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
         "sha256": "d734e9ec764b0f1baf35589d4886f6b9e2cd9254c660721f3ad6a86b0602c504",
         "size_bytes": 83732721
       },
@@ -73675,7 +73735,10 @@
         "size_bytes": 41310
       },
       "body_acceptance_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c32_p4k.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-kimi-variants/auto-forward-a5_kimi_tp8_e16_bf16_c32_p4k.json",
+        "source_sha256": "bae71e3372414a9a3963716f67f62eb0f42f8f14dd584e50702ba4e92e64a7f4",
+        "revision": null,
         "sha256": "bae71e3372414a9a3963716f67f62eb0f42f8f14dd584e50702ba4e92e64a7f4",
         "size_bytes": 2221635
       },
@@ -77995,7 +78058,10 @@
       "native_abi_sha256": "02095210c8d2f2b3e68087c6b1dfa47742b0bc5f020c59037ff3ed121fce2e5f",
       "basis": "complete_retained_native_partition_exact_population",
       "native_partition_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-kimi-paged-fia-pmu/a5_kimi_tp8_e16_bf16_c32_p4k-native-partitions.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-kimi-paged-fia-pmu/a5_kimi_tp8_e16_bf16_c32_p4k-native-partitions.json",
+        "source_sha256": "adeb23fb54c0c006f289f7ffcf59988f2e6649f62da0d4eb7196a6331b3bb1d6",
+        "revision": null,
         "sha256": "adeb23fb54c0c006f289f7ffcf59988f2e6649f62da0d4eb7196a6331b3bb1d6",
         "size_bytes": 703314
       },
@@ -78007,7 +78073,7 @@
       "row_id": "519ea5d4fcb14d4c4997e467385c1d3eccabfd3382a3ce2d5a821dd5cea1a7e7",
       "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
         "sha256": "323f2e48f662c7b255b6d2ae69d3ba1ea3045578d375be54c503876ff3f45861",
         "size_bytes": 101041319
       },
@@ -78017,7 +78083,10 @@
         "size_bytes": 21323
       },
       "body_acceptance_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-dp8/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-v41-dp8/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1.json",
+        "source_sha256": "6d4f627d8215097b185d8e8194ec3f333342ac67d957045ecfcb0c98e29f143c",
+        "revision": null,
         "sha256": "6d4f627d8215097b185d8e8194ec3f333342ac67d957045ecfcb0c98e29f143c",
         "size_bytes": 1400642
       },
@@ -97791,7 +97860,7 @@
       "row_id": "4a158d40c36f14d87300654a33849151da3dd35f9123f002ea409fd285665428",
       "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
         "sha256": "323f2e48f662c7b255b6d2ae69d3ba1ea3045578d375be54c503876ff3f45861",
         "size_bytes": 101041319
       },
@@ -97801,7 +97870,10 @@
         "size_bytes": 21323
       },
       "body_acceptance_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-dp8/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-v41-dp8/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1.json",
+        "source_sha256": "6d4f627d8215097b185d8e8194ec3f333342ac67d957045ecfcb0c98e29f143c",
+        "revision": null,
         "sha256": "6d4f627d8215097b185d8e8194ec3f333342ac67d957045ecfcb0c98e29f143c",
         "size_bytes": 1400642
       },
@@ -98843,7 +98915,7 @@
       "row_id": "a8d9dca3c9b6e2c9bda8c52dfcc61b24e1b2409721c32b957455025371073e27",
       "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
         "sha256": "323f2e48f662c7b255b6d2ae69d3ba1ea3045578d375be54c503876ff3f45861",
         "size_bytes": 101041319
       },
@@ -98853,7 +98925,10 @@
         "size_bytes": 21323
       },
       "body_acceptance_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-dp8/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-v41-dp8/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1.json",
+        "source_sha256": "6d4f627d8215097b185d8e8194ec3f333342ac67d957045ecfcb0c98e29f143c",
+        "revision": null,
         "sha256": "6d4f627d8215097b185d8e8194ec3f333342ac67d957045ecfcb0c98e29f143c",
         "size_bytes": 1400642
       },
@@ -110431,7 +110506,7 @@
       "row_id": "7420ed7b21bdcfaccfa8d17c6baf19de569c79e9f306cae2b144e62a85e6d3ba",
       "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
         "sha256": "323f2e48f662c7b255b6d2ae69d3ba1ea3045578d375be54c503876ff3f45861",
         "size_bytes": 101041319
       },
@@ -110441,7 +110516,10 @@
         "size_bytes": 21323
       },
       "body_acceptance_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-dp8/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-v41-dp8/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1.json",
+        "source_sha256": "6d4f627d8215097b185d8e8194ec3f333342ac67d957045ecfcb0c98e29f143c",
+        "revision": null,
         "sha256": "6d4f627d8215097b185d8e8194ec3f333342ac67d957045ecfcb0c98e29f143c",
         "size_bytes": 1400642
       },
@@ -111471,7 +111549,7 @@
       "row_id": "c68c896182ceba78ed4a70b179dead0ace28a2fc9d5b2e9648751dc2ce72089b",
       "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
         "sha256": "085c8c00a0560d14a3ca4beb9b965efc04b6be1f40b47734cd47102af4363282",
         "size_bytes": 50179338
       },
@@ -111481,7 +111559,10 @@
         "size_bytes": 21359
       },
       "body_acceptance_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-dp8/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-v41-dp8/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64.json",
+        "source_sha256": "d383aeb291e2ca50cef4a3c79f3084ff0fb6ad16958d18052a8fb40b2e8eb99c",
+        "revision": null,
         "sha256": "d383aeb291e2ca50cef4a3c79f3084ff0fb6ad16958d18052a8fb40b2e8eb99c",
         "size_bytes": 1207065
       },
@@ -121907,7 +121988,7 @@
       "row_id": "b07cb3b32835c650c3efec3f6d380c70aaa071ea1d1d65231cc2b7683b677fbb",
       "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
         "sha256": "085c8c00a0560d14a3ca4beb9b965efc04b6be1f40b47734cd47102af4363282",
         "size_bytes": 50179338
       },
@@ -121917,7 +121998,10 @@
         "size_bytes": 21359
       },
       "body_acceptance_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-dp8/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-v41-dp8/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64.json",
+        "source_sha256": "d383aeb291e2ca50cef4a3c79f3084ff0fb6ad16958d18052a8fb40b2e8eb99c",
+        "revision": null,
         "sha256": "d383aeb291e2ca50cef4a3c79f3084ff0fb6ad16958d18052a8fb40b2e8eb99c",
         "size_bytes": 1207065
       },
@@ -132563,7 +132647,7 @@
       "row_id": "477536151c87b0ba73169531c7a2ab4fdcab80f0fd35955b200851e07bcbd4b4",
       "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
         "sha256": "085c8c00a0560d14a3ca4beb9b965efc04b6be1f40b47734cd47102af4363282",
         "size_bytes": 50179338
       },
@@ -132573,7 +132657,10 @@
         "size_bytes": 21359
       },
       "body_acceptance_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-dp8/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-v41-dp8/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64.json",
+        "source_sha256": "d383aeb291e2ca50cef4a3c79f3084ff0fb6ad16958d18052a8fb40b2e8eb99c",
+        "revision": null,
         "sha256": "d383aeb291e2ca50cef4a3c79f3084ff0fb6ad16958d18052a8fb40b2e8eb99c",
         "size_bytes": 1207065
       },
@@ -133303,7 +133390,7 @@
       "row_id": "e4c72174550de9c0afcf9a365a6449fc56c4bea36eaa6345e29987534894231e",
       "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
         "sha256": "085c8c00a0560d14a3ca4beb9b965efc04b6be1f40b47734cd47102af4363282",
         "size_bytes": 50179338
       },
@@ -133313,7 +133400,10 @@
         "size_bytes": 21359
       },
       "body_acceptance_identity": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-v41-dp8/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64.json",
+        "repository": "mindie-agent/profiler",
+        "relative_path": "examples/structure/acceptance-20261030-v41-dp8/auto-forward-a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64.json",
+        "source_sha256": "d383aeb291e2ca50cef4a3c79f3084ff0fb6ad16958d18052a8fb40b2e8eb99c",
+        "revision": null,
         "sha256": "d383aeb291e2ca50cef4a3c79f3084ff0fb6ad16958d18052a8fb40b2e8eb99c",
         "size_bytes": 1207065
       },
@@ -134226,7 +134316,7 @@
           "case_id": "a5_kimi_tp8_e16_bf16_c1_p4k",
           "source_program_id": "04eafa5ab7e4510548bdaf555791722644c328dc1d394ad1d4615733ea43fc89",
           "source_identity": {
-            "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
             "sha256": "95fe4cc26e249dbd597c62ae1db12710fca8ea758ff16cf1f12e6ed5584d256d",
             "size_bytes": 102190664
           },
@@ -134274,7 +134364,7 @@
           "case_id": "a5_kimi_tp8_e16_bf16_c32_p4k",
           "source_program_id": "f1ed92ef3b8f3838f5a47a12839f8d535dd7bb7412f8099d8552c7ca9d4fba59",
           "source_identity": {
-            "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
             "sha256": "d734e9ec764b0f1baf35589d4886f6b9e2cd9254c660721f3ad6a86b0602c504",
             "size_bytes": 83732721
           },
@@ -134418,7 +134508,7 @@
           "case_id": "a5_kimi_tp8_e16_bf16_c1_p4k",
           "source_program_id": "9cce937cff411e0e944cd221ea9eba8e2d7e62ab3283d1701d4e8ecfea7eccec",
           "source_identity": {
-            "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
             "sha256": "95fe4cc26e249dbd597c62ae1db12710fca8ea758ff16cf1f12e6ed5584d256d",
             "size_bytes": 102190664
           },
@@ -134466,7 +134556,7 @@
           "case_id": "a5_kimi_tp8_e16_bf16_c32_p4k",
           "source_program_id": "407ae875e0748159d77cbbbf656098913bb7ba8833cda7c3cbfd85e3b6859f12",
           "source_identity": {
-            "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
             "sha256": "d734e9ec764b0f1baf35589d4886f6b9e2cd9254c660721f3ad6a86b0602c504",
             "size_bytes": 83732721
           },
@@ -134610,7 +134700,7 @@
           "case_id": "a5_kimi_tp8_e16_bf16_c1_p4k",
           "source_program_id": "04eafa5ab7e4510548bdaf555791722644c328dc1d394ad1d4615733ea43fc89",
           "source_identity": {
-            "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
             "sha256": "95fe4cc26e249dbd597c62ae1db12710fca8ea758ff16cf1f12e6ed5584d256d",
             "size_bytes": 102190664
           },
@@ -134658,7 +134748,7 @@
           "case_id": "a5_kimi_tp8_e16_bf16_c32_p4k",
           "source_program_id": "f1ed92ef3b8f3838f5a47a12839f8d535dd7bb7412f8099d8552c7ca9d4fba59",
           "source_identity": {
-            "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
             "sha256": "d734e9ec764b0f1baf35589d4886f6b9e2cd9254c660721f3ad6a86b0602c504",
             "size_bytes": 83732721
           },
@@ -134802,7 +134892,7 @@
           "case_id": "a5_kimi_tp8_e16_bf16_c1_p4k",
           "source_program_id": "9cce937cff411e0e944cd221ea9eba8e2d7e62ab3283d1701d4e8ecfea7eccec",
           "source_identity": {
-            "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p4k_20261030/kernel_details.csv",
             "sha256": "95fe4cc26e249dbd597c62ae1db12710fca8ea758ff16cf1f12e6ed5584d256d",
             "size_bytes": 102190664
           },
@@ -134850,7 +134940,7 @@
           "case_id": "a5_kimi_tp8_e16_bf16_c32_p4k",
           "source_program_id": "407ae875e0748159d77cbbbf656098913bb7ba8833cda7c3cbfd85e3b6859f12",
           "source_identity": {
-            "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c32_p4k_20261030/kernel_details.csv",
             "sha256": "d734e9ec764b0f1baf35589d4886f6b9e2cd9254c660721f3ad6a86b0602c504",
             "size_bytes": 83732721
           },
@@ -134994,7 +135084,7 @@
           "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1",
           "source_program_id": "c595ae6eb7cb2bf91936eb7c4a423b5c802841723c065670eabba488991ccaef",
           "source_identity": {
-            "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
             "sha256": "323f2e48f662c7b255b6d2ae69d3ba1ea3045578d375be54c503876ff3f45861",
             "size_bytes": 101041319
           },
@@ -135042,7 +135132,7 @@
           "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64",
           "source_program_id": "8e75b7d06f1cad1e9fa50320796246b6fbd365256acf512e8e3fe62d3197f86b",
           "source_identity": {
-            "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
             "sha256": "085c8c00a0560d14a3ca4beb9b965efc04b6be1f40b47734cd47102af4363282",
             "size_bytes": 50179338
           },
@@ -135186,7 +135276,7 @@
           "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1",
           "source_program_id": "05a72e69c5ba85559483b106fcace92b070757a1aabbd65f462ef64f2f3156d9",
           "source_identity": {
-            "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
             "sha256": "323f2e48f662c7b255b6d2ae69d3ba1ea3045578d375be54c503876ff3f45861",
             "size_bytes": 101041319
           },
@@ -135234,7 +135324,7 @@
           "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64",
           "source_program_id": "7e9085738568300e4edfa18c23935bf15dc02a5ec5cec5da60be53907cf198ee",
           "source_identity": {
-            "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
             "sha256": "085c8c00a0560d14a3ca4beb9b965efc04b6be1f40b47734cd47102af4363282",
             "size_bytes": 50179338
           },
@@ -135378,7 +135468,7 @@
           "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1",
           "source_program_id": "c595ae6eb7cb2bf91936eb7c4a423b5c802841723c065670eabba488991ccaef",
           "source_identity": {
-            "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
             "sha256": "323f2e48f662c7b255b6d2ae69d3ba1ea3045578d375be54c503876ff3f45861",
             "size_bytes": 101041319
           },
@@ -135426,7 +135516,7 @@
           "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64",
           "source_program_id": "8e75b7d06f1cad1e9fa50320796246b6fbd365256acf512e8e3fe62d3197f86b",
           "source_identity": {
-            "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
             "sha256": "085c8c00a0560d14a3ca4beb9b965efc04b6be1f40b47734cd47102af4363282",
             "size_bytes": 50179338
           },
@@ -135570,7 +135660,7 @@
           "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot5ms_c1",
           "source_program_id": "05a72e69c5ba85559483b106fcace92b070757a1aabbd65f462ef64f2f3156d9",
           "source_identity": {
-            "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot5ms_c1_20261030/kernel_details.csv",
             "sha256": "323f2e48f662c7b255b6d2ae69d3ba1ea3045578d375be54c503876ff3f45861",
             "size_bytes": 101041319
           },
@@ -135618,7 +135708,7 @@
           "case_id": "a5_v41_fp8_tp1_dp8_ep8_tpot30ms_c64",
           "source_program_id": "7e9085738568300e4edfa18c23935bf15dc02a5ec5cec5da60be53907cf198ee",
           "source_identity": {
-            "path": "/Volumes/data/mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/deepseek_v4_1_flash_fp8_high_conc_decode_tpot30ms_c64_20261030/kernel_details.csv",
             "sha256": "085c8c00a0560d14a3ca4beb9b965efc04b6be1f40b47734cd47102af4363282",
             "size_bytes": 50179338
           },
@@ -135735,5 +135825,14 @@
     "raw_capture_reads": 0,
     "new_cost_predictions": 0,
     "engine_executions": 0
+  },
+  "path_normalization": {
+    "schema": "mindie-path-normalization/1",
+    "original_sha256": "90e31aa29964f848097cb72533d05b72efcb5163309fa96542c6a562f832093f",
+    "normalized_sha256": "51d5f7a747e97f4729c4036864b3641ca310c41ea69946fe69d4da713cde95f3",
+    "rules": [
+      "repository_identity",
+      "capture_uri"
+    ]
   }
 }

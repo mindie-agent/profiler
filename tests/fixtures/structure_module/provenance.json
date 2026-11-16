@@ -17,19 +17,19 @@
   },
   "sources": {
     "database": {
-      "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
+      "path": "capture://temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/profile/b2bb20466bf7_49402_20261019214842958_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler.db",
       "sha256": "5ca5235f1e3e91c58909ffbc11b9041d963f0a210dbe87fcce787ac36523a72b"
     },
     "module_trace": {
-      "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/module_trace.json",
+      "path": "capture://temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/module_trace.json",
       "sha256": "30d623bab85fb380bb6b4837cb5717d78d019407590ff49ca409f1e95b4d2113"
     },
     "steps": {
-      "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/steps.json",
+      "path": "capture://temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/steps.json",
       "sha256": "f4690183e18ab913a6438a3fcb1fe32f873c3a77f02258cecace9429e7b3f664"
     },
     "result": {
-      "path": "/Volumes/data/temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/result.json",
+      "path": "capture://temp/mindie-003-execution/execution-lane/wave4/profiler-live/baseline-v3-result/result/result.json",
       "sha256": "f4658ee4e11756619c339d9509e3fe711185ddd8ee07956f4910036fbf44f214"
     }
   },

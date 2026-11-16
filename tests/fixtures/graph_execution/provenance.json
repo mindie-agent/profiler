@@ -2,7 +2,7 @@
   "schema_version": "mindie-real-fixture/1",
   "sources": [
     {
-      "path": "/Volumes/data/mindie-sim-data/a5/2026-10-23/qwen36-attn/traces/p4096_c1_hold/task_time.csv.gz",
+      "path": "capture://mindie-sim-data/a5/2026-10-23/qwen36-attn/traces/p4096_c1_hold/task_time.csv.gz",
       "sha256": "a385ca8da3494ba789ba7c96f8f09db9d00e20f5bae5d3fe06bc947d1d2b57ee",
       "fixture": "task_time.csv",
       "source_csv_lines": [
@@ -18,7 +18,7 @@
       "original_sha256": "bd9232cbe4814e4ff07333f0fc43412a1e0c9874d6cf2bbe7170e09b49f8c4af"
     },
     {
-      "path": "/Volumes/data/mindie-sim-data/a5/2026-10-23/qwen36-attn/traces/p4096_c1_hold/op_summary.csv.gz",
+      "path": "capture://mindie-sim-data/a5/2026-10-23/qwen36-attn/traces/p4096_c1_hold/op_summary.csv.gz",
       "sha256": "ec8f3f629926c82f9ee24b925b9b88bc2a16be6e0c29298d2979922e6dce695b",
       "fixture": "op_summary.csv",
       "source_csv_lines": [

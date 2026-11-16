@@ -1205,15 +1205,15 @@
     },
     "source_control": {
       "a5-attention-v3-narrow-independent.txt": {
-        "path": "/Volumes/data/mindie-sim-data/calibration-20261107/control/a5-attention-v3-narrow-independent.txt",
+        "path": "capture://mindie-sim-data/calibration-20261107/control/a5-attention-v3-narrow-independent.txt",
         "sha256": "014584a78d21dfe1f81ef6ddfe962434b6ce95d87e73b1645a38678a81ab9184"
       },
       "a5-attention-v3-heldout-independent.txt": {
-        "path": "/Volumes/data/mindie-sim-data/calibration-20261107/control/a5-attention-v3-heldout-independent.txt",
+        "path": "capture://mindie-sim-data/calibration-20261107/control/a5-attention-v3-heldout-independent.txt",
         "sha256": "159bca47bb09fb27f23c9b27b7d0344a51801155ffaac87d0965c59c91a7813c"
       },
       "a5-attention-v3-parent-freeze.json": {
-        "path": "/Volumes/data/mindie-sim-data/calibration-20261107/control/a5-attention-v3-parent-freeze.json",
+        "path": "capture://mindie-sim-data/calibration-20261107/control/a5-attention-v3-parent-freeze.json",
         "sha256": "2df2c2fce11c29f8d329ec2a2f9f71432711581d41a57d7cfdd8da16ed8d2e79"
       }
     },

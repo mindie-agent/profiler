@@ -101,7 +101,7 @@
     }
   ],
   "provenance": {
-    "source": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/dsv41_tp4dp4_128k_decode_20261030/prof/decode_128k_in126k_out3k_c4/decode_128k_in126k_out3k_c4_c4.json",
+    "source": "capture://mindie-sim-data/a3/heldout_engine_20261030/dsv41_tp4dp4_128k_decode_20261030/prof/decode_128k_in126k_out3k_c4/decode_128k_in126k_out3k_c4_c4.json",
     "source_sha256": "096c46d5bda2d16e7dae7c449ef95d1c9e0a8389000964fdecf5927622608829",
     "source_size_bytes": 41951,
     "projection": "summary preserved verbatim; all four requests retained with idx, usage and requested_max_tokens; other request fields including chunk_epochs and top-level live_peak omitted. No values synthesized."

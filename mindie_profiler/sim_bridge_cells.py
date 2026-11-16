@@ -151,6 +151,37 @@ def cell_from_dict(raw: Mapping[str, Any]) -> Any:
     )
 
 
+def raw_case_for_cell(spec: CellSpec) -> dict[str, Any]:
+    """Apply one cell's declared workload and parallel geometry to its template.
+
+    The template case file is only a structure declaration.  Requested
+    concurrency, prompt/output tokens, ``tp``/``dp``/``ep``/``pp`` axes and
+    graph buckets are applied before ``parse_case`` so the price belongs to the
+    requested cell instead of the template's own geometry.  Canonical
+    validation still rejects an incompatible declaration.
+    """
+    if spec.model_case is None:
+        raise ValueError("cell_model_case_missing")
+    raw = json.loads(Path(spec.model_case).read_text(encoding="utf-8"))
+    runtime = dict(raw.get("runtime") or {})
+    parallel = dict(runtime.get("parallel") or {})
+    for axis in ("tp", "dp", "ep", "pp"):
+        runtime.pop(axis, None)
+        parallel[axis] = int(getattr(spec, axis))
+    runtime["parallel"] = parallel
+    if spec.graph_buckets:
+        runtime["graph_buckets"] = list(spec.graph_buckets)
+    raw["runtime"] = runtime
+    raw["workload"] = {
+        "num_requests": int(spec.concurrency),
+        "prompt_tokens": int(spec.prompt_tokens),
+        "output_tokens": int(spec.max_tokens),
+        "arrival_interval_ms": 0,
+        "synthetic": True,
+    }
+    return raw
+
+
 def _canonical_metric(metrics: Mapping[str, Any], key: str) -> float | None:
     value = metrics.get(key)
     if isinstance(value, Mapping):
@@ -181,7 +212,7 @@ def predict_cell(spec: CellSpec, **_: Any) -> dict[str, Any]:
         import mindie_sim
         from mindie_sim.prediction.structure import parse_case
 
-        raw = json.loads(Path(spec.model_case).read_text(encoding="utf-8"))
+        raw = raw_case_for_cell(spec)
         case = parse_case(raw)
         report = mindie_sim.predict(case, scope="serving", trace_limit=0, event_limit=8)
     except TimeoutError:

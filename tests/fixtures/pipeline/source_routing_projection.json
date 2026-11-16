@@ -1350,7 +1350,7 @@
     "span_start_basis": "first_retained_device_event_start",
     "span_end_basis": "last_retained_device_event_end",
     "source_identity": {
-      "path": "/Volumes/data/mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p16k_20261030/kernel_details.csv",
+      "path": "capture://mindie-sim-data/a5/kimi_k3_tp8_high_conc_decode_c1_p16k_20261030/kernel_details.csv",
       "size_bytes": 102198993,
       "mtime_ns": 1793304534000000000,
       "schema_version": "kernel_details_csv_48col",

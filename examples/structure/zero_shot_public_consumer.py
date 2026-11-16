@@ -28,22 +28,21 @@ def _operator_row(*args: Any, **kwargs: Any) -> Any:
 
 
 def _raw_case(spec: Any) -> dict[str, Any]:
-    """Read the declared source case without a private compiler dependency."""
+    """Apply the shared cell workload/parallel conversion to the template."""
     path = getattr(spec, "model_case", None)
     if path is None:
         return {}
-    import json as _json
     from pathlib import Path as _Path
-    candidate = _Path(path)
-    if not candidate.is_file():
+    if not _Path(path).is_file():
         return {}
-    raw = _json.loads(candidate.read_text(encoding="utf-8"))
-    runtime = dict(raw.get("runtime") or {})
-    runtime.update({"tp": int(getattr(spec, "tp", 1) or 1),
-                    "dp": int(getattr(spec, "dp", 1) or 1),
-                    "ep": int(getattr(spec, "ep", 1) or 1),
-                    "pp": int(getattr(spec, "pp", 1) or 1)})
-    return {**raw, "runtime": runtime}
+    try:
+        from mindie_profiler.sim_bridge_cells import raw_case_for_cell
+    except ImportError:
+        from sim_bridge_cells import raw_case_for_cell
+    try:
+        return raw_case_for_cell(spec)
+    except (OSError, ValueError):
+        return {}
 
 
 def _public_case(spec: Any) -> Any:

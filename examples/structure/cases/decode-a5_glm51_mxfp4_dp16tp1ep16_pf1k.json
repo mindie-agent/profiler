@@ -8550,9 +8550,9 @@
     "enable_fused_mc2": 1
    },
    "glm51_source": {
-    "campaign_case_spec": "/Volumes/data/mindie-sim-data/a5/multinode-full-coverage-20261108/runs/r06_2n_glm51_mxfp4_dp4_tp4_ep_200k/case_spec.json",
+    "campaign_case_spec": "capture://mindie-sim-data/a5/multinode-full-coverage-20261108/runs/r06_2n_glm51_mxfp4_dp4_tp4_ep_200k/case_spec.json",
     "campaign_case_spec_sha256": "cb30a48eda3815ea65056e4ada1cb2cb0f19ae669f915630925da60f601b7be4",
-    "model_config": "/Volumes/data/mindie-sim-data/a5/weights-catalog/GLM-5.1-w4a4c8-mxfp4/config.json",
+    "model_config": "capture://mindie-sim-data/a5/weights-catalog/GLM-5.1-w4a4c8-mxfp4/config.json",
     "model_config_sha256": "726e45e28d1be1636a5834048a4101a2cfe384819ad2ebe08d41f6fe04656526",
     "quant_manifest_sha256": "7434850d69e93c9467b4963aedf78b19abf80b992e9b839a021f3e4be6332004",
     "deployment_source": "source_catalog_glm51; release_not_assigned",

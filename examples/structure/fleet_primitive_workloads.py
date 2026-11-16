@@ -49,12 +49,14 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
+from evidence_roots import capture_root
+
 SCHEMA = "mindie-profiler-fleet-primitive-workload/1"
 DESCRIPTOR_SCHEMA = "mindie-profiler-primitive-workload-descriptor/1"
 SUITE = "operator_and_kernel_calibration_20261107"
 CALIBRATION_ROOT = Path(os.environ.get(
     "MINDIE_PRIMITIVE_CALIBRATION_ROOT",
-    "/Volumes/data/mindie-sim-data/calibration-20261107",
+    str(capture_root() / "calibration-20261107"),
 ))
 ATTENTION_ROOT = CALIBRATION_ROOT / "a5" / "attention"
 MOE_ROOT = CALIBRATION_ROOT / "a5" / "moe-native"

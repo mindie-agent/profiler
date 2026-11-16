@@ -35,7 +35,7 @@
  "sanitization": "HOST_INFO and host API trace tables excluded; device/HCCL relational tables copied verbatim",
  "ranks": {
   "rank_0": {
-   "source_path": "/Volumes/data/mindie-sim-data/calibration-20261107/a5/hccl-native/profiles/gate/native.all_reduce.g2.h4096.t128.train/rank0/rack08os2_51511_20261106180618435_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler_0.db",
+   "source_path": "capture://mindie-sim-data/calibration-20261107/a5/hccl-native/profiles/gate/native.all_reduce.g2.h4096.t128.train/rank0/rack08os2_51511_20261106180618435_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler_0.db",
    "source_sha256": "7df26cce3383274df1921e2ac2a713260a56ebfa58a86d4de85e768039509944",
    "row_counts": {
     "STRING_IDS": 142,
@@ -74,7 +74,7 @@
    }
   },
   "rank_1": {
-   "source_path": "/Volumes/data/mindie-sim-data/calibration-20261107/a5/hccl-native/profiles/gate/native.all_reduce.g2.h4096.t128.train/rank1/rack08os2_51512_20261106180618435_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler_1.db",
+   "source_path": "capture://mindie-sim-data/calibration-20261107/a5/hccl-native/profiles/gate/native.all_reduce.g2.h4096.t128.train/rank1/rack08os2_51512_20261106180618435_ascend_pt/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler_1.db",
    "source_sha256": "ec8ffbeeb36ae0c9b4b4d6ed32c310a159042aafe360410866b979db61183683",
    "row_counts": {
     "STRING_IDS": 142,

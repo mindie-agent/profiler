@@ -4,12 +4,18 @@
   "checks": 226,
   "failures": [],
   "report_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/native-joint-service-inputs.json",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "data/observations/sources/arch22-physical-services/native-joint-service-inputs.json",
+    "source_sha256": "d9dfbab2a371f073ec5e4ce4f06419efdb1c575843ece3254c7ec05ac8713e18",
+    "revision": null,
     "sha256": "d9dfbab2a371f073ec5e4ce4f06419efdb1c575843ece3254c7ec05ac8713e18",
     "size_bytes": 2166772
   },
   "reviewer_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/review_native_joint_service_inputs.py",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "examples/structure/review_native_joint_service_inputs.py",
+    "source_sha256": "c9b976b1860bb73798c7301a75ea82f5c5a48946bd40398167ac46fd4069920d",
+    "revision": null,
     "sha256": "c9b976b1860bb73798c7301a75ea82f5c5a48946bd40398167ac46fd4069920d",
     "size_bytes": 5004
   },
@@ -17,5 +23,14 @@
   "primary_forwards": 220,
   "native_calls": 33511,
   "new_raw_scans": 0,
-  "new_costs": 0
+  "new_costs": 0,
+  "path_normalization": {
+    "schema": "mindie-path-normalization/1",
+    "original_sha256": "2cca2a4bed3f2a17c4351d76fa1ae766c1c04c7971bc16553d5f39adb4ef32f5",
+    "normalized_sha256": "81fe89c4cebd4c50b1d8bb8db4a50bcda1469a08c238662509e4e5ab82b1d07a",
+    "rules": [
+      "repository_identity",
+      "capture_uri"
+    ]
+  }
 }

@@ -72,10 +72,12 @@ from mindie_profiler.events import (ProfilerQueryError, ProfilerSchemaError,
                                    ProfilerUsageError, SourceRef)
 from mindie_profiler.sources_csv import CsvSource, probe_csv
 
+from evidence_roots import capture_root, workstream_root
+
 SCHEMA_VERSION = "mindie-zero-shot-native-windows/1"
 DEFAULT_SOURCE_ROOTS = (
-    Path("/Volumes/data/mindie-agent-workstreams/a5-multinode-fleet-rack06-20261107"),
-    Path("/Volumes/data/mindie-agent-workstreams/a5-multinode-fleet-rack08-20261107"),
+    workstream_root() / "a5-multinode-fleet-rack06-20261107",
+    workstream_root() / "a5-multinode-fleet-rack08-20261107",
 )
 _PHASES = ("decode", "prefill")
 MAX_ROWS = 5_000_000
@@ -471,8 +473,8 @@ def _worker_rank(declaration: LaunchDeclaration | None, device_id: int | None,
 
 
 WEIGHT_CONFIG_ROOTS = (
-    Path("/Volumes/data/mindie-sim-data/a5/weights-metadata-20261108"),
-    Path("/Volumes/data/mindie-sim-data/a5/weights-catalog"),
+    capture_root() / "a5" / "weights-metadata-20261108",
+    capture_root() / "a5" / "weights-catalog",
 )
 _RECEIPT_LINE = re.compile(r"CELL\s+(\S+).*?export=\[(.*?)\]")
 _EXPORT_ENTRY = re.compile(r"\(\s*'([^']+)'\s*,\s*(None|\d+)\s*\)")
