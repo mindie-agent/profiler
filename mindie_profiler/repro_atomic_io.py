@@ -34,9 +34,9 @@ _WIN_BIN = os.O_BINARY if _IS_WIN else 0
 _READ_FLAGS = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0) | _WIN_BIN
 def _link_nofollow(src: Any, dst: Any) -> None:
     os.link(src, dst) if _IS_WIN else os.link(src, dst, follow_symlinks=False)
-def _retention_read_hook(path: Path) -> None:
+def _retention_read_hook(path: Path, expected_inode: tuple[int, int]) -> bool:
     from . import repro_retention
-    repro_retention.note_atomic_read(path)
+    return repro_retention.note_atomic_read(path, expected_inode)
 def read_regular_bytes(path: Any) -> bytes | None:
     try:
         target = Path(str(path))
@@ -63,8 +63,7 @@ def read_regular_bytes(path: Any) -> bytes | None:
             stream = os.fdopen(handle, "rb", closefd=False)
             handle = _borrow_stream_fd(stream, handle, expected_fd_inode)
             data = stream.read()
-            _retention_read_hook(target)
-            return data
+            return data if _retention_read_hook(target, expected_fd_inode) else None
     except TimeoutError: raise
     except OSError: return None
 def inode_of(path: Any) -> tuple[int, int] | None:

@@ -1019,3 +1019,33 @@ def test_temp_workspace_stays_registered_until_removal_is_confirmed(tmp_path, mo
     assert released >= 1
     assert str(path) not in temp_workspaces_module.live_temp_workspaces()
     assert not path.exists()
+
+
+def test_diff_reuse_rebuilds_when_slot_is_evicted_mid_read(monkeypatch):
+    from mindie_sim.diff_trace import call_mcp_tool as diff_mcp
+
+    root = make_temp_workspace("mpr15m-", base="/tmp")
+    monkeypatch.setenv("MINDIE_REPRO_SHORT_ROOT", str(root))
+    trace = {"total_ms": 2, "ops": [{"name": "MatMul", "duration_ms": 2}]}
+    seeded = diff_mcp({"predicted": trace, "captured": trace})
+    assert seeded["persisted"] is True
+    artifact = Path(seeded["artifact_path"])
+    assert artifact.is_file()
+    for pin in (root / "diff").glob(".pin-*.lock"):
+        pin.unlink()
+    _age(artifact, 40.0)
+
+    real_note = repro_retention.note_reused_slot
+    evicted = []
+
+    def evict_before_lease(leaf, expected_inode):
+        if not evicted and leaf == artifact:
+            evicted.append(repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14))
+        return real_note(leaf, expected_inode)
+
+    monkeypatch.setattr(repro_retention, "note_reused_slot", evict_before_lease)
+    rebuilt = diff_mcp({"predicted": trace, "captured": trace})
+    assert evicted == [1]
+    assert rebuilt["persisted"] is True
+    assert Path(rebuilt["artifact_path"]).is_file()
+    assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14) == 0

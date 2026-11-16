@@ -277,18 +277,19 @@ def _rewrite_lease(fd: int, pids: list[int]) -> None:
         pass
 
 
-def _append_lease(entry: Path) -> None:
+def _append_lease(entry: Path) -> bool:
     fd = open_lock_file(_pin_path(entry), append=True)
     if fd is None:
-        return
+        return False
     try:
         pids = _lease_pids(fd)
         if pids is None or os.getpid() not in pids:
             os.write(fd, f"{os.getpid()}\n".encode("ascii"))
+        return True
     except TimeoutError:
         raise
     except OSError:
-        pass
+        return False
     finally:
         close_lock_fd(fd)
 
@@ -401,28 +402,43 @@ def _refresh_slot(entry: Path) -> None:
         _touch(entry)
 
 
-def note_reused_slot(entry: Path) -> None:
-    """Refresh a slot reused through an existing leaf and lease this process."""
+def note_reused_slot(leaf: Path, expected_inode: tuple[int, int]) -> bool:
+    """Confirm ``leaf`` still owns ``expected_inode`` under the retention lock, then lease."""
 
+    entry = leaf.parent
     base = entry.parent
     if not _safe_directory(base):
-        return
-    with exclusive_lock(base / _RETENTION_LOCK_NAME, blocking=True):
+        return False
+    with exclusive_lock(base / _RETENTION_LOCK_NAME, blocking=True) as locked:
+        if not locked:
+            return False
+        try:
+            info = os.lstat(leaf)
+        except FileNotFoundError:
+            return False
+        except TimeoutError:
+            raise
+        except OSError:
+            return False
+        if not stat.S_ISREG(info.st_mode) or _is_symlink_or_reparse(info, leaf):
+            return False
+        if (info.st_dev, info.st_ino) != expected_inode:
+            return False
         _refresh_slot(entry)
-        _append_lease(entry)
+        return _append_lease(entry)
 
 
-def note_atomic_read(path: Path) -> None:
-    """Retention hook for a successful ``read_regular_bytes`` of a diff leaf."""
+def note_atomic_read(path: Path, expected_inode: tuple[int, int]) -> bool:
+    """Retention hook for ``read_regular_bytes``; False forces caller rebuild on eviction."""
 
     if path.name != "diff.json" or path.parent.parent.name != _DIFF_DIRECTORY:
-        return
+        return True
     try:
-        note_reused_slot(path.parent)
+        return note_reused_slot(path, expected_inode)
     except TimeoutError:
         raise
     except (OSError, ValueError):
-        pass
+        return False
 
 
 def atomic_write_guard(path: Path):

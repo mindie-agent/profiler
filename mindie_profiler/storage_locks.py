@@ -95,7 +95,7 @@ def open_lock_file(path: str | os.PathLike[str], *, create: bool = True,
     an atomic end-of-file write offset.
     """
 
-    flags = os.O_RDWR | getattr(os, "O_NOFOLLOW", 0)
+    flags = os.O_RDWR | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_BINARY", 0)
     if create:
         flags |= os.O_CREAT
     if append:
