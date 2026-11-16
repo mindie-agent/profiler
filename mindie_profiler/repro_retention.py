@@ -292,44 +292,56 @@ def _append_lease(entry: Path) -> bool:
     if fd is None:
         return False
     start = None
+    sealed = False
     try:
         start = os.fstat(fd).st_size
         pids = _lease_pids(fd)
         if pids is not None and os.getpid() in pids:
+            sealed = True
             return True
         if _write_lease_bytes(fd, f"{os.getpid()}\n".encode("ascii")):
+            sealed = True
             return True
-        os.ftruncate(fd, start)
         return False
     except TimeoutError:
         raise
     except OSError:
-        if start is not None:
-            with contextlib.suppress(OSError):
-                os.ftruncate(fd, start)
         return False
     finally:
+        if not sealed and start is not None:
+            with contextlib.suppress(OSError):
+                os.ftruncate(fd, start)
         close_lock_fd(fd)
 
 
-def _seal_pin(entry: Path) -> None:
+def _seal_pin(entry: Path) -> bool:
     """Hand a held shared OS lock off to a PID lease, then release the lock."""
 
     key = _pin_key(entry)
     with _PIN_LOCK:
         fd = _PINS.pop(key, None)
     if fd is None:
-        _append_lease(entry)
-        return
+        return _append_lease(entry)
+    start = None
+    sealed = False
     try:
+        start = os.fstat(fd).st_size
         pids = _lease_pids(fd)
-        if pids is None or os.getpid() not in pids:
-            _write_lease_bytes(fd, f"{os.getpid()}\n".encode("ascii"))
+        if pids is not None and os.getpid() in pids:
+            sealed = True
+            return True
+        if _write_lease_bytes(fd, f"{os.getpid()}\n".encode("ascii")):
+            sealed = True
+            return True
+        return False
     except TimeoutError:
         raise
     except OSError:
-        pass
+        return False
     finally:
+        if not sealed and start is not None:
+            with contextlib.suppress(OSError):
+                os.ftruncate(fd, start)
         _close_lock(fd)
 
 
@@ -725,10 +737,14 @@ def retention_write_guard(entry: Path, *, default_committed: bool = True) -> Ite
                         _refresh_slot(entry)
                 finally:
                     if completed:
-                        _seal_pin(entry)
+                        if not _seal_pin(entry):
+                            outcome[0] = False
+                            _slot_pinned(entry)
                     else:
                         _drop_pin(entry)
                         _slot_pinned(entry)  # Remove a pin leaf that never got a lease.
+            else:
+                outcome[0] = False
         finally:
             _drop_marker(marker, handle)
 

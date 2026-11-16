@@ -1090,3 +1090,50 @@ def test_diff_reuse_short_lease_write_forces_rebuild_and_rolls_back_partial_pid(
     assert rebuilt["persisted"] is True
     assert Path(rebuilt["artifact_path"]).is_file()
     assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14) == 0
+
+
+def test_diff_new_write_short_seal_pin_reports_delivery_failed_without_false_persisted(monkeypatch):
+    from mindie_sim.diff_trace import call_mcp_tool as diff_mcp
+
+    root = make_temp_workspace("mpr15p-", base="/tmp")
+    monkeypatch.setenv("MINDIE_REPRO_SHORT_ROOT", str(root))
+    trace = {"total_ms": 3, "ops": [{"name": "LayerNorm", "duration_ms": 3}]}
+
+    real_write = repro_retention.os.write
+    calls = []
+    short_fds: set[int] = set()
+
+    def short_on_seal(fd, data):
+        payload = bytes(data)
+        if not calls and payload == f"{os.getpid()}\n".encode("ascii"):
+            short_fds.add(fd)
+            calls.append(len(payload))
+            return real_write(fd, payload[:2])
+        if fd in short_fds and len(calls) == 1:
+            calls.append(len(payload))
+            return 0
+        return real_write(fd, data)
+
+    real_drop = repro_retention._drop_marker
+    pruned_during_drop = []
+
+    def drop_then_prune(marker, fd):
+        real_drop(marker, fd)
+        pruned_during_drop.append(repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14))
+
+    monkeypatch.setattr(repro_retention.os, "write", short_on_seal)
+    monkeypatch.setattr(repro_retention, "_drop_marker", drop_then_prune)
+    failed = diff_mcp({"predicted": trace, "captured": trace})
+    assert len(calls) == 2
+    assert failed["persisted"] is False
+    assert failed["retrievable"] is False
+    assert failed["status"] == "delivery_failed"
+    assert not list((root / "diff").glob(".pin-*.lock"))
+    assert not repro_retention._PINS
+
+    monkeypatch.setattr(repro_retention.os, "write", real_write)
+    monkeypatch.setattr(repro_retention, "_drop_marker", real_drop)
+    rebuilt = diff_mcp({"predicted": trace, "captured": trace})
+    assert rebuilt["persisted"] is True
+    assert Path(rebuilt["artifact_path"]).is_file()
+    assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14) == 0
