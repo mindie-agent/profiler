@@ -49,36 +49,29 @@ _LOCK_SUFFIX = ".lock"
 _STALE_WRITE_MARKER_S = 3600.0
 _REPARSE_ATTRIBUTE = stat.FILE_ATTRIBUTE_REPARSE_POINT
 _PINS: dict[tuple[str, str], int] = {}
+_PIN_REFS: dict[tuple[str, str], int] = {}
+_PIN_LOCAL = threading.local()
 _PIN_LOCK = threading.Lock()
 
 
 def _is_symlink_or_reparse(info: os.stat_result, path: Path | None = None) -> bool:
     """Detect POSIX symlinks and Windows reparse points/junctions."""
-
-    if stat.S_ISLNK(info.st_mode):
-        return True
-    if bool(getattr(info, "st_reparse_tag", 0)):
+    if stat.S_ISLNK(info.st_mode) or bool(getattr(info, "st_reparse_tag", 0)):
         return True
     if int(getattr(info, "st_file_attributes", 0) or 0) & _REPARSE_ATTRIBUTE:
         return True
     isjunction = getattr(os.path, "isjunction", None)
     if isjunction is None or path is None:
         return False
-    try:
-        return bool(isjunction(path))
-    except TimeoutError:
-        raise
-    except (OSError, ValueError):
-        return False
+    try: return bool(isjunction(path))
+    except TimeoutError: raise
+    except (OSError, ValueError): return False
 
 
 def _safe_directory(path: Path) -> bool:
-    try:
-        info = os.lstat(path)
-    except TimeoutError:
-        raise
-    except OSError:
-        return False
+    try: info = os.lstat(path)
+    except TimeoutError: raise
+    except OSError: return False
     return stat.S_ISDIR(info.st_mode) and not _is_symlink_or_reparse(info, path)
 
 
@@ -91,23 +84,16 @@ def _live_registered() -> set[Path]:
 def _entry_age_seconds(entry: Path, leaves: tuple[str, ...], now: float) -> float | None:
     newest = None
     for name in leaves:
-        try:
-            info = os.lstat(entry / name)
-        except FileNotFoundError:
-            continue
-        except TimeoutError:
-            raise
-        except OSError:
-            continue
+        try: info = os.lstat(entry / name)
+        except FileNotFoundError: continue
+        except TimeoutError: raise
+        except OSError: continue
         if stat.S_ISREG(info.st_mode):
             newest = info.st_mtime if newest is None else max(newest, info.st_mtime)
     if newest is None:
-        try:
-            newest = os.lstat(entry).st_mtime
-        except TimeoutError:
-            raise
-        except OSError:
-            return None
+        try: newest = os.lstat(entry).st_mtime
+        except TimeoutError: raise
+        except OSError: return None
     return max(0.0, now - newest)
 
 
@@ -115,42 +101,28 @@ def _entry_locked(entry: Path) -> bool:
     markers = (entry / ".lock", entry.with_name(f".{entry.name}.lock"))
     if any(repro_storage.path_lexists(marker) for marker in markers):
         return True
-    try:
-        children = list(entry.parent.iterdir())
-    except TimeoutError:
-        raise
-    except OSError:
-        return True
-    prefixes = (f"{_WRITE_MARKER_INFIX}{entry.name}-",
-                f".{entry.name}{_WRITE_MARKER_INFIX}")
+    try: children = list(entry.parent.iterdir())
+    except TimeoutError: raise
+    except OSError: return True
+    prefixes = (f"{_WRITE_MARKER_INFIX}{entry.name}-", f".{entry.name}{_WRITE_MARKER_INFIX}")
     return any(child.name.startswith(prefixes) for child in children)
 
 
-def _validated_leaves(entry: Path, leaves: tuple[str, ...]
-                      ) -> dict[Path, tuple[int, int]] | None:
+def _validated_leaves(entry: Path, leaves: tuple[str, ...]) -> dict[Path, tuple[int, int]] | None:
     """Return leaf inode receipts only for a closed set of regular files."""
-
-    try:
-        names = {child.name for child in entry.iterdir()}
-    except TimeoutError:
-        raise
-    except OSError:
-        return None
+    try: names = {child.name for child in entry.iterdir()}
+    except TimeoutError: raise
+    except OSError: return None
     if not names or not names <= set(leaves):
         return None
     receipts: dict[Path, tuple[int, int]] = {}
     for name in leaves:
-        if name not in names:
-            continue
+        if name not in names: continue
         path = entry / name
-        try:
-            info = os.lstat(path)
-        except FileNotFoundError:
-            continue
-        except TimeoutError:
-            raise
-        except OSError:
-            return None
+        try: info = os.lstat(path)
+        except FileNotFoundError: continue
+        except TimeoutError: raise
+        except OSError: return None
         if not stat.S_ISREG(info.st_mode) or _is_symlink_or_reparse(info, path):
             return None
         receipts[path] = (info.st_dev, info.st_ino)
@@ -162,45 +134,60 @@ def _pin_path(entry: Path) -> Path:
 
 
 def _pin_key(entry: Path) -> tuple[str, str]:
-    try:
-        base = str(entry.parent.resolve())
-    except TimeoutError:
-        raise
-    except (OSError, RuntimeError):
-        base = os.path.abspath(entry.parent)
+    try: base = str(entry.parent.resolve())
+    except TimeoutError: raise
+    except (OSError, RuntimeError): base = os.path.abspath(entry.parent)
     return base, entry.name
 
 
 def _close_lock(fd: int) -> None:
-    try:
-        unlock_fd(fd)
-    finally:
-        close_lock_fd(fd)
+    try: unlock_fd(fd)
+    finally: close_lock_fd(fd)
+
+
+def _local_pins() -> dict[tuple[str, str], int]:
+    pins = getattr(_PIN_LOCAL, "pins", None)
+    if pins is None:
+        pins = {}
+        _PIN_LOCAL.pins = pins
+    return pins
 
 
 def _hold_pin(entry: Path) -> None:
-    """Cache one shared OS lease so eviction skips a live slot."""
-
+    """Cache one refcounted shared OS lease so eviction skips a live slot."""
     key = _pin_key(entry)
     with _PIN_LOCK:
-        if key in _PINS:
-            return
-        while len(_PINS) >= PRUNE_MAX_ENTRIES:
-            _close_lock(_PINS.pop(next(iter(_PINS))))
-        fd = open_lock_file(_pin_path(entry), append=True)
-        if fd is None:
-            return
-        if not try_lock_fd(fd, exclusive=False):
-            close_lock_fd(fd)
-            return
-        _PINS[key] = fd
+        if key not in _PINS:
+            while len(_PINS) >= PRUNE_MAX_ENTRIES:
+                victim = next((k for k in _PINS if _PIN_REFS.get(k, 0) <= 0), None)
+                if victim is None: break
+                _PIN_REFS.pop(victim, None)
+                _close_lock(_PINS.pop(victim))
+            fd = open_lock_file(_pin_path(entry), append=True)
+            if fd is None: return
+            if not try_lock_fd(fd, exclusive=False):
+                close_lock_fd(fd)
+                return
+            _PINS[key] = fd
+        _PIN_REFS[key] = _PIN_REFS.get(key, 0) + 1
+        mine = _local_pins()
+        mine[key] = mine.get(key, 0) + 1
 
 
 def _drop_pin(entry: Path) -> None:
+    key, fd = _pin_key(entry), None
     with _PIN_LOCK:
-        fd = _PINS.pop(_pin_key(entry), None)
-    if fd is not None:
-        _close_lock(fd)
+        mine = _local_pins()
+        own = mine.get(key, 0)
+        if own <= 0: return
+        if own == 1: mine.pop(key, None)
+        else: mine[key] = own - 1
+        refs = _PIN_REFS.get(key, 1) - 1
+        if refs > 0 and key in _PINS: _PIN_REFS[key] = refs
+        else:
+            _PIN_REFS.pop(key, None)
+            fd = _PINS.pop(key, None)
+    if fd is not None: _close_lock(fd)
 
 
 def _lease_pids(fd: int) -> list[int] | None:
@@ -306,20 +293,35 @@ def _append_lease(entry: Path) -> bool:
 
 def _seal_pin(entry: Path) -> bool:
     """Hand a held shared OS lock off to a PID lease, then release the lock."""
+    key, shared = _pin_key(entry), False
     with _PIN_LOCK:
-        fd = _PINS.pop(_pin_key(entry), None)
-    if fd is None:
-        return _append_lease(entry)
+        mine = _local_pins()
+        own = mine.get(key, 0)
+        if own > 0:
+            if own == 1: mine.pop(key, None)
+            else: mine[key] = own - 1
+            refs = _PIN_REFS.get(key, 1) - 1
+            shared = refs > 0 and key in _PINS
+            if shared:
+                _PIN_REFS[key] = refs
+                fd = _PINS[key]
+            else:
+                _PIN_REFS.pop(key, None)
+                fd = _PINS.pop(key, None)
+        else: fd = None
+    if fd is None: return _append_lease(entry)
     try: return _seal_fd(fd)
-    finally: _close_lock(fd)
+    finally:
+        if not shared: _close_lock(fd)
 
 
 def _release_pins() -> None:
     with _PIN_LOCK:
         fds = list(_PINS.values())
         _PINS.clear()
-    for fd in fds:
-        _close_lock(fd)
+        _PIN_REFS.clear()
+    _local_pins().clear()
+    for fd in fds: _close_lock(fd)
 
 
 def _slot_pinned(entry: Path) -> bool:
@@ -461,7 +463,7 @@ def rollback_unleased(path: Path, action, active_exc: BaseException | None = Non
             return
         with exclusive_lock(base / _RETENTION_LOCK_NAME, blocking=True, require_os=True) as locked:
             _drop_pin(entry)
-            if locked and not _slot_pinned(entry):
+            if locked and _pin_key(entry) not in _PINS and not _slot_pinned(entry):
                 action()
     except BaseException:
         if active_exc is None:
@@ -714,7 +716,7 @@ def retention_write_guard(entry: Path, *, default_committed: bool = True) -> Ite
             if pre_locked:
                 handle = _create_marker(marker)
                 if handle is not None: _hold_pin(entry)
-                if handle is None or _pin_key(entry) not in _PINS:
+                if handle is None or _local_pins().get(_pin_key(entry), 0) <= 0:
                     _drop_pin(entry)
                     safe = False
             else: safe = False
@@ -734,7 +736,7 @@ def retention_write_guard(entry: Path, *, default_committed: bool = True) -> Ite
                         finally:
                             if not _seal_pin(entry):
                                 outcome[0] = False
-                                if not _slot_pinned(entry) and not default_committed:
+                                if _pin_key(entry) not in _PINS and not _slot_pinned(entry) and not default_committed:
                                     leaves = _DIFF_LEAVES if entry.parent.name == _DIFF_DIRECTORY else _CAS_LEAVES
                                     receipts = _validated_leaves(entry, leaves)
                                     if receipts is not None and not any(
