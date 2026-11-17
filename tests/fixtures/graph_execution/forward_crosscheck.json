@@ -2,17 +2,17 @@
   "schema_version": "mindie-real-graph-crosscheck-fixture/1",
   "source_artifacts": [
     {
-      "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261029/auto-forward-a5_qwen36_p4096_c1_hold.json",
+      "path": "repository://mindie-agent/profiler/examples/structure/acceptance-20261029/auto-forward-a5_qwen36_p4096_c1_hold.json",
       "sha256": "984515ba74db23cd243c913da2c6d2f7ec55bf263e112a3656f5e20c4c34b1f3"
     },
     {
-      "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261029/decode-graph-a5_qwen36-p4096_c1_hold.json",
+      "path": "repository://mindie-agent/profiler/examples/structure/acceptance-20261029/decode-graph-a5_qwen36-p4096_c1_hold.json",
       "sha256": "479e85b1e5ccbf857585720564ab24e9a6b7d9e166f6d28bd1f7bf62904e7751"
     }
   ],
   "observed": {
     "source_identity": {
-      "path": "/Volumes/data/mindie-sim-data/a5/2026-10-23/qwen36-attn/traces/p4096_c1_hold/op_summary.csv.gz",
+      "path": "capture://mindie-sim-data/a5/2026-10-23/qwen36-attn/traces/p4096_c1_hold/op_summary.csv.gz",
       "size_bytes": 27930261,
       "mtime_ns": 1792730801000000000,
       "schema_version": "kernel_details_csv_48col",
@@ -147,7 +147,7 @@
   },
   "graph_report": {
     "operator_source": {
-      "path": "/Volumes/data/mindie-sim-data/a5/2026-10-23/qwen36-attn/traces/p4096_c1_hold/op_summary.csv.gz",
+      "path": "capture://mindie-sim-data/a5/2026-10-23/qwen36-attn/traces/p4096_c1_hold/op_summary.csv.gz",
       "size_bytes": 27930261,
       "mtime_ns": 1792730801000000000,
       "sha256": "c08c3058f507ecee22c0f6d9e47e8865b439c544ad5fccad73a0481fe49e36f3"

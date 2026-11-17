@@ -370,13 +370,13 @@
         "first_k_dense_replace": 1
       },
       "catalog_assumption_source": {
-        "path": "/Users/maoxx241/code/sim-glm-projection-contracts-20261030/mindie_sim/model_configs/kimi-k3.json",
+        "path": "repository://sim-glm-projection-contracts-20261030/mindie_sim/model_configs/kimi-k3.json",
         "bytes": 6991,
         "sha256": "ceb15bb6babc95c3afc948f0887a732b69e8ac126dae36ef7b6aeb1effb2b46f"
       },
       "inheritance_note": "Values are explicit structural assumptions unless field_evidence independently confirms them; layer counts are this checkpoint, not a truncated accuracy surrogate.",
       "current_capture_evidence": {
-        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/kimi-tp8-source-metadata.json",
+        "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/kimi-tp8-source-metadata.json",
         "sha256": "6130d20ad44d5138503431aad1f0acd5b08e25ed3e021aa9794b28d9bd2d78c8",
         "size_bytes": 172130
       }
@@ -895,7 +895,7 @@
     "metadata": {
       "captured_execution_mode": "FULL_DECODE_ONLY",
       "deployment_evidence": {
-        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/kimi-tp8-source-metadata.json",
+        "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/kimi-tp8-source-metadata.json",
         "sha256": "6130d20ad44d5138503431aad1f0acd5b08e25ed3e021aa9794b28d9bd2d78c8",
         "size_bytes": 172130
       },
@@ -939,7 +939,7 @@
       "conditional_hccl_source_control": {
         "basis": "explicit_source_compatible_AICPU_TS_mesh_separate; captured_executor_and_payload_arguments_not_observed",
         "canonical_input": {
-          "path": "/Users/maoxx241/code/profiler/examples/structure/cases/a3-kimi4-tp8-longctx-source.json",
+          "path": "repository://profiler/examples/structure/cases/a3-kimi4-tp8-longctx-source.json",
           "sha256": "69d44345c9edd804c0fd677f0a8485ff9f5188478c414d09c3bf6c0997ae5fce",
           "bytes": 17742
         },

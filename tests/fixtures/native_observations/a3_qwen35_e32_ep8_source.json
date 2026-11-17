@@ -2,12 +2,12 @@
   "schema_version": "mindie-profiler.capture-deployment-fixture/1",
   "basis": "retained A3 E32 command and complete Q35 source model; runtime metadata removed and 46 verbatim service rules reduced to one; topology is not selected by timing",
   "source_capture": {
-    "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/synth_qwen35_L8_E32_K2_tp8ep8_decode_256k_c1/kernel_details.csv",
+    "path": "capture://mindie-sim-data/a3/heldout_engine_20261031/synth_qwen35_L8_E32_K2_tp8ep8_decode_256k_c1/kernel_details.csv",
     "sha256": "bdd6a2022358f29c60b586da3f17ab0c677df0fed10734219e40d091cf0933e1",
     "size_bytes": 14602114
   },
   "source_command": {
-    "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/synth_qwen35_L8_E32_K2_tp8ep8_decode_256k_c1/cmd.sh",
+    "path": "capture://mindie-sim-data/a3/heldout_engine_20261031/synth_qwen35_L8_E32_K2_tp8ep8_decode_256k_c1/cmd.sh",
     "sha256": "dda2cdc32a526c279b66b84b069024be6fe5a515cf126ba3f78722d19afc21a0",
     "size_bytes": 741
   },

@@ -70,8 +70,8 @@
     "metadata": {
       "input_boundary": "device-body analysis only; workload placeholder is not a replay of the concurrent server",
       "geometry_policy": "supply actual query rows and sequence count from profiler; capture padding must be stated separately",
-      "capture_summary": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot30ms_near_c128_20261030/benchmark_summary.json",
-      "capture_client": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot30ms_near_c128_20261030/client_cell.json",
+      "capture_summary": "capture://mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot30ms_near_c128_20261030/benchmark_summary.json",
+      "capture_client": "capture://mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot30ms_near_c128_20261030/client_cell.json",
       "source_image": "quay.io/ascend/vllm-ascend:v0.30.0rc2-a5 (c3d00a196905)",
       "source_model_path": "/mnt/weight/Qwen3.6-27B-W8A8",
       "mtp_policy": "metadata proves 3 proposed tokens per draft event; actual target query geometry awaits tensor extraction",
@@ -94,17 +94,17 @@
       },
       "helper_transfer": {
         "baseline_case_identity": {
-          "path": "/Users/maoxx241/code/profiler/examples/structure/cases/decode-a5_qwen36_highconc_c128.json",
+          "path": "repository://profiler/examples/structure/cases/decode-a5_qwen36_highconc_c128.json",
           "sha256": "bbdafc87dcbe5b13d5d3ac88d73c079a833e369116e8a2523977d14b2d4a7abe",
           "size_bytes": 10189
         },
         "frozen_model_identity": {
-          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-helper-functions.json",
+          "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-helper-functions.json",
           "sha256": "dc10eb1cb969050e088b10fb31e0faccbcc494a7eebd916e3cdb4687b4e4408f",
           "size_bytes": 29135
         },
         "actual_identity": {
-          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/4ad6e6565a701b1c8b0ac8b5c0f293d2878ad29c944d6aa35538063ed4e2ab7d.json",
+          "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/4ad6e6565a701b1c8b0ac8b5c0f293d2878ad29c944d6aa35538063ed4e2ab7d.json",
           "sha256": "4ad6e6565a701b1c8b0ac8b5c0f293d2878ad29c944d6aa35538063ed4e2ab7d",
           "size_bytes": 864676
         },
@@ -114,7 +114,7 @@
       },
       "elapsed_domain_response": {
         "model_identity": {
-          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/native-elapsed-functions.json",
+          "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/native-elapsed-functions.json",
           "sha256": "f7925988f0cdc854d65014e9fb6936ed0dfa4ea3ef4eb8bda585ffd174f96458",
           "size_bytes": 2142355
         },
@@ -125,7 +125,7 @@
         "evaluation_relation": "in_sample_physical_domain_fit",
         "template_correction": {
           "previous_case_identity": {
-            "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a5_qwen36_highconc_c128-native-elapsed.case.json",
+            "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a5_qwen36_highconc_c128-native-elapsed.case.json",
             "sha256": "6472761732eab6b893670fa42e51fa09a6e97187c6e606c7cc15fdcf2eecc620",
             "size_bytes": 29732
           },
@@ -135,12 +135,12 @@
       },
       "slice_cache_transfer": {
         "model_identity": {
-          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+          "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
           "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
           "size_bytes": 812897
         },
         "previous_candidate_identity": {
-          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a5_qwen36_highconc_c128-conditional-hccl.case.json",
+          "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/a5_qwen36_highconc_c128-conditional-hccl.case.json",
           "sha256": "64e151e605aa23a6b2816f56af39eb5154d50a88c0d7cca8fa362680536291e9",
           "size_bytes": 30661
         },
@@ -627,7 +627,7 @@
             "calibration_origin": "observed",
             "evaluation_relation": "in_sample_physical_domain_fit",
             "model_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/native-elapsed-functions.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/native-elapsed-functions.json",
               "sha256": "f7925988f0cdc854d65014e9fb6936ed0dfa4ea3ef4eb8bda585ffd174f96458",
               "size_bytes": 2142355
             },
@@ -679,7 +679,7 @@
             "calibration_origin": "observed",
             "evaluation_relation": "in_sample_physical_domain_fit",
             "model_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/native-elapsed-functions.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/native-elapsed-functions.json",
               "sha256": "f7925988f0cdc854d65014e9fb6936ed0dfa4ea3ef4eb8bda585ffd174f96458",
               "size_bytes": 2142355
             },
@@ -732,7 +732,7 @@
             "calibration_origin": "observed",
             "evaluation_relation": "in_sample_physical_domain_fit",
             "model_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/native-elapsed-functions.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/native-elapsed-functions.json",
               "sha256": "f7925988f0cdc854d65014e9fb6936ed0dfa4ea3ef4eb8bda585ffd174f96458",
               "size_bytes": 2142355
             },
@@ -801,7 +801,7 @@
               "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
             ],
             "model_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
               "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
               "size_bytes": 812897
             },
@@ -869,7 +869,7 @@
               "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
             ],
             "model_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
               "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
               "size_bytes": 812897
             },
@@ -937,7 +937,7 @@
               "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
             ],
             "model_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
               "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
               "size_bytes": 812897
             },
@@ -1005,7 +1005,7 @@
               "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
             ],
             "model_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
               "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
               "size_bytes": 812897
             },
@@ -1073,7 +1073,7 @@
               "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
             ],
             "model_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
               "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
               "size_bytes": 812897
             },
@@ -1141,7 +1141,7 @@
               "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
             ],
             "model_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
               "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
               "size_bytes": 812897
             },
@@ -1208,7 +1208,7 @@
               "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
             ],
             "model_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
               "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
               "size_bytes": 812897
             },

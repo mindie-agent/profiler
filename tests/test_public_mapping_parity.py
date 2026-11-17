@@ -21,9 +21,9 @@ from mindie_profiler.events import ProfilerUsageError
 from mindie_profiler.fabric_probe_fit import fit_calibrated_fabric_profile
 from mindie_profiler.repro_op import _compact_occurrence
 from mindie_profiler.repro_preconditions import precondition_problems
-from nr_s6_support import paged_binding
-from test_nr_s6_capture_mapping_metadata import CARRIERS, Deadline, ReadOnly, _wrap
-from test_nr_s6_round12 import _reassemble
+from catalog_page_fixtures import _reassemble
+from mapping_fixtures import CARRIERS, Deadline, ReadOnly, _wrap
+from native_abi_fixtures import paged_binding
 
 
 def _freeze(value, carrier):

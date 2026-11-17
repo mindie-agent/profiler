@@ -1,6 +1,6 @@
 {
   "schema_version": "mindie-derived-capture-fixture/1",
-  "source": "/Volumes/data-tmp/tmp/mindie-body-profiling-kimi-op-summary.csv",
+  "source": "capture://local-tmp/tmp/mindie-body-profiling-kimi-op-summary.csv",
   "source_sha256": "ab1d44d3613ecb92d71af6d790ab9dfc72be5aabfe92bf4f99d584fbd0f9e648",
   "source_size_bytes": 110031770,
   "source_identity_basis": "Existing full-replay verified source identity; this pass streamed the same file to select unedited rows and count descriptors.",
@@ -111,7 +111,7 @@
   },
   "independent_implementation_evidence": [
     {
-      "path": "/Users/maoxx241/code/vllm-ascend-v41-private/vllm_ascend/ops/fused_moe/shared_experts.py",
+      "path": "repository://vllm-ascend-v41-private/vllm_ascend/ops/fused_moe/shared_experts.py",
       "sha256": "f1780df8ec2fc290bfeb946e5d48edcb8c1b4aee0f50c1bd9d10291def201e77",
       "revision": "ae923905948f360f4b7ab06df52d0789a0c9316e",
       "lines": [
@@ -121,7 +121,7 @@
       "verified_domain": "Shared gate-up requests INT32 with pertoken_scale=None; separate dequant/activation owns floating-point rescale. Not a capture-binary identity."
     },
     {
-      "archive": "/Volumes/data/temp/codex-session-01a09c11-01b6-7ef2-bf23-6dae53e42dae/work/residual-0921/final2.tar.gz",
+      "archive": "capture://temp/codex-session-01a09c11-01b6-7ef2-bf23-6dae53e42dae/work/residual-0921/final2.tar.gz",
       "archive_sha256": "4e58515e6bdd28c09fb8a8da6dd4fadfa77e0b4254cbc8837c64358513981f3a",
       "members": [
         {

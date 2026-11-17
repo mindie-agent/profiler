@@ -1,6 +1,6 @@
 {
   "source_identity": {
-    "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot5ms_near_c4_20261030/kernel_details.csv",
+    "path": "capture://mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot5ms_near_c4_20261030/kernel_details.csv",
     "size_bytes": 57259297,
     "mtime_ns": 1793296375000000000,
     "schema_version": "kernel_details_csv_48col",

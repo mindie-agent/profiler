@@ -10,11 +10,11 @@ forward/layer spans and the source hashes.
 
 `a3_qwen35_tp8_prefill_full_tail_decode_mixed.csv`
 
-- Prefill source: `/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/qwen35_tp8_ep8_mtp0_prefill_400k_c1/kernel_details.csv`
+- Prefill source: `capture://mindie-sim-data/a3/heldout_engine_20261031/qwen35_tp8_ep8_mtp0_prefill_400k_c1/kernel_details.csv`
   sha256 `b12ddd923e90e94738cfa1ef7ef3881c5c2b719bae171d81e24995adce226ba4`
-- Frozen extraction: `/Volumes/data/mindie-sim-data/acceptance-archives-20261030/wave5-eval/a3/extractions/438248a6cd996d46fed4aaeb13e2a0f37efaf8d137b3b7680685d8792d0d57b5.json`
+- Frozen extraction: `capture://mindie-sim-data/acceptance-archives-20261030/wave5-eval/a3/extractions/438248a6cd996d46fed4aaeb13e2a0f37efaf8d137b3b7680685d8792d0d57b5.json`
   (forwards 0 and 50; bodies are original lines 89-3406 and 170878-173796)
-- Decode source: `/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/qwen35_tp8_ep8_mtp0_decode_192k_c1/kernel_details.csv`
+- Decode source: `capture://mindie-sim-data/a3/heldout_engine_20261031/qwen35_tp8_ep8_mtp0_decode_192k_c1/kernel_details.csv`
   sha256 `5d33988ccb23d87d955b387de99c82387970f7231345da8260f36afc2b4f4dcf`
   (first forward, first 40 MoE layers; `MoeDistributeDispatchV2` /
   `MoeDistributeCombineV2` caller, kept only to prove an unrelated phase does
@@ -38,7 +38,7 @@ window has none. The projection records that difference as `per_rank_copy` vs
 `a5_qwen30b_e16k4_prefill_4k.csv` (q4096/context0, one forward) and
 `a5_qwen30b_e16k4_prefill_64k.csv` (q8192/context0..57344, eight forwards).
 
-- Source: `/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen30b_L8_E16_K4_tp4ep4_prefill_4k_c1/kernel_details.csv`
+- Source: `capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen30b_L8_E16_K4_tp4ep4_prefill_4k_c1/kernel_details.csv`
   sha256 `bac97a21d4699c2619123453797ebcebd201eee0199fa4824c60330816ea6d84`
   and `.../a5_synth_qwen30b_L8_E16_K4_tp4ep4_prefill_64k_c1/kernel_details.csv`
   sha256 `2af0fb3423bded7378f701cbc6958d61915f122b30169b4e19456a7322c28016`

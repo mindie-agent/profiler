@@ -4618,12 +4618,12 @@
     ],
     "metadata": {
       "source_template_identity": {
-        "path": "/Users/maoxx241/code/sim-serving-host-io-20261030/examples/cases/longctx-decode-20261030/qwen35-35b-a3-tp4.json",
+        "path": "repository://sim-serving-host-io-20261030/examples/cases/longctx-decode-20261030/qwen35-35b-a3-tp4.json",
         "sha256": "9b4db9e09e3e00b0df50b1e9e7d10a86e04e46438dd6634840980c1b40661de3",
         "size_bytes": 5852
       },
       "deployment_log_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/qwen35_35b_tp4_128k_20261030/logs/vllm.log",
+        "path": "capture://mindie-sim-data/a3/heldout_engine_20261030/qwen35_35b_tp4_128k_20261030/logs/vllm.log",
         "sha256": "002cf5706b657c5e5431c966b3dbd183abfe1eb8bcfbae680da69564b4f128a5",
         "size_bytes": 586833
       },
@@ -4664,7 +4664,7 @@
         "grouped_execution": "analytical decomposition; retained arch22 fusion is not modeled or replaced by arch35"
       },
       "source_metadata": {
-        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/qwen35_35b_tp4_128k_20261030-source-metadata.json",
+        "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/qwen35_35b_tp4_128k_20261030-source-metadata.json",
         "sha256": "94edca0576485361a65989a95862f131e37dd2e6a7fa6b9d65cc20c8a5701d62",
         "size_bytes": 175161
       },
@@ -4683,7 +4683,7 @@
       "native_representation_correction": {
         "basis": "retained complete low/high concurrency Body tensor ABI only; no timing or prediction used",
         "evidence_identity": {
-          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/qwen35_35b_tp4_128k_20261030-source-metadata.json",
+          "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/qwen35_35b_tp4_128k_20261030-source-metadata.json",
           "sha256": "94edca0576485361a65989a95862f131e37dd2e6a7fa6b9d65cc20c8a5701d62",
           "size_bytes": 175161
         },
@@ -4919,7 +4919,7 @@
         },
         "native_scale_storage_vs_contract": "Matrix active-geometry contract does not compare weight scale storage representation; this correction does not promote to full native ABI.",
         "previous_model_identity": {
-          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/6a7d5dccff9b7f17486c4a35d2bf99ab29894a1b58a50e2c2b2ce585c3df2b81.json",
+          "path": "capture://mindie-sim-data/acceptance-archives-20261030/current/6a7d5dccff9b7f17486c4a35d2bf99ab29894a1b58a50e2c2b2ce585c3df2b81.json",
           "sha256": "6a7d5dccff9b7f17486c4a35d2bf99ab29894a1b58a50e2c2b2ce585c3df2b81",
           "size_bytes": 5744
         }
@@ -4932,7 +4932,7 @@
           "path": "attention/fused_infer_attention_score/op_host/flash_attention_infer_tiling.h"
         },
         "native_evidence": {
-          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/qwen35_35b_tp4_128k_20261030-source-metadata.json",
+          "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/qwen35_35b_tp4_128k_20261030-source-metadata.json",
           "sha256": "94edca0576485361a65989a95862f131e37dd2e6a7fa6b9d65cc20c8a5701d62",
           "size_bytes": 175161
         },

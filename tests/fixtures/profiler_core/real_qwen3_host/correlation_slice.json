@@ -1,6 +1,6 @@
 {
   "provenance": {
-    "source_path": "/Volumes/data/Profiling/vllm-ascend-workspace/v6_inputs_remote/qwen3_8b_s1/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler_0.db",
+    "source_path": "repository://refs/vllm-ascend-workspace/v6_inputs_remote/qwen3_8b_s1/ASCEND_PROFILER_OUTPUT/ascend_pytorch_profiler_0.db",
     "source_sha256": "97339f6512100662a89eefc2518b35391afba42af01b31aae7c267af99a85cc5",
     "source_size_bytes": 2568192,
     "selection_queries": {

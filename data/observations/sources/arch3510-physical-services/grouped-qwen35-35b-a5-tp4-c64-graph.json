@@ -4,27 +4,39 @@
   "architecture": "arch3510",
   "hardware": "Ascend950DT_9582",
   "source_identity": {
-    "path": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+    "path": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
     "sha256": "5612e7cccfb3878cf27b22b1e89c5d186cd100633a44748973349f1bf03872f3",
     "size_bytes": 79462851
   },
   "prior_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen35-35b-a5-tp4-c64-graph-qwen-source-gdn-native.actual.json",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen35-35b-a5-tp4-c64-graph-qwen-source-gdn-native.actual.json",
+    "source_sha256": "0c2f0f395dd7ef7fce894ad962e2d63664b9934593208e520c32e33040cf026d",
+    "revision": null,
     "sha256": "0c2f0f395dd7ef7fce894ad962e2d63664b9934593208e520c32e33040cf026d",
     "size_bytes": 1962653
   },
   "body_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-expanded/auto-forward-qwen35-35b-a5-tp4-c64-graph.json",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "examples/structure/acceptance-20261030-expanded/auto-forward-qwen35-35b-a5-tp4-c64-graph.json",
+    "source_sha256": "1e4b2377fc30d82e8c07bc870d223d6f9543d8f766217bc2b50fbe5f2adfda3f",
+    "revision": null,
     "sha256": "1e4b2377fc30d82e8c07bc870d223d6f9543d8f766217bc2b50fbe5f2adfda3f",
     "size_bytes": 3552771
   },
   "case_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen35-35b-a5-tp4-c64-graph-qwen-source-gdn-native.case.json",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "examples/structure/acceptance-20261030-qwen-source-native-operators/retained-six-actual/body-operator-qwen35-35b-a5-tp4-c64-graph-qwen-source-gdn-native.case.json",
+    "source_sha256": "c6c108b7d141e33da272f62ab2a2f4f47fe8edaeb4ac710ecc1d6beb417e6033",
+    "revision": null,
     "sha256": "c6c108b7d141e33da272f62ab2a2f4f47fe8edaeb4ac710ecc1d6beb417e6033",
     "size_bytes": 5601
   },
   "inputs_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/grouped-inputs.json",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "data/observations/sources/arch3510-physical-services/grouped-inputs.json",
+    "source_sha256": "f27b7961c44bf4aae323f9bc992b604e9dd34e16092b665d7a996cb80335f8c8",
+    "revision": null,
     "sha256": "f27b7961c44bf4aae323f9bc992b604e9dd34e16092b665d7a996cb80335f8c8",
     "size_bytes": 1586863
   },
@@ -57445,7 +57457,7 @@
         "examples": [
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 16514,
               "csv_line": 16516,
@@ -57502,7 +57514,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 16563,
               "csv_line": 16565,
@@ -57561,7 +57573,7 @@
         "longest_calls": [
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 60111,
               "csv_line": 60113,
@@ -57618,7 +57630,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 196341,
               "csv_line": 196343,
@@ -57675,7 +57687,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 19279,
               "csv_line": 19281,
@@ -57732,7 +57744,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 49587,
               "csv_line": 49589,
@@ -57789,7 +57801,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 69703,
               "csv_line": 69705,
@@ -57855,7 +57867,7 @@
       "source_chain_examples": [
         [
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16514,
             "csv_line": 16516,
@@ -57864,7 +57876,7 @@
             "device_id": "0"
           },
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16517,
             "csv_line": 16519,
@@ -57873,7 +57885,7 @@
             "device_id": "0"
           },
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16518,
             "csv_line": 16520,
@@ -57884,7 +57896,7 @@
         ],
         [
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16563,
             "csv_line": 16565,
@@ -57893,7 +57905,7 @@
             "device_id": "0"
           },
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16566,
             "csv_line": 16568,
@@ -57902,7 +57914,7 @@
             "device_id": "0"
           },
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16567,
             "csv_line": 16569,
@@ -153894,7 +153906,7 @@
         "examples": [
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 16518,
               "csv_line": 16520,
@@ -153951,7 +153963,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 16567,
               "csv_line": 16569,
@@ -154010,7 +154022,7 @@
         "longest_calls": [
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 127706,
               "csv_line": 127708,
@@ -154067,7 +154079,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 145855,
               "csv_line": 145857,
@@ -154124,7 +154136,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 125227,
               "csv_line": 125229,
@@ -154181,7 +154193,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 136687,
               "csv_line": 136689,
@@ -154238,7 +154250,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 143563,
               "csv_line": 143565,
@@ -154304,7 +154316,7 @@
       "source_chain_examples": [
         [
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16514,
             "csv_line": 16516,
@@ -154313,7 +154325,7 @@
             "device_id": "0"
           },
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16517,
             "csv_line": 16519,
@@ -154322,7 +154334,7 @@
             "device_id": "0"
           },
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16518,
             "csv_line": 16520,
@@ -154333,7 +154345,7 @@
         ],
         [
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16563,
             "csv_line": 16565,
@@ -154342,7 +154354,7 @@
             "device_id": "0"
           },
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16566,
             "csv_line": 16568,
@@ -154351,7 +154363,7 @@
             "device_id": "0"
           },
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16567,
             "csv_line": 16569,
@@ -181241,7 +181253,7 @@
         "examples": [
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 16652,
               "csv_line": 16654,
@@ -181298,7 +181310,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 16840,
               "csv_line": 16842,
@@ -181357,7 +181369,7 @@
         "longest_calls": [
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 74888,
               "csv_line": 74890,
@@ -181414,7 +181426,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 26943,
               "csv_line": 26945,
@@ -181471,7 +181483,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 145940,
               "csv_line": 145942,
@@ -181528,7 +181540,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 129896,
               "csv_line": 129898,
@@ -181585,7 +181597,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 170404,
               "csv_line": 170406,
@@ -181651,7 +181663,7 @@
       "source_chain_examples": [
         [
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16652,
             "csv_line": 16654,
@@ -181660,7 +181672,7 @@
             "device_id": "0"
           },
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16655,
             "csv_line": 16657,
@@ -181669,7 +181681,7 @@
             "device_id": "0"
           },
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16656,
             "csv_line": 16658,
@@ -181680,7 +181692,7 @@
         ],
         [
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16840,
             "csv_line": 16842,
@@ -181689,7 +181701,7 @@
             "device_id": "0"
           },
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16843,
             "csv_line": 16845,
@@ -181698,7 +181710,7 @@
             "device_id": "0"
           },
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16844,
             "csv_line": 16846,
@@ -218938,7 +218950,7 @@
         "examples": [
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 16656,
               "csv_line": 16658,
@@ -218995,7 +219007,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 16844,
               "csv_line": 16846,
@@ -219054,7 +219066,7 @@
         "longest_calls": [
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 154925,
               "csv_line": 154927,
@@ -219111,7 +219123,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 24655,
               "csv_line": 24657,
@@ -219168,7 +219180,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 52159,
               "csv_line": 52161,
@@ -219225,7 +219237,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 125129,
               "csv_line": 125131,
@@ -219282,7 +219294,7 @@
           },
           {
             "locator": {
-              "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+              "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
               "table": "kernel_details.csv",
               "row_index": 127795,
               "csv_line": 127797,
@@ -219348,7 +219360,7 @@
       "source_chain_examples": [
         [
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16652,
             "csv_line": 16654,
@@ -219357,7 +219369,7 @@
             "device_id": "0"
           },
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16655,
             "csv_line": 16657,
@@ -219366,7 +219378,7 @@
             "device_id": "0"
           },
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16656,
             "csv_line": 16658,
@@ -219377,7 +219389,7 @@
         ],
         [
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16840,
             "csv_line": 16842,
@@ -219386,7 +219398,7 @@
             "device_id": "0"
           },
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16843,
             "csv_line": 16845,
@@ -219395,7 +219407,7 @@
             "device_id": "0"
           },
           {
-            "source": "/Volumes/data/mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
+            "source": "capture://mindie-sim-data/a5/qwen3_5_35b_a3b_w8a8_mtp_high_conc_decode_tpot10ms_c64_20261030/kernel_details.csv",
             "table": "kernel_details.csv",
             "row_index": 16844,
             "csv_line": 16846,
@@ -219415,17 +219427,26 @@
   },
   "runtime_sources": {
     "examples/structure/collect_grouped_micro_pmu.py": {
-      "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/collect_grouped_micro_pmu.py",
+      "repository": "mindie-agent/profiler",
+      "relative_path": "examples/structure/collect_grouped_micro_pmu.py",
+      "source_sha256": "a4064ac83d2b6ad00f9016ad6f1ddf26a58d339d73721050202f3d77175da017",
+      "revision": null,
       "sha256": "a4064ac83d2b6ad00f9016ad6f1ddf26a58d339d73721050202f3d77175da017",
       "size_bytes": 14727
     },
     "examples/structure/targeted_native_pmu.py": {
-      "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/targeted_native_pmu.py",
+      "repository": "mindie-agent/profiler",
+      "relative_path": "examples/structure/targeted_native_pmu.py",
+      "source_sha256": "ddde6a1e849c862f57a3f267fe904484db1445801807ac85b3d552c98a7c9b80",
+      "revision": null,
       "sha256": "ddde6a1e849c862f57a3f267fe904484db1445801807ac85b3d552c98a7c9b80",
       "size_bytes": 5521
     },
     "mindie_profiler/decode_segmentation.py": {
-      "path": "/Volumes/data/code/mindie-release-20261014/profiler/mindie_profiler/decode_segmentation.py",
+      "repository": "mindie-agent/profiler",
+      "relative_path": "mindie_profiler/decode_segmentation.py",
+      "source_sha256": "690580528e3c999cdd2261178140e97032210f2b8ed74b31fa1306a064f4533c",
+      "revision": null,
       "sha256": "690580528e3c999cdd2261178140e97032210f2b8ed74b31fa1306a064f4533c",
       "size_bytes": 36822
     }
@@ -219441,5 +219462,14 @@
     "Source call-chain role is conditional on independently verified complete layer topology, not Host identity.",
     "Native N/A ABI remains absent; buffer capacity is not active routed rows.",
     "PMU pipes overlap; no exclusive latency partition or descriptor unit price is implied."
-  ]
+  ],
+  "path_normalization": {
+    "schema": "mindie-path-normalization/1",
+    "original_sha256": "a4001aa59f1e392b5ecd29cb36c433e65d62926903653f7e189b5ac71fe6f0f6",
+    "normalized_sha256": "66aa6341203c1ce9cb4066f7c84071d517271e2967cd26936c18b9708335e10d",
+    "rules": [
+      "repository_identity",
+      "capture_uri"
+    ]
+  }
 }

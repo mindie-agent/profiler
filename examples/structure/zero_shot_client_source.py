@@ -45,10 +45,12 @@ import re
 import shlex
 from typing import Any, Iterable, Iterator, Mapping, Sequence
 
+from evidence_roots import workstream_root
+
 SCHEMA_VERSION = "mindie-zero-shot-client-requests/1"
 DEFAULT_SOURCE_ROOTS = (
-    Path("/Volumes/data/mindie-agent-workstreams/a5-multinode-fleet-rack06-20261107"),
-    Path("/Volumes/data/mindie-agent-workstreams/a5-multinode-fleet-rack08-20261107"),
+    workstream_root() / "a5-multinode-fleet-rack06-20261107",
+    workstream_root() / "a5-multinode-fleet-rack08-20261107",
 )
 DEFAULT_PRODUCER_SEED = 1024
 _UNITS = {

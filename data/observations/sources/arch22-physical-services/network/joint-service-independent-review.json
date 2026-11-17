@@ -4,7 +4,7 @@
   "checks": 1137,
   "failures": [],
   "report_identity": {
-    "path": "/Users/maoxx241/code/profiler/data/observations/sources/arch22-physical-services/network/retained-a3-joint-service-curves.json",
+    "path": "repository://profiler/data/observations/sources/arch22-physical-services/network/retained-a3-joint-service-curves.json",
     "sha256": "449c9849d29fac50b219826a3c147136e4f3320f7c005fa6641949b77caa7950"
   },
   "curves": 16,

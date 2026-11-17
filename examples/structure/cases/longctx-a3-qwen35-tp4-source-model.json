@@ -89,7 +89,7 @@
     "max_model_len": 131072,
     "metadata": {
       "capture_source": {
-        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen35-gdn/cfg/serve_tp4.sh",
+        "path": "capture://mindie-sim-data/a3/2026-10-23/qwen35-gdn/cfg/serve_tp4.sh",
         "sha256": "a2bd6e6f0d6615e84690111197636882253cb02c4b2d7755468e09fb2fda53d7",
         "size_bytes": 2518
       },
@@ -100,7 +100,7 @@
       "runtime_recipe_basis": "uncalibrated catalog baseline; no high-concurrency EP/MC2 policy transferred",
       "ffn_source_contract": {
         "evidence": {
-          "path": "/Users/maoxx241/code/sim-serving-host-io-20261030/tests/fixtures/verification/qwen35-a3-ffn-contract.json",
+          "path": "repository://sim-serving-host-io-20261030/tests/fixtures/verification/qwen35-a3-ffn-contract.json",
           "sha256": "c42b158e6f7bda51edd3fe607355a1a37633e920c35fd1be51cb75ebfb579f1a"
         },
         "shared_precision": "BF16 activation and weight in both low and high row captures",
@@ -118,7 +118,7 @@
           "path": "attention/fused_infer_attention_score/op_host/flash_attention_infer_tiling.h"
         },
         "native_evidence": {
-          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/a3-qwen-decode-fia-samples.json",
+          "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/a3-qwen-decode-fia-samples.json",
           "sha256": "d7f9cba458eed41867f74989016e7e64fb5d2f578a7e6438c272aca03821c534",
           "size_bytes": 144484
         },

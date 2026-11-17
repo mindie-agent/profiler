@@ -1,12 +1,12 @@
 {
   "source_report": {
-    "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/current/09626b548690b9fdcb484cb51660128932bf02820afec4f1e9cbf48d3acd098e.json",
+    "path": "capture://mindie-sim-data/acceptance-archives-20261030/current/09626b548690b9fdcb484cb51660128932bf02820afec4f1e9cbf48d3acd098e.json",
     "sha256": "09626b548690b9fdcb484cb51660128932bf02820afec4f1e9cbf48d3acd098e",
     "size_bytes": 475940,
     "format": "full_scoreboard_json"
   },
   "source_identity": {
-    "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/glm5_3_flash_w8a8_static_kernel_on_c10_p128k_20261030/kernel_details.csv",
+    "path": "capture://mindie-sim-data/a3/heldout_engine_20261030/glm5_3_flash_w8a8_static_kernel_on_c10_p128k_20261030/kernel_details.csv",
     "sha256": "334c098253958b7ad6c428b0d9ebf7cb883fcd02ba5ce868dcd3a4ea18a68365",
     "size_bytes": 86903800,
     "kind": "csv"

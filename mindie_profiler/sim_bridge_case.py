@@ -11,13 +11,47 @@
 """
 from __future__ import annotations
 
-import argparse, csv, hashlib, json, os, re, sys
+import argparse, csv, hashlib, json, math, os, re, sys
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 from .events import PARSER_VERSION, ProfilerError, ProfilerUsageError
+from .sim_bridge_cells import (
+    CellSpec, cell_from_dict, forecast_cell, predict_cell, source_declarations,
+    structure_fingerprint,
+)
 
 from .sim_bridge_observed import NATIVE_REQUEST_SCHEMA, _canonical_json, _native_timing_path
+
+@dataclass(frozen=True)
+class OperatorRow:
+    """One published operator occurrence from a canonical public graph."""
+
+    name: str
+    kind: str
+    mechanism: str
+    subgraph: str
+    duration_ms: float
+    count: int
+    regime: tuple[tuple[str, int], ...]
+    dominant_pipe: str
+    formula: str
+    segment: int
+    cost: Any = field(default=None, compare=False, repr=False)
+    native_call: Any = field(default=None, compare=False, repr=False)
+    native_occurrence: Any = field(default=None, compare=False, repr=False)
+    phase: str = ""
+
+    @property
+    def total_ms(self) -> float:
+        return self.duration_ms * self.count
+
+    @property
+    def guard_text(self) -> str:
+        return (";" .join(f"{key}={value}" for key, value in self.regime)
+                if self.regime else "no_discrete_guard")
+
 
 def _native_capture_selection(value: str | Path, *, rank: str | None) -> tuple[Path, dict[str, Any]]:
     """Select one kernel_details CSV without hiding sibling-rank facts.
@@ -419,20 +453,6 @@ def _native_merge_explicit_invocation(
     raw_conditions = invocation.get("conditions")
     explicit_conditions = dict(raw_conditions) if isinstance(raw_conditions, Mapping) else {}
     request_conditions = dict(conditions)
-    try:
-        from mindie_sim.prediction.piecewise.native_calls import native_abi_spec
-        entry = _native_api_mapping(
-            invocation.get("api") or parts.get("api")).get("entry")
-        spec = native_abi_spec(entry) if entry else None
-    except TimeoutError:
-        raise
-    except Exception:
-        spec = None
-    if spec is not None and not getattr(spec, "preserve_extra_conditions", False):
-        request_conditions = {
-            key: value for key, value in request_conditions.items()
-            if key in _T12_CONDITION_KEYS
-        }
     merged_conditions = dict(request_conditions)
     for key, value in explicit_conditions.items():
         key = str(key)
@@ -456,6 +476,62 @@ def _native_merge_explicit_invocation(
         "t12_condition_keys": list(
             (invocation.get("conditions") or {}).keys()),
     }
+
+def _qbmm_w8a8_invocation(
+    abi: Mapping[str, Any], *,
+    version: Mapping[str, Any] | None = None,
+    attrs: Mapping[str, Any] | None = None,
+    conditions: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Map a real 4-slot W8A8 QuantBatchMatmul ABI to a declared invocation.
+
+    Slot order is x, weight (logical or FRACTAL_NZ storage), weight_scale and
+    pertoken_scale, then output.  Storage shapes/dtypes/layouts are preserved;
+    no MXFP8 block scale, bias, dtype or source revision is invented.
+    """
+    inputs, outputs = list(abi.get("inputs") or ()), list(abi.get("outputs") or ())
+    if len(inputs) != 4 or len(outputs) != 1:
+        raise ProfilerUsageError("native_qbmm_w8a8_slot_count")
+    x, weight, weight_scale, pertoken = inputs
+    output = outputs[0]
+
+    def slot(row: Mapping[str, Any], name: str, role: str) -> dict[str, Any]:
+        present = row.get("present", True) is not False
+        return {
+            "name": name,
+            "shape": list(row.get("shape") or ()) if present else None,
+            "dtype": row.get("dtype") if present else None,
+            "layout": (row.get("layout") or "ND") if present else "ND",
+            "role": role, "present": present,
+            "dtype_present": bool(row.get("dtype")) if present else False,
+            "layout_present": bool(row.get("layout")) if present else False,
+        }
+
+    weight_name = ("weight_nz" if str(weight.get("layout") or "").upper()
+                   == "FRACTAL_NZ" else "weight")
+    tensors = {
+        "x": slot(x, "x", "input"),
+        weight_name: slot(weight, weight_name, "weight"),
+        "weight_scale": slot(weight_scale, "weight_scale", "scale"),
+        "pertoken_scale": slot(pertoken, "pertoken_scale", "scale"),
+        "output": slot(output, "output", "output"),
+    }
+    actual_attrs = dict(attrs or {})
+    scale_dtype = str(weight_scale.get("dtype") or "").lower()
+    if scale_dtype in {"bf16", "bfloat16"}:
+        actual_attrs.setdefault("weight_scale_storage_format", "bf16")
+    elif scale_dtype in {"fp32", "float32"}:
+        actual_attrs.setdefault("weight_scale_storage_format", "fp32")
+    return {
+        "api": {"namespace": "aclnn",
+                "entry": "aclnnQuantMatmulWeightNz",
+                "aclnn_symbol": "aclnnQuantMatmulWeightNz"},
+        "version": dict(version or {}),
+        "tensors": tensors,
+        "attrs": actual_attrs,
+        "conditions": dict(conditions or {}),
+    }
+
 
 def _qbmm_t12_invocation(
     request: Mapping[str, Any], *,
@@ -506,10 +582,7 @@ def _qbmm_t12_invocation(
     )
     if is_w8a8:
         try:
-            from mindie_sim.prediction.piecewise.native_invocation import (
-                native_qbmm_w8a8_invocation,
-            )
-            invocation = native_qbmm_w8a8_invocation(
+            invocation = _qbmm_w8a8_invocation(
                 abi, version=version, attrs=attrs, conditions=conditions)
             if declared_api:
                 invocation["api"] = declared_api

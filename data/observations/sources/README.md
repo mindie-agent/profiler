@@ -80,3 +80,15 @@ One actual graph gap found during this export is GLM's packed Slice materializat
 and `SparseFlashMlaMetadata`: the latter is a typed AICPU Body dependency with
 no AIC/AIV PMU values. It remains inside the Body dependency graph. This is
 separate from excluded cross-step controller tails.
+
+## Path normalization
+
+Published identities no longer carry a developer-local path. A repository
+artifact is named by `{repository, relative_path, source_sha256, revision}` and
+a capture member by `capture://mindie-sim-data/<member>`. A capture member is
+resolved only through the caller-supplied `MINDIE_SIM_DATA_ROOT`; an unenrolled
+root stays explicitly absent. Recorded artifact `sha256`/`size_bytes` values
+remain the ones measured at extraction time. Each rewritten table records the
+migration under `path_normalization` with the original and normalized file
+digests, so a normalized artifact can be audited without rewriting its
+measured identity.

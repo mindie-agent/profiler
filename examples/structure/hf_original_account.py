@@ -232,26 +232,11 @@ def _spec_matches_source(row: Mapping[str, Any], cell: Any) -> bool:
 
 def _run_compare_cell(row: Mapping[str, Any]) -> tuple[list[Any] | None, str]:
     """Original compare on the complete source row. A failure stays pending."""
-    try:
-        import zero_shot_piecewise_validation as zsv
-        if not _trace_ready(row):
-            return None, "prediction_pending"
-        if not _geometry_ready(row):
-            return None, "defaulted_source"
-        cell = zsv.cell_from_dict(row)
-        if not _spec_matches_source(row, cell):
-            return None, "defaulted_source"
-        if cell.trace is None or getattr(cell.trace, "incomplete", False) or not cell.success:
-            return None, "trace_not_usable"
-        prediction = zsv.predict_cell(cell.spec)
-        if prediction.layers <= 0:
-            return None, "prediction_pending"
-        compared = list(zsv.compare_cell(cell, prediction))
-        if not compared:
-            return None, "no_comparisons"
-        return compared, ""
-    except Exception as exc:
-        return None, type(exc).__name__
+    # The retired private piecewise compiler is gone.  A row without a stored
+    # canonical comparison stays an explicit pending result instead of being
+    # priced by a renamed private service.
+    del row
+    return None, "canonical_comparison_not_stored"
 
 
 def collect_original_cell(row: Mapping[str, Any]) -> tuple[list[Any] | None, str]:

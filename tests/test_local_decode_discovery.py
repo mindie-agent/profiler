@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'examples/structure'))
 from decode import capture_metadata, local_capture_directories, prepare_local_capture
 from pipeline import discover_local, identity
+from evidence_roots import localize_evidence
 from tests.sim_fixtures import case_path
 
 FIXTURE = ROOT / 'tests/fixtures/pipeline/local_glm128k'
@@ -215,7 +216,9 @@ def test_complete_v41_discovery_registers_all_forward_populations_from_model_pat
     assert entry['id'].startswith('decode:local_')
     assert entry['source'] == {**identity(directory / 'kernel_details.csv'), 'kind': 'csv'}
     assert entry['model_case'] == identity(model_path)
-    assert entry['segmentation_options'] == segmentation
+    # The registry reader resolves stored evidence URIs in memory, so the
+    # generated entry carries the localized declaration.
+    assert entry['segmentation_options'] == localize_evidence(segmentation)
     assert entry['geometry_limit'] is None
     observed = json.loads(Path(entry['extraction_path']).read_text())
     assert entry['forward_metadata'] == {

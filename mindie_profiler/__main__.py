@@ -49,7 +49,6 @@ SUBCOMMANDS = (
     "inspect-op-abi",
     "repro-op",
     "fabric-probe",
-    "op-formula",
     "aclgraph",
 )
 
@@ -421,10 +420,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             from .fabric_probe import main as fabric_main
 
             return fabric_main(rest)
-        if command == "op-formula":
-            from .op_formula_annotator import main as op_formula_main
-
-            return op_formula_main(rest)
         if command == "export-sim-case":
             from .sim_bridge import main as export_sim_case_main
 

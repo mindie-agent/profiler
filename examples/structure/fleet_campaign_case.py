@@ -13,15 +13,17 @@ import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Mapping, Sequence
+
+from evidence_roots import capture_root, workstream_root
 CAMPAIGN_SUITE = "a5_multinode_full_coverage_20261108"
 RACK_SUITE = "a5_rack06_rack08_multirank_20261107"
 CAMPAIGN_PREFIX = "a5_multinode_20261108:"
-CAMPAIGN_ROOT = Path("/Volumes/data/mindie-sim-data/a5/multinode-full-coverage-20261108")
+CAMPAIGN_ROOT = capture_root() / "a5" / "multinode-full-coverage-20261108"
 GLM51_SOURCE_CASE = Path(__file__).with_name("cases") / "decode-a5_glm51_mxfp4_dp16tp1ep16_pf1k.json"
-WEIGHTS_CATALOG = Path("/Volumes/data/mindie-sim-data/a5/weights-catalog")
+WEIGHTS_CATALOG = capture_root() / "a5" / "weights-catalog"
 WORKSTREAM_ROOTS = (
-    Path("/Volumes/data/mindie-agent-workstreams"),
-    Path("/Users/maoxx241/code/mindie-agent/.workstreams"),
+    workstream_root(),
+    Path("repository://mindie-agent/.workstreams"),
 )
 _RANK_RE = re.compile(r"^dp(\d+)_pp(\d+)_tp(\d+)_dcp(\d+)_ep(\d+)_rank(\d+)")
 def _sha256(path: Path) -> str:

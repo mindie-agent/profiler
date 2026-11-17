@@ -46,7 +46,7 @@
     }
   ],
   "_fixture_source_identity": {
-    "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4pro-prefill/raw/pre4096.json",
+    "path": "capture://mindie-sim-data/a3/2026-10-23/v4pro-prefill/raw/pre4096.json",
     "sha256": "84277723fd7c65d288f366117af282520cc5045d1e99f100bc2b61d7861b4168",
     "size_bytes": 1016
   }

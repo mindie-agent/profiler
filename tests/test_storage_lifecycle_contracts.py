@@ -48,9 +48,8 @@ from mindie_profiler import (
 )
 from mindie_profiler.events import ProfilerSchemaError
 from mindie_profiler.fabric_probe import build_fabric_probe_plan
-from mindie_sim import diff_trace
 
-import nr_s6_round4_probe as probe
+import fabric_probe_harness as probe
 import temp_workspaces as temp_workspaces_module
 from temp_workspaces import (
     live_temp_workspaces,
@@ -158,15 +157,15 @@ def _diff_slot(root: Path, name: str, days: float) -> Path:
     return entry
 
 
-_REUSE_TRACE = {"total_ms": 2, "ops": [{"name": "R14", "duration_ms": 2}]}
+_FIXED_DIFF_PAYLOAD = (
+    b'{"schema":"mindie-profiler-diff/1","total_ms":2,'
+    b'"ops":[{"name":"R14","duration_ms":2}]}\n')
 
 
-def _diff_payload(trace: dict) -> bytes:
-    """Byte-identical payload for ``mindie_sim.diff_trace._persist_diff``."""
+def _diff_payload(_trace: dict) -> bytes:
+    """Fixed fixture bytes for generic replayed-slot retention tests."""
 
-    payload = diff_trace.attribute_diff(trace, trace)
-    return (json.dumps(payload, ensure_ascii=False, sort_keys=True,
-                       separators=(",", ":"), allow_nan=False) + "\n").encode("utf-8")
+    return _FIXED_DIFF_PAYLOAD
 
 
 def test_prune_repro_storage_bounds_age_and_count_while_protecting_active(
@@ -622,17 +621,9 @@ from pathlib import Path
 from mindie_profiler import repro_storage
 
 root = Path(os.environ["MINDIE_REPRO_SHORT_ROOT"])
-kind = sys.argv[1]
-if kind == "cas":
-    script = "#!/usr/bin/env python3\nprint('reused')\n"
-    result = repro_storage.stage_artifacts(script, {"schema": "mindie-op-repro/1"})
-    assert result["status"] == "delivered", result
-else:
-    from mindie_sim.diff_trace import call_mcp_tool
-    trace = {"total_ms": 2, "ops": [{"name": "R14", "duration_ms": 2}]}
-    result = call_mcp_tool({"predicted": trace, "captured": trace})
-    assert result["persisted"] is True, result
-    entry = Path(result["artifact_path"]).parent
+script = "#!/usr/bin/env python3\nprint('reused')\n"
+result = repro_storage.stage_artifacts(script, {"schema": "mindie-op-repro/1"})
+assert result["status"] == "delivered", result
 print("ready", flush=True)
 sys.stdin.readline()
 """
@@ -759,24 +750,16 @@ def test_write_guard_drops_marker_when_seal_pin_times_out(tmp_path, monkeypatch)
     assert not repro_retention._PINS
 
 
-@pytest.mark.parametrize("kind", ["cas", "diff"])
-def test_live_child_slot_pin_survives_prune_until_the_child_exits(tmp_path, kind):
+def test_live_child_slot_pin_survives_prune_until_the_child_exits(tmp_path):
     root = make_temp_workspace("mpr15p-", base="/tmp")
-    if kind == "cas":
-        script = "#!/usr/bin/env python3\nprint('reused')\n"
-        manifest = {"schema": "mindie-op-repro/1"}
-        script_bytes, manifest_bytes = repro_storage._encode_pair(script, manifest)
-        entry = root / repro_storage.artifact_id(script).split(":")[1][:12]
-        entry.mkdir()
-        (entry / "repro.py").write_bytes(script_bytes)
-        (entry / "manifest.json").write_bytes(manifest_bytes)
-        leaves = ("repro.py", "manifest.json")
-    else:
-        data = _diff_payload(_REUSE_TRACE)
-        entry = root / "diff" / hashlib.sha256(data).hexdigest()[:12]
-        entry.mkdir(parents=True)
-        (entry / "diff.json").write_bytes(data)
-        leaves = ("diff.json",)
+    script = "#!/usr/bin/env python3\nprint('reused')\n"
+    manifest = {"schema": "mindie-op-repro/1"}
+    script_bytes, manifest_bytes = repro_storage._encode_pair(script, manifest)
+    entry = root / repro_storage.artifact_id(script).split(":")[1][:12]
+    entry.mkdir()
+    (entry / "repro.py").write_bytes(script_bytes)
+    (entry / "manifest.json").write_bytes(manifest_bytes)
+    leaves = ("repro.py", "manifest.json")
     for name in leaves:
         _age(entry / name, 40.0)
     env = dict(os.environ)
@@ -784,7 +767,7 @@ def test_live_child_slot_pin_survives_prune_until_the_child_exits(tmp_path, kind
     env["PYTHONPATH"] = os.pathsep.join(
         [str(Path(__file__).resolve().parents[1]), env.get("PYTHONPATH", "")])
     process = subprocess.Popen(
-        [sys.executable, "-c", _SLOT_REUSE_CHILD, kind],
+        [sys.executable, "-c", _SLOT_REUSE_CHILD],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -1021,183 +1004,22 @@ def test_temp_workspace_stays_registered_until_removal_is_confirmed(tmp_path, mo
     assert not path.exists()
 
 
-def test_diff_reuse_rebuilds_when_slot_is_evicted_mid_read(monkeypatch):
-    from mindie_sim.diff_trace import call_mcp_tool as diff_mcp
-
-    root = make_temp_workspace("mpr15m-", base="/tmp")
-    monkeypatch.setenv("MINDIE_REPRO_SHORT_ROOT", str(root))
-    trace = {"total_ms": 2, "ops": [{"name": "MatMul", "duration_ms": 2}]}
-    seeded = diff_mcp({"predicted": trace, "captured": trace})
-    assert seeded["persisted"] is True
-    artifact = Path(seeded["artifact_path"])
-    assert artifact.is_file()
-    for pin in (root / "diff").glob(".pin-*.lock"):
-        pin.unlink()
-    _age(artifact, 40.0)
-
-    real_note = repro_retention.note_reused_slot
-    evicted = []
-
-    def evict_before_lease(leaf, expected_inode):
-        if not evicted and leaf == artifact:
-            evicted.append(repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14))
-        return real_note(leaf, expected_inode)
-
-    monkeypatch.setattr(repro_retention, "note_reused_slot", evict_before_lease)
-    rebuilt = diff_mcp({"predicted": trace, "captured": trace})
-    assert evicted == [1]
-    assert rebuilt["persisted"] is True
-    assert Path(rebuilt["artifact_path"]).is_file()
-    assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14) == 0
-
-
-def test_diff_reuse_short_lease_write_forces_rebuild_and_rolls_back_partial_pid(monkeypatch):
-    from mindie_sim.diff_trace import call_mcp_tool as diff_mcp
-
-    root = make_temp_workspace("mpr15s-", base="/tmp")
-    monkeypatch.setenv("MINDIE_REPRO_SHORT_ROOT", str(root))
-    trace = {"total_ms": 2, "ops": [{"name": "Softmax", "duration_ms": 2}]}
-    seeded = diff_mcp({"predicted": trace, "captured": trace})
-    artifact = Path(seeded["artifact_path"])
-    pin = next((root / "diff").glob(".pin-*.lock"))
-    pin.unlink()
-    _age(artifact, 40.0)
-
-    real_write = repro_retention.os.write
-    calls = []
-    short_fds: set[int] = set()
-
-    def truncated_once(fd, data):
-        payload = bytes(data)
-        if not calls and payload == f"{os.getpid()}\n".encode("ascii"):
-            short_fds.add(fd)
-            calls.append(len(payload))
-            return real_write(fd, payload[:1])
-        if fd in short_fds and len(calls) == 1:
-            calls.append(len(payload))
-            return 0
-        return real_write(fd, data)
-
-    monkeypatch.setattr(repro_retention.os, "write", truncated_once)
-    failed = diff_mcp({"predicted": trace, "captured": trace})
-    assert len(calls) == 2
-    assert failed["persisted"] is False
-    assert not pin.exists()
-    assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14) == 1
-    assert not artifact.exists()
-
-    rebuilt = diff_mcp({"predicted": trace, "captured": trace})
-    assert rebuilt["persisted"] is True
-    assert Path(rebuilt["artifact_path"]).is_file()
-    assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14) == 0
-
-
-def test_diff_new_write_short_seal_pin_reports_delivery_failed_without_false_persisted(monkeypatch):
-    from mindie_sim.diff_trace import call_mcp_tool as diff_mcp
-
-    root = make_temp_workspace("mpr15p-", base="/tmp")
-    monkeypatch.setenv("MINDIE_REPRO_SHORT_ROOT", str(root))
-    trace = {"total_ms": 3, "ops": [{"name": "LayerNorm", "duration_ms": 3}]}
-
-    real_write = repro_retention.os.write
-    calls = []
-    short_fds: set[int] = set()
-
-    def short_on_seal(fd, data):
-        payload = bytes(data)
-        if not calls and payload == f"{os.getpid()}\n".encode("ascii"):
-            short_fds.add(fd)
-            calls.append(len(payload))
-            return real_write(fd, payload[:2])
-        if fd in short_fds and len(calls) == 1:
-            calls.append(len(payload))
-            return 0
-        return real_write(fd, data)
-
-    real_drop = repro_retention._drop_marker
-    pruned_during_drop = []
-
-    def drop_then_prune(marker, fd):
-        real_drop(marker, fd)
-        pruned_during_drop.append(repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14))
-
-    monkeypatch.setattr(repro_retention.os, "write", short_on_seal)
-    monkeypatch.setattr(repro_retention, "_drop_marker", drop_then_prune)
-    failed = diff_mcp({"predicted": trace, "captured": trace})
-    assert len(calls) == 2
-    assert failed["persisted"] is False
-    assert failed["retrievable"] is False
-    assert failed["status"] == "delivery_failed"
-    assert not list((root / "diff").glob(".pin-*.lock"))
-    assert not repro_retention._PINS
-
-    monkeypatch.setattr(repro_retention.os, "write", real_write)
-    monkeypatch.setattr(repro_retention, "_drop_marker", real_drop)
-    rebuilt = diff_mcp({"predicted": trace, "captured": trace})
-    assert rebuilt["persisted"] is True
-    assert Path(rebuilt["artifact_path"]).is_file()
-    assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14) == 0
-
-
-def test_diff_failed_seal_pin_preserves_concurrent_reader_lease_and_artifact(monkeypatch):
-    from mindie_sim.diff_trace import call_mcp_tool as diff_mcp
-
-    root = make_temp_workspace("mpr15c-", base="/tmp")
-    monkeypatch.setenv("MINDIE_REPRO_SHORT_ROOT", str(root))
-    trace = {"total_ms": 5, "ops": [{"name": "RMSNorm", "duration_ms": 5}]}
-
-    real_write = repro_retention.os.write
-    real_seal_pin = repro_retention._seal_pin
-    reader_pid = os.getpid() + 100000
-    monkeypatch.setattr(repro_retention, "process_exited", lambda pid: pid not in {os.getpid(), reader_pid})
-    short_fds: set[int] = set()
-    calls: list[int] = []
-
-    def reader_then_writer_fails(entry):
-        pin = repro_retention._pin_path(entry)
-        with pin.open("ab") as handle:
-            handle.write(f"{reader_pid}\n".encode("ascii"))
-        return real_seal_pin(entry)
-
-    def short_writer_pid(fd, data):
-        payload = bytes(data)
-        if not calls and payload == f"{os.getpid()}\n".encode("ascii"):
-            short_fds.add(fd)
-            calls.append(len(payload))
-            return real_write(fd, payload[:1])
-        if fd in short_fds and len(calls) == 1:
-            calls.append(len(payload))
-            return 0
-        return real_write(fd, data)
-
-    monkeypatch.setattr(repro_retention, "_seal_pin", reader_then_writer_fails)
-    monkeypatch.setattr(repro_retention.os, "write", short_writer_pid)
-    failed = diff_mcp({"predicted": trace, "captured": trace})
-    assert failed["persisted"] is False
-    assert failed["status"] == "delivery_failed"
-    pins = list((root / "diff").glob(".pin-*.lock"))
-    assert len(pins) == 1
-    assert pins[0].read_bytes().lstrip(b"\x00") == f"{reader_pid}\n".encode("ascii")
-    assert len(list((root / "diff").glob("*/diff.json"))) == 1
-    assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14) == 0
-
-
-def test_post_publish_verification_failure_preserves_concurrent_reader_lease(monkeypatch):
+def test_post_publish_verification_failure_preserves_concurrent_reader_lease(tmp_path, monkeypatch):
     from mindie_profiler import repro_atomic_io as checked_io
-    from mindie_sim.diff_trace import call_mcp_tool as diff_mcp
 
     root = make_temp_workspace("mpr15v-", base="/tmp")
     monkeypatch.setenv("MINDIE_REPRO_SHORT_ROOT", str(root))
-    trace = {"total_ms": 6, "ops": [{"name": "Rotary", "duration_ms": 6}]}
+    script = "#!/usr/bin/env python3\n# single-op reproducer generated by mindie-profiler\nprint('publish')\n"
+    manifest = {"schema": "mindie-op-repro/1"}
     reader_pid = os.getpid() + 100001
     monkeypatch.setattr(repro_retention, "process_exited", lambda pid: pid not in {os.getpid(), reader_pid})
 
     real_verify = checked_io._verified_inode
-    calls = []
+    failed_once = []
 
     def fail_final_verify_after_reader(path, expected, digest):
-        calls.append(Path(path).name)
-        if Path(path).name == "diff.json" and len(calls) == 2:
+        if Path(path).name == "manifest.json" and not failed_once:
+            failed_once.append(True)
             pin = repro_retention._pin_path(Path(path).parent)
             with pin.open("ab") as handle:
                 handle.write(f"{reader_pid}\n".encode("ascii"))
@@ -1205,10 +1027,9 @@ def test_post_publish_verification_failure_preserves_concurrent_reader_lease(mon
         return real_verify(path, expected, digest)
 
     monkeypatch.setattr(checked_io, "_verified_inode", fail_final_verify_after_reader)
-    failed = diff_mcp({"predicted": trace, "captured": trace})
-    assert failed["persisted"] is False
+    failed = repro_storage.stage_artifacts(script, manifest, output_dir=tmp_path / "caller")
     assert failed["status"] == "delivery_failed"
-    assert len(list((root / "diff").glob("*/diff.json"))) == 1
+    assert failed["retrievable"] is False
     assert repro_retention.prune_repro_storage(root, max_entries=0, max_age_days=14) == 0
 
 

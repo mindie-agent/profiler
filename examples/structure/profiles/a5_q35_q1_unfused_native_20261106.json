@@ -322,15 +322,15 @@
       "id": "a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16",
       "role": "parameter_assignment",
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
         "bytes": 25924937
       },
       "command": {
         "schema_version": "mindie-profiler-capture-policy-import/1",
         "status": "applied",
-        "capture_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
-        "command_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/cmd.sh",
+        "capture_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "command_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/cmd.sh",
         "command_executed": false,
         "timing_values_used": false,
         "provided_fields": [
@@ -369,15 +369,15 @@
       "id": "a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4",
       "role": "parameter_assignment",
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
         "bytes": 22764943
       },
       "command": {
         "schema_version": "mindie-profiler-capture-policy-import/1",
         "status": "applied",
-        "capture_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
-        "command_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/cmd.sh",
+        "capture_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "command_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/cmd.sh",
         "command_executed": false,
         "timing_values_used": false,
         "provided_fields": [
@@ -416,15 +416,15 @@
       "id": "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1",
       "role": "parameter_assignment",
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
         "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
         "bytes": 24715344
       },
       "command": {
         "schema_version": "mindie-profiler-capture-policy-import/1",
         "status": "applied",
-        "capture_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
-        "command_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/cmd.sh",
+        "capture_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "command_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/cmd.sh",
         "command_executed": false,
         "timing_values_used": false,
         "provided_fields": [
@@ -463,15 +463,15 @@
       "id": "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16",
       "role": "parameter_assignment",
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
         "bytes": 26222440
       },
       "command": {
         "schema_version": "mindie-profiler-capture-policy-import/1",
         "status": "applied",
-        "capture_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
-        "command_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/cmd.sh",
+        "capture_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "command_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/cmd.sh",
         "command_executed": false,
         "timing_values_used": false,
         "provided_fields": [
@@ -510,15 +510,15 @@
       "id": "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16",
       "role": "parameter_assignment",
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
         "bytes": 22384705
       },
       "command": {
         "schema_version": "mindie-profiler-capture-policy-import/1",
         "status": "applied",
-        "capture_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
-        "command_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/cmd.sh",
+        "capture_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "command_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/cmd.sh",
         "command_executed": false,
         "timing_values_used": false,
         "provided_fields": [
@@ -557,15 +557,15 @@
       "id": "a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4",
       "role": "parameter_assignment",
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
         "bytes": 23224452
       },
       "command": {
         "schema_version": "mindie-profiler-capture-policy-import/1",
         "status": "applied",
-        "capture_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
-        "command_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/cmd.sh",
+        "capture_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "command_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/cmd.sh",
         "command_executed": false,
         "timing_values_used": false,
         "provided_fields": [
@@ -604,15 +604,15 @@
       "id": "a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16",
       "role": "validation",
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "13634e95a6591a15f2045d8aa60075600e9b9bdd8c5b115351566790d0d28919",
         "bytes": 23790411
       },
       "command": {
         "schema_version": "mindie-profiler-capture-policy-import/1",
         "status": "applied",
-        "capture_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
-        "command_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/cmd.sh",
+        "capture_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "command_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/cmd.sh",
         "command_executed": false,
         "timing_values_used": false,
         "provided_fields": [
@@ -651,15 +651,15 @@
       "id": "a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4",
       "role": "validation",
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "79720f6dfaa29329f61181bd9b8e99d29f1ee371bd1c5b7700899a3fb38186ea",
         "bytes": 25595448
       },
       "command": {
         "schema_version": "mindie-profiler-capture-policy-import/1",
         "status": "applied",
-        "capture_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
-        "command_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/cmd.sh",
+        "capture_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "command_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/cmd.sh",
         "command_executed": false,
         "timing_values_used": false,
         "provided_fields": [
@@ -698,15 +698,15 @@
       "id": "a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1",
       "role": "validation",
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
         "sha256": "169b5019f27d3220516475139affc4e390dcc6838fcf7272f312d5ad8cdee245",
         "bytes": 23799123
       },
       "command": {
         "schema_version": "mindie-profiler-capture-policy-import/1",
         "status": "applied",
-        "capture_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
-        "command_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/cmd.sh",
+        "capture_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
+        "command_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/cmd.sh",
         "command_executed": false,
         "timing_values_used": false,
         "provided_fields": [
@@ -745,15 +745,15 @@
       "id": "a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16",
       "role": "validation",
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
       "command": {
         "schema_version": "mindie-profiler-capture-policy-import/1",
         "status": "applied",
-        "capture_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
-        "command_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/cmd.sh",
+        "capture_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "command_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/cmd.sh",
         "command_executed": false,
         "timing_values_used": false,
         "provided_fields": [
@@ -792,15 +792,15 @@
       "id": "a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16",
       "role": "validation",
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "c543ac1ca8e9addccf731fe75f874745bde69a9a5b537069479ec7bfb2dad5d0",
         "bytes": 23099980
       },
       "command": {
         "schema_version": "mindie-profiler-capture-policy-import/1",
         "status": "applied",
-        "capture_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
-        "command_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/cmd.sh",
+        "capture_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "command_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/cmd.sh",
         "command_executed": false,
         "timing_values_used": false,
         "provided_fields": [
@@ -839,15 +839,15 @@
       "id": "a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4",
       "role": "validation",
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "05b32c246044ec7dfce628bbd55d876b0c9b7eac65544ec22cad5d8703e6abca",
         "bytes": 27477270
       },
       "command": {
         "schema_version": "mindie-profiler-capture-policy-import/1",
         "status": "applied",
-        "capture_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
-        "command_path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/cmd.sh",
+        "capture_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "command_path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/cmd.sh",
         "command_executed": false,
         "timing_values_used": false,
         "provided_fields": [
@@ -905,7 +905,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
         "bytes": 22764943
       },
@@ -939,7 +939,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
         "bytes": 22764943
       },
@@ -973,7 +973,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
         "bytes": 22764943
       },
@@ -1007,7 +1007,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
         "bytes": 22764943
       },
@@ -1041,7 +1041,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
         "bytes": 22764943
       },
@@ -1075,7 +1075,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
         "bytes": 22764943
       },
@@ -1109,7 +1109,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
         "bytes": 22764943
       },
@@ -1143,7 +1143,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
         "bytes": 22764943
       },
@@ -1177,7 +1177,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
         "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
         "bytes": 24715344
       },
@@ -1211,7 +1211,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
         "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
         "bytes": 24715344
       },
@@ -1245,7 +1245,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
         "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
         "bytes": 24715344
       },
@@ -1279,7 +1279,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
         "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
         "bytes": 24715344
       },
@@ -1313,7 +1313,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
         "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
         "bytes": 24715344
       },
@@ -1347,7 +1347,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
         "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
         "bytes": 24715344
       },
@@ -1381,7 +1381,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
         "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
         "bytes": 24715344
       },
@@ -1415,7 +1415,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
         "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
         "bytes": 24715344
       },
@@ -1449,7 +1449,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
         "bytes": 23224452
       },
@@ -1483,7 +1483,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
         "bytes": 23224452
       },
@@ -1517,7 +1517,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
         "bytes": 23224452
       },
@@ -1551,7 +1551,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
         "bytes": 23224452
       },
@@ -1585,7 +1585,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
         "bytes": 23224452
       },
@@ -1619,7 +1619,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
         "bytes": 23224452
       },
@@ -1653,7 +1653,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
         "bytes": 23224452
       },
@@ -1687,7 +1687,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
         "bytes": 23224452
       },
@@ -1721,7 +1721,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
         "bytes": 25924937
       },
@@ -1755,7 +1755,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
         "bytes": 25924937
       },
@@ -1789,7 +1789,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
         "bytes": 25924937
       },
@@ -1823,7 +1823,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
         "bytes": 25924937
       },
@@ -1857,7 +1857,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
         "bytes": 25924937
       },
@@ -1891,7 +1891,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
         "bytes": 25924937
       },
@@ -1925,7 +1925,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
         "bytes": 25924937
       },
@@ -1959,7 +1959,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
         "bytes": 25924937
       },
@@ -1993,7 +1993,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
         "bytes": 26222440
       },
@@ -2027,7 +2027,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
         "bytes": 26222440
       },
@@ -2061,7 +2061,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
         "bytes": 26222440
       },
@@ -2095,7 +2095,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
         "bytes": 26222440
       },
@@ -2129,7 +2129,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
         "bytes": 26222440
       },
@@ -2163,7 +2163,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
         "bytes": 26222440
       },
@@ -2197,7 +2197,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
         "bytes": 26222440
       },
@@ -2231,7 +2231,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
         "bytes": 26222440
       },
@@ -2265,7 +2265,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
         "bytes": 22384705
       },
@@ -2299,7 +2299,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
         "bytes": 22384705
       },
@@ -2333,7 +2333,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
         "bytes": 22384705
       },
@@ -2367,7 +2367,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
         "bytes": 22384705
       },
@@ -2401,7 +2401,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
         "bytes": 22384705
       },
@@ -2435,7 +2435,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
         "bytes": 22384705
       },
@@ -2469,7 +2469,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
         "bytes": 22384705
       },
@@ -2503,7 +2503,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
         "bytes": 22384705
       },
@@ -2537,7 +2537,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "79720f6dfaa29329f61181bd9b8e99d29f1ee371bd1c5b7700899a3fb38186ea",
         "bytes": 25595448
       },
@@ -2571,7 +2571,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "79720f6dfaa29329f61181bd9b8e99d29f1ee371bd1c5b7700899a3fb38186ea",
         "bytes": 25595448
       },
@@ -2605,7 +2605,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "79720f6dfaa29329f61181bd9b8e99d29f1ee371bd1c5b7700899a3fb38186ea",
         "bytes": 25595448
       },
@@ -2639,7 +2639,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "79720f6dfaa29329f61181bd9b8e99d29f1ee371bd1c5b7700899a3fb38186ea",
         "bytes": 25595448
       },
@@ -2673,7 +2673,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "79720f6dfaa29329f61181bd9b8e99d29f1ee371bd1c5b7700899a3fb38186ea",
         "bytes": 25595448
       },
@@ -2707,7 +2707,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "79720f6dfaa29329f61181bd9b8e99d29f1ee371bd1c5b7700899a3fb38186ea",
         "bytes": 25595448
       },
@@ -2741,7 +2741,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "79720f6dfaa29329f61181bd9b8e99d29f1ee371bd1c5b7700899a3fb38186ea",
         "bytes": 25595448
       },
@@ -2775,7 +2775,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "79720f6dfaa29329f61181bd9b8e99d29f1ee371bd1c5b7700899a3fb38186ea",
         "bytes": 25595448
       },
@@ -2809,7 +2809,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
         "sha256": "169b5019f27d3220516475139affc4e390dcc6838fcf7272f312d5ad8cdee245",
         "bytes": 23799123
       },
@@ -2843,7 +2843,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
         "sha256": "169b5019f27d3220516475139affc4e390dcc6838fcf7272f312d5ad8cdee245",
         "bytes": 23799123
       },
@@ -2877,7 +2877,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
         "sha256": "169b5019f27d3220516475139affc4e390dcc6838fcf7272f312d5ad8cdee245",
         "bytes": 23799123
       },
@@ -2911,7 +2911,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
         "sha256": "169b5019f27d3220516475139affc4e390dcc6838fcf7272f312d5ad8cdee245",
         "bytes": 23799123
       },
@@ -2945,7 +2945,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
         "sha256": "169b5019f27d3220516475139affc4e390dcc6838fcf7272f312d5ad8cdee245",
         "bytes": 23799123
       },
@@ -2979,7 +2979,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
         "sha256": "169b5019f27d3220516475139affc4e390dcc6838fcf7272f312d5ad8cdee245",
         "bytes": 23799123
       },
@@ -3013,7 +3013,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
         "sha256": "169b5019f27d3220516475139affc4e390dcc6838fcf7272f312d5ad8cdee245",
         "bytes": 23799123
       },
@@ -3047,7 +3047,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
         "sha256": "169b5019f27d3220516475139affc4e390dcc6838fcf7272f312d5ad8cdee245",
         "bytes": 23799123
       },
@@ -3081,7 +3081,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "05b32c246044ec7dfce628bbd55d876b0c9b7eac65544ec22cad5d8703e6abca",
         "bytes": 27477270
       },
@@ -3115,7 +3115,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "05b32c246044ec7dfce628bbd55d876b0c9b7eac65544ec22cad5d8703e6abca",
         "bytes": 27477270
       },
@@ -3149,7 +3149,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "05b32c246044ec7dfce628bbd55d876b0c9b7eac65544ec22cad5d8703e6abca",
         "bytes": 27477270
       },
@@ -3183,7 +3183,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "05b32c246044ec7dfce628bbd55d876b0c9b7eac65544ec22cad5d8703e6abca",
         "bytes": 27477270
       },
@@ -3217,7 +3217,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "05b32c246044ec7dfce628bbd55d876b0c9b7eac65544ec22cad5d8703e6abca",
         "bytes": 27477270
       },
@@ -3251,7 +3251,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "05b32c246044ec7dfce628bbd55d876b0c9b7eac65544ec22cad5d8703e6abca",
         "bytes": 27477270
       },
@@ -3285,7 +3285,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "05b32c246044ec7dfce628bbd55d876b0c9b7eac65544ec22cad5d8703e6abca",
         "bytes": 27477270
       },
@@ -3319,7 +3319,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "05b32c246044ec7dfce628bbd55d876b0c9b7eac65544ec22cad5d8703e6abca",
         "bytes": 27477270
       },
@@ -3353,7 +3353,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "13634e95a6591a15f2045d8aa60075600e9b9bdd8c5b115351566790d0d28919",
         "bytes": 23790411
       },
@@ -3387,7 +3387,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "13634e95a6591a15f2045d8aa60075600e9b9bdd8c5b115351566790d0d28919",
         "bytes": 23790411
       },
@@ -3421,7 +3421,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "13634e95a6591a15f2045d8aa60075600e9b9bdd8c5b115351566790d0d28919",
         "bytes": 23790411
       },
@@ -3455,7 +3455,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "13634e95a6591a15f2045d8aa60075600e9b9bdd8c5b115351566790d0d28919",
         "bytes": 23790411
       },
@@ -3489,7 +3489,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "13634e95a6591a15f2045d8aa60075600e9b9bdd8c5b115351566790d0d28919",
         "bytes": 23790411
       },
@@ -3523,7 +3523,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "13634e95a6591a15f2045d8aa60075600e9b9bdd8c5b115351566790d0d28919",
         "bytes": 23790411
       },
@@ -3557,7 +3557,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "13634e95a6591a15f2045d8aa60075600e9b9bdd8c5b115351566790d0d28919",
         "bytes": 23790411
       },
@@ -3591,7 +3591,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "13634e95a6591a15f2045d8aa60075600e9b9bdd8c5b115351566790d0d28919",
         "bytes": 23790411
       },
@@ -3625,7 +3625,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -3659,7 +3659,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -3693,7 +3693,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -3727,7 +3727,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -3761,7 +3761,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -3795,7 +3795,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -3829,7 +3829,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -3863,7 +3863,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -3897,7 +3897,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -3931,7 +3931,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -3965,7 +3965,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -3999,7 +3999,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -4046,7 +4046,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -4093,7 +4093,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -4140,7 +4140,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -4187,7 +4187,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -4221,7 +4221,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -4255,7 +4255,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -4289,7 +4289,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -4323,7 +4323,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -4357,7 +4357,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -4391,7 +4391,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -4425,7 +4425,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -4459,7 +4459,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -4506,7 +4506,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -4553,7 +4553,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -4600,7 +4600,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -4647,7 +4647,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -4681,7 +4681,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -4715,7 +4715,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -4749,7 +4749,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -4783,7 +4783,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -4817,7 +4817,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "c543ac1ca8e9addccf731fe75f874745bde69a9a5b537069479ec7bfb2dad5d0",
         "bytes": 23099980
       },
@@ -4851,7 +4851,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "c543ac1ca8e9addccf731fe75f874745bde69a9a5b537069479ec7bfb2dad5d0",
         "bytes": 23099980
       },
@@ -4885,7 +4885,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "c543ac1ca8e9addccf731fe75f874745bde69a9a5b537069479ec7bfb2dad5d0",
         "bytes": 23099980
       },
@@ -4919,7 +4919,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "c543ac1ca8e9addccf731fe75f874745bde69a9a5b537069479ec7bfb2dad5d0",
         "bytes": 23099980
       },
@@ -4953,7 +4953,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "c543ac1ca8e9addccf731fe75f874745bde69a9a5b537069479ec7bfb2dad5d0",
         "bytes": 23099980
       },
@@ -4987,7 +4987,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "c543ac1ca8e9addccf731fe75f874745bde69a9a5b537069479ec7bfb2dad5d0",
         "bytes": 23099980
       },
@@ -5021,7 +5021,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "c543ac1ca8e9addccf731fe75f874745bde69a9a5b537069479ec7bfb2dad5d0",
         "bytes": 23099980
       },
@@ -5055,7 +5055,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "c543ac1ca8e9addccf731fe75f874745bde69a9a5b537069479ec7bfb2dad5d0",
         "bytes": 23099980
       },
@@ -5089,12 +5089,12 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
           "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
           "bytes": 22764943
         },
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
           "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
           "bytes": 23224452
         }
@@ -5118,7 +5118,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
           "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
           "bytes": 22764943
         }
@@ -5144,17 +5144,17 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
           "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
           "bytes": 22764943
         },
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
           "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
           "bytes": 24715344
         },
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
           "bytes": 25924937
         }
@@ -5178,7 +5178,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
           "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
           "bytes": 22764943
         }
@@ -5202,7 +5202,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
           "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
           "bytes": 22764943
         }
@@ -5226,7 +5226,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
           "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
           "bytes": 22764943
         }
@@ -5250,7 +5250,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
           "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
           "bytes": 22764943
         }
@@ -5275,12 +5275,12 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
           "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
           "bytes": 22764943
         },
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
           "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
           "bytes": 23224452
         }
@@ -5304,7 +5304,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
           "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
           "bytes": 24715344
         }
@@ -5328,7 +5328,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
           "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
           "bytes": 24715344
         }
@@ -5352,7 +5352,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
           "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
           "bytes": 24715344
         }
@@ -5377,12 +5377,12 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
           "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
           "bytes": 24715344
         },
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
           "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
           "bytes": 23224452
         }
@@ -5407,12 +5407,12 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
           "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
           "bytes": 24715344
         },
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
           "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
           "bytes": 23224452
         }
@@ -5436,7 +5436,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
           "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
           "bytes": 24715344
         }
@@ -5460,7 +5460,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
           "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
           "bytes": 24715344
         }
@@ -5484,7 +5484,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
           "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
           "bytes": 23224452
         }
@@ -5508,7 +5508,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
           "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
           "bytes": 23224452
         }
@@ -5532,7 +5532,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
           "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
           "bytes": 23224452
         }
@@ -5556,7 +5556,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
           "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
           "bytes": 23224452
         }
@@ -5582,17 +5582,17 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
           "bytes": 25924937
         },
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
           "bytes": 26222440
         },
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
           "bytes": 22384705
         }
@@ -5616,7 +5616,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
           "bytes": 25924937
         }
@@ -5640,7 +5640,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
           "bytes": 25924937
         }
@@ -5665,12 +5665,12 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
           "bytes": 25924937
         },
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
           "bytes": 26222440
         }
@@ -5695,12 +5695,12 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
           "bytes": 25924937
         },
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
           "bytes": 26222440
         }
@@ -5724,7 +5724,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
           "bytes": 25924937
         }
@@ -5750,17 +5750,17 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
           "bytes": 25924937
         },
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
           "bytes": 26222440
         },
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
           "bytes": 22384705
         }
@@ -5785,12 +5785,12 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
           "bytes": 26222440
         },
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
           "bytes": 22384705
         }
@@ -5815,12 +5815,12 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
           "bytes": 26222440
         },
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
           "bytes": 22384705
         }
@@ -5844,7 +5844,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
           "bytes": 26222440
         }
@@ -5868,7 +5868,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
           "bytes": 26222440
         }
@@ -5892,7 +5892,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
           "bytes": 22384705
         }
@@ -5916,7 +5916,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
           "bytes": 22384705
         }
@@ -5940,7 +5940,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
           "bytes": 22384705
         }
@@ -5964,7 +5964,7 @@
       ],
       "training_sources": [
         {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
           "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
           "bytes": 22384705
         }
@@ -6138,7 +6138,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
             "bytes": 25924937
           }
@@ -6318,7 +6318,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
             "bytes": 26222440
           }
@@ -6502,7 +6502,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
             "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
             "bytes": 23224452
           }
@@ -6678,7 +6678,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
             "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
             "bytes": 22764943
           }
@@ -6858,7 +6858,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
             "bytes": 22384705
           }
@@ -7034,7 +7034,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
             "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
             "bytes": 24715344
           }
@@ -7214,7 +7214,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
             "bytes": 22384705
           }
@@ -7390,7 +7390,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
             "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
             "bytes": 24715344
           }
@@ -7566,7 +7566,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
             "bytes": 25924937
           }
@@ -7750,7 +7750,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
             "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
             "bytes": 23224452
           }
@@ -7926,7 +7926,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
             "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
             "bytes": 22764943
           }
@@ -8106,7 +8106,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
             "bytes": 26222440
           }
@@ -8246,7 +8246,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
             "bytes": 22384705
           }
@@ -8386,7 +8386,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
             "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
             "bytes": 22764943
           }
@@ -8527,12 +8527,12 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
             "bytes": 25924937
           },
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
             "bytes": 26222440
           }
@@ -8673,12 +8673,12 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
             "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
             "bytes": 24715344
           },
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
             "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
             "bytes": 23224452
           }
@@ -8809,7 +8809,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
             "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
             "bytes": 24715344
           }
@@ -8941,12 +8941,12 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
             "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
             "bytes": 22764943
           },
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
             "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
             "bytes": 23224452
           }
@@ -9079,17 +9079,17 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
             "bytes": 25924937
           },
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
             "bytes": 26222440
           },
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
             "bytes": 22384705
           }
@@ -9224,12 +9224,12 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
             "bytes": 26222440
           },
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
             "bytes": 22384705
           }
@@ -9365,17 +9365,17 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
             "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
             "bytes": 22764943
           },
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
             "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
             "bytes": 24715344
           },
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
             "bytes": 25924937
           }
@@ -9509,7 +9509,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
             "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
             "bytes": 23224452
           }
@@ -9646,12 +9646,12 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
             "bytes": 25924937
           },
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
             "bytes": 26222440
           }
@@ -9788,12 +9788,12 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
             "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
             "bytes": 24715344
           },
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
             "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
             "bytes": 23224452
           }
@@ -9929,7 +9929,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
             "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
             "bytes": 22764943
           }
@@ -10065,7 +10065,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
             "bytes": 22384705
           }
@@ -10204,7 +10204,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
             "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
             "bytes": 24715344
           }
@@ -10343,7 +10343,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
             "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
             "bytes": 23224452
           }
@@ -10482,7 +10482,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
             "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
             "bytes": 22764943
           }
@@ -10621,7 +10621,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
             "bytes": 25924937
           }
@@ -10761,12 +10761,12 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
             "bytes": 26222440
           },
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
             "bytes": 22384705
           }
@@ -10898,12 +10898,12 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
             "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
             "bytes": 22764943
           },
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
             "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
             "bytes": 23224452
           }
@@ -11034,7 +11034,7 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
             "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
             "bytes": 24715344
           }
@@ -11167,17 +11167,17 @@
         ],
         "training_sources": [
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
             "bytes": 25924937
           },
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
             "bytes": 26222440
           },
           {
-            "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+            "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
             "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
             "bytes": 22384705
           }
@@ -11210,7 +11210,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
         "bytes": 22764943
       },
@@ -11248,7 +11248,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
         "bytes": 22764943
       },
@@ -11286,7 +11286,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
         "bytes": 22764943
       },
@@ -11324,7 +11324,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
         "bytes": 22764943
       },
@@ -11362,7 +11362,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
         "bytes": 22764943
       },
@@ -11400,7 +11400,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
         "bytes": 22764943
       },
@@ -11438,7 +11438,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
         "bytes": 22764943
       },
@@ -11476,7 +11476,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "e59275805e2f35eab7c1c88a476756863835e99badf36ce7ee527e784e8d4543",
         "bytes": 22764943
       },
@@ -11514,7 +11514,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
         "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
         "bytes": 24715344
       },
@@ -11552,7 +11552,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
         "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
         "bytes": 24715344
       },
@@ -11590,7 +11590,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
         "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
         "bytes": 24715344
       },
@@ -11628,7 +11628,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
         "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
         "bytes": 24715344
       },
@@ -11666,7 +11666,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
         "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
         "bytes": 24715344
       },
@@ -11704,7 +11704,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
         "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
         "bytes": 24715344
       },
@@ -11742,7 +11742,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
         "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
         "bytes": 24715344
       },
@@ -11780,7 +11780,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_4k_c1/kernel_details.csv",
         "sha256": "987ed2d620a26010ca7a78fef4c9bad99474f056d89c4d44ddd7afa70be25b4f",
         "bytes": 24715344
       },
@@ -11818,7 +11818,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
         "bytes": 23224452
       },
@@ -11856,7 +11856,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
         "bytes": 23224452
       },
@@ -11894,7 +11894,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
         "bytes": 23224452
       },
@@ -11932,7 +11932,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
         "bytes": 23224452
       },
@@ -11970,7 +11970,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
         "bytes": 23224452
       },
@@ -12008,7 +12008,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
         "bytes": 23224452
       },
@@ -12046,7 +12046,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
         "bytes": 23224452
       },
@@ -12084,7 +12084,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_4k_c4/kernel_details.csv",
         "sha256": "6b2bf6834712a8cf5137650ef8aadbc821c27c1576b26d2d452dacb3662f0b5c",
         "bytes": 23224452
       },
@@ -12122,7 +12122,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
         "bytes": 25924937
       },
@@ -12160,7 +12160,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
         "bytes": 25924937
       },
@@ -12198,7 +12198,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
         "bytes": 25924937
       },
@@ -12236,7 +12236,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
         "bytes": 25924937
       },
@@ -12274,7 +12274,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
         "bytes": 25924937
       },
@@ -12312,7 +12312,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
         "bytes": 25924937
       },
@@ -12350,7 +12350,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
         "bytes": 25924937
       },
@@ -12388,7 +12388,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "e9badd8471740a807e99f05fa2fe9cb0dc0c8231eaf9ba0cee6b79301e16635c",
         "bytes": 25924937
       },
@@ -12426,7 +12426,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
         "bytes": 26222440
       },
@@ -12464,7 +12464,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
         "bytes": 26222440
       },
@@ -12502,7 +12502,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
         "bytes": 26222440
       },
@@ -12540,7 +12540,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
         "bytes": 26222440
       },
@@ -12578,7 +12578,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
         "bytes": 26222440
       },
@@ -12616,7 +12616,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
         "bytes": 26222440
       },
@@ -12654,7 +12654,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
         "bytes": 26222440
       },
@@ -12692,7 +12692,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5926d836a1afa5c4a1ef6f52ed40fffc206bd6ca3740d06de9f6081a1301f2a2",
         "bytes": 26222440
       },
@@ -12730,7 +12730,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
         "bytes": 22384705
       },
@@ -12768,7 +12768,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
         "bytes": 22384705
       },
@@ -12806,7 +12806,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
         "bytes": 22384705
       },
@@ -12844,7 +12844,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
         "bytes": 22384705
       },
@@ -12882,7 +12882,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
         "bytes": 22384705
       },
@@ -12920,7 +12920,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
         "bytes": 22384705
       },
@@ -12958,7 +12958,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
         "bytes": 22384705
       },
@@ -12996,7 +12996,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_4k_c16/kernel_details.csv",
         "sha256": "5a1d186d1c52f4293e5657a35fb2d8a84690a18904423487693c36bfb1d2a402",
         "bytes": 22384705
       },
@@ -13034,7 +13034,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "79720f6dfaa29329f61181bd9b8e99d29f1ee371bd1c5b7700899a3fb38186ea",
         "bytes": 25595448
       },
@@ -13072,7 +13072,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "79720f6dfaa29329f61181bd9b8e99d29f1ee371bd1c5b7700899a3fb38186ea",
         "bytes": 25595448
       },
@@ -13110,7 +13110,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "79720f6dfaa29329f61181bd9b8e99d29f1ee371bd1c5b7700899a3fb38186ea",
         "bytes": 25595448
       },
@@ -13148,7 +13148,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "79720f6dfaa29329f61181bd9b8e99d29f1ee371bd1c5b7700899a3fb38186ea",
         "bytes": 25595448
       },
@@ -13186,7 +13186,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "79720f6dfaa29329f61181bd9b8e99d29f1ee371bd1c5b7700899a3fb38186ea",
         "bytes": 25595448
       },
@@ -13224,7 +13224,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "79720f6dfaa29329f61181bd9b8e99d29f1ee371bd1c5b7700899a3fb38186ea",
         "bytes": 25595448
       },
@@ -13262,7 +13262,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "79720f6dfaa29329f61181bd9b8e99d29f1ee371bd1c5b7700899a3fb38186ea",
         "bytes": 25595448
       },
@@ -13300,7 +13300,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "79720f6dfaa29329f61181bd9b8e99d29f1ee371bd1c5b7700899a3fb38186ea",
         "bytes": 25595448
       },
@@ -13338,7 +13338,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
         "sha256": "169b5019f27d3220516475139affc4e390dcc6838fcf7272f312d5ad8cdee245",
         "bytes": 23799123
       },
@@ -13376,7 +13376,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
         "sha256": "169b5019f27d3220516475139affc4e390dcc6838fcf7272f312d5ad8cdee245",
         "bytes": 23799123
       },
@@ -13414,7 +13414,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
         "sha256": "169b5019f27d3220516475139affc4e390dcc6838fcf7272f312d5ad8cdee245",
         "bytes": 23799123
       },
@@ -13452,7 +13452,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
         "sha256": "169b5019f27d3220516475139affc4e390dcc6838fcf7272f312d5ad8cdee245",
         "bytes": 23799123
       },
@@ -13490,7 +13490,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
         "sha256": "169b5019f27d3220516475139affc4e390dcc6838fcf7272f312d5ad8cdee245",
         "bytes": 23799123
       },
@@ -13528,7 +13528,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
         "sha256": "169b5019f27d3220516475139affc4e390dcc6838fcf7272f312d5ad8cdee245",
         "bytes": 23799123
       },
@@ -13566,7 +13566,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
         "sha256": "169b5019f27d3220516475139affc4e390dcc6838fcf7272f312d5ad8cdee245",
         "bytes": 23799123
       },
@@ -13604,7 +13604,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K4_tp4ep4_decode_64k_c1/kernel_details.csv",
         "sha256": "169b5019f27d3220516475139affc4e390dcc6838fcf7272f312d5ad8cdee245",
         "bytes": 23799123
       },
@@ -13642,7 +13642,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "05b32c246044ec7dfce628bbd55d876b0c9b7eac65544ec22cad5d8703e6abca",
         "bytes": 27477270
       },
@@ -13680,7 +13680,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "05b32c246044ec7dfce628bbd55d876b0c9b7eac65544ec22cad5d8703e6abca",
         "bytes": 27477270
       },
@@ -13718,7 +13718,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "05b32c246044ec7dfce628bbd55d876b0c9b7eac65544ec22cad5d8703e6abca",
         "bytes": 27477270
       },
@@ -13756,7 +13756,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "05b32c246044ec7dfce628bbd55d876b0c9b7eac65544ec22cad5d8703e6abca",
         "bytes": 27477270
       },
@@ -13794,7 +13794,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "05b32c246044ec7dfce628bbd55d876b0c9b7eac65544ec22cad5d8703e6abca",
         "bytes": 27477270
       },
@@ -13832,7 +13832,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "05b32c246044ec7dfce628bbd55d876b0c9b7eac65544ec22cad5d8703e6abca",
         "bytes": 27477270
       },
@@ -13870,7 +13870,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "05b32c246044ec7dfce628bbd55d876b0c9b7eac65544ec22cad5d8703e6abca",
         "bytes": 27477270
       },
@@ -13908,7 +13908,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E64_K4_tp4ep4_decode_64k_c4/kernel_details.csv",
         "sha256": "05b32c246044ec7dfce628bbd55d876b0c9b7eac65544ec22cad5d8703e6abca",
         "bytes": 27477270
       },
@@ -13946,7 +13946,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "13634e95a6591a15f2045d8aa60075600e9b9bdd8c5b115351566790d0d28919",
         "bytes": 23790411
       },
@@ -13984,7 +13984,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "13634e95a6591a15f2045d8aa60075600e9b9bdd8c5b115351566790d0d28919",
         "bytes": 23790411
       },
@@ -14022,7 +14022,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "13634e95a6591a15f2045d8aa60075600e9b9bdd8c5b115351566790d0d28919",
         "bytes": 23790411
       },
@@ -14060,7 +14060,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "13634e95a6591a15f2045d8aa60075600e9b9bdd8c5b115351566790d0d28919",
         "bytes": 23790411
       },
@@ -14098,7 +14098,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "13634e95a6591a15f2045d8aa60075600e9b9bdd8c5b115351566790d0d28919",
         "bytes": 23790411
       },
@@ -14136,7 +14136,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "13634e95a6591a15f2045d8aa60075600e9b9bdd8c5b115351566790d0d28919",
         "bytes": 23790411
       },
@@ -14174,7 +14174,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "13634e95a6591a15f2045d8aa60075600e9b9bdd8c5b115351566790d0d28919",
         "bytes": 23790411
       },
@@ -14212,7 +14212,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E32_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "13634e95a6591a15f2045d8aa60075600e9b9bdd8c5b115351566790d0d28919",
         "bytes": 23790411
       },
@@ -14250,7 +14250,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -14288,7 +14288,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -14326,7 +14326,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -14364,7 +14364,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -14402,7 +14402,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -14440,7 +14440,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -14478,7 +14478,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -14516,7 +14516,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -14554,7 +14554,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -14592,7 +14592,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -14630,7 +14630,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -14668,7 +14668,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -14719,7 +14719,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -14770,7 +14770,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -14821,7 +14821,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -14872,7 +14872,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -14910,7 +14910,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -14948,7 +14948,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -14986,7 +14986,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -15024,7 +15024,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -15062,7 +15062,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -15100,7 +15100,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -15138,7 +15138,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -15176,7 +15176,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -15227,7 +15227,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -15278,7 +15278,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -15329,7 +15329,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -15380,7 +15380,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -15418,7 +15418,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -15456,7 +15456,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -15494,7 +15494,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -15532,7 +15532,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K2_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "4673bf5f3958f81e6c877fe5795a47498095e599273c45c4ef4d925d7ad3736d",
         "bytes": 8164136
       },
@@ -15570,7 +15570,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "c543ac1ca8e9addccf731fe75f874745bde69a9a5b537069479ec7bfb2dad5d0",
         "bytes": 23099980
       },
@@ -15608,7 +15608,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "c543ac1ca8e9addccf731fe75f874745bde69a9a5b537069479ec7bfb2dad5d0",
         "bytes": 23099980
       },
@@ -15646,7 +15646,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "c543ac1ca8e9addccf731fe75f874745bde69a9a5b537069479ec7bfb2dad5d0",
         "bytes": 23099980
       },
@@ -15684,7 +15684,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "c543ac1ca8e9addccf731fe75f874745bde69a9a5b537069479ec7bfb2dad5d0",
         "bytes": 23099980
       },
@@ -15722,7 +15722,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "c543ac1ca8e9addccf731fe75f874745bde69a9a5b537069479ec7bfb2dad5d0",
         "bytes": 23099980
       },
@@ -15760,7 +15760,7 @@
         "output_formats": "ND;ND;ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "c543ac1ca8e9addccf731fe75f874745bde69a9a5b537069479ec7bfb2dad5d0",
         "bytes": 23099980
       },
@@ -15798,7 +15798,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "c543ac1ca8e9addccf731fe75f874745bde69a9a5b537069479ec7bfb2dad5d0",
         "bytes": 23099980
       },
@@ -15836,7 +15836,7 @@
         "output_formats": "ND"
       },
       "source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/heldout_engine_20261031/a5_synth_qwen35_L8_E48_K4_tp4ep4_decode_64k_c16/kernel_details.csv",
         "sha256": "c543ac1ca8e9addccf731fe75f874745bde69a9a5b537069479ec7bfb2dad5d0",
         "bytes": 23099980
       },

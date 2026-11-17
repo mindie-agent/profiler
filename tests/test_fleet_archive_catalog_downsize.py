@@ -398,7 +398,7 @@ def test_a_collective_between_the_gate_and_swiglu_breaks_the_segment(tmp_path: P
 
 
 _PRIMARY_KERNEL = Path(
-    "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031/"
+    "capture://mindie-sim-data/a5/heldout_engine_20261031/"
     "a5_synth_qwen35_L8_E16_K2_tp4ep4_prefill_4k_c1/kernel_details.csv"
 )
 _PRIMARY_SHA = "40e58861af47f2aa05f134175f35348613c31b899791c5dd7fae6c4b0a05b9e3"
@@ -629,7 +629,7 @@ _ROUTE_KERNELS = {
 def test_real_kernels_keep_alltoall_or_withhold_the_quantized_recipe():
     from fleet_archive_route_geometry import apply_witnessed_route
 
-    root = Path("/Volumes/data/mindie-sim-data/a5/heldout_engine_20261031")
+    root = Path("capture://mindie-sim-data/a5/heldout_engine_20261031")
     if not root.is_dir():
         pytest.skip("local A5 heldout archive is not installed")
     frames = [

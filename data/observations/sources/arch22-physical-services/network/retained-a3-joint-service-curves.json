@@ -1,12 +1,18 @@
 {
   "schema_version": "mindie-joint-network-service-curves/1",
   "producer_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/fit_arch22_network_services.py",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "examples/structure/fit_arch22_network_services.py",
+    "source_sha256": "ed49ff7932e196fc2d0adbb89449178e7deae3d6b28223d3553e0c42efa39c4d",
+    "revision": null,
     "sha256": "ed49ff7932e196fc2d0adbb89449178e7deae3d6b28223d3553e0c42efa39c4d",
     "size_bytes": 5568
   },
   "observation_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/network/retained-a3-network-observations.json",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "data/observations/sources/arch22-physical-services/network/retained-a3-network-observations.json",
+    "source_sha256": "64c02f5096bb8cbf483b8606bdb09ff2aa2a347d05fc6f9e32d53a6b88fc9dbe",
+    "revision": null,
     "sha256": "64c02f5096bb8cbf483b8606bdb09ff2aa2a347d05fc6f9e32d53a6b88fc9dbe",
     "size_bytes": 1702924
   },
@@ -42,7 +48,7 @@
         "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
       },
       "parent_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c1/a3-comm-r2-sio-c1.parent.json",
+        "path": "capture://mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c1/a3-comm-r2-sio-c1.parent.json",
         "sha256": "04862bffafb549fe08cc6696c3fa081d006694101877479a5cb09dee3e608100",
         "size_bytes": 865545
       },
@@ -207,7 +213,7 @@
         "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
       },
       "parent_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c1/a3-comm-r2-sio-c1.parent.json",
+        "path": "capture://mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c1/a3-comm-r2-sio-c1.parent.json",
         "sha256": "04862bffafb549fe08cc6696c3fa081d006694101877479a5cb09dee3e608100",
         "size_bytes": 865545
       },
@@ -372,7 +378,7 @@
         "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
       },
       "parent_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c1/a3-comm-r2-sio-c1.parent.json",
+        "path": "capture://mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c1/a3-comm-r2-sio-c1.parent.json",
         "sha256": "04862bffafb549fe08cc6696c3fa081d006694101877479a5cb09dee3e608100",
         "size_bytes": 865545
       },
@@ -537,7 +543,7 @@
         "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
       },
       "parent_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c1/a3-comm-r2-sio-c1.parent.json",
+        "path": "capture://mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c1/a3-comm-r2-sio-c1.parent.json",
         "sha256": "04862bffafb549fe08cc6696c3fa081d006694101877479a5cb09dee3e608100",
         "size_bytes": 865545
       },
@@ -702,7 +708,7 @@
         "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
       },
       "parent_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c2/a3-comm-r2-sio-c2.parent.json",
+        "path": "capture://mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c2/a3-comm-r2-sio-c2.parent.json",
         "sha256": "4e14aacf929fff1abaa22e14c7aab227e6b3cb606741496ab81c8ec2e8c0fa9f",
         "size_bytes": 878615
       },
@@ -867,7 +873,7 @@
         "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
       },
       "parent_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c2/a3-comm-r2-sio-c2.parent.json",
+        "path": "capture://mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c2/a3-comm-r2-sio-c2.parent.json",
         "sha256": "4e14aacf929fff1abaa22e14c7aab227e6b3cb606741496ab81c8ec2e8c0fa9f",
         "size_bytes": 878615
       },
@@ -1032,7 +1038,7 @@
         "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
       },
       "parent_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c2/a3-comm-r2-sio-c2.parent.json",
+        "path": "capture://mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c2/a3-comm-r2-sio-c2.parent.json",
         "sha256": "4e14aacf929fff1abaa22e14c7aab227e6b3cb606741496ab81c8ec2e8c0fa9f",
         "size_bytes": 878615
       },
@@ -1197,7 +1203,7 @@
         "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
       },
       "parent_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c2/a3-comm-r2-sio-c2.parent.json",
+        "path": "capture://mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-sio-c2/a3-comm-r2-sio-c2.parent.json",
         "sha256": "4e14aacf929fff1abaa22e14c7aab227e6b3cb606741496ab81c8ec2e8c0fa9f",
         "size_bytes": 878615
       },
@@ -1362,7 +1368,7 @@
         "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
       },
       "parent_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-hccssw-c1/a3-comm-r2-hccssw-c1.parent.json",
+        "path": "capture://mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-hccssw-c1/a3-comm-r2-hccssw-c1.parent.json",
         "sha256": "f7444c424169d806719fe6ba21660cd71f0c6ca14301d4af993260730844d8a7",
         "size_bytes": 880504
       },
@@ -1527,7 +1533,7 @@
         "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
       },
       "parent_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-hccssw-c1/a3-comm-r2-hccssw-c1.parent.json",
+        "path": "capture://mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-hccssw-c1/a3-comm-r2-hccssw-c1.parent.json",
         "sha256": "f7444c424169d806719fe6ba21660cd71f0c6ca14301d4af993260730844d8a7",
         "size_bytes": 880504
       },
@@ -1692,7 +1698,7 @@
         "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
       },
       "parent_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-hccssw-c1/a3-comm-r2-hccssw-c1.parent.json",
+        "path": "capture://mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-hccssw-c1/a3-comm-r2-hccssw-c1.parent.json",
         "sha256": "f7444c424169d806719fe6ba21660cd71f0c6ca14301d4af993260730844d8a7",
         "size_bytes": 880504
       },
@@ -1857,7 +1863,7 @@
         "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
       },
       "parent_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-hccssw-c1/a3-comm-r2-hccssw-c1.parent.json",
+        "path": "capture://mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r2-hccssw-c1/a3-comm-r2-hccssw-c1.parent.json",
         "sha256": "f7444c424169d806719fe6ba21660cd71f0c6ca14301d4af993260730844d8a7",
         "size_bytes": 880504
       },
@@ -2074,7 +2080,7 @@
         "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
       },
       "parent_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r4-pkg2pkg3-c1/a3-comm-r4-pkg2pkg3-c1.parent.json",
+        "path": "capture://mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r4-pkg2pkg3-c1/a3-comm-r4-pkg2pkg3-c1.parent.json",
         "sha256": "401a9924682572ded8d1f213663099da0d13ab34c80f95f63e7304a06dff8d77",
         "size_bytes": 603627
       },
@@ -2291,7 +2297,7 @@
         "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
       },
       "parent_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r4-pkg2pkg3-c1/a3-comm-r4-pkg2pkg3-c1.parent.json",
+        "path": "capture://mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r4-pkg2pkg3-c1/a3-comm-r4-pkg2pkg3-c1.parent.json",
         "sha256": "401a9924682572ded8d1f213663099da0d13ab34c80f95f63e7304a06dff8d77",
         "size_bytes": 603627
       },
@@ -2508,7 +2514,7 @@
         "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
       },
       "parent_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r4-pkg2pkg3-c1/a3-comm-r4-pkg2pkg3-c1.parent.json",
+        "path": "capture://mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r4-pkg2pkg3-c1/a3-comm-r4-pkg2pkg3-c1.parent.json",
         "sha256": "401a9924682572ded8d1f213663099da0d13ab34c80f95f63e7304a06dff8d77",
         "size_bytes": 603627
       },
@@ -2725,7 +2731,7 @@
         "note": "SIO/HCCS_SW labels identify paths, not the internal switch topology or collective phase route."
       },
       "parent_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r4-pkg2pkg3-c1/a3-comm-r4-pkg2pkg3-c1.parent.json",
+        "path": "capture://mindie-sim-data/a3/2026-10-20/accuracy-round-20261021/comm/a3-comm-r4-pkg2pkg3-c1/a3-comm-r4-pkg2pkg3-c1.parent.json",
         "sha256": "401a9924682572ded8d1f213663099da0d13ab34c80f95f63e7304a06dff8d77",
         "size_bytes": 603627
       },
@@ -2987,5 +2993,14 @@
     "raw_capture_reads": 0,
     "new_cost_predictions": 0,
     "new_device_collections": 0
+  },
+  "path_normalization": {
+    "schema": "mindie-path-normalization/1",
+    "original_sha256": "449c9849d29fac50b219826a3c147136e4f3320f7c005fa6641949b77caa7950",
+    "normalized_sha256": "4c3be8064c8feb0d05f91fb1444423768b7f59c12d229a291b9daaadea09d758",
+    "rules": [
+      "repository_identity",
+      "capture_uri"
+    ]
   }
 }

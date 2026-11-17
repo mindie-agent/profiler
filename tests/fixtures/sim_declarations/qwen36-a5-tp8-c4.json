@@ -78,14 +78,14 @@
     "metadata": {
       "input_boundary": "device-body analysis only; workload placeholder is not a replay of the concurrent server",
       "geometry_policy": "supply actual query rows and sequence count from profiler; capture padding must be stated separately",
-      "capture_summary": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot5ms_near_c4_20261030/benchmark_summary.json",
-      "capture_client": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot5ms_near_c4_20261030/client_cell.json",
+      "capture_summary": "capture://mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot5ms_near_c4_20261030/benchmark_summary.json",
+      "capture_client": "capture://mindie-sim-data/a5/qwen3_6_27b_w8a8_high_conc_decode_tpot5ms_near_c4_20261030/client_cell.json",
       "source_image": "quay.io/ascend/vllm-ascend:v0.30.0rc2-a5 (c3d00a196905)",
       "source_model_path": "/mnt/weight/Qwen3.6-27B-W8A8",
       "mtp_policy": "metadata proves 3 proposed tokens per draft event; actual target query geometry awaits tensor extraction",
       "gdn_primitive_parameters": {
         "identity": {
-          "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/observations/gating-probe-20261028/native-queue-holdout/parameters.json",
+          "path": "repository://sim-rewrite-20261027/data/observations/gating-probe-20261028/native-queue-holdout/parameters.json",
           "sha256": "6dd37dd1fe824e7fed73262d84f27c1aa385498fc508d3582759467348bdacfb",
           "bytes": 1046
         },

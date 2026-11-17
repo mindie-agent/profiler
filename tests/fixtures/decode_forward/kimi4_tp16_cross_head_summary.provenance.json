@@ -1,6 +1,6 @@
 {
   "source_identity": {
-    "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/kimi_k3_w4a8_4layer_tp16_128k_decode_20261030/prof/decode_c24_p4k/kernel_details.csv",
+    "path": "capture://mindie-sim-data/a3/heldout_engine_20261030/kimi_k3_w4a8_4layer_tp16_128k_decode_20261030/prof/decode_c24_p4k/kernel_details.csv",
     "sha256": "0e3ffbdaa496b730037a8379bf609f8d3abef631cfcaa6a5ec37e220b691d62b",
     "size_bytes": 16262648,
     "sha_basis": "accepted extraction pin; no full source rehash in bounded probe"
@@ -10,7 +10,7 @@
     "sha256": "a4c5d4f4d416eb5f70d4a6e9b23358bf339b3849862d7feee7d67a2769ac670e"
   },
   "source_model_identity": {
-    "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/kimi-tp16-128k-source-model.json",
+    "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/kimi-tp16-128k-source-model.json",
     "sha256": "cf186758ea3995042fc3e8bc81e953dd08abd4e4c669ab356cc1bff7eaf61e27"
   },
   "source_forward_id": "auto:148",

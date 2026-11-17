@@ -92,7 +92,7 @@
       "calibration_origin": "explicit_operator_calibration_not_pristine_holdout",
       "native_keypool_parameters": "data/observations/a3-native-keypool-20261030/parameters.json",
       "base_declaration": {
-        "path": "/Users/maoxx241/code/profiler/examples/structure/cases/a3-glm53flash-heldout-tp16.json",
+        "path": "repository://profiler/examples/structure/cases/a3-glm53flash-heldout-tp16.json",
         "sha256": "18c65290b6794a859e873324526b06def428284e322c9c0f00fc886cf2fa38d6",
         "size_bytes": 18735
       },
@@ -111,7 +111,7 @@
       "tail_capacity": {
         "value": 9,
         "source": {
-          "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/glm5_3_flash_w8a8_static_kernel_on_c10_p128k_20261030/kernel_details.csv",
+          "path": "capture://mindie-sim-data/a3/heldout_engine_20261030/glm5_3_flash_w8a8_static_kernel_on_c10_p128k_20261030/kernel_details.csv",
           "sha256": "334c098253958b7ad6c428b0d9ebf7cb883fcd02ba5ce868dcd3a4ea18a68365",
           "size_bytes": 86903800
         },
@@ -210,7 +210,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8.json",
               "sha256": "6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8",
               "size_bytes": 30725
             },
@@ -243,7 +243,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8.json",
               "sha256": "6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8",
               "size_bytes": 30725
             },
@@ -356,7 +356,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8.json",
               "sha256": "6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8",
               "size_bytes": 30725
             },
@@ -388,7 +388,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8.json",
               "sha256": "6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8",
               "size_bytes": 30725
             },
@@ -420,7 +420,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8.json",
               "sha256": "6c6862fea646e904ff4d49a13ba1282ffabb755b9bee61b85e720057a5d2a8a8",
               "size_bytes": 30725
             },
@@ -506,7 +506,7 @@
             ],
             "validation_history": "previously_examined_not_pristine_holdout",
             "source": {
-              "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/glm5_3_flash_w8a8_static_kernel_on_c10_p4481_20261030/kernel_details.csv",
+              "path": "capture://mindie-sim-data/a3/heldout_engine_20261030/glm5_3_flash_w8a8_static_kernel_on_c10_p4481_20261030/kernel_details.csv",
               "sha256": "309f05596d7c02004c00e2e8d10a49c22ab37fc4df3e68e9e24f947e9bf43957",
               "size_bytes": 31548884
             },
@@ -608,7 +608,7 @@
             ],
             "validation_history": "previously_examined_not_pristine_holdout",
             "source": {
-              "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/glm5_3_flash_w8a8_static_kernel_on_c10_p128k_20261030/kernel_details.csv",
+              "path": "capture://mindie-sim-data/a3/heldout_engine_20261030/glm5_3_flash_w8a8_static_kernel_on_c10_p128k_20261030/kernel_details.csv",
               "sha256": "334c098253958b7ad6c428b0d9ebf7cb883fcd02ba5ce868dcd3a4ea18a68365",
               "size_bytes": 86903800
             },
@@ -662,7 +662,7 @@
           "provenance": {
             "basis": "independent_short_context_complete_native_call_affine",
             "source": {
-              "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/glm5_3_flash_w8a8_static_kernel_on_c10_p4481_20261030/kernel_details.csv",
+              "path": "capture://mindie-sim-data/a3/heldout_engine_20261030/glm5_3_flash_w8a8_static_kernel_on_c10_p4481_20261030/kernel_details.csv",
               "sha256": "309f05596d7c02004c00e2e8d10a49c22ab37fc4df3e68e9e24f947e9bf43957",
               "size_bytes": 31548884
             },
@@ -791,7 +791,7 @@
           "provenance": {
             "basis": "independent_short_context_complete_native_call_affine",
             "source": {
-              "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261030/glm5_3_flash_w8a8_static_kernel_on_c10_p4481_20261030/kernel_details.csv",
+              "path": "capture://mindie-sim-data/a3/heldout_engine_20261030/glm5_3_flash_w8a8_static_kernel_on_c10_p4481_20261030/kernel_details.csv",
               "sha256": "309f05596d7c02004c00e2e8d10a49c22ab37fc4df3e68e9e24f947e9bf43957",
               "size_bytes": 31548884
             },

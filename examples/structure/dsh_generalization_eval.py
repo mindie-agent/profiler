@@ -44,9 +44,10 @@ from mindie_sim.prediction.structure import parse_case
 import prefill
 from runtime_identity import simulator_identity
 from evaluation_io import atomic_write_json as _atomic_write_json
+from evidence_roots import capture_root, localize_evidence
 
 BASE_DIR = Path(__file__).resolve().parent
-DATA_ROOT = Path("/Volumes/data/mindie-sim-data")
+DATA_ROOT = capture_root()
 CACHE_ROOT = DATA_ROOT / "acceptance-archives-20261030" / "dsh-full-generalization" / "extractions"
 SIDECAR_NAMES = ("meta.env", "run_meta.json", "cmd.sh", "benchmark_summary.json", "client_cell.json")
 BUCKETS_DEFAULT = [4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384, 512]
@@ -128,6 +129,11 @@ def _hardware_from_capture_path(csv_path: Path | str) -> str:
                 raise ValueError(f"unrecognized hardware in capture path: {csv_path}")
             return rel.parts[0]
     components = _path_dir_components(csv_path)
+    if len(components) > 2 and components[:2] == ("capture:", "mindie-sim-data"):
+        # A capture URI names hardware as the first member of the capture id.
+        if components[2] in _HW_COMPONENTS:
+            return components[2]
+        raise ValueError(f"unrecognized hardware in capture path: {csv_path}")
     root = _clean_path_components(DATA_ROOT.parts)
     n = len(root)
     if n and len(components) > n and components[:n] == root:
@@ -152,8 +158,12 @@ def parse_capture_traits(csv_path: Path) -> dict:
     hw = _hardware_from_capture_path(csv_path)
     components = _path_dir_components(csv_path)
     if "heldout_engine_20261030" in components:
-        rel = Path(csv_path).relative_to(DATA_ROOT / hw / "heldout_engine_20261030")
-        suite, cell = rel.parts[0], (rel.parts[-2] if len(rel.parts) > 2 else rel.parts[0])
+        # Derive the suite/cell from the path's own components: a
+        # ``capture://`` member is relative while the enrolled root is
+        # absolute, so ``Path.relative_to`` cannot establish the relation.
+        tail = components[components.index("heldout_engine_20261030") + 1:]
+        suite = tail[0] if tail else "top_level_20261030"
+        cell = tail[-2] if len(tail) > 2 else suite
     else:
         suite, cell = "top_level_20261030", Path(csv_path).parent.name
     cell_low, suite_low = cell.lower(), suite.lower()
@@ -661,7 +671,7 @@ def main(argv: list[str] | None = None) -> int:
     workers = _bounded_workers(args.workers)
     started = time.monotonic()
 
-    cases_reg = json.loads((BASE_DIR / "cases.json").read_text())["cases"]
+    cases_reg = localize_evidence(json.loads((BASE_DIR / "cases.json").read_text()))["cases"]
     reg_by_path = {Path(c["source"]["path"]).resolve(): c for c in cases_reg
                    if c.get("source", {}).get("path") and c.get("supported_scopes") != ["engine"]}
     decode_sb = json.loads((BASE_DIR / "results" / "decode.json").read_text())

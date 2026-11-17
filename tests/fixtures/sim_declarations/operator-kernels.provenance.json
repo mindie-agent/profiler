@@ -1,5 +1,5 @@
 {
-  "source": "/Volumes/data/mindie-sim-data/a5/2026-10-22/qwen38-c4-16k/raw/prof/p16384_c1_o32/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+  "source": "capture://mindie-sim-data/a5/2026-10-22/qwen38-c4-16k/raw/prof/p16384_c1_o32/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
   "source_sha256": "ec7fbcff6138d06fd7d0ed20497d8d4af2f78a179372db976090d4206a3d17ca",
   "capture_runtime": "vllm-ascend 0.30.0rc2, torch_npu 2.10.0.post7, CANN 9.2.0",
   "source_lines": [

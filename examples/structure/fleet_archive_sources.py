@@ -15,11 +15,13 @@ import re
 from pathlib import Path
 from typing import Any, Mapping
 
+from evidence_roots import capture_root, localize_evidence
+
 _STRUCT = Path(__file__).resolve().parent
-_DEFAULT_DATA_ROOTS = (Path("/Volumes/data/mindie-sim-data"), Path("/Users/maoxx241/code/mindie-agent/.workstreams"))
+_DEFAULT_DATA_ROOTS = (capture_root(), Path("repository://mindie-agent/.workstreams"))
 _DEFAULT_RESULTS = _STRUCT / "results"
 _DEFAULT_CASES = _STRUCT / "cases"
-_DEFAULT_ARCHIVE = Path("/Volumes/data/mindie-sim-data/acceptance-archives-20261030")
+_DEFAULT_ARCHIVE = capture_root() / "acceptance-archives-20261030"
 _DEFAULT_RECEIPT_INDEX = Path("/tmp/mindie-3h-20261111/observation_receipt_index.tsv")
 _MAX_RECEIPT_BYTES = 4 * 1024 * 1024
 _GEOM_KEYS = (
@@ -176,7 +178,7 @@ def _structural_registry_record(**fields: Any) -> dict[str, Any]:
 def _load_dsh(path: Path, index: dict[str, dict[str, Any]]) -> None:
     if not path.is_file():
         return
-    document = json.loads(path.read_text(encoding="utf-8"))
+    document = localize_evidence(json.loads(path.read_text(encoding="utf-8")), capture_base=next(iter(roots()["data_roots"]), None))
     provenance = document.get("calibration_provenance") if isinstance(document.get("calibration_provenance"), Mapping) else {}
     relation = provenance.get("evaluation_relation")
     independent = provenance.get("independent_heldout")
@@ -202,7 +204,7 @@ def _load_dsh(path: Path, index: dict[str, dict[str, Any]]) -> None:
 def _load_wave5(path: Path, index: dict[str, dict[str, Any]]) -> None:
     if not path.is_file():
         return
-    document = json.loads(path.read_text(encoding="utf-8"))
+    document = localize_evidence(json.loads(path.read_text(encoding="utf-8")), capture_base=next(iter(roots()["data_roots"]), None))
     chips = document.get("chip_report_identities") if isinstance(document.get("chip_report_identities"), Mapping) else {}
     cohorts = {}
     for cohort in document.get("cohort_summaries") or ():
@@ -338,7 +340,7 @@ def case_index() -> dict[str, dict[str, Any]]:
     index: dict[str, dict[str, Any]] = {}
     path = roots()["cases_index"]
     if path.is_file():
-        document = json.loads(path.read_text(encoding="utf-8"))
+        document = localize_evidence(json.loads(path.read_text(encoding="utf-8")), capture_base=next(iter(roots()["data_roots"]), None))
         for entry in document.get("cases") or ():
             if not isinstance(entry, Mapping):
                 continue
@@ -378,7 +380,7 @@ def project_receipt(path: Path) -> dict[str, Any]:
     elif path.stat().st_size > _MAX_RECEIPT_BYTES or path.name.startswith("pred_"):
         projected = {"status": "rejected", "path": key, "reason": "pred_or_over_bound"}
     else:
-        document = json.loads(path.read_text(encoding="utf-8"))
+        document = localize_evidence(json.loads(path.read_text(encoding="utf-8")), capture_base=next(iter(roots()["data_roots"]), None))
         observed = document.get("observed") if isinstance(document, Mapping) and isinstance(document.get("observed"), Mapping) else document
         projected = {"status": "unreadable", "path": key}
         if isinstance(observed, Mapping):

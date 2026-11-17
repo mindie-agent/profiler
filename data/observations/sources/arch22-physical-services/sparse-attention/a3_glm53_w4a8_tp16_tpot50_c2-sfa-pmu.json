@@ -2,27 +2,39 @@
   "schema_version": "mindie-sfa-native-pmu/1",
   "case_id": "a3_glm53_w4a8_tp16_tpot50_c2",
   "source_identity": {
-    "path": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+    "path": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
     "sha256": "1f91ecac9a99c7ab0687fb1175db3ceefa39c6d31cca0bc4e4a4edb859a9ad13",
     "size_bytes": 68070780
   },
   "retained_native_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot50_c2-native-partitions.json",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "examples/structure/acceptance-20261030-service-qwen-a3/glm78-native/a3_glm53_w4a8_tp16_tpot50_c2-native-partitions.json",
+    "source_sha256": "bff3391eed6d11b8ddf807b15bb1e4345a7b35a47bb97b20c1652533d6b54dd5",
+    "revision": null,
     "sha256": "bff3391eed6d11b8ddf807b15bb1e4345a7b35a47bb97b20c1652533d6b54dd5",
     "size_bytes": 2685140
   },
   "body_acceptance_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-controller-alias/scope-paired/auto-forward-a3_glm53_w4a8_tp16_tpot50_c2.json",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "examples/structure/acceptance-20261030-controller-alias/scope-paired/auto-forward-a3_glm53_w4a8_tp16_tpot50_c2.json",
+    "source_sha256": "6589bad92e7ca731937524466b69528d88b47c7c9bdc5c8b968a92dcbb18245d",
+    "revision": null,
     "sha256": "6589bad92e7ca731937524466b69528d88b47c7c9bdc5c8b968a92dcbb18245d",
     "size_bytes": 1891945
   },
   "collector_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/collect_glm78_sfa_pmu.py",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "examples/structure/collect_glm78_sfa_pmu.py",
+    "source_sha256": "47eb06800f8af3ec692fcb8571477076d10915b405c2557b7868337455800698",
+    "revision": null,
     "sha256": "47eb06800f8af3ec692fcb8571477076d10915b405c2557b7868337455800698",
     "size_bytes": 11671
   },
   "pmu_helper_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/targeted_native_pmu.py",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "examples/structure/targeted_native_pmu.py",
+    "source_sha256": "ddde6a1e849c862f57a3f267fe904484db1445801807ac85b3d552c98a7c9b80",
+    "revision": null,
     "sha256": "ddde6a1e849c862f57a3f267fe904484db1445801807ac85b3d552c98a7c9b80",
     "size_bytes": 5521
   },
@@ -104436,7 +104448,7 @@
     "examples": [
       {
         "locator": {
-          "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+          "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
           "table": "kernel_details.csv",
           "row_index": 13631,
           "csv_line": 13633,
@@ -104491,7 +104503,7 @@
       },
       {
         "locator": {
-          "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+          "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
           "table": "kernel_details.csv",
           "row_index": 13658,
           "csv_line": 13660,
@@ -104548,7 +104560,7 @@
     "longest_calls": [
       {
         "locator": {
-          "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+          "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
           "table": "kernel_details.csv",
           "row_index": 168072,
           "csv_line": 168074,
@@ -104603,7 +104615,7 @@
       },
       {
         "locator": {
-          "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+          "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
           "table": "kernel_details.csv",
           "row_index": 33901,
           "csv_line": 33903,
@@ -104658,7 +104670,7 @@
       },
       {
         "locator": {
-          "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+          "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
           "table": "kernel_details.csv",
           "row_index": 147006,
           "csv_line": 147008,
@@ -104713,7 +104725,7 @@
       },
       {
         "locator": {
-          "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+          "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
           "table": "kernel_details.csv",
           "row_index": 143853,
           "csv_line": 143855,
@@ -104768,7 +104780,7 @@
       },
       {
         "locator": {
-          "source": "/Volumes/data/mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
+          "source": "capture://mindie-sim-data/a3/glm5_3_w4a8_int_high_conc_decode_tpot50_c2_20261030/kernel_details.csv",
           "table": "kernel_details.csv",
           "row_index": 174373,
           "csv_line": 174375,
@@ -156962,5 +156974,14 @@
     "maximum_resident_set_size_bytes": 67616768,
     "new_predictions": 0,
     "remote_or_device_actions": 0
+  },
+  "path_normalization": {
+    "schema": "mindie-path-normalization/1",
+    "original_sha256": "6b1d1c0567caa81123ebea8a47b35d35f1d5c0707c5d643f4e8252713fc10de7",
+    "normalized_sha256": "a85125766fba4d535ac3f780d866cf0ae413bd57d1fcb2a149c12cc56ee3dd77",
+    "rules": [
+      "repository_identity",
+      "capture_uri"
+    ]
   }
 }

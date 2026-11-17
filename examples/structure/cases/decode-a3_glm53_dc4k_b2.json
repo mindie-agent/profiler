@@ -395,7 +395,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -424,7 +424,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -453,7 +453,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -495,7 +495,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -533,7 +533,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -569,7 +569,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -618,7 +618,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -654,7 +654,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -684,7 +684,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -714,7 +714,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -744,7 +744,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -774,7 +774,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -817,7 +817,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -861,7 +861,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -897,7 +897,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -936,7 +936,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -970,7 +970,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -998,7 +998,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -1026,7 +1026,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -1054,7 +1054,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -1082,7 +1082,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -1112,7 +1112,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -1142,7 +1142,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -1170,7 +1170,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -1198,7 +1198,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -1226,7 +1226,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -1254,7 +1254,7 @@
           },
           "provenance": {
             "evidence_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/case-evidence/7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880.json",
               "sha256": "7e33accd2e6da535300b079d07dcf49d89f1e82459bdd897b50607e2cf6bc880",
               "size_bytes": 1578499
             },
@@ -1328,7 +1328,7 @@
         "vllm_ascend/ops/register_custom_ops.py:123-156"
       ],
       "source_document_identity": {
-        "path": "/Volumes/data-tmp/tmp/mindie-sim-cohort-wave6-20261029/docs/operators/moe-output-reduction.md",
+        "path": "capture://local-tmp/tmp/mindie-sim-cohort-wave6-20261029/docs/operators/moe-output-reduction.md",
         "sha256": "1abf1549fbdf2fb3f1383c5828ba1b9bafee117fa75f39cc1e80722262fcc7a5",
         "size_bytes": 5752
       },

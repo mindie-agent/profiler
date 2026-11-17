@@ -19,9 +19,11 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
+from evidence_roots import workstream_root
+
 DEFAULT_ROOTS = (
-    Path('/Volumes/data/mindie-agent-workstreams/a5-multinode-fleet-rack06-20261107'),
-    Path('/Volumes/data/mindie-agent-workstreams/a5-multinode-fleet-rack08-20261107'),
+    workstream_root() / 'a5-multinode-fleet-rack06-20261107',
+    workstream_root() / 'a5-multinode-fleet-rack08-20261107',
 )
 @dataclass(frozen=True)
 class OriginalObservation:

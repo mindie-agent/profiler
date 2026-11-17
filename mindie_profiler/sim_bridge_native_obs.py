@@ -28,10 +28,13 @@ def _t12_invocation_from_request(
     """Build one timing-free native operator invocation from an exported request.
 
     A complete explicit ``t12_invocation``/``invocation`` mapping is preferred
-    and merged with request declarations prior to ``mindie-sim`` normalization.
-    Otherwise only an explicit API entry plus ordered ABI slots are mapped via
-    the declared native spec, without synthesizing a model or quantization.
+    and merged with request declarations.  Otherwise only an explicit API entry
+    (or the captured native operator) plus ordered ABI slots are bound to the
+    retained profiler catalog descriptors; no model or quantization is
+    synthesized.
     """
+    from .native_abi_model import catalog_spec
+
     parts, request_conditions, sources, conflicts = (
         _native_request_condition_parts(request))
     declared_conditions = dict(request_conditions)
@@ -67,51 +70,53 @@ def _t12_invocation_from_request(
             conflicts=conflicts)
     api = _native_api_mapping(parts.get("api"))
     entry = api.get("entry") or api.get("aclnn_symbol") or request.get("entry")
+    native_operator = boundary.get("native_operator") or request.get("native_operator")
     if not entry:
         # A timing-free CSV capture names its physical kernel row, not the
         # Python/ACLNN caller.  Resolve that captured operator against the
-        # declared ordered-slot catalogue instead of requiring an API entry
+        # retained ordered-slot descriptors instead of requiring an API entry
         # the capture never retained.
-        entry = boundary.get("native_operator") or request.get("native_operator")
+        entry = native_operator
     if not entry:
         return None, "t12_invocation_unavailable:api_entry_not_declared", meta
-    try:
-        from mindie_sim.prediction.piecewise.native_calls import native_abi_spec
-        spec = native_abi_spec(entry)
-    except TimeoutError:
-        raise
-    except Exception as exc:
-        return None, ("t12_invocation_unavailable:import_or_spec:"
-                      + type(exc).__name__ + ":" + str(exc)), meta
-    if spec is None:
-        return None, "t12_invocation_unavailable:native_abi_spec_not_declared", meta
+    resolved = catalog_spec(entry, native_operator)
+    if resolved is None:
+        return None, "t12_invocation_unavailable:operator_not_in_catalogue", meta
+    entry_record = resolved.get("entry") or {}
+    slots = entry_record.get("c_abi_slots") if isinstance(
+        entry_record.get("c_abi_slots"), Mapping) else {}
+    slot_specs = slots.get("slot_specs") if isinstance(
+        slots.get("slot_specs"), Mapping) else {}
+    declared_inputs = [dict(item) for item in slot_specs.get("inputs") or ()
+                       if isinstance(item, Mapping)]
+    declared_outputs = [dict(item) for item in slot_specs.get("outputs") or ()
+                        if isinstance(item, Mapping)]
+    if not declared_inputs and not declared_outputs:
+        return None, "t12_invocation_unavailable:descriptors_missing", meta
     if not api.get("entry"):
-        # Complete the declared API identity from the ordered-slot spec that
+        # Complete the declared API identity from the ordered-slot descriptor
         # the captured kernel name resolved to.
-        api = {"namespace": getattr(spec, "namespace", None) or "native",
-               "entry": spec.entry,
-               "aclnn_symbol": getattr(spec, "aclnn_symbol", None)}
+        api = {"namespace": "native", "entry": resolved.get("name") or entry,
+               "aclnn_symbol": None}
     abi = request.get("abi") if isinstance(request.get("abi"), Mapping) else {}
     input_slots = list(abi.get("inputs") or ())
     output_slots = list(abi.get("outputs") or ())
-    declared_inputs = [item for item in spec.tensors
-                       if str(item.role) != "output"]
-    declared_outputs = [item for item in spec.tensors
-                        if str(item.role) == "output"]
     if (len(input_slots) > len(declared_inputs)
             or len(output_slots) > len(declared_outputs)):
         return None, "t12_invocation_unavailable:tensor_slot_count_mismatch", meta
     tensors: dict[str, Any] = {}
 
-    def bind_slot(declared: Any, slot: Any) -> None:
-        role = str(declared.role)
+    def bind_slot(declared: Mapping[str, Any], slot: Any,
+                  *, output: bool = False) -> None:
+        name = str(declared.get("name") or declared.get("c_name") or "tensor")
+        role = "output" if output else str(declared.get("role") or "input")
         if slot is None:
             # A trailing optional declaration (for example QBMM's bias) has no
             # captured position at all.  It stays an explicit absent slot; it
             # is never filled with a guessed descriptor.
-            tensors[declared.name] = {
+            tensors[name] = {
                 "shape": None, "dtype": None,
-                "layout": getattr(declared, "layout", None) or "ND",
+                "layout": declared.get("layout") or "ND",
                 "role": role, "optional": True, "present": False,
             }
             return
@@ -127,7 +132,7 @@ def _t12_invocation_from_request(
             if str(slot.get("quality") or "").strip() == "undefined":
                 present = False
             if (not slot.get("shape") and slot.get("dtype") is None
-                    and getattr(declared, "optional", False)):
+                    and declared.get("optional")):
                 present = False
             shape = slot.get("shape") if present else None
             dtype = slot.get("dtype") if present else None
@@ -135,26 +140,26 @@ def _t12_invocation_from_request(
         else:
             present = True
             shape, dtype, layout = slot
-        tensors[declared.name] = {
+        tensors[name] = {
             "shape": list(shape) if shape is not None else None,
             "dtype": dtype,
-            "layout": layout or getattr(declared, "layout", None) or "ND",
-            "role": role, "optional": bool(declared.optional),
+            "layout": layout or declared.get("layout") or "ND",
+            "role": role, "optional": bool(declared.get("optional")),
             "present": present,
         }
 
     for index, declared in enumerate(declared_inputs):
         if index < len(input_slots):
             bind_slot(declared, input_slots[index])
-        elif declared.optional:
+        elif declared.get("optional"):
             bind_slot(declared, None)
         else:
             return None, "t12_invocation_unavailable:tensor_slot_count_mismatch", meta
     for index, declared in enumerate(declared_outputs):
         if index < len(output_slots):
-            bind_slot(declared, output_slots[index])
-        elif declared.optional:
-            bind_slot(declared, None)
+            bind_slot(declared, output_slots[index], output=True)
+        elif declared.get("optional"):
+            bind_slot(declared, None, output=True)
         else:
             return None, "t12_invocation_unavailable:tensor_slot_count_mismatch", meta
     raw_version = parts.get("version")
@@ -204,18 +209,16 @@ def _t12_invocation_from_request(
     # dropping it.  The original condition stays in the same canonical receipt.
     conditions = dict(request_conditions)
     for key in ("epsilon", "eps", "norm_eps"):
-        if key in conditions and key not in attrs:
-            attrs[key] = conditions.pop(key)
+        if key in conditions:
+            if key not in attrs:
+                attrs[key] = conditions[key]
+            conditions.pop(key)
             sources.setdefault(f"attrs.{key}", [])
             sources[f"attrs.{key}"].append(f"request.conditions.{key}")
-    if not getattr(spec, "preserve_extra_conditions", False):
-        conditions = {
-            key: value for key, value in conditions.items()
-            if key in _T12_CONDITION_KEYS
-        }
     meta = {"sources": sources, "conflicts": conflicts,
             "declared_conditions": declared_conditions,
-            "t12_condition_keys": list(conditions)}
+            "t12_condition_keys": list(conditions),
+            "catalog_state": resolved.get("state") or ""}
     return {
         "api": api,
         "version": version,
@@ -223,6 +226,7 @@ def _t12_invocation_from_request(
         "attrs": attrs,
         "conditions": conditions,
     }, None, meta
+
 
 def _t12_duration_ms(value: Any) -> float | None:
     if isinstance(value, bool) or value is None:

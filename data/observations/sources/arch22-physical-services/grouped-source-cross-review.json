@@ -5,11 +5,17 @@
   "failure_count": 0,
   "input_identities": [
     {
-      "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch22-physical-services/grouped-source-constraints.json",
+      "repository": "mindie-agent/profiler",
+      "relative_path": "data/observations/sources/arch22-physical-services/grouped-source-constraints.json",
+      "source_sha256": "06920d40a62d503eefb7e9b044b69e43371e1eae2f8e05ac038aee69a8d2924c",
+      "revision": null,
       "sha256": "06920d40a62d503eefb7e9b044b69e43371e1eae2f8e05ac038aee69a8d2924c"
     },
     {
-      "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/grouped-source-constraints.json",
+      "repository": "mindie-agent/profiler",
+      "relative_path": "data/observations/sources/arch3510-physical-services/grouped-source-constraints.json",
+      "source_sha256": "1d52dc718536c5ea0fac974a9456943ad52725115e348a352cb41f8db509d390",
+      "revision": null,
       "sha256": "1d52dc718536c5ea0fac974a9456943ad52725115e348a352cb41f8db509d390"
     }
   ],
@@ -27,5 +33,14 @@
   "execution": {
     "elapsed_seconds": 0.17392312502488494,
     "maximum_resident_set_size_bytes": 65519616
+  },
+  "path_normalization": {
+    "schema": "mindie-path-normalization/1",
+    "original_sha256": "0c97878da14d76135ea3f16ec02c9444ec2ccfbeb9e414a3e0ec0a22b7ae41e5",
+    "normalized_sha256": "1f9f81fd4a4ddd9b44ec5063d0e218e59cca323543325e3a3af034d552aac19d",
+    "rules": [
+      "repository_identity",
+      "capture_uri"
+    ]
   }
 }

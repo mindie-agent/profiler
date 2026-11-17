@@ -243,7 +243,7 @@
         "kind": "source_and_bounded_tensor_declaration",
         "basis": "current served W4A8 checkpoint and INT8 x INT4 FRACTAL_NZ expert operands; category exceptions inherited architecture and checked bounded tensors",
         "evidence_identity": {
-          "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/kimi-tp16-128k-source-metadata.json",
+          "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/kimi-tp16-128k-source-metadata.json",
           "sha256": "cab4d8d462869251959d06753c08f578d1a2971074ac1672cefdd4708156b207",
           "size_bytes": 100683
         }
@@ -254,12 +254,12 @@
     },
     "metadata": {
       "architecture_template": {
-        "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/cases/decode-a3_kimi4_tp8_w4a8_c1.json",
+        "path": "repository://mindie-agent/profiler/examples/structure/cases/decode-a3_kimi4_tp8_w4a8_c1.json",
         "sha256": "02954f6392cb008a161f2dc3eb88ac2f01b5c774ae256cafc2d045048da313e2",
         "size_bytes": 25716
       },
       "source_metadata_identity": {
-        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/kimi-tp16-128k-source-metadata.json",
+        "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/kimi-tp16-128k-source-metadata.json",
         "sha256": "cab4d8d462869251959d06753c08f578d1a2971074ac1672cefdd4708156b207",
         "size_bytes": 100683
       },
@@ -1003,7 +1003,7 @@
         "enable_static_kernel": true
       },
       "source_metadata_identity": {
-        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/kimi-tp16-128k-source-metadata.json",
+        "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/kimi-tp16-128k-source-metadata.json",
         "sha256": "cab4d8d462869251959d06753c08f578d1a2971074ac1672cefdd4708156b207",
         "size_bytes": 100683
       },
@@ -1037,7 +1037,7 @@
       "conditional_hccl_source_control": {
         "basis": "explicit_source_compatible_AICPU_TS_mesh_separate; captured_executor_and_payload_arguments_not_observed",
         "canonical_input": {
-          "path": "/Users/maoxx241/code/profiler/examples/structure/cases/a3-kimi4-tp16-longctx-source.json",
+          "path": "repository://profiler/examples/structure/cases/a3-kimi4-tp16-longctx-source.json",
           "sha256": "7d50920f678fd5317e9b37edcfc97fafd0029f65cf97940b6bbdcd263f5bc2c7",
           "bytes": 15110
         },

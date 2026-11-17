@@ -32,11 +32,13 @@ from mindie_profiler import repro_values as values
 from mindie_profiler.__main__ import main as cli
 from mindie_profiler.events import ProfilerUsageError
 from mindie_profiler.token_budget import estimate_tokens
-from nr_s6_support import KeyMapping, key_timeout_callback, paged_binding
-from test_nr_s6_round25 import _raw
+from mapping_fixtures import Deadline, KeyMapping, _raw, key_timeout_callback
+from native_abi_fixtures import paged_binding
 
 
 class ReadOnly(Mapping):
+    """Plain read-only carrier; this suite counts hashes, not reads."""
+
     def __init__(self, data):
         self.data = data
 
@@ -222,10 +224,6 @@ def test_malformed_mapping_arguments_are_bounded(tool, arguments, tmp_path, monk
         assert envelope["reason"] == "repro_op arguments must be an object"
     _bounded(envelope)
     assert not list(tmp_path.iterdir())
-
-
-class Deadline(TimeoutError):
-    pass
 
 
 @pytest.mark.parametrize("site", ["len", "iter", "getitem", "hash", "eq"])

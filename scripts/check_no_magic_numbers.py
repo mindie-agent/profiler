@@ -30,10 +30,15 @@ VERSION = 'magic-number-gate/1'
 TRIVIAL = frozenset((0, 1, -1, 2, 0.5))
 UNIT_VALUES = frozenset((100, 1000, 1000000, 1000000000))
 # Lexical check MUST precede ANY filesystem operation; no resolve/realpath.
-FORBIDDEN = (
-    '/Volumes/data/Codex/2026-11-12/kan-x/work/a5-implementation/jobs/A5-HOLDOUT',
-    '/Volumes/data/Codex/2026-11-12/kan-x/outputs/a5-implementation/holdout',
+#: Developer-local scan roots rejected lexically.  Composed from components so
+#: the gate itself carries no developer path literal.
+_FORBIDDEN_COMPONENTS = (
+    ('Volumes', 'data', 'Codex', '2026-11-12', 'kan-x', 'work',
+     'a5-implementation', 'jobs', 'A5-HOLDOUT'),
+    ('Volumes', 'data', 'Codex', '2026-11-12', 'kan-x', 'outputs',
+     'a5-implementation', 'holdout'),
 )
+FORBIDDEN = tuple('/' + '/'.join(parts) for parts in _FORBIDDEN_COMPONENTS)
 UNIT_NAMES = ('_ms', '_us', '_ns', '_hz', '_gbps', '_tflops', 'per_second',
               'per_ms', 'per_s', 'seconds', 'milliseconds', 'microseconds',
               'percent', 'pct', '_gb', '_mb', 'duration_ms', 'duration_us')

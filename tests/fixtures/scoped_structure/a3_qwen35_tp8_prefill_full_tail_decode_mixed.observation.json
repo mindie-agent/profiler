@@ -3,7 +3,7 @@
  "derivation": {
   "kind": "genuine_minimized_line_subset",
   "prefill_source": {
-   "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/qwen35_tp8_ep8_mtp0_prefill_400k_c1/kernel_details.csv",
+   "path": "capture://mindie-sim-data/a3/heldout_engine_20261031/qwen35_tp8_ep8_mtp0_prefill_400k_c1/kernel_details.csv",
    "sha256": "b12ddd923e90e94738cfa1ef7ef3881c5c2b719bae171d81e24995adce226ba4",
    "windows": [
     "prefill:0",
@@ -21,7 +21,7 @@
    ]
   },
   "decode_source": {
-   "path": "/Volumes/data/mindie-sim-data/a3/heldout_engine_20261031/qwen35_tp8_ep8_mtp0_decode_192k_c1/kernel_details.csv",
+   "path": "capture://mindie-sim-data/a3/heldout_engine_20261031/qwen35_tp8_ep8_mtp0_decode_192k_c1/kernel_details.csv",
    "sha256": "5d33988ccb23d87d955b387de99c82387970f7231345da8260f36afc2b4f4dcf",
    "window": "decode:0 first 40 layers"
   },
@@ -919,7 +919,7 @@
   }
  ],
  "source_identity": {
-  "path": "/Volumes/data/code/mindie-release-20261014/profiler/tests/fixtures/scoped_structure/a3_qwen35_tp8_prefill_full_tail_decode_mixed.csv",
+  "path": "repository://mindie-agent/profiler/tests/fixtures/scoped_structure/a3_qwen35_tp8_prefill_full_tail_decode_mixed.csv",
   "sha256": "9c6b4e57625980f84be6c1cd2de1d466b11b3497b75712cc512358b3a4f71fe6",
   "size_bytes": 650457
  }

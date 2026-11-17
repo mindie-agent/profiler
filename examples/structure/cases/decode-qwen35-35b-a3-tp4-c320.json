@@ -75,7 +75,7 @@
     "graph_mode": "none",
     "metadata": {
       "input_boundary": "body-input template only; placeholder workload is not serving replay",
-      "capture_directory": "/Volumes/data/mindie-sim-data/a3/Qwen3.5-35B-A3B-w8a8-mtp_high_conc_decode_tpot50_c320_20261030",
+      "capture_directory": "capture://mindie-sim-data/a3/Qwen3.5-35B-A3B-w8a8-mtp_high_conc_decode_tpot50_c320_20261030",
       "client_concurrency": 320,
       "captured_execution_mode": "FULL_DECODE_ONLY",
       "fusion_contract": null,
@@ -99,7 +99,7 @@
       ],
       "ffn_source_contract": {
         "evidence": {
-          "path": "/Users/maoxx241/code/sim-serving-host-io-20261030/tests/fixtures/verification/qwen35-a3-ffn-contract.json",
+          "path": "repository://sim-serving-host-io-20261030/tests/fixtures/verification/qwen35-a3-ffn-contract.json",
           "sha256": "c42b158e6f7bda51edd3fe607355a1a37633e920c35fd1be51cb75ebfb579f1a"
         },
         "shared_precision": "BF16 activation and weight in both low and high row captures",

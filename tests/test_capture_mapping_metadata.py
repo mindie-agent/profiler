@@ -16,8 +16,7 @@ import hashlib
 import json
 import subprocess
 import sys
-from collections import Counter, UserDict
-from collections.abc import Mapping
+from collections import Counter
 from pathlib import Path
 from types import MappingProxyType
 
@@ -25,36 +24,11 @@ import pytest
 
 from mindie_profiler import repro_op as op
 from mindie_profiler.__main__ import main as cli
-from nr_s6_support import paged_row
+from mapping_fixtures import CARRIERS, Deadline, ReadOnly, _wrap
+from native_abi_fixtures import paged_row
 
 
 WRAPPERS = ("ops", "kernels", "occurrences", "operator_rows", "operators", "rows")
-CARRIERS = ("dict", "userdict", "proxy", "readonly")
-
-
-class ReadOnly(Mapping):
-    def __init__(self, data):
-        self.data = data
-        self.iterations = 0
-        self.reads = Counter()
-
-    def __len__(self):
-        return len(self.data)
-
-    def __iter__(self):
-        self.iterations += 1
-        return iter(self.data)
-
-    def __getitem__(self, key):
-        self.reads[key] += 1
-        return self.data[key]
-
-
-def _wrap(data, carrier):
-    return {"dict": dict, "userdict": UserDict, "proxy": MappingProxyType,
-            "readonly": ReadOnly}[carrier](data)
-
-
 @pytest.fixture(autouse=True)
 def isolated(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
@@ -216,10 +190,6 @@ def test_rejected_capture_does_not_publish(carrier, mode, fault, tmp_path,
     assert "Traceback" not in out + err
     assert not list(tmp_path.iterdir())
     assert payload["rows"] is data["rows"] and data["rows"][1] is row
-
-
-class Deadline(TimeoutError):
-    pass
 
 
 @pytest.mark.parametrize("mode", ("dry", "caller"))

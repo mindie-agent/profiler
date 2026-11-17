@@ -67,7 +67,7 @@
     "graph_mode": "none",
     "metadata": {
       "input_boundary": "body-input template only; placeholder workload is not serving replay",
-      "capture_directory": "/Volumes/data/mindie-sim-data/a3/Qwen3.6-27B-W8A8_high_conc_decode_tpot30_c64_20261030",
+      "capture_directory": "capture://mindie-sim-data/a3/Qwen3.6-27B-W8A8_high_conc_decode_tpot30_c64_20261030",
       "client_concurrency": 64,
       "captured_execution_mode": "FULL_DECODE_ONLY",
       "fusion_contract": null,

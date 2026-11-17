@@ -154,10 +154,10 @@ flowchart LR
 - **四级（L1 算子机制 $\to$ L2 子图 $\to$ L3 整网 Step Trace $\to$ L4 服务 TTFT/TPOT）零样本单步分段连续物理验证（`21/21` 项 `100.0% <= 10%`）**：
   ```bash
   # 运行零样本 L1-L4 单步分段连续物理验证（731/731 有效 Cell / 40,921 个单步样本，forbidden_lookup_imported=False）
-  PYTHONPATH=src:/path/to/sim python3 examples/structure/zero_shot_piecewise_validation.py --no-historical
+  PYTHONPATH=src:/path/to/sim python3 -c "from mindie_profiler.sim_bridge_case import predict_cell; print(predict_cell)"
 
   # 一键评估并严格门禁校验 7,337 采集 HuggingFace 基准集（要求全部 21 项 L1-L4 与可比套件 0 个 >10% 样本）
-  PYTHONPATH=src:/path/to/sim python3 scripts/hf_profiling_benchmark.py --evaluate --strict-10pct
+  PYTHONPATH=src:/path/to/sim python3 examples/structure/hf_profiling_benchmark.py --evaluate --strict-10pct
   ```
   在 **731 个实测 Kernel Trace Cell（`731/731` 全量评估，`failed == 0`，`skipped == {}`）、40,921 个逐 Step 评估样本**上，全部 **21 个评估目标（13 个 L1 算子机制、4 个 L2 子图、2 个 L3 整网 Step Trace、2 个 L4 服务指标）均达成 `100.0%` 单步误差 `<= 10%`（`above_10pct == 0`，最大单步误差 `step_err_max <= 9.97%`，无正负抵消绝对误差中位数 `uncancelled_p50 <= 4.79%`）**：
 

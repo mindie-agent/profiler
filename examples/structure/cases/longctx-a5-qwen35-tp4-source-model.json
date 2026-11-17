@@ -816,7 +816,7 @@
     "max_model_len": 133000,
     "metadata": {
       "capture_source": {
-        "path": "/Volumes/data/mindie-sim-data/a5/2026-10-22/qwen35-decode-attn/scripts/serve_qwen35_attn.sh",
+        "path": "capture://mindie-sim-data/a5/2026-10-22/qwen35-decode-attn/scripts/serve_qwen35_attn.sh",
         "sha256": "305f9cfe159845996f49ebe9c15c31464bed26b5122a0dfa4ed518c97317c816",
         "size_bytes": 2511
       },
@@ -827,7 +827,7 @@
       "runtime_recipe_basis": "uncalibrated catalog baseline; no high-concurrency EP/MC2 policy transferred",
       "native_grouped_response": {
         "source_case": {
-          "path": "/Users/maoxx241/code/profiler/examples/structure/cases/longctx-a5-qwen35-tp4-source-model.json",
+          "path": "repository://profiler/examples/structure/cases/longctx-a5-qwen35-tp4-source-model.json",
           "sha256": "fbac3d688d7a92e6e598c1ba6406cef4c2f8addf68dfa9b4dd56c02d9a9b5a53",
           "size_bytes": 2673
         },
@@ -943,14 +943,14 @@
               {
                 "case_id": "a5-qwen35-tp4-longctx-p65536-c1-hold",
                 "source": {
-                  "path": "/Volumes/data/mindie-sim-data/a5/2026-10-22/qwen35-decode-attn/raw/prof/p65536_c1_hold/kernel_details.csv.gz",
+                  "path": "capture://mindie-sim-data/a5/2026-10-22/qwen35-decode-attn/raw/prof/p65536_c1_hold/kernel_details.csv.gz",
                   "size_bytes": 27904964,
                   "mtime_ns": 1792695827861351286,
                   "schema_version": "kernel_details_csv_48col",
                   "sha256": "01d05033c0393ba9a105728b9fadca974a297dd861a26f4ecd01c16ae06be2d9"
                 },
                 "extraction": {
-                  "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/c99aeff826f6d87ff29aaab2f537dc364fbf038f48545f4d08654c6382762664.json",
+                  "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/c99aeff826f6d87ff29aaab2f537dc364fbf038f48545f4d08654c6382762664.json",
                   "sha256": "c99aeff826f6d87ff29aaab2f537dc364fbf038f48545f4d08654c6382762664",
                   "reused_existing_extraction": true
                 },
@@ -978,14 +978,14 @@
               {
                 "case_id": "a5-qwen35-tp4-longctx-p65536-c4-hold",
                 "source": {
-                  "path": "/Volumes/data/mindie-sim-data/a5/2026-10-22/qwen35-decode-attn/raw/prof/p65536_c4_hold/kernel_details.csv.gz",
+                  "path": "capture://mindie-sim-data/a5/2026-10-22/qwen35-decode-attn/raw/prof/p65536_c4_hold/kernel_details.csv.gz",
                   "size_bytes": 32643777,
                   "mtime_ns": 1792695828433141801,
                   "schema_version": "kernel_details_csv_48col",
                   "sha256": "c107f1fa16155ddc86704da431c10d0c9a9032ad7f2071d22d55f6ffafd17ca6"
                 },
                 "extraction": {
-                  "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/dd459c167559e01ebb69113e123d6635c6e1158b0eaef536d802a525833d4d9f.json",
+                  "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/dd459c167559e01ebb69113e123d6635c6e1158b0eaef536d802a525833d4d9f.json",
                   "sha256": "dd459c167559e01ebb69113e123d6635c6e1158b0eaef536d802a525833d4d9f",
                   "reused_existing_extraction": true
                 },
@@ -1131,14 +1131,14 @@
               {
                 "case_id": "a5-qwen35-tp4-longctx-p65536-c1-hold",
                 "source": {
-                  "path": "/Volumes/data/mindie-sim-data/a5/2026-10-22/qwen35-decode-attn/raw/prof/p65536_c1_hold/kernel_details.csv.gz",
+                  "path": "capture://mindie-sim-data/a5/2026-10-22/qwen35-decode-attn/raw/prof/p65536_c1_hold/kernel_details.csv.gz",
                   "size_bytes": 27904964,
                   "mtime_ns": 1792695827861351286,
                   "schema_version": "kernel_details_csv_48col",
                   "sha256": "01d05033c0393ba9a105728b9fadca974a297dd861a26f4ecd01c16ae06be2d9"
                 },
                 "extraction": {
-                  "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/c99aeff826f6d87ff29aaab2f537dc364fbf038f48545f4d08654c6382762664.json",
+                  "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/c99aeff826f6d87ff29aaab2f537dc364fbf038f48545f4d08654c6382762664.json",
                   "sha256": "c99aeff826f6d87ff29aaab2f537dc364fbf038f48545f4d08654c6382762664",
                   "reused_existing_extraction": true
                 },
@@ -1166,14 +1166,14 @@
               {
                 "case_id": "a5-qwen35-tp4-longctx-p65536-c4-hold",
                 "source": {
-                  "path": "/Volumes/data/mindie-sim-data/a5/2026-10-22/qwen35-decode-attn/raw/prof/p65536_c4_hold/kernel_details.csv.gz",
+                  "path": "capture://mindie-sim-data/a5/2026-10-22/qwen35-decode-attn/raw/prof/p65536_c4_hold/kernel_details.csv.gz",
                   "size_bytes": 32643777,
                   "mtime_ns": 1792695828433141801,
                   "schema_version": "kernel_details_csv_48col",
                   "sha256": "c107f1fa16155ddc86704da431c10d0c9a9032ad7f2071d22d55f6ffafd17ca6"
                 },
                 "extraction": {
-                  "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/dd459c167559e01ebb69113e123d6635c6e1158b0eaef536d802a525833d4d9f.json",
+                  "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/dd459c167559e01ebb69113e123d6635c6e1158b0eaef536d802a525833d4d9f.json",
                   "sha256": "dd459c167559e01ebb69113e123d6635c6e1158b0eaef536d802a525833d4d9f",
                   "reused_existing_extraction": true
                 },

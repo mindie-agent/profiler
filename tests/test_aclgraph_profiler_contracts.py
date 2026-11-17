@@ -42,8 +42,7 @@ from mindie_profiler.aclgraph_multistream import (
     diagnose_region,
     effective_launch_floor_us,
 )
-from mindie_profiler.memory_evidence import region_memory_service
-from mindie_sim.opflow.token_budget import envelope_size
+from mindie_profiler.token_budget import envelope_size
 
 BAD_BOOLS = (0, 1, 2, -1, 0.0, 1.0, "", "true", "false", None, [], {}, (True,))
 
@@ -307,23 +306,15 @@ def test_capture_root_exemption_and_nonroot_join() -> None:
     assert diagnose_region(g).code == "A5"
 
 
-def test_mixed_memory_and_declared_scopes() -> None:
+def test_diagnostics_report_observed_wall_only() -> None:
     a = StreamInterval("a", 0, 0, 10, read_bytes=10**9, write_bytes=10**9)
     b = StreamInterval("b", 1, 0, 10, io_bytes=64)
-    service, detail = region_memory_service(a, b, ParallelRegion("r", a, b))
-    assert detail["read_service_bytes"] == detail["write_service_bytes"] == 10**9
-    assert detail["unknown_direction_bytes"] == 64
-    assert service == pytest.approx(812.50004)
-
-    ca = StreamInterval("a", 0, 0, 10, io_bytes=256, read_bytes=256, write_bytes=0, unique_bytes=64)
-    cb = StreamInterval("b", 1, 0, 10, read_bytes=0, write_bytes=0, unique_bytes=0)
-    diag = diagnose_region(ParallelRegion("cache", ca, cb, event_pairs=0))
-    assert diag.details["unique_bytes"] == 64
-    assert diag.details["read_service_bytes"] == 256
-    assert diag.details["write_service_bytes"] == 0
-    legacy = diagnose_region(ParallelRegion("unknown", StreamInterval("a", 0, 0, 10, io_bytes=256), cb, event_pairs=0))
-    assert legacy.details["unique_bytes"] is None
-    assert legacy.details["memory_evidence"] == "io_total_upper_bound"
+    diag = diagnose_region(ParallelRegion("observed", a, b, event_pairs=0))
+    assert diag.wall_us == diag.span_us
+    assert "unique_bytes" not in diag.details
+    assert "service_us" not in diag.details
+    assert "memory_extension_us" not in diag.details
+    assert diag.details["net_wall_us"] == diag.wall_us
 
 
 @pytest.mark.parametrize("release", [11.5, 20, 100])

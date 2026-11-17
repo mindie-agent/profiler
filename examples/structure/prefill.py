@@ -22,6 +22,7 @@ from mindie_profiler.decode_segmentation import (
     _MATRICES, _ANCHORS, _PREFILL_ANCHORS, _fused_ffn,
 )
 from mindie_profiler.normalized import kernel_rows
+from evidence_roots import localize_evidence
 
 
 def identity(path):
@@ -454,6 +455,7 @@ def run_case(row, base:Path, *, prediction_timeout_s=90):
     learned parameters are fit or modified. The unique capture with extra query
     chunks stays unscored at request scope; it is not trimmed by elapsed time.
     """
+    row = localize_evidence(row)
     if row['source'].get('kind')=='client_json':
         # A retained client benchmark is valid TTFT evidence without a device
         # capture. Its request count does not identify Body calls or chunks.

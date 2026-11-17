@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 import fleet_capture_observations as observations
+from evidence_roots import capture_root, localize_evidence
 
 _STRUCT_DIR = Path(__file__).resolve().parent
 CASES_DIR = _STRUCT_DIR / "cases"
@@ -209,7 +210,7 @@ def _case_index() -> dict[str, dict[str, Any]]:
         return _CASE_INDEX
     index: dict[str, dict[str, Any]] = {}
     if CASES_INDEX_PATH.is_file():
-        document = json.loads(CASES_INDEX_PATH.read_text(encoding="utf-8"))
+        document = localize_evidence(json.loads(CASES_INDEX_PATH.read_text(encoding="utf-8")))
         for entry in document.get("cases") or ():
             if not isinstance(entry, Mapping):
                 continue
@@ -1381,8 +1382,8 @@ def _canonical_receipt_index() -> Path:
     name canonical archive paths. Callers record that distinction.
     """
     shipped = (
-        Path("/Volumes/data/mindie-sim-data/acceptance-archives-20261030/observation_receipt_index.tsv"),
-        Path("/Volumes/data/mindie-sim-data/observation_receipt_index.tsv"),
+        capture_root() / "acceptance-archives-20261030" / "observation_receipt_index.tsv",
+        capture_root() / "observation_receipt_index.tsv",
         _STRUCT_DIR / "observation_receipt_index.tsv",
     )
     for candidate in shipped:
@@ -1401,12 +1402,12 @@ def _ensure_archive():
     if not _ARCHIVE_CONFIGURED:
         archive.configure_archive_roots(
             data_roots=(
-                Path("/Volumes/data/mindie-sim-data"),
-                Path("/Users/maoxx241/code/mindie-agent/.workstreams"),
+                capture_root(),
+                Path("repository://mindie-agent/.workstreams"),
             ),
             results_dir=_STRUCT_DIR / "results",
             cases_dir=CASES_DIR,
-            archive_root=Path("/Volumes/data/mindie-sim-data/acceptance-archives-20261030"),
+            archive_root=capture_root() / "acceptance-archives-20261030",
             receipt_index=_canonical_receipt_index(),
             cases_index=CASES_INDEX_PATH,
         )

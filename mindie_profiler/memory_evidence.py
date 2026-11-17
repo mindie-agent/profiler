@@ -664,37 +664,3 @@ __all__ = [
     "sampled_peak_to_snapshot",
     "take_msmemscope_snapshot",
 ]
-
-
-def region_memory_service(a: Any, b: Any, region: Any) -> tuple[float, dict[str, Any]]:
-    """Compute memory-service time and evidence metadata for a two-branch region."""
-    return intervals_memory_service((a, b), region)
-
-
-def intervals_memory_service(intervals: Any, region: Any) -> tuple[float, dict[str, Any]]:
-    """Known R/W service plus a serialized upper bound for unknown-direction I/O."""
-    from mindie_sim.opflow.exact_math import memory_seconds
-
-    items = tuple(intervals)
-    explicit = all(item.read_bytes is not None for item in items)
-    read = sum(item.read_bytes for item in items if item.read_bytes is not None)
-    write = sum(item.write_bytes for item in items if item.write_bytes is not None)
-    legacy = sum(item.io_bytes for item in items if item.read_bytes is None)
-    unique = (
-        sum(item.unique_bytes for item in items)
-        if all(item.unique_bytes is not None for item in items)
-        else None
-    )
-    cache = unique is not None and unique <= region.l2_size_bytes
-    bandwidth = (region.memory_bw_gbps if cache else region.hbm_bw_gbps) * 10**9
-    service = memory_seconds(read, write, bandwidth, bandwidth, region.rw_contention_alpha) * 10**6
-    service += memory_seconds(legacy, 0, bandwidth, bandwidth, 0) * 10**6
-    return float(service), {
-        "service_us": float(service),
-        "unique_bytes": unique,
-        "read_service_bytes": read,
-        "write_service_bytes": write,
-        "unknown_direction_bytes": legacy,
-        "memory_evidence": "declared_read_write" if explicit else "io_total_upper_bound",
-        "cache_assumption": "declared_unique_set" if cache else "hbm_prior",
-    }

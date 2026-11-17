@@ -239,23 +239,27 @@ def test_idle_rank_export_is_modeled_with_basis(tmp_path: Path):
     assert idle["deployment_sha256"] == result["deployment_sha256"]
 
 
-def test_declared_graph_mode_and_speculative_tokens_materialize(tmp_path: Path):
+def test_declared_graph_mode_materializes_and_speculative_policy_requires_draft(
+        tmp_path: Path):
     run = _campaign(tmp_path / "campaign")
     spec = json.loads((run / "case_spec.json").read_text(encoding="utf-8"))
     spec["compilation_config"] = {"cudagraph_mode": "FULL_DECODE_ONLY",
                                   "cudagraph_capture_sizes": [1, 2, 4, 8, 16]}
+    _write(run / "case_spec.json", spec)
+    declared = fc.resolve_campaign_case(_campaign_row())
+    assert declared["ok"], declared
+    assert declared["graph_mode"] == "full"
+    assert declared["case"]["runtime"]["graph_capture_keys"] == [1, 2, 4, 8, 16]
+
+    # A speculative policy cannot synthesize a missing native draft structure:
+    # the retained generic model must declare its own MTP blocks first.
     spec["speculative_config"] = {"method": "qwen3_5_mtp", "num_speculative_tokens": 3}
     _write(run / "case_spec.json", spec)
-    result = fc.resolve_campaign_case(_campaign_row())
-    assert result["ok"], result
-    assert result["graph_mode"] == "full"
-    assert result["mtp_proposal_tokens"] == 3
-    assert result["case"]["runtime"]["graph_capture_keys"] == [1, 2, 4, 8, 16]
-    assert result["case"]["runtime"]["metadata"]["draft_proposal_tokens"] == 3
-    assert result["tokens"] == 4
-    assert result["geometry"]["tokens_basis"] == "declared_speculative_policy_bound"
-    assert result["geometry"]["actual_q_observed"] is False
-    assert result["deployment_sha256"]
+    rejected = fc.resolve_campaign_case(_campaign_row())
+    assert rejected["ok"] is False
+    assert rejected["status"] == "insufficient_evidence"
+    assert any("draft_structure_required_for_mtp_proposal_tokens" in diagnostic
+               for diagnostic in rejected["diagnostics"])
 
 
 def test_additional_config_and_scheduler_features_reach_runtime(tmp_path: Path):

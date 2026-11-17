@@ -1,6 +1,6 @@
 {
   "source": {
-    "path": "/Volumes/data/mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030/kernel_details.csv",
+    "path": "capture://mindie-sim-data/a5/qwen3_6_27b_w8a8_tp2_high_conc_decode_tpot10ms_c12_20261030/kernel_details.csv",
     "size_bytes": 43475364,
     "mtime_ns": 1793298518000000000,
     "schema_version": "kernel_details_csv_48col",
@@ -11,7 +11,7 @@
     127
   ],
   "body_acceptance_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/acceptance-20261030-expanded/auto-forward-qwen36-a5-tp2-c12.json",
+    "path": "repository://mindie-agent/profiler/examples/structure/acceptance-20261030-expanded/auto-forward-qwen36-a5-tp2-c12.json",
     "sha256": "dc5eb494c0e16b3ca584fd6d408ad772fbd27125beb0b264a751b9c0856cc39a",
     "size_bytes": 2207695
   },

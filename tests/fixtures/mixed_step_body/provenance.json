@@ -6,7 +6,7 @@
       "capture_id": "a3_qwen35",
       "fixture": "a3_qwen35.csv",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen35-gdn/prof/p_16384_c1/dp0_pp0_tp0_dcp0_ep0_rank0_351_20261023191719697_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a3/2026-10-23/qwen35-gdn/prof/p_16384_c1/dp0_pp0_tp0_dcp0_ep0_rank0_351_20261023191719697_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
         "size_bytes": 38931005,
         "mtime_ns": 1792783499000000000,
         "schema_version": "kernel_details_csv_46col",
@@ -810,7 +810,7 @@
       "capture_id": "a3_qwen36",
       "fixture": "a3_qwen36.csv",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a3/2026-10-23/qwen36-rows/prof/p_16384_c1/rank0_430_20261023224731658_ascend_pt/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
         "size_bytes": 13245065,
         "mtime_ns": 1792795904000000000,
         "schema_version": "kernel_details_csv_46col",
@@ -2331,7 +2331,7 @@
       "capture_id": "a5_qwen38",
       "fixture": "a5_qwen38.csv",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a5/2026-10-22/qwen38-c4-16k/raw/prof/p16384_c1_o32/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
+        "path": "capture://mindie-sim-data/a5/2026-10-22/qwen38-c4-16k/raw/prof/p16384_c1_o32/ASCEND_PROFILER_OUTPUT/kernel_details.csv",
         "size_bytes": 7978835,
         "mtime_ns": 1792684761000000000,
         "schema_version": "kernel_details_csv_48col",
@@ -3949,7 +3949,7 @@
       "capture_id": "a3_glm53_prefill",
       "fixture": "a3_glm53_prefill.csv",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/pf4k_b1.csv.gz",
+        "path": "capture://mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/pf4k_b1.csv.gz",
         "size_bytes": 154828,
         "mtime_ns": 1792775839480614000,
         "schema_version": "kernel_details_csv_46col",
@@ -4013,7 +4013,7 @@
       "capture_id": "a3_v4f",
       "fixture": "a3_v4f.csv",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/v4f-prefill/raw/pre4096.kernel_details.csv",
+        "path": "capture://mindie-sim-data/a3/2026-10-23/v4f-prefill/raw/pre4096.kernel_details.csv",
         "size_bytes": 1391917,
         "mtime_ns": 1792795906356307712,
         "schema_version": "kernel_details_csv_46col",
@@ -4078,7 +4078,7 @@
       "fixture": "a3_glm53_decode.csv",
       "fixture_sha256": "5952c5a9a4b8e4a76dae029175f42d0fced91ff779d4982012934979f7f472ac",
       "source_identity": {
-        "path": "/Volumes/data/mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/dc4k_b1.csv.gz",
+        "path": "capture://mindie-sim-data/a3/2026-10-23/glm53-attn/raw/kernels/dc4k_b1.csv.gz",
         "size_bytes": 9236949,
         "mtime_ns": 1792775834549057000,
         "schema_version": "kernel_details_csv_46col",
@@ -4261,27 +4261,27 @@
     "capture_binary_identity": "not_established_by_local_source_correspondence",
     "sources": [
       {
-        "path": "/Users/maoxx241/code/vllm-ascend/vllm_ascend/attention/attention_v1.py",
+        "path": "repository://vllm-ascend/vllm_ascend/attention/attention_v1.py",
         "sha256": "d9c6536f6903589fe83a6e4c8acb3934f88de60abd7768190a4a9edcf67e50ab",
         "purpose": "_get_fia_params: views paged cache as (pages, block_size, packed_width); no inferred KV-head factorization"
       },
       {
-        "path": "/Users/maoxx241/code/vllm-ascend/csrc/attention/recurrent_gated_delta_rule/op_host/recurrent_gated_delta_rule_def.cpp",
+        "path": "repository://vllm-ascend/csrc/attention/recurrent_gated_delta_rule/op_host/recurrent_gated_delta_rule_def.cpp",
         "sha256": "c388285948566df9e106bca2dc895aa6dad57506c9da5216cde67b3cc16276d0",
         "purpose": "10 input/2 output BF16 scalar-decay ABI; empty optional gk omitted in compact capture"
       },
       {
-        "path": "/Users/maoxx241/code/vllm-ascend/csrc/attention/recurrent_gated_delta_rule/op_host/recurrent_gated_delta_rule_tiling.cpp",
+        "path": "repository://vllm-ascend/csrc/attention/recurrent_gated_delta_rule/op_host/recurrent_gated_delta_rule_tiling.cpp",
         "sha256": "72bc53c4f46ffe3ff4d262098796ac878ae01364ba9dbaa519e417c8c0ce204e",
         "purpose": "Q/K equality, V-first state, cumulative-length sequence count, value/key head relationship"
       },
       {
-        "path": "/Users/maoxx241/code/sim-rewrite-20261027/data/observations/sources/fla-a4a7958/chunk_gated_delta_rule_fwd/op_host/chunk_gated_delta_rule_fwd_def.cpp",
+        "path": "repository://sim-rewrite-20261027/data/observations/sources/fla-a4a7958/chunk_gated_delta_rule_fwd/op_host/chunk_gated_delta_rule_fwd_def.cpp",
         "sha256": "aa68c85268313353524e933af13af804dc6f4cfbc7e1bcb12cf4852af61b0784",
         "purpose": "Retained legacy BHTD 10 input/4 output definition; compact capture omits empty gk"
       },
       {
-        "path": "/Users/maoxx241/code/vllm-ascend/vllm_ascend/ops/gdn.py",
+        "path": "repository://vllm-ascend/vllm_ascend/ops/gdn.py",
         "sha256": "724f43cc24ee4b4d4d01c36e7967d02d95646b5e4ab011940e16bb5374a20c9f",
         "purpose": "Generic chunk wrapper is a distinct TND/BF16-state interface; not automatically a complete native single-kernel group"
       }

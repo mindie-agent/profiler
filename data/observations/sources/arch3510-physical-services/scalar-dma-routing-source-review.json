@@ -4,7 +4,10 @@
   "checks": 97,
   "failures": [],
   "report_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-routing-source-join.json",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-routing-source-join.json",
+    "source_sha256": "06ee6d7ece7437622510ce2d59fab246af32cee43b6c51b734e7aa73bfddbcc3",
+    "revision": null,
     "sha256": "06ee6d7ece7437622510ce2d59fab246af32cee43b6c51b734e7aa73bfddbcc3",
     "size_bytes": 159667
   },
@@ -14,5 +17,14 @@
   "rank_proof": "Every column is a linear combination of 1, assignments, active owners; their 3x3 determinant is nonzero.",
   "scope": "Saved population and native histogram/PMU projection; explicit source-count identities and absent opcode/RMW counts. No new raw/cost.",
   "raw_scans": 0,
-  "new_costs": 0
+  "new_costs": 0,
+  "path_normalization": {
+    "schema": "mindie-path-normalization/1",
+    "original_sha256": "7b370d6c91d7d40509fd74b6729e80481c91ede6ebdd8f605f02d38238a6f029",
+    "normalized_sha256": "f31eb392a35f0c6c8434cd825d7b5e99a8b6422a01a44f07393299234dc37d31",
+    "rules": [
+      "repository_identity",
+      "capture_uri"
+    ]
+  }
 }

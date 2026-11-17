@@ -5,15 +5,25 @@ on:
   pull_request:
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 jobs:
   test:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python: ['3.11', '3.13']
+        include:
+          - os: ubuntu-latest
+            python: '3.11'
+          - os: ubuntu-latest
+            python: '3.13'
+          - os: windows-latest
+            python: '3.13'
+          - os: macos-latest
+            python: '3.13'
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 25
+    timeout-minutes: 12
     env:
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
@@ -21,6 +31,9 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: ${{ matrix.python }}
+      - name: quality
+        if: runner.os == 'Linux' && matrix.python == '3.11'
+        run: python3 .github/scripts/check_lf_eol.py
       - env:
           VIRTUAL_ENV: ${{ runner.temp }}/prof-venv
           UV_PROJECT_ENVIRONMENT: ${{ runner.temp }}/prof-venv

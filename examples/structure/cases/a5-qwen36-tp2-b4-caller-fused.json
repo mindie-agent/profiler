@@ -609,7 +609,7 @@
               "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
             ],
             "model_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
               "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
               "size_bytes": 812897
             },
@@ -677,7 +677,7 @@
               "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
             ],
             "model_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
               "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
               "size_bytes": 812897
             },
@@ -745,7 +745,7 @@
               "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
             ],
             "model_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
               "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
               "size_bytes": 812897
             },
@@ -813,7 +813,7 @@
               "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
             ],
             "model_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
               "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
               "size_bytes": 812897
             },
@@ -881,7 +881,7 @@
               "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
             ],
             "model_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
               "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
               "size_bytes": 812897
             },
@@ -949,7 +949,7 @@
               "bd178d03944f57ad7586ee2a7bfae85f18aab7e457dd36c788fb8573bb0ed896"
             ],
             "model_identity": {
-              "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
+              "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/qwen-physical-transfer/frozen-slice-cache-functions.json",
               "sha256": "d76003f42711ec223d43a67408bacaae445f57576934c3cbdbb754272754a089",
               "size_bytes": 812897
             },
@@ -1611,7 +1611,7 @@
     "metadata": {
       "captured_execution_mode": "FULL_DECODE_ONLY",
       "source_metadata": {
-        "path": "/Volumes/data/mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/qwen-a5-128k-source-deployments.json",
+        "path": "capture://mindie-sim-data/acceptance-archives-20261030/pending/long-context-decode/qwen-a5-128k-source-deployments.json",
         "sha256": "99f6c3e2ae91327ea706547d4391ac94f2d633953e31141dbac66680a71ab9cd",
         "size_bytes": 888122
       },
@@ -1628,14 +1628,14 @@
           0.512
         ],
         "source_identity": {
-          "path": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261030/qwen36_tp2_128k_20261030/logs/serve.log",
+          "path": "capture://mindie-sim-data/a5/heldout_engine_20261030/qwen36_tp2_128k_20261030/logs/serve.log",
           "sha256": "d8d0317854668206e63e50aa10cd6129fb9b20518ff082411c44b92b8d093771",
           "size_bytes": 348355
         },
         "basis": "same_deployment_serve_log_resolved_configuration"
       },
       "checkpoint_path": "/mnt/weight/Qwen3.6-27B-W8A8",
-      "capture_deployment": "/Volumes/data/mindie-sim-data/a5/heldout_engine_20261030/qwen36_tp2_128k_20261030",
+      "capture_deployment": "capture://mindie-sim-data/a5/heldout_engine_20261030/qwen36_tp2_128k_20261030",
       "calibration_origin": "not_declared",
       "target_timing_used_to_fit": false,
       "body_geometry_policy": "Use actual source B/q/physical capture rows; directory concurrency is not active-batch evidence.",
@@ -1672,7 +1672,7 @@
       },
       "frozen_scalar_store_binding": {
         "source_case": {
-          "path": "/Users/maoxx241/code/profiler/examples/structure/cases/a5-qwen36-tp2-long-context-source.json",
+          "path": "repository://profiler/examples/structure/cases/a5-qwen36-tp2-long-context-source.json",
           "sha256": "40d2a8b85bb81c154afcd25e4c3942b666e679f760f117fc3a49ab996bfcdd67",
           "size_bytes": 5829
         },
@@ -1699,7 +1699,7 @@
       },
       "frozen_hccl_transfer": {
         "parameter_source": {
-          "path": "/Users/maoxx241/code/sim-serving-host-io-20261030/examples/cases/longctx-decode-20261030/qwen36-a5-tp2.json",
+          "path": "repository://sim-serving-host-io-20261030/examples/cases/longctx-decode-20261030/qwen36-a5-tp2.json",
           "sha256": "b6fd9184b486a3e78049023c5bc94505cea1e19f62de35a120ff2c1a94f782e1",
           "size_bytes": 31247
         },
@@ -1712,7 +1712,7 @@
       },
       "native_norm_caller_binding": {
         "source_case": {
-          "path": "/Users/maoxx241/code/sim-serving-host-io-20261030/examples/cases/longctx-decode-20261030/a5-gdn-hccl-frozen/a5-qwen36-tp2-mesh_oneshot-frozen.json",
+          "path": "repository://sim-serving-host-io-20261030/examples/cases/longctx-decode-20261030/a5-gdn-hccl-frozen/a5-qwen36-tp2-mesh_oneshot-frozen.json",
           "sha256": "0f1dd3d818738215887c95b336c5f7a31a1a5c034533634c0eb98a851660a145",
           "size_bytes": 9138
         },

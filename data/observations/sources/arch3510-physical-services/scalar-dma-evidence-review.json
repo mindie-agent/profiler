@@ -42,17 +42,26 @@
     }
   ],
   "receipt_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-extraction-receipt.json",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-extraction-receipt.json",
+    "source_sha256": "376015f1b271bfd427cf109f3b7465fc4d985d4ac8a745322d72c6eed545c00a",
+    "revision": null,
     "sha256": "376015f1b271bfd427cf109f3b7465fc4d985d4ac8a745322d72c6eed545c00a",
     "size_bytes": 12778
   },
   "summary_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/data/observations/sources/arch3510-physical-services/scalar-dma-physical-constraints.json",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "data/observations/sources/arch3510-physical-services/scalar-dma-physical-constraints.json",
+    "source_sha256": "2d3ca3bafaf08cd89be467694dfe2672b98ba32286778a1461c08a5edb3afbb1",
+    "revision": null,
     "sha256": "2d3ca3bafaf08cd89be467694dfe2672b98ba32286778a1461c08a5edb3afbb1",
     "size_bytes": 645051
   },
   "reviewer_identity": {
-    "path": "/Volumes/data/code/mindie-release-20261014/profiler/examples/structure/review_scalar_dma_services.py",
+    "repository": "mindie-agent/profiler",
+    "relative_path": "examples/structure/review_scalar_dma_services.py",
+    "source_sha256": "34e10b9af4da367917d4c0dbd8d76659f651ca56e0380d8eda785d7d17b97b47",
+    "revision": null,
     "sha256": "34e10b9af4da367917d4c0dbd8d76659f651ca56e0380d8eda785d7d17b97b47",
     "size_bytes": 6984
   },
@@ -60,5 +69,14 @@
     "raw_scans": 0,
     "cost_calls": 0,
     "peak_rss_bytes": 126746624
+  },
+  "path_normalization": {
+    "schema": "mindie-path-normalization/1",
+    "original_sha256": "cf1075b5c34ce571d6a1b555541b58b43e7d67cb0c43bb88cf3e6882dadaa98f",
+    "normalized_sha256": "d53c9d926b58095ad7218a524e0e022561593e48bd975248b1be3ab33757883d",
+    "rules": [
+      "repository_identity",
+      "capture_uri"
+    ]
   }
 }

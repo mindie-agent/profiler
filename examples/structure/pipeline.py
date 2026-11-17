@@ -17,6 +17,7 @@ import tempfile
 import time
 
 from decode import _sim_identity, replay_manifest
+from evidence_roots import localize_evidence
 
 
 def archive_report(report, root):
@@ -151,7 +152,7 @@ def read(path):
     path = Path(path)
     if path.stat().st_size > 50_000_000:
         raise ValueError('metadata_requires_streaming:' + str(path))
-    return json.loads(path.read_text())
+    return localize_evidence(json.loads(path.read_text()))
 
 
 def identity(path):

@@ -21,7 +21,9 @@ from mindie_sim.prediction.service_regimes import axis_equal, coordinates, looku
 from mindie_sim.prediction.structure import parse_case
 from mindie_sim.schema.common import ModelingError
 
-from a5_native_observations import _matches, _operator_axes, _physical_contract, _read_profile
+from a5_native_observations import (
+    _matches, _operator_axes, _physical_contract, _read_profile, _replay_case,
+)
 
 
 @lru_cache(maxsize=16)
@@ -164,8 +166,9 @@ def apply_a5_q35_unfused_native_observations(
 
     if phase != "decode" or tokens != profile.get("tokens_per_sequence", 4) or sequences * tokens > 32:
         return miss("sequence_partition_outside_mc2_observed_domain")
-    parsed = parse_case(raw)
     contract = profile["source_contract"]
+    prepared = _replay_case(raw, contract["physical"])
+    parsed = parse_case(prepared)
     if ((parsed.machine.hardware_key or parsed.machine.sku) != profile["hardware"] or
             any(getattr(parsed.runtime.parallel, key) != value for key, value in contract["parallel"].items())):
         return miss("hardware_or_parallelism_outside_observed_domain")
@@ -186,7 +189,7 @@ def apply_a5_q35_unfused_native_observations(
                 all(getattr(plan, key) == value for key, value in domain["layer"].items())
                 for plan in parsed.model.layer_plans) for domain in domains):
         return miss("source_geometry_outside_observed_native_profile")
-    result, reason = _caller_input(raw, parsed)
+    result, reason = _caller_input(prepared, parsed)
     if reason:
         return miss(reason)
     rebound = _add_native_queue(result)

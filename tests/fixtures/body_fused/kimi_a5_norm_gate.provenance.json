@@ -1,6 +1,6 @@
 {
   "schema": "mindie-real-capture-slice/1",
-  "source_archive": "/Volumes/data/mindie-sim-data/a5/2026-10-23/kimi-k3-longctx/k3lc-os1.tgz",
+  "source_archive": "capture://mindie-sim-data/a5/2026-10-23/kimi-k3-longctx/k3lc-os1.tgz",
   "source_archive_sha256": "8b74c09cfdbdb14d010f7c941b4911abc88e865a9d625e88813f4096ed91a00d",
   "source_member": "raw/prof-export/op_summary_20261023053244.csv",
   "source_member_sha256": "ab1d44d3613ecb92d71af6d790ab9dfc72be5aabfe92bf4f99d584fbd0f9e648",
@@ -29,7 +29,7 @@
     "tensor_metadata_NA": 5175
   },
   "source_code_evidence": {
-    "path": "/Volumes/data/code/vllm-ascend-pr14768-quarot-acceptance-fix-20260825/vllm_ascend/ops/triton/kda/fused_norm_gate.py",
+    "path": "repository://refs/vllm-ascend-pr14768-quarot-acceptance-fix/vllm_ascend/ops/triton/kda/fused_norm_gate.py",
     "sha256": "2a0061a14841d32f323e8bdf5e579eda05734d0b06cefa90659e795aca8bad04",
     "checkout_head": "3b0310aa32d735e01172346d8dbdac987a7f4643",
     "wrapper_lines": [
