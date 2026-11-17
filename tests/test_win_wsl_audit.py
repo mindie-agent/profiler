@@ -177,6 +177,12 @@ def _pid_alive(pid: int) -> bool:
         )
         return f'"{pid}"' in res.stdout
     try:
+        fields = (Path("/proc") / str(pid) / "stat").read_text().split(")", 1)[1].split()
+    except (OSError, IndexError):
+        fields = []
+    if fields and fields[0] == "Z":
+        return False
+    try:
         os.kill(pid, 0)
         return True
     except ProcessLookupError:

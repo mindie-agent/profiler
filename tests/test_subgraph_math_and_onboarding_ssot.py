@@ -9,7 +9,8 @@
 [Invariants]
   * Contract modules forward the exact simulator objects; no local rule copy.
   * Unknown checkpoints raise; aliases resolve to live catalog keys.
-  * Boundary/algebraic metrics stay ``None`` when the explicit ledger is absent.
+  * Real exported semantic members yield finite Cube/Vector MFU, boundary MBU,
+    and fusion headroom through the shared evaluator.
   * Hints name ``mindie-sim`` as the only onboarding owner.
 
 [Timeouts & Locks]
@@ -120,11 +121,15 @@ def test_exported_subgraph_math_is_evaluated_by_the_shared_function():
                   if row["subgraph_id"] == group["subgraph_id"])
     assert record["status"] == "evaluated"
     assert record["invocations"] == 2
-    assert record["metrics"]["realized_mbu"] is not None
-    # No explicit boundary access ledger exists yet: never an invented zero.
-    assert record["metrics"]["minimal_boundary_mbu"] is None
-    assert record["metrics"]["algebraic_cube_mfu"] is None
-    assert record["metrics"]["fusion_headroom_bytes"] is None
+    metrics = record["metrics"]
+    assert metrics["realized_mbu"] is not None
+    # Real pre-lowering semantic members yield the closed-form ledger: all
+    # shared efficiency metrics are finite and byte-consistent.
+    assert metrics["minimal_boundary_mbu"] is not None
+    assert metrics["algebraic_cube_mfu"] is not None
+    assert metrics["algebraic_vector_mfu"] is not None
+    assert metrics["fusion_headroom_bytes"] is not None
+    assert metrics["byte_accounting_consistent"] is True
 
 
 def test_mapping_reports_onboarding_hints_without_observations():
